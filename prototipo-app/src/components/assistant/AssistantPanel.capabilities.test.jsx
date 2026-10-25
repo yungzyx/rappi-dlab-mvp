@@ -7,7 +7,7 @@ import { DemoProvider } from '../../state/DemoContext'
 import { OrdersProvider } from '../../state/OrdersContext'
 import { ProductSheetProvider } from '../../state/ProductSheetContext'
 import { ProfileProvider } from '../../state/ProfileContext'
-import { DEFAULT_TIP, priceBreakdown } from '../../screens/checkout/pricing'
+import { DEFAULT_TIP, checkoutTotals, pricedBasket } from '../../screens/checkout/pricing'
 import { fixture, stubApi } from '../../test/api'
 import AssistantPanel from './AssistantPanel'
 
@@ -169,7 +169,9 @@ describe('el resumen antes de pagar', () => {
     say('quiero pagar')
     await runUntilIdle()
     const summary = screen.getByRole('region', { name: 'Resumen del pedido' })
-    const price = priceBreakdown({ subtotal: 6990, tip: DEFAULT_TIP, pickup: false })
+    // Como el checkout: un restaurante sin condiciones del catálogo (sus supuestos), sin Pro y con la propina de siempre.
+    const basket = { key: 'r', vertical: 'restaurantes', subtotal: 6990, lines: [] }
+    const price = checkoutTotals([pricedBasket(basket, null)], { tip: DEFAULT_TIP })
     expect(summary.textContent).toContain('1 × Roll california 10 piezas (prueba)')
     for (const label of ['Productos', 'Envío', 'Tarifa de servicio', 'Propina', 'Total'])
       expect(within(summary).getByText(label)).toBeTruthy()
