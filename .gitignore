@@ -29,3 +29,11 @@ Proyecto/
 .claude/settings.local.json
 .claude/launch.json
 .claude/worktrees/
+
+# Terraform (infra/oci): el estado y las variables locales tienen OCIDs e IPs de la cuenta.
+infra/**/.terraform/
+infra/**/*.tfstate
+infra/**/*.tfstate.*
+infra/**/terraform.tfvars
+infra/**/plan.out
+infra/**/ultimo-intento.log

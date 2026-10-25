@@ -1,0 +1,28 @@
+#cloud-config
+# Primer arranque de la máquina: Docker con el plugin compose, la web abierta en el firewall del sistema y la zona
+# horaria de Chile. El despliegue del MVP sigue en docs/despliegue.md (el código va en /opt/rappi).
+timezone: America/Santiago
+package_update: true
+package_upgrade: true
+packages:
+  - ca-certificates
+  - curl
+  - git
+  - unattended-upgrades
+
+runcmd:
+  # Docker Engine y compose desde el repositorio oficial de Docker.
+  - install -m 0755 -d /etc/apt/keyrings
+  - curl -fsSL https://download.docker.com/linux/ubuntu/gpg -o /etc/apt/keyrings/docker.asc
+  - chmod a+r /etc/apt/keyrings/docker.asc
+  - echo "deb [arch=arm64 signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/ubuntu $(. /etc/os-release && echo $VERSION_CODENAME) stable" > /etc/apt/sources.list.d/docker.list
+  - apt-get update
+  - apt-get install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
+  - systemctl enable --now docker
+  - usermod -aG docker ubuntu
+  # Las imágenes de Ubuntu de OCI traen iptables que rechaza todo lo que no es SSH: se abren 80 y 443 antes del rechazo.
+  - iptables -I INPUT 5 -p tcp --dport 443 -m state --state NEW -j ACCEPT
+  - iptables -I INPUT 5 -p tcp --dport 80 -m state --state NEW -j ACCEPT
+  - netfilter-persistent save
+  - install -d -m 0755 /opt/rappi /etc/rappi
+  - touch /var/lib/cloud/instance/rappi-listo
