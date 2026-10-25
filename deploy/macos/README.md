@@ -31,7 +31,7 @@ Nada escucha hacia la red: Caddy y la API solo atienden en `127.0.0.1`, y se ent
 4. Los archivos servidos la primera vez: `deploy/macos/actualizar.sh --forzar` (o copiar `prototipo-app/dist` y `dashboard-empresa/dist` a `~/rappi-tunel/srv/app` y `srv/panel`).
 5. `deploy/macos/instalar.sh` desde la copia de `~/rappi-prod`. La URL queda en `~/rappi-tunel/url.txt`.
 
-Para quitar todo: `deploy/macos/instalar.sh --quitar`. Registros en `~/rappi-tunel/logs/`.
+Para cambiar la clave de la puerta: `deploy/macos/cambiar-clave.sh` (la pide dos veces sin mostrarla, guarda solo su hash y reinicia Caddy). Para quitar todo: `deploy/macos/instalar.sh --quitar`. Registros en `~/rappi-tunel/logs/`.
 
 ## Requisitos del Mac
 
