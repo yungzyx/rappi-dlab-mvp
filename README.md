@@ -111,6 +111,7 @@ Cada cifra dice qué tipo de dato es. El detalle, con los reportes de cada fecha
 |---|---|---|
 | Catálogo | 253.945 documentos de búsqueda (84.024 productos, 165.623 platos y 4.298 tiendas), todos con embedding | Real (catálogo público, descarga del 04-10-2026) |
 | Búsqueda | nDCG@10: híbrido 0,905 · sin refuerzo por concepto 0,842 · vectorial 0,835 · léxico 0,765 | Evaluación automática: 131 consultas en las 8 verticales ([22-10-2026](docs/resultados/busqueda-2026-10-22.md)) |
+| Búsqueda: juicio LLM | 95 % de los 3 primeros resultados sirven o sirven a medias (66 % «sirve»); el juez por concepto coincide en el 70 % (κ 0,32) | Juicio LLM doble ciego de 200 pares, no humano ([25-10-2026](docs/resultados/juicio-llm-busqueda-2026-10-25.md)) |
 | «Sin resultado» | precisión 1,00 (0 falsas alarmas) · recall 0,93 (54 de 58 negativas) | Evaluación automática ([22-10-2026](docs/resultados/busqueda-2026-10-22.md)) |
 | Errores de tipeo | 52 de 53 recuperados en la búsqueda de la app (34 sin corregir) | Evaluación automática ([24-10-2026](docs/resultados/busqueda-2026-10-24.md)) |
 | Guardias de ofertas | 0 casos de alcohol, Farmacia, bebé, salud o sensibles en 2.851 productos ofrecidos | QA sobre el catálogo real con personas simuladas ([16-10-2026](docs/resultados/qa-motor-2026-10-16.md)) |
@@ -123,7 +124,7 @@ Cada cifra dice qué tipo de dato es. El detalle, con los reportes de cada fecha
 >
 > - **Usuarios y eventos simulados.** El motor, los segmentos y las métricas de negocio usan personas simuladas (`source = 'synthetic'`): muestran la mecánica, no un resultado.
 > - **La tabla de Rappi** es una correlación: no dice que sumar una vertical retenga.
-> - **La ventaja del híbrido.** La relevancia se juzga por concepto y el híbrido recibe un refuerzo por ese mismo concepto; sin él, no se distingue del vectorial (0,842 frente a 0,835). Falta un juicio humano.
+> - **La ventaja del híbrido.** La relevancia se juzga por concepto y el híbrido recibe un refuerzo por ese mismo concepto; sin él, no se distingue del vectorial (0,842 frente a 0,835). Un juicio LLM doble ciego (25-10) muestra que ese juez es generoso: da por relevante lo que solo sirve a medias, así que el nDCG es optimista ([reporte](docs/resultados/juicio-llm-busqueda-2026-10-25.md)). Falta el juicio humano.
 > - **Las precisiones de la capa 2 y de la capa de datos** son estimaciones con jueces LLM.
 > - **Lo que Mochi aprende de la persona y sus pedidos** es de demo: se guardan en el servidor bajo un id seudónimo del navegador, sin cuenta; la persona los borra con «Borrar mis datos» (Cuenta).
 > - **«No está en el catálogo»** no significa «Rappi no lo vende»: en tiendas el catálogo es una muestra.
@@ -185,7 +186,7 @@ Una demo cerrada en un servidor Linux con Docker Compose: Caddy con TLS y una pu
 - **Mochi no ofrece por su cuenta alcohol, farmacia, bebé ni salud:** solo el kit de una ocasión que la persona elige, o lo que la persona pide, puede traer alcohol, con +18. Consecuencia aceptada: hay menos complementos (por ejemplo, «playa» ya no sugiere protector solar). Ver [docs/decisiones.md](docs/decisiones.md).
 - **Preguntas a Mochi:** las entiende con reglas, no con un LLM, así que una pregunta que las reglas no cubren se busca por palabras. No es un chat: no recuerda la pregunta anterior.
 - **Turbo sin actualizar:** sus tiendas ya no aparecen como Turbo en los listados públicos que recorre el scraper; sus precios son del 27-09-2026.
-- **Evaluación automática:** no hay juicio humano, y el refuerzo por concepto favorece al híbrido. «Sin resultado» detecta 54 de 58 negativas, con un umbral calibrado sobre ese mismo set; el [reporte](docs/resultados/busqueda-2026-10-22.md) explica las demás.
+- **Evaluación automática:** no hay juicio humano (solo uno LLM, el 25-10, que muestra que el juez por concepto es generoso), y el refuerzo por concepto favorece al híbrido. «Sin resultado» detecta 54 de 58 negativas, con un umbral calibrado sobre ese mismo set; el [reporte](docs/resultados/busqueda-2026-10-22.md) explica las demás.
 - **Demo cerrada:** sin cuentas ni lanzamiento abierto. En local la API no tiene puerta de acceso y la tarea semanal local es de macOS (launchd; en Linux, los timers de systemd de `deploy/`); en un servidor, todo el sitio va detrás de usuario y clave.
 - **Cambios del sitio:** si rappi.cl cambia su frontend, hay que ajustar los parsers; el reporte de cada corrida marca las respuestas anómalas.
 
