@@ -143,9 +143,10 @@ export function detectConcepts(meta, q) {
 /** Si la consulta nombra una ocasión («algo para el carrete»: retrieval/hybrid.py, named_occasion). */
 const namesOccasion = (meta, q) => keywordMatches(indexOf(meta).occasions, normalize(q).split(' ')).length > 0
 
-// Palabras que el nombre de un producto no necesita repetir (agent/tools.py: _NAME_SKIP).
+// Palabras que el nombre de un producto no necesita repetir (agent/tools.py: _NAME_SKIP). «sin» sí: «harina con polvos
+// de hornear» no dice «harina sin polvos de hornear».
 const NAME_SKIP = ['a', 'al', 'algo', 'con', 'de', 'del', 'el', 'en', 'la', 'las', 'lo', 'los', 'mi', 'para', 'que']
-const NAME_SKIP_TOO = ['sin', 'y']
+const NAME_SKIP_TOO = ['y']
 
 /** Las palabras sin tildes pero con la ñ: «pañal» no es «panal» (agent/tools.py: _name_words). */
 const nameWords = (text) =>
