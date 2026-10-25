@@ -1,6 +1,6 @@
 // `POST /agent/offer` sin conexión (offers/engine.py simplificado): la vertical por probar con la escalera del motor,
-// «¿Repetimos?», «¿Volvemos a…?», los complementos del carro, del checkout y del próximo pedido, y las respuestas
-// grabadas (kits de una ocasión, sin resultado). Todo lo que se ofrece pasa por `offerableProduct` (offers/guards.py).
+// «¿Repetimos?», «¿Volvemos a…?» (sin lo de un pedido mal calificado: winback.js, paused), los complementos del carro,
+// del checkout y del próximo pedido, el OnTop de Turbo y las respuestas grabadas (kits de una ocasión, sin resultado). Todo lo que se ofrece pasa por `offerableProduct` (offers/guards.py).
 import { NONE_COMBO, OFFER_BLOCKED_VERTICALS, contractArticles, currentFine, stepSignal, targetStep } from './motor'
 import { entityKey } from './snapshot'
 import { normalize } from './text'
@@ -12,6 +12,7 @@ import {
   localDay,
   offerableVertical,
   orderDays,
+  paused,
   REPLENISH_MIN_ORDERS,
   repeatDue,
   replenishment,
@@ -178,16 +179,24 @@ const offerableIn = (snapshot, vertical, entity) => {
   return product && offerableProduct(product, snapshot.meta.concepts) ? product : null
 }
 
+const NO_STORES = new Set()
+
 /** El último producto (o plato) del concepto que compró, si está en la muestra en esa vertical; si no, el primero de la
- * muestra del concepto ahí (engine.py: _repeat_product). */
-function repeatProduct(snapshot, state, concept, vertical) {
+ * muestra del concepto ahí (engine.py: _repeat_product). Ninguno de una tienda en pausa (`stores`). */
+function repeatProduct(snapshot, state, concept, vertical, stores = NO_STORES) {
   const kind = kindOf(vertical)
+  const open = (p) => p && !stores.has(Number(p.store_id))
   const last = linesNewestFirst(state).find(({ line }) => line.concept_id === concept && line.entity_type === kind)
   const bought = last && offerableIn(snapshot, vertical, last.line)
-  if (bought) return bought
+  if (open(bought)) return bought
   const { concepts } = snapshot.meta
   return snapshot.pool.find(
-    (p) => p.concept === concept && p.vertical === vertical && p.entity_type === kind && offerableProduct(p, concepts),
+    (p) =>
+      p.concept === concept &&
+      p.vertical === vertical &&
+      p.entity_type === kind &&
+      offerableProduct(p, concepts) &&
+      open(p),
   )
 }
 
@@ -213,14 +222,15 @@ const repeatReply = (snapshot, moment, { text, why, basis, concept, vertical, pr
 export function repeatOffer(snapshot, state, now) {
   const { concepts, screen_verticals: screens } = snapshot.meta
   const today = localDay(now)
-  const rows = replenishment(state)
+  const hold = paused(state, now)
+  const rows = replenishment(state).filter((row) => !hold.concepts.has(row.concept))
   const due = rows
     .filter((row) => repeatDue(row, today))
     .sort((a, b) => a.dueOn - b.dueOn || (a.concept < b.concept ? -1 : 1))
   for (const row of due) {
     const concept = concepts[row.concept]
     if (!concept?.offerable || !offerableVertical(row.vertical, screens)) continue
-    const product = repeatProduct(snapshot, state, row.concept, row.vertical)
+    const product = repeatProduct(snapshot, state, row.concept, row.vertical, hold.stores)
     if (!product) continue
     const values = { destino: concept.name.toLowerCase(), cada: every(roundHalfEven(row.interval)) }
     return repeatReply(snapshot, 'recompra', {
@@ -235,7 +245,7 @@ export function repeatOffer(snapshot, state, now) {
   // Sin ritmo todavía (menos de tres días de compra: lo pedido en la demo).
   const seen = new Map() // concepto → { orders, recent, last: { line, order } }
   for (const { line, order } of linesNewestFirst(state).reverse()) {
-    if (!line.concept_id) continue
+    if (!line.concept_id || hold.concepts.has(line.concept_id)) continue
     const entry = seen.get(line.concept_id) ?? { orders: new Map(), recent: new Set() }
     entry.orders.set(order.order_id, order)
     if (today - localDay(order.ts) < LAPSE_MIN_DAYS) entry.recent.add(order.order_id)
@@ -249,7 +259,8 @@ export function repeatOffer(snapshot, state, now) {
     const concept = concepts[conceptId]
     const { line, order } = entry.last
     const product = offerableIn(snapshot, order.vertical, line)
-    if (!concept?.offerable || !offerableVertical(order.vertical, screens) || !product) continue
+    if (!concept?.offerable || !offerableVertical(order.vertical, screens) || !product || !hold.allows(product))
+      continue
     const values = { destino: concept.name.toLowerCase(), veces: entry.recent.size }
     return repeatReply(snapshot, 'recompra', {
       text: fill(REPEAT_DEMO_TEXT, values),
@@ -265,13 +276,14 @@ export function repeatOffer(snapshot, state, now) {
 
 const WINBACK_VERTICAL_PRODUCTS = 10 // engine.py: lo último que compró en la vertical, para encontrar uno a la venta
 
-/** Lo último que compró en la vertical que está en la muestra, tiene concepto y pasa las guardias (_last_bought_in). */
-const lastBoughtIn = (snapshot, state, vertical) =>
+/** Lo último que compró en la vertical que está en la muestra, tiene concepto, pasa las guardias y no está en pausa
+ * (_last_bought_in). */
+const lastBoughtIn = (snapshot, state, vertical, hold) =>
   linesNewestFirst(state)
     .filter(({ order, line }) => order.vertical === vertical && line.entity_type === kindOf(vertical))
     .slice(0, WINBACK_VERTICAL_PRODUCTS)
     .map(({ line }) => offerableIn(snapshot, vertical, line))
-    .find((product) => product?.concept)
+    .find((product) => product?.concept && hold.allows(product))
 
 /**
  * «¿Volvemos a…?» (engine.py: winback_offer): la primera invitación que se puede mostrar (winback.js: lapses y
@@ -279,11 +291,13 @@ const lastBoughtIn = (snapshot, state, vertical) =>
  */
 export function winbackOffer(snapshot, state, now) {
   const { concepts, vertical_labels: labels } = snapshot.meta
-  for (const lapse of available(state, lapses(snapshot, state, now), now)) {
+  const hold = paused(state, now)
+  const candidates = lapses(snapshot, state, now).filter((l) => !(l.kind === 'concepto' && hold.concepts.has(l.key)))
+  for (const lapse of available(state, candidates, now)) {
     const product =
       lapse.kind === 'concepto'
-        ? repeatProduct(snapshot, state, lapse.key, lapse.vertical)
-        : lastBoughtIn(snapshot, state, lapse.vertical)
+        ? repeatProduct(snapshot, state, lapse.key, lapse.vertical, hold.stores)
+        : lastBoughtIn(snapshot, state, lapse.vertical, hold)
     if (!product) continue
     if (lapse.kind === 'concepto') {
       const destino = concepts[lapse.key].name.toLowerCase()
@@ -373,6 +387,43 @@ export function complementOffer(snapshot, moment, entities, userId) {
   return null
 }
 
+// engine.py: el OnTop de Turbo. El plazo y el envío sin costo extra son supuestos (de ejemplo).
+const ONTOP_WINDOW_MIN = 15
+const ONTOP_SHOWN = 3
+const ONTOP_SIGNAL = { kind: 'ontop', id: `turbo@${ONTOP_WINDOW_MIN}min`, source: 'rappi+supuesto' }
+const ONTOP_SAMPLE_TEXT = 'Suma algo de Turbo a tu pedido, sin costo de envío extra (de ejemplo).'
+const REASON_ONTOP = 'Turbo llega en minutos: lo puedes sumar mientras esperas tu pedido.'
+
+/**
+ * «Turbo: suma esto antes de…» (engine.py: ontop_offer) sobre un pedido en curso que no es de Turbo: la oferta real
+ * grabada en la muestra (`onTop`) sin lo que el pedido ya lleva; sin ella (una muestra de antes), productos de Turbo de
+ * la muestra, uno por concepto, que pasen las guardias. Sin población que aprenda: no es la compra cruzada de la persona.
+ */
+export function onTopOffer(snapshot, context = {}) {
+  if (context.vertical === 'turbo' || !context.items?.length) return null
+  const { concepts } = snapshot.meta
+  const have = new Set(context.items.map((e) => entityKey(e.entity_type, e.entity_id)))
+  const fresh = (p) => !have.has(entityKey(p.entity_type, p.entity_id)) && offerableProduct(p, concepts)
+  const recorded = snapshot.onTop
+  if (recorded?.products?.some(fresh))
+    return { ...clone(recorded), products: recorded.products.filter(fresh), plazo_min: recorded.plazo_min ?? 15 }
+  const taken = new Set()
+  const products = snapshot.pool
+    .filter((p) => p.vertical === 'turbo' && fresh(p) && p.concept && !taken.has(p.concept) && taken.add(p.concept))
+    .slice(0, ONTOP_SHOWN)
+  if (!products.length) return null
+  return {
+    moment: 'ontop',
+    text: ONTOP_SAMPLE_TEXT,
+    products,
+    vertical: 'turbo',
+    prototype_vertical: 'turbo',
+    reason: { text: REASON_ONTOP, basis: [{ kind: 'muestra', id: 'turbo', source: 'demo' }, ONTOP_SIGNAL] },
+    actions: [{ label: 'Ver toda la tienda', route: ['turbo'] }],
+    plazo_min: ONTOP_WINDOW_MIN,
+  }
+}
+
 /** La oferta de un momento, o null (204) si no hay nada que ofrecer. */
 export function makeOffer(snapshot, state, now, { moment, context = {} }) {
   switch (moment) {
@@ -388,6 +439,8 @@ export function makeOffer(snapshot, state, now, { moment, context = {} }) {
       return complementOffer(snapshot, moment, context.cart ?? [], state.userId)
     case 'proximo_pedido':
       return complementOffer(snapshot, moment, context.items ?? [], state.userId)
+    case 'ontop':
+      return onTopOffer(snapshot, context)
     case 'plan':
       return guardedPlan(snapshot.planOffers[context.occasion])
     case 'sin_resultado':

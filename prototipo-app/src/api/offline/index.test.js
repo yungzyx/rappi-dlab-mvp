@@ -78,3 +78,33 @@ test('el origen de un evento se guarda de la columna nueva o del payload de ante
   })
   expect(readState().events.map((e) => e.origin)).toEqual(['agent-volver', 'agent-recompra'])
 })
+
+test('«Pídelo de nuevo»: lo que la muestra tiene en esa tienda, con su precio; lo demás no está disponible', () => {
+  const coffee = product(1)
+  snapshot.pool = [coffee]
+  const lines = [
+    { entity_type: 'catalog_item', entity_id: coffee.entity_id, store_id: coffee.store_id },
+    { entity_type: 'catalog_item', entity_id: coffee.entity_id, store_id: 999 },
+    { entity_type: 'menu_item', entity_id: '42' },
+  ]
+  const { body } = call('POST', '/catalog/availability', { lines })
+  expect(body.lines).toEqual([
+    { ...lines[0], available: true, price: coffee.price_value },
+    { ...lines[1], available: false, price: null },
+    { ...lines[2], store_id: null, available: false, price: null },
+  ])
+  snapshot.pool = []
+})
+
+test('la calificación queda con su carro y el pedido guarda el suyo: con eso se pausa la recompra', () => {
+  call('POST', '/orders', {
+    user_id: 'u',
+    cart_id: 'c-1',
+    vertical: 'supermercado',
+    lines: [{ entity_type: 'catalog_item', entity_id: '1' }],
+  })
+  call('POST', '/events', { user_id: 'u', events: [{ type: 'order_rated', cart_id: 'c-1', payload: { stars: 2 } }] })
+  const saved = readState()
+  expect(saved.orders[0].cart_id).toBe('c-1')
+  expect(saved.events.find((e) => e.type === 'order_rated')).toMatchObject({ cart_id: 'c-1', payload: { stars: 2 } })
+})

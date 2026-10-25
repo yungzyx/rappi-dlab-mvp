@@ -216,6 +216,11 @@ async function agent(token, userId) {
     if (reply) noResult[normalize(query)] = reply
   }
   const recommendations = await call(`/recommendations?user_id=${userId}`, { token })
+  // El OnTop de Turbo sobre un pedido de restaurante en curso, sin persona (src/api/offline/offers.js: onTopOffer).
+  const onTop = await post('/agent/offer', {
+    moment: 'ontop',
+    context: { vertical: 'restaurantes', items: [{ entity_type: 'menu_item', entity_id: '0' }] },
+  })
   // Sin pedidos, la vertical por probar de siempre (el súper, si tiene ofertas).
   const usual = await post('/agent/offer', { moment: 'vertical_por_probar', user_id: userId, context: {} })
   // «Qué me recomiendas» de alguien sin intereses: los ejemplos de siempre (con intereses, la API simulada busca los
@@ -231,7 +236,7 @@ async function agent(token, userId) {
   } finally {
     await call(`/profile/${fresh.user_id}`, { method: 'DELETE', token: fresh.token })
   }
-  return { search, ask, followUps, help, plans, planOffers, noResult, recommendations, toTry: { usual } }
+  return { search, ask, followUps, help, plans, planOffers, noResult, recommendations, onTop, toTry: { usual } }
 }
 
 /** Todos los productos de una respuesta (los objetos con entity_type, entity_id y precio). */

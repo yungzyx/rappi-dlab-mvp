@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'vitest'
-import { complementOf, makeOffer, offerableProduct } from './offers'
+import { complementOf, makeOffer, offerableProduct, onTopOffer } from './offers'
 import { decodeSnapshot } from './snapshot'
 import { CONCEPTS, META, product, recordedStep } from '../../test/offlineMeta'
 
@@ -391,4 +391,69 @@ test('decodeSnapshot arma los productos desde sus filas y los vuelve a poner en 
     img: 'https://images.rappi.cl/products/a.png',
   })
   expect(snapshot.byEntity.get('catalog_item:7').name).toBe('Café')
+})
+
+describe('calificación mala (winback.js: paused)', () => {
+  const rated = (cart, stars, days = 1, mode) => ({
+    type: 'order_rated',
+    ts: NOW - days * DAY_MS,
+    cart_id: cart,
+    payload: { stars, reasons: [], ...(mode ? { mode } : {}) },
+  })
+  const weekly = () =>
+    [21, 14, 7].map((days, i) => ({ ...ago(days, order('supermercado', [line(coffee)])), cart_id: `c-${i}` }))
+
+  test('3 estrellas o menos pausan la recompra de sus conceptos; 4 no, ni en «Rappi hoy», ni pasado un mes', () => {
+    const orders = weekly()
+    expect(offer('recompra', state({ orders, events: [rated('c-2', 3)] }))).toBeNull()
+    expect(offer('recompra', state({ orders, events: [rated('c-2', 4)] }))).not.toBeNull()
+    expect(offer('recompra', state({ orders, events: [rated('c-2', 1, 1, 'actual')] }))).not.toBeNull()
+    expect(offer('recompra', state({ orders, events: [rated('c-2', 1, 31)] }))).not.toBeNull()
+  })
+
+  test('también el «volver» de ese concepto, y ningún producto de su tienda', () => {
+    const stopped = [45, 38, 31, 24].map((days, i) => ({
+      ...ago(days, order('supermercado', [line(coffee)])),
+      cart_id: `s-${i}`,
+    }))
+    expect(offer('volver', state({ orders: stopped }))).not.toBeNull()
+    expect(offer('volver', state({ orders: stopped, events: [rated('s-3', 2)] }))).toBeNull()
+    // Un pedido malo de otra cosa en la misma tienda del café: el café tampoco se ofrece.
+    const other = { ...ago(3, order('conveniencia', [line(cookies)])), cart_id: 'otro' }
+    const sameStore = { ...other, lines: [{ ...line(cookies), store_id: coffee.store_id }] }
+    expect(offer('volver', state({ orders: [...stopped, sameStore], events: [rated('otro', 1)] }))).toBeNull()
+  })
+})
+
+describe('OnTop de Turbo', () => {
+  const items = [{ entity_type: 'menu_item', entity_id: '9' }]
+  const recorded = {
+    moment: 'ontop',
+    text: 'Suma helados de Turbo a tu pedido, sin costo de envío extra (de ejemplo).',
+    products: [turboSnack, turboCoffee],
+    vertical: 'turbo',
+    prototype_vertical: 'turbo',
+    reason: {
+      text: 'Turbo llega en minutos.',
+      basis: [{ kind: 'ontop', id: 'turbo@15min', source: 'rappi+supuesto' }],
+    },
+    actions: [],
+    plazo_min: 15,
+  }
+
+  test('la oferta grabada, sin lo que el pedido ya lleva; un pedido de Turbo no tiene OnTop', () => {
+    const snap = snapshotWith({ onTop: recorded })
+    expect(onTopOffer(snap, { vertical: 'restaurantes', items }).products).toEqual([turboSnack, turboCoffee])
+    const has = [{ entity_type: turboSnack.entity_type, entity_id: turboSnack.entity_id }]
+    expect(onTopOffer(snap, { vertical: 'restaurantes', items: has }).products).toEqual([turboCoffee])
+    expect(onTopOffer(snap, { vertical: 'turbo', items })).toBeNull()
+  })
+
+  test('sin la oferta grabada, productos de Turbo de la muestra que pasan las guardias, con su plazo de ejemplo', () => {
+    const made = makeOffer(snapshotWith(), state(), NOW, { moment: 'ontop', context: { vertical: 'grocery', items } })
+    expect(made.products.every((p) => p.vertical === 'turbo' && offerableProduct(p, CONCEPTS))).toBe(true)
+    expect(made.plazo_min).toBe(15)
+    expect(made.reason.basis).toContainEqual({ kind: 'ontop', id: 'turbo@15min', source: 'rappi+supuesto' })
+    expect(made.text).toContain('(de ejemplo)')
+  })
 })
