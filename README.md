@@ -118,7 +118,7 @@ Cada cifra dice qué tipo de dato es. El detalle, con los reportes de cada fecha
 | Guardias de ofertas | 0 casos de alcohol, Farmacia, bebé, salud o sensibles en 2.851 productos ofrecidos | QA sobre el catálogo real con personas simuladas ([16-10-2026](docs/resultados/qa-motor-2026-10-16.md)) |
 | Motor: próxima vertical | nDCG@8 0,978 frente a 0,918 del orden fijo | Simulado: prueba la mecánica, no el efecto ([17-10-2026](docs/resultados/simulados-2026-10-17.md)) |
 | Conceptos | 86 a 88 % de precisión en la asignación de conceptos | Estimación con jueces LLM ([06-10-2026](docs/resultados/capas-precision-2026-10-06-nueva-muestra.md)) |
-| Tests | rappi-ia 2.973 · scraper 305 · prototipo 690 · panel 123 | Verificación local y CI (24-10-2026) |
+| Tests | rappi-ia 2.996 (25-10-2026) · scraper 305 · prototipo 690 · panel 123 (24-10-2026) | Verificación local y CI |
 
 > [!IMPORTANT]
 > **Qué no es evidencia**
