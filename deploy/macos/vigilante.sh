@@ -28,7 +28,9 @@ revisar api api_sana
 revisar caddy caddy_vivo
 revisar tunel tunel_listo
 
-if [ -z "${TUNNEL_TOKEN:-}" ]; then
+if [ -n "${PUBLIC_URL:-}" ]; then
+  echo "$PUBLIC_URL" > "$TUNEL_DIR/url.txt"  # túnel con nombre: la URL es fija
+elif [ -z "${TUNNEL_TOKEN:-}" ] && [ -z "${TUNNEL_NAME:-}" ]; then
   url=$(grep -ao 'https://[a-z0-9-]*\.trycloudflare\.com' "$LOG_DIR/tunel.log" 2>/dev/null | tail -1 || true)
   if [ -n "$url" ] && [ "$url" != "$(cat "$TUNEL_DIR/url.txt" 2>/dev/null)" ]; then
     echo "$url" > "$TUNEL_DIR/url.txt"
