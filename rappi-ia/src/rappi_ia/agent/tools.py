@@ -26,7 +26,7 @@ from ..offers.guards import (
     offerable_vertical,
     unofferable_subverticals,
 )
-from ..retrieval.hybrid import Filters, RetrievalResult, named_occasion, retrieve
+from ..retrieval.hybrid import Filters, RetrievalResult, named_occasion, occasion_search, retrieve
 from ..retrieval.spelling import correct_query
 from ..text import FILLER_WORDS, LEAFLET_WARNINGS, normalize, tokens
 from .verticals import ranked_verticals
@@ -133,11 +133,16 @@ def search_products(
     `words`: si a la consulta le queda alguna palabra (`retrieval.hybrid.has_words`), si quien llama ya lo sabe.
     Con `correct` (/search), si nada calza todas las palabras, corrige los errores de tipeo (`retrieval.spelling`) y
     vuelve a buscar: si así algo calza todas las palabras y hay productos, devuelve eso con `corrected_query`; si no, lo
-    de la consulta tal cual."""
+    de la consulta tal cual. Con `concepts=None`, una ocasión sin concepto nombrado («algo para la once») se busca por
+    sus conceptos, como en la búsqueda agrupada (`retrieval.hybrid.occasion_search`), y no se corrige."""
+    occasion = occasion_search(query) if concepts is None else None
+    if occasion:
+        query, concepts, _ = occasion
+        words = None  # `words` era de la consulta escrita
     found = _search_products(
         conn, vertical, query, concepts, embedder, price_max, k, mode, symptom, offer, adult_ok, words
     )
-    if not correct or found.result.strict_lexical_matches:
+    if not correct or occasion or found.result.strict_lexical_matches:
         return found
     fixed = correct_query(conn, query, vertical)
     if fixed is None:

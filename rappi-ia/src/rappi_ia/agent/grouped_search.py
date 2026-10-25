@@ -16,9 +16,8 @@ from psycopg import Connection
 from psycopg import Error as DatabaseError
 from rappi_scraper.storage.search import VERTICALS
 
-from ..concepts.taxonomy import load_taxonomy
 from ..embeddings.base import MemoizedQueryEmbedder, TextEmbedder
-from ..retrieval.hybrid import UNNAMED_TAU, detect_concepts, has_words, named_occasion
+from ..retrieval.hybrid import UNNAMED_TAU, detect_concepts, has_words, occasion_search
 from ..retrieval.spelling import correct_query
 from .rappi_agent import PROTOTYPE_VERTICALS
 from .tools import Product, search_products
@@ -179,13 +178,10 @@ def _search_grouped(
     spare: SpareConnector | None,
 ) -> tuple[GroupedResult, bool]:
     """El resultado y si alguna vertical calza todas las palabras."""
-    concepts = detect_concepts(q)
-    occasion = None if concepts else named_occasion(q)
-    query, fixed = q, None
-    if occasion:
-        taxonomy = load_taxonomy()
-        concepts = [c for c in occasion.concepts if not taxonomy.concepts[c].sensitive]
-        query, fixed = " ".join(taxonomy.concepts[c].name for c in concepts[:4]), occasion.vertical
+    query, concepts, fixed = q, detect_concepts(q), None
+    if rewritten := occasion_search(q):
+        query, concepts, occasion = rewritten
+        fixed = occasion.vertical
     memo = MemoizedQueryEmbedder(embedder) if embedder is not None else None
     words = has_words(conn, query)  # una vez, no una por vertical
     verticals = _verticals_to_search(conn, concepts, current, fixed)
