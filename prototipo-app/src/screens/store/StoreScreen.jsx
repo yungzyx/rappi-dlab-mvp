@@ -8,6 +8,7 @@ import BackButton from '../../components/BackButton'
 import ProductRow from '../../components/ProductRow'
 import Img from '../../components/Img'
 import OfflineNotice from '../../components/OfflineNotice'
+import { ReorderCarousel } from '../../components/reorder/Reorder'
 import { useToast } from '../../components/Toast'
 import { HeartIcon } from '../../components/Icons'
 import { useEvents } from '../../state/EventsContext'
@@ -151,6 +152,9 @@ export default function StoreScreen({ back, params }) {
                 </button>
               ))}
             </div>
+
+            {/* «Pídelo de nuevo»: lo que la persona ya compró en esta tienda y sigue a la venta. */}
+            <ReorderCarousel storeId={id} />
 
             {chosen && (
               <>

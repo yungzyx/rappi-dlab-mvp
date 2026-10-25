@@ -246,6 +246,159 @@
   color: var(--accent-text);
 }
 
+.tracking-promise {
+  margin-top: 2px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--label-turbo);
+}
+
+/* ---------- Código de entrega ---------- */
+.tracking-code {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  gap: 2px 12px;
+  margin-top: 16px;
+  padding: 12px 14px;
+  border-radius: 18px;
+  border: 1.5px dashed var(--control-border);
+}
+
+.tracking-code span {
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.tracking-code strong {
+  grid-row: span 2;
+  font-size: 26px;
+  font-weight: 800;
+  letter-spacing: 4px;
+  font-variant-numeric: tabular-nums;
+}
+
+.tracking-code small {
+  font-size: 12.5px;
+  color: var(--ink-3);
+}
+
+/* ---------- OnTop de Turbo ---------- */
+.tracking-ontop {
+  margin-top: 16px;
+  padding: 14px 0 12px;
+  border-radius: 18px;
+  background: var(--tile-turbo);
+}
+
+.tracking-ontop h2 {
+  padding: 0 14px;
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--label-turbo);
+}
+
+.tracking-ontop > p,
+.tracking-ontop .offer-why,
+.tracking-ontop-note {
+  display: block;
+  padding: 0 14px;
+  font-size: 13.5px;
+  color: var(--ink-2);
+}
+
+.tracking-ontop-note {
+  margin-top: 6px;
+  font-size: 12px;
+  color: var(--ink-3);
+}
+
+.tracking-ontop-items {
+  gap: 12px;
+  padding: 12px 14px 0;
+}
+
+.tracking-ontop-item {
+  flex: none;
+}
+
+.tracking-ontop-cart {
+  display: block;
+  width: calc(100% - 28px);
+  margin: 10px 14px 0;
+  padding: 11px 0;
+  border-radius: 14px;
+  background: var(--green-add);
+  color: var(--ink);
+  font-weight: 700;
+}
+
+/* ---------- Calificación, propina y «Pídelo de nuevo» ---------- */
+.tracking-stars button:disabled {
+  cursor: default;
+}
+
+.tracking-reasons {
+  margin-top: 12px;
+}
+
+.tracking-reasons p {
+  font-size: 15px;
+}
+
+.tracking-reason-chips,
+.tracking-tip-chips {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.tracking-reason,
+.tracking-tip-chip {
+  padding: 8px 12px;
+  border-radius: 99px;
+  border: 1.5px solid var(--line);
+  background: var(--surface);
+  font-size: 13.5px;
+}
+
+.tracking-reason.is-on,
+.tracking-tip-chip.is-on {
+  border-color: var(--ink);
+  background: var(--ink);
+  color: var(--surface);
+}
+
+.tracking-reason-send {
+  margin-top: 12px;
+  padding: 10px 20px;
+  border-radius: 99px;
+  background: var(--ink);
+  color: var(--surface);
+  font-weight: 600;
+}
+
+.tracking-tip {
+  margin-top: 16px;
+  text-align: center;
+  font-size: 14.5px;
+}
+
+.tracking-tip small {
+  display: block;
+  margin-top: 6px;
+  font-size: 12px;
+  color: var(--ink-3);
+}
+
+.tracking-reorder {
+  display: flex;
+  justify-content: center;
+  margin-top: 14px;
+}
+
 .tracking-summary {
   margin-top: 18px;
   padding: 12px 0;

@@ -71,7 +71,9 @@ export default function LiveHomeFeed({ push, active = true }) {
   const profile = useProfile()
   const events = useEvents()
   const verticalOrder = useVerticalOrder(active)
-  const lastOrder = useOrders().orders[0]?.id ?? null // cambia con cada pedido: «¿Volvemos a…?» se vuelve a pedir
+  // Cambia con cada pedido y con cada calificación (una mala pausa lo de ese pedido): «¿Volvemos a…?» se vuelve a pedir.
+  const orders = useOrders().orders
+  const lastOrder = `${orders[0]?.id ?? ''}|${orders.filter((order) => order.rating).length}`
   const reduceMotion = useReducedMotion()
   const [replays, setReplays] = useState(0)
 

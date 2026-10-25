@@ -4,6 +4,7 @@ import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest'
 import { fixture, stubApi } from '../../test/api'
 import { ToastProvider } from '../../components/Toast'
 import { AssistantProvider, useAssistant } from '../../state/AssistantContext'
+import { CartProvider } from '../../state/CartContext'
 import { DemoProvider } from '../../state/DemoContext'
 import { QUIET_KEY, noteDismissed, resetQuiet } from '../../state/agentQuiet'
 import { OrdersProvider, useOrders } from '../../state/OrdersContext'
@@ -20,23 +21,32 @@ vi.mock('../../state/EventsContext', async (importOriginal) => ({
 // Lo que se pidió son productos de la API: la línea guarda su tipo e id, con los que Mochi arma el próximo pedido.
 const ORDER = {
   stores: ['Pizzería de prueba'],
+  cartId: 'c-prueba',
   items: [
     { name: 'Pizza (prueba)', img: 'pizza.webp', price: '$7.990', qty: 1, entityType: 'menu_item', entityId: '95001' },
   ],
   total: 7990,
 }
 
-function Harness({ reset }) {
+function Harness({ reset, placed = ORDER }) {
   const orders = useOrders()
   const order = orders.orders[0]
   if (!order)
     return (
-      <button type="button" onClick={() => orders.place(ORDER)}>
+      <button type="button" onClick={() => orders.place(placed)}>
         pedir
       </button>
     )
-  return <TrackingScreen back={() => {}} reset={reset} params={{ orderId: order.id }} />
+  return <TrackingScreen back={() => {}} reset={reset} push={push} params={{ orderId: order.id }} />
 }
+const push = vi.fn()
+
+// Las ofertas de ejemplo de cada momento (make contract): el OnTop mientras llega, el próximo pedido al entregar.
+const byMoment =
+  (moments = {}) =>
+  (req) =>
+    moments[req.body.moment] ??
+    fixture(req.body.moment === 'ontop' ? 'agent-offer-ontop' : 'agent-offer-proximo-pedido')
 
 let api
 beforeEach(() => {
@@ -44,7 +54,7 @@ beforeEach(() => {
   // partía antes de la medianoche terminaba en otro día.
   vi.useFakeTimers({ now: new Date(2026, 9, 21, 12) })
   events.track.mockClear()
-  api = stubApi({ 'POST /agent/offer': fixture('agent-offer-proximo-pedido') })
+  api = stubApi({ 'POST /agent/offer': byMoment() })
 })
 afterEach(() => {
   cleanup()
@@ -63,17 +73,19 @@ function Probe() {
   return null
 }
 
-const renderTracking = (reset = vi.fn()) => {
+const renderTracking = (reset = vi.fn(), placed = ORDER) => {
   render(
     <DemoProvider>
       <ProfileProvider>
         <AssistantProvider>
-          <OrdersProvider>
-            <ToastProvider>
-              <Probe />
-              <Harness reset={reset} />
-            </ToastProvider>
-          </OrdersProvider>
+          <CartProvider>
+            <OrdersProvider>
+              <ToastProvider>
+                <Probe />
+                <Harness reset={reset} placed={placed} />
+              </ToastProvider>
+            </OrdersProvider>
+          </CartProvider>
         </AssistantProvider>
       </ProfileProvider>
     </DemoProvider>,
@@ -85,8 +97,11 @@ const deliver = async () => {
   fireEvent.click(screen.getByText('pedir'))
   await act(() => vi.advanceTimersByTimeAsync(21_000))
 }
-const offerRequests = () =>
-  api.mock.calls.filter(([url]) => url.endsWith('/agent/offer')).map(([, init]) => JSON.parse(init.body))
+const offerRequests = (moment = 'proximo_pedido') =>
+  api.mock.calls
+    .filter(([url]) => url.endsWith('/agent/offer'))
+    .map(([, init]) => JSON.parse(init.body))
+    .filter((body) => body.moment === moment)
 const NEXT_CARD = /¿Y ahora/
 
 describe('TrackingScreen', () => {
@@ -110,6 +125,14 @@ describe('TrackingScreen', () => {
       surface: 'tracking',
       origin: 'agent-proximo_pedido',
       request_id: 'contrato-agent-offer-proximo-pedido',
+    })
+    // Mientras llegaba se mostró el OnTop de Turbo (también una sugerencia de Mochi).
+    expect(events.track).toHaveBeenCalledWith('suggestion_shown', {
+      concept_id: 'helados',
+      vertical: 'turbo',
+      surface: 'tracking',
+      origin: 'agent-ontop',
+      request_id: 'contrato-agent-offer-ontop',
     })
 
     // Tocarla abre el buscador con esa misma oferta, para agregar lo que arma.
@@ -137,7 +160,7 @@ describe('TrackingScreen', () => {
     expect(reset).toHaveBeenCalled()
   })
 
-  test('antes de la entrega no pide nada, y sin oferta (204) o sin respuesta la tarjeta no aparece', async () => {
+  test('antes de la entrega no pide el próximo pedido, y sin oferta (204) o sin respuesta la tarjeta no aparece', async () => {
     renderTracking()
     fireEvent.click(screen.getByText('pedir'))
     await act(() => vi.advanceTimersByTimeAsync(5_000))
@@ -208,5 +231,111 @@ describe('TrackingScreen', () => {
     fireEvent.click(screen.getByText('pedir'))
     expect(screen.queryByText(/Juega mientras llega tu pedido/)).toBeNull()
     expect(screen.queryByRole('button', { name: /Juega/ })).toBeNull()
+  })
+  test('un restaurante pasa por «Buscando un Rappi» y, en camino, muestra el código de entrega', async () => {
+    renderTracking()
+    fireEvent.click(screen.getByText('pedir'))
+    expect(screen.getByText('Buscando un Rappi')).toBeTruthy()
+    expect(screen.queryByRole('note', { name: 'Código de entrega' })).toBeNull()
+    await act(() => vi.advanceTimersByTimeAsync(10_000))
+    expect(screen.getByRole('note', { name: 'Código de entrega' }).textContent).toMatch(/\d{4}/)
+    expect(screen.getByText(/solo cuando tengas el pedido en tus manos/)).toBeTruthy()
+    await act(() => vi.advanceTimersByTimeAsync(11_000))
+    expect(screen.queryByRole('note', { name: 'Código de entrega' })).toBeNull()
+  })
+
+  test('mientras llega, el OnTop de Turbo con su plazo, rotulado de ejemplo; al entregar se va', async () => {
+    renderTracking()
+    fireEvent.click(screen.getByText('pedir'))
+    await act(() => vi.advanceTimersByTimeAsync(500))
+    expect(offerRequests('ontop')).toEqual([
+      {
+        moment: 'ontop',
+        user_id: expect.any(String),
+        context: { vertical: 'restaurants', items: [{ entity_type: 'menu_item', entity_id: '95001' }] },
+      },
+    ])
+    const ontop = screen.getByRole('region', { name: 'Turbo: suma a tu pedido' })
+    expect(ontop.textContent).toMatch(/Turbo: suma esto antes de las \d{2}:\d{2}/)
+    expect(ontop.textContent).toContain(fixture('agent-offer-ontop').text)
+    expect(ontop.textContent).toContain('Plazo y envío de ejemplo')
+    await act(() => vi.advanceTimersByTimeAsync(21_000))
+    expect(screen.queryByRole('region', { name: 'Turbo: suma a tu pedido' })).toBeNull()
+  })
+
+  test('sin OnTop en «Rappi hoy», con Mochi en silencio ni en un pedido de Turbo', async () => {
+    localStorage.setItem('rappi-proto-demo-mode', 'actual')
+    renderTracking()
+    fireEvent.click(screen.getByText('pedir'))
+    await act(() => vi.advanceTimersByTimeAsync(500))
+    expect(offerRequests('ontop')).toEqual([])
+
+    cleanup()
+    localStorage.clear()
+    localStorage.setItem(QUIET_KEY, today())
+    renderTracking()
+    fireEvent.click(screen.getByText('pedir'))
+    await act(() => vi.advanceTimersByTimeAsync(500))
+    expect(offerRequests('ontop')).toEqual([])
+
+    cleanup()
+    localStorage.clear()
+    const turbo = { ...ORDER, items: [{ ...ORDER.items[0], entityType: 'catalog_item', vertical: 'turbo' }] }
+    renderTracking(vi.fn(), turbo)
+    fireEvent.click(screen.getByText('pedir'))
+    await act(() => vi.advanceTimersByTimeAsync(500))
+    expect(offerRequests('ontop')).toEqual([])
+    expect(screen.getByText('Turbo: tu pedido llega en minutos')).toBeTruthy()
+  })
+
+  test('5 estrellas se guardan de una: evento order_rated con el carro del pedido', async () => {
+    renderTracking()
+    await deliver()
+    fireEvent.click(screen.getByRole('radio', { name: '5 estrellas' }))
+    expect(events.track).toHaveBeenCalledWith('order_rated', {
+      surface: 'tracking',
+      cart_id: 'c-prueba',
+      payload: { stars: 5, reasons: [] },
+    })
+    expect(screen.getByText('Tu calificación')).toBeTruthy()
+    expect(screen.getByRole('radio', { name: '5 estrellas' }).disabled).toBe(true)
+    expect(screen.queryByText('¿Qué problema tuvo el pedido?')).toBeNull()
+    expect(screen.getByRole('button', { name: NEXT_CARD })).toBeTruthy()
+  })
+
+  test('con 3 estrellas o menos pregunta qué problema tuvo; mandarla oculta el próximo pedido de Mochi', async () => {
+    renderTracking()
+    await deliver()
+    fireEvent.click(screen.getByRole('radio', { name: '2 estrellas' }))
+    expect(events.track).not.toHaveBeenCalledWith('order_rated', expect.anything())
+    expect(screen.getByText('¿Qué problema tuvo el pedido?')).toBeTruthy()
+    fireEvent.click(screen.getByRole('button', { name: 'Llegó tarde' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Faltó un producto' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Enviar calificación' }))
+    expect(events.track).toHaveBeenCalledWith('order_rated', {
+      surface: 'tracking',
+      cart_id: 'c-prueba',
+      payload: { stars: 2, reasons: ['tarde', 'faltante'] },
+    })
+    expect(screen.queryByRole('button', { name: NEXT_CARD })).toBeNull()
+  })
+
+  test('un pedido guardado sin su carro se califica en el teléfono, sin evento', async () => {
+    renderTracking(vi.fn(), { ...ORDER, cartId: undefined })
+    await deliver()
+    fireEvent.click(screen.getByRole('radio', { name: '4 estrellas' }))
+    expect(screen.getByText('Tu calificación')).toBeTruthy()
+    expect(events.track).not.toHaveBeenCalledWith('order_rated', expect.anything())
+  })
+
+  test('entregado: propina para el Rappi (no se cobra) y «Pídelo de nuevo»', async () => {
+    renderTracking()
+    await deliver()
+    expect(screen.getByText(/El 100% es para tu Rappi/)).toBeTruthy()
+    const tip = screen.getByRole('radio', { name: '$1.000' })
+    fireEvent.click(tip)
+    expect(tip.getAttribute('aria-checked')).toBe('true')
+    expect(screen.getByText('Tu Rappi recibe el 100% de la propina')).toBeTruthy()
+    expect(screen.getByText('Demo: no se cobra.')).toBeTruthy()
   })
 })

@@ -1,0 +1,154 @@
+/* «Pídelo de nuevo»: botón, hoja con lo disponible y carrusel de la tienda. */
+.reorder-button {
+  padding: 8px 14px;
+  border-radius: 99px;
+  background: var(--chip);
+  color: var(--ink);
+  font-size: 14px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.reorder-button:disabled {
+  opacity: 0.6;
+}
+
+.reorder-lines {
+  list-style: none;
+}
+
+.reorder-line {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--line-soft);
+}
+
+.reorder-line img {
+  flex: none;
+  width: 44px;
+  height: 44px;
+  border-radius: 10px;
+  object-fit: cover;
+  background: #f1f1f1;
+}
+
+.reorder-line-text {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  font-size: 13px;
+  color: var(--ink-muted);
+}
+
+.reorder-line-text strong {
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--ink);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.reorder-line.is-missing img,
+.reorder-line.is-missing .reorder-line-text {
+  opacity: 0.55;
+}
+
+.reorder-missing {
+  padding: 2px 8px;
+  border-radius: 99px;
+  background: var(--surface-muted);
+  color: var(--ink-2);
+  font-size: 12px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.reorder-note {
+  margin: 12px 0;
+  color: var(--ink-3);
+  font-size: 13px;
+}
+
+.reorder-keep p {
+  margin-bottom: 10px;
+  font-weight: 600;
+}
+
+.reorder-confirm,
+.reorder-secondary {
+  display: block;
+  width: 100%;
+  padding: 13px 0;
+  border-radius: 14px;
+  font-weight: 700;
+}
+
+.reorder-confirm {
+  background: var(--green-add);
+  color: var(--ink);
+}
+
+.reorder-secondary {
+  margin-top: 8px;
+  background: var(--surface-muted);
+  color: var(--ink);
+}
+
+.reorder-carousel {
+  margin-top: 18px;
+}
+
+.reorder-carousel-note {
+  color: var(--ink-3);
+  font-size: 13px;
+}
+
+.reorder-items {
+  gap: 14px;
+  padding: 12px 0 4px;
+}
+
+.reorder-item {
+  flex: none;
+}
+
+.reorder-home-card {
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+  width: 220px;
+  padding: 12px;
+  border-radius: 18px;
+  background: var(--tile);
+  font-size: 13px;
+  color: var(--ink-muted);
+}
+
+.reorder-home-card img {
+  width: 56px;
+  height: 56px;
+  border-radius: 12px;
+  object-fit: cover;
+  background: #f1f1f1;
+}
+
+.reorder-home-card strong {
+  max-width: 100%;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--ink);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.reorder-home-card .reorder-button {
+  margin-top: 6px;
+  background: var(--surface);
+}
