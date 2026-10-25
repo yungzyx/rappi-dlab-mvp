@@ -1,0 +1,35 @@
+{
+  "actions": [
+    {
+      "label": "Ver mis preferencias",
+      "panel": "preferencias"
+    }
+  ],
+  "age_notice": false,
+  "conversation": null,
+  "intent": {
+    "concepts": [],
+    "confidence": 1.0,
+    "follow_up": false,
+    "kind": "preferencia",
+    "occasion": null,
+    "price_max": null,
+    "query": "",
+    "symptom": false,
+    "vertical": null
+  },
+  "preferences": [
+    {
+      "nombre": "Vegetariano",
+      "tipo": "dieta",
+      "valor": "vegetariano"
+    }
+  ],
+  "products": [],
+  "reason": null,
+  "request_id": "contrato-agent-ask-preferencia",
+  "stores": [],
+  "tags": [],
+  "text": "Anotado: Vegetariano 🧡. Desde ahora saco de lo que te muestro lo que dice tener carne. Lo veo por el nombre del producto: revisa siempre los ingredientes en la tienda. Lo cambias cuando quieras en «Mis preferencias».",
+  "unmet": false
+}

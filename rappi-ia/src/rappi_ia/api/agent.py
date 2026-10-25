@@ -4,6 +4,7 @@
 `app.py` incluye este router; las dependencias viven en `deps.py`, así este módulo no importa `app`.
 """
 
+from dataclasses import replace
 from typing import Annotated, Literal
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Request, Response
@@ -12,7 +13,8 @@ from pydantic import ConfigDict, Field
 
 from .. import config
 from ..agent.grouped_search import SpareConnector
-from ..offers.engine import OfferError, home_occasions, make_offer
+from ..offers import preferences
+from ..offers.engine import Offer, OfferError, ProfileOffer, home_occasions, make_offer
 from ..offers.personal import user_interests
 from .deps import Clean, backend_vertical, get_conn, get_services, get_spare_connector
 from .identity import owner_in_query, owner_of_body
@@ -168,11 +170,33 @@ def offer(
     context = body.context.model_dump()
     if body.moment == "ontop":
         context["vertical"] = backend_vertical(context["vertical"])
+    mine = preferences.load(conn, body.user_id)  # su dieta y alergias filtran; sus favoritas ordenan
     try:
-        found = make_offer(conn, svc.embedder, body.moment, context, body.user_id, spare)
+        with preferences.applied(mine):
+            found = make_offer(conn, svc.embedder, body.moment, context, body.user_id, spare)
     except OfferError as exc:
         raise HTTPException(422, str(exc)) from exc
+    found = _with_preferences(found, mine)
     return Response(status_code=204) if found is None else {**found.to_dict(), "request_id": served_request_id()}
+
+
+def _with_preferences(found: Offer | ProfileOffer | None, mine: preferences.Preferences) -> Offer | ProfileOffer | None:
+    """La oferta con lo que salió por otro camino que `search_products` (la recompra, lo más pedido, los peldaños que
+    se buscan en paralelo) también filtrado por su dieta y alergias. Si no queda nada de lo que traía, no hay oferta:
+    un 204, como cualquier momento sin una buena. La razón no cambia: nunca es una preferencia."""
+    if found is None or not mine:
+        return found
+    if isinstance(found, ProfileOffer):
+        steps = []
+        for step in found.steps:
+            kept = preferences.keep_dicts(mine, step["products"])
+            if kept or not step["products"]:
+                steps.append({**step, "products": kept})
+        return replace(found, steps=steps) if steps else None
+    kept = preferences.keep_dicts(mine, found.products)
+    if found.products and not kept:
+        return None
+    return replace(found, products=kept)
 
 
 @router.get("/plans", dependencies=[Depends(owner_in_query)])

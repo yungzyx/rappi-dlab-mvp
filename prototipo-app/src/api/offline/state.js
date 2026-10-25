@@ -1,16 +1,18 @@
-// Lo que la API simulada recuerda de la persona: sus eventos y pedidos, en localStorage de este navegador. La clave
+// Lo que la API simulada recuerda de la persona: sus eventos, pedidos y preferencias, en localStorage de este navegador. La clave
 // lleva el prefijo `rappi-proto-`, así «Borrar mis datos» la borra junto con lo demás del prototipo.
 
 const KEY = 'rappi-proto-offline-api'
 const MAX_EVENTS = 500
 
-const empty = () => ({ userId: null, events: [], orders: [] })
+const empty = () => ({ userId: null, events: [], orders: [], preferences: [] })
 let memory = empty() // sin localStorage (modo privado), vive mientras la pestaña siga abierta
 
 export function readState() {
   try {
     const stored = JSON.parse(localStorage.getItem(KEY))
-    return stored && Array.isArray(stored.events) && Array.isArray(stored.orders) ? stored : empty()
+    if (!stored || !Array.isArray(stored.events) || !Array.isArray(stored.orders)) return empty()
+    // Lo guardado antes de las preferencias (migración 045) no las trae.
+    return Array.isArray(stored.preferences) ? stored : { ...stored, preferences: [] }
   } catch {
     return memory
   }

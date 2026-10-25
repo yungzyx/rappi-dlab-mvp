@@ -755,3 +755,165 @@
   line-height: 1.2;
   color: var(--accent-ink);
 }
+
+/* ---------- Aviso de IA y memoria (bajo «Aprendiendo de ti») ---------- */
+.agent-ai-notice {
+  margin: 6px var(--gutter) 0;
+  font-size: 12px;
+  line-height: 16px;
+  color: var(--ink-3);
+}
+
+/* ---------- Mientras espera la respuesta: qué hace y «Cancelar» ---------- */
+.agent-msg-thinking {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 4px 10px;
+}
+
+.agent-msg-progress {
+  font-size: 13px;
+  color: var(--ink-2);
+}
+
+.agent-msg-cancel {
+  position: relative;
+  font-size: 13px;
+  font-weight: 600;
+  color: #c2410c;
+  text-decoration: underline;
+}
+
+/* Área táctil de 44 px de alto */
+.agent-msg-cancel::before {
+  content: '';
+  position: absolute;
+  inset: -14px -6px;
+}
+
+/* ---------- Lo que Mochi sabe hacer ---------- */
+.agent-capability {
+  border-color: var(--agent-orange);
+  color: #c2410c;
+  font-weight: 600;
+}
+
+/* ---------- Resumen del pedido y último pedido ---------- */
+.agent-summary {
+  margin-top: 8px;
+  padding: 12px 14px;
+  border-radius: 16px;
+  background: var(--surface);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.06);
+  font-size: 14px;
+}
+
+.agent-summary-lines li,
+.agent-summary-rows div {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 3px 0;
+}
+
+.agent-summary-lines span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.agent-summary-lines b {
+  flex: none;
+  font-weight: 600;
+}
+
+.agent-summary-more {
+  color: var(--ink-3);
+}
+
+.agent-summary-rows {
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px solid var(--line);
+  color: var(--ink-2);
+}
+
+.agent-summary-rows .is-total {
+  margin-top: 4px;
+  font-size: 15.5px;
+  font-weight: 700;
+  color: var(--ink);
+}
+
+.agent-summary-eta {
+  margin-top: 8px;
+  font-weight: 600;
+}
+
+.agent-summary-note,
+.agent-card-note {
+  margin-top: 6px;
+  font-size: 12.5px;
+  line-height: 17px;
+  color: var(--ink-3);
+}
+
+.agent-order-title {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 8px;
+}
+
+.agent-order-title small {
+  font-size: 12.5px;
+  color: var(--ink-3);
+}
+
+.agent-order-status {
+  margin-top: 4px;
+  font-weight: 600;
+  color: #c2410c;
+}
+
+/* ---------- «Mis preferencias» ---------- */
+.agent-prefs-title {
+  margin: 14px 0 6px;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.agent-prefs-note {
+  font-size: 13.5px;
+  line-height: 19px;
+  color: var(--ink-2);
+}
+
+.agent-prefs-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.agent-prefs-chip {
+  animation: none;
+}
+
+.agent-prefs-chip.is-on {
+  border-color: var(--agent-orange);
+  background: #fff1eb;
+  color: #c2410c;
+  font-weight: 600;
+}
+
+.agent-prefs .sheet-confirm-primary {
+  margin-top: 18px;
+}
+
+.agent-prefs [role='alert'] {
+  margin-top: 12px;
+  font-size: 13.5px;
+  color: #b42318;
+}

@@ -3,12 +3,43 @@ import AddButton from '../AddButton'
 import HScroll from '../HScroll'
 import Img from '../Img'
 import OfferWhy from './OfferWhy'
+import { LastOrderCard, OrderSummaryCard } from './AgentCards'
 import { useReducedMotion } from '../../hooks/useReducedMotion'
 import { useProductSheet } from '../../state/ProductSheetContext'
 import { typedEnd } from '../../utils/typed'
 
 const CHARS_PER_SECOND = 70
 const TICK_MS = 30
+// Lo que dice mientras espera la respuesta (como la app de Rappi): uno tras otro, y se queda en el último.
+export const PROGRESS = ['Entendiendo tu pedido', 'Buscando opciones', 'Revisando disponibilidad', 'Casi listo']
+const PROGRESS_MS = 1400
+
+/** «Escribiendo…» con lo que está haciendo y, si se puede, «Cancelar» la respuesta en curso. */
+function Thinking({ progress, onCancel }) {
+  const [step, setStep] = useState(0)
+  useEffect(() => {
+    if (!progress || step >= PROGRESS.length - 1) return undefined
+    const timer = setTimeout(() => setStep((s) => s + 1), PROGRESS_MS)
+    return () => clearTimeout(timer)
+  }, [progress, step])
+  return (
+    <div className="agent-msg-row">
+      <div className="agent-msg-thinking">
+        <div className="agent-msg-bubble agent-msg-typing" aria-label="Escribiendo">
+          <span />
+          <span />
+          <span />
+        </div>
+        {progress && <span className="agent-msg-progress">{PROGRESS[step]}…</span>}
+        {onCancel && (
+          <button type="button" className="agent-msg-cancel tap" onClick={onCancel}>
+            Cancelar
+          </button>
+        )}
+      </div>
+    </div>
+  )
+}
 
 /**
  * Texto que aparece letra por letra, como si el asistente lo estuviera escribiendo (entero con «reducir movimiento»).
@@ -130,7 +161,9 @@ function AlsoIn({ alsoIn, onAction }) {
 
 /**
  * Una respuesta del agente con tarjetas (lo elegido se muestra aparte, sin burbuja). `followUp` (para seguir la
- * conversación) va justo debajo de sus productos, antes de la sugerencia de otra tienda.
+ * conversación) va justo debajo de sus productos, antes de la sugerencia de otra tienda. Con `orderSummary`, el resumen
+ * del carro antes de pagar; con `lastOrder`, el último pedido (`onTrack` abre su seguimiento). Mientras espera, si la
+ * respuesta se puede cortar (`cancellable`), dice qué está haciendo y ofrece «Cancelar» (`onCancel`).
  */
 export default function AgentMessage({
   message,
@@ -139,21 +172,13 @@ export default function AgentMessage({
   onOpenStore,
   onAction,
   onRetry,
+  onCancel,
+  onTrack,
   followUp,
 }) {
   const [revealed, setRevealed] = useState(!message.animate)
 
-  if (message.typing) {
-    return (
-      <div className="agent-msg-row">
-        <div className="agent-msg-bubble agent-msg-typing" aria-label="Escribiendo">
-          <span />
-          <span />
-          <span />
-        </div>
-      </div>
-    )
-  }
+  if (message.typing) return <Thinking progress={message.cancellable} onCancel={message.cancellable && onCancel} />
 
   const done = () => {
     setRevealed(true)
@@ -170,6 +195,8 @@ export default function AgentMessage({
             hasta que termina el texto. */}
         <div className={`agent-msg-extras${revealed ? '' : ' is-pending'}`} inert={!revealed}>
           {message.reason && <p className="agent-msg-reason">{message.reason}</p>}
+          {message.orderSummary && <OrderSummaryCard />}
+          {message.lastOrder && <LastOrderCard onTrack={onTrack} />}
           {message.products?.length > 0 && <ProductCards products={message.products} onOpenProduct={onOpenProduct} />}
           {message.offerReason && <OfferWhy reason={message.offerReason} />}
           {followUp}

@@ -35,7 +35,8 @@ let healthCache = { at: 0, value: null }
 
 /**
  * Por qué falló una petición a la API: `offline` (no hay quien responda, o lo que responde no es la API),
- * `timeout` (no contestó a tiempo) o `http` (contestó con un error; `status` es su código).
+ * `timeout` (no contestó a tiempo), `cancelled` (la cortó quien la pidió) o `http` (contestó con un error; `status` es
+ * su código).
  */
 export class ApiError extends Error {
   constructor(kind, { status, cause } = {}) {
@@ -87,9 +88,12 @@ export function renewSession() {
 /** La sesión de este navegador: la que ya tiene o, la primera vez, una nueva (la pide ConnectionGate al abrir). */
 export const ensureSession = () => (userToken() ? Promise.resolve() : renewSession())
 
-async function send(path, { method = 'GET', body, timeout = DEFAULT_TIMEOUT_MS, keepalive } = {}) {
+async function send(path, { method = 'GET', body, timeout = DEFAULT_TIMEOUT_MS, keepalive, signal } = {}) {
   const controller = new AbortController()
   const timer = setTimeout(() => controller.abort(), timeout)
+  // `signal`: quien llama puede cortar la petición (cancelar la respuesta de Mochi en curso).
+  const cancel = () => controller.abort()
+  signal?.addEventListener('abort', cancel, { once: true })
   const token = userToken()
   try {
     const response = await fetch(`${API_URL}${path}`, {
@@ -104,10 +108,13 @@ async function send(path, { method = 'GET', body, timeout = DEFAULT_TIMEOUT_MS, 
     return await response.json()
   } catch (error) {
     if (error instanceof ApiError) throw error
-    // Solo el temporizador aborta; cualquier otro fallo (sin red, cuerpo que no es JSON) es una API que no está.
+    if (signal?.aborted) throw new ApiError('cancelled', { cause: error })
+    // Si no lo cortó quien llama, solo el temporizador aborta; cualquier otro fallo (sin red, cuerpo que no es JSON)
+    // es una API que no está.
     throw new ApiError(controller.signal.aborted ? 'timeout' : 'offline', { cause: error })
   } finally {
     clearTimeout(timer)
+    signal?.removeEventListener('abort', cancel)
   }
 }
 
@@ -145,12 +152,15 @@ export function resetHealthCache() {
   healthCache = { at: 0, value: null }
 }
 
-/** Si falla, la próxima pregunta vuelve a revisar /health en vez de fiarse del caché de 30 s. */
-export async function ask(payload) {
+/**
+ * Si falla, la próxima pregunta vuelve a revisar /health en vez de fiarse del caché de 30 s. Con `signal`, se puede
+ * cancelar la respuesta en curso (lanza un `ApiError` `cancelled`, que no cuenta como API caída).
+ */
+export async function ask(payload, { signal } = {}) {
   try {
-    return await request('/agent/ask', { method: 'POST', body: payload })
+    return await request('/agent/ask', { method: 'POST', body: payload, signal })
   } catch (error) {
-    resetHealthCache()
+    if (error.kind !== 'cancelled') resetHealthCache()
     throw error
   }
 }
@@ -293,6 +303,10 @@ export function toMessage(response) {
     // sola («Ir a Farmacia», tras una pregunta de salud) lleva a su pantalla.
     actions: (response.actions ?? []).map((a) => {
       if (a.query) return { label: a.label, ask: { text: a.query, vertical: a.vertical } }
+      // Lo que Mochi sabe hacer («Repite lo de siempre»: `recompra`, `plan`, `perfil`) y «Ver mis preferencias»: los
+      // resuelve el panel.
+      if (a.capability) return { label: a.label, capability: a.capability }
+      if (a.panel) return { label: a.label, panel: a.panel }
       if (a.vertical && !a.route) return { label: a.label, route: verticalView(a.vertical).route }
       return a
     }),
@@ -305,6 +319,10 @@ export function toMessage(response) {
     // respuesta siguió a la anterior («más barato» tras «cerveza»).
     conversation: response.conversation ?? null,
     followUp: Boolean(response.intent?.follow_up),
+    // Qué entendió (`resumen`: el panel arma el resumen con el carro; `pedido`: muestra el último pedido) y, en una
+    // preferencia dicha por chat, la lista que quedó.
+    kind: response.intent?.kind ?? null,
+    preferences: response.preferences ?? null,
     requestId,
     source: 'api',
   }

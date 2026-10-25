@@ -36,6 +36,11 @@
 //   cerrado según el horario publicado y los filtros de restaurantes (catalog.js); las búsquedas recientes de
 //   events/searches.py (index.js: searchesReply). Sin conexión no hay «Lo más buscado», tiendas en la búsqueda, «Lo que
 //   sea», comparar entre tiendas ni «Para ti» en la tienda: esas rutas responden 404 o vacío y la app no las muestra.
+// - rappi-ia/src/rappi_ia/offers/preferences.py y preferencias.toml, api/preferences.py y rappi_agent.py
+//   (_preference) ... las preferencias explícitas: por chat, en el panel, y el filtro y el orden de lo que Mochi muestra
+//   y ofrece (preferences.js; index.js: preferenceAnswer, withPreferences)
+// - rappi-ia/src/rappi_ia/agent/rappi_agent.py (_small_talk, HELP_ACTIONS) y compose.py ... la ayuda con los atajos de
+//   lo que Mochi sabe hacer, el resumen antes de pagar y el último pedido (search.js: appQuestion, helpReply)
 // - rappi-ia/src/rappi_ia/api/app.py y api/catalog.py ... las rutas (index.js, catalog.js, search.js), con el
 //   `request_id` de las respuestas que ordenan cosas (index.js: served)
 // No hay población que aprenda (transiciones, popularidad, retención aprendida) ni búsqueda semántica, y lo pedido en
@@ -43,7 +48,8 @@
 import { catalogRoute } from './catalog'
 import { contractArticles, homeVerticals } from './motor'
 import { makeOffer } from './offers'
-import { ask, backendVertical, search } from './search'
+import { applied, cleaned, CUISINES, describe, findStore, options, readCommand, withoutOf } from './preferences'
+import { ask, backendVertical, detectConcepts, search } from './search'
 import { loadSnapshot } from './snapshot'
 import { addEvents, addOrder, clearState, readState, updateState } from './state'
 import { profileOffer, tastesReply } from './tastes'
@@ -182,6 +188,133 @@ function searchesReply(state) {
   return { recientes: recent, mas_buscado: [], poblacion: null }
 }
 
+/**
+ * Una respuesta con productos (de /agent/ask o una fila de «Para ti») con la dieta y las alergias de la persona
+ * aplicadas, y sus favoritas primero; con `notice`, lo que dice al mostrar comida (rappi_agent.py: reply).
+ */
+function withPreferences(snapshot, state, reply, { notice = false } = {}) {
+  const mine = applied(snapshot.meta, state.preferences)
+  if (!mine.any || !reply) return reply
+  const products = mine.products(reply.products ?? [])
+  const suggestion = reply.suggestion && { ...reply.suggestion, products: mine.products(reply.suggestion.products) }
+  const said =
+    notice && reply.intent?.kind !== 'preferencia' ? mine.notice([...products, ...(suggestion?.products ?? [])]) : null
+  return {
+    ...reply,
+    products,
+    ...(reply.suggestion ? { suggestion } : {}),
+    ...(said ? { text: `${reply.text} ${said}` } : {}),
+  }
+}
+
+/** api/agent.py (_with_preferences): una oferta que se queda sin lo que traía no se ofrece (204). */
+function offeredWithPreferences(snapshot, state, offer) {
+  const mine = applied(snapshot.meta, state.preferences)
+  if (!mine.any) return offer
+  if (offer.escalera) {
+    const steps = offer.escalera
+      .map((step) => ({ ...step, kept: mine.products(step.products), had: step.products.length }))
+      .filter((step) => step.kept.length || !step.had)
+      .map(({ kept, had: _had, ...step }) => ({ ...step, products: kept }))
+    return steps.length ? { ...offer, escalera: steps } : null
+  }
+  const products = mine.products(offer.products ?? [])
+  return offer.products?.length && !products.length ? null : { ...offer, products }
+}
+
+// rappi_agent.py: los textos de `_preference`.
+const PREFERENCES_TODAY =
+  'En «Rappi hoy» no guardo preferencias. En la propuesta recuerdo tu dieta, tus alergias y tus favoritas, y las ' +
+  'borras cuando quieras 🔒.'
+const PREFERENCES_NONE =
+  'Todavía no tengo preferencias tuyas. Dime, por ejemplo, «soy vegetariano», «no como maní» o «mi comida favorita ' +
+  'es el sushi», o márcalas en «Mis preferencias».'
+const joinNames = (names) => (names.length === 1 ? names[0] : `${names.slice(0, -1).join(', ')} y ${names.at(-1)}`)
+
+/**
+ * «soy vegetariano», «no como maní», «mi tienda favorita es…», «muéstrame mis preferencias», «olvida mis preferencias»
+ * (rappi_agent.py: _preference): las guarda en el estado de la API simulada y dice cuáles quedaron. null si el mensaje
+ * no habla de sus preferencias.
+ */
+function preferenceAnswer(snapshot, state, body) {
+  let command = readCommand(String(body.message ?? ''))
+  if (command?.cuisineText !== undefined) {
+    const said = command.cuisineText
+    const found = [...detectConcepts(snapshot.meta, said), ...detectConcepts(snapshot.meta, `comida ${said}`)]
+    const cuisines = [...new Set(found)].filter((c) => CUISINES.includes(c))
+    command = cuisines.length ? { action: 'agregar', items: cuisines.map((c) => ({ tipo: 'cocina', valor: c })) } : null
+  }
+  if (!command) return null
+  const reply = (text, extra = {}) => ({
+    text,
+    products: [],
+    vertical: null,
+    prototype_vertical: null,
+    intent: { kind: 'preferencia', query: '', concepts: [], vertical: null, confidence: 1, follow_up: false },
+    reason: null,
+    suggestion: null,
+    actions: [],
+    tags: [],
+    stores: [],
+    unmet: false,
+    unmet_reason: null,
+    age_notice: false,
+    conversation: null,
+    ...extra,
+  })
+  if (body.mode === 'actual') return reply(PREFERENCES_TODAY)
+  const { meta } = snapshot
+  let items = command.items
+  if (command.store) {
+    const store = findStore(snapshot, command.store)
+    if (!store) return reply(`No encontré «${command.store}» entre las tiendas de Rappi: dímela como sale en la app.`)
+    items = [...items, { tipo: 'tienda', valor: store }]
+  }
+  const current = state.preferences ?? []
+  const same = (a) => (b) => a.tipo === b.tipo && a.valor === b.valor
+  const names = describe(meta, items).map((p) => p.nombre)
+  let text = null
+  let next = current
+  if (command.action === 'agregar') {
+    next = cleaned(snapshot, [...current, ...items], [...current, ...items])
+    const filters = items.filter((p) => p.tipo === 'dieta' || p.tipo === 'alergia')
+    const parts = [`Anotado: ${joinNames(names)} 🧡.`]
+    if (filters.length) {
+      parts.push(
+        `Desde ahora saco de lo que te muestro lo que dice tener ${withoutOf(filters)}. ` +
+          'Lo veo por el nombre del producto: revisa siempre los ingredientes en la tienda.',
+      )
+    }
+    if (items.some((p) => p.tipo === 'cocina' || p.tipo === 'tienda'))
+      parts.push('Cuando calce con lo que buscas, lo pongo primero.')
+    parts.push('Lo cambias cuando quieras en «Mis preferencias».')
+    text = parts.join(' ')
+  } else if (command.action === 'quitar') {
+    next = current.filter((p) => !items.some((item) => same(item)(p)))
+    text = `Listo, ya no tengo en cuenta: ${joinNames(names)}.`
+  } else if (command.action === 'olvidar') {
+    next = []
+    text = 'Listo, olvidé tus preferencias 🔒.'
+  }
+  if (next !== current) updateState((s) => ({ ...s, preferences: next }))
+  const listed = describe(meta, next)
+  if (!text) {
+    const filters = listed.filter((p) => p.tipo === 'dieta' || p.tipo === 'alergia').map((p) => p.nombre)
+    const favorites = listed.filter((p) => p.tipo === 'cocina' || p.tipo === 'tienda').map((p) => p.nombre)
+    const parts = [
+      ...(filters.length ? [`Dieta y alergias: ${filters.join(', ')}.`] : []),
+      ...(favorites.length ? [`Tus favoritas: ${favorites.join(', ')}.`] : []),
+    ]
+    text = listed.length
+      ? `Esto recuerdo de ti. ${parts.join(' ')} Las cambias en «Mis preferencias» o me dices «olvida mis preferencias».`
+      : PREFERENCES_NONE
+  }
+  return reply(text, {
+    preferences: listed,
+    actions: [{ label: 'Ver mis preferencias', panel: 'preferencias' }],
+  })
+}
+
 const ORDER_VERTICALS = [
   'restaurantes',
   'turbo',
@@ -224,8 +357,11 @@ function answer(snapshot, { method, path, query, body }, now) {
   if (key === 'POST /catalog/availability') return { body: availability(snapshot, body?.lines ?? []) }
   if (key === 'GET /search') return { body: search(snapshot, query) }
   if (key === 'POST /agent/ask') {
+    const said = preferenceAnswer(snapshot, state, body ?? {})
+    if (said) return { body: said }
     const mine = interests(snapshot, state, now).map((i) => i.concept)
-    return { body: ask(snapshot, body, { interests: mine, userId: state.userId }) }
+    const reply = ask(snapshot, body, { interests: mine, userId: state.userId })
+    return { body: body?.mode === 'actual' ? reply : withPreferences(snapshot, state, reply, { notice: true }) }
   }
   if (key === 'GET /agent/plans') return { body: snapshot.plans }
   if (key === 'POST /agent/offer') {
@@ -233,9 +369,14 @@ function answer(snapshot, { method, path, query, body }, now) {
       body?.moment === 'perfil'
         ? profileOffer(snapshot, state, body.context?.perfil)
         : makeOffer(snapshot, state, now, body ?? {})
-    return offer ? { body: offer } : { status: 204, body: null }
+    const kept = offer && offeredWithPreferences(snapshot, state, offer)
+    return kept ? { body: kept } : { status: 204, body: null }
   }
-  if (key === 'GET /recommendations') return { body: recommendations(snapshot, state, now, query) }
+  if (key === 'GET /recommendations') {
+    const reply = recommendations(snapshot, state, now, query)
+    const rows = reply.rows.map((row) => withPreferences(snapshot, state, row)).filter((row) => row.products.length)
+    return { body: { ...reply, rows } }
+  }
   if (key === 'POST /events' || key === 'POST /events/beacon') {
     const events = (body?.events ?? []).map((e) => storedEvent(e, now))
     addEvents(events)
@@ -256,9 +397,17 @@ function answer(snapshot, { method, path, query, body }, now) {
     addOrder(order)
     return { body: { order_id: order.order_id, lineas_omitidas: 0 } }
   }
-  const profile = /^\/profile\/([^/]+)(\/verticales|\/gustos|\/busquedas)?$/.exec(path)
+  const profile = /^\/profile\/([^/]+)(\/verticales|\/gustos|\/busquedas|\/preferencias)?$/.exec(path)
   if (profile) {
     const userId = decodeURIComponent(profile[1])
+    if (profile[2] === '/preferencias' && (method === 'GET' || method === 'PUT')) {
+      if (method === 'PUT') {
+        const list = cleaned(snapshot, body?.preferencias ?? [], state.preferences ?? [])
+        updateState((s) => ({ ...s, preferences: list }))
+      }
+      const saved = readState().preferences ?? []
+      return { body: { preferencias: describe(snapshot.meta, saved), opciones: options(snapshot.meta) } }
+    }
     if (method === 'DELETE' && !profile[2])
       return { body: { user_id: userId, concept: null, eventos_borrados: clearState() } }
     if (method === 'GET' && profile[2] === '/verticales')

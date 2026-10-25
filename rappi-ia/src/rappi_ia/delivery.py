@@ -42,6 +42,7 @@ PERSON_TABLES = {
     "app_users": "source = 'synthetic'",
     "app_events": f"source = 'synthetic' AND {_USERS}",
     "app_sessions": f"source = 'synthetic' AND {_USERS}",
+    "agent_preferences": f"source = 'synthetic' AND {_USERS}",
     "app_orders": _ORDERS,
     "app_order_lines": f"order_id IN (SELECT order_id FROM public.app_orders WHERE {_ORDERS})",
     "user_segments": _USERS,  # su `source` es la regla que asignó el segmento, no la población

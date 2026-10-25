@@ -10,6 +10,9 @@ Reglas de conducta (docs/diseno-ia.md §4) que se aplican aquí, en código:
    (offers/guards.py); si se piden, +18 y farmacia con aviso.         → tools + avisos
    Tampoco da consejo médico («¿qué le doy?»): lo ve un médico o el químico farmacéutico. → intent "consejo"
 7. En modo "Rappi hoy" no hay sugerencias cruzadas ni aprendizaje.
+8. Las preferencias explícitas (offers/preferences.py) solo filtran (dieta, alergias) y ordenan (favoritas) lo que se
+   muestra, y solo en «Propuesta». Se fijan por chat («soy vegetariano») o en el panel.  → intent "preferencia"
+9. Nunca hace un pedido: el resumen lo arma la app y se paga en el checkout de siempre.  → intent "resumen"
 """
 
 import copy
@@ -21,6 +24,8 @@ from psycopg import Connection
 
 from ..concepts.taxonomy import load_taxonomy
 from ..embeddings.base import MemoizedQueryEmbedder, TextEmbedder
+from ..events.store import ensure_user
+from ..offers import preferences as prefs
 from ..offers.guards import is_offerable, offerable_vertical, unofferable_subverticals
 from ..text import normalize, tokens
 from .compose import Draft, TemplateComposer
@@ -62,6 +67,7 @@ class Context:
     mode: str = "propuesta"  # propuesta | actual ("Rappi hoy")
     previous: dict | None = None  # el turno anterior: el `conversation` de la respuesta anterior (ver _conversation)
     user_id: str | None = None  # en «Propuesta», sus compras cruzadas y su combinación ordenan el complemento
+    preferences: prefs.Preferences | None = None  # en «Propuesta», su dieta y alergias filtran y sus favoritas ordenan
 
 
 CHEAP_POOL = 24  # «barato»: reordenar solo los 6 más relevantes no daba lo más barato
@@ -131,6 +137,28 @@ BEDTIME_NAMES = re.compile(r"\b(?:dormir|noche|nocturn[oa]s?|sueno)\b")
 ADULT_NAMES = re.compile(r"\b(?:adultos?|incontinencia)\b")
 BEDTIME_TEXT = "Para que duerma no te puedo recomendar remedios ni nada que se tome: eso lo ve su pediatra 🧡."
 BEDTIME_SHOWN = " Esto es para la hora de dormir."
+# «¿Qué puedes hacer?»: lo que sabe hacer, como los atajos del panel (la app los resuelve: `capability`), y un ejemplo
+# de pedido. Ninguno lleva a salud. En «Rappi hoy» no hay ofertas: solo ejemplos de pedidos.
+HELP_ACTIONS = [
+    {"label": "🔁 Repite lo de siempre", "capability": "recompra"},
+    {"label": "🧺 Arma un kit", "capability": "plan"},
+    {"label": "✨ Algo para ti", "capability": "perfil"},
+    {"label": "🍣 Algo de sushi", "query": "sushi"},
+]
+HELP_EXAMPLES = [
+    {"label": "🍣 Algo de sushi", "query": "sushi"},
+    {"label": "🍽️ ¿Qué almuerzo hoy?", "query": "tengo hambre"},
+    {"label": "🎉 Arma un carrete", "query": "algo para el carrete"},
+]
+PREFERENCES_TODAY = (
+    "En «Rappi hoy» no guardo preferencias. En la propuesta recuerdo tu dieta, tus alergias y tus favoritas, y las "
+    "borras cuando quieras 🔒."
+)
+PREFERENCES_NO_USER = "Para recordarlo necesito tu sesión: vuelve a abrir la app y dímelo de nuevo."
+PREFERENCES_NONE = (
+    "Todavía no tengo preferencias tuyas. Dime, por ejemplo, «soy vegetariano», «no como maní» o «mi comida favorita "
+    "es el sushi», o márcalas en «Mis preferencias»."
+)
 
 
 class RappiAgent:
@@ -160,7 +188,16 @@ class RappiAgent:
         turn = copy.copy(self)
         if self.embedder is not None:
             turn.embedder = MemoizedQueryEmbedder(self.embedder)
-        response = turn._reply(conn, message, ctx, offer)
+        ctx = ctx or Context()
+        # Sus preferencias quedan puestas en el turno: `search_products` filtra y ordena con ellas, también en la
+        # sugerencia cruzada.
+        mine = ctx.preferences if ctx.mode == "propuesta" else None
+        with prefs.applied(mine):
+            response = turn._reply(conn, message, ctx, offer)
+        if mine and response["intent"]["kind"] != "preferencia":
+            shown = [*response["products"], *((response.get("suggestion") or {}).get("products") or [])]
+            if notice := mine.notice(shown):  # el código lo pone, nunca el LLM: no se pierde ni se reescribe
+                response["text"] = f"{response['text']} {notice}"
         response.setdefault("conversation", None)  # un saludo, el consejo médico o una aclaración no se siguen
         return response
 
@@ -169,6 +206,8 @@ class RappiAgent:
         intent = self.understander.understand(conn, message, ctx.vertical, previous=ctx.previous)
         if intent.kind == "recomendar":  # «qué me recomiendas»: lo que le gusta; sin perfil, ejemplos
             return self._recommend(conn, intent, ctx)
+        if intent.kind == "preferencia":
+            return self._preference(conn, intent, ctx)
         if intent.kind in (
             "saludo",
             "gracias",
@@ -180,6 +219,7 @@ class RappiAgent:
             "pedido",
             "receta",
             "memoria",
+            "resumen",
         ):
             return self._small_talk(intent, ctx)
         if intent.kind == "aclarar":
@@ -564,13 +604,49 @@ class RappiAgent:
         label = self.taxonomy.concepts[interest].label.lower() if interest else None
         text = self.composer.compose(Draft(kind=intent.kind, interest_label=label, learns=ctx.mode == "propuesta"))
         response = _base(intent, text)
-        if intent.kind == "ayuda":  # ejemplos que se pueden tocar: nadie empieza frente a un campo vacío
-            response["actions"] = [
-                {"label": "🍣 Algo de sushi", "query": "sushi"},
-                {"label": "🍽️ ¿Qué almuerzo hoy?", "query": "tengo hambre"},
-                {"label": "🤒 Tengo fiebre", "query": "tengo fiebre"},
-                {"label": "🎉 Arma un carrete", "query": "algo para el carrete"},
-            ]
+        if intent.kind == "ayuda":  # lo que sabe hacer, para tocar: nadie empieza frente a un campo vacío
+            response["actions"] = HELP_ACTIONS if ctx.mode == "propuesta" else HELP_EXAMPLES
+        if intent.kind == "pedido":  # la app muestra su último pedido con el seguimiento; esto lleva a todos
+            response["actions"] = [{"label": "Ver mis pedidos", "route": ["orders"]}]
+        if intent.kind == "resumen":  # la app arma el resumen con su carro; pagar es siempre en el checkout
+            response["actions"] = [{"label": "Revisar y pagar", "route": ["checkout"]}]
+        return response
+
+    def _preference(self, conn: Connection, intent: Intent, ctx: Context) -> dict:
+        """«soy vegetariano», «no como maní», «mi tienda favorita es Jumbo», «muéstrame mis preferencias», «olvida mis
+        preferencias» (offers/preferences.py). Las guarda o las borra y dice cuáles tiene; la respuesta trae la lista
+        (`preferences`). En «Rappi hoy» no se guardan: lo dice. Lo dicho no se registra como consulta (api/app.py:
+        `_log_ask`): una alergia es un dato de salud."""
+        command = intent.preference
+        response = _base(intent, PREFERENCES_TODAY if ctx.mode != "propuesta" else PREFERENCES_NO_USER)
+        if ctx.mode != "propuesta" or not ctx.user_id:
+            return response
+        items = list(command.items)
+        if command.store:
+            store = prefs.find_store(conn, command.store)
+            if store is None:
+                response["text"] = (
+                    f"No encontré «{command.store}» entre las tiendas de Rappi: dímela como sale en la app."
+                )
+                return response
+            items.append(("tienda", store))
+        if command.action == "agregar":
+            ensure_user(conn, ctx.user_id)
+            prefs.add(conn, ctx.user_id, items)
+            text = _saved_text(items)
+        elif command.action == "quitar":
+            prefs.remove(conn, ctx.user_id, items)
+            text = f"Listo, ya no tengo en cuenta: {_names_of(items)}."
+        elif command.action == "olvidar":
+            prefs.clear(conn, ctx.user_id)
+            text = "Listo, olvidé tus preferencias 🔒."
+        else:
+            text = None
+        conn.commit()
+        current = prefs.saved(conn, ctx.user_id)
+        response["text"] = text or _listed_text(current)
+        response["preferences"] = prefs.describe(current)
+        response["actions"] = [{"label": "Ver mis preferencias", "panel": "preferencias"}]
         return response
 
     def _clarify(self, intent: Intent) -> dict:
@@ -872,6 +948,42 @@ class RappiAgent:
     def _top_interest(self, profile: dict[str, float]) -> str | None:
         interests = self._interests(profile)
         return interests[0] if interests else None
+
+
+def _names_of(items: list[tuple[str, str]]) -> str:
+    names = [prefs.label(kind, value) for kind, value in items]
+    return names[0] if len(names) == 1 else f"{', '.join(names[:-1])} y {names[-1]}"
+
+
+def _saved_text(items: list[tuple[str, str]]) -> str:
+    """Lo que dice al guardar: qué saca (dieta y alergias, por el nombre) o qué pone primero (favoritas)."""
+    kinds = {kind for kind, _ in items}
+    parts = [f"Anotado: {_names_of(items)} 🧡."]
+    if kinds & set(prefs.FILTER_KINDS):
+        filters = prefs.build(items).filters
+        without = " o ".join(dict.fromkeys(rule.without for rule in filters))
+        parts.append(
+            f"Desde ahora saco de lo que te muestro lo que dice tener {without}. Lo veo por el nombre del producto: "
+            "revisa siempre los ingredientes en la tienda."
+        )
+    if kinds & set(prefs.ORDER_KINDS):
+        parts.append("Cuando calce con lo que buscas, lo pongo primero.")
+    parts.append("Lo cambias cuando quieras en «Mis preferencias».")
+    return " ".join(parts)
+
+
+def _listed_text(items: list[tuple[str, str]]) -> str:
+    if not items:
+        return PREFERENCES_NONE
+    filters = [prefs.label(k, v) for k, v in items if k in prefs.FILTER_KINDS]
+    favorites = [prefs.label(k, v) for k, v in items if k in prefs.ORDER_KINDS]
+    parts = []
+    if filters:
+        parts.append(f"Dieta y alergias: {', '.join(filters)}.")
+    if favorites:
+        parts.append(f"Tus favoritas: {', '.join(favorites)}.")
+    change = "Las cambias en «Mis preferencias» o me dices «olvida mis preferencias»."
+    return f"Esto recuerdo de ti. {' '.join(parts)} {change}"
 
 
 def _ranked_for(conn: Connection, concept_ids: list[str]) -> list[str]:

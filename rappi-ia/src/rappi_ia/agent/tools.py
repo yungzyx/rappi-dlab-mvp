@@ -26,6 +26,7 @@ from ..offers.guards import (
     offerable_vertical,
     unofferable_subverticals,
 )
+from ..offers.preferences import active as active_preferences
 from ..retrieval.hybrid import UNNAMED_TAU, Filters, RetrievalResult, named_occasion, occasion_search, retrieve
 from ..retrieval.spelling import correct_query
 from ..text import FILLER_WORDS, LEAFLET_WARNINGS, normalize, tokens
@@ -159,20 +160,26 @@ def search_products(
 def _search_products(
     conn, vertical, query, concepts, embedder, price_max, k, mode, symptom, offer, adult_ok, words
 ) -> SearchOutcome:
+    # Con dieta o alergias puestas (offers/preferences.py) se miran más candidatos: lo que sale no deja la respuesta
+    # corta. Las favoritas solo ordenan lo que quedó.
+    preferences = active_preferences()
+    pool = k * (4 if preferences and preferences.filters else 2)
     result = retrieve(
-        conn, vertical, query, embedder, k=k * 2, filters=Filters(price_max), mode=mode, concepts=concepts, words=words
+        conn, vertical, query, embedder, k=pool, filters=Filters(price_max), mode=mode, concepts=concepts, words=words
     )
     concepts = result.query_concepts
     capped = price_max is not None
     strict = symptom or vertical == "farmacia"
     hits = _focus([h for h in result.hits if _allowed(h.concept_id, concepts, strict)], result, capped)
-    products = _dedupe(_within_budget(_with_prices(conn, vertical, hits, offer, adult_ok), price_max))[:k]
+    products = _dedupe(_within_budget(_with_prices(conn, vertical, hits, offer, adult_ok), price_max))
+    products = preferences.rank(preferences.keep(products)[:k]) if preferences else products[:k]
     cheapest = None
     if not products and capped:
         unfiltered = retrieve(conn, vertical, query, embedder, k=k * 2, mode=mode, concepts=concepts, words=words)
         allowed = [h for h in unfiltered.hits if _allowed(h.concept_id, concepts, strict)]
         # «El más barato» es de lo pedido: el mismo foco que con tope.
         candidates = _with_prices(conn, vertical, _focus(allowed, unfiltered, capped), offer, adult_ok)
+        candidates = preferences.keep(candidates) if preferences else candidates
         priced = [p for p in candidates if p.price_value is not None]
         cheapest = min(priced, key=lambda p: p.price_value) if priced else None
     return SearchOutcome(result, products, cheapest)

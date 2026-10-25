@@ -3,7 +3,7 @@ import { AGENT_NAME } from '../../agent/name'
 import { envelope } from '../../api/attribution'
 import { storeOfProduct } from '../../api/catalog'
 import { ask as askAgent, profile as remoteProfile, recommendations, toMessage } from '../../api/client'
-import { offer, profileLadder, tasteProfiles } from '../../api/agent'
+import { offer, plans, profileLadder, tasteProfiles } from '../../api/agent'
 import { firstShowing, noteShown } from '../../api/suggestions'
 import { userId } from '../../api/user'
 import { askAbout } from '../../assistant/agentAsk'
@@ -26,6 +26,7 @@ import AskAgentRow from './AskAgentRow'
 import DiscoverSection from './DiscoverSection'
 import FollowUp from './FollowUp'
 import Mascot from './Mascot'
+import PreferencesEditor, { PREFERENCES_TITLE } from './PreferencesEditor'
 import { SparkleIcon } from './SmartBar'
 import { LadderRail, ProfileCard } from './TasteProfile'
 import '../search/search.css'
@@ -42,6 +43,21 @@ const GREETING = `¡Hola! Soy ${AGENT_NAME}, tu asistente de compras 🧡 ¿Qué
 const OFFLINE = 'Sin conexión'
 const NOTHING_TO_PAIR = 'No se me ocurre nada para acompañar eso'
 const NOTHING_TO_TRY = 'No se me ocurre nada nuevo para probar'
+const NOTHING_TO_REPEAT = 'Todavía no veo algo que pidas seguido. Cuando repitas un pedido, te lo traigo aquí 🔁'
+const NOTHING_IN_KIT = 'No pude armar ese kit ahora. Prueba con otra ocasión.'
+const NOTHING_FOR_YOU = 'Todavía no tengo algo armado para ti. Cuéntame qué se te antoja.'
+const PICK_A_KIT = '¿Para qué te armo el kit? 🧺'
+const STOPPED = 'Listo, paré aquí. ¿Qué otra cosa buscas?'
+const KIT_OPTIONS = 4
+// Lo que Mochi sabe hacer, al abrir (como el «Puedo ayudarte a:» de la app de Rappi): repetir lo de siempre (la
+// recompra), armar un kit (los planes) y algo para ti (el perfil de gusto o, sin él, lo que le recomienda). Nada de
+// salud. Solo en la propuesta: «Rappi hoy» no ofrece.
+const CAPABILITIES = [
+  { id: 'recompra', label: '🔁 Repite lo de siempre' },
+  { id: 'plan', label: '🧺 Arma un kit' },
+  { id: 'perfil', label: '✨ Algo para ti' },
+]
+const withoutEmoji = (label) => label.replace(/^\S+\s/, '')
 // Las ideas de siempre, como texto fijo: tocar una le pregunta eso al agente.
 const CHIPS = ['🍔 ¿Qué almuerzo hoy?', '🍻 Arma un carrete', '🔥 Ofertas de hoy', '🍫 Algo dulce', '🎁 Un regalo']
 
@@ -100,6 +116,11 @@ export default function AssistantPanel({ push, vertical, depth = 1 }) {
   const [discoverRows, setDiscoverRows] = useState([])
   // El perfil de gusto de la persona y su escalera (`{ profile, ladder }`); sin perfil, null y el panel de siempre.
   const [taste, setTaste] = useState(null)
+  // «Mis preferencias»: la hoja y su editor (una clave nueva cada vez que se abre: vuelve a leer lo guardado).
+  const [preferencesOpen, setPreferencesOpen] = useState(0)
+  const [editing, setEditing] = useState(false)
+  // La respuesta en curso, para «Cancelar» (su AbortController).
+  const pending = useRef(null)
   const search = useSearch({ vertical })
 
   const later = (fn, ms) => timers.current.push(setTimeout(fn, ms))
@@ -111,11 +132,11 @@ export default function AssistantPanel({ push, vertical, depth = 1 }) {
    * Muestra "escribiendo…" hasta que llega la respuesta de la API, con un mínimo para que se note.
    * Devuelve una promesa que se cumple cuando la respuesta ya está en pantalla.
    */
-  const botSays = useCallback((responseOrPromise) => {
+  const botSays = useCallback((responseOrPromise, { cancellable = false } = {}) => {
     const typingId = nextId++
     const startedAt = Date.now()
     setMood('think')
-    setMessages((prev) => [...prev, { id: typingId, from: 'bot', typing: true }])
+    setMessages((prev) => [...prev, { id: typingId, from: 'bot', typing: true, cancellable }])
     return Promise.resolve(responseOrPromise).then(
       (response) =>
         new Promise((shown) => {
@@ -164,14 +185,32 @@ export default function AssistantPanel({ push, vertical, depth = 1 }) {
 
   const onAction = (action) => {
     if (action.ask) return send(action.ask.text, action.ask.vertical)
+    if (action.capability) return runCapability(action.capability, action.label)
+    if (action.offer) return askOffer(action.offer, withoutEmoji(action.label), NOTHING_IN_KIT)
+    if (action.panel === 'preferencias') return openPreferences()
     if (action.service) events.track('service_opened', { payload: { servicio: action.service } })
     go(...action.route)
   }
 
-  /** Pone una respuesta en la fila: la siguiente sale cuando esta ya está en pantalla. */
-  const ask = (run) => {
-    askQueue.current = askQueue.current.then(() => botSays(run()))
+  /**
+   * Pone una respuesta en la fila: la siguiente sale cuando esta ya está en pantalla. `run(signal)` la pide; mientras
+   * espera, «Cancelar» corta la petición y Mochi dice que paró (lo que llegue después se descarta). El saludo no se
+   * cancela (`cancellable: false`).
+   */
+  const ask = (run, { cancellable = true } = {}) => {
+    askQueue.current = askQueue.current.then(() => {
+      if (!cancellable) return botSays(run())
+      const controller = new AbortController()
+      pending.current = controller
+      const stopped = new Promise((resolve) =>
+        controller.signal.addEventListener('abort', () => resolve({ text: STOPPED }), { once: true }),
+      )
+      return botSays(Promise.race([run(controller.signal), stopped]), { cancellable: true }).finally(() => {
+        if (pending.current === controller) pending.current = null
+      })
+    })
   }
+  const cancelAnswer = () => pending.current?.abort()
 
   /**
    * Cuando la API no contesta: «Sin conexión» y un botón que vuelve a pedir lo mismo, una sola vez (dos toques no
@@ -189,27 +228,40 @@ export default function AssistantPanel({ push, vertical, depth = 1 }) {
     }
   }
 
-  /** Respuesta de la API; si no contesta, «Sin conexión» con «Reintentar» (no hay respuesta local). */
-  const answer = async (text, askVertical) => {
+  /**
+   * Respuesta de la API; si no contesta, «Sin conexión» con «Reintentar» (no hay respuesta local). Si se canceló, lo
+   * que llegue no cuenta (ni para la conversación ni como sugerencia mostrada). El resumen del pedido y el último pedido
+   * los arma el panel con el carro y los pedidos de la demo (`orderSummary`, `lastOrder`).
+   */
+  const answer = async (text, askVertical, signal) => {
     try {
-      const response = await askAgent({
-        message: text,
-        ...apiContext({ vertical: askVertical ?? vertical }),
-        ...(lastTurn.current ? { previous: lastTurn.current } : {}),
-      })
+      const response = await askAgent(
+        {
+          message: text,
+          ...apiContext({ vertical: askVertical ?? vertical }),
+          ...(lastTurn.current ? { previous: lastTurn.current } : {}),
+        },
+        { signal },
+      )
+      if (signal?.aborted) return { text: STOPPED }
       // Lo que queda para el próximo mensaje: «más barato» o «sin carne» se leen sobre él. Una respuesta que no se
       // sigue (un saludo, un consejo médico) no lo borra.
       if (response.conversation) lastTurn.current = response.conversation
-      return noteSuggestion(toMessage(response))
+      const message = noteSuggestion(toMessage(response))
+      if (message.kind === 'resumen') return { ...message, orderSummary: true }
+      if (message.kind === 'pedido') return { ...message, lastOrder: true }
+      return message
     } catch {
-      return offline(() => answer(text, askVertical))
+      if (signal?.aborted) return { text: STOPPED }
+      return offline((retrySignal) => answer(text, askVertical, retrySignal))
     }
   }
 
   /** Una oferta del agente para un momento (`carrito`, `vertical_por_probar`…); `nothing` es lo que dice si no tiene nada. */
-  const offered = async (moment, context, nothing) => {
+  const offered = async (moment, context, nothing, signal) => {
     try {
       const made = await offer(moment, context, { userId: userId(), surface: 'agent' })
+      if (signal?.aborted) return { text: STOPPED }
       if (!made) return { text: nothing }
       noteShown(events.track, made.products, {
         origin: `agent-${moment}`,
@@ -221,25 +273,84 @@ export default function AssistantPanel({ push, vertical, depth = 1 }) {
         if (action.service) events.track('service_shown', { payload: { servicio: action.service } })
       return { text: made.text, products: made.products, actions: made.actions, offerReason: made.reason }
     } catch {
-      return offline(() => offered(moment, context, nothing))
+      if (signal?.aborted) return { text: STOPPED }
+      return offline((retrySignal) => offered(moment, context, nothing, retrySignal))
     }
   }
 
   /** «¿Con qué acompaño…?»: la oferta del agente para ese producto (el momento `carrito`). */
-  const pairing = (product) =>
-    offered('carrito', { product: { entity_type: product.entityType, entity_id: product.entityId } }, NOTHING_TO_PAIR)
+  const pairing = (product, signal) =>
+    offered(
+      'carrito',
+      { product: { entity_type: product.entityType, entity_id: product.entityId } },
+      NOTHING_TO_PAIR,
+      signal,
+    )
 
   const askPairing = (product) => {
     if (forgetting) return
     addMessage({ from: 'user', text: askAbout(product) })
-    ask(() => pairing(product))
+    ask((signal) => pairing(product, signal))
   }
 
-  /** «¿Qué puedo probar?» y similares: la oferta que pidió quien abrió el buscador (`{ moment, context }`). */
-  const askOffer = ({ moment, context }, text) => {
+  /**
+   * «¿Qué puedo probar?» y similares: la oferta que pidió quien abrió el buscador (`{ moment, context }`), o un kit
+   * elegido en «Arma un kit». `nothing` es lo que dice si no tiene nada.
+   */
+  const askOffer = ({ moment, context }, text, nothing = NOTHING_TO_TRY) => {
     if (forgetting) return
     addMessage({ from: 'user', text })
-    ask(() => offered(moment, context, NOTHING_TO_TRY))
+    ask((signal) => offered(moment, context, nothing, signal))
+  }
+
+  /** «Arma un kit»: las ocasiones que sabe armar (las que le gustan primero), para elegir una. */
+  const kitOptions = async (signal) => {
+    try {
+      const list = await plans()
+      if (signal?.aborted) return { text: STOPPED }
+      if (!list.length) return { text: NOTHING_IN_KIT }
+      const actions = list.slice(0, KIT_OPTIONS).map((plan) => ({
+        label: `${plan.emoji} ${plan.name}`,
+        offer: { moment: 'plan', context: { occasion: plan.id } },
+      }))
+      return { text: PICK_A_KIT, actions }
+    } catch {
+      if (signal?.aborted) return { text: STOPPED }
+      return offline((retrySignal) => kitOptions(retrySignal))
+    }
+  }
+
+  /** «Algo para ti» con un perfil de gusto: su escalera (el momento `perfil`) en una sola fila de productos. */
+  const forYou = async (found, signal) => {
+    try {
+      const ladder = await profileLadder(found.profile.id)
+      if (signal?.aborted) return { text: STOPPED }
+      const products = (ladder?.steps ?? []).flatMap((step) => step.products).slice(0, 6)
+      if (!products.length) return { text: NOTHING_FOR_YOU }
+      noteShown(events.track, products, { origin: 'agent-perfil', generation: profile.resets })
+      return { text: ladder.text, products, offerReason: ladder.reason }
+    } catch {
+      if (signal?.aborted) return { text: STOPPED }
+      return offline((retrySignal) => forYou(found, retrySignal))
+    }
+  }
+
+  /**
+   * Un atajo de lo que Mochi sabe hacer: «Repite lo de siempre» (la recompra), «Arma un kit» (elegir una ocasión) o
+   * «Algo para ti» (su perfil de gusto; sin perfil, lo que le recomienda, como «¿qué me recomiendas?»).
+   */
+  const runCapability = (id, label) => {
+    if (forgetting) return
+    addMessage({ from: 'user', text: withoutEmoji(label) })
+    if (id === 'recompra') ask((signal) => offered('recompra', {}, NOTHING_TO_REPEAT, signal))
+    else if (id === 'plan') ask((signal) => kitOptions(signal))
+    else if (taste) ask((signal) => forYou(taste, signal))
+    else ask((signal) => answer('qué me recomiendas', undefined, signal))
+  }
+
+  const openPreferences = () => {
+    setPreferencesOpen((n) => n + 1)
+    setEditing(true)
   }
 
   /**
@@ -248,18 +359,21 @@ export default function AssistantPanel({ push, vertical, depth = 1 }) {
    * (`waiting`), y lo que llegara después lo empujaría.
    */
   const greet = (rows, others) => {
-    ask(async () => {
-      // Al tope sale con «Para ti» si ya llegó, aunque lo demás siga en camino.
-      let arrived = []
-      rows.then((list) => (arrived = list))
-      const waited = new Promise((resolve) => later(() => resolve(arrived), FOR_YOU_WAIT_MS))
-      const all = Promise.allSettled([rows, ...others]).then(([list]) => list.value ?? [])
-      const [row] = await Promise.race([all, waited])
-      if (!row) return { text: GREETING }
-      const shown = { origin: 'para-ti', concept: row.concept, generation: profile.resets, kind: row.kind }
-      noteShown(events.track, row.products, shown)
-      return { text: GREETING, products: row.products.map(asForYou), reason: row.reason }
-    })
+    ask(
+      async () => {
+        // Al tope sale con «Para ti» si ya llegó, aunque lo demás siga en camino.
+        let arrived = []
+        rows.then((list) => (arrived = list))
+        const waited = new Promise((resolve) => later(() => resolve(arrived), FOR_YOU_WAIT_MS))
+        const all = Promise.allSettled([rows, ...others]).then(([list]) => list.value ?? [])
+        const [row] = await Promise.race([all, waited])
+        if (!row) return { text: GREETING }
+        const shown = { origin: 'para-ti', concept: row.concept, generation: profile.resets, kind: row.kind }
+        noteShown(events.track, row.products, shown)
+        return { text: GREETING, products: row.products.map(asForYou), reason: row.reason }
+      },
+      { cancellable: false },
+    )
   }
 
   // En orden: la pregunta N+1 sale cuando la respuesta N ya está en pantalla, así sus shown_topics incluyen
@@ -268,7 +382,7 @@ export default function AssistantPanel({ push, vertical, depth = 1 }) {
     const clean = text.trim()
     if (!clean || forgetting) return
     addMessage({ from: 'user', text: clean, typed })
-    ask(() => answer(clean, askVertical))
+    ask((signal) => answer(clean, askVertical, signal))
   }
 
   /** Lo escrito en el buscador, como pregunta a Mochi: el campo se vacía y vuelve su tarjeta, arriba, con la respuesta. */
@@ -555,10 +669,20 @@ export default function AssistantPanel({ push, vertical, depth = 1 }) {
                     ))}
                   </>
                 )}
+                {demo.isFinal && (
+                  <button type="button" onClick={openPreferences}>
+                    {PREFERENCES_TITLE}
+                  </button>
+                )}
                 <button type="button" onClick={() => setConfirmingForget(true)}>
                   Olvidar
                 </button>
               </div>
+              <p className="agent-ai-notice">
+                {demo.isFinal
+                  ? `${AGENT_NAME} usa IA: recuerda tus gustos por tema y las preferencias que le digas, y los borras cuando quieras.`
+                  : `${AGENT_NAME} usa IA. En «Rappi hoy» no aprende de lo que buscas.`}
+              </p>
 
               {taste && <ProfileCard profile={taste.profile} />}
 
@@ -570,11 +694,14 @@ export default function AssistantPanel({ push, vertical, depth = 1 }) {
               {current && (
                 <AgentMessage
                   key={current.id}
-                  message={current}
+                  // Sin carro no hay nada que pagar: el resumen dice que está vacío y no lleva al checkout.
+                  message={current.orderSummary && cart.count === 0 ? { ...current, actions: [] } : current}
                   onStreamDone={() => markStreamed(current.id)}
                   onOpenProduct={openProduct}
                   onOpenStore={openStore}
                   onAction={onAction}
+                  onCancel={cancelAnswer}
+                  onTrack={(orderId) => go('tracking', { orderId })}
                   onRetry={() => !forgetting && current.retry()}
                   followUp={
                     // Seguir la conversación, debajo de los productos: sugerencias (sin salud) y un campo para Mochi
@@ -583,6 +710,25 @@ export default function AssistantPanel({ push, vertical, depth = 1 }) {
                     ) : null
                   }
                 />
+              )}
+
+              {demo.isFinal && !current?.health && (
+                <>
+                  <p className="agent-picks-label">Puedo ayudarte a:</p>
+                  <div className="assistant-chips agent-capabilities">
+                    {CAPABILITIES.map((capability) => (
+                      <button
+                        key={capability.id}
+                        type="button"
+                        className="assistant-chip agent-capability"
+                        disabled={forgetting}
+                        onClick={() => runCapability(capability.id, capability.label)}
+                      >
+                        {capability.label}
+                      </button>
+                    ))}
+                  </div>
+                </>
               )}
 
               {/* Bajo una respuesta de salud no van las ideas de siempre («Arma un carrete») */}
@@ -631,6 +777,10 @@ export default function AssistantPanel({ push, vertical, depth = 1 }) {
           </>
         )}
       </div>
+
+      <Sheet open={editing} onClose={() => setEditing(false)} title={PREFERENCES_TITLE}>
+        <PreferencesEditor key={preferencesOpen} onSaved={() => setEditing(false)} />
+      </Sheet>
 
       {/* «Olvidar» borra lo mismo que Cuenta → «Borrar mis datos»: pide la misma confirmación. */}
       <Sheet open={confirmingForget} onClose={closeForget} title={FORGET_TITLE}>
