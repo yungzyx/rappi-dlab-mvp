@@ -2,7 +2,7 @@
 
 Cómo dejar el MVP (la app, la API, el panel opcional y Postgres) en un servidor Linux con Docker Compose, detrás de Caddy con TLS y una puerta de acceso. Es una **demo cerrada**: todo el sitio pide usuario y clave. Abrirla al público exige autorización de Rappi por los datos ([§9](#9-riesgos)).
 
-La demo local (`make mvp` en un Mac) está en [instalacion.md](instalacion.md#5-el-mvp). Todo lo de este documento vive en [`deploy/`](../deploy/).
+La demo local (`make mvp` en un Mac) está en [instalacion.md](instalacion.md#5-el-mvp), y la demo pública desde un Mac con Cloudflare Tunnel, sin servidor, en [deploy/macos/](../deploy/macos/README.md). Todo lo de este documento vive en [`deploy/`](../deploy/).
 
 ## 0. Lo que hay que decidir o conseguir
 
@@ -145,7 +145,7 @@ Todos los comandos van **como root** (o con `sudo`), en **bash**, desde la carpe
 1. Docker Engine con el plugin compose (`docker compose version`) y git.
 2. Firewall: abiertos 22/tcp, 80/tcp, 443/tcp y 443/udp. Nada más: solo Caddy publica puertos.
 3. El DNS de `DOMAIN` ya apunta al servidor (Caddy pide el certificado al arrancar).
-4. El código en `/opt/rappi` (el repositorio es privado: `gh repo clone yungzyx/rappi-dlab /opt/rappi`, o con una deploy key). Otra carpeta sirve, pero hay que cambiar `WorkingDirectory` en las unidades de systemd ([§3.9](#39-respaldos-y-timers)).
+4. El código en `/opt/rappi` (el repositorio es privado: `gh repo clone yungzyx/rappi-dlab-mvp /opt/rappi`, o con una deploy key). Otra carpeta sirve, pero hay que cambiar `WorkingDirectory` en las unidades de systemd ([§3.9](#39-respaldos-y-timers)).
 
 ### 3.2 Archivo de entorno
 
