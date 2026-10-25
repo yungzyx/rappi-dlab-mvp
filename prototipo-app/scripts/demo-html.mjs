@@ -57,7 +57,7 @@ html = html
   })
   .replace(/<title>[^<]*<\/title>/, '<title>Prototipo MVP (demo sin conexión)</title>')
 
-for (const marker of ['src="./assets/', 'href="./assets/', 'manifest.webmanifest'])
+for (const marker of ['src="./assets/', 'href="./assets/', 'rel="manifest"'])
   if (html.includes(marker)) throw new Error(`El HTML todavía apunta a un archivo aparte («${marker}»)`)
 
 writeFileSync(OUT, html)

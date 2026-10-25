@@ -8,6 +8,39 @@ const agentName = {
   transformIndexHtml: { order: 'pre', handler: (html) => html.replaceAll('%AGENT_NAME%', AGENT_NAME) },
 }
 
+// El manifiesto de la app instalable, también con el nombre del agente: lo sirve el servidor de desarrollo y lo escribe
+// el build. Los íconos los genera scripts/make-icons.mjs. La demo sin conexión no lo lleva (abre como archivo).
+const MANIFEST = {
+  id: '/',
+  name: `${AGENT_NAME} · demo`,
+  short_name: `${AGENT_NAME} · demo`,
+  description: `Prototipo independiente con ${AGENT_NAME}, no afiliado a Rappi.`,
+  lang: 'es',
+  start_url: '/',
+  scope: '/',
+  display: 'standalone',
+  background_color: '#ffffff',
+  theme_color: '#ffffff',
+  icons: [
+    { src: '/icon-192.webp', sizes: '192x192', type: 'image/webp', purpose: 'any' },
+    { src: '/icon-512.webp', sizes: '512x512', type: 'image/webp', purpose: 'any' },
+    { src: '/icon-maskable-512.webp', sizes: '512x512', type: 'image/webp', purpose: 'maskable' },
+  ],
+}
+
+const appManifest = {
+  name: 'app-manifest',
+  configureServer(server) {
+    server.middlewares.use('/manifest.json', (_req, res) => {
+      res.setHeader('Content-Type', 'application/json')
+      res.end(JSON.stringify(MANIFEST))
+    })
+  },
+  generateBundle() {
+    this.emitFile({ type: 'asset', fileName: 'manifest.json', source: `${JSON.stringify(MANIFEST, null, 2)}\n` })
+  },
+}
+
 // La demo sin conexión (`vite build --mode demo`, ver scripts/demo-html.mjs): un solo JS, con las imágenes y las
 // fuentes adentro en base64, listo para meterse entero en un HTML que abre con doble clic.
 const DEMO_BUILD = {
@@ -27,7 +60,7 @@ const DEMO_ENV = {
 }
 
 export default defineConfig(({ mode }) => ({
-  plugins: [react(), agentName],
+  plugins: [react(), agentName, ...(mode === 'demo' ? [] : [appManifest])],
   server: { port: 5174 },
   base: mode === 'demo' ? './' : '/',
   define: mode === 'demo' ? DEMO_ENV : {},
