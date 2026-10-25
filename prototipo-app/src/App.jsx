@@ -1,4 +1,5 @@
 import { Suspense, lazy, useEffect } from 'react'
+import ActiveOrderBar from './components/ActiveOrderBar'
 import AddressSheet from './components/AddressSheet'
 import AssistantPanel from './components/assistant/AssistantPanel'
 import CartBar from './components/CartBar'
@@ -133,6 +134,10 @@ export default function App() {
                               })}
                               {!SCREENS_WITHOUT_CART.has(current.name) && (
                                 <CartBar raised={SCREENS_WITH_NAV.has(current.name)} push={push} />
+                              )}
+                              {/* «Pedido en curso»: fuera del seguimiento (y del checkout), como en la app de Rappi. */}
+                              {!SCREENS_WITHOUT_CART.has(current.name) && (
+                                <ActiveOrderBar raised={SCREENS_WITH_NAV.has(current.name)} push={push} />
                               )}
                               <AgentPresence
                                 screen={current.name}

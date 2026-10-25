@@ -27,13 +27,20 @@
   list-style: none;
 }
 
+.orders-item {
+  border-bottom: 1px solid var(--line-soft);
+}
+
+.orders-reorder {
+  margin: 0 0 14px 70px;
+}
+
 .orders-row {
   display: flex;
   align-items: center;
   gap: 14px;
   width: 100%;
   padding: 14px 4px;
-  border-bottom: 1px solid var(--line-soft);
   text-align: left;
 }
 

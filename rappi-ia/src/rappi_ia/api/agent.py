@@ -14,7 +14,7 @@ from .. import config
 from ..agent.grouped_search import SpareConnector
 from ..offers.engine import OfferError, home_occasions, make_offer
 from ..offers.personal import user_interests
-from .deps import Clean, get_conn, get_services, get_spare_connector
+from .deps import Clean, backend_vertical, get_conn, get_services, get_spare_connector
 from .identity import owner_in_query, owner_of_body
 from .limits import concurrency_cap
 from .logs import served_request_id
@@ -71,6 +71,14 @@ class WinbackContext(Clean):
     model_config = ConfigDict(extra="forbid")
 
 
+class OnTopContext(Clean):
+    """El pedido en curso: su vertical (código del backend o id de la app; uno de Turbo no tiene OnTop) y lo que
+    lleva, que no se vuelve a ofrecer."""
+
+    vertical: str = Field(min_length=1, max_length=64)
+    items: list[EntityIn] = Field(min_length=1, max_length=MAX_LINES)
+
+
 class ProfileContext(Clean):
     """El perfil de gusto que se pide (`offers/perfiles.toml`); sin él, el primero de los de la persona."""
 
@@ -121,13 +129,18 @@ class WinbackIn(OfferBase):
     context: WinbackContext
 
 
+class OnTopIn(OfferBase):
+    moment: Literal["ontop"]
+    context: OnTopContext
+
+
 class ProfileIn(OfferBase):
     moment: Literal["perfil"]
     context: ProfileContext
 
 
 OfferIn = Annotated[
-    PlanIn | CartIn | CheckoutIn | NoResultIn | NextOrderIn | ToTryIn | RepeatIn | WinbackIn | ProfileIn,
+    PlanIn | CartIn | CheckoutIn | NoResultIn | NextOrderIn | ToTryIn | RepeatIn | WinbackIn | OnTopIn | ProfileIn,
     Field(discriminator="moment"),
 ]
 
@@ -146,12 +159,15 @@ def offer(
 ):
     """La oferta de un momento: `{ moment, text, products, vertical, prototype_vertical, reason, actions, request_id }`,
     o 204 (`request_id`: el id de esta respuesta, que la app repite en los eventos de la oferta).
+    El momento `ontop` suma `plazo_min` (el plazo para sumar sus productos al pedido en curso, un supuesto).
     El momento `perfil` tiene su forma: `{ moment, text, perfil, escalera, viaje, reason, actions }` (la escalera de
     un perfil de gusto: `offers/profiles.py`; sus peldaños se buscan a la vez con las conexiones del pool que sobran,
     `spare`, como `/search`). Una ocasión o un perfil que no existe, o una ocasión que el agente no arma (guagua,
     enfermo), es un 422."""
     owner_of_body(request, body.user_id)
     context = body.context.model_dump()
+    if body.moment == "ontop":
+        context["vertical"] = backend_vertical(context["vertical"])
     try:
         found = make_offer(conn, svc.embedder, body.moment, context, body.user_id, spare)
     except OfferError as exc:

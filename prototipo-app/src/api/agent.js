@@ -13,8 +13,8 @@ function toAction({ route, ...action }) {
 
 /**
  * La oferta del agente para un momento (`carrito`, `checkout`, `sin_resultado`, `proximo_pedido`, `plan`,
- * `vertical_por_probar`, `recompra`, `volver`) con su contexto, o `null` si no tiene nada que ofrecer (204): entonces el agente no dice nada.
- * Devuelve `{ moment, text, products, vertical, backendVertical, reason, actions, requestId }`; la `vertical` es la de
+ * `vertical_por_probar`, `recompra`, `volver`, `ontop`) con su contexto, o `null` si no tiene nada que ofrecer (204): entonces el agente no dice nada.
+ * Devuelve `{ moment, text, products, vertical, backendVertical, reason, actions, windowMin, requestId }`; la `vertical` es la de
  * la app y cada producto lleva `fromSuggestion` y `suggestionOrigin: 'agent-<momento>'` para los eventos y el pedido,
  * y su lugar (`placement`: `surface`, la pantalla donde se muestra la oferta; su posición y la respuesta), y cada
  * acción la `route` de la app (`push(...route)`).
@@ -40,6 +40,8 @@ export async function offer(moment, context = {}, { userId, surface } = {}) {
     backendVertical: response.vertical,
     reason: response.reason,
     actions: (response.actions ?? []).map(toAction),
+    // El plazo del OnTop de Turbo (momento `ontop`, un supuesto): minutos desde el pedido para sumar sus productos.
+    windowMin: response.plazo_min ?? null,
     requestId,
   }
 }

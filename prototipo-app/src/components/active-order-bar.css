@@ -1,0 +1,73 @@
+/* «Pedido en curso»: flota abajo a la izquierda (a la derecha queda Mochi), sobre la barra del carro si la hay. */
+.active-order-bar {
+  position: absolute;
+  left: var(--gutter);
+  right: 88px;
+  bottom: calc(28px + env(safe-area-inset-bottom, 0px));
+  z-index: var(--z-cart);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  height: 48px;
+  padding: 0 14px;
+  border-radius: 99px;
+  background: var(--surface);
+  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.16);
+  text-align: left;
+  animation: active-order-in 260ms var(--ease-out);
+}
+
+.active-order-bar.is-raised {
+  bottom: calc(100px + env(safe-area-inset-bottom, 0px));
+}
+
+.active-order-bar.with-cart {
+  bottom: calc(88px + env(safe-area-inset-bottom, 0px));
+}
+
+.active-order-bar.is-raised.with-cart {
+  bottom: calc(160px + env(safe-area-inset-bottom, 0px));
+}
+
+.active-order-dot {
+  flex: none;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--agent-orange);
+  box-shadow: 0 0 0 4px rgba(240, 83, 43, 0.18);
+}
+
+.active-order-text {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  font-size: 12.5px;
+  line-height: 16px;
+  color: var(--ink-2);
+}
+
+.active-order-text strong {
+  font-size: 14px;
+  color: var(--ink);
+}
+
+.active-order-text span {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+@keyframes active-order-in {
+  from {
+    transform: translateY(16px);
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .active-order-bar {
+    animation: none;
+  }
+}

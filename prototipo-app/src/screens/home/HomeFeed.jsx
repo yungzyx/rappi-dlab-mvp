@@ -3,6 +3,7 @@ import { envelope } from '../../api/attribution'
 import BackToTop from '../../components/BackToTop'
 import DemoDisclaimer from '../../components/DemoDisclaimer'
 import PlainSearchBar from '../../components/PlainSearchBar'
+import { ReorderHomeRow } from '../../components/reorder/Reorder'
 import { ChevronDown } from '../../components/Icons'
 import { useScrollState } from '../../hooks/useScrollState'
 import { useAddress } from '../../state/AddressContext'
@@ -64,6 +65,7 @@ export default function HomeFeed({ push }) {
 
         <MainTiles push={push} onOpen={openVertical} />
         <Shortcuts push={push} onOpen={openVertical} onService={openService} />
+        <ReorderHomeRow />
         <Promos push={push} />
         <FastRestaurants stores={catalog.fastRestaurants} push={push} />
         <NearbyStores stores={catalog.nearbyStores} push={push} />

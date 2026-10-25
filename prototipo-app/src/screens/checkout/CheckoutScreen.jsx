@@ -18,6 +18,10 @@ import './checkout.css'
 
 const MODES = ['Envío', 'Retiro']
 
+// El producto como se guarda en el pedido: sin de dónde salió esta vez (su lugar y si fue una sugerencia), que en
+// «Pídelo de nuevo» es otro.
+const reorderable = ({ placement: _placement, fromSuggestion: _from, suggestionOrigin: _origin, ...product }) => product
+
 /** Checkout (funcionalidad agregada). El medio de pago es solo un texto de ejemplo: no se ingresan datos. */
 export default function CheckoutScreen({ back, push }) {
   const cart = useCart()
@@ -66,6 +70,7 @@ export default function CheckoutScreen({ back, push }) {
     )
     const id = orders.place({
       stores,
+      cartId: cart.id,
       items: cart.items.map(({ product, qty }) => ({
         name: product.name,
         img: product.img,
@@ -74,6 +79,9 @@ export default function CheckoutScreen({ back, push }) {
         // Con ellos el agente arma el próximo pedido al entregar (oferta `proximo_pedido`).
         entityType: product.entityType,
         entityId: product.entityId,
+        // Los pasos del seguimiento dependen de la vertical; «Pídelo de nuevo» vuelve a armar el carro con el producto.
+        vertical: product.vertical,
+        product: reorderable(product),
       })),
       total: price.total,
       pickup,

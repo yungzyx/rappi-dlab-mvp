@@ -17,6 +17,10 @@ const VERTICAL_MIN_DAYS = 3
 const COOLDOWN_DAYS = 7
 const MAX_DISMISSALS = 2
 const ORIGIN = 'agent-volver'
+// offers/winback.py (y events/store.py: LOW_RATING): lo de un pedido calificado con 3 estrellas o menos no se ofrece en
+// 30 días (un supuesto propio).
+const LOW_RATING = 3
+export const PAUSE_DAYS = 30
 export const BASIS_KINDS = { concepto: 'volver', vertical: 'vuelta' }
 
 const SANTIAGO = new Intl.DateTimeFormat('en-CA', {
@@ -169,4 +173,30 @@ export function available(state, candidates, now) {
   )
   const recent = events.find((e) => e.type === 'suggestion_shown' && e.ts > now - COOLDOWN_DAYS * DAY_MS)
   return recent ? open.filter((lapse) => same(lapse, recent)).slice(0, 1) : open
+}
+
+/**
+ * Lo que no se ofrece en la recompra ni en el «volver» por una calificación mala (winback.py: paused): los conceptos y
+ * las tiendas de los pedidos `propuesta` cuyo carro se calificó (`order_rated`, fuera de «Rappi hoy») con 3 estrellas o
+ * menos en los últimos 30 días. Vale la última calificación de cada carro.
+ */
+export function paused(state, now) {
+  const last = new Map()
+  for (const e of state.events)
+    if (e.type === 'order_rated' && e.cart_id && e.payload?.mode !== 'actual' && Number.isInteger(e.payload?.stars))
+      if (!last.has(e.cart_id) || last.get(e.cart_id).ts <= e.ts) last.set(e.cart_id, e)
+  const bad = new Set(
+    [...last.values()]
+      .filter((e) => e.payload.stars <= LOW_RATING && e.ts > now - PAUSE_DAYS * DAY_MS)
+      .map((e) => e.cart_id),
+  )
+  const concepts = new Set()
+  const stores = new Set()
+  for (const order of state.orders)
+    if (order.mode === 'propuesta' && bad.has(order.cart_id))
+      for (const line of order.lines) {
+        if (line.concept_id) concepts.add(line.concept_id)
+        if (line.store_id != null) stores.add(Number(line.store_id))
+      }
+  return { concepts, stores, allows: (p) => !concepts.has(p?.concept) && !stores.has(Number(p?.store_id)) }
 }

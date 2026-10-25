@@ -11,7 +11,11 @@
 // - rappi-ia/src/rappi_ia/motor/combos.py, combos.toml y predict.py ... la escalera fina (motor.js: targetStep)
 // - rappi-ia/src/rappi_ia/motor/model.py, data.py .. la afinidad propia, sin «Rappi hoy» (motor.js)
 // - rappi-ia/src/rappi_ia/offers/engine.py ......... vertical por probar, recompra, volver, complementos (offers.js)
-// - rappi-ia/src/rappi_ia/offers/winback.py y motor/model.py (replenishment) ... recompra y volver (winback.js)
+// - rappi-ia/src/rappi_ia/offers/winback.py y motor/model.py (replenishment) ... recompra y volver (winback.js), con la
+//   pausa por una calificación mala (winback.js: paused, de los eventos `order_rated`)
+// - rappi-ia/src/rappi_ia/offers/engine.py (ontop_offer) ... el OnTop de Turbo en el seguimiento (offers.js: onTopOffer)
+// - rappi-ia/src/rappi_ia/catalog/stores.py (line_prices) y api/catalog.py (availability) ... «Pídelo de nuevo»
+//   (index.js: availability, con los precios de la muestra)
 // - rappi-ia/src/rappi_ia/offers/guards.py ......... lo que el agente nunca ofrece (offers.js: offerableProduct)
 // - rappi-ia/src/rappi_ia/offers/featured.py ....... lo que se puede destacar (offers.js: featuredProduct; sus reglas,
 //   offers/destacado.toml, llegan en meta.featured) y, con engine.py (_typical_first), lo que piden las personas del
@@ -72,6 +76,7 @@ const storedEvent = (event, now) => ({
   concept_id: event.concept_id ?? null,
   entity_type: event.entity_type ?? null,
   entity_id: event.entity_id ?? null,
+  cart_id: event.cart_id ?? null,
   origin: event.origin ?? event.payload?.origen ?? null,
   payload: event.payload ?? {},
 })
@@ -136,6 +141,25 @@ function recommendations(snapshot, state, now, query) {
   return { user_id: query.get('user_id'), interests: mine.slice(0, 5), rows }
 }
 
+/**
+ * «Pídelo de nuevo» (api/catalog.py: availability): cada línea con su precio en la misma tienda, si la muestra tiene ese
+ * producto ahí (un plato, en su restaurante); si no, no disponible. Es la muestra grabada, no el precio de hoy.
+ */
+export function availability(snapshot, lines) {
+  return {
+    lines: lines.map((line) => {
+      const found = snapshot.pool.find(
+        (p) =>
+          p.entity_type === line.entity_type &&
+          String(p.entity_id) === String(line.entity_id) &&
+          (line.store_id == null || p.store_id === line.store_id),
+      )
+      const price = found?.price_value ?? null
+      return { ...line, store_id: line.store_id ?? null, available: price != null, price }
+    }),
+  }
+}
+
 const ORDER_VERTICALS = [
   'restaurantes',
   'turbo',
@@ -174,6 +198,7 @@ function answer(snapshot, { method, path, query, body }, now) {
     updateState((s) => ({ ...s, userId }))
     return { body: { user_id: userId, token: `offline.${userId}` } }
   }
+  if (key === 'POST /catalog/availability') return { body: availability(snapshot, body?.lines ?? []) }
   if (key === 'GET /search') return { body: search(snapshot, query) }
   if (key === 'POST /agent/ask') {
     const mine = interests(snapshot, state, now).map((i) => i.concept)
@@ -197,7 +222,14 @@ function answer(snapshot, { method, path, query, body }, now) {
     const vertical = backendVertical(body?.vertical)
     if (!ORDER_VERTICALS.includes(vertical) || !body?.lines?.length)
       return { status: 400, body: { detail: `Vertical desconocido: ${body?.vertical}` } }
-    const order = { order_id: `o-${randomHex()}`, ts: now, vertical, mode: body.mode ?? 'propuesta', lines: body.lines }
+    const order = {
+      order_id: `o-${randomHex()}`,
+      ts: now,
+      vertical,
+      mode: body.mode ?? 'propuesta',
+      cart_id: body.cart_id ?? null,
+      lines: body.lines,
+    }
     addOrder(order)
     return { body: { order_id: order.order_id, lineas_omitidas: 0 } }
   }
