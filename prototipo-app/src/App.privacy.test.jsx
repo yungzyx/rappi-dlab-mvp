@@ -33,6 +33,6 @@ describe('aviso de privacidad en la app', () => {
     expect(await screen.findByText(/guardamos tus búsquedas/)).toBeTruthy()
     fireEvent.click(screen.getByRole('button', { name: 'Ir a Cuenta' }))
     expect(screen.queryByText(/guardamos tus búsquedas/)).toBeNull()
-    expect(screen.getByRole('button', { name: 'Borrar mis datos' })).toBeTruthy()
+    expect(await screen.findByRole('button', { name: 'Borrar mis datos' })).toBeTruthy()
   })
 })

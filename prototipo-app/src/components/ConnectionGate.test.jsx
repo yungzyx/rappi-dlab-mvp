@@ -51,6 +51,19 @@ describe('ConnectionGate', () => {
     expect(userToken()).toBe('proto-0123456789abcdef.firma')
   })
 
+  test('la primera carga pide la sesión sin esperar a /health', async () => {
+    vi.useFakeTimers()
+    localStorage.removeItem('rappi-proto-token')
+    const api = stubApi({ '/health': 'slow:1000' })
+    renderGate()
+    await act(() => vi.advanceTimersByTimeAsync(0))
+    expect(api.mock.calls.map(([url]) => new URL(url).pathname)).toEqual(['/health', '/session'])
+    expect(screen.queryByText('La app')).toBeNull() // entra cuando contestan las dos
+
+    await act(() => vi.advanceTimersByTimeAsync(1000))
+    expect(screen.getByText('La app')).toBeTruthy()
+  })
+
   test('la primera carga sin id viejo recibe uno nuevo del servidor', async () => {
     localStorage.clear()
     const session = fixture('session')

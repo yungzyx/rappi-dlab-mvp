@@ -29,7 +29,11 @@ npm run dev              # http://localhost:5174
 npm run dev -- --host    # para abrirlo en el iPhone
 ```
 
-En el iPhone, desde Safari: **Compartir → Agregar a pantalla de inicio**. Se abre a pantalla completa con el ícono de Mochi y el gesto "volver" funciona.
+**Instalarla en el teléfono:** en Android, Chrome ofrece **Instalar app** (o menú ⋮ → **Agregar a la pantalla principal**); en el iPhone, desde Safari: **Compartir → Agregar a pantalla de inicio**. Queda como «Mochi · demo», con el ícono de Mochi, y se abre a pantalla completa (el gesto "volver" funciona). El manifiesto lo arma `vite.config.js` con el nombre del agente; tras la puerta de acceso se pide con credenciales (`crossorigin="use-credentials"` en `index.html`). Chrome solo la instala con HTTPS (la demo pública lo tiene): por la red local (`npm run dev -- --host`) crea un acceso directo.
+
+![Los íconos de la app instalada: Android (maskable), iPhone y la pestaña](docs/screenshots/40-instalar.jpg)
+
+Sin service worker, a propósito: la app no funciona sin la API, los archivos de `/assets/` ya quedan guardados un año en el navegador y `index.html` se revalida en cada apertura, que es lo que la hace pasar por la puerta de acceso. Un service worker que sirviera `index.html` desde su caché se saltaría la puerta (tras reiniciar el navegador, la API daría 401 sin pedir la clave, y el service worker no vería las versiones nuevas); uno que fuera primero a la red no ahorraría nada. Chrome ya no lo exige para instalar.
 
 ### La API de `rappi-ia`
 
@@ -60,7 +64,7 @@ Si la API se cae con la app ya abierta, el buscador con Mochi dice «Sin conexi�
 | `npm run screenshots` | Regenera las capturas de este README con el Chrome instalado (`CHROME_PATH` o `PLAYWRIGHT_CHANNEL` eligen otro). Necesita el MVP corriendo sobre una copia de la base (`DATABASE_URL=postgresql:///rappi_staging make mvp`), o una API sobre la copia en otro puerto (`VITE_API_URL`), y `SCREENSHOTS_ALLOW_WRITES=1`, porque paga una compra: sin la variable se niega |
 | `npm run demo:snapshot` | Graba la muestra del catálogo para la demo sin conexión desde una API sobre una copia de la base (ver «Demo sin conexión») |
 | `npm run demo:html` | Arma «Prototipo MVP.html»: la app en un solo archivo, sin la API (ver «Demo sin conexión») |
-| `./scripts/make-icons.sh` | Regenera los íconos de pantalla de inicio desde `scripts/icon.svg` (solo en macOS: usa `qlmanage` y `sips`) |
+| `node scripts/make-icons.mjs` | Regenera los íconos de la app instalada (`public/`: manifiesto, iPhone y pestaña) desde la pose de frente de `src/assets/mochi-poses.webp`, sin el logo que trae la mochila, con el Chrome instalado |
 
 Tests: las cifras vigentes están en [README.md#resultados](../README.md#resultados) (fila «Calidad»). CI en GitHub Actions: lint, tests y build.
 
@@ -240,6 +244,6 @@ src/
 ├── test/           Ayudas de los tests: la API falsa (`api.js`: `stubApi` y `fixture`) y la muestra mínima de la demo sin conexión (`offlineMeta.js`)
 └── utils/          Utilidades sueltas (`today`: la fecha local; `typed`: cortar un texto sin partir un emoji)
 docs/screenshots/   Capturas de este README
-public/             Íconos y manifiesto para "Agregar a pantalla de inicio"
+public/             Íconos para instalar la app (los genera scripts/make-icons.mjs; el manifiesto sale de vite.config.js)
 scripts/            Íconos, capturas y el recorrido de `make mvp-check` (Home, compra, kit de Mochi, preguntarle a Mochi, Home dinámica, combinación, panel y API caída: 8 revisiones)
 ```
