@@ -15,6 +15,7 @@ Reglas de conducta (docs/diseno-ia.md §4) que se aplican aquí, en código:
 import copy
 import re
 from dataclasses import dataclass, field, replace
+from itertools import zip_longest
 
 from psycopg import Connection
 
@@ -26,14 +27,19 @@ from .compose import Draft, TemplateComposer
 from .compose import _mid_sentence as _mid
 from .glossary import load_glossary
 from .tools import (
+    _NAME_SKIP,
     VERTICAL_LABELS,
+    Product,
     Suggestion,
+    _forms,
     clp,
     search_products,
     search_remedies,
     suggest_complement,
 )
 from .understand import CHILD_WORDS, Intent, Understander
+from .understand import _without_order as without_order
+from .understand import _without_people as without_people
 from .verticals import MIN_ITEMS_ELSEWHERE, available_elsewhere, ranked_verticals
 
 PROTOTYPE_VERTICALS = {  # ids del prototipo (prototipo-app/src/screens/vertical/data.js)
@@ -54,7 +60,7 @@ class Context:
     profile: dict[str, float] = field(default_factory=dict)  # interés por concepto
     shown_topics: list[str] = field(default_factory=list)  # conceptos ya sugeridos en la sesión
     mode: str = "propuesta"  # propuesta | actual ("Rappi hoy")
-    previous: dict | None = None  # pedido anterior de la conversación: {query, concepts, vertical, product_ids}
+    previous: dict | None = None  # el turno anterior: el `conversation` de la respuesta anterior (ver _conversation)
     user_id: str | None = None  # en «Propuesta», sus compras cruzadas y su combinación ordenan el complemento
 
 
@@ -89,6 +95,42 @@ DETAIL_ALIASES = {
     **dict.fromkeys(("celiaco", "celiaca", "celiacos", "celiacas"), ("gluten", "sin gluten", True)),
     **dict.fromkeys(("diabetico", "diabetica", "diabeticos", "diabeticas"), ("azucar", "sin azúcar", True)),
 }
+# «sin X» de un régimen: el nombre tiene que decirlo (no se sabe si un helado común tiene lactosa) y, si nada lo dice,
+# Mochi lo dice en vez de mostrar otra cosa. Lo demás («sin palta») es un ingrediente: fuera lo que lo nombra.
+DIETS = {"carne", "lactosa", "gluten", "azucar", "alcohol", "sal", "grasa", "cafeina", "sodio"}
+# Cómo lo dice el nombre, además de «sin X», «libre de X», «cero X» o «0 X» (_name_pattern), y esas palabras para
+# buscarlas en el índice (_with_detail).
+DIET_NAMES = {"carne": r"vegetarian[oa]s?|vegan[oa]s?|veggies?|vegetal(?:es)?", "lactosa": r"deslactosad[oa]s?"}
+DIET_FORMS = {"carne": "vegetariana vegetariano vegana vegano veggie vegetal", "lactosa": "deslactosada deslactosado"}
+# Cómo se busca un régimen: «sin» no se indexa y «pizza sin carne» calzaba «carne» (pepperoni, Carnivori).
+DIET_SEARCH = {"carne": "vegetariana vegana veggie"}
+# Tildes de lo que se dice «sin», para repetirlo (la consulta va sin tildes ni ñ: «sin azucar», «sin pina»).
+ACCENTS = {
+    **{"azucar": "azúcar", "cafeina": "cafeína", "pina": "piña", "jamon": "jamón", "limon": "limón", "mani": "maní"},
+    **{"platano": "plátano", "sesamo": "sésamo", "atun": "atún", "salmon": "salmón", "champinon": "champiñón"},
+    **{"champinones": "champiñones", "pimenton": "pimentón", "cebollin": "cebollín", "lacteos": "lácteos"},
+}
+# Una ocasión sin productos nombrados («cumpleaños», «once»): cada concepto se busca por su nombre y se reparten.
+OCCASION_CONCEPTS = 6  # hasta estos conceptos de la ocasión
+OCCASION_EACH = 6  # productos por concepto (si los demás no tienen, uno solo llena la respuesta); con orden, «otra
+# opción» o «sin», OCCASION_POOL
+OCCASION_POOL = 12
+MAX_SHOWN_IDS = 48  # «otra opción» acumula lo ya mostrado hasta esto (lo que acepta la API en `previous`)
+MAX_QUERY, MAX_CONCEPTS = 200, 10  # también lo que acepta la API en `previous` (api/app.py: PreviousTurnIn)
+NAMES_SKIP = {"talla", "tamano", "sabor", "marca", "tipo"}  # «Bubu Pañal Ultra Premium G» es talla G
+# «Quiero algo picante»: un antojo sin concepto se busca primero en restaurantes, con lo que lo dice en el nombre.
+CRAVING = re.compile(r"^algo (?:bien |muy )?([a-z]{4,})$")
+NOT_A_DISH = {None, "salsas", "aceites-condimentos"}
+ADD_ON = re.compile(r"(?:salsa|extra|adicional|agregado|porcion de)\b")
+ADD_ON_PRICE = 1000  # un «Picante Chile» de $430 es un agregado del ramen, no un plato
+# «Algo para que mi guagua duerma»: nada que le ayude a dormir (lo ve su pediatra); lo de la hora de dormir que no es
+# salud y lo dice el nombre, nunca de adulto.
+SLEEP_WORDS = {"duerma", "duerman", "dormir", "duerme", "dormirse", "sueno"}
+BEDTIME_CONCEPTS = ["articulos-bebe", "panales"]
+BEDTIME_NAMES = re.compile(r"\b(?:dormir|noche|nocturn[oa]s?|sueno)\b")
+ADULT_NAMES = re.compile(r"\b(?:adultos?|incontinencia)\b")
+BEDTIME_TEXT = "Para que duerma no te puedo recomendar remedios ni nada que se tome: eso lo ve su pediatra 🧡."
+BEDTIME_SHOWN = " Esto es para la hora de dormir."
 
 
 class RappiAgent:
@@ -118,7 +160,9 @@ class RappiAgent:
         turn = copy.copy(self)
         if self.embedder is not None:
             turn.embedder = MemoizedQueryEmbedder(self.embedder)
-        return turn._reply(conn, message, ctx, offer)
+        response = turn._reply(conn, message, ctx, offer)
+        response.setdefault("conversation", None)  # un saludo, el consejo médico o una aclaración no se siguen
+        return response
 
     def _reply(self, conn: Connection, message: str, ctx: Context | None, offer: bool) -> dict:
         ctx = ctx or Context()
@@ -148,6 +192,12 @@ class RappiAgent:
             return self._what_is(conn, intent, ctx, offer)
         if intent.kind == "acompanar":
             return self._goes_with(conn, intent, ctx, offer)
+        # Un niño y dormir, sin nombrar algo que Mochi propone («pijama para que duerma» es ropa): ni remedios ni
+        # suplementos («para dormir» nombra vitaminas).
+        said = set(tokens(intent.text))
+        offerable = any(is_offerable(self.taxonomy.concepts[c]) for c in intent.concepts if intent.explicit_concepts)
+        if said & SLEEP_WORDS and said & CHILD_WORDS and not offerable:
+            return self._bedtime(conn, intent)
         vertical = intent.vertical or ctx.vertical or "supermercado"
         # Una ocasión dicha sin nombrar productos («una cena romántica», «algo para el carrete»): Mochi responde con lo
         # que puede proponer por su cuenta (offers/guards.py), sin el alcohol de la ocasión; si se nombra («cerveza para
@@ -193,19 +243,27 @@ class RappiAgent:
                 )
                 if vertical == "farmacia":  # lo de cuidarse no se vende en farmacia
                     vertical = next(iter(_ranked_for(conn, list(care.concepts))), "supermercado")
-        if outcome is None:
-            outcome = search_products(
+        if outcome is None and not ctx.vertical:
+            craving = self._craving(conn, intent, offer)
+            if craving:
+                outcome, vertical = craving, "restaurantes"
+        # Una ocasión sin productos nombrados se reparte entre sus conceptos (ya ordenados y sin lo que no va).
+        spread = outcome is None and intent.kind == "ocasion" and not intent.explicit_concepts and not intent.symptom
+        if spread:
+            outcome, products = self._occasion_products(conn, intent, vertical, offer)
+        else:
+            outcome = outcome or search_products(
                 conn,
                 vertical,
                 self._search_query(intent),
                 intent.concepts,
                 self.embedder,
                 intent.price_max,
-                k=CHEAP_POOL if intent.cheapest or intent.priciest or intent.exclude_previous or avoided else 6,
+                k=_pool(intent, ctx, bool(avoided)),
                 symptom=intent.symptom,
                 offer=offer,
             )
-        products = outcome.products
+            products = outcome.products
         # «algo más sano» se entiende como ensaladas, pero esas palabras no están en los productos: si nada de lo
         # encontrado es del concepto nombrado, se busca por el nombre del concepto.
         # Con menos de MIN_SHOWN («unos puchos» traía uno) se completa con esa búsqueda, salvo en un seguimiento
@@ -232,6 +290,7 @@ class RappiAgent:
         # Con menos de MIN_SHOWN que lo digan se buscan más entre 24 candidatos; si aquí no hay ninguno, en la
         # vertical que los tenga. Lo que lo dice va primero y, con «sin», solo eso (un vino común no es «sin alcohol»).
         detail = self._detail(intent) if intent.explicit_concepts and not intent.symptom and products else None
+        unmet_diet = False  # «helado sin lactosa» y ningún nombre lo dice
         if detail:
             says = [p for p in products if _names(p.name, detail[0], detail[2])]
             found = self._with_detail(conn, intent, vertical, detail, offer) if len(says[:6]) < MIN_SHOWN else None
@@ -243,6 +302,10 @@ class RappiAgent:
                 outcome, says = found[1], found[2]
             if says:
                 products = says if detail[2] else says + [p for p in products if p not in says]
+            elif detail[2] and detail[0] in DIETS:  # un régimen que nada dice: no se muestra otra cosa como si lo fuera
+                products, unmet_diet = [], True
+        if "carnes" in intent.concepts and "carne" not in avoided:  # el seitán y la hamburguesa vegana rotulados carne
+            products = [p for p in products if not _names(p.name, "carne", True)]
         if avoided:  # «sushi sin palta»: fuera lo que nombra la palta (salvo «sin palta»); nunca se muestra igual
             products = [
                 p for p in products if not any(_names(p.name, w) and not _names(p.name, w, True) for w in avoided)
@@ -250,10 +313,13 @@ class RappiAgent:
         if intent.exclude_previous and ctx.previous:  # «de otra marca»: sin lo que ya se mostró
             seen = set(ctx.previous.get("product_ids") or [])
             products = [p for p in products if p.entity_id not in seen]
-        if intent.cheapest:  # «barato»: lo más barato de un grupo más amplio (sin precio, al final)
-            products = sorted(products, key=lambda p: (p.price_value is None, p.price_value or 0))
-        elif intent.priciest:  # «uno más caro»: lo más caro primero
-            products = sorted(products, key=lambda p: (p.price_value is None, -(p.price_value or 0)))
+        if not spread and (intent.cheapest or intent.priciest or intent.exclude_previous):
+            # Ordenar por precio (o saltarse lo ya visto) en un grupo más amplio sube lo menos parecido: un asado «más
+            # barato» traía albóndigas y los pañales talla G «más baratos», otras tallas. Si hay suficientes, solo lo
+            # que dice lo pedido.
+            core = _core_query(intent.query)
+            named = [p for p in products if _says(p.name, core)] if core else []
+            products = _by_price(named if len(named) >= MIN_SHOWN else products, intent)
         products = products[:6]
 
         suggestion = None
@@ -270,7 +336,18 @@ class RappiAgent:
         # Con tope de precio también es demanda no satisfecha si no existe a ningún precio. Por síntomas no: lo que
         # se muestra para cuidarse no es lo que se pidió.
         unmet = not intent.symptom and not products and outcome.result.unmet and outcome.cheapest_without_filter is None
+        unmet = unmet or unmet_diet
+        # «en el súper mejor» para algo que el súper no vende (un desayuno listo): existe en Rappi, no es demanda nueva.
+        before = (ctx.previous or {}).get("vertical")
+        elsewhere = None
+        if not products and intent.follow_up and intent.explicit_vertical and before and before != vertical:
+            elsewhere, unmet = VERTICAL_LABELS.get(before, before), False
+        seen = bool((ctx.previous or {}).get("product_ids"))
+        if not products and intent.exclude_previous and seen:  # ya vio lo que hay: no es demanda nueva
+            unmet = False
         draft = self._draft(intent, vertical, products, outcome, suggestion, unmet)
+        draft.elsewhere = elsewhere
+        draft.other = intent.exclude_previous and seen
         also_in = None if intent.symptom else self._also_in(conn, ctx, intent, products, vertical, offer)
         if self.composer.remote:  # Claude tarda segundos: la conexión no queda «idle in transaction» mientras redacta
             conn.commit()
@@ -298,6 +375,8 @@ class RappiAgent:
                 {"label": f"Pedirlo con {favor.name}", "route": [favor.route], "service": favor.id}
             )
             response["service"] = favor.id
+        # Lo que no se encontró en otra vertical no mueve la conversación: «otra opción» sigue con lo de antes.
+        response["conversation"] = ctx.previous if elsewhere else self._conversation(intent, vertical, products, ctx)
         return response
 
     def _recommend(self, conn: Connection, intent: Intent, ctx: Context) -> dict:
@@ -340,12 +419,73 @@ class RappiAgent:
         response["actions"] = [{"label": "Ir a Farmacia", "vertical": "farmacia"}]  # la app la lleva a su pantalla
         return response
 
+    def _bedtime(self, conn: Connection, intent: Intent) -> dict:
+        """«Algo para que mi guagua duerma»: Mochi no recomienda nada para dormir (un remedio o un suplemento sería
+        elegirlo por la persona; antes mostraba pañales). Lo dice, nombra a su pediatra y muestra lo de la hora de
+        dormir que no es salud y que el nombre lo dice (chupete nocturno, pañales de noche), nunca de adulto. Es el
+        tema de la persona (su guagua), no una oferta: los artículos de bebé se muestran porque los pidió."""
+        vertical = next(iter(ranked_verticals(conn, BEDTIME_CONCEPTS)), "farmacia")
+        rows = []
+        for concept_id in BEDTIME_CONCEPTS:
+            name = self.taxonomy.concepts[concept_id].name
+            outcome = search_products(conn, vertical, f"{name} noche dormir", [concept_id], self.embedder, k=12)
+            rows.append(
+                [
+                    p
+                    for p in outcome.products
+                    if p.concept == concept_id
+                    and BEDTIME_NAMES.search(normalize(p.name))
+                    and not ADULT_NAMES.search(normalize(p.name))
+                ]
+            )
+        products = [p for row in zip_longest(*rows) for p in row if p is not None][:6]
+        intent = replace(intent, kind="buscar", concepts=BEDTIME_CONCEPTS, symptom=True)
+        response = _base(intent, BEDTIME_TEXT + (BEDTIME_SHOWN if products else ""))
+        response.update(
+            vertical=vertical if products else None,
+            prototype_vertical=PROTOTYPE_VERTICALS.get(vertical) if products else None,
+            products=[p.to_dict() for p in products],
+        )
+        return response
+
+    def _craving(self, conn: Connection, intent: Intent, offer: bool):
+        """«Quiero algo picante»: un antojo sin concepto ni ocasión, dicho sin pantalla, se busca en restaurantes; si al
+        menos MIN_SHOWN platos lo dicen en el nombre, son la respuesta (en el súper salía una mezcla de salsa, ramen
+        instantáneo y chicharrón). Si no, la búsqueda de siempre."""
+        craving = CRAVING.match(normalize(intent.query or ""))
+        if not craving or intent.concepts or intent.occasion or intent.symptom or intent.explicit_vertical:
+            return None
+        word = craving.group(1)
+        if word in {*REMEDY_WORDS, "barato", "barata", "caro", "cara", "nuevo", "nueva", "distinto", "distinta"}:
+            return None
+        outcome = search_products(
+            conn, "restaurantes", word, None, self.embedder, intent.price_max, k=CHEAP_POOL, offer=offer
+        )
+        # Platos: no una salsa ni un agregado («Salsa Picante», «Extra ají», uno de $430).
+        says = [
+            p
+            for p in outcome.products
+            if _names(p.name, _stem(word))
+            and p.concept not in NOT_A_DISH
+            and not ADD_ON.match(normalize(p.name))
+            and (p.price_value or 0) >= ADD_ON_PRICE
+        ]
+        return replace(outcome, products=says) if len(says) >= MIN_SHOWN else None
+
     def _what_is(self, conn: Connection, intent: Intent, ctx: Context, offer: bool) -> dict:
         """«¿Qué es un poke?»: la ficha del plato (agent/glosario.toml, escrita a mano) y lo que hay de él, buscado como
         cualquier pedido (con sus guardias). Si no hay, la ficha y el «No encontré» de siempre."""
         dish = load_glossary()[intent.dish]
         # Sin el pedido anterior: «¿qué es una paella?» tras «pañales» no es «pañales paella».
-        response = self._reply(conn, dish.query, replace(ctx, previous=None), offer)
+        # Sin pantalla, donde dice la ficha («paella» en el súper traía una paila y una hallulla).
+        where = replace(ctx, previous=None, vertical=ctx.vertical or dish.vertical)
+        response = self._reply(conn, dish.query, where, offer)
+        # Si algo dice el plato en su nombre, solo eso: lo demás es cercanía de la búsqueda (un poke junto a la paella).
+        named = [p for p in response["products"] if _says(p["name"], dish.query)]
+        if named and len(named) < len(response["products"]):
+            response["products"] = named
+            if response["conversation"]:
+                response["conversation"]["product_ids"] = [p["entity_id"] for p in named]
         response["text"] = f"{dish.text} {response['text']}"
         response["intent"] = {**response["intent"], "kind": "que_es", "dish": dish.id}
         return response
@@ -407,10 +547,17 @@ class RappiAgent:
 
     # ── Partes ────────────────────────────────────────────────────────────────
     def _search_query(self, intent: Intent) -> str:
-        """Lo que se pidió explícitamente manda; la ocasión solo completa cuando no se nombró nada."""
+        """Lo que se pidió explícitamente manda; la ocasión solo completa cuando no se nombró nada. Lo que va «sin» se
+        busca como lo dicen los nombres (_without_searched): «pizza sin carne» busca «pizza vegetariana vegana veggie»,
+        «sushi sin palta», «sushi»."""
         if intent.kind == "ocasion" and intent.occasion and not intent.explicit_concepts:
             return " ".join(self.taxonomy.concepts[c].name for c in intent.concepts[:4])
-        return intent.query or intent.text
+        query = intent.query or intent.text
+        if not self._without(intent):
+            return query
+        words = _query_words(query)
+        kept = [w for i, w in enumerate(words) if w != "sin" and (i == 0 or words[i - 1] != "sin")]
+        return " ".join([*kept, self._without_searched(intent, intent.concepts)]).strip() or query
 
     def _small_talk(self, intent: Intent, ctx: Context) -> dict:
         interest = self._top_interest(ctx.profile) if ctx.mode == "propuesta" else None
@@ -469,6 +616,9 @@ class RappiAgent:
             unmet=unmet,
             people=intent.people,
             portion=occasion.portion if occasion else None,
+            without=[label for _, label in self._without(intent)] if products else [],
+            other=intent.exclude_previous,
+            cheap=intent.cheapest,
         )
 
     def _response(self, intent, vertical, text, products, suggestion, unmet, unmet_reason, draft: Draft) -> dict:
@@ -544,17 +694,91 @@ class RappiAgent:
         return (home, items.get(vertical, 0)) if home else None
 
     def _avoided(self, intent: Intent) -> list[str]:
-        """Lo que se pide «sin»: «palta» en «sushi sin palta». No cuenta si es parte del concepto («algo sin carne»
-        es vegano y su «carne vegetal» sirve)."""
-        if not intent.explicit_concepts or intent.symptom:
+        """Lo que se pide «sin» en un pedido con productos nombrados: «palta» en «sushi sin palta»."""
+        return [stem for stem, _ in self._without(intent)] if intent.explicit_concepts else []
+
+    def _without(self, intent: Intent) -> list[tuple[str, str]]:
+        """(raíz, cómo decirlo) de lo que se pide «sin»: («palta», «sin palta») en «sushi sin palta». No cuenta si es
+        parte del concepto («algo sin carne» es vegano y su «carne vegetal» sirve) ni con síntomas."""
+        if intent.symptom:
             return []
         phrases = {p for c in intent.concepts for p in self._concept_phrases.get(c, ())}
+        said = {normalize(w): w.lower().strip("¿?¡!.,") for w in intent.text.split()}
         words = _query_words(intent.query)
         return [
-            _stem(b)
+            (_stem(b), f"sin {said.get(b) or ACCENTS.get(b, b)}")
             for a, b in zip(words, words[1:], strict=False)
             if a == "sin" and len(b) >= 3 and f"sin {b}" not in phrases
         ]
+
+    def _without_searched(self, intent: Intent, concepts: list[str]) -> str:
+        """Lo que va «sin», como se busca: un ingrediente no se busca (la palabra traía justo eso), un régimen sí, como
+        lo dicen los nombres («vegetariana»), y «sin alcohol» en lo que no tiene alcohol, nada."""
+        said = []
+        for stem, label in self._without(intent):
+            if stem not in DIETS or (stem == "alcohol" and not self._alcoholic(concepts)):
+                continue
+            said.append(DIET_SEARCH.get(stem, label))
+        return " ".join(said)
+
+    def _occasion_products(self, conn: Connection, intent: Intent, vertical: str, offer: bool):
+        """(resultado de la primera búsqueda, productos) de una ocasión sin productos nombrados («cumpleaños», «once»):
+        cada concepto se busca por su nombre y se reparten, uno de cada uno en el orden de la ocasión (una sola búsqueda
+        con todos los nombres traía solo decoración). Con «más barato», lo más barato de cada uno; lo que va «sin» se
+        aplica a cada uno (un régimen, solo lo que lo dice; «sin alcohol» no cambia lo que no tiene alcohol)."""
+        without = self._without(intent)
+        refined = intent.cheapest or intent.priciest or intent.exclude_previous or without
+        # Solo lo que esta vertical vende de verdad: tres quesos rallados de una chocolatería no son una cena romántica.
+        items = dict(
+            conn.execute(
+                "SELECT concept_id, items FROM concept_assortment WHERE vertical = %s AND concept_id = ANY(%s)",
+                (vertical, intent.concepts),
+            ).fetchall()
+        )
+        sold = [c for c in intent.concepts if items.get(c, 0) >= MIN_HOME_ITEMS] or intent.concepts
+        # Si queda uno solo, la búsqueda de siempre con los nombres de la ocasión: «Chocolates» solo traía galletones y
+        # «Flores y regalos Chocolates…» trae cajas de bombones (una cena romántica, un regalo en chocolaterías).
+        alone = self._search_query(intent)
+        rows, first = [], None
+        for concept_id in sold[:OCCASION_CONCEPTS]:
+            concept = self.taxonomy.concepts[concept_id]
+            outcome = search_products(
+                conn,
+                vertical,
+                f"{alone if len(sold) == 1 else concept.name} {self._without_searched(intent, [concept_id])}".strip(),
+                [concept_id],
+                self.embedder,
+                intent.price_max,
+                k=OCCASION_POOL if refined else OCCASION_EACH,
+                offer=offer,
+            )
+            first = first or outcome
+            kept = [p for p in outcome.products if p.concept == concept_id and _keeps(p.name, without, concept)]
+            rows.append(_by_price(kept, intent))
+        return first, [p for row in zip_longest(*rows) for p in row if p is not None]
+
+    def _conversation(self, intent: Intent, vertical: str, products: list[Product], ctx: Context) -> dict:
+        """El estado que la app devuelve como `previous` en el próximo mensaje (docs/diseno/2026-10-25-mochi-
+        conversacion-design.md): lo pedido con sus detalles (sin el orden por precio), los conceptos nombrados (vacío
+        en una ocasión sin productos nombrados), la ocasión, la vertical, el tope, las personas, el orden, si habló de
+        síntomas y lo ya mostrado (que se acumula mientras se pida «otra opción»)."""
+        shown = [p.entity_id for p in products]
+        if intent.exclude_previous and ctx.previous:
+            shown = [*(ctx.previous.get("product_ids") or []), *shown]
+        words = without_order((intent.query or normalize(intent.text)).split())
+        while len(" ".join(words)) > MAX_QUERY:  # lo que acepta la API en `previous`: se pierde lo más antiguo
+            words = words[1:]
+        return {
+            "query": " ".join(words),
+            "concepts": (intent.concepts if intent.explicit_concepts else [])[:MAX_CONCEPTS],
+            "occasion": intent.occasion,
+            "vertical": vertical,
+            "price_max": intent.price_max,
+            "people": intent.people,
+            "order": "barato" if intent.cheapest else "caro" if intent.priciest else None,
+            "symptom": intent.symptom,
+            "product_ids": list(dict.fromkeys(shown))[-MAX_SHOWN_IDS:],
+        }
 
     def _detail(self, intent: Intent) -> tuple[str, str, bool] | None:
         """(raíz, cómo decirlo, si se pide «sin») de la primera palabra del pedido que no es el concepto ni relleno:
@@ -569,6 +793,8 @@ class RappiAgent:
                 return DETAIL_ALIASES[word]
             # tras «sin» cuenta aunque sea palabra del concepto («sandwich sin palta»), salvo «sin carne» en vegano
             free_from = i > 0 and words[i - 1] == "sin" and f"sin {word}" not in phrases
+            if free_from and stem == "alcohol" and not self._alcoholic(intent.concepts):
+                continue  # «bebidas sin alcohol»: no tienen; no hay que buscar las que lo dicen (ni ir a Licores)
             known = set() if free_from else concept_words
             if len(word) >= 4 and word.isalpha() and not {word, stem} & (NOT_DETAIL | known):
                 label = said.get(word, word).strip("¿?¡!.,")
@@ -609,7 +835,8 @@ class RappiAgent:
                        GROUP BY 1 ORDER BY count(DISTINCT ci.master_product_id) DESC LIMIT 2""",
                     {
                         "concept": intent.concepts[0],
-                        "forms": f"{stem} {stem}s {stem}es",  # lo que acepta `_name_pattern`
+                        # lo que acepta `_name_pattern` (con un régimen, también sus otros nombres: «vegetariana»)
+                        "forms": f"{stem} {stem}s {stem}es {DIET_FORMS.get(stem, '') if free_from else ''}".strip(),
                         "pattern": _name_pattern(stem, free_from, sql=True),
                         "vertical": vertical,
                     },
@@ -631,6 +858,9 @@ class RappiAgent:
             if len(products) >= (1 if candidate == vertical else MIN_ELSEWHERE):
                 return candidate, outcome, products
         return None
+
+    def _alcoholic(self, concept_ids: list[str]) -> bool:
+        return any(c in self.taxonomy.concepts and self.taxonomy.concepts[c].age_restricted for c in concept_ids)
 
     def _interests(self, profile: dict[str, float]) -> list[str]:
         concepts = self.taxonomy.concepts
@@ -711,14 +941,64 @@ def _query_words(query: str) -> list[str]:
 
 
 def _name_pattern(stem: str, free_from: bool = False, sql: bool = False) -> str:
-    """La palabra entera con su plural («sal» no es «salmón»); con `free_from`, dicha como «sin», «libre de» o «0»."""
+    """La palabra entera con su plural («sal» no es «salmón»); con `free_from`, dicha como «sin», «libre de» o «0», o
+    con otro nombre del régimen («vegetariana» es sin carne: DIET_NAMES)."""
     start, end = (r"\m", r"\M") if sql else (r"\b", r"\b")
-    lead = r"(?:sin|libre de|cero|0)\s+" if free_from else ""
-    return rf"{start}{lead}{stem}(?:es|s)?{end}"
+    if not free_from:
+        return rf"{start}{stem}(?:es|s)?{end}"
+    other = f"|{DIET_NAMES[stem]}" if stem in DIET_NAMES else ""
+    return rf"{start}(?:(?:sin|libre de|cero|0)\s+{stem}(?:es|s)?{other}){end}"
 
 
 def _names(name: str, stem: str, free_from: bool = False) -> bool:
     return re.search(_name_pattern(stem, free_from), normalize(name)) is not None
+
+
+def _keeps(name: str, without: list[tuple[str, str]], concept) -> bool:
+    """Si el producto cumple lo que va «sin»: un régimen, si el nombre lo dice («sin lactosa», «vegetariana»); un
+    ingrediente, si no lo nombra (o dice «sin»). «Sin alcohol» no pide nada a lo que no tiene alcohol."""
+    for stem, _ in without:
+        if stem == "alcohol" and not concept.age_restricted:
+            continue
+        if stem in DIETS and not _names(name, stem, True):
+            return False
+        if stem not in DIETS and _names(name, stem) and not _names(name, stem, True):
+            return False
+    return True
+
+
+def _says(name: str, query: str) -> bool:
+    """¿El nombre dice todas las palabras de la consulta (sin tildes ni ñ, en singular o plural)? Como
+    tools._names_query, pero con la consulta ya normalizada: «panales» dice «Pañales»."""
+    have = {form for word in tokens(name) for form in _forms(word)}
+    wanted = [w for w in tokens(query) if w not in _NAME_SKIP]
+    return bool(wanted) and all(_forms(w) & have for w in wanted)
+
+
+def _core_query(query: str) -> str:
+    """Lo pedido sin lo que no va, sin el orden por precio ni la cantidad de personas, y sin las palabras que los
+    nombres se saltan («talla», «sabor»): «asado» en «asado de 6 sin sal», «panales g» en «panales talla g»."""
+    words = _query_words(query)
+    kept = [w for i, w in enumerate(words) if w != "sin" and (i == 0 or words[i - 1] != "sin")]
+    return without_people(" ".join(w for w in without_order(kept) if w not in NAMES_SKIP))
+
+
+def _pool(intent: Intent, ctx: Context, avoided: bool) -> int:
+    """Cuántos candidatos buscar: 6, o CHEAP_POOL para ordenar por precio o sacar lo que no va; con «otra opción», el
+    doble más lo ya mostrado (hasta MAX_SHOWN_IDS), que se va a saltar: entre los siguientes tiene que quedar algo que
+    diga lo pedido («talla g»)."""
+    if intent.exclude_previous:
+        return 2 * CHEAP_POOL + len((ctx.previous or {}).get("product_ids") or [])
+    return CHEAP_POOL if intent.cheapest or intent.priciest or avoided else 6
+
+
+def _by_price(products: list[Product], intent: Intent) -> list[Product]:
+    """«barato»: lo más barato primero; «uno más caro»: lo más caro (sin precio, al final)."""
+    if intent.cheapest:
+        return sorted(products, key=lambda p: (p.price_value is None, p.price_value or 0))
+    if intent.priciest:
+        return sorted(products, key=lambda p: (p.price_value is None, -(p.price_value or 0)))
+    return products
 
 
 def _moved(here: str, there: str, what: str, count: int = 0) -> str:

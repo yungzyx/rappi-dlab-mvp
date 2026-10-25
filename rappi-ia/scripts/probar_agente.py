@@ -3,9 +3,9 @@
 Uso (con la API corriendo):  make probar-agente          # todas las rondas de src/rappi_ia/eval/frases_usuarios
                              make probar-agente FRASES=archivo.txt
 Las líneas que empiezan con # son comentarios; «frase|vertical» la manda desde esa vertical; «+ frase» sigue la
-conversación (manda el pedido anterior, como el prototipo). No registra eventos (sin user_id). Leer la salida
-buscando: productos que no tienen que ver, verticales raras, avisos que sobran, «Lo anoté» para algo que sí existe.
-Ver docs/pruebas-de-usuario.md.
+conversación (manda el `conversation` de la respuesta anterior, como el prototipo). No registra eventos (sin user_id).
+Leer la salida buscando: productos que no tienen que ver, verticales raras, avisos que sobran, «Lo anoté» para algo
+que sí existe. Ver docs/pruebas-de-usuario.md.
 """
 
 import json
@@ -61,14 +61,8 @@ def main(paths: list[str]) -> None:
             text, _, vertical = line.lstrip("+ ").partition("|")
             response, seconds = ask(text.strip(), vertical.strip() or None, previous if follow else None)
             print(("  " if follow else "") + summary(text.strip(), response, seconds))
-            intent = response.get("intent") or {}
-            if intent.get("concepts"):
-                previous = {
-                    "query": intent.get("query", text),
-                    "concepts": intent["concepts"],
-                    "vertical": response.get("vertical"),
-                    "product_ids": [p["entity_id"] for p in response.get("products", [])],
-                }
+            # El turno siguiente lleva el `conversation` de la respuesta, como la app (null: queda el de antes)
+            previous = response.get("conversation") or previous
 
 
 if __name__ == "__main__":

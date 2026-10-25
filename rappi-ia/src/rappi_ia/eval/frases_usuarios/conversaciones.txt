@@ -1,0 +1,78 @@
+# Conversaciones con Mochi (25-10): una pregunta y uno o dos seguimientos, como seguiría una persona común.
+# «+ frase» sigue la conversación: manda el turno anterior, como la app.
+# Ocasiones
+¿qué llevo para un asado de 6?
++ ¿y algo más barato?
++ ¿y para tomar?
+algo para una once para 4
++ sin lactosa
++ para 10 personas
+una cena romántica para dos
++ menos de 20 lucas
++ otra opción
+picoteo para ver el partido con amigos
++ más barato
++ somos 8
+cumpleaños de mi hijo, somos 10
++ algo dulce
++ más barato
+desayuno para dos
++ en el súper mejor
++ otra opción
+# Pedidos que se afinan
+sushi
++ sin palta
++ más barato
+pizza
++ sin carne
++ para 4 personas
+quiero un helado
++ sin lactosa
++ otra opción
+cerveza
++ ¿y algo más barata?
++ sin alcohol
+un vino bueno hasta 10 mil
++ otra opción
++ menos de 5 lucas
+hamburguesa
++ con papas
++ en el súper mejor
+pañales talla G
++ más baratos
++ de otra marca
+algo dulce
++ sin azúcar
++ menos de 3 lucas
+almuerzo barato
++ sin carne
++ otra opción
+leche
++ sin lactosa
++ más barata
+café en grano
++ menos de 8 mil
++ otra opción
+# Salud y guardias
+algo para el resfrío
++ más barato
+algo para el carrete
++ ¿y para tomar?
++ sin alcohol
+tengo hambre
++ algo sin carne
++ para 3 personas
+# Cambios de tema: lo nuevo no arrastra lo anterior
+sushi
++ ¿qué es un poke?
++ más barato
+pizza
++ tengo dolor de cabeza
+cerveza
++ pañales talla G
+un regalo para mi mamá
++ menos de 20 mil
++ otra opción
+comida para perro
++ más barata
++ ¿y para gato?

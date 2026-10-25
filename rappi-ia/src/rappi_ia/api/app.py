@@ -228,12 +228,19 @@ ShortPath = Annotated[str, Path(max_length=64)]
 
 # ── Modelos ──────────────────────────────────────────────────────────────────
 class PreviousTurnIn(Clean):
-    """El pedido anterior de la conversación: un seguimiento («talla g», «más barata») se lee sobre él."""
+    """El turno anterior de la conversación: el `conversation` de la respuesta anterior, que la app devuelve tal cual
+    (docs/diseno/2026-10-25-mochi-conversacion-design.md). Un seguimiento («más barato», «sin carne», «para 10
+    personas») se lee sobre él. Lo que no existe (una ocasión o un concepto desconocido) se ignora."""
 
     query: str = Field(default="", max_length=200)
     concepts: list[Annotated[str, Field(max_length=64)]] = Field(default_factory=list, max_length=10)
+    occasion: str | None = Field(default=None, max_length=64)
     vertical: str | None = Field(default=None, max_length=64)
-    product_ids: list[Annotated[str, Field(max_length=64)]] = Field(default_factory=list, max_length=24)
+    price_max: float | None = Field(default=None, ge=0, le=100_000_000, allow_inf_nan=False)
+    people: int | None = Field(default=None, ge=2, le=40)
+    order: Literal["barato", "caro"] | None = None
+    symptom: bool = False
+    product_ids: list[Annotated[str, Field(max_length=64)]] = Field(default_factory=list, max_length=48)
 
 
 class AskIn(Clean):
@@ -360,7 +367,7 @@ def ask(
 ) -> dict:
     owner_of_body(request, body.user_id)
     ctx = _context(conn, body.vertical, body.user_id, body.profile, body.shown_topics, body.mode)
-    if body.previous and body.previous.concepts:
+    if body.previous and (body.previous.concepts or body.previous.occasion or body.previous.symptom):
         previous = body.previous.model_dump()
         previous["vertical"] = backend_vertical(previous["vertical"])
         ctx = replace(ctx, previous=previous)

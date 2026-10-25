@@ -43,6 +43,10 @@ class Draft:
     unmet: bool = False
     people: int | None = None  # para cuántas personas («asado de 6»)
     portion: tuple[int, str] | None = None  # gramos por persona y de qué, de la ocasión (taxonomy.toml)
+    without: list[str] = field(default_factory=list)  # lo que no va y los productos no tienen («sin carne»)
+    other: bool = False  # «otra opción»: sin lo que ya se mostró
+    cheap: bool = False  # «más barato»: lo más barato primero
+    elsewhere: str | None = None  # la vertical donde sí hay lo que aquí no («en el súper mejor» para un desayuno)
 
 
 class TemplateComposer:
@@ -105,12 +109,19 @@ class TemplateComposer:
         if d.kind == "sin_precio":
             cheapest = f" El más barato que encontré cuesta {d.cheapest}." if d.cheapest else ""
             return f"No encontré {d.concept_label or d.query} bajo {d.price_max} en {d.vertical_label}.{cheapest}"
+        if d.kind == "sin_resultado" and d.elsewhere and d.concept_label:
+            return f"En {d.vertical_label} no hay {_mid_sentence(d.concept_label)}, pero en {d.elsewhere} sí."
+        what = _mid_sentence(d.concept_label) if d.concept_label else f"«{d.query}»"
+        if d.concept_label and d.without:  # «🍕 pizza sin carne», «sushi sin palta ni queso crema»
+            what += " sin " + " ni ".join(w.removeprefix("sin ") for w in d.without)
+        budget = f" bajo {d.price_max}" if d.price_max else ""
+        if d.kind == "sin_resultado" and d.other:  # «otra opción» y no queda nada que no haya visto
+            return f"No encontré otras opciones de {what}{budget} en {d.vertical_label}."
         if d.kind == "sin_resultado":
             noted = " Lo anoté para que el equipo sepa que buscas eso 📝" if d.unmet else ""
             return f"No encontré «{d.query}» en {d.vertical_label}.{noted}"
-        what = _mid_sentence(d.concept_label) if d.concept_label else f"«{d.query}»"
-        budget = f" bajo {d.price_max}" if d.price_max else ""
-        return f"Mira estas opciones de {what}{budget} en {d.vertical_label}."
+        lead = "Otras opciones de" if d.other else "Lo más barato de" if d.cheap else "Mira estas opciones de"
+        return f"{lead} {what}{budget} en {d.vertical_label}."
 
 
 def notices(d: Draft) -> list[str]:

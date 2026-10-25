@@ -236,7 +236,7 @@ name = "Bebidas gaseosas"
 emoji = "🥤"
 keywords = ["bebida", "gaseosa", "coca cola", "coca-cola", "sprite", "fanta", "pepsi", "bilz", "pap", "ginger ale", "agua tónica", "tónica", "seven up", "7up", "kem", "canada dry", "limón soda"]
 avoid = ["vegetal", "vegetales", "avena", "coco", "arroz", "almendra", "almendras", "soya", "achocolatada", "polvo", "protein", "proteina", "proteica"]
-query_keywords = ["coca", "cocacola", "para tomar", "algo para tomar", "de tomar", "algo de tomar", "para beber"]
+query_keywords = ["coca", "cocacola"]  # «algo para tomar» es la ocasión «Bebestibles»
 
 [[concept]]
 id = "jugos"
@@ -1126,6 +1126,7 @@ emoji = "🎂"
 # Sin alcohol: «cumpleaños de mi hijo» iba a Licores con ron y vodka (estaba en carrete).
 keywords = ["cumpleaños", "cumple", "fiesta infantil", "cumpleaños infantil", "piñata", "torta de cumpleaños"]
 concepts = ["pasteleria", "decoracion", "golosinas", "juguetes-infantiles", "gaseosas"]
+vertical = "supermercado"  # por surtido ganaba el Mall (decoración y juguetes), sin torta ni bebidas; el súper tiene todo
 
 [[occasion]]
 id = "fiestas-patrias"
@@ -1195,6 +1196,16 @@ keywords = ["un picnic", "de picnic", "al picnic", "dia de campo", "día de camp
 concepts = ["panaderia", "fiambres", "quesos", "frutas", "jugos", "snacks-salados", "galletas"]
 vertical = "supermercado"
 plan = false  # no es (todavía) un plan de la Home; la búsqueda y Mochi sí la entienden
+
+[[occasion]]
+id = "bebestibles"
+name = "Bebestibles"
+emoji = "🥤"
+# Era una palabra de las bebidas gaseosas: «para tomar» calzaba la descripción de un ginger ale y salían solo tres.
+# Sin alcohol: Mochi no lo propone por su cuenta («cerveza para tomar» sigue siendo cerveza).
+keywords = ["para tomar", "algo para tomar", "de tomar", "algo de tomar", "para beber", "algo para beber", "bebestibles"]
+concepts = ["gaseosas", "jugos", "agua"]
+plan = false
 
 [[occasion]]
 id = "frio"

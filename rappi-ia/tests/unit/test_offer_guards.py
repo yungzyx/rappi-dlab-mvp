@@ -85,7 +85,7 @@ def test_baby_and_sick_occasions_are_not_planned():
     not_planned = {o.id for o in taxonomy.occasions.values() if not plannable_occasion(o)}
     # Las que solo sirven para entender preguntas (`plan = false`) tampoco son un plan de la Home.
     assert not_planned == {"guagua", "enfermo"} | {o.id for o in taxonomy.occasions.values() if not o.plan}
-    assert {o.id for o in taxonomy.occasions.values() if not o.plan} == {"picnic", "frio"}
+    assert {o.id for o in taxonomy.occasions.values() if not o.plan} == {"picnic", "frio", "bebestibles"}
 
 
 def test_a_kit_never_comes_from_pharmacy_and_only_alcohol_comes_from_licores():

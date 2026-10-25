@@ -181,13 +181,20 @@ MIN_REMEDIES = 2  # con menos, lo que calza el síntoma suele ser casualidad (un
 SYMPTOM_REMEDIES = {
     **dict.fromkeys(("fiebre", "cabeza", "dolor", "duele", "migrana"), "analgésico paracetamol ibuprofeno"),
     **dict.fromkeys(("resfrio", "resfriado", "gripe"), "antigripal resfrío"),
-    **dict.fromkeys(("tos", "garganta"), "antitusivo jarabe expectorante"),
-    **dict.fromkeys(("acidez", "guata"), "antiácido"),
+    **dict.fromkeys(("tos",), "antitusivo jarabe expectorante"),
+    **dict.fromkeys(("acidez",), "antiácido"),
     **dict.fromkeys(("diarrea",), "antidiarreico"),
     **dict.fromkeys(("estrenido", "estrenida", "estrenimiento"), "laxante"),
     **dict.fromkeys(("alergia",), "antialérgico antihistamínico"),
     **dict.fromkeys(("nauseas",), "antináuseas"),
 }
+
+
+# Una molestia de una parte del cuerpo («me duele la guata», «tengo la garganta irritada»): «dolor» no trae la familia
+# de los analgésicos, y un remedio la trata solo si su nombre o su categoría la nombran (un analgésico nombra la
+# garganta entre veinte usos de su ficha). La cabeza no: el dolor de cabeza es de analgésicos.
+BODY_PARTS = {"guata", "estomago", "garganta", "muela", "muelas", "oido", "oidos", "espalda"}
+GENERIC_PAIN = {"dolor", "dolores", "duele", "duelen"}
 
 
 def _treats(content: str, words: set[str]) -> bool:
@@ -203,10 +210,14 @@ def search_remedies(
     """Remedios de farmacia para un síntoma: medicamentos sin receta cuya ficha (sin las advertencias) nombra el
     síntoma o la familia que lo trata (búsqueda por palabras, no solo cercanía vectorial). Con menos de MIN_REMEDIES
     no devuelve ninguno."""
-    families = " ".join(dict.fromkeys(SYMPTOM_REMEDIES[w] for w in tokens(query) if w in SYMPTOM_REMEDIES))
+    parts = set(tokens(query)) & BODY_PARTS
+    said = [w for w in tokens(query) if w in SYMPTOM_REMEDIES and not (parts and w in GENERIC_PAIN)]
+    families = " ".join(dict.fromkeys(SYMPTOM_REMEDIES[w] for w in said))
     query = f"{query} {families}".strip()
     skip = FILLER_WORDS | {"tengo", "para", "algo"}
     words = {w[:7] for w in tokens(query) if len(w) >= 3 and w not in skip}
+    if parts:  # la parte del cuerpo (o la familia de un síntoma también nombrado), en el nombre o la categoría
+        words = {w[:7] for w in tokens(" ".join([*parts, families]))}
     result = retrieve(
         conn, "farmacia", query, embedder, k=CANDIDATE_REMEDIES, filters=Filters(price_max), concepts=["medicamentos"]
     )
@@ -216,10 +227,15 @@ def search_remedies(
         if h.concept_id == "medicamentos"
         and not h.metadata.get("receta")
         and "lexico" in h.ranks
-        and _treats(h.content, words)
+        and _treats(_title(h) if parts else h.content, words)
     ]
     products = _dedupe(_within_budget(_with_prices(conn, "farmacia", hits), price_max))[:k]
     return SearchOutcome(result, products if len(products) >= MIN_REMEDIES else [])
+
+
+def _title(hit) -> str:
+    """El nombre y la categoría de un producto, sin su ficha."""
+    return f"{hit.content.split('. ', 1)[0]} {hit.metadata.get('categoria') or ''}"
 
 
 SIMILAR_MARGIN = 0.1  # dos complementos cuyo peso difiere en menos que esto son parecidos: decide la combinación
