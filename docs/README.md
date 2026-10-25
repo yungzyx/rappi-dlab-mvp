@@ -20,6 +20,7 @@
 | Entender el diseño del RAG, del agente Mochi y del panel | [diseno-ia.md](diseno-ia.md) | 20 min |
 | Conocer el modelo de datos (capas 1 a 3) | [ecosistema-rappi.md §3](ecosistema-rappi.md#3-modelo-de-datos-del-ecosistema-propuesta) | 5 min |
 | Usar desde otra herramienta lo que la base le suma al catálogo (atributos, marcas, grafo, segmentos y el motor multivertical) | [capa-de-datos.md](capa-de-datos.md) | 8 min |
+| Comparar el MVP con la app de Rappi (cómo captura señales y qué hace por área), las equivalencias de eventos y el plan por fases | [investigacion/app-rappi-2026-10-25.md](investigacion/app-rappi-2026-10-25.md) | 10 min |
 | Conocer la capa de IA, su API y cómo se evalúa | [rappi-ia/README.md](../rappi-ia/README.md) | 10 min |
 | Usar o modificar el scraper | [rappi-scraper/README.md](../rappi-scraper/README.md) | 10 min |
 | Activar a Jev (opcional y apagado: etiqueta categorías y juzga la búsqueda) | [jev.md](jev.md) | 5 min |

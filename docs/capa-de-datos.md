@@ -140,6 +140,29 @@ El paso (`next_fine_step`) es la vertical que más sube esa retención, entre la
 - Los productos, precios, atributos, marcas y el grafo del catálogo son **reales** (de rappi.cl).
 - Las personas y sus eventos son **simulados** (`source = 'synthetic'`) o del prototipo (`'prototype'`). Los simulados muestran la mecánica, no evidencia: las vistas de `capa` marcan la fuente y `capa.knowledge_edges` oculta lo aprendido de ellos. Nunca se mezclan fuentes en un mismo cálculo. Las tablas del motor sí muestran lo aprendido de `synthetic` (cada fila lleva su `data_source`), a diferencia de `capa.knowledge_edges`; lo que se aprende de ahí se declara y se rotula como simulado.
 
+## Eventos de la app y su sobre
+
+Los eventos de la app (`app_events`) llevan, desde la migración 043, el mismo sobre que los de la app de Rappi: con eso un clic se une con la respuesta que lo originó y se puede medir por pantalla y por posición. La comparación con Rappi y la tabla de equivalencias están en [investigacion/app-rappi-2026-10-25.md](investigacion/app-rappi-2026-10-25.md#3-equivalencias-de-eventos).
+
+| Columna | Qué es | Quién la pone |
+|---|---|---|
+| `client_event_id` | Id del evento (uuid). Un lote reintentado no lo duplica: `(user_id, client_event_id)` es único y la inserción hace `ON CONFLICT DO NOTHING` | La app |
+| `client_ts` | Hora del evento en la app. Se guarda solo si está a menos de 24 horas de la llegada; `ts` sigue siendo la llegada | La app |
+| `seq` | Orden del evento en su sesión (0 el primero) | La app |
+| `surface` | Pantalla donde estaba lo que se tocó, se vio o se agregó: `home`, `search`, `store`, `vertical`, `restaurants`, `turbo`, `deals`, `favorites`, `list`, `agent`, `cart`, `checkout`, `tracking` u `orders` | La app |
+| `origin` | Bloque o lista: `accesos`, `accesos-grandes`, `resultados`, `pasillo`, `menu`, `cerca-de-ti`, `restaurantes-rapidos`, `mejor-evaluados`, `tiendas-populares`, `para-ti`, `agent-<momento>`, `agent-ask`… | La app |
+| `position` | Lugar en la lista (0 el primero): el orden en que la API la devolvió (en la búsqueda, de corrido entre los grupos) o el de la fila tal como se ve (los accesos de la Home) | La app |
+| `request_id` | Id de la respuesta de la API de donde salió lo que se tocó. En `search` es el id de la búsqueda | La API lo da; la app lo repite |
+
+- **`request_id`**: `/search`, `/agent/offer`, `/agent/ask`, `/recommendations`, `/profile/{id}/verticales` y `/catalog/home` lo devuelven en su cuerpo. Es el mismo id de la línea del request en el log y de su cabecera `X-Request-ID` (`api/logs.py`), así que también une el evento con el log. La API simulada de la demo sin conexión devuelve uno propio (`offline-…`).
+- **El origen de antes**: hasta la migración 043 el origen de las sugerencias iba en `payload.origen`. Las filas viejas lo siguen teniendo ahí, y un cliente de antes que lo mande así llena igual la columna (`events/store.py`, `_origin`). Quien lea el origen lee `coalesce(origin, payload ->> 'origen')`: así lo hacen `offers/winback.py`, `agent/tools.py`, `analytics/queries.py` y `make mvp-check`.
+- **La búsqueda** guarda además `payload.alcance` (`global` o `vertical`; `tienda` queda para cuando haya búsqueda dentro de la tienda) y `payload.fuente` (`tipeada`, `sugerencia` o `correccion`: lo buscado tal cual desde el aviso de corrección).
+- **`recommendation_click`**: abrir un producto (en su hoja o en su tienda) que vino de Mochi (`agent-*`) o de «Para ti» (`para-ti`), una vez por pestaña, respuesta y producto. Suma al interés como estaba definido en `WEIGHTS` (2).
+- **En la app**, un solo lugar arma el sobre: `prototipo-app/src/api/attribution.js`. Las pantallas marcan sus listas con `placeList` (cada elemento queda con su `placement`) y los eventos lo leen con `placementFields`; `envelope` arma los campos de un evento suelto y omite lo que la API rechazaría. Las fases siguientes del plan usan este mismo ayudante.
+- **El reintento**: la app reintenta un lote que no llegó (sin red, sin respuesta, 429 o 5xx), con una cola de 200 eventos como tope; uno que la API rechazó (400, 403, 422) no. Tras «Olvidar», lo que estaba en camino no vuelve a la cola.
+
+`app_sessions` guarda una fila por sesión (30 minutos sin actividad la cierran): `started_at`, `app_version`, `platform`, `mode` (`propuesta` o `actual` al empezar) y `entry` (`directa`, `enlace` o `push`). Nace con el primer evento de la sesión que llega, sea de la app o del servidor (una pregunta a Mochi), y los lotes siguientes de la app solo completan lo que faltaba. Es una tabla de personas: está en `PERSON_TABLES` (`rappi_ia/delivery.py`), se borra con la persona («Olvidar» y la purga de inactivas, en cascada) y el generador simulado la llena para sus sesiones. El generador también llena `client_event_id` (un uuid5 de la persona, la sesión y el orden: la misma semilla da los mismos ids), `client_ts` y `seq`.
+
 ## Privacidad
 
 - Los segmentos que tocan salud o vida privada (sin gluten, sin lactosa, sin azúcar, bajo sodio, sin frutos secos, bebé, embarazo, adulto mayor, salud sexual, farmacia, uso continuo, tabaco y vapeo) están marcados `sensitive` y se **nombran por lo que la persona compra**, nunca por una condición («compra sin gluten», no «celíaco»).
