@@ -1,13 +1,13 @@
 {
   "stores": [
     {
-      "delivery_fee": null,
+      "delivery_fee": 1990,
       "min_order": 0,
       "service_pct": null,
       "store_id": 9101
     },
     {
-      "delivery_fee": null,
+      "delivery_fee": 990,
       "min_order": 8490,
       "service_pct": 5.0,
       "store_id": 9102
@@ -19,7 +19,7 @@
       "store_id": 9201
     },
     {
-      "delivery_fee": null,
+      "delivery_fee": 1490,
       "min_order": null,
       "service_pct": null,
       "store_id": 9301
