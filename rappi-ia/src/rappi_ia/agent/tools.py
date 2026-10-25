@@ -26,7 +26,7 @@ from ..offers.guards import (
     offerable_vertical,
     unofferable_subverticals,
 )
-from ..retrieval.hybrid import Filters, RetrievalResult, named_occasion, retrieve
+from ..retrieval.hybrid import UNNAMED_TAU, Filters, RetrievalResult, named_occasion, occasion_search, retrieve
 from ..retrieval.spelling import correct_query
 from ..text import FILLER_WORDS, LEAFLET_WARNINGS, normalize, tokens
 from .verticals import ranked_verticals
@@ -133,11 +133,16 @@ def search_products(
     `words`: si a la consulta le queda alguna palabra (`retrieval.hybrid.has_words`), si quien llama ya lo sabe.
     Con `correct` (/search), si nada calza todas las palabras, corrige los errores de tipeo (`retrieval.spelling`) y
     vuelve a buscar: si así algo calza todas las palabras y hay productos, devuelve eso con `corrected_query`; si no, lo
-    de la consulta tal cual."""
+    de la consulta tal cual. Con `concepts=None`, una ocasión sin concepto nombrado («algo para la once») se busca por
+    sus conceptos, como en la búsqueda agrupada (`retrieval.hybrid.occasion_search`), y no se corrige."""
+    occasion = occasion_search(query) if concepts is None else None
+    if occasion:
+        query, concepts, _ = occasion
+        words = None  # `words` era de la consulta escrita
     found = _search_products(
         conn, vertical, query, concepts, embedder, price_max, k, mode, symptom, offer, adult_ok, words
     )
-    if not correct or found.result.strict_lexical_matches:
+    if not correct or occasion or found.result.strict_lexical_matches:
         return found
     fixed = correct_query(conn, query, vertical)
     if fixed is None:
@@ -543,20 +548,52 @@ def _focus(hits, result: RetrievalResult, capped: bool = False):
     - El foco no cede ante productos de otro concepto que calzan las palabras: esa coincidencia mira todo el texto y
       el stemming junta palabras («flores» calza con azúcar flor). Que el concepto de la consulta (keywords) y el de
       los productos (categoría) coincidan se asegura en la taxonomía.
+    - En el concepto nombrado, lo que dice lo pedido en su nombre va primero (`_named_first`): en un concepto grueso
+      del Mall, «cargador tipo c» traía primero un cable y «sarten antiadherente» una sandwichera que lo dice en su
+      descripción.
+    - Sin concepto nombrado, si varios productos dicen lo pedido en su nombre, lo demás tiene que ser de su concepto o
+      muy cercano (`_after_named`): «cuchuflíes» en Turbo traía 4 cuchuflíes y después esponjas y un cuchillo.
     """
     concepts = result.query_concepts
     if not concepts:
-        return [] if result.unmet else hits
+        return [] if result.unmet else _after_named(hits, result.query)
     if result.unmet and (result.concept_share or 0.0) < TESTIMONIAL_SHARE:
         return []
     matching = [h for h in hits if h.concept_id in concepts]
     if matching:
-        return matching
+        return _named_first(matching, result.query)
     if result.unmet or capped:
         return []
     if _broad_request(result.query, concepts):
         return hits
     return [h for h in hits if _names_query(h.content, result.query)]
+
+
+def _named_first(hits, query: str):
+    """Primero lo que dice todas las palabras de la consulta en su nombre (`_names_query`); el resto, en su orden. La
+    fusión léxica y vectorial mira todo el documento: en un concepto grueso, lo que dice lo pedido solo en la
+    descripción (una sandwichera «antiadherente») o a medias (un cable «tipo C» para «cargador tipo c») le ganaba a
+    lo que lo dice en su nombre."""
+    named = [h for h in hits if _names_query(h.content, query)]
+    return named + [h for h in hits if h not in named]
+
+
+# Desde cuántos productos que dicen lo pedido en su nombre la consulta sin concepto es el nombre de un producto, y lo
+# demás, vecinos (`_after_named`). Con menos, la coincidencia puede ser casual: el stemming junta «bombomes» (un error
+# de tipeo de «bombones») con «Café Bombom», y el nombre de un plato mal escrito («Shawarna carne») no dice el concepto
+# de los demás («Shawarma de pollo»).
+TAIL_MIN_NAMED = 3
+
+
+def _after_named(hits, query: str):
+    """Sin concepto nombrado: si al menos TAIL_MIN_NAMED productos dicen lo pedido en su nombre, lo demás tiene que ser
+    del concepto de alguno de ellos o tener un coseno de al menos UNNAMED_TAU (el de una consulta sin concepto ni
+    ocasión). El orden no cambia. Si no, queda lo encontrado: ya pasó la regla de «sin resultado»."""
+    named = [h for h in hits if _names_query(h.content, query)]
+    if len(named) < TAIL_MIN_NAMED:
+        return hits
+    kinds = {h.concept_id for h in named if h.concept_id}
+    return [h for h in hits if h in named or h.concept_id in kinds or (h.cosine or 0.0) >= UNNAMED_TAU]
 
 
 def _broad_request(query: str, concepts: list[str]) -> bool:
@@ -569,8 +606,9 @@ def _broad_request(query: str, concepts: list[str]) -> bool:
 
 # Palabras que el nombre de un producto no necesita repetir: de enlace («detergente para ropa») y de relleno («algo
 # para…», «lo que…», «mi…»); además de las de saludo y pedido (text.FILLER_WORDS).
+# «sin» no: «harina con polvos de hornear» no dice «harina sin polvos de hornear».
 _NAME_SKIP = FILLER_WORDS | frozenset(
-    {"a", "al", "algo", "con", "de", "del", "el", "en", "la", "las", "lo", "los", "mi", "para", "que", "sin", "y"}
+    {"a", "al", "algo", "con", "de", "del", "el", "en", "la", "las", "lo", "los", "mi", "para", "que", "y"}
 )
 
 

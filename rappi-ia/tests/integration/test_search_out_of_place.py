@@ -222,7 +222,6 @@ def test_without_concept_or_occasion_the_vertical_tau_is_not_enough(catalog, mon
     [
         ("turbo", "cuchuflíes", "99053"),  # un nombre de producto sin concepto: calza todas sus palabras
         ("mall", "kinetic sand", "99054"),  # una marca sin concepto
-        ("chocolateria", "regalo para mi polola", "99055"),  # una ocasión sin concepto: decide el τ de la vertical
     ],
 )
 def test_a_query_without_concept_still_finds_what_the_vertical_sells(catalog, monkeypatch, vertical, query, product):
@@ -233,6 +232,18 @@ def test_a_query_without_concept_still_finds_what_the_vertical_sells(catalog, mo
 
     assert outcome.result.query_concepts == [] and not outcome.result.unmet
     assert product in [p.entity_id for p in outcome.products]
+
+
+def test_an_occasion_without_concept_is_searched_by_its_concepts(catalog):
+    """«regalo para mi polola» en una chocolatería: se busca por los conceptos del regalo (como en la búsqueda
+    agrupada), así que lo que muestra es de ellos y no decide el τ de la vertical."""
+    db, embedder = catalog
+
+    outcome = search_products(db, "chocolateria", "regalo para mi polola", None, embedder)
+
+    assert "chocolates" in outcome.result.query_concepts and not outcome.result.unmet
+    assert "99055" in [p.entity_id for p in outcome.products]
+    assert {p.concept for p in outcome.products} <= set(outcome.result.query_concepts)
 
 
 @pytest.mark.parametrize(

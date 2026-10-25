@@ -8,6 +8,7 @@ import pytest
 from rappi_ia.agent.understand import Understander
 from rappi_ia.concepts.assign import Assignment, MappedName, assign_catalog_item, concept_matcher
 from rappi_ia.concepts.knn import ItemText, _decide
+from rappi_ia.concepts.store import read_category_map_csv
 from rappi_ia.concepts.taxonomy import load_taxonomy, sensitive_concepts
 from rappi_ia.retrieval.hybrid import _query_concepts
 from rappi_ia.text import assistant_words, normalize, tokens
@@ -266,3 +267,20 @@ def test_the_symmetric_guard_does_not_hide_common_products(matcher, name, catego
     (category_map.csv lo decidió así) y un insecto vibrador de juguete no es +18."""
     categories = {category.lower(): MappedName(mapped, "llm", 0.9, "v1")}
     assert assign_catalog_item("13", name, category, categories, matcher).concept_id == mapped
+
+
+@pytest.mark.parametrize(
+    ("query", "category"),
+    [
+        ("ropa de bebé", "Ropa bebés"),
+        ("body de bebé", "Bodies - Leotardos"),
+    ],
+)
+def test_a_query_asks_for_the_concept_its_products_get_from_their_category(query, category):
+    """Lo que se pide con una keyword tiene que ser el concepto que la categoría de Rappi les da a esos productos: si
+    no, el foco de la búsqueda (agent/tools._focus) los esconde. «ropa de bebé» pedía artículos de bebé y la ropa de
+    bebé del Mall (229 productos en «Ropa bebés», «Accesorios para bebés» y «Bodies - Leotardos») es ropa: traía
+    baberos y un quitamanchas."""
+    mapped = {row["nombre"]: row["concept_id"] for row in read_category_map_csv() if row["tipo"] == "categoria"}
+
+    assert _query_concepts(query) == [mapped[category]]

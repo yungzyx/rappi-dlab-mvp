@@ -211,6 +211,26 @@ def named_occasion(q: str) -> Occasion | None:
     return taxonomy.occasions[match.target] if match else None
 
 
+OCCASION_QUERY_CONCEPTS = 4  # los conceptos de la ocasión cuyos nombres arman la consulta que se busca
+
+
+def occasion_search(q: str) -> tuple[str, list[str], Occasion] | None:
+    """Cómo se busca una ocasión que la consulta nombra sin nombrar un concepto («algo para la once»): por sus
+    conceptos, sin los sensibles (una ocasión no los nombra), con una consulta hecha de los nombres de los primeros
+    OCCASION_QUERY_CONCEPTS. Devuelve (consulta, conceptos, ocasión), o None si la consulta nombra un concepto (manda
+    lo pedido) o ninguna ocasión. La usan la búsqueda agrupada y la de una vertical (agent/tools.search_products); el
+    agente arma la suya igual con lo que entiende (agent/rappi_agent._search_query)."""
+    if detect_concepts(q):
+        return None
+    occasion = named_occasion(q)
+    if occasion is None:
+        return None
+    taxonomy = load_taxonomy()
+    concepts = [c for c in occasion.concepts if not taxonomy.concepts[c].sensitive]
+    query = " ".join(taxonomy.concepts[c].name for c in concepts[:OCCASION_QUERY_CONCEPTS])
+    return query, concepts, occasion
+
+
 _PRICE = "price_min"  # columna generada desde metadata (migración 013), con índice (vertical, price_min)
 # Con tope de precio, si califican hasta esta cantidad de documentos se revisan todos (búsqueda exacta): el HNSW
 # filtrado corta en hnsw.max_scan_tuples y con un tope muy bajo en un vertical grande devolvería de menos.

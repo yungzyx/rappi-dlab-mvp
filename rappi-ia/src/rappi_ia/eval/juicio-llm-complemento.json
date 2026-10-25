@@ -1,0 +1,6357 @@
+{
+ "nota": "Juicio LLM (no humano) de los pares sin juicio en juicio-llm-2026-10-25.json que mostró la búsqueda el 25-10-2026, antes y después de los cambios de docs/resultados/busqueda-2026-10-25.md: un juez, a ciegas (solo la consulta, la vertical, el nombre, la categoría y la tienda; sin el juez por concepto, la posición ni qué búsqueda lo mostró), con el criterio del 25-10. Con 60 pares del juicio del 25-10 mezclados como control coincidió en 56 (κ 0,90). Sin textos del catálogo: solo ids.",
+ "pares": [
+  {
+   "id": "P001e2a6815",
+   "vertical": "mall",
+   "consulta": "ropa de bebé",
+   "entity_type": "catalog_item",
+   "entity_id": "506651",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P0030f27cba",
+   "vertical": "farmacia",
+   "consulta": "algo para la piel seca",
+   "entity_type": "catalog_item",
+   "entity_id": "1456303",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P0126373482",
+   "vertical": "turbo",
+   "consulta": "te verde",
+   "entity_type": "catalog_item",
+   "entity_id": "787899",
+   "juicio": "a medias"
+  },
+  {
+   "id": "P01a1e4cfa3",
+   "vertical": "mall",
+   "consulta": "algo para hacer ejercicio en la casa",
+   "entity_type": "catalog_item",
+   "entity_id": "843575",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P01b061c13c",
+   "vertical": "mall",
+   "consulta": "sarten antiadherente",
+   "entity_type": "catalog_item",
+   "entity_id": "1374540",
+   "juicio": "a medias"
+  },
+  {
+   "id": "P01c62d790f",
+   "vertical": "mall",
+   "consulta": "vela aromatica",
+   "entity_type": "catalog_item",
+   "entity_id": "1050345",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P0234f77002",
+   "vertical": "restaurantes",
+   "consulta": "ensalada liviana",
+   "entity_type": "menu_item",
+   "entity_id": "1286945",
+   "juicio": "a medias"
+  },
+  {
+   "id": "P0337aad9ad",
+   "vertical": "conveniencia",
+   "consulta": "energetica monster",
+   "entity_type": "catalog_item",
+   "entity_id": "1533655",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P034fb59ce5",
+   "vertical": "turbo",
+   "consulta": "vino tinto cabernet",
+   "entity_type": "catalog_item",
+   "entity_id": "36848",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P036557e0a4",
+   "vertical": "mall",
+   "consulta": "carcasa para iphone",
+   "entity_type": "catalog_item",
+   "entity_id": "1487307",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P037eadc416",
+   "vertical": "restaurantes",
+   "consulta": "sushi roll",
+   "entity_type": "menu_item",
+   "entity_id": "2256098",
+   "juicio": "a medias"
+  },
+  {
+   "id": "P03a55b582c",
+   "vertical": "mall",
+   "consulta": "aros de plata",
+   "entity_type": "catalog_item",
+   "entity_id": "1654036",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P047a524547",
+   "vertical": "supermercado",
+   "consulta": "snack saludable para la oficina",
+   "entity_type": "catalog_item",
+   "entity_id": "1289785",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P04b51eb9ec",
+   "vertical": "chocolateria",
+   "consulta": "postre individual",
+   "entity_type": "catalog_item",
+   "entity_id": "883419",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P04e2491c18",
+   "vertical": "turbo",
+   "consulta": "algo para limpiar el baño",
+   "entity_type": "catalog_item",
+   "entity_id": "66215",
+   "juicio": "a medias"
+  },
+  {
+   "id": "P057acc2383",
+   "vertical": "chocolateria",
+   "consulta": "algo dulce para un cumpleaños",
+   "entity_type": "catalog_item",
+   "entity_id": "622768",
+   "juicio": "a medias"
+  },
+  {
+   "id": "P05845d08d5",
+   "vertical": "conveniencia",
+   "consulta": "galletas de chocolate",
+   "entity_type": "catalog_item",
+   "entity_id": "1347862",
+   "juicio": "a medias"
+  },
+  {
+   "id": "P05923d6d19",
+   "vertical": "mall",
+   "consulta": "juguete para niño de 5 años",
+   "entity_type": "catalog_item",
+   "entity_id": "835330",
+   "juicio": "a medias"
+  },
+  {
+   "id": "P05e9379abb",
+   "vertical": "mall",
+   "consulta": "vela aromatica",
+   "entity_type": "catalog_item",
+   "entity_id": "1039755",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P060beebab8",
+   "vertical": "supermercado",
+   "consulta": "huevos de campo",
+   "entity_type": "catalog_item",
+   "entity_id": "1096013",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P06c1f6ab02",
+   "vertical": "licores",
+   "consulta": "papas fritas para picar",
+   "entity_type": "catalog_item",
+   "entity_id": "966741",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P0726ad4ffe",
+   "vertical": "farmacia",
+   "consulta": "base de maquillaje líquida",
+   "entity_type": "catalog_item",
+   "entity_id": "40981",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P0726e1f3ee",
+   "vertical": "mall",
+   "consulta": "juguete para niño de 5 años",
+   "entity_type": "catalog_item",
+   "entity_id": "915624",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P07462cd17b",
+   "vertical": "supermercado",
+   "consulta": "huevos de campo",
+   "entity_type": "catalog_item",
+   "entity_id": "196803",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P076bf59569",
+   "vertical": "licores",
+   "consulta": "algo para el carrete",
+   "entity_type": "catalog_item",
+   "entity_id": "1549442",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P07f629098a",
+   "vertical": "conveniencia",
+   "consulta": "papas fritas",
+   "entity_type": "catalog_item",
+   "entity_id": "45434",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P087f4a31c5",
+   "vertical": "chocolateria",
+   "consulta": "chocolate blanco",
+   "entity_type": "catalog_item",
+   "entity_id": "917800",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P08b0ae306b",
+   "vertical": "mall",
+   "consulta": "cargador tipo c",
+   "entity_type": "catalog_item",
+   "entity_id": "542124",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P08e2ad2485",
+   "vertical": "mall",
+   "consulta": "perfume de mujer",
+   "entity_type": "catalog_item",
+   "entity_id": "611961",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P0a43063c54",
+   "vertical": "mall",
+   "consulta": "vela aromatica",
+   "entity_type": "catalog_item",
+   "entity_id": "1297896",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P0a440917e0",
+   "vertical": "restaurantes",
+   "consulta": "hamburguesa con papas",
+   "entity_type": "menu_item",
+   "entity_id": "327770",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P0a7f83699c",
+   "vertical": "turbo",
+   "consulta": "queso gauda laminado",
+   "entity_type": "catalog_item",
+   "entity_id": "1648214",
+   "juicio": "a medias"
+  },
+  {
+   "id": "P0a8d4b6826",
+   "vertical": "farmacia",
+   "consulta": "parches curita",
+   "entity_type": "catalog_item",
+   "entity_id": "34601",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P0ac82e782d",
+   "vertical": "supermercado",
+   "consulta": "algo calentito para la once",
+   "entity_type": "catalog_item",
+   "entity_id": "1731490",
+   "juicio": "no sirve"
+  },
+  {
+   "id": "P0b229b9c40",
+   "vertical": "chocolateria",
+   "consulta": "chocolate blanco",
+   "entity_type": "catalog_item",
+   "entity_id": "1277495",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P0bcff4bfef",
+   "vertical": "mall",
+   "consulta": "cargador tipo c",
+   "entity_type": "catalog_item",
+   "entity_id": "279414",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P0bfa02b120",
+   "vertical": "restaurantes",
+   "consulta": "algo rico para almorzar",
+   "entity_type": "menu_item",
+   "entity_id": "291625",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P0c3fa38156",
+   "vertical": "chocolateria",
+   "consulta": "algo dulce para un cumpleaños",
+   "entity_type": "catalog_item",
+   "entity_id": "1158865",
+   "juicio": "a medias"
+  },
+  {
+   "id": "P0c852c9c62",
+   "vertical": "conveniencia",
+   "consulta": "panales",
+   "entity_type": "catalog_item",
+   "entity_id": "964066",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P0d5b74321b",
+   "vertical": "supermercado",
+   "consulta": "huevos de campo",
+   "entity_type": "catalog_item",
+   "entity_id": "1630841",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P0d79d37d0a",
+   "vertical": "chocolateria",
+   "consulta": "bombones para regalar",
+   "entity_type": "catalog_item",
+   "entity_id": "1277490",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P0d8350df39",
+   "vertical": "farmacia",
+   "consulta": "parches curita",
+   "entity_type": "catalog_item",
+   "entity_id": "1716302",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P0e450cb995",
+   "vertical": "farmacia",
+   "consulta": "acondicionador para pelo tenido",
+   "entity_type": "catalog_item",
+   "entity_id": "465617",
+   "juicio": "a medias"
+  },
+  {
+   "id": "P0e867215a0",
+   "vertical": "licores",
+   "consulta": "papas fritas para picar",
+   "entity_type": "catalog_item",
+   "entity_id": "592229",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P0e8b6c17c9",
+   "vertical": "farmacia",
+   "consulta": "perfume de mujer",
+   "entity_type": "catalog_item",
+   "entity_id": "1634080",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P0e9bcb4481",
+   "vertical": "conveniencia",
+   "consulta": "coca cola 1.5 litros",
+   "entity_type": "catalog_item",
+   "entity_id": "943990",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P0ec00d5420",
+   "vertical": "farmacia",
+   "consulta": "perfume de mujer",
+   "entity_type": "catalog_item",
+   "entity_id": "1634155",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P0fdec3dbb1",
+   "vertical": "supermercado",
+   "consulta": "cereal para ninos",
+   "entity_type": "catalog_item",
+   "entity_id": "250189",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P1032fc8554",
+   "vertical": "restaurantes",
+   "consulta": "pizza pepperoni",
+   "entity_type": "menu_item",
+   "entity_id": "1043029",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P107a83b42e",
+   "vertical": "supermercado",
+   "consulta": "papel higienico doble hoja",
+   "entity_type": "catalog_item",
+   "entity_id": "86459",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P108494b7f7",
+   "vertical": "licores",
+   "consulta": "bebida para mezclar con pisco",
+   "entity_type": "catalog_item",
+   "entity_id": "15900",
+   "juicio": "no sirve"
+  },
+  {
+   "id": "P10a319e4d5",
+   "vertical": "restaurantes",
+   "consulta": "algo rico para almorzar",
+   "entity_type": "menu_item",
+   "entity_id": "252057",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P10d34aa5b8",
+   "vertical": "restaurantes",
+   "consulta": "gelato de pistacho",
+   "entity_type": "menu_item",
+   "entity_id": "1220890",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P10e18099fb",
+   "vertical": "mall",
+   "consulta": "aros de plata",
+   "entity_type": "catalog_item",
+   "entity_id": "1736327",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P112be94772",
+   "vertical": "licores",
+   "consulta": "whisky etiqueta negra",
+   "entity_type": "catalog_item",
+   "entity_id": "26168",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P116b7d696a",
+   "vertical": "turbo",
+   "consulta": "coca cola 3 litros",
+   "entity_type": "catalog_item",
+   "entity_id": "26108",
+   "juicio": "a medias"
+  },
+  {
+   "id": "P11bce80b83",
+   "vertical": "supermercado",
+   "consulta": "frutas frescas",
+   "entity_type": "catalog_item",
+   "entity_id": "1450968",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P1212a7f5c6",
+   "vertical": "licores",
+   "consulta": "algo para el carrete",
+   "entity_type": "catalog_item",
+   "entity_id": "111886",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P126c79daa3",
+   "vertical": "farmacia",
+   "consulta": "cepillo de dientes electrico",
+   "entity_type": "catalog_item",
+   "entity_id": "248155",
+   "juicio": "a medias"
+  },
+  {
+   "id": "P12d8c641cf",
+   "vertical": "mall",
+   "consulta": "set de maquillaje",
+   "entity_type": "catalog_item",
+   "entity_id": "134744",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P1378674480",
+   "vertical": "mall",
+   "consulta": "audífonos bluetooth",
+   "entity_type": "catalog_item",
+   "entity_id": "1304381",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P137eb9ac3a",
+   "vertical": "supermercado",
+   "consulta": "pasta de dientes",
+   "entity_type": "catalog_item",
+   "entity_id": "565883",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P13dc634b49",
+   "vertical": "restaurantes",
+   "consulta": "algo rico para almorzar",
+   "entity_type": "menu_item",
+   "entity_id": "282249",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P13f19989b4",
+   "vertical": "supermercado",
+   "consulta": "shampoo anticaspa",
+   "entity_type": "catalog_item",
+   "entity_id": "121007",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P145a218e3f",
+   "vertical": "farmacia",
+   "consulta": "base de maquillaje líquida",
+   "entity_type": "catalog_item",
+   "entity_id": "81888",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P14f379faa4",
+   "vertical": "farmacia",
+   "consulta": "toallas higiénicas nocturnas",
+   "entity_type": "catalog_item",
+   "entity_id": "927935",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P151427b519",
+   "vertical": "licores",
+   "consulta": "algo para el carrete",
+   "entity_type": "catalog_item",
+   "entity_id": "67694",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P1518773af0",
+   "vertical": "farmacia",
+   "consulta": "parches curita",
+   "entity_type": "catalog_item",
+   "entity_id": "293658",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P1657dbd9e4",
+   "vertical": "restaurantes",
+   "consulta": "sushi roll",
+   "entity_type": "menu_item",
+   "entity_id": "256735",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P16a74e072f",
+   "vertical": "licores",
+   "consulta": "tequila",
+   "entity_type": "catalog_item",
+   "entity_id": "1000241",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P16dfc537ec",
+   "vertical": "supermercado",
+   "consulta": "queso gouda laminado",
+   "entity_type": "catalog_item",
+   "entity_id": "1171022",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P16e09d4f61",
+   "vertical": "supermercado",
+   "consulta": "papel higienico doble hoja",
+   "entity_type": "catalog_item",
+   "entity_id": "119883",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P17e6e329d0",
+   "vertical": "restaurantes",
+   "consulta": "sushi roll",
+   "entity_type": "menu_item",
+   "entity_id": "61641",
+   "juicio": "a medias"
+  },
+  {
+   "id": "P17ecd5d60b",
+   "vertical": "turbo",
+   "consulta": "detergente líquido",
+   "entity_type": "catalog_item",
+   "entity_id": "60784",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P184b9d07e2",
+   "vertical": "supermercado",
+   "consulta": "almuerzo listo para calentar",
+   "entity_type": "catalog_item",
+   "entity_id": "196779",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P1874210114",
+   "vertical": "farmacia",
+   "consulta": "pasta dental blanqueadora",
+   "entity_type": "catalog_item",
+   "entity_id": "81305",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P189de8871f",
+   "vertical": "supermercado",
+   "consulta": "algo calentito para la once",
+   "entity_type": "catalog_item",
+   "entity_id": "1304403",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P18d65a1be2",
+   "vertical": "licores",
+   "consulta": "papas fritas para picar",
+   "entity_type": "catalog_item",
+   "entity_id": "1629634",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P198270e910",
+   "vertical": "supermercado",
+   "consulta": "harina sin polvos de hornear",
+   "entity_type": "catalog_item",
+   "entity_id": "1669170",
+   "juicio": "no sirve"
+  },
+  {
+   "id": "P1a405d0ecf",
+   "vertical": "mall",
+   "consulta": "ropa de bebé",
+   "entity_type": "catalog_item",
+   "entity_id": "567065",
+   "juicio": "a medias"
+  },
+  {
+   "id": "P1b835e6167",
+   "vertical": "mall",
+   "consulta": "algo para hacer ejercicio en la casa",
+   "entity_type": "catalog_item",
+   "entity_id": "643525",
+   "juicio": "no sirve"
+  },
+  {
+   "id": "P1bda091a2c",
+   "vertical": "conveniencia",
+   "consulta": "pan para el desayuno",
+   "entity_type": "catalog_item",
+   "entity_id": "230425",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P1cc31a35f7",
+   "vertical": "supermercado",
+   "consulta": "snack saludable para la oficina",
+   "entity_type": "catalog_item",
+   "entity_id": "1667954",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P1d27726779",
+   "vertical": "conveniencia",
+   "consulta": "vino tinto",
+   "entity_type": "catalog_item",
+   "entity_id": "87937",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P1de9fdde88",
+   "vertical": "restaurantes",
+   "consulta": "pizza pepperoni",
+   "entity_type": "menu_item",
+   "entity_id": "113608",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P1e340eb9c3",
+   "vertical": "mall",
+   "consulta": "ropa de bebé",
+   "entity_type": "catalog_item",
+   "entity_id": "1315735",
+   "juicio": "a medias"
+  },
+  {
+   "id": "P1e35f0086b",
+   "vertical": "mall",
+   "consulta": "cargador tipo c",
+   "entity_type": "catalog_item",
+   "entity_id": "1339381",
+   "juicio": "a medias"
+  },
+  {
+   "id": "P1e94afa24e",
+   "vertical": "mall",
+   "consulta": "audífonos bluetooth",
+   "entity_type": "catalog_item",
+   "entity_id": "758992",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P1f2cecd582",
+   "vertical": "supermercado",
+   "consulta": "shampoo anticaspa",
+   "entity_type": "catalog_item",
+   "entity_id": "1722727",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P1f32811d5b",
+   "vertical": "licores",
+   "consulta": "regalo para un amante del whisky",
+   "entity_type": "catalog_item",
+   "entity_id": "339194",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P1fc71b22de",
+   "vertical": "farmacia",
+   "consulta": "toallas higiénicas nocturnas",
+   "entity_type": "catalog_item",
+   "entity_id": "27394",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P1fe619e351",
+   "vertical": "turbo",
+   "consulta": "arroz grado 1",
+   "entity_type": "catalog_item",
+   "entity_id": "545947",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P20093cf105",
+   "vertical": "mall",
+   "consulta": "aros de plata",
+   "entity_type": "catalog_item",
+   "entity_id": "1461732",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P2011f5270e",
+   "vertical": "farmacia",
+   "consulta": "toallas higiénicas nocturnas",
+   "entity_type": "catalog_item",
+   "entity_id": "111074",
+   "juicio": "no sirve"
+  },
+  {
+   "id": "P201774d007",
+   "vertical": "mall",
+   "consulta": "regalo para mi polola",
+   "entity_type": "catalog_item",
+   "entity_id": "1365765",
+   "juicio": "no sirve"
+  },
+  {
+   "id": "P2061524f59",
+   "vertical": "mall",
+   "consulta": "regalo para mi polola",
+   "entity_type": "catalog_item",
+   "entity_id": "1649854",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P20b5fc014d",
+   "vertical": "licores",
+   "consulta": "cerveza sin alcohol",
+   "entity_type": "catalog_item",
+   "entity_id": "767674",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P20f633e73d",
+   "vertical": "supermercado",
+   "consulta": "algo dulce para el cafe de la tarde",
+   "entity_type": "catalog_item",
+   "entity_id": "131404",
+   "juicio": "no sirve"
+  },
+  {
+   "id": "P21a7d05df6",
+   "vertical": "supermercado",
+   "consulta": "cafe molido",
+   "entity_type": "catalog_item",
+   "entity_id": "1408253",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P22cc5ff383",
+   "vertical": "licores",
+   "consulta": "vino tinto cabernet sauvignon",
+   "entity_type": "catalog_item",
+   "entity_id": "45525",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P22cfab6a94",
+   "vertical": "turbo",
+   "consulta": "vino tinto cabernet",
+   "entity_type": "catalog_item",
+   "entity_id": "234192",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P22f8aae345",
+   "vertical": "chocolateria",
+   "consulta": "alfajores",
+   "entity_type": "catalog_item",
+   "entity_id": "106771",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P23ac40d2f0",
+   "vertical": "supermercado",
+   "consulta": "almuerzo listo para calentar",
+   "entity_type": "catalog_item",
+   "entity_id": "1129666",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P247feee988",
+   "vertical": "conveniencia",
+   "consulta": "algo para ver una película",
+   "entity_type": "catalog_item",
+   "entity_id": "118523",
+   "juicio": "no sirve"
+  },
+  {
+   "id": "P2485abb449",
+   "vertical": "farmacia",
+   "consulta": "base de maquillaje líquida",
+   "entity_type": "catalog_item",
+   "entity_id": "340610",
+   "juicio": "a medias"
+  },
+  {
+   "id": "P24ef00dded",
+   "vertical": "turbo",
+   "consulta": "jamon serrano",
+   "entity_type": "catalog_item",
+   "entity_id": "31226",
+   "juicio": "a medias"
+  },
+  {
+   "id": "P2545f9d7a1",
+   "vertical": "restaurantes",
+   "consulta": "pasta a la bolognesa",
+   "entity_type": "menu_item",
+   "entity_id": "919536",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P25ff0b37c8",
+   "vertical": "chocolateria",
+   "consulta": "galletas",
+   "entity_type": "catalog_item",
+   "entity_id": "596594",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P2602861ce2",
+   "vertical": "turbo",
+   "consulta": "coca cola 3 litros",
+   "entity_type": "catalog_item",
+   "entity_id": "112864",
+   "juicio": "a medias"
+  },
+  {
+   "id": "P263af3c47d",
+   "vertical": "licores",
+   "consulta": "cerveza sin alcohol",
+   "entity_type": "catalog_item",
+   "entity_id": "296530",
+   "juicio": "no sirve"
+  },
+  {
+   "id": "P26802fbddf",
+   "vertical": "supermercado",
+   "consulta": "snack saludable para la oficina",
+   "entity_type": "catalog_item",
+   "entity_id": "727390",
+   "juicio": "a medias"
+  },
+  {
+   "id": "P27f5823b5f",
+   "vertical": "conveniencia",
+   "consulta": "algo para ver una película",
+   "entity_type": "catalog_item",
+   "entity_id": "1297572",
+   "juicio": "no sirve"
+  },
+  {
+   "id": "P2818db8538",
+   "vertical": "supermercado",
+   "consulta": "harina sin polvos de hornear",
+   "entity_type": "catalog_item",
+   "entity_id": "25159",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P28a30df828",
+   "vertical": "supermercado",
+   "consulta": "harina sin polvos de hornear",
+   "entity_type": "catalog_item",
+   "entity_id": "1646785",
+   "juicio": "a medias"
+  },
+  {
+   "id": "P295e95a94e",
+   "vertical": "turbo",
+   "consulta": "algo para limpiar el baño",
+   "entity_type": "catalog_item",
+   "entity_id": "89396",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P2981f3d711",
+   "vertical": "mall",
+   "consulta": "regalo para mi polola",
+   "entity_type": "catalog_item",
+   "entity_id": "1721272",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P29927fb4a4",
+   "vertical": "farmacia",
+   "consulta": "toallas higiénicas nocturnas",
+   "entity_type": "catalog_item",
+   "entity_id": "697660",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P29ffc6dd21",
+   "vertical": "turbo",
+   "consulta": "jamon serrano",
+   "entity_type": "catalog_item",
+   "entity_id": "76797",
+   "juicio": "a medias"
+  },
+  {
+   "id": "P2a0ab92287",
+   "vertical": "turbo",
+   "consulta": "te verde",
+   "entity_type": "catalog_item",
+   "entity_id": "787894",
+   "juicio": "a medias"
+  },
+  {
+   "id": "P2a636d7de4",
+   "vertical": "licores",
+   "consulta": "cerveza artesanal",
+   "entity_type": "catalog_item",
+   "entity_id": "1654459",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P2ac0707168",
+   "vertical": "farmacia",
+   "consulta": "pasta dental blanqueadora",
+   "entity_type": "catalog_item",
+   "entity_id": "39674",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P2b29fa4ee9",
+   "vertical": "turbo",
+   "consulta": "vino tinto cabernet",
+   "entity_type": "catalog_item",
+   "entity_id": "44854",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P2b34e26793",
+   "vertical": "licores",
+   "consulta": "ron para mojitos",
+   "entity_type": "catalog_item",
+   "entity_id": "21758",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P2b542f4c2d",
+   "vertical": "mall",
+   "consulta": "set de maquillaje",
+   "entity_type": "catalog_item",
+   "entity_id": "1669588",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P2b565a9bee",
+   "vertical": "farmacia",
+   "consulta": "vitamina c efervescente",
+   "entity_type": "catalog_item",
+   "entity_id": "108742",
+   "juicio": "a medias"
+  },
+  {
+   "id": "P2bdbff0432",
+   "vertical": "turbo",
+   "consulta": "coca cola 3 litros",
+   "entity_type": "catalog_item",
+   "entity_id": "80758",
+   "juicio": "a medias"
+  },
+  {
+   "id": "P2be6f80d6d",
+   "vertical": "chocolateria",
+   "consulta": "bombones para regalar",
+   "entity_type": "catalog_item",
+   "entity_id": "677154",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P2c0c6b47b1",
+   "vertical": "restaurantes",
+   "consulta": "algo rico para almorzar",
+   "entity_type": "menu_item",
+   "entity_id": "929652",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P2c6fdd8b1e",
+   "vertical": "conveniencia",
+   "consulta": "pan para el desayuno",
+   "entity_type": "catalog_item",
+   "entity_id": "28343",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P2c9974e255",
+   "vertical": "licores",
+   "consulta": "cerveza artesanal",
+   "entity_type": "catalog_item",
+   "entity_id": "22670",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P2cef13a74e",
+   "vertical": "restaurantes",
+   "consulta": "algo rico para almorzar",
+   "entity_type": "menu_item",
+   "entity_id": "714310",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P2d910df47a",
+   "vertical": "conveniencia",
+   "consulta": "leche entera",
+   "entity_type": "catalog_item",
+   "entity_id": "296635",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P2dd812e3ee",
+   "vertical": "chocolateria",
+   "consulta": "algo dulce para un cumpleaños",
+   "entity_type": "catalog_item",
+   "entity_id": "955616",
+   "juicio": "a medias"
+  },
+  {
+   "id": "P2e86faafde",
+   "vertical": "conveniencia",
+   "consulta": "panales",
+   "entity_type": "catalog_item",
+   "entity_id": "74362",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P2ec0a1d8cf",
+   "vertical": "licores",
+   "consulta": "algo para el carrete",
+   "entity_type": "catalog_item",
+   "entity_id": "1019703",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P2ec42f9947",
+   "vertical": "supermercado",
+   "consulta": "huevos de campo",
+   "entity_type": "catalog_item",
+   "entity_id": "108782",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P2fee72978e",
+   "vertical": "turbo",
+   "consulta": "jugo de naranja",
+   "entity_type": "catalog_item",
+   "entity_id": "1717613",
+   "juicio": "a medias"
+  },
+  {
+   "id": "P306756f229",
+   "vertical": "chocolateria",
+   "consulta": "chocolate blanco",
+   "entity_type": "catalog_item",
+   "entity_id": "532989",
+   "juicio": "a medias"
+  },
+  {
+   "id": "P30708c2753",
+   "vertical": "restaurantes",
+   "consulta": "sushi roll",
+   "entity_type": "menu_item",
+   "entity_id": "2099391701",
+   "juicio": "a medias"
+  },
+  {
+   "id": "P308b6aac09",
+   "vertical": "restaurantes",
+   "consulta": "pasta a la bolognesa",
+   "entity_type": "menu_item",
+   "entity_id": "1272720",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P30b6291b94",
+   "vertical": "licores",
+   "consulta": "vino tinto cabernet sauvignon",
+   "entity_type": "catalog_item",
+   "entity_id": "67973",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P312b1be029",
+   "vertical": "supermercado",
+   "consulta": "fideos spaghetti",
+   "entity_type": "catalog_item",
+   "entity_id": "9879",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P320a33ef38",
+   "vertical": "conveniencia",
+   "consulta": "coca cola 1.5 litros",
+   "entity_type": "catalog_item",
+   "entity_id": "117560",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P3211d6dbe9",
+   "vertical": "conveniencia",
+   "consulta": "galletas de chocolate",
+   "entity_type": "catalog_item",
+   "entity_id": "130676",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P32196c56d0",
+   "vertical": "supermercado",
+   "consulta": "pasta de dientes",
+   "entity_type": "catalog_item",
+   "entity_id": "69658",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P3233ede3b9",
+   "vertical": "supermercado",
+   "consulta": "algo calentito para la once",
+   "entity_type": "catalog_item",
+   "entity_id": "1645240",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P3260c72086",
+   "vertical": "supermercado",
+   "consulta": "algo calentito para la once",
+   "entity_type": "catalog_item",
+   "entity_id": "1645239",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P32714958eb",
+   "vertical": "supermercado",
+   "consulta": "fideos spaghetti",
+   "entity_type": "catalog_item",
+   "entity_id": "251478",
+   "juicio": "a medias"
+  },
+  {
+   "id": "P328cf5675e",
+   "vertical": "farmacia",
+   "consulta": "pasta dental blanqueadora",
+   "entity_type": "catalog_item",
+   "entity_id": "133644",
+   "juicio": "a medias"
+  },
+  {
+   "id": "P32af47ffa1",
+   "vertical": "mall",
+   "consulta": "audífonos bluetooth",
+   "entity_type": "catalog_item",
+   "entity_id": "1117733",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P32b4e15d37",
+   "vertical": "mall",
+   "consulta": "audífonos bluetooth",
+   "entity_type": "catalog_item",
+   "entity_id": "1659683",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P32dbb40147",
+   "vertical": "conveniencia",
+   "consulta": "pan para el desayuno",
+   "entity_type": "catalog_item",
+   "entity_id": "67377",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P32dc711469",
+   "vertical": "supermercado",
+   "consulta": "leche descremada",
+   "entity_type": "catalog_item",
+   "entity_id": "130583",
+   "juicio": "a medias"
+  },
+  {
+   "id": "P3360da9c7b",
+   "vertical": "farmacia",
+   "consulta": "acondicionador para pelo tenido",
+   "entity_type": "catalog_item",
+   "entity_id": "245657",
+   "juicio": "a medias"
+  },
+  {
+   "id": "P33b35bc800",
+   "vertical": "mall",
+   "consulta": "ropa de bebé",
+   "entity_type": "catalog_item",
+   "entity_id": "1356954",
+   "juicio": "a medias"
+  },
+  {
+   "id": "P344b98d066",
+   "vertical": "turbo",
+   "consulta": "arroz grado 1",
+   "entity_type": "catalog_item",
+   "entity_id": "111207",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P3518e43b75",
+   "vertical": "turbo",
+   "consulta": "queso gauda laminado",
+   "entity_type": "catalog_item",
+   "entity_id": "123529",
+   "juicio": "a medias"
+  },
+  {
+   "id": "P35aa8b7b85",
+   "vertical": "licores",
+   "consulta": "tequila",
+   "entity_type": "catalog_item",
+   "entity_id": "1348069",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P35e32f7049",
+   "vertical": "supermercado",
+   "consulta": "huevos de campo",
+   "entity_type": "catalog_item",
+   "entity_id": "1129163",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P362dec64ec",
+   "vertical": "turbo",
+   "consulta": "vino tinto cabernet",
+   "entity_type": "catalog_item",
+   "entity_id": "145722",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P36d11ec8ed",
+   "vertical": "mall",
+   "consulta": "ropa de bebé",
+   "entity_type": "catalog_item",
+   "entity_id": "567234",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P36e02a9f57",
+   "vertical": "turbo",
+   "consulta": "jugo de naranja",
+   "entity_type": "catalog_item",
+   "entity_id": "10507",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P36e9060e72",
+   "vertical": "mall",
+   "consulta": "perfume de mujer",
+   "entity_type": "catalog_item",
+   "entity_id": "929423",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P373564b1a3",
+   "vertical": "farmacia",
+   "consulta": "cepillo de dientes electrico",
+   "entity_type": "catalog_item",
+   "entity_id": "121525",
+   "juicio": "a medias"
+  },
+  {
+   "id": "P3768fa501e",
+   "vertical": "turbo",
+   "consulta": "detergente líquido",
+   "entity_type": "catalog_item",
+   "entity_id": "48818",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P37b4f5a619",
+   "vertical": "conveniencia",
+   "consulta": "galletas de chocolate",
+   "entity_type": "catalog_item",
+   "entity_id": "115256",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P37e46357d2",
+   "vertical": "supermercado",
+   "consulta": "shampoo anticaspa",
+   "entity_type": "catalog_item",
+   "entity_id": "1557061",
+   "juicio": "a medias"
+  },
+  {
+   "id": "P3818308550",
+   "vertical": "supermercado",
+   "consulta": "shampoo anticaspa",
+   "entity_type": "catalog_item",
+   "entity_id": "206357",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P3867bc6cfe",
+   "vertical": "supermercado",
+   "consulta": "cafe molido",
+   "entity_type": "catalog_item",
+   "entity_id": "68071",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P38c81ec618",
+   "vertical": "conveniencia",
+   "consulta": "energetica monster",
+   "entity_type": "catalog_item",
+   "entity_id": "1033935",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P38d2951b0b",
+   "vertical": "turbo",
+   "consulta": "queso gauda laminado",
+   "entity_type": "catalog_item",
+   "entity_id": "1171022",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P38e14ce64f",
+   "vertical": "mall",
+   "consulta": "perfume de mujer",
+   "entity_type": "catalog_item",
+   "entity_id": "1006277",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P3907e92859",
+   "vertical": "mall",
+   "consulta": "audífonos bluetooth",
+   "entity_type": "catalog_item",
+   "entity_id": "1669366",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P39703b3920",
+   "vertical": "chocolateria",
+   "consulta": "galletas",
+   "entity_type": "catalog_item",
+   "entity_id": "1300900",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P39d921fbb4",
+   "vertical": "licores",
+   "consulta": "algo para el carrete",
+   "entity_type": "catalog_item",
+   "entity_id": "1664395",
+   "juicio": "a medias"
+  },
+  {
+   "id": "P39f4f926ba",
+   "vertical": "mall",
+   "consulta": "peluche",
+   "entity_type": "catalog_item",
+   "entity_id": "1348891",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P3a0365d0b2",
+   "vertical": "licores",
+   "consulta": "algo para el carrete",
+   "entity_type": "catalog_item",
+   "entity_id": "114838",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P3a3856d9a1",
+   "vertical": "licores",
+   "consulta": "cerveza sin alcohol",
+   "entity_type": "catalog_item",
+   "entity_id": "114558",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P3a523d9b81",
+   "vertical": "restaurantes",
+   "consulta": "postre de chocolate",
+   "entity_type": "menu_item",
+   "entity_id": "287144",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P3b503d62bc",
+   "vertical": "licores",
+   "consulta": "bebida para mezclar con pisco",
+   "entity_type": "catalog_item",
+   "entity_id": "1000228",
+   "juicio": "a medias"
+  },
+  {
+   "id": "P3b631df90e",
+   "vertical": "mall",
+   "consulta": "peluche",
+   "entity_type": "catalog_item",
+   "entity_id": "1702003",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P3b6492f31d",
+   "vertical": "farmacia",
+   "consulta": "pañales etapa 3",
+   "entity_type": "catalog_item",
+   "entity_id": "102869",
+   "juicio": "a medias"
+  },
+  {
+   "id": "P3c4778da3d",
+   "vertical": "licores",
+   "consulta": "regalo para un amante del whisky",
+   "entity_type": "catalog_item",
+   "entity_id": "96770",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P3c6c95115e",
+   "vertical": "mall",
+   "consulta": "cargador tipo c",
+   "entity_type": "catalog_item",
+   "entity_id": "828834",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P3c7a072065",
+   "vertical": "supermercado",
+   "consulta": "snack saludable para la oficina",
+   "entity_type": "catalog_item",
+   "entity_id": "1289786",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P3cb31fd50e",
+   "vertical": "supermercado",
+   "consulta": "pasta de dientes",
+   "entity_type": "catalog_item",
+   "entity_id": "572816",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P3d63150903",
+   "vertical": "licores",
+   "consulta": "papas fritas para picar",
+   "entity_type": "catalog_item",
+   "entity_id": "45434",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P3d70ddcf02",
+   "vertical": "chocolateria",
+   "consulta": "chocolate blanco",
+   "entity_type": "catalog_item",
+   "entity_id": "1716051",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P3d8380205f",
+   "vertical": "mall",
+   "consulta": "regalo para mi polola",
+   "entity_type": "catalog_item",
+   "entity_id": "1366320",
+   "juicio": "no sirve"
+  },
+  {
+   "id": "P3d9a542a38",
+   "vertical": "licores",
+   "consulta": "cerveza artesanal",
+   "entity_type": "catalog_item",
+   "entity_id": "725183",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P3e1dcce22e",
+   "vertical": "turbo",
+   "consulta": "coca cola 3 litros",
+   "entity_type": "catalog_item",
+   "entity_id": "50120",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P3e4fe0a706",
+   "vertical": "conveniencia",
+   "consulta": "galletas de chocolate",
+   "entity_type": "catalog_item",
+   "entity_id": "114007",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P3ec2002b91",
+   "vertical": "chocolateria",
+   "consulta": "torta de chocolate",
+   "entity_type": "catalog_item",
+   "entity_id": "514515",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P3ee07ba562",
+   "vertical": "licores",
+   "consulta": "algo para el carrete",
+   "entity_type": "catalog_item",
+   "entity_id": "248382",
+   "juicio": "no sirve"
+  },
+  {
+   "id": "P3f0bdceaab",
+   "vertical": "licores",
+   "consulta": "vino tinto cabernet sauvignon",
+   "entity_type": "catalog_item",
+   "entity_id": "92901",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P400943b623",
+   "vertical": "turbo",
+   "consulta": "queso gauda laminado",
+   "entity_type": "catalog_item",
+   "entity_id": "122211",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P409e56a9f1",
+   "vertical": "conveniencia",
+   "consulta": "algo para ver una película",
+   "entity_type": "catalog_item",
+   "entity_id": "11208",
+   "juicio": "no sirve"
+  },
+  {
+   "id": "P413e0a65f4",
+   "vertical": "supermercado",
+   "consulta": "almuerzo listo para calentar",
+   "entity_type": "catalog_item",
+   "entity_id": "55383",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P4146c352e2",
+   "vertical": "restaurantes",
+   "consulta": "sushi roll",
+   "entity_type": "menu_item",
+   "entity_id": "317618",
+   "juicio": "a medias"
+  },
+  {
+   "id": "P41f120da8c",
+   "vertical": "turbo",
+   "consulta": "jugo de naranja",
+   "entity_type": "catalog_item",
+   "entity_id": "15159",
+   "juicio": "a medias"
+  },
+  {
+   "id": "P420d720db1",
+   "vertical": "supermercado",
+   "consulta": "cereal para ninos",
+   "entity_type": "catalog_item",
+   "entity_id": "245144",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P4221decfce",
+   "vertical": "chocolateria",
+   "consulta": "torta de chocolate",
+   "entity_type": "catalog_item",
+   "entity_id": "514513",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P429cdd0b6b",
+   "vertical": "farmacia",
+   "consulta": "pasta dental blanqueadora",
+   "entity_type": "catalog_item",
+   "entity_id": "718558",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P43862c74bb",
+   "vertical": "mall",
+   "consulta": "ropa de bebé",
+   "entity_type": "catalog_item",
+   "entity_id": "1328051",
+   "juicio": "a medias"
+  },
+  {
+   "id": "P4438aaebd4",
+   "vertical": "chocolateria",
+   "consulta": "alfajores",
+   "entity_type": "catalog_item",
+   "entity_id": "37324",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P4468b895d3",
+   "vertical": "supermercado",
+   "consulta": "papel higienico doble hoja",
+   "entity_type": "catalog_item",
+   "entity_id": "354195",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P44be3c3d2d",
+   "vertical": "restaurantes",
+   "consulta": "pizza pepperoni",
+   "entity_type": "menu_item",
+   "entity_id": "1997124",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P44ec563f29",
+   "vertical": "mall",
+   "consulta": "cargador tipo c",
+   "entity_type": "catalog_item",
+   "entity_id": "764324",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P451ef14e40",
+   "vertical": "mall",
+   "consulta": "perfume de mujer",
+   "entity_type": "catalog_item",
+   "entity_id": "725091",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P4603d050e0",
+   "vertical": "restaurantes",
+   "consulta": "gelato de pistacho",
+   "entity_type": "menu_item",
+   "entity_id": "1131572",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P462452b6b9",
+   "vertical": "conveniencia",
+   "consulta": "panales",
+   "entity_type": "catalog_item",
+   "entity_id": "75982",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P46a9201bd0",
+   "vertical": "turbo",
+   "consulta": "coca cola 3 litros",
+   "entity_type": "catalog_item",
+   "entity_id": "7231",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P47a07f9a9b",
+   "vertical": "supermercado",
+   "consulta": "papel higienico doble hoja",
+   "entity_type": "catalog_item",
+   "entity_id": "136379",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P47be3f594e",
+   "vertical": "supermercado",
+   "consulta": "cereal para ninos",
+   "entity_type": "catalog_item",
+   "entity_id": "276369",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P48587a4032",
+   "vertical": "chocolateria",
+   "consulta": "chocolate blanco",
+   "entity_type": "catalog_item",
+   "entity_id": "857150",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P485f9a145c",
+   "vertical": "supermercado",
+   "consulta": "algo dulce para el cafe de la tarde",
+   "entity_type": "catalog_item",
+   "entity_id": "57082",
+   "juicio": "a medias"
+  },
+  {
+   "id": "P4915d20bbd",
+   "vertical": "restaurantes",
+   "consulta": "ensalada liviana",
+   "entity_type": "menu_item",
+   "entity_id": "285933",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P4a79fad7dd",
+   "vertical": "turbo",
+   "consulta": "jamon serrano",
+   "entity_type": "catalog_item",
+   "entity_id": "78778",
+   "juicio": "no sirve"
+  },
+  {
+   "id": "P4a8c839286",
+   "vertical": "restaurantes",
+   "consulta": "postre de chocolate",
+   "entity_type": "menu_item",
+   "entity_id": "279524",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P4af1643156",
+   "vertical": "restaurantes",
+   "consulta": "postre de chocolate",
+   "entity_type": "menu_item",
+   "entity_id": "1107227",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P4b3fd0b30a",
+   "vertical": "mall",
+   "consulta": "peluche",
+   "entity_type": "catalog_item",
+   "entity_id": "1659695",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P4b504df3d5",
+   "vertical": "licores",
+   "consulta": "ron para mojitos",
+   "entity_type": "catalog_item",
+   "entity_id": "824488",
+   "juicio": "a medias"
+  },
+  {
+   "id": "P4b83553f58",
+   "vertical": "mall",
+   "consulta": "juguete para niño de 5 años",
+   "entity_type": "catalog_item",
+   "entity_id": "835328",
+   "juicio": "a medias"
+  },
+  {
+   "id": "P4c07e515f1",
+   "vertical": "licores",
+   "consulta": "bebida para mezclar con pisco",
+   "entity_type": "catalog_item",
+   "entity_id": "1330680",
+   "juicio": "a medias"
+  },
+  {
+   "id": "P4cbdf1dbb9",
+   "vertical": "mall",
+   "consulta": "regalo para mi polola",
+   "entity_type": "catalog_item",
+   "entity_id": "1536680",
+   "juicio": "a medias"
+  },
+  {
+   "id": "P4cc6caae3a",
+   "vertical": "licores",
+   "consulta": "whisky etiqueta negra",
+   "entity_type": "catalog_item",
+   "entity_id": "304020",
+   "juicio": "a medias"
+  },
+  {
+   "id": "P4d16ecba4e",
+   "vertical": "chocolateria",
+   "consulta": "torta de chocolate",
+   "entity_type": "catalog_item",
+   "entity_id": "1740940",
+   "juicio": "a medias"
+  },
+  {
+   "id": "P4d9e3b883a",
+   "vertical": "supermercado",
+   "consulta": "leche descremada",
+   "entity_type": "catalog_item",
+   "entity_id": "1721345",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P4dcccb3f86",
+   "vertical": "supermercado",
+   "consulta": "leche descremada",
+   "entity_type": "catalog_item",
+   "entity_id": "2715",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P4ddcc3456f",
+   "vertical": "conveniencia",
+   "consulta": "papas fritas",
+   "entity_type": "catalog_item",
+   "entity_id": "133988",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P4e2aafe6cc",
+   "vertical": "farmacia",
+   "consulta": "perfume de mujer",
+   "entity_type": "catalog_item",
+   "entity_id": "49600",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P4fb849992b",
+   "vertical": "supermercado",
+   "consulta": "queso gouda laminado",
+   "entity_type": "catalog_item",
+   "entity_id": "64163",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P4fef85aef0",
+   "vertical": "chocolateria",
+   "consulta": "postre individual",
+   "entity_type": "catalog_item",
+   "entity_id": "877926",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P5032590ee7",
+   "vertical": "restaurantes",
+   "consulta": "postre de chocolate",
+   "entity_type": "menu_item",
+   "entity_id": "1245022",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P50f3a4a5bb",
+   "vertical": "restaurantes",
+   "consulta": "pizza pepperoni",
+   "entity_type": "menu_item",
+   "entity_id": "1201882",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P52445cb2a1",
+   "vertical": "licores",
+   "consulta": "tequila",
+   "entity_type": "catalog_item",
+   "entity_id": "1554435",
+   "juicio": "a medias"
+  },
+  {
+   "id": "P529a6dfd76",
+   "vertical": "mall",
+   "consulta": "peluche",
+   "entity_type": "catalog_item",
+   "entity_id": "1701974",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P529ec1f6a9",
+   "vertical": "turbo",
+   "consulta": "algo para limpiar el baño",
+   "entity_type": "catalog_item",
+   "entity_id": "1488183",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P52ce59b5c2",
+   "vertical": "mall",
+   "consulta": "regalo para mi polola",
+   "entity_type": "catalog_item",
+   "entity_id": "762263",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P5319cc48dd",
+   "vertical": "chocolateria",
+   "consulta": "postre individual",
+   "entity_type": "catalog_item",
+   "entity_id": "883417",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P53a362c262",
+   "vertical": "conveniencia",
+   "consulta": "algo para ver una película",
+   "entity_type": "catalog_item",
+   "entity_id": "216536",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P53b02a67fc",
+   "vertical": "licores",
+   "consulta": "algo para el carrete",
+   "entity_type": "catalog_item",
+   "entity_id": "126162",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P53c498cae8",
+   "vertical": "farmacia",
+   "consulta": "cosas para el bebé recién nacido",
+   "entity_type": "catalog_item",
+   "entity_id": "16318",
+   "juicio": "a medias"
+  },
+  {
+   "id": "P53e55bccf4",
+   "vertical": "licores",
+   "consulta": "ron para mojitos",
+   "entity_type": "catalog_item",
+   "entity_id": "498642",
+   "juicio": "a medias"
+  },
+  {
+   "id": "P53ee993219",
+   "vertical": "supermercado",
+   "consulta": "cereal para ninos",
+   "entity_type": "catalog_item",
+   "entity_id": "14906",
+   "juicio": "a medias"
+  },
+  {
+   "id": "P548aa7a5bc",
+   "vertical": "supermercado",
+   "consulta": "panales para guagua",
+   "entity_type": "catalog_item",
+   "entity_id": "102869",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P54b64dccf0",
+   "vertical": "mall",
+   "consulta": "regalo para mi polola",
+   "entity_type": "catalog_item",
+   "entity_id": "1735154",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P555824e512",
+   "vertical": "restaurantes",
+   "consulta": "hamburguesa con papas",
+   "entity_type": "menu_item",
+   "entity_id": "1889488",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P55657bedfb",
+   "vertical": "farmacia",
+   "consulta": "vitamina c efervescente",
+   "entity_type": "catalog_item",
+   "entity_id": "1722928",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P5583fbae73",
+   "vertical": "farmacia",
+   "consulta": "parches curita",
+   "entity_type": "catalog_item",
+   "entity_id": "34244",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P56d1e6f6f3",
+   "vertical": "licores",
+   "consulta": "algo para el carrete",
+   "entity_type": "catalog_item",
+   "entity_id": "46066",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P571968d0a1",
+   "vertical": "mall",
+   "consulta": "carcasa para iphone",
+   "entity_type": "catalog_item",
+   "entity_id": "1533185",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P5770634323",
+   "vertical": "licores",
+   "consulta": "cerveza sin alcohol",
+   "entity_type": "catalog_item",
+   "entity_id": "1346193",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P57c8112532",
+   "vertical": "turbo",
+   "consulta": "arroz grado 1",
+   "entity_type": "catalog_item",
+   "entity_id": "85851",
+   "juicio": "a medias"
+  },
+  {
+   "id": "P57cd1d6cef",
+   "vertical": "mall",
+   "consulta": "vela aromatica",
+   "entity_type": "catalog_item",
+   "entity_id": "1559225",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P57e83ae3f2",
+   "vertical": "farmacia",
+   "consulta": "algo para la piel seca",
+   "entity_type": "catalog_item",
+   "entity_id": "93572",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P57e978b6e6",
+   "vertical": "restaurantes",
+   "consulta": "algo rico para almorzar",
+   "entity_type": "menu_item",
+   "entity_id": "2391183",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P58317d0ba7",
+   "vertical": "farmacia",
+   "consulta": "vitamina c efervescente",
+   "entity_type": "catalog_item",
+   "entity_id": "1298327",
+   "juicio": "no sirve"
+  },
+  {
+   "id": "P58804233b6",
+   "vertical": "turbo",
+   "consulta": "coca cola 3 litros",
+   "entity_type": "catalog_item",
+   "entity_id": "496430",
+   "juicio": "a medias"
+  },
+  {
+   "id": "P58830986f9",
+   "vertical": "conveniencia",
+   "consulta": "galletas de chocolate",
+   "entity_type": "catalog_item",
+   "entity_id": "218038",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P5887ddae82",
+   "vertical": "mall",
+   "consulta": "ropa de bebé",
+   "entity_type": "catalog_item",
+   "entity_id": "805171",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P58ebdbfb5e",
+   "vertical": "licores",
+   "consulta": "vino tinto cabernet sauvignon",
+   "entity_type": "catalog_item",
+   "entity_id": "279803",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P58ed74d62d",
+   "vertical": "restaurantes",
+   "consulta": "algo rico para almorzar",
+   "entity_type": "menu_item",
+   "entity_id": "2006038",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P5943900250",
+   "vertical": "conveniencia",
+   "consulta": "helado",
+   "entity_type": "catalog_item",
+   "entity_id": "129874",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P594b4be82a",
+   "vertical": "supermercado",
+   "consulta": "queso gouda laminado",
+   "entity_type": "catalog_item",
+   "entity_id": "84368",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P5a178ff901",
+   "vertical": "licores",
+   "consulta": "tequila",
+   "entity_type": "catalog_item",
+   "entity_id": "1543185",
+   "juicio": "a medias"
+  },
+  {
+   "id": "P5a4b3916db",
+   "vertical": "restaurantes",
+   "consulta": "ensalada liviana",
+   "entity_type": "menu_item",
+   "entity_id": "149047",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P5a7de2e7ad",
+   "vertical": "turbo",
+   "consulta": "jugo de naranja",
+   "entity_type": "catalog_item",
+   "entity_id": "557973",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P5aa967b597",
+   "vertical": "supermercado",
+   "consulta": "cereal para ninos",
+   "entity_type": "catalog_item",
+   "entity_id": "68023",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P5ae21bfbce",
+   "vertical": "farmacia",
+   "consulta": "algo para la piel seca",
+   "entity_type": "catalog_item",
+   "entity_id": "207629",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P5ae8f5e8e3",
+   "vertical": "chocolateria",
+   "consulta": "galletas",
+   "entity_type": "catalog_item",
+   "entity_id": "791551",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P5af05cae7f",
+   "vertical": "turbo",
+   "consulta": "detergente líquido",
+   "entity_type": "catalog_item",
+   "entity_id": "940652",
+   "juicio": "no sirve"
+  },
+  {
+   "id": "P5b61e87dfb",
+   "vertical": "supermercado",
+   "consulta": "algo calentito para la once",
+   "entity_type": "catalog_item",
+   "entity_id": "1358977",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P5b623b255f",
+   "vertical": "restaurantes",
+   "consulta": "algo rico para almorzar",
+   "entity_type": "menu_item",
+   "entity_id": "2006005",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P5b64cdd0d4",
+   "vertical": "supermercado",
+   "consulta": "leche descremada",
+   "entity_type": "catalog_item",
+   "entity_id": "1460023",
+   "juicio": "a medias"
+  },
+  {
+   "id": "P5c05c35198",
+   "vertical": "farmacia",
+   "consulta": "perfume de mujer",
+   "entity_type": "catalog_item",
+   "entity_id": "1006321",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P5c22a291f0",
+   "vertical": "licores",
+   "consulta": "papas fritas para picar",
+   "entity_type": "catalog_item",
+   "entity_id": "1029511",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P5c7e820520",
+   "vertical": "restaurantes",
+   "consulta": "postre de chocolate",
+   "entity_type": "menu_item",
+   "entity_id": "2099476984",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P5ca7048dfb",
+   "vertical": "farmacia",
+   "consulta": "parches curita",
+   "entity_type": "catalog_item",
+   "entity_id": "292812",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P5df5ae9fc3",
+   "vertical": "supermercado",
+   "consulta": "huevos de campo",
+   "entity_type": "catalog_item",
+   "entity_id": "57972",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P5e53b72ef9",
+   "vertical": "farmacia",
+   "consulta": "cosas para el bebé recién nacido",
+   "entity_type": "catalog_item",
+   "entity_id": "1258421",
+   "juicio": "a medias"
+  },
+  {
+   "id": "P5e8f4b5679",
+   "vertical": "licores",
+   "consulta": "energetica",
+   "entity_type": "catalog_item",
+   "entity_id": "1246304",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P5ea460a915",
+   "vertical": "licores",
+   "consulta": "cerveza sin alcohol",
+   "entity_type": "catalog_item",
+   "entity_id": "56906",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P5eabb7a585",
+   "vertical": "farmacia",
+   "consulta": "perfume de mujer",
+   "entity_type": "catalog_item",
+   "entity_id": "1634104",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P5ed9ce546b",
+   "vertical": "supermercado",
+   "consulta": "frutas frescas",
+   "entity_type": "catalog_item",
+   "entity_id": "1100735",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P5f0eeed67e",
+   "vertical": "supermercado",
+   "consulta": "harina sin polvos de hornear",
+   "entity_type": "catalog_item",
+   "entity_id": "59101",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P5f109d47bb",
+   "vertical": "chocolateria",
+   "consulta": "algo dulce para un cumpleaños",
+   "entity_type": "catalog_item",
+   "entity_id": "876365",
+   "juicio": "a medias"
+  },
+  {
+   "id": "P5f1e164b4d",
+   "vertical": "conveniencia",
+   "consulta": "algo para ver una película",
+   "entity_type": "catalog_item",
+   "entity_id": "188953",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P5f4d967226",
+   "vertical": "restaurantes",
+   "consulta": "pizza pepperoni",
+   "entity_type": "menu_item",
+   "entity_id": "917584",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P5f83eac9fa",
+   "vertical": "chocolateria",
+   "consulta": "alfajores",
+   "entity_type": "catalog_item",
+   "entity_id": "1408427",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P603413946b",
+   "vertical": "chocolateria",
+   "consulta": "algo dulce para un cumpleaños",
+   "entity_type": "catalog_item",
+   "entity_id": "715255",
+   "juicio": "a medias"
+  },
+  {
+   "id": "P604037adc8",
+   "vertical": "licores",
+   "consulta": "vino tinto cabernet sauvignon",
+   "entity_type": "catalog_item",
+   "entity_id": "104099",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P6066ed7d5b",
+   "vertical": "restaurantes",
+   "consulta": "ensalada liviana",
+   "entity_type": "menu_item",
+   "entity_id": "1026625",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P607e5108c4",
+   "vertical": "supermercado",
+   "consulta": "algo calentito para la once",
+   "entity_type": "catalog_item",
+   "entity_id": "1323090",
+   "juicio": "a medias"
+  },
+  {
+   "id": "P60c062f95b",
+   "vertical": "mall",
+   "consulta": "algo para hacer ejercicio en la casa",
+   "entity_type": "catalog_item",
+   "entity_id": "643526",
+   "juicio": "no sirve"
+  },
+  {
+   "id": "P60cc818ae0",
+   "vertical": "mall",
+   "consulta": "regalo para mi polola",
+   "entity_type": "catalog_item",
+   "entity_id": "349566",
+   "juicio": "no sirve"
+  },
+  {
+   "id": "P613e26508c",
+   "vertical": "supermercado",
+   "consulta": "cafe molido",
+   "entity_type": "catalog_item",
+   "entity_id": "1740113",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P61581350f3",
+   "vertical": "turbo",
+   "consulta": "jamon serrano",
+   "entity_type": "catalog_item",
+   "entity_id": "1647648",
+   "juicio": "a medias"
+  },
+  {
+   "id": "P61fcbde61c",
+   "vertical": "supermercado",
+   "consulta": "shampoo anticaspa",
+   "entity_type": "catalog_item",
+   "entity_id": "272822",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P62224999c7",
+   "vertical": "mall",
+   "consulta": "juguete para niño de 5 años",
+   "entity_type": "catalog_item",
+   "entity_id": "105881",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P6240c6d8b9",
+   "vertical": "turbo",
+   "consulta": "algo para limpiar el baño",
+   "entity_type": "catalog_item",
+   "entity_id": "51897",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P628546886d",
+   "vertical": "supermercado",
+   "consulta": "fideos spaghetti",
+   "entity_type": "catalog_item",
+   "entity_id": "953685",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P629f1a853d",
+   "vertical": "farmacia",
+   "consulta": "perfume de mujer",
+   "entity_type": "catalog_item",
+   "entity_id": "1628765",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P62e1d2ebbe",
+   "vertical": "conveniencia",
+   "consulta": "vino tinto",
+   "entity_type": "catalog_item",
+   "entity_id": "2337",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P62ef81b801",
+   "vertical": "farmacia",
+   "consulta": "toallas higiénicas nocturnas",
+   "entity_type": "catalog_item",
+   "entity_id": "1629166",
+   "juicio": "a medias"
+  },
+  {
+   "id": "P62f97611a7",
+   "vertical": "licores",
+   "consulta": "tequila",
+   "entity_type": "catalog_item",
+   "entity_id": "216517",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P630fed6c2a",
+   "vertical": "supermercado",
+   "consulta": "huevos de campo",
+   "entity_type": "catalog_item",
+   "entity_id": "322",
+   "juicio": "a medias"
+  },
+  {
+   "id": "P6317c7a59b",
+   "vertical": "restaurantes",
+   "consulta": "postre de chocolate",
+   "entity_type": "menu_item",
+   "entity_id": "279530",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P63428a9214",
+   "vertical": "turbo",
+   "consulta": "arroz grado 1",
+   "entity_type": "catalog_item",
+   "entity_id": "7344",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P648e35fd2e",
+   "vertical": "supermercado",
+   "consulta": "queso gouda laminado",
+   "entity_type": "catalog_item",
+   "entity_id": "2681",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P649ec2f37c",
+   "vertical": "licores",
+   "consulta": "whisky etiqueta negra",
+   "entity_type": "catalog_item",
+   "entity_id": "67881",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P654110f54a",
+   "vertical": "supermercado",
+   "consulta": "pasta de dientes",
+   "entity_type": "catalog_item",
+   "entity_id": "229961",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P658868878b",
+   "vertical": "farmacia",
+   "consulta": "pañales etapa 3",
+   "entity_type": "catalog_item",
+   "entity_id": "200321",
+   "juicio": "a medias"
+  },
+  {
+   "id": "P65b788b554",
+   "vertical": "conveniencia",
+   "consulta": "algo para ver una película",
+   "entity_type": "catalog_item",
+   "entity_id": "1345868",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P65eb94cc74",
+   "vertical": "chocolateria",
+   "consulta": "algo dulce para un cumpleaños",
+   "entity_type": "catalog_item",
+   "entity_id": "876519",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P65f6874880",
+   "vertical": "licores",
+   "consulta": "tequila",
+   "entity_type": "catalog_item",
+   "entity_id": "1625821",
+   "juicio": "a medias"
+  },
+  {
+   "id": "P6722ee0547",
+   "vertical": "mall",
+   "consulta": "vela aromatica",
+   "entity_type": "catalog_item",
+   "entity_id": "1050331",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P67361fd6f9",
+   "vertical": "supermercado",
+   "consulta": "fideos spaghetti",
+   "entity_type": "catalog_item",
+   "entity_id": "115946",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P67fe5c0a17",
+   "vertical": "turbo",
+   "consulta": "vino tinto cabernet",
+   "entity_type": "catalog_item",
+   "entity_id": "37156",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P6841049200",
+   "vertical": "supermercado",
+   "consulta": "papel higienico doble hoja",
+   "entity_type": "catalog_item",
+   "entity_id": "249277",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P6868277ea4",
+   "vertical": "supermercado",
+   "consulta": "papel higienico doble hoja",
+   "entity_type": "catalog_item",
+   "entity_id": "77629",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P689ac98a02",
+   "vertical": "chocolateria",
+   "consulta": "algo dulce para un cumpleaños",
+   "entity_type": "catalog_item",
+   "entity_id": "596594",
+   "juicio": "a medias"
+  },
+  {
+   "id": "P68b3fc27b1",
+   "vertical": "restaurantes",
+   "consulta": "pasta a la bolognesa",
+   "entity_type": "menu_item",
+   "entity_id": "78552",
+   "juicio": "a medias"
+  },
+  {
+   "id": "P690bcde65e",
+   "vertical": "farmacia",
+   "consulta": "parches curita",
+   "entity_type": "catalog_item",
+   "entity_id": "97391",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P693679957c",
+   "vertical": "farmacia",
+   "consulta": "cepillo de dientes electrico",
+   "entity_type": "catalog_item",
+   "entity_id": "24387",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P6a114df783",
+   "vertical": "supermercado",
+   "consulta": "algo dulce para el cafe de la tarde",
+   "entity_type": "catalog_item",
+   "entity_id": "1638015",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P6a377143e7",
+   "vertical": "supermercado",
+   "consulta": "almuerzo listo para calentar",
+   "entity_type": "catalog_item",
+   "entity_id": "50393",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P6a46e0b220",
+   "vertical": "supermercado",
+   "consulta": "cafe molido",
+   "entity_type": "catalog_item",
+   "entity_id": "50525",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P6a505ac359",
+   "vertical": "turbo",
+   "consulta": "detergente líquido",
+   "entity_type": "catalog_item",
+   "entity_id": "578960",
+   "juicio": "a medias"
+  },
+  {
+   "id": "P6a684482b8",
+   "vertical": "restaurantes",
+   "consulta": "algo rico para almorzar",
+   "entity_type": "menu_item",
+   "entity_id": "516850",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P6a83348cec",
+   "vertical": "farmacia",
+   "consulta": "toallas higiénicas nocturnas",
+   "entity_type": "catalog_item",
+   "entity_id": "1212815",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P6a86e79714",
+   "vertical": "mall",
+   "consulta": "algo para hacer ejercicio en la casa",
+   "entity_type": "catalog_item",
+   "entity_id": "769665",
+   "juicio": "no sirve"
+  },
+  {
+   "id": "P6ac4dc0d33",
+   "vertical": "mall",
+   "consulta": "algo para hacer ejercicio en la casa",
+   "entity_type": "catalog_item",
+   "entity_id": "643523",
+   "juicio": "no sirve"
+  },
+  {
+   "id": "P6b3892d931",
+   "vertical": "supermercado",
+   "consulta": "fideos spaghetti",
+   "entity_type": "catalog_item",
+   "entity_id": "1536162",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P6bab19e79e",
+   "vertical": "turbo",
+   "consulta": "coca cola 3 litros",
+   "entity_type": "catalog_item",
+   "entity_id": "279479",
+   "juicio": "a medias"
+  },
+  {
+   "id": "P6bd8d0d0e7",
+   "vertical": "supermercado",
+   "consulta": "algo calentito para la once",
+   "entity_type": "catalog_item",
+   "entity_id": "196012",
+   "juicio": "no sirve"
+  },
+  {
+   "id": "P6c8d193ec4",
+   "vertical": "conveniencia",
+   "consulta": "vino tinto",
+   "entity_type": "catalog_item",
+   "entity_id": "112875",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P6c910c64e0",
+   "vertical": "chocolateria",
+   "consulta": "galletas",
+   "entity_type": "catalog_item",
+   "entity_id": "838189",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P6c9b28e5a5",
+   "vertical": "chocolateria",
+   "consulta": "chocolate blanco",
+   "entity_type": "catalog_item",
+   "entity_id": "1504904",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P6cf78ad633",
+   "vertical": "licores",
+   "consulta": "ron para mojitos",
+   "entity_type": "catalog_item",
+   "entity_id": "61144",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P6d2e42f39f",
+   "vertical": "mall",
+   "consulta": "cargador tipo c",
+   "entity_type": "catalog_item",
+   "entity_id": "785648",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P6d4e8b9bf0",
+   "vertical": "mall",
+   "consulta": "audífonos bluetooth",
+   "entity_type": "catalog_item",
+   "entity_id": "1739932",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P6db04386ca",
+   "vertical": "mall",
+   "consulta": "carcasa para iphone",
+   "entity_type": "catalog_item",
+   "entity_id": "1487305",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P6dcc9206a5",
+   "vertical": "chocolateria",
+   "consulta": "galletas",
+   "entity_type": "catalog_item",
+   "entity_id": "622801",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P6e2c379bb2",
+   "vertical": "mall",
+   "consulta": "aros de plata",
+   "entity_type": "catalog_item",
+   "entity_id": "1558609",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P6e889a12a0",
+   "vertical": "farmacia",
+   "consulta": "cosas para el bebé recién nacido",
+   "entity_type": "catalog_item",
+   "entity_id": "564792",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P6f004a92f8",
+   "vertical": "mall",
+   "consulta": "regalo para mi polola",
+   "entity_type": "catalog_item",
+   "entity_id": "1649384",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P6f42dac7fe",
+   "vertical": "supermercado",
+   "consulta": "algo dulce para el cafe de la tarde",
+   "entity_type": "catalog_item",
+   "entity_id": "279035",
+   "juicio": "no sirve"
+  },
+  {
+   "id": "P6f7cb0d340",
+   "vertical": "restaurantes",
+   "consulta": "hamburguesa con papas",
+   "entity_type": "menu_item",
+   "entity_id": "271903",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P7015515af6",
+   "vertical": "turbo",
+   "consulta": "jugo de naranja",
+   "entity_type": "catalog_item",
+   "entity_id": "49334",
+   "juicio": "a medias"
+  },
+  {
+   "id": "P70acad7a39",
+   "vertical": "conveniencia",
+   "consulta": "leche entera",
+   "entity_type": "catalog_item",
+   "entity_id": "128724",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P70d15c22fc",
+   "vertical": "licores",
+   "consulta": "algo para el carrete",
+   "entity_type": "catalog_item",
+   "entity_id": "504205",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P715095d899",
+   "vertical": "restaurantes",
+   "consulta": "pasta a la bolognesa",
+   "entity_type": "menu_item",
+   "entity_id": "2099489396",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P71779d589c",
+   "vertical": "turbo",
+   "consulta": "vino tinto cabernet",
+   "entity_type": "catalog_item",
+   "entity_id": "68208",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P71af618b78",
+   "vertical": "chocolateria",
+   "consulta": "galletas",
+   "entity_type": "catalog_item",
+   "entity_id": "791553",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P71ebb6306a",
+   "vertical": "licores",
+   "consulta": "whisky etiqueta negra",
+   "entity_type": "catalog_item",
+   "entity_id": "339194",
+   "juicio": "a medias"
+  },
+  {
+   "id": "P7243c58991",
+   "vertical": "supermercado",
+   "consulta": "algo calentito para la once",
+   "entity_type": "catalog_item",
+   "entity_id": "1735371",
+   "juicio": "a medias"
+  },
+  {
+   "id": "P72f695eec4",
+   "vertical": "restaurantes",
+   "consulta": "postre de chocolate",
+   "entity_type": "menu_item",
+   "entity_id": "945908",
+   "juicio": "a medias"
+  },
+  {
+   "id": "P732df77f3b",
+   "vertical": "conveniencia",
+   "consulta": "leche entera",
+   "entity_type": "catalog_item",
+   "entity_id": "610243",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P7361be653c",
+   "vertical": "licores",
+   "consulta": "cerveza sin alcohol",
+   "entity_type": "catalog_item",
+   "entity_id": "57982",
+   "juicio": "no sirve"
+  },
+  {
+   "id": "P737bd5c33d",
+   "vertical": "conveniencia",
+   "consulta": "vino tinto",
+   "entity_type": "catalog_item",
+   "entity_id": "246223",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P73a529bc33",
+   "vertical": "turbo",
+   "consulta": "vino tinto cabernet",
+   "entity_type": "catalog_item",
+   "entity_id": "14868",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P73f7b1dc85",
+   "vertical": "supermercado",
+   "consulta": "almuerzo listo para calentar",
+   "entity_type": "catalog_item",
+   "entity_id": "522019",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P74160b5d5e",
+   "vertical": "restaurantes",
+   "consulta": "algo rico para almorzar",
+   "entity_type": "menu_item",
+   "entity_id": "929439",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P743643a388",
+   "vertical": "mall",
+   "consulta": "juego de mesa para la familia",
+   "entity_type": "catalog_item",
+   "entity_id": "809146",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P7479aef515",
+   "vertical": "mall",
+   "consulta": "vela aromatica",
+   "entity_type": "catalog_item",
+   "entity_id": "1297895",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P747fde0b30",
+   "vertical": "mall",
+   "consulta": "audífonos bluetooth",
+   "entity_type": "catalog_item",
+   "entity_id": "1304383",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P74a34892fa",
+   "vertical": "farmacia",
+   "consulta": "pañales etapa 3",
+   "entity_type": "catalog_item",
+   "entity_id": "1258421",
+   "juicio": "a medias"
+  },
+  {
+   "id": "P74ab1b6b08",
+   "vertical": "turbo",
+   "consulta": "vino tinto cabernet",
+   "entity_type": "catalog_item",
+   "entity_id": "251230",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P75104aa8b4",
+   "vertical": "turbo",
+   "consulta": "algo para limpiar el baño",
+   "entity_type": "catalog_item",
+   "entity_id": "202269",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P7540766123",
+   "vertical": "mall",
+   "consulta": "vela aromatica",
+   "entity_type": "catalog_item",
+   "entity_id": "1050326",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P75466d831d",
+   "vertical": "mall",
+   "consulta": "aros de plata",
+   "entity_type": "catalog_item",
+   "entity_id": "1558620",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P754cd973fd",
+   "vertical": "chocolateria",
+   "consulta": "alfajores",
+   "entity_type": "catalog_item",
+   "entity_id": "35376",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P759a323986",
+   "vertical": "conveniencia",
+   "consulta": "leche entera",
+   "entity_type": "catalog_item",
+   "entity_id": "1180249",
+   "juicio": "a medias"
+  },
+  {
+   "id": "P75d7d954fe",
+   "vertical": "farmacia",
+   "consulta": "toallas higiénicas nocturnas",
+   "entity_type": "catalog_item",
+   "entity_id": "102995",
+   "juicio": "no sirve"
+  },
+  {
+   "id": "P7637d35e99",
+   "vertical": "mall",
+   "consulta": "juego de mesa para la familia",
+   "entity_type": "catalog_item",
+   "entity_id": "1348710",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P767dd0ac03",
+   "vertical": "chocolateria",
+   "consulta": "galletas",
+   "entity_type": "catalog_item",
+   "entity_id": "1300912",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P7710db4fd7",
+   "vertical": "turbo",
+   "consulta": "detergente líquido",
+   "entity_type": "catalog_item",
+   "entity_id": "230166",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P772889e1bd",
+   "vertical": "supermercado",
+   "consulta": "algo calentito para la once",
+   "entity_type": "catalog_item",
+   "entity_id": "1357561",
+   "juicio": "no sirve"
+  },
+  {
+   "id": "P77f34879b5",
+   "vertical": "mall",
+   "consulta": "sarten antiadherente",
+   "entity_type": "catalog_item",
+   "entity_id": "1673300",
+   "juicio": "a medias"
+  },
+  {
+   "id": "P780ceb37b7",
+   "vertical": "restaurantes",
+   "consulta": "pizza pepperoni",
+   "entity_type": "menu_item",
+   "entity_id": "78610",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P787ff13676",
+   "vertical": "licores",
+   "consulta": "energetica",
+   "entity_type": "catalog_item",
+   "entity_id": "1319534",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P789a4f2f27",
+   "vertical": "licores",
+   "consulta": "algo para el carrete",
+   "entity_type": "catalog_item",
+   "entity_id": "111899",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P78a8ea90e7",
+   "vertical": "farmacia",
+   "consulta": "base de maquillaje líquida",
+   "entity_type": "catalog_item",
+   "entity_id": "1268781",
+   "juicio": "a medias"
+  },
+  {
+   "id": "P78bfdf5583",
+   "vertical": "licores",
+   "consulta": "regalo para un amante del whisky",
+   "entity_type": "catalog_item",
+   "entity_id": "107625",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P78d823bcc3",
+   "vertical": "supermercado",
+   "consulta": "frutas frescas",
+   "entity_type": "catalog_item",
+   "entity_id": "497033",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P7968226365",
+   "vertical": "mall",
+   "consulta": "vela aromatica",
+   "entity_type": "catalog_item",
+   "entity_id": "1050322",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P79b62b85b1",
+   "vertical": "mall",
+   "consulta": "regalo para mi polola",
+   "entity_type": "catalog_item",
+   "entity_id": "1536684",
+   "juicio": "a medias"
+  },
+  {
+   "id": "P7a1dc807cf",
+   "vertical": "mall",
+   "consulta": "carcasa para iphone",
+   "entity_type": "catalog_item",
+   "entity_id": "1533178",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P7a8c3235bc",
+   "vertical": "mall",
+   "consulta": "set de maquillaje",
+   "entity_type": "catalog_item",
+   "entity_id": "906804",
+   "juicio": "a medias"
+  },
+  {
+   "id": "P7aaf4f59aa",
+   "vertical": "supermercado",
+   "consulta": "fideos spaghetti",
+   "entity_type": "catalog_item",
+   "entity_id": "114442",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P7ac35c4778",
+   "vertical": "restaurantes",
+   "consulta": "algo rico para almorzar",
+   "entity_type": "menu_item",
+   "entity_id": "929946",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P7ba953d5b3",
+   "vertical": "restaurantes",
+   "consulta": "gelato de pistacho",
+   "entity_type": "menu_item",
+   "entity_id": "315816",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P7bb20b5a3a",
+   "vertical": "conveniencia",
+   "consulta": "leche entera",
+   "entity_type": "catalog_item",
+   "entity_id": "236208",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P7c212042e2",
+   "vertical": "conveniencia",
+   "consulta": "helado",
+   "entity_type": "catalog_item",
+   "entity_id": "25736",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P7c229247ec",
+   "vertical": "farmacia",
+   "consulta": "pañales etapa 3",
+   "entity_type": "catalog_item",
+   "entity_id": "564792",
+   "juicio": "a medias"
+  },
+  {
+   "id": "P7c3d408bc9",
+   "vertical": "licores",
+   "consulta": "cerveza artesanal",
+   "entity_type": "catalog_item",
+   "entity_id": "1655144",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P7c605ec147",
+   "vertical": "supermercado",
+   "consulta": "algo calentito para la once",
+   "entity_type": "catalog_item",
+   "entity_id": "1450586",
+   "juicio": "no sirve"
+  },
+  {
+   "id": "P7c991d231b",
+   "vertical": "mall",
+   "consulta": "juego de mesa para la familia",
+   "entity_type": "catalog_item",
+   "entity_id": "1348900",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P7cb0a16fdd",
+   "vertical": "chocolateria",
+   "consulta": "algo dulce para un cumpleaños",
+   "entity_type": "catalog_item",
+   "entity_id": "577150",
+   "juicio": "a medias"
+  },
+  {
+   "id": "P7ce6cf73c3",
+   "vertical": "licores",
+   "consulta": "whisky etiqueta negra",
+   "entity_type": "catalog_item",
+   "entity_id": "236479",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P7da6522b70",
+   "vertical": "supermercado",
+   "consulta": "algo dulce para el cafe de la tarde",
+   "entity_type": "catalog_item",
+   "entity_id": "1410365",
+   "juicio": "a medias"
+  },
+  {
+   "id": "P7ddbba0b19",
+   "vertical": "conveniencia",
+   "consulta": "papas fritas",
+   "entity_type": "catalog_item",
+   "entity_id": "966743",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P7f7138f1ce",
+   "vertical": "mall",
+   "consulta": "vela aromatica",
+   "entity_type": "catalog_item",
+   "entity_id": "1288783",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P7fd7514e3d",
+   "vertical": "mall",
+   "consulta": "regalo para mi polola",
+   "entity_type": "catalog_item",
+   "entity_id": "1364550",
+   "juicio": "no sirve"
+  },
+  {
+   "id": "P80356dc643",
+   "vertical": "mall",
+   "consulta": "perfume de mujer",
+   "entity_type": "catalog_item",
+   "entity_id": "1212479",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P804fc12f65",
+   "vertical": "restaurantes",
+   "consulta": "sushi roll",
+   "entity_type": "menu_item",
+   "entity_id": "94808",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P807300f943",
+   "vertical": "licores",
+   "consulta": "tequila",
+   "entity_type": "catalog_item",
+   "entity_id": "54982",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P81ad54217a",
+   "vertical": "supermercado",
+   "consulta": "fideos spaghetti",
+   "entity_type": "catalog_item",
+   "entity_id": "953696",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P822a524d84",
+   "vertical": "mall",
+   "consulta": "juego de mesa para la familia",
+   "entity_type": "catalog_item",
+   "entity_id": "959803",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P82e90d2655",
+   "vertical": "licores",
+   "consulta": "algo para el carrete",
+   "entity_type": "catalog_item",
+   "entity_id": "1380871",
+   "juicio": "a medias"
+  },
+  {
+   "id": "P833f55d3b7",
+   "vertical": "supermercado",
+   "consulta": "panales para guagua",
+   "entity_type": "catalog_item",
+   "entity_id": "964069",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P8353de4c69",
+   "vertical": "farmacia",
+   "consulta": "cosas para el bebé recién nacido",
+   "entity_type": "catalog_item",
+   "entity_id": "1465365",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P837ab41303",
+   "vertical": "licores",
+   "consulta": "papas fritas para picar",
+   "entity_type": "catalog_item",
+   "entity_id": "515626",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P838a72fe00",
+   "vertical": "mall",
+   "consulta": "algo para hacer ejercicio en la casa",
+   "entity_type": "catalog_item",
+   "entity_id": "643520",
+   "juicio": "no sirve"
+  },
+  {
+   "id": "P840924d0a0",
+   "vertical": "farmacia",
+   "consulta": "acondicionador para pelo tenido",
+   "entity_type": "catalog_item",
+   "entity_id": "1559052",
+   "juicio": "a medias"
+  },
+  {
+   "id": "P846f220fa2",
+   "vertical": "mall",
+   "consulta": "ropa de bebé",
+   "entity_type": "catalog_item",
+   "entity_id": "768643",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P851797737d",
+   "vertical": "mall",
+   "consulta": "cargador tipo c",
+   "entity_type": "catalog_item",
+   "entity_id": "1310667",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P8580a93374",
+   "vertical": "conveniencia",
+   "consulta": "pan para el desayuno",
+   "entity_type": "catalog_item",
+   "entity_id": "743299",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P85b45bfa0b",
+   "vertical": "restaurantes",
+   "consulta": "pasta a la bolognesa",
+   "entity_type": "menu_item",
+   "entity_id": "1080296",
+   "juicio": "a medias"
+  },
+  {
+   "id": "P8631b9d983",
+   "vertical": "mall",
+   "consulta": "sarten antiadherente",
+   "entity_type": "catalog_item",
+   "entity_id": "1651006",
+   "juicio": "no sirve"
+  },
+  {
+   "id": "P866712374f",
+   "vertical": "supermercado",
+   "consulta": "harina sin polvos de hornear",
+   "entity_type": "catalog_item",
+   "entity_id": "2484",
+   "juicio": "no sirve"
+  },
+  {
+   "id": "P868d8f7e04",
+   "vertical": "turbo",
+   "consulta": "jugo de naranja",
+   "entity_type": "catalog_item",
+   "entity_id": "1544938",
+   "juicio": "a medias"
+  },
+  {
+   "id": "P87dd007d29",
+   "vertical": "restaurantes",
+   "consulta": "gelato de pistacho",
+   "entity_type": "menu_item",
+   "entity_id": "1556881",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P87f98802e4",
+   "vertical": "mall",
+   "consulta": "cargador tipo c",
+   "entity_type": "catalog_item",
+   "entity_id": "1506288",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P889be09aa6",
+   "vertical": "restaurantes",
+   "consulta": "algo rico para almorzar",
+   "entity_type": "menu_item",
+   "entity_id": "2002914",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P88e43ce4c8",
+   "vertical": "restaurantes",
+   "consulta": "hamburguesa con papas",
+   "entity_type": "menu_item",
+   "entity_id": "271912",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P8914275b2a",
+   "vertical": "farmacia",
+   "consulta": "cepillo de dientes electrico",
+   "entity_type": "catalog_item",
+   "entity_id": "718514",
+   "juicio": "a medias"
+  },
+  {
+   "id": "P89486352f1",
+   "vertical": "chocolateria",
+   "consulta": "torta de chocolate",
+   "entity_type": "catalog_item",
+   "entity_id": "876468",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P898786ae4b",
+   "vertical": "licores",
+   "consulta": "papas fritas para picar",
+   "entity_type": "catalog_item",
+   "entity_id": "1629635",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P89c0540ba7",
+   "vertical": "farmacia",
+   "consulta": "cepillo de dientes electrico",
+   "entity_type": "catalog_item",
+   "entity_id": "129417",
+   "juicio": "a medias"
+  },
+  {
+   "id": "P8a36dc1272",
+   "vertical": "mall",
+   "consulta": "audífonos bluetooth",
+   "entity_type": "catalog_item",
+   "entity_id": "492045",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P8a546f700c",
+   "vertical": "turbo",
+   "consulta": "coca cola 3 litros",
+   "entity_type": "catalog_item",
+   "entity_id": "117560",
+   "juicio": "a medias"
+  },
+  {
+   "id": "P8a879ac996",
+   "vertical": "mall",
+   "consulta": "perfume de mujer",
+   "entity_type": "catalog_item",
+   "entity_id": "49600",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P8aa70d93a6",
+   "vertical": "farmacia",
+   "consulta": "acondicionador para pelo tenido",
+   "entity_type": "catalog_item",
+   "entity_id": "1559172",
+   "juicio": "a medias"
+  },
+  {
+   "id": "P8b43253bcf",
+   "vertical": "chocolateria",
+   "consulta": "bombones para regalar",
+   "entity_type": "catalog_item",
+   "entity_id": "105400",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P8bab11b66c",
+   "vertical": "restaurantes",
+   "consulta": "algo rico para almorzar",
+   "entity_type": "menu_item",
+   "entity_id": "977325",
+   "juicio": "a medias"
+  },
+  {
+   "id": "P8caf895e8a",
+   "vertical": "supermercado",
+   "consulta": "pasta de dientes",
+   "entity_type": "catalog_item",
+   "entity_id": "87453",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P8db12b9c57",
+   "vertical": "mall",
+   "consulta": "audífonos bluetooth",
+   "entity_type": "catalog_item",
+   "entity_id": "1281045",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P8e6e22a792",
+   "vertical": "supermercado",
+   "consulta": "leche descremada",
+   "entity_type": "catalog_item",
+   "entity_id": "76930",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P8edd2067e4",
+   "vertical": "supermercado",
+   "consulta": "frutas frescas",
+   "entity_type": "catalog_item",
+   "entity_id": "230675",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P8f0bfe2549",
+   "vertical": "supermercado",
+   "consulta": "cafe molido",
+   "entity_type": "catalog_item",
+   "entity_id": "744399",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P8f99ecf0f2",
+   "vertical": "farmacia",
+   "consulta": "acondicionador para pelo tenido",
+   "entity_type": "catalog_item",
+   "entity_id": "196649",
+   "juicio": "a medias"
+  },
+  {
+   "id": "P8ff09e3a6e",
+   "vertical": "supermercado",
+   "consulta": "snack saludable para la oficina",
+   "entity_type": "catalog_item",
+   "entity_id": "1480001",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P90044e25c4",
+   "vertical": "mall",
+   "consulta": "sarten antiadherente",
+   "entity_type": "catalog_item",
+   "entity_id": "1673087",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P9016009fad",
+   "vertical": "turbo",
+   "consulta": "jugo de naranja",
+   "entity_type": "catalog_item",
+   "entity_id": "7002",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P90212d0e90",
+   "vertical": "conveniencia",
+   "consulta": "galletas de chocolate",
+   "entity_type": "catalog_item",
+   "entity_id": "57834",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P907f732547",
+   "vertical": "restaurantes",
+   "consulta": "pasta a la bolognesa",
+   "entity_type": "menu_item",
+   "entity_id": "1238774",
+   "juicio": "a medias"
+  },
+  {
+   "id": "P90adc96564",
+   "vertical": "licores",
+   "consulta": "vino tinto cabernet sauvignon",
+   "entity_type": "catalog_item",
+   "entity_id": "124625",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P90cd22d8d4",
+   "vertical": "supermercado",
+   "consulta": "queso gouda laminado",
+   "entity_type": "catalog_item",
+   "entity_id": "904488",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P90ea19fd40",
+   "vertical": "supermercado",
+   "consulta": "cafe molido",
+   "entity_type": "catalog_item",
+   "entity_id": "1642191",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P911fa6ef9d",
+   "vertical": "licores",
+   "consulta": "regalo para un amante del whisky",
+   "entity_type": "catalog_item",
+   "entity_id": "559831",
+   "juicio": "a medias"
+  },
+  {
+   "id": "P919bf29b33",
+   "vertical": "turbo",
+   "consulta": "jugo de naranja",
+   "entity_type": "catalog_item",
+   "entity_id": "1717610",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P91ad442220",
+   "vertical": "licores",
+   "consulta": "algo para el carrete",
+   "entity_type": "catalog_item",
+   "entity_id": "216327",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P91f6838233",
+   "vertical": "conveniencia",
+   "consulta": "helado",
+   "entity_type": "catalog_item",
+   "entity_id": "641095",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P922f0f9c51",
+   "vertical": "mall",
+   "consulta": "audífonos bluetooth",
+   "entity_type": "catalog_item",
+   "entity_id": "1721189",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P924c08b347",
+   "vertical": "chocolateria",
+   "consulta": "torta de chocolate",
+   "entity_type": "catalog_item",
+   "entity_id": "753239",
+   "juicio": "a medias"
+  },
+  {
+   "id": "P92c278b7d1",
+   "vertical": "supermercado",
+   "consulta": "huevos de campo",
+   "entity_type": "catalog_item",
+   "entity_id": "458676",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P92c5d8664b",
+   "vertical": "restaurantes",
+   "consulta": "ensalada liviana",
+   "entity_type": "menu_item",
+   "entity_id": "1097939",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P9304923653",
+   "vertical": "mall",
+   "consulta": "peluche",
+   "entity_type": "catalog_item",
+   "entity_id": "1348934",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P934ee882bd",
+   "vertical": "licores",
+   "consulta": "papas fritas para picar",
+   "entity_type": "catalog_item",
+   "entity_id": "966743",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P9362f0617b",
+   "vertical": "turbo",
+   "consulta": "coca cola 3 litros",
+   "entity_type": "catalog_item",
+   "entity_id": "216464",
+   "juicio": "a medias"
+  },
+  {
+   "id": "P93f1b551c9",
+   "vertical": "conveniencia",
+   "consulta": "panales",
+   "entity_type": "catalog_item",
+   "entity_id": "1081028",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P94e71ed926",
+   "vertical": "chocolateria",
+   "consulta": "galletas",
+   "entity_type": "catalog_item",
+   "entity_id": "514480",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P954349ebd0",
+   "vertical": "licores",
+   "consulta": "regalo para un amante del whisky",
+   "entity_type": "catalog_item",
+   "entity_id": "52501",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P955cee81a0",
+   "vertical": "mall",
+   "consulta": "ropa de bebé",
+   "entity_type": "catalog_item",
+   "entity_id": "809883",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P95db9bc92e",
+   "vertical": "mall",
+   "consulta": "peluche",
+   "entity_type": "catalog_item",
+   "entity_id": "1554191",
+   "juicio": "a medias"
+  },
+  {
+   "id": "P960c280940",
+   "vertical": "supermercado",
+   "consulta": "cafe molido",
+   "entity_type": "catalog_item",
+   "entity_id": "1335872",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P9648ddc20c",
+   "vertical": "restaurantes",
+   "consulta": "hamburguesa con papas",
+   "entity_type": "menu_item",
+   "entity_id": "1889484",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P964cb40d17",
+   "vertical": "supermercado",
+   "consulta": "queso gouda laminado",
+   "entity_type": "catalog_item",
+   "entity_id": "1424300",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P967f7b4dbd",
+   "vertical": "supermercado",
+   "consulta": "panales para guagua",
+   "entity_type": "catalog_item",
+   "entity_id": "68572",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P969019db28",
+   "vertical": "mall",
+   "consulta": "aros de plata",
+   "entity_type": "catalog_item",
+   "entity_id": "1654017",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P96f8b6c2ed",
+   "vertical": "turbo",
+   "consulta": "detergente líquido",
+   "entity_type": "catalog_item",
+   "entity_id": "133609",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P974a5bc129",
+   "vertical": "mall",
+   "consulta": "vela aromatica",
+   "entity_type": "catalog_item",
+   "entity_id": "1663058",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P97527ec8cd",
+   "vertical": "farmacia",
+   "consulta": "cosas para el bebé recién nacido",
+   "entity_type": "catalog_item",
+   "entity_id": "63117",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P975d23e0ab",
+   "vertical": "farmacia",
+   "consulta": "pasta dental blanqueadora",
+   "entity_type": "catalog_item",
+   "entity_id": "774128",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P98f52d6b61",
+   "vertical": "mall",
+   "consulta": "set de maquillaje",
+   "entity_type": "catalog_item",
+   "entity_id": "836013",
+   "juicio": "a medias"
+  },
+  {
+   "id": "P990139f3cb",
+   "vertical": "mall",
+   "consulta": "regalo para mi polola",
+   "entity_type": "catalog_item",
+   "entity_id": "1700635",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P99265c3563",
+   "vertical": "mall",
+   "consulta": "perfume de mujer",
+   "entity_type": "catalog_item",
+   "entity_id": "1721276",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P99d200cb06",
+   "vertical": "conveniencia",
+   "consulta": "vino tinto",
+   "entity_type": "catalog_item",
+   "entity_id": "279803",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P99ed6f7a2f",
+   "vertical": "supermercado",
+   "consulta": "queso gouda laminado",
+   "entity_type": "catalog_item",
+   "entity_id": "1050900",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P9a3973607f",
+   "vertical": "farmacia",
+   "consulta": "parches curita",
+   "entity_type": "catalog_item",
+   "entity_id": "29089",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P9ab3cb9f19",
+   "vertical": "conveniencia",
+   "consulta": "leche entera",
+   "entity_type": "catalog_item",
+   "entity_id": "172185",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P9ae042d5b2",
+   "vertical": "chocolateria",
+   "consulta": "postre individual",
+   "entity_type": "catalog_item",
+   "entity_id": "876475",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P9af55fcc1b",
+   "vertical": "chocolateria",
+   "consulta": "galletas",
+   "entity_type": "catalog_item",
+   "entity_id": "622802",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P9b80351298",
+   "vertical": "supermercado",
+   "consulta": "shampoo anticaspa",
+   "entity_type": "catalog_item",
+   "entity_id": "56884",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P9c1439f08e",
+   "vertical": "farmacia",
+   "consulta": "vitamina c efervescente",
+   "entity_type": "catalog_item",
+   "entity_id": "1390440",
+   "juicio": "a medias"
+  },
+  {
+   "id": "P9c3a9fdb55",
+   "vertical": "chocolateria",
+   "consulta": "alfajores",
+   "entity_type": "catalog_item",
+   "entity_id": "1489159",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P9c54ace195",
+   "vertical": "mall",
+   "consulta": "cargador tipo c",
+   "entity_type": "catalog_item",
+   "entity_id": "1506287",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P9cafdc9da6",
+   "vertical": "turbo",
+   "consulta": "arroz grado 1",
+   "entity_type": "catalog_item",
+   "entity_id": "23594",
+   "juicio": "a medias"
+  },
+  {
+   "id": "P9cda4e5238",
+   "vertical": "mall",
+   "consulta": "vela aromatica",
+   "entity_type": "catalog_item",
+   "entity_id": "1530831",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P9ce44d2b5b",
+   "vertical": "restaurantes",
+   "consulta": "hamburguesa con papas",
+   "entity_type": "menu_item",
+   "entity_id": "2282615",
+   "juicio": "a medias"
+  },
+  {
+   "id": "P9cfba81db2",
+   "vertical": "licores",
+   "consulta": "cerveza artesanal",
+   "entity_type": "catalog_item",
+   "entity_id": "763729",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P9d69adbd1a",
+   "vertical": "licores",
+   "consulta": "energetica",
+   "entity_type": "catalog_item",
+   "entity_id": "766157",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P9dc2e862dd",
+   "vertical": "conveniencia",
+   "consulta": "algo para ver una película",
+   "entity_type": "catalog_item",
+   "entity_id": "244571",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P9e78007b62",
+   "vertical": "supermercado",
+   "consulta": "frutas frescas",
+   "entity_type": "catalog_item",
+   "entity_id": "114843",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P9ed3036f19",
+   "vertical": "farmacia",
+   "consulta": "cepillo de dientes electrico",
+   "entity_type": "catalog_item",
+   "entity_id": "25596",
+   "juicio": "a medias"
+  },
+  {
+   "id": "P9fa0f92905",
+   "vertical": "farmacia",
+   "consulta": "pañales etapa 3",
+   "entity_type": "catalog_item",
+   "entity_id": "55909",
+   "juicio": "a medias"
+  },
+  {
+   "id": "P9fa1292e48",
+   "vertical": "farmacia",
+   "consulta": "cosas para el bebé recién nacido",
+   "entity_type": "catalog_item",
+   "entity_id": "41610",
+   "juicio": "sirve"
+  },
+  {
+   "id": "Pa0fa1621b0",
+   "vertical": "chocolateria",
+   "consulta": "bombones para regalar",
+   "entity_type": "catalog_item",
+   "entity_id": "273362",
+   "juicio": "sirve"
+  },
+  {
+   "id": "Pa171390677",
+   "vertical": "supermercado",
+   "consulta": "algo calentito para la once",
+   "entity_type": "catalog_item",
+   "entity_id": "904889",
+   "juicio": "no sirve"
+  },
+  {
+   "id": "Pa1dd9ffb4b",
+   "vertical": "mall",
+   "consulta": "algo para hacer ejercicio en la casa",
+   "entity_type": "catalog_item",
+   "entity_id": "843573",
+   "juicio": "sirve"
+  },
+  {
+   "id": "Pa1f81c866d",
+   "vertical": "mall",
+   "consulta": "set de maquillaje",
+   "entity_type": "catalog_item",
+   "entity_id": "1498351",
+   "juicio": "a medias"
+  },
+  {
+   "id": "Pa215ee6c74",
+   "vertical": "conveniencia",
+   "consulta": "papas fritas",
+   "entity_type": "catalog_item",
+   "entity_id": "2928",
+   "juicio": "sirve"
+  },
+  {
+   "id": "Pa27ab4c419",
+   "vertical": "supermercado",
+   "consulta": "cafe molido",
+   "entity_type": "catalog_item",
+   "entity_id": "1218288",
+   "juicio": "sirve"
+  },
+  {
+   "id": "Pa295728617",
+   "vertical": "chocolateria",
+   "consulta": "alfajores",
+   "entity_type": "catalog_item",
+   "entity_id": "1489160",
+   "juicio": "sirve"
+  },
+  {
+   "id": "Pa2aa2ac10f",
+   "vertical": "supermercado",
+   "consulta": "cereal para ninos",
+   "entity_type": "catalog_item",
+   "entity_id": "276377",
+   "juicio": "sirve"
+  },
+  {
+   "id": "Pa2cf96edf5",
+   "vertical": "conveniencia",
+   "consulta": "papas fritas",
+   "entity_type": "catalog_item",
+   "entity_id": "966734",
+   "juicio": "sirve"
+  },
+  {
+   "id": "Pa3203b5fd5",
+   "vertical": "farmacia",
+   "consulta": "pasta dental blanqueadora",
+   "entity_type": "catalog_item",
+   "entity_id": "129850",
+   "juicio": "sirve"
+  },
+  {
+   "id": "Pa3838c2308",
+   "vertical": "restaurantes",
+   "consulta": "postre de chocolate",
+   "entity_type": "menu_item",
+   "entity_id": "337384",
+   "juicio": "sirve"
+  },
+  {
+   "id": "Pa3853c25fe",
+   "vertical": "conveniencia",
+   "consulta": "helado",
+   "entity_type": "catalog_item",
+   "entity_id": "33787",
+   "juicio": "sirve"
+  },
+  {
+   "id": "Pa39cda89a6",
+   "vertical": "licores",
+   "consulta": "algo para el carrete",
+   "entity_type": "catalog_item",
+   "entity_id": "744776",
+   "juicio": "sirve"
+  },
+  {
+   "id": "Pa3f0008ba1",
+   "vertical": "supermercado",
+   "consulta": "frutas frescas",
+   "entity_type": "catalog_item",
+   "entity_id": "790057",
+   "juicio": "sirve"
+  },
+  {
+   "id": "Pa41488bba8",
+   "vertical": "farmacia",
+   "consulta": "perfume de mujer",
+   "entity_type": "catalog_item",
+   "entity_id": "1637777",
+   "juicio": "sirve"
+  },
+  {
+   "id": "Pa469a8465a",
+   "vertical": "conveniencia",
+   "consulta": "papas fritas",
+   "entity_type": "catalog_item",
+   "entity_id": "1036716",
+   "juicio": "sirve"
+  },
+  {
+   "id": "Pa49b5e8bf7",
+   "vertical": "mall",
+   "consulta": "aros de plata",
+   "entity_type": "catalog_item",
+   "entity_id": "1558610",
+   "juicio": "sirve"
+  },
+  {
+   "id": "Pa501a2cbbe",
+   "vertical": "farmacia",
+   "consulta": "cosas para el bebé recién nacido",
+   "entity_type": "catalog_item",
+   "entity_id": "74362",
+   "juicio": "a medias"
+  },
+  {
+   "id": "Pa507c86ed8",
+   "vertical": "restaurantes",
+   "consulta": "pizza pepperoni",
+   "entity_type": "menu_item",
+   "entity_id": "1105520",
+   "juicio": "sirve"
+  },
+  {
+   "id": "Pa5153773ad",
+   "vertical": "licores",
+   "consulta": "bebida para mezclar con pisco",
+   "entity_type": "catalog_item",
+   "entity_id": "1000232",
+   "juicio": "a medias"
+  },
+  {
+   "id": "Pa52561d72e",
+   "vertical": "mall",
+   "consulta": "regalo para mi polola",
+   "entity_type": "catalog_item",
+   "entity_id": "718880",
+   "juicio": "sirve"
+  },
+  {
+   "id": "Pa5f5888c9d",
+   "vertical": "restaurantes",
+   "consulta": "gelato de pistacho",
+   "entity_type": "menu_item",
+   "entity_id": "2099253625",
+   "juicio": "sirve"
+  },
+  {
+   "id": "Pa61265c09c",
+   "vertical": "turbo",
+   "consulta": "vino tinto cabernet",
+   "entity_type": "catalog_item",
+   "entity_id": "234672",
+   "juicio": "sirve"
+  },
+  {
+   "id": "Pa62a61ba2e",
+   "vertical": "licores",
+   "consulta": "cerveza artesanal",
+   "entity_type": "catalog_item",
+   "entity_id": "32226",
+   "juicio": "sirve"
+  },
+  {
+   "id": "Pa6d5cae8ce",
+   "vertical": "supermercado",
+   "consulta": "almuerzo listo para calentar",
+   "entity_type": "catalog_item",
+   "entity_id": "1446747",
+   "juicio": "sirve"
+  },
+  {
+   "id": "Pa6e0977b3e",
+   "vertical": "farmacia",
+   "consulta": "pasta dental blanqueadora",
+   "entity_type": "catalog_item",
+   "entity_id": "248649",
+   "juicio": "sirve"
+  },
+  {
+   "id": "Pa841648490",
+   "vertical": "farmacia",
+   "consulta": "acondicionador para pelo tenido",
+   "entity_type": "catalog_item",
+   "entity_id": "196137",
+   "juicio": "a medias"
+  },
+  {
+   "id": "Pa84b938c70",
+   "vertical": "farmacia",
+   "consulta": "base de maquillaje líquida",
+   "entity_type": "catalog_item",
+   "entity_id": "934070",
+   "juicio": "sirve"
+  },
+  {
+   "id": "Pa89e8b1fd5",
+   "vertical": "turbo",
+   "consulta": "para picar viendo el partido",
+   "entity_type": "catalog_item",
+   "entity_id": "28926",
+   "juicio": "sirve"
+  },
+  {
+   "id": "Pa8d65732ec",
+   "vertical": "supermercado",
+   "consulta": "shampoo anticaspa",
+   "entity_type": "catalog_item",
+   "entity_id": "88497",
+   "juicio": "sirve"
+  },
+  {
+   "id": "Pa92aa863f3",
+   "vertical": "mall",
+   "consulta": "aros de plata",
+   "entity_type": "catalog_item",
+   "entity_id": "487462",
+   "juicio": "sirve"
+  },
+  {
+   "id": "Pa92ebb7072",
+   "vertical": "supermercado",
+   "consulta": "cereal para ninos",
+   "entity_type": "catalog_item",
+   "entity_id": "117358",
+   "juicio": "a medias"
+  },
+  {
+   "id": "Pa95584e414",
+   "vertical": "farmacia",
+   "consulta": "acondicionador para pelo tenido",
+   "entity_type": "catalog_item",
+   "entity_id": "160557",
+   "juicio": "a medias"
+  },
+  {
+   "id": "Pa968488d12",
+   "vertical": "turbo",
+   "consulta": "algo para limpiar el baño",
+   "entity_type": "catalog_item",
+   "entity_id": "261772",
+   "juicio": "a medias"
+  },
+  {
+   "id": "Pa99b272df1",
+   "vertical": "chocolateria",
+   "consulta": "postre individual",
+   "entity_type": "catalog_item",
+   "entity_id": "883420",
+   "juicio": "sirve"
+  },
+  {
+   "id": "Paa03182ff1",
+   "vertical": "farmacia",
+   "consulta": "pasta dental blanqueadora",
+   "entity_type": "catalog_item",
+   "entity_id": "200378",
+   "juicio": "a medias"
+  },
+  {
+   "id": "Paacc6fea64",
+   "vertical": "supermercado",
+   "consulta": "cereal para ninos",
+   "entity_type": "catalog_item",
+   "entity_id": "1158862",
+   "juicio": "a medias"
+  },
+  {
+   "id": "Pab7c739deb",
+   "vertical": "supermercado",
+   "consulta": "pasta de dientes",
+   "entity_type": "catalog_item",
+   "entity_id": "117626",
+   "juicio": "sirve"
+  },
+  {
+   "id": "Pabd147d48b",
+   "vertical": "licores",
+   "consulta": "algo para el carrete",
+   "entity_type": "catalog_item",
+   "entity_id": "1543195",
+   "juicio": "sirve"
+  },
+  {
+   "id": "Pabd7c425d6",
+   "vertical": "conveniencia",
+   "consulta": "helado",
+   "entity_type": "catalog_item",
+   "entity_id": "108442",
+   "juicio": "sirve"
+  },
+  {
+   "id": "Pac40f719d1",
+   "vertical": "farmacia",
+   "consulta": "base de maquillaje líquida",
+   "entity_type": "catalog_item",
+   "entity_id": "1268782",
+   "juicio": "a medias"
+  },
+  {
+   "id": "Pad07e6cc87",
+   "vertical": "farmacia",
+   "consulta": "perfume de mujer",
+   "entity_type": "catalog_item",
+   "entity_id": "1389884",
+   "juicio": "sirve"
+  },
+  {
+   "id": "Pad2efccf4e",
+   "vertical": "farmacia",
+   "consulta": "cepillo de dientes electrico",
+   "entity_type": "catalog_item",
+   "entity_id": "66542",
+   "juicio": "sirve"
+  },
+  {
+   "id": "Pad616dc865",
+   "vertical": "restaurantes",
+   "consulta": "gelato de pistacho",
+   "entity_type": "menu_item",
+   "entity_id": "2092502148",
+   "juicio": "sirve"
+  },
+  {
+   "id": "Padfc0a400e",
+   "vertical": "mall",
+   "consulta": "set de maquillaje",
+   "entity_type": "catalog_item",
+   "entity_id": "1256365",
+   "juicio": "a medias"
+  },
+  {
+   "id": "Pae2f323d70",
+   "vertical": "licores",
+   "consulta": "algo para el carrete",
+   "entity_type": "catalog_item",
+   "entity_id": "1671643",
+   "juicio": "a medias"
+  },
+  {
+   "id": "Paecbaddef5",
+   "vertical": "chocolateria",
+   "consulta": "chocolate blanco",
+   "entity_type": "catalog_item",
+   "entity_id": "1716065",
+   "juicio": "sirve"
+  },
+  {
+   "id": "Paf716d2986",
+   "vertical": "chocolateria",
+   "consulta": "bombones para regalar",
+   "entity_type": "catalog_item",
+   "entity_id": "1158848",
+   "juicio": "sirve"
+  },
+  {
+   "id": "Paf76616afb",
+   "vertical": "farmacia",
+   "consulta": "vitamina c efervescente",
+   "entity_type": "catalog_item",
+   "entity_id": "1354927",
+   "juicio": "sirve"
+  },
+  {
+   "id": "Pafe665586d",
+   "vertical": "licores",
+   "consulta": "energetica",
+   "entity_type": "catalog_item",
+   "entity_id": "1319529",
+   "juicio": "sirve"
+  },
+  {
+   "id": "Pb07062a901",
+   "vertical": "supermercado",
+   "consulta": "frutas frescas",
+   "entity_type": "catalog_item",
+   "entity_id": "456095",
+   "juicio": "sirve"
+  },
+  {
+   "id": "Pb0ba8be187",
+   "vertical": "chocolateria",
+   "consulta": "algo dulce para un cumpleaños",
+   "entity_type": "catalog_item",
+   "entity_id": "1158886",
+   "juicio": "a medias"
+  },
+  {
+   "id": "Pb11bf00c6f",
+   "vertical": "conveniencia",
+   "consulta": "algo para ver una película",
+   "entity_type": "catalog_item",
+   "entity_id": "1536009",
+   "juicio": "no sirve"
+  },
+  {
+   "id": "Pb152e10354",
+   "vertical": "supermercado",
+   "consulta": "fideos spaghetti",
+   "entity_type": "catalog_item",
+   "entity_id": "296255",
+   "juicio": "sirve"
+  },
+  {
+   "id": "Pb1841cba89",
+   "vertical": "mall",
+   "consulta": "juego de mesa para la familia",
+   "entity_type": "catalog_item",
+   "entity_id": "328602",
+   "juicio": "a medias"
+  },
+  {
+   "id": "Pb1dd1cf1a6",
+   "vertical": "mall",
+   "consulta": "set de maquillaje",
+   "entity_type": "catalog_item",
+   "entity_id": "128576",
+   "juicio": "sirve"
+  },
+  {
+   "id": "Pb1de91903d",
+   "vertical": "farmacia",
+   "consulta": "toallas higiénicas nocturnas",
+   "entity_type": "catalog_item",
+   "entity_id": "22549",
+   "juicio": "sirve"
+  },
+  {
+   "id": "Pb1f448b9a1",
+   "vertical": "licores",
+   "consulta": "cerveza artesanal",
+   "entity_type": "catalog_item",
+   "entity_id": "16919",
+   "juicio": "sirve"
+  },
+  {
+   "id": "Pb247fbfc79",
+   "vertical": "supermercado",
+   "consulta": "snack saludable para la oficina",
+   "entity_type": "catalog_item",
+   "entity_id": "863481",
+   "juicio": "a medias"
+  },
+  {
+   "id": "Pb26078b1a9",
+   "vertical": "supermercado",
+   "consulta": "panales para guagua",
+   "entity_type": "catalog_item",
+   "entity_id": "1258418",
+   "juicio": "sirve"
+  },
+  {
+   "id": "Pb2a8fcd4b5",
+   "vertical": "supermercado",
+   "consulta": "leche descremada",
+   "entity_type": "catalog_item",
+   "entity_id": "110377",
+   "juicio": "sirve"
+  },
+  {
+   "id": "Pb2f49c2bbf",
+   "vertical": "farmacia",
+   "consulta": "cosas para el bebé recién nacido",
+   "entity_type": "catalog_item",
+   "entity_id": "68572",
+   "juicio": "a medias"
+  },
+  {
+   "id": "Pb318fd84a3",
+   "vertical": "conveniencia",
+   "consulta": "vino tinto",
+   "entity_type": "catalog_item",
+   "entity_id": "251230",
+   "juicio": "sirve"
+  },
+  {
+   "id": "Pb3e3a6e76a",
+   "vertical": "turbo",
+   "consulta": "queso gauda laminado",
+   "entity_type": "catalog_item",
+   "entity_id": "15393",
+   "juicio": "sirve"
+  },
+  {
+   "id": "Pb3fd444a6c",
+   "vertical": "conveniencia",
+   "consulta": "helado",
+   "entity_type": "catalog_item",
+   "entity_id": "62998",
+   "juicio": "sirve"
+  },
+  {
+   "id": "Pb416b45321",
+   "vertical": "farmacia",
+   "consulta": "toallas higiénicas nocturnas",
+   "entity_type": "catalog_item",
+   "entity_id": "1212613",
+   "juicio": "sirve"
+  },
+  {
+   "id": "Pb490e0afd4",
+   "vertical": "turbo",
+   "consulta": "jamon serrano",
+   "entity_type": "catalog_item",
+   "entity_id": "72525",
+   "juicio": "a medias"
+  },
+  {
+   "id": "Pb4f2660600",
+   "vertical": "conveniencia",
+   "consulta": "coca cola 1.5 litros",
+   "entity_type": "catalog_item",
+   "entity_id": "1408269",
+   "juicio": "a medias"
+  },
+  {
+   "id": "Pb4f58715bf",
+   "vertical": "licores",
+   "consulta": "cerveza sin alcohol",
+   "entity_type": "catalog_item",
+   "entity_id": "1035903",
+   "juicio": "sirve"
+  },
+  {
+   "id": "Pb500119a88",
+   "vertical": "mall",
+   "consulta": "vela aromatica",
+   "entity_type": "catalog_item",
+   "entity_id": "1656703",
+   "juicio": "sirve"
+  },
+  {
+   "id": "Pb52dfbc5fd",
+   "vertical": "conveniencia",
+   "consulta": "leche entera",
+   "entity_type": "catalog_item",
+   "entity_id": "2966",
+   "juicio": "a medias"
+  },
+  {
+   "id": "Pb53e8403c8",
+   "vertical": "supermercado",
+   "consulta": "pasta de dientes",
+   "entity_type": "catalog_item",
+   "entity_id": "74447",
+   "juicio": "sirve"
+  },
+  {
+   "id": "Pb5515ef9bc",
+   "vertical": "mall",
+   "consulta": "juguete para niño de 5 años",
+   "entity_type": "catalog_item",
+   "entity_id": "1513917",
+   "juicio": "sirve"
+  },
+  {
+   "id": "Pb5aa531ca2",
+   "vertical": "supermercado",
+   "consulta": "shampoo anticaspa",
+   "entity_type": "catalog_item",
+   "entity_id": "38306",
+   "juicio": "sirve"
+  },
+  {
+   "id": "Pb641d1e8ce",
+   "vertical": "turbo",
+   "consulta": "detergente líquido",
+   "entity_type": "catalog_item",
+   "entity_id": "1716572",
+   "juicio": "sirve"
+  },
+  {
+   "id": "Pb78497f8a6",
+   "vertical": "supermercado",
+   "consulta": "algo dulce para el cafe de la tarde",
+   "entity_type": "catalog_item",
+   "entity_id": "85506",
+   "juicio": "no sirve"
+  },
+  {
+   "id": "Pb7d50e3339",
+   "vertical": "conveniencia",
+   "consulta": "papas fritas",
+   "entity_type": "catalog_item",
+   "entity_id": "1029511",
+   "juicio": "sirve"
+  },
+  {
+   "id": "Pb7de937024",
+   "vertical": "mall",
+   "consulta": "ropa de bebé",
+   "entity_type": "catalog_item",
+   "entity_id": "805169",
+   "juicio": "sirve"
+  },
+  {
+   "id": "Pb847dd1804",
+   "vertical": "farmacia",
+   "consulta": "pañales etapa 3",
+   "entity_type": "catalog_item",
+   "entity_id": "93011",
+   "juicio": "a medias"
+  },
+  {
+   "id": "Pb858fa10e3",
+   "vertical": "conveniencia",
+   "consulta": "vino tinto",
+   "entity_type": "catalog_item",
+   "entity_id": "130816",
+   "juicio": "sirve"
+  },
+  {
+   "id": "Pb8b6016dfc",
+   "vertical": "farmacia",
+   "consulta": "cepillo de dientes electrico",
+   "entity_type": "catalog_item",
+   "entity_id": "65754",
+   "juicio": "a medias"
+  },
+  {
+   "id": "Pb8f17e5ba9",
+   "vertical": "farmacia",
+   "consulta": "parches curita",
+   "entity_type": "catalog_item",
+   "entity_id": "336959",
+   "juicio": "sirve"
+  },
+  {
+   "id": "Pb9f0370896",
+   "vertical": "farmacia",
+   "consulta": "pañales etapa 3",
+   "entity_type": "catalog_item",
+   "entity_id": "25136",
+   "juicio": "a medias"
+  },
+  {
+   "id": "Pba06585c5f",
+   "vertical": "conveniencia",
+   "consulta": "helado",
+   "entity_type": "catalog_item",
+   "entity_id": "25946",
+   "juicio": "sirve"
+  },
+  {
+   "id": "Pba586dcf30",
+   "vertical": "conveniencia",
+   "consulta": "coca cola 1.5 litros",
+   "entity_type": "catalog_item",
+   "entity_id": "1167194",
+   "juicio": "no sirve"
+  },
+  {
+   "id": "Pbac06c9082",
+   "vertical": "conveniencia",
+   "consulta": "coca cola 1.5 litros",
+   "entity_type": "catalog_item",
+   "entity_id": "1668123",
+   "juicio": "a medias"
+  },
+  {
+   "id": "Pbb0b9ffef1",
+   "vertical": "mall",
+   "consulta": "ropa de bebé",
+   "entity_type": "catalog_item",
+   "entity_id": "1328048",
+   "juicio": "a medias"
+  },
+  {
+   "id": "Pbb41284360",
+   "vertical": "turbo",
+   "consulta": "jugo de naranja",
+   "entity_type": "catalog_item",
+   "entity_id": "218165",
+   "juicio": "a medias"
+  },
+  {
+   "id": "Pbb490e0111",
+   "vertical": "farmacia",
+   "consulta": "cosas para el bebé recién nacido",
+   "entity_type": "catalog_item",
+   "entity_id": "108714",
+   "juicio": "sirve"
+  },
+  {
+   "id": "Pbb88cde591",
+   "vertical": "licores",
+   "consulta": "regalo para un amante del whisky",
+   "entity_type": "catalog_item",
+   "entity_id": "105234",
+   "juicio": "sirve"
+  },
+  {
+   "id": "Pbbeff6ec49",
+   "vertical": "licores",
+   "consulta": "cerveza artesanal",
+   "entity_type": "catalog_item",
+   "entity_id": "734122",
+   "juicio": "sirve"
+  },
+  {
+   "id": "Pbbf1f94acb",
+   "vertical": "supermercado",
+   "consulta": "frutas frescas",
+   "entity_type": "catalog_item",
+   "entity_id": "241153",
+   "juicio": "sirve"
+  },
+  {
+   "id": "Pbc97cc5d99",
+   "vertical": "conveniencia",
+   "consulta": "papas fritas",
+   "entity_type": "catalog_item",
+   "entity_id": "63710",
+   "juicio": "sirve"
+  },
+  {
+   "id": "Pbd0467b099",
+   "vertical": "mall",
+   "consulta": "juego de mesa para la familia",
+   "entity_type": "catalog_item",
+   "entity_id": "1479452",
+   "juicio": "sirve"
+  },
+  {
+   "id": "Pbd6bc35575",
+   "vertical": "chocolateria",
+   "consulta": "chocolate blanco",
+   "entity_type": "catalog_item",
+   "entity_id": "876181",
+   "juicio": "sirve"
+  },
+  {
+   "id": "Pbd8b0d531e",
+   "vertical": "supermercado",
+   "consulta": "pasta de dientes",
+   "entity_type": "catalog_item",
+   "entity_id": "718558",
+   "juicio": "sirve"
+  },
+  {
+   "id": "Pbd99c334bc",
+   "vertical": "chocolateria",
+   "consulta": "bombones para regalar",
+   "entity_type": "catalog_item",
+   "entity_id": "115781",
+   "juicio": "sirve"
+  },
+  {
+   "id": "Pbd99e7b1e9",
+   "vertical": "licores",
+   "consulta": "ron para mojitos",
+   "entity_type": "catalog_item",
+   "entity_id": "1035846",
+   "juicio": "a medias"
+  },
+  {
+   "id": "Pbdbc648e6a",
+   "vertical": "chocolateria",
+   "consulta": "algo dulce para un cumpleaños",
+   "entity_type": "catalog_item",
+   "entity_id": "596605",
+   "juicio": "sirve"
+  },
+  {
+   "id": "Pbe103ca537",
+   "vertical": "supermercado",
+   "consulta": "frutas frescas",
+   "entity_type": "catalog_item",
+   "entity_id": "230516",
+   "juicio": "sirve"
+  },
+  {
+   "id": "Pbe14a9c8fc",
+   "vertical": "supermercado",
+   "consulta": "algo calentito para la once",
+   "entity_type": "catalog_item",
+   "entity_id": "1160782",
+   "juicio": "no sirve"
+  },
+  {
+   "id": "Pbe1c9d3ca1",
+   "vertical": "restaurantes",
+   "consulta": "gelato de pistacho",
+   "entity_type": "menu_item",
+   "entity_id": "2099464411",
+   "juicio": "a medias"
+  },
+  {
+   "id": "Pbe535954ba",
+   "vertical": "chocolateria",
+   "consulta": "bombones para regalar",
+   "entity_type": "catalog_item",
+   "entity_id": "273364",
+   "juicio": "sirve"
+  },
+  {
+   "id": "Pbeaa36fc6f",
+   "vertical": "supermercado",
+   "consulta": "algo calentito para la once",
+   "entity_type": "catalog_item",
+   "entity_id": "1531492",
+   "juicio": "sirve"
+  },
+  {
+   "id": "Pbeed2d58d3",
+   "vertical": "mall",
+   "consulta": "sarten antiadherente",
+   "entity_type": "catalog_item",
+   "entity_id": "1374541",
+   "juicio": "a medias"
+  },
+  {
+   "id": "Pbf2ff67cad",
+   "vertical": "licores",
+   "consulta": "vino tinto cabernet sauvignon",
+   "entity_type": "catalog_item",
+   "entity_id": "29922",
+   "juicio": "sirve"
+  },
+  {
+   "id": "Pbf7cb06d6b",
+   "vertical": "conveniencia",
+   "consulta": "algo para ver una película",
+   "entity_type": "catalog_item",
+   "entity_id": "1646913",
+   "juicio": "sirve"
+  },
+  {
+   "id": "Pbf97f5786e",
+   "vertical": "supermercado",
+   "consulta": "cereal para ninos",
+   "entity_type": "catalog_item",
+   "entity_id": "1296647",
+   "juicio": "sirve"
+  },
+  {
+   "id": "Pbfeb16c4b6",
+   "vertical": "mall",
+   "consulta": "ropa de bebé",
+   "entity_type": "catalog_item",
+   "entity_id": "1659459",
+   "juicio": "no sirve"
+  },
+  {
+   "id": "Pc00e155d05",
+   "vertical": "supermercado",
+   "consulta": "papel higienico doble hoja",
+   "entity_type": "catalog_item",
+   "entity_id": "131017",
+   "juicio": "sirve"
+  },
+  {
+   "id": "Pc03fe2fcc0",
+   "vertical": "conveniencia",
+   "consulta": "pan para el desayuno",
+   "entity_type": "catalog_item",
+   "entity_id": "1193008",
+   "juicio": "sirve"
+  },
+  {
+   "id": "Pc047540d37",
+   "vertical": "mall",
+   "consulta": "aros de plata",
+   "entity_type": "catalog_item",
+   "entity_id": "1556597",
+   "juicio": "a medias"
+  },
+  {
+   "id": "Pc068e10c01",
+   "vertical": "licores",
+   "consulta": "ron para mojitos",
+   "entity_type": "catalog_item",
+   "entity_id": "41489",
+   "juicio": "sirve"
+  },
+  {
+   "id": "Pc0a10c3f07",
+   "vertical": "restaurantes",
+   "consulta": "hamburguesa con papas",
+   "entity_type": "menu_item",
+   "entity_id": "1889485",
+   "juicio": "sirve"
+  },
+  {
+   "id": "Pc0a8d5c073",
+   "vertical": "chocolateria",
+   "consulta": "chocolate blanco",
+   "entity_type": "catalog_item",
+   "entity_id": "533122",
+   "juicio": "sirve"
+  },
+  {
+   "id": "Pc0da6ef02d",
+   "vertical": "mall",
+   "consulta": "juego de mesa para la familia",
+   "entity_type": "catalog_item",
+   "entity_id": "1350507",
+   "juicio": "sirve"
+  },
+  {
+   "id": "Pc0e29698c2",
+   "vertical": "supermercado",
+   "consulta": "queso gouda laminado",
+   "entity_type": "catalog_item",
+   "entity_id": "77672",
+   "juicio": "sirve"
+  },
+  {
+   "id": "Pc1349bb92b",
+   "vertical": "farmacia",
+   "consulta": "toallas higiénicas nocturnas",
+   "entity_type": "catalog_item",
+   "entity_id": "199350",
+   "juicio": "sirve"
+  },
+  {
+   "id": "Pc14fbc859a",
+   "vertical": "chocolateria",
+   "consulta": "postre individual",
+   "entity_type": "catalog_item",
+   "entity_id": "1161515",
+   "juicio": "sirve"
+  },
+  {
+   "id": "Pc151feafff",
+   "vertical": "turbo",
+   "consulta": "vino tinto cabernet",
+   "entity_type": "catalog_item",
+   "entity_id": "60574",
+   "juicio": "sirve"
+  },
+  {
+   "id": "Pc18bc4563e",
+   "vertical": "chocolateria",
+   "consulta": "alfajores",
+   "entity_type": "catalog_item",
+   "entity_id": "715351",
+   "juicio": "sirve"
+  },
+  {
+   "id": "Pc1c58a1a09",
+   "vertical": "turbo",
+   "consulta": "arroz grado 1",
+   "entity_type": "catalog_item",
+   "entity_id": "104161",
+   "juicio": "a medias"
+  },
+  {
+   "id": "Pc21a2f25d0",
+   "vertical": "chocolateria",
+   "consulta": "postre individual",
+   "entity_type": "catalog_item",
+   "entity_id": "514475",
+   "juicio": "sirve"
+  },
+  {
+   "id": "Pc2519fbf75",
+   "vertical": "chocolateria",
+   "consulta": "torta de chocolate",
+   "entity_type": "catalog_item",
+   "entity_id": "876467",
+   "juicio": "sirve"
+  },
+  {
+   "id": "Pc2e3ed4f34",
+   "vertical": "licores",
+   "consulta": "energetica",
+   "entity_type": "catalog_item",
+   "entity_id": "1533656",
+   "juicio": "sirve"
+  },
+  {
+   "id": "Pc2ebbe0daa",
+   "vertical": "supermercado",
+   "consulta": "cafe molido",
+   "entity_type": "catalog_item",
+   "entity_id": "953725",
+   "juicio": "sirve"
+  },
+  {
+   "id": "Pc36c3f30db",
+   "vertical": "chocolateria",
+   "consulta": "torta de chocolate",
+   "entity_type": "catalog_item",
+   "entity_id": "890289",
+   "juicio": "sirve"
+  },
+  {
+   "id": "Pc3891b5584",
+   "vertical": "farmacia",
+   "consulta": "acondicionador para pelo tenido",
+   "entity_type": "catalog_item",
+   "entity_id": "130859",
+   "juicio": "a medias"
+  },
+  {
+   "id": "Pc3d49ab06b",
+   "vertical": "mall",
+   "consulta": "carcasa para iphone",
+   "entity_type": "catalog_item",
+   "entity_id": "1670975",
+   "juicio": "sirve"
+  },
+  {
+   "id": "Pc403a31701",
+   "vertical": "conveniencia",
+   "consulta": "vino tinto",
+   "entity_type": "catalog_item",
+   "entity_id": "243153",
+   "juicio": "sirve"
+  },
+  {
+   "id": "Pc412556147",
+   "vertical": "mall",
+   "consulta": "carcasa para iphone",
+   "entity_type": "catalog_item",
+   "entity_id": "1652550",
+   "juicio": "sirve"
+  },
+  {
+   "id": "Pc427605219",
+   "vertical": "mall",
+   "consulta": "regalo para mi polola",
+   "entity_type": "catalog_item",
+   "entity_id": "1531181",
+   "juicio": "a medias"
+  },
+  {
+   "id": "Pc446b0ef7c",
+   "vertical": "mall",
+   "consulta": "vela aromatica",
+   "entity_type": "catalog_item",
+   "entity_id": "1663064",
+   "juicio": "sirve"
+  },
+  {
+   "id": "Pc501e466fa",
+   "vertical": "farmacia",
+   "consulta": "cosas para el bebé recién nacido",
+   "entity_type": "catalog_item",
+   "entity_id": "336929",
+   "juicio": "sirve"
+  },
+  {
+   "id": "Pc58b054c1f",
+   "vertical": "turbo",
+   "consulta": "queso gauda laminado",
+   "entity_type": "catalog_item",
+   "entity_id": "33122",
+   "juicio": "a medias"
+  },
+  {
+   "id": "Pc58dc23238",
+   "vertical": "conveniencia",
+   "consulta": "algo para ver una película",
+   "entity_type": "catalog_item",
+   "entity_id": "1462690",
+   "juicio": "sirve"
+  },
+  {
+   "id": "Pc5bdebd46b",
+   "vertical": "supermercado",
+   "consulta": "algo dulce para el cafe de la tarde",
+   "entity_type": "catalog_item",
+   "entity_id": "1360567",
+   "juicio": "a medias"
+  },
+  {
+   "id": "Pc63061b5db",
+   "vertical": "turbo",
+   "consulta": "queso gauda laminado",
+   "entity_type": "catalog_item",
+   "entity_id": "1305892",
+   "juicio": "a medias"
+  },
+  {
+   "id": "Pc65fb11c1c",
+   "vertical": "mall",
+   "consulta": "sarten antiadherente",
+   "entity_type": "catalog_item",
+   "entity_id": "1673298",
+   "juicio": "a medias"
+  },
+  {
+   "id": "Pc677e5240d",
+   "vertical": "mall",
+   "consulta": "peluche",
+   "entity_type": "catalog_item",
+   "entity_id": "255274",
+   "juicio": "sirve"
+  },
+  {
+   "id": "Pc6b5939ee8",
+   "vertical": "supermercado",
+   "consulta": "shampoo anticaspa",
+   "entity_type": "catalog_item",
+   "entity_id": "48697",
+   "juicio": "sirve"
+  },
+  {
+   "id": "Pc7bf957ee5",
+   "vertical": "supermercado",
+   "consulta": "harina sin polvos de hornear",
+   "entity_type": "catalog_item",
+   "entity_id": "82117",
+   "juicio": "sirve"
+  },
+  {
+   "id": "Pc89999f9e0",
+   "vertical": "licores",
+   "consulta": "whisky etiqueta negra",
+   "entity_type": "catalog_item",
+   "entity_id": "124709",
+   "juicio": "a medias"
+  },
+  {
+   "id": "Pc8aa66223e",
+   "vertical": "supermercado",
+   "consulta": "leche descremada",
+   "entity_type": "catalog_item",
+   "entity_id": "14901",
+   "juicio": "a medias"
+  },
+  {
+   "id": "Pc941436249",
+   "vertical": "supermercado",
+   "consulta": "leche descremada",
+   "entity_type": "catalog_item",
+   "entity_id": "106662",
+   "juicio": "a medias"
+  },
+  {
+   "id": "Pc98482dbcd",
+   "vertical": "conveniencia",
+   "consulta": "algo para ver una película",
+   "entity_type": "catalog_item",
+   "entity_id": "1544843",
+   "juicio": "sirve"
+  },
+  {
+   "id": "Pc98ed60462",
+   "vertical": "licores",
+   "consulta": "cerveza sin alcohol",
+   "entity_type": "catalog_item",
+   "entity_id": "138256",
+   "juicio": "sirve"
+  },
+  {
+   "id": "Pc9b8748b22",
+   "vertical": "mall",
+   "consulta": "juego de mesa para la familia",
+   "entity_type": "catalog_item",
+   "entity_id": "809072",
+   "juicio": "sirve"
+  },
+  {
+   "id": "Pc9e8fe2f66",
+   "vertical": "supermercado",
+   "consulta": "harina sin polvos de hornear",
+   "entity_type": "catalog_item",
+   "entity_id": "295841",
+   "juicio": "no sirve"
+  },
+  {
+   "id": "Pc9f5b50b6f",
+   "vertical": "mall",
+   "consulta": "regalo para mi polola",
+   "entity_type": "catalog_item",
+   "entity_id": "1364552",
+   "juicio": "no sirve"
+  },
+  {
+   "id": "Pca31849fa8",
+   "vertical": "conveniencia",
+   "consulta": "panales",
+   "entity_type": "catalog_item",
+   "entity_id": "941430",
+   "juicio": "sirve"
+  },
+  {
+   "id": "Pca3596ed03",
+   "vertical": "supermercado",
+   "consulta": "panales para guagua",
+   "entity_type": "catalog_item",
+   "entity_id": "963878",
+   "juicio": "sirve"
+  },
+  {
+   "id": "Pcab3a43e13",
+   "vertical": "mall",
+   "consulta": "perfume de mujer",
+   "entity_type": "catalog_item",
+   "entity_id": "1659192",
+   "juicio": "sirve"
+  },
+  {
+   "id": "Pcb8205d23c",
+   "vertical": "mall",
+   "consulta": "carcasa para iphone",
+   "entity_type": "catalog_item",
+   "entity_id": "1652556",
+   "juicio": "sirve"
+  },
+  {
+   "id": "Pcbd986c187",
+   "vertical": "mall",
+   "consulta": "sarten antiadherente",
+   "entity_type": "catalog_item",
+   "entity_id": "1374534",
+   "juicio": "a medias"
+  },
+  {
+   "id": "Pcd6d54c69e",
+   "vertical": "mall",
+   "consulta": "audífonos bluetooth",
+   "entity_type": "catalog_item",
+   "entity_id": "1715298",
+   "juicio": "sirve"
+  },
+  {
+   "id": "Pcd74cdb571",
+   "vertical": "chocolateria",
+   "consulta": "bombones para regalar",
+   "entity_type": "catalog_item",
+   "entity_id": "790036",
+   "juicio": "sirve"
+  },
+  {
+   "id": "Pcdad2b6088",
+   "vertical": "turbo",
+   "consulta": "te verde",
+   "entity_type": "catalog_item",
+   "entity_id": "1538860",
+   "juicio": "sirve"
+  },
+  {
+   "id": "Pcde79063d2",
+   "vertical": "supermercado",
+   "consulta": "algo calentito para la once",
+   "entity_type": "catalog_item",
+   "entity_id": "10644",
+   "juicio": "a medias"
+  },
+  {
+   "id": "Pce13a1eb46",
+   "vertical": "turbo",
+   "consulta": "queso gauda laminado",
+   "entity_type": "catalog_item",
+   "entity_id": "1648215",
+   "juicio": "sirve"
+  },
+  {
+   "id": "Pce4cb610dc",
+   "vertical": "mall",
+   "consulta": "perfume de mujer",
+   "entity_type": "catalog_item",
+   "entity_id": "1668318",
+   "juicio": "sirve"
+  },
+  {
+   "id": "Pce4f354027",
+   "vertical": "supermercado",
+   "consulta": "algo calentito para la once",
+   "entity_type": "catalog_item",
+   "entity_id": "36440",
+   "juicio": "no sirve"
+  },
+  {
+   "id": "Pcf509de7f1",
+   "vertical": "conveniencia",
+   "consulta": "pan para el desayuno",
+   "entity_type": "catalog_item",
+   "entity_id": "59363",
+   "juicio": "a medias"
+  },
+  {
+   "id": "Pcf5fa84f42",
+   "vertical": "conveniencia",
+   "consulta": "algo para ver una película",
+   "entity_type": "catalog_item",
+   "entity_id": "116257",
+   "juicio": "no sirve"
+  },
+  {
+   "id": "Pcf983a1f8c",
+   "vertical": "licores",
+   "consulta": "ron para mojitos",
+   "entity_type": "catalog_item",
+   "entity_id": "1035834",
+   "juicio": "a medias"
+  },
+  {
+   "id": "Pd051f5f79a",
+   "vertical": "chocolateria",
+   "consulta": "algo dulce para un cumpleaños",
+   "entity_type": "catalog_item",
+   "entity_id": "849299",
+   "juicio": "sirve"
+  },
+  {
+   "id": "Pd089e619c8",
+   "vertical": "licores",
+   "consulta": "ron para mojitos",
+   "entity_type": "catalog_item",
+   "entity_id": "52628",
+   "juicio": "sirve"
+  },
+  {
+   "id": "Pd0918c86e9",
+   "vertical": "turbo",
+   "consulta": "jugo de naranja",
+   "entity_type": "catalog_item",
+   "entity_id": "99389",
+   "juicio": "sirve"
+  },
+  {
+   "id": "Pd0cc8ffd46",
+   "vertical": "mall",
+   "consulta": "regalo para mi polola",
+   "entity_type": "catalog_item",
+   "entity_id": "321700",
+   "juicio": "sirve"
+  },
+  {
+   "id": "Pd1417205df",
+   "vertical": "mall",
+   "consulta": "regalo para mi polola",
+   "entity_type": "catalog_item",
+   "entity_id": "1364554",
+   "juicio": "no sirve"
+  },
+  {
+   "id": "Pd18c654286",
+   "vertical": "conveniencia",
+   "consulta": "galletas de chocolate",
+   "entity_type": "catalog_item",
+   "entity_id": "101431",
+   "juicio": "sirve"
+  },
+  {
+   "id": "Pd1e16d24a1",
+   "vertical": "chocolateria",
+   "consulta": "torta de chocolate",
+   "entity_type": "catalog_item",
+   "entity_id": "1531571",
+   "juicio": "sirve"
+  },
+  {
+   "id": "Pd2319f5db8",
+   "vertical": "mall",
+   "consulta": "juguete para niño de 5 años",
+   "entity_type": "catalog_item",
+   "entity_id": "937378",
+   "juicio": "a medias"
+  },
+  {
+   "id": "Pd29156b37a",
+   "vertical": "farmacia",
+   "consulta": "vitamina c efervescente",
+   "entity_type": "catalog_item",
+   "entity_id": "1657784",
+   "juicio": "no sirve"
+  },
+  {
+   "id": "Pd2f415fade",
+   "vertical": "restaurantes",
+   "consulta": "algo rico para almorzar",
+   "entity_type": "menu_item",
+   "entity_id": "2006030",
+   "juicio": "sirve"
+  },
+  {
+   "id": "Pd30923c2f1",
+   "vertical": "turbo",
+   "consulta": "arroz grado 1",
+   "entity_type": "catalog_item",
+   "entity_id": "19456",
+   "juicio": "sirve"
+  },
+  {
+   "id": "Pd31ab31680",
+   "vertical": "conveniencia",
+   "consulta": "panales",
+   "entity_type": "catalog_item",
+   "entity_id": "1033788",
+   "juicio": "sirve"
+  },
+  {
+   "id": "Pd365f0aba5",
+   "vertical": "conveniencia",
+   "consulta": "algo para ver una película",
+   "entity_type": "catalog_item",
+   "entity_id": "216358",
+   "juicio": "sirve"
+  },
+  {
+   "id": "Pd3d4477f5c",
+   "vertical": "licores",
+   "consulta": "whisky etiqueta negra",
+   "entity_type": "catalog_item",
+   "entity_id": "23781",
+   "juicio": "a medias"
+  },
+  {
+   "id": "Pd3e670d5f9",
+   "vertical": "conveniencia",
+   "consulta": "papas fritas",
+   "entity_type": "catalog_item",
+   "entity_id": "931079",
+   "juicio": "sirve"
+  },
+  {
+   "id": "Pd42d195503",
+   "vertical": "conveniencia",
+   "consulta": "coca cola 1.5 litros",
+   "entity_type": "catalog_item",
+   "entity_id": "1668155",
+   "juicio": "a medias"
+  },
+  {
+   "id": "Pd51ba6f82b",
+   "vertical": "farmacia",
+   "consulta": "algo para la piel seca",
+   "entity_type": "catalog_item",
+   "entity_id": "23324",
+   "juicio": "sirve"
+  },
+  {
+   "id": "Pd5bd8eeadf",
+   "vertical": "mall",
+   "consulta": "cargador tipo c",
+   "entity_type": "catalog_item",
+   "entity_id": "1339230",
+   "juicio": "sirve"
+  },
+  {
+   "id": "Pd61a0cca67",
+   "vertical": "licores",
+   "consulta": "cerveza sin alcohol",
+   "entity_type": "catalog_item",
+   "entity_id": "37816",
+   "juicio": "sirve"
+  },
+  {
+   "id": "Pd62c0595e2",
+   "vertical": "chocolateria",
+   "consulta": "algo dulce para un cumpleaños",
+   "entity_type": "catalog_item",
+   "entity_id": "626098",
+   "juicio": "sirve"
+  },
+  {
+   "id": "Pd67d466633",
+   "vertical": "mall",
+   "consulta": "audífonos bluetooth",
+   "entity_type": "catalog_item",
+   "entity_id": "1534492",
+   "juicio": "sirve"
+  },
+  {
+   "id": "Pd6b41bb591",
+   "vertical": "mall",
+   "consulta": "ropa de bebé",
+   "entity_type": "catalog_item",
+   "entity_id": "1335303",
+   "juicio": "sirve"
+  },
+  {
+   "id": "Pd7108577bf",
+   "vertical": "supermercado",
+   "consulta": "algo dulce para el cafe de la tarde",
+   "entity_type": "catalog_item",
+   "entity_id": "1410346",
+   "juicio": "a medias"
+  },
+  {
+   "id": "Pd717811b03",
+   "vertical": "restaurantes",
+   "consulta": "hamburguesa con papas",
+   "entity_type": "menu_item",
+   "entity_id": "1889483",
+   "juicio": "sirve"
+  },
+  {
+   "id": "Pd76430e73b",
+   "vertical": "mall",
+   "consulta": "ropa de bebé",
+   "entity_type": "catalog_item",
+   "entity_id": "1628702",
+   "juicio": "no sirve"
+  },
+  {
+   "id": "Pd7ab3f964e",
+   "vertical": "farmacia",
+   "consulta": "cosas para el bebé recién nacido",
+   "entity_type": "catalog_item",
+   "entity_id": "25136",
+   "juicio": "a medias"
+  },
+  {
+   "id": "Pd7d7350674",
+   "vertical": "turbo",
+   "consulta": "detergente líquido",
+   "entity_type": "catalog_item",
+   "entity_id": "1162782",
+   "juicio": "sirve"
+  },
+  {
+   "id": "Pd80717cdba",
+   "vertical": "supermercado",
+   "consulta": "huevos de campo",
+   "entity_type": "catalog_item",
+   "entity_id": "79107",
+   "juicio": "a medias"
+  },
+  {
+   "id": "Pd80a600a91",
+   "vertical": "mall",
+   "consulta": "ropa de bebé",
+   "entity_type": "catalog_item",
+   "entity_id": "1539228",
+   "juicio": "no sirve"
+  },
+  {
+   "id": "Pd8a83ec27c",
+   "vertical": "supermercado",
+   "consulta": "snack saludable para la oficina",
+   "entity_type": "catalog_item",
+   "entity_id": "337329",
+   "juicio": "a medias"
+  },
+  {
+   "id": "Pd8d8a73911",
+   "vertical": "supermercado",
+   "consulta": "harina sin polvos de hornear",
+   "entity_type": "catalog_item",
+   "entity_id": "1669171",
+   "juicio": "sirve"
+  },
+  {
+   "id": "Pd940c413a6",
+   "vertical": "supermercado",
+   "consulta": "almuerzo listo para calentar",
+   "entity_type": "catalog_item",
+   "entity_id": "1283328",
+   "juicio": "a medias"
+  },
+  {
+   "id": "Pd98738d2e2",
+   "vertical": "chocolateria",
+   "consulta": "postre individual",
+   "entity_type": "catalog_item",
+   "entity_id": "876968",
+   "juicio": "sirve"
+  },
+  {
+   "id": "Pda03e66886",
+   "vertical": "mall",
+   "consulta": "algo para hacer ejercicio en la casa",
+   "entity_type": "catalog_item",
+   "entity_id": "643521",
+   "juicio": "no sirve"
+  },
+  {
+   "id": "Pda04b59ee8",
+   "vertical": "farmacia",
+   "consulta": "cepillo de dientes electrico",
+   "entity_type": "catalog_item",
+   "entity_id": "1556983",
+   "juicio": "sirve"
+  },
+  {
+   "id": "Pda600dca4d",
+   "vertical": "supermercado",
+   "consulta": "leche descremada",
+   "entity_type": "catalog_item",
+   "entity_id": "88561",
+   "juicio": "sirve"
+  },
+  {
+   "id": "Pda88280c0c",
+   "vertical": "restaurantes",
+   "consulta": "postre de chocolate",
+   "entity_type": "menu_item",
+   "entity_id": "1107198",
+   "juicio": "sirve"
+  },
+  {
+   "id": "Pda93ece630",
+   "vertical": "mall",
+   "consulta": "audífonos bluetooth",
+   "entity_type": "catalog_item",
+   "entity_id": "1659494",
+   "juicio": "sirve"
+  },
+  {
+   "id": "Pdacd0e25eb",
+   "vertical": "mall",
+   "consulta": "perfume de mujer",
+   "entity_type": "catalog_item",
+   "entity_id": "1657936",
+   "juicio": "sirve"
+  },
+  {
+   "id": "Pdb49781b45",
+   "vertical": "supermercado",
+   "consulta": "huevos de campo",
+   "entity_type": "catalog_item",
+   "entity_id": "1649707",
+   "juicio": "sirve"
+  },
+  {
+   "id": "Pdc52f8730f",
+   "vertical": "conveniencia",
+   "consulta": "algo para ver una película",
+   "entity_type": "catalog_item",
+   "entity_id": "1345870",
+   "juicio": "sirve"
+  },
+  {
+   "id": "Pdce06e54ff",
+   "vertical": "licores",
+   "consulta": "vino tinto cabernet sauvignon",
+   "entity_type": "catalog_item",
+   "entity_id": "308012",
+   "juicio": "sirve"
+  },
+  {
+   "id": "Pdd67f95739",
+   "vertical": "mall",
+   "consulta": "sarten antiadherente",
+   "entity_type": "catalog_item",
+   "entity_id": "1374533",
+   "juicio": "a medias"
+  },
+  {
+   "id": "Pdd77895def",
+   "vertical": "licores",
+   "consulta": "papas fritas para picar",
+   "entity_type": "catalog_item",
+   "entity_id": "196688",
+   "juicio": "sirve"
+  },
+  {
+   "id": "Pddd866b962",
+   "vertical": "farmacia",
+   "consulta": "cosas para el bebé recién nacido",
+   "entity_type": "catalog_item",
+   "entity_id": "83905",
+   "juicio": "sirve"
+  },
+  {
+   "id": "Pdf5d43dd60",
+   "vertical": "mall",
+   "consulta": "cargador tipo c",
+   "entity_type": "catalog_item",
+   "entity_id": "542125",
+   "juicio": "sirve"
+  },
+  {
+   "id": "Pdf62dfd2d1",
+   "vertical": "conveniencia",
+   "consulta": "energetica monster",
+   "entity_type": "catalog_item",
+   "entity_id": "1531342",
+   "juicio": "sirve"
+  },
+  {
+   "id": "Pdf819d5019",
+   "vertical": "supermercado",
+   "consulta": "panales para guagua",
+   "entity_type": "catalog_item",
+   "entity_id": "1258421",
+   "juicio": "sirve"
+  },
+  {
+   "id": "Pdf89db45ca",
+   "vertical": "supermercado",
+   "consulta": "queso gouda laminado",
+   "entity_type": "catalog_item",
+   "entity_id": "55585",
+   "juicio": "sirve"
+  },
+  {
+   "id": "Pe073a9da1d",
+   "vertical": "mall",
+   "consulta": "juego de mesa para la familia",
+   "entity_type": "catalog_item",
+   "entity_id": "1663607",
+   "juicio": "sirve"
+  },
+  {
+   "id": "Pe156b0e030",
+   "vertical": "chocolateria",
+   "consulta": "torta de chocolate",
+   "entity_type": "catalog_item",
+   "entity_id": "596558",
+   "juicio": "sirve"
+  },
+  {
+   "id": "Pe1aa7fc928",
+   "vertical": "mall",
+   "consulta": "perfume de mujer",
+   "entity_type": "catalog_item",
+   "entity_id": "1657935",
+   "juicio": "sirve"
+  },
+  {
+   "id": "Pe2500896c3",
+   "vertical": "licores",
+   "consulta": "bebida para mezclar con pisco",
+   "entity_type": "catalog_item",
+   "entity_id": "103240",
+   "juicio": "no sirve"
+  },
+  {
+   "id": "Pe25482e761",
+   "vertical": "mall",
+   "consulta": "peluche",
+   "entity_type": "catalog_item",
+   "entity_id": "1266247",
+   "juicio": "sirve"
+  },
+  {
+   "id": "Pe287c567b6",
+   "vertical": "licores",
+   "consulta": "vino tinto cabernet sauvignon",
+   "entity_type": "catalog_item",
+   "entity_id": "39850",
+   "juicio": "sirve"
+  },
+  {
+   "id": "Pe29fb776d7",
+   "vertical": "restaurantes",
+   "consulta": "ensalada liviana",
+   "entity_type": "menu_item",
+   "entity_id": "1026619",
+   "juicio": "sirve"
+  },
+  {
+   "id": "Pe33d98caac",
+   "vertical": "licores",
+   "consulta": "algo para el carrete",
+   "entity_type": "catalog_item",
+   "entity_id": "41489",
+   "juicio": "sirve"
+  },
+  {
+   "id": "Pe36918594e",
+   "vertical": "licores",
+   "consulta": "bebida para mezclar con pisco",
+   "entity_type": "catalog_item",
+   "entity_id": "8360",
+   "juicio": "no sirve"
+  },
+  {
+   "id": "Pe3b8090820",
+   "vertical": "restaurantes",
+   "consulta": "ensalada liviana",
+   "entity_type": "menu_item",
+   "entity_id": "178244",
+   "juicio": "sirve"
+  },
+  {
+   "id": "Pe3d74f3197",
+   "vertical": "restaurantes",
+   "consulta": "hamburguesa con papas",
+   "entity_type": "menu_item",
+   "entity_id": "271899",
+   "juicio": "sirve"
+  },
+  {
+   "id": "Pe3f5938fb5",
+   "vertical": "farmacia",
+   "consulta": "pañales etapa 3",
+   "entity_type": "catalog_item",
+   "entity_id": "114099",
+   "juicio": "a medias"
+  },
+  {
+   "id": "Pe53e7dbff8",
+   "vertical": "mall",
+   "consulta": "set de maquillaje",
+   "entity_type": "catalog_item",
+   "entity_id": "1143746",
+   "juicio": "a medias"
+  },
+  {
+   "id": "Pe564cc34c1",
+   "vertical": "conveniencia",
+   "consulta": "algo para ver una película",
+   "entity_type": "catalog_item",
+   "entity_id": "1514190",
+   "juicio": "sirve"
+  },
+  {
+   "id": "Pe5ae400592",
+   "vertical": "mall",
+   "consulta": "set de maquillaje",
+   "entity_type": "catalog_item",
+   "entity_id": "560037",
+   "juicio": "a medias"
+  },
+  {
+   "id": "Pe5cbcb7501",
+   "vertical": "supermercado",
+   "consulta": "panales para guagua",
+   "entity_type": "catalog_item",
+   "entity_id": "74362",
+   "juicio": "sirve"
+  },
+  {
+   "id": "Pe6003b68b8",
+   "vertical": "chocolateria",
+   "consulta": "torta de chocolate",
+   "entity_type": "catalog_item",
+   "entity_id": "890290",
+   "juicio": "sirve"
+  },
+  {
+   "id": "Pe627941ef5",
+   "vertical": "supermercado",
+   "consulta": "cafe molido",
+   "entity_type": "catalog_item",
+   "entity_id": "25850",
+   "juicio": "sirve"
+  },
+  {
+   "id": "Pe6d728c704",
+   "vertical": "conveniencia",
+   "consulta": "algo para ver una película",
+   "entity_type": "catalog_item",
+   "entity_id": "1296229",
+   "juicio": "no sirve"
+  },
+  {
+   "id": "Pe808a884b9",
+   "vertical": "licores",
+   "consulta": "ron para mojitos",
+   "entity_type": "catalog_item",
+   "entity_id": "90102",
+   "juicio": "sirve"
+  },
+  {
+   "id": "Pe814ec7125",
+   "vertical": "farmacia",
+   "consulta": "base de maquillaje líquida",
+   "entity_type": "catalog_item",
+   "entity_id": "13332",
+   "juicio": "sirve"
+  },
+  {
+   "id": "Pe8266a9d14",
+   "vertical": "farmacia",
+   "consulta": "vitamina c efervescente",
+   "entity_type": "catalog_item",
+   "entity_id": "77052",
+   "juicio": "a medias"
+  },
+  {
+   "id": "Pe8f601bfcd",
+   "vertical": "licores",
+   "consulta": "regalo para un amante del whisky",
+   "entity_type": "catalog_item",
+   "entity_id": "43107",
+   "juicio": "sirve"
+  },
+  {
+   "id": "Pe99a46fb55",
+   "vertical": "licores",
+   "consulta": "tequila",
+   "entity_type": "catalog_item",
+   "entity_id": "111196",
+   "juicio": "sirve"
+  },
+  {
+   "id": "Pea4fc91512",
+   "vertical": "farmacia",
+   "consulta": "pañales etapa 3",
+   "entity_type": "catalog_item",
+   "entity_id": "2051",
+   "juicio": "a medias"
+  },
+  {
+   "id": "Pea598f275e",
+   "vertical": "conveniencia",
+   "consulta": "panales",
+   "entity_type": "catalog_item",
+   "entity_id": "1081026",
+   "juicio": "sirve"
+  },
+  {
+   "id": "Peaad936957",
+   "vertical": "supermercado",
+   "consulta": "fideos spaghetti",
+   "entity_type": "catalog_item",
+   "entity_id": "45811",
+   "juicio": "a medias"
+  },
+  {
+   "id": "Pebe74c4c35",
+   "vertical": "conveniencia",
+   "consulta": "coca cola 1.5 litros",
+   "entity_type": "catalog_item",
+   "entity_id": "1413384",
+   "juicio": "a medias"
+  },
+  {
+   "id": "Pec1eb17bdd",
+   "vertical": "conveniencia",
+   "consulta": "helado",
+   "entity_type": "catalog_item",
+   "entity_id": "1395358",
+   "juicio": "sirve"
+  },
+  {
+   "id": "Pec51a370b3",
+   "vertical": "mall",
+   "consulta": "peluche",
+   "entity_type": "catalog_item",
+   "entity_id": "1385004",
+   "juicio": "sirve"
+  },
+  {
+   "id": "Pec8e8293f0",
+   "vertical": "farmacia",
+   "consulta": "algo para la piel seca",
+   "entity_type": "catalog_item",
+   "entity_id": "98317",
+   "juicio": "a medias"
+  },
+  {
+   "id": "Ped66e916b1",
+   "vertical": "mall",
+   "consulta": "cargador tipo c",
+   "entity_type": "catalog_item",
+   "entity_id": "1487139",
+   "juicio": "sirve"
+  },
+  {
+   "id": "Ped6a42ca7f",
+   "vertical": "restaurantes",
+   "consulta": "ensalada liviana",
+   "entity_type": "menu_item",
+   "entity_id": "1926063",
+   "juicio": "sirve"
+  },
+  {
+   "id": "Ped892265e1",
+   "vertical": "conveniencia",
+   "consulta": "vino tinto",
+   "entity_type": "catalog_item",
+   "entity_id": "101583",
+   "juicio": "sirve"
+  },
+  {
+   "id": "Pedc714f711",
+   "vertical": "restaurantes",
+   "consulta": "pizza pepperoni",
+   "entity_type": "menu_item",
+   "entity_id": "367796",
+   "juicio": "sirve"
+  },
+  {
+   "id": "Pedd3ed0b33",
+   "vertical": "conveniencia",
+   "consulta": "leche entera",
+   "entity_type": "catalog_item",
+   "entity_id": "84352",
+   "juicio": "a medias"
+  },
+  {
+   "id": "Peeb05b328b",
+   "vertical": "supermercado",
+   "consulta": "panales para guagua",
+   "entity_type": "catalog_item",
+   "entity_id": "124368",
+   "juicio": "sirve"
+  },
+  {
+   "id": "Peecfb55285",
+   "vertical": "chocolateria",
+   "consulta": "bombones para regalar",
+   "entity_type": "catalog_item",
+   "entity_id": "1408434",
+   "juicio": "sirve"
+  },
+  {
+   "id": "Pefc77c011f",
+   "vertical": "chocolateria",
+   "consulta": "chocolate blanco",
+   "entity_type": "catalog_item",
+   "entity_id": "209770",
+   "juicio": "sirve"
+  },
+  {
+   "id": "Pf016dd1e2c",
+   "vertical": "licores",
+   "consulta": "algo para el carrete",
+   "entity_type": "catalog_item",
+   "entity_id": "236319",
+   "juicio": "sirve"
+  },
+  {
+   "id": "Pf128726edb",
+   "vertical": "supermercado",
+   "consulta": "pasta de dientes",
+   "entity_type": "catalog_item",
+   "entity_id": "240376",
+   "juicio": "a medias"
+  },
+  {
+   "id": "Pf16357ab62",
+   "vertical": "turbo",
+   "consulta": "queso gauda laminado",
+   "entity_type": "catalog_item",
+   "entity_id": "116094",
+   "juicio": "a medias"
+  },
+  {
+   "id": "Pf1d8b0ea88",
+   "vertical": "supermercado",
+   "consulta": "algo calentito para la once",
+   "entity_type": "catalog_item",
+   "entity_id": "580265",
+   "juicio": "sirve"
+  },
+  {
+   "id": "Pf234e50d8f",
+   "vertical": "restaurantes",
+   "consulta": "postre de chocolate",
+   "entity_type": "menu_item",
+   "entity_id": "2325070",
+   "juicio": "sirve"
+  },
+  {
+   "id": "Pf34e32edbb",
+   "vertical": "supermercado",
+   "consulta": "harina sin polvos de hornear",
+   "entity_type": "catalog_item",
+   "entity_id": "1723714",
+   "juicio": "sirve"
+  },
+  {
+   "id": "Pf3915c41f9",
+   "vertical": "farmacia",
+   "consulta": "parches curita",
+   "entity_type": "catalog_item",
+   "entity_id": "1538717",
+   "juicio": "no sirve"
+  },
+  {
+   "id": "Pf422304aca",
+   "vertical": "supermercado",
+   "consulta": "algo calentito para la once",
+   "entity_type": "catalog_item",
+   "entity_id": "1424576",
+   "juicio": "no sirve"
+  },
+  {
+   "id": "Pf43490bd0c",
+   "vertical": "supermercado",
+   "consulta": "huevos de campo",
+   "entity_type": "catalog_item",
+   "entity_id": "1721293",
+   "juicio": "sirve"
+  },
+  {
+   "id": "Pf463c8df06",
+   "vertical": "farmacia",
+   "consulta": "base de maquillaje líquida",
+   "entity_type": "catalog_item",
+   "entity_id": "373271",
+   "juicio": "sirve"
+  },
+  {
+   "id": "Pf55d4b256a",
+   "vertical": "conveniencia",
+   "consulta": "panales",
+   "entity_type": "catalog_item",
+   "entity_id": "963878",
+   "juicio": "sirve"
+  },
+  {
+   "id": "Pf55e86f41f",
+   "vertical": "restaurantes",
+   "consulta": "pasta a la bolognesa",
+   "entity_type": "menu_item",
+   "entity_id": "1984878",
+   "juicio": "sirve"
+  },
+  {
+   "id": "Pf56ed1518a",
+   "vertical": "mall",
+   "consulta": "carcasa para iphone",
+   "entity_type": "catalog_item",
+   "entity_id": "1487306",
+   "juicio": "sirve"
+  },
+  {
+   "id": "Pf581f77c79",
+   "vertical": "farmacia",
+   "consulta": "vitamina c efervescente",
+   "entity_type": "catalog_item",
+   "entity_id": "128898",
+   "juicio": "a medias"
+  },
+  {
+   "id": "Pf58201487f",
+   "vertical": "conveniencia",
+   "consulta": "energetica monster",
+   "entity_type": "catalog_item",
+   "entity_id": "902197",
+   "juicio": "sirve"
+  },
+  {
+   "id": "Pf65f0239bf",
+   "vertical": "farmacia",
+   "consulta": "base de maquillaje líquida",
+   "entity_type": "catalog_item",
+   "entity_id": "565908",
+   "juicio": "sirve"
+  },
+  {
+   "id": "Pf6f5cf0cbd",
+   "vertical": "mall",
+   "consulta": "perfume de mujer",
+   "entity_type": "catalog_item",
+   "entity_id": "1006321",
+   "juicio": "sirve"
+  },
+  {
+   "id": "Pf782f01a63",
+   "vertical": "farmacia",
+   "consulta": "cosas para el bebé recién nacido",
+   "entity_type": "catalog_item",
+   "entity_id": "2051",
+   "juicio": "sirve"
+  },
+  {
+   "id": "Pf7b597ef08",
+   "vertical": "turbo",
+   "consulta": "arroz grado 1",
+   "entity_type": "catalog_item",
+   "entity_id": "83575",
+   "juicio": "sirve"
+  },
+  {
+   "id": "Pf7da77b56b",
+   "vertical": "licores",
+   "consulta": "regalo para un amante del whisky",
+   "entity_type": "catalog_item",
+   "entity_id": "248105",
+   "juicio": "sirve"
+  },
+  {
+   "id": "Pf84e9c3f81",
+   "vertical": "restaurantes",
+   "consulta": "pizza pepperoni",
+   "entity_type": "menu_item",
+   "entity_id": "1105538",
+   "juicio": "sirve"
+  },
+  {
+   "id": "Pf8abc612cf",
+   "vertical": "supermercado",
+   "consulta": "harina sin polvos de hornear",
+   "entity_type": "catalog_item",
+   "entity_id": "66099",
+   "juicio": "sirve"
+  },
+  {
+   "id": "Pf960b6f338",
+   "vertical": "restaurantes",
+   "consulta": "gelato de pistacho",
+   "entity_type": "menu_item",
+   "entity_id": "840741",
+   "juicio": "sirve"
+  },
+  {
+   "id": "Pf9a64de553",
+   "vertical": "conveniencia",
+   "consulta": "coca cola 1.5 litros",
+   "entity_type": "catalog_item",
+   "entity_id": "334642",
+   "juicio": "sirve"
+  },
+  {
+   "id": "Pf9d2b79f3c",
+   "vertical": "conveniencia",
+   "consulta": "algo para ver una película",
+   "entity_type": "catalog_item",
+   "entity_id": "1639865",
+   "juicio": "sirve"
+  },
+  {
+   "id": "Pfb0eacd14f",
+   "vertical": "farmacia",
+   "consulta": "perfume de mujer",
+   "entity_type": "catalog_item",
+   "entity_id": "1634153",
+   "juicio": "sirve"
+  },
+  {
+   "id": "Pfb2f29e1ad",
+   "vertical": "restaurantes",
+   "consulta": "sushi roll",
+   "entity_type": "menu_item",
+   "entity_id": "282666",
+   "juicio": "a medias"
+  },
+  {
+   "id": "Pfb7b519191",
+   "vertical": "restaurantes",
+   "consulta": "postre de chocolate",
+   "entity_type": "menu_item",
+   "entity_id": "1199425",
+   "juicio": "sirve"
+  },
+  {
+   "id": "Pfc39994b12",
+   "vertical": "supermercado",
+   "consulta": "algo calentito para la once",
+   "entity_type": "catalog_item",
+   "entity_id": "827771",
+   "juicio": "no sirve"
+  },
+  {
+   "id": "Pfc5f947445",
+   "vertical": "chocolateria",
+   "consulta": "postre individual",
+   "entity_type": "catalog_item",
+   "entity_id": "876967",
+   "juicio": "sirve"
+  },
+  {
+   "id": "Pfc6993fa67",
+   "vertical": "licores",
+   "consulta": "whisky etiqueta negra",
+   "entity_type": "catalog_item",
+   "entity_id": "7381",
+   "juicio": "a medias"
+  },
+  {
+   "id": "Pfc832e821d",
+   "vertical": "mall",
+   "consulta": "carcasa para iphone",
+   "entity_type": "catalog_item",
+   "entity_id": "827254",
+   "juicio": "sirve"
+  },
+  {
+   "id": "Pfcf43ab390",
+   "vertical": "farmacia",
+   "consulta": "vitamina c efervescente",
+   "entity_type": "catalog_item",
+   "entity_id": "1543525",
+   "juicio": "a medias"
+  },
+  {
+   "id": "Pfcf87c8cc8",
+   "vertical": "supermercado",
+   "consulta": "harina sin polvos de hornear",
+   "entity_type": "catalog_item",
+   "entity_id": "85970",
+   "juicio": "sirve"
+  },
+  {
+   "id": "Pfd07cd0838",
+   "vertical": "mall",
+   "consulta": "ropa de bebé",
+   "entity_type": "catalog_item",
+   "entity_id": "809884",
+   "juicio": "sirve"
+  },
+  {
+   "id": "Pfdbdac4ee0",
+   "vertical": "chocolateria",
+   "consulta": "algo dulce para un cumpleaños",
+   "entity_type": "catalog_item",
+   "entity_id": "883436",
+   "juicio": "sirve"
+  },
+  {
+   "id": "Pfe36044292",
+   "vertical": "conveniencia",
+   "consulta": "coca cola 1.5 litros",
+   "entity_type": "catalog_item",
+   "entity_id": "216464",
+   "juicio": "sirve"
+  },
+  {
+   "id": "Pfeb7f3d4f0",
+   "vertical": "conveniencia",
+   "consulta": "leche entera",
+   "entity_type": "catalog_item",
+   "entity_id": "80689",
+   "juicio": "a medias"
+  },
+  {
+   "id": "Pff74c03b4b",
+   "vertical": "licores",
+   "consulta": "cerveza sin alcohol",
+   "entity_type": "catalog_item",
+   "entity_id": "129829",
+   "juicio": "sirve"
+  },
+  {
+   "id": "Pff87e348e5",
+   "vertical": "farmacia",
+   "consulta": "toallas higiénicas nocturnas",
+   "entity_type": "catalog_item",
+   "entity_id": "13410",
+   "juicio": "sirve"
+  },
+  {
+   "id": "Pffd0977b41",
+   "vertical": "restaurantes",
+   "consulta": "sushi roll",
+   "entity_type": "menu_item",
+   "entity_id": "1303122",
+   "juicio": "sirve"
+  },
+  {
+   "id": "Pfffebfbd01",
+   "vertical": "restaurantes",
+   "consulta": "pasta a la bolognesa",
+   "entity_type": "menu_item",
+   "entity_id": "78435",
+   "juicio": "a medias"
+  }
+ ]
+}

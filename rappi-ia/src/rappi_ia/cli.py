@@ -309,7 +309,7 @@ def cmd_search(conn, args) -> None:
 
 def cmd_eval_search(conn, args) -> None:
     from . import jev
-    from .eval import search_eval
+    from .eval import graded, search_eval
     from .retrieval.hybrid import thresholds
 
     jev_client = None
@@ -337,11 +337,47 @@ def cmd_eval_search(conn, args) -> None:
     comparisons = search_eval.compare_modes(runs)
     jev_part = _jev_judgment(conn, jev_client, runs) if jev_client else None
     report = search_eval.render_markdown(summary, unmet, current, proposed, saved, model, comparisons, jev_part)
+    if embedder:  # lo que ve la persona con el juicio LLM de tres niveles (eval/graded.py)
+        report += "\n" + graded.render_markdown(graded.score(graded.shown_lists(runs), graded.load_judgments()))
     out = config.DATA_DIR / "eval" / "busqueda.md"
     out.parent.mkdir(parents=True, exist_ok=True)
     out.write_text(report, encoding="utf-8")
     print(report)
     print(f"Reporte en {out}")
+
+
+def cmd_eval_graded(conn, args) -> None:
+    import json
+
+    from .eval import graded, search_eval, sheets
+
+    if args.importar:
+        added = graded.import_sheet(Path(args.importar))
+        print(f"{added} juicios nuevos en {graded.COMPLEMENT_FILE}")
+    judgments = graded.load_judgments()
+    if args.listas:
+        lists = json.loads(Path(args.listas).read_text(encoding="utf-8"))["listas"]
+    else:
+        from .embeddings.models import text_embedder
+
+        judged = {(j.vertical, j.query) for j in judgments.values()}
+        queries = [q for q in search_eval.load_queries() if (q["vertical"], q["query"]) in judged]
+        runs = search_eval.run_queries(conn, text_embedder(), queries, modes=(search_eval.SHOWN,))
+        lists = graded.shown_lists(runs)
+    if args.guardar_listas:
+        sheets.write_json(
+            Path(args.guardar_listas), {"nota": "Lo que mostró la búsqueda (ids); ver eval/graded.py.", "listas": lists}
+        )
+    report = graded.render_markdown(graded.score(lists, judgments))
+    out = config.DATA_DIR / "eval" / "tres-niveles.md"
+    out.parent.mkdir(parents=True, exist_ok=True)
+    out.write_text(report, encoding="utf-8")
+    print(report)
+    print(f"Reporte en {out}")
+    if missing := graded.pending(lists, judgments):
+        sheet = sheets.sheet_dir() / "pendientes-tres-niveles.csv"
+        sheets.write_csv(sheet, graded.PENDING_COLUMNS, graded.pending_rows(conn, missing))
+        print(f"{len(missing)} pares sin juicio en {sheet}: juzgarlos y sumarlos con --importar")
 
 
 def cmd_eval_typos(conn, args) -> None:
@@ -724,6 +760,7 @@ COMMANDS = {
     "prune-embeddings": cmd_prune_embeddings,
     "search": cmd_search,
     "eval-search": cmd_eval_search,
+    "eval-graded": cmd_eval_graded,
     "eval-typos": cmd_eval_typos,
     "eval-sample": cmd_eval_sample,
     "eval-human": cmd_eval_human,
@@ -808,6 +845,13 @@ def build_parser() -> argparse.ArgumentParser:
         action="store_true",
         help="agrega a Jev como juez solo si hay clave y eval/jev-adopcion.json lo adoptó; si no, sigue sin él",
     )
+    eg = sub.add_parser(
+        "eval-graded",
+        help="lo que ve la persona con el juicio LLM de tres niveles (no humano), en las consultas con pares juzgados",
+    )
+    eg.add_argument("--listas", help="puntúa las listas guardadas en este archivo en vez de buscar")
+    eg.add_argument("--guardar-listas", help="guarda lo que mostró la búsqueda (ids) para puntuarlo después")
+    eg.add_argument("--importar", help="suma los juicios de la planilla de pendientes al complemento (sin textos)")
     sub.add_parser("eval-typos", help="errores de tipeo de src/rappi_ia/eval/typos.json y negativas de queries.json")
     sub.add_parser("eval-sample", help="muestra de ~200 pares (consulta, producto) para juzgar a mano")
     sub.add_parser("eval-human", help="juez automático y refuerzo por concepto contra los juicios a mano, y κ")

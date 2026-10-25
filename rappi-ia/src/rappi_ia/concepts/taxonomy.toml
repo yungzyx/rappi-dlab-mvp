@@ -19,7 +19,7 @@
 # - `broad = true`: agrupa productos de varios tipos («picoteo», «desayuno»). Donde el vertical no lo vende, la búsqueda
 #   no exige que el nombre del producto diga lo pedido (agent/tools._focus).
 
-version = "2026-10-14"
+version = "2026-10-25"
 
 # ─── Grupos ───────────────────────────────────────────────────────────────────
 [[group]]
@@ -690,7 +690,8 @@ id = "articulos-bebe"
 parent = "bebe"
 name = "Artículos de bebé"
 emoji = "🧸"
-keywords = ["mamadera", "chupete", "tetina", "mordedor", "babero", "coche de bebé", "silla de auto", "cuna", "extractor de leche", "ropa de bebé", "body de bebé", "pañalera", "bañera de bebé"]
+# Sin «ropa de bebé» ni «body de bebé»: esos productos son ropa por su categoría («Ropa bebés», «Bodies - Leotardos»).
+keywords = ["mamadera", "chupete", "tetina", "mordedor", "babero", "coche de bebé", "silla de auto", "cuna", "extractor de leche", "pañalera", "bañera de bebé"]
 # El nombre de bebé manda sobre la categoría (assign.py): un chupete con sabor es un dulce («Bon Bon Bum Chupete Sabor a
 # Fresa») y sin tildes ni ñ, «cuña» es «cuna» («Cuña Niveladora Para Cerámicas», «Queso Cuña Pecorino»).
 avoid = ["chupete sabor", "chupetes sabor", "pin pop", "bon bon bum", "bom bom bum", "yogueta", "cuña niveladora", "cuña piñón", "queso cuña"]
@@ -936,7 +937,7 @@ id = "ropa"
 parent = "moda"
 name = "Ropa"
 emoji = "👕"
-keywords = ["polera", "camiseta", "pantalón", "jeans", "vestido", "falda", "chaqueta", "polerón", "hoodie", "blusa", "camisa", "short", "bikini", "traje de baño", "pijama", "calcetines", "calzas", "leggins", "parka", "abrigo", "sweater", "chaleco", "buzo"]
+keywords = ["polera", "camiseta", "pantalón", "jeans", "vestido", "falda", "chaqueta", "polerón", "hoodie", "blusa", "camisa", "short", "bikini", "traje de baño", "pijama", "calcetines", "calzas", "leggins", "parka", "abrigo", "sweater", "chaleco", "buzo", "ropa de bebé", "body de bebé"]
 
 [[concept]]
 id = "ropa-interior"
