@@ -328,7 +328,9 @@ def test_contract_examples_are_up_to_date(client, example):
         before = {e.name: e for e in CONTRACT}.get(example.after)
         assert before, f"El Example {example.name} pide antes a «{example.after}», que no está en CONTRACT"
         assert client.request(before.method, before.path, json=before.body).status_code == before.status
-    reply = client.request(example.method, example.path, json=example.body)
+    # El `request_id` de las respuestas que ordenan cosas es el X-Request-ID del pedido: fijo, el ejemplo no cambia.
+    headers = {"X-Request-ID": f"contrato-{example.name}"}
+    reply = client.request(example.method, example.path, json=example.body, headers=headers)
     check_example(example, reply, FIXTURES, write=os.environ.get("RAPPI_CONTRACT_WRITE") == "1")
 
 

@@ -1,17 +1,40 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef } from 'react'
+import { version } from '../../package.json'
 import { beaconEvents, health, sendEvents } from '../api/client'
-import { randomId, readStore, userId, writeStore } from '../api/user'
+import { randomId, randomUuid, readStore, userId, writeStore } from '../api/user'
 import { useDemo } from './DemoContext'
 
 // Eventos de uso para el panel de la empresa (búsquedas, carrito, sugerencias, pedidos). Se envían en lotes a
-// rappi-ia; sin API esperan en la cola (con tope) hasta que contesta. En "Rappi hoy" se envían sin concepto y con
-// `payload.mode = 'actual'`: ni el agente ni el motor aprenden de ellos.
+// rappi-ia; sin API esperan en la cola (con tope) hasta que contesta, y un lote que falla en el camino vuelve a la cola:
+// cada evento lleva su id (`client_event_id`), así la API no guarda dos veces uno que sí había llegado. Cada evento
+// lleva también su hora (`client_ts`) y su orden en la sesión (`seq`), y cada lote lo que la app cuenta de su sesión
+// (`app_sessions`). En "Rappi hoy" se envían sin concepto y con `payload.mode = 'actual'`: ni el agente ni el motor
+// aprenden de ellos. Desde dónde se hizo cada cosa (pantalla, lista, posición, respuesta de la API) lo arma
+// api/attribution.js.
 const SESSION_KEY = 'rappi-proto-session'
 const SESSION_IDLE_MS = 30 * 60 * 1000 // una sesión termina tras 30 min sin actividad
 const FLUSH_MS = 5000
 const MAX_QUEUE = 200
 // Largo máximo de los textos en rappi-ia (EventIn): uno más largo haría rechazar (422) el lote completo.
 const FIELD_LIMITS = { query: 500, entity_id: 64, cart_id: 64, session_id: 64 }
+const PLATFORM = 'web'
+
+/**
+ * ¿Se abrió la página con un enlace (una ruta o parámetros en la dirección) o directamente? Al recargar, la pantalla
+ * vuelve de `history.state`: eso no es un enlace. Se lee al cargar el módulo, antes de que la navegación escriba su hash.
+ */
+function pageEntry() {
+  if (typeof window === 'undefined') return 'directa'
+  const { hash, search } = window.location
+  return !window.history.state?.nav && (hash.length > 1 || search.length > 1) ? 'enlace' : 'directa'
+}
+// La entrada vale para la sesión que empieza al cargar la página; las siguientes de la misma pestaña son directas.
+let nextEntry = pageEntry()
+
+/** ¿Vale la pena reintentar el lote? Sin red, sin respuesta a tiempo, la API ocupada o con un error suyo, sí; un lote
+ * que la API rechazó (400, 403, 422) volvería a rechazarse. */
+const retryable = (error) =>
+  error?.kind === 'offline' || error?.kind === 'timeout' || error?.status === 429 || error?.status >= 500
 
 function withinLimits(event) {
   const clipped = { ...event }
@@ -29,7 +52,11 @@ function touchSession(now, change = (session) => session) {
   } catch {
     stored = null
   }
-  const session = stored && now - stored.lastAt < SESSION_IDLE_MS ? stored : { id: randomId('s'), lastAt: now }
+  let session = stored && now - stored.lastAt < SESSION_IDLE_MS ? stored : null
+  if (!session) {
+    session = { id: randomId('s'), lastAt: now, entry: nextEntry }
+    nextEntry = 'directa'
+  }
   const next = change({ ...session, lastAt: now })
   writeStore(sessionStorage, SESSION_KEY, JSON.stringify(next))
   return next
@@ -38,6 +65,31 @@ function touchSession(now, change = (session) => session) {
 /** Sesión actual; se renueva tras 30 min sin actividad. */
 export function sessionId(now = Date.now()) {
   return touchSession(now).id
+}
+
+/** El siguiente evento de la sesión: su id y su número (`seq`, 0 el primero), con la sesión al día. */
+function nextInSession(now) {
+  const session = touchSession(now, (current) => ({ ...current, seq: (current.seq ?? -1) + 1 }))
+  return { session_id: session.id, seq: session.seq }
+}
+
+/**
+ * Lo que la app cuenta de su sesión (`app_sessions`): versión, plataforma, modo y cómo se abrió. Solo lee la sesión
+ * guardada (enviar un lote no es actividad: no la alarga).
+ */
+function sessionInfo(proposal) {
+  let stored = null
+  try {
+    stored = JSON.parse(readStore(sessionStorage, SESSION_KEY))
+  } catch {
+    // Sin almacenamiento: la entrada queda como directa.
+  }
+  return {
+    app_version: version,
+    platform: PLATFORM,
+    mode: proposal ? 'propuesta' : 'actual',
+    entry: stored?.entry ?? 'directa',
+  }
 }
 
 /**
@@ -61,6 +113,8 @@ const EventsContext = createContext(null)
 export function EventsProvider({ children }) {
   const demo = useDemo()
   const queue = useRef([])
+  // Sube con «Olvidar» (clear): un lote que falla después no vuelve a una cola que ya se vació.
+  const generation = useRef(0)
   const opened = useRef(false)
   // Lotes que ya salieron: "Olvidar" los espera para que no recreen en el servidor lo que se borra.
   const inFlight = useRef(Promise.resolve())
@@ -76,10 +130,14 @@ export function EventsProvider({ children }) {
       if (!(await health())) return
       const batch = queue.current.splice(0, MAX_QUEUE)
       if (batch.length === 0) return // «Olvidar» vació la cola mientras se revisaba la API
+      const sentIn = generation.current
       try {
-        await sendEvents(userId(), batch)
-      } catch {
-        // Evento perdido: es telemetría de la demo, no se reintenta.
+        await sendEvents(userId(), batch, sessionInfo(proposal.current))
+      } catch (error) {
+        // Falló en el camino: vuelve al frente de la cola para el próximo envío (con su id, no se duplica si sí había
+        // llegado). La cola mantiene su tope: si no cabe todo, se pierde lo más antiguo.
+        if (retryable(error) && sentIn === generation.current)
+          queue.current = [...batch, ...queue.current].slice(-MAX_QUEUE)
       }
     })()
     inFlight.current = Promise.all([inFlight.current, sending])
@@ -87,7 +145,14 @@ export function EventsProvider({ children }) {
   }, [])
 
   const track = useCallback((type, fields = {}) => {
-    const event = withinLimits({ type, session_id: sessionId(), ...fields })
+    const now = Date.now()
+    const event = withinLimits({
+      type,
+      ...nextInSession(now),
+      client_event_id: randomUuid(),
+      client_ts: new Date(now).toISOString(),
+      ...fields,
+    })
     // En «Rappi hoy» el evento va sin concepto y marcado `payload.mode = 'actual'`: el motor y los segmentos lo saltan.
     if (!proposal.current) {
       delete event.concept_id
@@ -102,7 +167,7 @@ export function EventsProvider({ children }) {
     opened.current = true
     const timer = setInterval(flush, FLUSH_MS)
     const onHide = () => {
-      if (beaconEvents(userId(), queue.current)) queue.current = []
+      if (beaconEvents(userId(), queue.current, sessionInfo(proposal.current))) queue.current = []
     }
     window.addEventListener('pagehide', onHide)
     return () => {
@@ -114,6 +179,7 @@ export function EventsProvider({ children }) {
   /** Descarta lo que aún no se envía (p. ej. al "Olvidar": si no, volvería a aparecer en el servidor). */
   const clear = useCallback(() => {
     queue.current = []
+    generation.current += 1
   }, [])
 
   /** Se cumple cuando terminan los lotes ya enviados. */

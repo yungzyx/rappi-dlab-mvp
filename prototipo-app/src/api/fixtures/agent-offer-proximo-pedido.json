@@ -41,6 +41,7 @@
     "from_concept": "pizza",
     "text": "Porque pediste 🍕 pizza."
   },
+  "request_id": "contrato-agent-offer-proximo-pedido",
   "text": "Para tu próximo pedido: bebidas gaseosas, en Express.",
   "vertical": "conveniencia"
 }

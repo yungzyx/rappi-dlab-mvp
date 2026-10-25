@@ -107,7 +107,9 @@ describe('TrackingScreen', () => {
     expect(events.track).toHaveBeenCalledWith('suggestion_shown', {
       concept_id: 'gaseosas',
       vertical: 'express',
-      payload: { origen: 'agent-proximo_pedido' },
+      surface: 'tracking',
+      origin: 'agent-proximo_pedido',
+      request_id: 'contrato-agent-offer-proximo-pedido',
     })
 
     // Tocarla abre el buscador con esa misma oferta, para agregar lo que arma.

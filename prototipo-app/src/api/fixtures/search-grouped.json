@@ -89,6 +89,7 @@
     }
   ],
   "query": "cerveza",
+  "request_id": "contrato-search-grouped",
   "unmet": false,
   "unmet_reason": null
 }

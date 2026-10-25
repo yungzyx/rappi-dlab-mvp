@@ -10,9 +10,11 @@ import threading
 import time
 from contextlib import asynccontextmanager, nullcontext
 from dataclasses import replace
+from datetime import datetime
 from importlib.metadata import version
 from typing import Annotated, Literal
 from urllib.parse import urlsplit
+from uuid import UUID
 
 from fastapi import APIRouter, BackgroundTasks, Depends, FastAPI, HTTPException, Path, Query, Request
 from fastapi.concurrency import run_in_threadpool
@@ -55,7 +57,7 @@ from .deps import (
 )
 from .identity import owner_in_path, owner_in_query, owner_of_body
 from .limits import TOO_MANY, MaxBodySize, RateLimit, busy, concurrency_cap
-from .logs import AccessLog, configure_logging, rejected, route_template
+from .logs import AccessLog, configure_logging, rejected, route_template, served_request_id
 from .services import Services, services
 
 log = logging.getLogger(__name__)
@@ -272,6 +274,15 @@ class EventIn(Clean):
     unmet: bool | None = None
     value: float | None = Field(default=None, le=MAX_EVENT_VALUE, allow_inf_nan=False)
     payload: dict = Field(default_factory=dict)
+    # El sobre (migración 043; docs/capa-de-datos.md): id, hora y orden según la app; desde dónde; y el `request_id`
+    # de la respuesta de la API de donde salió lo que se tocó (en una búsqueda, su propio id).
+    client_event_id: UUID | None = None
+    client_ts: datetime | None = None
+    seq: int | None = Field(default=None, ge=0, le=2**31 - 1)
+    surface: Literal[tuple(sorted(events.SURFACES))] | None = None  # type: ignore[valid-type]
+    origin: str | None = Field(default=None, pattern=r"^[a-z0-9_-]{1,40}$")
+    position: int | None = Field(default=None, ge=0, le=999)
+    request_id: str | None = Field(default=None, pattern=r"^[A-Za-z0-9._-]{1,64}$")
 
     @field_validator("payload")
     @classmethod
@@ -282,9 +293,19 @@ class EventIn(Clean):
         return payload
 
 
+class AppSessionIn(Clean):
+    """Lo que la app cuenta de su sesión, una vez por lote: va a `app_sessions` con el primer evento de cada sesión."""
+
+    app_version: str | None = Field(default=None, pattern=r"^[A-Za-z0-9._+-]{1,32}$")
+    platform: Literal["web", "ios", "android"] | None = None
+    mode: Literal["propuesta", "actual"] | None = None
+    entry: Literal["directa", "enlace", "push"] | None = None
+
+
 class EventsIn(Clean):
     user_id: str = Field(max_length=64)
     events: list[EventIn] = Field(max_length=200)
+    session: AppSessionIn | None = None
 
 
 class BeaconIn(EventsIn):
@@ -375,6 +396,7 @@ def ask(
         response = svc.agent.reply(conn, body.message, ctx)
     except ValueError as exc:
         raise rejected(exc, body.user_id) from exc
+    response = {**response, "request_id": served_request_id()}
     _log_ask(conn, body.user_id, body.session_id, body.message, response, "texto", body.mode)
     return response
 
@@ -415,7 +437,7 @@ def search(
             spare,
             correct,
         )
-        return grouped.to_dict()
+        return {**grouped.to_dict(), "request_id": served_request_id()}
     code = backend_vertical(vertical)
     try:
         outcome = search_products(
@@ -429,6 +451,7 @@ def search(
         "unmet": outcome.result.unmet,
         "unmet_reason": outcome.result.unmet_reason,
         "corrected_query": outcome.corrected_query,
+        "request_id": served_request_id(),
     }
 
 
@@ -470,7 +493,7 @@ def recommendations(
     taken = {row["vertical"] for row in rows}
     if len(rows) < limit and (top := _top_row(conn, user_id, backend_vertical(vertical), taken)):
         rows.append(top)
-    return {"user_id": user_id, "interests": interests[:5], "rows": rows}
+    return {"user_id": user_id, "interests": interests[:5], "rows": rows, "request_id": served_request_id()}
 
 
 TOP_REASON = "Lo más pedido estas semanas en {vertical}"
@@ -545,8 +568,9 @@ def tastes(user_id: ShortPath, conn: Connection = Depends(get_conn)) -> dict:
 @app.get("/profile/{user_id}/verticales", dependencies=[Depends(owner_in_path)])
 def home_shortcuts(user_id: ShortPath, conn: Connection = Depends(get_conn)) -> dict:
     """El orden de los accesos de la Home (`motor/home.py`): `{ fixed, order: [{ id, score, reason }], personalized }`.
-    Restaurantes y Turbo van fijos; los otros seis se ordenan por lo que la persona más usa."""
-    return home_verticals(conn, user_id)
+    Restaurantes y Turbo van fijos; los otros seis se ordenan por lo que la persona más usa. `request_id` es el id de
+    esta respuesta: los toques a los accesos lo devuelven en sus eventos."""
+    return {**home_verticals(conn, user_id), "request_id": served_request_id()}
 
 
 @app.delete("/profile/{user_id}", dependencies=[Depends(owner_in_path)])
@@ -598,6 +622,7 @@ def _save_events(connect, body: EventsIn) -> int:
                     for e in body.events
                 ],
                 source="prototype",
+                session=events.SessionInfo(**body.session.model_dump()) if body.session else None,
             )
         except ValueError as exc:
             raise rejected(exc, body.user_id) from exc
@@ -732,6 +757,8 @@ def _log_ask(conn, user_id, session_id, text, response, modality, mode) -> None:
         results=len(response.get("products", [])),
         unmet=bool(response.get("unmet")),
         payload={"mode": mode, "intent": response.get("intent", {}).get("kind")},
+        surface="agent",
+        request_id=response.get("request_id"),
     )
     try:
         with conn.transaction():  # un error deja la conexión lista para lo que sigue

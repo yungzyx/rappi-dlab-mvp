@@ -63,7 +63,7 @@ def cart_offer(client, user_id=None):
         body["user_id"] = user_id
     reply = client.post("/agent/offer", json=body)
     assert reply.status_code == 200, reply.text
-    return reply.json()
+    return {k: v for k, v in reply.json().items() if k != "request_id"}  # el id de cada respuesta cambia
 
 
 def test_complement_prefers_the_brand_you_buy(client, db):

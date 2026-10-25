@@ -112,13 +112,18 @@ def _serial(test_url, q: str) -> dict:
         return search_grouped(conn, q, HashEmbedder(), None, 6).to_dict()
 
 
+def _served(reply) -> dict:
+    """La respuesta sin su `request_id` (el id de cada request): lo demás se compara con lo calculado en serie."""
+    return {k: v for k, v in reply.json().items() if k != "request_id"}
+
+
 def test_with_a_free_pool_the_groups_are_the_same_as_in_series(catalog, test_url, make_pool, client, spares):
     make_pool(test_url, max_size=10)
 
     for q in QUERIES:
         reply = client.get("/search", params={"q": q})
         assert reply.status_code == 200, reply.text
-        assert reply.json() == _serial(test_url, q), q
+        assert _served(reply) == _serial(test_url, q), q
 
     assert spares["given"] > 0  # sí buscó en paralelo
     assert spares["max_out"] <= PARALLEL_SEARCHES
@@ -134,7 +139,7 @@ def test_the_profile_offer_searches_its_steps_with_spare_connections(catalog, te
         with connect(test_url) as conn:
             serial = make_offer(conn, HashEmbedder(), "perfil", {"perfil": profile_id})
         assert serial is not None, profile_id  # una escalera de verdad, no dos 204
-        assert (reply.status_code, reply.json()) == (200, serial.to_dict()), profile_id
+        assert (reply.status_code, _served(reply)) == (200, serial.to_dict()), profile_id
 
     assert spares["given"] > 0
     assert spares["max_out"] <= PARALLEL_SEARCHES
@@ -147,7 +152,7 @@ def test_with_the_pool_exhausted_it_searches_in_series_without_errors(catalog, t
     for q in QUERIES:
         reply = client.get("/search", params={"q": q})
         assert reply.status_code == 200, reply.text
-        assert reply.json() == _serial(test_url, q), q
+        assert _served(reply) == _serial(test_url, q), q
 
     assert spares["given"] == 0 and spares["refused"] > 0
 
@@ -163,7 +168,7 @@ def test_with_the_pool_simulated_empty_it_searches_in_series(catalog, test_url, 
 
     for q in ("cerveza", "papas fritas"):
         reply = client.get("/search", params={"q": q})
-        assert reply.status_code == 200 and reply.json() == _serial(test_url, q), q
+        assert reply.status_code == 200 and _served(reply) == _serial(test_url, q), q
 
 
 def test_concurrent_searches_never_pass_the_pool(catalog, test_url, make_pool, client, spares):

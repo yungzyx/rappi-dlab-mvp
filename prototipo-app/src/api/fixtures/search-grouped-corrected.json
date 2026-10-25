@@ -89,6 +89,7 @@
     }
   ],
   "query": "cervezaaaa",
+  "request_id": "contrato-search-grouped-corrected",
   "unmet": false,
   "unmet_reason": null
 }

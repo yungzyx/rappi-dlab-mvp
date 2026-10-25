@@ -1,6 +1,7 @@
 import { StrictMode } from 'react'
 import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import { afterAll, afterEach, beforeAll, describe, expect, test, vi } from 'vitest'
+import { placeList } from '../../api/attribution'
 import { toPrototypeProduct } from '../../api/client'
 import { fixture, stubApi } from '../../test/api'
 import { ToastProvider } from '../../components/Toast'
@@ -261,14 +262,17 @@ describe('visita a una tienda (embudo del panel)', () => {
     stubCatalog()
     openStore({ store: GROCERY })
     await screen.findByRole('navigation', { name: 'Pasillos' })
-    expect(tracked('view_store')).toEqual([
-      expect.objectContaining({
-        vertical: 'grocery',
-        entity_type: 'store',
-        entity_id: '9101',
-        payload: { name: 'Supermercado de prueba Centro' },
-      }),
-    ])
+    // Sale de un efecto, que corre después de pintar.
+    await waitFor(() =>
+      expect(tracked('view_store')).toEqual([
+        expect.objectContaining({
+          vertical: 'grocery',
+          entity_type: 'store',
+          entity_id: '9101',
+          payload: { name: 'Supermercado de prueba Centro' },
+        }),
+      ]),
+    )
   })
 
   test('cambiar de pasillo o traer más productos no cuenta otra visita', async () => {
@@ -321,6 +325,45 @@ describe('visita a una tienda (embudo del panel)', () => {
     await waitFor(() => expect(tracked('view_store')).toHaveLength(1))
     expect(tracked('view_item')).toEqual([])
   })
+
+  test('una tienda tocada en una lista de la Home lleva a view_store su lugar en esa lista', async () => {
+    stubCatalog()
+    const [, store] = placeList([PIZZERIA, GROCERY], { surface: 'home', origin: 'cerca-de-ti', requestId: 'home-1' })
+    openStore({ store })
+    await waitFor(() => expect(tracked('view_store')).toHaveLength(1))
+    expect(tracked('view_store')[0]).toMatchObject({
+      surface: 'home',
+      origin: 'cerca-de-ti',
+      position: 1,
+      request_id: 'home-1',
+      entity_id: '9101',
+    })
+  })
+
+  test('un producto de una recomendación es su clic (una vez) y lo que se agrega del pasillo dice su lugar', async () => {
+    stubCatalog()
+    const [item] = placeList([toPrototypeProduct(fixture('catalog-product'))], {
+      surface: 'agent',
+      origin: 'para-ti',
+      requestId: 'recs-1',
+    })
+    openStore({ store: GROCERY, item })
+    await waitFor(() => expect(tracked('view_store')).toHaveLength(1))
+    expect(tracked('recommendation_click')).toEqual([
+      expect.objectContaining({
+        entity_id: '91001',
+        surface: 'agent',
+        origin: 'para-ti',
+        position: 0,
+        request_id: 'recs-1',
+      }),
+    ])
+    // El producto no está en el primer pasillo: va arriba, en «Lo que elegiste», y después los 24 del pasillo.
+    await waitFor(() => expect(rows()).toHaveLength(25))
+    const second = document.querySelectorAll('.store-products .product-row')[2]
+    fireEvent.click(within(second).getByLabelText(/^Agregar /))
+    expect(tracked('cart_add')).toEqual([expect.objectContaining({ surface: 'store', origin: 'pasillo', position: 1 })])
+  })
 })
 
 describe('producto que llegó tocándolo', () => {
@@ -365,7 +408,7 @@ describe('producto que llegó tocándolo', () => {
     fireEvent.click(within(row).getByLabelText(`Agregar ${offered.name}`))
     fireEvent.click(within(row).getByLabelText(/^Agregar uno de/)) // otra unidad: no es otra aceptación
     const accepted = tracked('suggestion_accepted')
-    expect(accepted).toEqual([expect.objectContaining({ concept_id: 'cafe', payload: { origen: 'agent-recompra' } })])
+    expect(accepted).toEqual([expect.objectContaining({ concept_id: 'cafe', origin: 'agent-recompra' })])
   })
 
   test('también se destaca en un restaurante si el plato no está en su menú', async () => {

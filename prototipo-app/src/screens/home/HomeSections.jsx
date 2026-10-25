@@ -1,4 +1,5 @@
 import { useId, useState } from 'react'
+import { placeList } from '../../api/attribution'
 import { home, restaurants } from '../../api/catalog'
 import { useApi } from '../../api/useApi'
 import Carousel, { Dots } from '../../components/Carousel'
@@ -11,17 +12,20 @@ import './home.css'
 
 // Secciones de la Home que comparten «Rappi hoy» y el prototipo final.
 
-/** Restaurantes y Turbo. `onOpen(vertical)` avisa cuál se tocó (código del backend). */
+/**
+ * Restaurantes y Turbo. `onOpen(vertical, where)` avisa cuál se tocó (código del backend) y dónde estaba (`where`:
+ * `{ origin: 'accesos-grandes', position }`, para el sobre del evento).
+ */
 export function MainTiles({ push, onOpen }) {
   return (
     <section className="home-tiles">
-      {MAIN_TILES.map((tile) => (
+      {MAIN_TILES.map((tile, position) => (
         <button
           key={tile.id}
           type="button"
           className={`home-tile home-tile--${tile.id} tap`}
           onClick={() => {
-            onOpen?.(tile.vertical)
+            onOpen?.(tile.vertical, { origin: 'accesos-grandes', position })
             push(tile.screen)
           }}
         >
@@ -37,14 +41,15 @@ export function MainTiles({ push, onOpen }) {
  * Fila de verticales. `proposal` es el prototipo final: RappiFavor (no disponible hoy) sí abre, y los 6 verticales siguen
  * `order` (códigos del backend; sin él, el orden fijo) con Lealtad y Beneficios Pro al final. `caption` va bajo la fila;
  * en el prototipo final su línea queda reservada (vacía si no hay leyenda) para que la fila no se mueva al aparecer.
- * `onOpen(vertical)` avisa qué vertical se tocó (código del backend); los accesos sin vertical no avisan.
+ * `onOpen(vertical, where)` avisa qué vertical se tocó (código del backend) y dónde estaba (`where`: `{ origin:
+ * 'accesos', position }`, su lugar en la fila tal como se ve); los accesos sin vertical no avisan.
  */
 export function Shortcuts({ push, proposal = false, order = null, caption = null, onOpen, onService }) {
   const toast = useToast()
   return (
     <>
       <HScroll className="home-shortcuts">
-        {orderShortcuts(SHORTCUTS, order, { final: proposal }).map((item) => {
+        {orderShortcuts(SHORTCUTS, order, { final: proposal }).map((item, position) => {
           const enabled = proposal && item.proposalRoute
           const unavailable = item.unavailable && !enabled
           const route = enabled ? item.proposalRoute : item.route
@@ -55,7 +60,7 @@ export function Shortcuts({ push, proposal = false, order = null, caption = null
               className={unavailable ? 'home-shortcut is-unavailable tap' : 'home-shortcut tap'}
               aria-label={unavailable ? `${item.label} (no disponible)` : undefined}
               onClick={() => {
-                if (item.vertical) onOpen?.(item.vertical)
+                if (item.vertical) onOpen?.(item.vertical, { origin: 'accesos', position })
                 if (unavailable) toast(`${item.label} no está disponible`)
                 else if (route) {
                   if (item.service) onService?.(item.service) // abrir RappiFavor o RappiTravel: `service_opened`
@@ -114,6 +119,7 @@ const BEST_RATED_COUNT = 6
 /**
  * Las listas de la Home que salen del catálogo (`/catalog`): restaurantes rápidos y tiendas cerca (una llamada) y los mejor
  * evaluados (otra). La Home nunca espera ni se bloquea: una lista que no llega, o que falla, queda vacía y su sección no se ve.
+ * Cada tienda lleva su lugar (`placement`): abrirla lo dice en `view_store`.
  */
 export function useHomeCatalog() {
   const lists = useApi(home, [])
@@ -121,7 +127,7 @@ export function useHomeCatalog() {
   return {
     fastRestaurants: lists.data?.fastRestaurants ?? [],
     nearbyStores: lists.data?.nearbyStores ?? [],
-    bestRated: bestRated.data ?? [],
+    bestRated: placeList(bestRated.data, { surface: 'home', origin: 'mejor-evaluados' }),
   }
 }
 

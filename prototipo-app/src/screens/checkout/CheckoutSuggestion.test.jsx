@@ -60,7 +60,7 @@ const ask = async () => {
   await act(async () => {}) // la respuesta de la API
 }
 const tracked = (type) =>
-  events.track.mock.calls.filter(([name, fields]) => name === type && fields.payload?.origen === 'agent-checkout')
+  events.track.mock.calls.filter(([name, fields]) => name === type && fields.origin === 'agent-checkout')
 
 let api
 beforeEach(() => {

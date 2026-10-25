@@ -40,6 +40,7 @@
     "concept": "cafe",
     "text": "Porque pides café cada 7 días y tu último pedido fue hace 7 días."
   },
+  "request_id": "contrato-agent-offer-recompra",
   "text": "¿Repetimos café? Pides cada 7 días.",
   "vertical": "supermercado"
 }

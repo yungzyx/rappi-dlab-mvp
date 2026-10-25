@@ -1,5 +1,6 @@
 // Pedidos del prototipo → rappi-ia: un pedido por vertical (como en Rappi, un pedido es de una tienda).
 import { parsePrice } from '../state/CartContext'
+import { placementFields } from './attribution'
 
 // Los pedidos que van en camino al servidor (`POST /orders` y lo que lo precede): «Olvidar» los espera antes de borrar el
 // perfil, porque uno que llegue después lo recrearía.
@@ -24,9 +25,13 @@ export async function ordersSettled() {
 /** Concepto de un producto: el que trae de la API (`concept`); sin él, el evento y el pedido van sin concepto. */
 export const conceptOf = (product) => product.concept
 
-/** Campos de un evento de carro (agregar, quitar, vaciar) para rappi-ia; `qty` = unidades del evento. */
+/**
+ * Campos de un evento de carro (agregar, quitar, vaciar) o de ver un producto para rappi-ia; `qty` = unidades del
+ * evento. Con el sobre de dónde salió el producto (`placementFields`: pantalla, lista, posición y respuesta de la API).
+ */
 export function cartEventFields(item, cartId, { qty } = {}) {
   return {
+    ...placementFields(item),
     cart_id: cartId,
     vertical: item.vertical,
     concept_id: conceptOf(item),

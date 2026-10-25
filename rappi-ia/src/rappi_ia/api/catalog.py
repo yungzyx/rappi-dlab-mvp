@@ -14,6 +14,7 @@ from ..catalog.home import home
 from ..catalog.restaurants import Sort, restaurant_menu, restaurants
 from ..catalog.stores import product_detail, store_page, vertical_stores
 from .deps import backend_vertical, get_conn
+from .logs import served_request_id
 
 router = APIRouter(prefix="/catalog", tags=["catalog"])
 
@@ -95,5 +96,6 @@ def deals_list(
 
 @router.get("/home")
 def home_lists(conn: Connection = Depends(get_conn)) -> dict:
-    """Las listas del catálogo para la Home: tiendas cerca de ti, restaurantes rápidos y con envío barato."""
-    return home(conn)
+    """Las listas del catálogo para la Home: tiendas cerca de ti, restaurantes rápidos y con envío barato, con el id de
+    esta respuesta (`request_id`) para los eventos de lo que se toque en ellas."""
+    return {**home(conn), "request_id": served_request_id()}

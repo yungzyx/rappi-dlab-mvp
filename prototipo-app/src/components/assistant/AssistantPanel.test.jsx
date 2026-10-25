@@ -776,15 +776,24 @@ describe('Para ti y Descubre con Mochi', () => {
     expect(document.querySelector('.agent-msg-reason').textContent).toBe('Por tu interés en 🍕 pizza')
     // Una sola petición sirve a «Para ti» y a «Descubre con Mochi».
     expect(fetchMock.mock.calls.filter(([url]) => url.includes('/recommendations'))).toHaveLength(1)
-    const shown = tracked('suggestion_shown').filter((fields) => fields.payload.origen === 'para-ti')
-    expect(shown).toEqual([{ concept_id: 'jugos', vertical: 'express', payload: { origen: 'para-ti' } }])
+    const shown = tracked('suggestion_shown').filter((fields) => fields.origin === 'para-ti')
+    // Con el sobre: el buscador con Mochi, «Para ti» y la respuesta de /recommendations.
+    expect(shown).toEqual([
+      {
+        concept_id: 'jugos',
+        vertical: 'express',
+        surface: 'agent',
+        origin: 'para-ti',
+        request_id: 'contrato-recommendations',
+      },
+    ])
 
     // Cerrar y volver a abrir (o recargar la pantalla) no la cuenta otra vez.
     cleanup()
     stubCatalog({ '/recommendations': rows() })
     await renderPanel()
     expect(screen.getByText('Gaseosa cola 500 cc (prueba)')).toBeTruthy()
-    expect(tracked('suggestion_shown').filter((fields) => fields.payload.origen === 'para-ti')).toHaveLength(1)
+    expect(tracked('suggestion_shown').filter((fields) => fields.origin === 'para-ti')).toHaveLength(1)
   })
 
   test('la fila «Lo más pedido» de Para ti se cuenta como mostrada con su tipo', async () => {
@@ -794,9 +803,16 @@ describe('Para ti y Descubre con Mochi', () => {
     await renderPanel()
 
     expect(document.querySelector('.agent-msg-reason').textContent).toBe('Lo más pedido estas semanas en el súper')
-    const shown = tracked('suggestion_shown').filter((fields) => fields.payload.origen === 'para-ti')
+    const shown = tracked('suggestion_shown').filter((fields) => fields.origin === 'para-ti')
     expect(shown).toEqual([
-      { concept_id: 'cafe', vertical: 'grocery', payload: { origen: 'para-ti', kind: 'lo_mas_pedido' } },
+      {
+        concept_id: 'cafe',
+        vertical: 'grocery',
+        surface: 'agent',
+        origin: 'para-ti',
+        request_id: 'contrato-recommendations',
+        payload: { kind: 'lo_mas_pedido' },
+      },
     ])
   })
 
@@ -805,7 +821,7 @@ describe('Para ti y Descubre con Mochi', () => {
     await renderPanel()
     fireEvent.click(screen.getByLabelText('Agregar Gaseosa cola 500 cc (prueba)'))
     expect(tracked('suggestion_accepted')).toContainEqual(
-      expect.objectContaining({ concept_id: 'jugos', payload: { origen: 'para-ti' } }),
+      expect.objectContaining({ concept_id: 'jugos', origin: 'para-ti' }),
     )
   })
 
@@ -876,7 +892,7 @@ describe('¿Con qué acompaño…?', () => {
     expect(bubbles()).toContain('Para completar tu pedido: snacks salados, en Express.')
     fireEvent.click(screen.getByLabelText('Agregar Papas fritas clásicas 180 g (prueba)'))
     expect(tracked('suggestion_accepted')).toContainEqual(
-      expect.objectContaining({ concept_id: 'snacks-salados', payload: { origen: 'agent-carrito' } }),
+      expect.objectContaining({ concept_id: 'snacks-salados', origin: 'agent-carrito' }),
     )
   })
 
@@ -987,7 +1003,8 @@ describe('servicios sin catálogo', () => {
     expect(tracked('suggestion_shown')).toContainEqual({
       concept_id: 'dermocosmetica',
       vertical: 'farmacia',
-      payload: { origen: 'rappitravel' },
+      surface: 'agent',
+      origin: 'rappitravel',
     })
 
     fireEvent.click(screen.getByText('Abrir RappiTravel →'))
@@ -1045,7 +1062,7 @@ describe('aceptar una sugerencia de la API', () => {
     fireEvent.click(screen.getByLabelText('Agregar Jugo de naranja 1 L'))
     expect(tracked('suggestion_shown')).toHaveLength(1)
     expect(tracked('suggestion_accepted')).toHaveLength(1)
-    expect(tracked('suggestion_accepted')[0]).toMatchObject({ concept_id: 'jugos', payload: { origen: 'agent-ask' } })
+    expect(tracked('suggestion_accepted')[0]).toMatchObject({ concept_id: 'jugos', origin: 'agent-ask' })
   })
 })
 
@@ -1287,7 +1304,7 @@ describe('al abrir, nada se mueve', () => {
 })
 
 describe('perfil de gusto', () => {
-  const offers = () => tracked('suggestion_shown').filter((fields) => fields.payload.origen === 'agent-perfil')
+  const offers = () => tracked('suggestion_shown').filter((fields) => fields.origin === 'agent-perfil')
 
   test('con un perfil activo, muestra el perfil, su escalera de verticales con productos y la idea para RappiTravel', async () => {
     const push = vi.fn()

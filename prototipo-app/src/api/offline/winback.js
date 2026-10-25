@@ -149,7 +149,8 @@ const same = (lapse, event) =>
 /**
  * Las invitaciones que se pueden mostrar ahora (winback.py: available): sin las descartadas dos veces después de su
  * último pedido, y con pausa por persona: si en los últimos 7 días se le mostró una, solo esa (si sigue calificando).
- * Cuentan los eventos con origen `agent-volver`, salvo los de «Rappi hoy». Lo que volvió a pedir ya no está en
+ * Cuentan los eventos con origen `agent-volver` (`origin`, o `payload.origen` en los de antes), salvo los de «Rappi
+ * hoy». Lo que volvió a pedir ya no está en
  * `candidates`: aquí la recompra se calcula con los mismos pedidos.
  */
 export function available(state, candidates, now) {
@@ -157,7 +158,7 @@ export function available(state, candidates, now) {
     .filter(
       (e) =>
         (e.type === 'suggestion_shown' || e.type === 'suggestion_dismissed') &&
-        e.payload?.origen === ORIGIN &&
+        (e.origin ?? e.payload?.origen) === ORIGIN &&
         e.payload?.mode !== 'actual',
     )
     .sort((a, b) => b.ts - a.ts)

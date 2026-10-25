@@ -1,4 +1,5 @@
 import { screenForBackend } from '../data/verticals'
+import { envelope } from './attribution'
 import { conceptOf } from './orders'
 
 // Lo que dura la pestaña: las pantallas se desmontan y vuelven a montarse, y lo ya mostrado no se cuenta otra vez.
@@ -21,18 +22,25 @@ export function firstShowing(row) {
 /**
  * Registra la sugerencia del agente mostrada (`suggestion_shown`): una vez por pestaña, concepto, vertical, origen y
  * generación del perfil (`generation` = `profile.resets`). `track` es `useEvents().track`; `origin` es
- * `agent-<momento>`, `agent-ask`, etc. Si no se dan `concept` o `vertical`, salen del primer producto. Con `kind` (la
- * fila «Lo más pedido» de «Para ti»: `lo_mas_pedido`), va también en el payload. Devuelve si la registró (false si ya
- * estaba contada o no hay concepto).
+ * `agent-<momento>`, `agent-ask`, etc. (la columna `origin` del evento). Si no se dan `concept` o `vertical`, salen del
+ * primer producto, y `surface` y `requestId` (la pantalla y la respuesta de la API), de su lugar (`placement`). Con
+ * `kind` (la fila «Lo más pedido» de «Para ti»: `lo_mas_pedido`), va en el payload. Devuelve si la registró (false si
+ * ya estaba contada o no hay concepto).
  */
-export function noteShown(track, products, { origin, concept, vertical, generation = 0, kind }) {
+export function noteShown(track, products, { origin, concept, vertical, generation = 0, kind, surface, requestId }) {
   const [first] = products ?? []
   const shownConcept = concept ?? (first && conceptOf(first))
   const shownVertical = vertical ?? first?.vertical
   if (!shownConcept || !firstShowing({ concept: shownConcept, vertical: shownVertical, origin, generation }))
     return false
-  const payload = kind ? { origen: origin, kind } : { origen: origin }
-  track('suggestion_shown', { concept_id: shownConcept, vertical: shownVertical, payload })
+  // El origen va en la columna `origin` (antes, `payload.origen`); la pantalla y la respuesta, las del primer producto.
+  const placed = first?.placement ?? {}
+  track('suggestion_shown', {
+    concept_id: shownConcept,
+    vertical: shownVertical,
+    ...envelope({ surface: surface ?? placed.surface, origin, requestId: requestId ?? placed.requestId }),
+    ...(kind ? { payload: { kind } } : {}),
+  })
   return true
 }
 
@@ -56,8 +64,10 @@ export function noteAccepted(track, products, { origin, generation = 0 }) {
     const key = `${generation}|${concept ?? `producto:${product.entityId ?? product.id}`}|${screenForBackend(vertical) ?? vertical}|${origin}`
     if (accepted.has(key)) continue
     accepted.add(key)
-    if (concept) noteShown(track, null, { origin, concept, vertical, generation })
-    track('suggestion_accepted', { concept_id: concept, vertical, payload: { origen: origin } })
+    const placed = product.placement ?? {}
+    const where = { surface: placed.surface, requestId: placed.requestId }
+    if (concept) noteShown(track, null, { origin, concept, vertical, generation, ...where })
+    track('suggestion_accepted', { concept_id: concept, vertical, ...envelope({ ...where, origin }) })
     count += 1
   }
   return count

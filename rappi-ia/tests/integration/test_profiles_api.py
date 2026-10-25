@@ -212,7 +212,7 @@ def test_the_profile_moment_has_the_shape_of_the_spec(client):
 
     body = offer(client, {"perfil": "asiatico"}).json()
 
-    assert set(body) == {"moment", "text", "perfil", "escalera", "viaje", "reason", "actions"}
+    assert set(body) == {"moment", "text", "perfil", "escalera", "viaje", "reason", "actions", "request_id"}
     for step in body["escalera"]:
         assert set(step) == {"vertical", "prototype_vertical", "texto", "products"}
         assert step["prototype_vertical"] == SCREEN_VERTICALS[step["vertical"]] and step["texto"]

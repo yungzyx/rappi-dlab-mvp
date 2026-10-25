@@ -1,4 +1,5 @@
 import { useRef } from 'react'
+import { envelope } from '../../api/attribution'
 import BackToTop from '../../components/BackToTop'
 import DemoDisclaimer from '../../components/DemoDisclaimer'
 import PlainSearchBar from '../../components/PlainSearchBar'
@@ -20,7 +21,9 @@ export default function HomeFeed({ push }) {
   const address = useAddress()
   const catalog = useHomeCatalog()
   const events = useEvents()
-  const openVertical = (vertical) => events.track('vertical_open', { vertical })
+  // El sobre dice qué acceso de la Home se tocó y en qué lugar estaba (en «Rappi hoy» el orden es fijo).
+  const openVertical = (vertical, where) =>
+    events.track('vertical_open', { vertical, ...envelope({ surface: 'home', ...where }) })
   const openService = (servicio) => events.track('service_opened', { payload: { servicio, desde: 'home' } })
   const openSearch = () => push('search')
   const screenRef = useRef(null)

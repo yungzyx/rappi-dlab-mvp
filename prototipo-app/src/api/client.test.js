@@ -403,7 +403,12 @@ describe('stubApi', () => {
       },
     })
 
-    expect(await recommendations('proto 1', 'licores')).toEqual({ user: 'proto 1', vertical: 'licores', rows: [] })
+    expect(await recommendations('proto 1', 'licores')).toEqual({
+      user: 'proto 1',
+      vertical: 'licores',
+      rows: [],
+      requestId: null,
+    })
     expect(await ask({ message: 'cerveza', vertical: null })).toEqual({ text: 'Mira' })
     expect(await failure(ask({ message: 'pizza' }))).toMatchObject({ kind: 'http', status: 500 })
 

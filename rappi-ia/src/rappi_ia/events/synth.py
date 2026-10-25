@@ -93,6 +93,7 @@ from ..offers.guards import baby_in_name, is_offerable, offerable_vertical, unof
 
 log = logging.getLogger(__name__)
 CHILE = timezone(timedelta(hours=-3))
+SYNTHETIC_EVENTS = uuid.UUID("6f0c7a52-3b1e-4c8e-9a43-0d5e2b7f1a90")  # espacio de los ids de evento simulados (uuid5)
 
 
 @dataclass(frozen=True)
@@ -611,7 +612,13 @@ def generate(
     start = end - timedelta(weeks=weeks)
     conn.execute("DELETE FROM app_users WHERE source = 'synthetic'")
 
-    buffers = {"users": io.StringIO(), "events": io.StringIO(), "orders": io.StringIO(), "lines": io.StringIO()}
+    buffers = {
+        "users": io.StringIO(),
+        "sessions": io.StringIO(),
+        "events": io.StringIO(),
+        "orders": io.StringIO(),
+        "lines": io.StringIO(),
+    }
     counts = {"usuarios": 0, "eventos": 0, "pedidos": 0}
     for n in range(users):
         persona = rng.choices(PERSONAS, weights=[p.share for p in PERSONAS])[0]
@@ -630,6 +637,7 @@ def generate(
         _simulate_user(rng, catalog, state, signup, end, start, buffers, counts)
 
     _copy(conn, "app_users (user_id, source, segment, city, consent_notifications, created_at)", buffers["users"])
+    _copy(conn, "app_sessions (user_id, session_id, started_at, mode, source)", buffers["sessions"])
     _copy(conn, "app_orders (order_id, user_id, session_id, cart_id, ts, vertical, total, source)", buffers["orders"])
     _copy(
         conn,
@@ -639,7 +647,7 @@ def generate(
     _copy(
         conn,
         "app_events (user_id, session_id, ts, type, vertical, concept_id, entity_type, entity_id, cart_id, query,"
-        " modality, results, unmet, value, payload, source)",
+        " modality, results, unmet, value, payload, source, client_event_id, client_ts, seq)",
         buffers["events"],
     )
     conn.commit()
@@ -664,8 +672,13 @@ def _simulate_user(
 def _session(rng, catalog: Catalog, s: UserState, ts: datetime, start: datetime, buffers, counts) -> None:
     session_id = uuid.UUID(int=rng.getrandbits(128)).hex[:16]
     events = buffers["events"]
+    _write(buffers["sessions"], s.user_id, session_id, _iso(ts), "propuesta", "synthetic")
+    seq = 0
 
     def emit(kind, when, **kw):
+        # El sobre de la app (migración 043): id, hora y orden de cada evento en su sesión. El id sale de la persona, la
+        # sesión y el orden (no del sorteo), así la simulación con la misma semilla no cambia.
+        nonlocal seq
         _write(
             events,
             s.user_id,
@@ -684,7 +697,11 @@ def _session(rng, catalog: Catalog, s: UserState, ts: datetime, start: datetime,
             kw.get("value"),
             json.dumps(kw.get("payload", {})),
             "synthetic",
+            uuid.uuid5(SYNTHETIC_EVENTS, f"{s.user_id}|{session_id}|{seq}"),
+            _iso(when),
+            seq,
         )
+        seq += 1
         counts["eventos"] += 1
 
     emit("app_open", ts)

@@ -5,6 +5,7 @@
 import { PLACEHOLDER_IMG } from '../components/Img'
 import { screenForBackend } from '../data/verticals'
 import { parsePrice } from '../state/CartContext'
+import { placeList } from './attribution'
 import { request, toPrototypeProduct } from './client'
 
 const CATALOG_TIMEOUT_MS = 10_000 // más que una pregunta al agente: una tienda grande suma precios vigentes en SQL
@@ -101,12 +102,18 @@ export async function deals(vertical) {
   return products.map(toPrototypeProduct)
 }
 
-/** Las listas de la Home: `{ nearbyStores, fastRestaurants, lowFeeRestaurants }`. */
+/**
+ * Las listas de la Home: `{ requestId, nearbyStores, fastRestaurants, lowFeeRestaurants }`, cada tienda marcada con su lugar
+ * (`placement`: su lista, su posición y el `request_id` de la respuesta) para los eventos de abrirla.
+ */
 export async function home() {
   const reply = await read('/catalog/home')
+  const requestId = reply.request_id ?? null
+  const list = (stores, origin) => placeList(stores.map(toPrototypeStore), { surface: 'home', origin, requestId })
   return {
-    nearbyStores: reply.nearby_stores.map(toPrototypeStore),
-    fastRestaurants: reply.fast_restaurants.map(toPrototypeStore),
-    lowFeeRestaurants: reply.low_fee_restaurants.map(toPrototypeStore),
+    requestId,
+    nearbyStores: list(reply.nearby_stores, 'cerca-de-ti'),
+    fastRestaurants: list(reply.fast_restaurants, 'restaurantes-rapidos'),
+    lowFeeRestaurants: list(reply.low_fee_restaurants, 'envio-barato'),
   }
 }

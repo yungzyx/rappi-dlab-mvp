@@ -59,6 +59,13 @@ def _stamp_records_with_request_id() -> None:
     logging.setLogRecordFactory(factory)
 
 
+def served_request_id() -> str:
+    """El id del request en curso (el de su línea en el log y su X-Request-ID): las respuestas que ordenan cosas lo
+    devuelven como `request_id`, y la app lo repite en los eventos que nacen de ellas. Así un clic se une con la
+    respuesta que lo originó."""
+    return request_id.get()
+
+
 def route_template(source) -> str:
     """La plantilla de la ruta que atendió el request (`/profile/{user_id}`): lo único de la URL que se registra."""
     scope = source.scope if isinstance(source, Request) else source

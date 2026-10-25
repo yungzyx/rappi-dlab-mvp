@@ -25,9 +25,11 @@
 //   tal cual de la API real
 // - rappi-ia/src/rappi_ia/agent/understand.py (_follow_up) y rappi_agent.py (_conversation, _without, _keeps, DIETS) ...
 //   seguir la conversación (conversation.js); los seguimientos de eval/frases_usuarios/conversaciones.txt salen grabados
-// - rappi-ia/src/rappi_ia/events/store.py .......... el perfil de intereses (index.js: interests)
+// - rappi-ia/src/rappi_ia/events/store.py .......... el perfil de intereses (index.js: interests) y el sobre de cada
+//   evento (index.js: storedEvent; el origen, en `origin` o, en los eventos de antes, `payload.origen`)
 // - rappi-ia/src/rappi_ia/offers/profiles.py ....... los perfiles de gusto activos (tastes.js)
-// - rappi-ia/src/rappi_ia/api/app.py y api/catalog.py ... las rutas (index.js, catalog.js, search.js)
+// - rappi-ia/src/rappi_ia/api/app.py y api/catalog.py ... las rutas (index.js, catalog.js, search.js), con el
+//   `request_id` de las respuestas que ordenan cosas (index.js: served)
 // No hay población que aprenda (transiciones, popularidad, retención aprendida) ni búsqueda semántica, y lo pedido en
 // la demo se repite sin esperar su ritmo (offers.js: repeatOffer): es una demo, no evidencia.
 import { catalogRoute } from './catalog'
@@ -44,6 +46,7 @@ const INTEREST_WEIGHTS = {
   order_placed: 5,
   cart_add: 3,
   suggestion_accepted: 3,
+  recommendation_click: 2,
   view_item: 1.5,
   view_store: 1,
   search: 1,
@@ -60,7 +63,8 @@ const json = (status, body) =>
 const randomHex = () =>
   Array.from(crypto.getRandomValues(new Uint8Array(8)), (b) => b.toString(16).padStart(2, '0')).join('')
 
-/** Un evento como lo guarda el backend: la vertical como código del catálogo y la hora en ms. */
+/** Un evento como lo guarda el backend: la vertical como código del catálogo, la hora en ms y su origen (`origin`, o
+ * `payload.origen` de un cliente de antes: events/store.py, _origin). */
 const storedEvent = (event, now) => ({
   type: event.type,
   ts: now,
@@ -68,8 +72,21 @@ const storedEvent = (event, now) => ({
   concept_id: event.concept_id ?? null,
   entity_type: event.entity_type ?? null,
   entity_id: event.entity_id ?? null,
+  origin: event.origin ?? event.payload?.origen ?? null,
   payload: event.payload ?? {},
 })
+
+/** Una respuesta que ordena cosas, con su `request_id` (api/logs.py: served_request_id), como la de la API. */
+const served = (body) => body && { ...body, request_id: `offline-${randomHex()}` }
+
+// Las rutas cuyas respuestas llevan `request_id` en la API.
+const SERVED = new Set([
+  'GET /search',
+  'POST /agent/ask',
+  'POST /agent/offer',
+  'GET /recommendations',
+  'GET /catalog/home',
+])
 
 /** Interés por concepto con decaimiento de 14 días (events/store.py: profile), de sus eventos y pedidos. */
 export function interests(snapshot, state, now) {
@@ -131,7 +148,14 @@ const ORDER_VERTICALS = [
 ]
 
 /** La respuesta `{ status, body }` a una petición; `body: null` es un 204. */
-export function route(snapshot, { method, path, query, body }, now = Date.now()) {
+export function route(snapshot, request, now = Date.now()) {
+  const reply = answer(snapshot, request, now)
+  const key = `${request.method} ${request.path}`
+  const ranked = SERVED.has(key) || (request.method === 'GET' && /^\/profile\/[^/]+\/verticales$/.test(request.path))
+  return ranked && (reply.status ?? 200) === 200 ? { ...reply, body: served(reply.body) } : reply
+}
+
+function answer(snapshot, { method, path, query, body }, now) {
   const catalog = catalogRoute(snapshot, method, path, query)
   if (catalog) return { status: catalog.status ?? 200, body: catalog.body }
   const state = readState()

@@ -1,6 +1,13 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
+import { envelope } from '../../api/attribution'
 import { useSearchApi } from '../../api/useSearchApi'
 import { useEvents } from '../../state/EventsContext'
+
+// De dónde salió el texto buscado (`payload.fuente`): escrito, una sugerencia (idea o búsqueda reciente) o el aviso de
+// la corrección («buscar tal cual»). Equivale a SEARCH_SOURCE de la app de Rappi.
+const TYPED = 'tipeada'
+const SUGGESTED = 'sugerencia'
+const CORRECTION = 'correccion'
 
 /**
  * Búsqueda en vivo en el catálogo de la API (todas las verticales, agrupada). La comparten el buscador de «Rappi hoy»
@@ -20,9 +27,12 @@ export function useSearch({ initial = '', vertical } = {}) {
   const events = useEvents()
   const logged = useRef(null)
   const wanted = useRef(null) // lo que la persona terminó de buscar y aún espera su respuesta
+  const source = useRef(TYPED) // de dónde salió lo que se busca (`fuente`)
 
   // Para el panel, solo búsquedas terminadas (Enter, salir del campo o una sugerencia), no palabras a medio
-  // escribir, y con lo que la API respondió: cuántos productos y si no hubo nada (`unmet`).
+  // escribir, y con lo que la API respondió: cuántos productos y si no hubo nada (`unmet`). El `request_id` de la
+  // respuesta es el id de la búsqueda (search_id): los productos de los resultados lo llevan a sus eventos, con su
+  // posición. `alcance` es global (todas las verticales, agrupada) o vertical.
   const record = useCallback(
     (term, found) => {
       logged.current = term
@@ -33,9 +43,15 @@ export function useSearch({ initial = '', vertical } = {}) {
         results: found.groups.reduce((sum, group) => sum + group.products.length, 0),
         unmet: found.unmet,
         vertical,
-        // Lo que buscó la API si corrigió un error de tipeo: el panel separa esas búsquedas de las que calzaron.
-        ...(found.correctedQuery && { payload: { corregida: found.correctedQuery } }),
+        ...envelope({ surface: 'search', requestId: found.requestId }),
+        payload: {
+          alcance: found.scope ?? 'global',
+          fuente: source.current,
+          // Lo que buscó la API si corrigió un error de tipeo: el panel separa esas búsquedas de las que calzaron.
+          ...(found.correctedQuery && { corregida: found.correctedQuery }),
+        },
       })
+      source.current = TYPED
     },
     [events, vertical],
   )
@@ -50,9 +66,10 @@ export function useSearch({ initial = '', vertical } = {}) {
   // renderizar, como un valor derivado: sin un render de más).
   if (ready && exactText !== null && data.query !== exactText) setExactText(null)
 
-  const logSearch = (term) => {
+  const logSearch = (term, from = TYPED) => {
     const clean = term.trim()
     if (!clean || clean === logged.current) return
+    source.current = from
     // Si la respuesta de lo buscado aún no llega, se registra al llegar.
     if (ready && clean === text) record(clean, data)
     else wanted.current = clean
@@ -61,13 +78,14 @@ export function useSearch({ initial = '', vertical } = {}) {
   /** Una búsqueda reciente: se escribe en el campo y se registra al llegar su respuesta. */
   const pick = (term) => {
     setQuery(term)
-    logSearch(term)
+    logSearch(term, SUGGESTED)
   }
 
   const searchExact = (term) => {
     setExactText(term)
     logged.current = null
     wanted.current = term
+    source.current = CORRECTION
   }
 
   return { query, setQuery, data, loading, error, retry, hasQuery, logSearch, pick, searchExact }

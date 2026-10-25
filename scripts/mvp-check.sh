@@ -88,7 +88,7 @@ ORDER BY o.ts DESC
 """
 ACCEPTED = """
 SELECT count(*) FROM app_events
-WHERE user_id = %s AND type = 'suggestion_accepted' AND payload->>'origen' = 'agent-plan'
+WHERE user_id = %s AND type = 'suggestion_accepted' AND coalesce(origin, payload->>'origen') = 'agent-plan'
 """
 kit = sys.argv[1:] == ["kit"]
 
