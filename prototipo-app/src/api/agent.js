@@ -107,3 +107,19 @@ export async function profileLadder(profileId) {
       : null,
   }
 }
+
+/**
+ * Las preferencias de la persona con el agente (`GET /profile/{id}/preferencias`): `{ preferencias, opciones }`, cada
+ * una `{ tipo, valor, nombre }` (`tipo`: dieta, alergia, cocina o tienda). La dieta y las alergias solo filtran lo que
+ * muestra Mochi; las cocinas y tiendas favoritas solo ordenan.
+ */
+export const preferences = () =>
+  request(`/profile/${encodeURIComponent(userId())}/preferencias`, { timeout: OFFER_TIMEOUT_MS })
+
+/** Reemplaza sus preferencias por `list` (`[{ tipo, valor }]`); responde como `preferences()`. */
+export const savePreferences = (list) =>
+  request(`/profile/${encodeURIComponent(userId())}/preferencias`, {
+    method: 'PUT',
+    body: { preferencias: list.map(({ tipo, valor }) => ({ tipo, valor })) },
+    timeout: OFFER_TIMEOUT_MS,
+  })

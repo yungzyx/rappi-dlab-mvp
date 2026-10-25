@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'vitest'
-import { ask, detectConcepts, matchProducts, namesQuery, search } from './search'
+import { HELP_ACTIONS, HELP_EXAMPLES, ask, detectConcepts, matchProducts, namesQuery, search } from './search'
 import { META, product } from '../../test/offlineMeta'
 
 const coffee = product(1, { name: 'Café molido 250 g' })
@@ -92,16 +92,40 @@ describe('«qué me recomiendas» (rappi_agent.py: _recommend)', () => {
     const reply = (interests) =>
       ask(wider, { message: 'qué me recomiendas', mode: 'propuesta' }, { interests, userId: 'proto-1' })
     expect(reply(['a', 'b', 'cafe']).products).toEqual([coffee])
-    expect(reply(['a', 'b', 'c', 'cafe'])).toBe(HELP)
+    expect(reply(['a', 'b', 'c', 'cafe'])).toEqual({ ...HELP, actions: HELP_ACTIONS })
   })
 
   test('sin productos que Mochi pueda ofrecer de un interés prueba el siguiente; sin nada, los ejemplos', () => {
     expect(recommend(['cerveza', 'juguetes']).text).toBe(
       'Por tu interés en 🧸 juguetes 😉 Mira lo que encontré de «juguetes» en Rappi Mall.',
     )
-    expect(recommend(['cerveza'])).toBe(HELP)
-    expect(recommend([])).toBe(HELP)
-    expect(recommend(['cafe'], { mode: 'actual' })).toBe(HELP)
+    // La ayuda grabada, con los atajos de hoy: lo que Mochi sabe hacer y, en «Rappi hoy», solo ejemplos.
+    expect(recommend(['cerveza'])).toEqual({ ...HELP, actions: HELP_ACTIONS })
+    expect(recommend([])).toEqual({ ...HELP, actions: HELP_ACTIONS })
+    expect(recommend(['cafe'], { mode: 'actual' })).toEqual({ ...HELP, actions: HELP_EXAMPLES })
+  })
+})
+
+describe('la ayuda, el resumen y el último pedido (rappi_agent.py: _small_talk)', () => {
+  const said = (message, mode = 'propuesta') => ask(snapshot, { message, mode })
+
+  test('«¿qué puedes hacer?» muestra lo que Mochi sabe hacer, sin ningún ejemplo de salud', () => {
+    const help = said('¿qué puedes hacer?')
+    expect(help.intent.kind).toBe('ayuda')
+    expect(help.actions).toEqual(HELP_ACTIONS)
+    expect(said('¿qué puedes hacer?', 'actual').actions).toEqual(HELP_EXAMPLES)
+    for (const reply of [help, said('ayuda', 'actual')])
+      expect(JSON.stringify(reply).toLowerCase()).not.toMatch(/fiebre|remedio/)
+  })
+
+  test('«quiero pagar» es el resumen antes de pagar y lleva al checkout; «¿dónde viene mi pedido?», a Mis pedidos', () => {
+    const summary = said('quiero pagar')
+    expect(summary.intent.kind).toBe('resumen')
+    expect(summary.actions).toEqual([{ label: 'Revisar y pagar', route: ['checkout'] }])
+    expect(said('hacer el pedido').intent.kind).toBe('resumen')
+    const order = said('¿dónde viene mi pedido?')
+    expect(order.intent.kind).toBe('pedido')
+    expect(order.actions).toEqual([{ label: 'Ver mis pedidos', route: ['orders'] }])
   })
 })
 

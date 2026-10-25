@@ -3,6 +3,7 @@
 // muestra, sin tildes ni ñ, con el foco de la búsqueda real en cada vertical (agent/tools.py: _focus; la búsqueda
 // híbrida de verdad la hacen agent/grouped_search.py y agent/rappi_agent.py). «Qué me recomiendas» responde con los
 // intereses de la persona (rappi_agent.py: _recommend).
+import { AGENT_NAME } from '../../agent/name'
 import { looksLikeQuestion } from '../../assistant/question'
 import { followKey, followUp, readRefinement, withConversation } from './conversation'
 import { OFFER_BLOCKED_VERTICALS } from './motor'
@@ -337,6 +338,77 @@ const RECOMMEND = [
   'sorprendeme',
 ]
 const RECOMMEND_INTERESTS = 3 // rappi_agent.py: los intereses que prueba antes de pasar a los ejemplos
+
+// agent/understand.py (APP_QUESTIONS) y rappi_agent.py (_small_talk, HELP_ACTIONS, HELP_EXAMPLES) y compose.py, en corto:
+// «¿qué puedes hacer?», el resumen antes de pagar (la app lo arma con su carro) y el último pedido (la app lo muestra).
+// El resumen va antes que el pedido: «hacer el pedido» no pregunta por uno en camino.
+const APP_QUESTIONS = [
+  [
+    'ayuda',
+    ['ayuda', 'ayudame', 'quien eres', 'que eres', 'que puedes hacer', 'que haces', 'como funciona', 'como te uso'],
+  ],
+  [
+    'resumen',
+    [
+      ...['resumen de mi pedido', 'resumen del pedido', 'resumen de mi carro', 'resumen del carro'],
+      ...['resumen de mi carrito', 'resumen del carrito', 'resumen de la compra', 'resumen de mi compra'],
+      ...['que llevo en el carro', 'que llevo en mi carro', 'que tengo en el carro', 'que tengo en mi carro'],
+      ...['que hay en mi carro', 'ver mi carro', 'ver mi carrito', 'revisar mi carro', 'cuanto llevo'],
+      ...['cuanto va mi carro', 'quiero pagar', 'ir a pagar', 'como pago', 'finalizar compra', 'finalizar la compra'],
+      ...['finalizar pedido', 'terminar la compra', 'terminar el pedido', 'cerrar el pedido', 'confirmar pedido'],
+      ...['confirmar el pedido', 'hacer el pedido', 'haz el pedido', 'pide por mi'],
+    ],
+  ],
+  [
+    'pedido',
+    [
+      ...['mi pedido', 'el pedido', 'cancelar', 'reclamo', 'reclamar', 'devolucion', 'reembolso', 'donde viene'],
+      ...['no llega', 'no ha llegado', 'llego mal'],
+    ],
+  ],
+]
+export const HELP_ACTIONS = [
+  { label: '🔁 Repite lo de siempre', capability: 'recompra' },
+  { label: '🧺 Arma un kit', capability: 'plan' },
+  { label: '✨ Algo para ti', capability: 'perfil' },
+  { label: '🍣 Algo de sushi', query: 'sushi' },
+]
+export const HELP_EXAMPLES = [
+  { label: '🍣 Algo de sushi', query: 'sushi' },
+  { label: '🍽️ ¿Qué almuerzo hoy?', query: 'tengo hambre' },
+  { label: '🎉 Arma un carrete', query: 'algo para el carrete' },
+]
+const HELP_TEXT =
+  `Soy ${AGENT_NAME} 🧡, tu asistente en Rappi. Puedo repetir lo de siempre, armarte un kit o mostrarte algo para ti. ` +
+  'Pídeme lo que necesites («pañales talla G», «algo de sushi», «una once para 4») y te muestro lo que hay, aunque ' +
+  'esté en otra vertical. También recuerdo tu dieta y tus alergias, y te llevo a RappiTravel o RappiFavor.'
+const HELP_TODAY =
+  `Soy ${AGENT_NAME} 🧡, tu asistente en Rappi. ` +
+  'Pídeme lo que necesites («pañales talla G», «algo de sushi», «una once para 4») y te muestro lo que hay, aunque ' +
+  'esté en otra vertical.'
+const SUMMARY_TEXT =
+  'Este es el resumen de tu pedido antes de pagar 🧾. Revísalo y paga en el checkout: yo nunca hago el pedido por ti.'
+const ORDER_TEXT =
+  'Tu pedido lo sigues en «Mis pedidos» 🛵: ahí ves dónde viene y, para cancelarlo o un reclamo, está el chat de soporte.'
+
+/** La ayuda: lo que Mochi sabe hacer (la app resuelve cada `capability`); en «Rappi hoy», solo ejemplos. */
+export const helpReply = (mode) =>
+  textReply(mode === 'actual' ? HELP_TODAY : HELP_TEXT, 'ayuda', {
+    actions: mode === 'actual' ? HELP_EXAMPLES : HELP_ACTIONS,
+  })
+
+/** «¿qué puedes hacer?», «quiero pagar», «¿dónde viene mi pedido?»: la respuesta, o null si no es una de esas. */
+function appQuestion(snapshot, message, mode) {
+  const said = ` ${normalize(message)} `
+  if (detectConcepts(snapshot.meta, message).length) return null
+  const kind = APP_QUESTIONS.find(([, phrases]) => phrases.some((p) => said.includes(` ${p} `)))?.[0]
+  if (kind === 'ayuda') return helpReply(mode)
+  if (kind === 'resumen')
+    return textReply(SUMMARY_TEXT, 'resumen', { actions: [{ label: 'Revisar y pagar', route: ['checkout'] }] })
+  if (kind === 'pedido')
+    return textReply(ORDER_TEXT, 'pedido', { actions: [{ label: 'Ver mis pedidos', route: ['orders'] }] })
+  return null
+}
 const asksRecommendation = (message) => RECOMMEND.some((phrase) => ` ${normalize(message)} `.includes(` ${phrase} `))
 
 /** La vertical de la muestra con más productos del concepto entre las que Mochi propone (la de verdad la elige
@@ -378,7 +450,8 @@ function recommend(snapshot, body, { interests, userId }) {
     reply.text = `Por tu interés en ${concept.emoji} ${name} 😉 Mira lo que encontré de «${name}» en ${labels[vertical] ?? vertical}.`
     return reply
   }
-  return snapshot.help ?? replyWith(snapshot, String(body?.message ?? ''), null, { mode, userId })
+  // La ayuda grabada, con los atajos de hoy (una muestra de antes traía «Tengo fiebre» entre los ejemplos).
+  return snapshot.help ? { ...snapshot.help, actions: helpReply(mode).actions } : helpReply(mode)
 }
 
 // agent/understand.py (SYMPTOMS, MEDICINE_WORDS y ADVICE) y rappi_agent.py (ADVICE_*), en corto: consejo médico y
@@ -479,6 +552,8 @@ function answer(snapshot, body, { interests = [], userId = null } = {}) {
   // Como en agent/understand.py, solo si no nombra algo: «¿me recomiendas un vino?» busca vino.
   const named = detectConcepts(snapshot.meta, message).length || namesOccasion(snapshot.meta, message)
   if (asksRecommendation(message) && !named) return recommend(snapshot, body, { interests, userId })
+  const asked = appQuestion(snapshot, message, body?.mode)
+  if (asked) return asked
   const recorded = snapshot.ask[normalize(message)]
   if (recorded) return recorded
   const honest = unrecorded(snapshot, message, body, userId)
