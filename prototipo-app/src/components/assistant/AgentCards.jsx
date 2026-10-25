@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { DEFAULT_TIP, priceBreakdown } from '../../screens/checkout/pricing'
-import { STEPS, minutesLeft, stepAt } from '../../screens/tracking/progress'
+import { flowFor, isDelivered, minutesLeft, stepAt } from '../../screens/tracking/progress'
 import { formatPrice, lineKey, parsePrice, useCart } from '../../state/CartContext'
 import { useOrders } from '../../state/OrdersContext'
 
@@ -61,8 +61,8 @@ export function LastOrderCard({ onTrack }) {
   const [now] = useState(() => Date.now()) // la hora en que Mochi respondió (como el seguimiento al abrirse)
   if (!order) return <p className="agent-card-note">Todavía no tienes pedidos en esta demo.</p>
   const seconds = (now - order.placedAt) / 1000
-  const step = stepAt(seconds)
-  const delivered = step === STEPS.length - 1
+  const flow = flowFor(order) // los pasos de su vertical, como en el seguimiento
+  const minutes = isDelivered(seconds) ? 0 : minutesLeft(seconds, flow)
   const units = order.items.reduce((sum, item) => sum + (item.qty ?? 1), 0)
   return (
     <section className="agent-summary agent-order" aria-label="Tu último pedido">
@@ -71,8 +71,8 @@ export function LastOrderCard({ onTrack }) {
         {order.stores.length > 0 && <small>{order.stores.join(', ')}</small>}
       </p>
       <p className="agent-order-status">
-        {STEPS[step].label}
-        {!delivered && ` · llega en ${minutesLeft(seconds)} min`}
+        {flow.steps[stepAt(seconds, flow)].label}
+        {minutes > 0 && ` · llega en ${minutes} min`}
       </p>
       <p className="agent-summary-note">
         {units} {units === 1 ? 'producto' : 'productos'} · {formatPrice(order.total)}
