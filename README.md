@@ -112,8 +112,9 @@ Cada cifra dice qué tipo de dato es. El detalle, con los reportes de cada fecha
 | Catálogo | 253.945 documentos de búsqueda (84.024 productos, 165.623 platos y 4.298 tiendas), todos con embedding | Real (catálogo público, descarga del 04-10-2026) |
 | Búsqueda | nDCG@10: híbrido 0,905 · sin refuerzo por concepto 0,842 · vectorial 0,835 · léxico 0,765 | Evaluación automática: 131 consultas en las 8 verticales ([22-10-2026](docs/resultados/busqueda-2026-10-22.md)) |
 | Búsqueda: juicio LLM | 95 % de los 3 primeros resultados sirven o sirven a medias (66 % «sirve»); el juez por concepto coincide en el 70 % (κ 0,32) | Juicio LLM doble ciego de 200 pares, no humano ([25-10-2026](docs/resultados/juicio-llm-busqueda-2026-10-25.md)) |
+| Búsqueda: juez de tres niveles | Lo que ve la persona, nDCG@10 0,906 → 0,952 y P@3 «sirve» 0,75 → 0,81; necesidades («algo para la once») 0,80 → 0,91 y Rappi Mall 0,83 → 0,96 | Juicio LLM, no humano: 88 consultas con todo lo mostrado juzgado, antes y después de los cambios del 25-10 ([25-10-2026](docs/resultados/busqueda-2026-10-25.md)) |
 | «Sin resultado» | precisión 1,00 (0 falsas alarmas) · recall 0,93 (54 de 58 negativas) | Evaluación automática ([22-10-2026](docs/resultados/busqueda-2026-10-22.md)) |
-| Errores de tipeo | 52 de 53 recuperados en la búsqueda de la app (34 sin corregir) | Evaluación automática ([24-10-2026](docs/resultados/busqueda-2026-10-24.md)) |
+| Errores de tipeo | 53 de 53 recuperados en la búsqueda de la app (37 sin corregir) y 52 por vertical | Evaluación automática ([25-10-2026](docs/resultados/busqueda-2026-10-25.md)) |
 | Guardias de ofertas | 0 casos de alcohol, Farmacia, bebé, salud o sensibles en 2.851 productos ofrecidos | QA sobre el catálogo real con personas simuladas ([16-10-2026](docs/resultados/qa-motor-2026-10-16.md)) |
 | Motor: próxima vertical | nDCG@8 0,978 frente a 0,918 del orden fijo | Simulado: prueba la mecánica, no el efecto ([17-10-2026](docs/resultados/simulados-2026-10-17.md)) |
 | Conceptos | 86 a 88 % de precisión en la asignación de conceptos | Estimación con jueces LLM ([06-10-2026](docs/resultados/capas-precision-2026-10-06-nueva-muestra.md)) |
@@ -124,7 +125,7 @@ Cada cifra dice qué tipo de dato es. El detalle, con los reportes de cada fecha
 >
 > - **Usuarios y eventos simulados.** El motor, los segmentos y las métricas de negocio usan personas simuladas (`source = 'synthetic'`): muestran la mecánica, no un resultado.
 > - **La tabla de Rappi** es una correlación: no dice que sumar una vertical retenga.
-> - **La ventaja del híbrido.** La relevancia se juzga por concepto y el híbrido recibe un refuerzo por ese mismo concepto; sin él, no se distingue del vectorial (0,842 frente a 0,835). Un juicio LLM doble ciego (25-10) muestra que ese juez es generoso: da por relevante lo que solo sirve a medias, así que el nDCG es optimista ([reporte](docs/resultados/juicio-llm-busqueda-2026-10-25.md)). Falta el juicio humano.
+> - **La ventaja del híbrido.** La relevancia se juzga por concepto y el híbrido recibe un refuerzo por ese mismo concepto; sin él, no se distingue del vectorial (0,842 frente a 0,835). Un juicio LLM doble ciego (25-10) muestra que ese juez es generoso: da por relevante lo que solo sirve a medias, así que el nDCG es optimista ([reporte](docs/resultados/juicio-llm-busqueda-2026-10-25.md)). Desde el 25-10 lo que ve la persona se mide también con un juez de tres niveles hecho de ese juicio ([reporte](docs/resultados/busqueda-2026-10-25.md)), que tampoco es humano. Falta el juicio humano.
 > - **Las precisiones de la capa 2 y de la capa de datos** son estimaciones con jueces LLM.
 > - **Lo que Mochi aprende de la persona y sus pedidos** es de demo: se guardan en el servidor bajo un id seudónimo del navegador, sin cuenta; la persona los borra con «Borrar mis datos» (Cuenta).
 > - **«No está en el catálogo»** no significa «Rappi no lo vende»: en tiendas el catálogo es una muestra.
