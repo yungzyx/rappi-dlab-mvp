@@ -20,7 +20,7 @@ describe('sugerencias de Mochi', () => {
     expect(firstShowing({ ...row, origin: 'agent-ask' })).toBe(true)
   })
 
-  test('noteShown registra suggestion_shown con el origen en el payload, una sola vez', () => {
+  test('noteShown registra suggestion_shown con su origen, una sola vez', () => {
     const track = vi.fn()
     const fields = { origin: 'agent-carrito', concept: 'snacks-salados', vertical: 'conveniencia' }
     expect(noteShown(track, [], fields)).toBe(true)
@@ -29,7 +29,7 @@ describe('sugerencias de Mochi', () => {
     expect(track).toHaveBeenCalledWith('suggestion_shown', {
       concept_id: 'snacks-salados',
       vertical: 'conveniencia',
-      payload: { origen: 'agent-carrito' },
+      origin: 'agent-carrito',
     })
   })
 
@@ -39,7 +39,7 @@ describe('sugerencias de Mochi', () => {
     expect(track).toHaveBeenCalledWith('suggestion_shown', {
       concept_id: 'snacks-salados',
       vertical: 'express',
-      payload: { origen: 'agent-carrito' },
+      origin: 'agent-carrito',
     })
   })
 
@@ -51,7 +51,7 @@ describe('sugerencias de Mochi', () => {
     expect(track.mock.calls[1][1]).toEqual({
       concept_id: 'snacks-salados',
       vertical: 'express',
-      payload: { origen: 'agent-carrito' },
+      origin: 'agent-carrito',
     })
 
     // Otro clic en lo mismo no es otra aceptación; tras «Olvidar» (otra generación) sí.
@@ -79,7 +79,7 @@ describe('sugerencias de Mochi', () => {
     expect(track).toHaveBeenCalledWith('suggestion_accepted', {
       concept_id: undefined,
       vertical: 'express',
-      payload: { origen: 'agent-carrito' },
+      origin: 'agent-carrito',
     })
     expect(noteAccepted(track, [loose], { origin: 'agent-carrito' })).toBe(0)
   })

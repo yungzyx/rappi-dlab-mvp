@@ -140,7 +140,7 @@ function Delivered({ order }) {
     // En silencio (por hoy o porque lo ignoraron) el agente no ofrece nada, así que tampoco se le pide.
     if (!demo.isFinal || !items.length || isQuiet(today()) || isHushed()) return undefined
     let current = true
-    offer('proximo_pedido', { items }, { userId: userId() }).then(
+    offer('proximo_pedido', { items }, { userId: userId(), surface: 'tracking' }).then(
       (made) => {
         if (!current || !made) return
         noteShown(events.track, made.products, {

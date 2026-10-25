@@ -52,7 +52,14 @@ describe('SearchResults sin resultados', () => {
     )
     await flush()
     const tracked = (type) => events.track.mock.calls.filter(([name]) => name === type).map(([, fields]) => fields)
-    const fields = { concept_id: 'pizza', vertical: 'restaurantes', payload: { origen: 'agent-sin_resultado' } }
+    // Con el sobre: la pantalla, el origen y la respuesta de la API de donde salió la oferta.
+    const fields = {
+      concept_id: 'pizza',
+      vertical: 'restaurantes',
+      surface: 'search',
+      origin: 'agent-sin_resultado',
+      request_id: 'contrato-agent-offer-sin-resultado',
+    }
 
     expect(tracked('suggestion_shown')).toEqual([fields])
     expect(tracked('suggestion_accepted')).toEqual([])

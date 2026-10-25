@@ -58,3 +58,23 @@ test('una oferta sin nada que decir es un 204; una ruta desconocida, un 404', ()
   expect(call('GET', '/analytics/kpis').status).toBe(404)
   expect(call('GET', '/health').body).toMatchObject({ ok: true, documentos: 3 })
 })
+
+test('las respuestas que ordenan cosas traen su request_id, como la API; las demás no', () => {
+  const id = call('POST', '/session', {}).body.user_id
+  for (const path of [`/profile/${id}/verticales`, '/catalog/home', `/recommendations?user_id=${id}`])
+    expect(call('GET', path).body.request_id).toMatch(/^offline-[0-9a-f]{16}$/)
+  expect(call('GET', '/health').body.request_id).toBeUndefined()
+  expect(call('POST', '/agent/offer', { moment: 'recompra', context: {} })).toEqual({ status: 204, body: null })
+})
+
+test('el origen de un evento se guarda de la columna nueva o del payload de antes', () => {
+  const id = call('POST', '/session', {}).body.user_id
+  call('POST', '/events', {
+    user_id: id,
+    events: [
+      { type: 'suggestion_shown', origin: 'agent-volver', payload: { kind: 'volver' } },
+      { type: 'suggestion_shown', payload: { origen: 'agent-recompra' } },
+    ],
+  })
+  expect(readState().events.map((e) => e.origin)).toEqual(['agent-volver', 'agent-recompra'])
+})

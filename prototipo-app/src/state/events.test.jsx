@@ -209,3 +209,103 @@ test('con la API todavía sin responder, el lote espera en la cola y sale al seg
   const body = JSON.parse(fetchMock.mock.calls.find(([url]) => String(url).endsWith('/events'))[1].body)
   expect(body.events.map((e) => e.type)).toEqual(['app_open', 'cart_add'])
 })
+
+describe('el sobre de cada evento', () => {
+  const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/
+  const wrapper = ({ children }) => (
+    <DemoProvider>
+      <EventsProvider>{children}</EventsProvider>
+    </DemoProvider>
+  )
+  const bodies = (fetchMock) =>
+    fetchMock.mock.calls.filter(([url]) => String(url).endsWith('/events')).map(([, init]) => JSON.parse(init.body))
+
+  /** La API responde /health; /events responde `reply()` (un estado HTTP o lanza para «sin red»). */
+  const api = (reply) =>
+    vi.fn(async (url) => {
+      if (String(url).endsWith('/health')) return { ok: true, status: 200, json: async () => ({ capacidades: {} }) }
+      const status = reply()
+      return { ok: status < 400, status, json: async () => ({ guardados: 1 }) }
+    })
+
+  test('cada evento lleva su id, su hora y su orden en la sesión; el lote, lo que la app cuenta de la sesión', async () => {
+    resetHealthCache()
+    const fetchMock = api(() => 200)
+    vi.stubGlobal('fetch', fetchMock)
+    const { result } = renderHook(() => useEvents(), { wrapper })
+    act(() => result.current.track('search', { query: 'chelas' }))
+    act(() => result.current.track('cart_add', { concept_id: 'cerveza' }))
+    await act(() => result.current.flush())
+    const [body] = bodies(fetchMock)
+    expect(body.events.map((e) => e.seq)).toEqual([0, 1, 2])
+    for (const event of body.events) {
+      expect(event.client_event_id).toMatch(UUID)
+      expect(Math.abs(Date.parse(event.client_ts) - Date.now())).toBeLessThan(60_000)
+    }
+    expect(new Set(body.events.map((e) => e.client_event_id)).size).toBe(3)
+    expect(body.session).toEqual({
+      app_version: expect.any(String),
+      platform: 'web',
+      mode: 'propuesta',
+      entry: 'directa',
+    })
+  })
+
+  test('un lote que falla en el camino vuelve a la cola y sale con los mismos ids', async () => {
+    resetHealthCache()
+    let status = 503
+    const fetchMock = api(() => status)
+    vi.stubGlobal('fetch', fetchMock)
+    const { result } = renderHook(() => useEvents(), { wrapper })
+    act(() => result.current.track('cart_add', { concept_id: 'cerveza' }))
+    await act(() => result.current.flush())
+    status = 200
+    act(() => result.current.track('search', { query: 'pisco' }))
+    await act(() => result.current.flush())
+    const [failed, retried] = bodies(fetchMock)
+    expect(retried.events.map((e) => e.type)).toEqual(['app_open', 'cart_add', 'search'])
+    expect(retried.events.slice(0, 2).map((e) => e.client_event_id)).toEqual(
+      failed.events.map((e) => e.client_event_id),
+    )
+  })
+
+  test('un lote que la API rechazó (422) no se reintenta: volvería a rechazarse', async () => {
+    resetHealthCache()
+    let status = 422
+    const fetchMock = api(() => status)
+    vi.stubGlobal('fetch', fetchMock)
+    const { result } = renderHook(() => useEvents(), { wrapper })
+    await act(() => result.current.flush())
+    status = 200
+    act(() => result.current.track('search', { query: 'pisco' }))
+    await act(() => result.current.flush())
+    expect(bodies(fetchMock)[1].events.map((e) => e.type)).toEqual(['search'])
+  })
+
+  test('tras «Olvidar», un lote que falla no vuelve a la cola', async () => {
+    resetHealthCache()
+    let release
+    const fetchMock = vi.fn(async (url) => {
+      if (String(url).endsWith('/health')) return { ok: true, status: 200, json: async () => ({ capacidades: {} }) }
+      await new Promise((resolve) => (release = resolve))
+      throw new TypeError('Failed to fetch')
+    })
+    vi.stubGlobal('fetch', fetchMock)
+    const { result } = renderHook(() => useEvents(), { wrapper })
+    let sending
+    act(() => {
+      sending = result.current.flush()
+    })
+    await vi.waitFor(() => expect(release).toBeTypeOf('function'))
+    act(() => result.current.clear())
+    release()
+    await act(() => sending)
+    vi.stubGlobal(
+      'fetch',
+      api(() => 200),
+    )
+    resetHealthCache()
+    await act(() => result.current.flush())
+    expect(globalThis.fetch.mock.calls.some(([url]) => String(url).endsWith('/events'))).toBe(false)
+  })
+})

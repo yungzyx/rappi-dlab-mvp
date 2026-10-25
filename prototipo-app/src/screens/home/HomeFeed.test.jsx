@@ -77,7 +77,13 @@ describe('Home de «Rappi hoy»', () => {
     expect(fetchMock.mock.calls.some(([url]) => url.includes('/verticales'))).toBe(false)
     expect(screen.queryByText('Ordenadas según lo que más usas')).toBeNull()
     fireEvent.click(screen.getByText('Farmacia'))
-    expect(events.track).toHaveBeenCalledWith('vertical_open', { vertical: 'farmacia' })
+    // Con el sobre: qué fila de accesos y en qué lugar estaba (el segundo).
+    expect(events.track).toHaveBeenCalledWith('vertical_open', {
+      vertical: 'farmacia',
+      surface: 'home',
+      origin: 'accesos',
+      position: 1,
+    })
     // RappiTravel también se anota (en «Rappi hoy» el evento va marcado y el motor no aprende de él).
     fireEvent.click(screen.getByText('RappiTravel'))
     expect(events.track.mock.calls.filter(([type]) => type === 'vertical_open')).toHaveLength(1)

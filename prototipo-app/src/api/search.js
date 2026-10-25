@@ -1,5 +1,6 @@
 // Búsqueda híbrida de rappi-ia (`GET /search`), en el formato del prototipo.
 import { screenForBackend } from '../data/verticals'
+import { placeList } from './attribution'
 import { request, toPrototypeProduct } from './client'
 
 const SEARCH_TIMEOUT_MS = 8_000
@@ -12,8 +13,10 @@ const groupOf = (backendVertical, prototypeVertical, products) => ({
 })
 
 /**
- * Busca `q` en el catálogo: `{ query, groups: [{ vertical, backendVertical, products }], unmet, unmetReason,
- * correctedQuery }` (`query`: lo que se buscó, para saber a qué texto pertenece una respuesta).
+ * Busca `q` en el catálogo: `{ query, requestId, scope, groups: [{ vertical, backendVertical, products }], unmet,
+ * unmetReason, correctedQuery }` (`query`: lo que se buscó, para saber a qué texto pertenece una respuesta;
+ * `requestId`: el id de la respuesta, que es el de la búsqueda en sus eventos; `scope`: `global` o `vertical`). Cada
+ * producto lleva su lugar en los resultados (`placement`, ver attribution.js).
  * - Sin `vertical`, busca en las verticales que corresponden a la consulta (más `current`, la de la pantalla) y
  *   devuelve un grupo por vertical, en el orden de la API. `limit` es por grupo.
  * - Con `vertical` (id del prototipo o código del backend), busca solo ahí y devuelve un único grupo.
@@ -28,11 +31,21 @@ export async function searchAll(q, { vertical, current, limit, exact } = {}) {
   if (limit) params.set('limit', String(limit))
   if (exact) params.set('correct', 'false')
   const response = await request(`/search?${params}`, { timeout: SEARCH_TIMEOUT_MS })
-  const groups = response.groups
+  const requestId = response.request_id ?? null
+  const found = response.groups
     ? response.groups.map((g) => groupOf(g.vertical, g.prototype_vertical, g.products))
     : [groupOf(response.vertical, null, response.products ?? [])]
+  // Cada producto con su lugar en los resultados: la posición cuenta de corrido, grupo tras grupo, como se muestran.
+  let start = 0
+  const groups = found.map((group) => {
+    const products = placeList(group.products, { surface: 'search', origin: 'resultados', requestId, start })
+    start += products.length
+    return { ...group, products }
+  })
   return {
     query: q,
+    requestId,
+    scope: vertical ? 'vertical' : 'global',
     groups,
     unmet: Boolean(response.unmet),
     unmetReason: response.unmet_reason ?? null,

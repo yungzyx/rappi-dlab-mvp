@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { offer, plans as fetchPlans } from '../../../api/agent'
+import { envelope } from '../../../api/attribution'
 import { conceptOf } from '../../../api/orders'
 import { noteShown } from '../../../api/suggestions'
 import { userId } from '../../../api/user'
@@ -218,7 +219,7 @@ export default function LiveHomeFeed({ push, active = true }) {
       made = await offer(
         'carrito',
         { product: { entity_type: added.entityType, entity_id: added.entityId } },
-        { userId: userId() },
+        { userId: userId(), surface: 'home' },
       )
     } catch {
       return
@@ -306,9 +307,9 @@ export default function LiveHomeFeed({ push, active = true }) {
         session.winback = { key, offer: made?.products.length ? made : null }
         return session.winback.offer
       }
-      return offer('volver', {}, { userId: userId() }).then(keep, () => keep(null))
+      return offer('volver', {}, { userId: userId(), surface: 'home' }).then(keep, () => keep(null))
     }
-    offer('recompra', {}, { userId: userId() })
+    offer('recompra', {}, { userId: userId(), surface: 'home' })
       .then((made) => (made?.products.length ? made : winback()))
       .then(
         (made) => {
@@ -339,7 +340,8 @@ export default function LiveHomeFeed({ push, active = true }) {
       events.track('suggestion_dismissed', {
         concept_id: repeat.reason?.concept ?? conceptOf(product),
         vertical: product.vertical,
-        payload: { origen: WINBACK_ORIGIN, kind: winbackKind(repeat) },
+        ...envelope({ surface: 'home', origin: WINBACK_ORIGIN, requestId: repeat.requestId }),
+        payload: { kind: winbackKind(repeat) },
       })
     }
     session.repeatLater = true
@@ -413,7 +415,7 @@ export default function LiveHomeFeed({ push, active = true }) {
     setKitAdded(null)
     let made = null
     try {
-      made = await offer('plan', { occasion: id }, { userId: userId() })
+      made = await offer('plan', { occasion: id }, { userId: userId(), surface: 'home' })
     } catch {
       // Sin respuesta: queda como estaba.
     }
@@ -448,7 +450,7 @@ export default function LiveHomeFeed({ push, active = true }) {
     const mine = run.current
     let made = null
     try {
-      made = await offer('vertical_por_probar', {}, { userId: userId() })
+      made = await offer('vertical_por_probar', {}, { userId: userId(), surface: 'home' })
     } catch {
       // Sin respuesta, el agente no dice nada.
     } finally {
@@ -497,8 +499,19 @@ export default function LiveHomeFeed({ push, active = true }) {
     )
   }
 
-  /** Cada toque a un vertical de la Home le enseña al motor qué abre la persona. */
-  const openVertical = (vertical) => events.track('vertical_open', { vertical })
+  /**
+   * Cada toque a un vertical de la Home le enseña al motor qué abre la persona. El sobre dice qué acceso era, en qué
+   * lugar estaba y, en la fila que ordena el motor, la respuesta que la ordenó.
+   */
+  const openVertical = (vertical, where) =>
+    events.track('vertical_open', {
+      vertical,
+      ...envelope({
+        surface: 'home',
+        ...where,
+        requestId: where?.origin === 'accesos' ? verticalOrder.requestId : undefined,
+      }),
+    })
   /** Abrir RappiFavor o RappiTravel desde la Home cuenta como usarlo, igual que desde la oferta de Mochi. */
   const openService = (servicio) => events.track('service_opened', { payload: { servicio, desde: 'home' } })
 

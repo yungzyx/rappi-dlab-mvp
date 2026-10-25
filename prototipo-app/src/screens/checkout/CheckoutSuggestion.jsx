@@ -45,7 +45,7 @@ export default function CheckoutSuggestion() {
     const ask = async () => {
       setAsking(true)
       try {
-        const made = await offer('checkout', { cart: lines }, { userId: userId() })
+        const made = await offer('checkout', { cart: lines }, { userId: userId(), surface: 'checkout' })
         if (!made?.products.length) return setComplete(true)
         const [product] = made.products
         noteShown(events.track, [product], {

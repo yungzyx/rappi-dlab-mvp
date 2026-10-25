@@ -81,13 +81,17 @@ describe('SearchScreen', () => {
     expect(screen.getByRole('heading', { name: 'Licores' })).toBeTruthy()
 
     fireEvent.keyDown(input, { key: 'Enter' })
-    expect(searches().at(-1)).toMatchObject({ query: 'cervezaaaa', unmet: false, payload: { corregida: 'cerveza' } })
+    expect(searches().at(-1)).toMatchObject({
+      query: 'cervezaaaa',
+      unmet: false,
+      payload: { fuente: 'tipeada', corregida: 'cerveza' },
+    })
 
     fireEvent.click(screen.getByRole('button', { name: 'Buscar «cervezaaaa» tal cual' }))
     await advance(0)
-    // La búsqueda tal cual también se registra, sin corrección y sin resultado.
+    // La búsqueda tal cual también se registra, sin corrección y sin resultado; su fuente es el aviso de la corrección.
     expect(searches().at(-1)).toMatchObject({ query: 'cervezaaaa', unmet: true })
-    expect(searches().at(-1).payload).toBeUndefined()
+    expect(searches().at(-1).payload).toEqual({ alcance: 'global', fuente: 'correccion' })
     const last = new URL(fetchMock.mock.calls.at(-1)[0])
     expect(last.searchParams.get('correct')).toBe('false')
     expect(screen.getByText('Sin resultados para «cervezaaaa».')).toBeTruthy()
@@ -165,12 +169,58 @@ describe('SearchScreen', () => {
     const { input } = setup({ vertical: 'liquor' })
     await type(input, 'cerveza')
     fireEvent.blur(input)
-    // 2 en Licores + 1 en Express + 1 en Súper.
-    expect(searches()).toEqual([{ query: 'cerveza', modality: 'texto', results: 4, unmet: false, vertical: 'liquor' }])
+    // 2 en Licores + 1 en Express + 1 en Súper. El id de la búsqueda es el `request_id` de su respuesta; buscó en
+    // todas las verticales (global) lo que se escribió.
+    const typed = { alcance: 'global', fuente: 'tipeada' }
+    expect(searches()).toEqual([
+      {
+        query: 'cerveza',
+        modality: 'texto',
+        results: 4,
+        unmet: false,
+        vertical: 'liquor',
+        surface: 'search',
+        request_id: 'contrato-search-grouped',
+        payload: typed,
+      },
+    ])
 
     await type(input, 'xyzzy')
     fireEvent.keyDown(input, { key: 'Enter' })
-    expect(searches()[1]).toEqual({ query: 'xyzzy', modality: 'texto', results: 0, unmet: true, vertical: 'liquor' })
+    expect(searches()[1]).toEqual({
+      query: 'xyzzy',
+      modality: 'texto',
+      results: 0,
+      unmet: true,
+      vertical: 'liquor',
+      surface: 'search',
+      request_id: 'contrato-search-grouped-unmet',
+      payload: typed,
+    })
+  })
+
+  test('una idea para buscar se registra como sugerencia', async () => {
+    setup()
+    fireEvent.click(screen.getByRole('button', { name: 'Cerveza' }))
+    await advance(250)
+    expect(searches()).toEqual([
+      expect.objectContaining({ query: 'Cerveza', payload: expect.objectContaining({ fuente: 'sugerencia' }) }),
+    ])
+  })
+
+  test('agregar desde los resultados lleva el id de la búsqueda y la posición del producto', async () => {
+    const { input } = setup()
+    await type(input, 'cerveza')
+    const add = document.querySelectorAll('.search-products .add-button')
+    expect(add.length).toBeGreaterThan(1)
+    fireEvent.click(add[1])
+    const [added] = events.track.mock.calls.filter(([type]) => type === 'cart_add').map(([, fields]) => fields)
+    expect(added).toMatchObject({
+      surface: 'search',
+      origin: 'resultados',
+      position: 1,
+      request_id: 'contrato-search-grouped',
+    })
   })
 
   test('si Enter llega antes que la respuesta, se registra al llegar con su cantidad real', async () => {

@@ -1,5 +1,6 @@
 // Ofertas del agente de rappi-ia: `POST /agent/offer` (un momento de la app) y `GET /agent/plans` (ocasiones).
 import { routeForScreen, screenForBackend } from '../data/verticals'
+import { placeList } from './attribution'
 import { request, toPrototypeProduct } from './client'
 import { userId } from './user'
 
@@ -13,30 +14,33 @@ function toAction({ route, ...action }) {
 /**
  * La oferta del agente para un momento (`carrito`, `checkout`, `sin_resultado`, `proximo_pedido`, `plan`,
  * `vertical_por_probar`, `recompra`, `volver`) con su contexto, o `null` si no tiene nada que ofrecer (204): entonces el agente no dice nada.
- * Devuelve `{ moment, text, products, vertical, backendVertical, reason, actions }`; la `vertical` es la de la app y
- * cada producto lleva `fromSuggestion` y `suggestionOrigin: 'agent-<momento>'` para los eventos y el pedido, y cada
+ * Devuelve `{ moment, text, products, vertical, backendVertical, reason, actions, requestId }`; la `vertical` es la de
+ * la app y cada producto lleva `fromSuggestion` y `suggestionOrigin: 'agent-<momento>'` para los eventos y el pedido,
+ * y su lugar (`placement`: `surface`, la pantalla donde se muestra la oferta; su posición y la respuesta), y cada
  * acción la `route` de la app (`push(...route)`).
  * Si falla, lanza el `ApiError`: quien llama decide callar.
  */
-export async function offer(moment, context = {}, { userId } = {}) {
+export async function offer(moment, context = {}, { userId, surface } = {}) {
   const response = await request('/agent/offer', {
     method: 'POST',
     body: { moment, ...(userId ? { user_id: userId } : {}), context },
     timeout: OFFER_TIMEOUT_MS,
   })
   if (!response) return null
+  const origin = `agent-${moment}`
+  const requestId = response.request_id ?? null
   return {
     moment: response.moment,
     text: response.text,
-    products: response.products.map((p) => ({
-      ...toPrototypeProduct(p),
-      fromSuggestion: true,
-      suggestionOrigin: `agent-${moment}`,
-    })),
+    products: placeList(
+      response.products.map((p) => ({ ...toPrototypeProduct(p), fromSuggestion: true, suggestionOrigin: origin })),
+      { surface, origin, requestId },
+    ),
     vertical: response.prototype_vertical ?? null,
     backendVertical: response.vertical,
     reason: response.reason,
     actions: (response.actions ?? []).map(toAction),
+    requestId,
   }
 }
 
@@ -58,7 +62,7 @@ export const tasteProfiles = () =>
 
 /**
  * La escalera de un perfil de gusto (el momento `perfil` de /agent/offer), o null (204):
- * `{ text, profile, reason, steps: [{ vertical, backendVertical, text, products }], trip }`. Cada peldaño es una
+ * `{ text, profile, reason, steps: [{ vertical, backendVertical, text, products }], trip, requestId }`. Cada peldaño es una
  * vertical (id de la app) con sus productos, que ya pasaron las guardias de las ofertas y cuentan como sugerencia de
  * Mochi (`suggestionOrigin: 'agent-perfil'`); `trip` es la idea para RappiTravel (`{ name, text, label, facts, route }`).
  */
@@ -70,7 +74,9 @@ export async function profileLadder(profileId) {
   })
   if (!response) return null
   const trip = response.viaje
+  const requestId = response.request_id ?? null
   return {
+    requestId,
     text: response.text,
     profile: response.perfil,
     reason: response.reason,
@@ -78,11 +84,14 @@ export async function profileLadder(profileId) {
       vertical: screenForBackend(step.vertical) ?? step.prototype_vertical,
       backendVertical: step.vertical,
       text: step.texto,
-      products: step.products.map((p) => ({
-        ...toPrototypeProduct(p),
-        fromSuggestion: true,
-        suggestionOrigin: 'agent-perfil',
-      })),
+      products: placeList(
+        step.products.map((p) => ({
+          ...toPrototypeProduct(p),
+          fromSuggestion: true,
+          suggestionOrigin: 'agent-perfil',
+        })),
+        { surface: 'agent', origin: 'agent-perfil', requestId },
+      ),
     })),
     trip: trip
       ? {

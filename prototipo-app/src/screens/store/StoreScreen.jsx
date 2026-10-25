@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
+import { noteRecommendationClick, placeList, placementFields } from '../../api/attribution'
 import { menu as loadMenu } from '../../api/catalog'
 import { cartEventFields } from '../../api/orders'
 import { useApi } from '../../api/useApi'
@@ -60,15 +61,23 @@ export default function StoreScreen({ back, params }) {
   useEffect(() => {
     if (!loaded || tracked.current === loaded.id) return
     tracked.current = loaded.id
+    // Con el sobre de dónde se tocó la tienda (una lista de la Home, por ejemplo), si venía de una.
     events.track('view_store', {
+      ...placementFields(given),
       vertical: loaded.vertical,
       entity_type: 'store',
       entity_id: String(loaded.id),
       payload: { name: loaded.name },
     })
-    // Llegar tocando un producto es verlo (el prototipo no tiene página de producto): mismos campos que el carro.
-    if (item) events.track('view_item', { ...cartEventFields(item), vertical: item.vertical ?? loaded.vertical })
-  }, [loaded, item, events])
+    // Llegar tocando un producto es verlo (el prototipo no tiene página de producto): mismos campos que el carro, con
+    // su sobre. Si venía de una recomendación (Mochi, «Para ti») es además su clic: una vez, aunque ya se abriera en la
+    // hoja del producto.
+    if (item) {
+      const fields = { ...cartEventFields(item), vertical: item.vertical ?? loaded.vertical }
+      events.track('view_item', fields)
+      noteRecommendationClick(events.track, item, fields)
+    }
+  }, [loaded, item, given, events])
 
   const toggleFavorite = () => {
     favorites.toggle(store)
@@ -80,11 +89,26 @@ export default function StoreScreen({ back, params }) {
   const visible = data?.sections ? data.sections.flatMap((section) => section.items) : products
   const chosen = item && data && !visible.some(listed) ? item : null
   // Una sugerencia del agente que sí está en lo que se ve lleva su origen a esa fila: agregarla desde ahí cuenta la
-  // aceptación (useAddToCart), como desde «Lo que elegiste».
+  // aceptación (useAddToCart), como desde «Lo que elegiste», y el carro dice que salió de la oferta (su lugar).
   const withOrigin = (product) =>
     item?.fromSuggestion && listed(product)
-      ? { ...product, fromSuggestion: true, suggestionOrigin: item.suggestionOrigin }
+      ? {
+          ...product,
+          fromSuggestion: true,
+          suggestionOrigin: item.suggestionOrigin,
+          placement: item.placement ?? product.placement,
+        }
       : product
+  // Cada producto de la tienda con su lugar: el pasillo (o el menú, de corrido entre secciones) y su posición.
+  const inStore = (list, start = 0) =>
+    placeList(list, { surface: 'store', origin: restaurant ? 'menu' : 'pasillo', start }).map(withOrigin)
+  const menuSections = data?.sections?.reduce(
+    ({ sections, start }, section) => ({
+      sections: [...sections, { ...section, items: inStore(section.items, start) }],
+      start: start + section.items.length,
+    }),
+    { sections: [], start: 0 },
+  ).sections
 
   return (
     <div ref={scrollRef} className="screen store">
@@ -140,18 +164,13 @@ export default function StoreScreen({ back, params }) {
             {aisles.length > 0 && <AisleTabs aisles={aisles} active={aisle} onChoose={setAisle} />}
             {error && <OfflineNotice onRetry={retry} />}
             {!data && !error && <MenuSkeleton tabs={aisles.length === 0} />}
-            {data?.sections && (
-              <RealMenu
-                sections={data.sections.map((section) => ({ ...section, items: section.items.map(withOrigin) }))}
-                scrollRef={scrollRef}
-              />
-            )}
+            {data?.sections && <RealMenu sections={menuSections} scrollRef={scrollRef} />}
             {data?.products &&
               (products.length > 0 ? (
                 <>
                   <ul className="store-products">
-                    {products.map((product) => (
-                      <ProductRow key={product.id} product={withOrigin(product)} />
+                    {inStore(products).map((product) => (
+                      <ProductRow key={product.id} product={product} />
                     ))}
                   </ul>
                   {hasMore && (

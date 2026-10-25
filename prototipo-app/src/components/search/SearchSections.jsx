@@ -1,4 +1,5 @@
 import { useEffect, useId, useState } from 'react'
+import { placeList } from '../../api/attribution'
 import { home } from '../../api/catalog'
 import { offer } from '../../api/agent'
 import { noteAccepted, noteShown } from '../../api/suggestions'
@@ -35,14 +36,22 @@ export function SearchIdeas({ onPick }) {
   )
 }
 
-/** Las tiendas populares son las cercanas de la Home de la API; si no llega, la sección no aparece. */
+/**
+ * Las tiendas populares son las cercanas de la Home de la API; si no llega, la sección no aparece. Cada una con su lugar
+ * en el buscador (`tiendas-populares`).
+ */
 export function PopularStores({ onOpen }) {
   const { data } = useApi(home, [])
   if (!data?.nearbyStores.length) return null
+  const stores = placeList(data.nearbyStores.slice(0, POPULAR_COUNT), {
+    surface: 'search',
+    origin: 'tiendas-populares',
+    requestId: data.requestId,
+  })
   return (
     <>
       <h2 className="search-heading">Tiendas populares</h2>
-      <StoreList stores={data.nearbyStores.slice(0, POPULAR_COUNT)} onOpen={onOpen} />
+      <StoreList stores={stores} onOpen={onOpen} />
     </>
   )
 }
@@ -137,7 +146,7 @@ function ResultGroup({ group, onOpenProduct }) {
  */
 function AgentEmpty({ query, onOpenVertical, onTryAnother }) {
   const { data: found, loading } = useApi(
-    () => offer('sin_resultado', { query }, { userId: userId() }).catch(() => null),
+    () => offer('sin_resultado', { query }, { userId: userId(), surface: 'search' }).catch(() => null),
     [query],
   )
   const events = useEvents()
@@ -150,7 +159,11 @@ function AgentEmpty({ query, onOpenVertical, onTryAnother }) {
   if (loading) return null
   const verticalName = found?.vertical ? VERTICAL_NAMES[found.vertical] : null
   const see = () => {
-    const offered = { concept: found.reason?.concept, vertical: found.backendVertical }
+    const offered = {
+      concept: found.reason?.concept,
+      vertical: found.backendVertical,
+      placement: { surface: 'search', requestId: found.requestId },
+    }
     noteAccepted(events.track, [offered], { origin: NO_RESULT_ORIGIN, generation })
     onOpenVertical(found.vertical)
   }

@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useId, useLayoutEffect, useRef, useState } from 'react'
 import { AGENT_NAME } from '../../agent/name'
+import { envelope } from '../../api/attribution'
 import { storeOfProduct } from '../../api/catalog'
 import { ask as askAgent, profile as remoteProfile, recommendations, toMessage } from '../../api/client'
 import { offer, profileLadder, tasteProfiles } from '../../api/agent'
@@ -153,7 +154,11 @@ export default function AssistantPanel({ push, vertical, depth = 1 }) {
     const { concept, vertical, origin = 'agent-ask' } = message.suggestion
     noteShownTopic(concept)
     if (firstShowing({ concept, vertical, origin, generation: profile.resets }))
-      events.track('suggestion_shown', { concept_id: concept, vertical, payload: { origen: origin } })
+      events.track('suggestion_shown', {
+        concept_id: concept,
+        vertical,
+        ...envelope({ surface: 'agent', origin, requestId: message.requestId }),
+      })
     return message
   }
 
@@ -204,7 +209,7 @@ export default function AssistantPanel({ push, vertical, depth = 1 }) {
   /** Una oferta del agente para un momento (`carrito`, `vertical_por_probar`…); `nothing` es lo que dice si no tiene nada. */
   const offered = async (moment, context, nothing) => {
     try {
-      const made = await offer(moment, context, { userId: userId() })
+      const made = await offer(moment, context, { userId: userId(), surface: 'agent' })
       if (!made) return { text: nothing }
       noteShown(events.track, made.products, {
         origin: `agent-${moment}`,

@@ -100,7 +100,7 @@ const LOOSE_CART = {
   entityId: '94001',
 }
 const tracked = (type, origin) =>
-  events.track.mock.calls.filter(([name, fields]) => name === type && fields.payload?.origen === origin)
+  events.track.mock.calls.filter(([name, fields]) => name === type && fields.origin === origin)
 
 beforeAll(() => {
   Element.prototype.scrollTo = () => {} // jsdom no implementa scroll ni animaciones
@@ -481,7 +481,16 @@ describe('Home del prototipo final', () => {
       fireEvent.click(within(block).getByRole('button', { name: '¿Por qué?' }))
       expect(within(block).getByText(made.reason.text)).toBeTruthy()
       expect(tracked('suggestion_shown', 'agent-recompra')).toEqual([
-        ['suggestion_shown', { concept_id: 'cafe', vertical: 'grocery', payload: { origen: 'agent-recompra' } }],
+        [
+          'suggestion_shown',
+          {
+            concept_id: 'cafe',
+            vertical: 'grocery',
+            surface: 'home',
+            origin: 'agent-recompra',
+            request_id: 'contrato-agent-offer-recompra',
+          },
+        ],
       ])
 
       // Al volver a la Home se pide otra vez, pero la mostrada no se cuenta de nuevo.
@@ -603,7 +612,14 @@ describe('Home del prototipo final', () => {
       expect(tracked('suggestion_shown', 'agent-volver')).toEqual([
         [
           'suggestion_shown',
-          { concept_id: 'cafe', vertical: 'grocery', payload: { origen: 'agent-volver', kind: 'volver' } },
+          {
+            concept_id: 'cafe',
+            vertical: 'grocery',
+            surface: 'home',
+            origin: 'agent-volver',
+            request_id: 'contrato-agent-offer-volver',
+            payload: { kind: 'volver' },
+          },
         ],
       ])
     })
@@ -652,7 +668,14 @@ describe('Home del prototipo final', () => {
       expect(tracked('suggestion_dismissed', 'agent-volver')).toEqual([
         [
           'suggestion_dismissed',
-          { concept_id: 'cafe', vertical: 'grocery', payload: { origen: 'agent-volver', kind: 'volver' } },
+          {
+            concept_id: 'cafe',
+            vertical: 'grocery',
+            surface: 'home',
+            origin: 'agent-volver',
+            request_id: 'contrato-agent-offer-volver',
+            payload: { kind: 'volver' },
+          },
         ],
       ])
 
@@ -731,7 +754,14 @@ describe('Home del prototipo final', () => {
       expect(tracked('suggestion_shown', 'agent-volver')).toEqual([
         [
           'suggestion_shown',
-          { concept_id: 'cafe', vertical: 'grocery', payload: { origen: 'agent-volver', kind: 'vuelta' } },
+          {
+            concept_id: 'cafe',
+            vertical: 'grocery',
+            surface: 'home',
+            origin: 'agent-volver',
+            request_id: 'contrato-agent-offer-volver',
+            payload: { kind: 'vuelta' },
+          },
         ],
       ])
     })
@@ -1078,7 +1108,14 @@ describe('Home del prototipo final', () => {
       await renderHome({ push })
       await advance(300)
       fireEvent.click(screen.getByText('Farmacia'))
-      expect(events.track).toHaveBeenCalledWith('vertical_open', { vertical: 'farmacia' })
+      // Con el sobre: la fila que ordena el motor, el lugar de Farmacia (sube primero) y la respuesta que la ordenó.
+      expect(events.track).toHaveBeenCalledWith('vertical_open', {
+        vertical: 'farmacia',
+        surface: 'home',
+        origin: 'accesos',
+        position: 0,
+        request_id: 'contrato-profile-verticales',
+      })
       fireEvent.click(screen.getByText('Restaurantes'))
       fireEvent.click(screen.getByText('Turbo'))
       expect(opened().map(([, fields]) => fields.vertical)).toEqual(['farmacia', 'restaurantes', 'turbo'])

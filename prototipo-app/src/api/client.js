@@ -3,6 +3,7 @@
 
 import { VERTICAL_NAMES, routeForScreen, screenForBackend } from '../data/verticals'
 import { PLACEHOLDER_IMG } from '../components/Img'
+import { placeList } from './attribution'
 import { saveSession, storedUserId, userToken } from './user'
 
 const DEFAULT_PORT = 8000
@@ -155,22 +156,38 @@ export async function ask(payload) {
 }
 
 export const profile = (userId) => request(`/profile/${encodeURIComponent(userId)}`, { timeout: 4000 })
-/** El orden de los accesos de la Home: `{ fixed, order: [{ id, score, reason }], personalized }` (ids del backend). */
+/**
+ * El orden de los accesos de la Home: `{ fixed, order: [{ id, score, reason }], personalized, request_id }` (ids del
+ * backend; `request_id`, el de esta respuesta, va en los toques a los accesos).
+ */
 export const homeVerticals = (userId) => request(`/profile/${encodeURIComponent(userId)}/verticales`, { timeout: 4000 })
 export const forget = (userId) => request(`/profile/${encodeURIComponent(userId)}`, { method: 'DELETE', timeout: 4000 })
-/** "Para ti" de rappi-ia: `{ user_id, interests, rows }`, con los productos de cada fila ya en el formato del prototipo. */
+/**
+ * "Para ti" de rappi-ia: `{ user_id, interests, rows, requestId }`, con los productos de cada fila ya en el formato del
+ * prototipo y marcados con su lugar (en el buscador con el agente, `para-ti`, su posición en la fila y la respuesta).
+ */
 export async function recommendations(userId, vertical) {
   const response = await request(
     `/recommendations?user_id=${encodeURIComponent(userId)}${vertical ? `&vertical=${vertical}` : ''}`,
     { timeout: 8000 },
   )
+  const requestId = response.request_id ?? null
   return {
     ...response,
-    rows: (response.rows ?? []).map((row) => ({ ...row, products: row.products.map(toPrototypeProduct) })),
+    requestId,
+    rows: (response.rows ?? []).map((row) => ({
+      ...row,
+      products: placeList(row.products.map(toPrototypeProduct), { surface: 'agent', origin: 'para-ti', requestId }),
+    })),
   }
 }
-export const sendEvents = (userId, events) =>
-  request('/events', { method: 'POST', body: { user_id: userId, events }, timeout: 5000 })
+/** Un lote de eventos, con lo que la app cuenta de su sesión (`session`: versión, plataforma, modo y entrada). */
+export const sendEvents = (userId, events, session) =>
+  request('/events', {
+    method: 'POST',
+    body: { user_id: userId, events, ...(session ? { session } : {}) },
+    timeout: 5000,
+  })
 export const sendOrder = (order) => request('/orders', { method: 'POST', body: order, timeout: 5000 })
 
 /**
@@ -178,9 +195,10 @@ export const sendOrder = (order) => request('/orders', { method: 'POST', body: o
  * /events/beacon (mismo JSON que /events): con application/json el navegador pediría un preflight CORS
  * que el beacon no puede hacer, y el envío se bloquearía. sendBeacon no manda cabeceras: el token va en el cuerpo.
  */
-export function beaconEvents(userId, events) {
+export function beaconEvents(userId, events, session) {
   if (typeof navigator === 'undefined' || !navigator.sendBeacon || events.length === 0) return false
-  const blob = new Blob([JSON.stringify({ user_id: userId, events, token: userToken() })], { type: 'text/plain' })
+  const body = { user_id: userId, events, ...(session ? { session } : {}), token: userToken() }
+  const blob = new Blob([JSON.stringify(body)], { type: 'text/plain' })
   return navigator.sendBeacon(`${API_URL}/events/beacon`, blob)
 }
 
@@ -220,8 +238,13 @@ function verticalView(vertical) {
   return screen ? { label: VERTICAL_NAMES[screen], route: routeForScreen(screen) } : { label: null, route: null }
 }
 
-/** Respuesta de /agent/ask → mensaje del agente en el prototipo ({ text, products, reason, actions, suggestion… }). */
+/**
+ * Respuesta de /agent/ask → mensaje del agente en el prototipo ({ text, products, reason, actions, suggestion… }). Los
+ * productos quedan marcados con su lugar en la respuesta (`agent-ask`, o el servicio de la sugerencia) y su `request_id`.
+ */
 export function toMessage(response) {
+  const requestId = response.request_id ?? null
+  const suggestionOrigin = response.service ?? 'agent-ask'
   const suggestion = response.suggestion
     ? {
         reason: response.suggestion.reason,
@@ -232,12 +255,15 @@ export function toMessage(response) {
         verticalLabel: verticalView(response.suggestion.vertical).label,
         route: verticalView(response.suggestion.vertical).route,
         // El gancho de un servicio (RappiTravel) se mide con su origen; las demás, como pregunta al agente.
-        origin: response.service ?? 'agent-ask',
-        products: response.suggestion.products.map((p) => ({
-          ...toPrototypeProduct(p),
-          fromSuggestion: true,
-          suggestionOrigin: response.service ?? 'agent-ask',
-        })),
+        origin: suggestionOrigin,
+        products: placeList(
+          response.suggestion.products.map((p) => ({
+            ...toPrototypeProduct(p),
+            fromSuggestion: true,
+            suggestionOrigin,
+          })),
+          { surface: 'agent', origin: suggestionOrigin, requestId },
+        ),
       }
     : null
   const alsoIn = response.also_in
@@ -254,7 +280,11 @@ export function toMessage(response) {
   return {
     text: response.text,
     service: response.service ?? null,
-    products: (response.products ?? []).map(toPrototypeProduct),
+    products: placeList((response.products ?? []).map(toPrototypeProduct), {
+      surface: 'agent',
+      origin: 'agent-ask',
+      requestId,
+    }),
     alsoIn,
     // La razón visible va con la sugerencia cruzada; aquí no se repite.
     reason: suggestion ? null : response.reason,
@@ -275,6 +305,7 @@ export function toMessage(response) {
     // respuesta siguió a la anterior («más barato» tras «cerveza»).
     conversation: response.conversation ?? null,
     followUp: Boolean(response.intent?.follow_up),
+    requestId,
     source: 'api',
   }
 }

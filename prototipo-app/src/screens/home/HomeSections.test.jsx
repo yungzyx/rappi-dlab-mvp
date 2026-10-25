@@ -92,7 +92,7 @@ test('un acceso con vertical llama a onOpen con su c√≥digo del backend; los dem√
   const onOpen = vi.fn()
   render(<Shortcuts push={vi.fn()} proposal onOpen={onOpen} />, { wrapper: ToastProvider })
   fireEvent.click(screen.getByText('Farmacia'))
-  expect(onOpen).toHaveBeenCalledExactlyOnceWith('farmacia')
+  expect(onOpen).toHaveBeenCalledExactlyOnceWith('farmacia', { origin: 'accesos', position: 1 })
   onOpen.mockClear()
   for (const name of ['RappiTravel', 'RappiFavor', 'Lealtad', 'Beneficios Pro']) fireEvent.click(screen.getByText(name))
   expect(onOpen).not.toHaveBeenCalled()
@@ -118,7 +118,10 @@ test('los dos accesos grandes llaman a onOpen con restaurantes y turbo', () => {
   render(<MainTiles push={push} onOpen={onOpen} />)
   fireEvent.click(screen.getByText('Restaurantes'))
   fireEvent.click(screen.getByText('Turbo'))
-  expect(onOpen.mock.calls).toEqual([['restaurantes'], ['turbo']])
+  expect(onOpen.mock.calls).toEqual([
+    ['restaurantes', { origin: 'accesos-grandes', position: 0 }],
+    ['turbo', { origin: 'accesos-grandes', position: 1 }],
+  ])
   expect(push).toHaveBeenCalledTimes(2)
 })
 
