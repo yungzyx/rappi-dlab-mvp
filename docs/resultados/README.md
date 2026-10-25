@@ -40,7 +40,7 @@ Respuestas reales de la API sobre `rappi_staging` (copia del 22-10), juzgadas a 
 | Búsqueda | Juicio LLM (no humano) | 200 pares de la planilla, dos jueces ciegos: 95 % de los 3 primeros útiles (66 % «sirve»); juez por concepto contra el juicio LLM: acuerdo 70,5 %, κ 0,32 | [juicio-llm-busqueda-2026-10-25.md](juicio-llm-busqueda-2026-10-25.md) |
 | Búsqueda | «Sin resultado» | precisión 1,00 (0 falsas alarmas en 131 positivas) · recall 0,93 (54 de 58). Con el mismo set y la regla anterior, 36 de 58 (0,62) | Evaluación automática | [reporte del 22-10](busqueda-2026-10-22.md) |
 | Búsqueda | Errores de tipeo | 53 casos en las 8 verticales: en la búsqueda agrupada (la de la app) se recuperan 52 corrigiendo la consulta (34 sin corregir), y por vertical 51 (29); «sin resultado», precisión y nDCG@10 iguales a los de arriba | Evaluación automática | [reporte del 24-10](busqueda-2026-10-24.md) |
-| Calidad | Tests (24-10-2026) | rappi-ia 2.973 · scraper 305 · prototipo 690 · panel 123 | Verificación local y CI | `make test` · `npm test` |
+| Calidad | Tests (25-10-2026) | rappi-ia 3.000 · scraper 305 · prototipo 704 · panel 123 | Verificación local y CI | `make test` · `npm test` |
 
 La búsqueda se evaluó con 131 consultas positivas en las 8 verticales y 58 negativas, con relevancia juzgada automáticamente por concepto ([`queries.json`](../../rappi-ia/src/rappi_ia/eval/queries.json), renovado el 22-10 contra el catálogo). Por tipo de consulta, el híbrido logra 0,970 en las exactas, 0,972 sin tildes y 0,709 en necesidades en lenguaje natural («algo para el carrete»), frente a 0,565 del léxico.
 
