@@ -9,3 +9,18 @@ export const normalize = (text) =>
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, ' ')
     .trim()
+
+/**
+ * La clave de un seguimiento grabado (`npm run demo:snapshot`, conversation.js): el mensaje y el turno anterior, sin lo
+ * ya mostrado.
+ */
+export const followKey = (previous, message) =>
+  [
+    normalize(message),
+    normalize(previous?.query),
+    previous?.vertical ?? '',
+    previous?.occasion ?? '',
+    previous?.price_max ?? '',
+    previous?.people ?? '',
+    previous?.order ?? '',
+  ].join('|')

@@ -109,7 +109,11 @@ describe('preguntas que la muestra no grabó (agent/understand.py y rappi_agent.
   test('lo grabado de la API real va primero', () => {
     const recorded = { text: 'Para 6 personas…', products: [coffee] }
     const withRecord = { ...snapshot, ask: { 'que llevo para un asado de 6': recorded } }
-    expect(ask(withRecord, { message: '¿Qué llevo para un asado de 6?' })).toBe(recorded)
+    // Con el estado para seguir la conversación (una muestra grabada con una API anterior no lo trae)
+    expect(ask(withRecord, { message: '¿Qué llevo para un asado de 6?' })).toMatchObject({
+      ...recorded,
+      conversation: { vertical: null, product_ids: ['1'] },
+    })
   })
 
   test('consejo médico: no lo da, como la API, y deja ir a Farmacia', () => {
