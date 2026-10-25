@@ -171,6 +171,7 @@ Los eventos de la app (`app_events`) llevan, desde la migración 043, el mismo s
 - Esto es una **convención de la capa, no una frontera de seguridad**: no hay un rol de solo lectura, y quien tenga las credenciales de la base lee también las tablas internas.
 - Los segmentos sensibles no generan aristas `afin_a` ni se usan para sugerir.
 - «Olvidar» borra a la persona (y con ella sus segmentos e historia); olvidar un concepto recalcula sus segmentos sin él.
+- Las preferencias que la persona le dice a Mochi (`agent_preferences`, migración 045: dieta, alergias, cocinas y tiendas favoritas) no entran a la capa: ni a segmentos, perfiles de gusto, motor ni panel, y lo dicho no queda como consulta en `app_events`. Solo filtran y ordenan lo que Mochi muestra ([diseno-ia.md](diseno-ia.md#preferencias-resumen-y-estado-del-pedido)). Es una tabla de personas (`PERSON_TABLES`) y se va con «Olvidar» y la purga.
 - Una sola persona no crea una relación en el grafo: `co_busqueda` exige sesiones de 5 o más personas distintas.
 
 ## Calidad medida
