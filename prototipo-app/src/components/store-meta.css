@@ -29,3 +29,24 @@
   font-size: 9px;
   color: var(--ink-3);
 }
+
+/* Cerrado según lo publicado en la descarga. */
+.store-closed {
+  color: var(--ink-muted);
+  font-weight: 600;
+}
+
+/* La promo publicada de una tienda en su tarjeta. */
+.store-promo {
+  display: inline-block;
+  max-width: 100%;
+  overflow: hidden;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: var(--fee-bg);
+  color: var(--fee-ink);
+  font-size: 12px;
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}

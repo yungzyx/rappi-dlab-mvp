@@ -34,7 +34,14 @@ const PAIRS = [
   ['«Go to checkout» del carro (17 px)', '../components/cart.css', '.cart-checkout', 'color', 'background', 4.5],
   ['«+» y contador del botón de agregar', '../components/add-button.css', '.add-button', 'color', 'background', 4.5],
   ['«Place order» (17 px)', '../screens/checkout/checkout.css', '.checkout-place', 'color', 'background', 4.5],
-  ['tarifa de servicio de Turbo', '../screens/turbo/turbo.css', '.turbo-fee', 'color', 'background', 4.5],
+  [
+    'barra «Agrega $X» (Turbo y promos de tienda)',
+    '../components/threshold-bar.css',
+    '.threshold-bar',
+    'color',
+    'background',
+    4.5,
+  ],
 ]
 
 describe('contraste de los botones principales (WCAG AA)', () => {

@@ -139,10 +139,32 @@
   ],
   "store": {
     "eta": "25 min",
+    "hours": {
+      "closes_at": null,
+      "open": true,
+      "opens_at": null,
+      "opens_tomorrow": false,
+      "source": "descarga",
+      "today": null
+    },
     "id": 9101,
     "logo": "https://images.rappi.cl/marketplace/prueba-9101.png",
     "name": "Supermercado de prueba Centro",
     "products": 36,
+    "promos": [
+      {
+        "threshold": 15000,
+        "title": "Envío gratis sobre $15.000 (prueba)",
+        "type": "free_shipping",
+        "value": 0.0
+      },
+      {
+        "threshold": null,
+        "title": "10% OFF en despensa (prueba)",
+        "type": "percentage",
+        "value": 10.0
+      }
+    ],
     "vertical": "supermercado"
   }
 }

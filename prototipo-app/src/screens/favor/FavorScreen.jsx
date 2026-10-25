@@ -25,12 +25,17 @@ const USES = [
   },
 ]
 
-/** RappiFavor: un Rappitendero hace un favor de corta distancia. En Rappi hoy aparece no disponible; aquí, simulado. */
-export default function FavorScreen({ back }) {
+/**
+ * RappiFavor: un Rappitendero hace un favor de corta distancia. En Rappi hoy aparece no disponible; aquí, simulado.
+ * `params.text`: lo que el buscador no encontró («Lo que sea»): abre «Compras en cualquier tienda» con el encargo ya
+ * escrito (el buscador solo lo ofrece si las guardias de la API lo permiten).
+ */
+export default function FavorScreen({ back, params = {} }) {
   const toast = useToast()
   const address = useAddress()
-  const [useId, setUseId] = useState(null)
-  const [task, setTask] = useState('')
+  const whim = typeof params.text === 'string' ? params.text.trim() : ''
+  const [useId, setUseId] = useState(whim ? 'compra' : null)
+  const [task, setTask] = useState(whim ? `Conseguir: ${whim}` : '')
   const [pickup, setPickup] = useState('')
   const [missing, setMissing] = useState(false)
   const chosen = USES.find((use) => use.id === useId)

@@ -344,6 +344,35 @@ _DETAILS = [
     (4.9, 10, "10 min", 0),  # el más rápido, barato y mejor nota... pero sin platos con precio
 ]
 
+# El horario que publicó cada restaurante (restaurant_details.schedules, como lo baja el scraper). La Pizzería, la
+# Parrilla (pasa la medianoche) y el Café publican toda la semana; los Sándwiches, solo el día de la descarga (jueves);
+# los demás, nada. Un jueves a las 13:00 (la hora que fijan los tests) todos los que publican están abiertos.
+_ALL_DAYS = ("mon", "tue", "wed", "thu", "fri", "sat", "sun")
+_SCHEDULES = {
+    9801: [("11:00:00", "23:30:00", day) for day in _ALL_DAYS],
+    9803: [("09:00:00", "21:00:00", "thu")],
+    9804: [("12:00:00", "01:00:00", day) for day in _ALL_DAYS],
+    9805: [("08:00:00", "20:00:00", day) for day in _ALL_DAYS],
+}
+
+# Lo que publican algunas tiendas en su `raw`: promos (`offers`) y si estaba abierta al bajarla (`is_open`, con la hora
+# a la que abría). Todo inventado y rotulado «prueba».
+_STORE_OFFERS = {
+    9101: [
+        {"type": "free_shipping", "title": "Envío gratis sobre $15.000 (prueba)", "value": 0},
+        {"type": "percentage", "title": "10% OFF en despensa (prueba)", "value": 10},
+    ],
+    9201: [{"type": "percentage", "title": "5% OFF en todo (prueba)", "value": 5}],
+}
+_CLOSED_AT_DOWNLOAD = {9601: {"open_time": "10:00:00"}}
+
+# Un plato rebajado (precio de lista en su snapshot): el local de Sándwiches sale en «Con promociones».
+_DISH_LIST_PRICE = {98010: 6990}
+
+# Unidades que quedaban en la descarga (price_snapshots.stock): pocas del café y ningunos tallarines (agotados aunque
+# la tienda no los marca sin stock: la ficha ofrece los otros fideos).
+_STOCK = {(91004, 9101): 3, (91101, 9101): 0}
+
 # Platos destacados (is_popular) y platos sin foto: la portada de un local es la foto de su plato popular, o la del
 # primero con foto. El de Cevichería no tiene ninguna foto.
 _POPULAR_DISHES = {98002, 98004, 98010, 98015}
@@ -474,14 +503,23 @@ def _insert_store(
             lng = _HOME[1] + ((place * 3) % 17 - 8) * 0.004
         else:
             lat, lng = _HOME[0] - nearness * 0.0001, _HOME[1]
-        raw = Jsonb({"image": f"prueba-{store_id}.png", "eta_value": 20 + 5 * (store_id % 4), "lat": lat, "lng": lng})
+        raw = {
+            "image": f"prueba-{store_id}.png",
+            "eta_value": 20 + 5 * (store_id % 4),
+            "delivery_price": 990 + 500 * (store_id % 3),
+            "lat": lat,
+            "lng": lng,
+            "is_open": store_id not in _CLOSED_AT_DOWNLOAD,
+            "next_schedule": _CLOSED_AT_DOWNLOAD.get(store_id),
+            "offers": _STORE_OFFERS.get(store_id),
+        }
     elif vertical == "restaurantes":
         # Más cerca del punto fijo que cualquier tienda: «Cerca de ti» tiene que dejarlos fuera por ser restaurantes.
         lat, lng = _HOME[0] + (store_id - 9800) * 0.0004, _HOME[1]
     conn.execute(
         """INSERT INTO stores (store_id, name, store_type, city, path, lat, lng, raw)
            VALUES (%s, %s, %s, %s, %s, %s, %s, %s)""",
-        (store_id, name, store_type, CITY, f"/tiendas/{store_id}", lat, lng, raw),
+        (store_id, name, store_type, CITY, f"/tiendas/{store_id}", lat, lng, Jsonb(raw) if raw else None),
     )
     conn.execute(
         "INSERT INTO store_verticals (store_id, vertical, subvertical) VALUES (%s, %s, %s)",
@@ -579,10 +617,12 @@ def _insert_snapshot(
     real_price: int | None = None,
 ) -> None:
     discount = round(100 * (1 - price / real_price)) if real_price else None
+    stock = None if old else _STOCK.get((product_id, store_id))
     conn.execute(
-        """INSERT INTO price_snapshots (run_id, store_id, sku, price, real_price, discount_pct, in_stock, scraped_at)
-           VALUES (%s, %s, %s, %s, %s, %s, %s, now() - make_interval(days => %s))""",
-        (run_id, store_id, f"sku-{product_id}", price, real_price, discount, in_stock, 7 if old else 0),
+        """INSERT INTO price_snapshots (run_id, store_id, sku, price, real_price, discount_pct, in_stock, stock,
+                                        scraped_at)
+           VALUES (%s, %s, %s, %s, %s, %s, %s, %s, now() - make_interval(days => %s))""",
+        (run_id, store_id, f"sku-{product_id}", price, real_price, discount, in_stock, stock, 7 if old else 0),
     )
 
 
@@ -609,10 +649,11 @@ def _insert_restaurants(conn: Connection) -> None:
     for (store_id, _), (cuisines, sections), (rating, reviews, eta, fee) in zip(
         _STORES["restaurantes"], _MENUS, _DETAILS, strict=True
     ):
+        schedules = [{"open_time": o, "close_time": c, "day": d} for o, c, d in _SCHEDULES.get(store_id, [])]
         conn.execute(
-            """INSERT INTO restaurant_details (store_id, rating, review_count, delivery_cost, eta)
-               VALUES (%s, %s, %s, %s, %s)""",
-            (store_id, rating, reviews, fee, eta),
+            """INSERT INTO restaurant_details (store_id, rating, review_count, delivery_cost, eta, schedules)
+               VALUES (%s, %s, %s, %s, %s, %s)""",
+            (store_id, rating, reviews, fee, eta, Jsonb(schedules)),
         )
         for cuisine in cuisines:
             conn.execute("INSERT INTO cuisines (name) VALUES (%s) ON CONFLICT DO NOTHING", (cuisine,))
@@ -631,7 +672,9 @@ def _insert_restaurants(conn: Connection) -> None:
                        VALUES (%s, %s, %s, %s, %s, %s, %s)""",
                     (item_id, item_id, store_id, section_id, name, image, item_id in _POPULAR_DISHES),
                 )
+                list_price = _DISH_LIST_PRICE.get(item_id)
                 conn.execute(
-                    "INSERT INTO menu_price_snapshots (run_id, item_id, price, is_available) VALUES (%s, %s, %s, true)",
-                    (run_id, item_id, price),
+                    """INSERT INTO menu_price_snapshots (run_id, item_id, price, real_price, discount_pct, is_available)
+                       VALUES (%s, %s, %s, %s, %s, true)""",
+                    (run_id, item_id, price, list_price, round(100 * (1 - price / list_price)) if list_price else None),
                 )

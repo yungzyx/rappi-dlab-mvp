@@ -1,0 +1,29 @@
+{
+  "basis": [
+    {
+      "id": "chocolates",
+      "kind": "interes",
+      "source": "eventos:persona"
+    }
+  ],
+  "products": [
+    {
+      "age_restricted": false,
+      "before": null,
+      "concept": "chocolates",
+      "discount": null,
+      "entity_id": "92002",
+      "entity_type": "catalog_item",
+      "id": "cat-92002",
+      "img": "https://imagenes.prueba.invalid/productos/92002.png",
+      "name": "Chocolate con leche 100 g (prueba)",
+      "presentation": "100 g",
+      "price": "$1.490",
+      "price_value": 1490.0,
+      "store": "Tienda express de prueba Centro",
+      "store_id": 9201,
+      "vertical": "conveniencia"
+    }
+  ],
+  "request_id": "contrato-catalog-store-para-ti"
+}

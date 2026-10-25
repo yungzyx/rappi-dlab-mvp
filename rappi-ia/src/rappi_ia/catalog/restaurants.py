@@ -7,6 +7,7 @@ dato cuenta como desconocido y el plato no sale. La base no guarda logos de rest
 de uno de sus platos: un plato popular, o el primero con foto.
 """
 
+from dataclasses import dataclass
 from typing import Literal
 
 from psycopg import Connection
@@ -16,12 +17,34 @@ from .. import config
 from ..agent.tools import clp
 from ..concepts.taxonomy import load_taxonomy
 from ..offers.profiles import city_places
+from . import hours as clock
 from .cache import cached
-from .stores import BIGINT_MAX, product_card
+from .hours import closed_last, normalize_schedule, restaurant_hours
+from .stores import BIGINT_MAX, like_pattern, normalized_sql, product_card
 
 POPULAR_SECTION = "Lo más pedido"
 
-Sort = Literal["rating", "eta", "fee"]
+Sort = Literal["recommended", "rating", "eta", "fee"]
+
+# «Destacados» es una regla propia de la demo, no la de Rappi (su «Súper» no se publica): nota desde 4,5 con al menos
+# TOP_MIN_REVIEWS opiniones. La app lo rotula así.
+TOP_MIN_RATING = 4.5
+TOP_MIN_REVIEWS = 100
+
+
+@dataclass(frozen=True)
+class Filters:
+    """Lo que acota la lista (lo que no se pide es None o False): hasta `max_eta` minutos, desde `min_rating` de nota,
+    solo los destacados (`top`) o solo los que tienen algún plato rebajado (`promo`)."""
+
+    max_eta: int | None = None
+    min_rating: float | None = None
+    top: bool = False
+    promo: bool = False
+
+    def key(self) -> str:
+        return f"{self.max_eta}:{self.min_rating}:{int(self.top)}:{int(self.promo)}"
+
 
 # Los minutos de entrega son el primer número del texto («35 min»); un texto vacío o sin número, o 0, es desconocido.
 _ETA_MINUTES = r"NULLIF(substring(d.eta from '\d+')::numeric, 0)"
@@ -29,19 +52,26 @@ _ETA_MINUTES = r"NULLIF(substring(d.eta from '\d+')::numeric, 0)"
 # Cada orden desempata por la nota y por el id: la lista es siempre la misma. Lo desconocido va al final (un local sin
 # tiempo no es "el más rápido", ni uno sin nota "el mejor").
 _ORDER = {
+    # Recomendado: más opiniones primero (las deja quien pidió: la señal de volumen que publica Rappi), luego la nota.
+    "recommended": "d.review_count DESC NULLS LAST, d.rating DESC NULLS LAST, s.store_id",
     "rating": "d.rating DESC NULLS LAST, d.review_count DESC NULLS LAST, s.store_id",
     "eta": f"{_ETA_MINUTES} ASC NULLS LAST, d.rating DESC NULLS LAST, s.store_id",
     "fee": "d.delivery_cost ASC NULLS LAST, d.rating DESC NULLS LAST, s.store_id",
 }
 
-# Las tarjetas de los restaurantes con algún plato con precio, en un orden, de una cocina o de un local (los filtros
-# que no se piden son NULL). Sin local, solo los de una comuna de la ciudad de la demo (`places`; la comuna se compara
+# Algún plato con precio rebajado (su último precio bajo el de lista): «Con promociones».
+_DISCOUNTED_DISH = """EXISTS (SELECT 1 FROM menu_items mi JOIN latest_menu_prices p ON p.item_id = mi.item_id
+                  WHERE mi.store_id = {alias}.store_id AND p.price >= %(min_price)s AND p.real_price > p.price)"""
+
+# Las tarjetas de los restaurantes con algún plato con precio, en un orden, de una cocina o de un local, o cuyo nombre o
+# cocina contiene lo buscado (`name`, un patrón de LIKE ya normalizado); con los filtros de la lista (los que no se
+# piden son NULL o false). Sin local, solo los de una comuna de la ciudad de la demo (`places`; la comuna se compara
 # normalizada como en `text.normalize`: sin tildes, mayúsculas ni signos): la Home y la lista de restaurantes no
 # muestran locales de Valparaíso a quien está en Providencia. El orden y el corte se hacen antes de buscar la portada y
 # las cocinas, que solo se buscan para los que quedan. El EXISTS se detiene en el primer plato con precio.
 _CARDS = """
 WITH ranked AS (
-    SELECT s.store_id, s.name, d.rating, d.eta, d.delivery_cost,
+    SELECT s.store_id, s.name, d.rating, d.eta, d.delivery_cost, d.review_count, d.schedules,
            row_number() OVER (ORDER BY {order}) AS pos
     FROM stores s
     JOIN store_verticals v ON v.store_id = s.store_id AND v.vertical = 'restaurantes'
@@ -51,13 +81,20 @@ WITH ranked AS (
            OR btrim(regexp_replace(lower(unaccent(coalesce(s.city, ''))), '[^a-z0-9]+', ' ', 'g')) = ANY(%(places)s))
       AND (%(cuisine)s::text IS NULL
            OR EXISTS (SELECT 1 FROM restaurant_cuisines rc WHERE rc.store_id = s.store_id AND rc.cuisine = %(cuisine)s))
+      AND (%(name)s::text IS NULL OR {name_s} LIKE %(name)s
+           OR EXISTS (SELECT 1 FROM restaurant_cuisines rc WHERE rc.store_id = s.store_id AND {name_rc} LIKE %(name)s))
+      AND (%(max_eta)s::numeric IS NULL OR {eta} <= %(max_eta)s)
+      AND (%(min_rating)s::numeric IS NULL OR d.rating >= %(min_rating)s)
+      AND (%(min_reviews)s::int IS NULL OR d.review_count >= %(min_reviews)s)
+      AND (NOT %(promo)s OR {discounted_s})
       AND EXISTS (SELECT 1 FROM menu_items mi JOIN latest_menu_prices p ON p.item_id = mi.item_id
                   WHERE mi.store_id = s.store_id AND p.price >= %(min_price)s)
     ORDER BY pos
     LIMIT %(limit)s
 )
 SELECT r.store_id, r.name, r.rating, r.eta, r.delivery_cost, cover.image_url,
-       ARRAY(SELECT rc.cuisine FROM restaurant_cuisines rc WHERE rc.store_id = r.store_id ORDER BY rc.cuisine)
+       ARRAY(SELECT rc.cuisine FROM restaurant_cuisines rc WHERE rc.store_id = r.store_id ORDER BY rc.cuisine),
+       r.review_count, r.schedules, {discounted_r}
 FROM ranked r
 LEFT JOIN LATERAL (
     SELECT mi.image_url
@@ -85,24 +122,54 @@ WHERE mi.store_id = %(store_id)s AND p.price >= %(min_price)s
 ORDER BY ms.position, ms.section_id, mi.rappi_item_id, mi.item_id"""
 
 
-def restaurants(conn: Connection, cuisine: str | None = None, sort: Sort = "rating", limit: int = 30) -> list[dict]:
+def restaurants(
+    conn: Connection,
+    cuisine: str | None = None,
+    sort: Sort = "rating",
+    limit: int = 30,
+    filters: Filters | None = None,
+    now=None,
+) -> list[dict]:
     """Las tarjetas de los restaurantes con algún plato con precio de la ciudad de la demo (`config.PROFILE_CITY`), de
-    una cocina si se pide, por mejor nota (`rating`), menor tiempo de entrega (`eta`) o menor costo de envío (`fee`).
-    Sin cocina sale de la caché del catálogo (catalog/cache.py): la consulta recorre todos los platos y la lista solo
-    cambia con una corrida. Con cocina (texto libre, que la app no pide) no se guarda: cada texto distinto sería una
+    una cocina si se pide, con los `filters` de la lista, por más opiniones (`recommended`), mejor nota (`rating`),
+    menor tiempo de entrega (`eta`) o menor costo de envío (`fee`). Los cerrados a la hora local (`now`, la de Santiago
+    si no se da) van al final, sin cambiar el orden de los demás. Sin cocina sale de la caché del catálogo
+    (catalog/cache.py): la consulta recorre todos los platos y la lista solo cambia con una corrida; el horario se
+    compara después, con la hora de cada request. Con cocina (texto libre) no se guarda: cada texto distinto sería una
     entrada más, sin tope."""
 
+    filters = filters or Filters()
+
     def compute() -> list[dict]:
-        return [_card(*row) for row in _card_rows(conn, sort=sort, cuisine=cuisine, limit=limit)]
+        rows = _card_rows(conn, sort=sort, cuisine=cuisine, limit=limit, filters=filters)
+        return [_card(*row) for row in rows]
 
-    return compute() if cuisine is not None else cached(f"restaurants:{sort}:{limit}", conn, compute)
+    cards = compute() if cuisine is not None else cached(f"restaurants:{sort}:{limit}:{filters.key()}", conn, compute)
+    return with_hours(cards, now)
 
 
-def restaurant_menu(conn: Connection, store_id: int) -> dict | None:
+def search_restaurants(conn: Connection, q: str, limit: int = 10, now=None) -> list[dict]:
+    """Los restaurantes de la ciudad de la demo cuyo nombre o alguna cocina contiene lo buscado (sin tildes ni
+    mayúsculas), por nota; los cerrados al final. Vacío si la consulta no tiene al menos dos letras."""
+    pattern = like_pattern(q)
+    if pattern is None:
+        return []
+    return with_hours([_card(*row) for row in _card_rows(conn, sort="rating", name=pattern, limit=limit)], now)
+
+
+def with_hours(cards: list[dict], now=None) -> list[dict]:
+    """Cada tarjeta (sin tocar las de la caché) con su estado a la hora `now` según el horario publicado; los cerrados
+    al final."""
+    moment = now or clock.now_local()
+    return closed_last([{**card, "hours": restaurant_hours(card["schedule"], moment)} for card in cards])
+
+
+def restaurant_menu(conn: Connection, store_id: int, now=None) -> dict | None:
     """El restaurante con su menú: una sección por cada una de las suyas con platos con precio, en el orden de
     `menu_sections.position`, y en cada una todos sus platos: uno que Rappi repite («Más vendidos» y la suya) sale en
     las dos. Los platos populares abren el menú en la sección «Lo más pedido», una vez cada uno, y siguen en la suya.
-    `None` si no existe, no es un restaurante o no tiene platos con precio."""
+    La tarjeta trae su estado a la hora `now` (`hours`). `None` si no existe, no es un restaurante o no tiene platos
+    con precio."""
     if not 0 <= store_id <= BIGINT_MAX:
         return None
     rows = _card_rows(conn, sort="rating", store_id=store_id, limit=1)
@@ -130,23 +197,55 @@ def restaurant_menu(conn: Connection, store_id: int) -> dict | None:
                 popular.append(dish)
         sections.setdefault(section_id, {"name": section.strip(), "items": []})["items"].append(dish)
     first = [{"name": POPULAR_SECTION, "items": popular}] if popular else []
-    return {"restaurant": _card(*rows[0]), "sections": first + list(sections.values())}
+    return {"restaurant": with_hours([_card(*rows[0])], now)[0], "sections": first + list(sections.values())}
 
 
 def _card_rows(
-    conn: Connection, sort: Sort, cuisine: str | None = None, store_id: int | None = None, limit: int = 30
+    conn: Connection,
+    sort: Sort,
+    cuisine: str | None = None,
+    store_id: int | None = None,
+    limit: int = 30,
+    filters: Filters | None = None,
+    name: str | None = None,
 ) -> list[tuple]:
+    filters = filters or Filters()
+    top = filters.top
     params = {
         "store_id": store_id,
         "cuisine": cuisine,
+        "name": name,
         "limit": limit,
         "min_price": MIN_PRICE,
         "places": sorted(city_places(config.PROFILE_CITY)),
+        "max_eta": filters.max_eta,
+        "min_rating": max(filters.min_rating or 0, TOP_MIN_RATING if top else 0) or None,
+        "min_reviews": TOP_MIN_REVIEWS if top else None,
+        "promo": filters.promo,
     }
-    return conn.execute(_CARDS.format(order=_ORDER[sort]), params).fetchall()
+    query = _CARDS.format(
+        order=_ORDER[sort],
+        eta=_ETA_MINUTES,
+        discounted_s=_DISCOUNTED_DISH.format(alias="s"),
+        discounted_r=_DISCOUNTED_DISH.format(alias="r"),
+        name_s=normalized_sql("s.name"),
+        name_rc=normalized_sql("rc.cuisine"),
+    )
+    return conn.execute(query, params).fetchall()
 
 
-def _card(store_id: int, full_name: str, rating, eta: str | None, fee, cover: str | None, cuisines: list[str]) -> dict:
+def _card(
+    store_id: int,
+    full_name: str,
+    rating,
+    eta: str | None,
+    fee,
+    cover: str | None,
+    cuisines: list[str],
+    reviews: int | None,
+    schedules,
+    promo: bool,
+) -> dict:
     name, area = _split_name(full_name)
     return {
         "id": store_id,
@@ -154,9 +253,14 @@ def _card(store_id: int, full_name: str, rating, eta: str | None, fee, cover: st
         "area": area,
         "cover": cover,
         "rating": float(rating) if rating is not None else None,
+        "reviews": reviews,
         "eta": (eta.strip() or None) if eta else None,
         "fee": clp(float(fee)) if fee is not None else None,
         "cuisines": cuisines,
+        # Algún plato rebajado: la marca «Con promociones» (no es una promo de la tienda, que Rappi no publica aquí).
+        "promo": bool(promo),
+        # El horario publicado el día de la descarga (`hours` lo compara con la hora local de cada request).
+        "schedule": normalize_schedule(schedules),
     }
 
 

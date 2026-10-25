@@ -23,7 +23,7 @@ from rappi_ia.events.store import catalog_prices
 
 CENTRO, NORTE, OLD_BRANCH, DISCOVERED, PIZZERIA = 9101, 9102, 9103, 9104, 9801
 PHARMACY_IN_SUPER = 9111  # Rappi la lista entre los súper (subvertical Farmacia): se abre desde su vertical
-CARD_KEYS = {"id", "name", "logo", "eta", "products", "vertical"}
+CARD_KEYS = {"id", "name", "logo", "eta", "products", "vertical", "promos", "hours"}
 NOT_IN_CATALOG = "Esta tienda no está en el catálogo"
 
 

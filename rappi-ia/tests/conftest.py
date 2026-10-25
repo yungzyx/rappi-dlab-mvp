@@ -1,6 +1,8 @@
 import logging
 import os
 import zlib
+from datetime import datetime
+from zoneinfo import ZoneInfo
 
 # La suite hace miles de requests desde la misma IP («testclient»): sin tope por IP (se lee al importar la config).
 # test_api_env y test_limits prueban el límite con sus propios valores.
@@ -56,6 +58,20 @@ def keep_logging_config():
     logging.setLogRecordFactory(factory)
     for name, previous in quiet.items():
         logging.getLogger(name).setLevel(previous)
+
+
+# La hora local con que se compara el horario publicado de los restaurantes (catalog/hours.py): un jueves a las 13:00 en
+# Santiago, cuando todos los del catálogo de prueba que publican horario están abiertos. Sin ella, el orden de una lista
+# (los cerrados al final) dependería de la hora en que corre la suite. Los tests del horario pasan su propia hora.
+FIXED_LOCAL_TIME = datetime(2026, 10, 22, 13, 0, tzinfo=ZoneInfo("America/Santiago"))
+
+
+@pytest.fixture(autouse=True)
+def fixed_local_time(monkeypatch):
+    from rappi_ia.catalog import hours
+
+    monkeypatch.setattr(hours, "now_local", lambda: FIXED_LOCAL_TIME)
+    return FIXED_LOCAL_TIME
 
 
 @pytest.fixture(autouse=True)

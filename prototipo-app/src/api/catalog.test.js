@@ -5,8 +5,10 @@ import {
   home,
   menu,
   product,
+  productStores,
   restaurants,
   store,
+  storeForYou,
   storeOfProduct,
   toPrototypeStore,
   verticalStores,
@@ -35,6 +37,12 @@ describe('tiendas de una vertical', () => {
       eta: '25 min',
       etaIcon: 'clock',
       vertical: 'grocery',
+      hours: { source: 'descarga', open: true, closes_at: null, opens_at: null, opens_tomorrow: false, today: null },
+      promos: [
+        { type: 'free_shipping', title: 'Envío gratis sobre $15.000 (prueba)', value: 0, threshold: 15000 },
+        { type: 'percentage', title: '10% OFF en despensa (prueba)', value: 10, threshold: null },
+      ],
+      promo: false,
     })
     expect(lastPath(fetchMock)).toBe('/catalog/verticals/supermercado/stores')
   })
@@ -150,6 +158,17 @@ describe('restaurantes', () => {
       vertical: 'restaurants',
       rating: '4.8',
       fee: '$2.490',
+      // Su horario publicado comparado con la hora fija de los tests del backend (jueves 13:00).
+      hours: {
+        source: 'horario',
+        open: true,
+        closes_at: '01:00',
+        opens_at: null,
+        opens_tomorrow: false,
+        today: '12:00–01:00',
+      },
+      promos: [],
+      promo: false,
     })
   })
 
@@ -171,7 +190,8 @@ describe('restaurantes', () => {
     const noCover = byName('Cevichería de prueba')
     expect(noCover.img).toBe(PLACEHOLDER_IMG)
     expect(noCover.logo).toBe(false)
-    expect(JSON.stringify(list)).not.toMatch(/null|undefined/)
+    // El horario dice con null lo que no aplica (un abierto no tiene «abre a las»): el resto no inventa nada.
+    expect(JSON.stringify(list.map(({ hours: _hours, ...card }) => card))).not.toMatch(/null|undefined/)
   })
 
   test('manda la cocina, el orden y el límite que se piden, y nada más', async () => {
@@ -254,6 +274,9 @@ describe('toPrototypeStore', () => {
       logo: true,
       etaIcon: 'none',
       vertical: 'retail',
+      hours: null,
+      promos: [],
+      promo: false,
     })
   })
 
@@ -270,6 +293,62 @@ describe('storeOfProduct', () => {
       id: 9102,
       name: 'Supermercado de prueba Norte',
       vertical: 'grocery',
+    })
+  })
+})
+
+describe('descubrimiento', () => {
+  test('los filtros de restaurantes viajan como parámetros de la API', async () => {
+    const fetchMock = stubApi({ '/catalog/restaurants': fixture('catalog-restaurants-filtros') })
+    const list = await restaurants({ sort: 'recommended', maxEta: 35, minRating: 4.5, top: true, promo: true })
+    expect(lastQuery(fetchMock)).toEqual({
+      sort: 'recommended',
+      max_eta: '35',
+      min_rating: '4.5',
+      top: 'true',
+      promo: 'true',
+    })
+    expect(list.map((card) => card.name)).toEqual(['Parrilla de prueba', 'Pizzería de prueba Centro'])
+  })
+
+  test('productStores: cada tienda con sus marcas y su lugar en la ficha', async () => {
+    const fetchMock = stubApi({ '/catalog/products/catalog_item/92002/stores': fixture('catalog-product-stores') })
+    const reply = await productStores('92002', 9201)
+    expect(lastQuery(fetchMock)).toEqual({ store_id: '9201' })
+    expect(reply.count).toBe(4)
+    expect(reply.stores[0]).toMatchObject({
+      storeId: 9201,
+      store: 'Tienda express de prueba Centro',
+      vertical: 'express',
+      price: '$1.490',
+      eta: '25 min',
+      fee: '$990',
+      bestPrice: true,
+      fastest: true,
+      available: true,
+      placement: { surface: 'store', origin: 'comparar-tiendas', position: 0 },
+    })
+    expect(reply.here).toBeNull()
+  })
+
+  test('productStores: agotado en la tienda trae los similares ya en el formato del prototipo', async () => {
+    stubApi({ '/catalog/products/catalog_item/91101/stores': fixture('catalog-product-stores-agotado') })
+    const reply = await productStores('91101', 9101)
+    expect(reply.here).toMatchObject({ storeId: 9101, available: false })
+    expect(reply.similar[0]).toMatchObject({ entityId: expect.any(String), storeId: 9101, vertical: 'grocery' })
+    expect(reply.similar[0].placement.origin).toBe('similares')
+  })
+
+  test('storeForYou: los productos de la tienda con su lugar y el id de la respuesta', async () => {
+    const fetchMock = stubApi({ '/catalog/stores/9201/para-ti': fixture('catalog-store-para-ti') })
+    const reply = await storeForYou(9201, 'u-afin')
+    expect(lastQuery(fetchMock)).toEqual({ user_id: 'u-afin' })
+    expect(reply.products.map((p) => p.entityId)).toEqual(['92002'])
+    expect(reply.products[0].placement).toEqual({
+      surface: 'store',
+      origin: 'para-ti',
+      position: 0,
+      requestId: 'contrato-catalog-store-para-ti',
     })
   })
 })

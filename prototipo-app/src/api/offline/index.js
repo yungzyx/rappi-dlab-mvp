@@ -32,6 +32,10 @@
 // - rappi-ia/src/rappi_ia/events/store.py .......... el perfil de intereses (index.js: interests) y el sobre de cada
 //   evento (index.js: storedEvent; el origen, en `origin` o, en los eventos de antes, `payload.origen`)
 // - rappi-ia/src/rappi_ia/offers/profiles.py ....... los perfiles de gusto activos (tastes.js)
+// - rappi-ia/src/rappi_ia/catalog/hours.py y catalog/restaurants.py (filtros, «Destacados», with_hours) ... abierto o
+//   cerrado según el horario publicado y los filtros de restaurantes (catalog.js); las búsquedas recientes de
+//   events/searches.py (index.js: searchesReply). Sin conexión no hay «Lo más buscado», tiendas en la búsqueda, «Lo que
+//   sea», comparar entre tiendas ni «Para ti» en la tienda: esas rutas responden 404 o vacío y la app no las muestra.
 // - rappi-ia/src/rappi_ia/api/app.py y api/catalog.py ... las rutas (index.js, catalog.js, search.js), con el
 //   `request_id` de las respuestas que ordenan cosas (index.js: served)
 // No hay población que aprenda (transiciones, popularidad, retención aprendida) ni búsqueda semántica, y lo pedido en
@@ -77,6 +81,7 @@ const storedEvent = (event, now) => ({
   entity_type: event.entity_type ?? null,
   entity_id: event.entity_id ?? null,
   cart_id: event.cart_id ?? null,
+  query: event.query ?? null,
   origin: event.origin ?? event.payload?.origen ?? null,
   payload: event.payload ?? {},
 })
@@ -160,6 +165,23 @@ export function availability(snapshot, lines) {
   }
 }
 
+/**
+ * Antes de escribir (events/searches.py): las búsquedas recientes de este navegador, sin repetir. Sin conexión no hay
+ * población de la que sacar «Lo más buscado»: va vacío y sin población declarada.
+ */
+function searchesReply(state) {
+  const seen = new Set()
+  const recent = []
+  for (const event of [...state.events].reverse()) {
+    const text = event.type === 'search' ? event.query?.trim() : ''
+    if (!text || seen.has(text.toLowerCase())) continue
+    seen.add(text.toLowerCase())
+    recent.push(text)
+    if (recent.length === 6) break
+  }
+  return { recientes: recent, mas_buscado: [], poblacion: null }
+}
+
 const ORDER_VERTICALS = [
   'restaurantes',
   'turbo',
@@ -175,12 +197,13 @@ const ORDER_VERTICALS = [
 export function route(snapshot, request, now = Date.now()) {
   const reply = answer(snapshot, request, now)
   const key = `${request.method} ${request.path}`
-  const ranked = SERVED.has(key) || (request.method === 'GET' && /^\/profile\/[^/]+\/verticales$/.test(request.path))
+  const ranked =
+    SERVED.has(key) || (request.method === 'GET' && /^\/profile\/[^/]+\/(verticales|busquedas)$/.test(request.path))
   return ranked && (reply.status ?? 200) === 200 ? { ...reply, body: served(reply.body) } : reply
 }
 
 function answer(snapshot, { method, path, query, body }, now) {
-  const catalog = catalogRoute(snapshot, method, path, query)
+  const catalog = catalogRoute(snapshot, method, path, query, now)
   if (catalog) return { status: catalog.status ?? 200, body: catalog.body }
   const state = readState()
   const key = `${method} ${path}`
@@ -233,7 +256,7 @@ function answer(snapshot, { method, path, query, body }, now) {
     addOrder(order)
     return { body: { order_id: order.order_id, lineas_omitidas: 0 } }
   }
-  const profile = /^\/profile\/([^/]+)(\/verticales|\/gustos)?$/.exec(path)
+  const profile = /^\/profile\/([^/]+)(\/verticales|\/gustos|\/busquedas)?$/.exec(path)
   if (profile) {
     const userId = decodeURIComponent(profile[1])
     if (method === 'DELETE' && !profile[2])
@@ -241,6 +264,7 @@ function answer(snapshot, { method, path, query, body }, now) {
     if (method === 'GET' && profile[2] === '/verticales')
       return { body: homeVerticals(state, now, snapshot.meta.vertical_labels) }
     if (method === 'GET' && profile[2] === '/gustos') return { body: tastesReply(snapshot, state) }
+    if (method === 'GET' && profile[2] === '/busquedas') return { body: searchesReply(state) }
     if (method === 'GET' && !profile[2]) {
       const { concepts } = snapshot.meta
       const list = interests(snapshot, state, now).map((i) => ({

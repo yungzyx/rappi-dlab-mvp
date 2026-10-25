@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, test, vi } from 'vitest'
 import { ApiError } from './client'
-import { searchAll } from './search'
+import { searchAll, searchSuggestions } from './search'
 import { fixture, stubApi } from '../test/api'
 
 afterEach(() => vi.unstubAllGlobals())
@@ -75,5 +75,33 @@ describe('searchAll', () => {
   test('sin API lanza un ApiError', async () => {
     stubApi({ '/search': 'offline' })
     await expect(searchAll('cerveza')).rejects.toBeInstanceOf(ApiError)
+  })
+})
+
+describe('tiendas, restaurantes y lo de antes de escribir', () => {
+  test('las tiendas que se llaman así vienen como tarjetas con su lugar, y la búsqueda no queda sin resultado', async () => {
+    stubApi({ '/search': fixture('search-grouped-places') })
+    const result = await searchAll('chocolateria de prueba')
+    expect(result.unmet).toBe(false)
+    expect(result.places.stores.map((s) => [s.name, s.placement.origin])).toEqual([
+      ['Chocolatería de prueba Centro', 'resultados-tiendas'],
+      ['Chocolatería de prueba Oriente', 'resultados-tiendas'],
+    ])
+    expect(result.whimAllowed).toBe(false)
+  })
+
+  test('sin resultados, la API dice si se puede ofrecer «Lo que sea»', async () => {
+    stubApi({ '/search': fixture('search-grouped-unmet') })
+    expect((await searchAll('xyzzy')).whimAllowed).toBe(true)
+  })
+
+  test('searchSuggestions: recientes y lo más buscado con su población', async () => {
+    stubApi({ 'GET /profile/*': fixture('profile-busquedas') })
+    expect(await searchSuggestions('u-contrato')).toEqual({
+      recent: ['pizza'],
+      top: [],
+      population: 'synthetic',
+      requestId: 'contrato-profile-busquedas',
+    })
   })
 })

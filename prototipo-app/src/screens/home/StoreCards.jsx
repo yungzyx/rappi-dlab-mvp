@@ -1,6 +1,7 @@
 import Img from '../../components/Img'
 import { StarIcon } from '../../components/Icons'
-import { EtaIcon, StoreMeta } from '../../components/StoreMeta'
+import { EtaIcon, PromoTag, StoreMeta } from '../../components/StoreMeta'
+import { hoursLabel, isClosed } from '../../components/storeHours'
 import './home.css'
 
 /**
@@ -24,22 +25,28 @@ export function RestaurantCard({ store, onClick }) {
         )}
       </span>
       <StoreMeta store={store} />
+      <PromoTag store={store} className="featured-promo" />
     </button>
   )
 }
 
-/** Logo de tienda + nombre + tiempo de entrega (si lo hay), para la grilla «Cerca de ti». */
+/** Logo de tienda + nombre + tiempo de entrega (si lo hay) o «Cerrada», y su promo, para la grilla «Cerca de ti». */
 export function StoreTile({ store, onClick }) {
   return (
     <button type="button" className="store-tile tap" onClick={onClick}>
       <Img src={store.img} />
       <span className="store-name">{store.name}</span>
-      {store.eta && (
-        <span className="store-when">
-          <EtaIcon kind={store.etaIcon} size={15} />
-          <span>{store.eta}</span>
-        </span>
+      {isClosed(store.hours) ? (
+        <span className="store-when store-closed">{hoursLabel(store.hours)}</span>
+      ) : (
+        store.eta && (
+          <span className="store-when">
+            <EtaIcon kind={store.etaIcon} size={15} />
+            <span>{store.eta}</span>
+          </span>
+        )
       )}
+      <PromoTag store={store} className="store-tile-promo" />
     </button>
   )
 }

@@ -1,8 +1,13 @@
 {
   "corrected_query": null,
   "groups": [],
+  "places": {
+    "restaurants": [],
+    "stores": []
+  },
   "query": "xyzzy",
   "request_id": "contrato-search-grouped-unmet",
   "unmet": true,
-  "unmet_reason": "sin coincidencia léxica ni concepto ni ocasión; coseno máx sin vectores < τ 0.85"
+  "unmet_reason": "sin coincidencia léxica ni concepto ni ocasión; coseno máx sin vectores < τ 0.85",
+  "whim_allowed": true
 }

@@ -128,61 +128,6 @@
   width: 100%;
 }
 
-/* ---------- Tarifa de servicio ---------- */
-.turbo-fee {
-  position: relative;
-  display: flex;
-  gap: 10px;
-  margin: 20px var(--gutter) 0;
-  height: 92px;
-  padding: 19px 16px 0;
-  border-radius: 25px;
-  background: var(--fee-bg);
-  color: var(--fee-ink);
-}
-
-.turbo-fee img {
-  width: 28px;
-  height: 22px;
-  margin-top: 2px;
-}
-
-.turbo-fee-title {
-  font-size: 17.5px;
-  font-weight: 500;
-}
-
-.turbo-fee-sub {
-  margin-top: 2px;
-  font-size: 12.5px;
-}
-
-.turbo-fee-sub strong {
-  font-weight: 700;
-}
-
-.turbo-fee-track {
-  position: absolute;
-  left: 22px;
-  right: 22px;
-  bottom: 18px;
-  height: 4px;
-  border-radius: 2px;
-  background: #efedd8;
-}
-
-.turbo-fee-check {
-  position: absolute;
-  right: -6px;
-  top: 50%;
-  width: 15px;
-  height: 15px;
-  border-radius: 50%;
-  background: #dfe0dc;
-  border: 2px solid var(--surface);
-  transform: translateY(-50%);
-}
-
 /* ---------- Promos ---------- */
 .turbo-promos {
   gap: 17px;
@@ -206,20 +151,6 @@
 .bottom-nav--turbo .bottom-nav-pill {
   flex: 0 0 282px;
   margin-left: 4px;
-}
-
-.turbo-fee-fill {
-  position: absolute;
-  left: 0;
-  top: 0;
-  height: 100%;
-  border-radius: 2px;
-  background: var(--fee-ink);
-  transition: width var(--duration-normal) var(--ease-out);
-}
-
-.turbo-fee-check.is-done {
-  background: var(--fee-ink);
 }
 
 /* ---------- Productos por pestaña ---------- */

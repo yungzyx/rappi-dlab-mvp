@@ -1,0 +1,71 @@
+{
+  "count": 4,
+  "here": null,
+  "similar": [],
+  "stores": [
+    {
+      "available": true,
+      "before": null,
+      "best_price": true,
+      "eta": "25 min",
+      "eta_minutes": 25,
+      "fastest": true,
+      "fee": "$990",
+      "logo": "https://images.rappi.cl/marketplace/prueba-9201.png",
+      "low_stock": false,
+      "price": "$1.490",
+      "price_value": 1490.0,
+      "store": "Tienda express de prueba Centro",
+      "store_id": 9201,
+      "vertical": "conveniencia"
+    },
+    {
+      "available": true,
+      "before": null,
+      "best_price": false,
+      "eta": "30 min",
+      "eta_minutes": 30,
+      "fastest": false,
+      "fee": "$1.490",
+      "logo": "https://images.rappi.cl/marketplace/prueba-9202.png",
+      "low_stock": false,
+      "price": "$1.590",
+      "price_value": 1590.0,
+      "store": "Tienda express de prueba Oriente",
+      "store_id": 9202,
+      "vertical": "conveniencia"
+    },
+    {
+      "available": true,
+      "before": null,
+      "best_price": false,
+      "eta": "25 min",
+      "eta_minutes": 25,
+      "fastest": true,
+      "fee": "$1.990",
+      "logo": "https://images.rappi.cl/marketplace/prueba-9701.png",
+      "low_stock": false,
+      "price": "$1.690",
+      "price_value": 1690.0,
+      "store": "Chocolatería de prueba Centro",
+      "store_id": 9701,
+      "vertical": "chocolateria"
+    },
+    {
+      "available": true,
+      "before": null,
+      "best_price": false,
+      "eta": "30 min",
+      "eta_minutes": 30,
+      "fastest": false,
+      "fee": "$990",
+      "logo": "https://images.rappi.cl/marketplace/prueba-9702.png",
+      "low_stock": false,
+      "price": "$1.690",
+      "price_value": 1690.0,
+      "store": "Chocolatería de prueba Oriente",
+      "store_id": 9702,
+      "vertical": "chocolateria"
+    }
+  ]
+}

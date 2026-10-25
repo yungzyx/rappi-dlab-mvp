@@ -70,12 +70,21 @@ CONTRACT: tuple[Example, ...] = (
     Example("catalog-store-page-2", "GET", "/catalog/stores/9101?page=2"),
     Example("catalog-product", "GET", "/catalog/products/catalog_item/91001"),
     Example("catalog-restaurants", "GET", "/catalog/restaurants"),
+    # Los chips de la lista: «Destacados» (regla propia) por más opiniones.
+    Example("catalog-restaurants-filtros", "GET", "/catalog/restaurants?top=true&sort=recommended"),
+    # El chocolate en cuatro tiendas (precio, tiempo y envío) y los tallarines agotados en el súper Centro (similares).
+    Example("catalog-product-stores", "GET", "/catalog/products/catalog_item/92002/stores"),
+    Example("catalog-product-stores-agotado", "GET", "/catalog/products/catalog_item/91101/stores?store_id=9101"),
+    # «Para ti» en la tienda express Centro para quien le gustan los chocolates (u-afin).
+    Example("catalog-store-para-ti", "GET", "/catalog/stores/9201/para-ti?user_id=u-afin"),
     Example("catalog-menu", "GET", "/catalog/restaurants/9801/menu"),
     Example("catalog-deals", "GET", "/catalog/deals"),
     Example("catalog-home", "GET", "/catalog/home"),
     Example("search-grouped", "GET", "/search?q=cerveza"),
     Example("search-grouped-unmet", "GET", "/search?q=xyzzy"),
     Example("search-grouped-corrected", "GET", "/search?q=cervezaaaa"),
+    # Una tienda que se llama así: sale en `places` y la búsqueda no queda «sin resultado».
+    Example("search-grouped-places", "GET", "/search?q=chocolateria%20de%20prueba"),
     Example(
         "agent-ask",
         "POST",
@@ -194,6 +203,8 @@ CONTRACT: tuple[Example, ...] = (
     # El orden de los accesos de la Home: una persona que pide en farmacia (sube primero) y una sin historial.
     Example("profile-verticales", "GET", "/profile/u-verticales/verticales"),
     Example("profile-verticales-nueva", "GET", "/profile/u-nueva/verticales"),
+    # Antes de escribir: lo que buscó u-contrato (pizza) y lo más buscado de la población declarada (sin búsquedas).
+    Example("profile-busquedas", "GET", "/profile/u-contrato/busquedas"),
     # Se reclama el id viejo de un navegador (de antes de la sesión firmada): la respuesta no cambia en cada corrida.
     # El token sale del secreto de los tests (tests/conftest.py), que no sirve fuera de ellos.
     Example("session", "POST", "/session", {"legacy_user_id": "proto-0123456789abcdef"}),

@@ -54,12 +54,14 @@ const openStore = (params) =>
   render(<StoreScreen back={() => {}} push={() => {}} params={params} />, { wrapper: Providers })
 const tracked = (type) => events.track.mock.calls.filter(([name]) => name === type).map(([, fields]) => fields)
 const rows = () => [...document.querySelectorAll('.product-row strong')].map((node) => node.textContent)
-/** Las peticiones hechas, como `{ path, query }`. */
+// Las peticiones hechas por la página de la tienda, como `{ path, query }`; «Para ti» (solo en la propuesta) va aparte y se prueba en su test.
 const requests = (fetchMock) =>
-  fetchMock.mock.calls.map(([url]) => {
-    const { pathname, searchParams } = new URL(url)
-    return { path: pathname, query: Object.fromEntries(searchParams) }
-  })
+  fetchMock.mock.calls
+    .map(([url]) => {
+      const { pathname, searchParams } = new URL(url)
+      return { path: pathname, query: Object.fromEntries(searchParams) }
+    })
+    .filter(({ path }) => !path.endsWith('/para-ti'))
 
 beforeAll(() => {
   Element.prototype.scrollTo = () => {} // jsdom no lo implementa

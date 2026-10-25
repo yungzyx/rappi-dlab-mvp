@@ -6,14 +6,98 @@ import { backendVertical } from './search'
 const NOT_FOUND = { status: 404, body: { detail: 'No está en la muestra de la demo sin conexión' } }
 const minutes = (eta) => Number.parseInt(eta, 10) || Number.POSITIVE_INFINITY
 const pesos = (fee) => Number(String(fee ?? '').replace(/\D/g, '')) || 0
-const SORTS = { eta: (a, b) => minutes(a.eta) - minutes(b.eta), fee: (a, b) => pesos(a.fee) - pesos(b.fee) }
+const SORTS = {
+  eta: (a, b) => minutes(a.eta) - minutes(b.eta),
+  fee: (a, b) => pesos(a.fee) - pesos(b.fee),
+  recommended: (a, b) => (b.reviews ?? -1) - (a.reviews ?? -1),
+}
 const limitOf = (query, fallback) => Number(query.get('limit')) || fallback
+// catalog/restaurants.py: TOP_MIN_RATING y TOP_MIN_REVIEWS («Destacados», regla propia de la demo).
+const TOP_MIN_RATING = 4.5
+const TOP_MIN_REVIEWS = 100
+const DAYS = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'] // en el orden de Date.getDay
+const SANTIAGO = new Intl.DateTimeFormat('en-US', {
+  timeZone: 'America/Santiago',
+  weekday: 'short',
+  hour: '2-digit',
+  minute: '2-digit',
+  hourCycle: 'h23',
+})
+
+/** El día ('thu') y la hora ('13:05') de Santiago en `now` (ms). */
+function santiago(now) {
+  const parts = Object.fromEntries(SANTIAGO.formatToParts(new Date(now)).map((part) => [part.type, part.value]))
+  return { day: parts.weekday.toLowerCase().slice(0, 3), time: `${parts.hour}:${parts.minute}` }
+}
+
+/** Los tramos de `day` del horario publicado, o los del único día publicado (catalog/hours.py: _spans_of). */
+function spansOf(schedule, day) {
+  const days = new Set(schedule.map((span) => span.day))
+  const chosen = days.has(day) ? day : days.size === 1 ? [...days][0] : null
+  return schedule.filter((span) => span.day === chosen)
+}
+
+/** catalog/hours.py: restaurant_hours, con la hora de Santiago del navegador. */
+export function restaurantHours(schedule, now) {
+  const base = { source: 'horario', open: null, closes_at: null, opens_at: null, opens_tomorrow: false, today: null }
+  if (!schedule?.length) return base
+  const { day, time } = santiago(now)
+  const index = DAYS.indexOf(day)
+  const spans = spansOf(schedule, day)
+  const inside = (s) => (s.open < s.close ? s.open <= time && time < s.close : time >= s.open)
+  const late = spansOf(schedule, DAYS[(index + 6) % 7]).find((s) => s.close < s.open && time < s.close)
+  const current = spans.find(inside) ?? late
+  const later = spans
+    .map((s) => s.open)
+    .filter((open) => open > time)
+    .sort()
+  const nextDay = spansOf(schedule, DAYS[(index + 1) % 7])
+  const tomorrow = !current && !later.length && nextDay.length
+  return {
+    ...base,
+    open: Boolean(current),
+    closes_at: current?.close ?? null,
+    opens_at: current ? null : (later[0] ?? (tomorrow ? nextDay.map((s) => s.open).sort()[0] : null)),
+    opens_tomorrow: Boolean(tomorrow),
+    today: spans.map((s) => `${s.open}–${s.close}`).join(', ') || null,
+  }
+}
+
+/** Las tarjetas con su estado a la hora `now` y los cerrados al final (catalog/restaurants.py: with_hours). */
+export function withHours(cards, now) {
+  const timed = cards.map((card) =>
+    'schedule' in card ? { ...card, hours: restaurantHours(card.schedule, now) } : card,
+  )
+  return [...timed.filter((card) => card.hours?.open !== false), ...timed.filter((card) => card.hours?.open === false)]
+}
+
+/** Los filtros de la lista de restaurantes (api/catalog.py: restaurant_list). */
+function filtered(list, query) {
+  const maxEta = Number(query.get('max_eta')) || null
+  const minRating = Number(query.get('min_rating')) || null
+  const top = query.get('top') === 'true'
+  const promo = query.get('promo') === 'true'
+  return list.filter(
+    (r) =>
+      (!maxEta || minutes(r.eta) <= maxEta) &&
+      (!minRating || (r.rating ?? 0) >= minRating) &&
+      (!top || ((r.rating ?? 0) >= TOP_MIN_RATING && (r.reviews ?? 0) >= TOP_MIN_REVIEWS)) &&
+      (!promo || r.promo),
+  )
+}
 
 /** `{ status, body }` de una ruta del catálogo, o undefined si la ruta no es del catálogo. */
-export function catalogRoute(snapshot, method, path, query) {
+export function catalogRoute(snapshot, method, path, query, now = Date.now()) {
   const catalog = snapshot.catalog
   if (method !== 'GET') return undefined
-  if (path === '/catalog/home') return { body: catalog.home }
+  if (path === '/catalog/home')
+    return {
+      body: {
+        ...catalog.home,
+        fast_restaurants: withHours(catalog.home.fast_restaurants ?? [], now),
+        low_fee_restaurants: withHours(catalog.home.low_fee_restaurants ?? [], now),
+      },
+    }
   if (path === '/catalog/restaurants') {
     const sort = query.get('sort') || 'rating'
     const cuisine = query.get('cuisine')
@@ -24,7 +108,7 @@ export function catalogRoute(snapshot, method, path, query) {
         r.cuisines?.some((c) => c.toLowerCase() === cuisine.toLowerCase()),
       )
     if (!list) list = [...catalog.restaurants.rating].sort(SORTS[sort] ?? (() => 0))
-    return { body: list.slice(0, limitOf(query, 30)) }
+    return { body: withHours(filtered(list, query), now).slice(0, limitOf(query, 30)) }
   }
   if (path === '/catalog/deals') {
     const vertical = query.get('vertical')
@@ -57,7 +141,10 @@ export function catalogRoute(snapshot, method, path, query) {
     }
   }
   match = /^\/catalog\/restaurants\/(\d+)\/menu$/.exec(path)
-  if (match) return catalog.menus[match[1]] ? { body: catalog.menus[match[1]] } : NOT_FOUND
+  if (match) {
+    const found = catalog.menus[match[1]]
+    return found ? { body: { ...found, restaurant: withHours([found.restaurant], now)[0] } } : NOT_FOUND
+  }
   match = /^\/catalog\/products\/([^/]+)\/([^/]+)$/.exec(path)
   if (match) {
     const product = snapshot.byEntity.get(entityKey(decodeURIComponent(match[1]), decodeURIComponent(match[2])))

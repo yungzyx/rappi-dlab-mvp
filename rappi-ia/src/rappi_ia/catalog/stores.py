@@ -12,13 +12,18 @@ vacía. Eso deja fuera a las tiendas solo descubiertas (sin productos), a las su
 a la de su formato y a las importadas de un CSV antiguo (sin `raw` ni pasillos).
 """
 
+import math
+
 from psycopg import Connection
 from rappi_scraper.storage.search import MIN_PRICE
 
-from ..agent.tools import Product
+from ..agent.tools import Product, clp
 from ..agent.verticals import LOGO_BASE_URL
 from ..concepts.taxonomy import load_taxonomy
+from ..text import normalize
 from .cache import cached
+from .hours import closed_last, store_hours
+from .promos import store_promos
 
 BIGINT_MAX = 2**63 - 1
 
@@ -50,6 +55,12 @@ offers AS (
       AND l.price >= %(min_price)s
     ORDER BY sp.master_product_id, l.price, sp.sku
 )"""
+
+# Lo que la tarjeta de la tienda `s` lee de su `raw` además del logo y el tiempo: sus promos y cómo estaba al bajarla.
+STORE_STATE = (
+    "jsonb_build_object('offers', s.raw->'offers', 'is_open', s.raw->'is_open',"
+    " 'next_schedule', s.raw->'next_schedule')"
+)
 
 # El vertical de la tienda `s`: el propio (su fila de store_verticals); los heredados de su formato, solo si no tiene.
 OWN_VERTICAL = """(
@@ -94,7 +105,8 @@ SELECT s.store_id, btrim(coalesce(b.name, s.name)), s.raw->>'image', s.raw->>'et
        (SELECT aisle_id FROM chosen),
        (SELECT json_agg(json_build_array(id, name, price, real_price, image, presentation, adult, concept_id)
                         ORDER BY name, mid)
-        FROM page)
+        FROM page),
+       {STORE_STATE}
 FROM stores s
 LEFT JOIN brands b ON b.brand_id = s.brand_id
 WHERE s.store_id = %(store_id)s"""
@@ -163,7 +175,7 @@ one_per_format AS (
 top AS (
     SELECT store_id, products FROM one_per_format ORDER BY products DESC, store_id LIMIT %(limit)s
 )
-SELECT s.store_id, btrim(coalesce(b.name, s.name)), s.raw->>'image', s.raw->>'eta_value', t.products
+SELECT s.store_id, btrim(coalesce(b.name, s.name)), s.raw->>'image', s.raw->>'eta_value', t.products, {STORE_STATE}
 FROM top t
 JOIN stores s ON s.store_id = t.store_id
 LEFT JOIN brands b ON b.brand_id = s.brand_id
@@ -266,14 +278,15 @@ def line_prices(conn: Connection, lines: list[dict]) -> list[float | None]:
 
 
 def vertical_stores(conn: Connection, vertical: str, limit: int = 30) -> list[dict]:
-    """Una tarjeta por formato de tienda del vertical, de más a menos ofertas vigentes. Restaurantes no entra: sus
-    locales no venden productos del catálogo (tienen menú). Sale de la caché del catálogo (catalog/cache.py)."""
+    """Una tarjeta por formato de tienda del vertical, de más a menos ofertas vigentes; las cerradas en la descarga al
+    final. Restaurantes no entra: sus locales no venden productos del catálogo (tienen menú). Sale de la caché del
+    catálogo (catalog/cache.py)."""
     if vertical == "restaurantes":
         return []
 
     def compute() -> list[dict]:
         rows = conn.execute(_VERTICAL_STORES, {"vertical": vertical, "min_price": MIN_PRICE, "limit": limit})
-        return [store_card(store_id, name, image, eta, count, vertical) for store_id, name, image, eta, count in rows]
+        return closed_last([store_card(*row[:5], vertical, row[5]) for row in rows])
 
     return cached(f"vertical_stores:{vertical}:{limit}", conn, compute)
 
@@ -297,7 +310,7 @@ def store_page(
     row = conn.execute(_STORE_PAGE, params).fetchone()
     if row is None or row[4] == 0:
         return None
-    store = store_card(*row[:6])
+    store = store_card(*row[:6], row[9])
     aisles = [{"id": id_, "name": name, "products": count} for id_, name, count in row[6] or []]
     chosen = next((a for a in aisles if a["id"] == row[7]), None)
     taxonomy = load_taxonomy()
@@ -347,9 +360,185 @@ def product_detail(conn: Connection, entity_type: str, entity_id: str) -> dict |
     return product.to_dict() if product.price_value is not None else None
 
 
+# «Pocas unidades»: hasta LOW_STOCK unidades en la descarga (regla propia de la demo; Rappi no publica la suya).
+LOW_STOCK = 5
+SIMILAR_PRODUCTS = 6
+SEARCH_STORES = 10
+
+# Las ofertas vigentes de un producto del catálogo, una por tienda que se abre con él en un pasillo (la más barata si
+# la tienda lo tiene en dos SKU, primero las que no están agotadas), con su stock del mismo snapshot de la oferta
+# vigente (`price_snapshots` por su llave: la vigencia la sigue diciendo `v_latest_offers`), el tiempo y el envío que
+# la tienda publicó.
+_PRODUCT_STORES = f"""
+WITH offers AS (
+    SELECT DISTINCT ON (l.store_id) l.store_id, l.sku, l.price, l.real_price, l.in_stock, l.run_id
+    FROM store_products sp
+    JOIN v_latest_offers l ON l.store_id = sp.store_id AND l.sku = sp.sku
+    WHERE sp.master_product_id = %(id)s AND l.current AND l.price >= %(min_price)s
+      AND EXISTS (SELECT 1 FROM aisles a
+                  WHERE a.store_id = l.store_id AND a.aisle_id = sp.aisle_id AND a.parent_aisle_id IS NULL)
+    ORDER BY l.store_id, l.in_stock IS NOT FALSE DESC, l.price, l.sku
+)
+SELECT o.store_id, btrim(coalesce(b.name, s.name)), s.raw->>'image', s.raw->>'eta_value', s.raw->>'delivery_price',
+       {OWN_VERTICAL}, o.price, o.real_price, o.in_stock, ps.stock
+FROM offers o
+JOIN stores s ON s.store_id = o.store_id
+LEFT JOIN brands b ON b.brand_id = s.brand_id
+LEFT JOIN price_snapshots ps ON ps.run_id = o.run_id AND ps.store_id = o.store_id AND ps.sku = o.sku
+ORDER BY o.price, o.store_id"""
+
+# Los productos del mismo concepto que la tienda tiene vigentes y no agotados, sin el producto mismo: «Productos
+# similares» de uno agotado. Uno por producto (su SKU más barato).
+_SIMILAR = """
+SELECT DISTINCT ON (ci.master_product_id) ci.master_product_id::text, ci.name, l.price, l.real_price,
+       NULLIF(ci.image_url, ''), ci.presentation, ci.is_alcoholic OR ci.age_restricted, ic.concept_id
+FROM store_products sp
+JOIN item_concepts ic ON ic.entity_type = 'catalog_item' AND ic.entity_id = sp.master_product_id::text
+JOIN catalog_items ci ON ci.master_product_id = sp.master_product_id
+JOIN v_latest_offers l ON l.store_id = sp.store_id AND l.sku = sp.sku
+JOIN aisles a ON a.store_id = sp.store_id AND a.aisle_id = sp.aisle_id AND a.parent_aisle_id IS NULL
+WHERE sp.store_id = %(store_id)s AND ic.concept_id = %(concept)s AND sp.master_product_id <> %(id)s
+  AND l.current AND l.in_stock IS NOT FALSE AND l.price >= %(min_price)s
+ORDER BY ci.master_product_id, l.price"""
+
+# Las tiendas cuyo nombre o marca contiene lo buscado: una por formato, la sucursal que bajó la última corrida de su
+# formato, con pasillos y ofertas vigentes (las que se abren). Se cortan antes de contar sus productos.
+_SEARCH_STORES = f"""
+WITH matched AS (
+    SELECT store_id FROM (
+        SELECT DISTINCT ON (l.format) l.store_id
+        FROM store_last_snapshot l
+        JOIN stores s ON s.store_id = l.store_id
+        LEFT JOIN brands b ON b.brand_id = s.brand_id
+        WHERE l.run_id = l.format_run_id
+          AND ({{brand}} LIKE %(name)s OR {{name}} LIKE %(name)s)
+          AND EXISTS (SELECT 1 FROM aisles a WHERE a.store_id = l.store_id AND a.parent_aisle_id IS NULL)
+        ORDER BY l.format, l.store_id
+    ) one_per_format
+    ORDER BY store_id
+    LIMIT %(pool)s
+)
+SELECT s.store_id, btrim(coalesce(b.name, s.name)), s.raw->>'image', s.raw->>'eta_value', o.products, {OWN_VERTICAL},
+       {STORE_STATE}
+FROM matched d
+CROSS JOIN LATERAL (SELECT count(DISTINCT sp.master_product_id) AS products {CURRENT_OFFERS}) o
+JOIN stores s ON s.store_id = d.store_id
+LEFT JOIN brands b ON b.brand_id = s.brand_id
+WHERE o.products > 0
+ORDER BY o.products DESC, s.store_id
+LIMIT %(limit)s"""
+
+
+def search_stores(conn: Connection, q: str, limit: int = SEARCH_STORES) -> list[dict]:
+    """Las tiendas (no restaurantes) cuyo nombre o marca contiene lo buscado, sin tildes ni mayúsculas, de más a menos
+    ofertas vigentes; las cerradas en la descarga al final. Es lo que la persona escribió: incluye todas las verticales,
+    también Farmacia. Vacío si la consulta no tiene al menos dos letras."""
+    pattern = like_pattern(q)
+    if pattern is None:
+        return []
+    query = _SEARCH_STORES.format(brand=normalized_sql("b.name"), name=normalized_sql("s.name"))
+    rows = conn.execute(query, {"name": pattern, "pool": 2 * limit, "limit": limit, "min_price": MIN_PRICE})
+    return closed_last([store_card(*row) for row in rows])
+
+
+def product_stores(conn: Connection, entity_id: str, store_id: int | None = None) -> dict | None:
+    """Dónde está un producto del catálogo: `{count, stores, here, similar}`.
+    - `stores`: cada tienda que lo vende (vigente, en un pasillo), por precio, con su tiempo y envío publicados, si está
+      disponible y si quedan pocas unidades (`low_stock`). Entre las disponibles, si hay más de una y no todas son
+      iguales, `best_price` marca la más barata y `fastest` la de menor tiempo. `count` cuenta las disponibles.
+    - `here`: la de `store_id`, si lo vende (None si no).
+    - `similar`: si en `store_id` está agotado (sin stock o con 0 unidades), los productos del mismo concepto que esa
+      tienda sí tiene, del más barato al más caro.
+    None si el id no es un producto del catálogo."""
+    item_id = int(entity_id) if entity_id.isascii() and entity_id.isdigit() else None
+    if item_id is None or item_id > BIGINT_MAX:
+        return None
+    rows = conn.execute(_PRODUCT_STORES, {"id": item_id, "min_price": MIN_PRICE}).fetchall()
+    stores = [_offer_entry(*row) for row in rows]
+    available = [s for s in stores if s["available"]]
+    _mark_best(available, "price_value", "best_price")
+    _mark_best(available, "eta_minutes", "fastest")
+    here = next((s for s in stores if s["store_id"] == store_id), None)
+    similar = _similar(conn, item_id, store_id) if here is not None and not here["available"] else []
+    return {"count": len(available), "stores": stores, "here": here, "similar": similar}
+
+
+def _offer_entry(store_id, name, image, eta, fee, vertical, price, real, in_stock, stock) -> dict:
+    minutes = _eta_minutes(eta)
+    fee_value = _number(fee)
+    return {
+        "store_id": store_id,
+        "store": name,
+        "logo": LOGO_BASE_URL + image if image else None,
+        "vertical": vertical,
+        "price": clp(float(price)),
+        "price_value": float(price),
+        "before": clp(float(real)) if real is not None and real > price else None,
+        "eta": f"{minutes} min" if minutes else None,
+        "eta_minutes": minutes,
+        # El envío que la tienda publicó; $0 o sin dato es un dato que falta, no «envío gratis».
+        "fee": clp(fee_value) if fee_value else None,
+        "available": in_stock is not False and stock != 0,
+        "low_stock": in_stock is not False and stock is not None and 0 < stock <= LOW_STOCK,
+        "best_price": False,
+        "fastest": False,
+    }
+
+
+def _mark_best(entries: list[dict], field: str, flag: str) -> None:
+    """Marca `flag` en las de menor `field` si hay al menos dos con dato y no son todas iguales."""
+    values = [e[field] for e in entries if e[field] is not None]
+    if len(values) < 2 or len(set(values)) == 1:
+        return
+    for entry in entries:
+        entry[flag] = entry[field] == min(values)
+
+
+def _similar(conn: Connection, item_id: int, store_id: int) -> list[dict]:
+    concept = conn.execute(
+        "SELECT concept_id FROM item_concepts WHERE entity_type = 'catalog_item' AND entity_id = %s", (str(item_id),)
+    ).fetchone()
+    if concept is None:
+        return []
+    store = conn.execute(
+        f"SELECT btrim(coalesce(b.name, s.name)), {OWN_VERTICAL} FROM stores s "
+        "LEFT JOIN brands b ON b.brand_id = s.brand_id WHERE s.store_id = %s",
+        (store_id,),
+    ).fetchone()
+    rows = conn.execute(
+        _SIMILAR, {"store_id": store_id, "concept": concept[0], "id": item_id, "min_price": MIN_PRICE}
+    ).fetchall()
+    taxonomy = load_taxonomy()
+    cards = [product_card(row, store[1], store[0], store_id, taxonomy).to_dict() for row in rows]
+    return sorted(cards, key=lambda c: c["price_value"] or 0)[:SIMILAR_PRODUCTS]
+
+
+def _number(value: str | None) -> float | None:
+    """El número de un texto de `raw`; None si está vacío, no es un número o no es finito."""
+    try:
+        number = float(value) if value else None
+    except ValueError:
+        return None
+    return number if number is not None and math.isfinite(number) else None
+
+
+def _eta_minutes(value: str | None) -> int | None:
+    """Los minutos de entrega que Rappi guarda en la tienda; sin minutos (o en 0), None."""
+    number = _number(value)
+    return round(number) if number is not None and round(number) > 0 else None
+
+
 def store_card(
-    store_id: int, name: str, image: str | None, eta: str | None, products: int, vertical: str | None
+    store_id: int,
+    name: str,
+    image: str | None,
+    eta: str | None,
+    products: int,
+    vertical: str | None,
+    state: dict | None = None,
 ) -> dict:
+    """La tarjeta de una tienda. `state` es lo de `STORE_STATE`: sus promos publicadas (`promos`) y cómo estaba al
+    bajarla (`hours`, None si la descarga no lo dice)."""
     return {
         "id": store_id,
         "name": name,
@@ -357,16 +546,29 @@ def store_card(
         "eta": _eta_text(eta),
         "products": products,
         "vertical": vertical,
+        "promos": store_promos((state or {}).get("offers")),
+        "hours": store_hours(state),
     }
+
+
+def normalized_sql(column: str) -> str:
+    """`column` normalizado en SQL como `text.normalize` (sin tildes, en minúsculas y con los signos como espacios) y
+    con un espacio delante: así `like_pattern` calza el comienzo de una palabra."""
+    return f"(' ' || btrim(regexp_replace(lower(unaccent(coalesce({column}, ''))), '[^a-z0-9]+', ' ', 'g')))"
+
+
+def like_pattern(q: str) -> str | None:
+    """El patrón de LIKE de una consulta para comparar con un nombre normalizado (`normalized_sql`): una palabra del
+    nombre empieza con la consulta normalizada (que no deja `%` ni `_`), así «ron» no calza «Patrona». None con menos
+    de tres letras: dos («té») calzarían casi cualquier nombre."""
+    text = normalize(q)
+    return f"% {text}%" if len(text.replace(" ", "")) >= 3 else None
 
 
 def _eta_text(value: str | None) -> str | None:
     """«25 min» a partir de los minutos que Rappi guarda en la tienda; sin minutos (o en 0), nada."""
-    try:
-        minutes = round(float(value)) if value else 0
-    except (ValueError, OverflowError):  # texto que no es un número, o uno infinito
-        return None
-    return f"{minutes} min" if minutes > 0 else None
+    minutes = _eta_minutes(value)
+    return f"{minutes} min" if minutes else None
 
 
 def product_card(

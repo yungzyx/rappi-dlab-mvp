@@ -271,3 +271,30 @@ def unofferable_subverticals() -> list[str]:
     from ..catalog.stores import NOT_PUSHED_SUBVERTICALS
 
     return list(NOT_PUSHED_SUBVERTICALS)
+
+
+# «Lo que sea»: la búsqueda que no encontró nada ofrece pedirlo con RappiFavor, con lo escrito. Rappi rechaza un
+# encargo con palabras bloqueadas (en su app, el aviso `whimBlockedWordsError` nombra «droga» y «alcohol»); a esas se
+# suman las de algo ilegal o peligroso. Palabra entera, con su plural.
+WHIM_BLOCKED_WORDS = frozenset(
+    {
+        *("droga", "drogas", "alcohol", "marihuana", "cannabis", "cocaina", "pasta base", "arma", "armas"),
+        *("municion", "fuegos artificiales", "tabaco", "cigarro", "cigarros", "cigarrillo", "cigarrillos", "vape"),
+    }
+)
+_WHIM_BLOCKED = KeywordMatcher(("bloqueada", word) for word in WHIM_BLOCKED_WORDS)
+
+
+def whim_allowed(text: str) -> bool:
+    """Si la app puede ofrecer «¿No lo encuentras? Te lo conseguimos» con este texto: es una oferta que la persona no
+    pidió, así que lleva las guardias de siempre (nada de alcohol, tabaco, salud, bebé ni un concepto que el agente no
+    ofrece) además de las palabras bloqueadas del encargo."""
+    # Import diferido: retrieval.hybrid importa agent.tools, y agent.tools importa este módulo.
+    from ..retrieval.hybrid import detect_concepts
+
+    if not text.strip() or _WHIM_BLOCKED.best(text) is not None:
+        return False
+    if alcohol_in_name("catalog_item", text) or baby_in_name("catalog_item", text):
+        return False
+    concepts = load_taxonomy().concepts
+    return all(c in concepts and is_offerable(concepts[c]) for c in detect_concepts(text))

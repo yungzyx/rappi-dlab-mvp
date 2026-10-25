@@ -194,7 +194,16 @@ def test_grouped_search_returns_products_only_and_does_not_apply_offer_guards(de
 def test_grouped_endpoint_shape(client):
     body = client.get("/search", params={"q": "cerveza"}).json()
 
-    assert set(body) == {"query", "groups", "unmet", "unmet_reason", "corrected_query", "request_id"}
+    assert set(body) == {
+        "query",
+        "groups",
+        "unmet",
+        "unmet_reason",
+        "corrected_query",
+        "places",
+        "whim_allowed",
+        "request_id",
+    }
     assert body["query"] == "cerveza" and body["unmet"] is False
     first = body["groups"][0]
     assert set(first) == {"vertical", "prototype_vertical", "products"}

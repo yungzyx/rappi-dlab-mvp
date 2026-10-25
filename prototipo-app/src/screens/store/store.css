@@ -266,3 +266,49 @@
   line-height: 21px;
   color: var(--ink-2);
 }
+
+/* Abierto o cerrado según lo publicado en la descarga */
+.store-hours {
+  display: flex;
+  flex-direction: column;
+  margin-top: 8px;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.store-hours.is-closed {
+  color: var(--accent-ink);
+}
+
+.store-hours small,
+.store-promos small {
+  font-size: 12px;
+  font-weight: 400;
+  color: var(--ink-3);
+}
+
+/* Promos publicadas por la tienda */
+.store-promos {
+  margin-top: 12px;
+}
+
+.store-promos ul {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  list-style: none;
+  margin-bottom: 4px;
+}
+
+.store-promos li {
+  padding: 4px 10px;
+  border-radius: 99px;
+  background: var(--fee-bg);
+  color: var(--fee-ink);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.store-threshold {
+  margin: 14px 0 0;
+}
