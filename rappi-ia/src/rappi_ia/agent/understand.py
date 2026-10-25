@@ -252,6 +252,7 @@ FOLLOW_UP_FILLER = {
 }
 CHEAP_WORDS = {"barato", "barata", "baratos", "baratas", "economico", "economica", "economicos", "economicas"}
 PRICEY_WORDS = {"caro", "caros", "premium"}  # «cara» solo tras «más»: «crema para la cara» es la cara
+ORDER_LEADS = {"mas", "menos", "no", "tan", "uno", "una", "lo"}  # «uno más caro», «no tan caro»: van con el orden
 # «no quiero pizza», «menos sushi»: el concepto que sigue se descarta y se saca de la consulta. «sin» también se
 # descarta, pero queda en la consulta («yogurt sin azúcar» busca eso).
 REFUSALS = [("no", "quiero"), ("no", "sea"), ("nada", "de"), ("menos",), ("excepto",), ("salvo",)]
@@ -462,6 +463,7 @@ class Understander:
         body = " ".join(PEOPLE.sub(" ", _clean(_without_lead(_clean(said)))).split())
         # «sin azúcar» no pide azúcar ni «no quiero pizza» pizza: se descarta el concepto nombrado después.
         body_words = body.split()
+        said_words = list(body_words)  # las posiciones de los conceptos, antes de quitar lo rechazado
         concept_matches, refused = [], []
         for m in self.concepts.matches(body):
             before = tuple(body_words[max(0, m.position - 2) : m.position])
@@ -503,9 +505,16 @@ class Understander:
         service = None if explicit or symptom else self.services.best(said)
         if service:
             return Intent("servicio", text, None, [], confidence=0.8, query=body or normalized, service=service.target)
-        follow_up = self._follow_up(text, said, body_words, concepts, occasion, symptom, mention, previous, price_max)
+        # «algo sin carne» nombra lo vegano, pero tras un pedido es lo que no va: no cuenta como algo nuevo.
+        named = [m.target for m in concept_matches if said_words[m.position : m.position + 1] != ["sin"]]
+        follow_up = self._follow_up(
+            text, said, body_words, named, occasion, symptom, mention, previous, price_max, people
+        )
         if follow_up:
             return follow_up
+        # «¿y para tomar?» después de un asado de 6: otro pedido, para la misma gente.
+        if people is None and previous and normalized.split()[:1] == ["y"]:
+            people = previous.get("people")
         if occasion and not concepts:
             concepts = [c for c in self.taxonomy.occasions[occasion.target].concepts if c not in refused_ids]
         kind = "ocasion" if occasion else "buscar"
@@ -589,38 +598,51 @@ class Understander:
         concept = self.taxonomy.concepts.get(concept_id)
         return concept is not None and is_offerable(concept)
 
-    def _follow_up(self, text, said, body_words, concepts, occasion, symptom, mention, previous, price_max):
+    def _follow_up(self, text, said, body_words, concepts, occasion, symptom, mention, previous, price_max, people):
         """Un mensaje corto que no nombra nada nuevo (o que empieza con «con», «sin», «talla», «más»…) sigue el pedido
-        anterior: «talla g» tras «pañales» busca «pañales talla g»; «y en el súper?» busca lo mismo allá."""
+        anterior: «talla g» tras «pañales» busca «pañales talla g»; «y en el súper?» busca lo mismo allá. Hereda del
+        turno anterior (`previous`, el `conversation` de la respuesta) lo que este mensaje no cambia: la ocasión, el
+        síntoma, el tope de precio, las personas y el orden por precio (docs/diseno/2026-10-25-mochi-conversacion-
+        design.md). La consulta junta lo pedido con sus detalles («sin carne», «talla g»), sin el orden ni «otra»."""
         if body_words[:2] == ["mejor", "no"]:  # «mejor no, algo más barato»: el «no» rechaza lo anterior
             body_words = body_words[2:]
         if not previous or occasion or symptom or len([w for w in body_words if w not in FOLLOW_UP_FILLER]) > 4:
             return None
         previous_concepts = [c for c in previous.get("concepts") or [] if c in self.taxonomy.concepts]
-        if not previous_concepts or (concepts and body_words[:1] and body_words[0] not in REFINE_START):
+        previous_occasion = self.taxonomy.occasions.get(previous.get("occasion") or "")
+        if not (previous_concepts or previous_occasion or previous.get("symptom")):
+            return None
+        if concepts and body_words[:1] and body_words[0] not in REFINE_START:
             return None
         mention_words = {w for kw in VERTICAL_MENTIONS.get(mention, ()) for w in kw.split()}
-        rest = [w for w in body_words if w not in FOLLOW_UP_FILLER and w not in mention_words]
+        rest = _without_order([w for w in body_words if w not in FOLLOW_UP_FILLER and w not in mention_words])
         other = bool(set(body_words) & OTHER_WORDS)
         extra = "" if other or (mention and not rest) else " ".join(rest)  # «mejor no, algo más barato» → «mas barato»
-        base = previous.get("query") or ""
+        base = " ".join(_without_order((previous.get("query") or "").split()))
+        if people:  # «para 10 personas» reemplaza el «para 4» de antes (los combos lo dicen: queda en la consulta)
+            base = _without_people(base, previous.get("people"))
         order = _price_order(said.split())
         # «y de vainilla?», «y blanco?»: otra opción, no se suma a «de chocolate». «y más barato?» o «y talla g?» sí.
-        if body_words[:1] == ["y"] and rest[:1] and rest[0] not in SIZE_OR_PRICE and not any(order.values()):
+        if body_words[:1] == ["y"] and rest[:1] and rest[0] not in SIZE_OR_PRICE and previous_concepts:
             base = normalize(self.taxonomy.concepts[previous_concepts[0]].name)
+        if not any(order.values()):  # el orden queda hasta que se pida otro
+            order = {"cheapest": previous.get("order") == "barato", "priciest": previous.get("order") == "caro"}
         return Intent(
-            "buscar",
+            "ocasion" if previous_occasion else "buscar",
             text,
             mention or previous.get("vertical"),
-            previous_concepts,
-            price_max=price_max,
+            previous_concepts or (list(previous_occasion.concepts) if previous_occasion else []),
+            occasion=previous_occasion.id if previous_occasion else None,
+            price_max=price_max if price_max is not None else previous.get("price_max"),
             confidence=0.8,
             explicit_vertical=bool(mention),
-            explicit_concepts=True,
+            explicit_concepts=bool(previous_concepts),
             query=" ".join(p for p in (base, extra) if p),
+            symptom=bool(previous.get("symptom")),
             **order,
             follow_up=True,
             exclude_previous=other,
+            people=people or previous.get("people"),
         )
 
     def _emoji_names(self, text: str) -> str:
@@ -659,6 +681,29 @@ def _people(said: str, with_occasion: bool) -> int | None:
             if 2 <= people <= MAX_PEOPLE:
                 return people
     return None
+
+
+def _without_order(words: list[str]) -> list[str]:
+    """Sin el orden por precio («más barato», «uno más caro», «no tan caro»): en un seguimiento es un orden, no algo
+    que el nombre del producto tenga que decir."""
+    kept: list[str] = []
+    for word in words:
+        if word in CHEAP_WORDS or word in PRICEY_WORDS or (word in {"cara", "caras"} and kept[-1:] == ["mas"]):
+            while kept and kept[-1] in ORDER_LEADS:
+                kept.pop()
+            continue
+        kept.append(word)
+    return kept
+
+
+def _without_people(query: str, people: int | None = None) -> str:
+    """Sin el «para 4», «somos 10» o «de 6» del final (o, si se sabe cuántos eran, donde esté: «once para 4 sin
+    lactosa»): lo reemplaza la cantidad nueva."""
+    query = PEOPLE_COUNT_OF.sub(" ", PEOPLE_COUNT.sub(" ", query))
+    if people:
+        said = "|".join([str(people), *(word for word, n in _NUMBERS.items() if n == people)])
+        query = re.sub(rf"\b(?:para|somos|seremos|de)\s+(?:unas?\s+)?(?:{said})(?:\s+{_WHO})?\b", " ", query)
+    return " ".join(query.split())
 
 
 def _without_lead(body: str) -> str:

@@ -143,3 +143,89 @@ def test_what_goes_with_in_rappi_hoy_is_a_plain_search(agent):
     rappi, db = agent
     r = rappi.reply(db, "¿con qué acompaño un salmón?", Context(mode="actual"))
     assert not r["text"].startswith("No se me ocurre")
+
+
+def _add(db, products, embedder=None):
+    """Suma productos (id, nombre, tienda, categoría, precio) y rehace los documentos."""
+    for pid, name, store, category, price in products:
+        add_product(db, pid, name, store, category)
+        add_price(db, store, pid, price)
+    db.commit()
+    build_search_documents(db)
+    build_concepts(db)
+    embed_search_documents(db, embedder or HashEmbedder())
+
+
+def test_a_body_part_is_not_treated_with_any_painkiller(agent):
+    """«me duele la guata» y «tengo la garganta irritada» mostraban analgésicos: dicen «dolor» o nombran la garganta
+    entre veinte usos de su ficha (25-10). Para una molestia localizada, el remedio la nombra en su nombre o categoría;
+    si ninguno, Mochi no elige uno."""
+    rappi, db = agent
+    _add(db, [(302, "Analgésico Forte 8 comprimidos", 4, "Analgésicos sistémicos", 2990)])
+    db.execute(
+        "UPDATE catalog_items SET description = 'Para el dolor de cabeza, de garganta, de muelas y de guata'"
+        " WHERE master_product_id = 302"
+    )
+    db.commit()
+    build_search_documents(db)
+    embed_search_documents(db, HashEmbedder())
+    for text in ("me duele la guata", "tengo la garganta irritada"):
+        r = rappi.reply(db, text, Context())
+        assert not any(p["concept"] == "medicamentos" for p in r["products"]), text
+        assert r["text"].startswith("No encontré en Farmacia un remedio"), text
+    _add(
+        db,
+        [
+            (303, "Pastillas para la garganta miel y limón 24 un", 4, "Analgésicos sistémicos", 3490),
+            (304, "Pastillas para la garganta menta 24 un", 4, "Analgésicos sistémicos", 3290),
+        ],
+    )
+    throat = rappi.reply(db, "tengo la garganta irritada", Context())
+    assert sorted(p["entity_id"] for p in throat["products"]) == ["303", "304"]
+    assert {"300", "301"} <= {p["entity_id"] for p in rappi.reply(db, "tengo dolor de cabeza", Context())["products"]}
+
+
+def test_a_craving_without_a_concept_is_looked_for_in_restaurants(agent):
+    """«quiero algo picante» mostraba una mezcla del súper (salsa, ramen instantáneo, chicharrón)."""
+    rappi, db = agent
+    for pid, name in [(520, "Pollo picante con arroz"), (521, "Ramen picante de cerdo"), (522, "Alitas picantes x8")]:
+        add_dish(db, pid, name, 3, "Platos", ["Platos"])
+        db.execute("INSERT INTO menu_price_snapshots (run_id, item_id, price) VALUES (999, %s, 8990)", (pid,))
+    _add(db, [(107, "Salsa picante de ají 200 ml", 1, "Otras salsas", 2490)])
+    r = rappi.reply(db, "quiero algo picante", Context())
+    assert r["vertical"] == "restaurantes" and r["products"]
+    assert all("picante" in p["name"].lower() for p in r["products"])
+    assert rappi.reply(db, "algo picante", Context(vertical="supermercado"))["vertical"] == "supermercado"
+
+
+def test_a_dish_card_looks_for_the_dish_where_it_says(agent):
+    """«¿qué lleva una paella?» buscaba en el súper: salían una paila, pulpo y una hallulla."""
+    rappi, db = agent
+    add_dish(db, 530, "Paella valenciana para dos", 3, "Platos de fondo", ["Platos de fondo"])
+    db.execute("INSERT INTO menu_price_snapshots (run_id, item_id, price) VALUES (999, 530, 18990)")
+    _add(db, [(108, "Paila de acero 26 cm", 1, "Ollas y sartenes", 9990)])
+    r = rappi.reply(db, "¿qué lleva una paella?", Context())
+    assert r["text"].startswith("La paella es") and r["vertical"] == "restaurantes"
+    assert [p["name"] for p in r["products"]] == ["Paella valenciana para dos"]
+
+
+def test_nothing_is_recommended_to_make_a_baby_sleep(agent):
+    """«algo para que mi guagua duerma» mostraba pañales. Mochi no recomienda nada para dormir (su pediatra) y muestra
+    lo de la hora de dormir que no es salud, nunca de adulto ni un remedio."""
+    rappi, db = agent
+    _add(
+        db,
+        [
+            (305, "Chupete nocturno 6-18 meses", 4, "Chupetes", 4990),
+            (306, "Pañales Voy a Dormir talla M 40 un", 4, "Pañales", 12990),
+            (307, "Pañal adulto nocturno talla G 10 un", 4, "Pañales", 9990),
+            (308, "Melatonina gotas para dormir 30 ml", 4, "Analgésicos sistémicos", 6990),
+            (309, "Pañales Premium talla G 40 un", 4, "Pañales", 11990),
+        ],
+    )
+    for text in ("algo para que mi guagua duerma", "qué le doy a mi hijo para dormir"):
+        r = rappi.reply(db, text, Context())
+        assert "pediatra" in r["text"] and r["intent"]["symptom"], text
+        assert not any(p["concept"] == "medicamentos" for p in r["products"]), text
+    r = rappi.reply(db, "algo para que mi guagua duerma", Context())
+    assert sorted(p["entity_id"] for p in r["products"]) == ["305", "306"] and r["conversation"] is None

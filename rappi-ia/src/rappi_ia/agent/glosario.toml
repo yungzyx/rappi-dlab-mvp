@@ -4,6 +4,7 @@
 #
 # - `keywords`: cómo se nombra en una pregunta (se normalizan: sin tildes ni ñ; una palabra suelta calza su plural).
 # - `text`: una o dos oraciones; las lee la persona tal cual (no pasan por el LLM).
+# - `vertical`: dónde buscar el plato si no se pregunta desde una vertical (sin concepto, la búsqueda iba al súper).
 # Agregar un plato es escribir una ficha aquí.
 
 [[dish]]
@@ -23,6 +24,7 @@ id = "paella"
 name = "Paella"
 keywords = ["paella"]
 text = "La paella es un arroz español con azafrán, hecho en una sartén ancha. Lleva mariscos, pollo o los dos, con arvejas y pimentón."
+vertical = "restaurantes"  # en el súper salían una paila, pulpo y una hallulla
 
 [[dish]]
 id = "ramen"

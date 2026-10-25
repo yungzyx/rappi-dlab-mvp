@@ -18,6 +18,15 @@ Cómo leerlo: la ventaja del combinado viene casi entera de la afinidad de cada 
 
 **Revisión sobre el catálogo real** ([QA del 16-10-2026](qa-motor-2026-10-16.md), en solo lectura, con 200 personas simuladas y las 44 del prototipo, medida antes de los ajustes de la etapa de QA, con λ > 0): las guardias (Farmacia, Licores, bebé, salud, conceptos sensibles, alcohol) dieron **0 casos en 2.851 productos ofrecidos**, y la ruta más lenta (`/recommendations`) respondió con p95 de 222 ms con el modelo de texto.
 
+## Mochi: preguntar y seguir la conversación (juicio propio, no humano externo)
+
+Respuestas reales de la API sobre `rappi_staging` (copia del 22-10), juzgadas a mano: bien, a medias o mal.
+
+| Set | Antes | Después | Reporte |
+|---|---|---|---|
+| 25 conversaciones de 2 o 3 turnos (`conversaciones.txt`) | 7 bien, 8 a medias, 10 mal | 21 bien, 4 a medias, 0 mal | [25-10-2026](mochi-conversacion-2026-10-25.md) |
+| 40 preguntas en texto libre (`preguntas-libres.txt`) | 34 bien, 6 a medias (24-10) | 40 bien | [25-10-2026](mochi-conversacion-2026-10-25.md#las-40-preguntas-libres-preguntas-librestxt) |
+
 ## Catálogo, conceptos y búsqueda
 
 | Ámbito | Métrica | Valor | Tipo de dato | Fuente |
@@ -32,7 +41,7 @@ Cómo leerlo: la ventaja del combinado viene casi entera de la afinidad de cada 
 | Búsqueda | Juez de tres niveles: lo que ve la persona | nDCG@10 0,906 → 0,952 · P@3 «sirve» 0,750 → 0,811 · útil@3 0,943 → 0,981 · lo mostrado que no sirve 7,3 % → 4,0 %. Necesidades 0,798 → 0,910; Rappi Mall 0,831 → 0,957. Juez por concepto, lo que ve la persona: 0,917 → 0,941 | Juicio LLM, no humano: 88 consultas, los 200 pares del 25-10 más 794 juzgados a ciegas (56 de 60 controles iguales, κ 0,90) | [busqueda-2026-10-25.md](busqueda-2026-10-25.md) |
 | Búsqueda | «Sin resultado» | precisión 1,00 (0 falsas alarmas en 131 positivas) · recall 0,93 (54 de 58). Con el mismo set y la regla anterior, 36 de 58 (0,62) | Evaluación automática | [reporte del 22-10](busqueda-2026-10-22.md) |
 | Búsqueda | Errores de tipeo | 53 casos en las 8 verticales: en la búsqueda agrupada (la de la app) se recuperan 53 corrigiendo la consulta (37 sin corregir), y por vertical 52 (30); «sin resultado» igual al de arriba | Evaluación automática | [reporte del 24-10](busqueda-2026-10-24.md) · [25-10](busqueda-2026-10-25.md) |
-| Calidad | Tests | rappi-ia 2.996 (25-10-2026) · scraper 305 · prototipo 690 · panel 123 (24-10-2026) | Verificación local y CI | `make test` · `npm test` |
+| Calidad | Tests (25-10-2026) | rappi-ia 3.025 · scraper 280 · prototipo 704 · panel 118 | Verificación local y CI | `make test` · `npm test` |
 
 La búsqueda se evaluó con 131 consultas positivas en las 8 verticales y 58 negativas, con relevancia juzgada automáticamente por concepto ([`queries.json`](../../rappi-ia/src/rappi_ia/eval/queries.json), renovado el 22-10 contra el catálogo). Por tipo de consulta, el híbrido logra 0,970 en las exactas, 0,972 sin tildes y 0,709 en necesidades en lenguaje natural («algo para el carrete»), frente a 0,565 del léxico.
 

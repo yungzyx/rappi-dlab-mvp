@@ -16,6 +16,7 @@ class Dish:
     keywords: tuple[str, ...]
     text: str
     query: str  # lo que se busca después de la ficha
+    vertical: str | None = None  # dónde buscarlo sin pantalla (sin concepto, la búsqueda iba al súper)
 
 
 @cache
@@ -25,5 +26,6 @@ def load_glossary() -> dict[str, Dish]:
     for d in raw.get("dish", ()):
         if d["id"] in dishes or not d["text"].strip() or not d["keywords"]:
             raise ValueError(f"glosario.toml: ficha inválida o repetida: {d['id']}")
-        dishes[d["id"]] = Dish(d["id"], d["name"], tuple(d["keywords"]), d["text"], d.get("query", d["name"].lower()))
+        query = d.get("query", d["name"].lower())
+        dishes[d["id"]] = Dish(d["id"], d["name"], tuple(d["keywords"]), d["text"], query, d.get("vertical"))
     return dishes

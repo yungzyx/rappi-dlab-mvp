@@ -633,3 +633,18 @@ def test_ask_follows_up_on_the_previous_turn(client):
     follow = client.post("/agent/ask", json={"message": "más barata", "previous": previous}).json()
     assert follow["intent"]["follow_up"] and follow["vertical"] == "licores"
     assert {p["concept"] for p in follow["products"]} == {"cerveza"}
+
+
+def test_the_conversation_goes_back_as_previous(client):
+    """La app manda de vuelta, tal cual, el `conversation` de la respuesta anterior: el seguimiento hereda el tope."""
+    first = client.post("/agent/ask", json={"message": "cerveza hasta 5 mil", "vertical": "liquor"}).json()
+    assert first["conversation"]["price_max"] == 5000 and first["conversation"]["vertical"] == "licores"
+    follow = client.post("/agent/ask", json={"message": "otra opción", "previous": first["conversation"]}).json()
+    assert follow["intent"]["follow_up"] and follow["conversation"]["price_max"] == 5000
+    assert client.post("/agent/ask", json={"message": "hola"}).json()["conversation"] is None
+
+
+def test_a_previous_turn_out_of_range_is_rejected(client):
+    for bad in ({"people": 999}, {"order": "gratis"}, {"price_max": -1}, {"product_ids": ["x"] * 49}):
+        previous = {"query": "cerveza", "concepts": ["cerveza"], **bad}
+        assert client.post("/agent/ask", json={"message": "más", "previous": previous}).status_code == 422, bad

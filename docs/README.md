@@ -34,6 +34,7 @@ Las especificaciones con que se construyeron las piezas grandes. Cada una dice a
 | [MVP integrado](diseno/2026-10-10-mvp-integrado-design.md) | 10-10-2026 | La app conectada a la API: catálogo real, buscador y ofertas de Mochi sobre el RAG, panel y Jev, en 7 etapas |
 | [Perfiles de gusto](diseno/2026-10-14-perfiles-de-gusto-design.md) | 14-10-2026 | Escaleras de verticales por gusto (el sushi como narrativa), en datos |
 | [Motor multivertical y Home dinámica](diseno/2026-10-16-motor-multivertical-design.md) | 16-10-2026 | Afinidad, transiciones, combinaciones, compra cruzada, tendencias y recompra (migración 036), con la tabla de Rappi completa |
+| [Conversar con Mochi](diseno/2026-10-25-mochi-conversacion-design.md) | 25-10-2026 | Seguir la conversación («más barato», «sin carne», «para 10 personas»): el estado que viaja con la app y cómo se combina con lo nuevo |
 
 Las migraciones 022 a 026, 036 y 037 citan en su primera línea la carpeta anterior de estos diseños: los archivos son los mismos de [diseno/](diseno/), y lo de la escalera fina (037) está en [capa-de-datos.md](capa-de-datos.md#la-escalera-fina).
 

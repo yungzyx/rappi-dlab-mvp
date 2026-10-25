@@ -1,6 +1,6 @@
 """Las tablas del backend que la API simulada de la demo sin conexión necesita y que la API no expone: los conceptos con
-sus guardias de ofertas y las palabras con que se los nombra en una consulta (con las de las ocasiones y las de
-relleno), los servicios sin catálogo, la tabla de combinaciones de Rappi (motor/combos.toml), los
+sus guardias de ofertas y las palabras con que se los nombra en una consulta (con las de las ocasiones, sus conceptos y
+las de relleno), los servicios sin catálogo, la tabla de combinaciones de Rappi (motor/combos.toml), los
 nombres visibles de las verticales, los perfiles de gusto (offers/perfiles.toml) con los conceptos que los activan
 (concepts/segments.toml) y las reglas de lo destacado (offers/destacado.toml). Lo corre `scripts/demo-snapshot.mjs`
 con el Python de rappi-ia; escribe JSON en la salida estándar. No toca la base."""
@@ -94,6 +94,16 @@ print(
                 "side_sections": [list(start) for start in featured.side_sections],
             },
             "occasion_keywords": [phrase(k) for o in taxonomy.occasions.values() for k in o.keywords],
+            # Para seguir una conversación sin conexión (src/api/offline/conversation.js): sus conceptos y la porción.
+            "occasions": {
+                o.id: {
+                    "name": o.name,
+                    "emoji": o.emoji,
+                    "concepts": list(o.concepts),
+                    "portion": {"grams": o.portion[0], "of": o.portion[1]} if o.portion else None,
+                }
+                for o in taxonomy.occasions.values()
+            },
             "filler_words": sorted(FILLER_WORDS),
             "vertical_labels": VERTICAL_LABELS,
             "screen_verticals": SCREEN_VERTICALS,

@@ -115,10 +115,11 @@ Cada cifra dice qué tipo de dato es. El detalle, con los reportes de cada fecha
 | Búsqueda: juez de tres niveles | Lo que ve la persona, nDCG@10 0,906 → 0,952 y P@3 «sirve» 0,75 → 0,81; necesidades («algo para la once») 0,80 → 0,91 y Rappi Mall 0,83 → 0,96 | Juicio LLM, no humano: 88 consultas con todo lo mostrado juzgado, antes y después de los cambios del 25-10 ([25-10-2026](docs/resultados/busqueda-2026-10-25.md)) |
 | «Sin resultado» | precisión 1,00 (0 falsas alarmas) · recall 0,93 (54 de 58 negativas) | Evaluación automática ([22-10-2026](docs/resultados/busqueda-2026-10-22.md)) |
 | Errores de tipeo | 53 de 53 recuperados en la búsqueda de la app (37 sin corregir) y 52 por vertical | Evaluación automática ([25-10-2026](docs/resultados/busqueda-2026-10-25.md)) |
+| Conversar con Mochi | 25 conversaciones de 2 o 3 turnos: 21 bien, 4 a medias, 0 mal (antes 7, 8 y 10); las 40 preguntas libres, bien | Juicio propio sobre una copia de la base, no humano externo ([25-10-2026](docs/resultados/mochi-conversacion-2026-10-25.md)) |
 | Guardias de ofertas | 0 casos de alcohol, Farmacia, bebé, salud o sensibles en 2.851 productos ofrecidos | QA sobre el catálogo real con personas simuladas ([16-10-2026](docs/resultados/qa-motor-2026-10-16.md)) |
 | Motor: próxima vertical | nDCG@8 0,978 frente a 0,918 del orden fijo | Simulado: prueba la mecánica, no el efecto ([17-10-2026](docs/resultados/simulados-2026-10-17.md)) |
 | Conceptos | 86 a 88 % de precisión en la asignación de conceptos | Estimación con jueces LLM ([06-10-2026](docs/resultados/capas-precision-2026-10-06-nueva-muestra.md)) |
-| Tests | rappi-ia 2.996 (25-10-2026) · scraper 305 · prototipo 690 · panel 123 (24-10-2026) | Verificación local y CI |
+| Tests | rappi-ia 3.025 · scraper 280 · prototipo 704 · panel 118 | Verificación local y CI (25-10-2026) |
 
 > [!IMPORTANT]
 > **Qué no es evidencia**
@@ -143,7 +144,7 @@ cd rappi-ia && make install-ml db-test && cd .. # los modelos de IA (~1 GB) y la
 ### Sin la base: `make mvp-check`
 
 ```bash
-make mvp-check    # desde la raíz: siembra un catálogo inventado en rappi_ia_test y recorre el MVP con Chrome (8 revisiones)
+make mvp-check    # desde la raíz: siembra un catálogo inventado en rappi_ia_test y recorre el MVP con Chrome (9 revisiones)
 ```
 
 Levanta una API liviana (:8010), la app (:5184) y el panel (:5185) sobre un catálogo de prueba inventado y revisa la Home dinámica, una compra, el kit de Mochi, una pregunta a Mochi, la escalera, el panel y la app sin API. Termina con «MVP check: 8 de 8 bien» y no toca la base `rappi`. Qué revisa cada paso: [docs/instalacion.md](docs/instalacion.md#5-el-mvp).

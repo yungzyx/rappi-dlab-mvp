@@ -4,6 +4,7 @@
 // híbrida de verdad la hacen agent/grouped_search.py y agent/rappi_agent.py). «Qué me recomiendas» responde con los
 // intereses de la persona (rappi_agent.py: _recommend).
 import { looksLikeQuestion } from '../../assistant/question'
+import { followKey, followUp, readRefinement, withConversation } from './conversation'
 import { OFFER_BLOCKED_VERTICALS } from './motor'
 import { complementOf, offerableProduct } from './offers'
 import { normalize } from './text'
@@ -457,10 +458,23 @@ function unrecorded(snapshot, message, body, userId) {
 }
 
 /**
- * `POST /agent/ask`: «qué me recomiendas» (sin nombrar qué) con los intereses de la persona (`interests`, sus conceptos
- * de mayor a menor); lo demás, la respuesta grabada de esa pregunta o, si no hay, lo que calza en la muestra.
+ * `POST /agent/ask`: un seguimiento del turno anterior (`previous`: el grabado de la API real o, si no hay, el que arma
+ * conversation.js sobre la muestra); «qué me recomiendas» (sin nombrar qué) con los intereses de la persona
+ * (`interests`, sus conceptos de mayor a menor); lo demás, la respuesta grabada de esa pregunta o, si no hay, lo que calza
+ * en la muestra. Cada respuesta trae `conversation`, lo que la app devuelve como `previous`.
  */
-export function ask(snapshot, body, { interests = [], userId = null } = {}) {
+export function ask(snapshot, body, context = {}) {
+  const message = String(body?.message ?? '')
+  if (body?.previous) {
+    const recorded = snapshot.followUps?.[followKey(body.previous, message)]
+    if (recorded) return recorded
+    const refinement = readRefinement(message)
+    if (refinement) return followUp(snapshot, body, refinement)
+  }
+  return withConversation(answer(snapshot, body, context), body)
+}
+
+function answer(snapshot, body, { interests = [], userId = null } = {}) {
   const message = String(body?.message ?? '')
   // Como en agent/understand.py, solo si no nombra algo: «¿me recomiendas un vino?» busca vino.
   const named = detectConcepts(snapshot.meta, message).length || namesOccasion(snapshot.meta, message)

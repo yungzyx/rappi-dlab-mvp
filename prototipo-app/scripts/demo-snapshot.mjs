@@ -15,6 +15,7 @@ import { execFileSync } from 'node:child_process'
 import { createHash } from 'node:crypto'
 import { readFileSync, writeFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
+import { followKey } from '../src/api/offline/text.js'
 
 const ROOT = fileURLToPath(new URL('..', import.meta.url))
 const OUT = `${ROOT}src/api/offline/snapshot.json`
@@ -42,6 +43,17 @@ const FREE_QUESTIONS = readFileSync(`${ROOT}../rappi-ia/src/rappi_ia/eval/frases
   .split('\n')
   .map((line) => line.trim())
   .filter((line) => line && !line.startsWith('#'))
+// Las conversaciones del set de rappi-ia: una pregunta y sus seguimientos («+ más barato»). Se graba cada seguimiento
+// con el turno anterior que devolvió la API (src/api/offline/conversation.js: followKey).
+const CONVERSATIONS = readFileSync(`${ROOT}../rappi-ia/src/rappi_ia/eval/frases_usuarios/conversaciones.txt`, 'utf8')
+  .split('\n')
+  .map((line) => line.trim())
+  .filter((line) => line && !line.startsWith('#'))
+  .reduce((all, line) => {
+    if (line.startsWith('+')) all.at(-1).push(line.slice(1).trim())
+    else all.push([line])
+    return all
+  }, [])
 // Los chips del buscador con Mochi (AssistantPanel), preguntas comunes y las preguntas en texto libre.
 const ASKS = [
   ...['🍔 ¿Qué almuerzo hoy?', '🍻 Arma un carrete', '🔥 Ofertas de hoy', '🍫 Algo dulce', '🎁 Un regalo'],
@@ -178,6 +190,20 @@ async function agent(token, userId) {
   const ask = {}
   for (const message of ASKS)
     ask[normalize(message)] = await post('/agent/ask', { message, user_id: userId, mode: 'propuesta' })
+  const followUps = {}
+  for (const [first, ...next] of CONVERSATIONS) {
+    let previous = (ask[normalize(first)] ??= await post('/agent/ask', {
+      message: first,
+      user_id: userId,
+      mode: 'propuesta',
+    })).conversation
+    for (const message of next) {
+      if (!previous) break
+      const reply = await post('/agent/ask', { message, user_id: userId, mode: 'propuesta', previous })
+      followUps[followKey(previous, message)] = reply
+      previous = reply.conversation ?? previous
+    }
+  }
   const plans = await call(`/agent/plans?user_id=${userId}`, { token })
   const planOffers = {}
   for (const { id } of plans) {
@@ -205,7 +231,7 @@ async function agent(token, userId) {
   } finally {
     await call(`/profile/${fresh.user_id}`, { method: 'DELETE', token: fresh.token })
   }
-  return { search, ask, help, plans, planOffers, noResult, recommendations, toTry: { usual } }
+  return { search, ask, followUps, help, plans, planOffers, noResult, recommendations, toTry: { usual } }
 }
 
 /** Todos los productos de una respuesta (los objetos con entity_type, entity_id y precio). */

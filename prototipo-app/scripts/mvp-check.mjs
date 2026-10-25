@@ -1,5 +1,5 @@
 // Revisa en un Chrome real que la app del MVP responda como debe (lo corre scripts/mvp-check.sh con `make mvp-check`).
-// Uso: node scripts/mvp-check.mjs --app http://localhost:5184 [--api http://localhost:8010] [--shop | --kit | --ask | --home | --combo | --expect-offline | --panel http://localhost:5185]
+// Uso: node scripts/mvp-check.mjs --app http://localhost:5184 [--api http://localhost:8010] [--shop | --kit | --ask | --follow | --home | --combo | --expect-offline | --panel http://localhost:5185]
 //   sin banderas: la app abre en la Home conectada, con la barra «Busca o pídele ideas a <agente>» y el aviso de privacidad
 //     de la primera visita (que se cierra con «Entendido»);
 //   con --shop: Home → vertical Súper → primera tienda → agregar un producto → carrito → pagar, y la API recibe el
@@ -11,6 +11,10 @@
 //     es «Pregúntale a <agente>», resaltada; Enter se lo pregunta y la tarjeta de Mochi muestra «Preguntaste «…»», la
 //     ficha del plato y el completo del catálogo de prueba. Después «mi hijo tiene fiebre, ¿qué le doy?»: Mochi no da
 //     consejo médico, nombra al químico farmacéutico y ofrece «Ir a Farmacia», sin productos;
+//   con --follow: seguir la conversación con Mochi. Pregunta «¿tienen pizza?» y toca «Más barato» debajo de la respuesta:
+//     la tarjeta dice «Preguntaste «¿tienen pizza?» · «más barato»», «Lo más barato de…» y la pizza más barata del
+//     catálogo de prueba va primero. Después escribe «otra opción» en el campo para seguir: ya vio las dos, y Mochi lo
+//     dice («No encontré otras opciones de…») en vez de repetirlas;
 //   con --home: Home dinámica. Una persona nueva ve los 6 accesos en el orden fijo, con Lealtad y Beneficios Pro al final y
 //     sin el texto «Ordenadas según lo que más usas»; toca «Rappi Mall» tres veces, volviendo a la Home cada
 //     vez, espera a que la API acepte los toques (`vertical_open`; al volver a la Home la app los manda y vuelve a pedir
@@ -219,6 +223,35 @@ async function checkAsk(page) {
   return 'preguntó «¿qué es un completo?» (ficha y producto) y una duda de salud (sin consejo médico, «Ir a Farmacia»)'
 }
 
+async function checkFollow(page) {
+  await checkOnline(page)
+  await step(page, `abrir el buscador con ${AGENT_NAME}`, () => page.locator('.smart-bar').first().click())
+  const panel = page.getByRole('dialog', { name: SEARCH_DIALOG })
+  const field = panel.getByRole('searchbox', { name: 'Buscar en Rappi' })
+  const bubble = (text) => panel.locator('.agent-msg-bubble').getByText(text).waitFor()
+  await step(page, 'escribir «¿tienen pizza?»', () => field.fill('¿tienen pizza?'))
+  await step(page, 'preguntar con Enter', () => field.press('Enter'))
+  await step(page, 'ver la respuesta con pizzas', () => bubble(/pizza/i))
+  await step(page, 'tocar «Más barato»', () => panel.getByRole('button', { name: 'Más barato' }).click())
+  await step(page, 'ver lo dicho en la conversación', () =>
+    panel.getByText('Preguntaste «¿tienen pizza?» · «más barato»').waitFor(),
+  )
+  await step(page, 'ver «Lo más barato de…»', () => bubble(/^Lo más barato de .*pizza/))
+  await step(page, 'ver primero la pizza más barata', async () => {
+    await panel
+      .locator('.agent-msg-bubble')
+      .getByText(/^Lo más barato/)
+      .waitFor()
+    const first = (await panel.locator('.agent-msg-product-name').first().textContent()) ?? ''
+    if (!first.startsWith('Pizza margarita mediana')) throw new Error(`la primera es «${first}»`)
+  })
+  const follow = panel.getByRole('textbox', { name: `Sigue la conversación con ${AGENT_NAME}` })
+  await step(page, 'escribir «otra opción» en el campo para seguir', () => follow.fill('otra opción'))
+  await step(page, 'mandarlo con Enter', () => follow.press('Enter'))
+  await step(page, 'ver que no repite lo que ya mostró', () => bubble(/^No encontré otras opciones de .*pizza/))
+  return 'preguntó «¿tienen pizza?», tocó «Más barato» (la más barata primero) y escribió «otra opción» (sin repetir)'
+}
+
 /** Cuánto se espera a que Mochi termine de saludar y responda a un toque. */
 const COMBO_WAIT_MS = 25_000
 
@@ -425,6 +458,7 @@ const { values } = parseArgs({
     shop: { type: 'boolean', default: false },
     kit: { type: 'boolean', default: false },
     ask: { type: 'boolean', default: false },
+    follow: { type: 'boolean', default: false },
     home: { type: 'boolean', default: false },
     combo: { type: 'boolean', default: false },
     api: { type: 'string', default: API_DEFAULT },
@@ -441,13 +475,15 @@ const label = values.panel
       ? 'kit de Mochi'
       : values.ask
         ? 'preguntarle a Mochi'
-        : values.home
-          ? 'home'
-          : values.combo
-            ? 'combinación'
-            : values.shop
-              ? 'compra'
-              : 'en línea'
+        : values.follow
+          ? 'seguir la conversación'
+          : values.home
+            ? 'home'
+            : values.combo
+              ? 'combinación'
+              : values.shop
+                ? 'compra'
+                : 'en línea'
 
 /** Con MVP_CHECK_ARTIFACTS=<carpeta> (lo usa el CI), una revisión que falla deja la captura de lo que se veía. */
 async function saveFailureScreenshot(page) {
@@ -479,6 +515,7 @@ async function main() {
       combo: checkCombo,
       kit: checkKit,
       ask: checkAsk,
+      follow: checkFollow,
       shop: checkShop,
     }
     const picked = Object.keys(checks).find((name) => values[name])
