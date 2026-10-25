@@ -41,6 +41,8 @@ describe('los conceptos de una consulta (concepts/matcher.py)', () => {
   test('el nombre dice lo pedido con palabras enteras y la ñ: «pañales» no es «panal»', () => {
     expect(namesQuery(META, 'Galletas de café', 'galleta')).toBe(true)
     expect(namesQuery(META, 'Panal de miel', 'pañales')).toBe(false)
+    expect(namesQuery(META, 'Harina con polvos de hornear', 'harina sin polvos de hornear')).toBe(false)
+    expect(namesQuery(META, 'Harina sin polvos de hornear', 'harina sin polvos de hornear')).toBe(true)
   })
 })
 
