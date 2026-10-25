@@ -1,5 +1,5 @@
 import { StrictMode, useState } from 'react'
-import { cleanup, fireEvent, render, screen } from '@testing-library/react'
+import { act, cleanup, fireEvent, render, screen } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest'
 import { toPrototypeProduct } from '../../api/client'
 import { ordersSettled } from '../../api/orders'
@@ -11,10 +11,21 @@ import { CartProvider, useCart } from '../../state/CartContext'
 import { DemoProvider } from '../../state/DemoContext'
 import { OrdersProvider } from '../../state/OrdersContext'
 import { ProfileProvider } from '../../state/ProfileContext'
+import { setPro } from '../../state/pro'
 import CheckoutScreen from './CheckoutScreen'
+import { forgetAge } from './restrictions'
 
 const api = vi.hoisted(() => ({ health: vi.fn(), sendOrder: vi.fn() }))
 vi.mock('../../api/client', async (importOriginal) => ({ ...(await importOriginal()), ...api }))
+// Lo que trae /catalog/terms de cada tienda, por test (sin entrada: la API no la conoce y van los supuestos).
+const terms = vi.hoisted(() => ({ byStore: {} }))
+vi.mock('../../api/catalog', async (importOriginal) => ({
+  ...(await importOriginal()),
+  storeTerms: async (ids) => new Map(ids.map((id) => [id, terms.byStore[id] ?? null])),
+}))
+// La ventana de «Deshacer pedido»: 0 en los tests (sale de inmediato), salvo en los que la prueban.
+const undo = vi.hoisted(() => ({ UNDO_MS: 0 }))
+vi.mock('./undo', () => undo)
 const events = vi.hoisted(() => ({
   track: vi.fn(),
   flush: vi.fn(async () => {}),
@@ -26,22 +37,22 @@ vi.mock('../../state/EventsContext', async (importOriginal) => ({
   useEvents: () => events,
 }))
 
-// Un producto de Licores y uno del Súper: el carro va en dos pedidos.
+// Un producto de Licores (+18) y uno del Súper: el carro va en dos pedidos, uno por tienda.
 // Ambos salen de las respuestas de ejemplo de la API, con su tipo e id reales.
 const BEER = toPrototypeProduct(fixture('search-grouped').groups[0].products[0])
-const AVOCADO = toPrototypeProduct(fixture('catalog-store').products[0])
+const OIL = toPrototypeProduct(fixture('catalog-store').products[0])
+const NO_MINIMUM = { deliveryFee: null, minOrder: 0, servicePct: null }
 
-/** Llena el carro y abre el checkout, como al tocar la barra del carrito. */
-function Harness() {
+/** Llena el carro con `products` y abre el checkout, como al tocar la barra del carrito. */
+function Harness({ products, push }) {
   const cart = useCart()
   const [open, setOpen] = useState(false)
-  if (open) return <CheckoutScreen back={() => setOpen(false)} push={() => {}} />
+  if (open) return <CheckoutScreen back={() => setOpen(false)} push={push} />
   return (
     <button
       type="button"
       onClick={() => {
-        cart.add(BEER)
-        cart.add(AVOCADO)
+        products.forEach((product) => cart.add(product))
         setOpen(true)
       }}
     >
@@ -50,7 +61,7 @@ function Harness() {
   )
 }
 
-function renderCheckout() {
+function renderCheckout(products = [BEER, OIL], push = () => {}) {
   render(
     <StrictMode>
       <DemoProvider>
@@ -60,7 +71,7 @@ function renderCheckout() {
               <OrdersProvider>
                 <AddressProvider>
                   <ToastProvider>
-                    <Harness />
+                    <Harness products={products} push={push} />
                   </ToastProvider>
                 </AddressProvider>
               </OrdersProvider>
@@ -79,6 +90,15 @@ function deferred() {
   return { promise, resolve }
 }
 const tick = () => new Promise((resolve) => setTimeout(resolve, 0))
+const placeButton = () => screen.getByRole('button', { name: /^Hacer pedido/ })
+
+/** «Hacer pedido» y, si pregunta la edad, «Sí». Con la ventana de deshacer en 0, el pedido sale solo. */
+async function pay() {
+  await act(tick) // las condiciones de las tiendas (/catalog/terms)
+  fireEvent.click(placeButton())
+  const yes = screen.queryByText('Sí, soy mayor de edad')
+  if (yes) fireEvent.click(yes)
+}
 
 const checkoutStarts = () =>
   events.track.mock.calls.filter(([type]) => type === 'checkout_start').map(([, fields]) => fields)
@@ -86,11 +106,15 @@ const checkoutStarts = () =>
 beforeEach(() => {
   api.health.mockResolvedValue({ voz: false })
   api.sendOrder.mockResolvedValue({})
+  terms.byStore = { [BEER.storeId]: NO_MINIMUM, [OIL.storeId]: NO_MINIMUM }
+  undo.UNDO_MS = 0
 })
 afterEach(() => {
   cleanup()
   vi.clearAllMocks()
   localStorage.clear()
+  sessionStorage.clear()
+  forgetAge()
 })
 
 describe('inicio de pago', () => {
@@ -110,14 +134,14 @@ describe('inicio de pago', () => {
 
   test('pagar no repite el inicio de pago', async () => {
     renderCheckout()
-    fireEvent.click(screen.getByText(/Hacer pedido/))
+    await pay()
     await vi.waitFor(() => expect(api.sendOrder).toHaveBeenCalledTimes(2))
     expect(checkoutStarts()).toHaveLength(2)
   })
 
   test('el pedido guardado lleva el tipo y el id de cada línea (con ellos Mochi arma el próximo pedido)', async () => {
     renderCheckout()
-    fireEvent.click(screen.getByText(/Hacer pedido/))
+    await pay()
     await vi.waitFor(() => expect(api.sendOrder).toHaveBeenCalledTimes(2))
     const [order] = JSON.parse(localStorage.getItem('rappi-proto-orders'))
     expect(order.items.find((item) => item.entityId === '94001')).toMatchObject({ entityType: 'catalog_item' })
@@ -129,8 +153,8 @@ describe('inicio de pago', () => {
     events.flush.mockReturnValueOnce(queued.promise)
     events.settled.mockReturnValueOnce(inFlight.promise)
     renderCheckout()
-    fireEvent.click(screen.getByText(/Hacer pedido/))
-    await tick()
+    await pay()
+    await act(tick)
     expect(api.sendOrder).not.toHaveBeenCalled()
 
     queued.resolve()
@@ -142,6 +166,192 @@ describe('inicio de pago', () => {
   })
 })
 
+describe('un pedido por tienda', () => {
+  test('dos tiendas: «dividida en 2 pedidos», un POST por tienda y cada uno con sus líneas', async () => {
+    const dish = toPrototypeProduct(fixture('catalog-menu').sections[0].items[0])
+    const other = { ...dish, id: 'menu-otro', entityId: '98010', storeId: dish.storeId + 2, store: 'Otro local' }
+    terms.byStore = { [dish.storeId]: NO_MINIMUM, [other.storeId]: NO_MINIMUM }
+    renderCheckout([dish, other])
+    expect(screen.getByText(/Tu compra será dividida en 2 pedidos/)).toBeTruthy()
+    await pay()
+    await vi.waitFor(() => expect(api.sendOrder).toHaveBeenCalledTimes(2))
+    const sent = api.sendOrder.mock.calls.map(([order]) => order)
+    expect(sent.map((order) => order.vertical)).toEqual(['restaurantes', 'restaurantes'])
+    expect(sent.map((order) => order.lines.map((line) => line.store_id))).toEqual([[dish.storeId], [other.storeId]])
+  })
+})
+
+describe('compra mínima y envío por tienda', () => {
+  test('bajo la compra mínima no se puede pedir: «Te faltan $X para hacer el pedido»', async () => {
+    terms.byStore[OIL.storeId] = { deliveryFee: null, minOrder: 8490, servicePct: null }
+    renderCheckout()
+    await act(tick)
+    expect(screen.getAllByText('Te faltan $5.300 para hacer el pedido').length).toBeGreaterThan(0)
+    expect(screen.getByText(/Te faltan \$5\.300 para hacer el pedido en Supermercado de prueba Centro/)).toBeTruthy()
+    expect(placeButton().disabled).toBe(true)
+    fireEvent.click(placeButton())
+    await tick()
+    expect(api.sendOrder).not.toHaveBeenCalled()
+  })
+
+  test('sin dato del catálogo el mínimo y el envío son supuestos rotulados', async () => {
+    terms.byStore = {}
+    renderCheckout([OIL, OIL, OIL])
+    await act(tick)
+    expect(screen.getAllByText(/mínimo de ejemplo/).length).toBeGreaterThan(0)
+    expect(screen.getAllByText(/envío de ejemplo/).length).toBeGreaterThan(0)
+  })
+
+  test('el envío real de un restaurante (delivery_cost) va en su canasta y en el total', async () => {
+    const dish = toPrototypeProduct(fixture('catalog-menu').sections[0].items[0])
+    terms.byStore = { [dish.storeId]: { deliveryFee: 1490, minOrder: null, servicePct: null } }
+    renderCheckout([dish])
+    await act(tick)
+    expect(screen.getByText(/^Envío \$1\.490/)).toBeTruthy()
+    expect(screen.queryByText(/envío de ejemplo/)).toBeNull()
+  })
+})
+
+describe('Rappi Pro', () => {
+  test('sin Pro: se cobra el envío y se ofrece «Ahorra $X con Pro»; el pedido dice que no es Pro', async () => {
+    renderCheckout([OIL, OIL, OIL, OIL])
+    await act(tick)
+    expect(screen.getByText(/^Ahorra \$.* con Pro$/)).toBeTruthy()
+    await pay()
+    await vi.waitFor(() => expect(api.sendOrder).toHaveBeenCalledTimes(1))
+    expect(api.sendOrder.mock.calls[0][0].pro).toBe(false)
+  })
+
+  test('con Pro: envío gratis sobre el mínimo Pro; bajo él, «Te faltan $X para envío gratis con Pro»', async () => {
+    setPro(true)
+    renderCheckout([OIL, OIL, OIL, OIL, BEER]) // $12.760 en el súper y $1.190 en la botillería
+    await act(tick)
+    expect(screen.getByText(/Envío gratis con Pro/)).toBeTruthy()
+    expect(screen.getByText('Te faltan $8.810 para envío gratis con Pro')).toBeTruthy()
+    await pay()
+    await vi.waitFor(() => expect(api.sendOrder).toHaveBeenCalledTimes(2))
+    expect(api.sendOrder.mock.calls.every(([order]) => order.pro === true)).toBe(true)
+  })
+})
+
+describe('créditos y cupones de ejemplo', () => {
+  test('los créditos del banner se descuentan del total y se pueden apagar', async () => {
+    renderCheckout([OIL])
+    await act(tick)
+    expect(screen.getByText('−$1.900')).toBeTruthy()
+    const total = () => screen.getByText('Total').nextSibling.textContent
+    const withCredits = total()
+    fireEvent.click(screen.getByRole('switch', { name: 'Usar créditos' }))
+    expect(screen.queryByText('−$1.900')).toBeNull()
+    expect(total()).not.toBe(withCredits)
+  })
+
+  test('un cupón a la vez: el del súper aplica, otro lo reemplaza y uno de otra tienda «no aplica para esta tienda»', async () => {
+    renderCheckout([OIL, OIL, OIL, OIL])
+    await act(tick)
+    fireEvent.click(screen.getByRole('button', { name: 'SUPER20' }))
+    expect(screen.getByText('Cupón SUPER20')).toBeTruthy()
+    expect(screen.getByText('−$2.550')).toBeTruthy() // 20 % de $12.760
+    fireEvent.change(screen.getByLabelText('Código del cupón'), { target: { value: 'bienvenida' } })
+    fireEvent.click(screen.getByText('Aplicar'))
+    expect(screen.getByText(/Reemplazó a SUPER20/)).toBeTruthy()
+    expect(screen.queryByText('Cupón SUPER20')).toBeNull()
+    expect(screen.getByText('Cupón BIENVENIDA')).toBeTruthy()
+  })
+
+  test('el cupón de Supermercado en un carro sin súper no descuenta nada', async () => {
+    const dish = toPrototypeProduct(fixture('catalog-menu').sections[0].items[0])
+    terms.byStore = { [dish.storeId]: NO_MINIMUM }
+    renderCheckout([dish])
+    await act(tick)
+    fireEvent.click(screen.getByRole('button', { name: 'SUPER20' }))
+    expect(screen.getByText('Este cupón no aplica para esta tienda')).toBeTruthy()
+    expect(screen.queryByText('Cupón SUPER20')).toBeNull()
+  })
+})
+
+describe('restricciones al pagar', () => {
+  test('con un producto +18 pregunta la edad una vez por sesión', async () => {
+    renderCheckout()
+    await act(tick)
+    fireEvent.click(placeButton())
+    expect(screen.getByText('Sí, soy mayor de edad')).toBeTruthy()
+    expect(api.sendOrder).not.toHaveBeenCalled()
+    fireEvent.click(screen.getByText('Sí, soy mayor de edad'))
+    await vi.waitFor(() => expect(api.sendOrder).toHaveBeenCalledTimes(2))
+    cleanup()
+
+    renderCheckout()
+    await act(tick)
+    fireEvent.click(placeButton())
+    expect(screen.queryByText('Sí, soy mayor de edad')).toBeNull() // ya respondió en esta sesión
+    await vi.waitFor(() => expect(api.sendOrder).toHaveBeenCalledTimes(4))
+  })
+
+  test('si no es mayor de edad no se pide; puede quitar los productos +18', async () => {
+    renderCheckout()
+    await act(tick)
+    fireEvent.click(placeButton())
+    fireEvent.click(screen.getByText('No'))
+    fireEvent.click(screen.getByText('Quitar los productos +18'))
+    expect(screen.queryByText(BEER.name)).toBeNull()
+    expect(screen.getByText(OIL.name)).toBeTruthy()
+    const removes = events.track.mock.calls.filter(([type]) => type === 'cart_remove')
+    expect(removes.map(([, fields]) => fields.entity_id)).toEqual([BEER.entityId])
+    expect(api.sendOrder).not.toHaveBeenCalled()
+  })
+
+  test('con productos de Farmacia pide marcar «Tengo la receta médica» antes de pedir', async () => {
+    const pill = { ...OIL, id: 'cat-farma', entityId: '95001', storeId: 9501, store: 'Farmacia', vertical: 'pharmacy' }
+    pill.backendVertical = 'farmacia'
+    terms.byStore = { 9501: NO_MINIMUM }
+    renderCheckout([pill])
+    await act(tick)
+    expect(placeButton().disabled).toBe(true)
+    expect(screen.getByText('Marca que tienes la receta médica para seguir')).toBeTruthy()
+    fireEvent.click(screen.getByLabelText(/Tengo la receta médica/))
+    expect(placeButton().disabled).toBe(false)
+    await pay()
+    await vi.waitFor(() => expect(api.sendOrder).toHaveBeenCalledTimes(1))
+  })
+})
+
+describe('deshacer pedido', () => {
+  test('en la ventana de deshacer no sale nada; deshacer vuelve al checkout con el carro', async () => {
+    undo.UNDO_MS = 60_000
+    const push = vi.fn()
+    renderCheckout([OIL], push)
+    await pay()
+    expect(screen.getByText('¡Pedido creado!')).toBeTruthy()
+    await act(tick)
+    expect(api.sendOrder).not.toHaveBeenCalled()
+    fireEvent.click(screen.getByText('Deshacer pedido'))
+    await act(tick)
+    expect(api.sendOrder).not.toHaveBeenCalled()
+    expect(push).not.toHaveBeenCalled()
+    expect(localStorage.getItem('rappi-proto-orders')).toBeNull()
+    expect(screen.getByText(OIL.name)).toBeTruthy()
+  })
+
+  test('pasada la ventana sale el pedido y abre su seguimiento', async () => {
+    vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] })
+    try {
+      undo.UNDO_MS = 5000
+      const push = vi.fn()
+      renderCheckout([OIL], push)
+      await act(() => vi.advanceTimersByTimeAsync(0))
+      fireEvent.click(placeButton())
+      await act(() => vi.advanceTimersByTimeAsync(4000))
+      expect(push).not.toHaveBeenCalled()
+      await act(() => vi.advanceTimersByTimeAsync(1000))
+      expect(push).toHaveBeenCalledWith('tracking', expect.anything(), { swap: true })
+      await vi.waitFor(() => expect(api.sendOrder).toHaveBeenCalledTimes(1))
+    } finally {
+      vi.useRealTimers()
+    }
+  })
+})
+
 describe('pedidos en vuelo', () => {
   test('placing the order is tracked from the first wait until the last send ends', async () => {
     const inFlight = deferred() // un lote de eventos que ya había salido
@@ -149,7 +359,8 @@ describe('pedidos en vuelo', () => {
     events.settled.mockReturnValueOnce(inFlight.promise)
     api.sendOrder.mockReturnValue(sending.promise)
     renderCheckout()
-    fireEvent.click(screen.getByText(/Hacer pedido/))
+    await pay()
+    await act(tick)
 
     let settled = false
     const waiting = ordersSettled().then(() => (settled = true))

@@ -21,7 +21,12 @@ import {
 
 export const PROFILE = { initials: 'CD', name: 'Cliente Demo' }
 
-export const PRO_PLAN = { savings: '$15.400', note: 'Es lo que ahorra en promedio al mes un usuario Pro.' }
+export const PRO_PLAN = {
+  savings: '$15.400',
+  note: 'Es lo que ahorra en promedio al mes un usuario Pro.',
+  pitch: 'Envíos gratis sobre $10.000 y menos tarifa de servicio (montos de ejemplo).',
+  toggle: 'Demo: toca para cambiar de persona Pro a sin Pro.',
+}
 
 // La versión del prototipo (package.json), no la de la app de Rappi.
 export const APP_VERSION = `Versión ${version} · prototipo`

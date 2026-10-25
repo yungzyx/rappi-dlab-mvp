@@ -7,7 +7,7 @@ const TICK_MS = 1_000
 // Fecha límite fija al cargar la página, para que el contador no se reinicie al cambiar de pantalla.
 const deadlines = new Map()
 
-function getDeadline(key, minutes) {
+export function getDeadline(key, minutes) {
   if (!deadlines.has(key)) deadlines.set(key, Date.now() + minutes * MINUTE_MS)
   return deadlines.get(key)
 }

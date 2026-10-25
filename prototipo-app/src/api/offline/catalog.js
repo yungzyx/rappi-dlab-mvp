@@ -116,6 +116,7 @@ export function catalogRoute(snapshot, method, path, query, now = Date.now()) {
     if (vertical && !code) return NOT_FOUND
     return { body: (catalog.deals[code ?? ''] ?? []).slice(0, limitOf(query, 24)) }
   }
+  if (path === '/catalog/terms') return { body: { stores: storeTerms(catalog, query.get('stores')) } }
   let match = /^\/catalog\/verticals\/([^/]+)\/stores$/.exec(path)
   if (match) {
     const reply = catalog.verticalStores[backendVertical(decodeURIComponent(match[1]))]
@@ -151,4 +152,22 @@ export function catalogRoute(snapshot, method, path, query, now = Date.now()) {
     return product ? { body: product } : NOT_FOUND
   }
   return undefined
+}
+
+/**
+ * `/catalog/terms` sin conexión (catalog/terms.py), en corto: la muestra guarda las tarjetas, no el `raw` de las
+ * tiendas, así que solo sabe el envío de los restaurantes grabados (`fee` de su tarjeta); lo demás va en null y la app
+ * pone su supuesto rotulado, como con la API real cuando el catálogo no lo trae.
+ */
+function storeTerms(catalog, ids) {
+  return String(ids ?? '')
+    .split(',')
+    .map(Number)
+    .filter((id) => Number.isInteger(id) && (catalog.menus[id] || catalog.stores[id]))
+    .map((id) => ({
+      store_id: id,
+      delivery_fee: pesos(catalog.menus[id]?.restaurant?.fee) || null,
+      min_order: null,
+      service_pct: null,
+    }))
 }

@@ -1,13 +1,16 @@
 import { useState } from 'react'
-import { cartEventFields } from '../api/orders'
+import { basketsOf, cartEventFields } from '../api/orders'
+import { pricedBasket } from '../screens/checkout/pricing'
+import { useStoreTerms } from '../screens/checkout/useStoreTerms'
 import { formatPrice, lineKey, parsePrice, useCart } from '../state/CartContext'
 import { useEvents } from '../state/EventsContext'
 import AddButton from './AddButton'
+import BasketMinimum from './BasketMinimum'
 import Img from './Img'
 import Sheet from './Sheet'
 import './cart.css'
 
-/** Barra flotante «Ver carro» (aparece con productos) y la hoja con el detalle del carro. */
+/** Barra flotante «Ver carro» (aparece con productos) y la hoja con el detalle del carro, una canasta por tienda. */
 export default function CartBar({ raised, push }) {
   const cart = useCart()
   const events = useEvents()
@@ -45,21 +48,7 @@ export default function CartBar({ raised, push }) {
           <p className="cart-empty">Tu carro está vacío.</p>
         ) : (
           <>
-            <ul className="cart-lines">
-              {cart.items.map(({ product, qty }) => (
-                <li key={lineKey(product)} className="cart-line">
-                  <Img src={product.img} />
-                  <span className="cart-line-text">
-                    <strong>{product.name}</strong>
-                    <span>{product.store}</span>
-                    <span className="cart-line-price">{formatPrice(parsePrice(product.price) * qty)}</span>
-                  </span>
-                  <span className="cart-line-stepper">
-                    <AddButton product={product} />
-                  </span>
-                </li>
-              ))}
-            </ul>
+            <CartBaskets items={cart.items} />
             <div className="cart-summary">
               <span>Subtotal</span>
               <strong>{formatPrice(cart.total)}</strong>
@@ -73,6 +62,39 @@ export default function CartBar({ raised, push }) {
           </>
         )}
       </Sheet>
+    </>
+  )
+}
+
+/** Las líneas del carro agrupadas por tienda (cada una es un pedido), con la compra mínima de cada tienda. */
+function CartBaskets({ items }) {
+  const baskets = basketsOf(items)
+  const termsOf = useStoreTerms(baskets)
+  return (
+    <>
+      {baskets.length > 1 && (
+        <p className="cart-split">Tu compra será dividida en {baskets.length} pedidos, uno por tienda.</p>
+      )}
+      {baskets.map((basket) => (
+        <section key={basket.key} className="cart-basket" aria-label={basket.store || 'Tienda'}>
+          <h3 className="cart-basket-store">{basket.store || 'Tienda'}</h3>
+          <BasketMinimum basket={pricedBasket(basket, termsOf(basket))} />
+          <ul className="cart-lines">
+            {basket.lines.map(({ product, qty }) => (
+              <li key={lineKey(product)} className="cart-line">
+                <Img src={product.img} />
+                <span className="cart-line-text">
+                  <strong>{product.name}</strong>
+                  <span className="cart-line-price">{formatPrice(parsePrice(product.price) * qty)}</span>
+                </span>
+                <span className="cart-line-stepper">
+                  <AddButton product={product} />
+                </span>
+              </li>
+            ))}
+          </ul>
+        </section>
+      ))}
     </>
   )
 }

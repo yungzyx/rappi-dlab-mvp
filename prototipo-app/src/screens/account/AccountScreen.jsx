@@ -8,6 +8,7 @@ import { useAddress } from '../../state/AddressContext'
 import { MODE_LABELS, nextMode, useDemo } from '../../state/DemoContext'
 import { resetLive } from '../../state/liveMemory'
 import { useOrders } from '../../state/OrdersContext'
+import { setPro, usePro } from '../../state/pro'
 import { formatPrice } from '../../state/CartContext'
 import { relativeDay } from '../orders/dates'
 import dealsCrown from '../../assets/deals-crown.webp'
@@ -21,6 +22,7 @@ export default function AccountScreen({ onBack, push }) {
   const address = useAddress()
   const demo = useDemo()
   const { orders } = useOrders()
+  const isPro = usePro()
   const [sheet, setSheet] = useState(null)
   // «Modo demo» cambia toda la app de modo: como el interruptor de la presentación, solo en desarrollo o con VITE_DEMO=1.
   const showDemoRow = import.meta.env.DEV || import.meta.env.VITE_DEMO === '1'
@@ -57,15 +59,30 @@ export default function AccountScreen({ onBack, push }) {
             </span>
           </button>
 
-          <button type="button" className="account-pro tap" onClick={() => toast()}>
+          {/* La persona de la demo es Pro o no (el checkout cambia con eso); tocar el plan la cambia. */}
+          <button
+            type="button"
+            className="account-pro tap"
+            onClick={() => {
+              setPro(!isPro)
+              toast(isPro ? 'Ahora la demo es una persona sin Rappi Pro' : 'Ahora la demo es una persona Rappi Pro')
+            }}
+          >
             <span className="account-pro-label">Tu plan</span>
             <span className="account-pro-name">
               <img src={dealsCrown} alt="" />
-              Rappi Pro
+              {isPro ? 'Rappi Pro' : 'Sin Rappi Pro'}
               <ChevronRight size={18} />
             </span>
-            <span className="account-pro-savings">{PRO_PLAN.savings}</span>
-            <span className="account-pro-note">{PRO_PLAN.note}</span>
+            {isPro ? (
+              <>
+                <span className="account-pro-savings">{PRO_PLAN.savings}</span>
+                <span className="account-pro-note">{PRO_PLAN.note}</span>
+              </>
+            ) : (
+              <span className="account-pro-note">{PRO_PLAN.pitch}</span>
+            )}
+            <span className="account-pro-note">{PRO_PLAN.toggle}</span>
           </button>
 
           <div className="account-quick">

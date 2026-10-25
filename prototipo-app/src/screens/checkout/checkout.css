@@ -265,3 +265,276 @@
   font-weight: 700;
   vertical-align: 1px;
 }
+
+/* ---------- Una canasta por tienda (cada una es un pedido) ---------- */
+.checkout-split {
+  margin-top: 8px;
+  padding: 10px 14px;
+  border-radius: 14px;
+  background: var(--chip);
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.checkout-basket {
+  margin-top: 12px;
+  padding: 12px 14px 10px;
+  border-radius: 18px;
+  background: var(--surface);
+  box-shadow: 0 1px 6px rgba(0, 0, 0, 0.05);
+}
+
+.checkout-basket .checkout-items {
+  margin-top: 4px;
+  padding: 0;
+  border-radius: 0;
+}
+
+.checkout-basket-store {
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.checkout-delivery {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 2px 6px;
+  padding-top: 8px;
+  border-top: 1px solid var(--line);
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.checkout-delivery.is-free {
+  color: var(--green-deep);
+}
+
+.checkout-delivery s {
+  color: var(--ink-2);
+  font-weight: 400;
+}
+
+.checkout-basis {
+  color: var(--ink-2);
+  font-weight: 400;
+}
+
+.checkout-pro-missing {
+  flex-basis: 100%;
+  color: var(--green-deep);
+  font-size: 13px;
+}
+
+.checkout-prescription {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin-top: 10px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: #fff4ec;
+}
+
+.checkout-prescription input {
+  width: 20px;
+  height: 20px;
+  margin-top: 2px;
+  accent-color: var(--accent-ink);
+}
+
+.checkout-prescription span,
+.checkout-benefit > span,
+.checkout-coupon-active > span,
+.checkout-pro {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.checkout-prescription small,
+.checkout-benefit small,
+.checkout-coupon-active small,
+.checkout-pro small {
+  font-size: 13px;
+  line-height: 18px;
+  color: var(--ink-2);
+}
+
+/* ---------- Beneficios de ejemplo: créditos, cupón y Pro ---------- */
+.checkout-benefits {
+  margin-top: 10px;
+  padding: 4px 16px;
+  border-radius: 18px;
+  background: var(--surface);
+}
+
+.checkout-benefit {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.checkout-benefit input {
+  flex: none;
+  width: 22px;
+  height: 22px;
+  accent-color: var(--green-deep);
+}
+
+.checkout-coupon {
+  padding: 12px 0;
+}
+
+.checkout-coupon-active {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+
+.checkout-coupon-form {
+  display: flex;
+  gap: 8px;
+}
+
+.checkout-coupon-form input {
+  flex: 1;
+  min-width: 0;
+  height: 40px;
+  padding: 0 12px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  font: inherit;
+  font-size: 15px;
+  text-transform: uppercase;
+}
+
+.checkout-coupon-form button {
+  padding: 0 16px;
+  border-radius: 12px;
+  background: var(--ink);
+  color: var(--surface);
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.checkout-coupon-form button:disabled {
+  opacity: 0.4;
+}
+
+.checkout-coupon-error {
+  margin-top: 6px;
+  font-size: 13px;
+  color: var(--accent-ink);
+}
+
+.checkout-coupon-examples {
+  margin-top: 8px;
+  font-size: 13px;
+  color: var(--ink-2);
+}
+
+.checkout-coupon-chip {
+  margin: 4px 6px 0 0;
+  padding: 4px 10px;
+  border-radius: 99px;
+  background: var(--chip);
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--ink);
+}
+
+.checkout-pro {
+  margin-top: 12px;
+  padding: 12px 16px;
+  border-radius: 18px;
+  background: #fff4ec;
+  font-size: 15px;
+}
+
+.checkout-pro.is-member {
+  background: #eaf6ee;
+  color: var(--green-deep);
+}
+
+.checkout-note {
+  margin: 10px 4px 0;
+  font-size: 12.5px;
+  line-height: 17px;
+  color: var(--ink-2);
+}
+
+.checkout-blocked {
+  margin-bottom: 8px;
+  text-align: center;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--accent-ink);
+}
+
+.checkout-place:disabled {
+  background: #c9c9cf;
+  box-shadow: none;
+}
+
+/* ---------- Hojas: edad y «Deshacer pedido» ---------- */
+.checkout-sheet {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 6px 0 12px;
+}
+
+.checkout-sheet p {
+  font-size: 15px;
+  line-height: 21px;
+  color: var(--ink-2);
+}
+
+.checkout-sheet-primary {
+  height: 50px;
+  border-radius: 99px;
+  background: var(--ink);
+  color: var(--surface);
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.checkout-sheet-secondary {
+  height: 46px;
+  border-radius: 99px;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--ink-2);
+}
+
+.checkout-sheet-secondary.is-strong {
+  background: var(--chip);
+  color: var(--ink);
+}
+
+.checkout-undo-bar {
+  display: block;
+  height: 6px;
+  border-radius: 99px;
+  background: var(--green-deep);
+  transform-origin: left;
+  animation: checkout-undo linear forwards;
+}
+
+@keyframes checkout-undo {
+  to {
+    transform: scaleX(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .checkout-undo-bar {
+    animation: none;
+  }
+}

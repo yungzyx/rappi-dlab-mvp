@@ -1,6 +1,7 @@
 import { afterEach, describe, expect, test, vi } from 'vitest'
 import { toPrototypeProduct } from './client'
-import { buildOrders, conceptOf, ordersSettled, trackOrder } from './orders'
+import { parsePrice } from '../state/CartContext'
+import { basketsOf, buildOrders, conceptOf, ordersSettled, trackOrder } from './orders'
 import { fixture } from '../test/api'
 
 const ctx = { userId: 'proto-1', sessionId: 's-1', cartId: 'c-1' }
@@ -21,7 +22,7 @@ const beer = () => toPrototypeProduct(fixture('search-grouped').groups[0].produc
 afterEach(() => vi.restoreAllMocks())
 
 describe('pedidos para el panel', () => {
-  test('un pedido por vertical; los productos de la API conservan sus ids', () => {
+  test('un pedido por tienda; los productos de la API conservan sus ids', () => {
     const orders = buildOrders(
       [
         {
@@ -132,19 +133,60 @@ describe('pedidos para el panel', () => {
     orders.forEach((order) => expect(ACCEPTED).toContain(order.vertical))
   })
 
-  test('sin vertical del catálogo la línea no se envía; el resto sí, y la misma vertical es un solo pedido', () => {
+  test('sin vertical del catálogo la línea no se envía; el resto sí, y la misma tienda es un solo pedido', () => {
     const orders = buildOrders(
       [
         { product: { id: 'pet-1', name: 'Snack para perro', vertical: 'pet', price: '$2.000', entityId: '1' }, qty: 1 },
         { product: { id: 'sin-tienda', name: 'Algo', price: '$1.000', entityId: '2' }, qty: 1 },
         { product: beer(), qty: 1 },
-        { product: { id: 'cat-200', entityId: '200', vertical: 'licores', price: '$1.290' }, qty: 1 },
+        { product: { ...beer(), id: 'cat-200', entityId: '200' }, qty: 1 },
       ],
       ctx,
     )
     expect(orders).toHaveLength(1)
     expect(orders[0].vertical).toBe('licores')
     expect(orders[0].lines.map((line) => line.entity_id)).toEqual(['94001', '200'])
+  })
+
+  test('un pedido por tienda: dos restaurantes son dos pedidos aunque sean de la misma vertical', () => {
+    const dish = toPrototypeProduct(fixture('catalog-menu').sections[0].items[0])
+    const other = { ...dish, id: 'menu-1', entityId: '1', storeId: dish.storeId + 1, store: 'Otro restaurante' }
+    const orders = buildOrders(
+      [
+        { product: dish, qty: 1 },
+        { product: other, qty: 2 },
+        { product: { ...dish, id: 'menu-2', entityId: '2' }, qty: 1 },
+      ],
+      ctx,
+    )
+    expect(orders.map((o) => o.vertical)).toEqual(['restaurantes', 'restaurantes'])
+    expect(orders.map((o) => o.lines.map((line) => line.entity_id))).toEqual([['98002', '2'], ['1']])
+    orders.forEach((order) => expect(new Set(order.lines.map((line) => line.store_id)).size).toBe(1))
+    // Sin `storeId`, la tienda es su nombre (y su vertical).
+    const loose = (store) => ({ id: `x-${store}`, entityId: '9', vertical: 'licores', store, price: '$1.000' })
+    const byName = buildOrders(
+      [
+        { product: loose('A'), qty: 1 },
+        { product: loose('B'), qty: 1 },
+        { product: { ...loose('A'), id: 'y' }, qty: 1 },
+      ],
+      ctx,
+    )
+    expect(byName.map((o) => o.lines.length)).toEqual([2, 1])
+  })
+
+  test('basketsOf: una canasta por tienda con su subtotal; el pedido dice si la persona es Pro', () => {
+    const dish = toPrototypeProduct(fixture('catalog-menu').sections[0].items[0])
+    const baskets = basketsOf([
+      { product: dish, qty: 2 },
+      { product: beer(), qty: 1 },
+    ])
+    expect(baskets.map((b) => [b.storeId, b.vertical, b.subtotal])).toEqual([
+      [dish.storeId, 'restaurantes', 2 * 8990],
+      [beer().storeId, 'licores', parsePrice(beer().price)],
+    ])
+    expect(buildOrders([{ product: dish, qty: 1 }], { ...ctx, pro: true })[0].pro).toBe(true)
+    expect(buildOrders([{ product: dish, qty: 1 }], ctx)[0]).not.toHaveProperty('pro')
   })
 
   test("buildOrders en modo actual lleva mode 'actual' y ningún concept_id", () => {

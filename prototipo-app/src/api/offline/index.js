@@ -41,6 +41,8 @@
 //   y ofrece (preferences.js; index.js: preferenceAnswer, withPreferences)
 // - rappi-ia/src/rappi_ia/agent/rappi_agent.py (_small_talk, HELP_ACTIONS) y compose.py ... la ayuda con los atajos de
 //   lo que Mochi sabe hacer, el resumen antes de pagar y el último pedido (search.js: appQuestion, helpReply)
+// - rappi-ia/src/rappi_ia/catalog/terms.py ........ las condiciones de compra de las tiendas (catalog.js: storeTerms;
+//   la muestra solo sabe el envío de los restaurantes)
 // - rappi-ia/src/rappi_ia/api/app.py y api/catalog.py ... las rutas (index.js, catalog.js, search.js), con el
 //   `request_id` de las respuestas que ordenan cosas (index.js: served)
 // No hay población que aprenda (transiciones, popularidad, retención aprendida) ni búsqueda semántica, y lo pedido en
@@ -386,6 +388,9 @@ function answer(snapshot, { method, path, query, body }, now) {
     const vertical = backendVertical(body?.vertical)
     if (!ORDER_VERTICALS.includes(vertical) || !body?.lines?.length)
       return { status: 400, body: { detail: `Vertical desconocido: ${body?.vertical}` } }
+    // Un pedido es de una tienda (api/app.py: post_order).
+    if (new Set(body.lines.map((line) => line.store_id).filter((id) => id != null)).size > 1)
+      return { status: 400, body: { detail: 'Un pedido es de una sola tienda' } }
     const order = {
       order_id: `o-${randomHex()}`,
       ts: now,
