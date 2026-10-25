@@ -346,12 +346,16 @@ def record_order(
     source: str = "prototype",
     ts: datetime | None = None,
     mode: str = "propuesta",
+    pro: bool | None = None,
 ) -> str:
     """Pedido + líneas (producto o plato) + evento `order_placed`. Los precios de `lines` se guardan tal cual: la API
-    los pone antes con `catalog_prices`. Un pedido en modo `actual` («Rappi hoy») no entra al perfil."""
+    los pone antes con `catalog_prices`. Un pedido en modo `actual` («Rappi hoy») no entra al perfil. `pro`: si la
+    persona es Rappi Pro según la app (`app_users.pro`); `None` no lo cambia."""
     order_id = f"ord-{uuid.uuid4().hex[:12]}"
     total = sum(float(line.get("unit_price") or 0) * int(line.get("qty", 1)) for line in lines)
     ensure_user(conn, user_id, source)
+    if pro is not None:
+        conn.execute("UPDATE app_users SET pro = %s WHERE user_id = %s", (pro, user_id))
     conn.execute(
         """INSERT INTO app_orders (order_id, user_id, session_id, cart_id, ts, vertical, total, source, mode)
            VALUES (%s, %s, %s, %s, coalesce(%s, now()), %s, %s, %s, %s)""",

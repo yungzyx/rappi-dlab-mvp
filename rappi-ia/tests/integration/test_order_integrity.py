@@ -99,10 +99,59 @@ def test_line_is_priced_at_its_own_store(client, db):
     """Cada tienda tiene su precio (en la base real, hasta el doble): la línea guarda el de la tienda de donde vino, y
     solo sin tienda el de la ficha del producto (la oferta más barata)."""
     item = {"entity_type": "catalog_item", "entity_id": COOKIES}
-    reply = _order(client, "u1", "c1", lines=[{**item, "store_id": 9102}, {**item, "store_id": 9101}, item])
-    assert reply.status_code == 200, reply.text
-    prices = [float(price) for _, price, _ in _lines(db, reply.json()["order_id"])]
+    prices = []
+    for n, lines in enumerate(([{**item, "store_id": 9102}], [{**item, "store_id": 9101}], [item])):
+        reply = _order(client, "u1", f"c{n}", lines=lines)
+        assert reply.status_code == 200, reply.text
+        prices += [float(price) for _, price, _ in _lines(db, reply.json()["order_id"])]
     assert prices == [1350, 1290, 1290]
+
+
+def test_an_order_is_one_store(client, db):
+    """Un pedido es de una tienda: líneas de dos tiendas en un mismo pedido son un 400 (la app manda uno por tienda), y
+    una línea sin tienda no cuenta como otra."""
+    item = {"entity_type": "catalog_item", "entity_id": COOKIES}
+    mixed = _order(client, "u1", "c1", lines=[{**item, "store_id": 9102}, {**item, "store_id": 9101}])
+    assert mixed.status_code == 400 and mixed.json() == {"detail": "Un pedido es de una sola tienda"}
+    assert db.execute("SELECT count(*) FROM app_orders").fetchone()[0] == 0
+    assert _order(client, "u1", "c1", lines=[{**item, "store_id": 9102}, item]).status_code == 200
+
+
+def test_two_restaurants_in_one_cart_are_two_orders(client, db):
+    """Dos restaurantes del mismo carro son dos pedidos (dos filas en app_orders, dos `order_placed`), una sola compra:
+    el abandono de la persona no baja de 0 por tener dos pedidos en un carro pagado."""
+    dishes = [client.get(f"/catalog/products/menu_item/{dish}").json() for dish in (PIZZA, "98010")]
+    assert dishes[0]["store_id"] != dishes[1]["store_id"]
+    for dish in dishes:
+        line = {"entity_type": "menu_item", "entity_id": dish["entity_id"], "store_id": dish["store_id"]}
+        assert _order(client, "u-dos", "c-dos", vertical="restaurants", lines=[line]).status_code == 200
+    orders = db.execute("SELECT vertical, cart_id FROM app_orders WHERE user_id = 'u-dos'").fetchall()
+    assert orders == [("restaurantes", "c-dos")] * 2
+    placed = db.execute("SELECT count(*) FROM app_events WHERE user_id = 'u-dos' AND type = 'order_placed'")
+    assert placed.fetchone()[0] == 2
+    carts = ["c-dos", "c-sin-pagar-1", "c-sin-pagar-2"]  # MIN_CARTS_FOR_ABANDONMENT
+    events.record(
+        db,
+        [events.Event("u-dos", f"s-{cart}", "cart_add", vertical="restaurantes", cart_id=cart) for cart in carts],
+        "prototype",
+    )
+    # Uno de tres carros pagado (con dos pedidos): 2/3 abandonados, no 1/3.
+    assert user_metrics(db, "prototype", "u-dos")["u-dos"]["tasa_abandono"] == pytest.approx(2 / 3)
+
+
+def test_the_order_says_whether_the_person_is_pro(client, db):
+    """`pro` del pedido queda en la persona (app_users.pro): lo último que dijo la app; sin él, no cambia."""
+    pro = lambda: db.execute("SELECT pro FROM app_users WHERE user_id = 'u-pro'").fetchone()[0]  # noqa: E731
+    body = {"user_id": "u-pro", "session_id": "s", "cart_id": "c1", "vertical": "grocery"}
+    line = {"entity_type": "catalog_item", "entity_id": CHIPS}
+    assert client.post("/orders", json={**body, "lines": [line]}).status_code == 200
+    assert pro() is None
+    assert client.post("/orders", json={**body, "cart_id": "c2", "lines": [line], "pro": True}).status_code == 200
+    assert pro() is True
+    assert client.post("/orders", json={**body, "cart_id": "c3", "lines": [line]}).status_code == 200
+    assert pro() is True
+    assert client.post("/orders", json={**body, "cart_id": "c4", "lines": [line], "pro": False}).status_code == 200
+    assert pro() is False
 
 
 def test_a_dish_is_priced_only_at_its_restaurant(client, db):
