@@ -17,6 +17,8 @@ servicios=(api caddy tunel vigilante actualizar respaldo purga)
 quitar() {
   for s in "${servicios[@]}"; do
     launchctl bootout "$UID_GUI/$LABEL.$s" 2>/dev/null || true
+    # bootout vuelve antes de que el servicio termine de cerrarse: registrarlo de nuevo antes falla con «5: I/O error».
+    for _ in $(seq 1 30); do launchctl print "$UID_GUI/$LABEL.$s" > /dev/null 2>&1 || break; sleep 1; done
     rm -f "$AGENTS/$LABEL.$s.plist"
   done
 }
