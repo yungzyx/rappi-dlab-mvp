@@ -1050,13 +1050,27 @@ describe('aceptar una sugerencia de la API', () => {
 })
 
 describe('conversación', () => {
-  test('el mensaje siguiente lleva el pedido anterior: «más barata» se lee sobre «cerveza»', async () => {
-    api.ask.mockResolvedValueOnce({
-      text: 'Mira estas cervezas',
+  const BEERS = {
+    text: 'Mira estas cervezas',
+    vertical: 'licores',
+    intent: { query: 'cerveza', concepts: ['cerveza'], follow_up: false },
+    products: [{ id: 'cat-1', entity_type: 'catalog_item', entity_id: '1', name: 'Escudo', price: '$1.290' }],
+    conversation: {
+      query: 'cerveza',
+      concepts: ['cerveza'],
+      occasion: null,
       vertical: 'licores',
-      intent: { query: 'cerveza', concepts: ['cerveza'] },
-      products: [{ id: 'cat-1', entity_type: 'catalog_item', entity_id: '1', name: 'Escudo', price: '$1.290' }],
-    })
+      price_max: null,
+      people: null,
+      order: null,
+      symptom: false,
+      product_ids: ['1'],
+    },
+  }
+  const CHEAPER = { ...BEERS, text: 'Lo más barato de cerveza', intent: { ...BEERS.intent, follow_up: true } }
+
+  test('el mensaje siguiente lleva, tal cual, el `conversation` de la respuesta anterior', async () => {
+    api.ask.mockResolvedValueOnce(BEERS)
     api.ask.mockResolvedValueOnce({ text: 'Las más baratas', products: [] })
     await renderPanel()
     say('cerveza')
@@ -1065,12 +1079,94 @@ describe('conversación', () => {
     await runUntilIdle()
 
     expect(api.ask.mock.calls[0][0].previous).toBeUndefined()
-    expect(api.ask.mock.calls[1][0].previous).toEqual({
-      query: 'cerveza',
-      concepts: ['cerveza'],
-      vertical: 'licores',
-      product_ids: ['1'],
+    expect(api.ask.mock.calls[1][0].previous).toEqual(BEERS.conversation)
+  })
+
+  test('una respuesta que no se sigue (un saludo) no borra el pedido de antes', async () => {
+    api.ask.mockResolvedValueOnce(BEERS)
+    api.ask.mockResolvedValueOnce({ text: '¡De nada!', products: [], conversation: null })
+    api.ask.mockResolvedValueOnce(CHEAPER)
+    await renderPanel()
+    say('cerveza')
+    await runUntilIdle()
+    say('gracias')
+    await runUntilIdle()
+    say('más barata')
+    await runUntilIdle()
+    expect(api.ask.mock.calls[2][0].previous).toEqual(BEERS.conversation)
+  })
+
+  test('bajo la respuesta, sugerencias para seguir y un campo que le habla a Mochi', async () => {
+    api.ask.mockResolvedValue(CHEAPER)
+    api.ask.mockResolvedValueOnce(BEERS)
+    await renderPanel()
+    say('cerveza')
+    await runUntilIdle()
+
+    fireEvent.click(screen.getByRole('button', { name: 'Más barato' }))
+    await runUntilIdle()
+    expect(api.ask.mock.calls[1][0]).toMatchObject({ message: 'más barato', previous: BEERS.conversation })
+
+    // «sin alcohol» no parece una pregunta: en el buscador buscaría; aquí se lo dice a Mochi
+    const field = screen.getByLabelText('Sigue la conversación con Mochi')
+    fireEvent.change(field, { target: { value: 'sin alcohol' } })
+    fireEvent.submit(field.closest('form'))
+    await runUntilIdle()
+    expect(api.ask.mock.calls[2][0].message).toBe('sin alcohol')
+    // Bajo la respuesta nueva, el campo vacío y las sugerencias antes que la de otra tienda
+    expect(screen.getByLabelText('Sigue la conversación con Mochi').value).toBe('')
+    expect(tracked('search')).toEqual([])
+  })
+
+  test('ya ordenado por precio no ofrece «Más barato»; «Otra opción» sí', async () => {
+    api.ask.mockResolvedValueOnce({ ...CHEAPER, conversation: { ...BEERS.conversation, order: 'barato' } })
+    await renderPanel()
+    say('cerveza barata')
+    await runUntilIdle()
+    expect(screen.queryByRole('button', { name: 'Más barato' })).toBeNull()
+    expect(screen.getByRole('button', { name: 'Otra opción' })).toBeTruthy()
+  })
+
+  test('con personas o una ocasión, «Para N personas» suma dos', async () => {
+    const asado = { ...BEERS.conversation, concepts: ['carnes'], occasion: 'asado', people: 6 }
+    api.ask.mockResolvedValueOnce({ ...BEERS, text: 'Mira estas opciones de asado', conversation: asado })
+    api.ask.mockResolvedValueOnce(CHEAPER)
+    await renderPanel()
+    say('¿qué llevo para un asado de 6?')
+    await runUntilIdle()
+    fireEvent.click(screen.getByRole('button', { name: 'Para 8 personas' }))
+    await runUntilIdle()
+    expect(api.ask.mock.calls[1][0].message).toBe('para 8 personas')
+  })
+
+  test('lo dicho en la conversación queda arriba de la respuesta; un tema nuevo empieza de nuevo', async () => {
+    api.ask.mockResolvedValueOnce(BEERS)
+    api.ask.mockResolvedValueOnce(CHEAPER)
+    api.ask.mockResolvedValueOnce({ ...BEERS, text: 'Mira estos pañales' })
+    await renderPanel()
+    say('cerveza')
+    await runUntilIdle()
+    say('más barata')
+    await runUntilIdle()
+    expect(screen.getByText('Elegiste «cerveza» · «más barata»')).toBeTruthy()
+    say('pañales')
+    await runUntilIdle()
+    expect(screen.getByText('Elegiste «pañales»')).toBeTruthy()
+  })
+
+  test('bajo una respuesta de salud no hay sugerencias para seguir, pero sí el campo', async () => {
+    api.ask.mockResolvedValueOnce({
+      ...BEERS,
+      text: 'Mira estas opciones de medicamentos',
+      intent: { ...BEERS.intent, symptom: true },
+      conversation: { ...BEERS.conversation, symptom: true },
     })
+    await renderPanel()
+    say('algo para el resfrío')
+    await runUntilIdle()
+    expect(screen.queryByRole('button', { name: 'Más barato' })).toBeNull()
+    expect(screen.queryByRole('button', { name: 'Otra opción' })).toBeNull()
+    expect(screen.getByLabelText('Sigue la conversación con Mochi')).toBeTruthy()
   })
 })
 

@@ -271,6 +271,10 @@ export function toMessage(response) {
     unmet: Boolean(response.unmet),
     ageNotice: Boolean(response.age_notice),
     health: Boolean(response.intent?.symptom), // síntomas o consejo médico: el panel no ofrece sus ideas debajo
+    // El estado de la conversación que se devuelve como `previous` en el próximo mensaje (null: no se sigue) y si esta
+    // respuesta siguió a la anterior («más barato» tras «cerveza»).
+    conversation: response.conversation ?? null,
+    followUp: Boolean(response.intent?.follow_up),
     source: 'api',
   }
 }

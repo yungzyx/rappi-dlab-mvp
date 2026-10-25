@@ -23,6 +23,7 @@ import Sheet from '../Sheet'
 import AgentMessage from './AgentMessage'
 import AskAgentRow from './AskAgentRow'
 import DiscoverSection from './DiscoverSection'
+import FollowUp from './FollowUp'
 import Mascot from './Mascot'
 import { SparkleIcon } from './SmartBar'
 import { LadderRail, ProfileCard } from './TasteProfile'
@@ -44,6 +45,23 @@ const NOTHING_TO_TRY = 'No se me ocurre nada nuevo para probar'
 const CHIPS = ['🍔 ¿Qué almuerzo hoy?', '🍻 Arma un carrete', '🔥 Ofertas de hoy', '🍫 Algo dulce', '🎁 Un regalo']
 
 let nextId = 1
+
+/**
+ * Lo dicho en la conversación de la respuesta `index`: los mensajes de la persona desde el que la empezó (la respuesta
+ * que no siguió a otra), en orden. «Preguntaste «asado de 6» · «más barato»».
+ */
+function conversationTrail(messages, index) {
+  const trail = []
+  for (let i = index; i >= 0; i--) {
+    const answer = messages[i]
+    if (answer.from !== 'bot' || answer.typing) continue
+    const asked = messages.slice(0, i).findLast((m) => m.from === 'user')
+    if (!asked || trail.includes(asked)) break
+    trail.unshift(asked)
+    if (!answer.followUp) break
+  }
+  return trail
+}
 
 /** Lo que sale de «Para ti» es una sugerencia del agente: agregarlo se cuenta como aceptada y no enseña afinidad. */
 const asForYou = (product) => ({ ...product, fromSuggestion: true, suggestionOrigin: 'para-ti' })
@@ -71,7 +89,8 @@ export default function AssistantPanel({ push, vertical, depth = 1 }) {
   const timers = useRef([])
   // Preguntas en fila: la siguiente sale cuando la respuesta anterior ya está en pantalla.
   const askQueue = useRef(Promise.resolve())
-  const lastTurn = useRef(null) // pedido anterior de la conversación (para los seguimientos)
+  // El estado de la conversación que devolvió la API (`conversation`): va como `previous` en el próximo mensaje.
+  const lastTurn = useRef(null)
   const profileGeneration = useRef(0) // sube al "Olvidar": un perfil remoto pedido antes ya no vale
   const [learnedRemote, setLearnedRemote] = useState(null)
   const [forgetting, setForgetting] = useState(false)
@@ -173,15 +192,9 @@ export default function AssistantPanel({ push, vertical, depth = 1 }) {
         ...apiContext({ vertical: askVertical ?? vertical }),
         ...(lastTurn.current ? { previous: lastTurn.current } : {}),
       })
-      // El pedido que queda para el próximo mensaje: «talla g» o «más barata» se leen sobre él.
-      if (response.intent?.concepts?.length) {
-        lastTurn.current = {
-          query: response.intent.query ?? text,
-          concepts: response.intent.concepts,
-          vertical: response.vertical ?? null,
-          product_ids: (response.products ?? []).map((p) => p.entity_id).filter(Boolean),
-        }
-      }
+      // Lo que queda para el próximo mensaje: «más barato» o «sin carne» se leen sobre él. Una respuesta que no se
+      // sigue (un saludo, un consejo médico) no lo borra.
+      if (response.conversation) lastTurn.current = response.conversation
       return noteSuggestion(toMessage(response))
     } catch {
       return offline(() => answer(text, askVertical))
@@ -429,10 +442,13 @@ export default function AssistantPanel({ push, vertical, depth = 1 }) {
     setForgetFailed(false)
   }
 
-  // Lo que el agente muestra es su última respuesta (no un historial), con lo que la persona eligió.
+  // Lo que el agente muestra es su última respuesta (no un historial), con lo dicho en esa conversación.
   const current = messages.findLast((m) => m.from === 'bot')
   const asked = messages.findLast((m) => m.from === 'user')
   const showAsked = asked && current && messages.indexOf(asked) < messages.indexOf(current)
+  // Mientras Mochi escribe no se sabe si la pregunta sigue la conversación: solo ella.
+  const trail = showAsked && !current.typing ? conversationTrail(messages, messages.indexOf(current)) : []
+  if (showAsked && !trail.length) trail.push(asked)
   const openStore = (store) => go('store', { store })
   // Un producto o plato de la API abre su tienda por id (otras pueden tener el mismo nombre); sin `storeId` no hay
   // tienda que abrir.
@@ -541,7 +557,7 @@ export default function AssistantPanel({ push, vertical, depth = 1 }) {
 
               {showAsked && (
                 <p className="agent-asked">
-                  {asked.typed ? 'Preguntaste' : 'Elegiste'} «{asked.text}»
+                  {trail[0].typed ? 'Preguntaste' : 'Elegiste'} {trail.map((m) => `«${m.text}»`).join(' · ')}
                 </p>
               )}
               {current && (
@@ -553,6 +569,12 @@ export default function AssistantPanel({ push, vertical, depth = 1 }) {
                   onOpenStore={openStore}
                   onAction={onAction}
                   onRetry={() => !forgetting && current.retry()}
+                  followUp={
+                    // Seguir la conversación, debajo de los productos: sugerencias (sin salud) y un campo para Mochi
+                    showAsked && !current.retry ? (
+                      <FollowUp message={current} disabled={forgetting} onSend={(text) => send(text, undefined)} />
+                    ) : null
+                  }
                 />
               )}
 

@@ -510,6 +510,70 @@
   background: #fff1eb;
 }
 
+/* ---------- Seguir la conversación con Mochi ---------- */
+.agent-follow {
+  margin-top: 2px;
+}
+
+/* Como la fila de productos: hasta el borde, con el margen adentro (la burbuja ya va con el margen de la pantalla) */
+.agent-follow-chips {
+  margin: 0 calc(-1 * var(--gutter));
+  padding: 4px var(--gutter) 8px;
+}
+
+.agent-follow-chip {
+  border-color: var(--agent-orange);
+  color: #c2410c;
+  font-weight: 600;
+}
+
+.agent-follow-chip:disabled,
+.agent-follow-send:disabled {
+  opacity: 0.5;
+}
+
+.agent-follow-form {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 2px 0 10px;
+  padding: 0 5px 0 15px;
+  height: 44px;
+  border: 1.5px solid #ffd9ca;
+  border-radius: 99px;
+  background: var(--surface);
+}
+
+.agent-follow-form:focus-within {
+  border-color: var(--agent-orange);
+}
+
+.agent-follow-form input {
+  flex: 1;
+  min-width: 0;
+  border: 0;
+  outline: none;
+  background: none;
+  font: inherit;
+  font-size: 16px; /* 16 px: el celular no hace zoom al tocarlo */
+  color: var(--ink);
+}
+
+.agent-follow-form input::placeholder {
+  color: var(--ink-3);
+}
+
+.agent-follow-send {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: var(--agent-orange);
+  color: var(--surface);
+}
+
 /* ---------- Keyframes ---------- */
 @keyframes fade-up {
   from {

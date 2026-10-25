@@ -128,8 +128,19 @@ function AlsoIn({ alsoIn, onAction }) {
   )
 }
 
-/** Una respuesta del agente con tarjetas (lo elegido se muestra aparte, sin burbuja). */
-export default function AgentMessage({ message, onStreamDone, onOpenProduct, onOpenStore, onAction, onRetry }) {
+/**
+ * Una respuesta del agente con tarjetas (lo elegido se muestra aparte, sin burbuja). `followUp` (para seguir la
+ * conversación) va justo debajo de sus productos, antes de la sugerencia de otra tienda.
+ */
+export default function AgentMessage({
+  message,
+  onStreamDone,
+  onOpenProduct,
+  onOpenStore,
+  onAction,
+  onRetry,
+  followUp,
+}) {
   const [revealed, setRevealed] = useState(!message.animate)
 
   if (message.typing) {
@@ -161,6 +172,7 @@ export default function AgentMessage({ message, onStreamDone, onOpenProduct, onO
           {message.reason && <p className="agent-msg-reason">{message.reason}</p>}
           {message.products?.length > 0 && <ProductCards products={message.products} onOpenProduct={onOpenProduct} />}
           {message.offerReason && <OfferWhy reason={message.offerReason} />}
+          {followUp}
           {message.suggestion?.products?.length > 0 && (
             <div className="agent-msg-suggestion">
               <p className="agent-msg-reason">
