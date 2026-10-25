@@ -24,7 +24,7 @@ Corre lo que corresponde a lo que cambiaste; `make test` y `make lint` en la ra�
 | `rappi-ia/` | `make test` y `make lint` en `rappi-ia/` (integración contra `rappi_ia_test`) |
 | Una respuesta de la API | además, `make contract` en `rappi-ia/`: reescribe las respuestas de ejemplo de `prototipo-app/src/api/fixtures/`, y el CI falla si quedan desactualizadas |
 | `prototipo-app/` o `dashboard-empresa/` | `npm test`, `npm run lint` y `npx prettier --check src scripts` en esa carpeta |
-| El recorrido de la app con la API | `make mvp-check` en la raíz: recorre el MVP con Chrome contra un catálogo inventado (8 revisiones) |
+| El recorrido de la app con la API | `make mvp-check` en la raíz: recorre el MVP con Chrome contra un catálogo inventado (9 revisiones) |
 | Documentación | `python3 scripts/check-doc-links.py` en la raíz: revisa que los enlaces relativos de los `.md` (archivos y anclas) existan |
 
 `make test` de rappi-ia, `make contract` y `make mvp-check` borran y siembran `rappi_ia_test` y comparten un candado: si otra prueba la está usando, salen de inmediato con un aviso. Nunca apuntes los tests a la base `rappi`.

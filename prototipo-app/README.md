@@ -17,7 +17,7 @@ Requiere Node 22.22+ o 24.15+ (ver `.nvmrc` en la raíz). Como la app no abre si
 ```bash
 make mvp              # API :8000, app http://localhost:5174 y panel :5175; Ctrl-C detiene los tres
 make mvp LAN=1        # abre la API y la app a la red local, para el iPhone (misma red wifi o su hotspot)
-make mvp-check        # recorre el MVP con Chrome contra un catálogo inventado, sin tocar la base real (8 revisiones)
+make mvp-check        # recorre el MVP con Chrome contra un catálogo inventado, sin tocar la base real (9 revisiones)
 ```
 
 Requisitos, qué revisa `make mvp-check` y qué hacer si falla algo: [docs/instalacion.md](../docs/instalacion.md#5-el-mvp). Para correr solo la app, con la API ya levantada por su cuenta (`cd rappi-ia && make serve`):
@@ -133,12 +133,19 @@ En el prototipo final la barra de la Home («¿Qué se te antoja hoy?») abre el
 - **Aprendiendo de ti:** arriba muestra lo que va aprendiendo («🍺 Cerveza · 🥃 Copete») y un botón **Olvidar** (siempre visible) que, tras la misma confirmación de **Borrar mis datos**, lo borra, también en la API.
 - **Toca y te armo algo:** botones con ideas fijas («¿Qué almuerzo hoy?», «Arma un carrete», «Algo dulce»). Al tocar uno, Mochi responde con productos y tiendas; si abres una tienda desde ahí y vuelves, la búsqueda sigue donde estaba.
 - **El campo de búsqueda** consulta la API y muestra los productos en un grupo por vertical, con la de la pantalla primero y «Ver más» en cada uno; sin resultados, Mochi dice dónde sí hay lo buscado. Debajo siguen «Ideas para buscar», que son ideas fijas y no un historial, y «Tiendas populares», como en la app.
+- **Seguir la conversación:** debajo de la respuesta de Mochi, «Más barato», «Otra opción» y, con una ocasión o personas, «Para N personas», y un campo «Sigue con Mochi» que siempre le pregunta (en el buscador de arriba, «sin carne» buscaría). Cada respuesta trae el estado de la conversación (`conversation`) y la app lo manda como `previous` en el mensaje siguiente: «más barato», «menos de 10 lucas», «sin carne», «para 10 personas», «en el súper mejor» u «otra opción» se leen sobre lo anterior, y lo que nombra otra cosa empieza de nuevo. Arriba queda lo dicho: «Preguntaste «asado de 6» · «más barato»» ([diseño](../docs/diseno/2026-10-25-mochi-conversacion-design.md)).
 - **Descubre con Mochi:** complementos de lo que le gusta a la persona, de `/recommendations`, cada uno con su vertical para abrirla.
 - **Tu perfil:** si la persona tiene un perfil de gusto (`GET /profile/{id}/gustos`: asiático, café, italiano, mascotero o carrete, de `rappi-ia/src/rappi_ia/offers/perfiles.toml`), Mochi lo muestra con su nivel y su porqué, y debajo «Para ti en otras verticales»: la escalera del perfil (el momento `perfil` de `/agent/offer`), un peldaño por vertical con sus productos, de lo más cercano a lo más lejano, y al final una idea para RappiTravel con dos datos y su fuente. Sin perfil, el panel queda como siempre.
 
 <img src="docs/screenshots/20-asistente.jpg" width="300" alt="Buscador con Mochi tras tocar «Arma un carrete»">
 
 *Buscador con Mochi tras tocar «Arma un carrete» (con el MVP corriendo).*
+
+| <img src="docs/screenshots/45-conversacion-asado.jpg" width="240" alt="Mochi responde «¿qué llevo para un asado de 6?» con cortes de asado y «Para 6 personas, calcula unos 2,1 kg de carne»; debajo, «Más barato», «Otra opción», «Para 8 personas» y el campo «Sigue con Mochi»"> | <img src="docs/screenshots/46-conversacion-mas-barato.jpg" width="240" alt="Tras tocar «Más barato»: «Preguntaste «¿qué llevo para un asado de 6?» · «más barato»» y «Lo más barato de asado en el súper», con los cortes más baratos"> | <img src="docs/screenshots/48-conversacion-sin-carne.jpg" width="240" alt="«¿tienen pizza?» y después «sin carne» en el campo para seguir: pizzas vegetarianas y veganas de restaurantes"> |
+|---|---|---|
+| Una pregunta y lo que se puede seguir | «Más barato»: el mismo asado, para 6 | «sin carne» escrito en el campo para seguir |
+
+*Seguir la conversación con Mochi (API sobre una copia de la base, 25-10-2026).*
 
 Mochi es la mochila Rappi con bigote. En la app usa 4 poses de una sola imagen (`src/assets/mochi-poses.webp`): frontal (quieto), feliz (saluda o lo señalas con el mouse), tímido (piensa o escucha) y saltando (al tocarlo). Respira, se inclina hacia el mouse y, en la Home, salta, gira y baila según lo que dice.
 
@@ -245,5 +252,5 @@ src/
 └── utils/          Utilidades sueltas (`today`: la fecha local; `typed`: cortar un texto sin partir un emoji)
 docs/screenshots/   Capturas de este README
 public/             Íconos para instalar la app (los genera scripts/make-icons.mjs; el manifiesto sale de vite.config.js)
-scripts/            Íconos, capturas y el recorrido de `make mvp-check` (Home, compra, kit de Mochi, preguntarle a Mochi, Home dinámica, combinación, panel y API caída: 8 revisiones)
+scripts/            Íconos, capturas y el recorrido de `make mvp-check` (Home, compra, kit de Mochi, preguntarle a Mochi, seguir la conversación, Home dinámica, combinación, panel y API caída: 9 revisiones)
 ```

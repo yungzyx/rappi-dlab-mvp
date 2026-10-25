@@ -18,6 +18,15 @@ Cómo leerlo: la ventaja del combinado viene casi entera de la afinidad de cada 
 
 **Revisión sobre el catálogo real** ([QA del 16-10-2026](qa-motor-2026-10-16.md), en solo lectura, con 200 personas simuladas y las 44 del prototipo, medida antes de los ajustes de la etapa de QA, con λ > 0): las guardias (Farmacia, Licores, bebé, salud, conceptos sensibles, alcohol) dieron **0 casos en 2.851 productos ofrecidos**, y la ruta más lenta (`/recommendations`) respondió con p95 de 222 ms con el modelo de texto.
 
+## Mochi: preguntar y seguir la conversación (juicio propio, no humano externo)
+
+Respuestas reales de la API sobre `rappi_staging` (copia del 22-10), juzgadas a mano: bien, a medias o mal.
+
+| Set | Antes | Después | Reporte |
+|---|---|---|---|
+| 25 conversaciones de 2 o 3 turnos (`conversaciones.txt`) | 7 bien, 8 a medias, 10 mal | 21 bien, 4 a medias, 0 mal | [25-10-2026](mochi-conversacion-2026-10-25.md) |
+| 40 preguntas en texto libre (`preguntas-libres.txt`) | 34 bien, 6 a medias (24-10) | 40 bien | [25-10-2026](mochi-conversacion-2026-10-25.md#las-40-preguntas-libres-preguntas-librestxt) |
+
 ## Catálogo, conceptos y búsqueda
 
 | Ámbito | Métrica | Valor | Tipo de dato | Fuente |
