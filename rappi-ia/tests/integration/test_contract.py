@@ -165,6 +165,29 @@ CONTRACT: tuple[Example, ...] = (
         "/agent/offer",
         {"moment": "volver", "user_id": "u-volver", "context": {}},
     ),
+    # El OnTop de Turbo sobre un pedido de restaurante en curso (sin persona: lo más pedido u ofertas de Turbo).
+    Example(
+        "agent-offer-ontop",
+        "POST",
+        "/agent/offer",
+        {
+            "moment": "ontop",
+            "context": {"vertical": "restaurants", "items": [{"entity_type": "menu_item", "entity_id": "98001"}]},
+        },
+    ),
+    # «Pídelo de nuevo»: un producto que sigue a la venta en su tienda, uno que esa tienda no vende y un plato.
+    Example(
+        "catalog-availability",
+        "POST",
+        "/catalog/availability",
+        {
+            "lines": [
+                {"entity_type": "catalog_item", "entity_id": "91004", "store_id": 9101},
+                {"entity_type": "catalog_item", "entity_id": "93001", "store_id": 9101},
+                {"entity_type": "menu_item", "entity_id": "98001"},
+            ]
+        },
+    ),
     # La escalera de un perfil elegido, sin persona: lo que usa la demo.
     Example("agent-offer-perfil", "POST", "/agent/offer", {"moment": "perfil", "context": {"perfil": "asiatico"}}),
     Example("profile-gustos", "GET", "/profile/u-gustos/gustos"),

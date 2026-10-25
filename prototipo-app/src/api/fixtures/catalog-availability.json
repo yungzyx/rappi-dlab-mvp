@@ -1,0 +1,25 @@
+{
+  "lines": [
+    {
+      "available": true,
+      "entity_id": "91004",
+      "entity_type": "catalog_item",
+      "price": 3990.0,
+      "store_id": 9101
+    },
+    {
+      "available": false,
+      "entity_id": "93001",
+      "entity_type": "catalog_item",
+      "price": null,
+      "store_id": 9101
+    },
+    {
+      "available": true,
+      "entity_id": "98001",
+      "entity_type": "menu_item",
+      "price": 12990.0,
+      "store_id": null
+    }
+  ]
+}

@@ -7,7 +7,8 @@ vertical que más sube la retención esperada de su combinación, según el moto
 todas las que se ofrecen; sin ese paso, la vertical donde la persona aún no ha pedido y más le gusta, y sin historia, la
 primera), `recompra` («¿Repetimos?»: lo que la
 persona pide con ritmo y está por tocarle, según la tabla `replenishment` del motor), `volver` («¿Volvemos a…?»: lo
-que pedía con ritmo y dejó de pedir, `offers/winback.py`) y `perfil` (la escalera de
+que pedía con ritmo y dejó de pedir, `offers/winback.py`), `ontop` («Turbo: suma esto antes de…» sobre un pedido en
+curso de otra vertical, con su plazo: `OnTopOffer`) y `perfil` (la escalera de
 un perfil de gusto, `offers/profiles.py`, con su forma propia: `ProfileOffer`). Si no hay una buena oferta, no hay
 oferta (`None`: 204): el agente no dice nada.
 
@@ -29,7 +30,9 @@ ahí hace más de un mes; el texto habla de la persona, nunca de cifras de reten
 el paso es un servicio sin catálogo, la oferta no trae productos: lo presenta y su acción abre su pantalla. La
 `recompra` lleva su señal `recompra` («<concepto>», `source` «pedidos»: sale de los pedidos de la persona) y `volver`,
 la suya: `volver` («<concepto>») si dejó un concepto o `vuelta` («<vertical>») si dejó una vertical, las dos con
-`source` «pedidos». Un
+`source` «pedidos». `ontop` lleva de dónde salen sus productos (`compra_cruzada`, `lo_mas_pedido` u `ofertas`) y la
+señal `ontop` («turbo@<plazo>min», `source` «rappi+supuesto»: el módulo es de la app de Rappi, pero el plazo y el envío
+sin costo extra son supuestos propios). Un
 complemento de una persona (`carrito`, `checkout`,
 `proximo_pedido`) suma `combinacion` si entre dos parecidos ganó el de la vertical que completa su combinación, y
 `compra_cruzada` si lo trajo una regla de la población (`agent.tools.suggest_complement`). Un complemento cuyo primer
@@ -88,7 +91,7 @@ from .profiles import (
     ordered_restaurants,
     person_city,
 )
-from .winback import BASIS_KINDS, REPEAT_AHEAD_DAYS, Lapse, available, lapses, repeat_due
+from .winback import BASIS_KINDS, NO_PAUSE, REPEAT_AHEAD_DAYS, Lapse, Paused, available, lapses, paused, repeat_due
 
 KIT_SIZE = 4  # productos del kit de una ocasión
 # El concepto ya está elegido: la búsqueda léxica de su nombre (miles de platos «pizza») costaba ~140 ms por búsqueda en
@@ -191,6 +194,15 @@ PROFILE_TEXT_NAMED = "Para tu perfil {emoji} {name}: mira esto en otras vertical
 REASON_PROFILE = "Porque elegiste «{name}»."  # sin persona, o con un perfil que no es suyo
 TRIP_SERVICE = "rappitravel"  # el servicio de la taxonomía al que lleva el viaje (sin catálogo)
 TRIP_LABEL = "Idea para {service}"
+ONTOP_VERTICAL = "turbo"
+ONTOP_WINDOW_MIN = 15  # supuesto propio: el plazo para sumar algo de Turbo al pedido en curso (la app lo muestra así)
+ONTOP_PICKS = 3  # compras cruzadas que se prueban para encontrar productos a la venta
+ONTOP_TEXT = "Suma {destino} de Turbo a tu pedido, sin costo de envío extra (de ejemplo)."
+ONTOP_TOP_TEXT = "Suma lo más pedido en Turbo a tu pedido, sin costo de envío extra (de ejemplo)."
+ONTOP_DEALS_TEXT = "Suma ofertas de Turbo a tu pedido, sin costo de envío extra (de ejemplo)."
+REASON_ONTOP_CROSS = "Porque pides {emoji} {name}: {destino} llega con Turbo en minutos."
+REASON_ONTOP = "Turbo llega en minutos: lo puedes sumar mientras esperas tu pedido."
+ONTOP_ACTION = "Ver toda la tienda"
 BASIS_CONCEPTS = 3  # conceptos que más aportan, de los que la `basis` de una oferta lleva las señales
 
 
@@ -242,6 +254,17 @@ class ProfileOffer:
             "reason": self.reason,
             "actions": self.actions,
         }
+
+
+@dataclass
+class OnTopOffer(Offer):
+    """La oferta del momento `ontop`: la de siempre, con el plazo para sumarla al pedido en curso (`plazo_min`, un
+    supuesto: la app arma «antes de las HH:MM» desde la hora del pedido)."""
+
+    window_min: int = ONTOP_WINDOW_MIN
+
+    def to_dict(self) -> dict:
+        return {**super().to_dict(), "plazo_min": self.window_min}
 
 
 def home_occasions(conn: Connection, interests: Interests) -> list[dict]:
@@ -298,6 +321,8 @@ def make_offer(
         return repeat_offer(conn, embedder, user_id)
     if moment == "volver":
         return winback_offer(conn, embedder, user_id)
+    if moment == "ontop":
+        return ontop_offer(conn, embedder, context.get("vertical"), context["items"], user_id)
     if moment == "perfil":
         return profile_offer(conn, embedder, context.get("perfil"), user_id, spare)
     raise OfferError(f"Momento desconocido: {moment}")
@@ -805,11 +830,12 @@ def repeat_offer(
     cada pedido suyo y de «Olvidar») y que le toca entre hace `interval_days` días y dentro de `REPEAT_AHEAD_DAYS`
     (`today` es el día de Santiago). El más atrasado primero (empate: el concepto); solo conceptos y verticales que el
     agente propone por su cuenta. El producto es el último que compró del concepto, si sigue a la venta en esa
-    vertical, o el primero que da la búsqueda del concepto ahí; un concepto sin producto se salta. None (204) sin
-    persona o sin nada que le toque."""
+    vertical, o el primero que da la búsqueda del concepto ahí; un concepto sin producto se salta. Lo de un pedido mal
+    calificado no se ofrece (`winback.paused`). None (204) sin persona o sin nada que le toque."""
     if user_id is None:
         return None
     today = today or datetime.now(TZ).date()
+    hold = paused(conn, user_id)
     rows = conn.execute(
         """SELECT concept_id, vertical, interval_days, last_ts, due_on FROM replenishment
            WHERE user_id = %s AND vertical IS NOT NULL AND due_on <= %s ORDER BY due_on, concept_id""",
@@ -821,9 +847,9 @@ def repeat_offer(
         concept = concepts.get(concept_id)
         if not repeat_due(due_on, interval, today) or concept is None or not is_offerable(concept):
             continue
-        if not offerable_vertical(vertical) or vertical not in SCREEN_VERTICALS:
+        if not offerable_vertical(vertical) or vertical not in SCREEN_VERTICALS or concept_id in hold.concepts:
             continue
-        if product := _repeat_product(conn, embedder, user_id, concept, vertical):
+        if product := _repeat_product(conn, embedder, user_id, concept, vertical, hold):
             text = REPEAT_TEXT.format(destino=concept.name.lower(), cada=_every(days))
             why = REASON_REPEAT.format(destino=concept.name.lower(), cada=_every(days), hace=_days_ago(today, last_ts))
             reason = _reason(why, [{"kind": "recompra", "id": concept.id, "source": "pedidos"}], concept=concept.id)
@@ -833,11 +859,16 @@ def repeat_offer(
 
 
 def _repeat_product(
-    conn: Connection, embedder: TextEmbedder | None, user_id: str, concept: Concept, vertical: str
+    conn: Connection,
+    embedder: TextEmbedder | None,
+    user_id: str,
+    concept: Concept,
+    vertical: str,
+    hold: Paused = NO_PAUSE,
 ) -> dict | None:
     """El último producto (o plato, en restaurantes) del concepto que la persona compró en un pedido `propuesta`, con
     su precio en la vertical; si ya no está ahí, el primero del concepto que da la búsqueda en la vertical. Los dos
-    pasan las guardias de las ofertas (`_offerable_products`)."""
+    pasan las guardias de las ofertas (`_offerable_products`) y ninguno es de una tienda en pausa (`hold`)."""
     kind = "menu_item" if vertical == "restaurantes" else "catalog_item"
     row = conn.execute(
         """SELECT l.entity_id FROM app_order_lines l JOIN app_orders o USING (order_id)
@@ -846,11 +877,13 @@ def _repeat_product(
         (user_id, concept.id, kind),
     ).fetchone()
     last = _priced_in_vertical(conn, vertical, [row[0]]).get(row[0]) if row and _valid_id(row[0]) else None
-    if last and (offerable := _offerable_products(conn, [last.to_dict()])):
-        return offerable[0]
+    if last:
+        offerable = [p for p in _offerable_products(conn, [last.to_dict()]) if p["store_id"] not in hold.stores]
+        if offerable:
+            return offerable[0]
     outcome = search_products(conn, vertical, concept.name, [concept.id], embedder, k=4, offer=True)
     found = [p.to_dict() for p in outcome.products if p.concept == concept.id]
-    return next(iter(_offerable_products(conn, found)), None)
+    return next((p for p in _offerable_products(conn, found) if p["store_id"] not in hold.stores), None)
 
 
 # ── volver ───────────────────────────────────────────────────────────────────
@@ -860,17 +893,23 @@ def winback_offer(
     """«¿Volvemos a…?»: la primera invitación de la persona (`winback.lapses`, ya con las guardias) que se puede mostrar
     ahora (`winback.available`: la pausa de 7 días es por persona y deja solo la ya mostrada) y tiene un producto: de un
     concepto, el de la recompra (`_repeat_product`); de una vertical, lo último que compró ahí, con concepto, que siga
-    a la venta. None (204) sin persona o sin nada que le toque."""
+    a la venta. Lo de un pedido mal calificado no se ofrece (`winback.paused`): ni su concepto ni sus tiendas. None
+    (204) sin persona o sin nada que le toque."""
     if user_id is None:
         return None
     now = now or datetime.now(TZ)
-    candidates = lapses(conn, now.astimezone(TZ).date(), user_id=user_id).get(user_id, [])
+    hold = paused(conn, user_id, now)
+    candidates = [
+        lapse
+        for lapse in lapses(conn, now.astimezone(TZ).date(), user_id=user_id).get(user_id, [])
+        if not (lapse.kind == "concepto" and lapse.key in hold.concepts)
+    ]
     concepts = load_taxonomy().concepts
     for lapse in available(conn, user_id, candidates, now):
         if lapse.kind == "concepto":
-            product = _repeat_product(conn, embedder, user_id, concepts[lapse.key], lapse.vertical)
+            product = _repeat_product(conn, embedder, user_id, concepts[lapse.key], lapse.vertical, hold)
         else:
-            product = _last_bought_in(conn, user_id, lapse.vertical)
+            product = _last_bought_in(conn, user_id, lapse.vertical, hold)
         if product:
             return _winback(lapse, product)
     return None
@@ -892,10 +931,10 @@ def _winback(lapse: Lapse, product: dict) -> Offer:
     return Offer("volver", text, [product], lapse.vertical, reason, [action])
 
 
-def _last_bought_in(conn: Connection, user_id: str, vertical: str) -> dict | None:
+def _last_bought_in(conn: Connection, user_id: str, vertical: str, hold: Paused = NO_PAUSE) -> dict | None:
     """Lo último que la persona compró en la vertical (pedidos `propuesta`) que tenga concepto y siga a la venta ahí,
-    con el precio de ahí y pasando las guardias de las ofertas. Sin concepto la app no registra la mostrada, y sin ella
-    no empezaría la pausa."""
+    con el precio de ahí y pasando las guardias de las ofertas, que no sea de un concepto ni de una tienda en pausa
+    (`hold`). Sin concepto la app no registra la mostrada, y sin ella no empezaría la pausa."""
     kind = "menu_item" if vertical == "restaurantes" else "catalog_item"
     rows = conn.execute(
         """SELECT l.entity_id FROM app_order_lines l JOIN app_orders o USING (order_id)
@@ -906,7 +945,7 @@ def _last_bought_in(conn: Connection, user_id: str, vertical: str) -> dict | Non
     ids = list(dict.fromkeys(i for (i,) in rows if _valid_id(i)))
     found = _priced_in_vertical(conn, vertical, ids)
     priced = [found[i].to_dict() for i in ids if i in found and found[i].concept]
-    return next(iter(_offerable_products(conn, priced)), None)
+    return next((p for p in _offerable_products(conn, priced) if hold.allows(p)), None)
 
 
 def _every(days: int) -> str:
@@ -918,6 +957,64 @@ def _days_ago(today: date, ts: datetime) -> str:
     """«hoy», «ayer» o «hace N días», contando días de Santiago."""
     days = (today - ts.astimezone(TZ).date()).days
     return "hoy" if days <= 0 else "ayer" if days == 1 else f"hace {days} días"
+
+
+# ── ontop ────────────────────────────────────────────────────────────────────
+def ontop_offer(
+    conn: Connection,
+    embedder: TextEmbedder | None,
+    vertical: str | None,
+    entities: list[dict],
+    user_id: str | None = None,
+) -> OnTopOffer | None:
+    """«Turbo: suma esto antes de…» (el OnTop de la app de Rappi) sobre un pedido en curso de otra vertical (`vertical`,
+    la del pedido; uno de Turbo no tiene OnTop). Los productos son de Turbo, sin los del pedido (`entities`): los de su
+    mejor compra cruzada ahí (`motor/recommend.py:cross_picks`, que ya deja fuera lo que las guardias no ofrecen) o, si
+    ninguna tiene productos a la venta, lo más pedido en Turbo por la población (`most_ordered`) o sus ofertas. Todos
+    pasan las guardias (`_offerable_products`). El plazo y el envío sin costo extra son supuestos: van en la `basis`
+    con «+supuesto» y en el texto como «de ejemplo»."""
+    if vertical == ONTOP_VERTICAL or not offerable_vertical(ONTOP_VERTICAL):
+        return None
+    have = {(e["entity_type"], e["entity_id"]) for e in entities}
+
+    def fresh(products: list[dict]) -> list[dict]:
+        return [p for p in products if (p.get("entity_type", "catalog_item"), p["entity_id"]) not in have]
+
+    population = config.MOTOR_POBLACION
+    ontop = {"kind": "ontop", "id": f"{ONTOP_VERTICAL}@{ONTOP_WINDOW_MIN}min", "source": "rappi+supuesto"}
+    concepts = load_taxonomy().concepts
+    for pick in cross_picks(conn, user_id, [ONTOP_VERTICAL], population, k=ONTOP_PICKS):
+        products = fresh(_pick_products(conn, embedder, pick))
+        if not products:
+            continue
+        target, origin = concepts[pick.concept_id], concepts.get(pick.from_concept or "")
+        named = origin is not None and is_offerable(origin)
+        signal = {
+            "kind": "compra_cruzada",
+            "id": f"{origin.id}→{target.id}@{ONTOP_VERTICAL}" if named else f"{target.id}@{ONTOP_VERTICAL}",
+            "source": f"poblacion:{population}",
+        }
+        if named:
+            why = REASON_ONTOP_CROSS.format(emoji=origin.emoji, name=origin.name.lower(), destino=target.name.lower())
+            reason = _reason(contract_articles(why), [signal, ontop], concept=target.id, from_concept=origin.id)
+        else:
+            reason = _reason(REASON_ONTOP, [signal, ontop], concept=target.id)
+        text = ONTOP_TEXT.format(destino=target.name.lower())
+        return OnTopOffer("ontop", text, products, ONTOP_VERTICAL, reason, [_ontop_action()])
+    if products := fresh(most_ordered(conn, ONTOP_VERTICAL, population, person_city(conn, user_id))):
+        basis = [{"kind": "lo_mas_pedido", "id": ONTOP_VERTICAL, "source": f"poblacion:{population}"}, ontop]
+        return OnTopOffer(
+            "ontop", ONTOP_TOP_TEXT, products, ONTOP_VERTICAL, _reason(REASON_ONTOP, basis), [_ontop_action()]
+        )
+    if products := fresh(_offerable_deals(conn, ONTOP_VERTICAL)):
+        basis = [{"kind": "ofertas", "id": ONTOP_VERTICAL, "source": "catalogo"}, ontop]
+        reason = _reason(REASON_ONTOP, basis)
+        return OnTopOffer("ontop", ONTOP_DEALS_TEXT, products, ONTOP_VERTICAL, reason, [_ontop_action()])
+    return None
+
+
+def _ontop_action() -> dict:
+    return {"label": ONTOP_ACTION, "route": [SCREEN_VERTICALS[ONTOP_VERTICAL]]}
 
 
 # ── perfil ───────────────────────────────────────────────────────────────────

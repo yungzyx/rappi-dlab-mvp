@@ -18,6 +18,11 @@ invitación, solo puede volver esa misma (si sigue calificando) y ninguna otra; 
 `MAX_DISMISSALS` veces después de su último pedido de eso no se ofrece más. Cuenta lo que registra la app con el origen
 `agent-volver` (`payload.kind` dice si es de un concepto o de una vertical); lo hecho en «Rappi hoy» no cuenta.
 
+Lo que salió mal no se vuelve a ofrecer (`paused`): un pedido `propuesta` calificado con 3 estrellas o menos
+(`app_orders.rating`, el evento `order_rated` de la app) pausa por `PAUSE_DAYS` días la recompra y el «volver» de los
+conceptos de ese pedido, y ningún producto de sus tiendas se ofrece en ellas. Los 30 días son un supuesto propio, no una
+regla de Rappi.
+
 `reach` estima a cuántas personas de una fuente les tocaría, para el panel: con datos simulados no es evidencia.
 """
 
@@ -29,6 +34,7 @@ from psycopg import Connection
 
 from ..agent.grouped_search import SCREEN_VERTICALS
 from ..concepts.taxonomy import load_taxonomy
+from ..events.store import LOW_RATING
 from ..motor.model import TZ
 from .guards import is_offerable, offerable_vertical
 
@@ -39,6 +45,7 @@ VERTICAL_LAPSE_DAYS = 30  # una vertical sin pedidos en más de un mes (la combi
 VERTICAL_MIN_DAYS = 3  # días distintos con pedido en la vertical: como la recompra, un ritmo y no una vez
 COOLDOWN_DAYS = 7  # la misma invitación no se repite antes
 MAX_DISMISSALS = 2  # descartada estas veces después de su último pedido de eso, no se ofrece más
+PAUSE_DAYS = 30  # supuesto propio: lo de un pedido mal calificado no se vuelve a ofrecer en un mes
 ORIGIN = "agent-volver"  # `payload.origen` de lo que la app registra de esta oferta
 # La señal de la `basis` de cada tipo de invitación, que la app también manda en `payload.kind` de sus eventos.
 BASIS_KINDS = {"concepto": "volver", "vertical": "vuelta"}
@@ -54,6 +61,36 @@ class Lapse:
     orders: int  # días distintos con pedido de eso
     interval: int | None  # cada cuántos días lo pedía (solo los conceptos)
     last_ts: datetime
+
+
+@dataclass(frozen=True)
+class Paused:
+    """Lo que no se ofrece en la recompra ni en el «volver» por una calificación mala: conceptos y tiendas."""
+
+    concepts: frozenset[str] = frozenset()
+    stores: frozenset[int] = frozenset()
+
+    def allows(self, product: dict) -> bool:
+        """Si un producto (`Product.to_dict()`) se puede ofrecer: ni de un concepto ni de una tienda en pausa."""
+        return product.get("concept") not in self.concepts and product.get("store_id") not in self.stores
+
+
+NO_PAUSE = Paused()
+
+
+def paused(conn: Connection, user_id: str | None, now: datetime | None = None) -> Paused:
+    """Los conceptos y las tiendas de los pedidos `propuesta` de la persona que calificó con `LOW_RATING` estrellas o
+    menos en los últimos `PAUSE_DAYS` días. Las líneas sin concepto o sin tienda (las de antes de la migración 044) solo
+    pausan lo que tienen."""
+    if user_id is None:
+        return NO_PAUSE
+    now = now or datetime.now(UTC)
+    rows = conn.execute(
+        """SELECT l.concept_id, l.store_id FROM app_orders o JOIN app_order_lines l USING (order_id)
+           WHERE o.user_id = %s AND o.mode = 'propuesta' AND o.rating <= %s AND o.rated_at > %s""",
+        (user_id, LOW_RATING, now - timedelta(days=PAUSE_DAYS)),
+    ).fetchall()
+    return Paused(frozenset(c for c, _ in rows if c is not None), frozenset(int(s) for _, s in rows if s is not None))
 
 
 def repeat_due(due_on: date, interval_days: float, today: date) -> bool:
