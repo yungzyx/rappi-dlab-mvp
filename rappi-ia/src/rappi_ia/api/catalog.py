@@ -4,16 +4,17 @@ tienda (solo lectura).
 `app.py` incluye este router; `get_conn` y `backend_vertical` viven en `deps.py`, así este módulo no importa `app`.
 """
 
-from typing import Annotated
+from typing import Annotated, Literal
 
 from fastapi import APIRouter, Depends, HTTPException, Path, Query
 from psycopg import Connection
+from pydantic import Field
 
 from ..catalog.deals import deals
 from ..catalog.home import home
 from ..catalog.restaurants import Sort, restaurant_menu, restaurants
-from ..catalog.stores import product_detail, store_page, vertical_stores
-from .deps import backend_vertical, get_conn
+from ..catalog.stores import line_prices, product_detail, store_page, vertical_stores
+from .deps import Clean, backend_vertical, get_conn
 from .logs import served_request_id
 
 router = APIRouter(prefix="/catalog", tags=["catalog"])
@@ -22,6 +23,17 @@ STORE_NOT_FOUND = "Esta tienda no está en el catálogo"
 PRODUCT_NOT_FOUND = "Este producto no está en el catálogo"
 VERTICAL_NOT_FOUND = "Esta vertical no está en el catálogo"
 RESTAURANT_NOT_FOUND = "Este restaurante no está en el catálogo"
+MAX_LINES = 100  # como un pedido (OrderIn)
+
+
+class AvailabilityLineIn(Clean):
+    entity_type: Literal["catalog_item", "menu_item"]
+    entity_id: str = Field(min_length=1, max_length=64)
+    store_id: int | None = Field(default=None, ge=0, le=2**63 - 1)  # la tienda del pedido anterior: su precio manda
+
+
+class AvailabilityIn(Clean):
+    lines: list[AvailabilityLineIn] = Field(min_length=1, max_length=MAX_LINES)
 
 
 @router.get("/verticals/{vertical}/stores")
@@ -58,6 +70,20 @@ def product(entity_type: str, entity_id: str, conn: Connection = Depends(get_con
     if reply is None:
         raise HTTPException(404, PRODUCT_NOT_FOUND)
     return reply
+
+
+@router.post("/availability")
+def availability(body: AvailabilityIn, conn: Connection = Depends(get_conn)) -> dict:
+    """«Pídelo de nuevo»: cada línea de un pedido anterior con su precio vigente en la misma tienda (`v_latest_offers`,
+    o el último precio del plato en `latest_menu_prices`), en el orden pedido. `available: false` (y `price: null`) si
+    ya no está a la venta ahí. No dice si la tienda está abierta: el catálogo no lo sabe en vivo."""
+    lines = [line.model_dump() for line in body.lines]
+    return {
+        "lines": [
+            {**line, "available": price is not None, "price": price}
+            for line, price in zip(lines, line_prices(conn, lines), strict=True)
+        ]
+    }
 
 
 @router.get("/restaurants")

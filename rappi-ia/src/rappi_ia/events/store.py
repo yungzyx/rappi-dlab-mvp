@@ -12,7 +12,7 @@ from datetime import UTC, datetime, timedelta
 from psycopg import Connection
 from psycopg.types.json import Jsonb
 
-from ..catalog.stores import offer_price, store_prices
+from ..catalog.stores import line_prices
 from ..concepts.matcher import KeywordMatcher
 from ..concepts.taxonomy import load_taxonomy
 
@@ -34,10 +34,15 @@ EVENT_TYPES = {
     "service_shown",  # el agente ofreció un servicio sin catálogo (payload.servicio)
     "service_opened",  # se tocó el botón que abre ese servicio
     "vertical_open",  # se abrió un vertical desde la Home (en el campo `vertical`); alimenta la afinidad del motor
+    "order_rated",  # la calificación de un pedido entregado (`payload.stars` y `payload.reasons`; el pedido, `cart_id`)
+    "reorder",  # «Pídelo de nuevo»: el carro con un pedido anterior (`payload.available` y `payload.unavailable`)
 }
 # Lo que el cliente puede mandar a /events: `order_placed` nace solo en /orders, con un pedido guardado detrás.
 CLIENT_EVENT_TYPES = EVENT_TYPES - {"order_placed"}
 QUERY_RETENTION_DAYS = 90
+# «¿Qué problema tuvo el pedido?» (con 3 estrellas o menos): los motivos que la app puede mandar en `order_rated`.
+RATING_REASONS = frozenset({"tarde", "faltante", "mal_estado", "equivocado", "repartidor", "otro"})
+LOW_RATING = 3  # 3 estrellas o menos es una calificación mala: pausa la recompra y el «volver» (offers/winback.py)
 # Dónde estaba lo que se tocó, se vio o se agregó: el CHECK de `app_events.surface` (migración 043).
 SURFACES = frozenset(
     {
@@ -222,6 +227,7 @@ def record(conn: Connection, events: list[Event], source: str = "prototype", ses
     surface = next((e.surface for e in events if e.surface is not None and e.surface not in SURFACES), None)
     if surface is not None:
         raise ValueError(f"Superficie desconocida: {surface}")
+    ratings = [(e, _rating(e)) for e in events if e.type == "order_rated"]
     for user_id in dict.fromkeys(e.user_id for e in events):
         ensure_user(conn, user_id, source)
     known = _known_concepts(conn)
@@ -273,7 +279,38 @@ def record(conn: Connection, events: list[Event], source: str = "prototype", ses
         )
         saved = cur.rowcount
     _record_sessions(conn, starts, source, session or SessionInfo())
+    _record_ratings(conn, [(e, stars, reasons, _client_ts(e, now) or e.ts or now) for e, (stars, reasons) in ratings])
     return saved
+
+
+def _rating(e: Event) -> tuple[int, list[str]]:
+    """Las estrellas (1 a 5) y los motivos de un `order_rated`. Unas estrellas que no lo son, un motivo desconocido o un
+    evento sin su pedido (`cart_id`) rechazan el lote, como un tipo desconocido."""
+    stars, reasons = e.payload.get("stars"), e.payload.get("reasons", [])
+    if not isinstance(stars, int) or isinstance(stars, bool) or not 1 <= stars <= 5:
+        raise ValueError(f"Calificación inválida: {stars!r}")
+    if not isinstance(reasons, list) or any(r not in RATING_REASONS for r in reasons):
+        raise ValueError(f"Motivo de calificación desconocido: {reasons!r}")
+    if not e.cart_id:
+        raise ValueError("Una calificación necesita el pedido (cart_id)")
+    return stars, list(dict.fromkeys(reasons))
+
+
+def _record_ratings(conn: Connection, ratings: list[tuple[Event, int, list[str], datetime]]) -> None:
+    """Cada calificación queda en los pedidos de su carro (`app_orders`: un carro con dos verticales son dos pedidos).
+    Las de «Rappi hoy» (`payload.mode = 'actual'`) no: ese modo no enseña, y la calificación pausa la recompra."""
+    rows = [
+        (stars, reasons, rated_at, e.user_id, e.cart_id)
+        for e, stars, reasons, rated_at in ratings
+        if e.payload.get("mode") != "actual"
+    ]
+    if rows:
+        with conn.cursor() as cur:
+            cur.executemany(
+                """UPDATE app_orders SET rating = %s, rating_reasons = %s, rated_at = %s
+                   WHERE user_id = %s AND cart_id = %s""",
+                rows,
+            )
 
 
 def _record_sessions(
@@ -324,8 +361,8 @@ def record_order(
     with conn.cursor() as cur:
         cur.executemany(
             """INSERT INTO app_order_lines (order_id, line_no, entity_type, entity_id, concept_id, qty, unit_price,
-                                            from_suggestion)
-               VALUES (%s, %s, %s, %s, %s, %s, %s, %s)""",
+                                            from_suggestion, store_id)
+               VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)""",
             [
                 (
                     order_id,
@@ -337,6 +374,7 @@ def record_order(
                     int(line.get("qty", 1)),
                     line.get("unit_price"),
                     bool(line.get("from_suggestion")),
+                    line.get("store_id"),
                 )
                 for i, line in enumerate(lines, start=1)
             ],
@@ -361,23 +399,14 @@ def record_order(
 
 
 def catalog_prices(conn: Connection, lines: list[dict]) -> tuple[list[dict], int]:
-    """Las líneas de un pedido del cliente con el precio vigente del catálogo en su tienda (`offer_price`): el que
+    """Las líneas de un pedido del cliente con el precio vigente del catálogo en su tienda (`line_prices`): el que
     manda el cliente no se usa, porque el total alimenta segmentos y métricas. Devuelve las líneas con precio y cuántas
-    se omitieron (agotadas, de una tienda que no las vende o que no están en el catálogo). Los productos con tienda (lo
-    normal) salen en una sola consulta; un plato o un producto sin tienda, uno por uno."""
-    in_store = [
-        i for i, line in enumerate(lines) if line["entity_type"] == "catalog_item" and line.get("store_id") is not None
+    se omitieron (agotadas, de una tienda que no las vende o que no están en el catálogo)."""
+    priced = [
+        {**line, "unit_price": price}
+        for line, price in zip(lines, line_prices(conn, lines), strict=True)
+        if price is not None
     ]
-    in_store_prices = store_prices(conn, [(lines[i]["entity_id"], lines[i]["store_id"]) for i in in_store])
-    known = dict(zip(in_store, in_store_prices, strict=True))
-    priced = []
-    for i, line in enumerate(lines):
-        if i in known:
-            price = known[i]
-        else:
-            price = offer_price(conn, line["entity_type"], line["entity_id"], line.get("store_id"))
-        if price is not None:
-            priced.append({**line, "unit_price": price})
     return priced, len(lines) - len(priced)
 
 

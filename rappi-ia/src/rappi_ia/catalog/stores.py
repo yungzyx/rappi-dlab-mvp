@@ -246,6 +246,25 @@ def offer_price(conn: Connection, entity_type: str, entity_id: str, store_id: in
     return detail["price_value"]
 
 
+def line_prices(conn: Connection, lines: list[dict]) -> list[float | None]:
+    """El precio vigente de cada línea (`entity_type`, `entity_id` y, si la trae, `store_id`) en su orden: el de su
+    tienda (`offer_price`), o `None` si ya no está a la venta ahí. Los productos con tienda (lo normal) salen en una
+    sola consulta; un plato o un producto sin tienda, uno por uno. Lo usan el pedido (`events.catalog_prices`) y
+    «Pídelo de nuevo» (`POST /catalog/availability`)."""
+    in_store = [
+        i for i, line in enumerate(lines) if line["entity_type"] == "catalog_item" and line.get("store_id") is not None
+    ]
+    known = dict(
+        zip(
+            in_store, store_prices(conn, [(lines[i]["entity_id"], lines[i]["store_id"]) for i in in_store]), strict=True
+        )
+    )
+    return [
+        known[i] if i in known else offer_price(conn, line["entity_type"], line["entity_id"], line.get("store_id"))
+        for i, line in enumerate(lines)
+    ]
+
+
 def vertical_stores(conn: Connection, vertical: str, limit: int = 30) -> list[dict]:
     """Una tarjeta por formato de tienda del vertical, de más a menos ofertas vigentes. Restaurantes no entra: sus
     locales no venden productos del catálogo (tienen menú). Sale de la caché del catálogo (catalog/cache.py)."""
