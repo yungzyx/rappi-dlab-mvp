@@ -5,7 +5,7 @@
 # si cambió la librería de embeddings, volver a embeber (la caché de vectores no guarda la versión).
 annotated-doc==0.0.5
 annotated-types==0.8.0
-anthropic==1.14.0
+anthropic==2.1.0
 anyio==4.15.1
 certifi==2026.10.19
 charset-normalizer==3.5.2
