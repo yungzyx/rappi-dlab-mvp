@@ -41,6 +41,7 @@ from ..layers.segments import recalculate_user_segments
 from ..motor.build import refresh_user, refresh_user_conn
 from ..motor.home import home_verticals
 from ..motor.predict import next_verticals
+from ..offers import preferences
 from ..offers.engine import most_ordered
 from ..offers.guards import is_offerable, offerable_vertical, whim_allowed
 from ..offers.profiles import active_profiles, person_city
@@ -61,6 +62,7 @@ from .deps import (
 from .identity import owner_in_path, owner_in_query, owner_of_body
 from .limits import TOO_MANY, MaxBodySize, RateLimit, busy, concurrency_cap
 from .logs import AccessLog, configure_logging, rejected, route_template, served_request_id
+from .preferences import router as preferences_router
 from .services import Services, services
 
 log = logging.getLogger(__name__)
@@ -482,6 +484,9 @@ def recommendations(
     libres, una más con lo más pedido de la vertical que mejor le calza (`_top_row`)."""
     interests = list(events.profile(conn, user_id))
     taxonomy = load_taxonomy()
+    mine = preferences.load(
+        conn, user_id
+    )  # «Para ti» es del agente: su dieta y alergias filtran, sus favoritas ordenan
     # La razón nombra el interés («Por tu interés en…»): el agente no nombra por su cuenta alcohol, salud ni lo
     # sensible, así que esos intereses no son fuente de una fila (como en `RappiAgent._top_interest`). El perfil los
     # conserva.
@@ -489,7 +494,8 @@ def recommendations(
     shown: set[str] = set()
     rows = []
     for concept in sources[:4]:
-        suggestion = suggest_complement(conn, [concept], backend_vertical(vertical), svc.embedder, shown)
+        with preferences.applied(mine):
+            suggestion = suggest_complement(conn, [concept], backend_vertical(vertical), svc.embedder, shown)
         if suggestion:
             shown.add(suggestion.concept)
             interest = taxonomy.concepts[concept]
@@ -508,6 +514,9 @@ def recommendations(
     taken = {row["vertical"] for row in rows}
     if len(rows) < limit and (top := _top_row(conn, user_id, backend_vertical(vertical), taken)):
         rows.append(top)
+    for row in rows:
+        row["products"] = preferences.keep_dicts(mine, row["products"])
+    rows = [row for row in rows if row["products"]]
     return {"user_id": user_id, "interests": interests[:5], "rows": rows, "request_id": served_request_id()}
 
 
@@ -603,6 +612,8 @@ def searches_before_typing(user_id: ShortPath, conn: Connection = Depends(get_co
 @app.delete("/profile/{user_id}", dependencies=[Depends(owner_in_path)])
 def forget(user_id: ShortPath, concept: ShortQuery | None = None, conn: Connection = Depends(get_conn)) -> dict:
     deleted = events.forget(conn, user_id, concept)
+    if concept is not None:  # sin concepto se fue la persona entera, y sus preferencias en cascada
+        deleted += preferences.forget_concept(conn, user_id, concept)
     refresh_user_conn(conn, user_id)  # la afinidad y la recompra, sin lo que olvidó
     conn.commit()
     return {"user_id": user_id, "concept": concept, "eventos_borrados": deleted}
@@ -751,7 +762,8 @@ def _context(conn, vertical, user_id, profile, shown_topics, mode) -> Context:
     if profile is None and user_id and mode == "propuesta":
         profile = events.profile(conn, user_id)
     vertical = _searchable(conn, backend_vertical(vertical))
-    return Context(vertical, profile or {}, list(shown_topics), mode, user_id=user_id)
+    mine = preferences.load(conn, user_id) if mode == "propuesta" else None  # en «Rappi hoy», ninguna
+    return Context(vertical, profile or {}, list(shown_topics), mode, user_id=user_id, preferences=mine)
 
 
 def _searchable(conn: Connection, vertical: str | None) -> str | None:
@@ -773,13 +785,16 @@ def _log_ask(conn, user_id, session_id, text, response, modality, mode) -> None:
     if not user_id or not session_id:
         return
     concepts = response.get("intent", {}).get("concepts") or []
+    # Lo que dice de sí misma («no como maní») no queda como consulta: una alergia es un dato de salud y no va a las
+    # tendencias, la demanda ni el panel.
+    private = response.get("intent", {}).get("kind") == "preferencia"
     event = events.Event(
         user_id=user_id,
         session_id=session_id,
         type="ask",
         vertical=response.get("vertical"),
         concept_id=concepts[0] if concepts and mode == "propuesta" else None,
-        query=text,
+        query=None if private else text,
         modality=modality,
         results=len(response.get("products", [])),
         unmet=bool(response.get("unmet")),
@@ -802,3 +817,4 @@ if config.API_ENABLE_ANALYTICS:
     app.include_router(analytics_router)
 app.include_router(catalog_router)
 app.include_router(agent_router)
+app.include_router(preferences_router)

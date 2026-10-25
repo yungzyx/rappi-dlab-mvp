@@ -275,6 +275,10 @@ def test_grants_file_lets_the_api_role_write_only_its_tables(db):
         "INSERT INTO user_vertical_affinity (user_id, vertical, score, orders, signals)"
         " VALUES ('proto-permisos', 'turbo', 1, 0, 1)"
     )
+    conn.execute(  # las preferencias con el agente (migración 045) también son de la persona
+        "INSERT INTO agent_preferences (user_id, kind, value, source) VALUES ('proto-permisos', 'dieta', 'vegano',"
+        " 'prototype')"
+    )
     conn.execute("SELECT count(*) FROM capa.combo_stats")
     for forbidden in (
         "INSERT INTO combo_steps (data_source, from_combo, to_combo, users, prob) VALUES ('synthetic', 'a', 'b', 1, 1)",

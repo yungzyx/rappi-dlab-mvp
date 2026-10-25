@@ -1,0 +1,30 @@
+{
+  "actions": [
+    {
+      "label": "Ver mis pedidos",
+      "route": [
+        "orders"
+      ]
+    }
+  ],
+  "age_notice": false,
+  "conversation": null,
+  "intent": {
+    "concepts": [],
+    "confidence": 1.0,
+    "follow_up": false,
+    "kind": "pedido",
+    "occasion": null,
+    "price_max": null,
+    "query": "",
+    "symptom": false,
+    "vertical": null
+  },
+  "products": [],
+  "reason": null,
+  "request_id": "contrato-agent-ask-pedido",
+  "stores": [],
+  "tags": [],
+  "text": "Tu pedido lo sigues en «Mis pedidos» 🛵: ahí ves dónde viene y, para cancelarlo o un reclamo, está el chat de soporte.",
+  "unmet": false
+}

@@ -52,8 +52,10 @@ def conn():
 
 
 @pytest.fixture
-def client(conn):
+def client(conn, monkeypatch):
     agent = types.SimpleNamespace(reply=lambda *_: dict(ANSWER))
+    # Las preferencias de la persona se leen al armar el contexto: aquí no tiene (la conexión no responde nada).
+    monkeypatch.setattr(api.preferences, "load", lambda *_: api.preferences.Preferences())
     api.app.dependency_overrides[api.get_conn] = lambda: conn
     api.app.dependency_overrides[api.get_services] = lambda: types.SimpleNamespace(agent=agent)
     yield OwnerClient(api.app)

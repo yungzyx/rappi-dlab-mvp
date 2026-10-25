@@ -1,0 +1,40 @@
+{
+  "actions": [
+    {
+      "capability": "recompra",
+      "label": "🔁 Repite lo de siempre"
+    },
+    {
+      "capability": "plan",
+      "label": "🧺 Arma un kit"
+    },
+    {
+      "capability": "perfil",
+      "label": "✨ Algo para ti"
+    },
+    {
+      "label": "🍣 Algo de sushi",
+      "query": "sushi"
+    }
+  ],
+  "age_notice": false,
+  "conversation": null,
+  "intent": {
+    "concepts": [],
+    "confidence": 1.0,
+    "follow_up": false,
+    "kind": "ayuda",
+    "occasion": null,
+    "price_max": null,
+    "query": "",
+    "symptom": false,
+    "vertical": null
+  },
+  "products": [],
+  "reason": null,
+  "request_id": "contrato-agent-ask-ayuda",
+  "stores": [],
+  "tags": [],
+  "text": "Soy Mochi 🧡, tu asistente en Rappi. Puedo repetir lo de siempre, armarte un kit o mostrarte algo para ti. Pídeme lo que necesites («pañales talla G», «algo de sushi», «una once para 4») y te muestro lo que hay, aunque esté en otra vertical. También recuerdo tu dieta y tus alergias, y te llevo a RappiTravel o RappiFavor.",
+  "unmet": false
+}

@@ -1,0 +1,142 @@
+"""Las preferencias explícitas con el agente sin base (offers/preferences.py): qué frases las fijan, qué sacan, qué
+ordenan y qué dice el agente. También los atajos de la ayuda (sin salud) y las intenciones `resumen` y `pedido`."""
+
+import pytest
+
+from rappi_ia.agent.compose import Draft, TemplateComposer
+from rappi_ia.agent.rappi_agent import HELP_ACTIONS, HELP_EXAMPLES, Context, RappiAgent
+from rappi_ia.agent.understand import Understander
+from rappi_ia.offers import preferences as prefs
+
+U = Understander()
+
+
+@pytest.mark.parametrize(
+    ("text", "action", "items"),
+    [
+        ("soy vegetariano", "agregar", [("dieta", "vegetariano")]),
+        ("Soy vegetariana y alérgica al maní", "agregar", [("dieta", "vegetariano"), ("alergia", "mani")]),
+        ("no como maní", "agregar", [("alergia", "mani")]),
+        ("recuerda que soy celíaca", "agregar", [("alergia", "gluten")]),
+        ("no tomo leche", "agregar", [("alergia", "lactosa")]),
+        ("ya no soy vegano", "quitar", [("dieta", "vegano")]),
+        ("ya no como carne", "agregar", [("dieta", "vegetariano")]),  # ahora no come: se agrega
+        ("muéstrame mis preferencias", "mostrar", []),
+        ("¿qué preferencias tengo?", "mostrar", []),
+        ("olvida mis preferencias", "olvidar", []),
+        ("mi comida favorita es el sushi", "agregar", [("cocina", "sushi")]),
+        ("me encanta la comida mexicana", "agregar", [("cocina", "mexicana")]),
+    ],
+)
+def test_what_is_said_sets_them(text, action, items):
+    intent = U.understand(None, text, "supermercado")
+    assert intent.kind == "preferencia"
+    assert intent.preference.action == action
+    assert list(intent.preference.items) == items
+
+
+def test_a_favorite_store_is_read_without_its_article():
+    assert prefs.read_command("mi tienda favorita es el Jumbo").store == "jumbo"
+    assert prefs.read_command("prefiero pedir en Lider").store == "lider"
+
+
+@pytest.mark.parametrize(
+    "text",
+    ["sushi sin maní", "galletas de maní", "leche sin lactosa", "yogurt", "olvida todo", "me gusta el sushi"],
+)
+def test_orders_and_other_questions_are_not_preferences(text):
+    """Un pedido con «sin» no es una alergia, «olvida todo» es la memoria y «me gusta el sushi» se busca."""
+    assert U.understand(None, text, "supermercado").kind != "preferencia"
+
+
+def test_a_cuisine_that_is_not_food_is_not_a_favorite():
+    assert U.understand(None, "mi comida favorita es la cerveza", "supermercado").kind != "preferencia"
+
+
+def product(name, concept=None, entity_type="catalog_item", store=None):
+    return {"name": name, "concept": concept, "entity_type": entity_type, "store": store}
+
+
+def test_a_diet_drops_what_names_it_unless_the_name_says_it_fits():
+    mine = prefs.build([("dieta", "vegetariano"), ("alergia", "mani")])
+    assert not mine.keeps(product("Pizza pepperoni familiar", "pizza", "menu_item"))
+    assert mine.keeps(product("Pizza margarita mediana", "pizza", "menu_item"))
+    assert not mine.keeps(product("Hamburguesa doble queso", "hamburguesa", "menu_item"))  # su concepto es carne
+    assert mine.keeps(product("Hamburguesa vegetal", "hamburguesa", "menu_item"))
+    assert not mine.keeps(product("Pollo con vegetales", "pollo-preparado", "menu_item"))  # «vegetales» no basta
+    assert not mine.keeps(product("Galletas de maní", "galletas"))
+    assert mine.keeps(product("Galletas sin maní", "galletas"))
+
+
+def test_only_food_is_filtered():
+    """Lo que no es comida no se toca: un alimento de perro sabor carne no es la dieta de la persona."""
+    mine = prefs.build([("dieta", "vegano")])
+    assert mine.keeps(product("Alimento para perro sabor carne", "alimento-perro"))
+    assert not mine.keeps(product("Queso gouda laminado", "quesos"))
+    assert mine.keeps(product("Bebida de almendras", "lacteos"))
+
+
+def test_favorites_only_order():
+    mine = prefs.build([("cocina", "sushi"), ("tienda", "Jumbo")])
+    shown = [product("Pizza", "pizza"), product("Roll", "sushi"), product("Arroz", None, store="Jumbo Bilbao")]
+    ranked = mine.rank(shown)
+    assert [p["name"] for p in ranked] == ["Roll", "Arroz", "Pizza"]
+    assert mine.keep(shown) == shown  # ordenar no saca nada
+
+
+def test_the_notice_names_what_is_left_out_and_only_with_food():
+    mine = prefs.build([("dieta", "vegetariano"), ("alergia", "mani")])
+    notice = mine.notice([product("Pizza", "pizza", "menu_item")])
+    assert notice == "Por tus preferencias, saqué lo que dice tener carne o maní; revisa los ingredientes en la tienda."
+    assert mine.notice([product("Shampoo", "cuidado-cabello")]) is None
+    assert prefs.build([("cocina", "sushi")]).notice([product("Roll", "sushi")]) is None
+
+
+def test_applied_sets_them_only_for_the_turn():
+    mine = prefs.build([("dieta", "vegano")])
+    assert prefs.active() is None
+    with prefs.applied(mine):
+        assert prefs.active() is mine
+    assert prefs.active() is None
+
+
+def test_options_and_rules_are_data():
+    found = prefs.load_options()
+    assert {"vegetariano", "vegano", "mani", "mariscos", "gluten", "lactosa"} <= set(found.rules)
+    assert "cerveza" not in found.cuisines and "sushi" in found.cuisines
+    assert all(o["tipo"] in prefs.KINDS for o in prefs.options())
+    assert prefs.valid("cocina", "sushi") and not prefs.valid("cocina", "vino")
+    assert not prefs.valid("dieta", "mani")  # el maní es una alergia
+
+
+def test_in_rappi_hoy_nothing_is_saved():
+    reply = RappiAgent().reply(None, "soy vegetariano", Context(mode="actual", user_id="u-1"))
+    assert reply["intent"]["kind"] == "preferencia" and "Rappi hoy" in reply["text"]
+    assert "preferences" not in reply
+
+
+def test_help_shows_capabilities_and_no_health_example():
+    """«¿Qué puedes hacer?» muestra lo que sabe hacer (repetir, armar un kit, algo para ti): ningún ejemplo de salud."""
+    for actions in (HELP_ACTIONS, HELP_EXAMPLES):
+        labels = " ".join(a["label"] + a.get("query", "") for a in actions).lower()
+        assert "fiebre" not in labels and "remedio" not in labels
+    assert {a.get("capability") for a in HELP_ACTIONS} >= {"recompra", "plan", "perfil"}
+    reply = RappiAgent().reply(None, "¿qué puedes hacer?", Context())
+    assert reply["actions"] == HELP_ACTIONS
+    assert RappiAgent().reply(None, "¿qué puedes hacer?", Context(mode="actual"))["actions"] == HELP_EXAMPLES
+    for learns in (True, False):
+        assert "fiebre" not in TemplateComposer().compose(Draft(kind="ayuda", learns=learns))
+
+
+@pytest.mark.parametrize("text", ["quiero pagar", "resumen de mi pedido", "¿qué llevo en el carro?", "cuánto llevo"])
+def test_the_summary_is_a_review_before_paying(text):
+    reply = RappiAgent().reply(None, text, Context())
+    assert reply["intent"]["kind"] == "resumen"
+    assert reply["actions"] == [{"label": "Revisar y pagar", "route": ["checkout"]}]
+    assert "nunca hago el pedido por ti" in reply["text"]
+
+
+def test_order_status_leads_to_my_orders():
+    reply = RappiAgent().reply(None, "¿dónde viene mi pedido?", Context())
+    assert reply["intent"]["kind"] == "pedido"
+    assert reply["actions"] == [{"label": "Ver mis pedidos", "route": ["orders"]}]

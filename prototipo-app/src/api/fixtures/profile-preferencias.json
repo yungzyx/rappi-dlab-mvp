@@ -1,0 +1,101 @@
+{
+  "opciones": [
+    {
+      "nombre": "Vegetariano",
+      "tipo": "dieta",
+      "valor": "vegetariano"
+    },
+    {
+      "nombre": "Vegano",
+      "tipo": "dieta",
+      "valor": "vegano"
+    },
+    {
+      "nombre": "Alergia al maní",
+      "tipo": "alergia",
+      "valor": "mani"
+    },
+    {
+      "nombre": "Alergia a los mariscos",
+      "tipo": "alergia",
+      "valor": "mariscos"
+    },
+    {
+      "nombre": "Sin gluten",
+      "tipo": "alergia",
+      "valor": "gluten"
+    },
+    {
+      "nombre": "Sin lactosa",
+      "tipo": "alergia",
+      "valor": "lactosa"
+    },
+    {
+      "nombre": "🍣 Sushi",
+      "tipo": "cocina",
+      "valor": "sushi"
+    },
+    {
+      "nombre": "🍕 Pizza",
+      "tipo": "cocina",
+      "valor": "pizza"
+    },
+    {
+      "nombre": "🍔 Hamburguesa",
+      "tipo": "cocina",
+      "valor": "hamburguesa"
+    },
+    {
+      "nombre": "🥗 Ensaladas y bowls",
+      "tipo": "cocina",
+      "valor": "ensaladas-bowls"
+    },
+    {
+      "nombre": "🌮 Comida mexicana",
+      "tipo": "cocina",
+      "valor": "mexicana"
+    },
+    {
+      "nombre": "🇵🇪 Comida peruana",
+      "tipo": "cocina",
+      "valor": "peruana"
+    },
+    {
+      "nombre": "🥡 Comida asiática",
+      "tipo": "cocina",
+      "valor": "asiatica"
+    },
+    {
+      "nombre": "🥙 Comida árabe",
+      "tipo": "cocina",
+      "valor": "arabe"
+    },
+    {
+      "nombre": "🫓 Comida latina",
+      "tipo": "cocina",
+      "valor": "latina"
+    },
+    {
+      "nombre": "🥪 Sándwiches y completos",
+      "tipo": "cocina",
+      "valor": "sandwiches"
+    },
+    {
+      "nombre": "🥟 Empanadas",
+      "tipo": "cocina",
+      "valor": "empanadas"
+    },
+    {
+      "nombre": "🍮 Postres",
+      "tipo": "cocina",
+      "valor": "postres"
+    }
+  ],
+  "preferencias": [
+    {
+      "nombre": "Vegetariano",
+      "tipo": "dieta",
+      "valor": "vegetariano"
+    }
+  ]
+}

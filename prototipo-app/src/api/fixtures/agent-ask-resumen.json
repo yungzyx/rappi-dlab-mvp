@@ -1,0 +1,30 @@
+{
+  "actions": [
+    {
+      "label": "Revisar y pagar",
+      "route": [
+        "checkout"
+      ]
+    }
+  ],
+  "age_notice": false,
+  "conversation": null,
+  "intent": {
+    "concepts": [],
+    "confidence": 1.0,
+    "follow_up": false,
+    "kind": "resumen",
+    "occasion": null,
+    "price_max": null,
+    "query": "",
+    "symptom": false,
+    "vertical": null
+  },
+  "products": [],
+  "reason": null,
+  "request_id": "contrato-agent-ask-resumen",
+  "stores": [],
+  "tags": [],
+  "text": "Este es el resumen de tu pedido antes de pagar 🧾. Revísalo y paga en el checkout: yo nunca hago el pedido por ti.",
+  "unmet": false
+}

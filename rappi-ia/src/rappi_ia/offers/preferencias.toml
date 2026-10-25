@@ -1,0 +1,136 @@
+# Preferencias explícitas que el agente recuerda (tabla `agent_preferences`, migración 045). Las opciones de dieta y
+# alergias son datos: agregar una es escribirla aquí. offers/preferences.py las valida al cargar.
+#
+# Una dieta o alergia solo filtra lo que el agente muestra (respuestas, sugerencias y ofertas), y solo en lo que es
+# comida (los grupos de `comida`, los platos y lo que no tiene concepto). Nunca es la razón de una oferta y no entra a
+# segmentos, perfiles, motor ni panel. Como se filtra por el nombre, el agente lo dice al mostrar comida: hay que
+# revisar los ingredientes en la tienda.
+#
+# - `tipo`: dieta o alergia (las intolerancias van como alergia, como en la app de Rappi).
+# - `nombre`: cómo se muestra («Vegetariano»); `sin`: lo que el agente dice que saca («carne»).
+# - `frases`: cómo se dice por chat, sin tildes ni mayúsculas, al comienzo del mensaje («soy vegetariano»). Con «ya no»
+#   delante, se quita.
+# - `conceptos`: lo de esos conceptos sale, salvo que el nombre diga `salvo`.
+# - `palabras`: lo que tiene una de esas palabras (o frases) en el nombre sale, salvo que el nombre diga `salvo`. Se
+#   comparan enteras y sin tildes ni ñ («mani» es «maní»).
+# - `salvo`: expresión regular sobre el nombre sin tildes ni ñ: lo que la calza queda («Pizza vegetariana»).
+#
+# No está la dieta kosher de la app de Rappi: ningún nombre del catálogo lo dice, así que filtrar sería no mostrar nada.
+
+# Los grupos de la taxonomía (concepts/taxonomy.toml) que son comida, y las cocinas que se pueden marcar como favoritas
+# (conceptos de comida preparada, como las opciones de la app de Rappi: sushi, pizza, poke, mexicana, postres…).
+grupos_comida = ["alcohol", "bebidas", "snacks", "dulces", "despensa", "frescos", "comida"]
+cocinas = [
+    "sushi", "pizza", "hamburguesa", "ensaladas-bowls", "mexicana", "peruana", "asiatica", "arabe", "latina",
+    "sandwiches", "empanadas", "postres",
+]
+
+[[preferencia]]
+id = "vegetariano"
+tipo = "dieta"
+nombre = "Vegetariano"
+sin = "carne"
+frases = ["soy vegetariano", "soy vegetariana", "no como carne", "no como carnes", "no como nada de carne"]
+conceptos = ["carnes", "pollo", "pescados-mariscos", "fiambres", "pollo-preparado", "hamburguesa"]
+palabras = [
+    "carne", "carnes", "vacuno", "cerdo", "chancho", "pollo", "pavo", "jamon", "tocino", "bacon", "salame", "salami",
+    "chorizo", "longaniza", "prieta", "salchicha", "salchichas", "vienesa", "vienesas", "pepperoni", "peperoni", "pino",
+    "lomo", "lomito", "filete", "churrasco", "mechada", "costilla", "costillas", "costillar", "pernil", "asado",
+    "parrillada", "plateada", "panceta", "hamburguesa", "nuggets", "alitas", "chicken", "beef", "pork", "atun", "salmon",
+    "pescado", "reineta", "merluza", "congrio", "camaron", "camarones", "marisco", "mariscos", "pulpo", "calamar",
+    "kanikama", "surimi", "ebi", "anchoa", "anchoas", "sardina", "sardinas", "jurel", "chacarero", "barros luco",
+    "completo", "hot dog", "choripan", "anticucho", "anticuchos", "chorrillana", "shawarma", "kebab", "carnitas",
+    "al pastor", "gallina", "ternera", "cordero", "ceviche",
+]
+salvo = '\b(?:vegetarian[oa]s?|vegan[oa]s?|veggies?|vegetal|sin carne|plant based)\b'
+
+[[preferencia]]
+id = "vegano"
+tipo = "dieta"
+nombre = "Vegano"
+sin = "carne, lácteos, huevo y miel"
+frases = ["soy vegano", "soy vegana"]
+conceptos = [
+    "carnes", "pollo", "pescados-mariscos", "fiambres", "pollo-preparado", "hamburguesa", "lacteos", "quesos", "huevos",
+]
+palabras = [
+    "carne", "carnes", "vacuno", "cerdo", "chancho", "pollo", "pavo", "jamon", "tocino", "bacon", "salame", "salami",
+    "chorizo", "longaniza", "prieta", "salchicha", "salchichas", "vienesa", "vienesas", "pepperoni", "peperoni", "pino",
+    "lomo", "lomito", "filete", "churrasco", "mechada", "costilla", "costillas", "costillar", "pernil", "asado",
+    "parrillada", "plateada", "panceta", "hamburguesa", "nuggets", "alitas", "chicken", "beef", "pork", "atun", "salmon",
+    "pescado", "reineta", "merluza", "congrio", "camaron", "camarones", "marisco", "mariscos", "pulpo", "calamar",
+    "kanikama", "surimi", "ebi", "anchoa", "anchoas", "sardina", "sardinas", "jurel", "chacarero", "barros luco",
+    "completo", "hot dog", "choripan", "anticucho", "anticuchos", "chorrillana", "shawarma", "kebab", "carnitas",
+    "al pastor", "gallina", "ternera", "cordero", "ceviche",
+    "leche", "queso", "quesos", "quesillo", "crema", "mantequilla", "yogur", "yogurt", "yoghurt", "huevo", "huevos",
+    "miel", "manjar", "mayonesa", "cheese", "mozzarella", "parmesano", "gouda", "ricota", "nata", "chantilly",
+    "tres leches",
+]
+salvo = '\b(?:vegan[oa]s?|vegetal|plant based|sin lacteos|de almendras?|de avena|de soya|de soja|de coco|de arroz)\b'
+
+[[preferencia]]
+id = "mani"
+tipo = "alergia"
+nombre = "Alergia al maní"
+sin = "maní"
+frases = [
+    "no como mani", "soy alergico al mani", "soy alergica al mani", "tengo alergia al mani", "alergia al mani",
+    "alergico al mani", "alergica al mani",
+]
+palabras = ["mani", "manies", "cacahuate", "cacahuete", "peanut", "peanuts", "snickers"]
+salvo = '\bsin mani\b'
+
+[[preferencia]]
+id = "mariscos"
+tipo = "alergia"
+nombre = "Alergia a los mariscos"
+sin = "mariscos"
+frases = [
+    "no como mariscos", "soy alergico a los mariscos", "soy alergica a los mariscos", "tengo alergia a los mariscos",
+    "alergia a los mariscos", "alergico a los mariscos", "alergica a los mariscos", "alergia a mariscos",
+]
+palabras = [
+    "marisco", "mariscos", "camaron", "camarones", "langostino", "langostinos", "jaiba", "jaibas", "centolla",
+    "langosta", "ostion", "ostiones", "ostra", "ostras", "chorito", "choritos", "mejillon", "mejillones", "almeja",
+    "almejas", "macha", "machas", "locos", "calamar", "calamares", "pulpo", "ebi", "kanikama", "paila marina",
+    "ceviche mixto",
+]
+salvo = '\bsin mariscos\b'
+
+[[preferencia]]
+id = "gluten"
+tipo = "alergia"
+nombre = "Sin gluten"
+sin = "gluten"
+frases = [
+    "soy celiaco", "soy celiaca", "no como gluten", "soy intolerante al gluten", "intolerante al gluten",
+    "tengo intolerancia al gluten", "alergia al gluten", "soy alergico al gluten", "soy alergica al gluten",
+]
+conceptos = [
+    "panaderia", "pastas", "galletas", "pasteleria", "pizza", "empanadas", "sandwiches", "hamburguesa", "cerveza",
+    "cereales", "reposteria", "barras-cereal",
+]
+palabras = [
+    "trigo", "harina", "pan", "panes", "pancito", "galleta", "galletas", "galleton", "galletones", "fideo", "fideos",
+    "tallarin", "tallarines", "spaghetti", "espagueti", "lasana", "ravioles", "noquis", "pasta", "pastas", "empanada",
+    "empanadas", "pizza", "pizzas", "cerveza", "cervezas", "queque", "torta", "tortas", "kuchen", "berlin", "croissant",
+    "medialuna", "sandwich", "sandwiches", "marraqueta", "hallulla", "baguette", "cebada", "centeno", "apanado",
+    "apanada", "tempura", "churros", "sopaipilla", "sopaipillas", "wrap", "brownie", "muffin", "panqueques",
+]
+salvo = '\b(?:sin gluten|libre de gluten|gluten free|celiac[oa]s?|sin tacc)\b'
+
+[[preferencia]]
+id = "lactosa"
+tipo = "alergia"
+nombre = "Sin lactosa"
+sin = "lactosa"
+frases = [
+    "soy intolerante a la lactosa", "intolerante a la lactosa", "tengo intolerancia a la lactosa", "no tomo leche",
+    "no puedo tomar leche", "alergia a la lactosa",
+]
+conceptos = ["lacteos", "quesos", "helados"]
+palabras = [
+    "leche", "queso", "quesos", "quesillo", "crema", "mantequilla", "yogur", "yogurt", "yoghurt", "manjar", "helado",
+    "helados", "cheese", "mozzarella", "parmesano", "gouda", "ricota", "nata", "chantilly", "tres leches", "milkshake",
+]
+salvo = '\b(?:sin lactosa|deslactosad[oa]s?|libre de lactosa|lactose free|0 lactosa|vegetal|vegan[oa]s?|de almendras?|de avena|de soya|de soja|de coco|de arroz)\b'

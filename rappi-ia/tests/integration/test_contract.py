@@ -91,6 +91,18 @@ CONTRACT: tuple[Example, ...] = (
         "/agent/ask",
         {"message": "pizza", "vertical": "restaurants", "user_id": "u-contrato", "session_id": "s-contrato"},
     ),
+    # Lo que Mochi sabe hacer (atajos de capacidades, sin salud), el resumen antes de pagar (lo arma la app con su
+    # carro), el último pedido (la app lo muestra con su seguimiento) y una preferencia dicha por chat.
+    Example("agent-ask-ayuda", "POST", "/agent/ask", {"message": "¿qué puedes hacer?", "user_id": "u-contrato"}),
+    Example("agent-ask-resumen", "POST", "/agent/ask", {"message": "quiero pagar", "user_id": "u-contrato"}),
+    Example("agent-ask-pedido", "POST", "/agent/ask", {"message": "¿dónde viene mi pedido?", "user_id": "u-contrato"}),
+    Example(
+        "agent-ask-preferencia",
+        "POST",
+        "/agent/ask",
+        {"message": "soy vegetariano", "user_id": "u-contrato", "session_id": "s-contrato"},
+    ),
+    Example("profile-preferencias", "GET", "/profile/u-contrato/preferencias", after="agent-ask-preferencia"),
     Example("recommendations", "GET", "/recommendations?user_id=u-contrato&vertical=restaurants"),
     Example("agent-plans", "GET", "/agent/plans"),
     Example("agent-plans-afin", "GET", "/agent/plans?user_id=u-afin"),

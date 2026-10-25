@@ -13,7 +13,7 @@ Lo que hace:
 
 import re
 import unicodedata
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 
 from psycopg import Connection
 
@@ -21,6 +21,7 @@ from ..concepts.assign import concept_matcher
 from ..concepts.matcher import KeywordMatcher, Match
 from ..concepts.taxonomy import load_taxonomy
 from ..offers.guards import is_offerable
+from ..offers.preferences import Command, load_options, read_command
 from ..text import GREETING_WORDS, REQUEST_WORDS, THANKS_WORDS, assistant_words, normalize
 from .glossary import load_glossary
 from .verticals import contending_verticals, ranked_verticals
@@ -153,7 +154,43 @@ APP_QUESTIONS = {
     "ofertas": ["ofertas", "tienen ofertas", "hay ofertas", "descuentos", "promociones", "promos"],
     # Remedios de enfermedades crónicas: son con receta, no se buscan. «La presión» sí: hay tensiómetros.
     "receta": ["hipertension", "diabetes", "colesterol", "tiroides"],
-    # Un pedido en curso (estado, cancelar, reclamo): se resuelve en «Mis pedidos», no es demanda no atendida.
+    # El resumen del carro antes de pagar: la app lo arma y lleva al checkout (Mochi nunca hace el pedido solo).
+    "resumen": [
+        "resumen de mi pedido",
+        "resumen del pedido",
+        "resumen de mi carro",
+        "resumen del carro",
+        "resumen de mi carrito",
+        "resumen del carrito",
+        "resumen de la compra",
+        "resumen de mi compra",
+        "que llevo en el carro",
+        "que llevo en mi carro",
+        "que tengo en el carro",
+        "que tengo en mi carro",
+        "que hay en mi carro",
+        "ver mi carro",
+        "ver mi carrito",
+        "revisar mi carro",
+        "cuanto llevo",
+        "cuanto va mi carro",
+        "quiero pagar",
+        "ir a pagar",
+        "como pago",
+        "finalizar compra",
+        "finalizar la compra",
+        "finalizar pedido",
+        "terminar la compra",
+        "terminar el pedido",
+        "cerrar el pedido",
+        "confirmar pedido",
+        "confirmar el pedido",
+        "hacer el pedido",
+        "haz el pedido",
+        "pide por mi",
+    ],
+    # Un pedido en curso (estado, cancelar, reclamo): la app muestra el último y lleva a su seguimiento; cancelar o un
+    # reclamo se resuelve en «Mis pedidos». No es demanda no atendida.
     "pedido": [
         "mi pedido",
         "el pedido",
@@ -392,6 +429,7 @@ GOES_WITH = re.compile(
 class Intent:
     # saludo | gracias | ayuda | envio | ofertas | fuera | pedido | receta | memoria | buscar | ocasion | aclarar
     # | servicio | vacio | consejo (consejo médico) | que_es (ficha de un plato) | acompanar (con qué acompañar algo)
+    # | resumen (el carro antes de pagar) | preferencia (dieta, alergias y favoritas: offers/preferences.py)
     kind: str
     text: str
     vertical: str | None = None
@@ -411,6 +449,7 @@ class Intent:
     exclude_previous: bool = False  # «de otra marca», «otras opciones»: sin lo que ya se mostró
     people: int | None = None  # para cuántas personas («asado de 6»)
     dish: str | None = None  # ficha del glosario («¿qué es un poke?»)
+    preference: Command | None = None  # lo que pidió sobre sus preferencias («soy vegetariano»)
 
 
 class Understander:
@@ -447,6 +486,10 @@ class Understander:
             return Intent("saludo", text, current_vertical, confidence=1.0)
         if words <= THANKS_WORDS | GREETING_WORDS | names and words & THANKS_WORDS:
             return Intent("gracias", text, current_vertical, confidence=1.0)
+        # Antes que la memoria: «olvida mis preferencias» no es «olvida todo».
+        preference = self._preference(text)
+        if preference:
+            return Intent("preferencia", text, current_vertical, confidence=1.0, preference=preference)
         if self.memory_questions.best(normalized):
             return Intent("memoria", text, current_vertical, confidence=1.0)
 
@@ -552,6 +595,19 @@ class Understander:
         if len(pair) == 2 and "restaurantes" in pair and _comparable(conn, concepts[0], pair):
             return Intent("aclarar", text, None, concepts, options=pair, **common)
         return Intent(kind, text, options[0] if options else self._home(concepts[0]), concepts, **common)
+
+    def _preference(self, text: str) -> Command | None:
+        """«soy vegetariano», «no como maní», «mi comida favorita es el sushi», «muéstrame mis preferencias»: lo que la
+        persona dice de sí misma (offers/preferences.py). Una cocina se lee con los conceptos (solo las de comida); si
+        no nombra ninguna, el mensaje es un pedido como cualquier otro."""
+        command = read_command(text)
+        if command is None or command.cuisine_text is None:
+            return command
+        cuisines = load_options().cuisines
+        said = command.cuisine_text
+        named = [m.target for m in (*self.concepts.matches(said), *self.concepts.matches(f"comida {said}"))]
+        found = [c for c in dict.fromkeys(named) if c in cuisines]
+        return replace(command, items=tuple(("cocina", c) for c in found), cuisine_text=None) if found else None
 
     def _question(self, said: str, current_vertical: str | None) -> Intent | None:
         """Las preguntas que no son un pedido: consejo médico, la ficha de un plato o con qué acompañar algo."""

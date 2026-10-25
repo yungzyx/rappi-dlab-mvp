@@ -25,8 +25,8 @@ AGE_NOTICE = "Recuerda: estos productos se venden solo a mayores de 18."
 class Draft:
     """Los hechos de la respuesta, ya decididos por el código."""
 
-    # saludo | gracias | ayuda | envio | ofertas | fuera | pedido | receta | memoria | resultados | sin_resultado
-    # | sin_precio | aclarar | vacio
+    # saludo | gracias | ayuda | envio | ofertas | fuera | pedido | resumen | receta | memoria | resultados
+    # | sin_resultado | sin_precio | aclarar | vacio
     kind: str
     query: str = ""
     concept_label: str | None = None
@@ -63,11 +63,17 @@ class TemplateComposer:
             return f"¡Hola! Soy {config.AGENT_NAME} 🧡.{extra} ¿Qué se te antoja hoy?"
         if d.kind == "gracias":
             return "¡De nada! Aquí estoy si necesitas algo más 🧡"
-        if d.kind == "ayuda":
+        if d.kind == "ayuda" and not d.learns:
             return (
                 f"Soy {config.AGENT_NAME} 🧡, tu asistente en Rappi. Pídeme lo que necesites («pañales talla G», "
-                "«algo de sushi», «tengo fiebre») y te muestro lo que hay, aunque esté en otra vertical. "
-                "También te llevo a RappiTravel o RappiFavor."
+                "«algo de sushi», «una once para 4») y te muestro lo que hay, aunque esté en otra vertical."
+            )
+        if d.kind == "ayuda":
+            return (
+                f"Soy {config.AGENT_NAME} 🧡, tu asistente en Rappi. Puedo repetir lo de siempre, armarte un kit o "
+                "mostrarte algo para ti. Pídeme lo que necesites («pañales talla G», «algo de sushi», «una once "
+                "para 4») y te muestro lo que hay, aunque esté en otra vertical. También recuerdo tu dieta y tus "
+                "alergias, y te llevo a RappiTravel o RappiFavor."
             )
         if d.kind == "envio":
             return (
@@ -81,8 +87,8 @@ class TemplateComposer:
             )
         if d.kind == "memoria":
             return (
-                "Recuerdo tus gustos por tema para recomendarte mejor, y lo que buscas por un tiempo. Cuando tengo "
-                "algo aprendido, en mi panel aparece «Olvidar»: lo borra todo 🔒."
+                "Recuerdo tus gustos por tema para recomendarte mejor, lo que buscas por un tiempo y las preferencias "
+                "que me digas (dieta, alergias, favoritas). En mi panel, «Olvidar» lo borra todo 🔒."
             )
         if d.kind == "receta":
             return (
@@ -91,8 +97,13 @@ class TemplateComposer:
             )
         if d.kind == "pedido":
             return (
-                "Lo de un pedido en camino (dónde viene, cancelarlo o un reclamo) lo ves en «Mis pedidos» de la app, "
-                "con el chat de soporte 🛵. Yo te ayudo a encontrar qué pedir."
+                "Tu pedido lo sigues en «Mis pedidos» 🛵: ahí ves dónde viene y, para cancelarlo o un reclamo, está el "
+                "chat de soporte."
+            )
+        if d.kind == "resumen":
+            return (
+                "Este es el resumen de tu pedido antes de pagar 🧾. Revísalo y paga en el checkout: yo nunca hago el "
+                "pedido por ti."
             )
         if d.kind == "fuera":
             return "De eso no sé mucho 🧡, lo mío es ayudarte a pedir. ¿Se te antoja algo? Comida, súper, farmacia…"
