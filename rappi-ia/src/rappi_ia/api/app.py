@@ -341,6 +341,7 @@ class OrderIn(Clean):
     vertical: str = Field(max_length=64)
     lines: list[OrderLineIn] = Field(min_length=1, max_length=100)
     mode: Literal["propuesta", "actual"] = "propuesta"  # en «Rappi hoy» (actual) el pedido no entra al perfil
+    pro: bool | None = None  # si la persona es Rappi Pro en la app (app_users.pro); sin él, no cambia
 
 
 # ── Agente ──────────────────────────────────────────────────────────────────
@@ -686,12 +687,23 @@ def post_order(
     vertical = backend_vertical(body.vertical)
     if vertical is None:  # un pedido es de una tienda: sin vertical del catálogo no se puede guardar
         raise HTTPException(400, f"Vertical desconocido: {body.vertical}")
+    # Un pedido es de una tienda: un carro con dos restaurantes son dos pedidos (la app manda uno por tienda).
+    if len({line.store_id for line in body.lines if line.store_id is not None}) > 1:
+        raise HTTPException(400, "Un pedido es de una sola tienda")
     lines, skipped = events.catalog_prices(conn, [line.model_dump() for line in body.lines])
     if not lines:  # sin decir cuál: la respuesta no sirve para sondear el catálogo
         raise HTTPException(400, "Producto no disponible")
     try:
         order_id = events.record_order(
-            conn, body.user_id, body.session_id, body.cart_id, vertical, lines, source="prototype", mode=body.mode
+            conn,
+            body.user_id,
+            body.session_id,
+            body.cart_id,
+            vertical,
+            lines,
+            source="prototype",
+            mode=body.mode,
+            pro=body.pro,
         )
     except ValueError as exc:  # un usuario de otra fuente (simulado)
         raise rejected(exc, body.user_id) from exc

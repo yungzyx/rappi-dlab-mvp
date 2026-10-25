@@ -139,3 +139,12 @@ test('las personas del panel piden lo que lo destacado mostraría: un plato prin
   )
   expect(history.orders.map((o) => o.lines[0].entity_id)).toEqual(['63', '66'])
 })
+
+test('cada persona trae su marca Rappi Pro, coherente con lo que pide: quien combina verticales es Pro', () => {
+  const all = personas(snapshot)
+  all.forEach((p) => expect(typeof p.pro).toBe('boolean'))
+  expect(persona('nueva').pro).toBe(false)
+  expect(persona('restaurantes').pro).toBe(false)
+  expect(persona('rest-turbo').pro).toBe(true)
+  expect(persona('todo').pro).toBe(true)
+})

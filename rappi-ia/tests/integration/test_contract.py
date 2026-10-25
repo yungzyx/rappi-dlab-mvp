@@ -80,6 +80,7 @@ CONTRACT: tuple[Example, ...] = (
     Example("catalog-menu", "GET", "/catalog/restaurants/9801/menu"),
     Example("catalog-deals", "GET", "/catalog/deals"),
     Example("catalog-home", "GET", "/catalog/home"),
+    Example("catalog-terms", "GET", "/catalog/terms?stores=9101,9102,9201,9301,9801"),
     Example("search-grouped", "GET", "/search?q=cerveza"),
     Example("search-grouped-unmet", "GET", "/search?q=xyzzy"),
     Example("search-grouped-corrected", "GET", "/search?q=cervezaaaa"),

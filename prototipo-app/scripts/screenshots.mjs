@@ -138,7 +138,27 @@ async function run(page) {
   await tap('.cart-checkout')
   await wait(800)
   await shot('25-checkout')
+  // La compra mínima de la tienda: más unidades del producto hasta llegar («Te faltan $X para hacer el pedido»).
+  const short = page.locator('.checkout-basket:has(.basket-min.is-short)')
+  for (let tries = 0; tries < 60 && (await short.count()) > 0; tries++) {
+    await short
+      .first()
+      .getByRole('button', { name: /^Agregar uno de / })
+      .first()
+      .click()
+    await wait(100)
+  }
   await tap('.checkout-place')
+  // Un producto +18 pregunta la edad una vez por sesión; después, la ventana de «Deshacer pedido» (5 s).
+  const adult = page.getByRole('button', { name: 'Sí, soy mayor de edad' })
+  if (
+    await adult.waitFor({ timeout: 2000 }).then(
+      () => true,
+      () => false,
+    )
+  )
+    await adult.click()
+  await wait(5500)
   await wait(13000)
   await shot('26-seguimiento')
   await wait(10000) // el pedido llega

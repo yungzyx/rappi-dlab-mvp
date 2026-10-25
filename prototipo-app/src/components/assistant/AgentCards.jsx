@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { DEFAULT_TIP, priceBreakdown } from '../../screens/checkout/pricing'
+import { useCartPricing } from '../../screens/checkout/useCartPricing'
 import { flowFor, isDelivered, minutesLeft, stepAt } from '../../screens/tracking/progress'
 import { formatPrice, lineKey, parsePrice, useCart } from '../../state/CartContext'
 import { useOrders } from '../../state/OrdersContext'
@@ -10,18 +10,23 @@ const SHOWN_LINES = 4
 
 /**
  * El resumen del pedido antes de pagar, con el carro de ahora: productos, envío, tarifa, propina, total y tiempo,
- * calculados como en el checkout (`priceBreakdown`, con la propina de siempre). Solo se revisa: el pedido se hace en el
- * checkout, nunca desde aquí.
+ * calculados como en el checkout (`useCartPricing`: por tienda, con Pro y la propina de siempre; sin cupón ni créditos,
+ * que se eligen en el pago). Solo se revisa: el pedido se hace en el checkout, nunca desde aquí.
  */
 export function OrderSummaryCard() {
   const cart = useCart()
   if (!cart.count) return <p className="agent-card-note">Tu carro está vacío: agrega algo y te armo el resumen.</p>
-  const price = priceBreakdown({ subtotal: cart.total, tip: DEFAULT_TIP, pickup: false })
-  const more = cart.items.length - SHOWN_LINES
+  return <OrderSummary items={cart.items} />
+}
+
+function OrderSummary({ items }) {
+  const { totals: price, priced } = useCartPricing(items)
+  const short = price.short[0]
+  const more = items.length - SHOWN_LINES
   return (
     <section className="agent-summary" aria-label="Resumen del pedido">
       <ul className="agent-summary-lines">
-        {cart.items.slice(0, SHOWN_LINES).map(({ product, qty }) => (
+        {items.slice(0, SHOWN_LINES).map(({ product, qty }) => (
           <li key={lineKey(product)}>
             <span>
               {qty} × {product.name}
@@ -33,14 +38,23 @@ export function OrderSummaryCard() {
       </ul>
       <dl className="agent-summary-rows">
         <Row label="Productos" value={formatPrice(price.subtotal)} />
-        <Row label="Envío" value={price.delivery === 0 ? 'Gratis con Pro' : formatPrice(price.delivery)} />
+        <Row
+          label={priced.length > 1 ? `Envío (${priced.length} pedidos)` : 'Envío'}
+          value={price.delivery === 0 ? 'Gratis con Pro' : formatPrice(price.delivery)}
+        />
         <Row label="Tarifa de servicio" value={formatPrice(price.service)} />
         <Row label="Propina" value={formatPrice(price.tip)} />
         <Row label="Total" value={formatPrice(price.total)} total />
       </dl>
       <p className="agent-summary-eta">{ETA}</p>
+      {short && (
+        <p className="agent-summary-note">
+          Te faltan {formatPrice(short.missing)} para hacer el pedido en {short.store || 'la tienda'}.
+        </p>
+      )}
       <p className="agent-summary-note">
-        Envío, tarifa, propina y tiempo son de ejemplo. Nada se pide hasta que lo confirmes en el pago.
+        Lo que el catálogo no trae del envío y la tarifa, la propina y el tiempo son de ejemplo; los créditos y cupones
+        se eligen en el pago. Nada se pide hasta que lo confirmes ahí.
       </p>
     </section>
   )

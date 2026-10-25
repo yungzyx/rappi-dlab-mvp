@@ -134,3 +134,68 @@
   color: var(--ink-2);
   text-decoration: underline;
 }
+
+/* ---------- Canastas por tienda (un pedido por tienda) ---------- */
+.cart-split {
+  margin: 4px 0 6px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: var(--chip);
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.cart-basket {
+  padding-top: 12px;
+}
+
+.cart-basket-store {
+  font-size: 16px;
+  font-weight: 700;
+}
+
+/* La compra mínima de una tienda (components/BasketMinimum.jsx): también en el checkout */
+.basket-min {
+  margin: 6px 0 2px;
+  font-size: 13.5px;
+  color: var(--ink-2);
+}
+
+.basket-min p {
+  margin-top: 4px;
+}
+
+.basket-min.is-short p {
+  color: var(--accent-ink);
+  font-weight: 600;
+}
+
+.basket-min.is-none {
+  color: var(--green-deep);
+  font-weight: 600;
+}
+
+.basket-min-basis {
+  color: var(--ink-2);
+  font-weight: 400;
+}
+
+.basket-min-bar {
+  display: block;
+  height: 6px;
+  border-radius: 99px;
+  background: var(--line);
+  overflow: hidden;
+}
+
+.basket-min-bar > span {
+  display: block;
+  height: 100%;
+  border-radius: 99px;
+  background: var(--green-deep);
+  transition: width var(--duration-fast);
+}
+
+.basket-min.is-short .basket-min-bar > span {
+  background: var(--accent-ink);
+}

@@ -61,6 +61,15 @@ _STORES = {
 _OLD_BRANCH = (9103, "Supermercado de prueba Sur (corrida anterior)")
 _DISCOVERED_BRANCH = (9104, "Supermercado de prueba Poniente (solo descubierta)")
 
+# Condiciones de compra que Rappi guarda en el `raw` de algunas tiendas (catalog/terms.py), además del `delivery_price`
+# de todas: la 9101 «sin mínimo»; la 9102 con compra mínima y tarifa de servicio; la express 9201 con el envío de
+# `charges`, que manda sobre `delivery_price`. Las demás no traen mínimo ni tarifa: la app pone su supuesto.
+_STORE_TERMS = {
+    9101: {"mov_value": 0},
+    9102: {"mov_value": 8490, "percentage_service_fee": 5},
+    9201: {"mov_value": 0, "charges": {"delivery": {"delivery_fee_charge": 1290}}},
+}
+
 # El punto fijo de la demo (Providencia, Santiago): las tiendas de prueba se reparten a unos kilómetros alrededor.
 _HOME = (config.MVP_HOME_LAT, config.MVP_HOME_LNG)
 
@@ -512,6 +521,7 @@ def _insert_store(
             "is_open": store_id not in _CLOSED_AT_DOWNLOAD,
             "next_schedule": _CLOSED_AT_DOWNLOAD.get(store_id),
             "offers": _STORE_OFFERS.get(store_id),
+            **_STORE_TERMS.get(store_id, {}),
         }
     elif vertical == "restaurantes":
         # Más cerca del punto fijo que cualquier tienda: «Cerca de ti» tiene que dejarlos fuera por ser restaurantes.

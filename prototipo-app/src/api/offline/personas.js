@@ -2,6 +2,8 @@
 // simulada), «+1 visita» para mover la Home y la lectura de la escalera. Solo existe en «Prototipo MVP.html».
 import { currentFine, NONE_COMBO, targetStep } from './motor'
 import { featuredProduct, offerableProduct } from './offers'
+import { PRO_KEY } from '../../state/pro'
+import { saveStored } from '../../state/storage'
 import { addEvents, readState, writeState } from './state'
 
 const DAY_MS = 86_400_000
@@ -25,30 +27,40 @@ const STOPPED_TURBO = [
 
 /**
  * Las personas del panel: con qué verticales pidió (`orders`, uno cada dos días, o `plan`: `[vertical, hace cuántos
- * días, clave]`, donde la misma clave repite el producto), qué abrió (`opens`) o qué perfil de gusto tiene.
+ * días, clave]`, donde la misma clave repite el producto), qué abrió (`opens`) o qué perfil de gusto tiene. `pro`: si es
+ * Rappi Pro (el checkout lo usa). Es coherente con lo que pide, como en los simulados (events/synth.py, PRO_SHARE): quien
+ * combina verticales o pide seguido es Pro; la nueva y quien pide en una sola, no.
  */
 export function personas(snapshot) {
   const tastes = Object.entries(snapshot.meta.profiles ?? {})
     .filter(([id]) => snapshot.tastes?.[id])
-    .map(([id, profile]) => ({ id: `gusto-${id}`, label: `${profile.emoji} ${profile.name}`, taste: id }))
+    .map(([id, profile]) => ({ id: `gusto-${id}`, label: `${profile.emoji} ${profile.name}`, taste: id, pro: true }))
   return [
-    { id: 'nueva', label: 'Nueva (sin historial)', orders: [] },
-    { id: 'restaurantes', label: 'Solo Restaurantes', orders: ['restaurantes'] },
-    { id: 'rest-turbo', label: 'Restaurantes + Turbo', orders: ['restaurantes', 'turbo'] },
+    { id: 'nueva', label: 'Nueva (sin historial)', orders: [], pro: false },
+    { id: 'restaurantes', label: 'Solo Restaurantes', orders: ['restaurantes'], pro: false },
+    { id: 'rest-turbo', label: 'Restaurantes + Turbo', orders: ['restaurantes', 'turbo'], pro: true },
     {
       id: 'rest-turbo-super',
       label: 'Restaurantes + Turbo + Súper',
       orders: ['restaurantes', 'turbo', 'supermercado'],
+      pro: true,
     },
-    { id: 'todo', label: 'Todo el catálogo', orders: ALL_CATALOG },
+    { id: 'todo', label: 'Todo el catálogo', orders: ALL_CATALOG, pro: true },
     {
       id: 'farmacia',
       label: 'Usa mucho Farmacia',
       orders: ['restaurantes', 'farmacia'],
       opens: Array.from({ length: 6 }, () => 'farmacia'),
+      pro: false,
     },
-    { id: 'volver-plato', label: 'Dejó de pedir su plato de siempre', plan: STOPPED_DISH, habit: HABIT_CONCEPTS },
-    { id: 'volver-turbo', label: 'Dejó Turbo hace 40 días', plan: STOPPED_TURBO },
+    {
+      id: 'volver-plato',
+      label: 'Dejó de pedir su plato de siempre',
+      plan: STOPPED_DISH,
+      habit: HABIT_CONCEPTS,
+      pro: true,
+    },
+    { id: 'volver-turbo', label: 'Dejó Turbo hace 40 días', plan: STOPPED_TURBO, pro: false },
     ...tastes,
   ]
 }
@@ -161,6 +173,8 @@ export function switchPersona(snapshot, persona) {
       // Sin almacenamiento no hay nada que borrar.
     }
   }
+  // Su marca Rappi Pro (state/pro.js), después de borrar la de la persona anterior.
+  saveStored(PRO_KEY, Boolean(persona.pro))
   // Sin el estado de la pantalla en que estaba (useNavigation lo lee antes que el hash): vuelve a la Home.
   window.history.replaceState(null, '', `${window.location.pathname}#/home`)
   window.location.reload()

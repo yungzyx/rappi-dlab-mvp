@@ -108,3 +108,27 @@ test('la calificación queda con su carro y el pedido guarda el suyo: con eso se
   expect(saved.orders[0].cart_id).toBe('c-1')
   expect(saved.events.find((e) => e.type === 'order_rated')).toMatchObject({ cart_id: 'c-1', payload: { stars: 2 } })
 })
+
+test('/catalog/terms sin conexión: el envío de los restaurantes grabados y null en lo demás; un pedido es de una tienda', () => {
+  const sample = {
+    ...snapshot,
+    catalog: {
+      ...snapshot.catalog,
+      menus: { 9801: { restaurant: { id: 9801, fee: '$1.490' }, sections: [] } },
+      stores: { 9101: { store: { id: 9101 }, aisles: [], pages: {} } },
+    },
+  }
+  const { body } = route(sample, {
+    method: 'GET',
+    path: '/catalog/terms',
+    query: new URLSearchParams('stores=9801,9101,1'),
+  })
+  expect(body.stores).toEqual([
+    { store_id: 9801, delivery_fee: 1490, min_order: null, service_pct: null },
+    { store_id: 9101, delivery_fee: null, min_order: null, service_pct: null },
+  ])
+  const line = (store_id) => ({ entity_type: 'catalog_item', entity_id: '1', store_id })
+  const order = { user_id: 'u', vertical: 'supermercado', lines: [line(9101), line(9102)] }
+  expect(call('POST', '/orders', order)).toMatchObject({ status: 400 })
+  expect(call('POST', '/orders', { ...order, lines: [line(9101), line(9101)] }).status ?? 200).toBe(200)
+})

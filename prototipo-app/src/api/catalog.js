@@ -184,3 +184,29 @@ export async function home() {
     lowFeeRestaurants: list(reply.low_fee_restaurants, 'envio-barato'),
   }
 }
+
+// Las condiciones de compra ya pedidas, por tienda (null = la API no la conoce): el carro y el checkout las leen sin
+// volver a pedirlas. Son datos del catálogo, no de la persona.
+const knownTerms = new Map()
+const TERMS_PER_REQUEST = 20 // api/catalog.py: hasta 20 tiendas por consulta
+
+/**
+ * Lo que el catálogo sabe de las condiciones de compra de cada tienda (`/catalog/terms`): `Map(storeId → { deliveryFee,
+ * minOrder, servicePct } | null)`. Cada dato puede ser null (el catálogo no lo trae): el checkout pone su supuesto.
+ */
+export async function storeTerms(storeIds) {
+  const missing = [...new Set(storeIds)].filter((id) => !knownTerms.has(id))
+  for (let i = 0; i < missing.length; i += TERMS_PER_REQUEST) {
+    const chunk = missing.slice(i, i + TERMS_PER_REQUEST)
+    const reply = await read('/catalog/terms', { stores: chunk.join(',') })
+    const found = new Map(reply.stores.map((t) => [t.store_id, t]))
+    for (const id of chunk) {
+      const t = found.get(id)
+      knownTerms.set(id, t ? { deliveryFee: t.delivery_fee, minOrder: t.min_order, servicePct: t.service_pct } : null)
+    }
+  }
+  return new Map(storeIds.map((id) => [id, knownTerms.get(id) ?? null]))
+}
+
+/** Solo para los tests: olvida las condiciones ya pedidas. */
+export const forgetStoreTerms = () => knownTerms.clear()

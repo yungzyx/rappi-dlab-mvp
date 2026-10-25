@@ -3,7 +3,9 @@
 //   sin banderas: la app abre en la Home conectada, con la barra «Busca o pídele ideas a <agente>» y el aviso de privacidad
 //     de la primera visita (que se cierra con «Entendido»);
 //   con --shop: Home → vertical Súper → primera tienda → agregar un producto → carrito → pagar, y la API recibe el
-//     pedido (que después verifica scripts/mvp-check.sh en la base de prueba);
+//     pedido (que después verifica scripts/mvp-check.sh en la base de prueba). Al pagar (aquí y en --kit y --combo)
+//     completa la compra mínima de cada tienda, confirma la edad si hay algo +18 y espera la ventana de «Deshacer
+//     pedido» (payOrder);
 //   con --kit: busca «cerveza» en el buscador con Mochi (ve la búsqueda agrupada por vertical), vuelve a la Home, elige
 //     la ocasión «Carrete», agrega el kit que arma Mochi (`plan`) y paga; scripts/mvp-check.sh verifica después en la base
 //     de prueba que el pedido tiene líneas sembradas y al menos una aceptación `agent-plan`;
@@ -93,6 +95,46 @@ function watchProblems(page) {
   return problems
 }
 
+/**
+ * En el checkout: completa la compra mínima de cada tienda que no llega («Te faltan $X para hacer el pedido»: suma
+ * unidades del primer producto de esa canasta), marca la receta si hay Farmacia, toca «Hacer pedido», responde
+ * «¿Eres mayor de edad?» si hay algo +18 y espera a que, pasada la ventana de «Deshacer pedido», la API reciba los
+ * pedidos (uno por tienda).
+ */
+async function payOrder(page) {
+  const place = page.getByRole('button', { name: /^Hacer pedido/ })
+  await step(page, 'ver el botón de pagar', () => place.waitFor())
+  const short = page.locator('.checkout-basket:has(.basket-min.is-short)')
+  await step(page, 'completar la compra mínima de cada tienda', async () => {
+    for (let tries = 0; tries < 60 && (await short.count()) > 0; tries++) {
+      await short
+        .first()
+        .getByRole('button', { name: /^Agregar uno de / })
+        .first()
+        .click()
+      await page.waitForTimeout(100)
+    }
+    if ((await short.count()) > 0) throw new Error('una tienda sigue bajo su compra mínima')
+  })
+  const prescription = page.getByLabel(/Tengo la receta médica/)
+  if (await prescription.count()) await step(page, 'marcar la receta', () => prescription.check())
+  const posted = page.waitForResponse((r) => r.request().method() === 'POST' && new URL(r.url()).pathname === '/orders')
+  await step(page, 'tocar «Hacer pedido»', () => place.click())
+  // Con algo +18 aparece la pregunta de la edad (una vez por sesión); si no aparece, el pedido ya va en camino.
+  const adult = page.getByRole('button', { name: 'Sí, soy mayor de edad' })
+  if (
+    await adult.waitFor({ timeout: 2000 }).then(
+      () => true,
+      () => false,
+    )
+  )
+    await step(page, 'confirmar la edad', () => adult.click())
+  const response = await posted.catch(() => {
+    throw new Error('la app no mandó el pedido a la API (POST /orders)')
+  })
+  if (!response.ok()) throw new Error(`la API rechazó el pedido (POST /orders → ${response.status()})`)
+}
+
 /** Recorre una compra real contra el catálogo de prueba. Los textos son los de la app (Súper, Ver carro, Hacer pedido). */
 async function checkShop(page) {
   await checkOnline(page)
@@ -119,14 +161,7 @@ async function checkShop(page) {
   await step(page, 'agregar un producto', () => product.click())
   await step(page, 'abrir el carrito', () => page.getByRole('button', { name: /Ver carro/ }).click())
   await step(page, 'ir a pagar', () => page.getByRole('button', { name: 'Ir a pagar' }).click())
-  const place = page.getByRole('button', { name: /^Hacer pedido/ })
-  await step(page, 'ver el botón de pagar', () => place.waitFor())
-  const posted = page.waitForResponse((r) => r.request().method() === 'POST' && new URL(r.url()).pathname === '/orders')
-  await place.click()
-  const response = await posted.catch(() => {
-    throw new Error('la app no mandó el pedido a la API (POST /orders)')
-  })
-  if (!response.ok()) throw new Error(`la API rechazó el pedido (POST /orders → ${response.status()})`)
+  await payOrder(page)
   return `compró en «${store}» y la API aceptó el pedido`
 }
 
@@ -167,14 +202,7 @@ async function checkKit(page) {
   accepted.catch(() => {}) // si no llega, falla abajo con su propio mensaje
   await step(page, 'agregar el kit', () => page.getByRole('button', { name: /^Agregar el kit/ }).click())
   await step(page, 'ir a pagar', () => page.getByRole('button', { name: /Ir a pagar/ }).click())
-  const place = page.getByRole('button', { name: /^Hacer pedido/ })
-  await step(page, 'ver el botón de pagar', () => place.waitFor())
-  const posted = page.waitForResponse((r) => r.request().method() === 'POST' && new URL(r.url()).pathname === '/orders')
-  await place.click()
-  const response = await posted.catch(() => {
-    throw new Error('la app no mandó el pedido a la API (POST /orders)')
-  })
-  if (!response.ok()) throw new Error(`la API rechazó el pedido (POST /orders → ${response.status()})`)
+  await payOrder(page)
   await accepted.catch(() => {
     throw new Error('la app no registró la aceptación del kit (POST /events con suggestion_accepted)')
   })
@@ -282,14 +310,7 @@ async function checkCombo(page) {
   await step(page, 'agregar un plato', () => dish.click())
   await step(page, 'abrir el carrito', () => page.getByRole('button', { name: /Ver carro/ }).click())
   await step(page, 'ir a pagar', () => page.getByRole('button', { name: 'Ir a pagar' }).click())
-  const place = page.getByRole('button', { name: /^Hacer pedido/ })
-  await step(page, 'ver el botón de pagar', () => place.waitFor())
-  const posted = page.waitForResponse((r) => r.request().method() === 'POST' && new URL(r.url()).pathname === '/orders')
-  await place.click()
-  const response = await posted.catch(() => {
-    throw new Error('la app no mandó el pedido a la API (POST /orders)')
-  })
-  if (!response.ok()) throw new Error(`la API rechazó el pedido (POST /orders → ${response.status()})`)
+  await payOrder(page)
 
   await page.reload({ timeout: TIMEOUT_MS })
   // La app vuelve a donde estaba (el seguimiento del pedido): «Volver al inicio» o la flecha de atrás, las veces que haga falta, llevan a la Home.

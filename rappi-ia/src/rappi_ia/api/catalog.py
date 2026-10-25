@@ -14,7 +14,8 @@ from ..catalog.deals import deals
 from ..catalog.for_you import store_for_you
 from ..catalog.home import home
 from ..catalog.restaurants import Filters, Sort, restaurant_menu, restaurants
-from ..catalog.stores import line_prices, product_detail, product_stores, store_page, vertical_stores
+from ..catalog.stores import BIGINT_MAX, line_prices, product_detail, product_stores, store_page, vertical_stores
+from ..catalog.terms import MAX_STORES, store_terms
 from .deps import Clean, backend_vertical, get_conn
 from .identity import owner_in_query
 from .logs import served_request_id
@@ -89,6 +90,20 @@ def product_store_list(
     if reply is None:
         raise HTTPException(404, PRODUCT_NOT_FOUND)
     return reply
+
+
+@router.get("/terms")
+def terms(
+    stores: Annotated[str, Query(max_length=MAX_STORES * 20, pattern=r"^\d{1,19}(,\d{1,19})*$")],
+    conn: Connection = Depends(get_conn),
+) -> dict:
+    """Las condiciones de compra que trae el catálogo para las tiendas del carro (`stores`: ids separados por coma,
+    hasta 20): costo de envío, compra mínima y tarifa de servicio. Lo que el catálogo no sabe va en null: la app pone
+    su supuesto rotulado."""
+    ids = [int(part) for part in stores.split(",")]
+    if len(ids) > MAX_STORES:
+        raise HTTPException(422, f"Hasta {MAX_STORES} tiendas")
+    return {"stores": store_terms(conn, [i for i in ids if i <= BIGINT_MAX])}
 
 
 @router.get("/products/{entity_type}/{entity_id}")

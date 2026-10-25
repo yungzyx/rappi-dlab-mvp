@@ -58,6 +58,10 @@ SUPUESTOS (editables aquí):
   (días 61 a 120) solo cuentan a quien tiene esa historia.
 - Quien no encuentra lo que busca (demanda no satisfecha) o abandona carros, se va antes (CHURN_*): cada búsqueda sin
   resultado o carro abandonado de las últimas 4 semanas acelera la pérdida.
+- Rappi Pro (`app_users.pro`, migración 046): SUPUESTO PROPIO, no un dato de Rappi. Se sortea por la cantidad de grupos
+  del arquetipo (PRO_SHARE): Pro une las verticales (envío gratis en todas) y concentra más del 60 % de los pedidos
+  (docs/ecosistema-rappi.md), así que quien combina más grupos es Pro más seguido. Sale de un sorteo aparte por persona
+  (semilla y número de la persona): no toca el sorteo de la conducta, y lo calibrado sigue igual.
 - Parte de quienes encuentran productos se va sin agregar nada al carro (BROWSE_ONLY).
 - Algunas sesiones hablan de un viaje (TRIP: RappiTravel, sin su gancho de Farmacia) y a quien no encuentra lo que
   busca se le ofrece RappiFavor (FAVOR_OFFER).
@@ -385,6 +389,8 @@ ARCHETYPE_CALIBRATION: dict[str, float] = {
 }
 _DRAW = {combo: share * ARCHETYPE_CALIBRATION[combo] for combo, share in _SHARES.items()}
 ARCHETYPES: dict[str, float] = {combo: weight / sum(_DRAW.values()) for combo, weight in _DRAW.items()}
+# Parte de las personas que son Rappi Pro según cuántos grupos combina su arquetipo (supuesto propio, ver arriba).
+PRO_SHARE: dict[int, float] = {1: 0.35, 2: 0.6, 3: 0.8}
 # Lo que pide quien cae en un grupo sin verticales en su perfil (sin alcohol, bebé ni salud).
 GENERIC_INTERESTS: dict[str, dict[str, float]] = {
     "turbo": {"snacks-salados": 2, "gaseosas": 2, "lacteos": 1.5, "frutas": 1},
@@ -529,6 +535,12 @@ def _unofferable(conn: Connection, items: dict[tuple[str, str], list]) -> set[tu
     }
 
 
+def draw_pro(seed: int, n: int, archetype: str) -> bool:
+    """Si la persona `n` de la semilla es Rappi Pro (PRO_SHARE por los grupos de su arquetipo). Usa su propio sorteo
+    (no el de la conducta): sumar la marca no movió nada de lo calibrado."""
+    return random.Random(f"pro-{seed}-{n}").random() < PRO_SHARE[len(archetype.split("+"))]
+
+
 def draw_archetype(rng: random.Random) -> str:
     """Una combinación de grupos sorteada con la mezcla calibrada (ARCHETYPES): la de la tabla de Rappi por
     ARCHETYPE_CALIBRATION."""
@@ -632,11 +644,20 @@ def generate(
             interests=effective_interests(persona, archetype, catalog),
         )
         signup = draw_signup(rng, start, weeks)
-        _write(buffers["users"], state.user_id, "synthetic", persona.id, state.city, rng.random() < 0.4, _iso(signup))
+        _write(
+            buffers["users"],
+            state.user_id,
+            "synthetic",
+            persona.id,
+            state.city,
+            rng.random() < 0.4,
+            _iso(signup),
+            draw_pro(seed, n, archetype),
+        )
         counts["usuarios"] += 1
         _simulate_user(rng, catalog, state, signup, end, start, buffers, counts)
 
-    _copy(conn, "app_users (user_id, source, segment, city, consent_notifications, created_at)", buffers["users"])
+    _copy(conn, "app_users (user_id, source, segment, city, consent_notifications, created_at, pro)", buffers["users"])
     _copy(conn, "app_sessions (user_id, session_id, started_at, mode, source)", buffers["sessions"])
     _copy(conn, "app_orders (order_id, user_id, session_id, cart_id, ts, vertical, total, source)", buffers["orders"])
     _copy(
