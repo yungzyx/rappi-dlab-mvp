@@ -92,7 +92,7 @@ describe('Ver cómo funciona', () => {
     expect(within(tour).getByText('Paso 1 de 4')).toBeTruthy()
     expect(await planRow()).toEqual(['2', '1'])
     // Cada sección del prototipo dice que trae eventos de ejemplo, no solo la tarjeta.
-    expect(screen.getAllByText(/con eventos de ejemplo de la demostración: no son datos reales/)).toHaveLength(2)
+    expect(screen.getAllByText(/con eventos de ejemplo de la demostración: no son datos reales/)).toHaveLength(3)
 
     await act(async () => fireEvent.click(within(tour).getByRole('button', { name: 'Siguiente' })))
     expect(await planRow()).toEqual(['2', '2'])
