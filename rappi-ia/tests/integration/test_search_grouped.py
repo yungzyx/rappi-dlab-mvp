@@ -194,7 +194,7 @@ def test_grouped_search_returns_products_only_and_does_not_apply_offer_guards(de
 def test_grouped_endpoint_shape(client):
     body = client.get("/search", params={"q": "cerveza"}).json()
 
-    assert set(body) == {"query", "groups", "unmet", "unmet_reason", "corrected_query"}
+    assert set(body) == {"query", "groups", "unmet", "unmet_reason", "corrected_query", "request_id"}
     assert body["query"] == "cerveza" and body["unmet"] is False
     first = body["groups"][0]
     assert set(first) == {"vertical", "prototype_vertical", "products"}
@@ -209,9 +209,10 @@ def test_grouped_endpoint_shape(client):
 def test_vertical_search_is_unchanged(client):
     body = client.get("/search", params={"q": "cerveza", "vertical": "licores"}).json()
 
-    assert set(body) == {"vertical", "products", "unmet", "unmet_reason", "corrected_query"}
+    assert set(body) == {"vertical", "products", "unmet", "unmet_reason", "corrected_query", "request_id"}
     assert body["vertical"] == "licores" and body["products"] and body["unmet"] is False
-    assert client.get("/search", params={"q": "cerveza", "vertical": "liquor"}).json() == body  # id del prototipo
+    same = client.get("/search", params={"q": "cerveza", "vertical": "liquor"}).json()  # id del prototipo
+    assert {**same, "request_id": body["request_id"]} == body  # cada respuesta tiene su id
     one = client.get("/search", params={"q": "cerveza", "vertical": "licores", "limit": 1}).json()
     assert len(one["products"]) == 1
     assert client.get("/search", params={"q": "cerveza", "vertical": "aerolineas"}).status_code == 400

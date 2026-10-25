@@ -2,6 +2,7 @@
   "corrected_query": null,
   "groups": [],
   "query": "xyzzy",
+  "request_id": "contrato-search-grouped-unmet",
   "unmet": true,
   "unmet_reason": "sin coincidencia léxica ni concepto ni ocasión; coseno máx sin vectores < τ 0.85"
 }

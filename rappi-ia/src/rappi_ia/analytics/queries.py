@@ -405,7 +405,8 @@ def suggestions(conn: Connection, source: str = "synthetic") -> list[dict]:
                       count(*) FILTER (WHERE type = 'suggestion_accepted') AS aceptadas,
                       count(*) FILTER (WHERE type = 'suggestion_dismissed') AS ignoradas
                FROM app_events
-               WHERE source = %(source)s AND type LIKE 'suggestion_%%' AND payload ->> 'origen' IS DISTINCT FROM 'aviso'
+               WHERE source = %(source)s AND type LIKE 'suggestion_%%'
+                 AND coalesce(origin, payload ->> 'origen') IS DISTINCT FROM 'aviso'
                GROUP BY 1, 2
            ),
            converted AS (
@@ -438,13 +439,14 @@ def services(conn: Connection, source: str = "synthetic") -> list[dict]:
     counts = {
         (service, kind): n
         for service, kind, n in conn.execute(
-            """SELECT coalesce(payload ->> 'servicio', payload ->> 'origen'),
+            """SELECT coalesce(payload ->> 'servicio', origin, payload ->> 'origen'),
                       CASE WHEN type = 'service_opened' AND payload ->> 'desde' = 'home'
                            THEN 'service_opened_home' ELSE type END,
                       count(*)
                FROM app_events
                WHERE source = %(source)s AND (type IN ('service_shown', 'service_opened')
-                     OR (type IN ('suggestion_shown', 'suggestion_accepted') AND payload ->> 'origen' = ANY(%(ids)s)))
+                     OR (type IN ('suggestion_shown', 'suggestion_accepted')
+                         AND coalesce(origin, payload ->> 'origen') = ANY(%(ids)s)))
                GROUP BY 1, 2""",
             {"source": source, "ids": list(load_taxonomy().services)},
         )
@@ -481,7 +483,8 @@ OFFER_ORDER = (*OFFER_MOMENTS, "pregunta", "para_ti", "sin_momento")
 
 
 def offers(conn: Connection, source: str = "synthetic") -> dict:
-    """Ofertas del agente mostradas y aceptadas por momento, según `payload.origen` de la sugerencia.
+    """Ofertas del agente mostradas y aceptadas por momento, según el origen de la sugerencia (la columna `origin`, o
+    `payload.origen` en los eventos de antes de la migración 043).
 
     `agent-<momento>` es el origen actual; `mochi-<momento>` y `chat` son nombres históricos que siguen en la base.
     Los servicios (RappiTravel, RappiFavor) tienen su propia vista y el aviso sobre el carro no es una oferta: no
@@ -503,7 +506,7 @@ def offers(conn: Connection, source: str = "synthetic") -> dict:
                                WHEN left(origen, 6) IN ('agent-', 'mochi-') AND substr(origen, 7) = ANY(%(moments)s)
                                     THEN substr(origen, 7)
                                ELSE 'sin_momento' END AS momento
-                   FROM (SELECT user_id, type, payload ->> 'origen' AS origen FROM app_events
+                   FROM (SELECT user_id, type, coalesce(origin, payload ->> 'origen') AS origen FROM app_events
                          WHERE source = %(source)s AND type IN ('suggestion_shown', 'suggestion_accepted')) o
                    WHERE coalesce(origen, '') <> ALL(%(excluded)s)
                )"""

@@ -160,7 +160,8 @@ def available(conn: Connection, user_id: str, candidates: list[Lapse], now: date
     - sin las descartadas `MAX_DISMISSALS` veces después de su último pedido de eso;
     - la pausa es por persona: si en los últimos `COOLDOWN_DAYS` días se le mostró una, solo esa, si sigue calificando
       (y si no, ninguna).
-    Cuentan los eventos con origen `agent-volver`; los de «Rappi hoy» (`payload.mode = 'actual'`) no."""
+    Cuentan los eventos con origen `agent-volver` (la columna `origin`, o `payload.origen` en los de antes de la
+    migración 043); los de «Rappi hoy» (`payload.mode = 'actual'`) no."""
     if not candidates:
         return []
     now = now or datetime.now(UTC)
@@ -175,7 +176,7 @@ def available(conn: Connection, user_id: str, candidates: list[Lapse], now: date
     rows = conn.execute(
         """SELECT type, payload ->> 'kind', concept_id, vertical, ts FROM app_events
            WHERE user_id = %s AND type IN ('suggestion_shown', 'suggestion_dismissed')
-             AND payload ->> 'origen' = %s AND payload ->> 'mode' IS DISTINCT FROM 'actual'
+             AND coalesce(origin, payload ->> 'origen') = %s AND payload ->> 'mode' IS DISTINCT FROM 'actual'
            ORDER BY ts DESC, event_id DESC""",
         (user_id, ORIGIN),
     ).fetchall()

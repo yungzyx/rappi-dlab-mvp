@@ -7,7 +7,7 @@ Privacidad (docs/diseno-ia.md §2): las consultas se guardan con datos personale
 import re
 import uuid
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import UTC, datetime, timedelta
 
 from psycopg import Connection
 from psycopg.types.json import Jsonb
@@ -38,6 +38,27 @@ EVENT_TYPES = {
 # Lo que el cliente puede mandar a /events: `order_placed` nace solo en /orders, con un pedido guardado detrás.
 CLIENT_EVENT_TYPES = EVENT_TYPES - {"order_placed"}
 QUERY_RETENTION_DAYS = 90
+# Dónde estaba lo que se tocó, se vio o se agregó: el CHECK de `app_events.surface` (migración 043).
+SURFACES = frozenset(
+    {
+        "home",
+        "search",
+        "store",
+        "vertical",
+        "restaurants",
+        "turbo",
+        "deals",
+        "favorites",
+        "list",
+        "agent",
+        "cart",
+        "checkout",
+        "tracking",
+        "orders",
+    }
+)
+ORIGIN = re.compile(r"[a-z0-9_-]{1,40}")  # el CHECK de `app_events.origin`
+CLIENT_CLOCK_SKEW = timedelta(hours=24)  # una hora del cliente más lejos que esto de la llegada no se guarda
 HALF_LIFE_DAYS = 14  # el interés se reduce a la mitad cada 2 semanas sin actividad
 # Solo señales positivas del propio usuario. Lo que el agente mostró (suggestion_shown), lo que rechazó
 # (suggestion_dismissed) o sacó del carro (cart_remove) no suma interés.
@@ -130,6 +151,24 @@ class Event:
     unmet: bool | None = None
     value: float | None = None
     payload: dict = field(default_factory=dict)
+    # El sobre de la migración 043: id, hora y orden según la app, desde dónde y la respuesta de la API que lo originó.
+    client_event_id: uuid.UUID | None = None
+    client_ts: datetime | None = None
+    seq: int | None = None
+    surface: str | None = None
+    origin: str | None = None
+    position: int | None = None
+    request_id: str | None = None
+
+
+@dataclass(frozen=True)
+class SessionInfo:
+    """Lo que la app cuenta de su sesión (`app_sessions`): versión, plataforma, modo y entrada."""
+
+    app_version: str | None = None
+    platform: str | None = None
+    mode: str | None = None
+    entry: str | None = None
 
 
 def ensure_user(conn: Connection, user_id: str, source: str = "prototype", **extra) -> None:
@@ -153,17 +192,44 @@ def _known_concepts(conn: Connection) -> set[str]:
     return {row[0] for row in conn.execute("SELECT concept_id FROM concepts")}
 
 
-def record(conn: Connection, events: list[Event], source: str = "prototype") -> int:
-    """Guarda eventos válidos (tipo conocido, concepto existente) y devuelve cuántos. Cada persona del lote se crea una
-    sola vez (un lote de la app trae hasta 200 eventos de una misma persona)."""
+def _origin(e: Event) -> str | None:
+    """El origen del evento: la columna o, de un cliente de antes de la migración 043, `payload.origen` (solo si tiene
+    la forma de un origen: lo demás queda en el payload, como siempre)."""
+    if e.origin is not None:
+        return e.origin
+    legacy = e.payload.get("origen")
+    return legacy if isinstance(legacy, str) and ORIGIN.fullmatch(legacy) else None
+
+
+def _client_ts(e: Event, now: datetime) -> datetime | None:
+    """La hora del cliente, si está a menos de `CLIENT_CLOCK_SKEW` de la llegada (o de `ts`, si el evento la trae): un
+    reloj mal puesto no reordena la historia."""
+    if e.client_ts is None:
+        return None
+    reference = e.ts or now
+    client = e.client_ts if e.client_ts.tzinfo else e.client_ts.replace(tzinfo=UTC)
+    return client if abs(client - reference) <= CLIENT_CLOCK_SKEW else None
+
+
+def record(conn: Connection, events: list[Event], source: str = "prototype", session: SessionInfo | None = None) -> int:
+    """Guarda eventos válidos (tipo conocido, concepto existente) y devuelve cuántos entraron. Cada persona del lote se
+    crea una sola vez (un lote de la app trae hasta 200 eventos de una misma persona). Un evento con `client_event_id`
+    que ya estaba (un lote reintentado) no entra otra vez. Cada sesión del lote queda en `app_sessions` con su primer
+    evento (y `session`, lo que la app cuenta de ella)."""
     unknown = next((e.type for e in events if e.type not in EVENT_TYPES), None)
     if unknown is not None:
         raise ValueError(f"Tipo de evento desconocido: {unknown}")
+    surface = next((e.surface for e in events if e.surface is not None and e.surface not in SURFACES), None)
+    if surface is not None:
+        raise ValueError(f"Superficie desconocida: {surface}")
     for user_id in dict.fromkeys(e.user_id for e in events):
         ensure_user(conn, user_id, source)
     known = _known_concepts(conn)
+    now = datetime.now(UTC)
     rows = []
+    starts: dict[tuple[str, str], datetime | None] = {}
     for e in events:
+        client_ts = _client_ts(e, now)
         rows.append(
             (
                 e.user_id,
@@ -182,16 +248,55 @@ def record(conn: Connection, events: list[Event], source: str = "prototype") -> 
                 e.value,
                 Jsonb(e.payload),
                 source,
+                e.client_event_id,
+                client_ts,
+                e.seq,
+                e.surface,
+                _origin(e),
+                e.position,
+                e.request_id,
             )
         )
+        start = client_ts or e.ts
+        key = (e.user_id, e.session_id)
+        if key not in starts or (start is not None and (starts[key] is None or start < starts[key])):
+            starts[key] = start
     with conn.cursor() as cur:
         cur.executemany(
             """INSERT INTO app_events (user_id, session_id, ts, type, vertical, concept_id, entity_type, entity_id,
-                                       cart_id, query, modality, results, unmet, value, payload, source)
-               VALUES (%s, %s, coalesce(%s, now()), %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)""",
+                                       cart_id, query, modality, results, unmet, value, payload, source,
+                                       client_event_id, client_ts, seq, surface, origin, position, request_id)
+               VALUES (%s, %s, coalesce(%s, now()), %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s,
+                       %s, %s, %s, %s, %s, %s, %s)
+               ON CONFLICT (user_id, client_event_id) WHERE client_event_id IS NOT NULL DO NOTHING""",
             rows,
         )
-    return len(rows)
+        saved = cur.rowcount
+    _record_sessions(conn, starts, source, session or SessionInfo())
+    return saved
+
+
+def _record_sessions(
+    conn: Connection, starts: dict[tuple[str, str], datetime | None], source: str, info: SessionInfo
+) -> None:
+    """Una fila de `app_sessions` por sesión: la crea su primer evento y los siguientes solo completan lo que faltaba
+    (un evento del servidor, como `ask`, no trae la versión de la app) y adelantan el inicio si llegó un evento
+    anterior."""
+    with conn.cursor() as cur:
+        cur.executemany(
+            """INSERT INTO app_sessions (user_id, session_id, started_at, app_version, platform, mode, entry, source)
+               VALUES (%s, %s, coalesce(%s, now()), %s, %s, %s, %s, %s)
+               ON CONFLICT (user_id, session_id) DO UPDATE SET
+                   started_at = least(app_sessions.started_at, EXCLUDED.started_at),
+                   app_version = coalesce(app_sessions.app_version, EXCLUDED.app_version),
+                   platform = coalesce(app_sessions.platform, EXCLUDED.platform),
+                   mode = coalesce(app_sessions.mode, EXCLUDED.mode),
+                   entry = coalesce(app_sessions.entry, EXCLUDED.entry)""",
+            [
+                (user_id, session_id, start, info.app_version, info.platform, info.mode, info.entry, source)
+                for (user_id, session_id), start in starts.items()
+            ],
+        )
 
 
 def record_order(

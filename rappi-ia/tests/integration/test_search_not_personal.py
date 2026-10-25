@@ -46,7 +46,7 @@ def test_search_results_do_not_depend_on_history(people, query, extra, minimum):
     def search(**who):
         reply = client.get("/search", params={"q": query, **extra, **who})
         assert reply.status_code == 200, reply.text
-        return reply.json()
+        return {k: v for k, v in reply.json().items() if k != "request_id"}  # el id de cada respuesta cambia
 
     anonymous = search()
     assert count_products(anonymous) >= minimum  # hay resultados con qué comparar

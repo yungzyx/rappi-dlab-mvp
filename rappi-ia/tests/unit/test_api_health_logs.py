@@ -276,7 +276,7 @@ def test_invalid_data_logs_the_template_not_the_path(client, caplog, monkeypatch
 
 # ── Errores sin ids ──────────────────────────────────────────────────────────
 def test_other_source_error_is_generic(client, caplog, monkeypatch):
-    def record(conn, events, source="prototype"):
+    def record(conn, events, source="prototype", session=None):
         raise ValueError("El usuario secret-user-1 es de otra fuente")
 
     monkeypatch.setattr(api.events, "record", record)

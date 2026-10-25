@@ -401,7 +401,7 @@ def test_llm_daily_cap_zero_never_calls(monkeypatch):
 
 
 def test_beacon_bad_origin_opens_no_connection(client, opened, monkeypatch):
-    monkeypatch.setattr(api.events, "record", lambda conn, events, source: len(events))
+    monkeypatch.setattr(api.events, "record", lambda conn, events, source, session=None: len(events))
     headers = {"content-type": "text/plain"}
     token = identity.sign("u1")
     body = f'{{"user_id": "u1", "events": [], "token": "{token}"}}'

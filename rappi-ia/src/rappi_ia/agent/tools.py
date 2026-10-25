@@ -464,7 +464,8 @@ def _recently_offered(conn: Connection, user_id: str) -> set[str]:
            JOIN (SELECT max(ts) AS ts FROM app_orders WHERE user_id = %(user)s AND mode = 'propuesta') o
              ON e.ts < o.ts
            WHERE e.user_id = %(user)s AND e.type = 'suggestion_shown' AND e.concept_id IS NOT NULL
-             AND e.payload ->> 'origen' = ANY(%(origins)s) AND e.payload ->> 'mode' IS DISTINCT FROM 'actual'
+             AND coalesce(e.origin, e.payload ->> 'origen') = ANY(%(origins)s)
+             AND e.payload ->> 'mode' IS DISTINCT FROM 'actual'
              AND e.ts > now() - make_interval(days => %(days)s)""",
         {"user": user_id, "origins": COMPLEMENT_ORIGINS, "days": COMPLEMENT_REPEAT_DAYS},
     )

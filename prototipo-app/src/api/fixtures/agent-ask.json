@@ -68,6 +68,7 @@
   ],
   "prototype_vertical": "restaurants",
   "reason": "Porque llevas 🍕 pizza",
+  "request_id": "contrato-agent-ask",
   "stores": [],
   "suggestion": {
     "basis": [],

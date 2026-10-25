@@ -35,6 +35,7 @@
     "from_concept": "cerveza",
     "text": "Para completar lo que llevas."
   },
+  "request_id": "contrato-agent-offer-carrito",
   "text": "Para completar tu pedido: snacks salados, en Express.",
   "vertical": "conveniencia"
 }

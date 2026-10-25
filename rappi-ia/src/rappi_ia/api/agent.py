@@ -17,6 +17,7 @@ from ..offers.personal import user_interests
 from .deps import Clean, get_conn, get_services, get_spare_connector
 from .identity import owner_in_query, owner_of_body
 from .limits import concurrency_cap
+from .logs import served_request_id
 from .services import Services
 
 router = APIRouter(prefix="/agent", tags=["agent"])
@@ -143,7 +144,8 @@ def offer(
     svc: Services = Depends(get_services),
     spare: SpareConnector = Depends(get_spare_connector),
 ):
-    """La oferta de un momento: `{ moment, text, products, vertical, prototype_vertical, reason, actions }`, o 204.
+    """La oferta de un momento: `{ moment, text, products, vertical, prototype_vertical, reason, actions, request_id }`,
+    o 204 (`request_id`: el id de esta respuesta, que la app repite en los eventos de la oferta).
     El momento `perfil` tiene su forma: `{ moment, text, perfil, escalera, viaje, reason, actions }` (la escalera de
     un perfil de gusto: `offers/profiles.py`; sus peldaños se buscan a la vez con las conexiones del pool que sobran,
     `spare`, como `/search`). Una ocasión o un perfil que no existe, o una ocasión que el agente no arma (guagua,
@@ -154,7 +156,7 @@ def offer(
         found = make_offer(conn, svc.embedder, body.moment, context, body.user_id, spare)
     except OfferError as exc:
         raise HTTPException(422, str(exc)) from exc
-    return Response(status_code=204) if found is None else found.to_dict()
+    return Response(status_code=204) if found is None else {**found.to_dict(), "request_id": served_request_id()}
 
 
 @router.get("/plans", dependencies=[Depends(owner_in_query)])
