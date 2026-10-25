@@ -1,4 +1,5 @@
 import { useRef, useState } from 'react'
+import { placeList } from '../../api/attribution'
 import { deals as loadDeals, storeOfProduct } from '../../api/catalog'
 import { useApi } from '../../api/useApi'
 import BackButton from '../../components/BackButton'
@@ -93,7 +94,12 @@ function TurboOffers({ onOpenStore }) {
       <p className="turbo-page-note">Productos con descuento en Turbo</p>
       {offers.error && <OfflineNotice onRetry={offers.retry} />}
       {offers.data?.length === 0 && <p className="turbo-page-note">Todavía no hay ofertas en Turbo.</p>}
-      {offers.data?.length > 0 && <ProductGrid products={offers.data} onOpenStore={onOpenStore} />}
+      {offers.data?.length > 0 && (
+        <ProductGrid
+          products={placeList(offers.data, { surface: 'turbo', origin: 'ofertas' })}
+          onOpenStore={onOpenStore}
+        />
+      )}
     </TabPage>
   )
 }
@@ -106,11 +112,12 @@ function ShopStatus({ shop }) {
   return null
 }
 
+/** La grilla de productos Turbo, cada uno con su lugar (pantalla `turbo`): abrirlo, agregarlo y verlo lo dicen. */
 function ProductGrid({ products, onOpenStore }) {
   return (
     <div className="turbo-grid">
       {products.map((product) => (
-        <ProductCard key={product.id} product={product} onOpenStore={() => onOpenStore(product)} />
+        <ProductCard key={product.id} product={product} onOpenStore={() => onOpenStore(product)} impression />
       ))}
     </div>
   )
@@ -198,7 +205,10 @@ function TurboFeed({ back, toast, shop, onOpenStore, onSearch }) {
             {shop.aisleName && <h2 className="section-title turbo-products-title">{shop.aisleName}</h2>}
             {shop.products.length > 0 ? (
               <>
-                <ProductGrid products={shop.products} onOpenStore={onOpenStore} />
+                <ProductGrid
+                  products={placeList(shop.products, { surface: 'turbo', origin: 'pasillo' })}
+                  onOpenStore={onOpenStore}
+                />
                 {shop.hasMore && (
                   <button type="button" className="turbo-more tap" disabled={shop.loadingMore} onClick={shop.loadMore}>
                     Ver más

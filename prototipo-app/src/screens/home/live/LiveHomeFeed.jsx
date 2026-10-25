@@ -525,6 +525,7 @@ export default function LiveHomeFeed({ push, active = true }) {
           push={push}
           proposal
           order={verticalOrder.order}
+          requestId={verticalOrder.requestId}
           caption={verticalOrder.personalized ? 'Ordenadas según lo que más usas' : null}
           onOpen={openVertical}
           onService={openService}

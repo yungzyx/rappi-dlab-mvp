@@ -1,9 +1,11 @@
 import { useEffect, useRef, useState } from 'react'
+import { productItem } from '../../api/impressions'
 import AddButton from '../AddButton'
 import HScroll from '../HScroll'
 import Img from '../Img'
 import OfferWhy from './OfferWhy'
 import { AutoOrderCard, LastOrderCard, OrderSummaryCard } from './AgentCards'
+import { useImpressions } from '../../hooks/useImpressions'
 import { useReducedMotion } from '../../hooks/useReducedMotion'
 import { useProductSheet } from '../../state/ProductSheetContext'
 import { typedEnd } from '../../utils/typed'
@@ -86,10 +88,16 @@ function StreamText({ text, animate, onDone }) {
 
 function ProductCards({ products, onOpenProduct, delay = 0 }) {
   const sheet = useProductSheet()
+  const watch = useImpressions() // lo que Mochi mostró: cada producto con su lugar en la respuesta (api/impressions.js)
   return (
     <HScroll className="agent-msg-products">
       {products.map((product, i) => (
-        <div key={product.id} className="agent-msg-product" style={{ animationDelay: `${delay + i * 60}ms` }}>
+        <div
+          key={product.id}
+          className="agent-msg-product"
+          style={{ animationDelay: `${delay + i * 60}ms` }}
+          ref={watch(product, productItem(product))}
+        >
           <button
             type="button"
             className="agent-msg-product-main tap"

@@ -2,6 +2,8 @@ import { useEffect, useState } from 'react'
 import { AGENT_NAME } from '../agent/name'
 import { EtaIcon } from './StoreMeta'
 import { AGENT_DRAG_TYPE, askAbout } from '../assistant/agentAsk'
+import { productItem } from '../api/impressions'
+import { useImpressions } from '../hooks/useImpressions'
 import { useLongPress } from '../hooks/useLongPress'
 import { useAssistant } from '../state/AssistantContext'
 import { useDemo } from '../state/DemoContext'
@@ -15,9 +17,13 @@ const ASK_VISIBLE_MS = 3000
 // En escritorio (mouse) la tarjeta también se puede arrastrar hasta el agente; en el celular, arrastrar es scroll.
 const canDrag = () => typeof window !== 'undefined' && window.matchMedia?.('(pointer: fine)').matches === true
 
-/** Producto de supermercado/farmacia/botillería (Meat & Seafood, beers, Baby care…). Tocarlo abre su hoja; el "+" va aparte. */
-export function ProductCard({ product, onOpenStore }) {
+/**
+ * Producto de supermercado/farmacia/botillería (Meat & Seafood, beers, Baby care…). Tocarlo abre su hoja; el "+" va
+ * aparte. Con `impression`, la tarjeta cuenta como vista en su lista cuando aparece en pantalla (api/impressions.js).
+ */
+export function ProductCard({ product, onOpenStore, impression = false }) {
   const sheet = useProductSheet()
+  const watch = useImpressions()
   const final = useDemo()?.isFinal === true
   const assistant = useAssistant()
   const [asking, setAsking] = useState(false)
@@ -51,7 +57,7 @@ export function ProductCard({ product, onOpenStore }) {
   }
 
   return (
-    <div className="product-card">
+    <div className="product-card" ref={impression ? watch(product, productItem(product)) : undefined}>
       {asking && (
         <button
           type="button"
