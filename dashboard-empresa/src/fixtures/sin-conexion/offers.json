@@ -1,0 +1,18 @@
+{
+  "source": "synthetic",
+  "data": {
+    "personas": 1601,
+    "momentos": [
+      {
+        "momento": "sin_momento",
+        "mostradas": 3578,
+        "aceptadas": 813,
+        "aceptacion_pct": 22.7
+      }
+    ]
+  },
+  "guardado": {
+    "origen": "npm run panel:snapshot · usuarios simulados de rappi_staging",
+    "fecha": "2026-10-24"
+  }
+}

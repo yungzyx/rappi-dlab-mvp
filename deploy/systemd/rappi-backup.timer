@@ -1,0 +1,11 @@
+# Se activa en el despliegue: `systemctl enable --now rappi-backup.timer` (docs/despliegue.md).
+[Unit]
+Description=Rappi: respaldo nocturno (todos los días 04:15, hora de Chile)
+
+[Timer]
+# 15 minutos después de la purga (rappi-purge.timer), para que el respaldo ya no lleve lo purgado; no depende de ella.
+OnCalendar=*-*-* 04:15 America/Santiago
+Persistent=true
+
+[Install]
+WantedBy=timers.target

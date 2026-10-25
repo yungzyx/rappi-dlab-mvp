@@ -1,0 +1,53 @@
+.demo-toggle {
+  position: fixed;
+  top: 20px;
+  left: 20px;
+  z-index: var(--z-demo-toggle);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px;
+  border-radius: 99px;
+  background: var(--surface);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
+}
+
+.demo-toggle-modes {
+  display: flex;
+  gap: 4px;
+}
+
+.demo-toggle button {
+  height: 34px;
+  padding: 0 14px;
+  border-radius: 99px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--ink-2);
+  transition:
+    background var(--duration-fast),
+    color var(--duration-fast);
+}
+
+.demo-toggle button.is-active {
+  background: var(--ink);
+  color: var(--surface);
+}
+
+.demo-toggle button.demo-toggle-replay {
+  background: #fff1ea;
+  color: var(--accent-deep);
+}
+
+.demo-toggle-hint {
+  padding: 0 10px 0 6px;
+  font-size: 12px;
+  color: var(--ink-3);
+}
+
+/* En el teléfono el modo se cambia desde Cuenta → Configuración → Modo demo */
+@media (max-width: 500px) {
+  .demo-toggle {
+    display: none;
+  }
+}

@@ -1,0 +1,50 @@
+{
+  "perfiles": [
+    {
+      "basis": [
+        {
+          "id": "sushi",
+          "kind": "concepto",
+          "score": 2.0,
+          "source": "segmento:asiatica"
+        },
+        {
+          "id": "asiatica",
+          "kind": "concepto",
+          "score": 2.0,
+          "source": "segmento:asiatica"
+        },
+        {
+          "id": "sushi",
+          "kind": "concepto",
+          "score": 2.0,
+          "source": "segmento:japonesa"
+        },
+        {
+          "id": "asiatica",
+          "kind": "concepto",
+          "score": 2.0,
+          "source": "segmento:japonesa"
+        },
+        {
+          "id": "sushi",
+          "kind": "concepto",
+          "score": 2,
+          "source": "pedidos"
+        },
+        {
+          "id": "asiatica",
+          "kind": "concepto",
+          "score": 1,
+          "source": "busquedas"
+        }
+      ],
+      "emoji": "🥢",
+      "id": "asiatico",
+      "nivel": "medio",
+      "nombre": "Amante de lo asiático",
+      "por_que": "Pediste 🍣 sushi 2 veces, y buscaste 🥡 comida asiática 1 vez.",
+      "principal": true
+    }
+  ]
+}

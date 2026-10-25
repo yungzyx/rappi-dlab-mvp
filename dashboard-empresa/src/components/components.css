@@ -1,0 +1,300 @@
+/* ---------- Tabla ---------- */
+.table-wrap {
+  min-width: 0;
+  overflow-x: auto;
+}
+
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--text-sm);
+}
+
+.data-table th {
+  padding: 0 var(--space-3) var(--space-2);
+  font-size: var(--text-sm);
+  font-weight: 600;
+  text-align: left;
+  color: var(--ink);
+  border-bottom: 2px solid var(--ink);
+  white-space: nowrap;
+}
+
+/* Separador fuerte entre grupos de filas (p. ej. donde cambia el estado o se cruza un umbral) */
+.data-table tr.is-group-start td {
+  border-top: 1px solid var(--line-strong);
+  padding-top: 18px;
+}
+
+.data-table td {
+  padding: 10px var(--space-3);
+  border-bottom: 1px solid var(--line);
+  vertical-align: top;
+}
+
+.data-table th:first-child,
+.data-table td:first-child {
+  padding-left: 0;
+}
+
+.data-table th:last-child,
+.data-table td:last-child {
+  padding-right: 0;
+}
+
+.data-table tbody tr:last-child td {
+  border-bottom: 0;
+}
+
+.data-table tbody tr {
+  transition: background var(--duration-fast);
+}
+
+.data-table tbody tr:hover {
+  background: var(--surface-sunken);
+}
+
+.data-table .is-num {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.cell-stack {
+  display: grid;
+  gap: 2px;
+}
+
+.cell-sub {
+  font-size: var(--text-xs);
+  color: var(--ink-3);
+}
+
+.cell-stack .chip {
+  justify-self: start;
+}
+
+.cell-bar {
+  display: grid;
+  grid-template-columns: minmax(40px, 1fr) auto;
+  align-items: center;
+  gap: var(--space-2);
+  min-width: 120px;
+}
+
+/* Bajo 900 px las tablas pasan a tarjetas: la de demanda (7 columnas) escondía la acción tras un scroll lateral */
+@media (max-width: 900px) {
+  .table-wrap {
+    overflow: visible;
+  }
+
+  .data-table thead {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+  }
+
+  .data-table,
+  .data-table tbody,
+  .data-table tr,
+  .data-table td {
+    display: block;
+  }
+
+  .data-table tr {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--space-2) var(--space-4);
+    padding: var(--space-3) 0;
+    border-bottom: 1px solid var(--line);
+  }
+
+  .data-table tbody tr:last-child {
+    border-bottom: 0;
+  }
+
+  .data-table td,
+  .data-table td:first-child,
+  .data-table td:last-child,
+  .data-table td.is-num {
+    padding: 0;
+    border: 0;
+    text-align: left;
+    white-space: normal;
+  }
+
+  .data-table td::before {
+    content: attr(data-label);
+    display: block;
+    font-size: 0.6875rem;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+  }
+
+  .data-table td.is-primary {
+    grid-column: 1 / -1;
+    font-size: var(--text-base);
+    font-weight: 600;
+  }
+
+  .data-table td.is-primary::before,
+  .data-table td.is-wide::before {
+    display: none;
+  }
+
+  .data-table td.is-wide {
+    grid-column: 1 / -1;
+  }
+}
+
+/* ---------- Barra en línea ---------- */
+.meter {
+  display: block;
+  height: 8px;
+  border-radius: 999px;
+  background: var(--surface-sunken);
+  overflow: hidden;
+}
+
+.meter > span {
+  display: block;
+  width: var(--w);
+  height: 100%;
+  border-radius: 0 4px 4px 0;
+  background: var(--data);
+  transform-origin: left;
+  animation: grow-x var(--duration-enter) var(--ease-out) both;
+}
+
+@keyframes grow-x {
+  from {
+    transform: scaleX(0);
+  }
+}
+
+/* ---------- Cambio (delta) y alternador gráfico/tabla ---------- */
+.delta {
+  gap: 3px;
+}
+
+.delta svg {
+  width: 13px;
+  height: 13px;
+}
+
+.delta-suffix {
+  font-weight: 400;
+  color: var(--ink-3);
+}
+
+.view-switch {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.view-switch svg {
+  width: 14px;
+  height: 14px;
+}
+
+.chip--warn {
+  color: var(--warn-ink);
+  background: color-mix(in srgb, var(--warn) 16%, transparent);
+}
+
+.action-cell {
+  display: block;
+  min-width: 180px;
+  max-width: 34ch;
+  color: var(--ink-2);
+}
+
+.table-warning {
+  align-items: flex-start;
+  padding-left: var(--space-3);
+  border-left: 3px solid var(--warn);
+  font-size: var(--text-sm);
+  font-weight: 500;
+  white-space: normal;
+}
+
+.table-warning svg {
+  margin-top: 2px;
+}
+
+/* ---------- Cifras de una sección (lista de definiciones) ---------- */
+.stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 170px), 1fr));
+  gap: var(--space-4) var(--space-6);
+  padding-block: var(--space-4);
+  border-bottom: 1px solid var(--line);
+}
+
+.stats > div {
+  display: grid;
+  align-content: start;
+  gap: 2px;
+}
+
+.stats dt {
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: var(--ink-2);
+}
+
+.stats dd {
+  font-size: clamp(1.5rem, 1.25rem + 0.6vw, 1.875rem);
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  line-height: 1.1;
+}
+
+.stats p {
+  font-size: var(--text-xs);
+  color: var(--ink-3);
+}
+
+/* Rótulo de las secciones con datos del prototipo */
+.mvp-note {
+  font-size: var(--text-sm);
+}
+
+.mvp-note strong {
+  font-weight: 700;
+}
+
+.mvp-note-demo {
+  font-weight: 600;
+  color: var(--sim-ink);
+}
+
+/* ---------- Lo que queda a un clic (la serie semanal, la lista de personas) ---------- */
+.disclosure {
+  display: grid;
+  gap: var(--space-4);
+}
+
+.disclosure > summary {
+  justify-self: end;
+  list-style: none;
+  cursor: pointer;
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: var(--brand-ink);
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
+}
+
+.disclosure > summary::-webkit-details-marker {
+  display: none;
+}
+
+.disclosure > summary:hover {
+  text-decoration-thickness: 2px;
+}

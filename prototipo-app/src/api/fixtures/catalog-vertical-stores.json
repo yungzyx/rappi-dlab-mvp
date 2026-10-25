@@ -1,0 +1,29 @@
+{
+  "stores": [
+    {
+      "eta": "25 min",
+      "id": 9101,
+      "logo": "https://images.rappi.cl/marketplace/prueba-9101.png",
+      "name": "Supermercado de prueba Centro",
+      "products": 36,
+      "vertical": "supermercado"
+    },
+    {
+      "eta": "30 min",
+      "id": 9102,
+      "logo": "https://images.rappi.cl/marketplace/prueba-9102.png",
+      "name": "Supermercado de prueba Norte",
+      "products": 35,
+      "vertical": "supermercado"
+    },
+    {
+      "eta": "35 min",
+      "id": 9111,
+      "logo": "https://images.rappi.cl/marketplace/prueba-9111.png",
+      "name": "Farmacia de prueba en súper",
+      "products": 2,
+      "vertical": "supermercado"
+    }
+  ],
+  "vertical": "supermercado"
+}

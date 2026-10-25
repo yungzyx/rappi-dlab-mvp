@@ -1,0 +1,26 @@
+{
+  "actions": [
+    {
+      "label": "Abrir RappiFavor",
+      "route": [
+        "favor"
+      ],
+      "service": "rappifavor"
+    }
+  ],
+  "moment": "vertical_por_probar",
+  "products": [],
+  "prototype_vertical": null,
+  "reason": {
+    "basis": [
+      {
+        "id": "restaurantes+turbo+supermercado+conveniencia+mall+chocolateria→restaurantes+turbo+supermercado+conveniencia+mall+chocolateria+favor",
+        "kind": "combinacion",
+        "source": "rappi+supuesto"
+      }
+    ],
+    "text": "Porque ya pides en 6 verticales: RappiFavor te ayuda con lo que no está en la app."
+  },
+  "text": "¿Conoces RappiFavor? Un Rappitendero lleva lo que necesites de un punto a otro, te compra en cualquier tienda o hace tu trámite.",
+  "vertical": null
+}

@@ -1,0 +1,48 @@
+{
+  "actions": [
+    {
+      "label": "Abrir Turbo",
+      "route": [
+        "turbo"
+      ]
+    }
+  ],
+  "moment": "vertical_por_probar",
+  "products": [
+    {
+      "age_restricted": false,
+      "before": "$4.990",
+      "concept": "helados",
+      "discount": "-20%",
+      "entity_id": "93001",
+      "entity_type": "catalog_item",
+      "id": "cat-93001",
+      "img": "https://imagenes.prueba.invalid/productos/93001.png",
+      "name": "Helado de vainilla 1 L (prueba)",
+      "presentation": "1 L",
+      "price": "$3.990",
+      "price_value": 3990.0,
+      "store": "Tienda turbo de prueba Centro",
+      "store_id": 9301,
+      "vertical": "turbo"
+    }
+  ],
+  "prototype_vertical": "turbo",
+  "reason": {
+    "basis": [
+      {
+        "id": "restaurantes→restaurantes+turbo",
+        "kind": "combinacion",
+        "source": "rappi"
+      },
+      {
+        "id": "turbo",
+        "kind": "sin_pedidos",
+        "source": "contexto"
+      }
+    ],
+    "text": "Porque aún no pides en Turbo."
+  },
+  "text": "Aún no pides en Turbo: mira estas ofertas.",
+  "vertical": "turbo"
+}

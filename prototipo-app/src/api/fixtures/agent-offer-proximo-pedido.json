@@ -1,0 +1,46 @@
+{
+  "actions": [
+    {
+      "label": "Ver bebidas gaseosas",
+      "query": "bebidas gaseosas",
+      "route": [
+        "express"
+      ]
+    }
+  ],
+  "moment": "proximo_pedido",
+  "products": [
+    {
+      "age_restricted": false,
+      "before": null,
+      "concept": "gaseosas",
+      "discount": null,
+      "entity_id": "92001",
+      "entity_type": "catalog_item",
+      "id": "cat-92001",
+      "img": "https://imagenes.prueba.invalid/productos/92001.png",
+      "name": "Gaseosa cola 500 cc (prueba)",
+      "presentation": "500 cc",
+      "price": "$1.290",
+      "price_value": 1290.0,
+      "store": "Tienda express de prueba Centro",
+      "store_id": 9201,
+      "vertical": "conveniencia"
+    }
+  ],
+  "prototype_vertical": "express",
+  "reason": {
+    "basis": [
+      {
+        "id": "pizza",
+        "kind": "pedido",
+        "source": "contexto"
+      }
+    ],
+    "concept": "gaseosas",
+    "from_concept": "pizza",
+    "text": "Porque pediste 🍕 pizza."
+  },
+  "text": "Para tu próximo pedido: bebidas gaseosas, en Express.",
+  "vertical": "conveniencia"
+}

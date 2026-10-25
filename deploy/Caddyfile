@@ -1,0 +1,107 @@
+# Caddy del stack: TLS automático para DOMAIN (con DOMAIN=localhost usa su CA interna, para probar), la puerta de
+# acceso sobre TODO el sitio (app, /api/* y /panel/*), la API en /api y los archivos construidos de la app y el panel.
+# Las variables vienen del archivo de entorno (deploy/.env.example), por docker-compose.yml.
+
+# Caddy corre sin root: no intenta instalar su CA interna (la de DOMAIN=localhost) en el sistema del contenedor.
+{
+	skip_install_trust
+}
+
+# Cabeceras de seguridad. `defer`: se aplican al final, también sobre lo que responde la API (y así se quita su
+# cabecera Server). Van también en las respuestas de error (el 401 de la puerta, un 404), que no pasan por las rutas.
+(cabeceras) {
+	header {
+		defer
+		Strict-Transport-Security "max-age=31536000"
+		X-Content-Type-Options nosniff
+		Referrer-Policy no-referrer
+		X-Robots-Tag "noindex, nofollow"
+		Permissions-Policy "camera=(), microphone=(), geolocation=()"
+		-Server
+	}
+}
+
+# La CSP estricta, para lo que diga el matcher del argumento: nada en línea, nada de otro origen salvo las fotos.
+(csp) {
+	header {args[0]} {
+		defer
+		Content-Security-Policy "default-src 'self'; img-src 'self' https://images.rappi.cl data:; connect-src 'self'; frame-ancestors 'none'"
+	}
+}
+
+# Los archivos construidos (app o panel, según el root). Los de /assets/ llevan su huella en el nombre: se guardan un
+# año, solo en el navegador (`private`: están detrás de la puerta). Uno que no existe da 404 sin esa cabecera (no
+# index.html, que quedaría guardado un año como si fuera JS). El resto, con index.html, se revalida siempre.
+(archivos) {
+	handle /assets/* {
+		@existe file
+		header @existe Cache-Control "private, max-age=31536000, immutable"
+		file_server
+	}
+	handle {
+		header Cache-Control "no-cache"
+		try_files {path} /index.html
+		file_server
+	}
+}
+
+{$DOMAIN} {
+	encode zstd gzip
+
+	# Puerta de acceso: usuario y hash de `caddy hash-password` (BASIC_AUTH_HASH entre comillas simples en el archivo
+	# de entorno: el hash lleva «$»).
+	basic_auth {
+		{$BASIC_AUTH_USER} {$BASIC_AUTH_HASH}
+	}
+
+	# Ningún request de más de 1 MB llega a la API ni a los archivos (la API además tiene su propio tope, 512 KB).
+	request_body {
+		max_size 1MB
+	}
+
+	import cabeceras
+
+	# El mapa multivertical del panel es la única página con script y estilos en línea: una página estática que genera
+	# este mismo proyecto (`rappi-ia multivertical`, que escapa «</» en los datos que mete en el script), servida detrás
+	# de la puerta. Lleva su propia CSP, que permite eso y nada más (ni otros orígenes, ni fotos de afuera); todo lo
+	# demás va con la estricta. Son matchers excluyentes: una cabecera dentro de su ruta quedaría pisada por la general.
+	@mapa path /panel/presentacion/mapa-multivertical.html
+	@no_mapa not path /panel/presentacion/mapa-multivertical.html
+	import csp @no_mapa
+	header @mapa {
+		defer
+		Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self'; frame-ancestors 'none'"
+	}
+
+	# La API, sin el prefijo /api. Sin `trusted_proxies` (no se configura), Caddy no confía en un X-Forwarded-For que
+	# mande el cliente: lo reemplaza por la IP real de la conexión. Es la que uvicorn (--proxy-headers) usa para los
+	# cupos por IP y las personas nuevas por día.
+	handle_path /api/* {
+		reverse_proxy api:8000
+	}
+
+	# /panel sin la barra: dentro de un handle, así pasa antes por la puerta (un `redir` suelto corre antes que ella).
+	handle /panel {
+		redir * /panel/
+	}
+
+	# El panel (solo si la imagen se construyó con WITH_PANEL=1; si no, la carpeta está vacía y responde 404).
+	handle_path /panel/* {
+		root * /srv/panel
+		import archivos
+	}
+
+	# La app.
+	handle {
+		root * /srv/app
+		import archivos
+	}
+
+	# Errores (el 401 de la puerta, un 404): con las cabeceras de seguridad y sin guardarse en ningún caché.
+	handle_errors {
+		import cabeceras
+		import csp *
+		header Cache-Control "no-store"
+		respond "{err.status_code} {err.status_text}"
+	}
+}

@@ -1,0 +1,437 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Red multivertical</title>
+<style>
+:root {
+  --page: #f9f9f7; --surface: #fcfcfb; --ink: #0b0b0b; --ink-2: #52514e; --muted: #898781;
+  --grid: #e1e0d9; --line: #c3c2b7; --edge: #8f8d86;
+  --v-supermercado: #2a78d6; --v-conveniencia: #eb6834; --v-turbo: #1baf7a; --v-licores: #eda100;
+  --v-chocolateria: #e87ba4; --v-restaurantes: #008300; --v-farmacia: #4a3aa7; --v-mall: #e34948;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --page: #0d0d0d; --surface: #1a1a19; --ink: #ffffff; --ink-2: #c3c2b7; --muted: #898781;
+    --grid: #2c2c2a; --line: #383835; --edge: #6d6b66;
+    --v-supermercado: #3987e5; --v-conveniencia: #d95926; --v-turbo: #199e70; --v-licores: #c98500;
+    --v-chocolateria: #d55181; --v-restaurantes: #008300; --v-farmacia: #9085e9; --v-mall: #e66767;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --page: #0d0d0d; --surface: #1a1a19; --ink: #ffffff; --ink-2: #c3c2b7; --muted: #898781;
+  --grid: #2c2c2a; --line: #383835; --edge: #6d6b66;
+  --v-supermercado: #3987e5; --v-conveniencia: #d95926; --v-turbo: #199e70; --v-licores: #c98500;
+  --v-chocolateria: #d55181; --v-restaurantes: #008300; --v-farmacia: #9085e9; --v-mall: #e66767;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--page); color: var(--ink);
+  font: 15px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif; }
+main { max-width: 1180px; margin: 0 auto; padding: 32px 16px 64px; }
+header { display: flex; justify-content: space-between; gap: 16px; align-items: flex-start; }
+h1 { font-size: clamp(26px, 3vw, 36px); line-height: 1.1; margin: 0 0 6px; letter-spacing: -0.02em; }
+h2 { font-size: 20px; margin: 0; letter-spacing: -0.01em; }
+p.lede { margin: 0; color: var(--ink-2); max-width: 62ch; }
+.num { font-variant-numeric: tabular-nums; }
+button, input { font: inherit; color: inherit; }
+.ghost { border: 1px solid var(--line); background: var(--surface); border-radius: 8px; padding: 6px 12px; cursor: pointer; }
+.ghost:hover { border-color: var(--muted); }
+.stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; margin: 28px 0; }
+.stat { background: var(--surface); border: 1px solid var(--grid); border-radius: 12px; padding: 16px; }
+.stat b { display: block; font-size: 30px; line-height: 1.1; letter-spacing: -0.02em; }
+.stat span { color: var(--ink-2); font-size: 13.5px; }
+.card { background: var(--surface); border: 1px solid var(--grid); border-radius: 14px; padding: 20px; margin-top: 20px; }
+.card-head { display: flex; justify-content: space-between; gap: 12px; align-items: flex-end; flex-wrap: wrap;
+  border-bottom: 1px solid var(--grid); padding-bottom: 12px; margin-bottom: 12px; }
+.card-head p { margin: 4px 0 0; color: var(--ink-2); font-size: 14px; max-width: 70ch; }
+.controls { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.controls label { display: flex; gap: 6px; align-items: center; font-size: 14px; color: var(--ink-2); }
+.controls input[type=search] { border: 1px solid var(--line); background: var(--page); border-radius: 8px; padding: 6px 10px; width: 180px; }
+.layout { display: grid; grid-template-columns: minmax(0, 1fr) 300px; gap: 20px; }
+@media (max-width: 860px) { .layout { grid-template-columns: 1fr; } }
+svg { width: 100%; height: auto; display: block; }
+.legend { display: flex; flex-wrap: wrap; gap: 6px 14px; margin-top: 10px; font-size: 13px; color: var(--ink-2); }
+.legend i { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 6px; vertical-align: -1px; }
+aside.panel { border-left: 1px solid var(--grid); padding-left: 20px; font-size: 14px; }
+@media (max-width: 860px) { aside.panel { border-left: 0; padding-left: 0; border-top: 1px solid var(--grid); padding-top: 16px; } }
+aside h3 { margin: 0 0 2px; font-size: 18px; }
+aside .sub { color: var(--muted); font-size: 13px; margin: 0 0 12px; }
+.bars { display: grid; gap: 6px; }
+.bar { display: grid; grid-template-columns: 96px 1fr 52px; gap: 8px; align-items: center; font-size: 13px; }
+.bar .track { display: block; height: 8px; background: var(--grid); border-radius: 4px; overflow: hidden; }
+.bar .fill { display: block; height: 100%; border-radius: 4px; }
+.bar .v { text-align: right; color: var(--ink-2); }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
+.chip { border: 1px solid var(--line); border-radius: 999px; padding: 2px 8px; font-size: 12.5px; background: var(--page); cursor: pointer; }
+.note { color: var(--muted); font-size: 13px; margin: 10px 0 0; }
+.tip { position: fixed; pointer-events: none; background: var(--ink); color: var(--page); padding: 6px 10px; border-radius: 8px;
+  font-size: 13px; max-width: 280px; opacity: 0; transition: opacity 120ms; z-index: 10; }
+table { border-collapse: collapse; width: 100%; font-size: 13.5px; }
+th, td { text-align: left; padding: 6px 8px; border-bottom: 1px solid var(--grid); vertical-align: top; }
+th { color: var(--ink-2); font-weight: 600; }
+td.r, th.r { text-align: right; }
+.dots i { display: inline-block; width: 9px; height: 9px; border-radius: 50%; margin-right: 3px; }
+details summary { cursor: pointer; color: var(--ink-2); font-size: 14px; margin-top: 12px; }
+.two { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+@media (max-width: 860px) { .two { grid-template-columns: 1fr; } }
+/* #figura: solo el mapa de conceptos, para la imagen de la presentación */
+body.figura main { padding: 12px; }
+body.figura main > :not(#mapa-conceptos), body.figura #mapa-conceptos .card-head, body.figura #mapa-conceptos details,
+body.figura aside.panel { display: none; }
+body.figura .layout { grid-template-columns: 1fr; }
+body.figura #mapa-conceptos { margin: 0; border: 0; }
+/* mapa de conceptos */
+#concepts .edge { fill: none; stroke: var(--edge); stroke-opacity: 0.12; stroke-width: 0.8; }
+#concepts .edge.home { stroke-opacity: 0.45; stroke-width: 1.2; }
+#concepts .comp { fill: none; stroke: var(--ink-2); stroke-opacity: 0.35; stroke-width: 0.9; stroke-dasharray: 3 3; display: none; }
+#concepts.show-comp .comp { display: inline; }
+#concepts .subs { fill: none; stroke: #2e9e5b; stroke-opacity: 0.55; stroke-width: 1.1; display: none; }
+#concepts.show-subs .subs { display: inline; }
+#concepts .conf { fill: none; stroke: #d64545; stroke-opacity: 0.45; stroke-width: 1; stroke-dasharray: 2 3; display: none; }
+#concepts.show-conf .conf { display: inline; }
+#concepts .sedge { fill: none; stroke: var(--ink); stroke-opacity: 0.45; stroke-width: 1.2; stroke-dasharray: 5 4; }
+#concepts .snode { cursor: pointer; fill: var(--surface); stroke: var(--ink); stroke-width: 2; }
+#concepts .slabel { font-size: 13px; font-weight: 700; fill: var(--ink); }
+#concepts.focus .edge, #concepts.focus .comp, #concepts.focus .subs, #concepts.focus .conf { stroke-opacity: 0.04; }
+#concepts.focus .edge.on { stroke-opacity: 0.9; stroke-width: 1.8; }
+#concepts.focus .comp.on { display: inline; stroke-opacity: 0.9; stroke: var(--ink); }
+#concepts.focus .subs.on, #concepts.focus .conf.on { display: inline; stroke-opacity: 0.95; }
+#concepts.focus .cnode:not(.on) { opacity: 0.25; }
+#concepts.focus .clabel:not(.on) { opacity: 0.25; }
+#concepts .clabel { font-size: 10.5px; fill: var(--ink-2); cursor: pointer; }
+#concepts .clabel.on { fill: var(--ink); font-weight: 650; }
+#concepts .cnode { cursor: pointer; stroke: var(--surface); stroke-width: 1.5; }
+.vlabel { font-size: 13px; font-weight: 650; fill: var(--ink); }
+.vsub { font-size: 11px; fill: var(--ink-2); }
+#shared .link { stroke: var(--edge); stroke-linecap: round; stroke-opacity: 0.5; cursor: pointer; }
+#shared .link:hover, #shared .link.on { stroke: var(--ink); stroke-opacity: 0.85; }
+#shared.focus .link:not(.on) { stroke-opacity: 0.08; }
+#shared .vnode { cursor: pointer; stroke: var(--surface); stroke-width: 2; }
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <div>
+      <h1>Red multivertical del catálogo</h1>
+      <p class="lede">Cómo se conectan las verticales de Rappi Chile a través de los productos y los conceptos que comparten. Catálogo público de rappi.cl (muestra de hasta 24 productos por sub-pasillo), 05-10-2026.</p>
+    </div>
+    <button class="ghost" id="theme" type="button" aria-label="Cambiar entre modo claro y oscuro">Modo oscuro</button>
+  </header>
+
+  <section class="stats" id="stats"></section>
+
+  <section class="card">
+    <div class="card-head">
+      <div>
+        <h2>Productos compartidos entre verticales</h2>
+        <p>El grosor de cada unión es cuántos productos del catálogo se venden en ambas verticales; el tamaño de cada vertical, cuántos productos tiene. Pasa el cursor por una vertical o una unión.</p>
+      </div>
+    </div>
+    <div class="layout">
+      <svg id="shared" viewBox="0 0 640 560" role="img" aria-label="Red de productos compartidos entre las ocho verticales"></svg>
+      <aside class="panel" id="sharedPanel"></aside>
+    </div>
+    <p class="note">Restaurantes no comparte productos con las tiendas: sus platos son propios de cada local. Se conecta con las demás verticales por concepto (siguiente mapa). Como en el panel, una tienda con doble etiqueta (Lider, Express Lider y Unimarc salen en Súper y en Express) no hace compartidos sus productos, pero sí suma a los productos de cada vertical.</p>
+    <details><summary>Ver como tabla</summary><div id="sharedTable"></div></details>
+  </section>
+
+  <section class="card" id="mapa-conceptos">
+    <div class="card-head">
+      <div>
+        <h2>Mapa de conceptos</h2>
+        <p>Cada punto es un concepto (cerveza, pañales, café…), ubicado y coloreado según la vertical donde es más típico, la misma regla que usa el agente. Las líneas lo unen con cada vertical que tiene al menos <span id="minItems"></span> productos de él. Al centro, los servicios sin catálogo (RappiTravel, RappiFavor): la línea punteada va a lo que el agente sugiere junto con ellos.</p>
+      </div>
+      <div class="controls">
+        <label><input type="checkbox" id="showComp"> Complementos</label>
+        <label><input type="checkbox" id="showSubs"> <span style="color:#2e9e5b">Sustitutos</span></label>
+        <label><input type="checkbox" id="showConf"> <span style="color:#d64545">Nunca junto</span></label>
+        <input type="search" id="find" placeholder="Buscar concepto" aria-label="Buscar concepto">
+      </div>
+    </div>
+    <div class="layout">
+      <svg id="concepts" viewBox="-70 0 1070 1000" role="img" aria-label="Mapa radial de conceptos y verticales"></svg>
+      <aside class="panel" id="conceptPanel"></aside>
+    </div>
+    <div class="legend" id="legend"></div>
+    <details><summary>Ver como tabla</summary><div id="conceptTable"></div></details>
+  </section>
+
+  <section class="card">
+    <div class="two">
+      <div>
+        <h2>Productos en más verticales</h2>
+        <div id="bridges"></div>
+      </div>
+      <div>
+        <h2>Cadenas en más verticales</h2>
+        <div id="chains"></div>
+      </div>
+    </div>
+  </section>
+  <p class="note">Fuente: base rappi (Postgres) del proyecto rappi-dlab. Conexiones extraídas de tablas; los complementos, sustitutos y «nunca junto» son curados a mano (no medidos). Proyecto independiente, no afiliado a Rappi.</p>
+</main>
+<div class="tip" id="tip" role="tooltip"></div>
+<script>
+const DATA = {"as_of": "05-10-2026", "order": ["supermercado", "conveniencia", "turbo", "licores", "chocolateria", "restaurantes", "farmacia", "mall"], "labels": {"supermercado": "Súper", "conveniencia": "Express", "turbo": "Turbo", "licores": "Licores", "chocolateria": "Chocolatería", "restaurantes": "Restaurantes", "farmacia": "Farmacia", "mall": "Rappi Mall"}, "minItems": 20, "products": {"turbo": 2642, "chocolateria": 1178, "farmacia": 6750, "mall": 38454, "supermercado": 33503, "conveniencia": 9404, "licores": 5751, "restaurantes": 179353}, "catalogTotal": 71831, "shared": [["chocolateria", "conveniencia", 346], ["chocolateria", "farmacia", 2], ["chocolateria", "licores", 2], ["chocolateria", "mall", 160], ["chocolateria", "supermercado", 993], ["chocolateria", "turbo", 3], ["conveniencia", "farmacia", 236], ["conveniencia", "licores", 2326], ["conveniencia", "mall", 707], ["conveniencia", "supermercado", 4925], ["conveniencia", "turbo", 805], ["farmacia", "licores", 216], ["farmacia", "mall", 1777], ["farmacia", "supermercado", 4880], ["farmacia", "turbo", 244], ["licores", "mall", 418], ["licores", "supermercado", 2842], ["licores", "turbo", 721], ["mall", "supermercado", 5585], ["mall", "turbo", 242], ["supermercado", "turbo", 1585]], "spread": [[1, 54823], [2, 12752], [3, 3169], [4, 776], [5, 189], [6, 14]], "concepts": [{"id": "accesorios-fumador", "name": "Accesorios para fumar", "emoji": "🔥", "group": "Tabaco y vapeo", "sensitive": true, "home": "mall", "items": {"conveniencia": 43, "turbo": 11, "supermercado": 42, "licores": 62, "mall": 1252}, "total": 1292}, {"id": "accesorios-mascota", "name": "Accesorios para mascotas", "emoji": "🦴", "group": "Mascotas", "sensitive": false, "home": "conveniencia", "items": {"restaurantes": 2, "turbo": 2, "supermercado": 1196, "conveniencia": 673, "mall": 69, "farmacia": 77}, "total": 1245}, {"id": "accesorios-moda", "name": "Carteras y accesorios", "emoji": "👜", "group": "Moda y accesorios", "sensitive": false, "home": "mall", "items": {"chocolateria": 1, "turbo": 2, "farmacia": 33, "supermercado": 699, "conveniencia": 74, "mall": 981}, "total": 1301}, {"id": "aceites-condimentos", "name": "Aceites y condimentos", "emoji": "🧂", "group": "Despensa", "sensitive": false, "home": "supermercado", "items": {"chocolateria": 11, "licores": 1, "conveniencia": 162, "supermercado": 699, "restaurantes": 60, "turbo": 44, "mall": 36}, "total": 816}, {"id": "agua", "name": "Agua", "emoji": "💧", "group": "Bebidas sin alcohol", "sensitive": false, "home": "turbo", "items": {"chocolateria": 2, "licores": 97, "turbo": 51, "farmacia": 36, "supermercado": 161, "mall": 22, "restaurantes": 1635, "conveniencia": 81}, "total": 1870}, {"id": "alimentacion-bebe", "name": "Alimentación infantil", "emoji": "🍼", "group": "Bebé", "sensitive": false, "home": "farmacia", "items": {"chocolateria": 1, "turbo": 27, "conveniencia": 54, "farmacia": 72, "mall": 38, "supermercado": 188}, "total": 214}, {"id": "alimento-gato", "name": "Alimento para gatos", "emoji": "🐈", "group": "Mascotas", "sensitive": false, "home": "conveniencia", "items": {"licores": 8, "supermercado": 282, "conveniencia": 160, "restaurantes": 1, "turbo": 13, "farmacia": 1}, "total": 285}, {"id": "alimento-perro", "name": "Alimento para perros", "emoji": "🐕", "group": "Mascotas", "sensitive": false, "home": "conveniencia", "items": {"mall": 7, "supermercado": 525, "conveniencia": 292, "farmacia": 6, "turbo": 30}, "total": 543}, {"id": "arabe", "name": "Comida árabe", "emoji": "🥙", "group": "Comida preparada", "sensitive": false, "home": "restaurantes", "items": {"supermercado": 3, "restaurantes": 1547}, "total": 1550}, {"id": "arroz-legumbres", "name": "Arroz, legumbres y granos", "emoji": "🍚", "group": "Despensa", "sensitive": false, "home": "supermercado", "items": {"chocolateria": 2, "turbo": 52, "supermercado": 243, "conveniencia": 38, "restaurantes": 753, "mall": 9}, "total": 1045}, {"id": "articulos-bebe", "name": "Artículos de bebé", "emoji": "🧸", "group": "Bebé", "sensitive": false, "home": "mall", "items": {"conveniencia": 50, "mall": 986, "turbo": 12, "supermercado": 352, "farmacia": 198}, "total": 1222}, {"id": "articulos-deportivos", "name": "Artículos deportivos", "emoji": "⚽", "group": "Deportes y aire libre", "sensitive": false, "home": "mall", "items": {"farmacia": 1, "turbo": 8, "chocolateria": 1, "conveniencia": 29, "mall": 685, "supermercado": 110}, "total": 772}, {"id": "asiatica", "name": "Comida asiática", "emoji": "🥡", "group": "Comida preparada", "sensitive": false, "home": "restaurantes", "items": {"conveniencia": 1, "supermercado": 6, "restaurantes": 15722}, "total": 15728}, {"id": "audio", "name": "Audio", "emoji": "🎧", "group": "Tecnología", "sensitive": false, "home": "mall", "items": {"mall": 867, "supermercado": 74, "conveniencia": 63}, "total": 896}, {"id": "automotriz", "name": "Auto", "emoji": "🚗", "group": "Hogar y limpieza", "sensitive": false, "home": "conveniencia", "items": {"turbo": 7, "conveniencia": 28, "supermercado": 59, "mall": 15}, "total": 79}, {"id": "azucar", "name": "Azúcar y endulzantes", "emoji": "🍬", "group": "Despensa", "sensitive": false, "home": "conveniencia", "items": {"turbo": 18, "supermercado": 161, "conveniencia": 62, "chocolateria": 1, "restaurantes": 25, "mall": 3}, "total": 196}, {"id": "barras-cereal", "name": "Barras de cereal", "emoji": "🥣", "group": "Snacks", "sensitive": false, "home": "conveniencia", "items": {"chocolateria": 4, "conveniencia": 88, "farmacia": 2, "licores": 31, "restaurantes": 26, "supermercado": 183, "mall": 48, "turbo": 30}, "total": 275}, {"id": "bienestar-sexual", "name": "Bienestar sexual", "emoji": "🔞", "group": "Bienestar sexual", "sensitive": true, "home": "mall", "items": {"licores": 7, "turbo": 18, "mall": 1594, "supermercado": 331, "farmacia": 116, "conveniencia": 29}, "total": 1771}, {"id": "cafe", "name": "Café", "emoji": "☕", "group": "Bebidas sin alcohol", "sensitive": false, "home": "supermercado", "items": {"farmacia": 2, "chocolateria": 6, "licores": 37, "supermercado": 413, "mall": 21, "turbo": 74, "restaurantes": 1750, "conveniencia": 91}, "total": 2239}, {"id": "calzado", "name": "Calzado", "emoji": "👟", "group": "Moda y accesorios", "sensitive": false, "home": "mall", "items": {"conveniencia": 2, "mall": 160, "farmacia": 4, "supermercado": 103}, "total": 248}, {"id": "carbon", "name": "Carbón y leña", "emoji": "🔥", "group": "Hogar y limpieza", "sensitive": false, "home": "licores", "items": {"turbo": 2, "licores": 21, "supermercado": 54, "restaurantes": 1, "mall": 28, "conveniencia": 27}, "total": 97}, {"id": "carnes", "name": "Carnes y parrilla", "emoji": "🥩", "group": "Frescos", "sensitive": false, "home": "supermercado", "items": {"chocolateria": 1, "conveniencia": 50, "farmacia": 1, "restaurantes": 1850, "supermercado": 462, "mall": 4, "turbo": 39}, "total": 2338}, {"id": "celulares", "name": "Celulares y accesorios", "emoji": "📱", "group": "Tecnología", "sensitive": false, "home": "mall", "items": {"turbo": 1, "supermercado": 154, "mall": 2689, "restaurantes": 1, "conveniencia": 9}, "total": 2811}, {"id": "cereales", "name": "Cereales y avena", "emoji": "🥣", "group": "Despensa", "sensitive": false, "home": "conveniencia", "items": {"chocolateria": 4, "turbo": 47, "supermercado": 249, "conveniencia": 80, "licores": 26, "mall": 2, "restaurantes": 50}, "total": 328}, {"id": "cerveza", "name": "Cerveza", "emoji": "🍺", "group": "Bebidas alcohólicas", "sensitive": false, "home": "licores", "items": {"mall": 3, "conveniencia": 218, "supermercado": 264, "restaurantes": 957, "turbo": 55, "licores": 661, "farmacia": 1}, "total": 1686}, {"id": "chocolates", "name": "Chocolates", "emoji": "🍫", "group": "Dulces y postres", "sensitive": false, "home": "chocolateria", "items": {"licores": 147, "turbo": 37, "supermercado": 957, "mall": 154, "conveniencia": 314, "chocolateria": 422, "farmacia": 57, "restaurantes": 1017}, "total": 2124}, {"id": "cigarrillos", "name": "Cigarrillos", "emoji": "🚬", "group": "Tabaco y vapeo", "sensitive": true, "home": "licores", "items": {"chocolateria": 1, "supermercado": 135, "mall": 451, "licores": 151, "farmacia": 3, "conveniencia": 121, "restaurantes": 3, "turbo": 54}, "total": 608}, {"id": "cocina-menaje", "name": "Cocina y menaje", "emoji": "🍳", "group": "Hogar y limpieza", "sensitive": false, "home": "mall", "items": {"licores": 6, "turbo": 14, "supermercado": 619, "farmacia": 35, "restaurantes": 9, "mall": 1036, "conveniencia": 86}, "total": 1448}, {"id": "cocteles", "name": "Cócteles listos", "emoji": "🍹", "group": "Bebidas alcohólicas", "sensitive": false, "home": "licores", "items": {"mall": 44, "chocolateria": 1, "conveniencia": 137, "supermercado": 124, "restaurantes": 294, "turbo": 23, "licores": 256}, "total": 594}, {"id": "computacion", "name": "Computación", "emoji": "💻", "group": "Tecnología", "sensitive": false, "home": "mall", "items": {"supermercado": 117, "mall": 1153, "farmacia": 3, "conveniencia": 10, "restaurantes": 2}, "total": 1192}, {"id": "conservas", "name": "Conservas", "emoji": "🥫", "group": "Despensa", "sensitive": false, "home": "conveniencia", "items": {"chocolateria": 1, "turbo": 47, "supermercado": 335, "conveniencia": 95, "restaurantes": 331, "mall": 8, "farmacia": 1}, "total": 684}, {"id": "cuidado-cabello", "name": "Cuidado del cabello", "emoji": "💇", "group": "Belleza", "sensitive": false, "home": "farmacia", "items": {"licores": 1, "supermercado": 1035, "farmacia": 806, "mall": 2132, "conveniencia": 45, "turbo": 32}, "total": 2885}, {"id": "cuidado-oral", "name": "Cuidado oral", "emoji": "🪥", "group": "Farmacia y cuidado personal", "sensitive": false, "home": "farmacia", "items": {"turbo": 12, "supermercado": 429, "mall": 205, "farmacia": 354, "conveniencia": 42}, "total": 573}, {"id": "decoracion", "name": "Decoración y fiestas", "emoji": "🎉", "group": "Hogar y limpieza", "sensitive": false, "home": "mall", "items": {"chocolateria": 1, "licores": 2, "turbo": 24, "mall": 2186, "restaurantes": 6, "farmacia": 15, "conveniencia": 53, "supermercado": 423}, "total": 2477}, {"id": "dermocosmetica", "name": "Dermocosmética y cuidado de la piel", "emoji": "🧴", "group": "Farmacia y cuidado personal", "sensitive": false, "home": "farmacia", "items": {"conveniencia": 51, "supermercado": 824, "mall": 1352, "farmacia": 902, "turbo": 47}, "total": 2205}, {"id": "desayuno", "name": "Desayunos y brunch", "emoji": "🥞", "group": "Comida preparada", "sensitive": false, "home": "restaurantes", "items": {"restaurantes": 493}, "total": 493}, {"id": "electrohogar", "name": "Electrohogar", "emoji": "🔌", "group": "Hogar y limpieza", "sensitive": false, "home": "mall", "items": {"conveniencia": 12, "mall": 191, "supermercado": 47, "farmacia": 4}, "total": 232}, {"id": "empanadas", "name": "Empanadas", "emoji": "🥟", "group": "Comida preparada", "sensitive": false, "home": "restaurantes", "items": {"turbo": 21, "licores": 47, "conveniencia": 79, "chocolateria": 11, "supermercado": 210, "restaurantes": 3472, "farmacia": 4}, "total": 3719}, {"id": "energizantes", "name": "Energéticas e isotónicas", "emoji": "⚡", "group": "Bebidas sin alcohol", "sensitive": false, "home": "licores", "items": {"licores": 197, "supermercado": 236, "farmacia": 84, "conveniencia": 124, "turbo": 60, "restaurantes": 344, "mall": 55}, "total": 698}, {"id": "ensaladas-bowls", "name": "Ensaladas y bowls", "emoji": "🥗", "group": "Comida preparada", "sensitive": false, "home": "restaurantes", "items": {"chocolateria": 4, "restaurantes": 2894, "supermercado": 87, "conveniencia": 59}, "total": 2983}, {"id": "espumante", "name": "Espumante", "emoji": "🥂", "group": "Bebidas alcohólicas", "sensitive": false, "home": "licores", "items": {"chocolateria": 1, "mall": 2, "supermercado": 88, "restaurantes": 23, "conveniencia": 68, "licores": 178, "turbo": 29}, "total": 219}, {"id": "ferreteria", "name": "Ferretería y electricidad", "emoji": "🔧", "group": "Hogar y limpieza", "sensitive": false, "home": "mall", "items": {"licores": 11, "turbo": 24, "mall": 1878, "conveniencia": 127, "restaurantes": 3, "supermercado": 348, "farmacia": 12}, "total": 2065}, {"id": "fiambres", "name": "Fiambres y embutidos", "emoji": "🥓", "group": "Frescos", "sensitive": false, "home": "supermercado", "items": {"conveniencia": 100, "chocolateria": 14, "turbo": 82, "licores": 75, "supermercado": 520}, "total": 571}, {"id": "flores-regalos", "name": "Flores y regalos", "emoji": "💐", "group": "Flores y regalos", "sensitive": false, "home": "mall", "items": {"supermercado": 106, "mall": 177, "conveniencia": 22}, "total": 258}, {"id": "fragancias", "name": "Perfumes", "emoji": "🌺", "group": "Belleza", "sensitive": false, "home": "farmacia", "items": {"mall": 534, "turbo": 1, "farmacia": 261, "supermercado": 337, "conveniencia": 11}, "total": 716}, {"id": "frutas", "name": "Frutas", "emoji": "🍎", "group": "Frescos", "sensitive": false, "home": "conveniencia", "items": {"supermercado": 370, "mall": 26, "conveniencia": 155, "licores": 1, "turbo": 29, "chocolateria": 2}, "total": 419}, {"id": "frutos-secos", "name": "Frutos secos", "emoji": "🥜", "group": "Snacks", "sensitive": false, "home": "supermercado", "items": {"turbo": 41, "supermercado": 740, "mall": 70, "licores": 27, "conveniencia": 188, "chocolateria": 31, "restaurantes": 286, "farmacia": 20}, "total": 1112}, {"id": "galletas", "name": "Galletas", "emoji": "🍪", "group": "Snacks", "sensitive": false, "home": "conveniencia", "items": {"turbo": 56, "conveniencia": 215, "chocolateria": 77, "farmacia": 50, "licores": 138, "mall": 14, "restaurantes": 912, "supermercado": 579}, "total": 1595}, {"id": "gaseosas", "name": "Bebidas gaseosas", "emoji": "🥤", "group": "Bebidas sin alcohol", "sensitive": false, "home": "licores", "items": {"supermercado": 362, "conveniencia": 147, "farmacia": 38, "licores": 241, "turbo": 62, "chocolateria": 13, "restaurantes": 14903}, "total": 15371}, {"id": "gin", "name": "Gin", "emoji": "🍸", "group": "Bebidas alcohólicas", "sensitive": false, "home": "licores", "items": {"mall": 24, "turbo": 14, "restaurantes": 24, "supermercado": 70, "conveniencia": 70, "licores": 169}, "total": 200}, {"id": "golosinas", "name": "Golosinas", "emoji": "🍬", "group": "Dulces y postres", "sensitive": false, "home": "conveniencia", "items": {"licores": 100, "supermercado": 489, "mall": 82, "turbo": 55, "farmacia": 3, "conveniencia": 237, "chocolateria": 63, "restaurantes": 126}, "total": 726}, {"id": "hamburguesa", "name": "Hamburguesa", "emoji": "🍔", "group": "Comida preparada", "sensitive": false, "home": "restaurantes", "items": {"conveniencia": 1, "mall": 1, "supermercado": 2, "restaurantes": 7590}, "total": 7592}, {"id": "helados", "name": "Helados", "emoji": "🍦", "group": "Dulces y postres", "sensitive": false, "home": "conveniencia", "items": {"supermercado": 308, "turbo": 35, "chocolateria": 50, "conveniencia": 114, "licores": 68, "restaurantes": 1080, "mall": 6, "farmacia": 18}, "total": 1449}, {"id": "hielo", "name": "Hielo", "emoji": "🧊", "group": "Bebidas sin alcohol", "sensitive": false, "home": "licores", "items": {"mall": 10, "turbo": 6, "restaurantes": 8, "conveniencia": 31, "licores": 47, "supermercado": 41}, "total": 84}, {"id": "higiene-femenina", "name": "Higiene femenina", "emoji": "🌸", "group": "Farmacia y cuidado personal", "sensitive": false, "home": "farmacia", "items": {"mall": 97, "turbo": 7, "supermercado": 157, "farmacia": 134, "conveniencia": 58}, "total": 204}, {"id": "higiene-personal", "name": "Higiene personal", "emoji": "🧼", "group": "Farmacia y cuidado personal", "sensitive": false, "home": "farmacia", "items": {"supermercado": 843, "conveniencia": 113, "mall": 655, "licores": 8, "turbo": 40, "farmacia": 631}, "total": 1332}, {"id": "huevos", "name": "Huevos", "emoji": "🥚", "group": "Frescos", "sensitive": false, "home": "conveniencia", "items": {"supermercado": 142, "turbo": 8, "licores": 33, "conveniencia": 67}, "total": 149}, {"id": "jardin", "name": "Plantas y jardín", "emoji": "🪴", "group": "Hogar y limpieza", "sensitive": false, "home": "mall", "items": {"restaurantes": 1, "conveniencia": 5, "supermercado": 44, "mall": 151}, "total": 169}, {"id": "joyeria", "name": "Joyería y relojes", "emoji": "💍", "group": "Moda y accesorios", "sensitive": false, "home": "mall", "items": {"supermercado": 155, "mall": 1523, "farmacia": 7}, "total": 1558}, {"id": "juegos-mesa", "name": "Juegos de mesa", "emoji": "🎲", "group": "Juguetes y juegos", "sensitive": false, "home": "mall", "items": {"supermercado": 79, "turbo": 4, "conveniencia": 11, "farmacia": 3, "mall": 259}, "total": 289}, {"id": "jugos", "name": "Jugos y néctares", "emoji": "🧃", "group": "Bebidas sin alcohol", "sensitive": false, "home": "licores", "items": {"mall": 18, "conveniencia": 191, "restaurantes": 1952, "farmacia": 28, "licores": 182, "turbo": 69, "supermercado": 417}, "total": 2447}, {"id": "juguetes-infantiles", "name": "Juguetes", "emoji": "🧸", "group": "Juguetes y juegos", "sensitive": false, "home": "mall", "items": {"farmacia": 11, "turbo": 6, "conveniencia": 53, "supermercado": 333, "mall": 1936}, "total": 2079}, {"id": "lacteos", "name": "Leche y yogur", "emoji": "🥛", "group": "Frescos", "sensitive": false, "home": "conveniencia", "items": {"turbo": 126, "supermercado": 709, "mall": 7, "conveniencia": 374, "chocolateria": 7, "restaurantes": 16, "licores": 78, "farmacia": 16}, "total": 769}, {"id": "latina", "name": "Comida latina", "emoji": "🫓", "group": "Comida preparada", "sensitive": false, "home": "restaurantes", "items": {"supermercado": 14, "chocolateria": 4, "restaurantes": 1669}, "total": 1683}, {"id": "libros", "name": "Libros y revistas", "emoji": "📚", "group": "Librería y oficina", "sensitive": false, "home": "mall", "items": {"mall": 1002, "supermercado": 63, "conveniencia": 21}, "total": 1015}, {"id": "licores", "name": "Licores y aperitivos", "emoji": "🍹", "group": "Bebidas alcohólicas", "sensitive": false, "home": "licores", "items": {"mall": 35, "turbo": 17, "supermercado": 173, "restaurantes": 117, "conveniencia": 130, "licores": 317, "farmacia": 2}, "total": 485}, {"id": "limpieza", "name": "Limpieza", "emoji": "🧽", "group": "Hogar y limpieza", "sensitive": false, "home": "supermercado", "items": {"supermercado": 884, "mall": 511, "turbo": 205, "farmacia": 30, "conveniencia": 105}, "total": 1321}, {"id": "manualidades", "name": "Manualidades y mercería", "emoji": "🧶", "group": "Librería y oficina", "sensitive": false, "home": "mall", "items": {"mall": 379, "conveniencia": 2, "supermercado": 11}, "total": 386}, {"id": "maquillaje", "name": "Maquillaje y uñas", "emoji": "💄", "group": "Belleza", "sensitive": false, "home": "farmacia", "items": {"supermercado": 827, "farmacia": 802, "conveniencia": 29, "turbo": 2, "mall": 1727}, "total": 2426}, {"id": "medicamentos", "name": "Medicamentos", "emoji": "💊", "group": "Farmacia y cuidado personal", "sensitive": true, "home": "farmacia", "items": {"licores": 10, "turbo": 1, "supermercado": 560, "mall": 7, "farmacia": 601, "conveniencia": 10}, "total": 668}, {"id": "mexicana", "name": "Comida mexicana", "emoji": "🌮", "group": "Comida preparada", "sensitive": false, "home": "restaurantes", "items": {"restaurantes": 1631}, "total": 1631}, {"id": "muebles", "name": "Muebles y organización", "emoji": "🪑", "group": "Hogar y limpieza", "sensitive": false, "home": "mall", "items": {"mall": 322, "conveniencia": 2, "supermercado": 213}, "total": 407}, {"id": "musica", "name": "Música e instrumentos", "emoji": "🎸", "group": "Tecnología", "sensitive": false, "home": "supermercado", "items": {"mall": 4, "conveniencia": 5, "farmacia": 1, "supermercado": 6}, "total": 11}, {"id": "panaderia", "name": "Pan", "emoji": "🍞", "group": "Frescos", "sensitive": false, "home": "conveniencia", "items": {"supermercado": 434, "conveniencia": 181, "chocolateria": 46, "turbo": 36, "mall": 1, "restaurantes": 249, "licores": 11}, "total": 717}, {"id": "panales", "name": "Pañales y toallitas", "emoji": "🧷", "group": "Bebé", "sensitive": false, "home": "farmacia", "items": {"farmacia": 142, "turbo": 10, "supermercado": 214, "licores": 6, "conveniencia": 62, "mall": 139}, "total": 313}, {"id": "papeles-desechables", "name": "Papeles y desechables", "emoji": "🧻", "group": "Hogar y limpieza", "sensitive": false, "home": "conveniencia", "items": {"supermercado": 390, "turbo": 42, "mall": 91, "conveniencia": 133, "farmacia": 39, "licores": 20}, "total": 496}, {"id": "pastas", "name": "Pastas", "emoji": "🍝", "group": "Despensa", "sensitive": false, "home": "conveniencia", "items": {"conveniencia": 113, "farmacia": 1, "chocolateria": 24, "turbo": 25, "mall": 4, "restaurantes": 2140, "supermercado": 342}, "total": 2499}, {"id": "pasteleria", "name": "Tortas y pastelería", "emoji": "🎂", "group": "Dulces y postres", "sensitive": false, "home": "chocolateria", "items": {"mall": 23, "turbo": 32, "chocolateria": 188, "restaurantes": 8210, "supermercado": 689, "conveniencia": 215}, "total": 8986}, {"id": "peruana", "name": "Comida peruana", "emoji": "🇵🇪", "group": "Comida preparada", "sensitive": false, "home": "restaurantes", "items": {"restaurantes": 2684}, "total": 2684}, {"id": "pescados-mariscos", "name": "Pescados y mariscos", "emoji": "🐟", "group": "Frescos", "sensitive": false, "home": "supermercado", "items": {"supermercado": 461, "chocolateria": 1, "turbo": 10, "mall": 1, "restaurantes": 8172, "conveniencia": 59}, "total": 8644}, {"id": "picoteo", "name": "Picoteo y tablas", "emoji": "🍟", "group": "Comida preparada", "sensitive": false, "home": "restaurantes", "items": {"supermercado": 13, "chocolateria": 3, "restaurantes": 4373, "conveniencia": 2}, "total": 4386}, {"id": "pisco", "name": "Pisco", "emoji": "🍸", "group": "Bebidas alcohólicas", "sensitive": false, "home": "licores", "items": {"supermercado": 128, "mall": 23, "turbo": 25, "restaurantes": 231, "conveniencia": 97, "licores": 243}, "total": 488}, {"id": "pizza", "name": "Pizza", "emoji": "🍕", "group": "Comida preparada", "sensitive": false, "home": "restaurantes", "items": {"supermercado": 171, "conveniencia": 36, "mall": 3, "turbo": 8, "restaurantes": 10667, "chocolateria": 10}, "total": 10847}, {"id": "platos-listos", "name": "Platos listos", "emoji": "🍱", "group": "Comida preparada", "sensitive": false, "home": "restaurantes", "items": {"conveniencia": 88, "chocolateria": 17, "licores": 5, "turbo": 23, "mall": 3, "restaurantes": 5663, "supermercado": 443, "farmacia": 4}, "total": 6134}, {"id": "pollo", "name": "Pollo", "emoji": "🍗", "group": "Frescos", "sensitive": false, "home": "conveniencia", "items": {"turbo": 6, "supermercado": 135, "conveniencia": 48, "restaurantes": 7985, "mall": 3}, "total": 8125}, {"id": "pollo-preparado", "name": "Pollo frito y asado", "emoji": "🍗", "group": "Comida preparada", "sensitive": false, "home": "restaurantes", "items": {"supermercado": 3, "restaurantes": 1174}, "total": 1177}, {"id": "postres", "name": "Postres", "emoji": "🍮", "group": "Dulces y postres", "sensitive": false, "home": "restaurantes", "items": {"chocolateria": 84, "turbo": 18, "licores": 2, "mall": 2, "supermercado": 392, "conveniencia": 123, "restaurantes": 4122}, "total": 4535}, {"id": "primeros-auxilios", "name": "Botiquín", "emoji": "🩹", "group": "Farmacia y cuidado personal", "sensitive": false, "home": "farmacia", "items": {"supermercado": 384, "farmacia": 345, "conveniencia": 10, "turbo": 4, "mall": 228, "licores": 4}, "total": 695}, {"id": "quesos", "name": "Quesos", "emoji": "🧀", "group": "Frescos", "sensitive": false, "home": "supermercado", "items": {"supermercado": 652, "conveniencia": 131, "mall": 1, "turbo": 79, "chocolateria": 18, "licores": 56}, "total": 685}, {"id": "reposteria", "name": "Harinas y repostería", "emoji": "🧁", "group": "Despensa", "sensitive": false, "home": "supermercado", "items": {"turbo": 28, "mall": 6, "conveniencia": 82, "restaurantes": 79, "supermercado": 496, "chocolateria": 15, "licores": 2}, "total": 585}, {"id": "ron", "name": "Ron", "emoji": "🥃", "group": "Bebidas alcohólicas", "sensitive": false, "home": "licores", "items": {"licores": 160, "mall": 12, "turbo": 1, "restaurantes": 3, "conveniencia": 76, "supermercado": 76}, "total": 171}, {"id": "ropa", "name": "Ropa", "emoji": "👕", "group": "Moda y accesorios", "sensitive": false, "home": "mall", "items": {"supermercado": 249, "mall": 1382, "farmacia": 11, "conveniencia": 19, "restaurantes": 1}, "total": 1451}, {"id": "ropa-interior", "name": "Ropa interior", "emoji": "🩲", "group": "Moda y accesorios", "sensitive": false, "home": "mall", "items": {"supermercado": 94, "mall": 624, "farmacia": 16, "conveniencia": 6, "turbo": 7}, "total": 666}, {"id": "salsas", "name": "Salsas y aderezos", "emoji": "🥫", "group": "Despensa", "sensitive": false, "home": "supermercado", "items": {"supermercado": 409, "mall": 12, "conveniencia": 85, "licores": 1, "turbo": 58, "restaurantes": 3624, "chocolateria": 17}, "total": 4072}, {"id": "salud-sexual", "name": "Salud sexual", "emoji": "🩺", "group": "Farmacia y cuidado personal", "sensitive": true, "home": "farmacia", "items": {"supermercado": 84, "mall": 23, "farmacia": 71, "conveniencia": 23, "licores": 11, "turbo": 17, "restaurantes": 2}, "total": 109}, {"id": "sandwiches", "name": "Sándwiches y completos", "emoji": "🥪", "group": "Comida preparada", "sensitive": false, "home": "restaurantes", "items": {"supermercado": 1, "conveniencia": 1, "mall": 1, "restaurantes": 12234}, "total": 12236}, {"id": "snacks-salados", "name": "Snacks salados", "emoji": "🥨", "group": "Snacks", "sensitive": false, "home": "licores", "items": {"supermercado": 482, "mall": 10, "conveniencia": 205, "chocolateria": 3, "turbo": 63, "restaurantes": 4393, "farmacia": 19, "licores": 262}, "total": 4997}, {"id": "sopas", "name": "Sopas y caldos", "emoji": "🍜", "group": "Despensa", "sensitive": false, "home": "conveniencia", "items": {"supermercado": 185, "mall": 2, "conveniencia": 85, "turbo": 28, "restaurantes": 949}, "total": 1148}, {"id": "sushi", "name": "Sushi", "emoji": "🍣", "group": "Comida preparada", "sensitive": false, "home": "restaurantes", "items": {"supermercado": 6, "farmacia": 1, "conveniencia": 1, "turbo": 1, "restaurantes": 27015, "chocolateria": 1}, "total": 27022}, {"id": "te", "name": "Té e infusiones", "emoji": "🍵", "group": "Bebidas sin alcohol", "sensitive": false, "home": "supermercado", "items": {"supermercado": 459, "farmacia": 1, "mall": 45, "conveniencia": 89, "chocolateria": 1, "licores": 50, "turbo": 51, "restaurantes": 562}, "total": 1083}, {"id": "tequila", "name": "Tequila y mezcal", "emoji": "🌵", "group": "Bebidas alcohólicas", "sensitive": false, "home": "licores", "items": {"mall": 12, "turbo": 2, "restaurantes": 14, "conveniencia": 37, "licores": 95, "supermercado": 37}, "total": 112}, {"id": "textil-hogar", "name": "Textiles del hogar", "emoji": "🛏️", "group": "Hogar y limpieza", "sensitive": false, "home": "mall", "items": {"mall": 579, "conveniencia": 24, "farmacia": 20, "supermercado": 271}, "total": 688}, {"id": "tv-video", "name": "TV y video", "emoji": "📺", "group": "Tecnología", "sensitive": false, "home": "mall", "items": {"supermercado": 12, "mall": 95, "farmacia": 1, "turbo": 1, "conveniencia": 5}, "total": 101}, {"id": "untables-dulces", "name": "Manjar, mermeladas y miel", "emoji": "🍯", "group": "Dulces y postres", "sensitive": false, "home": "supermercado", "items": {"mall": 11, "supermercado": 373, "licores": 3, "turbo": 35, "restaurantes": 703, "chocolateria": 10, "conveniencia": 69, "farmacia": 3}, "total": 1099}, {"id": "utiles", "name": "Útiles y oficina", "emoji": "✏️", "group": "Librería y oficina", "sensitive": false, "home": "mall", "items": {"mall": 3113, "farmacia": 2, "supermercado": 560, "conveniencia": 61, "licores": 2, "turbo": 17}, "total": 3207}, {"id": "vapeo", "name": "Vapeo", "emoji": "💨", "group": "Tabaco y vapeo", "sensitive": true, "home": "mall", "items": {"supermercado": 162, "mall": 1275, "licores": 152, "turbo": 32, "restaurantes": 4, "conveniencia": 132}, "total": 1468}, {"id": "vegano", "name": "Alternativas vegetales", "emoji": "🌱", "group": "Frescos", "sensitive": false, "home": "conveniencia", "items": {"turbo": 12, "supermercado": 123, "licores": 7, "conveniencia": 39, "mall": 1, "restaurantes": 495}, "total": 625}, {"id": "verduras", "name": "Verduras", "emoji": "🥦", "group": "Frescos", "sensitive": false, "home": "conveniencia", "items": {"mall": 15, "conveniencia": 240, "supermercado": 713, "restaurantes": 2, "licores": 2, "turbo": 37, "chocolateria": 2}, "total": 765}, {"id": "videojuegos", "name": "Videojuegos", "emoji": "🎮", "group": "Juguetes y juegos", "sensitive": false, "home": "mall", "items": {"supermercado": 12, "mall": 55, "conveniencia": 8, "farmacia": 1}, "total": 60}, {"id": "vino", "name": "Vino", "emoji": "🍷", "group": "Bebidas alcohólicas", "sensitive": false, "home": "licores", "items": {"supermercado": 283, "turbo": 72, "restaurantes": 183, "mall": 2, "conveniencia": 302, "farmacia": 2, "licores": 801}, "total": 1050}, {"id": "vitaminas", "name": "Vitaminas y suplementos", "emoji": "💪", "group": "Farmacia y cuidado personal", "sensitive": false, "home": "farmacia", "items": {"mall": 546, "farmacia": 564, "turbo": 15, "licores": 17, "supermercado": 754, "restaurantes": 22, "conveniencia": 55}, "total": 1465}, {"id": "vodka", "name": "Vodka", "emoji": "🍸", "group": "Bebidas alcohólicas", "sensitive": false, "home": "licores", "items": {"restaurantes": 4, "mall": 12, "turbo": 3, "conveniencia": 53, "licores": 145, "supermercado": 52}, "total": 153}, {"id": "whisky", "name": "Whisky", "emoji": "🥃", "group": "Bebidas alcohólicas", "sensitive": false, "home": "licores", "items": {"turbo": 11, "supermercado": 121, "conveniencia": 111, "restaurantes": 24, "chocolateria": 1, "licores": 253, "mall": 23}, "total": 305}], "complements": [["alimentacion-bebe", "panales", 0.6], ["alimento-gato", "accesorios-mascota", 0.5], ["alimento-perro", "accesorios-mascota", 0.5], ["arabe", "gaseosas", 0.5], ["articulos-bebe", "panales", 0.5], ["asiatica", "cerveza", 0.5], ["asiatica", "postres", 0.4], ["cafe", "galletas", 0.5], ["cafe", "pasteleria", 0.7], ["carbon", "carnes", 0.8], ["carnes", "carbon", 0.8], ["carnes", "cerveza", 0.6], ["carnes", "panaderia", 0.5], ["carnes", "verduras", 0.4], ["carnes", "vino", 0.6], ["cereales", "lacteos", 0.8], ["cerveza", "carnes", 0.6], ["cerveza", "picoteo", 0.5], ["cerveza", "snacks-salados", 0.9], ["chocolates", "cafe", 0.5], ["chocolates", "vino", 0.3], ["cocteles", "snacks-salados", 0.6], ["decoracion", "pasteleria", 0.4], ["dermocosmetica", "higiene-personal", 0.4], ["desayuno", "cafe", 0.7], ["desayuno", "jugos", 0.5], ["empanadas", "cerveza", 0.5], ["empanadas", "vino", 0.6], ["ensaladas-bowls", "agua", 0.4], ["ensaladas-bowls", "jugos", 0.5], ["espumante", "chocolates", 0.6], ["espumante", "frutas", 0.4], ["fiambres", "panaderia", 0.7], ["fiambres", "quesos", 0.6], ["flores-regalos", "chocolates", 0.7], ["flores-regalos", "espumante", 0.5], ["fragancias", "flores-regalos", 0.3], ["frutas", "lacteos", 0.4], ["frutos-secos", "vino", 0.4], ["galletas", "cafe", 0.6], ["galletas", "lacteos", 0.5], ["gin", "frutas", 0.4], ["gin", "gaseosas", 0.8], ["hamburguesa", "cerveza", 0.6], ["hamburguesa", "gaseosas", 0.7], ["hamburguesa", "helados", 0.5], ["helados", "postres", 0.4], ["higiene-personal", "cuidado-oral", 0.4], ["juguetes-infantiles", "golosinas", 0.4], ["licores", "hielo", 0.5], ["medicamentos", "jugos", 0.4], ["medicamentos", "sopas", 0.5], ["medicamentos", "te", 0.5], ["mexicana", "cerveza", 0.7], ["mexicana", "tequila", 0.4], ["panaderia", "fiambres", 0.6], ["panaderia", "untables-dulces", 0.4], ["panales", "alimentacion-bebe", 0.6], ["panales", "dermocosmetica", 0.6], ["pastas", "quesos", 0.6], ["pastas", "salsas", 0.8], ["pastas", "vino", 0.5], ["pasteleria", "cafe", 0.7], ["pasteleria", "te", 0.5], ["peruana", "cerveza", 0.5], ["peruana", "pisco", 0.6], ["pescados-mariscos", "vino", 0.6], ["picoteo", "cerveza", 0.8], ["pisco", "gaseosas", 0.9], ["pisco", "hielo", 0.6], ["pizza", "cerveza", 0.7], ["pizza", "gaseosas", 0.6], ["pizza", "helados", 0.5], ["platos-listos", "postres", 0.4], ["pollo", "cerveza", 0.5], ["pollo", "gaseosas", 0.5], ["pollo", "verduras", 0.4], ["pollo-preparado", "cerveza", 0.5], ["pollo-preparado", "gaseosas", 0.6], ["quesos", "fiambres", 0.6], ["quesos", "panaderia", 0.5], ["quesos", "vino", 0.7], ["ron", "gaseosas", 0.9], ["ron", "hielo", 0.6], ["sandwiches", "cerveza", 0.5], ["sandwiches", "gaseosas", 0.6], ["snacks-salados", "cerveza", 0.7], ["snacks-salados", "gaseosas", 0.6], ["sushi", "gaseosas", 0.4], ["sushi", "postres", 0.4], ["sushi", "vino", 0.4], ["tequila", "frutas", 0.6], ["verduras", "carnes", 0.5], ["videojuegos", "energizantes", 0.5], ["videojuegos", "snacks-salados", 0.5], ["vino", "carnes", 0.6], ["vino", "chocolates", 0.4], ["vino", "quesos", 0.8], ["vitaminas", "frutas", 0.4], ["vodka", "energizantes", 0.5], ["vodka", "jugos", 0.7], ["whisky", "frutos-secos", 0.6], ["whisky", "hielo", 0.7]], "substitutes": [["agua", "gaseosas", 0.3], ["arroz-legumbres", "pastas", 0.5], ["asiatica", "sushi", 0.4], ["barras-cereal", "galletas", 0.4], ["cafe", "te", 0.6], ["carnes", "pollo", 0.5], ["cerveza", "cocteles", 0.3], ["chocolates", "golosinas", 0.6], ["empanadas", "sandwiches", 0.3], ["espumante", "vino", 0.4], ["galletas", "snacks-salados", 0.3], ["gaseosas", "jugos", 0.5], ["gin", "vodka", 0.5], ["hamburguesa", "pizza", 0.4], ["hamburguesa", "sandwiches", 0.5], ["helados", "postres", 0.6], ["pisco", "ron", 0.4], ["pollo", "pollo-preparado", 0.5], ["ron", "vodka", 0.4], ["ron", "whisky", 0.3]], "conflicts": [["accesorios-fumador", "alimentacion-bebe"], ["accesorios-fumador", "articulos-bebe"], ["accesorios-fumador", "juguetes-infantiles"], ["accesorios-fumador", "panales"], ["bienestar-sexual", "alimentacion-bebe"], ["bienestar-sexual", "articulos-bebe"], ["bienestar-sexual", "juguetes-infantiles"], ["cerveza", "alimentacion-bebe"], ["cerveza", "articulos-bebe"], ["cerveza", "juguetes-infantiles"], ["cerveza", "panales"], ["cigarrillos", "alimentacion-bebe"], ["cigarrillos", "articulos-bebe"], ["cigarrillos", "juguetes-infantiles"], ["cigarrillos", "panales"], ["cocteles", "alimentacion-bebe"], ["cocteles", "articulos-bebe"], ["cocteles", "juguetes-infantiles"], ["cocteles", "panales"], ["espumante", "alimentacion-bebe"], ["espumante", "articulos-bebe"], ["espumante", "juguetes-infantiles"], ["espumante", "panales"], ["gin", "alimentacion-bebe"], ["gin", "articulos-bebe"], ["gin", "juguetes-infantiles"], ["gin", "panales"], ["licores", "alimentacion-bebe"], ["licores", "articulos-bebe"], ["licores", "juguetes-infantiles"], ["licores", "panales"], ["pisco", "alimentacion-bebe"], ["pisco", "articulos-bebe"], ["pisco", "juguetes-infantiles"], ["pisco", "panales"], ["ron", "alimentacion-bebe"], ["ron", "articulos-bebe"], ["ron", "juguetes-infantiles"], ["ron", "panales"], ["tequila", "alimentacion-bebe"], ["tequila", "articulos-bebe"], ["tequila", "juguetes-infantiles"], ["tequila", "panales"], ["vapeo", "alimentacion-bebe"], ["vapeo", "articulos-bebe"], ["vapeo", "juguetes-infantiles"], ["vapeo", "panales"], ["vino", "alimentacion-bebe"], ["vino", "articulos-bebe"], ["vino", "juguetes-infantiles"], ["vino", "panales"], ["vodka", "alimentacion-bebe"], ["vodka", "articulos-bebe"], ["vodka", "juguetes-infantiles"], ["vodka", "panales"], ["whisky", "alimentacion-bebe"], ["whisky", "articulos-bebe"], ["whisky", "juguetes-infantiles"], ["whisky", "panales"]], "bridges": [["Monster Bebida Energizante Verde", ["supermercado", "conveniencia", "turbo", "licores", "farmacia", "mall"], 164], ["Red Bull Bebida Energizante en Lata 250 cc", ["supermercado", "conveniencia", "turbo", "licores", "farmacia", "mall"], 163], ["Red Bull Bebida Energética Sabor Tropical 250 cc", ["supermercado", "conveniencia", "turbo", "licores", "farmacia", "mall"], 141], ["Red Bull Bebida Energizante en Lata 355 cc", ["supermercado", "conveniencia", "turbo", "licores", "farmacia", "mall"], 131], ["Monster Bebida Energizante Energy Ultra Sin Azúcar", ["supermercado", "conveniencia", "turbo", "licores", "farmacia", "mall"], 100], ["Coca-Cola Bebida Gaseosa Sin Azúcar", ["supermercado", "conveniencia", "turbo", "licores", "chocolateria", "farmacia"], 99], ["Red Bull Bebida Energizante Sin Azúcar 250 cc", ["supermercado", "conveniencia", "turbo", "licores", "farmacia", "mall"], 99], ["Monster Energy Bebida Energizante Sabor Mango Loco 473 cc", ["supermercado", "conveniencia", "turbo", "licores", "farmacia", "mall"], 88], ["Red Bull Bebida Energizante Sin Azúcar 355 cc", ["supermercado", "conveniencia", "turbo", "licores", "farmacia", "mall"], 78], ["Duracell Pilas Alcalinas Tipo D 2 Unidades", ["supermercado", "conveniencia", "turbo", "licores", "farmacia", "mall"], 77], ["Red Bull Bebida Energética Sabor Sandia 250 cc", ["supermercado", "conveniencia", "turbo", "licores", "farmacia", "mall"], 73], ["Lifestyles Preservativo Ultra Sensible Nuda de Látex Lubricados", ["supermercado", "conveniencia", "turbo", "licores", "farmacia", "mall"], 54]], "chains": [["Extra Life", ["supermercado", "conveniencia", "licores", "farmacia", "mall"], 6], ["Volka", ["supermercado", "conveniencia", "chocolateria", "mall"], 13], ["Unimarc", ["supermercado", "conveniencia", "licores"], 76], ["Lider", ["supermercado", "conveniencia", "mall"], 39], ["Ripley", ["supermercado", "farmacia", "mall"], 35], ["Varsovienne", ["conveniencia", "chocolateria", "mall"], 26], ["OXXO", ["supermercado", "conveniencia", "licores"], 19], ["Lush", ["supermercado", "farmacia", "mall"], 7], ["Copetexpress", ["supermercado", "conveniencia", "licores"], 6], ["Fortunata", ["supermercado", "conveniencia", "chocolateria"], 4], ["Licorería Bodega 33", ["supermercado", "conveniencia", "licores"], 4], ["Mi Market", ["supermercado", "conveniencia", "licores"], 4]], "services": [{"id": "rappitravel", "name": "RappiTravel", "emoji": "✈️", "pitch": "vuelos, hoteles, autos, seguros y paquetes, pagando con tus RappiCréditos y con cashback", "hooks": ["dermocosmetica", "ropa", "accesorios-moda"]}, {"id": "rappifavor", "name": "RappiFavor", "emoji": "🛵", "pitch": "un Rappitendero lleva lo que necesites de un punto a otro, te compra en cualquier tienda o hace tu trámite", "hooks": []}]};
+if (location.hash === '#figura') document.body.classList.add('figura');
+const NS = 'http://www.w3.org/2000/svg';
+const fmt = (n) => Math.round(n).toLocaleString('es-CL');
+// Los nombres vienen del catálogo (rappi.cl): siempre como texto, nunca como HTML.
+const esc = (text) => String(text).replace(/[&<>"']/g, (ch) => `&#${ch.charCodeAt(0)};`);
+const color = (v) => `var(--v-${v})`;
+const label = (v) => esc(DATA.labels[v]);
+const el = (tag, attrs = {}, parent) => {
+  const node = document.createElementNS(NS, tag);
+  for (const [k, val] of Object.entries(attrs)) if (val != null) node.setAttribute(k, val);
+  if (parent) parent.appendChild(node);
+  return node;
+};
+const tip = document.getElementById('tip');
+function showTip(html, event) { tip.innerHTML = html; tip.style.opacity = 1; moveTip(event); }
+function moveTip(event) {
+  const x = Math.min(event.clientX + 14, window.innerWidth - tip.offsetWidth - 8);
+  tip.style.left = `${x}px`; tip.style.top = `${event.clientY + 14}px`;
+}
+function hideTip() { tip.style.opacity = 0; }
+
+// Tema
+const themeButton = document.getElementById('theme');
+function currentTheme() {
+  const set = document.documentElement.dataset.theme;
+  return set || (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+}
+function paintThemeButton() { themeButton.textContent = currentTheme() === 'dark' ? 'Modo claro' : 'Modo oscuro'; }
+themeButton.onclick = () => {
+  document.documentElement.dataset.theme = currentTheme() === 'dark' ? 'light' : 'dark';
+  try { localStorage.setItem('tema', document.documentElement.dataset.theme); } catch (e) {}
+  paintThemeButton();
+};
+try { const saved = localStorage.getItem('tema'); if (saved) document.documentElement.dataset.theme = saved; } catch (e) {}
+paintThemeButton();
+
+// Cifras
+const multi = DATA.spread.filter(([n]) => n >= 2).reduce((t, [, c]) => t + c, 0);
+const inAll = DATA.spread.filter(([n]) => n >= 5).reduce((t, [, c]) => t + c, 0);
+const everywhere = DATA.concepts.filter((c) => Object.keys(c.items).length === DATA.order.length).length;
+const sold = DATA.spread.reduce((t, [, c]) => t + c, 0);
+document.getElementById('stats').innerHTML = [
+  [fmt(DATA.catalogTotal), 'productos en el catálogo (además de ' + fmt(DATA.products.restaurantes) + ' platos)'],
+  [Math.round((multi * 100) / sold) + '%', fmt(multi) + ' productos se venden en 2 o más verticales'],
+  [fmt(inAll), 'productos están en 5 o 6 verticales a la vez'],
+  [everywhere, 'conceptos tienen oferta en las 8 verticales'],
+].map(([v, t]) => `<div class="stat"><b class="num">${v}</b><span>${t}</span></div>`).join('');
+document.getElementById('minItems').textContent = DATA.minItems;
+
+// 1. Productos compartidos
+(function shared() {
+  const svg = document.getElementById('shared');
+  const panel = document.getElementById('sharedPanel');
+  const cx = 320, cy = 280, R = 190;
+  const stores = DATA.order.filter((v) => v !== 'restaurantes'); // sus platos no se comparten: va en el mapa de conceptos
+  const pos = {};
+  stores.forEach((v, i) => {
+    const a = -Math.PI / 2 + (i * 2 * Math.PI) / stores.length;
+    pos[v] = { x: cx + R * Math.cos(a), y: cy + R * Math.sin(a), a };
+  });
+  const maxShared = Math.max(...DATA.shared.map((s) => s[2]));
+  const maxP = Math.max(...stores.map((v) => DATA.products[v] || 0));
+  const links = el('g', {}, svg);
+  const sorted = [...DATA.shared].sort((a, b) => a[2] - b[2]);
+  for (const [a, b, n] of sorted) {
+    const line = el('line', { x1: pos[a].x, y1: pos[a].y, x2: pos[b].x, y2: pos[b].y, class: 'link',
+      'stroke-width': (1 + 17 * Math.sqrt(n / maxShared)).toFixed(1), 'data-a': a, 'data-b': b }, links);
+    line.addEventListener('mouseenter', (e) => showTip(`<b>${label(a)} ↔ ${label(b)}</b><br>${fmt(n)} productos en ambas`, e));
+    line.addEventListener('mousemove', moveTip);
+    line.addEventListener('mouseleave', hideTip);
+  }
+  for (const v of stores) {
+    const r = 9 + 24 * Math.sqrt((DATA.products[v] || 0) / maxP);
+    const g = el('g', {}, svg);
+    const c = el('circle', { cx: pos[v].x, cy: pos[v].y, r, fill: color(v), class: 'vnode', tabindex: 0 }, g);
+    const out = R + r + 16;
+    const lx = cx + out * Math.cos(pos[v].a), ly = cy + out * Math.sin(pos[v].a);
+    const anchor = Math.abs(Math.cos(pos[v].a)) < 0.3 ? 'middle' : Math.cos(pos[v].a) > 0 ? 'start' : 'end';
+    const t = el('text', { x: lx, y: ly, 'text-anchor': anchor, class: 'vlabel' }, g); t.textContent = DATA.labels[v];
+    const s = el('text', { x: lx, y: ly + 15, 'text-anchor': anchor, class: 'vsub num' }, g);
+    s.textContent = fmt(DATA.products[v] || 0) + ' productos';
+    const focus = () => selectVertical(v);
+    c.addEventListener('mouseenter', focus); c.addEventListener('focus', focus);
+  }
+  function selectVertical(v) {
+    svg.classList.add('focus');
+    svg.querySelectorAll('.link').forEach((l) => l.classList.toggle('on', l.dataset.a === v || l.dataset.b === v));
+    const rows = DATA.shared.filter(([a, b]) => a === v || b === v)
+      .map(([a, b, n]) => [a === v ? b : a, n]).sort((x, y) => y[1] - x[1]);
+    const max = rows.length ? rows[0][1] : 1;
+    panel.innerHTML = `<h3>${label(v)}</h3><p class="sub num">${fmt(DATA.products[v] || 0)} ${v === 'restaurantes' ? 'platos' : 'productos'}</p>` +
+      (rows.length ? `<p class="sub">Productos que también se venden en…</p><div class="bars">${rows.map(([o, n]) =>
+        `<div class="bar"><span>${label(o)}</span><span class="track"><span class="fill" style="width:${(n * 100) / max}%;background:${color(o)}"></span></span><span class="v num">${fmt(n)}</span></div>`).join('')}</div>`
+        : '<p class="sub">Sus platos no se venden en otras verticales; se conecta por concepto.</p>');
+  }
+  svg.addEventListener('mouseleave', () => svg.classList.remove('focus'));
+  selectVertical('supermercado');
+  svg.classList.remove('focus');
+  svg.querySelectorAll('.link.on').forEach((l) => l.classList.remove('on'));
+  // Tabla
+  const idx = Object.fromEntries(DATA.shared.flatMap(([a, b, n]) => [[a + '|' + b, n], [b + '|' + a, n]]));
+  const tv = DATA.order.filter((v) => v !== 'restaurantes');
+  document.getElementById('sharedTable').innerHTML = `<table><thead><tr><th></th>${tv.map((v) => `<th class="r">${label(v)}</th>`).join('')}</tr></thead><tbody>${
+    tv.map((a) => `<tr><th>${label(a)}</th>${tv.map((b) => `<td class="r num">${a === b ? fmt(DATA.products[a]) : fmt(idx[a + '|' + b] || 0)}</td>`).join('')}</tr>`).join('')}</tbody></table>
+    <p class="note">En la diagonal, los productos de cada vertical.</p>`;
+})();
+
+// 2. Mapa de conceptos
+(function conceptMap() {
+  const svg = document.getElementById('concepts');
+  const panel = document.getElementById('conceptPanel');
+  const C = 500, R = 318, RV = 150, GAP = 2;
+  const total = (c) => c.total; // productos distintos: uno que se vende en 3 verticales cuenta 1, no 3
+  const concepts = [...DATA.concepts].sort((a, b) =>
+    DATA.order.indexOf(a.home) - DATA.order.indexOf(b.home) || a.group.localeCompare(b.group) || total(b) - total(a));
+  const homes = DATA.order.filter((v) => concepts.some((c) => c.home === v));
+  const slots = concepts.length + GAP * homes.length;
+  const step = (2 * Math.PI) / slots;
+  let slot = GAP / 2; let prev = null;
+  const sector = {};
+  for (const c of concepts) {
+    if (prev && c.home !== prev) slot += GAP;
+    c.a = -Math.PI / 2 + slot * step; slot += 1; prev = c.home;
+    (sector[c.home] ||= []).push(c.a);
+  }
+  const vpos = {};
+  DATA.order.forEach((v, i) => {
+    const angles = sector[v];
+    const a = angles ? Math.atan2(angles.reduce((t, x) => t + Math.sin(x), 0), angles.reduce((t, x) => t + Math.cos(x), 0))
+      : -Math.PI / 2 + (i * 2 * Math.PI) / DATA.order.length;
+    vpos[v] = { x: C + RV * Math.cos(a), y: C + RV * Math.sin(a), a };
+  });
+  const maxT = Math.max(...concepts.map(total));
+  const byId = Object.fromEntries(concepts.map((c) => [c.id, c]));
+  for (const c of concepts) { c.x = C + R * Math.cos(c.a); c.y = C + R * Math.sin(c.a); }
+  const edges = el('g', {}, svg);
+  const comps = el('g', {}, svg);
+  for (const c of concepts) {
+    for (const [v, n] of Object.entries(c.items)) {
+      if (n < DATA.minItems && v !== c.home) continue;
+      const p = vpos[v];
+      const mx = C + (c.x + p.x - 2 * C) * 0.32, my = C + (c.y + p.y - 2 * C) * 0.32;
+      const path = el('path', { d: `M${c.x},${c.y} Q${mx},${my} ${p.x},${p.y}`, class: 'edge' + (v === c.home ? ' home' : ''),
+        'data-c': c.id, 'data-v': v }, edges);
+      if (v === c.home) path.style.stroke = color(v);
+    }
+  }
+  for (const [a, b] of DATA.complements) {
+    if (!byId[a] || !byId[b]) continue;
+    el('path', { d: `M${byId[a].x},${byId[a].y} Q${C},${C} ${byId[b].x},${byId[b].y}`, class: 'comp', 'data-a': a, 'data-b': b }, comps);
+  }
+  const pairs = (list, cls) => {
+    for (const [a, b] of list || []) {
+      if (!byId[a] || !byId[b]) continue;
+      el('path', { d: `M${byId[a].x},${byId[a].y} Q${C},${C} ${byId[b].x},${byId[b].y}`, class: cls, 'data-a': a, 'data-b': b }, comps);
+    }
+  };
+  pairs(DATA.substitutes, 'subs');
+  pairs(DATA.conflicts, 'conf');
+  const others = (list, id) => (list || []).filter(([a, b]) => a === id || b === id).map(([a, b]) => (a === id ? b : a));
+  for (const v of DATA.order) {
+    el('circle', { cx: vpos[v].x, cy: vpos[v].y, r: 16, fill: color(v), stroke: 'var(--surface)', 'stroke-width': 2 }, svg);
+    const t = el('text', { x: vpos[v].x, y: vpos[v].y + 32, 'text-anchor': 'middle', class: 'vlabel' }, svg);
+    t.textContent = DATA.labels[v];
+  }
+  // Servicios sin catálogo: al centro, con línea punteada a sus ganchos (lo que el agente sugiere con ellos).
+  const services = DATA.services || [];
+  services.forEach((s, i) => {
+    s.x = C + (i - (services.length - 1) / 2) * 92; s.y = C;
+    for (const h of s.hooks) {
+      if (!byId[h]) continue;
+      el('path', { d: `M${s.x},${s.y} L${byId[h].x},${byId[h].y}`, class: 'sedge', 'data-s': s.id }, svg);
+    }
+    const node = el('circle', { cx: s.x, cy: s.y, r: 20, class: 'snode', tabindex: 0 }, svg);
+    const t = el('text', { x: s.x, y: s.y + 6, 'text-anchor': 'middle', class: 'slabel' }, svg);
+    t.textContent = s.emoji;
+    const name = el('text', { x: s.x, y: s.y + 36, 'text-anchor': 'middle', class: 'vlabel' }, svg);
+    name.textContent = s.name;
+    const show = () => {
+      panel.innerHTML = `<h3>${esc(s.emoji)} ${esc(s.name)}</h3><p class="sub">Servicio sin catálogo: ${esc(s.pitch)}.</p>
+        ${s.hooks.length ? `<p class="sub" style="margin-top:14px">El agente lo ofrece y sugiere del catálogo:</p><div class="chips">${s.hooks.map((h) => byId[h] ? `<span class="chip">${esc(byId[h].emoji)} ${esc(byId[h].name)}</span>` : '').join('')}</div>`
+          : '<p class="sub" style="margin-top:14px">El agente lo ofrece cuando algo no está en el catálogo: un Rappitendero lo compra en otra tienda.</p>'}`;
+    };
+    for (const target of [node, t, name]) { target.addEventListener('mouseenter', show); target.addEventListener('focus', show); }
+  });
+  const nodes = el('g', {}, svg);
+  for (const c of concepts) {
+    const r = 3 + 7 * Math.sqrt(total(c) / maxT);
+    const circle = el('circle', { cx: c.x, cy: c.y, r: r.toFixed(1), fill: color(c.home), class: 'cnode', 'data-c': c.id, tabindex: 0 }, nodes);
+    const deg = (c.a * 180) / Math.PI;
+    const flip = Math.cos(c.a) < 0;
+    const lx = C + (R + 14) * Math.cos(c.a), ly = C + (R + 14) * Math.sin(c.a);
+    const t = el('text', { x: lx, y: ly, 'text-anchor': flip ? 'end' : 'start', 'dominant-baseline': 'middle',
+      transform: `rotate(${flip ? deg + 180 : deg} ${lx} ${ly})`, class: 'clabel', 'data-c': c.id }, nodes);
+    t.textContent = `${c.emoji} ${c.name}`;
+    for (const target of [circle, t]) {
+      target.addEventListener('mouseenter', () => select(c.id));
+      target.addEventListener('focus', () => select(c.id));
+      target.addEventListener('click', () => select(c.id, true));
+    }
+  }
+  let pinned = null;
+  function select(id, pin = false) {
+    if (pin) pinned = pinned === id ? null : id;
+    const c = byId[id];
+    svg.classList.add('focus');
+    const comp = [...new Set(DATA.complements.filter(([a, b]) => a === id || b === id).map(([a, b]) => (a === id ? b : a)))];
+    const subs = others(DATA.substitutes, id), conf = [...new Set(others(DATA.conflicts, id))];
+    const near = new Set([id, ...comp, ...subs]);
+    svg.querySelectorAll('.edge').forEach((e) => {
+      const on = e.dataset.c === id;
+      e.classList.toggle('on', on);
+      e.style.stroke = on || e.classList.contains('home') ? color(e.dataset.v) : '';
+    });
+    svg.querySelectorAll('.comp, .subs, .conf').forEach((e) => e.classList.toggle('on', e.dataset.a === id || e.dataset.b === id));
+    svg.querySelectorAll('.cnode, .clabel').forEach((n) => n.classList.toggle('on', near.has(n.dataset.c)));
+    const rows = Object.entries(c.items).sort((x, y) => y[1] - x[1]);
+    const max = rows[0][1];
+    panel.innerHTML = `<h3>${esc(c.emoji)} ${esc(c.name)}</h3><p class="sub">${esc(c.group)}${c.sensitive ? ' · sensible: el agente no lo sugiere solo' : ''}</p>
+      <p class="sub">Más típico en <b style="color:var(--ink)">${label(c.home)}</b> · productos por vertical:</p>
+      <div class="bars">${rows.map(([v, n]) => `<div class="bar"><span>${label(v)}</span><span class="track"><span class="fill" style="width:${(n * 100) / max}%;background:${color(v)}"></span></span><span class="v num">${fmt(n)}</span></div>`).join('')}</div>
+      ${comp.length ? `<p class="sub" style="margin-top:14px">Complementos curados:</p><div class="chips">${comp.map((o) => byId[o] ? `<span class="chip" data-go="${esc(o)}">${esc(byId[o].emoji)} ${esc(byId[o].name)}</span>` : '').join('')}</div>` : ''}
+      ${subs.length ? `<p class="sub" style="margin-top:14px;color:#2e9e5b">Si no hay, lo sustituye:</p><div class="chips">${subs.map((o) => byId[o] ? `<span class="chip" data-go="${esc(o)}">${esc(byId[o].emoji)} ${esc(byId[o].name)}</span>` : '').join('')}</div>` : ''}
+      ${conf.length ? `<p class="sub" style="margin-top:14px;color:#d64545">Nunca se sugiere junto a:</p><div class="chips">${conf.map((o) => byId[o] ? `<span class="chip" data-go="${esc(o)}">${esc(byId[o].emoji)} ${esc(byId[o].name)}</span>` : '').join('')}</div>` : ''}`;
+    panel.querySelectorAll('[data-go]').forEach((chip) => chip.addEventListener('click', () => select(chip.dataset.go, true)));
+  }
+  function clear() {
+    if (pinned) return select(pinned);
+    svg.classList.remove('focus');
+    svg.querySelectorAll('.on').forEach((n) => n.classList.remove('on'));
+    svg.querySelectorAll('.edge').forEach((e) => (e.style.stroke = e.classList.contains('home') ? color(e.dataset.v) : ''));
+    panel.innerHTML = '<h3>Elige un concepto</h3><p class="sub">Pasa el cursor por un punto o un nombre para ver en qué verticales hay oferta y sus complementos. Un clic lo deja fijo.</p>';
+  }
+  svg.addEventListener('mouseleave', clear);
+  clear();
+  document.getElementById('showComp').addEventListener('change', (e) => svg.classList.toggle('show-comp', e.target.checked));
+  document.getElementById('showSubs').addEventListener('change', (e) => svg.classList.toggle('show-subs', e.target.checked));
+  document.getElementById('showConf').addEventListener('change', (e) => svg.classList.toggle('show-conf', e.target.checked));
+  document.getElementById('find').addEventListener('input', (e) => {
+    const q = e.target.value.trim().toLowerCase();
+    const hit = q && concepts.find((c) => c.name.toLowerCase().includes(q));
+    if (hit) { pinned = hit.id; select(hit.id); } else if (!q) { pinned = null; clear(); }
+  });
+  document.getElementById('legend').innerHTML = DATA.order.map((v) => `<span><i style="background:${color(v)}"></i>${label(v)}</span>`).join('');
+  document.getElementById('conceptTable').innerHTML = `<table><thead><tr><th>Concepto</th><th>Grupo</th><th>Más típico en</th><th class="r">Verticales con oferta</th><th class="r">Productos</th></tr></thead><tbody>${
+    concepts.map((c) => `<tr><td>${esc(c.emoji)} ${esc(c.name)}</td><td>${esc(c.group)}</td><td>${label(c.home)}</td><td class="r num">${Object.keys(c.items).length}</td><td class="r num">${fmt(total(c))}</td></tr>`).join('')}</tbody></table>`;
+})();
+
+// 3. Listas
+const dots = (vs) => `<span class="dots">${vs.map((v) => `<i title="${label(v)}" style="background:${color(v)}"></i>`).join('')}</span>`;
+document.getElementById('bridges').innerHTML = `<table><thead><tr><th>Producto</th><th>Verticales</th><th class="r">Tiendas</th></tr></thead><tbody>${
+  DATA.bridges.map(([n, vs, s]) => `<tr><td>${esc(n)}</td><td>${dots(vs)} ${vs.map(label).join(', ')}</td><td class="r num">${fmt(s)}</td></tr>`).join('')}</tbody></table>`;
+document.getElementById('chains').innerHTML = `<table><thead><tr><th>Cadena</th><th>Verticales</th><th class="r">Sucursales</th></tr></thead><tbody>${
+  DATA.chains.map(([n, vs, s]) => `<tr><td>${esc(n)}</td><td>${dots(vs)} ${vs.map(label).join(', ')}</td><td class="r num">${fmt(s)}</td></tr>`).join('')}</tbody></table>`;
+</script>
+</body>
+</html>

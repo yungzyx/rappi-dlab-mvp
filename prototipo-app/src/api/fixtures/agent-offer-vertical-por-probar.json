@@ -1,0 +1,77 @@
+{
+  "actions": [
+    {
+      "label": "Abrir el súper",
+      "route": [
+        "grocery"
+      ]
+    }
+  ],
+  "moment": "vertical_por_probar",
+  "products": [
+    {
+      "age_restricted": false,
+      "before": "$4.590",
+      "concept": "cafe",
+      "discount": "-13%",
+      "entity_id": "91004",
+      "entity_type": "catalog_item",
+      "id": "cat-91004",
+      "img": "https://imagenes.prueba.invalid/productos/91004.png",
+      "name": "Café molido tostado 250 g (prueba)",
+      "presentation": "250 g",
+      "price": "$3.990",
+      "price_value": 3990.0,
+      "store": "Supermercado de prueba Centro",
+      "store_id": 9101,
+      "vertical": "supermercado"
+    },
+    {
+      "age_restricted": false,
+      "before": "$1.790",
+      "concept": "galletas",
+      "discount": "-25%",
+      "entity_id": "91002",
+      "entity_type": "catalog_item",
+      "id": "cat-91002",
+      "img": "https://imagenes.prueba.invalid/productos/91002.png",
+      "name": "Galletas de vainilla 200 g (prueba)",
+      "presentation": "200 g",
+      "price": "$1.350",
+      "price_value": 1350.0,
+      "store": "Supermercado de prueba Norte",
+      "store_id": 9102,
+      "vertical": "supermercado"
+    },
+    {
+      "age_restricted": false,
+      "before": "$1.990",
+      "concept": "gaseosas",
+      "discount": "-10%",
+      "entity_id": "91003",
+      "entity_type": "catalog_item",
+      "id": "cat-91003",
+      "img": "https://imagenes.prueba.invalid/productos/91003.png",
+      "name": "Gaseosa cola 1,5 L (prueba)",
+      "presentation": "1,5 L",
+      "price": "$1.790",
+      "price_value": 1790.0,
+      "store": "Supermercado de prueba Centro",
+      "store_id": 9101,
+      "vertical": "supermercado"
+    }
+  ],
+  "prototype_vertical": "grocery",
+  "reason": {
+    "basis": [
+      {
+        "id": "supermercado",
+        "kind": "sin_pedidos",
+        "source": "contexto"
+      }
+    ],
+    "text": "Porque aún no pides en el súper."
+  },
+  "text": "Aún no pides en el súper: mira estas ofertas.",
+  "vertical": "supermercado"
+}

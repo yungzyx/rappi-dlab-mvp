@@ -1,0 +1,10 @@
+data/supermercados_csv/
+data/exports/
+__pycache__/
+.pytest_cache/
+.venv/
+.env
+.DS_Store
+*.log
+.ruff_cache/
+*.egg-info/

@@ -1,0 +1,422 @@
+/*
+ * Presentación: lenguaje de informe editorial. Titulares grandes, columnas asimétricas, hairlines en vez de
+ * tarjetas, un solo acento (la marca). Sin bloques oscuros ni degradados.
+ */
+.landing {
+  --measure: 64ch;
+}
+
+.landing main {
+  display: grid;
+  gap: clamp(64px, 9vw, 128px);
+  padding-bottom: clamp(64px, 9vw, 128px);
+}
+
+/* ---------- Cabecera ligera ---------- */
+.masthead-lite {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  border-bottom: 1px solid var(--line);
+  background: color-mix(in srgb, var(--page) 92%, transparent);
+  backdrop-filter: blur(10px);
+}
+
+.masthead-lite-inner {
+  display: flex;
+  align-items: center;
+  gap: var(--space-5);
+  height: 64px;
+}
+
+.wordmark {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: var(--ink);
+  text-decoration: none;
+}
+
+.wordmark .brand-mark {
+  width: 28px;
+  height: 28px;
+}
+
+.lite-nav {
+  display: flex;
+  gap: var(--space-4);
+  margin-left: auto;
+}
+
+.lite-nav a {
+  font-size: var(--text-sm);
+  font-weight: 500;
+  color: var(--ink-2);
+  text-decoration: none;
+}
+
+.lite-nav a:hover {
+  color: var(--ink);
+}
+
+/* ---------- Botones: una sola forma (píldora) ---------- */
+.button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 10px 18px;
+  border-radius: 999px;
+  font-size: var(--text-base);
+  font-weight: 600;
+  white-space: nowrap;
+  text-decoration: none;
+  transition:
+    background var(--duration-fast),
+    color var(--duration-fast),
+    transform var(--duration-fast);
+}
+
+.button:active {
+  transform: translateY(1px);
+}
+
+.button--primary {
+  color: var(--on-brand);
+  background: var(--brand);
+}
+
+.button--primary:hover {
+  background: var(--brand-ink);
+}
+
+.button--ghost {
+  color: var(--ink);
+  box-shadow: inset 0 0 0 1px var(--line-strong);
+}
+
+.button--ghost:hover {
+  box-shadow: inset 0 0 0 1px var(--ink);
+}
+
+/* ---------- Portada ---------- */
+.hero {
+  display: grid;
+  grid-template-columns: minmax(0, 8fr) minmax(0, 4fr);
+  align-items: center;
+  gap: var(--space-7);
+  padding-top: clamp(40px, 6vw, 80px);
+}
+
+.hero h1 {
+  max-width: 30ch;
+  font-size: clamp(1.875rem, 1rem + 2vw, 2.75rem);
+  font-weight: 700;
+  letter-spacing: -0.035em;
+  line-height: 1.08;
+  text-wrap: pretty; /* balance repartía en 3 líneas parejas aunque cupiera en 2 */
+}
+
+.hero-copy p {
+  margin-top: var(--space-5);
+  max-width: 52ch;
+  font-size: var(--text-lg);
+  line-height: 1.5;
+  color: var(--ink-2);
+}
+
+.hero-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  margin-top: var(--space-6);
+}
+
+.hero-figure {
+  justify-self: end;
+  width: min(100%, 340px);
+  margin: 0;
+}
+
+.hero-figure img {
+  display: block;
+  width: 100%;
+  height: auto;
+  border-radius: var(--radius-l);
+  animation: rise var(--duration-enter) var(--ease-out) both;
+  animation-delay: 120ms;
+}
+
+.hero-figure figcaption,
+.example-figure figcaption,
+.diagram figcaption {
+  margin-top: var(--space-2);
+  font-size: var(--text-xs);
+  color: var(--ink-3);
+}
+
+/* ---------- Aviso y prosa ---------- */
+.note p {
+  padding: var(--space-3) 0;
+  border-block: 1px solid var(--line);
+  font-size: var(--text-sm);
+  color: var(--ink-2);
+}
+
+.prose {
+  max-width: var(--content-max); /* el ancho del texto lo limita --measure en cada párrafo, no el contenedor */
+}
+
+.prose h2 {
+  max-width: var(--measure);
+}
+
+.prose h2,
+.section-title {
+  font-size: clamp(1.625rem, 1.1rem + 1.8vw, 2.5rem);
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  line-height: 1.1;
+  padding-bottom: var(--space-3);
+  border-bottom: 2px solid var(--ink);
+  text-wrap: balance;
+}
+
+.prose p,
+.lede {
+  margin-top: var(--space-4);
+  max-width: var(--measure);
+  font-size: var(--text-md);
+  line-height: 1.6;
+  color: var(--ink-2);
+}
+
+.prose p:first-of-type {
+  font-size: var(--text-lg);
+  color: var(--ink);
+}
+
+.prose-aside {
+  padding-left: var(--space-4);
+  border-left: 3px solid var(--brand);
+}
+
+/* ---------- Pasos: tres columnas desiguales, numeración en el acento ---------- */
+.steps {
+  display: grid;
+  grid-template-columns: 5fr 4fr 4fr;
+  gap: var(--space-6);
+  margin-top: var(--space-6);
+  list-style: none;
+  padding: 0;
+}
+
+.steps li {
+  display: grid;
+  gap: var(--space-2);
+  align-content: start;
+  padding-top: var(--space-4);
+  border-top: 1px solid var(--line-strong);
+}
+
+.step-number {
+  font-size: clamp(2rem, 1.5rem + 1.5vw, 3rem);
+  font-weight: 700;
+  letter-spacing: -0.04em;
+  line-height: 1;
+  color: var(--brand);
+  font-variant-numeric: tabular-nums;
+}
+
+.steps h3,
+.example-copy h3,
+.paths h3 {
+  font-size: var(--text-lg);
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+.steps p,
+.example-copy p,
+.paths p {
+  font-size: var(--text-base);
+  line-height: 1.55;
+  color: var(--ink-2);
+}
+
+/* ---------- Ejemplo: imagen angosta a la izquierda, texto a la derecha ---------- */
+.example {
+  display: grid;
+  grid-template-columns: minmax(0, 4fr) minmax(0, 8fr);
+  align-items: center;
+  gap: var(--space-7);
+  margin-top: clamp(48px, 6vw, 80px);
+}
+
+.example-figure {
+  width: min(100%, 300px);
+  margin: 0;
+}
+
+.example-figure img {
+  display: block;
+  width: 100%;
+  height: auto;
+  border-radius: var(--radius-l);
+}
+
+.example-copy {
+  display: grid;
+  gap: var(--space-3);
+  max-width: var(--measure);
+}
+
+.rules {
+  display: grid;
+  gap: var(--space-2);
+  padding-left: 1.1em;
+  font-size: var(--text-base);
+  color: var(--ink-2);
+}
+
+/* ---------- Diagrama ---------- */
+.diagram {
+  margin: var(--space-6) 0 0;
+}
+
+.diagram img {
+  display: block;
+  width: 100%;
+  height: auto;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-m);
+}
+
+.red-cta {
+  margin-top: var(--space-4);
+}
+
+/* ---------- Cifras: cuatro titulares numéricos en una fila de informe ---------- */
+.figures {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: var(--space-6);
+  margin-top: var(--space-6);
+}
+
+.figures > div {
+  display: grid;
+  gap: var(--space-2);
+  align-content: start;
+  padding-top: var(--space-4);
+  border-top: 1px solid var(--line-strong);
+}
+
+.figures dt {
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: var(--ink-2);
+}
+
+.figures dd {
+  margin: 0;
+  font-size: clamp(2.5rem, 1.6rem + 3vw, 4.5rem);
+  font-weight: 700;
+  letter-spacing: -0.045em;
+  line-height: 0.95;
+  color: var(--ink);
+  font-variant-numeric: tabular-nums;
+}
+
+.figures p {
+  font-size: var(--text-sm);
+  line-height: 1.5;
+  color: var(--ink-2);
+}
+
+.figures-note {
+  margin-top: var(--space-6);
+  padding-left: var(--space-4);
+  border-left: 3px solid var(--brand);
+  max-width: var(--measure);
+  font-size: var(--text-base);
+  line-height: 1.55;
+  color: var(--ink-2);
+}
+
+/* ---------- Dos caminos ---------- */
+.paths {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-7);
+  margin-top: var(--space-6);
+}
+
+.paths > div {
+  display: grid;
+  gap: var(--space-3);
+  align-content: start;
+  padding-top: var(--space-4);
+  border-top: 1px solid var(--line-strong);
+}
+
+.paths .button {
+  justify-self: start;
+}
+
+.paths pre {
+  padding: var(--space-4);
+  border-radius: var(--radius-m);
+  background: var(--surface-sunken);
+  font-family: var(--font-mono);
+  font-size: var(--text-sm);
+  line-height: 1.6;
+  overflow-x: auto;
+}
+
+.paths code,
+.prose code {
+  font-family: var(--font-mono);
+  font-size: 0.95em;
+}
+
+/* ---------- Móvil: todo a una columna ---------- */
+@media (max-width: 900px) {
+  .hero,
+  .example,
+  .paths {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .hero-figure,
+  .example-figure {
+    justify-self: start;
+    width: min(100%, 300px);
+  }
+
+  .steps {
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--space-5);
+  }
+
+  .figures {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .lite-nav {
+    display: none;
+  }
+}
+
+@media (max-width: 480px) {
+  .figures {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-figure img {
+    animation: none;
+  }
+}

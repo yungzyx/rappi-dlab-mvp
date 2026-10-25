@@ -1,0 +1,44 @@
+{
+  "source": "synthetic",
+  "data": {
+    "personas": 2784,
+    "busquedas": 15814,
+    "sin_resultado": 2233,
+    "por_vertical": [
+      {
+        "vertical": "restaurantes",
+        "concepto": "🇵🇪 Comida peruana",
+        "sin_resultado": 986
+      },
+      {
+        "vertical": "restaurantes",
+        "concepto": "🥞 Desayunos y brunch",
+        "sin_resultado": 464
+      },
+      {
+        "vertical": "restaurantes",
+        "concepto": "🌮 Comida mexicana",
+        "sin_resultado": 309
+      },
+      {
+        "vertical": "supermercado",
+        "concepto": null,
+        "sin_resultado": 227
+      },
+      {
+        "vertical": "restaurantes",
+        "concepto": "🥙 Comida árabe",
+        "sin_resultado": 213
+      },
+      {
+        "vertical": "mall",
+        "concepto": "🚗 Auto",
+        "sin_resultado": 34
+      }
+    ]
+  },
+  "guardado": {
+    "origen": "npm run panel:snapshot · usuarios simulados de rappi_staging",
+    "fecha": "2026-10-24"
+  }
+}

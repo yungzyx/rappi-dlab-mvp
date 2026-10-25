@@ -1,0 +1,159 @@
+/* Buscador: diseño propio con el estilo de la app (no aparece en los videos). */
+.search {
+  padding: 0 var(--gutter) 120px;
+}
+
+.search-header {
+  position: sticky;
+  top: 0;
+  z-index: 3;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0 calc(-1 * var(--gutter));
+  padding: 60px var(--gutter) 12px;
+  background: var(--surface);
+}
+
+.search-back {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: var(--chip);
+}
+
+.search-field {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  height: 50px;
+  padding: 0 14px 0 17px;
+  border: 1px solid var(--line);
+  border-radius: 99px;
+  box-shadow: var(--shadow-search);
+}
+
+.search-field input {
+  flex: 1;
+  min-width: 0;
+  border: 0;
+  outline: none;
+  background: none;
+  font: inherit;
+  font-size: 16.5px;
+  color: var(--ink);
+}
+
+.search-field input::-webkit-search-cancel-button {
+  display: none;
+}
+
+.search-clear {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: var(--control-border);
+  color: var(--surface);
+  font-size: 17px;
+  line-height: 1;
+}
+
+/* Área táctil de 44 × 44 sin agrandar el círculo */
+.search-clear::before {
+  content: '';
+  position: absolute;
+  inset: -11px;
+}
+
+.search-heading {
+  margin-top: 22px;
+  font-size: 19px;
+  font-weight: 600;
+}
+
+.search-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.search-chip {
+  height: 34px;
+  padding: 0 14px;
+  border-radius: 99px;
+  background: var(--chip);
+  font-size: 15px;
+}
+
+.search-products {
+  list-style: none;
+  margin-top: 6px;
+}
+
+.search-loading,
+.search-empty {
+  margin-top: 30px;
+  font-size: 16px;
+  color: var(--ink-2);
+  text-align: center;
+}
+
+/* La API corrigió un error de tipeo: qué buscó, y buscar lo escrito tal cual */
+.search-corrected {
+  margin: 14px 0 0;
+  font-size: 14px;
+  color: var(--ink-2);
+}
+
+.search-exact {
+  display: block;
+  margin-top: 2px;
+  padding: 4px 0;
+  color: var(--ink);
+  font-size: 14px;
+  font-weight: 600;
+  text-decoration: underline;
+}
+
+.search-more {
+  margin-top: 4px;
+  padding: 8px 0;
+  color: var(--ink-2);
+  font-size: 14.5px;
+  font-weight: 600;
+}
+
+/* Sin resultados en el buscador con Mochi: Mochi lleva a la vertical que lo tiene o invita a buscar distinto */
+.search-agent {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 16px var(--gutter);
+  padding: 14px 16px;
+  border-radius: 18px;
+  background: var(--surface);
+  box-shadow: 0 6px 20px rgba(20, 10, 5, 0.1);
+}
+
+.search-agent p {
+  margin: 0 0 10px;
+  font-size: 15px;
+  line-height: 20px;
+}
+
+.search-agent-action {
+  padding: 8px 14px;
+  border-radius: 99px;
+  background: var(--chip);
+  color: var(--ink);
+  font-size: 13.5px;
+  font-weight: 700;
+}

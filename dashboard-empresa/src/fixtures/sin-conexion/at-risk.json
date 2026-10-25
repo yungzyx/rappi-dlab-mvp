@@ -1,0 +1,1009 @@
+{
+  "source": "synthetic",
+  "data": [
+    {
+      "usuario": "u-e725fb81",
+      "persona": "foodie",
+      "estado": "en_riesgo",
+      "ritmo_dias": 1,
+      "dias_sin_pedir": 42,
+      "concepto_top": "🍦 Helados",
+      "consiente_avisos": true,
+      "accion": "Recordatorio en su ritmo con su concepto top + complemento"
+    },
+    {
+      "usuario": "u-344a7866",
+      "persona": "perro",
+      "estado": "en_riesgo",
+      "ritmo_dias": 1,
+      "dias_sin_pedir": 41,
+      "concepto_top": "🍔 Hamburguesa",
+      "consiente_avisos": false,
+      "accion": "Sin consentimiento: solo en la app (el agente)"
+    },
+    {
+      "usuario": "u-cbf25993",
+      "persona": "oficina",
+      "estado": "en_riesgo",
+      "ritmo_dias": 1,
+      "dias_sin_pedir": 40,
+      "concepto_top": "🥡 Comida asiática",
+      "consiente_avisos": false,
+      "accion": "Sin consentimiento: solo en la app (el agente)"
+    },
+    {
+      "usuario": "u-22b09c72",
+      "persona": "sin-gluten",
+      "estado": "en_riesgo",
+      "ritmo_dias": 1,
+      "dias_sin_pedir": 36,
+      "concepto_top": "🍔 Hamburguesa",
+      "consiente_avisos": false,
+      "accion": "Sin consentimiento: solo en la app (el agente)"
+    },
+    {
+      "usuario": "u-7d082827",
+      "persona": "cafetera",
+      "estado": "en_riesgo",
+      "ritmo_dias": 1,
+      "dias_sin_pedir": 33,
+      "concepto_top": "🥞 Desayunos y brunch",
+      "consiente_avisos": true,
+      "accion": "Recordatorio en su ritmo con su concepto top + complemento"
+    },
+    {
+      "usuario": "u-d169c141",
+      "persona": "mascotero",
+      "estado": "en_riesgo",
+      "ritmo_dias": 1,
+      "dias_sin_pedir": 23,
+      "concepto_top": "🍕 Pizza",
+      "consiente_avisos": false,
+      "accion": "Sin consentimiento: solo en la app (el agente)"
+    },
+    {
+      "usuario": "u-8428fc83",
+      "persona": "familia",
+      "estado": "en_riesgo",
+      "ritmo_dias": 2,
+      "dias_sin_pedir": 42,
+      "concepto_top": "🍗 Pollo frito y asado",
+      "consiente_avisos": true,
+      "accion": "Recordatorio en su ritmo con su concepto top + complemento"
+    },
+    {
+      "usuario": "u-93e9c210",
+      "persona": "delivery",
+      "estado": "en_riesgo",
+      "ritmo_dias": 2,
+      "dias_sin_pedir": 42,
+      "concepto_top": "🍔 Hamburguesa",
+      "consiente_avisos": true,
+      "accion": "Recordatorio en su ritmo con su concepto top + complemento"
+    },
+    {
+      "usuario": "u-c282e6c4",
+      "persona": "delivery",
+      "estado": "en_riesgo",
+      "ritmo_dias": 2,
+      "dias_sin_pedir": 40,
+      "concepto_top": "🍕 Pizza",
+      "consiente_avisos": false,
+      "accion": "Sin consentimiento: solo en la app (el agente)"
+    },
+    {
+      "usuario": "u-56733791",
+      "persona": "familia",
+      "estado": "en_riesgo",
+      "ritmo_dias": 2,
+      "dias_sin_pedir": 39,
+      "concepto_top": "🍕 Pizza",
+      "consiente_avisos": false,
+      "accion": "Sin consentimiento: solo en la app (el agente)"
+    },
+    {
+      "usuario": "u-a8489cff",
+      "persona": "parrillero",
+      "estado": "en_riesgo",
+      "ritmo_dias": 2,
+      "dias_sin_pedir": 30,
+      "concepto_top": "🔥 Carbón y leña",
+      "consiente_avisos": false,
+      "accion": "Sin consentimiento: solo en la app (el agente)"
+    },
+    {
+      "usuario": "u-16ae59ac",
+      "persona": "delivery",
+      "estado": "en_riesgo",
+      "ritmo_dias": 3,
+      "dias_sin_pedir": 44,
+      "concepto_top": "🍎 Frutas",
+      "consiente_avisos": false,
+      "accion": "Sin consentimiento: solo en la app (el agente)"
+    },
+    {
+      "usuario": "u-ae1ab047",
+      "persona": "carrete",
+      "estado": "en_riesgo",
+      "ritmo_dias": 3,
+      "dias_sin_pedir": 43,
+      "concepto_top": "🍣 Sushi",
+      "consiente_avisos": false,
+      "accion": "Sin consentimiento: solo en la app (el agente)"
+    },
+    {
+      "usuario": "u-f0aef217",
+      "persona": "mascotero",
+      "estado": "en_riesgo",
+      "ritmo_dias": 3,
+      "dias_sin_pedir": 43,
+      "concepto_top": "🍣 Sushi",
+      "consiente_avisos": true,
+      "accion": "Recordatorio en su ritmo con su concepto top + complemento"
+    },
+    {
+      "usuario": "u-d3bdd3ad",
+      "persona": "hogar",
+      "estado": "en_riesgo",
+      "ritmo_dias": 3,
+      "dias_sin_pedir": 43,
+      "concepto_top": "🍣 Sushi",
+      "consiente_avisos": true,
+      "accion": "Recordatorio en su ritmo con su concepto top + complemento"
+    },
+    {
+      "usuario": "u-a76dff01",
+      "persona": "oficina",
+      "estado": "en_riesgo",
+      "ritmo_dias": 2,
+      "dias_sin_pedir": 27,
+      "concepto_top": "☕ Café",
+      "consiente_avisos": true,
+      "accion": "Recordatorio en su ritmo con su concepto top + complemento"
+    },
+    {
+      "usuario": "u-7ef87f09",
+      "persona": "nocturno",
+      "estado": "en_riesgo",
+      "ritmo_dias": 3,
+      "dias_sin_pedir": 41,
+      "concepto_top": "🥤 Bebidas gaseosas",
+      "consiente_avisos": false,
+      "accion": "Sin consentimiento: solo en la app (el agente)"
+    },
+    {
+      "usuario": "u-36e411c3",
+      "persona": "mascotero",
+      "estado": "en_riesgo",
+      "ritmo_dias": 2.5,
+      "dias_sin_pedir": 33,
+      "concepto_top": "🍕 Pizza",
+      "consiente_avisos": true,
+      "accion": "Recordatorio en su ritmo con su concepto top + complemento"
+    },
+    {
+      "usuario": "u-4ea4b892",
+      "persona": "carrete",
+      "estado": "en_riesgo",
+      "ritmo_dias": 3,
+      "dias_sin_pedir": 39,
+      "concepto_top": "🍕 Pizza",
+      "consiente_avisos": true,
+      "accion": "Recordatorio en su ritmo con su concepto top + complemento"
+    },
+    {
+      "usuario": "u-b2dfed87",
+      "persona": "foodie",
+      "estado": "en_riesgo",
+      "ritmo_dias": 3,
+      "dias_sin_pedir": 36,
+      "concepto_top": "🍮 Postres",
+      "consiente_avisos": true,
+      "accion": "Recordatorio en su ritmo con su concepto top + complemento"
+    },
+    {
+      "usuario": "u-385606c0",
+      "persona": "delivery",
+      "estado": "en_riesgo",
+      "ritmo_dias": 4,
+      "dias_sin_pedir": 44,
+      "concepto_top": "🍕 Pizza",
+      "consiente_avisos": true,
+      "accion": "Recordatorio en su ritmo con su concepto top + complemento"
+    },
+    {
+      "usuario": "u-c9a01ede",
+      "persona": "rutina",
+      "estado": "en_riesgo",
+      "ritmo_dias": 2,
+      "dias_sin_pedir": 22,
+      "concepto_top": "🍗 Pollo frito y asado",
+      "consiente_avisos": false,
+      "accion": "Sin consentimiento: solo en la app (el agente)"
+    },
+    {
+      "usuario": "u-a24cf632",
+      "persona": "parrillero",
+      "estado": "en_riesgo",
+      "ritmo_dias": 3,
+      "dias_sin_pedir": 31,
+      "concepto_top": "🥩 Carnes y parrilla",
+      "consiente_avisos": false,
+      "accion": "Sin consentimiento: solo en la app (el agente)"
+    },
+    {
+      "usuario": "u-077ed5a5",
+      "persona": "carrete",
+      "estado": "en_riesgo",
+      "ritmo_dias": 4,
+      "dias_sin_pedir": 40,
+      "concepto_top": "🍔 Hamburguesa",
+      "consiente_avisos": false,
+      "accion": "Sin consentimiento: solo en la app (el agente)"
+    },
+    {
+      "usuario": "u-5ba1efe1",
+      "persona": "familia",
+      "estado": "en_riesgo",
+      "ritmo_dias": 3,
+      "dias_sin_pedir": 30,
+      "concepto_top": "🍗 Pollo frito y asado",
+      "consiente_avisos": false,
+      "accion": "Sin consentimiento: solo en la app (el agente)"
+    },
+    {
+      "usuario": "u-bbf07a75",
+      "persona": "delivery",
+      "estado": "en_riesgo",
+      "ritmo_dias": 4.5,
+      "dias_sin_pedir": 42,
+      "concepto_top": "🍔 Hamburguesa",
+      "consiente_avisos": false,
+      "accion": "Sin consentimiento: solo en la app (el agente)"
+    },
+    {
+      "usuario": "u-43215017",
+      "persona": "carrete",
+      "estado": "en_riesgo",
+      "ritmo_dias": 3,
+      "dias_sin_pedir": 28,
+      "concepto_top": "🍣 Sushi",
+      "consiente_avisos": false,
+      "accion": "Sin consentimiento: solo en la app (el agente)"
+    },
+    {
+      "usuario": "u-4a080509",
+      "persona": "asiatico",
+      "estado": "en_riesgo",
+      "ritmo_dias": 3.5,
+      "dias_sin_pedir": 32,
+      "concepto_top": "🥡 Comida asiática",
+      "consiente_avisos": false,
+      "accion": "Sin consentimiento: solo en la app (el agente)"
+    },
+    {
+      "usuario": "u-e9a17346",
+      "persona": "familia",
+      "estado": "en_riesgo",
+      "ritmo_dias": 3,
+      "dias_sin_pedir": 28,
+      "concepto_top": "🍕 Pizza",
+      "consiente_avisos": false,
+      "accion": "Sin consentimiento: solo en la app (el agente)"
+    },
+    {
+      "usuario": "u-b2fa763c",
+      "persona": "asiatico",
+      "estado": "en_riesgo",
+      "ritmo_dias": 3,
+      "dias_sin_pedir": 27,
+      "concepto_top": "🥢 Despensa asiática",
+      "consiente_avisos": true,
+      "accion": "Recordatorio en su ritmo con su concepto top + complemento"
+    },
+    {
+      "usuario": "u-5c4720d9",
+      "persona": "mascotero",
+      "estado": "en_riesgo",
+      "ritmo_dias": 3,
+      "dias_sin_pedir": 27,
+      "concepto_top": "🍕 Pizza",
+      "consiente_avisos": false,
+      "accion": "Sin consentimiento: solo en la app (el agente)"
+    },
+    {
+      "usuario": "u-86d39193",
+      "persona": "familia",
+      "estado": "en_riesgo",
+      "ritmo_dias": 5,
+      "dias_sin_pedir": 44,
+      "concepto_top": "🍕 Pizza",
+      "consiente_avisos": true,
+      "accion": "Recordatorio en su ritmo con su concepto top + complemento"
+    },
+    {
+      "usuario": "u-34ce75fd",
+      "persona": "rutina",
+      "estado": "en_riesgo",
+      "ritmo_dias": 4.5,
+      "dias_sin_pedir": 39,
+      "concepto_top": "🍗 Pollo frito y asado",
+      "consiente_avisos": false,
+      "accion": "Sin consentimiento: solo en la app (el agente)"
+    },
+    {
+      "usuario": "u-87bb3658",
+      "persona": "foodie",
+      "estado": "en_riesgo",
+      "ritmo_dias": 5,
+      "dias_sin_pedir": 42,
+      "concepto_top": "🍣 Sushi",
+      "consiente_avisos": false,
+      "accion": "Sin consentimiento: solo en la app (el agente)"
+    },
+    {
+      "usuario": "u-65b9a356",
+      "persona": "cafetera",
+      "estado": "en_riesgo",
+      "ritmo_dias": 4.5,
+      "dias_sin_pedir": 38,
+      "concepto_top": "🥞 Desayunos y brunch",
+      "consiente_avisos": false,
+      "accion": "Sin consentimiento: solo en la app (el agente)"
+    },
+    {
+      "usuario": "u-47185da8",
+      "persona": "hogar",
+      "estado": "en_riesgo",
+      "ritmo_dias": 4.5,
+      "dias_sin_pedir": 37,
+      "concepto_top": "🍕 Pizza",
+      "consiente_avisos": true,
+      "accion": "Recordatorio en su ritmo con su concepto top + complemento"
+    },
+    {
+      "usuario": "u-0f16daa0",
+      "persona": "gamer",
+      "estado": "en_riesgo",
+      "ritmo_dias": 4.5,
+      "dias_sin_pedir": 37,
+      "concepto_top": "🍕 Pizza",
+      "consiente_avisos": false,
+      "accion": "Sin consentimiento: solo en la app (el agente)"
+    },
+    {
+      "usuario": "u-0c2d8eed",
+      "persona": "familia",
+      "estado": "en_riesgo",
+      "ritmo_dias": 3,
+      "dias_sin_pedir": 24,
+      "concepto_top": "🍎 Frutas",
+      "consiente_avisos": false,
+      "accion": "Sin consentimiento: solo en la app (el agente)"
+    },
+    {
+      "usuario": "u-58312305",
+      "persona": "oficina",
+      "estado": "en_riesgo",
+      "ritmo_dias": 3,
+      "dias_sin_pedir": 22,
+      "concepto_top": "🥗 Ensaladas y bowls",
+      "consiente_avisos": false,
+      "accion": "Sin consentimiento: solo en la app (el agente)"
+    },
+    {
+      "usuario": "u-bd4704a4",
+      "persona": "oficina",
+      "estado": "en_riesgo",
+      "ritmo_dias": 4,
+      "dias_sin_pedir": 29,
+      "concepto_top": "🍪 Galletas",
+      "consiente_avisos": true,
+      "accion": "Recordatorio en su ritmo con su concepto top + complemento"
+    },
+    {
+      "usuario": "u-0e187aa4",
+      "persona": "oficina",
+      "estado": "en_riesgo",
+      "ritmo_dias": 3,
+      "dias_sin_pedir": 21,
+      "concepto_top": "🥗 Ensaladas y bowls",
+      "consiente_avisos": false,
+      "accion": "Sin consentimiento: solo en la app (el agente)"
+    },
+    {
+      "usuario": "u-a23d33e2",
+      "persona": "oficina",
+      "estado": "en_riesgo",
+      "ritmo_dias": 5,
+      "dias_sin_pedir": 34,
+      "concepto_top": "🥗 Ensaladas y bowls",
+      "consiente_avisos": true,
+      "accion": "Recordatorio en su ritmo con su concepto top + complemento"
+    },
+    {
+      "usuario": "u-f76b5987",
+      "persona": "parrillero",
+      "estado": "en_riesgo",
+      "ritmo_dias": 6,
+      "dias_sin_pedir": 41,
+      "concepto_top": "🥩 Carnes y parrilla",
+      "consiente_avisos": false,
+      "accion": "Sin consentimiento: solo en la app (el agente)"
+    },
+    {
+      "usuario": "u-13fb509d",
+      "persona": "rutina",
+      "estado": "en_riesgo",
+      "ritmo_dias": 6,
+      "dias_sin_pedir": 41,
+      "concepto_top": "🍔 Hamburguesa",
+      "consiente_avisos": true,
+      "accion": "Recordatorio en su ritmo con su concepto top + complemento"
+    },
+    {
+      "usuario": "u-cb773303",
+      "persona": "carrete",
+      "estado": "en_riesgo",
+      "ritmo_dias": 3.5,
+      "dias_sin_pedir": 23,
+      "concepto_top": "🍕 Pizza",
+      "consiente_avisos": true,
+      "accion": "Recordatorio en su ritmo con su concepto top + complemento"
+    },
+    {
+      "usuario": "u-85228739",
+      "persona": "familia",
+      "estado": "en_riesgo",
+      "ritmo_dias": 6,
+      "dias_sin_pedir": 39,
+      "concepto_top": "🍕 Pizza",
+      "consiente_avisos": false,
+      "accion": "Sin consentimiento: solo en la app (el agente)"
+    },
+    {
+      "usuario": "u-1717bc9d",
+      "persona": "foodie",
+      "estado": "en_riesgo",
+      "ritmo_dias": 5,
+      "dias_sin_pedir": 32,
+      "concepto_top": "🥩 Carnes y parrilla",
+      "consiente_avisos": false,
+      "accion": "Sin consentimiento: solo en la app (el agente)"
+    },
+    {
+      "usuario": "u-4fff9db8",
+      "persona": "delivery",
+      "estado": "en_riesgo",
+      "ritmo_dias": 3.5,
+      "dias_sin_pedir": 22,
+      "concepto_top": "🥛 Leche y yogur",
+      "consiente_avisos": true,
+      "accion": "Recordatorio en su ritmo con su concepto top + complemento"
+    },
+    {
+      "usuario": "u-1eeca4e6",
+      "persona": "familia",
+      "estado": "en_riesgo",
+      "ritmo_dias": 4,
+      "dias_sin_pedir": 26,
+      "concepto_top": "🥛 Leche y yogur",
+      "consiente_avisos": true,
+      "accion": "Recordatorio en su ritmo con su concepto top + complemento"
+    },
+    {
+      "usuario": "u-e0f1fcdc",
+      "persona": "foodie",
+      "estado": "en_riesgo",
+      "ritmo_dias": 7,
+      "dias_sin_pedir": 44,
+      "concepto_top": "🥩 Carnes y parrilla",
+      "consiente_avisos": false,
+      "accion": "Sin consentimiento: solo en la app (el agente)"
+    },
+    {
+      "usuario": "u-461399d5",
+      "persona": "carrete",
+      "estado": "en_riesgo",
+      "ritmo_dias": 3.5,
+      "dias_sin_pedir": 21,
+      "concepto_top": "🍣 Sushi",
+      "consiente_avisos": false,
+      "accion": "Sin consentimiento: solo en la app (el agente)"
+    },
+    {
+      "usuario": "u-5fd22e2e",
+      "persona": "hogar",
+      "estado": "en_riesgo",
+      "ritmo_dias": 7,
+      "dias_sin_pedir": 42,
+      "concepto_top": "🍣 Sushi",
+      "consiente_avisos": true,
+      "accion": "Recordatorio en su ritmo con su concepto top + complemento"
+    },
+    {
+      "usuario": "u-ce4c7dee",
+      "persona": "rutina",
+      "estado": "en_riesgo",
+      "ritmo_dias": 7,
+      "dias_sin_pedir": 42,
+      "concepto_top": "🍔 Hamburguesa",
+      "consiente_avisos": false,
+      "accion": "Sin consentimiento: solo en la app (el agente)"
+    },
+    {
+      "usuario": "u-0f85548d",
+      "persona": "mascotero",
+      "estado": "en_riesgo",
+      "ritmo_dias": 7,
+      "dias_sin_pedir": 42,
+      "concepto_top": "🐕 Alimento para perros",
+      "consiente_avisos": false,
+      "accion": "Sin consentimiento: solo en la app (el agente)"
+    },
+    {
+      "usuario": "u-5a232943",
+      "persona": "familia",
+      "estado": "en_riesgo",
+      "ritmo_dias": 7,
+      "dias_sin_pedir": 42,
+      "concepto_top": "🍗 Pollo frito y asado",
+      "consiente_avisos": false,
+      "accion": "Sin consentimiento: solo en la app (el agente)"
+    },
+    {
+      "usuario": "u-3403d219",
+      "persona": "familia",
+      "estado": "en_riesgo",
+      "ritmo_dias": 7,
+      "dias_sin_pedir": 41,
+      "concepto_top": "🍕 Pizza",
+      "consiente_avisos": false,
+      "accion": "Sin consentimiento: solo en la app (el agente)"
+    },
+    {
+      "usuario": "u-06920543",
+      "persona": "chocolatera",
+      "estado": "en_riesgo",
+      "ritmo_dias": 7,
+      "dias_sin_pedir": 41,
+      "concepto_top": "🍔 Hamburguesa",
+      "consiente_avisos": false,
+      "accion": "Sin consentimiento: solo en la app (el agente)"
+    },
+    {
+      "usuario": "u-292e95bc",
+      "persona": "carrete",
+      "estado": "en_riesgo",
+      "ritmo_dias": 7,
+      "dias_sin_pedir": 41,
+      "concepto_top": "🍕 Pizza",
+      "consiente_avisos": true,
+      "accion": "Recordatorio en su ritmo con su concepto top + complemento"
+    },
+    {
+      "usuario": "u-2bb64372",
+      "persona": "rutina",
+      "estado": "en_riesgo",
+      "ritmo_dias": 6,
+      "dias_sin_pedir": 35,
+      "concepto_top": "🍗 Pollo frito y asado",
+      "consiente_avisos": false,
+      "accion": "Sin consentimiento: solo en la app (el agente)"
+    },
+    {
+      "usuario": "u-0238f037",
+      "persona": "vegana",
+      "estado": "en_riesgo",
+      "ritmo_dias": 6,
+      "dias_sin_pedir": 34,
+      "concepto_top": "🥗 Ensaladas y bowls",
+      "consiente_avisos": false,
+      "accion": "Sin consentimiento: solo en la app (el agente)"
+    },
+    {
+      "usuario": "u-086832e9",
+      "persona": "oficina",
+      "estado": "en_riesgo",
+      "ritmo_dias": 5,
+      "dias_sin_pedir": 28,
+      "concepto_top": "🍣 Sushi",
+      "consiente_avisos": false,
+      "accion": "Sin consentimiento: solo en la app (el agente)"
+    },
+    {
+      "usuario": "u-ea9fd5f2",
+      "persona": "oficina",
+      "estado": "en_riesgo",
+      "ritmo_dias": 7,
+      "dias_sin_pedir": 39,
+      "concepto_top": "🍪 Galletas",
+      "consiente_avisos": true,
+      "accion": "Recordatorio en su ritmo con su concepto top + complemento"
+    },
+    {
+      "usuario": "u-24a4fd20",
+      "persona": "carrete",
+      "estado": "en_riesgo",
+      "ritmo_dias": 7,
+      "dias_sin_pedir": 39,
+      "concepto_top": "🍕 Pizza",
+      "consiente_avisos": false,
+      "accion": "Sin consentimiento: solo en la app (el agente)"
+    },
+    {
+      "usuario": "u-b01472bc",
+      "persona": "foodie",
+      "estado": "en_riesgo",
+      "ritmo_dias": 7,
+      "dias_sin_pedir": 39,
+      "concepto_top": "🍮 Postres",
+      "consiente_avisos": false,
+      "accion": "Sin consentimiento: solo en la app (el agente)"
+    },
+    {
+      "usuario": "u-e3e8119a",
+      "persona": "cazaofertas",
+      "estado": "en_riesgo",
+      "ritmo_dias": 7,
+      "dias_sin_pedir": 39,
+      "concepto_top": "🍔 Hamburguesa",
+      "consiente_avisos": false,
+      "accion": "Sin consentimiento: solo en la app (el agente)"
+    },
+    {
+      "usuario": "u-d868fec3",
+      "persona": "carrete",
+      "estado": "en_riesgo",
+      "ritmo_dias": 6.5,
+      "dias_sin_pedir": 35,
+      "concepto_top": "🍺 Cerveza",
+      "consiente_avisos": false,
+      "accion": "Sin consentimiento: solo en la app (el agente)"
+    },
+    {
+      "usuario": "u-4a727377",
+      "persona": "hogar",
+      "estado": "en_riesgo",
+      "ritmo_dias": 4.5,
+      "dias_sin_pedir": 24,
+      "concepto_top": "🍕 Pizza",
+      "consiente_avisos": false,
+      "accion": "Sin consentimiento: solo en la app (el agente)"
+    },
+    {
+      "usuario": "u-84486d1e",
+      "persona": "oficina",
+      "estado": "en_riesgo",
+      "ritmo_dias": 7,
+      "dias_sin_pedir": 37,
+      "concepto_top": "🥗 Ensaladas y bowls",
+      "consiente_avisos": true,
+      "accion": "Recordatorio en su ritmo con su concepto top + complemento"
+    },
+    {
+      "usuario": "u-12f30225",
+      "persona": "foodie",
+      "estado": "en_riesgo",
+      "ritmo_dias": 7,
+      "dias_sin_pedir": 37,
+      "concepto_top": "🍣 Sushi",
+      "consiente_avisos": true,
+      "accion": "Recordatorio en su ritmo con su concepto top + complemento"
+    },
+    {
+      "usuario": "u-b6776fe2",
+      "persona": "hogar",
+      "estado": "en_riesgo",
+      "ritmo_dias": 7,
+      "dias_sin_pedir": 37,
+      "concepto_top": "🍔 Hamburguesa",
+      "consiente_avisos": false,
+      "accion": "Sin consentimiento: solo en la app (el agente)"
+    },
+    {
+      "usuario": "u-5907b8dc",
+      "persona": "hogar",
+      "estado": "en_riesgo",
+      "ritmo_dias": 5.5,
+      "dias_sin_pedir": 29,
+      "concepto_top": "🍕 Pizza",
+      "consiente_avisos": true,
+      "accion": "Recordatorio en su ritmo con su concepto top + complemento"
+    },
+    {
+      "usuario": "u-ce57086a",
+      "persona": "familia",
+      "estado": "en_riesgo",
+      "ritmo_dias": 8,
+      "dias_sin_pedir": 42,
+      "concepto_top": "🍕 Pizza",
+      "consiente_avisos": false,
+      "accion": "Sin consentimiento: solo en la app (el agente)"
+    },
+    {
+      "usuario": "u-022a736c",
+      "persona": "mascotero",
+      "estado": "en_riesgo",
+      "ritmo_dias": 7,
+      "dias_sin_pedir": 37,
+      "concepto_top": "🍔 Hamburguesa",
+      "consiente_avisos": false,
+      "accion": "Sin consentimiento: solo en la app (el agente)"
+    },
+    {
+      "usuario": "u-58b02454",
+      "persona": "parrillero",
+      "estado": "en_riesgo",
+      "ritmo_dias": 8,
+      "dias_sin_pedir": 41,
+      "concepto_top": "🍣 Sushi",
+      "consiente_avisos": false,
+      "accion": "Sin consentimiento: solo en la app (el agente)"
+    },
+    {
+      "usuario": "u-122000e9",
+      "persona": "asiatico",
+      "estado": "en_riesgo",
+      "ritmo_dias": 4.5,
+      "dias_sin_pedir": 23,
+      "concepto_top": "🍘 Snacks asiáticos",
+      "consiente_avisos": false,
+      "accion": "Sin consentimiento: solo en la app (el agente)"
+    },
+    {
+      "usuario": "u-d24e4a80",
+      "persona": "oficina",
+      "estado": "en_riesgo",
+      "ritmo_dias": 5,
+      "dias_sin_pedir": 25,
+      "concepto_top": "🥡 Comida asiática",
+      "consiente_avisos": true,
+      "accion": "Recordatorio en su ritmo con su concepto top + complemento"
+    },
+    {
+      "usuario": "u-bca53503",
+      "persona": "familia",
+      "estado": "en_riesgo",
+      "ritmo_dias": 7,
+      "dias_sin_pedir": 36,
+      "concepto_top": "🍕 Pizza",
+      "consiente_avisos": false,
+      "accion": "Sin consentimiento: solo en la app (el agente)"
+    },
+    {
+      "usuario": "u-be1f42b4",
+      "persona": "vegana",
+      "estado": "en_riesgo",
+      "ritmo_dias": 7,
+      "dias_sin_pedir": 35,
+      "concepto_top": "🥗 Ensaladas y bowls",
+      "consiente_avisos": false,
+      "accion": "Sin consentimiento: solo en la app (el agente)"
+    },
+    {
+      "usuario": "u-0c314fc9",
+      "persona": "oficina",
+      "estado": "en_riesgo",
+      "ritmo_dias": 7,
+      "dias_sin_pedir": 35,
+      "concepto_top": "🍣 Sushi",
+      "consiente_avisos": true,
+      "accion": "Recordatorio en su ritmo con su concepto top + complemento"
+    },
+    {
+      "usuario": "u-1d4eaae7",
+      "persona": "carrete",
+      "estado": "en_riesgo",
+      "ritmo_dias": 7,
+      "dias_sin_pedir": 35,
+      "concepto_top": "🍣 Sushi",
+      "consiente_avisos": false,
+      "accion": "Sin consentimiento: solo en la app (el agente)"
+    },
+    {
+      "usuario": "u-e8838c9e",
+      "persona": "mama-bebe",
+      "estado": "en_riesgo",
+      "ritmo_dias": 8,
+      "dias_sin_pedir": 39,
+      "concepto_top": "🍕 Pizza",
+      "consiente_avisos": false,
+      "accion": "Sin consentimiento: solo en la app (el agente)"
+    },
+    {
+      "usuario": "u-dd1bc3f6",
+      "persona": "carrete",
+      "estado": "en_riesgo",
+      "ritmo_dias": 7,
+      "dias_sin_pedir": 34,
+      "concepto_top": "🍕 Pizza",
+      "consiente_avisos": false,
+      "accion": "Sin consentimiento: solo en la app (el agente)"
+    },
+    {
+      "usuario": "u-ac46b072",
+      "persona": "rutina",
+      "estado": "en_riesgo",
+      "ritmo_dias": 7,
+      "dias_sin_pedir": 34,
+      "concepto_top": "🍕 Pizza",
+      "consiente_avisos": false,
+      "accion": "Sin consentimiento: solo en la app (el agente)"
+    },
+    {
+      "usuario": "u-c78641c1",
+      "persona": "familia",
+      "estado": "en_riesgo",
+      "ritmo_dias": 6,
+      "dias_sin_pedir": 29,
+      "concepto_top": "🍕 Pizza",
+      "consiente_avisos": true,
+      "accion": "Recordatorio en su ritmo con su concepto top + complemento"
+    },
+    {
+      "usuario": "u-7c19455e",
+      "persona": "familia",
+      "estado": "en_riesgo",
+      "ritmo_dias": 7,
+      "dias_sin_pedir": 33,
+      "concepto_top": "🍕 Pizza",
+      "consiente_avisos": false,
+      "accion": "Sin consentimiento: solo en la app (el agente)"
+    },
+    {
+      "usuario": "u-0e6acf1e",
+      "persona": "delivery",
+      "estado": "en_riesgo",
+      "ritmo_dias": 6,
+      "dias_sin_pedir": 28,
+      "concepto_top": "🍗 Pollo frito y asado",
+      "consiente_avisos": true,
+      "accion": "Recordatorio en su ritmo con su concepto top + complemento"
+    },
+    {
+      "usuario": "u-0c1b9f03",
+      "persona": "rutina",
+      "estado": "en_riesgo",
+      "ritmo_dias": 7,
+      "dias_sin_pedir": 33,
+      "concepto_top": "🍣 Sushi",
+      "consiente_avisos": false,
+      "accion": "Sin consentimiento: solo en la app (el agente)"
+    },
+    {
+      "usuario": "u-ff193383",
+      "persona": "nocturno",
+      "estado": "en_riesgo",
+      "ritmo_dias": 7,
+      "dias_sin_pedir": 33,
+      "concepto_top": "🍔 Hamburguesa",
+      "consiente_avisos": false,
+      "accion": "Sin consentimiento: solo en la app (el agente)"
+    },
+    {
+      "usuario": "u-1a384f56",
+      "persona": "foodie",
+      "estado": "en_riesgo",
+      "ritmo_dias": 8.5,
+      "dias_sin_pedir": 38,
+      "concepto_top": "🍮 Postres",
+      "consiente_avisos": false,
+      "accion": "Sin consentimiento: solo en la app (el agente)"
+    },
+    {
+      "usuario": "u-186f776e",
+      "persona": "delivery",
+      "estado": "en_riesgo",
+      "ritmo_dias": 9,
+      "dias_sin_pedir": 40,
+      "concepto_top": "🍗 Pollo frito y asado",
+      "consiente_avisos": false,
+      "accion": "Sin consentimiento: solo en la app (el agente)"
+    },
+    {
+      "usuario": "u-18c6209d",
+      "persona": "mascotero",
+      "estado": "en_riesgo",
+      "ritmo_dias": 6,
+      "dias_sin_pedir": 27,
+      "concepto_top": "🍔 Hamburguesa",
+      "consiente_avisos": true,
+      "accion": "Recordatorio en su ritmo con su concepto top + complemento"
+    },
+    {
+      "usuario": "u-1049df67",
+      "persona": "mascotero",
+      "estado": "en_riesgo",
+      "ritmo_dias": 8.5,
+      "dias_sin_pedir": 38,
+      "concepto_top": "🍗 Pollo frito y asado",
+      "consiente_avisos": false,
+      "accion": "Sin consentimiento: solo en la app (el agente)"
+    },
+    {
+      "usuario": "u-6180c977",
+      "persona": "familia",
+      "estado": "en_riesgo",
+      "ritmo_dias": 7,
+      "dias_sin_pedir": 31,
+      "concepto_top": "🍕 Pizza",
+      "consiente_avisos": true,
+      "accion": "Recordatorio en su ritmo con su concepto top + complemento"
+    },
+    {
+      "usuario": "u-16bcc1f9",
+      "persona": "foodie",
+      "estado": "en_riesgo",
+      "ritmo_dias": 7,
+      "dias_sin_pedir": 30,
+      "concepto_top": "🍝 Pastas",
+      "consiente_avisos": false,
+      "accion": "Sin consentimiento: solo en la app (el agente)"
+    },
+    {
+      "usuario": "u-0798aaea",
+      "persona": "mama-bebe",
+      "estado": "en_riesgo",
+      "ritmo_dias": 5,
+      "dias_sin_pedir": 21,
+      "concepto_top": "🥛 Leche y yogur",
+      "consiente_avisos": true,
+      "accion": "Recordatorio en su ritmo con su concepto top + complemento"
+    },
+    {
+      "usuario": "u-4a83864d",
+      "persona": "carrete",
+      "estado": "en_riesgo",
+      "ritmo_dias": 8,
+      "dias_sin_pedir": 34,
+      "concepto_top": "🍕 Pizza",
+      "consiente_avisos": true,
+      "accion": "Recordatorio en su ritmo con su concepto top + complemento"
+    },
+    {
+      "usuario": "u-3bc8f5dd",
+      "persona": "foodie",
+      "estado": "en_riesgo",
+      "ritmo_dias": 10,
+      "dias_sin_pedir": 42,
+      "concepto_top": "🍝 Pastas",
+      "consiente_avisos": true,
+      "accion": "Recordatorio en su ritmo con su concepto top + complemento"
+    },
+    {
+      "usuario": "u-73b8fac6",
+      "persona": "carrete",
+      "estado": "en_riesgo",
+      "ritmo_dias": 10.5,
+      "dias_sin_pedir": 44,
+      "concepto_top": "🍕 Pizza",
+      "consiente_avisos": true,
+      "accion": "Recordatorio en su ritmo con su concepto top + complemento"
+    },
+    {
+      "usuario": "u-eb7cc8f8",
+      "persona": "gato",
+      "estado": "en_riesgo",
+      "ritmo_dias": 10,
+      "dias_sin_pedir": 42,
+      "concepto_top": "🍔 Hamburguesa",
+      "consiente_avisos": false,
+      "accion": "Sin consentimiento: solo en la app (el agente)"
+    },
+    {
+      "usuario": "u-b9eda8cc",
+      "persona": "cazaofertas",
+      "estado": "en_riesgo",
+      "ritmo_dias": 7,
+      "dias_sin_pedir": 29,
+      "concepto_top": "🍔 Hamburguesa",
+      "consiente_avisos": false,
+      "accion": "Sin consentimiento: solo en la app (el agente)"
+    }
+  ],
+  "guardado": {
+    "origen": "npm run panel:snapshot · usuarios simulados de rappi_staging",
+    "fecha": "2026-10-24"
+  }
+}

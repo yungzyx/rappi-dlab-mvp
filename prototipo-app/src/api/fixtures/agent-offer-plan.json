@@ -1,0 +1,93 @@
+{
+  "actions": [
+    {
+      "label": "Más ideas",
+      "query": "Cerveza Pisco Ron Vodka"
+    }
+  ],
+  "moment": "plan",
+  "products": [
+    {
+      "age_restricted": true,
+      "before": null,
+      "concept": "cerveza",
+      "discount": null,
+      "entity_id": "94001",
+      "entity_type": "catalog_item",
+      "id": "cat-94001",
+      "img": "https://imagenes.prueba.invalid/productos/94001.png",
+      "name": "Cerveza rubia lata 470 cc (prueba)",
+      "presentation": "470 cc",
+      "price": "$1.190",
+      "price_value": 1190.0,
+      "store": "Botillería de prueba Oriente",
+      "store_id": 9402,
+      "vertical": "licores"
+    },
+    {
+      "age_restricted": false,
+      "before": null,
+      "concept": "gaseosas",
+      "discount": null,
+      "entity_id": "92001",
+      "entity_type": "catalog_item",
+      "id": "cat-92001",
+      "img": "https://imagenes.prueba.invalid/productos/92001.png",
+      "name": "Gaseosa cola 500 cc (prueba)",
+      "presentation": "500 cc",
+      "price": "$1.290",
+      "price_value": 1290.0,
+      "store": "Tienda express de prueba Centro",
+      "store_id": 9201,
+      "vertical": "conveniencia"
+    },
+    {
+      "age_restricted": false,
+      "before": null,
+      "concept": "hielo",
+      "discount": null,
+      "entity_id": "93002",
+      "entity_type": "catalog_item",
+      "id": "cat-93002",
+      "img": "https://imagenes.prueba.invalid/productos/93002.png",
+      "name": "Hielo en cubos 2 kg (prueba)",
+      "presentation": "2 kg",
+      "price": "$1.490",
+      "price_value": 1490.0,
+      "store": "Tienda turbo de prueba Centro",
+      "store_id": 9301,
+      "vertical": "turbo"
+    },
+    {
+      "age_restricted": true,
+      "before": null,
+      "concept": "pisco",
+      "discount": null,
+      "entity_id": "94005",
+      "entity_type": "catalog_item",
+      "id": "cat-94005",
+      "img": "https://imagenes.prueba.invalid/productos/94005.png",
+      "name": "Pisco 35° 750 cc (prueba)",
+      "presentation": "750 cc",
+      "price": "$6.990",
+      "price_value": 6990.0,
+      "store": "Botillería de prueba Centro",
+      "store_id": 9401,
+      "vertical": "licores"
+    }
+  ],
+  "prototype_vertical": "liquor",
+  "reason": {
+    "basis": [
+      {
+        "id": "carrete",
+        "kind": "ocasion",
+        "source": "contexto"
+      }
+    ],
+    "occasion": "carrete",
+    "text": "Porque elegiste «Carrete»."
+  },
+  "text": "Tu kit «Carrete»: cerveza, bebidas gaseosas, hielo y pisco, de Licores, Express y Turbo.",
+  "vertical": "licores"
+}

@@ -1,0 +1,100 @@
+# Combinaciones de verticales de Rappi Chile (docs/diseno/2026-10-16-motor-multivertical-design.md, §3).
+# Una fila es el conjunto de verticales que una persona usó en el mes base (M0). La retención es la fracción que vuelve
+# a pedir al mes siguiente (M+1); el gasto está en la moneda de la fuente. Es una correlación, no un efecto.
+version = "2026-10-16"
+nota = "Dato compartido por el equipo de Rappi: cohortes de enero a junio de 2026, Chile, agrupación gruesa (MX crosswalk). Es una correlación, no un efecto."
+
+# Agrupación gruesa de la fuente, aplicada a los verticales del proyecto (supuesto propio): `retail` junta todo el
+# comercio que no es restaurante ni Turbo. Favor (RappiFavor) es un servicio sin catálogo y queda fuera.
+[grupos]
+rest = ["restaurantes"]
+turbo = ["turbo"]
+retail = ["supermercado", "conveniencia", "farmacia", "licores", "mall", "chocolateria"]
+
+[combinaciones."rest"]
+usuarios = 739000
+pct_usuarios = 62.6
+pct_pedidos = 39.8
+pedidos_por_usuario = 1.9
+retencion_m1 = 0.47
+gasto_por_usuario = 42
+
+[combinaciones."turbo"]
+usuarios = 80000
+pct_usuarios = 6.8
+pct_pedidos = 3.9
+pedidos_por_usuario = 1.7
+retencion_m1 = 0.50
+gasto_por_usuario = 35
+
+[combinaciones."rest+turbo"]
+usuarios = 78000
+pct_usuarios = 6.6
+pct_pedidos = 12.2
+pedidos_por_usuario = 5.5
+retencion_m1 = 0.82
+gasto_por_usuario = 123
+
+[combinaciones."retail"]
+usuarios = 66000
+pct_usuarios = 5.6
+pct_pedidos = 2.5
+pedidos_por_usuario = 1.4
+retencion_m1 = 0.41
+gasto_por_usuario = 34
+
+[combinaciones."rest+retail"]
+usuarios = 64000
+pct_usuarios = 5.4
+pct_pedidos = 8.4
+pedidos_por_usuario = 4.7
+retencion_m1 = 0.76
+gasto_por_usuario = 116
+
+[combinaciones."rest+turbo+retail"]
+usuarios = 56000
+pct_usuarios = 4.7
+pct_pedidos = 16.4
+pedidos_por_usuario = 10.5
+retencion_m1 = 0.93
+gasto_por_usuario = 257
+
+[combinaciones."turbo+retail"]
+usuarios = 20000
+pct_usuarios = 1.7
+pct_pedidos = 2.6
+pedidos_por_usuario = 4.6
+retencion_m1 = 0.80
+gasto_por_usuario = 108
+
+[combinaciones."favor"]
+usuarios = 18000
+pct_usuarios = 1.5
+pct_pedidos = 1.0
+pedidos_por_usuario = 2.0
+retencion_m1 = 0.44
+gasto_por_usuario = 11
+
+[total]
+usuarios = 1180000
+pct_usuarios = 100.0
+pct_pedidos = 100.0
+pedidos_por_usuario = 3.0
+retencion_m1 = 0.55
+gasto_por_usuario = 68
+
+# Escalera fina (docs/capa-de-datos.md#la-escalera-fina). Supuesto propio, no viene de Rappi: la
+# tabla de arriba solo distingue grupos. La retención fina esperada es 1 − (1 − gruesa)·Π(1 − f): la j-ésima vertical
+# de un grupo (j ≥ 2) quita f = reduccion_base·decaimiento^(j−2) de la parte que no vuelve (10 %, 5 %, 2,5 %…) y cada
+# servicio usado (RappiFavor, RappiTravel), f = servicio. Como cada f es menor que 1, nunca llega a 100 %.
+[rendimiento_decreciente]
+nota = "supuesto propio: cada vertical extra dentro de un grupo reduce la parte que no vuelve: 10 %, 5 %, 2,5 %…; cada servicio, 5 %; nunca llega a 100 %. Con datos reales se reemplaza por lo aprendido"
+reduccion_base = 0.10
+decaimiento = 0.5
+servicio = 0.05
+
+# Servicios sin catálogo que también cuentan en la combinación fina: su clave y el `payload.servicio` del evento
+# `service_opened` con que la persona los usa.
+[servicios]
+favor = "rappifavor"
+travel = "rappitravel"

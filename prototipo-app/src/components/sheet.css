@@ -1,0 +1,79 @@
+.sheet-layer {
+  position: absolute;
+  inset: 0;
+  z-index: var(--z-sheet);
+}
+
+.sheet-backdrop {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  background: rgba(0, 0, 0, 0.35);
+  opacity: 0;
+  transition: opacity 240ms;
+  cursor: default;
+}
+
+.sheet {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  max-height: 80%;
+  overflow-y: auto;
+  overscroll-behavior-y: contain;
+  padding: 10px var(--gutter) calc(34px + env(safe-area-inset-bottom, 0px));
+  border-radius: 28px 28px 0 0;
+  background: var(--surface);
+  transform: translateY(100%);
+  transition: transform 260ms var(--ease-out);
+}
+
+.sheet-layer.is-open .sheet-backdrop {
+  opacity: 1;
+}
+
+.sheet-layer.is-open .sheet {
+  transform: none;
+}
+
+.sheet-grabber {
+  display: block;
+  width: 38px;
+  height: 5px;
+  margin: 0 auto 14px;
+  border-radius: 3px;
+  background: #d9dbe0;
+}
+
+.sheet-title {
+  margin-bottom: 14px;
+  font-size: 21px;
+  font-weight: 600;
+}
+
+/* Confirmación dentro de una hoja (cerrar sesión, «Borrar mis datos»): texto y dos botones a lo ancho */
+.sheet-confirm p {
+  margin-bottom: 20px;
+  font-size: 15.5px;
+  color: var(--ink-2);
+}
+
+.sheet-confirm-primary,
+.sheet-confirm-secondary {
+  width: 100%;
+  height: 52px;
+  border-radius: 99px;
+  font-size: 17px;
+  font-weight: 600;
+}
+
+.sheet-confirm-primary {
+  background: var(--rappi-red);
+  color: var(--surface);
+}
+
+.sheet-confirm-secondary {
+  margin-top: 10px;
+  background: #ebeef2;
+}

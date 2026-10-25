@@ -1,0 +1,10 @@
+# Quién revisa cada parte del repositorio. GitHub pide su revisión en cada PR que toque esos archivos.
+# Hoy hay un solo mantenedor; cuando se sume alguien, agregarlo en la línea de la parte que revise.
+
+*                       @yungzyx
+
+# Partes con reglas propias (ver CLAUDE.md): las migraciones no se editan después de aplicarse y el despliegue
+# maneja secretos y permisos.
+/rappi-scraper/src/rappi_scraper/storage/migrations/  @yungzyx
+/deploy/                @yungzyx
+/.github/               @yungzyx

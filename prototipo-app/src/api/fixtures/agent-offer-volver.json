@@ -1,0 +1,45 @@
+{
+  "actions": [
+    {
+      "label": "Ver producto",
+      "route": [
+        "grocery"
+      ],
+      "store_id": 9101
+    }
+  ],
+  "moment": "volver",
+  "products": [
+    {
+      "age_restricted": false,
+      "before": null,
+      "concept": "cafe",
+      "discount": null,
+      "entity_id": "91004",
+      "entity_type": "catalog_item",
+      "id": "cat-91004",
+      "img": "https://imagenes.prueba.invalid/productos/91004.png",
+      "name": "Café molido tostado 250 g (prueba)",
+      "presentation": "250 g",
+      "price": "$3.990",
+      "price_value": 3990.0,
+      "store": "Supermercado de prueba Centro",
+      "store_id": 9101,
+      "vertical": "supermercado"
+    }
+  ],
+  "prototype_vertical": "grocery",
+  "reason": {
+    "basis": [
+      {
+        "id": "cafe",
+        "kind": "volver",
+        "source": "pedidos"
+      }
+    ],
+    "concept": "cafe",
+    "text": "Porque pedías café cada 7 días y la última vez fue hace 20 días."
+  },
+  "text": "¿Volvemos a café? La última vez que pediste café fue hace 20 días.",
+  "vertical": "supermercado"
+}

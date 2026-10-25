@@ -1,0 +1,435 @@
+{
+  "schema_version": 1,
+  "diagram_type": "dataflow",
+  "meta": {
+    "title": "RAG y motor: de rappi.cl a Mochi",
+    "quality_profile": "showcase",
+    "views": [
+      {
+        "id": "descarga",
+        "label": "1. Descarga semanal",
+        "focus": [
+          "rappi",
+          "scraper",
+          "catalogo",
+          "busqueda"
+        ],
+        "note": "Domingos 03:00: rappi refresh baja tiendas y restaurantes, guarda precios y arma un índice de texto por vertical."
+      },
+      {
+        "id": "offline",
+        "label": "2. Capa de IA offline",
+        "focus": [
+          "catalogo",
+          "busqueda",
+          "conceptos",
+          "embed",
+          "motor"
+        ],
+        "note": "make post-refresh: conceptos, embeddings e5, evaluación, synth y make layers (capa de datos y, al final, rappi-ia motor)."
+      },
+      {
+        "id": "consulta",
+        "label": "3. Una búsqueda",
+        "focus": [
+          "busqueda",
+          "embed",
+          "conceptos",
+          "retrieve",
+          "agente",
+          "apps"
+        ],
+        "note": "Léxico + vectorial dentro del vertical, fusión RRF, refuerzo por concepto y regla de sin resultado con τ."
+      },
+      {
+        "id": "motor_vista",
+        "label": "4. Motor multivertical",
+        "focus": [
+          "combos",
+          "eventos",
+          "motor",
+          "ofertas",
+          "apps"
+        ],
+        "note": "Afinidad, transiciones, combinaciones, compra cruzada, tendencias y recompra; la tabla de Rappi da el paso de combinación."
+      },
+      {
+        "id": "apps_vista",
+        "label": "5. Home, ofertas y panel",
+        "focus": [
+          "agente",
+          "ofertas",
+          "apps",
+          "eventos",
+          "panel"
+        ],
+        "note": "La Home ordena los verticales por afinidad y el agente ofrece por momento; cada pedido recalcula a la persona."
+      }
+    ],
+    "viewBox": [
+      1080,
+      602
+    ],
+    "legend": {
+      "entries": {
+        "emphasis": {
+          "label": "flujo principal"
+        },
+        "dashed": {
+          "label": "lote / asíncrono"
+        },
+        "default": {
+          "label": "flujo de datos"
+        },
+        "database": {
+          "label": "almacén de datos"
+        }
+      }
+    }
+  },
+  "stages": [
+    {
+      "label": "Entradas"
+    },
+    {
+      "label": "Postgres"
+    },
+    {
+      "label": "IA offline"
+    },
+    {
+      "label": "API :8000"
+    },
+    {
+      "label": "Apps"
+    }
+  ],
+  "nodes": [
+    {
+      "id": "rappi",
+      "type": "external",
+      "label": "rappi.cl",
+      "sublabel": "páginas públicas",
+      "stage": 0,
+      "row": 0,
+      "tag": "sitemaps"
+    },
+    {
+      "id": "scraper",
+      "type": "backend",
+      "label": "rappi refresh",
+      "sublabel": "jobs + crawl",
+      "stage": 0,
+      "row": 1,
+      "tag": "domingos 03:00"
+    },
+    {
+      "id": "combos",
+      "type": "external",
+      "label": "Tabla de Rappi",
+      "sublabel": "combos.toml",
+      "stage": 0,
+      "row": 2,
+      "tag": "dato compartido por Rappi"
+    },
+    {
+      "id": "catalogo",
+      "type": "database",
+      "label": "Catálogo (capa 1)",
+      "sublabel": "precios · menús",
+      "stage": 1,
+      "row": 0,
+      "tag": "historial"
+    },
+    {
+      "id": "busqueda",
+      "type": "database",
+      "label": "search_documents",
+      "sublabel": "por vertical",
+      "stage": 1,
+      "row": 1,
+      "tag": "GIN + HNSW"
+    },
+    {
+      "id": "conceptos",
+      "type": "backend",
+      "label": "Conceptos y capa",
+      "sublabel": "marcas · grafo",
+      "stage": 2,
+      "row": 0,
+      "tag": "esquema capa"
+    },
+    {
+      "id": "embed",
+      "type": "backend",
+      "label": "Embeddings e5",
+      "sublabel": "768 dimensiones",
+      "stage": 2,
+      "row": 1,
+      "tag": "caché por hash"
+    },
+    {
+      "id": "motor",
+      "type": "backend",
+      "label": "Motor multivertical",
+      "sublabel": "7 tablas · semanal",
+      "stage": 2,
+      "row": 2,
+      "tag": "pesos en validación"
+    },
+    {
+      "id": "agente",
+      "type": "backend",
+      "label": "Agente Mochi",
+      "sublabel": "busca y responde",
+      "stage": 3,
+      "row": 0,
+      "tag": "Claude opcional"
+    },
+    {
+      "id": "retrieve",
+      "type": "backend",
+      "label": "Búsqueda híbrida",
+      "sublabel": "léxico + vector",
+      "stage": 3,
+      "row": 1,
+      "tag": "concepto · τ"
+    },
+    {
+      "id": "ofertas",
+      "type": "backend",
+      "label": "Ofertas y orden",
+      "sublabel": "/agent/offer",
+      "stage": 3,
+      "row": 2,
+      "tag": "/profile/{id}/verticales"
+    },
+    {
+      "id": "apps",
+      "type": "frontend",
+      "label": "Prototipo :5174",
+      "sublabel": "Home dinámica",
+      "stage": 4,
+      "row": 2,
+      "tag": "buscador · ofertas"
+    },
+    {
+      "id": "eventos",
+      "type": "database",
+      "label": "Pedidos y eventos",
+      "sublabel": "synth · prototipo",
+      "stage": 3,
+      "row": 3,
+      "tag": "consultas 90 días"
+    },
+    {
+      "id": "panel",
+      "type": "frontend",
+      "label": "Panel :5175",
+      "sublabel": "Entre verticales",
+      "stage": 4,
+      "row": 3,
+      "tag": "Uso del MVP"
+    }
+  ],
+  "flows": [
+    {
+      "id": "html",
+      "from": "rappi",
+      "to": "scraper",
+      "label": "HTML + sitemaps",
+      "variant": "emphasis",
+      "labelAt": [
+        100,
+        214
+      ]
+    },
+    {
+      "id": "upsert",
+      "from": "scraper",
+      "to": "catalogo",
+      "label": "upsert + precios",
+      "variant": "emphasis"
+    },
+    {
+      "id": "docs",
+      "from": "catalogo",
+      "to": "busqueda",
+      "label": "build_search_documents",
+      "variant": "emphasis",
+      "labelAt": [
+        315,
+        214
+      ]
+    },
+    {
+      "id": "categorias",
+      "from": "catalogo",
+      "to": "conceptos",
+      "label": "categorías",
+      "route": "straight",
+      "fromSide": "right",
+      "toSide": "left"
+    },
+    {
+      "id": "pendientes",
+      "from": "busqueda",
+      "to": "embed",
+      "label": "sin vector",
+      "variant": "emphasis",
+      "route": "straight",
+      "fromSide": "right",
+      "toSide": "left"
+    },
+    {
+      "id": "vectores",
+      "from": "embed",
+      "to": "retrieve",
+      "label": "HNSW",
+      "variant": "emphasis",
+      "route": "straight",
+      "fromSide": "right",
+      "toSide": "left"
+    },
+    {
+      "id": "hits",
+      "from": "retrieve",
+      "to": "agente",
+      "label": "resultados",
+      "variant": "emphasis",
+      "route": "straight",
+      "fromSide": "top",
+      "toSide": "bottom",
+      "labelAt": [
+        745,
+        214
+      ]
+    },
+    {
+      "id": "complementos",
+      "from": "conceptos",
+      "to": "agente",
+      "label": "complementos",
+      "route": "straight",
+      "fromSide": "right",
+      "toSide": "left"
+    },
+    {
+      "id": "retencion",
+      "from": "combos",
+      "to": "motor",
+      "label": "retención por combinación",
+      "variant": "dashed",
+      "route": "straight",
+      "fromSide": "right",
+      "toSide": "left"
+    },
+    {
+      "id": "tablas",
+      "from": "motor",
+      "to": "ofertas",
+      "label": "tablas",
+      "variant": "emphasis",
+      "route": "straight",
+      "fromSide": "right",
+      "toSide": "left"
+    },
+    {
+      "id": "respuesta",
+      "from": "agente",
+      "to": "apps",
+      "label": "respuestas",
+      "variant": "emphasis",
+      "fromSide": "right",
+      "toSide": "top",
+      "via": [
+        [
+          960,
+          157
+        ]
+      ]
+    },
+    {
+      "id": "oferta",
+      "from": "ofertas",
+      "to": "apps",
+      "label": "orden y oferta",
+      "variant": "emphasis",
+      "route": "straight",
+      "fromSide": "right",
+      "toSide": "left"
+    },
+    {
+      "id": "registro",
+      "from": "apps",
+      "to": "eventos",
+      "label": "/events · /orders",
+      "variant": "dashed",
+      "fromSide": "bottom",
+      "toSide": "top",
+      "via": [
+        [
+          960,
+          442
+        ],
+        [
+          745,
+          442
+        ]
+      ]
+    },
+    {
+      "id": "senales",
+      "from": "eventos",
+      "to": "motor",
+      "label": "pedidos y señales",
+      "variant": "dashed",
+      "fromSide": "left",
+      "toSide": "bottom",
+      "via": [
+        [
+          530,
+          499
+        ]
+      ]
+    },
+    {
+      "id": "metricas",
+      "from": "eventos",
+      "to": "panel",
+      "label": "/analytics",
+      "route": "straight",
+      "fromSide": "right",
+      "toSide": "left"
+    }
+  ],
+  "cards": [
+    {
+      "dot": "emerald",
+      "title": "Offline, cada domingo",
+      "items": [
+        "refresh-semanal.sh: rappi refresh y make post-refresh",
+        "Conceptos, embeddings, evaluación, synth y capas",
+        "rappi-ia motor: afinidad, combinaciones y recompra"
+      ]
+    },
+    {
+      "dot": "cyan",
+      "title": "Online, en cada visita",
+      "items": [
+        "Búsqueda dentro de un vertical: léxico, vector e5 y RRF",
+        "Home por afinidad; ofertas por momento con su «Porque…»",
+        "Cada pedido recalcula la afinidad y la recompra"
+      ]
+    },
+    {
+      "dot": "orange",
+      "title": "Límites",
+      "items": [
+        "Catálogo = muestra pública: hasta 24 productos por sub-pasillo",
+        "Personas y pedidos simulados: prueban la mecánica",
+        "Tabla de Rappi: correlación; Claude y Jev, opcionales"
+      ]
+    }
+  ]
+}

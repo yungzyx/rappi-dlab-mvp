@@ -1,0 +1,417 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="color-scheme" content="light dark" />
+    <meta
+      name="description"
+      content="Propuesta para Rappi Chile: un motor que conecta las verticales, con la tabla de combinaciones de Rappi como punto de partida. Home que aprende el orden, el asistente Mochi, catálogo público, búsqueda híbrida evaluada y un panel de negocio."
+    />
+    <title>Recomendaciones entre verticales · Propuesta para Rappi Chile</title>
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <!-- El tema elegido, antes de pintar (public/tema.js: síncrono, bajo la base del panel, / o /panel/; vite-ignore: Vite no lo empaqueta) -->
+    <script vite-ignore src="%BASE_URL%tema.js"></script>
+    <script type="module" src="/src/presentacion.js"></script>
+  </head>
+  <body class="landing">
+    <header class="masthead-lite">
+      <div class="container masthead-lite-inner">
+        <a class="wordmark" href="presentacion.html" aria-label="Inicio de la propuesta">
+          <svg class="brand-mark" viewBox="0 0 32 32" aria-hidden="true">
+            <rect width="32" height="32" rx="9" />
+            <path class="brand-bar" d="M9 22v-5" />
+            <path class="brand-bar" d="M16 22V10" />
+            <path class="brand-bar" d="M23 22v-8" />
+          </svg>
+          <span>rappi-dlab</span>
+        </a>
+        <nav class="lite-nav" aria-label="Secciones">
+          <a href="#problema">Problema</a>
+          <a href="#propuesta">Propuesta</a>
+          <a href="#motor">Motor</a>
+          <a href="#red">Red</a>
+          <a href="#resultados">Resultados</a>
+          <a href="#limites">Límites</a>
+        </nav>
+        <a class="button button--primary" href="./">Abrir el panel</a>
+      </div>
+    </header>
+
+    <main>
+      <!-- Portada: titular editorial a la izquierda, el producto real a la derecha -->
+      <section class="hero container">
+        <div class="hero-copy">
+          <h1>Lo que pides en una vertical puede abrirte la siguiente.</h1>
+          <p>
+            Un prototipo con el catálogo público de Rappi Chile y un motor que aprende qué verticales usa cada persona:
+            la Home ordena sus accesos según ese uso y Mochi propone la siguiente vertical, a partir de la tabla de
+            combinaciones que compartió el equipo de Rappi. Las búsquedas de cada vertical no se mezclan.
+          </p>
+          <div class="hero-actions">
+            <a class="button button--primary" href="./">Ver el panel de negocio</a>
+            <a class="button button--ghost" href="#propuesta">Cómo funciona</a>
+          </div>
+        </div>
+        <figure class="hero-figure">
+          <img
+            src="/presentacion/prototipo-final.jpg"
+            width="1120"
+            height="1920"
+            alt="Prototipo final de la app: la Home con la barra «Busca o pídele ideas a Mochi», los accesos Restaurantes y Turbo, la fila de verticales y Mochi saludando"
+            fetchpriority="high"
+          />
+          <figcaption>El prototipo final. La tecla D alterna con la app como es hoy.</figcaption>
+        </figure>
+      </section>
+
+      <section class="note container">
+        <p>
+          Proyecto independiente: no está afiliado a Rappi ni cuenta con su respaldo. Rappi y las demás marcas
+          pertenecen a sus dueños. El catálogo es real; las personas, eventos y pedidos del panel y del motor son
+          simulados; la tabla de combinaciones de verticales es un dato compartido por Rappi.
+        </p>
+      </section>
+
+      <!-- Problema: una sola columna de lectura, sin tarjetas -->
+      <section id="problema" class="prose container">
+        <h2>El problema, visto desde fuera</h2>
+        <p>
+          Cada vertical de Rappi parece funcionar como un silo. Lo que una persona compra o busca en el
+          supermercado no parece cambiar lo que se le recomienda en licores, farmacia o restaurantes.
+        </p>
+        <p>
+          La señal existe: cada búsqueda y cada pedido dice algo de quien lo hace. Pero no se ve que cruce de un
+          vertical a otro. Con ella se pueden perder oportunidades de venta cruzada y de frecuencia.
+        </p>
+        <p class="prose-aside">
+          Esta observación se hizo como usuarios de la app. La tabla que compartió el equipo de Rappi (más abajo)
+          apunta en esa dirección, como correlación; con datos internos, Rappi puede confirmarla o descartarla.
+        </p>
+      </section>
+
+      <!-- Propuesta: principio + tres pasos numerados en columnas asimétricas -->
+      <section id="propuesta" class="container">
+        <h2 class="section-title">Buscar dentro del vertical, entender a través de los verticales</h2>
+        <ol class="steps">
+          <li>
+            <span class="step-number">1</span>
+            <h3>La búsqueda va a las verticales de la consulta</h3>
+            <p>Busca donde corresponde (en todas si no detecta un concepto ni una ocasión) y muestra un grupo por vertical, con la de la pantalla primero.</p>
+          </li>
+          <li>
+            <span class="step-number">2</span>
+            <h3>Los intereses se guardan como conceptos</h3>
+            <p>Cerveza, snacks salados, pañales: 136 conceptos (116 tipos de producto en 20 grupos) compartidos entre verticales, con complementos curados.</p>
+          </li>
+          <li>
+            <span class="step-number">3</span>
+            <h3>La recomendación cruzada sigue un camino visible</h3>
+            <p>Concepto → complemento → búsqueda en el otro vertical. Una sola sugerencia por respuesta, siempre con su razón.</p>
+          </li>
+        </ol>
+
+        <div class="example">
+          <figure class="example-figure">
+            <img
+              src="/presentacion/buscador-mochi.jpg"
+              width="804"
+              height="1748"
+              alt="Buscador con Mochi: productos reales de Express para un carrete y una sugerencia de salsas y aderezos del Súper"
+              loading="lazy"
+            />
+          </figure>
+          <div class="example-copy">
+            <h3>Un ejemplo con el catálogo real</h3>
+            <p>
+              Alguien toca «Arma un carrete». Mochi, el asistente del prototipo, responde con
+              productos reales de Express (snacks y bebidas: sin alcohol si no se lo piden) y agrega una sola sugerencia
+              de otro vertical: salsas y aderezos del Súper, con la razón a la vista.
+            </p>
+            <ul class="rules">
+              <li>Como máximo una sugerencia cruzada por respuesta.</li>
+              <li>Nunca productos sensibles por iniciativa propia.</li>
+              <li>El alcohol siempre con el aviso +18.</li>
+              <li>Lo aprendido se muestra y se puede borrar.</li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
+      <!-- El motor: la tabla de Rappi como punto de partida, las tres piezas que la usan y lo que mide (simulado) -->
+      <section id="motor" class="container">
+        <h2 class="section-title">Un motor que conecta las verticales</h2>
+        <p class="lede">
+          El equipo de Rappi compartió cuántas personas usan cada combinación de verticales en un mes y cuántas vuelven
+          al siguiente. La mayoría se queda en una sola, y quienes combinan más vuelven más.
+        </p>
+        <dl class="figures">
+          <div>
+            <dt>Usan solo Restaurantes</dt>
+            <dd>62,6 %</dd>
+            <p>De los usuarios del mes. Vuelve el 47 % al mes siguiente.</p>
+          </div>
+          <div>
+            <dt>Restaurantes + Turbo</dt>
+            <dd>82 %</dd>
+            <p>Vuelven al mes siguiente. Son el 6,6 % de los usuarios.</p>
+          </div>
+          <div>
+            <dt>Restaurantes + Turbo + Retail</dt>
+            <dd>93 %</dd>
+            <p>Vuelven al mes siguiente. Son el 4,7 % de los usuarios y piden 10,5 veces al mes.</p>
+          </div>
+          <div>
+            <dt>Todo Chile</dt>
+            <dd>55 %</dd>
+            <p>Vuelven al mes siguiente, con 3 pedidos por usuario.</p>
+          </div>
+        </dl>
+        <p class="figures-note">
+          Dato compartido por Rappi: cohortes de enero a junio de 2026, con una agrupación gruesa de verticales. Es una
+          correlación, no un efecto: quien ya pide mucho usa más verticales y además vuelve más. El motor la usa como
+          punto de partida, no como promesa.
+        </p>
+
+        <ol class="steps">
+          <li>
+            <span class="step-number">1</span>
+            <h3>La Home aprende el orden</h3>
+            <p>Los seis accesos pequeños se ordenan según lo que cada persona pide y abre. Restaurantes y Turbo no se mueven; Loyalty y Benefits Pro quedan al final.</p>
+          </li>
+          <li>
+            <span class="step-number">2</span>
+            <h3>Mochi propone el siguiente peldaño</h3>
+            <p>Restaurantes → Turbo → Retail, siempre con su porqué. Dentro de esa vertical ofrece lo más pedido ahí; cuando una regla aprendida lo justifica (hoy no, λ = 0), lo que suelen sumar quienes piden lo mismo.</p>
+          </li>
+          <li>
+            <span class="step-number">3</span>
+            <h3>Y propone repetir cuando toca</h3>
+            <p>Si alguien pide un mismo concepto con ritmo, Mochi lo ofrece cuando le toca: «¿Repetimos café? Pides cada 7 días.»</p>
+          </li>
+        </ol>
+
+        <div class="example">
+          <figure class="example-figure">
+            <img
+              src="/presentacion/home-dinamica.jpg"
+              width="804"
+              height="1748"
+              alt="Home con los accesos reordenados: Chocolates y Rappi Mall primero, con la leyenda «Ordenadas según lo que más usas»"
+              loading="lazy"
+            />
+          </figure>
+          <div class="example-copy">
+            <h3>La Home de alguien que abrió Chocolates y Rappi Mall</h3>
+            <p>
+              Entró dos veces a Chocolates y una a Rappi Mall, y esos accesos suben al principio con la leyenda «Ordenadas
+              según lo que más usas». Quien no tiene historial ve el orden de siempre, y en «Rappi hoy» la Home no aprende.
+            </p>
+            <ul class="rules">
+              <li>Lo personal sale solo de los datos de cada persona.</li>
+              <li>Farmacia y Licores suben solo por señales propias y nunca se ofrecen por iniciativa propia.</li>
+              <li>Cada oferta declara de qué fuente aprendió (hoy, personas simuladas).</li>
+            </ul>
+          </div>
+        </div>
+
+        <figure class="diagram">
+          <img
+            src="/presentacion/motor-flujo.png"
+            width="2000"
+            height="926"
+            alt="Motor multivertical: las señales y los pedidos de la persona pasan por la afinidad y la recompra hasta el orden de la Home y la oferta «¿Repetimos?»; la tabla de Rappi y lo aprendido de la población eligen la vertical por probar y sus productos"
+            loading="lazy"
+          />
+          <figcaption>
+            En verde, lo que sale de la persona; en gris, lo aprendido de la población; en línea punteada, la tabla de Rappi.
+          </figcaption>
+        </figure>
+
+        <dl class="figures">
+          <div>
+            <dt>Acierta la próxima vertical (nDCG@8)</dt>
+            <dd>0,978</dd>
+            <p>Frente a 0,918 del orden fijo de hoy. Casi toda la ventaja viene de la afinidad de cada persona. Simulado (17-10-2026, con la mezcla de la tabla de Rappi).</p>
+          </div>
+          <div>
+            <dt>Recompra, acierto ±7 días</dt>
+            <dd>0,191</dd>
+            <p>21 de 110 predicciones, con un error mediano de 6 días: una mecánica que funciona, no una predicción precisa. Simulado (17-10-2026).</p>
+          </div>
+          <div>
+            <dt>Ofertas que rompen una guardia</dt>
+            <dd>0</dd>
+            <p>En 2.851 productos ofrecidos sobre el catálogo real a 200 personas simuladas y 44 del prototipo (medida antes de los ajustes de la etapa 5, con λ &gt; 0): sin Farmacia, Licores, bebé, salud ni alcohol.</p>
+          </div>
+          <div>
+            <dt>Tiempo de respuesta (p95)</dt>
+            <dd>222 ms</dd>
+            <p>La ruta más lenta, las recomendaciones, con el modelo de texto y sobre el catálogo real.</p>
+          </div>
+        </dl>
+        <p class="figures-note">
+          El motor se evaluó el 16 de octubre de 2026 con 3.000 personas simuladas y tramos por fecha (entrenar, validar,
+          probar). Prueba la mecánica, no el efecto: el simulador trata la tabla de Rappi como efecto. En la compra cruzada,
+          la mezcla con las reglas aprendidas acierta lo mismo que «lo más pedido» (precisión@3 0,128): en validación el
+          peso de las reglas quedó en 0, así que hoy se ofrece lo más pedido. Cuánto retiene de verdad solo lo dice un
+          experimento con grupo de control.
+        </p>
+      </section>
+
+      <!-- La red: lo que el catálogo ya comparte entre verticales (se regenera con `rappi-ia multivertical`) -->
+      <section id="red" class="container">
+        <h2 class="section-title">El catálogo ya cruza verticales</h2>
+        <p class="lede">
+          Cada vertical muestra su oferta por separado, pero el catálogo público dice otra cosa: muchos productos y casi
+          todos los conceptos están en más de una. La recomendación entre verticales parte de esa red.
+        </p>
+        <dl class="figures">
+          <div>
+            <dt>Productos en 2 o más verticales</dt>
+            <dd>24 %</dd>
+            <p>
+              16.900 de los 71.831 productos del catálogo, sin la doble etiqueta de Lider y Unimarc (como el panel).
+              203 se venden en 5 o 6 verticales a la vez.
+            </p>
+          </div>
+          <div>
+            <dt>Más compartidos: Súper y Rappi Mall</dt>
+            <dd>5.585</dd>
+            <p>Productos que se venden en ambas. Le siguen Súper y Express (4.925) y Súper y Farmacia (4.880).</p>
+          </div>
+          <div>
+            <dt>Conceptos con oferta en las 8 verticales</dt>
+            <dd>15</dd>
+            <p>
+              Con al menos 3 productos en cada una quedan 9: chocolates, galletas, helados, snacks salados… En los
+              demás, alguna vertical tiene apenas 1 o 2 (café en Farmacia).
+            </p>
+          </div>
+          <div>
+            <dt>Cadenas en varias verticales</dt>
+            <dd>5</dd>
+            <p>Las verticales donde opera Extra Life. Volka está en 4, y Unimarc, Lider, Ripley y Varsovienne en 3 cada una.</p>
+          </div>
+        </dl>
+        <figure class="diagram">
+          <a href="presentacion/mapa-multivertical.html" aria-label="Abrir el mapa multivertical interactivo">
+            <img
+              src="/presentacion/mapa-conceptos.jpg"
+              width="1524"
+              height="1490"
+              alt="Mapa radial: las 8 verticales al centro y 113 conceptos alrededor, cada uno junto a la vertical donde es más típico, con líneas hacia todas las verticales que lo ofrecen"
+              loading="lazy"
+            />
+          </a>
+          <figcaption>
+            Cada punto es un concepto, junto a la vertical donde es más típico (la regla que usa el agente); las líneas lo
+            unen con cada vertical que tiene al menos 20 productos de él. Al centro, RappiTravel y RappiFavor: servicios sin catálogo que enganchan productos de otras verticales. Catálogo del 05-10-2026.
+          </figcaption>
+        </figure>
+        <p class="red-cta">
+          <a class="button button--ghost" href="presentacion/mapa-multivertical.html">Abrir el mapa interactivo</a>
+        </p>
+      </section>
+
+      <!-- Cómo está hecho: el diagrama real, ancho completo -->
+      <section class="container">
+        <h2 class="section-title">Cómo está hecho</h2>
+        <p class="lede">
+          Descarga semanal de páginas públicas, catálogo en Postgres + pgvector, una capa de IA fuera de línea
+          (conceptos, embeddings y evaluación), una capa de datos con atributos, marcas, un grafo de relaciones,
+          segmentos y el motor multivertical, la consulta (léxico + vectorial dentro de la vertical) y las aplicaciones.
+        </p>
+        <figure class="diagram">
+          <img
+            src="/presentacion/flujo-de-datos.png"
+            width="2000"
+            height="1115"
+            alt="Flujo de datos: rappi.cl, rappi refresh y la tabla de Rappi; catálogo y documentos de búsqueda en Postgres; conceptos, embeddings y motor multivertical; búsqueda híbrida, agente Mochi y ofertas en la API; prototipo con la Home dinámica, pedidos y eventos, y panel"
+            loading="lazy"
+          />
+        </figure>
+      </section>
+
+      <!-- Resultados: números como titulares, cada uno con su tipo de dato -->
+      <section id="resultados" class="container">
+        <h2 class="section-title">Resultados al 16 de octubre de 2026</h2>
+        <dl class="figures">
+          <div>
+            <dt>Documentos de búsqueda</dt>
+            <dd>253.945</dd>
+            <p>84.024 productos, 165.623 platos y 4.298 tiendas, todos con embedding. Catálogo público real, actualizado cada semana.</p>
+          </div>
+          <div>
+            <dt>Calidad del orden de resultados (nDCG@10)</dt>
+            <dd>0,905</dd>
+            <p>Búsqueda híbrida, frente a 0,835 solo vectorial y 0,765 solo por palabras. 131 consultas en los 8 verticales.</p>
+          </div>
+          <div>
+            <dt>Ítems con concepto asignado</dt>
+            <dd>95 a 100 %</dd>
+            <p>Según el vertical. La precisión de la asignación se mide en 86 a 88 % con jueces automáticos, en una muestra independiente de 440 asignaciones.</p>
+          </div>
+          <div>
+            <dt>Tests automáticos</dt>
+            <dd>4.085</dd>
+            <p>Capa de IA 2.974, scraper 305, prototipo 688 y panel 118 (24-10-2026), con integración continua en cada cambio.</p>
+          </div>
+        </dl>
+        <p class="figures-note">
+          Lo que no es evidencia: los indicadores del panel y lo que el motor aprende de la población salen de
+          usuarios simulados y muestran la mecánica. La
+          evaluación de búsqueda juzga la relevancia automáticamente por concepto, y el modo híbrido refuerza ese mismo
+          concepto: sin el refuerzo obtiene 0,842, una diferencia con el vectorial (0,835) que no es concluyente. Falta un juicio
+          humano.
+        </p>
+      </section>
+
+      <!-- Verlo funcionando: dos caminos, en dos columnas -->
+      <section class="container">
+        <h2 class="section-title">Verlo funcionando</h2>
+        <div class="paths">
+          <div>
+            <h3>El MVP con el catálogo real</h3>
+            <p>
+              Un comando levanta la API, el prototipo y el panel. Necesita Postgres 17 con pgvector y la base del
+              catálogo, Python 3.13, Node y un modelo local de texto (~1 GB). El prototipo no abre sin la API. La guía
+              está en <code>docs/instalacion.md</code>, con una revisión automática que recorre el MVP en Chrome (8
+              revisiones).
+            </p>
+          </div>
+          <div>
+            <h3>Solo el panel, sin base de datos</h3>
+            <p>
+              Sin la API, el panel muestra los datos simulados y el catálogo con respuestas guardadas, y lo avisa. El uso
+              del MVP, en cambio, solo se ve con la API.
+            </p>
+            <pre><code>cd dashboard-empresa &amp;&amp; npm ci &amp;&amp; npm run dev</code></pre>
+            <a class="button button--ghost" href="./">Abrir el panel</a>
+          </div>
+        </div>
+      </section>
+
+      <section id="limites" class="prose container">
+        <h2>Límites</h2>
+        <p>
+          El catálogo es una muestra pública: hasta 24 productos por sub-pasillo, así que «no está» no significa
+          que Rappi no lo venda. El motor aprende la población de personas simuladas: con pedidos reales se cambia la
+          fuente, no el mecanismo. La tabla de Rappi es una correlación y la agrupación de verticales es un supuesto
+          propio. El efecto real de las recomendaciones solo se puede medir con datos de Rappi y un experimento con
+          grupo de control.
+        </p>
+        <p class="prose-aside">
+          Datos de uso responsable: solo páginas públicas, una descarga a la vez con pausas, frecuencia semanal, sin
+          datos personales y sin datos descargados en el repositorio.
+        </p>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <div class="container">
+        <p>rappi-dlab · prototipo independiente del programa dLab, no afiliado a Rappi.</p>
+      </div>
+    </footer>
+  </body>
+</html>

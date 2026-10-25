@@ -1,0 +1,1184 @@
+# Segmentos de usuario por comportamiento (docs/diseno/2026-10-06-capa-perfiles-design.md §4.2 y §5).
+#
+# Cada regla combina piezas genéricas; el motor (layers/segments.py) no conoce segmentos por nombre.
+# Contenido (basta una): concepts, groups, attributes, brands, occasions, services, query_words. Ninguna regla usa
+# `occasions`: una ocasión agrupa conceptos cotidianos (chocolate, café, cerveza) y volvía «estudiante» o «regalador» a medio mundo.
+# Contexto (todas): verticals, hours [desde, hasta] (puede cruzar medianoche), weekdays (1 = lunes), days_of_month,
+# price_percentile { gte | lte }, discount, basket_size { gte_items | lte_items | gte_amount }, modality,
+# from_suggestion, cities. `min_share` (0 a 1): parte mínima de la actividad de la persona, en los tipos de evento de la
+# regla, que debe calzar: un contexto que cualquiera cumple de vez en cuando (un fin de semana) no es un perfil.
+# Una regla con `metric` { name, min?, max?, stronger? } no suma eventos: la persona es del segmento si min ≤ valor < max;
+# con `stronger = "lower"` (nuevo, activo, gasto-bajo…) un valor menor es más fuerte y los niveles decrecen.
+# Los sensibles se nombran por lo que la persona compra (nunca por una condición) y llevan `sensitive = true`.
+# Las palabras de consulta van en minúsculas y sin tildes: el motor normaliza antes de comparar.
+version = "2026-10-06"
+
+[defaults]
+window_days = 120
+half_life_days = 45.0
+min_signals = 3
+levels = { bajo = 2.0, medio = 5.0, alto = 10.0 }
+events = { order_line = 3.0, cart_add = 1.5, search = 1.0, chat = 1.0, ask = 1.0, view_item = 0.3 }
+
+[[segment]]
+id = "compra-sin-gluten"
+name = "Compra sin gluten"
+family = "dieta"
+sensitive = true
+description = "Compra o busca productos sin gluten de forma repetida."
+signals = { attributes = ["sin-gluten"], query_words = ["celiaco", "sin gluten", "libre de gluten", "sin tacc"] }
+min_share = 0.2
+
+[[segment]]
+id = "compra-sin-lactosa"
+name = "Compra sin lactosa"
+family = "dieta"
+sensitive = true
+description = "Compra o busca productos sin lactosa de forma repetida."
+signals = { attributes = ["sin-lactosa"], query_words = ["sin lactosa", "deslactosada", "libre de lactosa"] }
+min_share = 0.15
+
+[[segment]]
+id = "compra-sin-azucar"
+name = "Compra sin azúcar"
+family = "dieta"
+sensitive = true
+description = "Compra o busca productos sin azúcar de forma repetida."
+signals = { attributes = ["sin-azucar"], query_words = ["sin azucar", "zero azucar", "cero azucar"] }
+min_share = 0.2
+
+[[segment]]
+id = "bajo-sodio"
+name = "Compra bajo en sodio"
+family = "dieta"
+sensitive = true
+description = "Compra o busca productos bajos en sodio o sin sal."
+signals = { attributes = ["bajo-sodio"], query_words = ["bajo en sodio", "sin sal", "sin sodio"] }
+
+[[segment]]
+id = "alergia-frutos-secos"
+name = "Compra sin frutos secos"
+family = "dieta"
+sensitive = true
+description = "Compra o busca productos sin maní ni frutos secos."
+signals = { attributes = ["sin-frutos-secos", "sin-mani"], query_words = ["sin mani", "sin frutos secos", "libre de frutos secos"] }
+
+[[segment]]
+id = "vegetariano"
+name = "Vegetariano"
+family = "dieta"
+description = "Compra o pide opciones vegetarianas de forma repetida."
+signals = { attributes = ["vegetariano"], concepts = ["vegano"], query_words = ["vegetariano", "vegetariana", "sin carne"] }
+min_share = 0.25
+
+[[segment]]
+id = "vegano"
+name = "Vegano"
+family = "dieta"
+description = "Compra o pide opciones veganas de forma repetida."
+signals = { attributes = ["vegano"], query_words = ["vegano", "vegana", "plant based"] }
+min_share = 0.2
+
+[[segment]]
+id = "pescetariano"
+name = "Pescetariano"
+family = "dieta"
+description = "Compra pescados y mariscos u opciones pescetarianas."
+signals = { attributes = ["pescetariano"], concepts = ["pescados-mariscos"] }
+min_signals = 4
+
+[[segment]]
+id = "keto"
+name = "Keto"
+family = "dieta"
+description = "Compra o busca productos keto o bajos en carbohidratos."
+signals = { attributes = ["keto"], query_words = ["keto", "cetogenico", "low carb"] }
+min_share = 0.15
+
+[[segment]]
+id = "fitness"
+name = "Fitness"
+family = "dieta"
+description = "Compra proteína, productos light o de gimnasio."
+signals = { attributes = ["alto-proteina", "light"], query_words = ["proteina", "fitness", "gimnasio", "pre entreno", "creatina"] }
+min_share = 0.2
+
+[[segment]]
+id = "saludable"
+name = "Saludable"
+family = "dieta"
+description = "Compra con frecuencia frutas, verduras e integrales."
+signals = { attributes = ["integral", "alto-fibra", "organico", "natural"], concepts = ["frutas", "verduras", "ensaladas-bowls"] }
+levels = { bajo = 4.0, medio = 10.0, alto = 20.0 }
+min_signals = 6
+min_share = 0.2
+
+[[segment]]
+id = "organico"
+name = "Orgánico"
+family = "dieta"
+description = "Compra o busca productos orgánicos."
+signals = { attributes = ["organico"], query_words = ["organico", "organica", "bio"] }
+min_share = 0.15
+
+[[segment]]
+id = "sin-cafeina"
+name = "Sin cafeína"
+family = "dieta"
+description = "Compra o busca productos sin cafeína."
+signals = { attributes = ["sin-cafeina"], query_words = ["sin cafeina", "descafeinado", "descafeinada"] }
+
+[[segment]]
+id = "natural"
+name = "Natural y sustentable"
+family = "dieta"
+description = "Compra productos naturales, ecológicos o sin parabenos."
+signals = { attributes = ["natural", "eco", "sin-parabenos", "cruelty-free"], query_words = ["natural", "ecologico"] }
+min_signals = 5
+
+[[segment]]
+id = "hamburguesero"
+name = "Hamburguesero"
+family = "comida"
+description = "Pide o busca hamburguesero de forma repetida."
+signals = { concepts = ["hamburguesa"], query_words = ["hamburguesa", "burger"] }
+
+[[segment]]
+id = "pizzero"
+name = "Pizzero"
+family = "comida"
+description = "Pide o busca pizzero de forma repetida."
+signals = { concepts = ["pizza"], query_words = ["pizza"] }
+
+[[segment]]
+id = "sushi"
+name = "Sushi"
+family = "comida"
+description = "Pide o busca sushi de forma repetida."
+signals = { concepts = ["sushi"], query_words = ["sushi", "roll"] }
+
+[[segment]]
+id = "asiatica"
+name = "Comida asiática"
+family = "comida"
+description = "Pide o busca comida asiática de forma repetida."
+signals = { concepts = ["asiatica", "sushi"], query_words = ["wok", "ramen", "comida asiatica"] }
+
+[[segment]]
+id = "china"
+name = "Comida china"
+family = "comida"
+description = "Pide o busca comida china de forma repetida."
+signals = { query_words = ["chaufa", "arroz chaufa", "comida china", "chop suey", "wantan"] }
+min_signals = 2
+
+[[segment]]
+id = "japonesa"
+name = "Comida japonesa"
+family = "comida"
+description = "Pide o busca comida japonesa de forma repetida."
+signals = { concepts = ["sushi"], query_words = ["ramen", "teriyaki", "gyoza", "udon", "tempura", "comida japonesa"] }
+
+[[segment]]
+id = "thai"
+name = "Comida tailandesa"
+family = "comida"
+description = "Pide o busca comida tailandesa de forma repetida."
+signals = { query_words = ["thai", "pad thai", "tom yum", "curry verde"] }
+min_signals = 2
+
+[[segment]]
+id = "india"
+name = "Comida india"
+family = "comida"
+description = "Pide o busca comida india de forma repetida."
+signals = { query_words = ["tikka", "masala", "naan", "biryani", "curry", "comida india"] }
+min_signals = 2
+
+[[segment]]
+id = "mexicana"
+name = "Comida mexicana"
+family = "comida"
+description = "Pide o busca comida mexicana de forma repetida."
+signals = { concepts = ["mexicana"], query_words = ["taco", "tacos", "burrito", "quesadilla", "nachos", "comida mexicana"] }
+
+[[segment]]
+id = "peruana"
+name = "Comida peruana"
+family = "comida"
+description = "Pide o busca comida peruana de forma repetida."
+signals = { concepts = ["peruana"], query_words = ["ceviche", "lomo saltado", "comida peruana", "aji de gallina"] }
+
+[[segment]]
+id = "arabe"
+name = "Comida árabe"
+family = "comida"
+description = "Pide o busca comida árabe de forma repetida."
+signals = { concepts = ["arabe"], query_words = ["shawarma", "falafel", "kebab", "hummus", "comida arabe"] }
+
+[[segment]]
+id = "italiana"
+name = "Comida italiana"
+family = "comida"
+description = "Pide o busca comida italiana de forma repetida."
+signals = { concepts = ["pastas"], query_words = ["comida italiana", "lasana", "risotto", "ravioles"] }
+
+[[segment]]
+id = "pastas"
+name = "Pastas"
+family = "comida"
+description = "Pide o busca pastas de forma repetida."
+signals = { concepts = ["pastas"], query_words = ["pasta", "tallarines", "espaguetis", "fideos"] }
+
+[[segment]]
+id = "chilena"
+name = "Comida chilena"
+family = "comida"
+description = "Pide o busca comida chilena de forma repetida."
+signals = { query_words = ["comida chilena", "pastel de choclo", "cazuela", "humitas", "chorrillana", "porotos con rienda"] }
+min_signals = 2
+
+[[segment]]
+id = "empanadas"
+name = "Empanadas"
+family = "comida"
+description = "Pide o busca empanadas de forma repetida."
+signals = { concepts = ["empanadas"], query_words = ["empanada", "empanadas"] }
+
+[[segment]]
+id = "completos"
+name = "Completos"
+family = "comida"
+description = "Pide o busca completos de forma repetida."
+signals = { query_words = ["completo", "completos", "hot dog", "perro caliente"] }
+min_signals = 2
+
+[[segment]]
+id = "sandwiches"
+name = "Sándwiches"
+family = "comida"
+description = "Pide o busca sándwiches de forma repetida."
+signals = { concepts = ["sandwiches"], query_words = ["sandwich", "sanguche", "chacarero"] }
+
+[[segment]]
+id = "pollo"
+name = "Pollo"
+family = "comida"
+description = "Pide o busca pollo de forma repetida."
+signals = { concepts = ["pollo", "pollo-preparado"], query_words = ["pollo", "pollo frito", "alitas", "nuggets"] }
+
+[[segment]]
+id = "parrilla"
+name = "Parrilla y asados"
+family = "comida"
+description = "Compra carnes, carbón o arma asados de forma repetida."
+signals = { concepts = ["carbon"], attributes = ["parrilla"], query_words = ["asado", "parrilla", "carbon", "choripan"] }
+min_share = 0.25
+
+[[segment]]
+id = "mariscos"
+name = "Mariscos y pescados"
+family = "comida"
+description = "Pide o busca mariscos y pescados de forma repetida."
+signals = { concepts = ["pescados-mariscos"], query_words = ["mariscos", "ceviche", "pescado", "machas", "ostiones"] }
+
+[[segment]]
+id = "ensaladas"
+name = "Ensaladas"
+family = "comida"
+description = "Pide o busca ensaladas de forma repetida."
+signals = { concepts = ["ensaladas-bowls"], query_words = ["ensalada", "bowl"] }
+
+[[segment]]
+id = "comida-rapida"
+name = "Comida rápida"
+family = "comida"
+description = "Pide con frecuencia hamburguesas, pizzas, pollo, sándwiches o empanadas."
+signals = { concepts = ["hamburguesa", "pizza", "pollo-preparado", "sandwiches", "empanadas"], query_words = ["comida rapida"] }
+levels = { bajo = 4.0, medio = 10.0, alto = 20.0 }
+min_signals = 6
+min_share = 0.3
+
+[[segment]]
+id = "gourmet"
+name = "Gourmet"
+family = "comida"
+description = "Pide comida de precio alto dentro de lo que ofrece cada categoría."
+signals = { groups = ["comida"], price_percentile = { gte = 0.8 } }
+events = { order_line = 3.0, cart_add = 1.5, view_item = 0.3 }
+min_share = 0.3
+
+[[segment]]
+id = "picante"
+name = "Picante"
+family = "comida"
+description = "Pide platos picantes de forma repetida."
+signals = { query_words = ["picante", "aji", "spicy"], attributes = ["picante"] }
+
+[[segment]]
+id = "desayuno-brunch"
+name = "Desayuno y brunch"
+family = "comida"
+description = "Pide desayunos o brunch de forma repetida."
+signals = { concepts = ["desayuno"], attributes = ["desayuno"], query_words = ["desayuno", "brunch", "tostadas"] }
+
+[[segment]]
+id = "veggie-restaurantes"
+name = "Veggie en restaurantes"
+family = "comida"
+description = "Pide platos vegetarianos o veganos en restaurantes."
+signals = { attributes = ["vegano", "vegetariano"], verticals = ["restaurantes"] }
+events = { order_line = 3.0, cart_add = 1.5, view_item = 0.3 }
+
+[[segment]]
+id = "chocolatero"
+name = "Chocolatero"
+family = "dulces"
+description = "Compra o busca chocolatero de forma repetida."
+signals = { concepts = ["chocolates"], query_words = ["chocolate", "bombones", "cacao"] }
+
+[[segment]]
+id = "goloso"
+name = "Goloso"
+family = "dulces"
+description = "Compra con frecuencia dulces de todo tipo."
+signals = { concepts = ["chocolates", "golosinas", "helados", "postres", "pasteleria", "untables-dulces"] }
+levels = { bajo = 4.0, medio = 10.0, alto = 20.0 }
+min_signals = 6
+min_share = 0.25
+
+[[segment]]
+id = "heladero"
+name = "Heladero"
+family = "dulces"
+description = "Compra o busca heladero de forma repetida."
+signals = { concepts = ["helados"], query_words = ["helado", "helados"] }
+
+[[segment]]
+id = "pastelero"
+name = "Pastelero"
+family = "dulces"
+description = "Compra o busca pastelero de forma repetida."
+signals = { concepts = ["pasteleria", "reposteria"], query_words = ["torta", "pastel", "kuchen", "queque"] }
+
+[[segment]]
+id = "galletas"
+name = "Galletas"
+family = "dulces"
+description = "Compra o busca galletas de forma repetida."
+signals = { concepts = ["galletas"], query_words = ["galleta", "galletas"] }
+
+[[segment]]
+id = "snacks-salados"
+name = "Snacks salados"
+family = "dulces"
+description = "Compra o busca snacks salados de forma repetida."
+signals = { concepts = ["snacks-salados"], query_words = ["papas fritas", "snack", "ramitas", "cabritas"] }
+
+[[segment]]
+id = "frutos-secos"
+name = "Frutos secos"
+family = "dulces"
+description = "Compra o busca frutos secos de forma repetida."
+signals = { concepts = ["frutos-secos"], query_words = ["frutos secos", "almendras", "nueces", "mani"] }
+
+[[segment]]
+id = "cafetero"
+name = "Cafetero"
+family = "bebidas"
+description = "Compra o busca cafetero de forma repetida."
+signals = { concepts = ["cafe"], query_words = ["cafe", "capuccino", "espresso"] }
+
+[[segment]]
+id = "cafe-de-especialidad"
+name = "Café de especialidad"
+family = "bebidas"
+description = "Compra café de precio alto o pide café de especialidad."
+signals = { concepts = ["cafe"], query_words = ["cafe de especialidad", "grano entero", "v60"], price_percentile = { gte = 0.75 } }
+events = { order_line = 3.0, cart_add = 1.5, view_item = 0.3 }
+min_share = 0.4
+
+[[segment]]
+id = "tetero"
+name = "Tetero"
+family = "bebidas"
+description = "Compra o busca tetero de forma repetida."
+signals = { concepts = ["te"], query_words = ["te verde", "infusion", "matcha"] }
+
+[[segment]]
+id = "cervecero"
+name = "Cervecero"
+family = "bebidas"
+description = "Compra o busca cervecero de forma repetida."
+signals = { concepts = ["cerveza"], query_words = ["cerveza", "chela", "six pack"] }
+
+[[segment]]
+id = "cerveza-artesanal"
+name = "Cerveza artesanal"
+family = "bebidas"
+description = "Busca cerveza artesanal de forma repetida."
+signals = { query_words = ["cerveza artesanal", "ipa", "stout", "craft"] }
+min_signals = 2
+
+[[segment]]
+id = "vinero"
+name = "Vinero"
+family = "bebidas"
+description = "Compra o busca vinero de forma repetida."
+signals = { concepts = ["vino"], query_words = ["vino", "cabernet", "sauvignon blanc", "carmenere", "malbec", "merlot"] }
+
+[[segment]]
+id = "espumante"
+name = "Espumante"
+family = "bebidas"
+description = "Compra o busca espumante de forma repetida."
+signals = { concepts = ["espumante"], query_words = ["espumante", "champagne", "brut", "prosecco"] }
+
+[[segment]]
+id = "whisky"
+name = "Whisky"
+family = "bebidas"
+description = "Compra o busca whisky de forma repetida."
+signals = { concepts = ["whisky"], query_words = ["whisky", "bourbon", "escoces"] }
+
+[[segment]]
+id = "pisco"
+name = "Pisco"
+family = "bebidas"
+description = "Compra o busca pisco de forma repetida."
+signals = { concepts = ["pisco"], query_words = ["pisco", "pisco sour"] }
+
+[[segment]]
+id = "destilados"
+name = "Destilados"
+family = "bebidas"
+description = "Compra con frecuencia ron, gin, vodka, tequila, whisky o pisco."
+signals = { concepts = ["ron", "gin", "vodka", "tequila", "whisky", "pisco", "licores"] }
+levels = { bajo = 4.0, medio = 10.0, alto = 20.0 }
+min_signals = 6
+min_share = 0.3
+
+[[segment]]
+id = "cocteles"
+name = "Cócteles"
+family = "bebidas"
+description = "Compra o busca cócteles de forma repetida."
+signals = { concepts = ["cocteles"], query_words = ["coctel", "mojito", "margarita", "pina colada"] }
+
+[[segment]]
+id = "sin-alcohol"
+name = "Sin alcohol"
+family = "bebidas"
+description = "Compra o busca versiones sin alcohol."
+signals = { attributes = ["sin-alcohol"], query_words = ["sin alcohol", "cerveza 0", "0 alcohol"] }
+
+[[segment]]
+id = "energeticas"
+name = "Energéticas"
+family = "bebidas"
+description = "Compra o busca energéticas de forma repetida."
+signals = { concepts = ["energizantes"], query_words = ["energetica", "red bull", "monster", "isotonica"] }
+
+[[segment]]
+id = "gaseosas"
+name = "Gaseosas"
+family = "bebidas"
+description = "Compra o busca gaseosas de forma repetida."
+signals = { concepts = ["gaseosas"], query_words = ["gaseosa", "coca cola", "fanta", "sprite"] }
+
+[[segment]]
+id = "jugos"
+name = "Jugos"
+family = "bebidas"
+description = "Compra o busca jugos de forma repetida."
+signals = { concepts = ["jugos"], query_words = ["jugo", "nectar", "smoothie"] }
+
+[[segment]]
+id = "agua"
+name = "Agua"
+family = "bebidas"
+description = "Compra o busca agua de forma repetida."
+signals = { concepts = ["agua"], query_words = ["agua mineral", "agua con gas", "agua sin gas"] }
+
+[[segment]]
+id = "mama-papa-bebe"
+name = "Compra para bebé"
+family = "hogar"
+sensitive = true
+description = "Compra pañales, alimentación o artículos de bebé de forma repetida."
+signals = { concepts = ["panales", "alimentacion-bebe", "articulos-bebe"], attributes = ["bebe"], query_words = ["panales", "formula infantil", "mamadera", "papilla"] }
+min_signals = 4
+
+[[segment]]
+id = "embarazo"
+name = "Compra para embarazo y lactancia"
+family = "hogar"
+sensitive = true
+description = "Compra productos para embarazo o lactancia."
+signals = { attributes = ["embarazo-lactancia"], query_words = ["embarazo", "embarazada", "lactancia", "test de embarazo", "prenatal"] }
+
+[[segment]]
+id = "familia-con-ninos"
+name = "Familia con niños"
+family = "hogar"
+description = "Compra juguetes, útiles o productos infantiles."
+signals = { concepts = ["juguetes-infantiles"], query_words = ["infantil", "lonchera", "colegio"] }
+
+[[segment]]
+id = "familia-con-adolescentes"
+name = "Familia con adolescentes"
+family = "hogar"
+description = "Compra productos pensados para adolescentes."
+signals = { attributes = ["adolescentes"], concepts = ["videojuegos"], query_words = ["adolescente", "liceo"] }
+min_signals = 4
+
+[[segment]]
+id = "tiene-perro"
+name = "Tiene perro"
+family = "hogar"
+description = "Compra alimento o accesorios para perros de forma repetida."
+signals = { concepts = ["alimento-perro"], query_words = ["perro", "perros", "dog chow", "pedigree"] }
+
+[[segment]]
+id = "tiene-gato"
+name = "Tiene gato"
+family = "hogar"
+description = "Compra alimento, arena o accesorios para gatos de forma repetida."
+signals = { concepts = ["alimento-gato"], query_words = ["gato", "gatos", "cat chow", "whiskas", "arena sanitaria"] }
+
+[[segment]]
+id = "otras-mascotas"
+name = "Otras mascotas"
+family = "hogar"
+description = "Compra productos para peces, aves, roedores u otras mascotas."
+signals = { attributes = ["otras-mascotas"], query_words = ["hamster", "conejo", "pajaro", "peces", "tortuga"] }
+
+[[segment]]
+id = "mascota-premium"
+name = "Mascota premium"
+family = "hogar"
+description = "Compra alimento de mascota de precio alto."
+signals = { concepts = ["alimento-perro", "alimento-gato"], price_percentile = { gte = 0.75 } }
+events = { order_line = 3.0, cart_add = 1.5, view_item = 0.3 }
+min_share = 0.5
+
+[[segment]]
+id = "adulto-mayor"
+name = "Compra para adulto mayor"
+family = "hogar"
+sensitive = true
+description = "Compra productos pensados para personas mayores."
+signals = { attributes = ["adulto-mayor"], query_words = ["panales para adultos", "adulto mayor", "baston", "andador", "plenitud"] }
+min_signals = 4
+
+[[segment]]
+id = "vive-solo"
+name = "Vive solo"
+family = "hogar"
+description = "Compra porciones individuales y platos listos con frecuencia."
+signals = { attributes = ["individual"], concepts = ["platos-listos"] }
+levels = { bajo = 4.0, medio = 10.0, alto = 20.0 }
+min_signals = 6
+
+[[segment]]
+id = "pareja"
+name = "Pareja"
+family = "hogar"
+description = "Pide o busca productos para dos o para una cita."
+signals = { attributes = ["san-valentin"], query_words = ["para dos", "cena romantica"] }
+
+[[segment]]
+id = "hogar-grande"
+name = "Hogar grande"
+family = "hogar"
+description = "Compra formatos familiares y carros grandes."
+signals = { attributes = ["familiar", "pack"], basket_size = { gte_items = 12 } }
+events = { order_line = 3.0, cart_add = 1.5, view_item = 0.3 }
+min_share = 0.3
+
+[[segment]]
+id = "cocina-en-casa"
+name = "Cocina en casa"
+family = "hogar"
+description = "Compra ingredientes frescos y de despensa con frecuencia."
+signals = { groups = ["frescos", "despensa"], attributes = ["para-preparar"] }
+levels = { bajo = 6.0, medio = 15.0, alto = 30.0 }
+min_signals = 10
+min_share = 0.4
+
+[[segment]]
+id = "no-cocina"
+name = "Prefiere comida lista"
+family = "hogar"
+description = "Compra o pide comida lista con frecuencia."
+signals = { groups = ["comida"], attributes = ["listo-para-comer"], concepts = ["platos-listos"] }
+levels = { bajo = 6.0, medio = 15.0, alto = 30.0 }
+min_signals = 8
+min_share = 0.4
+
+[[segment]]
+id = "anfitrion"
+name = "Anfitrión"
+family = "hogar"
+description = "Compra hielo, picoteo y desechables para recibir gente."
+signals = { concepts = ["hielo", "picoteo", "papeles-desechables", "cocteles"] }
+min_signals = 4
+min_share = 0.2
+
+[[segment]]
+id = "belleza"
+name = "Belleza"
+family = "cuidado"
+description = "Compra productos de belleza con frecuencia."
+signals = { groups = ["belleza"], query_words = ["belleza", "skincare", "mascarilla"] }
+
+[[segment]]
+id = "maquillaje"
+name = "Maquillaje"
+family = "cuidado"
+description = "Compra o busca maquillaje de forma repetida."
+signals = { concepts = ["maquillaje"], query_words = ["labial", "rimel", "sombra", "maquillaje", "rubor"] }
+
+[[segment]]
+id = "dermocosmetica"
+name = "Dermocosmética"
+family = "cuidado"
+description = "Compra cuidado facial y dermocosmético de forma repetida."
+signals = { concepts = ["dermocosmetica"], query_words = ["serum", "hidratante", "protector solar", "crema facial"] }
+
+[[segment]]
+id = "cuidado-cabello"
+name = "Cuidado del cabello"
+family = "cuidado"
+description = "Compra shampoo, acondicionador o tinturas de forma repetida."
+signals = { concepts = ["cuidado-cabello"], query_words = ["shampoo", "acondicionador", "tintura", "mascarilla capilar"] }
+
+[[segment]]
+id = "cuidado-masculino"
+name = "Cuidado masculino"
+family = "cuidado"
+description = "Compra productos de cuidado para hombre."
+signals = { attributes = ["hombre"], query_words = ["barba", "afeitar", "after shave", "desodorante para hombre"] }
+min_signals = 4
+
+[[segment]]
+id = "fragancias"
+name = "Fragancias"
+family = "cuidado"
+description = "Compra o busca perfumes de forma repetida."
+signals = { concepts = ["fragancias"], query_words = ["perfume", "colonia", "fragancia"] }
+
+[[segment]]
+id = "higiene-bebe"
+name = "Higiene de bebé"
+family = "cuidado"
+sensitive = true
+description = "Compra toallitas, cremas y shampoo de bebé."
+signals = { attributes = ["bebe"], concepts = ["panales"], query_words = ["toallitas humedas", "crema para panal", "shampoo bebe"] }
+
+[[segment]]
+id = "salud-sexual"
+name = "Compra de salud sexual"
+family = "cuidado"
+sensitive = true
+description = "Compra preservativos, lubricantes u otros productos de salud sexual."
+signals = { concepts = ["salud-sexual", "bienestar-sexual"], query_words = ["preservativo", "condon", "lubricante", "anticonceptivo"] }
+
+[[segment]]
+id = "farmacia-frecuente"
+name = "Compra frecuente en farmacia"
+family = "cuidado"
+sensitive = true
+description = "Compra en farmacias con frecuencia."
+signals = { verticals = ["farmacia"] }
+events = { order_line = 3.0, cart_add = 1.5, view_item = 0.3 }
+min_signals = 4
+
+[[segment]]
+id = "cuidado-cronico"
+name = "Compra de uso continuo"
+family = "cuidado"
+sensitive = true
+description = "Compra de forma recurrente remedios o insumos de uso continuo."
+signals = { concepts = ["medicamentos"], query_words = ["presion arterial", "insulina", "glucometro", "tiras reactivas"] }
+min_signals = 4
+window_days = 180
+half_life_days = 90.0
+
+[[segment]]
+id = "tabaco"
+name = "Compra de tabaco"
+family = "cuidado"
+sensitive = true
+description = "Compra cigarrillos o accesorios de fumador de forma repetida."
+signals = { concepts = ["cigarrillos", "accesorios-fumador"], query_words = ["cigarrillos", "tabaco", "encendedor"] }
+
+[[segment]]
+id = "vapeo"
+name = "Compra de vapeo"
+family = "cuidado"
+sensitive = true
+description = "Compra vapers o líquidos de forma repetida."
+signals = { concepts = ["vapeo"], query_words = ["vape", "vaper", "puff", "pod"] }
+
+[[segment]]
+id = "deportista"
+name = "Deportista"
+family = "intereses"
+description = "Compra o busca deportista de forma repetida."
+signals = { concepts = ["articulos-deportivos"], groups = ["deportes"], query_words = ["zapatillas deportivas", "gimnasio", "entrenar", "ropa deportiva"] }
+
+[[segment]]
+id = "gamer"
+name = "Gamer"
+family = "intereses"
+description = "Compra o busca gamer de forma repetida."
+signals = { concepts = ["videojuegos"], query_words = ["gamer", "playstation", "xbox", "nintendo", "control inalambrico"] }
+
+[[segment]]
+id = "tecnologia"
+name = "Tecnología"
+family = "intereses"
+description = "Compra o busca tecnología de forma repetida."
+signals = { groups = ["tecnologia"], query_words = ["cargador", "audifonos", "celular", "notebook", "tablet"] }
+
+[[segment]]
+id = "lector"
+name = "Lector"
+family = "intereses"
+description = "Compra o busca lector de forma repetida."
+signals = { concepts = ["libros"], query_words = ["libro", "novela"] }
+
+[[segment]]
+id = "hogar-deco"
+name = "Hogar y decoración"
+family = "intereses"
+description = "Compra o busca hogar y decoración de forma repetida."
+signals = { concepts = ["decoracion", "textil-hogar", "muebles"], query_words = ["decoracion", "cojin", "cortina", "vela"] }
+
+[[segment]]
+id = "jardineria"
+name = "Jardinería"
+family = "intereses"
+description = "Compra o busca jardinería de forma repetida."
+signals = { concepts = ["jardin"], query_words = ["planta", "maceta", "tierra", "semillas"] }
+
+[[segment]]
+id = "bricolaje"
+name = "Bricolaje"
+family = "intereses"
+description = "Compra o busca bricolaje de forma repetida."
+signals = { concepts = ["ferreteria"], query_words = ["taladro", "martillo", "destornillador", "pintura"] }
+
+[[segment]]
+id = "estudiante"
+name = "Estudiante"
+family = "intereses"
+description = "Compra o busca estudiante de forma repetida."
+signals = { concepts = ["utiles"], query_words = ["cuaderno", "lapiz", "utiles escolares", "calculadora"] }
+min_share = 0.2
+
+[[segment]]
+id = "oficinista"
+name = "Oficinista"
+family = "intereses"
+description = "Compra o pide comida y bebida en horario de oficina entre semana."
+signals = { groups = ["comida", "bebidas"], hours = [11, 15], weekdays = [1, 2, 3, 4, 5] }
+events = { order_line = 2.0, cart_add = 1.0 }
+min_share = 0.4
+
+[[segment]]
+id = "viajero"
+name = "Viajero"
+family = "intereses"
+description = "Usa RappiTravel o compra productos de viaje."
+signals = { services = ["rappitravel"], attributes = ["tamano-viaje"], query_words = ["viaje", "vuelo", "maleta"] }
+min_signals = 2
+
+[[segment]]
+id = "regalador"
+name = "Regalador"
+family = "intereses"
+description = "Compra o busca regalos de forma repetida."
+signals = { concepts = ["flores-regalos"], attributes = ["para-regalo"], query_words = ["regalo", "regalar"] }
+min_share = 0.15
+
+[[segment]]
+id = "fiestero"
+name = "Fiestero"
+family = "intereses"
+description = "Compra o busca para fiestas y carretes."
+signals = { concepts = ["cocteles", "espumante", "hielo"], query_words = ["fiesta", "carrete", "previa"] }
+min_share = 0.2
+
+[[segment]]
+id = "aire-libre"
+name = "Aire libre"
+family = "intereses"
+description = "Compra para asados, playa o camping."
+signals = { concepts = ["carbon", "articulos-deportivos"], query_words = ["camping", "playa", "bloqueador solar", "picnic"] }
+min_share = 0.3
+
+[[segment]]
+id = "arte-manualidades"
+name = "Arte y manualidades"
+family = "intereses"
+description = "Compra materiales de arte o manualidades."
+signals = { concepts = ["manualidades"], query_words = ["pintura", "lana", "goma eva", "acuarela"] }
+
+[[segment]]
+id = "musica"
+name = "Música"
+family = "intereses"
+description = "Compra o busca música e instrumentos."
+signals = { concepts = ["musica", "audio"], query_words = ["guitarra", "parlante", "vinilo", "audifonos"] }
+
+[[segment]]
+id = "madrugador"
+name = "Madrugador"
+family = "momentos"
+description = "Compra o pide temprano en la mañana."
+signals = { hours = [5, 8] }
+events = { order_line = 2.0, cart_add = 1.0 }
+min_share = 0.4
+
+[[segment]]
+id = "almuerzo-oficina"
+name = "Almuerzo en la oficina"
+family = "momentos"
+description = "Pide almuerzo entre semana al mediodía."
+signals = { groups = ["comida"], hours = [12, 14], weekdays = [1, 2, 3, 4, 5] }
+events = { order_line = 2.0, cart_add = 1.0 }
+min_share = 0.3
+
+[[segment]]
+id = "once"
+name = "Hora del té"
+family = "momentos"
+description = "Compra o pide para la once."
+signals = { concepts = ["panaderia", "te", "cafe", "quesos", "fiambres"], hours = [16, 20] }
+events = { order_line = 2.0, cart_add = 1.0 }
+min_share = 0.3
+
+[[segment]]
+id = "nocturno"
+name = "Nocturno"
+family = "momentos"
+description = "Compra o pide de noche."
+signals = { hours = [21, 1] }
+events = { order_line = 2.0, cart_add = 1.0 }
+min_share = 0.4
+
+[[segment]]
+id = "trasnoche"
+name = "Trasnoche"
+family = "momentos"
+description = "Compra o pide de madrugada."
+signals = { hours = [1, 5] }
+events = { order_line = 2.0, cart_add = 1.0 }
+min_signals = 2
+min_share = 0.3
+
+[[segment]]
+id = "fin-de-semana"
+name = "Fin de semana"
+family = "momentos"
+description = "Compra o pide sobre todo sábado y domingo."
+signals = { weekdays = [6, 7] }
+events = { order_line = 2.0, cart_add = 1.0 }
+levels = { bajo = 3.0, medio = 8.0, alto = 16.0 }
+min_signals = 4
+min_share = 0.5
+
+[[segment]]
+id = "dia-de-pago"
+name = "Día de pago"
+family = "momentos"
+description = "Compra a fin y a comienzos de mes."
+signals = { days_of_month = [28, 29, 30, 31, 1, 2, 3, 4, 5] }
+events = { order_line = 2.0, cart_add = 1.0 }
+min_signals = 4
+min_share = 0.5
+
+[[segment]]
+id = "compra-mensual"
+name = "Compra mensual"
+family = "momentos"
+description = "Hace pedidos grandes de despensa."
+signals = { basket_size = { gte_items = 25 } }
+events = { order_line = 2.0 }
+min_signals = 25
+min_share = 0.4
+
+[[segment]]
+id = "reposicion-rapida"
+name = "Reposición rápida"
+family = "momentos"
+description = "Hace pedidos chicos y seguidos."
+signals = { basket_size = { lte_items = 3 } }
+events = { order_line = 2.0 }
+min_signals = 6
+min_share = 0.7
+
+[[segment]]
+id = "impulsivo"
+name = "Impulsivo"
+family = "momentos"
+description = "Acepta sugerencias y las agrega al carro."
+signals = { from_suggestion = true }
+events = { order_line = 2.0, cart_add = 1.0 }
+min_signals = 4
+min_share = 0.4
+
+[[segment]]
+id = "planificador"
+name = "Planificador"
+family = "momentos"
+description = "Hace pedidos grandes el domingo o el lunes."
+signals = { basket_size = { gte_items = 8 }, weekdays = [7, 1] }
+events = { order_line = 2.0 }
+min_signals = 8
+min_share = 0.4
+
+[[segment]]
+id = "celebraciones"
+name = "Celebraciones"
+family = "momentos"
+description = "Compra para cumpleaños y celebraciones."
+signals = { attributes = ["cumpleanos", "para-regalo"], concepts = ["flores-regalos"], query_words = ["cumpleanos", "celebracion", "torta de cumpleanos"] }
+min_share = 0.3
+
+[[segment]]
+id = "temporada-navidad"
+name = "Navidad"
+family = "momentos"
+description = "Compra productos navideños."
+signals = { attributes = ["navidad"], query_words = ["navidad", "pan de pascua", "cola de mono", "panettone"] }
+window_days = 60
+half_life_days = 20.0
+min_share = 0.2
+
+[[segment]]
+id = "temporada-fiestas-patrias"
+name = "Fiestas Patrias"
+family = "momentos"
+description = "Compra para el Dieciocho."
+signals = { attributes = ["fiestas-patrias"], query_words = ["dieciocho", "fiestas patrias", "ramada"] }
+window_days = 45
+half_life_days = 15.0
+min_share = 0.2
+
+[[segment]]
+id = "cazaofertas"
+name = "Cazaofertas"
+family = "valor"
+description = "Compra sobre todo productos con descuento."
+signals = { discount = true }
+events = { order_line = 3.0, cart_add = 1.5, view_item = 0.3 }
+min_signals = 5
+min_share = 0.4
+
+[[segment]]
+id = "sensible-al-precio"
+name = "Sensible al precio"
+family = "valor"
+description = "Elige productos de precio bajo dentro de su categoría."
+signals = { price_percentile = { lte = 0.25 } }
+events = { order_line = 3.0, cart_add = 1.5, view_item = 0.3 }
+min_signals = 5
+min_share = 0.5
+
+[[segment]]
+id = "premium"
+name = "Premium"
+family = "valor"
+description = "Elige productos de precio alto dentro de su categoría."
+signals = { price_percentile = { gte = 0.8 } }
+events = { order_line = 3.0, cart_add = 1.5, view_item = 0.3 }
+min_signals = 5
+min_share = 0.4
+
+[[segment]]
+id = "fiel-a-marca"
+name = "Fiel a una marca"
+family = "valor"
+description = "Concentra sus compras en una sola marca."
+metric = { name = "concentracion_marca", min = 0.5 }
+levels = { bajo = 0.5, medio = 0.65, alto = 0.8 }
+
+[[segment]]
+id = "explorador"
+name = "Explorador"
+family = "valor"
+description = "Prueba muchos tipos de producto distintos."
+metric = { name = "conceptos_distintos_90d", min = 12 }
+levels = { bajo = 12.0, medio = 20.0, alto = 30.0 }
+
+[[segment]]
+id = "marca-propia"
+name = "Marca propia"
+family = "valor"
+description = "Compra con frecuencia marcas propias de las tiendas."
+signals = { attributes = ["marca-propia"] }
+events = { order_line = 3.0, cart_add = 1.5, view_item = 0.3 }
+min_signals = 4
+min_share = 0.25
+
+[[segment]]
+id = "gasto-alto"
+name = "Gasto alto"
+family = "valor"
+description = "Está entre quienes más gastan."
+metric = { name = "gasto_90d_percentil", min = 0.8 }
+levels = { bajo = 0.8, medio = 0.9, alto = 0.95 }
+
+[[segment]]
+id = "gasto-bajo"
+name = "Gasto bajo"
+family = "valor"
+description = "Está entre quienes menos gastan."
+metric = { name = "gasto_90d_percentil", max = 0.2, stronger = "lower" }
+levels = { bajo = 0.2, medio = 0.1, alto = 0.05 }
+
+[[segment]]
+id = "ticket-creciente"
+name = "Ticket creciente"
+family = "valor"
+description = "Su pedido promedio crece en las últimas semanas."
+metric = { name = "ticket_creciente", min = 1.15 }
+levels = { bajo = 1.15, medio = 1.3, alto = 1.5 }
+
+[[segment]]
+id = "nuevo"
+name = "Nuevo"
+family = "relacion"
+description = "Se registró hace poco."
+metric = { name = "dias_desde_alta", min = 0, max = 14, stronger = "lower" }
+levels = { bajo = 14.0, medio = 7.0, alto = 3.0 }
+
+[[segment]]
+id = "activo"
+name = "Activo"
+family = "relacion"
+description = "Pidió en el último mes."
+metric = { name = "dias_sin_pedido", min = 0, max = 30, stronger = "lower" }
+levels = { bajo = 30.0, medio = 14.0, alto = 3.0 }
+
+[[segment]]
+id = "leal"
+name = "Leal"
+family = "relacion"
+description = "Pide con mucha frecuencia."
+metric = { name = "pedidos_90d", min = 6 }
+levels = { bajo = 6.0, medio = 10.0, alto = 16.0 }
+
+[[segment]]
+id = "en-riesgo"
+name = "En riesgo"
+family = "relacion"
+description = "No pide hace uno a tres meses."
+metric = { name = "dias_sin_pedido", min = 30, max = 90 }
+levels = { bajo = 30.0, medio = 50.0, alto = 70.0 }
+
+[[segment]]
+id = "dormido"
+name = "Dormido"
+family = "relacion"
+description = "No pide hace más de tres meses."
+metric = { name = "dias_sin_pedido", min = 90 }
+levels = { bajo = 90.0, medio = 150.0, alto = 240.0 }
+
+[[segment]]
+id = "reactivado"
+name = "Reactivado"
+family = "relacion"
+description = "Volvió a pedir tras un largo silencio."
+metric = { name = "reactivado", min = 1 }
+levels = { bajo = 1.0, medio = 2.0, alto = 3.0 }
+
+[[segment]]
+id = "multivertical"
+name = "Multivertical"
+family = "relacion"
+description = "Pide en tres o más verticales."
+metric = { name = "verticales_distintas", min = 3 }
+levels = { bajo = 3.0, medio = 4.0, alto = 5.0 }
+
+[[segment]]
+id = "una-vertical"
+name = "Una sola vertical"
+family = "relacion"
+description = "Pide solo en una vertical."
+metric = { name = "verticales_distintas", min = 1, max = 2 }
+levels = { bajo = 1.0, medio = 1.2, alto = 1.5 }
+
+[[segment]]
+id = "alto-abandono"
+name = "Alto abandono"
+family = "relacion"
+description = "Deja carros sin comprar con frecuencia."
+metric = { name = "tasa_abandono", min = 0.5 }
+levels = { bajo = 0.5, medio = 0.65, alto = 0.8 }
+
+[[segment]]
+id = "receptivo-a-sugerencias"
+name = "Receptivo a sugerencias"
+family = "relacion"
+description = "Acepta una buena parte de lo que el agente sugiere."
+metric = { name = "aceptacion_sugerencias", min = 0.3 }
+levels = { bajo = 0.3, medio = 0.5, alto = 0.7 }
+
+[[segment]]
+id = "ignora-sugerencias"
+name = "Ignora sugerencias"
+family = "relacion"
+description = "Casi nunca acepta lo que el agente sugiere."
+metric = { name = "aceptacion_sugerencias", max = 0.05, stronger = "lower" }
+levels = { bajo = 0.05, medio = 0.03, alto = 0.01 }
+
+[[segment]]
+id = "usa-chat"
+name = "Pregunta al agente"
+family = "relacion"
+description = "Le pide con frecuencia cosas al agente, por texto."
+signals = { modality = ["texto"] }
+events = { chat = 1.0, ask = 1.0 }
+min_signals = 4
+
+[[segment]]
+id = "usa-rappitravel"
+name = "Usa RappiTravel"
+family = "servicios"
+description = "Abre o busca RappiTravel."
+signals = { services = ["rappitravel"] }
+events = { service_opened = 3.0, service_shown = 0.5, chat = 1.0, ask = 1.0 }
+min_signals = 2
+
+[[segment]]
+id = "usa-rappifavor"
+name = "Usa RappiFavor"
+family = "servicios"
+description = "Abre o busca RappiFavor."
+signals = { services = ["rappifavor"] }
+events = { service_opened = 3.0, service_shown = 0.5, chat = 1.0, ask = 1.0 }
+min_signals = 2
+
+[[segment]]
+id = "santiago"
+name = "Santiago"
+family = "geografia"
+description = "Compra desde Santiago."
+signals = { cities = ["Santiago"] }
+events = { order_line = 1.0, search = 1.0 }
+min_signals = 2
+levels = { bajo = 1.0, medio = 3.0, alto = 6.0 }
+
+[[segment]]
+id = "regiones"
+name = "Regiones"
+family = "geografia"
+description = "Compra desde fuera de Santiago."
+signals = { cities = ["Valparaíso", "Concepción", "Antofagasta", "La Serena", "Temuco", "Rancagua", "Iquique", "Puerto Montt", "Talca", "Arica", "Viña del Mar", "Osorno", "Valdivia", "Punta Arenas"] }
+events = { order_line = 1.0, search = 1.0 }
+min_signals = 2
+levels = { bajo = 1.0, medio = 3.0, alto = 6.0 }

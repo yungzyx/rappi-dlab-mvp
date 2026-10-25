@@ -1,0 +1,59 @@
+/* Círculo verde de 35 pt centrado en la esquina superior derecha de la foto, como en la app */
+.add-button {
+  position: absolute;
+  top: -12px;
+  right: -9px;
+  z-index: 2;
+  display: grid;
+  place-items: center;
+  width: 35px;
+  height: 35px;
+  border-radius: 99px;
+  background: var(--green-add);
+  border: 2px solid var(--surface);
+  color: var(--ink);
+  cursor: pointer;
+  transition: transform var(--duration-fast) var(--ease-out);
+  animation: add-pop 260ms var(--ease-out);
+}
+
+.add-button:active {
+  transform: scale(0.9);
+}
+
+.add-button.is-open {
+  width: 96px;
+  display: flex;
+  justify-content: space-between;
+  padding: 0 4px;
+  cursor: default;
+}
+
+.add-button.is-open > span {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  font-size: 21px;
+  font-weight: 700;
+  line-height: 1;
+  cursor: pointer;
+}
+
+/* Área táctil de 40 × 40 para «−» y «+» sin agrandar lo visible */
+.add-button.is-open > span::before {
+  content: '';
+  position: absolute;
+  inset: -7px;
+}
+
+.add-button.is-open strong {
+  font-size: 16px;
+}
+
+@keyframes add-pop {
+  from {
+    transform: scale(0.85);
+  }
+}

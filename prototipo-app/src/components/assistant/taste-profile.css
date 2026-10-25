@@ -1,0 +1,349 @@
+/* Perfil de gusto («Tu perfil») y la escalera de verticales que Mochi arma desde él (GET /profile/{id}/gustos y el
+   momento `perfil` de /agent/offer). Viene del prototipo sushi (rama demo/prototipo-sushi). */
+
+/* ---------- Tu perfil ---------- */
+.taste-card {
+  margin: 12px var(--gutter) 6px;
+  padding: 12px 14px 10px;
+  border-radius: 18px;
+  background: var(--surface);
+  box-shadow: 0 2px 12px rgba(240, 83, 43, 0.1);
+  border: 1px solid #ffe2d6;
+}
+
+.taste-card-kicker {
+  font-size: 11.5px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--accent-text);
+}
+
+.taste-card-main {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 6px;
+}
+
+.taste-emoji {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 42px;
+  height: 42px;
+  border-radius: 14px;
+  background: var(--accent-soft);
+  font-size: 24px;
+}
+
+.taste-card-main strong {
+  display: block;
+  font-size: 16.5px;
+  font-weight: 700;
+  line-height: 21px;
+}
+
+.taste-level {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 2px;
+  font-size: 12.5px;
+  color: var(--ink-2);
+}
+
+.taste-level-bar {
+  display: flex;
+  gap: 3px;
+}
+
+.taste-level-bar i {
+  width: 14px;
+  height: 5px;
+  border-radius: 99px;
+  background: #f1e3dc;
+}
+
+.taste-level-bar i.is-on {
+  background: var(--agent-gradient);
+}
+
+.taste-reason {
+  margin-top: 8px;
+  font-size: 13.5px;
+  line-height: 18px;
+  color: var(--ink-2);
+}
+
+/* ---------- Para ti en otras verticales ---------- */
+.taste-ladder {
+  margin-top: 8px;
+}
+
+.taste-ladder-head {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  column-gap: 10px;
+  padding: 0 var(--gutter);
+}
+
+.taste-ladder-head h2 {
+  font-size: 17px;
+  font-weight: 700;
+}
+
+.taste-ladder-head small {
+  grid-column: 1 / -1;
+  font-size: 12.5px;
+  color: var(--ink-2);
+}
+
+.taste-dots {
+  grid-row: 1;
+  grid-column: 2;
+  background: var(--surface);
+}
+
+.taste-dots .dot.is-active {
+  background: var(--agent-orange);
+}
+
+.taste-rail {
+  display: flex;
+  align-items: stretch;
+  gap: 12px;
+  padding: 10px var(--gutter) 12px;
+  scroll-padding-left: var(--gutter);
+  scroll-snap-type: x mandatory;
+}
+
+.taste-step {
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  width: 272px;
+  padding: 12px;
+  border-radius: 18px;
+  background: var(--surface);
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.07);
+  scroll-snap-align: start;
+  animation: card-in 420ms var(--ease-out) both;
+  transition: box-shadow 300ms var(--ease-out);
+}
+
+.taste-step-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.taste-step-art {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 46px;
+  height: 46px;
+  border-radius: 13px;
+  background: var(--tile);
+}
+
+.taste-step-art img {
+  width: 40px;
+  height: 40px;
+  object-fit: contain;
+}
+
+.taste-step-head > span:nth-child(2) {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
+}
+
+.taste-step-head strong {
+  font-size: 15.5px;
+  font-weight: 700;
+}
+
+.taste-step-head small {
+  font-size: 12.5px;
+  line-height: 16px;
+  color: var(--accent-text);
+}
+
+.taste-step-num {
+  flex: none;
+  align-self: flex-start;
+  display: grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: var(--accent-soft);
+  color: var(--accent-ink);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.taste-products {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-top: 10px;
+}
+
+.taste-product {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.taste-product-main {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: 1;
+  min-width: 0;
+  padding: 4px 0;
+  text-align: left;
+}
+
+.taste-product-main img {
+  flex: none;
+  width: 52px;
+  height: 52px;
+  border-radius: 12px;
+  object-fit: cover;
+  background: var(--tile);
+}
+
+.taste-product-text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.taste-product-name {
+  display: -webkit-box;
+  font-size: 13.5px;
+  line-height: 17px;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.taste-product-meta {
+  margin-top: 2px;
+  font-size: 12px;
+  color: var(--ink-3);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.taste-product-meta b {
+  font-weight: 700;
+  color: var(--ink);
+}
+
+/* El «+» de siempre, en la fila (no sobre una foto) */
+.add-button--taste {
+  position: relative;
+  top: auto;
+  right: auto;
+  flex: none;
+  width: 32px;
+  height: 32px;
+}
+
+.add-button--taste.is-open {
+  width: 88px;
+}
+
+.taste-step-more {
+  margin-top: auto;
+  padding-top: 10px;
+  align-self: flex-start;
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--accent-ink);
+}
+
+/* ---------- La idea para RappiTravel (Japón, Colombia, Italia: offers/destinos.toml) ---------- */
+.taste-trip {
+  position: relative;
+  display: block;
+  width: 100%;
+  height: 112px;
+  margin-top: 10px;
+  overflow: hidden;
+  border-radius: 14px;
+  background: var(--agent-gradient);
+  text-align: left;
+}
+
+.taste-trip-label {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  z-index: 1;
+  padding: 3px 9px;
+  border-radius: 99px;
+  background: rgba(255, 255, 255, 0.92);
+  font-size: 11.5px;
+  font-weight: 700;
+  color: var(--accent-ink);
+}
+
+.taste-trip strong {
+  position: absolute;
+  left: 10px;
+  right: 10px;
+  bottom: 9px;
+  z-index: 1;
+  font-size: 17px;
+  font-weight: 700;
+  line-height: 21px;
+  color: #fff;
+}
+
+.taste-facts {
+  display: flex;
+  padding: 0;
+  list-style: none;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 9px;
+  font-size: 12.5px;
+  line-height: 16.5px;
+  color: var(--ink-2);
+}
+
+.taste-facts li {
+  position: relative;
+  padding-left: 12px;
+}
+
+.taste-facts li::before {
+  content: '';
+  position: absolute;
+  left: 2px;
+  top: 6px;
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: var(--agent-orange);
+}
+
+.taste-facts a {
+  color: var(--ink-3);
+  text-decoration: underline;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .taste-step {
+    animation: none;
+  }
+}

@@ -1,0 +1,123 @@
+/*
+ * Borde animado: detrás de la barra gira un cuadrado con un degradado cónico (una "estela" brillante sobre
+ * una base durazno) y encima va el relleno blanco, dejando ver solo 2,5 px de borde. Gira con transform,
+ * en sentido horario, así que corre en la GPU.
+ */
+.smart-bar {
+  --smart-border: 2.5px;
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  height: 57px;
+  padding: 0 17px;
+  border-radius: 99px;
+  box-shadow:
+    0 8px 22px rgba(255, 90, 54, 0.14),
+    0 2px 6px rgba(0, 0, 0, 0.05);
+  cursor: pointer;
+  transition: transform var(--duration-fast) var(--ease-out);
+  -webkit-tap-highlight-color: transparent;
+}
+
+.smart-bar::before {
+  content: '';
+  position: absolute;
+  z-index: -2;
+  left: 50%;
+  top: 50%;
+  width: 125%;
+  aspect-ratio: 1;
+  background: conic-gradient(
+    #ffd9cb 0deg 150deg,
+    #ffc2a6 190deg,
+    #ff9a3d 250deg,
+    #ff5a36 300deg,
+    #ff3d7f 335deg,
+    #ffd9cb 360deg
+  );
+  transform: translate(-50%, -50%) rotate(0deg);
+  animation: smart-orbit 2.8s linear infinite;
+}
+
+.smart-bar::after {
+  content: '';
+  position: absolute;
+  z-index: -1;
+  inset: var(--smart-border);
+  border-radius: 99px;
+  background: var(--surface);
+}
+
+.smart-bar:active {
+  transform: scale(0.985);
+}
+
+.smart-bar.is-compact {
+  height: 49px;
+  margin-top: 13px;
+}
+
+.smart-bar-hint {
+  flex: 1;
+  min-width: 0;
+  height: 22px;
+  overflow: hidden;
+  font-size: 16.5px;
+  line-height: 22px;
+  color: #3a3a3a;
+}
+
+.smart-bar-hint span {
+  display: block;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  animation: hint-up 420ms var(--ease-out);
+}
+
+.sparkle {
+  flex: none;
+  overflow: visible;
+}
+
+.sparkle-big,
+.sparkle-small {
+  transform-box: fill-box;
+  transform-origin: center;
+}
+
+.sparkle-big {
+  animation: sparkle-twinkle 2.6s ease-in-out infinite;
+}
+
+.sparkle-small {
+  animation: sparkle-twinkle 2.6s ease-in-out 0.9s infinite;
+}
+
+@keyframes smart-orbit {
+  to {
+    transform: translate(-50%, -50%) rotate(360deg);
+  }
+}
+
+@keyframes sparkle-twinkle {
+  0%,
+  100% {
+    transform: scale(1) rotate(0);
+  }
+  50% {
+    transform: scale(0.72) rotate(45deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .smart-bar::before,
+  .sparkle-big,
+  .sparkle-small {
+    animation: none;
+  }
+}

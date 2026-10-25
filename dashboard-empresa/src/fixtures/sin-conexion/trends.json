@@ -1,0 +1,93 @@
+{
+  "source": "synthetic",
+  "data": [
+    {
+      "concept_id": "despensa-asiatica",
+      "concepto": "🥢 Despensa asiática",
+      "recientes": 62,
+      "anteriores": 37,
+      "crecimiento_pct": 68
+    },
+    {
+      "concept_id": "pasteleria",
+      "concepto": "🎂 Tortas y pastelería",
+      "recientes": 38,
+      "anteriores": 23,
+      "crecimiento_pct": 65
+    },
+    {
+      "concept_id": "carbon",
+      "concepto": "🔥 Carbón y leña",
+      "recientes": 14,
+      "anteriores": 33,
+      "crecimiento_pct": -58
+    },
+    {
+      "concept_id": "panales",
+      "concepto": "🧷 Pañales y toallitas",
+      "recientes": 18,
+      "anteriores": 39,
+      "crecimiento_pct": -54
+    },
+    {
+      "concept_id": "alimento-perro",
+      "concepto": "🐕 Alimento para perros",
+      "recientes": 117,
+      "anteriores": 78,
+      "crecimiento_pct": 50
+    },
+    {
+      "concept_id": "cereales",
+      "concepto": "🥣 Cereales y avena",
+      "recientes": 37,
+      "anteriores": 55,
+      "crecimiento_pct": -33
+    },
+    {
+      "concept_id": "limpieza",
+      "concepto": "🧽 Limpieza",
+      "recientes": 212,
+      "anteriores": 160,
+      "crecimiento_pct": 33
+    },
+    {
+      "concept_id": "peruana",
+      "concepto": "🇵🇪 Comida peruana",
+      "recientes": 406,
+      "anteriores": 309,
+      "crecimiento_pct": 31
+    },
+    {
+      "concept_id": "bebidas-asiaticas",
+      "concepto": "🧋 Bebidas asiáticas",
+      "recientes": 29,
+      "anteriores": 40,
+      "crecimiento_pct": -28
+    },
+    {
+      "concept_id": "accesorios-mascota",
+      "concepto": "🦴 Accesorios para mascotas",
+      "recientes": 39,
+      "anteriores": 31,
+      "crecimiento_pct": 26
+    },
+    {
+      "concept_id": "galletas",
+      "concepto": "🍪 Galletas",
+      "recientes": 67,
+      "anteriores": 90,
+      "crecimiento_pct": -26
+    },
+    {
+      "concept_id": "snacks-asiaticos",
+      "concepto": "🍘 Snacks asiáticos",
+      "recientes": 60,
+      "anteriores": 48,
+      "crecimiento_pct": 25
+    }
+  ],
+  "guardado": {
+    "origen": "npm run panel:snapshot · usuarios simulados de rappi_staging",
+    "fecha": "2026-10-24"
+  }
+}

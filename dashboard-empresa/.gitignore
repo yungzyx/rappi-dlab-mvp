@@ -1,0 +1,11 @@
+node_modules/
+dist*/
+# Capturas: en git solo las que usa el README (npm run screenshots genera todas, sin comprimir)
+docs/screenshots/*
+!docs/screenshots/1-resumen-escritorio-claro.jpg
+!docs/screenshots/1-resumen-movil-claro.jpg
+!docs/screenshots/2-clientes-escritorio-claro.jpg
+!docs/screenshots/2-clientes-escritorio-oscuro.jpg
+!docs/screenshots/3-mochi-escritorio-claro.jpg
+# La foto de la API para el panel en un solo HTML (npm run panel:snapshot): lleva datos de una base, no se versiona
+snapshot/

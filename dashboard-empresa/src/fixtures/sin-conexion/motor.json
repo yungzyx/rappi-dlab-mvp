@@ -1,0 +1,104 @@
+{
+  "source": "synthetic",
+  "data": {
+    "pesos": {
+      "afinidad": 1,
+      "transicion": 0.1,
+      "popularidad": 0.05
+    },
+    "lambda_cruzada": 1,
+    "evaluacion": {
+      "paso": {
+        "con_paso": 74,
+        "escalera": 0.5811,
+        "personas": 74,
+        "mas_sumada": 0.5946
+      },
+      "pesos": {
+        "afinidad": 1,
+        "transicion": 0.1,
+        "popularidad": 0.05
+      },
+      "tramos": {
+        "probar_hasta": "2026-10-17T23:41:02.056859-03:00",
+        "validar_hasta": "2026-09-19T23:41:02.056859-03:00",
+        "entrenar_hasta": "2026-08-22T23:41:02.056859-04:00"
+      },
+      "recompra": {
+        "n": 103,
+        "compraron": 0.3495,
+        "acierto_7_dias": 0.2136,
+        "error_mediano_dias": 6.5
+      },
+      "validacion": {
+        "personas": 503,
+        "ndcg_combinado": 0.9843,
+        "precision3_mezcla": 0.1345
+      },
+      "compra_cruzada": {
+        "mezcla": {
+          "cobertura": 1,
+          "precision3": 0.1294,
+          "aciertos_sobre_3": 0.1294,
+          "personas_con_prediccion": 505,
+          "precision3_mismas_personas": 0.0392
+        },
+        "personas": 505,
+        "cobertura": 0.0337,
+        "precision3": 0.1176,
+        "lo_mas_pedido": {
+          "cobertura": 1,
+          "precision3": 0.1294,
+          "aciertos_sobre_3": 0.1294,
+          "personas_con_prediccion": 505,
+          "precision3_mismas_personas": 0.0392
+        },
+        "aciertos_sobre_3": 0.0392,
+        "personas_con_prediccion": 17
+      },
+      "lambda_cruzada": 1,
+      "proximo_vertical": {
+        "afinidad": {
+          "mrr": 0.9813,
+          "hit1": 0.9663,
+          "hit3": 0.9941,
+          "ndcg": 0.9783,
+          "personas": 505
+        },
+        "combinado": {
+          "mrr": 0.9812,
+          "hit1": 0.9663,
+          "hit3": 0.9941,
+          "ndcg": 0.9804,
+          "personas": 505
+        },
+        "orden_fijo": {
+          "mrr": 0.9033,
+          "hit1": 0.8396,
+          "hit3": 0.9703,
+          "ndcg": 0.9178,
+          "personas": 505
+        },
+        "transicion": {
+          "mrr": 0.9563,
+          "hit1": 0.9267,
+          "hit3": 0.9861,
+          "ndcg": 0.959,
+          "personas": 505
+        },
+        "popularidad": {
+          "mrr": 0.905,
+          "hit1": 0.8396,
+          "hit3": 0.9703,
+          "ndcg": 0.9239,
+          "personas": 505
+        }
+      }
+    },
+    "fecha": "2026-10-24T23:23:19.887474+00:00"
+  },
+  "guardado": {
+    "origen": "npm run panel:snapshot · usuarios simulados de rappi_staging",
+    "fecha": "2026-10-24"
+  }
+}

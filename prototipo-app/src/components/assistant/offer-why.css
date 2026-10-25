@@ -1,0 +1,25 @@
+/* «¿Por qué?» de una oferta del agente: un enlace discreto y, al tocarlo, la razón en una línea aparte. */
+.offer-why {
+  margin: 4px 0 0;
+}
+
+.offer-why-toggle {
+  padding: 4px 0;
+  border: 0;
+  background: none;
+  color: var(--accent-ink);
+  font: inherit;
+  font-size: 12px;
+  font-weight: 700;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  cursor: pointer;
+}
+
+.offer-why-text {
+  display: block;
+  margin: 2px 0 0;
+  font-size: 12.5px;
+  line-height: 1.35;
+  color: var(--ink-2);
+}

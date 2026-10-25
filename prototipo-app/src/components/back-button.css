@@ -1,0 +1,10 @@
+/* Área táctil mínima de 40 × 40 sin tocar lo visible: el pseudoelemento crece hacia afuera lo que falte. */
+:where(.back-button) {
+  position: relative;
+}
+
+.back-button::before {
+  content: '';
+  position: absolute;
+  inset: min(0px, calc((100% - 40px) / 2));
+}

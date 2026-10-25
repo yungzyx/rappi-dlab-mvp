@@ -1,0 +1,149 @@
+{
+  "source": "synthetic",
+  "data": [
+    {
+      "concepto": "🦴 Accesorios para mascotas",
+      "vertical": "turbo",
+      "usuarios_que_buscan": 19,
+      "items_en_catalogo": 2,
+      "usuarios_por_item": 9.5
+    },
+    {
+      "concepto": "🍘 Snacks asiáticos",
+      "vertical": "turbo",
+      "usuarios_que_buscan": 21,
+      "items_en_catalogo": 5,
+      "usuarios_por_item": 4.2
+    },
+    {
+      "concepto": "🔥 Carbón y leña",
+      "vertical": "turbo",
+      "usuarios_que_buscan": 7,
+      "items_en_catalogo": 2,
+      "usuarios_por_item": 3.5
+    },
+    {
+      "concepto": "🍎 Frutas",
+      "vertical": "turbo",
+      "usuarios_que_buscan": 93,
+      "items_en_catalogo": 29,
+      "usuarios_por_item": 3.21
+    },
+    {
+      "concepto": "🥢 Despensa asiática",
+      "vertical": "turbo",
+      "usuarios_que_buscan": 18,
+      "items_en_catalogo": 7,
+      "usuarios_por_item": 2.57
+    },
+    {
+      "concepto": "🚗 Auto",
+      "vertical": "mall",
+      "usuarios_que_buscan": 32,
+      "items_en_catalogo": 15,
+      "usuarios_por_item": 2.13
+    },
+    {
+      "concepto": "🥨 Snacks salados",
+      "vertical": "turbo",
+      "usuarios_que_buscan": 112,
+      "items_en_catalogo": 63,
+      "usuarios_por_item": 1.78
+    },
+    {
+      "concepto": "🐈 Alimento para gatos",
+      "vertical": "turbo",
+      "usuarios_que_buscan": 19,
+      "items_en_catalogo": 13,
+      "usuarios_por_item": 1.46
+    },
+    {
+      "concepto": "🍞 Pan",
+      "vertical": "turbo",
+      "usuarios_que_buscan": 50,
+      "items_en_catalogo": 36,
+      "usuarios_por_item": 1.39
+    },
+    {
+      "concepto": "🧋 Bebidas asiáticas",
+      "vertical": "conveniencia",
+      "usuarios_que_buscan": 8,
+      "items_en_catalogo": 6,
+      "usuarios_por_item": 1.33
+    },
+    {
+      "concepto": "🥩 Carnes y parrilla",
+      "vertical": "turbo",
+      "usuarios_que_buscan": 51,
+      "items_en_catalogo": 39,
+      "usuarios_por_item": 1.31
+    },
+    {
+      "concepto": "🥤 Bebidas gaseosas",
+      "vertical": "turbo",
+      "usuarios_que_buscan": 76,
+      "items_en_catalogo": 62,
+      "usuarios_por_item": 1.23
+    },
+    {
+      "concepto": "⚡ Energéticas e isotónicas",
+      "vertical": "turbo",
+      "usuarios_que_buscan": 67,
+      "items_en_catalogo": 61,
+      "usuarios_por_item": 1.1
+    },
+    {
+      "concepto": "🥛 Leche y yogur",
+      "vertical": "turbo",
+      "usuarios_que_buscan": 125,
+      "items_en_catalogo": 126,
+      "usuarios_por_item": 0.99
+    },
+    {
+      "concepto": "🐕 Alimento para perros",
+      "vertical": "turbo",
+      "usuarios_que_buscan": 22,
+      "items_en_catalogo": 30,
+      "usuarios_por_item": 0.73
+    },
+    {
+      "concepto": "🥣 Cereales y avena",
+      "vertical": "turbo",
+      "usuarios_que_buscan": 34,
+      "items_en_catalogo": 47,
+      "usuarios_por_item": 0.72
+    },
+    {
+      "concepto": "🍪 Galletas",
+      "vertical": "turbo",
+      "usuarios_que_buscan": 41,
+      "items_en_catalogo": 59,
+      "usuarios_por_item": 0.69
+    },
+    {
+      "concepto": "☕ Café",
+      "vertical": "turbo",
+      "usuarios_que_buscan": 50,
+      "items_en_catalogo": 74,
+      "usuarios_por_item": 0.68
+    },
+    {
+      "concepto": "🧊 Hielo",
+      "vertical": "turbo",
+      "usuarios_que_buscan": 4,
+      "items_en_catalogo": 6,
+      "usuarios_por_item": 0.67
+    },
+    {
+      "concepto": "🍗 Pollo frito y asado",
+      "vertical": "restaurantes",
+      "usuarios_que_buscan": 751,
+      "items_en_catalogo": 1174,
+      "usuarios_por_item": 0.64
+    }
+  ],
+  "guardado": {
+    "origen": "npm run panel:snapshot · usuarios simulados de rappi_staging",
+    "fecha": "2026-10-24"
+  }
+}

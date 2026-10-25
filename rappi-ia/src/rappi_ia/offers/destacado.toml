@@ -1,0 +1,26 @@
+# Lo destacado: lo que la app muestra sin que la persona lo pida («Lo más pedido» de «Para ti» y de la vertical por
+# probar, los kits de «¿Qué plan tienes hoy?», «lo que más piden» en restaurantes y los restaurantes de la Home).
+# Reglas generales, en datos: ningún producto se saca a mano. Las valida y aplica offers/featured.py.
+# Además, todo lo destacado lleva foto, no repite un nombre, y sus platos son de un local de la ciudad de la persona
+# (offers/profiles.py: `person_city` y `CITY_COMUNAS`, la misma regla de la escalera de un perfil).
+
+[plato_principal]
+# «Lo más pedido» en restaurantes muestra platos principales: desde este precio (un chicle de $650 o un choclo agregado
+# de $1.195 no lo son; un kit sí puede llevar una empanada) y de un concepto que es plato, no postre ni café.
+precio_minimo = 3000
+conceptos_fuera = ["cafe", "helados", "pasteleria", "postres"]
+
+[relleno]
+# Platos de acompañamiento o de relleno, que lo destacado nunca muestra (tampoco en un kit). Se comparan sin tildes ni
+# mayúsculas, palabra por palabra: la sección del menú empieza con una de `secciones` («Bebidas y jugos» sí, «Pizzas y
+# bebidas» no), o el nombre del plato empieza con una de `nombres` y cuesta menos que `precio_minimo` («Salsa de ajo» de
+# $600 sí; «Extra Pepperoni Familiar» de $9.500, una pizza, no). Las entradas no son relleno: en una cevichería o un
+# local japonés son lo que más se pide (ceviches, gyozas, nigiris).
+secciones = [
+  "agregados", "agregado", "extras", "extra", "adicionales", "adicional", "acompanamientos", "acompanamiento",
+  "salsas", "salsa", "aderezos", "bebidas", "bebida", "bebestibles", "desechables", "cubiertos", "toppings",
+]
+nombres = [
+  "salsa", "salsas", "aderezo", "aderezos", "bolsa", "bolsas", "chicle", "chicles", "cubierto", "cubiertos",
+  "servilleta", "servilletas", "propina", "extra", "agregado", "adicional",
+]

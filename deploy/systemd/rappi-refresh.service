@@ -1,0 +1,20 @@
+# Tarea semanal en el servidor: la descarga de rappi.cl y la capa de IA (rappi-scraper/scripts/refresh-semanal.sh),
+# dentro del contenedor jobs. El scraper se identifica (RAPPI_UA_PROJECT y RAPPI_UA_CONTACT en el archivo de entorno)
+# y respeta robots.txt: si una página no está permitida, se detiene con el código 7. La dispara rappi-refresh.timer,
+# que se instala SIN ACTIVAR: antes, quien despliega acepta que rappi.cl pueda frenar una IP de datacenter y se asegura
+# de que ningún otro equipo descargue (nunca dos descargas a la vez; docs/despliegue.md).
+[Unit]
+Description=Rappi: descarga semanal del catálogo y capa de IA
+Requires=docker.service
+After=docker.service network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+# Editar: la carpeta del repo en el servidor (la misma en rappi-purge.service y rappi-backup.service).
+WorkingDirectory=/opt/rappi
+# El archivo de entorno de deploy/.env.example; compose lo lee para armar el stack y lo pasa a los contenedores.
+Environment=RAPPI_ENV_FILE=/etc/rappi/rappi.env
+ExecStart=/usr/bin/docker compose --env-file ${RAPPI_ENV_FILE} -f deploy/docker-compose.yml --profile jobs run --rm jobs bash rappi-scraper/scripts/refresh-semanal.sh
+# La descarga dura horas (un día entero si rappi.cl va lento): sin límite.
+TimeoutStartSec=infinity

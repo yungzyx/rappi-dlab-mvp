@@ -1,0 +1,2 @@
+# Las migraciones se registran con el md5 del archivo: un checkout con CRLF las daría a todas por cambiadas.
+*.sql text eol=lf

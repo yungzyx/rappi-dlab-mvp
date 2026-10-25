@@ -1,0 +1,281 @@
+{
+  "schema_version": 2,
+  "diagram_type": "workflow",
+  "meta": {
+    "title": "Despliegue del MVP: un servidor con Docker Compose",
+    "quality_profile": "showcase",
+    "views": [
+      {
+        "id": "peticion",
+        "label": "Una petición",
+        "focus": [
+          "navegador",
+          "puerta",
+          "estaticos",
+          "api",
+          "db"
+        ],
+        "note": "Todo pasa por la puerta de Caddy. La app y el panel son archivos; /api/* va a la API, que usa la base como rappi_api."
+      },
+      {
+        "id": "desplegar",
+        "label": "Desplegar",
+        "focus": [
+          "equipo-local",
+          "db",
+          "migrate",
+          "respaldos"
+        ],
+        "note": "El catálogo llega una vez en un dump. Cada despliegue corre migrate: respalda, migra y da permisos."
+      },
+      {
+        "id": "respaldar",
+        "label": "Respaldos y purga",
+        "focus": [
+          "timers",
+          "jobs",
+          "respaldos",
+          "restic"
+        ],
+        "note": "Los timers de systemd corren jobs: la purga a las 04:00 y el respaldo a las 04:15, que deja 3 en el volumen y copia afuera con restic."
+      }
+    ],
+    "legend": {
+      "entries": {
+        "frontend": {
+          "label": "persona / archivos"
+        },
+        "backend": {
+          "label": "servicio"
+        },
+        "database": {
+          "label": "datos"
+        },
+        "security": {
+          "label": "puerta"
+        },
+        "messagebus": {
+          "label": "programación"
+        },
+        "external": {
+          "label": "otro equipo"
+        },
+        "cloud": {
+          "label": "fuera del servidor"
+        }
+      }
+    }
+  },
+  "lanes": [
+    {
+      "id": "afuera",
+      "label": "Fuera del servidor"
+    },
+    {
+      "id": "servidor",
+      "label": "Servidor: Caddy publica 80 y 443; el resto, red interna"
+    },
+    {
+      "id": "trabajos",
+      "label": "Trabajos (migrate y jobs, como rappi_owner)"
+    }
+  ],
+  "mainPath": [
+    "navegador",
+    "puerta",
+    "api",
+    "db"
+  ],
+  "nodes": [
+    {
+      "id": "navegador",
+      "lane": "afuera",
+      "col": 0,
+      "type": "frontend",
+      "label": "Navegador",
+      "sublabel": "HTTPS con clave",
+      "width": 140
+    },
+    {
+      "id": "equipo-local",
+      "lane": "afuera",
+      "col": 3,
+      "type": "external",
+      "label": "Equipo local",
+      "sublabel": "descarga semanal",
+      "width": 140
+    },
+    {
+      "id": "restic",
+      "lane": "afuera",
+      "col": 5,
+      "type": "cloud",
+      "label": "Repositorio restic",
+      "sublabel": "7 diarios · 4 semanales",
+      "width": 140
+    },
+    {
+      "id": "puerta",
+      "lane": "servidor",
+      "col": 1,
+      "type": "security",
+      "label": "Caddy: puerta",
+      "sublabel": "TLS · basic_auth · CSP",
+      "width": 140
+    },
+    {
+      "id": "estaticos",
+      "lane": "servidor",
+      "col": 0,
+      "type": "frontend",
+      "label": "App y panel",
+      "sublabel": "/ · /panel/",
+      "width": 140
+    },
+    {
+      "id": "api",
+      "lane": "servidor",
+      "col": 2,
+      "type": "backend",
+      "label": "API",
+      "sublabel": "/live · /health",
+      "tag": "1 worker",
+      "width": 140
+    },
+    {
+      "id": "db",
+      "lane": "servidor",
+      "col": 3,
+      "type": "database",
+      "label": "Postgres + pgvector",
+      "sublabel": "volumen pgdata",
+      "width": 140
+    },
+    {
+      "id": "respaldos",
+      "lane": "servidor",
+      "col": 4,
+      "type": "database",
+      "label": "Volumen backups",
+      "sublabel": "3 nocturnos + otros",
+      "width": 140
+    },
+    {
+      "id": "migrate",
+      "lane": "trabajos",
+      "col": 2,
+      "type": "backend",
+      "label": "migrate",
+      "sublabel": "deploy-migrate",
+      "width": 140
+    },
+    {
+      "id": "timers",
+      "lane": "trabajos",
+      "col": 4,
+      "type": "messagebus",
+      "label": "Timers de systemd",
+      "sublabel": "04:00 y 04:15",
+      "width": 140
+    },
+    {
+      "id": "jobs",
+      "lane": "trabajos",
+      "col": 5,
+      "type": "backend",
+      "label": "jobs",
+      "sublabel": "purga · respaldo",
+      "width": 140
+    }
+  ],
+  "edges": [
+    {
+      "id": "navegador-puerta",
+      "from": "navegador",
+      "to": "puerta",
+      "label": "HTTPS",
+      "variant": "emphasis"
+    },
+    {
+      "id": "puerta-estaticos",
+      "from": "puerta",
+      "to": "estaticos",
+      "label": "archivos"
+    },
+    {
+      "id": "puerta-api",
+      "from": "puerta",
+      "to": "api",
+      "label": "/api/*",
+      "variant": "emphasis"
+    },
+    {
+      "id": "api-db",
+      "from": "api",
+      "to": "db",
+      "label": "rappi_api",
+      "variant": "emphasis"
+    },
+    {
+      "id": "equipo-local-db",
+      "from": "equipo-local",
+      "to": "db",
+      "label": "dump (1.ª vez)",
+      "variant": "dashed"
+    },
+    {
+      "id": "migrate-db",
+      "from": "migrate",
+      "to": "db",
+      "label": "migra y da permisos"
+    },
+    {
+      "id": "timers-jobs",
+      "from": "timers",
+      "to": "jobs",
+      "label": "dispara"
+    },
+    {
+      "id": "jobs-respaldos",
+      "from": "jobs",
+      "to": "respaldos",
+      "label": "pg_dump"
+    },
+    {
+      "id": "jobs-restic",
+      "from": "jobs",
+      "to": "restic",
+      "label": "copia afuera",
+      "variant": "dashed"
+    }
+  ],
+  "cards": [
+    {
+      "dot": "emerald",
+      "title": "Una sola entrada",
+      "items": [
+        "Caddy es el único con puertos (80 y 443) y pide usuario y clave en todo el sitio",
+        "La app llama a la API en su mismo origen (/api)",
+        "La base y la API quedan en la red interna del stack"
+      ]
+    },
+    {
+      "dot": "cyan",
+      "title": "Dos roles en la base",
+      "items": [
+        "rappi_api lee todo y escribe solo los datos de las personas",
+        "rappi_owner migra, restaura y corre los trabajos",
+        "La API nunca migra: /health da 503 hasta que corre migrate"
+      ]
+    },
+    {
+      "dot": "rose",
+      "title": "Respaldos",
+      "items": [
+        "migrate respalda antes de aplicar una migración (quedan 4)",
+        "Cada noche, 3 en el volumen y una copia afuera con restic",
+        "La descarga semanal (rappi refresh y post-refresh, con capas y motor) sigue en un equipo local hasta que se decida activarla en el servidor"
+      ]
+    }
+  ]
+}

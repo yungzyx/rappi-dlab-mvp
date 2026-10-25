@@ -1,0 +1,45 @@
+# syntax=docker/dockerfile:1
+# Caddy con la app construida (y el panel si WITH_PANEL=1): TLS, la puerta de acceso y el proxy a la API en /api.
+# Contexto: la raíz del repo.
+#   docker build -f deploy/Dockerfile.web .
+# VITE_DEMO=1 deja el interruptor de la demo en la app; WITH_PANEL=1 construye el panel bajo /panel/ (sin él, /panel/
+# responde 404).
+
+FROM node:24.22.1-trixie AS build
+
+WORKDIR /src
+COPY prototipo-app/package.json prototipo-app/package-lock.json prototipo-app/
+COPY dashboard-empresa/package.json dashboard-empresa/package-lock.json dashboard-empresa/
+RUN npm --prefix prototipo-app ci && npm --prefix dashboard-empresa ci
+
+COPY prototipo-app prototipo-app
+COPY dashboard-empresa dashboard-empresa
+COPY scripts/check-dist.sh scripts/check-dist.sh
+
+ARG VITE_DEMO=
+ARG WITH_PANEL=0
+# La app habla con la API en el mismo origen (/api). check-dist revisa que no quede nada de desarrollo (localhost,
+# :8000, los textos de `make mvp`); sin panel revisa una carpeta vacía.
+RUN VITE_API_URL=/api VITE_DEMO="$VITE_DEMO" npm --prefix prototipo-app run build \
+    && if [ "$WITH_PANEL" = 1 ]; then \
+        VITE_API_URL=/api PANEL_BASE=/panel/ npm --prefix dashboard-empresa run build; \
+    else \
+        mkdir -p dashboard-empresa/dist; \
+    fi \
+    && VITE_DEMO="$VITE_DEMO" scripts/check-dist.sh
+
+
+FROM caddy:2.11.7-alpine
+
+# Caddy sin root: el binario de la imagen oficial ya trae la capacidad de abrir los puertos 80 y 443
+# (cap_net_bind_service); los volúmenes nuevos de /data (certificados) y /config heredan este dueño.
+RUN addgroup -S -g 10002 caddy \
+    && adduser -S -D -H -u 10002 -G caddy caddy \
+    && mkdir -p /data/caddy /config/caddy \
+    && chown -R caddy:caddy /data /config
+
+COPY deploy/Caddyfile /etc/caddy/Caddyfile
+COPY --from=build /src/prototipo-app/dist /srv/app
+COPY --from=build /src/dashboard-empresa/dist /srv/panel
+
+USER caddy

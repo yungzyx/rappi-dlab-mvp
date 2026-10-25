@@ -1,0 +1,77 @@
+# Actualizaciones semanales de dependencias, agrupadas: un PR por ecosistema y carpeta (no uno por paquete), que pasa
+# por el mismo CI. Las actualizaciones mayores llegan aparte, porque suelen pedir cambios de código.
+version: 2
+updates:
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+    groups:
+      acciones:
+        patterns: ["*"]
+  - package-ecosystem: npm
+    directory: /prototipo-app
+    schedule:
+      interval: weekly
+    groups:
+      app-menores:
+        patterns: ["*"]
+        update-types: [minor, patch]
+  - package-ecosystem: npm
+    directory: /dashboard-empresa
+    schedule:
+      interval: weekly
+    groups:
+      panel-menores:
+        patterns: ["*"]
+        update-types: [minor, patch]
+  - package-ecosystem: pip
+    directory: /rappi-ia
+    schedule:
+      interval: weekly
+    groups:
+      rappi-ia-menores:
+        patterns: ["*"]
+        update-types: [minor, patch]
+    # Versiones que no caben con el resto del lock: pip no resuelve y la imagen de la API no se construye (21-10-2026).
+    # Quitar cada regla cuando el paquete que la limita las acepte.
+    ignore:
+      # sympy 1.14.0, que trae torch, pide mpmath<1.4.
+      - dependency-name: mpmath
+        versions: [">=1.4"]
+      # sentence-transformers 6.1.0 pide huggingface-hub<2.0.0.
+      - dependency-name: huggingface-hub
+        versions: [">=2"]
+  - package-ecosystem: pip
+    directory: /rappi-scraper
+    schedule:
+      interval: weekly
+    groups:
+      scraper-menores:
+        patterns: ["*"]
+        update-types: [minor, patch]
+  # Las imágenes de deploy/ (Dockerfile.api, Dockerfile.web y docker-compose.yml), fijadas en una versión exacta. Las de
+  # los servicios del CI (.github/workflows/ci.yml) se suben a mano, a la misma de docker-compose.yml.
+  - package-ecosystem: docker
+    directory: /deploy
+    schedule:
+      interval: weekly
+    groups:
+      imagenes:
+        patterns: ["*"]
+        update-types: [minor, patch]
+    # Python y Node del servidor van con los de desarrollo y el CI (3.13 y .nvmrc): solo parches. Subir de versión es
+    # una decisión aparte, en los tres lugares a la vez.
+    ignore:
+      - dependency-name: python
+        update-types: [version-update:semver-major, version-update:semver-minor]
+      - dependency-name: node
+        update-types: [version-update:semver-major]
+  - package-ecosystem: docker-compose
+    directory: /deploy
+    schedule:
+      interval: weekly
+    groups:
+      compose:
+        patterns: ["*"]
+        update-types: [minor, patch]

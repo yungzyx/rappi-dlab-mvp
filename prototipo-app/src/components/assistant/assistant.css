@@ -1,0 +1,693 @@
+/*
+ * Buscador con Mochi. Entra deslizándose desde la derecha, como el buscador de «Rappi hoy»; lo nuevo:
+ * el borde con degradado de la barra de la Home da una vuelta en el campo, Mochi aparece saludando y los bloques
+ * suben uno tras otro. Todo con transform y opacity: corre en la GPU, sin mover el layout.
+ */
+.assistant {
+  position: absolute;
+  inset: 0;
+  z-index: var(--z-panel);
+  display: flex;
+  flex-direction: column;
+  background: var(--surface);
+  transition-property: transform;
+  transition-timing-function: var(--ease-out);
+}
+
+.assistant.is-entering,
+.assistant.is-closing {
+  transform: translateX(100%);
+}
+
+.assistant.is-closing {
+  transition-timing-function: cubic-bezier(0.4, 0, 0.8, 0.4);
+}
+
+/* ---------- Encabezado: el de «Rappi hoy», con el campo de Mochi ---------- */
+.agent-search-header {
+  position: relative;
+  margin: 0;
+}
+
+.agent-search-field {
+  --ring: 1.5px;
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  border: 0;
+  box-shadow: 0 6px 18px rgba(255, 90, 54, 0.12);
+}
+
+/* Borde con degradado (mismo truco que la barra de la Home): un cuadrado que gira detrás y un relleno blanco encima */
+.agent-search-field::before {
+  content: '';
+  position: absolute;
+  z-index: -2;
+  left: 50%;
+  top: 50%;
+  width: 130%;
+  aspect-ratio: 1;
+  background: conic-gradient(
+    #ffd9cb 0deg 150deg,
+    #ffc2a6 190deg,
+    #ff9a3d 250deg,
+    #ff5a36 300deg,
+    #ff3d7f 335deg,
+    #ffd9cb
+  );
+  transform: translate(-50%, -50%) rotate(0deg);
+}
+
+.agent-search-field::after {
+  content: '';
+  position: absolute;
+  z-index: -1;
+  inset: var(--ring);
+  border-radius: 99px;
+  background: var(--surface);
+}
+
+.assistant.is-open .agent-search-field::before {
+  animation: ring-turn 1100ms 120ms var(--ease-out) both;
+}
+
+/* ---------- Cuerpo ---------- */
+.agent-search-body {
+  position: relative;
+  flex: 1;
+  overflow-y: auto;
+  overscroll-behavior-y: contain;
+  /* Con productos en el carrito, su barra flota sobre el panel: el último bloque no queda detrás */
+  padding-bottom: calc(120px + env(safe-area-inset-bottom, 0px));
+  scrollbar-width: none;
+}
+
+.agent-search-body::-webkit-scrollbar {
+  display: none;
+}
+
+.assistant.has-cart .agent-search-body {
+  padding-bottom: calc(180px + env(safe-area-inset-bottom, 0px));
+}
+
+.agent-block {
+  padding: 0 var(--gutter);
+}
+
+/* Los bloques suben uno tras otro al abrir */
+.assistant.is-open .agent-card,
+.assistant.is-open .agent-block {
+  animation: fade-up 460ms var(--ease-out) both;
+}
+
+.assistant.is-open .agent-card {
+  animation-delay: 140ms;
+}
+
+.assistant.is-open .agent-block:nth-of-type(2) {
+  animation-delay: 230ms;
+}
+
+.assistant.is-open .agent-block:nth-of-type(3) {
+  animation-delay: 310ms;
+}
+
+.assistant.is-open .agent-block:nth-of-type(4) {
+  animation-delay: 390ms;
+}
+
+/* Hasta la primera respuesta solo se ven el encabezado de Mochi y su «escribiendo…»: lo demás no ocupa lugar (lo que
+   llega mientras tanto no los mueve) y aparece con el saludo, con su animación de entrada */
+.assistant.is-waiting .agent-card > :not(.agent-card-head, .agent-msg-row),
+.assistant.is-waiting .taste-ladder,
+.assistant.is-waiting .agent-block {
+  display: none;
+}
+
+/* ---------- Franja de Mochi: lo que sabe de ti, su respuesta y los botones ---------- */
+.agent-card {
+  position: relative;
+  margin-top: 6px;
+  padding: 14px 0 6px;
+  border-radius: 0 0 28px 28px;
+  background:
+    radial-gradient(120% 90% at 85% 0%, rgba(255, 122, 74, 0.2), transparent 60%),
+    radial-gradient(90% 70% at 10% 10%, rgba(255, 61, 127, 0.1), transparent 60%), linear-gradient(#fff6f1, #fffaf7);
+}
+
+.agent-card-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0 var(--gutter);
+}
+
+.agent-card-head strong {
+  display: block;
+  font-size: 17px;
+  font-weight: 700;
+}
+
+.agent-card-head small {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 13px;
+  color: var(--ink-2);
+}
+
+.agent-card-mascot {
+  display: block;
+}
+
+.assistant.is-open .agent-card-mascot {
+  animation: mascot-pop 620ms 200ms cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+
+.assistant-online {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--green-status);
+  box-shadow: 0 0 0 3px rgba(52, 199, 89, 0.18);
+}
+
+.agent-asked {
+  margin: 10px var(--gutter) 0;
+  font-size: 13px;
+  font-weight: 600;
+  color: #c2410c;
+}
+
+.agent-picks-label {
+  margin: 6px var(--gutter) 0;
+  font-size: 13px;
+  color: var(--ink-2);
+}
+
+@keyframes ring-turn {
+  to {
+    transform: translate(-50%, -50%) rotate(360deg);
+  }
+}
+
+@keyframes mascot-pop {
+  0% {
+    transform: scale(0.4) rotate(-14deg);
+    opacity: 0;
+  }
+  60% {
+    transform: scale(1.1) rotate(6deg);
+    opacity: 1;
+  }
+  100% {
+    transform: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .assistant {
+    transition: none;
+  }
+
+  .assistant.is-open .agent-search-field::before,
+  .assistant.is-open .agent-card,
+  .assistant.is-open .agent-block,
+  .assistant.is-open .agent-card-mascot {
+    animation: none;
+  }
+}
+
+/* ---------- "Aprendiendo de ti" ---------- */
+.assistant-learning {
+  position: relative;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 12px var(--gutter) 2px;
+  font-size: 12.5px;
+  color: var(--ink-2);
+}
+
+.assistant-learning b {
+  padding: 2px 8px;
+  border-radius: 99px;
+  background: var(--surface);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.07);
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.assistant-learning button {
+  position: relative;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--agent-orange);
+  text-decoration: underline;
+}
+
+/* Área táctil de 44 px de alto para «Olvidar» */
+.assistant-learning button::before {
+  content: '';
+  position: absolute;
+  inset: -14px 0;
+}
+
+/* ---------- Mensajes ---------- */
+.agent-msg-row {
+  display: flex;
+  padding: 5px var(--gutter);
+  animation: bubble-in 360ms var(--ease-out) both;
+}
+
+.agent-msg-bot {
+  width: 100%;
+}
+
+.agent-msg-bubble {
+  max-width: 82%;
+  width: fit-content;
+  padding: 11px 15px;
+  border-radius: 20px 20px 20px 6px;
+  background: var(--surface);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.06);
+  font-size: 15.5px;
+  line-height: 21px;
+  transform-origin: bottom left;
+}
+
+.agent-msg-typing {
+  display: flex;
+  gap: 5px;
+  padding: 15px 16px;
+}
+
+.agent-msg-typing span {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #ff9a6c;
+  animation: typing-dot 1s ease-in-out infinite;
+}
+
+.agent-msg-typing span:nth-child(2) {
+  animation-delay: 0.15s;
+}
+
+.agent-msg-typing span:nth-child(3) {
+  animation-delay: 0.3s;
+}
+
+/* Lo que falta escribir: invisible, pero ya ocupa su lugar en la burbuja */
+.agent-msg-rest::after {
+  content: attr(data-rest);
+  visibility: hidden;
+}
+
+.agent-msg-extras {
+  margin-top: 8px;
+}
+
+/* Hasta que termina el texto, las tarjetas y los botones ya ocupan su lugar, sin verse ni animarse */
+.agent-msg-extras.is-pending {
+  visibility: hidden;
+}
+
+.agent-msg-extras.is-pending * {
+  animation: none;
+}
+
+.agent-msg-reason {
+  margin: 0 0 8px;
+  font-size: 12.5px;
+  color: var(--accent-text);
+}
+
+/* Tarjetas de producto dentro de la respuesta del agente */
+.agent-msg-products {
+  gap: 10px;
+  margin: 0 calc(-1 * var(--gutter));
+  padding: 10px var(--gutter) 6px;
+  scroll-padding-left: var(--gutter);
+}
+
+.agent-msg-product {
+  position: relative;
+  flex: none;
+  width: 128px;
+  border-radius: 16px;
+  background: var(--surface);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.06);
+  animation: card-in 420ms var(--ease-out) both;
+}
+
+/* La tarjeta entera abre la hoja del producto; el "+" queda fuera del botón, sobre la foto. */
+.agent-msg-product-main {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  padding: 8px 8px 10px;
+  text-align: left;
+  cursor: pointer;
+}
+
+.agent-msg-product-media {
+  position: relative;
+  display: block;
+  height: 80px;
+  border-radius: 10px;
+}
+
+/* Las fotos recortadas traen un "+" dibujado en la franja de arriba: se muestra la parte de abajo
+   (object-position bottom) y el botón real va en la esquina inferior. */
+.agent-msg-product-media img {
+  width: 100%;
+  height: 100%;
+  border-radius: 10px;
+  object-fit: cover;
+  object-position: center bottom;
+}
+
+.add-button--agent {
+  top: 68px; /* esquina inferior de la foto (8 px de relleno + 80 px de foto, 10 px por fuera) */
+  right: 2px;
+  width: 30px;
+  height: 30px;
+}
+
+.add-button--agent.is-open {
+  width: 86px;
+}
+
+.agent-msg-product-name {
+  display: -webkit-box;
+  margin-top: 10px;
+  font-size: 13px;
+  line-height: 16px;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.agent-msg-product-price {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  margin-top: 4px;
+  font-size: 14px;
+}
+
+.agent-msg-product-price span {
+  padding: 0 4px;
+  background: var(--price-yellow);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.agent-msg-product-store {
+  margin-top: 2px;
+  font-size: 12px;
+  color: var(--ink-3);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.agent-msg-stores {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 6px;
+}
+
+.agent-msg-store {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  max-width: 100%;
+  padding: 5px 12px 5px 5px;
+  border-radius: 99px;
+  background: var(--surface);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  text-align: left;
+  animation: card-in 420ms var(--ease-out) both;
+}
+
+.agent-msg-store img {
+  flex: none;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.agent-msg-store img.is-logo {
+  object-fit: contain;
+  background: var(--surface);
+}
+
+.agent-msg-store span {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.agent-msg-store strong {
+  font-size: 13.5px;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.agent-msg-store small {
+  font-size: 11.5px;
+  color: var(--ink-3);
+}
+
+.agent-msg-action {
+  margin-top: 8px;
+  padding: 9px 16px;
+  border-radius: 99px;
+  background: var(--ink);
+  color: var(--surface);
+  font-size: 14.5px;
+  font-weight: 600;
+}
+
+/* ---------- Botones de Mochi ---------- */
+.assistant-chips {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding: 4px var(--gutter) 10px;
+  scrollbar-width: none;
+}
+
+.assistant-chips::-webkit-scrollbar {
+  display: none;
+}
+
+.assistant-chip {
+  flex: none;
+  height: 36px;
+  padding: 0 14px;
+  border: 1.5px solid #ffd9ca;
+  border-radius: 99px;
+  background: var(--surface);
+  font-size: 14.5px;
+  font-weight: 500;
+  white-space: nowrap;
+  animation: chip-in 420ms var(--ease-out) both;
+  transition:
+    transform var(--duration-fast),
+    background var(--duration-fast);
+}
+
+.assistant-chip:active {
+  transform: scale(0.95);
+  background: #fff1eb;
+}
+
+/* ---------- Keyframes ---------- */
+@keyframes fade-up {
+  from {
+    transform: translateY(8px);
+    opacity: 0;
+  }
+}
+
+@keyframes bubble-in {
+  from {
+    transform: translateY(10px) scale(0.97);
+    opacity: 0;
+  }
+}
+
+@keyframes card-in {
+  from {
+    transform: translateY(14px) scale(0.94);
+    opacity: 0;
+  }
+}
+
+@keyframes chip-in {
+  from {
+    transform: translateY(16px);
+    opacity: 0;
+  }
+}
+
+@keyframes typing-dot {
+  0%,
+  60%,
+  100% {
+    transform: translateY(0);
+    opacity: 0.5;
+  }
+  30% {
+    transform: translateY(-5px);
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .assistant {
+    transition: none;
+  }
+
+  .assistant *,
+  .assistant *::before {
+    animation-duration: 1ms !important;
+    animation-iteration-count: 1 !important;
+  }
+}
+
+/* Sugerencia cruzada de la API: bloque aparte, marcado "De otra tienda". */
+.agent-msg-suggestion {
+  margin-top: 12px;
+}
+.agent-msg-suggestion-tag {
+  display: inline-block;
+  margin-right: 4px;
+  padding: 1px 7px;
+  border-radius: 999px;
+  background: var(--accent-soft);
+  color: var(--accent-ink); /* 5,5:1 sobre var(--accent-soft) (AA a 11 px); el naranjo #ff441f daba 3,1:1 */
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+}
+
+/* "También en": otras verticales con oferta de lo pedido, con logos (o iniciales) de sus tiendas. */
+.agent-msg-also {
+  margin-top: 12px;
+}
+.agent-msg-also-logos {
+  display: flex;
+  flex: none;
+  flex-direction: row !important;
+}
+.agent-msg-also-logos > * + * {
+  margin-left: -10px;
+}
+.agent-msg-also-vertical .agent-msg-also-logos img,
+.agent-msg-also-initial {
+  width: 30px;
+  height: 30px;
+  border: 2px solid var(--surface);
+  border-radius: 50%;
+  object-fit: contain;
+  background: var(--surface);
+}
+.agent-msg-also-initial {
+  display: grid;
+  place-items: center;
+  background: var(--accent-soft);
+  color: var(--accent-ink);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+/* Productos solo para mayores de edad: marca visible en la tarjeta. */
+.agent-msg-product-age {
+  position: absolute;
+  top: 6px;
+  left: 6px;
+  padding: 1px 6px;
+  border-radius: 6px;
+  background: rgba(20, 20, 20, 0.78);
+  color: var(--surface);
+  font-size: 10px;
+  font-weight: 800;
+}
+
+/* «Pregúntale a Mochi»: primera fila del buscador mientras se escribe (AskAgentRow) */
+.agent-ask-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  margin: 12px 0 4px;
+  padding: 10px 14px 10px 10px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: var(--surface);
+  color: var(--ink);
+  text-align: left;
+  font: inherit;
+  cursor: pointer;
+}
+
+.agent-ask-row.is-question {
+  border-color: transparent;
+  background: var(--accent-soft);
+}
+
+.agent-ask-mascot {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+}
+
+.agent-ask-text {
+  flex: 1;
+  min-width: 0;
+  display: grid;
+  gap: 2px;
+}
+
+.agent-ask-text strong {
+  font-size: 14px;
+  color: var(--accent-ink);
+}
+
+.agent-ask-query {
+  overflow: hidden;
+  font-size: 13px;
+  color: var(--ink-2);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.agent-ask-go {
+  flex: none;
+  font-size: 22px;
+  line-height: 1;
+  color: var(--accent-ink);
+}
+
+.agent-ask-key {
+  flex: none;
+  padding: 3px 7px;
+  border: 1px solid var(--accent-ink);
+  border-radius: 6px;
+  font-family: inherit;
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 1.2;
+  color: var(--accent-ink);
+}

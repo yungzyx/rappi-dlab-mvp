@@ -1,0 +1,205 @@
+{
+  "data": {
+    "fino": [
+      {
+        "combo": "restaurantes",
+        "esperada": 0.47,
+        "meses_usuario": 11,
+        "retencion_m1": null,
+        "retencion_n": 2
+      },
+      {
+        "combo": "restaurantes+turbo",
+        "esperada": 0.82,
+        "meses_usuario": 3,
+        "retencion_m1": null,
+        "retencion_n": 0
+      },
+      {
+        "combo": "turbo",
+        "esperada": 0.5,
+        "meses_usuario": 3,
+        "retencion_m1": null,
+        "retencion_n": 0
+      },
+      {
+        "combo": "chocolateria",
+        "esperada": 0.41,
+        "meses_usuario": 1,
+        "retencion_m1": null,
+        "retencion_n": 0
+      },
+      {
+        "combo": "restaurantes+turbo+conveniencia",
+        "esperada": 0.93,
+        "meses_usuario": 1,
+        "retencion_m1": null,
+        "retencion_n": 0
+      },
+      {
+        "combo": "restaurantes+turbo+licores",
+        "esperada": 0.93,
+        "meses_usuario": 1,
+        "retencion_m1": null,
+        "retencion_n": 0
+      },
+      {
+        "combo": "supermercado+chocolateria",
+        "esperada": 0.469,
+        "meses_usuario": 1,
+        "retencion_m1": null,
+        "retencion_n": 1
+      }
+    ],
+    "nota": "Simulado: no es evidencia",
+    "propio": [
+      {
+        "combo": "rest",
+        "gasto_por_usuario": 18780.0,
+        "meses_usuario": 11,
+        "pct_pedidos": 35.294117,
+        "pct_usuarios": 52.38095,
+        "pedidos_por_usuario": 1.0909091,
+        "retencion_m1": null,
+        "retencion_n": 2
+      },
+      {
+        "combo": "rest+turbo",
+        "gasto_por_usuario": 38673.333333333336,
+        "meses_usuario": 3,
+        "pct_pedidos": 23.529411,
+        "pct_usuarios": 14.285714,
+        "pedidos_por_usuario": 2.6666667,
+        "retencion_m1": null,
+        "retencion_n": 0
+      },
+      {
+        "combo": "turbo",
+        "gasto_por_usuario": 3146.6666666666665,
+        "meses_usuario": 3,
+        "pct_pedidos": 8.823529,
+        "pct_usuarios": 14.285714,
+        "pedidos_por_usuario": 1.0,
+        "retencion_m1": null,
+        "retencion_n": 0
+      },
+      {
+        "combo": "rest+turbo+retail",
+        "gasto_por_usuario": 27390.0,
+        "meses_usuario": 2,
+        "pct_pedidos": 23.529411,
+        "pct_usuarios": 9.523809,
+        "pedidos_por_usuario": 4.0,
+        "retencion_m1": null,
+        "retencion_n": 0
+      },
+      {
+        "combo": "retail",
+        "gasto_por_usuario": 21465.0,
+        "meses_usuario": 2,
+        "pct_pedidos": 8.823529,
+        "pct_usuarios": 9.523809,
+        "pedidos_por_usuario": 1.5,
+        "retencion_m1": null,
+        "retencion_n": 1
+      }
+    ],
+    "rappi": {
+      "filas": [
+        {
+          "combo": "rest",
+          "gasto_por_usuario": 42.0,
+          "pct_pedidos": 39.8,
+          "pct_usuarios": 62.6,
+          "pedidos_por_usuario": 1.9,
+          "retencion_m1": 0.47,
+          "usuarios": 739000
+        },
+        {
+          "combo": "turbo",
+          "gasto_por_usuario": 35.0,
+          "pct_pedidos": 3.9,
+          "pct_usuarios": 6.8,
+          "pedidos_por_usuario": 1.7,
+          "retencion_m1": 0.5,
+          "usuarios": 80000
+        },
+        {
+          "combo": "rest+turbo",
+          "gasto_por_usuario": 123.0,
+          "pct_pedidos": 12.2,
+          "pct_usuarios": 6.6,
+          "pedidos_por_usuario": 5.5,
+          "retencion_m1": 0.82,
+          "usuarios": 78000
+        },
+        {
+          "combo": "retail",
+          "gasto_por_usuario": 34.0,
+          "pct_pedidos": 2.5,
+          "pct_usuarios": 5.6,
+          "pedidos_por_usuario": 1.4,
+          "retencion_m1": 0.41,
+          "usuarios": 66000
+        },
+        {
+          "combo": "rest+retail",
+          "gasto_por_usuario": 116.0,
+          "pct_pedidos": 8.4,
+          "pct_usuarios": 5.4,
+          "pedidos_por_usuario": 4.7,
+          "retencion_m1": 0.76,
+          "usuarios": 64000
+        },
+        {
+          "combo": "rest+turbo+retail",
+          "gasto_por_usuario": 257.0,
+          "pct_pedidos": 16.4,
+          "pct_usuarios": 4.7,
+          "pedidos_por_usuario": 10.5,
+          "retencion_m1": 0.93,
+          "usuarios": 56000
+        },
+        {
+          "combo": "turbo+retail",
+          "gasto_por_usuario": 108.0,
+          "pct_pedidos": 2.6,
+          "pct_usuarios": 1.7,
+          "pedidos_por_usuario": 4.6,
+          "retencion_m1": 0.8,
+          "usuarios": 20000
+        },
+        {
+          "combo": "favor",
+          "gasto_por_usuario": 11.0,
+          "pct_pedidos": 1.0,
+          "pct_usuarios": 1.5,
+          "pedidos_por_usuario": 2.0,
+          "retencion_m1": 0.44,
+          "usuarios": 18000
+        }
+      ],
+      "nota": "Dato compartido por el equipo de Rappi: cohortes de enero a junio de 2026, Chile, agrupación gruesa (MX crosswalk). Es una correlación, no un efecto.",
+      "total": {
+        "combo": "total",
+        "gasto_por_usuario": 68.0,
+        "pct_pedidos": 100.0,
+        "pct_usuarios": 100.0,
+        "pedidos_por_usuario": 3.0,
+        "retencion_m1": 0.55,
+        "usuarios": 1180000
+      }
+    },
+    "supuesto": {
+      "decaimiento": 0.5,
+      "nota": "supuesto propio: cada vertical extra dentro de un grupo reduce la parte que no vuelve: 10 %, 5 %, 2,5 %…; cada servicio, 5 %; nunca llega a 100 %. Con datos reales se reemplaza por lo aprendido",
+      "reduccion_base": 0.1,
+      "servicio": 0.05
+    }
+  },
+  "guardado": {
+    "fecha": "2026-10-17",
+    "origen": "make contract · simulación chica con semilla fija (40 personas, 8 semanas)"
+  },
+  "source": "synthetic"
+}

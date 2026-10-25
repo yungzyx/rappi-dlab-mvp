@@ -1,0 +1,64 @@
+/* Medidas del video de Favoritos (px del cuadro de 600 × 0,67 = pt). */
+.favorites-heading {
+  padding: 14px var(--gutter) 0;
+  font-size: 22px;
+  font-weight: 500;
+}
+
+.favorites-heading--first {
+  padding-top: 30px;
+}
+
+.favorites-heading--restaurants {
+  padding-top: 50px;
+}
+
+.favorites-logos {
+  gap: 9px;
+  padding: 26px 22px 0;
+}
+
+.favorite-logo {
+  flex: none;
+  width: 59px;
+  height: 59px;
+  border-radius: 50%;
+  overflow: hidden;
+  /* mismo anillo gris que las tiendas de la app */
+  border: 2px solid #eceef1;
+  animation: fav-in 360ms var(--ease-out);
+}
+
+.favorite-logo img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* Tienda con logo en vez de foto: se ve entero */
+.favorite-logo.is-logo img {
+  object-fit: contain;
+  padding: 6px;
+}
+
+@keyframes fav-in {
+  from {
+    transform: scale(0.6);
+    opacity: 0;
+  }
+}
+
+.favorites-empty {
+  padding: 26px var(--gutter) 0;
+  color: var(--ink-2);
+  font-size: 15px;
+  line-height: 1.45;
+}
+
+.favorites-row {
+  padding-top: 24px;
+}
+
+.favorites-row--restaurants {
+  padding-top: 48px;
+}

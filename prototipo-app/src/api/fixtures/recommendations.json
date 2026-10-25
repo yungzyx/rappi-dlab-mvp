@@ -1,0 +1,100 @@
+{
+  "interests": [
+    "pizza"
+  ],
+  "rows": [
+    {
+      "concept": "gaseosas",
+      "products": [
+        {
+          "age_restricted": false,
+          "before": null,
+          "concept": "gaseosas",
+          "discount": null,
+          "entity_id": "92001",
+          "entity_type": "catalog_item",
+          "id": "cat-92001",
+          "img": "https://imagenes.prueba.invalid/productos/92001.png",
+          "name": "Gaseosa cola 500 cc (prueba)",
+          "presentation": "500 cc",
+          "price": "$1.290",
+          "price_value": 1290.0,
+          "store": "Tienda express de prueba Centro",
+          "store_id": 9201,
+          "vertical": "conveniencia"
+        }
+      ],
+      "prototype_vertical": "express",
+      "reason": "Por tu interés en 🍕 pizza",
+      "vertical": "conveniencia"
+    },
+    {
+      "basis": [
+        {
+          "id": "supermercado",
+          "kind": "lo_mas_pedido",
+          "source": "poblacion:synthetic"
+        }
+      ],
+      "concept": null,
+      "kind": "lo_mas_pedido",
+      "products": [
+        {
+          "age_restricted": false,
+          "before": null,
+          "concept": "cafe",
+          "discount": null,
+          "entity_id": "91004",
+          "entity_type": "catalog_item",
+          "id": "cat-91004",
+          "img": "https://imagenes.prueba.invalid/productos/91004.png",
+          "name": "Café molido tostado 250 g (prueba)",
+          "presentation": "250 g",
+          "price": "$3.990",
+          "price_value": 3990.0,
+          "store": "Supermercado de prueba Centro",
+          "store_id": 9101,
+          "vertical": "supermercado"
+        },
+        {
+          "age_restricted": false,
+          "before": null,
+          "concept": "galletas",
+          "discount": null,
+          "entity_id": "91002",
+          "entity_type": "catalog_item",
+          "id": "cat-91002",
+          "img": "https://imagenes.prueba.invalid/productos/91002.png",
+          "name": "Galletas de vainilla 200 g (prueba)",
+          "presentation": "200 g",
+          "price": "$1.290",
+          "price_value": 1290.0,
+          "store": "Supermercado de prueba Centro",
+          "store_id": 9101,
+          "vertical": "supermercado"
+        },
+        {
+          "age_restricted": false,
+          "before": null,
+          "concept": "arroz-legumbres",
+          "discount": null,
+          "entity_id": "91006",
+          "entity_type": "catalog_item",
+          "id": "cat-91006",
+          "img": "https://imagenes.prueba.invalid/productos/91006.png",
+          "name": "Arroz grado 1 de 1 kg (prueba)",
+          "presentation": "1 kg",
+          "price": "$1.250",
+          "price_value": 1250.0,
+          "store": "Supermercado de prueba Norte",
+          "store_id": 9102,
+          "vertical": "supermercado"
+        }
+      ],
+      "prototype_vertical": "grocery",
+      "reason": "Lo más pedido estas semanas en el súper",
+      "vertical": "supermercado"
+    }
+  ],
+  "user_id": "u-contrato"
+}

@@ -1,0 +1,360 @@
+/* Medidas del video de Cuenta (px del cuadro de 600 × 0,67 = pt). */
+.account {
+  background: var(--surface);
+}
+
+.account-header {
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  height: 125px;
+  padding: 55px var(--gutter) 0;
+  background: rgba(247, 247, 247, 0.94);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+.account-back {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--surface);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.12);
+}
+
+.account-header h1 {
+  font-size: 22px;
+  font-weight: 500;
+}
+
+/* ---------- Parte gris: perfil, Pro y accesos ---------- */
+.account-top {
+  padding: 23px var(--gutter) 27px;
+  background: #f7f7f7;
+}
+
+.account-profile {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  text-align: left;
+}
+
+.account-avatar {
+  display: grid;
+  place-items: center;
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background: #ebeff3;
+  font-size: 17px;
+  font-weight: 500;
+}
+
+.account-profile strong {
+  display: block;
+  font-size: 18.5px;
+  font-weight: 500;
+}
+
+.account-edit {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 15.5px;
+  color: var(--ink-muted);
+}
+
+.account-pro {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  width: 100%;
+  margin-top: 25px;
+  padding: 16px 16px 16px;
+  border: 1.5px solid #fae8c4;
+  border-radius: 20px;
+  background: linear-gradient(180deg, #fffdf7, #fbf7ea);
+  text-align: left;
+}
+
+.account-pro-label {
+  font-size: 14.5px;
+  color: var(--ink-3);
+}
+
+.account-pro-name {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  width: 100%;
+  font-size: 21px;
+  font-weight: 500;
+}
+
+.account-pro-name img {
+  width: 22px;
+  height: 16px;
+}
+
+.account-pro-name svg {
+  margin-left: auto;
+}
+
+.account-pro-savings {
+  margin-top: 14px;
+  font-size: 15.5px;
+  font-weight: 500;
+}
+
+.account-pro-note {
+  font-size: 13.5px;
+  white-space: nowrap;
+}
+
+.account-quick {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 29px;
+  margin-top: 27px;
+}
+
+.account-quick-tile {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  height: 102px;
+  border-radius: 17px;
+  background: var(--surface);
+  font-size: 15px;
+  line-height: 18px;
+  text-align: center;
+}
+
+.account-quick-tile span {
+  max-width: 80px;
+}
+
+/* ---------- Parte blanca: pedidos, listas y cierre de sesión ---------- */
+.account-body {
+  /* abajo, el espacio de la barra de navegación */
+  padding: 27px var(--gutter) 140px;
+}
+
+.account-section-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.account-section-head h2,
+.account-section h2 {
+  font-size: 22px;
+  font-weight: 500;
+}
+
+.account-order {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  width: 100%;
+  margin-top: 12px;
+  padding: 10px 4px 12px;
+  border-bottom: 1px solid var(--line-soft);
+  text-align: left;
+}
+
+.account-order img {
+  width: 31px;
+  height: 31px;
+}
+
+.account-orders-empty {
+  margin-top: 12px;
+  font-size: 14.5px;
+  color: var(--ink-muted);
+}
+
+.account-order img.account-order-photo {
+  border-radius: 8px;
+  object-fit: cover;
+}
+
+.account-order > span {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  font-size: 14.5px;
+  color: var(--ink-muted);
+}
+
+.account-order strong {
+  font-size: 16.5px;
+  font-weight: 500;
+  color: var(--ink);
+}
+
+.account-section {
+  margin-top: 25px;
+}
+
+.account-section ul {
+  list-style: none;
+  margin-top: 6px;
+}
+
+.account-row {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  height: 50px;
+  padding-right: 4px;
+  border-bottom: 1px solid var(--line-soft);
+  text-align: left;
+}
+
+.account-row:active {
+  background: #f6f7f8;
+}
+
+.account-row-icon {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  flex: none;
+}
+
+.account-row-label {
+  flex: 1;
+  font-size: 16.5px;
+  font-weight: 500;
+}
+
+.account-row strong {
+  font-size: 16.5px;
+  font-weight: 500;
+}
+
+.account-demo-value {
+  font-size: 14px;
+  color: var(--agent-orange);
+}
+
+/* «Borrar mis datos»: una entrada fija, con su explicación, antes de cerrar sesión */
+.account-forget {
+  display: grid;
+  gap: 4px;
+  width: 100%;
+  margin-top: 27px;
+  padding: 14px 18px;
+  border-radius: 20px;
+  border: 1.5px solid #e3e6ea;
+  background: var(--surface);
+  text-align: left;
+}
+
+.account-forget-title {
+  font-size: 17px;
+  font-weight: 600;
+}
+
+.account-forget-note {
+  color: var(--ink-3);
+  font-size: 13.5px;
+  line-height: 1.35;
+}
+
+.account-logout {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  height: 52px;
+  margin-top: 27px;
+  border-radius: 99px;
+  background: #ebeef2;
+  font-size: 18.5px;
+  font-weight: 500;
+}
+
+.account-logout--all {
+  margin-top: 17px;
+  background: var(--surface);
+  border: 1.5px solid #e3e6ea;
+}
+
+.account-version {
+  margin-top: 6px;
+  font-size: 12px;
+  color: var(--ink-3);
+}
+
+.account-version:first-of-type {
+  margin-top: 21px;
+}
+
+/* ---------- Hojas (idioma, notificaciones, cierre de sesión) ---------- */
+.sheet-options {
+  list-style: none;
+}
+
+.sheet-option {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  height: 54px;
+  border-bottom: 1px solid var(--line);
+  font-size: 17px;
+  text-align: left;
+}
+
+.sheet-radio {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  border: 2px solid var(--control-border);
+  transition: border var(--duration-fast);
+}
+
+.sheet-option.is-selected .sheet-radio {
+  border: 7px solid var(--rappi-red);
+}
+
+.sheet-switch {
+  position: relative;
+  width: 51px;
+  height: 31px;
+  border-radius: 99px;
+  background: #e2e4e8;
+  transition: background var(--duration-fast);
+}
+
+.sheet-switch::after {
+  content: '';
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 27px;
+  height: 27px;
+  border-radius: 50%;
+  background: var(--surface);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  transition: transform var(--duration-normal) var(--ease-out);
+}
+
+.sheet-switch.is-on {
+  background: var(--green-add);
+}
+
+.sheet-switch.is-on::after {
+  transform: translateX(20px);
+}

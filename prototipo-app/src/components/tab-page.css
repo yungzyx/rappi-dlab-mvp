@@ -1,0 +1,74 @@
+.tab-page {
+  padding-bottom: 150px;
+}
+
+.tab-title {
+  padding: 68px var(--gutter) 0;
+  font-size: 35px;
+  font-weight: 600;
+  letter-spacing: -0.3px;
+  line-height: 42px;
+}
+
+/* Botón de la esquina (corona de Pro en Ofertas): fijo, no se mueve al colapsar */
+.tab-action {
+  position: absolute;
+  top: 77px;
+  right: var(--gutter);
+  z-index: var(--z-header-tabs);
+}
+
+.tab-compact {
+  position: absolute;
+  inset: 0 0 auto;
+  z-index: var(--z-header);
+  height: 128px;
+  padding: 64px var(--gutter) 0;
+  border-radius: 0 0 26px 26px;
+  background: rgba(248, 248, 248, 0.94);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.08);
+  opacity: 0;
+  transform: translateY(-12px);
+  pointer-events: none;
+  transition:
+    opacity 200ms,
+    transform var(--duration-normal) var(--ease-out);
+}
+
+.tab-compact.is-visible {
+  opacity: 1;
+  transform: none;
+}
+
+.tab-compact h2 {
+  font-size: 25px;
+  font-weight: 600;
+}
+
+/* Encabezado de sección con botón "See more"/"See all" a la derecha */
+.section-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 0 var(--gutter);
+}
+
+.see-more {
+  flex: none;
+  height: 33px;
+  padding: 0 17px;
+  border-radius: 99px;
+  background: #ebeff3;
+  font-size: 17px;
+  font-weight: 500;
+}
+
+/* Filas horizontales de tarjetas */
+.card-row {
+  gap: 17px;
+  padding: 0 var(--gutter);
+  scroll-padding-left: var(--gutter);
+}

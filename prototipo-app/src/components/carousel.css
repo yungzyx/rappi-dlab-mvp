@@ -1,0 +1,48 @@
+.carousel {
+  scroll-snap-type: x mandatory;
+  scroll-padding-left: var(--gutter);
+}
+
+.carousel > * {
+  scroll-snap-align: start;
+  flex: none;
+}
+
+.dots {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: max-content;
+  padding: 4px 7px;
+  border-radius: 99px;
+  background: #f1f1f3;
+}
+
+.dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #9ea3ab;
+  transition: background var(--duration-fast);
+}
+
+.dot.is-active {
+  background: var(--ink);
+}
+
+/* Paginador de la Home: puntos más chicos y más separados */
+.dots--wide {
+  gap: 11px;
+  padding: 5px 10px;
+  background: #f4f4f5;
+}
+
+.dots--wide .dot {
+  width: 5.5px;
+  height: 5.5px;
+  background: #8f99a6;
+}
+
+.dots--wide .dot.is-active {
+  background: var(--ink);
+}

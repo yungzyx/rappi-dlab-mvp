@@ -1,0 +1,279 @@
+{
+  "source": "synthetic",
+  "data": [
+    {
+      "concepto": "🥤 Bebidas gaseosas",
+      "vertical": "conveniencia",
+      "mostradas": 944,
+      "aceptadas": 212,
+      "ignoradas": 732,
+      "convertidas": 150,
+      "aceptacion_pct": 22.5
+    },
+    {
+      "concepto": "🥤 Bebidas gaseosas",
+      "vertical": "turbo",
+      "mostradas": 846,
+      "aceptadas": 192,
+      "ignoradas": 654,
+      "convertidas": 147,
+      "aceptacion_pct": 22.7
+    },
+    {
+      "concepto": "🧋 Bebidas asiáticas",
+      "vertical": "supermercado",
+      "mostradas": 512,
+      "aceptadas": 96,
+      "ignoradas": 416,
+      "convertidas": 75,
+      "aceptacion_pct": 18.8
+    },
+    {
+      "concepto": "☕ Café",
+      "vertical": "supermercado",
+      "mostradas": 86,
+      "aceptadas": 24,
+      "ignoradas": 62,
+      "convertidas": 20,
+      "aceptacion_pct": 27.9
+    },
+    {
+      "concepto": "🥣 Cereales y avena",
+      "vertical": "conveniencia",
+      "mostradas": 83,
+      "aceptadas": 20,
+      "ignoradas": 63,
+      "convertidas": 14,
+      "aceptacion_pct": 24.1
+    },
+    {
+      "concepto": "🥛 Leche y yogur",
+      "vertical": "conveniencia",
+      "mostradas": 82,
+      "aceptadas": 19,
+      "ignoradas": 63,
+      "convertidas": 15,
+      "aceptacion_pct": 23.2
+    },
+    {
+      "concepto": "🧻 Papeles y desechables",
+      "vertical": "conveniencia",
+      "mostradas": 75,
+      "aceptadas": 19,
+      "ignoradas": 56,
+      "convertidas": 13,
+      "aceptacion_pct": 25.3
+    },
+    {
+      "concepto": "🍮 Postres",
+      "vertical": "turbo",
+      "mostradas": 72,
+      "aceptadas": 17,
+      "ignoradas": 55,
+      "convertidas": 10,
+      "aceptacion_pct": 23.6
+    },
+    {
+      "concepto": "🍮 Postres",
+      "vertical": "conveniencia",
+      "mostradas": 70,
+      "aceptadas": 12,
+      "ignoradas": 58,
+      "convertidas": 8,
+      "aceptacion_pct": 17.1
+    },
+    {
+      "concepto": "🧃 Jugos y néctares",
+      "vertical": "turbo",
+      "mostradas": 69,
+      "aceptadas": 11,
+      "ignoradas": 58,
+      "convertidas": 7,
+      "aceptacion_pct": 15.9
+    },
+    {
+      "concepto": "☕ Café",
+      "vertical": "turbo",
+      "mostradas": 61,
+      "aceptadas": 15,
+      "ignoradas": 46,
+      "convertidas": 11,
+      "aceptacion_pct": 24.6
+    },
+    {
+      "concepto": "🦴 Accesorios para mascotas",
+      "vertical": "conveniencia",
+      "mostradas": 60,
+      "aceptadas": 16,
+      "ignoradas": 44,
+      "convertidas": 13,
+      "aceptacion_pct": 26.7
+    },
+    {
+      "concepto": "🥨 Snacks salados",
+      "vertical": "conveniencia",
+      "mostradas": 58,
+      "aceptadas": 14,
+      "ignoradas": 44,
+      "convertidas": 12,
+      "aceptacion_pct": 24.1
+    },
+    {
+      "concepto": "🎂 Tortas y pastelería",
+      "vertical": "chocolateria",
+      "mostradas": 55,
+      "aceptadas": 14,
+      "ignoradas": 41,
+      "convertidas": 9,
+      "aceptacion_pct": 25.5
+    },
+    {
+      "concepto": "🧃 Jugos y néctares",
+      "vertical": "conveniencia",
+      "mostradas": 52,
+      "aceptadas": 12,
+      "ignoradas": 40,
+      "convertidas": 8,
+      "aceptacion_pct": 23.1
+    },
+    {
+      "concepto": "🔥 Carbón y leña",
+      "vertical": "conveniencia",
+      "mostradas": 52,
+      "aceptadas": 14,
+      "ignoradas": 38,
+      "convertidas": 11,
+      "aceptacion_pct": 26.9
+    },
+    {
+      "concepto": "🥫 Salsas y aderezos",
+      "vertical": "supermercado",
+      "mostradas": 47,
+      "aceptadas": 16,
+      "ignoradas": 31,
+      "convertidas": 12,
+      "aceptacion_pct": 34
+    },
+    {
+      "concepto": "🥣 Barras de cereal",
+      "vertical": "conveniencia",
+      "mostradas": 42,
+      "aceptadas": 11,
+      "ignoradas": 31,
+      "convertidas": 10,
+      "aceptacion_pct": 26.2
+    },
+    {
+      "concepto": "🥫 Salsas y aderezos",
+      "vertical": "turbo",
+      "mostradas": 42,
+      "aceptadas": 11,
+      "ignoradas": 31,
+      "convertidas": 11,
+      "aceptacion_pct": 26.2
+    },
+    {
+      "concepto": "🥓 Fiambres y embutidos",
+      "vertical": "supermercado",
+      "mostradas": 27,
+      "aceptadas": 9,
+      "ignoradas": 18,
+      "convertidas": 5,
+      "aceptacion_pct": 33.3
+    },
+    {
+      "concepto": "🍘 Snacks asiáticos",
+      "vertical": "conveniencia",
+      "mostradas": 21,
+      "aceptadas": 3,
+      "ignoradas": 18,
+      "convertidas": 2,
+      "aceptacion_pct": 14.3
+    },
+    {
+      "concepto": "🔥 Carbón y leña",
+      "vertical": "turbo",
+      "mostradas": 21,
+      "aceptadas": 7,
+      "ignoradas": 14,
+      "convertidas": 4,
+      "aceptacion_pct": 33.3
+    },
+    {
+      "concepto": "🥣 Cereales y avena",
+      "vertical": "turbo",
+      "mostradas": 18,
+      "aceptadas": 10,
+      "ignoradas": 8,
+      "convertidas": 6,
+      "aceptacion_pct": 55.6
+    },
+    {
+      "concepto": "🥓 Fiambres y embutidos",
+      "vertical": "turbo",
+      "mostradas": 17,
+      "aceptadas": 4,
+      "ignoradas": 13,
+      "convertidas": 3,
+      "aceptacion_pct": 23.5
+    },
+    {
+      "concepto": "🍘 Snacks asiáticos",
+      "vertical": "turbo",
+      "mostradas": 15,
+      "aceptadas": 4,
+      "ignoradas": 11,
+      "convertidas": 3,
+      "aceptacion_pct": 26.7
+    },
+    {
+      "concepto": "🥛 Leche y yogur",
+      "vertical": "turbo",
+      "mostradas": 14,
+      "aceptadas": 1,
+      "ignoradas": 13,
+      "convertidas": 1,
+      "aceptacion_pct": 7.1
+    },
+    {
+      "concepto": "🐕 Alimento para perros",
+      "vertical": "conveniencia",
+      "mostradas": 12,
+      "aceptadas": 2,
+      "ignoradas": 10,
+      "convertidas": 2,
+      "aceptacion_pct": 16.7
+    },
+    {
+      "concepto": "🎂 Tortas y pastelería",
+      "vertical": "turbo",
+      "mostradas": 11,
+      "aceptadas": 5,
+      "ignoradas": 6,
+      "convertidas": 4,
+      "aceptacion_pct": 45.5
+    },
+    {
+      "concepto": "🦴 Accesorios para mascotas",
+      "vertical": "turbo",
+      "mostradas": 11,
+      "aceptadas": 1,
+      "ignoradas": 10,
+      "convertidas": 1,
+      "aceptacion_pct": 9.1
+    },
+    {
+      "concepto": "🧻 Papeles y desechables",
+      "vertical": "turbo",
+      "mostradas": 11,
+      "aceptadas": 7,
+      "ignoradas": 4,
+      "convertidas": 4,
+      "aceptacion_pct": 63.6
+    }
+  ],
+  "guardado": {
+    "origen": "npm run panel:snapshot · usuarios simulados de rappi_staging",
+    "fecha": "2026-10-24"
+  }
+}

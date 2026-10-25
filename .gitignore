@@ -1,0 +1,28 @@
+# Entorno local
+.DS_Store
+.venv/
+# Variables de entorno (cualquier variante: .env.production, .env.staging…); solo los ejemplos se versionan
+.env*
+!.env.example
+__pycache__/
+.pytest_cache/
+.ruff_cache/
+*.egg-info/
+
+# Datos descargados de rappi.cl: no se versionan (tamaño y uso responsable; ver README.md#qué-es-real-y-qué-es-simulado).
+# Se traspasan con un respaldo de la base (ver docs/instalacion.md).
+rappi-scraper/data/
+# Respaldos de la base (docs/instalacion.md): traen el catálogo descargado y los eventos; no se suben, estén donde estén
+*.dump
+*.sql.gz
+*.backup
+
+# Evidencia que deja la verificación visual de los diagramas
+docs/diagramas/*.visual-check.*
+
+# Carpetas y archivos locales de herramientas de desarrollo (no se versionan; no se ignora .claude/ entero)
+Proyecto/
+.superpowers/
+.claude/settings.local.json
+.claude/launch.json
+.claude/worktrees/

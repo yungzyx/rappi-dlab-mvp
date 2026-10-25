@@ -1,0 +1,148 @@
+{
+  "aisle": {
+    "id": 100,
+    "name": "Despensa",
+    "products": 30
+  },
+  "aisles": [
+    {
+      "id": 100,
+      "name": "Despensa",
+      "products": 30
+    },
+    {
+      "id": 200,
+      "name": "Snacks y Dulces",
+      "products": 2
+    },
+    {
+      "id": 300,
+      "name": "Bebidas",
+      "products": 2
+    },
+    {
+      "id": 400,
+      "name": "Cuidado del bebé",
+      "products": 1
+    },
+    {
+      "id": 800,
+      "name": "Cervezas",
+      "products": 1
+    }
+  ],
+  "has_more": false,
+  "page": 2,
+  "products": [
+    {
+      "age_restricted": false,
+      "before": null,
+      "concept": "reposteria",
+      "discount": null,
+      "entity_id": "91125",
+      "entity_type": "catalog_item",
+      "id": "cat-91125",
+      "img": "https://imagenes.prueba.invalid/productos/91125.png",
+      "name": "Harina sin polvos de hornear 1 kg (prueba)",
+      "presentation": "1 kg",
+      "price": "$1.090",
+      "price_value": 1090.0,
+      "store": "Supermercado de prueba Centro",
+      "store_id": 9101,
+      "vertical": "supermercado"
+    },
+    {
+      "age_restricted": false,
+      "before": null,
+      "concept": "pastas",
+      "discount": null,
+      "entity_id": "91106",
+      "entity_type": "catalog_item",
+      "id": "cat-91106",
+      "img": "https://imagenes.prueba.invalid/productos/91106.png",
+      "name": "Lasaña seca 200 g (prueba)",
+      "presentation": "200 g",
+      "price": "$1.590",
+      "price_value": 1590.0,
+      "store": "Supermercado de prueba Centro",
+      "store_id": 9101,
+      "vertical": "supermercado"
+    },
+    {
+      "age_restricted": false,
+      "before": null,
+      "concept": "arroz-legumbres",
+      "discount": null,
+      "entity_id": "91107",
+      "entity_type": "catalog_item",
+      "id": "cat-91107",
+      "img": "https://imagenes.prueba.invalid/productos/91107.png",
+      "name": "Lentejas 400 g (prueba)",
+      "presentation": "400 g",
+      "price": "$1.490",
+      "price_value": 1490.0,
+      "store": "Supermercado de prueba Centro",
+      "store_id": 9101,
+      "vertical": "supermercado"
+    },
+    {
+      "age_restricted": false,
+      "before": null,
+      "concept": "conservas",
+      "discount": null,
+      "entity_id": "91120",
+      "entity_type": "catalog_item",
+      "id": "cat-91120",
+      "img": "https://imagenes.prueba.invalid/productos/91120.png",
+      "name": "Palmitos 400 g (prueba)",
+      "presentation": "400 g",
+      "price": "$2.490",
+      "price_value": 2490.0,
+      "store": "Supermercado de prueba Centro",
+      "store_id": 9101,
+      "vertical": "supermercado"
+    },
+    {
+      "age_restricted": false,
+      "before": null,
+      "concept": "reposteria",
+      "discount": null,
+      "entity_id": "91127",
+      "entity_type": "catalog_item",
+      "id": "cat-91127",
+      "img": "https://imagenes.prueba.invalid/productos/91127.png",
+      "name": "Premezcla para panqueques 400 g (prueba)",
+      "presentation": "400 g",
+      "price": "$1.990",
+      "price_value": 1990.0,
+      "store": "Supermercado de prueba Centro",
+      "store_id": 9101,
+      "vertical": "supermercado"
+    },
+    {
+      "age_restricted": false,
+      "before": null,
+      "concept": "conservas",
+      "discount": null,
+      "entity_id": "91123",
+      "entity_type": "catalog_item",
+      "id": "cat-91123",
+      "img": "https://imagenes.prueba.invalid/productos/91123.png",
+      "name": "Tomate triturado 400 g (prueba)",
+      "presentation": "400 g",
+      "price": "$1.090",
+      "price_value": 1090.0,
+      "store": "Supermercado de prueba Centro",
+      "store_id": 9101,
+      "vertical": "supermercado"
+    }
+  ],
+  "store": {
+    "eta": "25 min",
+    "id": 9101,
+    "logo": "https://images.rappi.cl/marketplace/prueba-9101.png",
+    "name": "Supermercado de prueba Centro",
+    "products": 36,
+    "vertical": "supermercado"
+  }
+}

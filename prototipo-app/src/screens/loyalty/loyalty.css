@@ -1,0 +1,170 @@
+/* Medidas de las capturas de la app iOS del 26-09-2026, no versionadas (px a 600 de ancho × 0,67 = pt). */
+.loyalty {
+  padding: 0 0 60px 16px;
+  background: #f9f9fb;
+  color: #2b2724;
+}
+
+.loyalty-header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-top: 78px;
+}
+
+.loyalty-back {
+  display: grid;
+  place-items: center;
+  width: 33px;
+  height: 33px;
+  border-radius: 50%;
+  background: var(--surface);
+  box-shadow: 0 1px 6px rgba(0, 0, 0, 0.08);
+}
+
+.loyalty-header h1 {
+  font-size: 15.5px;
+  font-weight: 600;
+}
+
+.loyalty-title {
+  margin-top: 40px;
+  font-size: 24px;
+  font-weight: 700;
+  letter-spacing: -0.3px;
+}
+
+.loyalty-text {
+  margin-top: 16px;
+  padding-right: 18px;
+  font-size: 14.5px;
+  line-height: 17.5px;
+  color: #6d6865;
+}
+
+.loyalty-subtitle {
+  margin-top: 36px;
+  font-size: 17px;
+  font-weight: 700;
+}
+
+.loyalty-list {
+  list-style: none;
+  margin-top: 25px;
+}
+
+.loyalty-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  height: 78px;
+  padding-right: 32px;
+  border-bottom: 1.5px solid #f0f1f3;
+  text-align: left;
+}
+
+.loyalty-logo {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 48px;
+  height: 48px;
+  border-radius: 9px;
+  background: #fff1e8;
+  font-size: 26px;
+}
+
+.loyalty-logo--large {
+  width: 72px;
+  height: 72px;
+  border-radius: 14px;
+  font-size: 38px;
+}
+
+.loyalty-row strong {
+  flex: 1;
+  font-size: 17.5px;
+  font-weight: 700;
+}
+
+.loyalty-row svg {
+  color: var(--agent-orange);
+}
+
+.loyalty-active {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 16px 16px 0 0;
+  padding: 12px;
+  border-radius: 16px;
+  background: var(--surface);
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.05);
+  animation: loyalty-in 360ms var(--ease-out);
+}
+
+@keyframes loyalty-in {
+  from {
+    transform: translateY(8px);
+    opacity: 0;
+  }
+}
+
+.loyalty-active > span:not(.loyalty-logo) {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+}
+
+.loyalty-active strong {
+  font-size: 17px;
+}
+
+.loyalty-badge {
+  padding: 1px 8px;
+  border-radius: 99px;
+  background: #e7f7ea;
+  color: var(--green-deep);
+  font-size: 12.5px;
+  font-weight: 600;
+}
+
+.loyalty-change {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--agent-orange);
+}
+
+.loyalty-terms {
+  margin: 40px 0 0 29px;
+  font-size: 17px;
+  text-decoration: underline;
+  color: #2b2724;
+}
+
+.loyalty-sheet {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  text-align: center;
+}
+
+.loyalty-sheet p {
+  font-size: 15.5px;
+  line-height: 21px;
+  color: var(--ink-2);
+}
+
+.loyalty-sheet-primary {
+  width: 100%;
+  height: 52px;
+  border-radius: 99px;
+  background: var(--agent-orange);
+  color: var(--surface);
+  font-size: 17px;
+  font-weight: 700;
+}

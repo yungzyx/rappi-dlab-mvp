@@ -1,0 +1,170 @@
+/* Medidas del video de Ofertas (px del cuadro de 600 × 0,67 = pt). */
+
+/* ---------- Producto de supermercado ---------- */
+/* La tarjeta entera abre la hoja del producto; el "+" queda fuera del botón, sobre la foto. */
+.product-card {
+  position: relative;
+  flex: none;
+  width: 139px;
+}
+
+.product-card-main {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  width: 100%;
+  text-align: left;
+  cursor: pointer;
+}
+
+.product-media {
+  position: relative;
+  width: 139px;
+  height: 139px;
+}
+
+.product-media img {
+  width: 100%;
+  height: 100%;
+}
+
+.product-media.is-partial img {
+  width: auto;
+}
+
+/* Solo mayores de edad (alcohol, tabaco): la fila "Para ti" de rappi-ia puede traerlos. */
+.product-age {
+  position: absolute;
+  top: 6px;
+  left: 6px;
+  padding: 1px 6px;
+  border-radius: 6px;
+  background: rgba(20, 20, 20, 0.78);
+  color: var(--surface);
+  font-size: 10px;
+  font-weight: 800;
+}
+
+.product-price.is-plain {
+  padding: 0;
+  background: none;
+}
+
+.add-button--grocery {
+  top: -19px;
+  right: -7px;
+}
+
+.product-price-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 8px;
+}
+
+.product-price,
+.product-pct {
+  padding: 0 4px;
+  background: var(--price-yellow);
+  font-size: 16.5px;
+  font-weight: 700;
+  line-height: 22px;
+}
+
+.product-price-row s {
+  font-size: 15px;
+  color: var(--ink-strike);
+}
+
+.product-pct {
+  margin-top: 3px;
+}
+
+.product-name {
+  display: -webkit-box;
+  margin-top: 6px;
+  font-size: 16px;
+  line-height: 19.5px;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.product-size {
+  margin-top: 4px;
+  font-size: 14px;
+  color: var(--ink-2);
+}
+
+.product-unit {
+  font-size: 14px;
+  color: var(--ink-3);
+}
+
+/* ---------- Tienda + tiempo (común) ---------- */
+.store-line {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin-top: 10px;
+}
+
+.store-line img {
+  flex: none;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  object-fit: contain;
+}
+
+.store-badge {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  color: var(--surface);
+  font-size: 14px;
+  font-weight: 800;
+}
+
+.store-line strong {
+  display: block;
+  max-width: 110px;
+  font-size: 14px;
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.store-line-eta {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 13.5px;
+  white-space: nowrap;
+}
+
+/* Tras mantener presionado (prototipo final): preguntarle a Mochi por este producto */
+.product-ask {
+  position: absolute;
+  top: 8px;
+  left: 50%;
+  z-index: 2;
+  transform: translateX(-50%);
+  padding: 8px 12px;
+  border-radius: 99px;
+  background: var(--ink);
+  color: var(--surface);
+  font-size: 12.5px;
+  font-weight: 700;
+  white-space: nowrap;
+  box-shadow: 0 6px 16px rgba(20, 10, 5, 0.25);
+}
+
+/* Solo en el prototipo final: mantener presionado pregunta a Mochi, no abre el menú de la imagen en iOS */
+.product-card-main.is-askable {
+  -webkit-touch-callout: none;
+}

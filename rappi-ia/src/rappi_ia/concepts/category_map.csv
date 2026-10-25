@@ -1,0 +1,901 @@
+tipo,nombre,concept_id,confianza,metodo,revision,nota,productos
+categoria,Vaporizadores y dispositivos,vapeo,0.95,llm,acuerdo,Vapers desechables y vaporizadores,861
+categoria,Chocolates,chocolates,0.97,llm,acuerdo,Chocolates y confites,657
+categoria,Cigarrillos,cigarrillos,0.8,llm,acuerdo,Cigarrillos; algunos vapers mezclados,628
+categoria,Cervezas,cerveza,0.98,llm,acuerdo,Cervezas,398
+categoria,Aretes y Earcuff,joyeria,0.95,llm,acuerdo,Aros y aretes,393
+categoria,Collares y Cadenas,joyeria,0.95,llm,acuerdo,Collares y cadenas de joyería,355
+categoria,Frutos secos y semillas,frutos-secos,0.9,llm,acuerdo,Frutos secos y mixes,348
+categoria,Galletas,galletas,0.97,llm,acuerdo,Galletas,311
+categoria,Gaseosas,gaseosas,0.98,llm,acuerdo,Bebidas gaseosas,292
+categoria,Snacks salados,snacks-salados,0.98,llm,acuerdo,Papas fritas y snacks,292
+categoria,Café,cafe,0.98,llm,acuerdo,"Café grano, molido, cápsulas",290
+categoria,Tortas y ponques,pasteleria,0.93,llm,acuerdo,Tortas y queques,277
+categoria,Papel,accesorios-fumador,0.93,llm,acuerdo,"Papelillos para fumar (OCB, Gizeh)",272
+categoria,Otros accesorios de cigarrillos,accesorios-fumador,0.93,llm,acuerdo,"Encendedores, moledores, enroladores",260
+categoria,Juguetes didácticos,juguetes-infantiles,0.95,llm,acuerdo,Juguetes didácticos infantiles,258
+categoria,Vino tinto,vino,0.98,llm,acuerdo,Vinos tintos,241
+categoria,Helados,helados,0.98,llm,acuerdo,Helados,239
+categoria,Pulseras y Tobilleras,joyeria,0.95,llm,acuerdo,Pulseras de joyería,226
+categoria,Postres,postres,0.9,llm,acuerdo,"Postres individuales, pies, macarons",211
+categoria,Panaderia salada,panaderia,0.95,llm,acuerdo,Pan salado,197
+categoria,Gomitas y caramelos,golosinas,0.85,llm,acuerdo,Caramelos y chicles,196
+categoria,Res,carnes,0.88,llm,acuerdo,Carne vacuna; algunos cerdo/pollo mezclados,192
+categoria,Fragancias,fragancias,0.98,llm,acuerdo,Perfumes y colonias,184
+categoria,Verduras,verduras,0.97,llm,acuerdo,Verduras frescas y congeladas,184
+categoria,Vibradores,bienestar-sexual,0.95,llm,acuerdo,Juguetes sexuales,173
+categoria,Jugos,jugos,0.98,llm,acuerdo,Jugos y néctares,168
+categoria,Platos listos,platos-listos,0.9,llm,acuerdo,Comidas preparadas listas,168
+categoria,Panaderia dulce,pasteleria,0.85,llm,acuerdo,"Berlines, donas, pasteles dulces",164
+categoria,Utensilios de Cocina,cocina-menaje,0.88,llm,acuerdo,Utensilios y recipientes de cocina,162
+categoria,Vajilla y Cubertería,cocina-menaje,0.93,llm,acuerdo,"Tazas, cubiertos, vajilla",157
+categoria,Rompecabezas,juguetes-infantiles,0.6,llm,juez,"Ejemplos mayormente infantiles (Djeco, Hape, madera); algunos adultos",154
+categoria,Anillos,joyeria,0.95,llm,acuerdo,Anillos de joyería,153
+categoria,Frutas,frutas,0.98,llm,acuerdo,Frutas frescas y congeladas,151
+categoria,"Cobijas, mantas y blancos",textil-hogar,0.8,llm,acuerdo,Mantas y ropa de cama; algunas de bebé,149
+categoria,Filtros,accesorios-fumador,0.93,llm,acuerdo,Filtros y tips para tabaco,148
+categoria,Aceite,aceites-condimentos,0.97,llm,acuerdo,Aceites comestibles,148
+categoria,Whiskys,whisky,0.98,llm,acuerdo,Whisky,142
+categoria,Calzones y Panties,ropa-interior,0.95,llm,acuerdo,Ropa interior femenina,140
+categoria,Ambientadores,limpieza,0.75,llm,acuerdo,Desodorantes ambientales y aromatizantes,138
+categoria,Otras salsas,salsas,0.88,llm,acuerdo,"Salsas varias (teriyaki, gochujang)",137
+categoria,Sandwiches y empanadas,empanadas,0.8,llm,acuerdo,Ejemplos son casi todos empanadas; también sándwiches,134
+categoria,Suplementos alimenticios,vitaminas,0.85,llm,acuerdo,Suplementos y nutricionales,133
+categoria,Mariscos,pescados-mariscos,0.95,llm,acuerdo,"Camarones, almejas",132
+categoria,Otras comidas preparadas,platos-listos,0.55,llm,acuerdo,Comidas preparadas variadas,132
+categoria,Quesos maduros,quesos,0.97,llm,acuerdo,"Parmesano, chanco",130
+categoria,Shampoo,cuidado-cabello,0.95,llm,acuerdo,Shampoo,130
+categoria,Pizas y tartas saladas,pizza,0.9,llm,acuerdo,Pizzas y masas de pizza,129
+categoria,Pescados,pescados-mariscos,0.97,llm,acuerdo,"Merluza, salmón",128
+categoria,Humectantes faciales,dermocosmetica,0.95,llm,acuerdo,Cremas y sérums faciales,126
+categoria,Pantalones y jeans,ropa,0.95,llm,acuerdo,Pantalones y jeans,125
+categoria,Harina,reposteria,0.9,llm,acuerdo,Harinas,123
+categoria,Mamaderas y tetinas,articulos-bebe,0.95,llm,acuerdo,Mamaderas y tetinas,123
+categoria,Figuras de acción y robots,juguetes-infantiles,0.9,llm,acuerdo,Figuras de acción,122
+categoria,Pastas,pastas,0.95,llm,acuerdo,Fideos secos,122
+categoria,Barras de cereal y granola,barras-cereal,0.95,llm,acuerdo,Barras de cereal,121
+categoria,Otros Juguetes para Bebé,juguetes-infantiles,0.85,llm,acuerdo,Juguetes y mordedores para bebé,120
+categoria,Pisco,pisco,0.98,llm,acuerdo,Pisco,120
+categoria,Quesos frescos,quesos,0.97,llm,acuerdo,"Quesillo, queso fresco",118
+categoria,Especies,aceites-condimentos,0.85,llm,acuerdo,Especias y condimentos,118
+categoria,"Otros Muñecas, Muñecos y Peluches",juguetes-infantiles,0.85,llm,acuerdo,Muñecos y juguetes coleccionables,116
+categoria,Reparación y tratamiento,cuidado-cabello,0.93,llm,acuerdo,Tratamientos y mascarillas capilares,114
+categoria,Energizantes,energizantes,0.98,llm,acuerdo,Bebidas energéticas,114
+categoria,Cocteles,cocteles,0.95,llm,acuerdo,Cócteles listos,113
+categoria,Aperitivos,licores,0.9,llm,acuerdo,"Licores aperitivos, sours",111
+categoria,Ropa bebés,ropa,0.7,llm,acuerdo,Ropa de bebé,107
+categoria,Lubricantes,bienestar-sexual,0.8,llm,acuerdo,Lubricantes íntimos; alternativa salud-sexual,106
+categoria,Embutidos,fiambres,0.95,llm,acuerdo,"Salchichas, longanizas, morcilla",106
+categoria,Dulces tipicos,golosinas,0.75,llm,acuerdo,"Turrones, cuchuflí, cocadas",105
+categoria,Jamones,fiambres,0.96,llm,acuerdo,Jamones,105
+categoria,Audifonos,audio,0.97,llm,acuerdo,Audífonos,105
+categoria,Juegos de familia,juegos-mesa,0.93,llm,acuerdo,"Dominó, Battleship",105
+categoria,Acondicionador,cuidado-cabello,0.97,llm,acuerdo,Acondicionadores,104
+categoria,Yogurt,lacteos,0.97,llm,acuerdo,Yogures,104
+categoria,Huevos,huevos,0.99,llm,acuerdo,Huevos,104
+categoria,Pijamas,ropa,0.85,llm,acuerdo,Pijamas,104
+categoria,"Papas, yucas y tuberculos",verduras,0.8,llm,acuerdo,Tubérculos,103
+categoria,Femeninos,bienestar-sexual,0.9,llm,acuerdo,Geles y aceites eróticos femeninos,103
+categoria,Pastas frescas,pastas,0.96,llm,acuerdo,Pastas frescas rellenas,99
+categoria,Té listo,te,0.85,llm,acuerdo,Té listo e infusiones,98
+categoria,Ginebras,gin,0.98,llm,acuerdo,Gin,98
+categoria,Espumantes,espumante,0.97,llm,acuerdo,Espumantes,98
+categoria,Alfajores,galletas,0.65,llm,juez,Alfajor: galletas rellenas con manjar; alternativa chocolates,97
+categoria,Tés,te,0.95,llm,acuerdo,Tés e infusiones,96
+categoria,Pañales,panales,0.97,llm,acuerdo,Pañales infantiles,96
+categoria,Herramientas,ferreteria,0.65,llm,acuerdo,Herramientas y adhesivos; ejemplos mezclados,95
+categoria,Estuches y Fundas,celulares,0.75,llm,acuerdo,Carcasas y fundas de dispositivos,95
+categoria,Juguetes Masculinos,bienestar-sexual,0.96,llm,acuerdo,Juguetes eróticos masculinos,94
+categoria,Muñecas y Bebés,juguetes-infantiles,0.95,llm,acuerdo,Muñecas de juguete,93
+categoria,Vino blanco,vino,0.97,llm,acuerdo,Vino blanco,93
+categoria,Granos,arroz-legumbres,0.9,llm,acuerdo,Legumbres y granos,92
+categoria,Rones,ron,0.97,llm,acuerdo,Ron,92
+categoria,Coloración,cuidado-cabello,0.9,llm,acuerdo,Tintes capilares,91
+categoria,Plugs Anales,bienestar-sexual,0.97,llm,acuerdo,Juguetes eróticos,90
+categoria,Medias y calcetines,ropa-interior,0.7,llm,acuerdo,Calcetines y pantys,89
+categoria,Otros quesos,quesos,0.95,llm,acuerdo,Quesos variados,89
+categoria,Gimnasios inteligentes y tapetes,articulos-bebe,0.65,llm,acuerdo,Gimnasios para bebé; también juguetes,87
+categoria,Bloques y figuras de armar,juguetes-infantiles,0.95,llm,acuerdo,Juguetes de construcción,85
+categoria,Pollo y aves,pollo,0.95,llm,acuerdo,Cortes y preparados de pollo,83
+categoria,Modelado y peinado,cuidado-cabello,0.93,llm,acuerdo,Productos de peinado,81
+categoria,Roles y Profesiones,juguetes-infantiles,0.92,llm,acuerdo,Juguetes de rol,79
+categoria,Mermeladas,untables-dulces,0.97,llm,acuerdo,Mermeladas,79
+categoria,Ensaladas,ensaladas-bowls,0.8,llm,acuerdo,Ensaladas preparadas de supermercado,76
+categoria,Disfraces,decoracion,0.7,llm,acuerdo,Disfraces y artículos de fiesta,76
+categoria,Peluches,juguetes-infantiles,0.93,llm,acuerdo,Peluches,76
+categoria,Bufandas y pañuelos,accesorios-moda,0.88,llm,acuerdo,Pañuelos de moda,76
+categoria,Sopas y cremas,sopas,0.95,llm,acuerdo,Sopas instantáneas y cremas,76
+categoria,Vodkas,vodka,0.97,llm,acuerdo,Vodka,75
+categoria,Detergentes,limpieza,0.95,llm,acuerdo,Detergentes de ropa,74
+categoria,Cerdo,carnes,0.95,llm,acuerdo,Carne de cerdo,74
+categoria,"Coleros, hebillas y diademas",accesorios-moda,0.8,llm,acuerdo,Accesorios para el pelo,74
+categoria,Chupetes,articulos-bebe,0.95,llm,acuerdo,Chupetes de bebé,73
+categoria,Termos y Tomatodos,cocina-menaje,0.75,llm,acuerdo,Vasos térmicos y botellas,72
+categoria,Jabones y exfoliantes corporales,higiene-personal,0.92,llm,acuerdo,Jabones corporales,72
+categoria,"Articulos de Bar, Vino y Coctelería",cocina-menaje,0.8,llm,acuerdo,"Vasos, tapones y utensilios de bar",71
+categoria,Estimulantes Masculinos,bienestar-sexual,0.8,llm,acuerdo,Lubricantes y potenciadores; algo de salud-sexual,71
+categoria,Nutrición deportiva,vitaminas,0.85,llm,acuerdo,"Proteínas y creatina, suplementos",70
+categoria,Papel higiénico,papeles-desechables,0.97,llm,acuerdo,Papel higiénico,70
+categoria,Otros Cocina,cocina-menaje,0.9,llm,acuerdo,Utensilios de cocina,70
+categoria,Cargadores y Cables de Celular,celulares,0.92,llm,acuerdo,Cargadores y cables,70
+categoria,Alimentos infantiles,alimentacion-bebe,0.97,llm,acuerdo,Papillas y compotas infantiles,69
+categoria,Sostenes y Brasieres,ropa-interior,0.95,llm,acuerdo,Sostenes y bralettes,69
+categoria,Vegetales enlatadas,conservas,0.93,llm,acuerdo,Verduras en conserva,69
+categoria,Cereales,cereales,0.97,llm,acuerdo,Cereales de desayuno,69
+categoria,Quesos esparcibles,quesos,0.93,llm,acuerdo,Quesos untables y otros quesos,69
+categoria,"Mochilas, Morrales y Tulas",accesorios-moda,0.8,llm,acuerdo,Mochilas y bolsos,68
+categoria,Snacks para Mascotas,alimento-perro,0.7,llm,acuerdo,Snacks mayoritariamente para perros; incluye gatos,68
+categoria,Protectores solares corporales,dermocosmetica,0.88,llm,acuerdo,"Protectores solares, cuidado de piel",68
+categoria,"Abrigos, Chamarras, Chalecos",ropa,0.93,llm,acuerdo,Chaquetas y sweaters,67
+categoria,Alimento para gatos,alimento-gato,0.98,llm,acuerdo,Alimento gatos,67
+categoria,Leche natural,lacteos,0.97,llm,acuerdo,Leche líquida,67
+categoria,Bombas y Globos,decoracion,0.95,llm,acuerdo,Globos para fiestas,66
+categoria,Preparación y afeitado,higiene-personal,0.9,llm,acuerdo,Afeitadoras y after shave,66
+categoria,"Billeteras, Monederos y Tarjeteros",accesorios-moda,0.95,llm,acuerdo,Billeteras,66
+categoria,Quesos semiduros,quesos,0.97,llm,acuerdo,"Quesos mantecoso, cabra, oveja",66
+categoria,Velas,decoracion,0.85,llm,acuerdo,Velas aromáticas decorativas,65
+categoria,Otros Juegos de mesa,juegos-mesa,0.7,llm,acuerdo,"Juegos de mesa, algunos juguetes/stickers",64
+categoria,Camisetas,ropa-interior,0.7,llm,juez,Mayoría camisetas pabilo/reductoras (interior); algunas poleras,64
+categoria,Vajillas de Bebe,articulos-bebe,0.92,llm,acuerdo,"Vasos, platos y cucharas infantiles",64
+categoria,Otros Literatura,libros,0.95,llm,acuerdo,Libros infantiles y Biblia,64
+categoria,Accesorios de manicura,maquillaje,0.9,llm,acuerdo,"Limas y quitaesmalte, uñas",64
+categoria,Infusiones,te,0.9,llm,acuerdo,Infusiones y tisanas,64
+categoria,Pilas,ferreteria,0.8,llm,acuerdo,"Pilas y baterías, electricidad",63
+categoria,Mordillos,articulos-bebe,0.92,llm,acuerdo,Mordedores para bebé,63
+categoria,Bolsos y carteras,accesorios-moda,0.95,llm,acuerdo,Carteras y bolsos,63
+categoria,Licras y Pantalones deportivos,ropa,0.88,llm,acuerdo,Calzas y ropa deportiva,63
+categoria,Ustensilios de aseo,limpieza,0.9,llm,acuerdo,"Esponjas, escobillones, set wc",62
+categoria,Pistas,juguetes-infantiles,0.95,llm,acuerdo,"Autos, pistas y juguetes RC",62
+categoria,Néctares,jugos,0.98,llm,acuerdo,Néctares de fruta,62
+categoria,Vitaminas y multivitamínicos,vitaminas,0.97,llm,acuerdo,Vitaminas y suplementos,62
+categoria,Parejas,bienestar-sexual,0.95,llm,acuerdo,Juegos eróticos y vibradores,61
+categoria,Salames,fiambres,0.95,llm,acuerdo,"Salames, longanizas, vienesas",61
+categoria,Lencería Erótica,bienestar-sexual,0.8,llm,acuerdo,Lencería erótica; alternativa ropa-interior,61
+categoria,Gafas de lectura,accesorios-moda,0.6,llm,acuerdo,Anteojos de lectura; faltaría óptica,60
+categoria,Vinagre,aceites-condimentos,0.9,llm,acuerdo,Vinagres de manzana,60
+categoria,Otros Útiles escolares,utiles,0.95,llm,acuerdo,Útiles escolares y arte,60
+categoria,Isotónicos,energizantes,0.97,llm,acuerdo,Bebidas isotónicas,60
+categoria,Papeles,utiles,0.9,llm,acuerdo,"Papel fotocopia, blocks, notas adhesivas",60
+categoria,Alimento para perros,alimento-perro,0.97,llm,acuerdo,Alimento perros,59
+categoria,Bikinis,ropa,0.75,llm,acuerdo,Trajes de baño; algo de ropa interior,59
+categoria,Otros accesorios de belleza,maquillaje,0.6,llm,acuerdo,"Pestañas, labial, antifaz; mezcla belleza",59
+categoria,Marcadores y resaltadores,utiles,0.95,llm,acuerdo,Plumones y destacadores,59
+categoria,"Vestidos, enterizos y conjuntos",ropa,0.95,llm,acuerdo,Vestidos,59
+categoria,Salsa de tomate,salsas,0.95,llm,acuerdo,Salsas de tomate,58
+categoria,Formulas infantiles,alimentacion-bebe,0.85,llm,acuerdo,Fórmulas lácteas infantiles; algunos ejemplos ruidosos,58
+categoria,Cloro,limpieza,0.95,llm,acuerdo,Cloro y cloro gel,58
+categoria,Peines y cepillos para el cabello,cuidado-cabello,0.9,llm,acuerdo,Cepillos de pelo,58
+categoria,Listos para cocinar,platos-listos,0.7,llm,acuerdo,"Congelados listos para cocinar, mixto",58
+categoria,Pan salado fresco,panaderia,0.95,llm,acuerdo,Pan fresco,58
+categoria,Otros Juegos al Aire Libre,juguetes-infantiles,0.8,llm,acuerdo,Juguetes varios,56
+categoria,Otros licores,licores,0.9,llm,acuerdo,Licores y vermouth,56
+categoria,Otros Snacks y confitería,golosinas,0.6,llm,acuerdo,Mezcla de confites y snacks,56
+categoria,Limpiadores multiusos,limpieza,0.95,llm,acuerdo,Limpiadores,56
+categoria,Dildos,bienestar-sexual,0.97,llm,acuerdo,Juguetes eróticos,56
+categoria,Tequilas,tequila,0.98,llm,acuerdo,Tequila,55
+categoria,Juegos musicales,juguetes-infantiles,0.9,llm,acuerdo,Instrumentos de juguete,55
+categoria,"Gorros, Gorras y Sombreros",accesorios-moda,0.75,llm,acuerdo,Gorros y sombreros; ejemplos café ruidosos,55
+categoria,Cajas y Cestas,muebles,0.85,llm,acuerdo,Cajas organizadoras,55
+categoria,Leche saborizada,lacteos,0.95,llm,acuerdo,Leches saborizadas,54
+categoria,Arroz,arroz-legumbres,0.93,llm,acuerdo,Arroz,54
+categoria,Cuadernos,utiles,0.9,llm,acuerdo,Cuadernos y libretas,53
+categoria,Hierbas y aromáticas,verduras,0.75,llm,acuerdo,Hierbas frescas; algunas secas (condimentos),53
+categoria,Café listo,cafe,0.9,llm,acuerdo,Café preparado y frío,53
+categoria,Ganchos para ropa,muebles,0.65,llm,acuerdo,"Colgadores y pinzas, organización",52
+categoria,Crema,lacteos,0.8,llm,acuerdo,"Crema de leche, lácteo",52
+categoria,Cepillos dentales,cuidado-oral,0.98,llm,acuerdo,Cepillos de dientes,51
+categoria,Refrescos en polvo,jugos,0.85,llm,acuerdo,Jugos en polvo,51
+categoria,Desodorantes,higiene-personal,0.95,llm,acuerdo,Desodorantes,51
+categoria,Mantequilla,lacteos,0.75,llm,acuerdo,Mantequilla; faltaría concepto mantequilla/grasas,51
+categoria,Pescado enlatado,conservas,0.93,llm,acuerdo,Atún en lata,50
+categoria,Focos,ferreteria,0.92,llm,acuerdo,Ampolletas LED,50
+categoria,Toallitas humedas,panales,0.85,llm,acuerdo,Toallitas húmedas,49
+categoria,Protectores de Pantalla,celulares,0.95,llm,acuerdo,Micas para celulares,49
+categoria,Otras joyas,joyeria,0.9,llm,acuerdo,"Aros, pines, llaveros",49
+categoria,Postres refrigerados,postres,0.93,llm,acuerdo,Flanes y jaleas,48
+categoria,Sal,aceites-condimentos,0.93,llm,acuerdo,Sal de cocina,48
+categoria,Toallas y salida de baño,textil-hogar,0.93,llm,acuerdo,Toallas de baño,48
+categoria,Pochoclos,snacks-salados,0.85,llm,acuerdo,Cabritas/popcorn,48
+categoria,"Bolígrafos, plumas y micropuntas",utiles,0.97,llm,acuerdo,Bolígrafos,47
+categoria,Agua saborizada,agua,0.85,llm,acuerdo,Aguas saborizadas,47
+categoria,Cafeteras y Teteras,electrohogar,0.7,llm,acuerdo,Máquinas de café; también francesas (menaje),47
+categoria,Toallas higiénicas,higiene-femenina,0.97,llm,acuerdo,"Toallas femeninas Kotex, Always, Nosotras",46
+categoria,Baberos y Delantales,articulos-bebe,0.9,llm,acuerdo,Baberos y artículos para bebé,46
+categoria,Endulzante,azucar,0.95,llm,acuerdo,"Stevia, sucralosa, endulzantes",46
+categoria,Agua micelar y bifásicos,dermocosmetica,0.8,llm,acuerdo,Desmaquillantes y limpieza facial,46
+categoria,Collares y correas,accesorios-moda,0.5,llm,juez,Mayoría collares bisutería/bolsas; minoría correas de mascota,46
+categoria,Hielo,hielo,0.97,llm,acuerdo,Bolsas de hielo,46
+categoria,Leche en polvo,lacteos,0.9,llm,acuerdo,"Leche en polvo Nido, Soprole",46
+categoria,Dijes y Charms,joyeria,0.9,llm,acuerdo,Charms de plata 925,45
+categoria,Pistolas de Juguete y lanzadores,juguetes-infantiles,0.95,llm,acuerdo,"Nerf, X-Shot, lanzadores de juguete",45
+categoria,Shampoo y jabón,articulos-bebe,0.7,llm,acuerdo,Shampoo y baño infantil; alternativa higiene-personal,44
+categoria,Productos naturales,vitaminas,0.5,llm,juez,"Clorofila, calafate, suplementos naturales; mezcla con frascos y chía",44
+categoria,Utensilios de repostería,cocina-menaje,0.9,llm,acuerdo,"Moldes, batidores, tazas medidoras",44
+categoria,Difusores de aroma,decoracion,0.65,llm,juez,"Varitas aromáticas, velas y difusores; aromatización del hogar",43
+categoria,Crema dental,cuidado-oral,0.98,llm,acuerdo,Pastas dentales,43
+categoria,Juegos de estrategia,juegos-mesa,0.9,llm,acuerdo,Juegos de mesa y cartas,43
+categoria,Camisas y camisetas,ropa,0.95,llm,acuerdo,Poleras y camisas,43
+categoria,Pasta dulce para untar,untables-dulces,0.88,llm,acuerdo,Cremas de avellana y mantequilla de maní,42
+categoria,Paños multiusos,limpieza,0.85,llm,acuerdo,Paños esponja y de cocina,42
+categoria,Otros Decoración para fiestas,decoracion,0.93,llm,acuerdo,Artículos de cotillón y decoración,42
+categoria,Colores y Crayolas,utiles,0.88,llm,acuerdo,"Témperas, pinceles, crayones",42
+categoria,Azucar,azucar,0.98,llm,acuerdo,"Azúcar granulada, flor, de coco",42
+categoria,Ropa de cama,textil-hogar,0.97,llm,acuerdo,Sábanas y protectores,41
+categoria,Otras harinas y mezclas,reposteria,0.55,llm,acuerdo,Harinas diversas; ejemplos mezclados,41
+categoria,Lentes de sol,accesorios-moda,0.85,llm,acuerdo,Lentes de sol de moda,41
+categoria,Vajilla desechable,papeles-desechables,0.95,llm,acuerdo,"Platos, vasos, cubiertos desechables",41
+categoria,Lápices y portaminas,utiles,0.95,llm,acuerdo,Lápices y portaminas,40
+categoria,Insecticidas,limpieza,0.75,llm,acuerdo,"Raid, insecticidas domésticos",40
+categoria,Enjuague bucal,cuidado-oral,0.98,llm,acuerdo,"Listerine, Colgate enjuagues",39
+categoria,Feromonas,bienestar-sexual,0.9,llm,acuerdo,Feromonas y aceites de masaje eróticos,38
+categoria,Patés,fiambres,0.7,llm,acuerdo,Paté de ternera/cerdo; alternativa conservas,38
+categoria,Libros infantiles,libros,0.95,llm,acuerdo,Libros para niños,38
+categoria,Otros limpiadores,limpieza,0.93,llm,acuerdo,Desinfectantes y limpiadores,38
+categoria,Tops,ropa-interior,0.7,llm,acuerdo,Mayoría petos de microfibra,37
+categoria,Juegos de Piscina y Playa,juguetes-infantiles,0.85,llm,acuerdo,Juguetes de playa e inflables,37
+categoria,Otros vinos,vino,0.9,llm,acuerdo,Vinos y sangrías,37
+categoria,"Pinzas, brochas y perfiladores",maquillaje,0.88,llm,acuerdo,"Brochas, pinzas, pestañas postizas",37
+categoria,Cinturones y Reatas,accesorios-moda,0.93,llm,acuerdo,Cinturones de cuero,37
+categoria,Bases para cócteles,cocteles,0.6,llm,acuerdo,"Jarabes, cócteles listos; alternativa licores",36
+categoria,Empaques,flores-regalos,0.7,llm,acuerdo,Bolsas y cajas de regalo,36
+categoria,Crop tops,ropa,0.93,llm,acuerdo,Tops y corsets de moda,36
+categoria,Carros y Motos,juguetes-infantiles,0.9,llm,acuerdo,Vehículos de juguete a escala,36
+categoria,Juguetes para mascotas,accesorios-mascota,0.88,llm,acuerdo,Juguetes para perros y gatos,36
+categoria,Accesorios para bebés,ropa,0.65,llm,acuerdo,Ejemplos son ropa de bebé; alternativa articulos-bebe,34
+categoria,Pulpa de Fruta,frutas,0.75,llm,acuerdo,Pulpa y fruta congelada,34
+categoria,Listos para comer,platos-listos,0.9,llm,acuerdo,Platos preparados de supermercado,34
+categoria,Fetiche,bienestar-sexual,0.95,llm,acuerdo,Artículos eróticos fetiche,34
+categoria,Bebidas de cereal,vegano,0.55,llm,acuerdo,Mezcla bebidas vegetales y maltas; dudoso,34
+categoria,Hamburguesas,carnes,0.8,llm,acuerdo,"Carne de hamburguesa congelada cruda, no preparada",34
+categoria,Vasos conservadores de leche,articulos-bebe,0.88,llm,acuerdo,Accesorios de lactancia,33
+categoria,Preservativos,salud-sexual,0.95,llm,acuerdo,Condones,33
+categoria,Cremas de licor,licores,0.93,llm,acuerdo,Licores de crema,33
+categoria,Sacos y chamarras,ropa,0.93,llm,acuerdo,Chaquetas y buzos,33
+categoria,Otras conservas,conservas,0.85,llm,acuerdo,Conservas variadas,33
+categoria,Botas y Botines,calzado,0.95,llm,acuerdo,Botas y botines,33
+categoria,Bolsas para basura,papeles-desechables,0.8,llm,acuerdo,Bolsas de basura desechables,33
+categoria,Pegantes y Cintas,utiles,0.8,llm,acuerdo,"Pegamento, cintas adhesivas, stickers",33
+categoria,Bondage,bienestar-sexual,0.93,llm,acuerdo,Artículos eróticos bondage,33
+categoria,Chamarras Deportivas y Rompe vientos,ropa,0.85,llm,acuerdo,Ropa deportiva y trajes de baño,33
+categoria,Camisas,ropa,0.95,llm,acuerdo,Camisas y poleras,33
+categoria,Salsas y coberturas,reposteria,0.75,llm,acuerdo,Coberturas de chocolate para repostería/postres,32
+categoria,Carnes maduras y ahumadas,fiambres,0.8,llm,acuerdo,"Ahumados, tocino, tablas serranas",32
+categoria,Leche vegetal,vegano,0.88,llm,acuerdo,"Bebidas vegetales de almendra, soya, avena",32
+categoria,Parlantes o bocinas,audio,0.95,llm,acuerdo,Parlantes bluetooth,32
+categoria,Accesorios de baño,textil-hogar,0.55,llm,juez,Mixto; predominan cortinas y pisos de baño; faltaría concepto baño,32
+categoria,Esencias y colorantes,reposteria,0.9,llm,acuerdo,Esencias y colorantes para repostería,32
+categoria,Otros Mermeladas y pastas para untar,untables-dulces,0.6,llm,acuerdo,"Untables variados, incluye hummus",32
+categoria,Miel,untables-dulces,0.95,llm,acuerdo,Miel,32
+categoria,Adaptadores y Convertidores,computacion,0.75,llm,acuerdo,Adaptadores USB/HDMI; alternativa celulares,31
+categoria,Ropa Interior control de Incontinencia,panales,0.7,llm,acuerdo,Pañales adulto; falta concepto incontinencia,31
+categoria,Masas,reposteria,0.6,llm,acuerdo,Masas frescas para tartas y galletas,31
+categoria,Carnes vegetarianas,vegano,0.95,llm,acuerdo,"Tofu, seitán, embutidos veganos",31
+categoria,Toallas de cocina,papeles-desechables,0.95,llm,acuerdo,Toalla de papel,30
+categoria,Shorts y bermudas,ropa,0.95,llm,acuerdo,Shorts,30
+categoria,Cables,computacion,0.75,llm,acuerdo,"Cables VGA, USB, poder",30
+categoria,Otros Decoración del hogar,decoracion,0.65,llm,acuerdo,"Decoración variada, ejemplos mixtos",30
+categoria,"Carbón, Leña y chispa",carbon,0.95,llm,acuerdo,Carbón y fósforos,30
+categoria,Humectantes corporales,dermocosmetica,0.9,llm,acuerdo,Cremas y aceites corporales,30
+categoria,Blusas,ropa,0.95,llm,acuerdo,Blusas,30
+categoria,Otras carnes,carnes,0.8,llm,acuerdo,"Charqui, ciervo, churrascos",30
+categoria,Otros Lactancia y accesorios,articulos-bebe,0.88,llm,acuerdo,Accesorios de lactancia y portachupetes,30
+categoria,Pastelitos,pasteleria,0.85,llm,acuerdo,"Brownies, mini tortas, pastelitos envasados",30
+categoria,Agua Natural,agua,0.97,llm,acuerdo,Agua mineral sin gas,29
+categoria,Protectores mamarios y de pezones,articulos-bebe,0.7,llm,acuerdo,Accesorios de lactancia,29
+categoria,Protectores y seguros,articulos-bebe,0.75,llm,acuerdo,Seguridad infantil para el hogar,29
+categoria,Chocolate,chocolates,0.55,llm,acuerdo,Mayormente cacao en polvo y chocolate a la taza,29
+categoria,Agendas y Libretas,utiles,0.88,llm,acuerdo,Libretas y croqueras,29
+categoria,Smartwatch y Smartband,celulares,0.65,llm,acuerdo,Wearables y láminas; faltaría concepto wearables,28
+categoria,Mates,te,0.85,llm,acuerdo,Yerba mate como infusión,28
+categoria,Agua Natural Gasificada,agua,0.95,llm,acuerdo,Agua mineral con gas,28
+categoria,Mayonesa,salsas,0.97,llm,acuerdo,Mayonesa es aderezo,28
+categoria,Juegos Eróticos,bienestar-sexual,0.9,llm,acuerdo,Dados y juegos eróticos,27
+categoria,Insumos de Impresión,computacion,0.7,llm,acuerdo,Tintas de impresora,27
+categoria,Videojuegos,videojuegos,0.85,llm,acuerdo,Juegos Switch y PlayStation,27
+categoria,Pantuflas,calzado,0.9,llm,acuerdo,Pantuflas son calzado,27
+categoria,"Tortillas, tostadas y totopos",panaderia,0.65,llm,acuerdo,Tortillas y wraps envasados,27
+categoria,Labial,maquillaje,0.97,llm,acuerdo,Labiales y delineadores,27
+categoria,Cortinas y persianas,textil-hogar,0.85,llm,acuerdo,Cortinas blackout,27
+categoria,"Sombrillas, gazebos y toldos",cocina-menaje,0.6,llm,juez,Ejemplos reales: platos e individuales Casaideas; nombre sugeriría jardin,27
+categoria,Margarina,lacteos,0.6,llm,acuerdo,Faltaría concepto mantequilla y margarina,26
+categoria,Extractor de leche,articulos-bebe,0.85,llm,acuerdo,"Sacaleches, lactancia",26
+categoria,Avenas,cereales,0.95,llm,acuerdo,Avena y muesli,26
+categoria,Decoración De Mesa,decoracion,0.75,llm,acuerdo,"Individuales, portavelas",26
+categoria,Teclados y Mouse,computacion,0.97,llm,acuerdo,Periféricos de computador,26
+categoria,Limpiadores faciales,dermocosmetica,0.92,llm,acuerdo,Skincare facial,25
+categoria,Cartulinas,utiles,0.95,llm,acuerdo,Útiles escolares,25
+categoria,"Esmaltes, Bases y Tratamientos De Uñas",maquillaje,0.95,llm,acuerdo,Esmaltes de uñas,25
+categoria,Faldas,ropa,0.95,llm,acuerdo,Prendas de vestir,25
+categoria,Tenis y Zapatos,calzado,0.8,llm,acuerdo,Zapatillas,25
+categoria,Bodies,ropa-interior,0.85,llm,acuerdo,Bodies modeladores y fajas,25
+categoria,Suavizantes,limpieza,0.95,llm,acuerdo,Cuidado de ropa,25
+categoria,Otros Pintura,utiles,0.8,llm,acuerdo,"Témperas, acuarelas, blocks de arte",25
+categoria,Quitamancha,limpieza,0.95,llm,acuerdo,Cuidado de ropa,25
+categoria,Cocción y horneado,cocina-menaje,0.95,llm,acuerdo,"Baterías, moldes, fuentes",25
+categoria,Sandalias y Chanclas,calzado,0.97,llm,acuerdo,Sandalias,24
+categoria,Set de Ropa - Conjuntos,ropa,0.85,llm,acuerdo,Conjuntos infantiles,24
+categoria,Navidad,decoracion,0.85,llm,acuerdo,Decoración y cotillón de fiestas,24
+categoria,Dulce de leche,untables-dulces,0.95,llm,acuerdo,Manjar,24
+categoria,Equipos médicos,primeros-auxilios,0.35,llm,acuerdo,Por nombre; ejemplos heterogéneos,24
+categoria,Detergente Vajillas,limpieza,0.97,llm,acuerdo,Lavalozas,23
+categoria,Artículos De Archivo-Oficina,utiles,0.85,llm,acuerdo,"Clips, broches, oficina",23
+categoria,Postres en polvo,postres,0.9,llm,acuerdo,Flanes y postres en polvo,23
+categoria,Servilletas,papeles-desechables,0.95,llm,acuerdo,Servilletas de papel,23
+categoria,"Crema, loción y gel",articulos-bebe,0.65,llm,juez,"Mayoría cremas y jabones de bebé (Mustela, Osme, Dove Baby)",23
+categoria,Otros Juguetes Sexuales,bienestar-sexual,0.95,llm,acuerdo,Juguetes eróticos,23
+categoria,Otros cuidado corporal,higiene-personal,0.45,llm,acuerdo,"Mezcla: bombas de baño, aromaterapia, colorantes",23
+categoria,Arena para gatos,accesorios-mascota,0.85,llm,acuerdo,Arena sanitaria para gatos,22
+categoria,Otros Otros Deportes,articulos-deportivos,0.85,llm,acuerdo,"Mancuernas, cuerdas, artículos deportivos",22
+categoria,Vino rosado,vino,0.97,llm,acuerdo,Vinos rosados,22
+categoria,Caldos,sopas,0.95,llm,acuerdo,Caldos en polvo y cubos,22
+categoria,Secadores,cuidado-cabello,0.75,llm,acuerdo,Secadores de pelo; alternativa electrohogar,22
+categoria,Lienzos y Caballetes,utiles,0.75,llm,acuerdo,Materiales de arte y pintura,22
+categoria,Shampoo y talco para mascotas,accesorios-mascota,0.85,llm,acuerdo,Higiene para mascotas,20
+categoria,Frutas enlatadas,conservas,0.9,llm,acuerdo,Frutas en almíbar/conserva,20
+categoria,Base,maquillaje,0.95,llm,acuerdo,Bases de maquillaje,20
+categoria,Organizadores para cocina,cocina-menaje,0.7,llm,juez,"Especieros, contenedores y organizadores específicos de cocina",20
+categoria,Lencería,ropa-interior,0.95,llm,acuerdo,Bralettes y calzones,20
+categoria,Otros Estimulantes sexuales,bienestar-sexual,0.9,llm,acuerdo,Lubricantes y geles eróticos,20
+categoria,Otros accesorios,accesorios-moda,0.85,llm,acuerdo,"Pañuelos, estolas, accesorios de pelo",20
+categoria,Otras aguas,gaseosas,0.75,llm,acuerdo,Tónicas y ginger beer,20
+categoria,Otros Ropas,ropa,0.75,llm,acuerdo,Prendas de vestir variadas,19
+categoria,Mantelería,textil-hogar,0.85,llm,acuerdo,Manteles e individuales,19
+categoria,Bolas,bienestar-sexual,0.9,llm,acuerdo,Bolas Kegel/eróticas,19
+categoria,Linternas y reflectores,ferreteria,0.9,llm,acuerdo,"Linternas, ampolletas, reflectores LED",19
+categoria,"Caminadores, saltarines y sillas mecedoras",articulos-bebe,0.85,llm,acuerdo,Andadores para bebé,18
+categoria,Gelatina,postres,0.85,llm,acuerdo,Gelatinas en polvo,18
+categoria,Cargadores de Portátil,celulares,0.65,llm,acuerdo,Cargadores mayormente de celular/universales,18
+categoria,Planchas,cuidado-cabello,0.8,llm,acuerdo,Alisadores de pelo,18
+categoria,Algodón y Pads,higiene-personal,0.8,llm,acuerdo,Algodón y discos desmaquillantes,18
+categoria,Otros leches,lacteos,0.8,llm,acuerdo,Leches y bebidas lácteas,18
+categoria,Coolers,cocteles,0.8,llm,acuerdo,Bebidas alcohólicas listas (Four Loko),18
+categoria,Leche condensada,reposteria,0.65,llm,acuerdo,"Leche condensada/evaporada, uso repostero",18
+categoria,Productos para rehabilitación,primeros-auxilios,0.55,llm,acuerdo,"Compresas frío/calor, muñequeras",18
+categoria,Aerosoles y pinturas,ferreteria,0.9,llm,acuerdo,"Pinturas, barnices, sellantes",17
+categoria,Calzones Anatómicos,higiene-personal,0.6,llm,juez,Pañal adulto; ideal sería concepto incontinencia adulto,17
+categoria,Dips,salsas,0.8,llm,acuerdo,"Dips, hummus y pastas untables",17
+categoria,Parches y Telas Adhesivas,primeros-auxilios,0.92,llm,acuerdo,Curitas y apósitos,17
+categoria,Fernet,licores,0.95,llm,acuerdo,Licor de hierbas,17
+categoria,Accesorios De Escritorio,utiles,0.92,llm,acuerdo,"Corcheteras, clips, perforadoras",17
+categoria,Decoración y Materas,jardin,0.85,llm,acuerdo,Maceteros y bases para plantas,16
+categoria,Mezclas dulces,reposteria,0.75,llm,acuerdo,Premezclas para tortas y brownies,16
+categoria,Pizarras y Tableros,juguetes-infantiles,0.6,llm,acuerdo,Pizarras infantiles/didácticas; algunas de corcho oficina,16
+categoria,Bañera y soporte,articulos-bebe,0.9,llm,acuerdo,Bañeras y asientos para bebé,16
+categoria,Otros Bienestar y Ocio,libros,0.75,llm,acuerdo,Libros para colorear infantiles,16
+categoria,Polvos de hornear,reposteria,0.95,llm,acuerdo,Polvos de hornear y levaduras,16
+categoria,Cosmetiqueras,accesorios-moda,0.8,llm,acuerdo,Estuches y bolsos cosmetiqueros,16
+categoria,Mascara De Pestañas,maquillaje,0.95,llm,acuerdo,Máscaras de pestañas,16
+categoria,Suero,energizantes,0.8,llm,acuerdo,Bebidas de hidratación/isotónicas y suero oral,16
+categoria,Soportes para Televisor,tv-video,0.85,llm,acuerdo,Soportes de TV,16
+categoria,Chantilly,reposteria,0.8,llm,acuerdo,Crema chantilly para repostería,16
+categoria,Otros higiene y cuidado,articulos-bebe,0.6,llm,acuerdo,"Higiene infantil mixta: cepillos, mascarillas",16
+categoria,Extensiones y adaptadores,ferreteria,0.9,llm,acuerdo,Alargadores y adaptadores eléctricos,15
+categoria,Enterizos,ropa,0.8,llm,acuerdo,Trajes de baño enteros,15
+categoria,Interruptores y tomacorriente,ferreteria,0.95,llm,acuerdo,Material eléctrico,15
+categoria,Comederos y bebederos,accesorios-mascota,0.95,llm,acuerdo,Platos para mascotas,15
+categoria,Muebles para almacenar,muebles,0.95,llm,acuerdo,Cajoneras y repisas,15
+categoria,Pimienta,aceites-condimentos,0.93,llm,acuerdo,"Pimienta, condimento",15
+categoria,Otros cuidado de la ropa,limpieza,0.7,llm,acuerdo,"Tablas de planchar, rodillos, tendederos",15
+categoria,Accesorios,ninguno,0.3,llm,acuerdo,"Categoría genérica mixta: manualidades, almendras, juguetes",15
+categoria,Desinfectantes de ambiente,limpieza,0.9,llm,acuerdo,Desinfectantes y aromatizantes,15
+categoria,Otros repostería,reposteria,0.85,llm,acuerdo,"Colorantes, bicarbonato, leche condensada",15
+categoria,Calzoncillos y boxers,ropa-interior,0.95,llm,acuerdo,Boxers,15
+categoria,Arnés,bienestar-sexual,0.95,llm,acuerdo,Arneses eróticos,15
+categoria,Otros Pastas frescas y masas,pastas,0.9,llm,acuerdo,Pastas frescas,14
+categoria,Mandos y Volantes Gaming,videojuegos,0.9,llm,acuerdo,Controles de consola,14
+categoria,Otros Cafés y tés listos para beber,te,0.6,llm,acuerdo,Mayormente kombuchas; algo de café,14
+categoria,Camisetas Deportivas,ropa,0.8,llm,acuerdo,Poleras deportivas; alternativa articulos-deportivos,14
+categoria,Otros Maquillaje Para Rostro,maquillaje,0.95,llm,acuerdo,"Bases, máscaras, tintes",14
+categoria,Cascos de ciclismo,articulos-deportivos,0.9,llm,acuerdo,Cascos de bicicleta,14
+categoria,Balones de Fútbol,articulos-deportivos,0.95,llm,acuerdo,Balones de fútbol,14
+categoria,Relojes,joyeria,0.95,llm,acuerdo,Relojes,14
+categoria,Otros Artículos para el baño,articulos-bebe,0.6,llm,acuerdo,"Neceseres bebé, antideslizante, bombas de baño",14
+categoria,Power Bank,celulares,0.8,llm,acuerdo,Cargadores portátiles; algunas baterías de auto,14
+categoria,Mostaza,salsas,0.9,llm,acuerdo,Mostazas y salsas,14
+categoria,Otros Caldos y sopas,sopas,0.85,llm,acuerdo,Sopas instantáneas,14
+categoria,Arepas,panaderia,0.6,llm,acuerdo,Arepas y tortillas de maíz,13
+categoria,Copas menstruales,higiene-femenina,0.95,llm,acuerdo,Copas y discos menstruales,13
+categoria,Accesorios para interior,automotriz,0.8,curado,curado tras agregar concepto,Falta concepto accesorios para auto,13
+categoria,Paletas y Esponjas,utiles,0.8,llm,acuerdo,Pinturas y pinceles de arte,13
+categoria,Talco y Aceite,articulos-bebe,0.7,llm,acuerdo,Talco y aceite para bebé,13
+categoria,Corrector,maquillaje,0.95,llm,acuerdo,Correctores de maquillaje,13
+categoria,Modificadores de leche,lacteos,0.55,llm,acuerdo,Saborizantes de leche en polvo; falta concepto saborizantes,13
+categoria,Piercings,joyeria,0.9,llm,acuerdo,Aros y piercings de plata/oro,12
+categoria,Almohadas,textil-hogar,0.9,llm,acuerdo,Almohadas de cama,12
+categoria,"Cargadores, fulares y arneses",articulos-bebe,0.9,llm,acuerdo,Portabebés y fulares,12
+categoria,Decoración para la mesa,textil-hogar,0.8,llm,acuerdo,Manteles,12
+categoria,Kits Sexuales,bienestar-sexual,0.95,llm,acuerdo,Kits eróticos,12
+categoria,Llaveros,accesorios-moda,0.7,llm,acuerdo,Llaveros decorativos,12
+categoria,Otros Cervezas y sidras,gaseosas,0.6,llm,juez,Ejemplos mayormente ginger beer y bebidas sin alcohol,12
+categoria,Otros Charcutería,fiambres,0.93,llm,acuerdo,Embutidos y tablas,12
+categoria,Otros ferretería,ferreteria,0.6,llm,acuerdo,Adhesivos y misceláneos,12
+categoria,Otros Productos de limpieza,limpieza,0.75,llm,acuerdo,Limpieza de autos,12
+categoria,Otros Salud nutricional,vitaminas,0.85,llm,acuerdo,Suplementos en cápsulas,12
+categoria,Seda/hilo dental,cuidado-oral,0.95,llm,acuerdo,Hilo dental,12
+categoria,Otras cremas,lacteos,0.6,llm,acuerdo,Crema de leche/coco y crema ácida,11
+categoria,Otros desechables,papeles-desechables,0.75,llm,acuerdo,Bolsas herméticas,11
+categoria,Tampones,higiene-femenina,0.95,llm,acuerdo,Tampones,11
+categoria,Disfraces Eróticos,bienestar-sexual,0.9,llm,acuerdo,Disfraces y lencería erótica,11
+categoria,Cemento Y Complementos,ferreteria,0.9,llm,acuerdo,Adhesivos y siliconas,11
+categoria,Rizadoras,cuidado-cabello,0.75,llm,acuerdo,Planchas y onduladores de pelo,11
+categoria,Duchas Anales,bienestar-sexual,0.9,llm,acuerdo,Enemas y lubricantes anales,11
+categoria,Celulares,celulares,0.93,llm,acuerdo,Chips y teléfonos,11
+categoria,Cartones,utiles,0.6,llm,acuerdo,Cartón piedra y manualidades; ejemplos mixtos,11
+categoria,Ramos y bouquets,flores-regalos,0.9,llm,acuerdo,Ramos de flores,11
+categoria,Salsa de soja,salsas,0.9,llm,acuerdo,Salsa de soya,11
+categoria,Pañuelos desechables,papeles-desechables,0.9,llm,acuerdo,Pañuelos de papel,11
+categoria,"Alcohol, Antisépticos y Agua oxigenada",primeros-auxilios,0.85,llm,acuerdo,Alcohol y antisépticos,11
+categoria,Granolas,cereales,0.9,llm,acuerdo,Granolas,11
+categoria,USB,computacion,0.85,llm,acuerdo,Pendrives y adaptadores USB,11
+categoria,Sistema Nervioso,ninguno,0.6,llm,juez,"Ejemplos incoherentes (menaje, batería); faltaría misceláneo",11
+categoria,Otros accesorios mascotas,accesorios-mascota,0.6,llm,acuerdo,Por nombre; ejemplos mixtos,11
+categoria,Arcos y Flechas,juguetes-infantiles,0.7,llm,acuerdo,Juguetes y juegos de puntería,11
+categoria,Otros Jugos y néctares,jugos,0.9,llm,acuerdo,Papelón y jugos,11
+categoria,Bacinicas y adaptadores de baño,articulos-bebe,0.8,llm,acuerdo,Pelelas y juguetes de baño,11
+categoria,Sacos y Suéteres,ropa,0.95,llm,acuerdo,Sweaters y cardigans,10
+categoria,Toallitas,higiene-personal,0.65,llm,acuerdo,Toallitas húmedas y desmaquillantes,10
+categoria,Entrenamiento Multifuerza,articulos-deportivos,0.9,llm,acuerdo,Máquinas de ejercicio,10
+categoria,Otros Papelería,utiles,0.8,llm,acuerdo,Papelería y manualidades,10
+categoria,Zapatos bebés,calzado,0.9,llm,acuerdo,Calzado infantil,10
+categoria,Alimento para otras mascotas,accesorios-mascota,0.8,curado,curado tras agregar concepto,"Falta: alimento para otras mascotas (conejos, peces)",10
+categoria,Kit dental,cuidado-oral,0.9,llm,acuerdo,Kits y blanqueadores dentales,10
+categoria,Maletas de viaje,accesorios-moda,0.6,llm,acuerdo,Maletas y bolsos de viaje; falta concepto equipaje,10
+categoria,Tablas picadas,picoteo,0.85,llm,acuerdo,Tablas de quesos y fiambres para picoteo,10
+categoria,"Otros Cereales, avenas y granola",cereales,0.7,llm,acuerdo,"Otros cereales, avena, amaranto",10
+categoria,Otros Textiles de hogar y cortinas,textil-hogar,0.95,llm,acuerdo,Cortinas y textiles del hogar,10
+categoria,Cartucheras y estuches,utiles,0.8,llm,acuerdo,Estuches escolares y útiles,10
+categoria,Protectores dérmicos,dermocosmetica,0.9,llm,acuerdo,"Cuidado de la piel, protector solar",10
+categoria,Pan dulce fresco,pasteleria,0.75,llm,acuerdo,"Medialunas, berlines, muffins; también panadería",9
+categoria,Sillas de comedor,articulos-bebe,0.9,llm,acuerdo,Sillas de comer para bebé,9
+categoria,Otros Aceites y vinagres,aceites-condimentos,0.95,llm,acuerdo,Aceites y vinagres,9
+categoria,"Cremas, ceras y bandas",higiene-personal,0.8,llm,acuerdo,Depilación corporal y facial,9
+categoria,Otros Vehículos,juguetes-infantiles,0.75,llm,acuerdo,Vehículos de juguete,9
+categoria,Brotes,verduras,0.95,llm,acuerdo,Brotes y germinados frescos,9
+categoria,Habanos,cigarrillos,0.75,llm,acuerdo,Puros y cigarritos; tabaco,9
+categoria,"Otros Gimnasio, Yoga y Pilates",vitaminas,0.6,llm,juez,Ejemplos mayoritarios: creatina y whey; resto cinturones/trompo,9
+categoria,Tarjetas de Memoria,computacion,0.85,llm,acuerdo,Memorias SD y RAM,9
+categoria,Tarjetas y lluvia de sobres,decoracion,0.55,llm,acuerdo,Tarjetas de regalo y fiesta,9
+categoria,Cera,automotriz,0.8,curado,curado tras agregar concepto,Cera para auto; falta concepto cuidado automotriz,9
+categoria,Periódicos y Revistas,libros,0.9,llm,acuerdo,Diarios y revistas,9
+categoria,Protectores labiales-balsamos,dermocosmetica,0.85,llm,acuerdo,Bálsamos labiales,9
+categoria,Bebidas lácteas,lacteos,0.95,llm,acuerdo,Leches saborizadas y probióticos,9
+categoria,Cambiadores,articulos-bebe,0.85,llm,acuerdo,Mudadores y cojines de lactancia,9
+categoria,Gel antibacterial,higiene-personal,0.75,llm,acuerdo,Alcohol gel para manos,9
+categoria,Papel aluminio,papeles-desechables,0.9,llm,acuerdo,Papel aluminio y film,9
+categoria,Calendarios y planificadores,utiles,0.85,llm,acuerdo,Planificadores y artículos de oficina,9
+categoria,Cojines y Accesorios,textil-hogar,0.85,llm,acuerdo,Cojines y fundas,9
+categoria,Colonias,fragancias,0.8,llm,acuerdo,"Colonias, mayormente para bebé",9
+categoria,Otros accesorios para alimentación,articulos-bebe,0.55,llm,acuerdo,Platos y dosificadores infantiles; ejemplos mezclados,9
+categoria,Otros Musicales y de rol,juguetes-infantiles,0.85,llm,acuerdo,Juguetes musicales y de rol,9
+categoria,"Jeringas, guantes Y material hospitalario",primeros-auxilios,0.7,llm,acuerdo,Guantes y material médico,9
+categoria,Televisores,tv-video,0.95,llm,acuerdo,Televisores y cables HDMI,8
+categoria,"Otros Arroz, granos y pastas",arroz-legumbres,0.85,llm,acuerdo,"Quinoa, cuscús, burgol",8
+categoria,Aguardientes,licores,0.8,llm,acuerdo,Aguardientes; licor destilado,8
+categoria,Tratamiento Antiacné,dermocosmetica,0.95,llm,acuerdo,Tratamiento facial antiacné,8
+categoria,Licuados,lacteos,0.65,llm,juez,Mayoría milkshakes lácteos; un smoothie de fruta,8
+categoria,Títeres,juguetes-infantiles,0.95,llm,acuerdo,Títeres infantiles,8
+categoria,Licuadoras y Batidoras,electrohogar,0.95,llm,acuerdo,Pequeños electrodomésticos de cocina,8
+categoria,Succionadores,bienestar-sexual,0.95,llm,acuerdo,Juguetes sexuales succionadores,8
+categoria,Blush,maquillaje,0.95,llm,acuerdo,"Rubor, maquillaje",8
+categoria,Otros,ninguno,0.6,llm,juez,"Genérica mixta: mates, bolsa, juguetes, glitter; faltaría 'varios'",8
+categoria,Organizadores de ropa,muebles,0.85,llm,acuerdo,Canastos y organizadores,8
+categoria,Otros Panadería y pastelería,pasteleria,0.7,llm,acuerdo,"Dulces, manjarate, brownies; pastelería",8
+categoria,Accesorios de Calzado,calzado,0.85,llm,acuerdo,Ejemplos son zapatillas,8
+categoria,Patines y Patinetas,articulos-deportivos,0.75,llm,acuerdo,Scooters y patinetas,8
+categoria,Cepillos y peines para mascotas,accesorios-mascota,0.95,llm,acuerdo,Cepillos para perro y gato,8
+categoria,Accesorios de pedicura,maquillaje,0.75,llm,acuerdo,"Cuidado de uñas y pies, esmaltes",7
+categoria,Bronceadores,dermocosmetica,0.8,llm,acuerdo,"Autobronceantes, cuidado de piel",7
+categoria,Afeitadoras,higiene-personal,0.75,llm,acuerdo,Afeitado y depilación,7
+categoria,Hisopos,higiene-personal,0.8,llm,acuerdo,Varitas de algodón,7
+categoria,Soportes Celular y Tablet,celulares,0.85,llm,acuerdo,Accesorios de celular,7
+categoria,Coches y Carriolas,articulos-bebe,0.85,llm,acuerdo,Coches de bebé,7
+categoria,Pareos y salidas de baño,ropa,0.85,llm,acuerdo,Pareos y trajes de baño,7
+categoria,Otros elementos de aseo para mascotas,accesorios-mascota,0.85,llm,acuerdo,"Pads, bolsas, viruta para mascotas",7
+categoria,Vestidos y Jardineras,ropa,0.85,llm,acuerdo,Ropa infantil,7
+categoria,Delineador Y Lápiz De Ojos,maquillaje,0.95,llm,acuerdo,Maquillaje de ojos,7
+categoria,Cuadros y Arte de pared,decoracion,0.9,llm,acuerdo,Marcos de fotos,7
+categoria,Sidras,cerveza,0.6,llm,juez,"Sidra; cerveza lo más cercano, faltaría concepto sidra",7
+categoria,Otros Dormitorio,textil-hogar,0.85,llm,acuerdo,Sets de sábanas,7
+categoria,Otros Energéticas e isotónicas,energizantes,0.85,llm,acuerdo,Isotónicas,7
+categoria,Sillas,muebles,0.8,llm,acuerdo,Sillas y pisos,7
+categoria,Otros Camping Y Outdoor,articulos-deportivos,0.55,llm,acuerdo,Botellas outdoor; faltaría camping,7
+categoria,Otras bebidas en polvo,te,0.7,llm,juez,Casi todo Nestea en polvo (té helado),6
+categoria,Mezclas saladas,arroz-legumbres,0.5,llm,juez,"Puré instantáneo; acompañamiento de despensa, faltaría acompañamientos",6
+categoria,Microfonos,audio,0.9,llm,acuerdo,Micrófonos y karaoke,6
+categoria,"Otros Liquidos, Aditivos y Aceites",automotriz,0.8,curado,curado tras agregar concepto,Faltaría concepto automotriz,6
+categoria,Repelentes para Mascotas,accesorios-mascota,0.75,llm,acuerdo,Antiparasitarios y repelentes mascota,6
+categoria,Iluminador,maquillaje,0.9,llm,acuerdo,Iluminadores de maquillaje,6
+categoria,Otros Organizadores,muebles,0.45,llm,acuerdo,Organización; ejemplos mixtos,6
+categoria,Vigorizantes,bienestar-sexual,0.75,llm,acuerdo,Potenciadores sexuales,6
+categoria,Sleeping Bags y Colchones Inflables,articulos-deportivos,0.6,llm,acuerdo,Camping; faltaría concepto camping,6
+categoria,Herramientas de Geometría,utiles,0.65,llm,acuerdo,"Reglas, útiles escolares",6
+categoria,Aceites,automotriz,0.8,curado,curado tras agregar concepto,Aceite de motor; faltaría automotriz,6
+categoria,Luces navideñas,decoracion,0.9,llm,acuerdo,Guirnaldas de luces,6
+categoria,Otros calzados,calzado,0.6,llm,juez,Regla 'Otros X'; ejemplos no coinciden con calzado,6
+categoria,Calcetines deportivos,ropa-interior,0.65,llm,juez,Calcetines Nike; calcetería suele ir en ropa interior,6
+categoria,Accesorios para exterior,automotriz,0.8,curado,curado tras agregar concepto,"Plumillas, amarras auto; faltaría automotriz",6
+categoria,Cultivos y plantas agrícolas,jardin,0.6,llm,acuerdo,Semillas de cannabis; cultivo,6
+categoria,Decoración comestible,reposteria,0.9,llm,acuerdo,Decoración de repostería,6
+categoria,Polvo Compacto,maquillaje,0.95,llm,acuerdo,Polvos de maquillaje,6
+categoria,"CD, DVD",musica,0.8,curado,curado tras agregar concepto,Faltaría música y películas; ejemplos ruidosos,6
+categoria,"Fertilizantes, herbicidas y insecticidas",jardin,0.85,llm,acuerdo,Fertilizantes y jardín,6
+categoria,Cognac,licores,0.75,llm,acuerdo,Cognac/brandy sin concepto propio; licores más cercano,6
+categoria,"Waffleras, tostadoras y sanducheras",electrohogar,0.95,llm,acuerdo,Pequeños electrodomésticos de cocina,6
+categoria,Muscular y Antiinflamatorio,medicamentos,0.4,llm,acuerdo,Por nombre; ejemplos ruidosos,5
+categoria,Contorno de ojos,dermocosmetica,0.95,llm,acuerdo,Cuidado facial de ojos,5
+categoria,Accesorios Camping,articulos-deportivos,0.7,llm,acuerdo,"Hieleras, cocinillas de camping; aire libre",5
+categoria,Protectores solares faciales,dermocosmetica,0.95,llm,acuerdo,Protección solar facial,5
+categoria,Accesorios para la Bicicleta,articulos-deportivos,0.85,llm,acuerdo,"Puños, luces, bombín de bicicleta",5
+categoria,Pantalonetas y shorts,ropa,0.95,llm,acuerdo,Shorts y bermudas infantiles,5
+categoria,Halloween,decoracion,0.85,llm,acuerdo,Decoración y cotillón de fiestas,5
+categoria,Tratamiento de cicatrices y heridas,dermocosmetica,0.8,llm,acuerdo,"Cicatricure, cremas cicatrizantes",5
+categoria,Otras mantequas,lacteos,0.6,llm,juez,Nata y ghee (3/5) lácteos; maní minoritario,5
+categoria,Bodies - Leotardos,ropa,0.8,llm,acuerdo,Bodies y enteritos de bebé,5
+categoria,Brandys,licores,0.75,llm,acuerdo,Brandy sin concepto propio; licores más cercano,5
+categoria,Hoodies y Buzos,ropa,0.9,llm,acuerdo,Buzos y pantalones de vestir,5
+categoria,Otros Muebles,cocina-menaje,0.65,llm,juez,"Fruteros, verduleros, cubertería e individuales: menaje de cocina",5
+categoria,Prueba de embarazo,salud-sexual,0.8,llm,acuerdo,Tests de embarazo y ovulación,5
+categoria,Baloncesto,articulos-deportivos,0.95,llm,acuerdo,Balones y aros de básquetbol,5
+categoria,Sushi,sushi,0.6,llm,acuerdo,Insumos y rolls de sushi,5
+categoria,Implementos de corte,utiles,0.8,llm,acuerdo,Tijeras escolares y de oficina,5
+categoria,Antimicótico tópico,medicamentos,0.4,llm,acuerdo,Por nombre; ejemplos ruidosos,5
+categoria,Otros Accesorios para vehículos,automotriz,0.8,curado,curado tras agregar concepto,Faltaría concepto accesorios automotrices,5
+categoria,"Novelas, cuentos y ficción",libros,0.6,llm,acuerdo,Por nombre; ejemplos mezclan juegos,5
+categoria,Otros Cuidados Para Automovil,automotriz,0.8,curado,curado tras agregar concepto,Faltaría concepto cuidado automotriz,5
+categoria,Otros cuidado dermatologico,dermocosmetica,0.95,llm,acuerdo,Skincare Skin1004,4
+categoria,Bolsas plásticas para Mascotas,accesorios-mascota,0.85,llm,acuerdo,Bolsas sanitarias para paseo,4
+categoria,Limpiador de vidrios,limpieza,0.95,llm,acuerdo,Limpiavidrios,4
+categoria,Otros protección incontinencia,higiene-personal,0.7,llm,acuerdo,Pañales adulto y sabanillas,4
+categoria,Bolsas al vacío y Selladores,papeles-desechables,0.6,llm,juez,Bolsas Ziploc desechables para conservar alimentos,4
+categoria,Herramientas de natación,articulos-deportivos,0.85,llm,acuerdo,"Snorkel, flotadores, naricera",4
+categoria,Rodilleras de Gateo y Cascos,articulos-deportivos,0.7,llm,acuerdo,Cascos infantiles para scooter/ski,4
+categoria,"Follaje, Cintas y mallas",decoracion,0.9,llm,acuerdo,Guirnaldas decorativas,4
+categoria,Esponjas y guantes de baño,articulos-bebe,0.65,llm,juez,Mayoría batas y juguetes de baño para bebé,4
+categoria,Comidas enlatadas,conservas,0.9,llm,acuerdo,"Chucrut, choritos en lata",4
+categoria,Radios,audio,0.9,llm,acuerdo,Radios portátiles,4
+categoria,"Mancuernas, pesas y Kits",articulos-deportivos,0.9,llm,acuerdo,Mancuernas y kettlebells,4
+categoria,Grifería Cocina,ferreteria,0.75,llm,acuerdo,Llaves y aireadores de lavaplatos,4
+categoria,Otros Botiquín y primeros auxilios,primeros-auxilios,0.95,llm,acuerdo,Botiquines y limpiadores de heridas,4
+categoria,Impresoras y Multifuncionales,computacion,0.9,llm,acuerdo,Impresoras,4
+categoria,Antenas y Decodificadores,tv-video,0.9,llm,acuerdo,TV box y antenas,4
+categoria,Espejos y Tocadores,decoracion,0.75,llm,acuerdo,Espejos decorativos y de mesa,4
+categoria,Lana,manualidades,0.8,curado,curado tras agregar concepto,Ovillos y agujas; faltaría manualidades/mercería,4
+categoria,Otros Equipo y material médico,primeros-auxilios,0.65,llm,acuerdo,"Material médico: aerocámara, medias antiembólicas, pastillero",4
+categoria,Pantalonetas y Shorts deportivos,ropa-interior,0.65,llm,acuerdo,"Ejemplos son bóxer, zunga y bikini culote",4
+categoria,Repuestos para la bicicleta,articulos-deportivos,0.8,llm,acuerdo,Repuestos de bicicleta,4
+categoria,Pomadas y ungüentos,dermocosmetica,0.6,llm,juez,Pomadas y vaselina: cuidado de piel; coceduras bebé alternativa,4
+categoria,Otros cuidado oral,cuidado-oral,0.85,llm,acuerdo,"Corega, palillos de dientes",4
+categoria,Mascaras,juguetes-infantiles,0.7,llm,acuerdo,Máscaras de superhéroes para niños,4
+categoria,Otros Disfraces,accesorios-moda,0.6,llm,juez,"Ejemplos: esclavas, prendedor, antifaz; bisutería/accesorios, no disfraces",4
+categoria,Otros Jardinería,jardin,0.5,llm,acuerdo,Otros jardinería; ejemplos mixtos,4
+categoria,Computadores portátiles,computacion,0.95,llm,acuerdo,Notebooks y accesorios,4
+categoria,Bolsas para hornear,papeles-desechables,0.75,llm,acuerdo,Bolsas herméticas Ziploc desechables,4
+categoria,Organizadores de Viaje,muebles,0.55,llm,acuerdo,Bolsas organizadoras y ahorra espacio,3
+categoria,Mouse Pad,computacion,0.9,llm,acuerdo,Accesorio de computación,3
+categoria,Mesas de centro y auxiliares,muebles,0.9,llm,acuerdo,Mesas auxiliares y veladores,3
+categoria,Otros artículos de papel,accesorios-moda,0.5,llm,juez,Pañuelos cuadrados de tela predominan; báscula ruido; nombre sugiere papeles,3
+categoria,Otros Azúcar y endulzantes,azucar,0.95,llm,acuerdo,"Stevia, tagatosa, chancaca",3
+categoria,Otros Baños,textil-hogar,0.5,llm,acuerdo,"Cortina de baño, funda asiento; accesorios de baño",3
+categoria,Otros bisuteria,juguetes-infantiles,0.75,llm,juez,"Juguete de joyas, mosaico, window art: juguetes infantiles",3
+categoria,Accesorios de pintura,ferreteria,0.8,llm,acuerdo,"Rodillos, cuchillas para pintar",3
+categoria,Otros cuidados de los pies,higiene-personal,0.75,llm,acuerdo,Cremas y desodorante de pies,3
+categoria,Otros Depilación y afeitado,higiene-personal,0.75,llm,acuerdo,Afeitadoras y depiladoras,3
+categoria,Libros Guía,libros,0.75,llm,acuerdo,Libros para colorear y guías,3
+categoria,Lámparas,decoracion,0.6,llm,juez,Lámparas decorativas/recargables; ampolletas LED alternativa ferretería,3
+categoria,Implementos de jardinería,jardin,0.6,llm,acuerdo,Herramientas de jardín,3
+categoria,Otros medicamentos,accesorios-mascota,0.8,llm,juez,"Productos para acuario/pecera y remedios veterinarios, no medicamentos humanos (une «Otros Medicamentos»)",12
+categoria,Otros Protección femenina,higiene-femenina,0.9,llm,acuerdo,"Protectores diarios, jabón íntimo",3
+categoria,Otros seguridad infantil,articulos-bebe,0.6,llm,acuerdo,Artículos para bebé y niños,3
+categoria,Otros Televisión y video,tv-video,0.45,llm,juez,Ejemplos incoherentes; se mapea por nombre según regla Otros X,3
+categoria,Pañaleras,articulos-bebe,0.85,llm,acuerdo,Bolsos pañaleros,3
+categoria,Papel film,papeles-desechables,0.8,llm,acuerdo,Film adherente de cocina,3
+categoria,Fragancias ropa,limpieza,0.85,llm,acuerdo,Aromatizantes de telas Poett,3
+categoria,Espejos,maquillaje,0.6,llm,acuerdo,Espejos cosméticos de tocador,3
+categoria,Diccionarios y Enciclopedias,libros,0.9,llm,acuerdo,Biblias y manuales,3
+categoria,Desodorantes y talcos,higiene-personal,0.9,llm,acuerdo,Talcos y desodorantes para pies,3
+categoria,Planchas de Ropa,electrohogar,0.9,llm,acuerdo,Planchas eléctricas,3
+categoria,Plantas para tu hogar,jardin,0.45,llm,acuerdo,Plantas; ejemplos poco claros (posibles semillas),3
+categoria,Delineador De Labios,maquillaje,0.95,llm,acuerdo,Maquillaje de labios,3
+categoria,Pre planchado,limpieza,0.7,llm,acuerdo,Apresto y plancha fácil para ropa,3
+categoria,Correctores y Borradores,utiles,0.95,llm,acuerdo,Útiles escolares,3
+categoria,Cojines y Cuñas,articulos-bebe,0.75,llm,acuerdo,Cojines de lactancia y maternidad,3
+categoria,Recogedores para Mascotas,accesorios-mascota,0.9,llm,acuerdo,Palas y bolsas para desechos de mascotas,3
+categoria,Ceras y retauradores,limpieza,0.9,llm,acuerdo,Ceras para pisos y lustramuebles,3
+categoria,Riñoneras y Canguros,accesorios-moda,0.8,llm,acuerdo,"Bananos/riñoneras, accesorio de moda",3
+categoria,Cargadores de Pilas,computacion,0.6,llm,acuerdo,Ejemplos mayormente mouses recargables; cargador USB,3
+categoria,Sillas para carro,articulos-bebe,0.9,llm,acuerdo,Sillas de auto infantiles y mecedora,3
+categoria,Sobres,utiles,0.93,llm,acuerdo,Sobres de papelería,3
+categoria,Suplementos y vitaminas,vitaminas,0.6,llm,acuerdo,Mezcla humanos y mascotas; nombre indica suplementos,3
+categoria,Tapetes y Alfombras,textil-hogar,0.8,curado,curado 17-10 (son sobre todo alfombras de baño y de living),"Alfombras, pisos de baño y limpiapiés; algunos playmats",21
+categoria,Autoayuda y superación,libros,0.88,llm,acuerdo,Libros,3
+categoria,Antipulgas y Antigarrapatas,accesorios-mascota,0.75,llm,acuerdo,Antiparasitarios para mascotas; falta salud-mascota,3
+categoria,Alimento para aves,accesorios-mascota,0.55,llm,acuerdo,Alimento aves; falta concepto otras mascotas,3
+categoria,Adornos y figuras navideñas,decoracion,0.9,llm,acuerdo,Adornos navideños,3
+categoria,Accesorios sexuales,bienestar-sexual,0.95,llm,acuerdo,Vibradores y juguetes eróticos,3
+categoria,Accesorios para coches,articulos-bebe,0.8,llm,juez,Coche = coche de bebé: organizadores y protector 3 Sprouts,3
+categoria,Organizadores de escritorio,muebles,0.8,llm,acuerdo,"Organizadores de plástico, organización",3
+categoria,Telas,juguetes-infantiles,0.6,llm,acuerdo,Kits de manualidades infantiles; falta manualidades,2
+categoria,Obtáculos y Escaleras de agilidad,articulos-deportivos,0.93,llm,acuerdo,Conos de entrenamiento,2
+categoria,Cámaras profesionales,juguetes-infantiles,0.6,llm,juez,Ejemplos: cámaras digitales infantiles de impresión instantánea,2
+categoria,Pezoneras,bienestar-sexual,0.7,llm,juez,"Pezoneras decorativas eróticas (estrella, Brat), no de lactancia",2
+categoria,Termómetros,primeros-auxilios,0.88,llm,acuerdo,"Termómetros clínicos, botiquín",2
+categoria,Sombra De Ojos,maquillaje,0.95,llm,acuerdo,Sombras y brochas de ojos,2
+categoria,Remedios digestivos,medicamentos,0.6,llm,juez,Nombre indica medicamentos; ejemplos mal asignados por carbón activado,2
+categoria,Fijador De Maquillaje,maquillaje,0.95,llm,acuerdo,Primer y fijador de maquillaje,2
+categoria,Tiras de LED,decoracion,0.7,llm,juez,Luces LED decorativas; cortadora es ruido,2
+categoria,Otros cuidados faciales,dermocosmetica,0.88,llm,acuerdo,Serums faciales,2
+categoria,Filtros de café,cafe,0.88,llm,acuerdo,Filtros de papel para café,2
+categoria,Arenera para Gatos,accesorios-mascota,0.9,llm,acuerdo,Bandejas y arena sanitaria gatos,2
+categoria,Toallas húmedas,higiene-personal,0.85,llm,acuerdo,Toallas húmedas higiene adulto,2
+categoria,Toallas protectoras,higiene-personal,0.8,llm,acuerdo,Protectores de incontinencia adulto,2
+categoria,Seltzers,cocteles,0.6,llm,acuerdo,"Hard seltzers, bebidas alcohólicas listas",2
+categoria,"Casas, camas y mantas",accesorios-mascota,0.7,llm,acuerdo,Camas para mascotas,2
+categoria,Papel parafinado,papeles-desechables,0.85,llm,acuerdo,Papel mantequilla para hornear,2
+categoria,Removedor de esmaltes,maquillaje,0.9,llm,acuerdo,"Quitaesmalte, uñas",2
+categoria,Carpas,articulos-deportivos,0.8,llm,acuerdo,"Carpas camping, aire libre",2
+categoria,Otros Computadores,computacion,0.55,llm,juez,Otros X → X; ejemplos incoherentes (productos auto),2
+categoria,Trajes formales,ropa,0.9,llm,acuerdo,Chaquetas y ponchos,2
+categoria,Reocortadoras de cabello,cuidado-cabello,0.8,llm,acuerdo,Cortapelos y afeitadoras,2
+categoria,"Otros Café, infusiones y modificadores de leche",cafe,0.65,llm,juez,Otros X → café; cacao como modificador de leche,2
+categoria,Café preparado,cafe,0.95,llm,acuerdo,Cold brew listo para tomar,2
+categoria,Bicicletas,juguetes-infantiles,0.6,llm,juez,"Bicicletas de balance infantiles, más juguete que deporte",2
+categoria,Antialérgico Nasal,medicamentos,0.75,llm,acuerdo,"Soluciones nasales, farmacia",2
+categoria,Antiácidos,medicamentos,0.85,llm,acuerdo,Sales efervescentes antiácidas,2
+categoria,Otros Bolsos y maletas,accesorios-moda,0.85,llm,acuerdo,Bolsos y cosmetiqueros,2
+categoria,Analgésicos tópicos,medicamentos,0.75,llm,acuerdo,"Geles de árnica, analgésicos",2
+categoria,Sacapuntas y tajadores,utiles,0.95,llm,acuerdo,Útiles escolares,2
+categoria,Monitores para bebé,articulos-bebe,0.85,llm,acuerdo,Monitores y artículos de bebé,2
+categoria,Mezcales,tequila,0.97,llm,acuerdo,Mezcal,2
+categoria,Álbumes y laminas,libros,0.7,llm,acuerdo,Libros para colorear infantiles,2
+categoria,Otros Iluminación y eléctricos,cocina-menaje,0.6,llm,juez,"Ambos ejemplos son menaje Dkora (embudos, tazón)",2
+categoria,Otros Arreglos florales,joyeria,0.7,llm,juez,Ejemplos son aros con forma de flor,2
+categoria,Tablets,computacion,0.7,llm,acuerdo,Accesorios para tablet,2
+categoria,Cuerdas y Lazos de salto,juguetes-infantiles,0.65,llm,juez,Cuerdas infantiles Nobel Toys y Disney Junior,2
+categoria,Vendas y Gasas,primeros-auxilios,0.95,llm,acuerdo,Gasas estériles,2
+categoria,Óvulos y cremas vaginales,bienestar-sexual,0.55,llm,juez,Gel Shunga erótico; otro ejemplo es crema corporal,2
+categoria,Bases refrigerantes,computacion,0.95,llm,acuerdo,Bases para notebook,2
+categoria,Repelentes,higiene-personal,0.6,llm,acuerdo,Repelente de insectos corporal,2
+categoria,Probióticos,vitaminas,0.8,llm,acuerdo,Suplementos probióticos,2
+categoria,Procesadoras de alimentos,electrohogar,0.9,llm,acuerdo,Pequeños electrodomésticos de cocina,2
+categoria,Enterizos y conjuntos deportivos,ropa,0.85,llm,acuerdo,Ropa deportiva y conjuntos,2
+categoria,Tapetes absorbentes para Mascotas,accesorios-mascota,0.95,llm,acuerdo,Pads de entrenamiento,2
+categoria,Guantes y protección para Gimnasio,articulos-deportivos,0.6,llm,acuerdo,Guantes de gimnasio,2
+categoria,Ping Pong,articulos-deportivos,0.95,llm,acuerdo,Pelotas y mallas de ping pong,2
+categoria,Otros Frutas y verduras,verduras,0.75,llm,acuerdo,Choclo; frutas y verduras,2
+categoria,Raticidas,limpieza,0.7,llm,acuerdo,Control de plagas del hogar,2
+categoria,Deshumidificadores,electrohogar,0.8,llm,acuerdo,Humidificadores/difusores,2
+categoria,Teatros en Casa y Barras,audio,0.6,llm,acuerdo,"Barras de sonido, audio",2
+categoria,Discos de algodon,higiene-personal,0.8,llm,acuerdo,Algodón y discos desmaquillantes,2
+categoria,Piscinas inflables y accesorios,jardin,0.6,llm,acuerdo,Cloro piscina; falta concepto piscina/exterior,2
+categoria,Ciencia e Ingeniería,libros,0.9,llm,acuerdo,Libros de ciencia,2
+categoria,Tacones,calzado,0.8,llm,acuerdo,Zapatos de tacón,1
+categoria,Otros Helados y postres,golosinas,0.6,llm,juez,Único ejemplo es caramelo mentolado,1
+categoria,Tapabocas y Accesorios,primeros-auxilios,0.75,llm,acuerdo,Mascarillas desechables,1
+categoria,Microondas,cocina-menaje,0.65,llm,juez,"Ejemplo es tapa plástica para microondas, accesorio",1
+categoria,Otros Futbol,ropa,0.55,llm,juez,"Ejemplo son calcetines Nike, prenda de vestir",1
+categoria,Barandas,juguetes-infantiles,0.55,llm,juez,Ejemplo es juguete de arrastre de madera,1
+categoria,Otros Electromenor,electrohogar,0.9,llm,acuerdo,Pequeños electrodomésticos,1
+categoria,Otros Dormitorio del Bebé,articulos-bebe,0.9,llm,acuerdo,Colchón de bebé,1
+categoria,Licencias y Antivirus,computacion,0.5,llm,juez,Por nombre; único ejemplo (Babyliss) mal categorizado,1
+categoria,Otra percusiones,musica,0.8,curado,curado tras agregar concepto,Falta concepto instrumentos musicales,1
+categoria,"Aspiradoras, brilladoras e hidrolavadoras",electrohogar,0.95,llm,acuerdo,Aspiradoras,1
+categoria,Arte y Arquitectura,libros,0.5,llm,juez,"Género editorial; ejemplo kit diamond painting, falta manualidades",1
+categoria,Tinte para ropa,limpieza,0.8,llm,acuerdo,Cuidado de ropa/lavandería,1
+categoria,Arreglos Artificiales,decoracion,0.85,llm,acuerdo,Plantas artificiales decorativas,1
+categoria,Otros Cuerdas,juguetes-infantiles,0.5,llm,juez,Guitarra de juguete; falta concepto instrumentos musicales,1
+categoria,Otros Cuadernos y Apuntes,utiles,0.8,llm,juez,Cuadernos son útiles; ejemplo libro stickers atípico,1
+categoria,Apósitos,primeros-auxilios,0.6,llm,juez,Apósitos de botiquín; ejemplo post parto sería higiene femenina,1
+categoria,Monitores,computacion,0.75,llm,juez,Monitores de computador; ejemplo Biblia mal categorizado,1
+categoria,Antiparasitos,accesorios-mascota,0.7,llm,acuerdo,Antiparasitario mascotas; falta salud mascota,1
+categoria,Otros Celulares y Telefonía,celulares,0.9,llm,acuerdo,"Telefonía, SIM card",1
+categoria,Trilogías y Sagas,libros,0.95,llm,acuerdo,Libros,1
+categoria,"Otros Bordado, tejido y costura",manualidades,0.8,curado,curado tras agregar concepto,Faltaría concepto manualidades/mercería,1
+categoria,Maquillaje,maquillaje,0.95,llm,acuerdo,Maquillaje,1
+categoria,Otros Baterías,ferreteria,0.75,llm,acuerdo,"Pilas y linternas, electricidad",1
+categoria,Alarmas y sensores,ferreteria,0.7,llm,juez,Seguridad hogar; ejemplo juguete detector mal categorizado,1
+categoria,Vehículos montables,juguetes-infantiles,0.9,llm,acuerdo,Juguetes,1
+categoria,Otros Audio y sonido,audio,0.85,llm,juez,Audio; ejemplo té mal categorizado,1
+categoria,Cunas y Corrales,articulos-bebe,0.95,llm,acuerdo,Artículos de bebé,1
+categoria,Preparaciones Respiratorias,medicamentos,0.85,llm,juez,Medicamentos respiratorios; ejemplo galletas perro erróneo,1
+categoria,Deportes,articulos-deportivos,0.6,llm,juez,Deportes; ejemplo libro sugiere sección editorial,1
+categoria,Crema para el café,cafe,0.85,llm,acuerdo,Complemento de café,1
+categoria,Ventiladores,electrohogar,0.9,llm,acuerdo,Electrodoméstico,1
+categoria,Coronas florales,flores-regalos,0.8,llm,juez,Coronas de flores; ejemplo cerveza Corona por homonimia,1
+categoria,Derma cuidado,dermocosmetica,0.95,llm,acuerdo,Cuidado piel,1
+categoria,Descongestionantes,medicamentos,0.95,llm,acuerdo,Medicamento,1
+categoria,Planchas asadoras,electrohogar,0.85,llm,acuerdo,Parrilla eléctrica interior,1
+categoria,Disco duro y Unidades Solidas,computacion,0.95,llm,acuerdo,Almacenamiento computación,1
+categoria,Colchones,textil-hogar,0.7,llm,acuerdo,Colchones/almohadas; podría ser muebles,1
+categoria,Dispensadores de bolsas para Mascotas,accesorios-mascota,0.95,llm,acuerdo,Accesorio mascota,1
+categoria,"Pines, mancornas y broches",joyeria,0.8,llm,juez,Bisutería; ejemplo bikini 'pin up' por coincidencia,1
+categoria,Dispositivos de streaming,tv-video,0.9,llm,acuerdo,Streaming TV,1
+categoria,Economía y Negocios,libros,0.5,llm,acuerdo,Género de libros,1
+categoria,Rascadores y gimnasios,accesorios-mascota,0.8,llm,juez,Rascadores y gimnasios para gatos,1
+categoria,Otros Aire Libre,articulos-deportivos,0.6,llm,acuerdo,"Camping/aire libre, gas butano",1
+categoria,Equipos de Sonido,audio,0.95,llm,acuerdo,Audio,1
+categoria,Escritorios,muebles,0.85,llm,acuerdo,Muebles/organización,1
+categoria,Pelotas de tenis,articulos-deportivos,0.95,llm,acuerdo,Deporte,1
+categoria,"Estrellas, colgantes y bolas",decoracion,0.85,llm,juez,Adornos navideños; ejemplo lanyard atípico,1
+categoria,Resfriado,medicamentos,0.95,llm,acuerdo,Antigripales,1
+categoria,Aceites y cremas,dermocosmetica,0.8,llm,acuerdo,Cuidado de piel,1
+categoria,Estuches y Accesorios para lentes,accesorios-moda,0.8,llm,juez,Accesorios de lentes; ejemplo sostén erróneo,1
+categoria,Eva Foam,cocina-menaje,0.55,llm,juez,Nombre de material ambiguo; ejemplo son individuales de mesa,1
+categoria,Franelas,limpieza,0.6,llm,acuerdo,Paños/esponjas de limpieza automotriz,1
+categoria,Ropa y accesorios,accesorios-mascota,0.85,llm,acuerdo,Ejemplo es ropa para perro,1
+categoria,Mascarillas,dermocosmetica,0.85,llm,acuerdo,Mascarillas faciales cosméticas,1
+categoria,Freídoras de Aire,electrohogar,0.75,llm,juez,Pequeño electrodoméstico; accesorio de papel es marginal,1
+categoria,Cardiovascular e Hipertensión,medicamentos,0.7,llm,juez,Nombre inequívoco; ejemplo destacador mal asignado,1
+categoria,Candados,ferreteria,0.7,llm,juez,Candados son ferretería; ejemplo prendedores mal asignado,1
+categoria,Funkos,juguetes-infantiles,0.8,llm,acuerdo,Figuras coleccionables/juguetes,1
+categoria,Camelbag y bolsos para camping,articulos-deportivos,0.8,llm,juez,Equipamiento outdoor; mochila calza con bolsos de camping,1
+categoria,Gafas de Natación,articulos-deportivos,0.9,llm,acuerdo,Accesorio de natación,1
+categoria,Cámaras de Acción,tv-video,0.6,llm,juez,Cámaras más cercano a video; faltaría fotografía,1
+categoria,Sanitarios y Accesorios,limpieza,0.65,llm,acuerdo,Ejemplo limpiador de baño,1
+categoria,Calzado infantil,calzado,0.9,llm,acuerdo,Calzado para niños,1
+categoria,Germinados,verduras,0.7,llm,juez,Brotes frescos; ejemplo pitahaya mal asignado,1
+categoria,"Callos, ampollas y juanetes",primeros-auxilios,0.65,llm,acuerdo,"Cuidado podológico, botiquín",1
+categoria,Golf,articulos-deportivos,0.95,llm,acuerdo,Pelotas de golf,1
+categoria,Calcetines terapeuticos,ropa,0.55,llm,juez,Calcetines; faltaría ortopedia; ejemplo no coincide,1
+categoria,Shampoo Para Auto,limpieza,0.6,llm,juez,Producto de limpieza vehicular; faltaría cuidado automotriz,1
+categoria,"Gotas, lubricantes y lágrimas",medicamentos,0.75,llm,juez,Gotas oftálmicas; ejemplo ojos locos mal asignado,1
+categoria,Cachaça,licores,0.8,llm,acuerdo,Destilado de caña brasileño,1
+categoria,Grifería Baños,ferreteria,0.8,llm,juez,Grifería es ferretería; ejemplo regadera mal asignado,1
+categoria,Otros Yogurt y bebidas lácteas,lacteos,0.85,llm,juez,Otros X mapea a X: yogur,1
+categoria,Medicamentos para mascotas,accesorios-mascota,0.7,llm,acuerdo,Antiparasitarios para mascotas,1
+categoria,Sistemas de monitoreo,computacion,0.6,llm,acuerdo,Cámaras IP de seguridad,1
+categoria,Otros Ropa Interior,ropa-interior,0.7,llm,juez,Otros X mapea a X; ejemplo aros mal asignado,1
+categoria,Otros remedios digestivos,medicamentos,0.85,llm,acuerdo,Remedios digestivos,1
+categoria,Hilos,manualidades,0.85,curado,curado 17-10 (colores como «Verde Pistacho» o «Mostaza» la llevaban a comida),"Lanas e hilos de tejer, como «Polos»",508
+categoria,Otros Paseo con el bebé,articulos-bebe,0.8,llm,juez,Otros X mapea a X: artículos de paseo bebé,1
+categoria,Muebles de exterior,muebles,0.8,llm,juez,Muebles de terraza; ejemplo SuperGreens mal asignado,1
+categoria,Otros Pañales y toallitas,panales,0.95,llm,acuerdo,Toallitas húmedas,1
+categoria,"Sombrillas, Paraguas e Impermeables",accesorios-moda,0.75,llm,acuerdo,Paraguas como accesorio,1
+categoria,Hornos y asadores,electrohogar,0.6,llm,juez,Hornos eléctricos; ejemplo brochetas sería menaje,1
+categoria,Idiomas,libros,0.85,llm,acuerdo,Libros de idiomas,1
+categoria,Otros Maquillaje Para Ojos,maquillaje,0.9,llm,acuerdo,Maquillaje de ojos,1
+categoria,Spray anti-marcas para Mascotas,accesorios-mascota,0.8,llm,acuerdo,Eliminador de olores mascotas,1
+categoria,Jarabe,untables-dulces,0.65,llm,acuerdo,"Jarabe de maple, endulzante",1
+categoria,Jugos naturales,jugos,0.9,llm,acuerdo,Jugos y smoothies,1
+categoria,Suculentas y cactus,jardin,0.85,llm,juez,Plantas; ejemplo aromatizante probablemente mal asignado,1
+categoria,Lavadoras y secadoras,electrohogar,0.85,llm,juez,Línea blanca; lavadora de juguete mal asignada,1
+categoria,Libreros y Bibliotecas,muebles,0.95,llm,acuerdo,Muebles librero,1
+cocina,Italiana,pizza,0.6,llm,acuerdo,Pizzas y gnocchi; también podría ser pastas,134
+cocina,Pizzas,pizza,0.92,llm,acuerdo,Cocina pizzas,124
+cocina,Internacional,ninguno,0.6,llm,juez,"Arepas, pastelitos; faltaría comida venezolana/latina",108
+cocina,Desayunos,desayuno,0.55,llm,acuerdo,Cocina de desayunos,90
+cocina,Pescados y Mariscos,pescados-mariscos,0.7,llm,juez,"Cocina de pescados fritos, ceviche, camarones",76
+cocina,Pastelería y Postres,pasteleria,0.6,curado,precision-21-10,"También la listan cafeterías, juguerías y heladerías: como cocina del local acertaba unos 4 de cada 10 platos (milanesas, té, batidos)",46
+cocina,Asiática,asiatica,0.85,curado,precision-06-10,"Comida china, thai, india y japonesa: un local asiático no es una sushería",44
+cocina,Carnes,carnes,0.6,llm,juez,Cocina de carnes/parrilla; ejemplos mixtos,44
+cocina,Hamburguesa,hamburguesa,0.6,llm,acuerdo,Cocina de hamburguesas,44
+cocina,Sushi,sushi,0.97,llm,acuerdo,Cocina sushi,44
+cocina,Americana,pizza,0.6,llm,acuerdo,Pizzería americana; ejemplos mayormente bebidas,36
+seccion_menu,Bebidas,gaseosas,0.85,llm,acuerdo,Gaseosas y algo de Red Bull,37
+seccion_menu,Postres,postres,0.93,llm,acuerdo,Postres de restaurante,27
+seccion_menu,Combos,ninguno,0.85,curado,precision-06-10,"Combos de todo tipo (pollo, carne, sushi): la sección no dice el plato",21
+seccion_menu,Para Compartir,picoteo,0.75,llm,acuerdo,"Ceviches, tablas, empanadas para compartir",19
+seccion_menu,Cervezas,cerveza,0.95,llm,acuerdo,Cervezas,17
+seccion_menu,Pizza,pizza,0.95,llm,acuerdo,Pizzas,17
+seccion_menu,Pasta,pastas,0.95,llm,acuerdo,Pastas,15
+seccion_menu,Rolls,sushi,0.95,llm,acuerdo,Rolls de sushi,15
+seccion_menu,Promociones,ninguno,0.65,llm,juez,Promos genéricas; faltaría concepto promociones/combos,14
+seccion_menu,Sándwiches,sandwiches,0.85,llm,acuerdo,Sándwiches chilenos y hot dogs,14
+seccion_menu,Frituras,empanadas,0.7,llm,acuerdo,"Empanadas, pastelitos, tequeños",12
+seccion_menu,Arepas,sandwiches,0.5,llm,acuerdo,Arepas rellenas; faltaría comida venezolana,11
+seccion_menu,Platos de Fondo con Acompañamiento,platos-listos,0.7,llm,acuerdo,"Platos de fondo, mayormente pescados fritos",11
+seccion_menu,Vegan,pastas,0.6,llm,juez,Mayoría pastas/gnocchi veganos; también pizzas y risotto,11
+seccion_menu,BEBIDAS,gaseosas,0.85,llm,acuerdo,Gaseosas y algo de Red Bull,10
+seccion_menu,Gelato Arteginale,helados,0.95,llm,acuerdo,Gelato,9
+seccion_menu,Insalata,ensaladas-bowls,0.95,llm,acuerdo,Ensaladas,9
+seccion_menu,Pasteles,pasteleria,0.95,llm,acuerdo,Tortas y pasteles,9
+seccion_menu,Bebidas y aguas,gaseosas,0.8,llm,acuerdo,"Mayoría gaseosas, algo de agua",8
+seccion_menu,EDICION LIMITADA,pizza,0.75,llm,acuerdo,Combos de pizzas,8
+seccion_menu,Ensaladas,ensaladas-bowls,0.95,llm,acuerdo,Ensaladas,8
+seccion_menu,Gnocchi,pastas,0.95,llm,acuerdo,Gnocchi,8
+seccion_menu,Acompañamientos,platos-listos,0.5,llm,acuerdo,"Papas, ensaladas guarnición; faltaría acompañamientos",7
+seccion_menu,Agregados,platos-listos,0.5,llm,acuerdo,"Guarniciones arroz, papas; faltaría acompañamientos",7
+seccion_menu,Bebidas Tradicionales,gaseosas,0.95,llm,acuerdo,Gaseosas,7
+seccion_menu,PIZZAS CLASICAS,pizza,0.95,llm,acuerdo,Pizzas,7
+seccion_menu,Platos ,platos-listos,0.6,llm,acuerdo,Platos españoles preparados variados,7
+seccion_menu,Tapas Calientes,picoteo,0.8,llm,acuerdo,Tapas españolas calientes,7
+seccion_menu,Antipasti y bruschettas,picoteo,0.8,llm,acuerdo,Entradas para compartir,6
+seccion_menu,Appetizers,asiatica,0.85,llm,acuerdo,Tempura y gyozas,6
+seccion_menu,Hamburguesas,hamburguesa,0.95,llm,acuerdo,Hamburguesas,6
+seccion_menu,Paellas,platos-listos,0.7,llm,acuerdo,Paellas; faltaría comida española,6
+seccion_menu,Cachapas,sandwiches,0.45,llm,acuerdo,Cachapas rellenas; faltaría comida venezolana,5
+seccion_menu,Colaciones,platos-listos,0.85,llm,acuerdo,Platos de almuerzo,5
+seccion_menu,Pastas,pastas,0.95,llm,acuerdo,Pastas,5
+seccion_menu,Salsas,salsas,0.85,llm,acuerdo,Salsas acompañamiento sushi,5
+seccion_menu,Sándwich,sandwiches,0.85,llm,acuerdo,Sándwiches y hamburguesas,5
+seccion_menu,Patacón,sandwiches,0.5,llm,acuerdo,Sándwich de plátano venezolano,4
+seccion_menu,Risotto,platos-listos,0.7,llm,acuerdo,Risottos preparados,4
+seccion_menu,Dips,salsas,0.8,llm,acuerdo,Salsas para untar,3
+seccion_menu,Especialidad de la Casa,picoteo,0.55,llm,acuerdo,Crudo y tártaro,3
+seccion_menu,PIZZAS ESPECIALIDADES,pizza,0.97,llm,acuerdo,Pizzas familiares de especialidad,3
+seccion_menu,SIDES,picoteo,0.65,llm,juez,"Acompañamientos para compartir de pizzería (cheese stix, puffs)",3
+seccion_menu,Tapas Frias,picoteo,0.85,llm,acuerdo,Tablas frías españolas,3
+seccion_menu,Combos Coca Cola,sandwiches,0.85,llm,acuerdo,Churrasco/lomito italiano con bebida,2
+seccion_menu,HAZLO COMBO,ninguno,0.4,llm,acuerdo,Complemento de combo; faltaría concepto extras/combos,2
+seccion_menu,Zuppe,sopas,0.75,llm,juez,Sopas de zapallo y tomate,2
+seccion_menu,Acompanamientos,platos-listos,0.5,llm,acuerdo,Guarnición; faltaría concepto acompañamientos,1
+seccion_menu,Especiales de temporada,pastas,0.75,llm,acuerdo,Gnocchi,1
+seccion_menu,Jugos Ama,jugos,0.95,llm,acuerdo,Jugo Ama,1
+seccion_menu,Lasagne,pastas,0.9,llm,acuerdo,Lasaña,1
+seccion_menu,Menu Almuerzo,platos-listos,0.7,llm,acuerdo,Almuerzo del día,1
+seccion_menu,Menu De Ninos,platos-listos,0.6,llm,acuerdo,Menú infantil,1
+seccion_menu,Pasta Vegana,pastas,0.9,llm,acuerdo,Pasta vegana,1
+seccion_menu,Platos De Fondo,platos-listos,0.75,llm,acuerdo,Plato de fondo preparado (pernil),1
+seccion_menu,Platos de la Temporada,pastas,0.5,llm,acuerdo,"Salsa Di Mare, probablemente pasta; dudoso",1
+seccion_menu,Promos,ninguno,0.65,llm,juez,Combo familiar genérico; faltaría concepto promociones/combos,1
+seccion_menu,Sopas,sopas,0.75,llm,juez,Caldillo de congrio: sopa,1
+seccion_menu,Tapas,picoteo,0.85,llm,acuerdo,Tabla para compartir,1
+seccion_menu,Completos,sandwiches,0.8,curado,curado,Completos y hot dogs: un «Completo» o «Italiano» sin la frase en el nombre,740
+seccion_menu,Vienesas,sandwiches,0.8,curado,curado,Hot dogs y completos,360
+seccion_menu,Perros Calientes,sandwiches,0.8,curado,curado,Hot dogs: «Perro Italiano» no es alimento para perros,148
+seccion_menu,Hot Dogs,sandwiches,0.8,curado,curado,Hot dogs y completos,74
+seccion_menu,Completos y Perros Calientes,sandwiches,0.8,curado,curado,Hot dogs y completos,38
+seccion_menu,Perro Caliente,sandwiches,0.8,curado,curado,Hot dogs: «Perro Especial» no es alimento para perros,22
+seccion_menu,Hot Dog,sandwiches,0.8,curado,curado,Hot dogs y completos,20
+seccion_menu,Perros,sandwiches,0.8,curado,curado,Hot dogs en un menú de restaurante,4
+seccion_menu,Completos Venezolanos,sandwiches,0.8,curado,curado,Perros calientes venezolanos,4
+categoria,Laxantes,medicamentos,0.85,curado,curado 05-10 (categorías nuevas del 04-10),Laxantes y purgantes,58
+categoria,Analgésicos sistémicos,medicamentos,0.85,curado,curado 05-10 (categorías nuevas del 04-10),"Paracetamol, ibuprofeno y similares",45
+categoria,Analgésicos infantiles,medicamentos,0.85,curado,curado 05-10 (categorías nuevas del 04-10),Analgésicos para niños,3
+categoria,Antidiarréicos,medicamentos,0.85,curado,curado 05-10 (categorías nuevas del 04-10),Antidiarreicos,28
+categoria,Antináuseas,medicamentos,0.85,curado,curado 05-10 (categorías nuevas del 04-10),Antieméticos,25
+categoria,Antigases,medicamentos,0.85,curado,curado 05-10 (categorías nuevas del 04-10),Antiflatulentos,9
+categoria,Antiparasitario,medicamentos,0.85,curado,curado 05-10 (categorías nuevas del 04-10),Antiparasitarios y antimicóticos de uso humano,17
+categoria,Antimicóticos,medicamentos,0.85,curado,curado 05-10 (categorías nuevas del 04-10),Antimicóticos,4
+categoria,Otros alivio del dolor,medicamentos,0.85,curado,curado 05-10 (categorías nuevas del 04-10),Alivio del dolor,1
+categoria,Equipos Respiratorios,medicamentos,0.85,curado,curado 05-10 (categorías nuevas del 04-10),Inhaladores y aerocámaras,22
+categoria,"Glucómetros, Tiras y Lancetas",primeros-auxilios,0.85,curado,curado 05-10 (categorías nuevas del 04-10),Control de glucosa,26
+categoria,Pruebas COVID-19,primeros-auxilios,0.85,curado,curado 05-10 (categorías nuevas del 04-10),Test de antígenos,4
+categoria,Gastronomía y Nutrición,libros,0.85,curado,curado 05-10 (categorías nuevas del 04-10),Libros de cocina y nutrición,44
+categoria,Salud y Medicina,libros,0.85,curado,curado 05-10 (categorías nuevas del 04-10),Libros de salud,44
+categoria,Poesía y Teatro,libros,0.85,curado,curado 05-10 (categorías nuevas del 04-10),Libros,43
+categoria,Cómics,libros,0.85,curado,curado 05-10 (categorías nuevas del 04-10),Cómics,41
+categoria,Manga,libros,0.85,curado,curado 05-10 (categorías nuevas del 04-10),Manga,39
+categoria,Biografías y autobiografías,libros,0.85,curado,curado 05-10 (categorías nuevas del 04-10),Libros,36
+categoria,Literatura,libros,0.85,curado,curado 05-10 (categorías nuevas del 04-10),Libros,35
+categoria,Ciencias sociales y humanas,libros,0.85,curado,curado 05-10 (categorías nuevas del 04-10),Libros,30
+categoria,Derecho y Jurisprudencia,libros,0.85,curado,curado 05-10 (categorías nuevas del 04-10),Libros,12
+categoria,Otros Profesionales,libros,0.85,curado,curado 05-10 (categorías nuevas del 04-10),Libros técnicos y de divulgación,9
+categoria,Otros Cómics y Manga,libros,0.85,curado,curado 05-10 (categorías nuevas del 04-10),Cómics y manga,2
+categoria,Otros Textos Escolares,libros,0.85,curado,curado 05-10 (categorías nuevas del 04-10),Textos escolares,19
+categoria,Riego,jardin,0.85,curado,curado 05-10 (categorías nuevas del 04-10),Mangueras y riego,49
+categoria,Amarres y abrazaderas,ferreteria,0.85,curado,curado 05-10 (categorías nuevas del 04-10),Abrazaderas y fittings,80
+categoria,Cerraduras y Videoportero,ferreteria,0.85,curado,curado 05-10 (categorías nuevas del 04-10),Cerraduras,41
+categoria,Duchas,ferreteria,0.85,curado,curado 05-10 (categorías nuevas del 04-10),Duchas y grifería,21
+categoria,Reguladores y supresores,ferreteria,0.85,curado,curado 05-10 (categorías nuevas del 04-10),Reguladores de gas y electricidad,10
+categoria,Otros Seguridad,ferreteria,0.85,curado,curado 05-10 (categorías nuevas del 04-10),Seguridad del hogar,8
+categoria,Plantillas,calzado,0.85,curado,curado 05-10 (categorías nuevas del 04-10),Plantillas para zapatos,54
+categoria,Pesca Deportiva,articulos-deportivos,0.85,curado,curado 05-10 (categorías nuevas del 04-10),Pesca,46
+categoria,Equipos de resistencia y abdomen,articulos-deportivos,0.85,curado,curado 05-10 (categorías nuevas del 04-10),Ejercicio en casa,18
+categoria,Otros Máquinas Para Hacer Ejercicio,articulos-deportivos,0.85,curado,curado 05-10 (categorías nuevas del 04-10),Máquinas de ejercicio,12
+categoria,Protección Patinaje,articulos-deportivos,0.85,curado,curado 05-10 (categorías nuevas del 04-10),Protecciones de patinaje,11
+categoria,Canchas y banderines,articulos-deportivos,0.85,curado,curado 05-10 (categorías nuevas del 04-10),"Fútbol: redes, petos y calcetas",14
+categoria,Beisbol y Sóftbol,articulos-deportivos,0.85,curado,curado 05-10 (categorías nuevas del 04-10),Béisbol,8
+categoria,Trajes de Ciclismo,articulos-deportivos,0.85,curado,curado 05-10 (categorías nuevas del 04-10),Ropa y accesorios de ciclismo,12
+categoria,Seguridad en el camping,articulos-deportivos,0.85,curado,curado 05-10 (categorías nuevas del 04-10),Camping,13
+categoria,Menaje para camping,articulos-deportivos,0.85,curado,curado 05-10 (categorías nuevas del 04-10),Camping,7
+categoria,Gorros de Natación,articulos-deportivos,0.85,curado,curado 05-10 (categorías nuevas del 04-10),Natación,10
+categoria,Guantes y Protección de boxeo,articulos-deportivos,0.85,curado,curado 05-10 (categorías nuevas del 04-10),Boxeo,6
+categoria,Barras y Discos,articulos-deportivos,0.85,curado,curado 05-10 (categorías nuevas del 04-10),Pesas,5
+categoria,Otros Suministros de oficina,utiles,0.85,curado,curado 05-10 (categorías nuevas del 04-10),Artículos de oficina,45
+categoria,Calculadoras,utiles,0.85,curado,curado 05-10 (categorías nuevas del 04-10),Calculadoras,8
+categoria,Otros ambientadores,limpieza,0.85,curado,curado 05-10 (categorías nuevas del 04-10),"Sahumerios y aromatizantes, como «Ambientadores»",42
+categoria,Agujas,manualidades,0.85,curado,curado 05-10 (categorías nuevas del 04-10),"Agujas, palillos y crochet",38
+categoria,Polos,manualidades,0.85,curado,curado 05-10 (categorías nuevas del 04-10),Lanas e hilos (no poleras),18
+categoria,Control Remoto,tv-video,0.85,curado,curado 05-10 (categorías nuevas del 04-10),Controles remotos,27
+categoria,Pays caseros,pasteleria,0.85,curado,curado 05-10 (categorías nuevas del 04-10),"Queques, kuchenes y brownies",23
+categoria,Lociones y perfumes de mascotas,accesorios-mascota,0.85,curado,curado 05-10 (categorías nuevas del 04-10),Higiene de mascotas,19
+categoria,Pañitos Húmedos para Mascotas,accesorios-mascota,0.85,curado,curado 05-10 (categorías nuevas del 04-10),Higiene de mascotas,18
+categoria,Pañales y forros para Mascotas,accesorios-mascota,0.85,curado,curado 05-10 (categorías nuevas del 04-10),Higiene de mascotas (no pañales de guagua),18
+categoria,Acuarios y accesorios,accesorios-mascota,0.85,curado,curado 05-10 (categorías nuevas del 04-10),Acuarios,17
+categoria,Jaulas y Accesorios,accesorios-mascota,0.85,curado,curado 05-10 (categorías nuevas del 04-10),Jaulas,15
+categoria,Corta uñas de mascotas,accesorios-mascota,0.85,curado,curado 05-10 (categorías nuevas del 04-10),Higiene de mascotas,10
+categoria,Implementos de viaje,accesorios-mascota,0.85,curado,curado 05-10 (categorías nuevas del 04-10),Bolsos y jaulas de transporte para mascotas,10
+categoria,Mascara De Cejas,maquillaje,0.85,curado,curado 05-10 (categorías nuevas del 04-10),Cejas,19
+categoria,Delineador Y Lápiz De Cejas,maquillaje,0.85,curado,curado 05-10 (categorías nuevas del 04-10),Cejas,10
+categoria,Dispositivos de Wifi,computacion,0.85,curado,curado 05-10 (categorías nuevas del 04-10),Routers y repetidores,14
+categoria,Calefactores,electrohogar,0.85,curado,curado 05-10 (categorías nuevas del 04-10),Calefactores,10

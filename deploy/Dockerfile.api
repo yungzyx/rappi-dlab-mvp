@@ -1,0 +1,99 @@
+# syntax=docker/dockerfile:1
+# La API (objetivo `api`) y los trabajos del operador (objetivo `jobs`: migrar con respaldo, la tarea semanal, respaldos).
+# Contexto: la raíz del repo (docker-compose.yml lo pasa así). Sin datos descargados ni claves (.dockerignore): el
+# catálogo vive en el volumen de la base.
+#   docker build -f deploy/Dockerfile.api --target api .
+# BAKE_MODEL=1 (por defecto) hornea el modelo de texto en la imagen (~1,1 GB): la API arranca sin internet. El CI
+# construye con BAKE_MODEL=0 y lo descarga al arrancar.
+
+FROM python:3.13.17-slim-trixie AS base
+
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    PIP_NO_CACHE_DIR=1 \
+    PIP_DISABLE_PIP_VERSION_CHECK=1 \
+    HF_HOME=/opt/hf \
+    RAPPI_DATA_DIR=/data \
+    RAPPI_IA_DATA_DIR=/data/ia
+
+# curl: el healthcheck de la API (`curl -f localhost:8000/health`).
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends curl \
+    && rm -rf /var/lib/apt/lists/* \
+    && groupadd --gid 10001 rappi \
+    && useradd --uid 10001 --gid rappi --create-home --shell /usr/sbin/nologin rappi
+
+WORKDIR /app
+
+# Primero las dependencias, con paquetes vacíos: cambiar el código no vuelve a instalar torch. La instalación editable
+# apunta a src/, así que el código que se copia después es el que corre. torch va primero, solo él (--no-deps) y en su
+# versión del lock, desde el índice de CPU (sin CUDA: la imagen pesa ~2 GB menos); todo lo demás, sus dependencias
+# incluidas, sale de PyPI con las versiones del lock.
+COPY rappi-ia/requirements.lock.txt rappi-ia/pyproject.toml rappi-ia/README.md rappi-ia/
+COPY rappi-scraper/pyproject.toml rappi-scraper/README.md rappi-scraper/
+COPY rappi-ia/src/rappi_ia/config.py rappi-ia/src/rappi_ia/config.py
+RUN mkdir -p rappi-scraper/src/rappi_scraper \
+    && touch rappi-scraper/src/rappi_scraper/__init__.py rappi-ia/src/rappi_ia/__init__.py \
+    && pip install --no-deps --index-url https://download.pytorch.org/whl/cpu \
+        "$(grep -E '^torch==' rappi-ia/requirements.lock.txt)" \
+    && pip install -c rappi-ia/requirements.lock.txt -e rappi-scraper -e "rappi-ia[api,ml]"
+
+# El modelo de texto en el commit fijado en config.py (TEXT_EMBEDDING_REVISION), en HF_HOME. Va antes del código: un
+# cambio del código no lo vuelve a descargar (sí uno de config.py).
+ARG BAKE_MODEL=1
+RUN mkdir -p "$HF_HOME" \
+    && if [ "$BAKE_MODEL" = 1 ]; then \
+        python -c "from rappi_ia import config; from sentence_transformers import SentenceTransformer; SentenceTransformer(config.TEXT_EMBEDDING_MODEL, revision=config.TEXT_EMBEDDING_REVISION, device='cpu')"; \
+    fi \
+    && chown -R rappi:rappi "$HF_HOME"
+
+COPY rappi-scraper/src rappi-scraper/src
+COPY rappi-ia/src rappi-ia/src
+COPY rappi-ia/Makefile rappi-ia/Makefile
+COPY rappi-ia/scripts rappi-ia/scripts
+COPY rappi-scraper/Makefile rappi-scraper/Makefile
+COPY rappi-scraper/scripts rappi-scraper/scripts
+# Los permisos del rol de la API que aplica deploy-migrate (rappi-ia busca ../deploy/db/grants.sql).
+COPY deploy/db/grants.sql deploy/db/grants.sql
+# El respaldo nocturno y la prueba de restauración (deploy/systemd/rappi-backup.service).
+COPY deploy/scripts deploy/scripts
+
+# Los volúmenes nuevos heredan este dueño: el usuario rappi escribe en /data (y /data/backups) sin ser root.
+RUN mkdir -p /data/backups /data/ia && chown -R rappi:rappi /data
+
+# En ejecución, sin consultar huggingface.co: el modelo ya está en la imagen.
+ENV HF_HUB_OFFLINE=1
+
+
+FROM base AS api
+
+USER rappi
+EXPOSE 8000
+# El puerto no se publica: solo Caddy, en la red del stack, llega a la API. Por eso --forwarded-allow-ips='*': la IP
+# del cliente (para los cupos por IP) es la que Caddy pone en X-Forwarded-For.
+CMD ["sh", "-c", "exec uvicorn rappi_ia.api.app:app --host 0.0.0.0 --port 8000 --workers ${API_WORKERS:-1} --proxy-headers --forwarded-allow-ips='*' --no-access-log"]
+
+
+FROM base AS jobs
+
+# pg_dump y pg_restore 17 (los de Debian son de otra versión; los de PGDG, la misma que la base), make para los pasos
+# del Makefile, restic para los respaldos fuera del equipo y tzdata para la hora de Chile (TZ en docker-compose.yml).
+# bash ya viene en la imagen.
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends ca-certificates make restic tzdata \
+    && install -d /usr/share/postgresql-common/pgdg \
+    && curl -fsSL -o /usr/share/postgresql-common/pgdg/apt.postgresql.org.asc https://www.postgresql.org/media/keys/ACCC4CF8.asc \
+    && . /etc/os-release \
+    && echo "deb [signed-by=/usr/share/postgresql-common/pgdg/apt.postgresql.org.asc] https://apt.postgresql.org/pub/repos/apt ${VERSION_CODENAME}-pgdg main" \
+        > /etc/apt/sources.list.d/pgdg.list \
+    && apt-get update \
+    && apt-get install -y --no-install-recommends postgresql-client-17 \
+    && rm -rf /var/lib/apt/lists/*
+
+ENV PG_DUMP=/usr/lib/postgresql/17/bin/pg_dump
+# La tarea semanal (rappi-scraper/scripts/refresh-semanal.sh) sin .venv: los comandos instalados en la imagen.
+ENV RAPPI_BIN=rappi \
+    RAPPI_IA_PY=python
+
+USER rappi
+CMD ["rappi-ia", "--help"]

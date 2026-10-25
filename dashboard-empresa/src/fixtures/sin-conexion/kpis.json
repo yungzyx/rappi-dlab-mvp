@@ -1,0 +1,21 @@
+{
+  "source": "synthetic",
+  "data": {
+    "as_of": "2026-10-17T23:59:51.082403-03:00",
+    "usuarios_activos": 1334,
+    "pedidos_30d": 1995,
+    "frecuencia": 1.5,
+    "mediana_dias_entre_pedidos": 10,
+    "abandono_carrito_pct": 26.1,
+    "multi_vertical_pct": 21.7,
+    "en_riesgo": 280,
+    "perdidos": 564,
+    "busquedas_sin_resultado_pct": 22.3,
+    "conversion_sesiones_pct": 54.6,
+    "source": "synthetic"
+  },
+  "guardado": {
+    "origen": "npm run panel:snapshot · usuarios simulados de rappi_staging",
+    "fecha": "2026-10-24"
+  }
+}

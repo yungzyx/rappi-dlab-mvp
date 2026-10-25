@@ -1,0 +1,16 @@
+# Purga diaria del servidor, en el contenedor jobs (la dispara rappi-purge.timer, todos los días 04:00): `rappi-ia
+# purge` borra el texto de las búsquedas de más de 90 días y a las personas del prototipo sin actividad en 180.
+# Independiente de la descarga semanal y del respaldo nocturno (rappi-backup.service): si uno falla, el otro corre.
+[Unit]
+Description=Rappi: purga diaria de datos de personas
+Requires=docker.service
+After=docker.service
+
+[Service]
+Type=oneshot
+# Editar: la carpeta del repo en el servidor (la misma en rappi-backup.service y rappi-refresh.service).
+WorkingDirectory=/opt/rappi
+# El archivo de entorno de deploy/.env.example; compose lo lee para armar el stack y lo pasa a los contenedores.
+Environment=RAPPI_ENV_FILE=/etc/rappi/rappi.env
+ExecStart=/usr/bin/docker compose --env-file ${RAPPI_ENV_FILE} -f deploy/docker-compose.yml --profile jobs run --rm jobs rappi-ia purge
+TimeoutStartSec=1h

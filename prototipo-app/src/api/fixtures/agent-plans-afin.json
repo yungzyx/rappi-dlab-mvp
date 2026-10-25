@@ -1,0 +1,155 @@
+[
+  {
+    "emoji": "🔥",
+    "id": "asado",
+    "name": "Asado",
+    "reason": {
+      "basis": [
+        {
+          "id": "carnes",
+          "kind": "concepto",
+          "score": 3.0,
+          "source": "eventos"
+        }
+      ],
+      "text": "Por tu interés en 🥩 carnes y parrilla."
+    }
+  },
+  {
+    "emoji": "🎁",
+    "id": "regalo",
+    "name": "Regalo",
+    "reason": {
+      "basis": [
+        {
+          "id": "chocolates",
+          "kind": "concepto",
+          "score": 3.0,
+          "source": "eventos"
+        }
+      ],
+      "text": "Por tu interés en 🍫 chocolates."
+    }
+  },
+  {
+    "emoji": "🇨🇱",
+    "id": "fiestas-patrias",
+    "name": "Fiestas Patrias",
+    "reason": {
+      "basis": [
+        {
+          "id": "carnes",
+          "kind": "concepto",
+          "score": 3.0,
+          "source": "eventos"
+        }
+      ],
+      "text": "Por tu interés en 🥩 carnes y parrilla."
+    }
+  },
+  {
+    "emoji": "📚",
+    "id": "estudiar",
+    "name": "Noche de estudio",
+    "reason": {
+      "basis": [
+        {
+          "id": "chocolates",
+          "kind": "concepto",
+          "score": 3.0,
+          "source": "eventos"
+        }
+      ],
+      "text": "Por tu interés en 🍫 chocolates."
+    }
+  },
+  {
+    "emoji": "🍬",
+    "id": "antojo",
+    "name": "Antojo dulce",
+    "reason": {
+      "basis": [
+        {
+          "id": "chocolates",
+          "kind": "concepto",
+          "score": 3.0,
+          "source": "eventos"
+        }
+      ],
+      "text": "Por tu interés en 🍫 chocolates."
+    }
+  },
+  {
+    "emoji": "🕯️",
+    "id": "cita",
+    "name": "Cena romántica",
+    "reason": {
+      "basis": [
+        {
+          "id": "chocolates",
+          "kind": "concepto",
+          "score": 3.0,
+          "source": "eventos"
+        }
+      ],
+      "text": "Por tu interés en 🍫 chocolates."
+    }
+  },
+  {
+    "emoji": "💛",
+    "id": "animo",
+    "name": "Un mimo",
+    "reason": {
+      "basis": [
+        {
+          "id": "chocolates",
+          "kind": "concepto",
+          "score": 3.0,
+          "source": "eventos"
+        }
+      ],
+      "text": "Por tu interés en 🍫 chocolates."
+    }
+  },
+  {
+    "emoji": "🧸",
+    "id": "regalo-nino",
+    "name": "Regalo para un niño",
+    "reason": {
+      "basis": [
+        {
+          "id": "chocolates",
+          "kind": "concepto",
+          "score": 3.0,
+          "source": "eventos"
+        }
+      ],
+      "text": "Por tu interés en 🍫 chocolates."
+    }
+  },
+  {
+    "emoji": "☕",
+    "id": "once",
+    "name": "Once"
+  },
+  {
+    "emoji": "🎉",
+    "id": "carrete",
+    "name": "Carrete"
+  },
+  {
+    "emoji": "🍿",
+    "id": "panorama",
+    "name": "Panorama en casa"
+  },
+  {
+    "emoji": "🍽️",
+    "id": "hambre",
+    "name": "Hambre ya"
+  },
+  {
+    "emoji": "🎂",
+    "id": "cumpleanos",
+    "name": "Cumpleaños"
+  }
+]

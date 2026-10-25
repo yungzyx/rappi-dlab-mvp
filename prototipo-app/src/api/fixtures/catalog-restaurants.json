@@ -1,0 +1,87 @@
+[
+  {
+    "area": "Ñuñoa",
+    "cover": "https://imagenes.prueba.invalid/platos/98012.png",
+    "cuisines": [
+      "Carnes"
+    ],
+    "eta": "40 min",
+    "fee": "$2.490",
+    "id": 9804,
+    "name": "Parrilla de prueba",
+    "rating": 4.8
+  },
+  {
+    "area": "",
+    "cover": "https://imagenes.prueba.invalid/platos/98002.png",
+    "cuisines": [
+      "Pizzas"
+    ],
+    "eta": "25 min",
+    "fee": "$1.490",
+    "id": 9801,
+    "name": "Pizzería de prueba Centro",
+    "rating": 4.6
+  },
+  {
+    "area": "Vitacura",
+    "cover": "https://imagenes.prueba.invalid/platos/98018.png",
+    "cuisines": [
+      "Pastelería y Postres"
+    ],
+    "eta": "20 min",
+    "fee": "$690",
+    "id": 9806,
+    "name": "Pastelería de prueba",
+    "rating": 4.6
+  },
+  {
+    "area": "Providencia",
+    "cover": "https://imagenes.prueba.invalid/platos/98010.png",
+    "cuisines": [
+      "Americana"
+    ],
+    "eta": "15 min",
+    "fee": "$990",
+    "id": 9803,
+    "name": "Sándwiches de prueba",
+    "rating": 4.2
+  },
+  {
+    "area": "Las Condes",
+    "cover": "https://imagenes.prueba.invalid/platos/98015.png",
+    "cuisines": [
+      "Desayunos"
+    ],
+    "eta": null,
+    "fee": "$1.990",
+    "id": 9805,
+    "name": "Café de prueba",
+    "rating": 3.9
+  },
+  {
+    "area": "",
+    "cover": "https://imagenes.prueba.invalid/platos/98006.png",
+    "cuisines": [
+      "Hamburguesa",
+      "Sushi"
+    ],
+    "eta": "35 min",
+    "fee": "$0",
+    "id": 9802,
+    "name": "Sushi y hamburguesas de prueba Norte",
+    "rating": null
+  },
+  {
+    "area": "Santiago",
+    "cover": null,
+    "cuisines": [
+      "Pescados y Mariscos"
+    ],
+    "eta": "30 min",
+    "fee": "$0",
+    "id": 9807,
+    "name": "Cevichería de prueba",
+    "rating": null
+  }
+]

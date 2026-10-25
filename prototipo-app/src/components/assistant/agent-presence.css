@@ -1,0 +1,158 @@
+/* Mochi flotante (prototipo final, fuera de la Home): a un costado, sobre la barra inferior o la del carrito. */
+.agent-presence {
+  --agent-bottom: 28px;
+  position: absolute;
+  right: 12px;
+  bottom: calc(var(--agent-bottom) + env(safe-area-inset-bottom, 0px));
+  z-index: var(--z-agent);
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 8px;
+  pointer-events: none;
+}
+
+/* Sobre la barra del carrito (52 px desde 28 px), la barra inferior o ambas */
+.agent-presence.has-cart {
+  --agent-bottom: 92px;
+}
+
+.agent-presence.is-raised {
+  --agent-bottom: 100px;
+}
+
+.agent-presence.has-cart.is-raised {
+  --agent-bottom: 164px;
+}
+
+.agent-presence.is-left {
+  right: auto;
+  left: 12px;
+  align-items: flex-start;
+}
+
+.agent-presence-body {
+  pointer-events: auto;
+  touch-action: none; /* el arrastre es de Mochi, no un scroll */
+  border-radius: 50%;
+}
+
+.agent-presence-body:focus-visible {
+  outline: 2.5px solid var(--agent-orange);
+  outline-offset: 2px;
+}
+
+.agent-presence.is-small .agent-presence-body {
+  transform: scale(0.8);
+  transform-origin: bottom right;
+}
+
+.agent-presence.is-left.is-small .agent-presence-body {
+  transform-origin: bottom left;
+}
+
+.agent-popover {
+  pointer-events: auto;
+  width: max-content;
+  max-width: 250px;
+  padding: 12px 14px;
+  border-radius: 18px 18px 6px 18px;
+  background: var(--surface);
+  color: var(--ink);
+  box-shadow: 0 10px 30px rgba(20, 10, 5, 0.22);
+  font-size: 14px;
+  line-height: 19px;
+}
+
+.agent-presence.is-left .agent-popover {
+  border-radius: 18px 18px 18px 6px;
+}
+
+.agent-popover p {
+  margin: 0 0 8px;
+  font-weight: 600;
+}
+
+.agent-popover small {
+  display: block;
+  margin-top: 8px;
+  color: var(--ink-2);
+  font-size: 12px;
+}
+
+.agent-actions {
+  display: grid;
+  gap: 6px;
+}
+
+.agent-action {
+  padding: 8px 12px;
+  border-radius: 12px;
+  background: var(--chip);
+  color: var(--ink);
+  font-size: 13px;
+  font-weight: 600;
+  text-align: left;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .agent-presence-body {
+    transition: transform 200ms var(--ease-out);
+  }
+
+  .agent-popover {
+    animation: agent-popover-in 260ms var(--ease-out);
+    transform-origin: bottom right;
+  }
+
+  .agent-presence.is-left .agent-popover {
+    transform-origin: bottom left;
+  }
+}
+
+@keyframes agent-popover-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px) scale(0.92);
+  }
+}
+
+/* Silenciado por hoy: asoma media cara desde el borde */
+.agent-quiet-tab {
+  pointer-events: auto;
+  margin-right: -32px;
+  opacity: 0.85;
+}
+
+.agent-presence.is-left .agent-quiet-tab {
+  margin-right: 0;
+  margin-left: -32px;
+}
+
+/* Confirmación al agregar al carro: deja pasar los toques (se sigue comprando debajo) salvo en sus dos botones */
+.agent-bubble {
+  position: relative;
+  max-width: 220px;
+  padding-right: 34px;
+  pointer-events: none;
+}
+
+.agent-bubble button {
+  pointer-events: auto;
+}
+
+.agent-bubble .agent-action {
+  justify-self: start;
+}
+
+.agent-bubble-close {
+  position: absolute;
+  top: 4px;
+  right: 6px;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  color: var(--ink-2);
+  font-size: 18px;
+  line-height: 28px;
+}

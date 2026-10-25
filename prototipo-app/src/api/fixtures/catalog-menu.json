@@ -1,0 +1,138 @@
+{
+  "restaurant": {
+    "area": "",
+    "cover": "https://imagenes.prueba.invalid/platos/98002.png",
+    "cuisines": [
+      "Pizzas"
+    ],
+    "eta": "25 min",
+    "fee": "$1.490",
+    "id": 9801,
+    "name": "Pizzería de prueba Centro",
+    "rating": 4.6
+  },
+  "sections": [
+    {
+      "items": [
+        {
+          "age_restricted": false,
+          "before": null,
+          "concept": "pizza",
+          "discount": null,
+          "entity_id": "98002",
+          "entity_type": "menu_item",
+          "id": "menu-98002",
+          "img": "https://imagenes.prueba.invalid/platos/98002.png",
+          "name": "Pizza margarita mediana (prueba)",
+          "presentation": null,
+          "price": "$8.990",
+          "price_value": 8990.0,
+          "store": "Pizzería de prueba Centro",
+          "store_id": 9801,
+          "vertical": "restaurantes"
+        },
+        {
+          "age_restricted": false,
+          "before": null,
+          "concept": "postres",
+          "discount": null,
+          "entity_id": "98004",
+          "entity_type": "menu_item",
+          "id": "menu-98004",
+          "img": "https://imagenes.prueba.invalid/platos/98004.png",
+          "name": "Tiramisú individual (prueba)",
+          "presentation": null,
+          "price": "$3.990",
+          "price_value": 3990.0,
+          "store": "Pizzería de prueba Centro",
+          "store_id": 9801,
+          "vertical": "restaurantes"
+        }
+      ],
+      "name": "Lo más pedido"
+    },
+    {
+      "items": [
+        {
+          "age_restricted": false,
+          "before": null,
+          "concept": "pizza",
+          "discount": null,
+          "entity_id": "98001",
+          "entity_type": "menu_item",
+          "id": "menu-98001",
+          "img": "https://imagenes.prueba.invalid/platos/98001.png",
+          "name": "Pizza pepperoni familiar (prueba)",
+          "presentation": null,
+          "price": "$12.990",
+          "price_value": 12990.0,
+          "store": "Pizzería de prueba Centro",
+          "store_id": 9801,
+          "vertical": "restaurantes"
+        },
+        {
+          "age_restricted": false,
+          "before": null,
+          "concept": "pizza",
+          "discount": null,
+          "entity_id": "98002",
+          "entity_type": "menu_item",
+          "id": "menu-98002",
+          "img": "https://imagenes.prueba.invalid/platos/98002.png",
+          "name": "Pizza margarita mediana (prueba)",
+          "presentation": null,
+          "price": "$8.990",
+          "price_value": 8990.0,
+          "store": "Pizzería de prueba Centro",
+          "store_id": 9801,
+          "vertical": "restaurantes"
+        }
+      ],
+      "name": "Pizzas"
+    },
+    {
+      "items": [
+        {
+          "age_restricted": false,
+          "before": null,
+          "concept": "gaseosas",
+          "discount": null,
+          "entity_id": "98003",
+          "entity_type": "menu_item",
+          "id": "menu-98003",
+          "img": null,
+          "name": "Bebida cola 500 cc (prueba)",
+          "presentation": null,
+          "price": "$1.990",
+          "price_value": 1990.0,
+          "store": "Pizzería de prueba Centro",
+          "store_id": 9801,
+          "vertical": "restaurantes"
+        }
+      ],
+      "name": "Bebidas"
+    },
+    {
+      "items": [
+        {
+          "age_restricted": false,
+          "before": null,
+          "concept": "postres",
+          "discount": null,
+          "entity_id": "98004",
+          "entity_type": "menu_item",
+          "id": "menu-98004",
+          "img": "https://imagenes.prueba.invalid/platos/98004.png",
+          "name": "Tiramisú individual (prueba)",
+          "presentation": null,
+          "price": "$3.990",
+          "price_value": 3990.0,
+          "store": "Pizzería de prueba Centro",
+          "store_id": 9801,
+          "vertical": "restaurantes"
+        }
+      ],
+      "name": "Postres"
+    }
+  ]
+}

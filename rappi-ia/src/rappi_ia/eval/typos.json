@@ -1,0 +1,324 @@
+{
+ "version": "2026-10-24",
+ "nota": "Errores de tipeo para la corrección de la búsqueda (retrieval/spelling.py, 24-10). Cada caso tiene lo que la persona escribió (`query`), lo que quiso escribir (`quiso`) y el motivo. Se recupera si la búsqueda no queda «sin resultado» y muestra al menos 3 de los 5 primeros productos que muestra `quiso` (o todos, si muestra menos). Los errores son los que se ven al escribir rápido en el teléfono: letras repetidas, faltantes, cambiadas o traspuestas, marcas mal escritas, sin tildes, con muletillas y plurales raros. `rappi-ia eval-typos` los mide junto con las negativas de queries.json, que deben seguir sin resultado.",
+ "queries": [
+  {
+   "vertical": "supermercado",
+   "query": "nutela",
+   "quiso": "nutella",
+   "motivo": "marca mal escrita: una l"
+  },
+  {
+   "vertical": "supermercado",
+   "query": "nutelaa",
+   "quiso": "nutella",
+   "motivo": "marca mal escrita y letra repetida"
+  },
+  {
+   "vertical": "supermercado",
+   "query": "arros grado 2",
+   "quiso": "arroz grado 2",
+   "motivo": "letra cambiada (s por z)"
+  },
+  {
+   "vertical": "supermercado",
+   "query": "mayonesa hellmans",
+   "quiso": "mayonesa hellmanns",
+   "motivo": "marca mal escrita: falta una n"
+  },
+  {
+   "vertical": "supermercado",
+   "query": "pañales huggis",
+   "quiso": "pañales huggies",
+   "motivo": "marca mal escrita: falta la e"
+  },
+  {
+   "vertical": "supermercado",
+   "query": "mantequlla",
+   "quiso": "mantequilla",
+   "motivo": "letra faltante"
+  },
+  {
+   "vertical": "supermercado",
+   "query": "aceite de olvia",
+   "quiso": "aceite de oliva",
+   "motivo": "letras traspuestas"
+  },
+  {
+   "vertical": "supermercado",
+   "query": "fideos carozi",
+   "quiso": "fideos carozzi",
+   "motivo": "marca mal escrita: una z"
+  },
+  {
+   "vertical": "supermercado",
+   "query": "papel igienico",
+   "quiso": "papel higiénico",
+   "motivo": "sin h y sin tilde"
+  },
+  {
+   "vertical": "supermercado",
+   "query": "quesso gauda",
+   "quiso": "queso gauda",
+   "motivo": "letra repetida"
+  },
+  {
+   "vertical": "supermercado",
+   "query": "detergente arielll",
+   "quiso": "detergente ariel",
+   "motivo": "letras repetidas"
+  },
+  {
+   "vertical": "supermercado",
+   "query": "nesquick",
+   "quiso": "nesquik",
+   "motivo": "marca mal escrita: ck"
+  },
+  {
+   "vertical": "turbo",
+   "query": "cuchuflis",
+   "quiso": "cuchuflíes",
+   "motivo": "plural chileno sin la e (control de #129)"
+  },
+  {
+   "vertical": "turbo",
+   "query": "eh quiero este una coca",
+   "quiso": "coca cola",
+   "motivo": "muletillas y marca cortada"
+  },
+  {
+   "vertical": "turbo",
+   "query": "doritoz",
+   "quiso": "doritos",
+   "motivo": "letra cambiada (z por s)"
+  },
+  {
+   "vertical": "turbo",
+   "query": "heladoo de chocolate",
+   "quiso": "helado de chocolate",
+   "motivo": "letra repetida"
+  },
+  {
+   "vertical": "turbo",
+   "query": "galletas oreoo",
+   "quiso": "galletas oreo",
+   "motivo": "letra repetida en la marca"
+  },
+  {
+   "vertical": "turbo",
+   "query": "monster energi",
+   "quiso": "monster energy",
+   "motivo": "marca mal escrita: i por y"
+  },
+  {
+   "vertical": "licores",
+   "query": "cervezaaaa",
+   "quiso": "cerveza",
+   "motivo": "letras repetidas (frase de usuario de #129)"
+  },
+  {
+   "vertical": "licores",
+   "query": "bodka absolut",
+   "quiso": "vodka absolut",
+   "motivo": "letra cambiada (b por v)"
+  },
+  {
+   "vertical": "licores",
+   "query": "jhonnie walker",
+   "quiso": "johnnie walker",
+   "motivo": "marca con letras traspuestas"
+  },
+  {
+   "vertical": "licores",
+   "query": "piscooo mistral",
+   "quiso": "pisco mistral",
+   "motivo": "letras repetidas"
+  },
+  {
+   "vertical": "licores",
+   "query": "ron bacardy",
+   "quiso": "ron bacardi",
+   "motivo": "marca mal escrita: y por i"
+  },
+  {
+   "vertical": "licores",
+   "query": "bailys",
+   "quiso": "baileys",
+   "motivo": "marca mal escrita: falta la e"
+  },
+  {
+   "vertical": "licores",
+   "query": "jagermaister",
+   "quiso": "jagermeister",
+   "motivo": "marca mal escrita: ai por ei"
+  },
+  {
+   "vertical": "licores",
+   "query": "vino cabernet sauvigon",
+   "quiso": "vino cabernet sauvignon",
+   "motivo": "letra faltante"
+  },
+  {
+   "vertical": "farmacia",
+   "query": "paracetamool",
+   "quiso": "paracetamol",
+   "motivo": "letra repetida"
+  },
+  {
+   "vertical": "farmacia",
+   "query": "bitamina c",
+   "quiso": "vitamina c",
+   "motivo": "letra cambiada (b por v)"
+  },
+  {
+   "vertical": "farmacia",
+   "query": "desodorante rexonna",
+   "quiso": "desodorante rexona",
+   "motivo": "marca con letra repetida"
+  },
+  {
+   "vertical": "farmacia",
+   "query": "protetor solar",
+   "quiso": "protector solar",
+   "motivo": "letra faltante"
+  },
+  {
+   "vertical": "farmacia",
+   "query": "aspirna",
+   "quiso": "aspirina",
+   "motivo": "letra faltante"
+  },
+  {
+   "vertical": "mall",
+   "query": "notebook lenobo",
+   "quiso": "notebook lenovo",
+   "motivo": "marca mal escrita: b por v"
+  },
+  {
+   "vertical": "mall",
+   "query": "kinetik sand",
+   "quiso": "kinetic sand",
+   "motivo": "letra cambiada (k por c)"
+  },
+  {
+   "vertical": "mall",
+   "query": "audifonos bluetoth",
+   "quiso": "audífonos bluetooth",
+   "motivo": "letra faltante y sin tilde"
+  },
+  {
+   "vertical": "farmacia",
+   "query": "shampo anticaspa",
+   "quiso": "shampoo anticaspa",
+   "motivo": "letra faltante"
+  },
+  {
+   "vertical": "mall",
+   "query": "aspiradroa",
+   "quiso": "aspiradora",
+   "motivo": "letras traspuestas"
+  },
+  {
+   "vertical": "conveniencia",
+   "query": "chandele",
+   "quiso": "chandelle",
+   "motivo": "marca mal escrita: una l (control de #129)"
+  },
+  {
+   "vertical": "conveniencia",
+   "query": "agua minerl",
+   "quiso": "agua mineral",
+   "motivo": "letra faltante"
+  },
+  {
+   "vertical": "conveniencia",
+   "query": "bebida sprit",
+   "quiso": "bebida sprite",
+   "motivo": "marca mal escrita: falta la e"
+  },
+  {
+   "vertical": "conveniencia",
+   "query": "galletas mckai",
+   "quiso": "galletas mckay",
+   "motivo": "marca mal escrita: i por y"
+  },
+  {
+   "vertical": "supermercado",
+   "query": "ferrero roche",
+   "quiso": "ferrero rocher",
+   "motivo": "marca mal escrita: falta la r"
+  },
+  {
+   "vertical": "chocolateria",
+   "query": "bombomes",
+   "quiso": "bombones",
+   "motivo": "letra cambiada (m por n)"
+  },
+  {
+   "vertical": "chocolateria",
+   "query": "trufass",
+   "quiso": "trufas",
+   "motivo": "letra repetida"
+  },
+  {
+   "vertical": "chocolateria",
+   "query": "chocolate amrgo",
+   "quiso": "chocolate amargo",
+   "motivo": "letra faltante"
+  },
+  {
+   "vertical": "restaurantes",
+   "query": "hamburgesa",
+   "quiso": "hamburguesa",
+   "motivo": "letra faltante (sin la u)"
+  },
+  {
+   "vertical": "restaurantes",
+   "query": "chorillana",
+   "quiso": "chorrillana",
+   "motivo": "letra faltante (una r)"
+  },
+  {
+   "vertical": "restaurantes",
+   "query": "suchi",
+   "quiso": "sushi",
+   "motivo": "letra cambiada (c por s)"
+  },
+  {
+   "vertical": "restaurantes",
+   "query": "empanada de pinno",
+   "quiso": "empanada de pino",
+   "motivo": "letra repetida"
+  },
+  {
+   "vertical": "restaurantes",
+   "query": "shawarna",
+   "quiso": "shawarma",
+   "motivo": "letra cambiada (n por m)"
+  },
+  {
+   "vertical": "restaurantes",
+   "query": "papas fritass",
+   "quiso": "papas fritas",
+   "motivo": "letra repetida"
+  },
+  {
+   "vertical": "restaurantes",
+   "query": "sushis",
+   "quiso": "sushi",
+   "motivo": "plural raro"
+  },
+  {
+   "vertical": "supermercado",
+   "query": "nutellas",
+   "quiso": "nutella",
+   "motivo": "plural raro de una marca"
+  },
+  {
+   "vertical": "turbo",
+   "query": "oreos",
+   "quiso": "oreo",
+   "motivo": "plural raro de una marca"
+  }
+ ]
+}

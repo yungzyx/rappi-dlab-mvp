@@ -1,0 +1,94 @@
+{
+  "corrected_query": "cerveza",
+  "groups": [
+    {
+      "products": [
+        {
+          "age_restricted": true,
+          "before": null,
+          "concept": "cerveza",
+          "discount": null,
+          "entity_id": "94001",
+          "entity_type": "catalog_item",
+          "id": "cat-94001",
+          "img": "https://imagenes.prueba.invalid/productos/94001.png",
+          "name": "Cerveza rubia lata 470 cc (prueba)",
+          "presentation": "470 cc",
+          "price": "$1.190",
+          "price_value": 1190.0,
+          "store": "Botillería de prueba Oriente",
+          "store_id": 9402,
+          "vertical": "licores"
+        },
+        {
+          "age_restricted": true,
+          "before": null,
+          "concept": "cerveza",
+          "discount": null,
+          "entity_id": "94002",
+          "entity_type": "catalog_item",
+          "id": "cat-94002",
+          "img": "https://imagenes.prueba.invalid/productos/94002.png",
+          "name": "Cerveza negra botella 330 cc (prueba)",
+          "presentation": "330 cc",
+          "price": "$1.790",
+          "price_value": 1790.0,
+          "store": "Botillería de prueba Centro",
+          "store_id": 9401,
+          "vertical": "licores"
+        }
+      ],
+      "prototype_vertical": "liquor",
+      "vertical": "licores"
+    },
+    {
+      "products": [
+        {
+          "age_restricted": true,
+          "before": null,
+          "concept": "cerveza",
+          "discount": null,
+          "entity_id": "94001",
+          "entity_type": "catalog_item",
+          "id": "cat-94001",
+          "img": "https://imagenes.prueba.invalid/productos/94001.png",
+          "name": "Cerveza rubia lata 470 cc (prueba)",
+          "presentation": "470 cc",
+          "price": "$1.490",
+          "price_value": 1490.0,
+          "store": "Tienda express de prueba Centro",
+          "store_id": 9201,
+          "vertical": "conveniencia"
+        }
+      ],
+      "prototype_vertical": "express",
+      "vertical": "conveniencia"
+    },
+    {
+      "products": [
+        {
+          "age_restricted": true,
+          "before": null,
+          "concept": "cerveza",
+          "discount": null,
+          "entity_id": "94001",
+          "entity_type": "catalog_item",
+          "id": "cat-94001",
+          "img": "https://imagenes.prueba.invalid/productos/94001.png",
+          "name": "Cerveza rubia lata 470 cc (prueba)",
+          "presentation": "470 cc",
+          "price": "$1.390",
+          "price_value": 1390.0,
+          "store": "Supermercado de prueba Centro",
+          "store_id": 9101,
+          "vertical": "supermercado"
+        }
+      ],
+      "prototype_vertical": "grocery",
+      "vertical": "supermercado"
+    }
+  ],
+  "query": "cervezaaaa",
+  "unmet": false,
+  "unmet_reason": null
+}

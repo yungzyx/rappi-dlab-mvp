@@ -1,0 +1,125 @@
+/* Mismo esqueleto que Lealtad: encabezado con volver, título y tarjetas. */
+.favor {
+  padding: 0 16px 60px;
+  background: #f9f9fb;
+  color: var(--ink);
+}
+
+.favor-header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-top: 78px;
+}
+
+.favor-back {
+  display: grid;
+  place-items: center;
+  width: 33px;
+  height: 33px;
+  border-radius: 50%;
+  background: var(--surface);
+  box-shadow: 0 1px 6px rgba(0, 0, 0, 0.08);
+}
+
+.favor-header h1 {
+  font-size: 15.5px;
+  font-weight: 600;
+}
+
+.favor-title {
+  margin-top: 32px;
+  font-size: 24px;
+  font-weight: 700;
+  letter-spacing: -0.3px;
+}
+
+.favor-text {
+  margin-top: 10px;
+  font-size: 14.5px;
+  color: var(--ink-2);
+}
+
+.favor-uses {
+  display: grid;
+  gap: 10px;
+  margin-top: 22px;
+  list-style: none;
+}
+
+.favor-use {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  width: 100%;
+  padding: 14px;
+  border: 1.5px solid transparent;
+  border-radius: 14px;
+  background: var(--surface);
+  box-shadow: 0 1px 6px rgba(0, 0, 0, 0.06);
+  text-align: left;
+}
+
+.favor-use.is-active {
+  border-color: var(--rappi-red);
+}
+
+.favor-use-emoji {
+  font-size: 26px;
+  line-height: 1;
+}
+
+.favor-use strong {
+  display: block;
+  font-size: 15px;
+}
+
+.favor-use small {
+  display: block;
+  margin-top: 4px;
+  font-size: 13px;
+  color: var(--ink-3);
+}
+
+.favor-form {
+  display: grid;
+  gap: 12px;
+  margin-top: 22px;
+}
+
+.favor-form label {
+  display: grid;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.favor-form textarea,
+.favor-form input {
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--surface);
+  font: inherit;
+  font-size: 16px; /* desde 16px iOS no hace zoom al enfocar */
+  font-weight: 400;
+}
+
+.favor-error {
+  color: #c62828;
+  font-size: 13px;
+}
+
+.favor-dropoff {
+  font-size: 13px;
+  color: var(--ink-2);
+}
+
+.favor-submit {
+  height: 48px;
+  border-radius: 24px;
+  background: var(--rappi-red);
+  color: var(--surface);
+  font-size: 15px;
+  font-weight: 700;
+}

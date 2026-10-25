@@ -1,0 +1,90 @@
+{
+  "actions": [],
+  "age_notice": false,
+  "intent": {
+    "concepts": [
+      "pizza"
+    ],
+    "confidence": 0.9,
+    "follow_up": false,
+    "kind": "buscar",
+    "occasion": null,
+    "price_max": null,
+    "query": "pizza",
+    "symptom": false,
+    "vertical": "restaurantes"
+  },
+  "products": [
+    {
+      "age_restricted": false,
+      "before": null,
+      "concept": "pizza",
+      "discount": null,
+      "entity_id": "98001",
+      "entity_type": "menu_item",
+      "id": "menu-98001",
+      "img": "https://imagenes.prueba.invalid/platos/98001.png",
+      "name": "Pizza pepperoni familiar (prueba)",
+      "presentation": null,
+      "price": "$12.990",
+      "price_value": 12990.0,
+      "store": "Pizzería de prueba Centro",
+      "store_id": 9801,
+      "vertical": "restaurantes"
+    },
+    {
+      "age_restricted": false,
+      "before": null,
+      "concept": "pizza",
+      "discount": null,
+      "entity_id": "98002",
+      "entity_type": "menu_item",
+      "id": "menu-98002",
+      "img": "https://imagenes.prueba.invalid/platos/98002.png",
+      "name": "Pizza margarita mediana (prueba)",
+      "presentation": null,
+      "price": "$8.990",
+      "price_value": 8990.0,
+      "store": "Pizzería de prueba Centro",
+      "store_id": 9801,
+      "vertical": "restaurantes"
+    }
+  ],
+  "prototype_vertical": "restaurants",
+  "reason": "Porque llevas 🍕 pizza",
+  "stores": [],
+  "suggestion": {
+    "basis": [],
+    "concept": "gaseosas",
+    "products": [
+      {
+        "age_restricted": false,
+        "before": null,
+        "concept": "gaseosas",
+        "discount": null,
+        "entity_id": "92001",
+        "entity_type": "catalog_item",
+        "id": "cat-92001",
+        "img": "https://imagenes.prueba.invalid/productos/92001.png",
+        "name": "Gaseosa cola 500 cc (prueba)",
+        "presentation": "500 cc",
+        "price": "$1.290",
+        "price_value": 1290.0,
+        "store": "Tienda express de prueba Centro",
+        "store_id": 9201,
+        "vertical": "conveniencia"
+      }
+    ],
+    "prototype_vertical": "express",
+    "question": "¿Te tinca sumar 🥤 bebidas gaseosas?",
+    "reason": "Porque llevas 🍕 pizza",
+    "vertical": "conveniencia"
+  },
+  "tags": [
+    "pizza"
+  ],
+  "text": "Mira estas opciones de 🍕 pizza en restaurantes.",
+  "unmet": false,
+  "unmet_reason": null,
+  "vertical": "restaurantes"
+}

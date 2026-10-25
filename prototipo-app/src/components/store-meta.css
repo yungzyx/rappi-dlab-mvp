@@ -1,0 +1,31 @@
+/* Línea "⚡ 12 min • FREE SHIPPING • 1.4 km" (tarjetas, lista de tiendas y página de tienda); antes en home.css. */
+.featured-meta {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  margin-top: 6px;
+  padding-left: 14px;
+  font-size: 15px;
+  color: var(--ink-2);
+  white-space: nowrap;
+  overflow: hidden;
+}
+
+.featured-eta {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.featured-bolt {
+  color: #3b5e4f;
+}
+
+.featured-bolt--plain {
+  color: var(--ink);
+}
+
+.meta-sep {
+  font-size: 9px;
+  color: var(--ink-3);
+}

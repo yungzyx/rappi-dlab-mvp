@@ -1,0 +1,45 @@
+name: Modelos (semanal)
+
+# El CI de cada push corre sin modelos (RAPPI_IA_LIGHT=1). Este job comprueba cada semana que las versiones fijadas en
+# rappi-ia/requirements.lock.txt se siguen instalando (en Linux, con torch para CPU) y que e5 carga desde Hugging Face
+# y embebe. No prueba el .venv del equipo que corre la tarea del domingo: ese se instala con `make install-ml` y las
+# mismas versiones fijadas.
+on:
+  schedule:
+    - cron: "0 12 * * 6"  # sábados 12:00 UTC
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  rappi-ia-modelos:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    defaults:
+      run:
+        working-directory: rappi-ia
+
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
+        with:
+          python-version: "3.13"
+          cache: pip
+          cache-dependency-path: rappi-ia/requirements.lock.txt
+
+      - name: Instalar con las versiones fijadas (torch para CPU)
+        run: >-
+          python -m pip install -c requirements.lock.txt
+          --extra-index-url https://download.pytorch.org/whl/cpu
+          -e ../rappi-scraper -e ".[api,dev,ml]"
+
+      - name: e5 carga y embebe
+        run: >-
+          python -c "from rappi_ia.embeddings.models import text_embedder;
+          v = text_embedder().embed_queries(['sushi', 'algo para el carrete']);
+          assert v.shape == (2, 768), v.shape; print('e5 ok', v.shape)"
+
+      - name: Tests unitarios
+        run: python -m pytest tests/unit

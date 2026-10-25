@@ -1,0 +1,24 @@
+/* Una línea discreta bajo el buscador de la Home: se lee sin competir con el contenido */
+.demo-disclaimer {
+  margin: 10px var(--gutter) 0;
+  color: var(--ink-3);
+  font-size: 12px;
+  line-height: 1.3;
+  text-align: center;
+}
+
+/* La demo sin conexión («Prototipo MVP.html»): la nota y el botón para empezar de cero */
+.demo-disclaimer--offline {
+  margin-top: 4px;
+  font-size: 11px;
+}
+
+.demo-disclaimer-reset {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-decoration: underline;
+  cursor: pointer;
+}

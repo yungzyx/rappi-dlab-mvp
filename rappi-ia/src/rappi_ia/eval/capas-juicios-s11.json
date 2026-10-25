@@ -1,0 +1,4472 @@
+{
+ "juez": "claude-opus-5-5, 10 agentes independientes sobre la muestra fija (06-10-2026); acuerdo entre jueces en 80 filas juzgadas dos veces: 76 de 80",
+ "juicios": {
+  "atributo|adolescentes|catalog_item|1299956": {
+   "juicio": "si"
+  },
+  "atributo|adulto-mayor|catalog_item|2423": {
+   "juicio": "dudoso",
+   "nota": "Glucerna es para diabéticos, no específicamente adultos mayores"
+  },
+  "atributo|adulto-mayor|catalog_item|68757": {
+   "juicio": "si"
+  },
+  "atributo|alto-fibra|catalog_item|60477": {
+   "juicio": "si"
+  },
+  "atributo|alto-proteina|catalog_item|1356698": {
+   "juicio": "si"
+  },
+  "atributo|artesanal|catalog_item|1424420": {
+   "juicio": "dudoso",
+   "nota": "Sin indicio de elaboración artesanal en nombre o descripción"
+  },
+  "atributo|artesanal|menu_item|319027": {
+   "juicio": "si"
+  },
+  "atributo|bajo-sodio|catalog_item|611182": {
+   "juicio": "si"
+  },
+  "atributo|bebe|catalog_item|1544750": {
+   "juicio": "si"
+  },
+  "atributo|bebida-incluida|menu_item|1909253": {
+   "juicio": "si"
+  },
+  "atributo|biodegradable|catalog_item|216274": {
+   "juicio": "si"
+  },
+  "atributo|biodegradable|catalog_item|898901": {
+   "juicio": "si"
+  },
+  "atributo|cachorro|catalog_item|1729264": {
+   "juicio": "si"
+  },
+  "atributo|capsulas|catalog_item|1375082": {
+   "juicio": "si"
+  },
+  "atributo|casero|menu_item|2394904": {
+   "juicio": "si"
+  },
+  "atributo|chileno|catalog_item|299343": {
+   "juicio": "si"
+  },
+  "atributo|combo|menu_item|1941311": {
+   "juicio": "si"
+  },
+  "atributo|con-acompanamiento|menu_item|1886828": {
+   "juicio": "si"
+  },
+  "atributo|congelado|catalog_item|1644978": {
+   "juicio": "si"
+  },
+  "atributo|crudo|menu_item|1022406": {
+   "juicio": "no",
+   "nota": "El pulpo del nigiri tako va cocido, no crudo"
+  },
+  "atributo|cruelty-free|catalog_item|492558": {
+   "juicio": "dudoso",
+   "nota": "Cruelty free no aparece en el texto visible"
+  },
+  "atributo|cruelty-free|catalog_item|367840": {
+   "juicio": "dudoso",
+   "nota": "No probado en animales no aparece en el texto visible"
+  },
+  "atributo|cumpleanos|catalog_item|1548716": {
+   "juicio": "no",
+   "nota": "Juguete coleccionable Smashlings, no artículo de cumpleaños"
+  },
+  "atributo|desayuno|menu_item|27617": {
+   "juicio": "si"
+  },
+  "atributo|desechable|catalog_item|588653": {
+   "juicio": "si"
+  },
+  "atributo|eco|catalog_item|614010": {
+   "juicio": "si"
+  },
+  "atributo|embarazo-lactancia|catalog_item|724784": {
+   "juicio": "si"
+  },
+  "atributo|en-polvo|catalog_item|72885": {
+   "juicio": "si"
+  },
+  "atributo|familiar|menu_item|379397": {
+   "juicio": "si"
+  },
+  "atributo|fiestas-patrias|menu_item|2473891": {
+   "juicio": "si"
+  },
+  "atributo|frito|menu_item|378318": {
+   "juicio": "si"
+  },
+  "atributo|gato|catalog_item|1647446": {
+   "juicio": "si"
+  },
+  "atributo|granel|catalog_item|1637474": {
+   "juicio": "si"
+  },
+  "atributo|halal|catalog_item|1644754": {
+   "juicio": "dudoso",
+   "nota": "Certificación halal no visible en el texto"
+  },
+  "atributo|halloween|catalog_item|1367409": {
+   "juicio": "si"
+  },
+  "atributo|hombre|catalog_item|1298996": {
+   "juicio": "si"
+  },
+  "atributo|horno|menu_item|152845": {
+   "juicio": "si"
+  },
+  "atributo|importado|catalog_item|1527824": {
+   "juicio": "si"
+  },
+  "atributo|individual|menu_item|1043927": {
+   "juicio": "si"
+  },
+  "atributo|instantaneo|catalog_item|113778": {
+   "juicio": "si"
+  },
+  "atributo|integral|catalog_item|1361351": {
+   "juicio": "si"
+  },
+  "atributo|keto|catalog_item|561288": {
+   "juicio": "si"
+  },
+  "atributo|keto|menu_item|360989": {
+   "juicio": "dudoso",
+   "nota": "Solo ofrece opciones low carb; el ítem no es keto"
+  },
+  "atributo|kosher|catalog_item|1644758": {
+   "juicio": "si"
+  },
+  "atributo|lata|catalog_item|1637106": {
+   "juicio": "si"
+  },
+  "atributo|light|menu_item|1317995": {
+   "juicio": "si"
+  },
+  "atributo|listo-para-comer|catalog_item|1100964": {
+   "juicio": "si"
+  },
+  "atributo|mascota-senior|catalog_item|588139": {
+   "juicio": "si"
+  },
+  "atributo|mujer|catalog_item|349328": {
+   "juicio": "no",
+   "nota": "La descripción dice que es producto para hombres"
+  },
+  "atributo|natural|catalog_item|1370265": {
+   "juicio": "si"
+  },
+  "atributo|navidad|catalog_item|1515340": {
+   "juicio": "si"
+  },
+  "atributo|ninos|catalog_item|751675": {
+   "juicio": "dudoso",
+   "nota": "Kit para bebés, no para niños"
+  },
+  "atributo|ninos|menu_item|317291": {
+   "juicio": "no",
+   "nota": "Nombre de la pizza; no está pensada para niños"
+  },
+  "atributo|organico|catalog_item|581335": {
+   "juicio": "si"
+  },
+  "atributo|otras-mascotas|catalog_item|336286": {
+   "juicio": "si"
+  },
+  "atributo|pack|catalog_item|1509971": {
+   "juicio": "si"
+  },
+  "atributo|para-compartir|menu_item|2432271": {
+   "juicio": "si"
+  },
+  "atributo|para-preparar|catalog_item|1653540": {
+   "juicio": "dudoso",
+   "nota": "Especia seca de uso directo, no requiere preparación"
+  },
+  "atributo|para-regalo|catalog_item|1364555": {
+   "juicio": "si"
+  },
+  "atributo|parrilla|menu_item|2428718": {
+   "juicio": "si"
+  },
+  "atributo|perro|catalog_item|125577": {
+   "juicio": "no",
+   "nota": "Alimento para gatos, no para perros"
+  },
+  "atributo|pescetariano|menu_item|1969505": {
+   "juicio": "si"
+  },
+  "atributo|picante|menu_item|377737": {
+   "juicio": "si"
+  },
+  "atributo|postre-incluido|menu_item|717803": {
+   "juicio": "si"
+  },
+  "atributo|premium|menu_item|808167": {
+   "juicio": "si"
+  },
+  "atributo|recargable|catalog_item|824387": {
+   "juicio": "si"
+  },
+  "atributo|reciclable|catalog_item|776898": {
+   "juicio": "dudoso",
+   "nota": "Material reciclable no aparece en el texto visible"
+  },
+  "atributo|refrigerado|catalog_item|94243": {
+   "juicio": "si"
+  },
+  "atributo|saludable|menu_item|1158754": {
+   "juicio": "si"
+  },
+  "atributo|san-valentin|catalog_item|1540367": {
+   "juicio": "si"
+  },
+  "atributo|sin-alcohol|menu_item|1056520": {
+   "juicio": "si"
+  },
+  "atributo|sin-azucar|catalog_item|957983": {
+   "juicio": "si"
+  },
+  "atributo|sin-cafeina|catalog_item|955068": {
+   "juicio": "si"
+  },
+  "atributo|sin-cafeina|menu_item|2362724": {
+   "juicio": "si"
+  },
+  "atributo|sin-gluten|catalog_item|827362": {
+   "juicio": "si"
+  },
+  "atributo|sin-gluten|menu_item|86974": {
+   "juicio": "si"
+  },
+  "atributo|sin-huevo|menu_item|909151": {
+   "juicio": "si"
+  },
+  "atributo|sin-lactosa|menu_item|2099373162": {
+   "juicio": "si"
+  },
+  "atributo|sin-parabenos|catalog_item|1359437": {
+   "juicio": "dudoso",
+   "nota": "Libre de parabenos no aparece en el texto visible"
+  },
+  "atributo|sin-soya|catalog_item|882806": {
+   "juicio": "si"
+  },
+  "atributo|tamano-viaje|catalog_item|545421": {
+   "juicio": "no",
+   "nota": "Mini size es formato de papel, no tamaño viaje"
+  },
+  "atributo|vegano|menu_item|2033047": {
+   "juicio": "si"
+  },
+  "atributo|vegetariano|menu_item|179846": {
+   "juicio": "si"
+  },
+  "atributo|vidrio|catalog_item|186651": {
+   "juicio": "si"
+  },
+  "concepto|accesorios-fumador|catalog_item|1318442": {
+   "juicio": "si"
+  },
+  "concepto|accesorios-fumador|catalog_item|5488": {
+   "juicio": "si"
+  },
+  "concepto|accesorios-moda|catalog_item|336165": {
+   "juicio": "no",
+   "nota": "Collar calmante para perro, no accesorio de moda"
+  },
+  "concepto|arroz-legumbres|catalog_item|1251921": {
+   "juicio": "no",
+   "nota": "Proteína en polvo de arveja, no grano"
+  },
+  "concepto|asiatica|menu_item|2043119": {
+   "juicio": "si"
+  },
+  "concepto|automotriz|catalog_item|1358954": {
+   "juicio": "si"
+  },
+  "concepto|carnes|menu_item|123938": {
+   "juicio": "no",
+   "nota": "Sándwich preparado, no carne fresca"
+  },
+  "concepto|cerveza|menu_item|1306874": {
+   "juicio": "si"
+  },
+  "concepto|conservas|menu_item|140637": {
+   "juicio": "no",
+   "nota": "Ensalada preparada, no conserva"
+  },
+  "concepto|decoracion|catalog_item|1402186": {
+   "juicio": "si"
+  },
+  "concepto|ensaladas-bowls|menu_item|1995535": {
+   "juicio": "si"
+  },
+  "concepto|ferreteria|catalog_item|1034985": {
+   "juicio": "si"
+  },
+  "concepto|frutas|catalog_item|1051270": {
+   "juicio": "no",
+   "nota": "Babero bandana, no fruta"
+  },
+  "concepto|gaseosas|menu_item|1955637": {
+   "juicio": "si"
+  },
+  "concepto|gaseosas|menu_item|2092588070": {
+   "juicio": "si"
+  },
+  "concepto|hamburguesa|menu_item|232381": {
+   "juicio": "si"
+  },
+  "concepto|hamburguesa|menu_item|2262039": {
+   "juicio": "si"
+  },
+  "concepto|joyeria|catalog_item|835251": {
+   "juicio": "dudoso",
+   "nota": "Kit infantil de manualidades para crear pulseras"
+  },
+  "concepto|latina|catalog_item|1648182": {
+   "juicio": "si"
+  },
+  "concepto|limpieza|catalog_item|641107": {
+   "juicio": "si"
+  },
+  "concepto|maquillaje|catalog_item|67394": {
+   "juicio": "si"
+  },
+  "concepto|pastas|catalog_item|135223": {
+   "juicio": "si"
+  },
+  "concepto|pasteleria|menu_item|1973193": {
+   "juicio": "si"
+  },
+  "concepto|pescados-mariscos|menu_item|243613": {
+   "juicio": "no",
+   "nota": "Plato preparado de fideos, no marisco fresco"
+  },
+  "concepto|pisco|catalog_item|27025": {
+   "juicio": "si"
+  },
+  "concepto|pizza|menu_item|195323": {
+   "juicio": "si"
+  },
+  "concepto|pizza|menu_item|2366857": {
+   "juicio": "si"
+  },
+  "concepto|platos-listos|menu_item|1944944": {
+   "juicio": "si"
+  },
+  "concepto|platos-listos|menu_item|967121": {
+   "juicio": "si"
+  },
+  "concepto|pollo|menu_item|140607": {
+   "juicio": "no",
+   "nota": "Plato preparado de tallarines, no pollo fresco"
+  },
+  "concepto|postres|menu_item|2343373": {
+   "juicio": "si"
+  },
+  "concepto|quesos|catalog_item|31649": {
+   "juicio": "si"
+  },
+  "concepto|ropa|catalog_item|537540": {
+   "juicio": "si"
+  },
+  "concepto|salsas|menu_item|345089": {
+   "juicio": "si"
+  },
+  "concepto|sandwiches|menu_item|2344045": {
+   "juicio": "si"
+  },
+  "concepto|sandwiches|menu_item|2416679": {
+   "juicio": "si"
+  },
+  "concepto|snacks-salados|menu_item|2506398": {
+   "juicio": "si"
+  },
+  "concepto|sushi|menu_item|1975071": {
+   "juicio": "si"
+  },
+  "concepto|sushi|menu_item|248256": {
+   "juicio": "si"
+  },
+  "concepto|sushi|menu_item|79279": {
+   "juicio": "si"
+  },
+  "concepto|sushi|menu_item|1916357": {
+   "juicio": "si"
+  },
+  "concepto|sushi|menu_item|1174970": {
+   "juicio": "si"
+  },
+  "concepto|sushi|menu_item|61739": {
+   "juicio": "si"
+  },
+  "concepto|vegano|catalog_item|967023": {
+   "juicio": "no",
+   "nota": "Bolitas de chocolate snack, no alternativa vegetal fresca"
+  },
+  "marca|alto-del-carmen|catalog_item|1246548": {
+   "juicio": "si"
+  },
+  "marca|beshos|catalog_item|882814": {
+   "juicio": "si"
+  },
+  "marca|cirio|catalog_item|953605": {
+   "juicio": "si"
+  },
+  "marca|dkora|catalog_item|1647311": {
+   "juicio": "si"
+  },
+  "marca|elvive|catalog_item|1371334": {
+   "juicio": "si"
+  },
+  "marca|gizeh|catalog_item|847870": {
+   "juicio": "si"
+  },
+  "marca|jagermeister|catalog_item|1534040": {
+   "juicio": "si"
+  },
+  "marca|mainstays|catalog_item|1294475": {
+   "juicio": "si"
+  },
+  "marca|misiones-de-rengo|catalog_item|1348159": {
+   "juicio": "si"
+  },
+  "marca|passol|catalog_item|113308": {
+   "juicio": "si"
+  },
+  "marca|raspberry|catalog_item|1529487": {
+   "juicio": "si"
+  },
+  "marca|soprole|catalog_item|1536126": {
+   "juicio": "si"
+  },
+  "marca|traverso|catalog_item|1541284": {
+   "juicio": "si"
+  },
+  "marca|vitamina-d3|catalog_item|1379203": {
+   "juicio": "no",
+   "nota": "La marca es Puritan's Pride, no Vitamina D3"
+  },
+  "atributo|adolescentes|catalog_item|1327761": {
+   "juicio": "no",
+   "nota": "Pizarra para los más pequeños; juvenil no implica adolescentes"
+  },
+  "atributo|adulto-mayor|catalog_item|343564": {
+   "juicio": "dudoso",
+   "nota": "Suplemento de calcio sin mención a adultos mayores"
+  },
+  "atributo|adulto-mayor|catalog_item|76740": {
+   "juicio": "si"
+  },
+  "atributo|alto-fibra|catalog_item|611186": {
+   "juicio": "si"
+  },
+  "atributo|alto-proteina|catalog_item|1456624": {
+   "juicio": "si"
+  },
+  "atributo|artesanal|catalog_item|1543190": {
+   "juicio": "si"
+  },
+  "atributo|artesanal|menu_item|610192": {
+   "juicio": "si"
+  },
+  "atributo|bajo-sodio|catalog_item|611186": {
+   "juicio": "si"
+  },
+  "atributo|bebe|catalog_item|1548771": {
+   "juicio": "dudoso",
+   "nota": "Juguete Qt Kitties; edad no indicada, solo categoría"
+  },
+  "atributo|bebida-incluida|menu_item|2394904": {
+   "juicio": "si"
+  },
+  "atributo|biodegradable|catalog_item|1100779": {
+   "juicio": "si"
+  },
+  "atributo|cachorro|catalog_item|125577": {
+   "juicio": "si"
+  },
+  "atributo|cachorro|catalog_item|353161": {
+   "juicio": "si"
+  },
+  "atributo|capsulas|catalog_item|1499355": {
+   "juicio": "si"
+  },
+  "atributo|casero|menu_item|240469": {
+   "juicio": "si"
+  },
+  "atributo|chileno|menu_item|1955827": {
+   "juicio": "si"
+  },
+  "atributo|combo|menu_item|2002813": {
+   "juicio": "si"
+  },
+  "atributo|con-acompanamiento|menu_item|1889490": {
+   "juicio": "si"
+  },
+  "atributo|congelado|catalog_item|556960": {
+   "juicio": "si"
+  },
+  "atributo|crudo|menu_item|116347": {
+   "juicio": "si"
+  },
+  "atributo|cruelty-free|catalog_item|65308": {
+   "juicio": "dudoso",
+   "nota": "Nada visible respalda cruelty free"
+  },
+  "atributo|cruelty-free|catalog_item|526983": {
+   "juicio": "si"
+  },
+  "atributo|cumpleanos|catalog_item|51682": {
+   "juicio": "si"
+  },
+  "atributo|desayuno|menu_item|307237": {
+   "juicio": "si"
+  },
+  "atributo|desechable|catalog_item|81980": {
+   "juicio": "si"
+  },
+  "atributo|eco|catalog_item|907040": {
+   "juicio": "si"
+  },
+  "atributo|embarazo-lactancia|catalog_item|994148": {
+   "juicio": "si"
+  },
+  "atributo|en-polvo|catalog_item|80904": {
+   "juicio": "si"
+  },
+  "atributo|familiar|menu_item|505503": {
+   "juicio": "si"
+  },
+  "atributo|fiestas-patrias|menu_item|2496881": {
+   "juicio": "si"
+  },
+  "atributo|frito|menu_item|58020": {
+   "juicio": "si"
+  },
+  "atributo|gato|catalog_item|1730236": {
+   "juicio": "si"
+  },
+  "atributo|granel|catalog_item|196927": {
+   "juicio": "si"
+  },
+  "atributo|halal|catalog_item|1644756": {
+   "juicio": "si"
+  },
+  "atributo|halloween|catalog_item|1367632": {
+   "juicio": "si"
+  },
+  "atributo|hombre|catalog_item|1416265": {
+   "juicio": "si"
+  },
+  "atributo|horno|menu_item|153526": {
+   "juicio": "no",
+   "nota": "Fajita napolitana no es plato horneado"
+  },
+  "atributo|importado|catalog_item|1527828": {
+   "juicio": "dudoso",
+   "nota": "Artel es marca chilena; Importado parece nombre de línea"
+  },
+  "atributo|individual|menu_item|1155852": {
+   "juicio": "si"
+  },
+  "atributo|instantaneo|catalog_item|127572": {
+   "juicio": "si"
+  },
+  "atributo|integral|catalog_item|251478": {
+   "juicio": "si"
+  },
+  "atributo|keto|catalog_item|600945": {
+   "juicio": "si"
+  },
+  "atributo|keto|menu_item|774925": {
+   "juicio": "si"
+  },
+  "atributo|kosher|catalog_item|1644761": {
+   "juicio": "si"
+  },
+  "atributo|lata|catalog_item|74610": {
+   "juicio": "si"
+  },
+  "atributo|light|menu_item|1953932": {
+   "juicio": "si"
+  },
+  "atributo|listo-para-comer|catalog_item|1258313": {
+   "juicio": "si"
+  },
+  "atributo|mascota-senior|catalog_item|1455000": {
+   "juicio": "si"
+  },
+  "atributo|mujer|catalog_item|488520": {
+   "juicio": "si"
+  },
+  "atributo|natural|catalog_item|1542495": {
+   "juicio": "dudoso",
+   "nota": "Aromatizante; nada visible sobre preservantes o colorantes"
+  },
+  "atributo|navidad|catalog_item|1528317": {
+   "juicio": "si"
+  },
+  "atributo|ninos|catalog_item|1321892": {
+   "juicio": "no",
+   "nota": "Es para bebés; kids viene de la marca"
+  },
+  "atributo|organico|catalog_item|1340787": {
+   "juicio": "dudoso",
+   "nota": "No se ve mención orgánica en nombre ni descripción"
+  },
+  "atributo|organico|catalog_item|64774": {
+   "juicio": "si"
+  },
+  "atributo|otras-mascotas|catalog_item|486229": {
+   "juicio": "no",
+   "nota": "Plato con forma de pez para perros y gatos"
+  },
+  "atributo|pack|catalog_item|1550785": {
+   "juicio": "no",
+   "nota": "Una caja de toallitas, no un pack de unidades"
+  },
+  "atributo|para-compartir|menu_item|2435740": {
+   "juicio": "si"
+  },
+  "atributo|para-preparar|catalog_item|245656": {
+   "juicio": "no",
+   "nota": "Mascarilla para cabello deshidratado, no requiere preparación"
+  },
+  "atributo|para-regalo|catalog_item|1649093": {
+   "juicio": "si"
+  },
+  "atributo|parrilla|menu_item|247810": {
+   "juicio": "si"
+  },
+  "atributo|perro|catalog_item|1297128": {
+   "juicio": "si"
+  },
+  "atributo|picante|catalog_item|1645225": {
+   "juicio": "si"
+  },
+  "atributo|postre-incluido|menu_item|1489463": {
+   "juicio": "si"
+  },
+  "atributo|premium|catalog_item|1424420": {
+   "juicio": "si"
+  },
+  "atributo|recargable|catalog_item|1168156": {
+   "juicio": "si"
+  },
+  "atributo|reciclable|catalog_item|1454401": {
+   "juicio": "si"
+  },
+  "atributo|refrigerado|catalog_item|113509": {
+   "juicio": "si"
+  },
+  "atributo|retornable|catalog_item|1530831": {
+   "juicio": "no",
+   "nota": "Vela en envase de cerámica, no envase retornable"
+  },
+  "atributo|saludable|menu_item|1283704": {
+   "juicio": "si"
+  },
+  "atributo|san-valentin|catalog_item|1540369": {
+   "juicio": "si"
+  },
+  "atributo|sin-alcohol|menu_item|107207": {
+   "juicio": "si"
+  },
+  "atributo|sin-azucar|menu_item|1095745": {
+   "juicio": "no",
+   "nota": "Solo la bebida es zero; el combo no es sin azúcar"
+  },
+  "atributo|sin-cafeina|catalog_item|1347875": {
+   "juicio": "dudoso",
+   "nota": "Nombre dice té con leche; descripción habla de café"
+  },
+  "atributo|sin-frutos-secos|catalog_item|1730932": {
+   "juicio": "si"
+  },
+  "atributo|sin-gluten|catalog_item|1303750": {
+   "juicio": "si"
+  },
+  "atributo|sin-huevo|catalog_item|1303750": {
+   "juicio": "si"
+  },
+  "atributo|sin-lactosa|catalog_item|119045": {
+   "juicio": "si"
+  },
+  "atributo|sin-lactosa|menu_item|360989": {
+   "juicio": "dudoso",
+   "nota": "Solo ofrece opciones sin lactosa, no todo el producto"
+  },
+  "atributo|sin-parabenos|catalog_item|1528365": {
+   "juicio": "si"
+  },
+  "atributo|sin-soya|catalog_item|883008": {
+   "juicio": "si"
+  },
+  "atributo|tamano-viaje|catalog_item|711522": {
+   "juicio": "si"
+  },
+  "atributo|vegano|menu_item|2324569": {
+   "juicio": "si"
+  },
+  "atributo|vegetariano|menu_item|1924827": {
+   "juicio": "si"
+  },
+  "atributo|vidrio|catalog_item|187059": {
+   "juicio": "si"
+  },
+  "concepto|accesorios-fumador|catalog_item|1324453": {
+   "juicio": "si"
+  },
+  "concepto|accesorios-fumador|catalog_item|974467": {
+   "juicio": "si"
+  },
+  "concepto|accesorios-moda|catalog_item|950908": {
+   "juicio": "si"
+  },
+  "concepto|arroz-legumbres|catalog_item|589416": {
+   "juicio": "si"
+  },
+  "concepto|asiatica|menu_item|2288116": {
+   "juicio": "si"
+  },
+  "concepto|azucar|catalog_item|81759": {
+   "juicio": "si"
+  },
+  "concepto|carnes|menu_item|1271433": {
+   "juicio": "si"
+  },
+  "concepto|cerveza|menu_item|919699": {
+   "juicio": "no",
+   "nota": "Agua mineral, no cerveza"
+  },
+  "concepto|cuidado-cabello|catalog_item|1081398": {
+   "juicio": "si"
+  },
+  "concepto|decoracion|catalog_item|1450679": {
+   "juicio": "dudoso",
+   "nota": "Aromatizante en productos naturales; no es decoración clara"
+  },
+  "concepto|ensaladas-bowls|catalog_item|863478": {
+   "juicio": "si"
+  },
+  "concepto|ferreteria|catalog_item|1372072": {
+   "juicio": "si"
+  },
+  "concepto|frutos-secos|catalog_item|840855": {
+   "juicio": "no",
+   "nota": "Ovillo de hilo color avellana, no fruto seco"
+  },
+  "concepto|gaseosas|menu_item|2320860": {
+   "juicio": "dudoso",
+   "nota": "Bebida de papelón; no consta que sea gaseosa"
+  },
+  "concepto|gaseosas|menu_item|2099191644": {
+   "juicio": "si"
+  },
+  "concepto|hamburguesa|menu_item|251596": {
+   "juicio": "si"
+  },
+  "concepto|hamburguesa|menu_item|870450": {
+   "juicio": "si"
+  },
+  "concepto|joyeria|catalog_item|835252": {
+   "juicio": "si"
+  },
+  "concepto|latina|menu_item|1924716": {
+   "juicio": "si"
+  },
+  "concepto|limpieza|catalog_item|206120": {
+   "juicio": "no",
+   "nota": "Solución para lentes de contacto, no limpieza del hogar"
+  },
+  "concepto|maquillaje|catalog_item|895596": {
+   "juicio": "dudoso",
+   "nota": "Depiladores faciales, no maquillaje propiamente"
+  },
+  "concepto|pastas|menu_item|1958890": {
+   "juicio": "si"
+  },
+  "concepto|pasteleria|menu_item|2343321": {
+   "juicio": "no",
+   "nota": "Pastelera de choclo es plato salado, no pastelería"
+  },
+  "concepto|pescados-mariscos|menu_item|266147": {
+   "juicio": "si"
+  },
+  "concepto|pizza|catalog_item|780668": {
+   "juicio": "si"
+  },
+  "concepto|pizza|menu_item|1985377": {
+   "juicio": "si"
+  },
+  "concepto|pizza|menu_item|326545": {
+   "juicio": "si"
+  },
+  "concepto|platos-listos|menu_item|1959878": {
+   "juicio": "si"
+  },
+  "concepto|platos-listos|menu_item|968057": {
+   "juicio": "si"
+  },
+  "concepto|pollo|menu_item|1932807": {
+   "juicio": "no",
+   "nota": "Es hamburguesa de pollo, no pollo fresco"
+  },
+  "concepto|postres|menu_item|282112": {
+   "juicio": "si"
+  },
+  "concepto|quesos|catalog_item|955085": {
+   "juicio": "si"
+  },
+  "concepto|ropa-interior|catalog_item|684080": {
+   "juicio": "dudoso",
+   "nota": "Calzón de bikini doble uso; parece traje de baño"
+  },
+  "concepto|sandwiches|menu_item|1080064": {
+   "juicio": "si"
+  },
+  "concepto|sandwiches|menu_item|2392220": {
+   "juicio": "si"
+  },
+  "concepto|sandwiches|menu_item|2460868": {
+   "juicio": "si"
+  },
+  "concepto|sopas|catalog_item|100150": {
+   "juicio": "no",
+   "nota": "Base de salsa de champiñones, no sopa ni caldo"
+  },
+  "concepto|sushi|menu_item|1975109": {
+   "juicio": "si"
+  },
+  "concepto|sushi|menu_item|263797": {
+   "juicio": "si"
+  },
+  "concepto|sushi|menu_item|830093": {
+   "juicio": "si"
+  },
+  "concepto|sushi|menu_item|1916408": {
+   "juicio": "si"
+  },
+  "concepto|sushi|menu_item|1494360": {
+   "juicio": "si"
+  },
+  "concepto|sushi|menu_item|936118": {
+   "juicio": "si"
+  },
+  "concepto|vegano|menu_item|217013": {
+   "juicio": "no",
+   "nota": "Papapleto con papas y queso, no alternativa vegetal"
+  },
+  "marca|ambrosoli|catalog_item|296541": {
+   "juicio": "si"
+  },
+  "marca|bon-o-bon|catalog_item|24069": {
+   "juicio": "si"
+  },
+  "marca|coca-cola|catalog_item|1301069": {
+   "juicio": "si"
+  },
+  "marca|dkora|catalog_item|6509": {
+   "juicio": "si"
+  },
+  "marca|emubaby|catalog_item|1342338": {
+   "juicio": "si"
+  },
+  "marca|glam|catalog_item|1669588": {
+   "juicio": "dudoso",
+   "nota": "La marca parece ser Glam Factor, no Glam"
+  },
+  "marca|kadus|catalog_item|1371198": {
+   "juicio": "si"
+  },
+  "marca|manquehuito|catalog_item|1348142": {
+   "juicio": "si"
+  },
+  "marca|mogul|catalog_item|1385256": {
+   "juicio": "si"
+  },
+  "marca|pato-purific|catalog_item|21571": {
+   "juicio": "si"
+  },
+  "marca|receta-del-abuelo|catalog_item|1030482": {
+   "juicio": "si"
+  },
+  "marca|sprite|catalog_item|1301067": {
+   "juicio": "si"
+  },
+  "marca|tribu|catalog_item|58879": {
+   "juicio": "si"
+  },
+  "marca|vitamina-d3|catalog_item|1416215": {
+   "juicio": "no",
+   "nota": "Vitamina D3 es el producto; marca es Sunvit Life"
+  },
+  "atributo|adolescentes|catalog_item|1351796": {
+   "juicio": "si"
+  },
+  "atributo|adulto-mayor|catalog_item|65664": {
+   "juicio": "no",
+   "nota": "Antihipertensivo; no declarado para adultos mayores"
+  },
+  "atributo|adulto-mayor|catalog_item|911767": {
+   "juicio": "si"
+  },
+  "atributo|alto-fibra|catalog_item|86559": {
+   "juicio": "no",
+   "nota": "Champiñón no es alto en fibra; solo relativamente rico"
+  },
+  "atributo|alto-proteina|catalog_item|230589": {
+   "juicio": "si"
+  },
+  "atributo|artesanal|catalog_item|1250901": {
+   "juicio": "no",
+   "nota": "Craft es nombre del moledor, no elaboración artesanal"
+  },
+  "atributo|bajo-sodio|catalog_item|1553803": {
+   "juicio": "dudoso",
+   "nota": "Shampoo; atributo alimentario y sin sal no visible"
+  },
+  "atributo|bajo-sodio|catalog_item|754870": {
+   "juicio": "dudoso",
+   "nota": "Cosmético; sin sal no visible ni es sodio dietario"
+  },
+  "atributo|bebe|catalog_item|315090": {
+   "juicio": "si"
+  },
+  "atributo|bebida-incluida|menu_item|240279": {
+   "juicio": "si"
+  },
+  "atributo|biodegradable|catalog_item|1550785": {
+   "juicio": "si"
+  },
+  "atributo|cachorro|catalog_item|1296117": {
+   "juicio": "si"
+  },
+  "atributo|cachorro|catalog_item|365158": {
+   "juicio": "si"
+  },
+  "atributo|capsulas|catalog_item|1724093": {
+   "juicio": "si"
+  },
+  "atributo|casero|menu_item|2493064": {
+   "juicio": "si"
+  },
+  "atributo|chileno|menu_item|197062": {
+   "juicio": "si"
+  },
+  "atributo|combo|menu_item|241603": {
+   "juicio": "si"
+  },
+  "atributo|con-acompanamiento|menu_item|210420": {
+   "juicio": "si"
+  },
+  "atributo|congelado|catalog_item|566543": {
+   "juicio": "si"
+  },
+  "atributo|crudo|menu_item|160283": {
+   "juicio": "si"
+  },
+  "atributo|cruelty-free|catalog_item|877824": {
+   "juicio": "dudoso",
+   "nota": "Descripción visible no menciona cruelty free"
+  },
+  "atributo|cruelty-free|catalog_item|914930": {
+   "juicio": "si"
+  },
+  "atributo|cumpleanos|catalog_item|875113": {
+   "juicio": "si"
+  },
+  "atributo|desayuno|menu_item|68743": {
+   "juicio": "no",
+   "nota": "Pastelito de panqueque es postre, no desayuno"
+  },
+  "atributo|desechable|catalog_item|93936": {
+   "juicio": "si"
+  },
+  "atributo|eco|catalog_item|994291": {
+   "juicio": "si"
+  },
+  "atributo|embarazo-lactancia|catalog_item|994291": {
+   "juicio": "si"
+  },
+  "atributo|en-polvo|catalog_item|842348": {
+   "juicio": "no",
+   "nota": "Es un dispensador, no un producto en polvo"
+  },
+  "atributo|familiar|menu_item|799926": {
+   "juicio": "si"
+  },
+  "atributo|fiestas-patrias|menu_item|607121": {
+   "juicio": "si"
+  },
+  "atributo|frito|menu_item|834856": {
+   "juicio": "si"
+  },
+  "atributo|gato|catalog_item|335195": {
+   "juicio": "si"
+  },
+  "atributo|granel|catalog_item|26251": {
+   "juicio": "si"
+  },
+  "atributo|halal|catalog_item|1644758": {
+   "juicio": "si"
+  },
+  "atributo|halloween|catalog_item|1483497": {
+   "juicio": "no",
+   "nota": "Vela numeral de cumpleaños, no de Halloween"
+  },
+  "atributo|hombre|catalog_item|1416366": {
+   "juicio": "si"
+  },
+  "atributo|horno|menu_item|1938888": {
+   "juicio": "si"
+  },
+  "atributo|importado|catalog_item|1527834": {
+   "juicio": "si"
+  },
+  "atributo|individual|menu_item|180857": {
+   "juicio": "si"
+  },
+  "atributo|instantaneo|catalog_item|133208": {
+   "juicio": "si"
+  },
+  "atributo|integral|catalog_item|252687": {
+   "juicio": "si"
+  },
+  "atributo|keto|catalog_item|1303750": {
+   "juicio": "si"
+  },
+  "atributo|kosher|catalog_item|1373450": {
+   "juicio": "si"
+  },
+  "atributo|kosher|catalog_item|1644762": {
+   "juicio": "si"
+  },
+  "atributo|lata|catalog_item|793342": {
+   "juicio": "si"
+  },
+  "atributo|light|menu_item|2098823411": {
+   "juicio": "si"
+  },
+  "atributo|listo-para-comer|catalog_item|160234": {
+   "juicio": "si"
+  },
+  "atributo|mujer|catalog_item|104671": {
+   "juicio": "dudoso",
+   "nota": "No declara ser para mujer"
+  },
+  "atributo|mujer|catalog_item|55720": {
+   "juicio": "no",
+   "nota": "Cepillo infantil; Wonder Woman es personaje, no para mujer"
+  },
+  "atributo|natural|catalog_item|351331": {
+   "juicio": "si"
+  },
+  "atributo|navidad|catalog_item|1529268": {
+   "juicio": "si"
+  },
+  "atributo|ninos|catalog_item|1328224": {
+   "juicio": "si"
+  },
+  "atributo|organico|catalog_item|581337": {
+   "juicio": "si"
+  },
+  "atributo|organico|catalog_item|877824": {
+   "juicio": "no",
+   "nota": "Organic Salon es nombre de línea, no declaración orgánica"
+  },
+  "atributo|otras-mascotas|catalog_item|878391": {
+   "juicio": "si"
+  },
+  "atributo|pack|catalog_item|1628715": {
+   "juicio": "no",
+   "nota": "Kit de baño, no pack de varias unidades"
+  },
+  "atributo|para-compartir|menu_item|2435785": {
+   "juicio": "si"
+  },
+  "atributo|para-preparar|catalog_item|272363": {
+   "juicio": "no",
+   "nota": "Plátano deshidratado se come directo, no requiere preparación"
+  },
+  "atributo|para-regalo|catalog_item|1733073": {
+   "juicio": "dudoso",
+   "nota": "Canasta de básicos para economizar, no claramente regalo"
+  },
+  "atributo|parrilla|menu_item|311380": {
+   "juicio": "si"
+  },
+  "atributo|perro|catalog_item|1537029": {
+   "juicio": "si"
+  },
+  "atributo|picante|catalog_item|196750": {
+   "juicio": "si"
+  },
+  "atributo|postre-incluido|menu_item|1489465": {
+   "juicio": "si"
+  },
+  "atributo|premium|catalog_item|1457372": {
+   "juicio": "si"
+  },
+  "atributo|recargable|catalog_item|1187514": {
+   "juicio": "si"
+  },
+  "atributo|reciclable|catalog_item|1537218": {
+   "juicio": "si"
+  },
+  "atributo|refrigerado|catalog_item|115685": {
+   "juicio": "si"
+  },
+  "atributo|retornable|catalog_item|1664375": {
+   "juicio": "si"
+  },
+  "atributo|saludable|menu_item|1914798": {
+   "juicio": "si"
+  },
+  "atributo|sin-alcohol|catalog_item|6368": {
+   "juicio": "si"
+  },
+  "atributo|sin-alcohol|menu_item|1253617": {
+   "juicio": "si"
+  },
+  "atributo|sin-azucar|menu_item|1476103": {
+   "juicio": "si"
+  },
+  "atributo|sin-cafeina|catalog_item|1441993": {
+   "juicio": "si"
+  },
+  "atributo|sin-frutos-secos|catalog_item|873700": {
+   "juicio": "no",
+   "nota": "Contiene almendras en el frosting"
+  },
+  "atributo|sin-gluten|catalog_item|1342007": {
+   "juicio": "si"
+  },
+  "atributo|sin-huevo|catalog_item|611186": {
+   "juicio": "si"
+  },
+  "atributo|sin-lactosa|catalog_item|1370028": {
+   "juicio": "si"
+  },
+  "atributo|sin-lactosa|menu_item|49781": {
+   "juicio": "si"
+  },
+  "atributo|sin-parabenos|catalog_item|1537530": {
+   "juicio": "si"
+  },
+  "atributo|sin-soya|catalog_item|967044": {
+   "juicio": "si"
+  },
+  "atributo|vegano|catalog_item|1531140": {
+   "juicio": "si"
+  },
+  "atributo|vegano|menu_item|602912": {
+   "juicio": "si"
+  },
+  "atributo|vegetariano|menu_item|2030727": {
+   "juicio": "si"
+  },
+  "atributo|vidrio|catalog_item|189036": {
+   "juicio": "si"
+  },
+  "concepto|accesorios-fumador|catalog_item|1343260": {
+   "juicio": "si"
+  },
+  "concepto|accesorios-fumador|catalog_item|996905": {
+   "juicio": "si"
+  },
+  "concepto|accesorios-moda|catalog_item|30317": {
+   "juicio": "no",
+   "nota": "Arnés de seguridad para mascota, no accesorio de moda"
+  },
+  "concepto|arroz-legumbres|menu_item|1121249": {
+   "juicio": "si"
+  },
+  "concepto|asiatica|menu_item|2382436": {
+   "juicio": "si"
+  },
+  "concepto|bienestar-sexual|catalog_item|161875": {
+   "juicio": "si"
+  },
+  "concepto|carnes|menu_item|2017161": {
+   "juicio": "dudoso",
+   "nota": "Plato preparado venezolano, no carne fresca"
+  },
+  "concepto|cerveza|menu_item|275276": {
+   "juicio": "si"
+  },
+  "concepto|cuidado-cabello|catalog_item|1410113": {
+   "juicio": "si"
+  },
+  "concepto|dermocosmetica|catalog_item|1351013": {
+   "juicio": "si"
+  },
+  "concepto|ensaladas-bowls|menu_item|225850": {
+   "juicio": "si"
+  },
+  "concepto|ferreteria|catalog_item|1553038": {
+   "juicio": "si"
+  },
+  "concepto|galletas|catalog_item|904337": {
+   "juicio": "si"
+  },
+  "concepto|gaseosas|menu_item|889265": {
+   "juicio": "no",
+   "nota": "Es vino tinto, no gaseosa"
+  },
+  "concepto|gaseosas|menu_item|2298551": {
+   "juicio": "si"
+  },
+  "concepto|hamburguesa|menu_item|595868": {
+   "juicio": "no",
+   "nota": "Sándwich de brisket, no hamburguesa"
+  },
+  "concepto|helados|catalog_item|1036786": {
+   "juicio": "si"
+  },
+  "concepto|joyeria|catalog_item|931535": {
+   "juicio": "no",
+   "nota": "Reloj de pared es decoración, no joyería"
+  },
+  "concepto|latina|menu_item|240219": {
+   "juicio": "si"
+  },
+  "concepto|manualidades|catalog_item|840135": {
+   "juicio": "si"
+  },
+  "concepto|medicamentos|catalog_item|16656": {
+   "juicio": "si"
+  },
+  "concepto|pastas|menu_item|1614835": {
+   "juicio": "si"
+  },
+  "concepto|pasteleria|menu_item|2343550": {
+   "juicio": "no",
+   "nota": "Focaccia es pan, no torta ni pastelería"
+  },
+  "concepto|pescados-mariscos|menu_item|294279": {
+   "juicio": "si"
+  },
+  "concepto|pizza|catalog_item|920817": {
+   "juicio": "si"
+  },
+  "concepto|pizza|menu_item|2099468129": {
+   "juicio": "no",
+   "nota": "Son papas fritas, no pizza"
+  },
+  "concepto|pizza|menu_item|587182": {
+   "juicio": "si"
+  },
+  "concepto|platos-listos|menu_item|1973981": {
+   "juicio": "dudoso",
+   "nota": "Parece empanada o masa rellena, no plato"
+  },
+  "concepto|platos-listos|menu_item|1951165": {
+   "juicio": "si"
+  },
+  "concepto|pollo|menu_item|1971316": {
+   "juicio": "no",
+   "nota": "California roll es sushi, no pollo fresco"
+  },
+  "concepto|postres|menu_item|813667": {
+   "juicio": "si"
+  },
+  "concepto|quesos|catalog_item|1319471": {
+   "juicio": "si"
+  },
+  "concepto|ropa-interior|catalog_item|684492": {
+   "juicio": "dudoso",
+   "nota": "Bikini calzón es traje de baño, no ropa interior"
+  },
+  "concepto|sandwiches|menu_item|1093961": {
+   "juicio": "si"
+  },
+  "concepto|sandwiches|menu_item|380129": {
+   "juicio": "si"
+  },
+  "concepto|sandwiches|menu_item|257240": {
+   "juicio": "si"
+  },
+  "concepto|sopas|catalog_item|54216": {
+   "juicio": "si"
+  },
+  "concepto|sushi|menu_item|2036807": {
+   "juicio": "si"
+  },
+  "concepto|sushi|menu_item|36705": {
+   "juicio": "si"
+  },
+  "concepto|sushi|menu_item|87749": {
+   "juicio": "si"
+  },
+  "concepto|sushi|menu_item|1976076": {
+   "juicio": "si"
+  },
+  "concepto|sushi|menu_item|1664949": {
+   "juicio": "si"
+  },
+  "concepto|sushi|menu_item|938214": {
+   "juicio": "si"
+  },
+  "concepto|verduras|catalog_item|1242935": {
+   "juicio": "si"
+  },
+  "marca|artel|catalog_item|1527828": {
+   "juicio": "si"
+  },
+  "marca|bravery|catalog_item|351331": {
+   "juicio": "si"
+  },
+  "marca|coca-cola|catalog_item|1730983": {
+   "juicio": "si"
+  },
+  "marca|don-juan|catalog_item|1632546": {
+   "juicio": "si"
+  },
+  "marca|en-linea|catalog_item|1294822": {
+   "juicio": "si"
+  },
+  "marca|green-medical|catalog_item|1499355": {
+   "juicio": "si"
+  },
+  "marca|kent|catalog_item|249310": {
+   "juicio": "si"
+  },
+  "marca|marco-polo|catalog_item|1640028": {
+   "juicio": "si"
+  },
+  "marca|mont-blanc|catalog_item|186955": {
+   "juicio": "si"
+  },
+  "marca|pentel|catalog_item|1160858": {
+   "juicio": "si"
+  },
+  "marca|redfield|catalog_item|1499783": {
+   "juicio": "si"
+  },
+  "marca|sprite|catalog_item|1671582": {
+   "juicio": "si"
+  },
+  "marca|truper|catalog_item|465546": {
+   "juicio": "dudoso",
+   "nota": "Marca Truper no aparece en nombre ni descripción"
+  },
+  "marca|viu-manent|catalog_item|1503243": {
+   "juicio": "si"
+  },
+  "atributo|adolescentes|catalog_item|1366091": {
+   "juicio": "no",
+   "nota": "Pack de fiesta infantil Minnie; 'juvenil' no indica adolescentes"
+  },
+  "atributo|adulto-mayor|catalog_item|1024829": {
+   "juicio": "si"
+  },
+  "atributo|alto-fibra|catalog_item|1084714": {
+   "juicio": "si"
+  },
+  "atributo|alto-fibra|catalog_item|883068": {
+   "juicio": "si"
+  },
+  "atributo|alto-proteina|catalog_item|300446": {
+   "juicio": "si"
+  },
+  "atributo|artesanal|catalog_item|1353276": {
+   "juicio": "si"
+  },
+  "atributo|bajo-sodio|catalog_item|1631521": {
+   "juicio": "no",
+   "nota": "Shampoo sin mención de sin sal; atributo alimentario"
+  },
+  "atributo|bajo-sodio|catalog_item|88132": {
+   "juicio": "si"
+  },
+  "atributo|bebe|catalog_item|538108": {
+   "juicio": "si"
+  },
+  "atributo|bebida-incluida|menu_item|240303": {
+   "juicio": "si"
+  },
+  "atributo|biodegradable|catalog_item|196304": {
+   "juicio": "dudoso",
+   "nota": "Mención biodegradable no visible; quizá solo un componente"
+  },
+  "atributo|cachorro|catalog_item|39880": {
+   "juicio": "si"
+  },
+  "atributo|cachorro|catalog_item|719860": {
+   "juicio": "si"
+  },
+  "atributo|capsulas|catalog_item|790991": {
+   "juicio": "no",
+   "nota": "Es una cafetera; las cápsulas solo vienen incluidas"
+  },
+  "atributo|casero|menu_item|789647": {
+   "juicio": "dudoso",
+   "nota": "'Casero' califica al atún, no necesariamente al plato"
+  },
+  "atributo|chileno|menu_item|1991857": {
+   "juicio": "si"
+  },
+  "atributo|combo|menu_item|2432271": {
+   "juicio": "si"
+  },
+  "atributo|con-acompanamiento|menu_item|2344407": {
+   "juicio": "si"
+  },
+  "atributo|congelado|catalog_item|78794": {
+   "juicio": "si"
+  },
+  "atributo|crudo|menu_item|1672409": {
+   "juicio": "si"
+  },
+  "atributo|cruelty-free|catalog_item|1350954": {
+   "juicio": "dudoso",
+   "nota": "Mención cruelty free no visible en el texto mostrado"
+  },
+  "atributo|cumpleanos|catalog_item|1364481": {
+   "juicio": "si"
+  },
+  "atributo|desayuno|menu_item|1285337": {
+   "juicio": "si"
+  },
+  "atributo|desechable|catalog_item|1163591": {
+   "juicio": "no",
+   "nota": "Semi-desechable: batería reutilizable y cartuchos recambiables"
+  },
+  "atributo|eco|catalog_item|1542495": {
+   "juicio": "dudoso",
+   "nota": "Mención sustentable no visible en la descripción"
+  },
+  "atributo|embarazo-lactancia|catalog_item|1722938": {
+   "juicio": "si"
+  },
+  "atributo|en-polvo|catalog_item|100938": {
+   "juicio": "si"
+  },
+  "atributo|familiar|catalog_item|928747": {
+   "juicio": "si"
+  },
+  "atributo|fiestas-patrias|catalog_item|1347583": {
+   "juicio": "si"
+  },
+  "atributo|frito|menu_item|1174987": {
+   "juicio": "si"
+  },
+  "atributo|gato|catalog_item|159154": {
+   "juicio": "si"
+  },
+  "atributo|gato|catalog_item|377178": {
+   "juicio": "si"
+  },
+  "atributo|granel|catalog_item|641291": {
+   "juicio": "si"
+  },
+  "atributo|halal|catalog_item|1644761": {
+   "juicio": "si"
+  },
+  "atributo|halloween|catalog_item|1644887": {
+   "juicio": "si"
+  },
+  "atributo|hombre|catalog_item|1424054": {
+   "juicio": "si"
+  },
+  "atributo|horno|menu_item|217222": {
+   "juicio": "no",
+   "nota": "Empanada frita, no horneada"
+  },
+  "atributo|importado|catalog_item|1527839": {
+   "juicio": "si"
+  },
+  "atributo|individual|menu_item|2098914744": {
+   "juicio": "si"
+  },
+  "atributo|instantaneo|catalog_item|1394158": {
+   "juicio": "si"
+  },
+  "atributo|integral|menu_item|145504": {
+   "juicio": "si"
+  },
+  "atributo|keto|catalog_item|1456624": {
+   "juicio": "dudoso",
+   "nota": "Mención keto no visible; proteína whey no necesariamente keto"
+  },
+  "atributo|kosher|catalog_item|1373451": {
+   "juicio": "si"
+  },
+  "atributo|kosher|catalog_item|43983": {
+   "juicio": "si"
+  },
+  "atributo|lata|catalog_item|810220": {
+   "juicio": "si"
+  },
+  "atributo|light|menu_item|2099088676": {
+   "juicio": "si"
+  },
+  "atributo|listo-para-comer|catalog_item|1630921": {
+   "juicio": "no",
+   "nota": "Láminas de lasaña precocidas; requieren armado y cocción"
+  },
+  "atributo|mujer|catalog_item|122563": {
+   "juicio": "si"
+  },
+  "atributo|mujer|catalog_item|785621": {
+   "juicio": "dudoso",
+   "nota": "Lubricante de uso general; solo la categoría dice femenino"
+  },
+  "atributo|natural|catalog_item|487017": {
+   "juicio": "si"
+  },
+  "atributo|navidad|catalog_item|56757": {
+   "juicio": "si"
+  },
+  "atributo|ninos|catalog_item|1336131": {
+   "juicio": "si"
+  },
+  "atributo|organico|catalog_item|957983": {
+   "juicio": "no",
+   "nota": "Dice 100% natural, no declara orgánico"
+  },
+  "atributo|organico|catalog_item|920261": {
+   "juicio": "si"
+  },
+  "atributo|otras-mascotas|catalog_item|948936": {
+   "juicio": "si"
+  },
+  "atributo|pack|catalog_item|629242": {
+   "juicio": "dudoso",
+   "nota": "Caja de bombones es unidad de venta, no pack multiunidad"
+  },
+  "atributo|para-compartir|menu_item|319145": {
+   "juicio": "si"
+  },
+  "atributo|para-preparar|catalog_item|36465": {
+   "juicio": "si"
+  },
+  "atributo|para-regalo|catalog_item|196367": {
+   "juicio": "si"
+  },
+  "atributo|parrilla|menu_item|366209": {
+   "juicio": "dudoso",
+   "nota": "Restaurante chino; 'parrillada' puede ser plancha, no brasas"
+  },
+  "atributo|perro|catalog_item|1638586": {
+   "juicio": "si"
+  },
+  "atributo|picante|menu_item|1178536": {
+   "juicio": "si"
+  },
+  "atributo|postre-incluido|menu_item|1489470": {
+   "juicio": "si"
+  },
+  "atributo|premium|catalog_item|1550785": {
+   "juicio": "si"
+  },
+  "atributo|recargable|catalog_item|1370885": {
+   "juicio": "no",
+   "nota": "Lámpara con batería recargable, no repuesto ni refill"
+  },
+  "atributo|reciclable|catalog_item|1626469": {
+   "juicio": "dudoso",
+   "nota": "Mención reciclable no visible en la descripción"
+  },
+  "atributo|refrigerado|catalog_item|1646669": {
+   "juicio": "si"
+  },
+  "atributo|retornable|catalog_item|1664376": {
+   "juicio": "si"
+  },
+  "atributo|saludable|menu_item|1933405": {
+   "juicio": "si"
+  },
+  "atributo|sin-alcohol|catalog_item|743611": {
+   "juicio": "si"
+  },
+  "atributo|sin-alcohol|menu_item|125473": {
+   "juicio": "si"
+  },
+  "atributo|sin-azucar|menu_item|163978": {
+   "juicio": "si"
+  },
+  "atributo|sin-cafeina|catalog_item|714490": {
+   "juicio": "si"
+  },
+  "atributo|sin-frutos-secos|menu_item|2092218523": {
+   "juicio": "dudoso",
+   "nota": "Sin nueces no garantiza libre de otros frutos secos"
+  },
+  "atributo|sin-gluten|catalog_item|1456624": {
+   "juicio": "dudoso",
+   "nota": "Mención sin gluten no visible en el texto mostrado"
+  },
+  "atributo|sin-huevo|catalog_item|882806": {
+   "juicio": "si"
+  },
+  "atributo|sin-lactosa|catalog_item|904364": {
+   "juicio": "no",
+   "nota": "Yogurt sin azúcar; nada indica sin lactosa"
+  },
+  "atributo|sin-lactosa|menu_item|961700": {
+   "juicio": "si"
+  },
+  "atributo|sin-parabenos|catalog_item|158091": {
+   "juicio": "si"
+  },
+  "atributo|sin-soya|catalog_item|967075": {
+   "juicio": "si"
+  },
+  "atributo|vegano|catalog_item|196695": {
+   "juicio": "no",
+   "nota": "Pan sin mención vegana en nombre ni descripción"
+  },
+  "atributo|vegano|menu_item|606551": {
+   "juicio": "si"
+  },
+  "atributo|vegetariano|menu_item|2425051": {
+   "juicio": "no",
+   "nota": "Vegetariano es solo una opción; también pollo o kanikama"
+  },
+  "atributo|vidrio|catalog_item|189199": {
+   "juicio": "si"
+  },
+  "concepto|accesorios-fumador|catalog_item|1483877": {
+   "juicio": "si"
+  },
+  "concepto|accesorios-mascota|catalog_item|1162542": {
+   "juicio": "dudoso",
+   "nota": "Antiparasitario es medicamento, no accesorio"
+  },
+  "concepto|aceites-condimentos|catalog_item|112651": {
+   "juicio": "si"
+  },
+  "concepto|arroz-legumbres|menu_item|983349": {
+   "juicio": "dudoso",
+   "nota": "Plato preparado; el concepto es de despensa"
+  },
+  "concepto|asiatica|menu_item|260027": {
+   "juicio": "si"
+  },
+  "concepto|bienestar-sexual|catalog_item|557241": {
+   "juicio": "si"
+  },
+  "concepto|celulares|catalog_item|1439677": {
+   "juicio": "si"
+  },
+  "concepto|chocolates|catalog_item|1463308": {
+   "juicio": "si"
+  },
+  "concepto|cuidado-cabello|catalog_item|1669531": {
+   "juicio": "si"
+  },
+  "concepto|dermocosmetica|catalog_item|1212130": {
+   "juicio": "si"
+  },
+  "concepto|ensaladas-bowls|menu_item|1493485": {
+   "juicio": "si"
+  },
+  "concepto|ferreteria|catalog_item|1660864": {
+   "juicio": "si"
+  },
+  "concepto|galletas|catalog_item|1648979": {
+   "juicio": "si"
+  },
+  "concepto|gaseosas|menu_item|1139973": {
+   "juicio": "si"
+  },
+  "concepto|gaseosas|menu_item|2417626": {
+   "juicio": "no",
+   "nota": "Es un combo de sushi; la bebida es secundaria"
+  },
+  "concepto|hamburguesa|menu_item|1068986": {
+   "juicio": "si"
+  },
+  "concepto|helados|catalog_item|1700555": {
+   "juicio": "no",
+   "nota": "Barquillos rellenos son galletas, no helados"
+  },
+  "concepto|joyeria|catalog_item|95888": {
+   "juicio": "no",
+   "nota": "Tobillera ortopédica de rehabilitación, no joyería"
+  },
+  "concepto|latina|menu_item|2417774": {
+   "juicio": "si"
+  },
+  "concepto|manualidades|catalog_item|840489": {
+   "juicio": "si"
+  },
+  "concepto|medicamentos|catalog_item|31823": {
+   "juicio": "dudoso",
+   "nota": "Suplemento para mascotas, no medicamento de farmacia humana"
+  },
+  "concepto|pasteleria|catalog_item|1702577": {
+   "juicio": "si"
+  },
+  "concepto|pasteleria|menu_item|258848": {
+   "juicio": "no",
+   "nota": "Es un helado artesanal de 550 ml, no torta"
+  },
+  "concepto|pescados-mariscos|menu_item|545620": {
+   "juicio": "si"
+  },
+  "concepto|pizza|menu_item|108269": {
+   "juicio": "si"
+  },
+  "concepto|pizza|menu_item|2099489385": {
+   "juicio": "si"
+  },
+  "concepto|pizza|menu_item|850530": {
+   "juicio": "si"
+  },
+  "concepto|platos-listos|menu_item|266373": {
+   "juicio": "si"
+  },
+  "concepto|platos-listos|menu_item|2454252": {
+   "juicio": "si"
+  },
+  "concepto|pollo|menu_item|1991762": {
+   "juicio": "si"
+  },
+  "concepto|postres|catalog_item|876483": {
+   "juicio": "si"
+  },
+  "concepto|quesos|catalog_item|1352488": {
+   "juicio": "dudoso",
+   "nota": "Snack apanado de mozzarella, no queso propiamente"
+  },
+  "concepto|ropa-interior|catalog_item|994093": {
+   "juicio": "si"
+  },
+  "concepto|sandwiches|menu_item|1114685": {
+   "juicio": "si"
+  },
+  "concepto|sandwiches|menu_item|948604": {
+   "juicio": "si"
+  },
+  "concepto|sandwiches|menu_item|257274": {
+   "juicio": "si"
+  },
+  "concepto|sopas|menu_item|2260481": {
+   "juicio": "si"
+  },
+  "concepto|sushi|menu_item|2090192452": {
+   "juicio": "si"
+  },
+  "concepto|sushi|menu_item|390959": {
+   "juicio": "si"
+  },
+  "concepto|sushi|menu_item|930385": {
+   "juicio": "si"
+  },
+  "concepto|sushi|menu_item|2288169": {
+   "juicio": "si"
+  },
+  "concepto|sushi|menu_item|1993643": {
+   "juicio": "si"
+  },
+  "concepto|textil-hogar|catalog_item|1353775": {
+   "juicio": "si"
+  },
+  "concepto|verduras|catalog_item|75877": {
+   "juicio": "no",
+   "nota": "Puré instantáneo de despensa, no verdura fresca"
+  },
+  "marca|artel|catalog_item|200721": {
+   "juicio": "si"
+  },
+  "marca|breden-master|catalog_item|1363458": {
+   "juicio": "si"
+  },
+  "marca|colgate|catalog_item|1452618": {
+   "juicio": "si"
+  },
+  "marca|doritos|catalog_item|1531336": {
+   "juicio": "si"
+  },
+  "marca|equate|catalog_item|243656": {
+   "juicio": "si"
+  },
+  "marca|haus|catalog_item|1450937": {
+   "juicio": "si"
+  },
+  "marca|kotex|catalog_item|1371323": {
+   "juicio": "si"
+  },
+  "marca|matetic|catalog_item|250424": {
+   "juicio": "si"
+  },
+  "marca|nespresso|catalog_item|1374991": {
+   "juicio": "si"
+  },
+  "marca|philips|catalog_item|1409213": {
+   "juicio": "si"
+  },
+  "marca|robinson-crusoe|catalog_item|1424488": {
+   "juicio": "si"
+  },
+  "marca|super-cerdo|catalog_item|299343": {
+   "juicio": "si"
+  },
+  "marca|twistshake|catalog_item|315090": {
+   "juicio": "si"
+  },
+  "marca|vogue|catalog_item|1556703": {
+   "juicio": "si"
+  },
+  "atributo|adolescentes|catalog_item|1366573": {
+   "juicio": "no",
+   "nota": "Minnie Mouse es infantil, no para adolescentes"
+  },
+  "atributo|adulto-mayor|catalog_item|111181": {
+   "juicio": "si"
+  },
+  "atributo|alto-fibra|catalog_item|196695": {
+   "juicio": "si"
+  },
+  "atributo|alto-fibra|catalog_item|930967": {
+   "juicio": "no",
+   "nota": "solo comparativo; arroz blanco no es alto en fibra"
+  },
+  "atributo|alto-proteina|catalog_item|351331": {
+   "juicio": "dudoso",
+   "nota": "mono proteico no implica alto en proteína"
+  },
+  "atributo|artesanal|menu_item|1273441": {
+   "juicio": "si"
+  },
+  "atributo|bajo-sodio|catalog_item|877824": {
+   "juicio": "no",
+   "nota": "atributo alimentario aplicado a un shampoo"
+  },
+  "atributo|bajo-sodio|menu_item|2098823411": {
+   "juicio": "si"
+  },
+  "atributo|bebe|catalog_item|789859": {
+   "juicio": "si"
+  },
+  "atributo|bebida-incluida|menu_item|430277": {
+   "juicio": "si"
+  },
+  "atributo|biodegradable|catalog_item|532802": {
+   "juicio": "dudoso",
+   "nota": "compostable alude al palito, no al chocolate"
+  },
+  "atributo|cachorro|catalog_item|1297225": {
+   "juicio": "si"
+  },
+  "atributo|capsulas|catalog_item|1009073": {
+   "juicio": "si"
+  },
+  "atributo|casero|menu_item|1889482": {
+   "juicio": "si"
+  },
+  "atributo|chileno|catalog_item|242773": {
+   "juicio": "si"
+  },
+  "atributo|chileno|menu_item|2091425374": {
+   "juicio": "si"
+  },
+  "atributo|combo|menu_item|63496": {
+   "juicio": "si"
+  },
+  "atributo|con-acompanamiento|menu_item|2419659": {
+   "juicio": "si"
+  },
+  "atributo|congelado|catalog_item|80273": {
+   "juicio": "si"
+  },
+  "atributo|crudo|menu_item|1672411": {
+   "juicio": "dudoso",
+   "nota": "tartar de camarón suele ser cocido"
+  },
+  "atributo|cruelty-free|catalog_item|1352707": {
+   "juicio": "si"
+  },
+  "atributo|cumpleanos|catalog_item|1364867": {
+   "juicio": "si"
+  },
+  "atributo|desayuno|menu_item|1925936": {
+   "juicio": "si"
+  },
+  "atributo|desechable|catalog_item|1303738": {
+   "juicio": "si"
+  },
+  "atributo|eco|catalog_item|1735735": {
+   "juicio": "si"
+  },
+  "atributo|embarazo-lactancia|catalog_item|293177": {
+   "juicio": "si"
+  },
+  "atributo|en-polvo|catalog_item|15217": {
+   "juicio": "si"
+  },
+  "atributo|familiar|menu_item|2000997": {
+   "juicio": "si"
+  },
+  "atributo|fiestas-patrias|catalog_item|1365648": {
+   "juicio": "si"
+  },
+  "atributo|frito|menu_item|1180004": {
+   "juicio": "si"
+  },
+  "atributo|gato|catalog_item|351331": {
+   "juicio": "si"
+  },
+  "atributo|gato|catalog_item|565376": {
+   "juicio": "si"
+  },
+  "atributo|granel|catalog_item|964371": {
+   "juicio": "si"
+  },
+  "atributo|halal|catalog_item|957353": {
+   "juicio": "si"
+  },
+  "atributo|halloween|catalog_item|66524": {
+   "juicio": "no",
+   "nota": "Halloween es nombre del perfume, no artículo temático"
+  },
+  "atributo|hombre|catalog_item|1549090": {
+   "juicio": "si"
+  },
+  "atributo|horno|menu_item|2256357": {
+   "juicio": "si"
+  },
+  "atributo|importado|catalog_item|1639708": {
+   "juicio": "si"
+  },
+  "atributo|individual|menu_item|2263147": {
+   "juicio": "si"
+  },
+  "atributo|instantaneo|catalog_item|273966": {
+   "juicio": "si"
+  },
+  "atributo|integral|menu_item|1689615": {
+   "juicio": "si"
+  },
+  "atributo|keto|catalog_item|1715536": {
+   "juicio": "si"
+  },
+  "atributo|kosher|catalog_item|80496": {
+   "juicio": "dudoso",
+   "nota": "kosher no aparece en nombre, categoría ni descripción"
+  },
+  "atributo|kosher|catalog_item|56673": {
+   "juicio": "si"
+  },
+  "atributo|lata|catalog_item|825734": {
+   "juicio": "si"
+  },
+  "atributo|light|menu_item|343177": {
+   "juicio": "si"
+  },
+  "atributo|listo-para-comer|catalog_item|1658926": {
+   "juicio": "si"
+  },
+  "atributo|mujer|catalog_item|537570": {
+   "juicio": "si"
+  },
+  "atributo|mujer|catalog_item|967383": {
+   "juicio": "dudoso",
+   "nota": "gel para pareja; no declarado para mujer"
+  },
+  "atributo|natural|catalog_item|957983": {
+   "juicio": "si"
+  },
+  "atributo|navidad|catalog_item|653663": {
+   "juicio": "si"
+  },
+  "atributo|ninos|catalog_item|1336139": {
+   "juicio": "si"
+  },
+  "atributo|organico|catalog_item|1002744": {
+   "juicio": "si"
+  },
+  "atributo|otras-mascotas|catalog_item|146913": {
+   "juicio": "si"
+  },
+  "atributo|otras-mascotas|catalog_item|948937": {
+   "juicio": "si"
+  },
+  "atributo|pack|catalog_item|793342": {
+   "juicio": "si"
+  },
+  "atributo|para-compartir|menu_item|505503": {
+   "juicio": "si"
+  },
+  "atributo|para-preparar|catalog_item|4199": {
+   "juicio": "si"
+  },
+  "atributo|para-regalo|catalog_item|698199": {
+   "juicio": "si"
+  },
+  "atributo|parrilla|menu_item|366260": {
+   "juicio": "no",
+   "nota": "descripción dice salteado, no a la parrilla"
+  },
+  "atributo|perro|catalog_item|1644863": {
+   "juicio": "si"
+  },
+  "atributo|picante|menu_item|185645": {
+   "juicio": "si"
+  },
+  "atributo|postre-incluido|menu_item|1489471": {
+   "juicio": "si"
+  },
+  "atributo|premium|catalog_item|1649336": {
+   "juicio": "si"
+  },
+  "atributo|recargable|catalog_item|1424367": {
+   "juicio": "si"
+  },
+  "atributo|reciclable|catalog_item|1735735": {
+   "juicio": "si"
+  },
+  "atributo|refrigerado|catalog_item|238304": {
+   "juicio": "si"
+  },
+  "atributo|retornable|catalog_item|1671582": {
+   "juicio": "si"
+  },
+  "atributo|saludable|menu_item|2098324227": {
+   "juicio": "si"
+  },
+  "atributo|sin-alcohol|catalog_item|749521": {
+   "juicio": "si"
+  },
+  "atributo|sin-alcohol|menu_item|1985379": {
+   "juicio": "si"
+  },
+  "atributo|sin-azucar|menu_item|2099348335": {
+   "juicio": "si"
+  },
+  "atributo|sin-cafeina|catalog_item|954445": {
+   "juicio": "si"
+  },
+  "atributo|sin-frutos-secos|menu_item|2092218525": {
+   "juicio": "dudoso",
+   "nota": "sin nueces no declara libre de frutos secos"
+  },
+  "atributo|sin-gluten|catalog_item|344200": {
+   "juicio": "si"
+  },
+  "atributo|sin-huevo|catalog_item|992635": {
+   "juicio": "si"
+  },
+  "atributo|sin-lactosa|catalog_item|1168479": {
+   "juicio": "si"
+  },
+  "atributo|sin-parabenos|catalog_item|108396": {
+   "juicio": "si"
+  },
+  "atributo|sin-parabenos|catalog_item|1722773": {
+   "juicio": "si"
+  },
+  "atributo|sin-soya|menu_item|1263353": {
+   "juicio": "si"
+  },
+  "atributo|vegano|catalog_item|882582": {
+   "juicio": "si"
+  },
+  "atributo|vegano|menu_item|731151": {
+   "juicio": "si"
+  },
+  "atributo|vegetariano|menu_item|279438": {
+   "juicio": "si"
+  },
+  "atributo|vidrio|catalog_item|793298": {
+   "juicio": "si"
+  },
+  "concepto|accesorios-fumador|catalog_item|1486840": {
+   "juicio": "si"
+  },
+  "concepto|accesorios-mascota|catalog_item|13617": {
+   "juicio": "si"
+  },
+  "concepto|aceites-condimentos|catalog_item|249680": {
+   "juicio": "si"
+  },
+  "concepto|articulos-bebe|catalog_item|315082": {
+   "juicio": "si"
+  },
+  "concepto|asiatica|menu_item|499607": {
+   "juicio": "si"
+  },
+  "concepto|bienestar-sexual|catalog_item|161833": {
+   "juicio": "si"
+  },
+  "concepto|celulares|catalog_item|1487389": {
+   "juicio": "si"
+  },
+  "concepto|chocolates|catalog_item|1402736": {
+   "juicio": "si"
+  },
+  "concepto|cuidado-oral|catalog_item|545620": {
+   "juicio": "si"
+  },
+  "concepto|dermocosmetica|catalog_item|912915": {
+   "juicio": "si"
+  },
+  "concepto|ensaladas-bowls|menu_item|2288752": {
+   "juicio": "si"
+  },
+  "concepto|ferreteria|catalog_item|1731711": {
+   "juicio": "si"
+  },
+  "concepto|gaseosas|menu_item|1171161": {
+   "juicio": "no",
+   "nota": "makgeoli es licor de arroz, no gaseosa"
+  },
+  "concepto|gaseosas|menu_item|1257094": {
+   "juicio": "si"
+  },
+  "concepto|gaseosas|menu_item|2454752": {
+   "juicio": "si"
+  },
+  "concepto|hamburguesa|menu_item|2099049909": {
+   "juicio": "si"
+  },
+  "concepto|helados|catalog_item|793395": {
+   "juicio": "dudoso",
+   "nota": "barquillo puede ser galleta, no helado"
+  },
+  "concepto|juegos-mesa|catalog_item|306955": {
+   "juicio": "si"
+  },
+  "concepto|latina|menu_item|268637": {
+   "juicio": "si"
+  },
+  "concepto|manualidades|catalog_item|840700": {
+   "juicio": "si"
+  },
+  "concepto|medicamentos|catalog_item|14553": {
+   "juicio": "si"
+  },
+  "concepto|pasteleria|catalog_item|953333": {
+   "juicio": "si"
+  },
+  "concepto|pasteleria|menu_item|265728": {
+   "juicio": "si"
+  },
+  "concepto|pescados-mariscos|menu_item|981776": {
+   "juicio": "si"
+  },
+  "concepto|pizza|menu_item|112478": {
+   "juicio": "si"
+  },
+  "concepto|pizza|menu_item|2437543": {
+   "juicio": "si"
+  },
+  "concepto|platos-listos|menu_item|100788": {
+   "juicio": "si"
+  },
+  "concepto|platos-listos|menu_item|308311": {
+   "juicio": "si"
+  },
+  "concepto|platos-listos|menu_item|685970": {
+   "juicio": "si"
+  },
+  "concepto|pollo|menu_item|217367": {
+   "juicio": "si"
+  },
+  "concepto|postres|menu_item|1116009": {
+   "juicio": "si"
+  },
+  "concepto|reposteria|catalog_item|1728612": {
+   "juicio": "si"
+  },
+  "concepto|ropa-interior|catalog_item|994135": {
+   "juicio": "si"
+  },
+  "concepto|sandwiches|menu_item|1186163": {
+   "juicio": "si"
+  },
+  "concepto|sandwiches|menu_item|287117": {
+   "juicio": "si"
+  },
+  "concepto|sandwiches|menu_item|287389": {
+   "juicio": "si"
+  },
+  "concepto|sushi|menu_item|110667": {
+   "juicio": "si"
+  },
+  "concepto|sushi|menu_item|2090257397": {
+   "juicio": "si"
+  },
+  "concepto|sushi|menu_item|562646": {
+   "juicio": "si"
+  },
+  "concepto|sushi|menu_item|96805": {
+   "juicio": "si"
+  },
+  "concepto|sushi|menu_item|2300811": {
+   "juicio": "si"
+  },
+  "concepto|sushi|menu_item|2043026": {
+   "juicio": "si"
+  },
+  "concepto|tv-video|catalog_item|1056636": {
+   "juicio": "si"
+  },
+  "concepto|vino|catalog_item|1752": {
+   "juicio": "si"
+  },
+  "marca|artel|catalog_item|527275": {
+   "juicio": "si"
+  },
+  "marca|bubu|catalog_item|35739": {
+   "juicio": "si"
+  },
+  "marca|colun|catalog_item|904364": {
+   "juicio": "si"
+  },
+  "marca|dove|catalog_item|1162730": {
+   "juicio": "si"
+  },
+  "marca|essence|catalog_item|1643940": {
+   "juicio": "si"
+  },
+  "marca|hoco|catalog_item|658023": {
+   "juicio": "si"
+  },
+  "marca|kross|catalog_item|1485098": {
+   "juicio": "si"
+  },
+  "marca|maybelline|catalog_item|524611": {
+   "juicio": "si"
+  },
+  "marca|nestle|catalog_item|51901": {
+   "juicio": "si"
+  },
+  "marca|positiv|catalog_item|967054": {
+   "juicio": "si"
+  },
+  "marca|ronson|catalog_item|913275": {
+   "juicio": "si"
+  },
+  "marca|super-cerdo|catalog_item|1413426": {
+   "juicio": "si"
+  },
+  "marca|ucare|catalog_item|94224": {
+   "juicio": "si"
+  },
+  "marca|wasil|catalog_item|69090": {
+   "juicio": "si"
+  },
+  "atributo|adolescentes|catalog_item|1366878": {
+   "juicio": "no",
+   "nota": "Minnie juvenil es diseño infantil, no para adolescentes"
+  },
+  "atributo|adulto-mayor|catalog_item|1371302": {
+   "juicio": "si"
+  },
+  "atributo|alto-fibra|catalog_item|339160": {
+   "juicio": "no",
+   "nota": "Papas no son alto en fibra; nada lo respalda"
+  },
+  "atributo|alto-fibra|catalog_item|985179": {
+   "juicio": "si"
+  },
+  "atributo|alto-proteina|catalog_item|904117": {
+   "juicio": "si"
+  },
+  "atributo|artesanal|menu_item|1963358": {
+   "juicio": "si"
+  },
+  "atributo|bajo-sodio|catalog_item|127801": {
+   "juicio": "si"
+  },
+  "atributo|bebe|catalog_item|131888": {
+   "juicio": "si"
+  },
+  "atributo|bebe|catalog_item|805421": {
+   "juicio": "si"
+  },
+  "atributo|bebida-incluida|menu_item|493077": {
+   "juicio": "si"
+  },
+  "atributo|biodegradable|catalog_item|554914": {
+   "juicio": "si"
+  },
+  "atributo|cachorro|catalog_item|131040": {
+   "juicio": "si"
+  },
+  "atributo|capsulas|catalog_item|1322845": {
+   "juicio": "si"
+  },
+  "atributo|casero|menu_item|1889490": {
+   "juicio": "si"
+  },
+  "atributo|chileno|catalog_item|279803": {
+   "juicio": "si"
+  },
+  "atributo|chileno|menu_item|216438": {
+   "juicio": "si"
+  },
+  "atributo|combo|menu_item|813091": {
+   "juicio": "si"
+  },
+  "atributo|con-acompanamiento|menu_item|75183": {
+   "juicio": "si"
+  },
+  "atributo|congelado|catalog_item|920060": {
+   "juicio": "si"
+  },
+  "atributo|crudo|menu_item|1963390": {
+   "juicio": "si"
+  },
+  "atributo|cruelty-free|catalog_item|1395374": {
+   "juicio": "si"
+  },
+  "atributo|cumpleanos|catalog_item|1365281": {
+   "juicio": "si"
+  },
+  "atributo|desayuno|menu_item|2007216": {
+   "juicio": "si"
+  },
+  "atributo|desechable|catalog_item|1354952": {
+   "juicio": "si"
+  },
+  "atributo|eco|catalog_item|1735736": {
+   "juicio": "si"
+  },
+  "atributo|embarazo-lactancia|catalog_item|686287": {
+   "juicio": "si"
+  },
+  "atributo|en-polvo|catalog_item|1670330": {
+   "juicio": "si"
+  },
+  "atributo|familiar|menu_item|2097419802": {
+   "juicio": "si"
+  },
+  "atributo|fiestas-patrias|catalog_item|1446737": {
+   "juicio": "si"
+  },
+  "atributo|frito|menu_item|176522": {
+   "juicio": "si"
+  },
+  "atributo|gato|catalog_item|878325": {
+   "juicio": "si"
+  },
+  "atributo|gato|catalog_item|920451": {
+   "juicio": "no",
+   "nota": "Lengua de gato es tipo de galleta, no para gatos"
+  },
+  "atributo|granel|catalog_item|964454": {
+   "juicio": "si"
+  },
+  "atributo|halal|menu_item|152941": {
+   "juicio": "si"
+  },
+  "atributo|halloween|catalog_item|811693": {
+   "juicio": "si"
+  },
+  "atributo|hombre|catalog_item|1556504": {
+   "juicio": "si"
+  },
+  "atributo|horno|menu_item|2431341": {
+   "juicio": "si"
+  },
+  "atributo|importado|catalog_item|1646251": {
+   "juicio": "si"
+  },
+  "atributo|individual|menu_item|2395722": {
+   "juicio": "si"
+  },
+  "atributo|instantaneo|catalog_item|47135": {
+   "juicio": "si"
+  },
+  "atributo|integral|menu_item|2328851": {
+   "juicio": "si"
+  },
+  "atributo|keto|catalog_item|611186": {
+   "juicio": "si"
+  },
+  "atributo|kosher|catalog_item|1305882": {
+   "juicio": "si"
+  },
+  "atributo|lata|catalog_item|1035911": {
+   "juicio": "si"
+  },
+  "atributo|light|catalog_item|1301067": {
+   "juicio": "si"
+  },
+  "atributo|light|menu_item|493181": {
+   "juicio": "si"
+  },
+  "atributo|listo-para-comer|catalog_item|768570": {
+   "juicio": "si"
+  },
+  "atributo|mujer|catalog_item|1456624": {
+   "juicio": "si"
+  },
+  "atributo|natural|catalog_item|196805": {
+   "juicio": "dudoso",
+   "nota": "Sin preservantes no se ve en nombre ni descripción"
+  },
+  "atributo|natural|menu_item|1263353": {
+   "juicio": "si"
+  },
+  "atributo|navidad|catalog_item|834078": {
+   "juicio": "si"
+  },
+  "atributo|ninos|catalog_item|1395374": {
+   "juicio": "si"
+  },
+  "atributo|organico|catalog_item|135402": {
+   "juicio": "si"
+  },
+  "atributo|otras-mascotas|catalog_item|16844": {
+   "juicio": "dudoso",
+   "nota": "Vitamina K para perros y gatos; no otras mascotas"
+  },
+  "atributo|otras-mascotas|catalog_item|948941": {
+   "juicio": "si"
+  },
+  "atributo|pack|catalog_item|891807": {
+   "juicio": "no",
+   "nota": "Caja de aislapol es envase, no pack de unidades"
+  },
+  "atributo|para-compartir|menu_item|636858": {
+   "juicio": "si"
+  },
+  "atributo|para-preparar|catalog_item|75618": {
+   "juicio": "si"
+  },
+  "atributo|para-regalo|catalog_item|698201": {
+   "juicio": "si"
+  },
+  "atributo|parrilla|menu_item|606942": {
+   "juicio": "no",
+   "nota": "Es gratinado, no a la parrilla; grill es nombre"
+  },
+  "atributo|perro|catalog_item|1656407": {
+   "juicio": "no",
+   "nota": "Peluche juguete infantil, no producto para perros"
+  },
+  "atributo|picante|menu_item|1933691": {
+   "juicio": "si"
+  },
+  "atributo|postre-incluido|menu_item|1494787": {
+   "juicio": "si"
+  },
+  "atributo|premium|catalog_item|73952": {
+   "juicio": "si"
+  },
+  "atributo|recargable|catalog_item|1647514": {
+   "juicio": "si"
+  },
+  "atributo|reciclable|catalog_item|1735736": {
+   "juicio": "si"
+  },
+  "atributo|refrigerado|catalog_item|296681": {
+   "juicio": "si"
+  },
+  "atributo|retornable|catalog_item|296379": {
+   "juicio": "si"
+  },
+  "atributo|saludable|menu_item|2323557": {
+   "juicio": "si"
+  },
+  "atributo|sin-alcohol|catalog_item|1659518": {
+   "juicio": "si"
+  },
+  "atributo|sin-azucar|catalog_item|1301067": {
+   "juicio": "si"
+  },
+  "atributo|sin-azucar|menu_item|46211": {
+   "juicio": "si"
+  },
+  "atributo|sin-cafeina|menu_item|1114072": {
+   "juicio": "dudoso",
+   "nota": "Chocolate caliente contiene algo de cafeína"
+  },
+  "atributo|sin-frutos-secos|menu_item|346264": {
+   "juicio": "si"
+  },
+  "atributo|sin-gluten|catalog_item|760649": {
+   "juicio": "si"
+  },
+  "atributo|sin-huevo|catalog_item|994472": {
+   "juicio": "si"
+  },
+  "atributo|sin-lactosa|catalog_item|1303750": {
+   "juicio": "si"
+  },
+  "atributo|sin-parabenos|catalog_item|718603": {
+   "juicio": "dudoso",
+   "nota": "Sin parabenos no visible en nombre ni descripción"
+  },
+  "atributo|sin-parabenos|catalog_item|367840": {
+   "juicio": "si"
+  },
+  "atributo|sin-soya|menu_item|1930791": {
+   "juicio": "si"
+  },
+  "atributo|vegano|menu_item|1263353": {
+   "juicio": "si"
+  },
+  "atributo|vegetariano|catalog_item|110223": {
+   "juicio": "si"
+  },
+  "atributo|vegetariano|menu_item|326583": {
+   "juicio": "si"
+  },
+  "atributo|vidrio|catalog_item|793300": {
+   "juicio": "si"
+  },
+  "concepto|accesorios-fumador|catalog_item|1542968": {
+   "juicio": "si"
+  },
+  "concepto|accesorios-mascota|catalog_item|23274": {
+   "juicio": "dudoso",
+   "nota": "Es antiparasitario medicado, no accesorio"
+  },
+  "concepto|aceites-condimentos|catalog_item|87809": {
+   "juicio": "si"
+  },
+  "concepto|articulos-bebe|catalog_item|45061": {
+   "juicio": "si"
+  },
+  "concepto|asiatica|menu_item|73593": {
+   "juicio": "si"
+  },
+  "concepto|cafe|catalog_item|1374991": {
+   "juicio": "si"
+  },
+  "concepto|celulares|catalog_item|1638730": {
+   "juicio": "si"
+  },
+  "concepto|chocolates|catalog_item|1643928": {
+   "juicio": "si"
+  },
+  "concepto|cuidado-oral|catalog_item|904219": {
+   "juicio": "si"
+  },
+  "concepto|empanadas|catalog_item|85287": {
+   "juicio": "no",
+   "nota": "Pasta para untar de ave, no empanada"
+  },
+  "concepto|ensaladas-bowls|menu_item|2446666": {
+   "juicio": "si"
+  },
+  "concepto|ferreteria|catalog_item|195323": {
+   "juicio": "si"
+  },
+  "concepto|gaseosas|menu_item|1187272": {
+   "juicio": "no",
+   "nota": "Jugo de naranja natural no es gaseosa"
+  },
+  "concepto|gaseosas|menu_item|1274388": {
+   "juicio": "si"
+  },
+  "concepto|gaseosas|menu_item|302031": {
+   "juicio": "si"
+  },
+  "concepto|hamburguesa|menu_item|240643": {
+   "juicio": "si"
+  },
+  "concepto|helados|menu_item|505982": {
+   "juicio": "si"
+  },
+  "concepto|jugos|menu_item|2343614": {
+   "juicio": "si"
+  },
+  "concepto|latina|menu_item|270836": {
+   "juicio": "si"
+  },
+  "concepto|manualidades|catalog_item|1353815": {
+   "juicio": "dudoso",
+   "nota": "Individuales de mesa, no material de manualidades"
+  },
+  "concepto|mexicana|menu_item|103297": {
+   "juicio": "si"
+  },
+  "concepto|pasteleria|catalog_item|1402746": {
+   "juicio": "si"
+  },
+  "concepto|pasteleria|menu_item|315838": {
+   "juicio": "si"
+  },
+  "concepto|picoteo|menu_item|2285963": {
+   "juicio": "si"
+  },
+  "concepto|pizza|menu_item|1179273": {
+   "juicio": "si"
+  },
+  "concepto|pizza|menu_item|532840": {
+   "juicio": "si"
+  },
+  "concepto|platos-listos|menu_item|1030656": {
+   "juicio": "si"
+  },
+  "concepto|platos-listos|menu_item|377537": {
+   "juicio": "si"
+  },
+  "concepto|platos-listos|menu_item|847197": {
+   "juicio": "si"
+  },
+  "concepto|pollo|menu_item|2537375": {
+   "juicio": "no",
+   "nota": "Sándwich de pollo apanado, no pollo fresco"
+  },
+  "concepto|postres|menu_item|65259": {
+   "juicio": "si"
+  },
+  "concepto|reposteria|catalog_item|1728624": {
+   "juicio": "si"
+  },
+  "concepto|salsas|menu_item|1966254": {
+   "juicio": "si"
+  },
+  "concepto|sandwiches|menu_item|1208071": {
+   "juicio": "si"
+  },
+  "concepto|sandwiches|menu_item|103757": {
+   "juicio": "si"
+  },
+  "concepto|sandwiches|menu_item|973697": {
+   "juicio": "si"
+  },
+  "concepto|sushi|menu_item|146376": {
+   "juicio": "si"
+  },
+  "concepto|sushi|menu_item|2099088634": {
+   "juicio": "si"
+  },
+  "concepto|sushi|menu_item|574679": {
+   "juicio": "si"
+  },
+  "concepto|sushi|menu_item|989936": {
+   "juicio": "si"
+  },
+  "concepto|sushi|menu_item|2323113": {
+   "juicio": "si"
+  },
+  "concepto|sushi|menu_item|230765": {
+   "juicio": "si"
+  },
+  "concepto|tv-video|catalog_item|1217557": {
+   "juicio": "no",
+   "nota": "Un drone no es TV y video"
+  },
+  "concepto|vitaminas|catalog_item|23542": {
+   "juicio": "si"
+  },
+  "marca|artel|catalog_item|527290": {
+   "juicio": "si"
+  },
+  "marca|capel|catalog_item|1715205": {
+   "juicio": "si"
+  },
+  "marca|cotidian|catalog_item|1646860": {
+   "juicio": "si"
+  },
+  "marca|dove|catalog_item|1424278": {
+   "juicio": "si"
+  },
+  "marca|etienne|catalog_item|1212661": {
+   "juicio": "si"
+  },
+  "marca|hoco|catalog_item|658025": {
+   "juicio": "si"
+  },
+  "marca|la-granja|catalog_item|89924": {
+   "juicio": "si"
+  },
+  "marca|maybelline|catalog_item|1716284": {
+   "juicio": "si"
+  },
+  "marca|nexcare|catalog_item|1672473": {
+   "juicio": "si"
+  },
+  "marca|proarte|catalog_item|238039": {
+   "juicio": "si"
+  },
+  "marca|satisfyer|catalog_item|1670483": {
+   "juicio": "si"
+  },
+  "marca|surlat|catalog_item|1424300": {
+   "juicio": "si"
+  },
+  "marca|uriage|catalog_item|867497": {
+   "juicio": "si"
+  },
+  "marca|wellplus|catalog_item|882582": {
+   "juicio": "si"
+  },
+  "atributo|adolescentes|catalog_item|28246": {
+   "juicio": "si"
+  },
+  "atributo|adulto-mayor|catalog_item|1646860": {
+   "juicio": "si"
+  },
+  "atributo|alto-fibra|catalog_item|1200590": {
+   "juicio": "si"
+  },
+  "atributo|alto-proteina|catalog_item|107240": {
+   "juicio": "dudoso",
+   "nota": "Queso untable; alto en proteína no respaldado en texto"
+  },
+  "atributo|alto-proteina|menu_item|16522": {
+   "juicio": "dudoso",
+   "nota": "Combo de helado; solo las bolitas mencionan proteína"
+  },
+  "atributo|artesanal|menu_item|2306490": {
+   "juicio": "si"
+  },
+  "atributo|bajo-sodio|catalog_item|1311107": {
+   "juicio": "si"
+  },
+  "atributo|bebe|catalog_item|567079": {
+   "juicio": "si"
+  },
+  "atributo|bebe|catalog_item|87442": {
+   "juicio": "si"
+  },
+  "atributo|bebida-incluida|menu_item|574071": {
+   "juicio": "si"
+  },
+  "atributo|biodegradable|catalog_item|614010": {
+   "juicio": "si"
+  },
+  "atributo|cachorro|catalog_item|1374856": {
+   "juicio": "si"
+  },
+  "atributo|capsulas|catalog_item|1322928": {
+   "juicio": "si"
+  },
+  "atributo|casero|menu_item|1974437": {
+   "juicio": "si"
+  },
+  "atributo|chileno|catalog_item|74610": {
+   "juicio": "si"
+  },
+  "atributo|chileno|menu_item|710024": {
+   "juicio": "si"
+  },
+  "atributo|combo|menu_item|885186": {
+   "juicio": "si"
+  },
+  "atributo|con-acompanamiento|menu_item|92380": {
+   "juicio": "si"
+  },
+  "atributo|congelado|menu_item|1960144": {
+   "juicio": "si"
+  },
+  "atributo|crudo|menu_item|198664": {
+   "juicio": "si"
+  },
+  "atributo|cruelty-free|catalog_item|1442024": {
+   "juicio": "si"
+  },
+  "atributo|cumpleanos|catalog_item|1365721": {
+   "juicio": "si"
+  },
+  "atributo|desayuno|menu_item|2287254": {
+   "juicio": "si"
+  },
+  "atributo|desechable|catalog_item|1451247": {
+   "juicio": "si"
+  },
+  "atributo|eco|catalog_item|537570": {
+   "juicio": "si"
+  },
+  "atributo|embarazo-lactancia|catalog_item|722505": {
+   "juicio": "si"
+  },
+  "atributo|en-polvo|catalog_item|21447": {
+   "juicio": "si"
+  },
+  "atributo|familiar|menu_item|2390414": {
+   "juicio": "si"
+  },
+  "atributo|fiestas-patrias|catalog_item|1449989": {
+   "juicio": "si"
+  },
+  "atributo|frito|menu_item|2286650": {
+   "juicio": "si"
+  },
+  "atributo|gato|catalog_item|124561": {
+   "juicio": "si"
+  },
+  "atributo|granel|catalog_item|1036269": {
+   "juicio": "si"
+  },
+  "atributo|halal|catalog_item|1311011": {
+   "juicio": "si"
+  },
+  "atributo|halloween|catalog_item|1324274": {
+   "juicio": "no",
+   "nota": "Perfume llamado Halloween, no artículo de Halloween"
+  },
+  "atributo|hombre|catalog_item|105469": {
+   "juicio": "si"
+  },
+  "atributo|hombre|catalog_item|1663745": {
+   "juicio": "si"
+  },
+  "atributo|horno|menu_item|496346": {
+   "juicio": "si"
+  },
+  "atributo|importado|catalog_item|1646252": {
+   "juicio": "si"
+  },
+  "atributo|individual|menu_item|2417385": {
+   "juicio": "si"
+  },
+  "atributo|instantaneo|catalog_item|50155": {
+   "juicio": "si"
+  },
+  "atributo|integral|menu_item|368570": {
+   "juicio": "si"
+  },
+  "atributo|keto|catalog_item|765285": {
+   "juicio": "si"
+  },
+  "atributo|kosher|catalog_item|1305884": {
+   "juicio": "si"
+  },
+  "atributo|lata|catalog_item|1348142": {
+   "juicio": "si"
+  },
+  "atributo|light|catalog_item|1346180": {
+   "juicio": "no",
+   "nota": "Cerveza Becker normal, no es light"
+  },
+  "atributo|light|menu_item|709851": {
+   "juicio": "si"
+  },
+  "atributo|listo-para-comer|catalog_item|768582": {
+   "juicio": "si"
+  },
+  "atributo|mujer|catalog_item|1461360": {
+   "juicio": "dudoso",
+   "nota": "Gel íntimo para parejas, no claramente para mujer"
+  },
+  "atributo|natural|catalog_item|67063": {
+   "juicio": "dudoso",
+   "nota": "Nada en el texto indica sin preservantes"
+  },
+  "atributo|natural|menu_item|2424229": {
+   "juicio": "no",
+   "nota": "Sin aditivos se refiere a la palta, no la vienesa"
+  },
+  "atributo|navidad|menu_item|1928701": {
+   "juicio": "si"
+  },
+  "atributo|ninos|catalog_item|1637579": {
+   "juicio": "si"
+  },
+  "atributo|organico|catalog_item|1429827": {
+   "juicio": "si"
+  },
+  "atributo|otras-mascotas|catalog_item|641098": {
+   "juicio": "dudoso",
+   "nota": "Correa sin especie indicada, probablemente para perros"
+  },
+  "atributo|otras-mascotas|catalog_item|986547": {
+   "juicio": "si"
+  },
+  "atributo|pack|catalog_item|906803": {
+   "juicio": "si"
+  },
+  "atributo|para-compartir|menu_item|799926": {
+   "juicio": "si"
+  },
+  "atributo|para-preparar|catalog_item|807328": {
+   "juicio": "si"
+  },
+  "atributo|para-regalo|catalog_item|698202": {
+   "juicio": "si"
+  },
+  "atributo|parrilla|menu_item|99910": {
+   "juicio": "si"
+  },
+  "atributo|perro|catalog_item|1730306": {
+   "juicio": "si"
+  },
+  "atributo|picante|menu_item|2296875": {
+   "juicio": "si"
+  },
+  "atributo|postre-incluido|menu_item|1494803": {
+   "juicio": "si"
+  },
+  "atributo|premium|menu_item|147510": {
+   "juicio": "si"
+  },
+  "atributo|recargable|catalog_item|1660755": {
+   "juicio": "si"
+  },
+  "atributo|reciclable|catalog_item|196524": {
+   "juicio": "si"
+  },
+  "atributo|refrigerado|catalog_item|296684": {
+   "juicio": "si"
+  },
+  "atributo|retornable|catalog_item|335913": {
+   "juicio": "si"
+  },
+  "atributo|saludable|menu_item|2540720": {
+   "juicio": "si"
+  },
+  "atributo|sin-alcohol|catalog_item|1664383": {
+   "juicio": "si"
+  },
+  "atributo|sin-azucar|catalog_item|130954": {
+   "juicio": "dudoso",
+   "nota": "Texto no indica sin azúcar en caramelos Freegells"
+  },
+  "atributo|sin-azucar|menu_item|72506": {
+   "juicio": "si"
+  },
+  "atributo|sin-cafeina|menu_item|1556836": {
+   "juicio": "si"
+  },
+  "atributo|sin-frutos-secos|menu_item|909109": {
+   "juicio": "si"
+  },
+  "atributo|sin-gluten|menu_item|1263353": {
+   "juicio": "si"
+  },
+  "atributo|sin-huevo|menu_item|1960966": {
+   "juicio": "si"
+  },
+  "atributo|sin-lactosa|catalog_item|1343028": {
+   "juicio": "si"
+  },
+  "atributo|sin-parabenos|catalog_item|877824": {
+   "juicio": "si"
+  },
+  "atributo|sin-parabenos|catalog_item|984619": {
+   "juicio": "si"
+  },
+  "atributo|sin-soya|menu_item|395025": {
+   "juicio": "si"
+  },
+  "atributo|vegano|menu_item|1270968": {
+   "juicio": "si"
+  },
+  "atributo|vegetariano|catalog_item|1628795": {
+   "juicio": "no",
+   "nota": "Lasaña bolognesa con carne molida"
+  },
+  "atributo|vegetariano|menu_item|587569": {
+   "juicio": "si"
+  },
+  "atributo|vidrio|catalog_item|793320": {
+   "juicio": "si"
+  },
+  "concepto|accesorios-fumador|catalog_item|1543902": {
+   "juicio": "si"
+  },
+  "concepto|accesorios-mascota|catalog_item|931458": {
+   "juicio": "si"
+  },
+  "concepto|alimento-gato|catalog_item|264723": {
+   "juicio": "si"
+  },
+  "concepto|articulos-deportivos|catalog_item|1059566": {
+   "juicio": "si"
+  },
+  "concepto|audio|catalog_item|1289484": {
+   "juicio": "si"
+  },
+  "concepto|cafe|catalog_item|1648802": {
+   "juicio": "no",
+   "nota": "Chai latte es té, no café"
+  },
+  "concepto|celulares|catalog_item|713670": {
+   "juicio": "si"
+  },
+  "concepto|chocolates|menu_item|2342011": {
+   "juicio": "no",
+   "nota": "Chocolate caliente es bebida, no chocolates"
+  },
+  "concepto|decoracion|catalog_item|1050217": {
+   "juicio": "si"
+  },
+  "concepto|empanadas|menu_item|1081914": {
+   "juicio": "si"
+  },
+  "concepto|ensaladas-bowls|menu_item|2454860": {
+   "juicio": "si"
+  },
+  "concepto|ferreteria|catalog_item|924597": {
+   "juicio": "si"
+  },
+  "concepto|gaseosas|menu_item|2487212": {
+   "juicio": "no",
+   "nota": "Jugo de mango, no bebida gaseosa"
+  },
+  "concepto|gaseosas|menu_item|131318": {
+   "juicio": "si"
+  },
+  "concepto|gaseosas|menu_item|547086": {
+   "juicio": "si"
+  },
+  "concepto|hamburguesa|menu_item|1096269": {
+   "juicio": "si"
+  },
+  "concepto|higiene-personal|catalog_item|1528859": {
+   "juicio": "si"
+  },
+  "concepto|juguetes-infantiles|catalog_item|49408": {
+   "juicio": "no",
+   "nota": "Tensiómetro de muñeca, no juguete"
+  },
+  "concepto|latina|menu_item|45047": {
+   "juicio": "si"
+  },
+  "concepto|manualidades|catalog_item|1498538": {
+   "juicio": "si"
+  },
+  "concepto|muebles|catalog_item|1039520": {
+   "juicio": "si"
+  },
+  "concepto|pasteleria|menu_item|1026134": {
+   "juicio": "si"
+  },
+  "concepto|pasteleria|menu_item|381743": {
+   "juicio": "si"
+  },
+  "concepto|picoteo|menu_item|2370049": {
+   "juicio": "si"
+  },
+  "concepto|pizza|menu_item|1261977": {
+   "juicio": "no",
+   "nota": "Tortelloni es pasta, no pizza"
+  },
+  "concepto|pizza|menu_item|76689": {
+   "juicio": "no",
+   "nota": "Papas fritas con cheddar, no pizza"
+  },
+  "concepto|platos-listos|menu_item|1116745": {
+   "juicio": "si"
+  },
+  "concepto|platos-listos|menu_item|528323": {
+   "juicio": "si"
+  },
+  "concepto|platos-listos|menu_item|1931083": {
+   "juicio": "si"
+  },
+  "concepto|pollo|menu_item|427060": {
+   "juicio": "no",
+   "nota": "Plato preparado apanado, no pollo fresco"
+  },
+  "concepto|postres|catalog_item|1648992": {
+   "juicio": "si"
+  },
+  "concepto|reposteria|catalog_item|1728625": {
+   "juicio": "si"
+  },
+  "concepto|salsas|menu_item|2453601": {
+   "juicio": "si"
+  },
+  "concepto|sandwiches|menu_item|127015": {
+   "juicio": "si"
+  },
+  "concepto|sandwiches|menu_item|1151228": {
+   "juicio": "si"
+  },
+  "concepto|snacks-salados|catalog_item|197194": {
+   "juicio": "si"
+  },
+  "concepto|sushi|menu_item|1660936": {
+   "juicio": "si"
+  },
+  "concepto|sushi|menu_item|2099124549": {
+   "juicio": "si"
+  },
+  "concepto|sushi|menu_item|60238": {
+   "juicio": "si"
+  },
+  "concepto|sushi|menu_item|1173641": {
+   "juicio": "si"
+  },
+  "concepto|sushi|menu_item|245765": {
+   "juicio": "si"
+  },
+  "concepto|sushi|menu_item|441627": {
+   "juicio": "si"
+  },
+  "concepto|utiles|catalog_item|1081488": {
+   "juicio": "si"
+  },
+  "concepto|vitaminas|catalog_item|361846": {
+   "juicio": "si"
+  },
+  "marca|austral|catalog_item|1535605": {
+   "juicio": "si"
+  },
+  "marca|casa-silva|catalog_item|1550429": {
+   "juicio": "si"
+  },
+  "marca|cotidian|catalog_item|1646861": {
+   "juicio": "si"
+  },
+  "marca|dove|catalog_item|1459389": {
+   "juicio": "si"
+  },
+  "marca|fisher-price|catalog_item|1668669": {
+   "juicio": "si"
+  },
+  "marca|iansa|catalog_item|42825": {
+   "juicio": "si"
+  },
+  "marca|le-sancy|catalog_item|1290498": {
+   "juicio": "si"
+  },
+  "marca|merello|catalog_item|55333": {
+   "juicio": "si"
+  },
+  "marca|nintendo|catalog_item|1657294": {
+   "juicio": "si"
+  },
+  "marca|protect|catalog_item|1456354": {
+   "juicio": "si"
+  },
+  "marca|simparica|catalog_item|901916": {
+   "juicio": "si"
+  },
+  "marca|tennesie|catalog_item|49511": {
+   "juicio": "si"
+  },
+  "marca|vaseline|catalog_item|1212098": {
+   "juicio": "si"
+  },
+  "marca|wilson|catalog_item|866737": {
+   "juicio": "si"
+  },
+  "atributo|adolescentes|catalog_item|719683": {
+   "juicio": "si"
+  },
+  "atributo|adulto-mayor|catalog_item|1646861": {
+   "juicio": "si"
+  },
+  "atributo|alto-fibra|catalog_item|1361352": {
+   "juicio": "dudoso",
+   "nota": "almidón casi no tiene fibra; afirmación de descripción dudosa"
+  },
+  "atributo|alto-proteina|catalog_item|84368": {
+   "juicio": "si"
+  },
+  "atributo|alto-proteina|menu_item|37378": {
+   "juicio": "si"
+  },
+  "atributo|artesanal|menu_item|2322181": {
+   "juicio": "si"
+  },
+  "atributo|bajo-sodio|catalog_item|1394114": {
+   "juicio": "si"
+  },
+  "atributo|bebe|catalog_item|63197": {
+   "juicio": "si"
+  },
+  "atributo|bebe|menu_item|257574": {
+   "juicio": "no",
+   "nota": "«beb.» es bebida, no producto para bebés"
+  },
+  "atributo|bebida-incluida|menu_item|796890": {
+   "juicio": "si"
+  },
+  "atributo|biodegradable|catalog_item|674664": {
+   "juicio": "si"
+  },
+  "atributo|cachorro|catalog_item|1646687": {
+   "juicio": "si"
+  },
+  "atributo|capsulas|catalog_item|1374991": {
+   "juicio": "si"
+  },
+  "atributo|casero|menu_item|1991685": {
+   "juicio": "si"
+  },
+  "atributo|chileno|catalog_item|124146": {
+   "juicio": "si"
+  },
+  "atributo|combo|menu_item|1174987": {
+   "juicio": "si"
+  },
+  "atributo|con-acompanamiento|menu_item|100817": {
+   "juicio": "si"
+  },
+  "atributo|congelado|catalog_item|297881": {
+   "juicio": "si"
+  },
+  "atributo|congelado|menu_item|795984": {
+   "juicio": "si"
+  },
+  "atributo|crudo|menu_item|378522": {
+   "juicio": "si"
+  },
+  "atributo|cruelty-free|catalog_item|1542495": {
+   "juicio": "si"
+  },
+  "atributo|cumpleanos|catalog_item|1365899": {
+   "juicio": "si"
+  },
+  "atributo|desayuno|menu_item|2432535": {
+   "juicio": "si"
+  },
+  "atributo|desechable|catalog_item|1460125": {
+   "juicio": "si"
+  },
+  "atributo|eco|catalog_item|537597": {
+   "juicio": "si"
+  },
+  "atributo|embarazo-lactancia|catalog_item|723546": {
+   "juicio": "si"
+  },
+  "atributo|en-polvo|catalog_item|28506": {
+   "juicio": "si"
+  },
+  "atributo|familiar|menu_item|2423779": {
+   "juicio": "si"
+  },
+  "atributo|fiestas-patrias|catalog_item|1464080": {
+   "juicio": "dudoso",
+   "nota": "terremoto es típico, pero producto no declarado de temporada"
+  },
+  "atributo|frito|menu_item|2440438": {
+   "juicio": "si"
+  },
+  "atributo|gato|catalog_item|1363537": {
+   "juicio": "si"
+  },
+  "atributo|granel|catalog_item|1380792": {
+   "juicio": "si"
+  },
+  "atributo|halal|catalog_item|1508634": {
+   "juicio": "si"
+  },
+  "atributo|halloween|catalog_item|1367204": {
+   "juicio": "si"
+  },
+  "atributo|hombre|catalog_item|321713": {
+   "juicio": "si"
+  },
+  "atributo|hombre|catalog_item|585738": {
+   "juicio": "si"
+  },
+  "atributo|horno|menu_item|916180": {
+   "juicio": "dudoso",
+   "nota": "milanesa rebozada; napolitana no garantiza horneado"
+  },
+  "atributo|importado|catalog_item|1732212": {
+   "juicio": "si"
+  },
+  "atributo|individual|menu_item|326633": {
+   "juicio": "si"
+  },
+  "atributo|instantaneo|catalog_item|53755": {
+   "juicio": "si"
+  },
+  "atributo|integral|menu_item|381608": {
+   "juicio": "si"
+  },
+  "atributo|keto|menu_item|1269332": {
+   "juicio": "si"
+  },
+  "atributo|kosher|catalog_item|1319470": {
+   "juicio": "si"
+  },
+  "atributo|lata|catalog_item|1350903": {
+   "juicio": "si"
+  },
+  "atributo|light|catalog_item|82478": {
+   "juicio": "si"
+  },
+  "atributo|light|menu_item|797690": {
+   "juicio": "si"
+  },
+  "atributo|listo-para-comer|catalog_item|768583": {
+   "juicio": "si"
+  },
+  "atributo|mujer|catalog_item|1702297": {
+   "juicio": "si"
+  },
+  "atributo|natural|catalog_item|69090": {
+   "juicio": "si"
+  },
+  "atributo|natural|menu_item|486836": {
+   "juicio": "si"
+  },
+  "atributo|navidad|menu_item|1947819": {
+   "juicio": "dudoso",
+   "nota": "sabor cola de mono en bubble tea, no necesariamente navideño"
+  },
+  "atributo|ninos|catalog_item|1666673": {
+   "juicio": "si"
+  },
+  "atributo|organico|catalog_item|1649936": {
+   "juicio": "si"
+  },
+  "atributo|otras-mascotas|catalog_item|1348789": {
+   "juicio": "no",
+   "nota": "juguete con forma de tortuga, para perros"
+  },
+  "atributo|pack|catalog_item|1366145": {
+   "juicio": "si"
+  },
+  "atributo|para-compartir|menu_item|2000997": {
+   "juicio": "si"
+  },
+  "atributo|para-preparar|catalog_item|117904": {
+   "juicio": "si"
+  },
+  "atributo|para-regalo|catalog_item|1099904": {
+   "juicio": "si"
+  },
+  "atributo|parrilla|menu_item|113584": {
+   "juicio": "si"
+  },
+  "atributo|perro|catalog_item|147076": {
+   "juicio": "si"
+  },
+  "atributo|perro|catalog_item|1730419": {
+   "juicio": "si"
+  },
+  "atributo|picante|menu_item|230593": {
+   "juicio": "si"
+  },
+  "atributo|postre-incluido|menu_item|2099428936": {
+   "juicio": "si"
+  },
+  "atributo|premium|menu_item|177590": {
+   "juicio": "si"
+  },
+  "atributo|recargable|catalog_item|699700": {
+   "juicio": "no",
+   "nota": "batería recargable, no repuesto ni refill"
+  },
+  "atributo|reciclable|catalog_item|537570": {
+   "juicio": "si"
+  },
+  "atributo|refrigerado|catalog_item|300632": {
+   "juicio": "si"
+  },
+  "atributo|retornable|catalog_item|335923": {
+   "juicio": "si"
+  },
+  "atributo|saludable|menu_item|787577": {
+   "juicio": "si"
+  },
+  "atributo|sin-alcohol|catalog_item|1733105": {
+   "juicio": "si"
+  },
+  "atributo|sin-azucar|catalog_item|811707": {
+   "juicio": "si"
+  },
+  "atributo|sin-azucar|menu_item|99541": {
+   "juicio": "si"
+  },
+  "atributo|sin-cafeina|menu_item|1556843": {
+   "juicio": "si"
+  },
+  "atributo|sin-frutos-secos|menu_item|909151": {
+   "juicio": "si"
+  },
+  "atributo|sin-gluten|menu_item|1286772": {
+   "juicio": "si"
+  },
+  "atributo|sin-huevo|menu_item|699147": {
+   "juicio": "si"
+  },
+  "atributo|sin-lactosa|catalog_item|1343033": {
+   "juicio": "si"
+  },
+  "atributo|sin-parabenos|catalog_item|1183530": {
+   "juicio": "si"
+  },
+  "atributo|sin-soya|catalog_item|546862": {
+   "juicio": "si"
+  },
+  "atributo|tamano-viaje|catalog_item|1532814": {
+   "juicio": "si"
+  },
+  "atributo|vegano|menu_item|1724668": {
+   "juicio": "dudoso",
+   "nota": "solo la mayo es vegana; pan no especificado"
+  },
+  "atributo|vegetariano|catalog_item|64821": {
+   "juicio": "si"
+  },
+  "atributo|vegetariano|menu_item|91567": {
+   "juicio": "si"
+  },
+  "atributo|vidrio|catalog_item|793324": {
+   "juicio": "si"
+  },
+  "concepto|accesorios-fumador|catalog_item|1544071": {
+   "juicio": "si"
+  },
+  "concepto|accesorios-mascota|catalog_item|1730213": {
+   "juicio": "si"
+  },
+  "concepto|alimento-gato|catalog_item|377326": {
+   "juicio": "si"
+  },
+  "concepto|asiatica|menu_item|646089": {
+   "juicio": "no",
+   "nota": "zapallo apanado en local de papas fritas, no asiático"
+  },
+  "concepto|audio|catalog_item|1377749": {
+   "juicio": "si"
+  },
+  "concepto|cafe|menu_item|2030677": {
+   "juicio": "si"
+  },
+  "concepto|celulares|catalog_item|902024": {
+   "juicio": "si"
+  },
+  "concepto|cigarrillos|catalog_item|35671": {
+   "juicio": "no",
+   "nota": "papelillo blunt es accesorio para fumar, no cigarrillo"
+  },
+  "concepto|decoracion|catalog_item|1365610": {
+   "juicio": "si"
+  },
+  "concepto|empanadas|menu_item|2259323": {
+   "juicio": "si"
+  },
+  "concepto|ensaladas-bowls|menu_item|493797": {
+   "juicio": "si"
+  },
+  "concepto|ferreteria|catalog_item|742890": {
+   "juicio": "si"
+  },
+  "concepto|gaseosas|catalog_item|1445838": {
+   "juicio": "si"
+  },
+  "concepto|gaseosas|menu_item|1930639": {
+   "juicio": "si"
+  },
+  "concepto|gaseosas|menu_item|588952": {
+   "juicio": "si"
+  },
+  "concepto|hamburguesa|menu_item|1938419": {
+   "juicio": "si"
+  },
+  "concepto|higiene-personal|catalog_item|196575": {
+   "juicio": "si"
+  },
+  "concepto|lacteos|catalog_item|359703": {
+   "juicio": "dudoso",
+   "nota": "manjar es dulce untable, no leche ni yogur"
+  },
+  "concepto|libros|catalog_item|1560589": {
+   "juicio": "si"
+  },
+  "concepto|manualidades|catalog_item|194763": {
+   "juicio": "si"
+  },
+  "concepto|muebles|catalog_item|1483864": {
+   "juicio": "no",
+   "nota": "antifaz para dormir, no mueble ni organizador"
+  },
+  "concepto|pasteleria|menu_item|1195325": {
+   "juicio": "no",
+   "nota": "pan pita es pan, no pastelería"
+  },
+  "concepto|pasteleria|menu_item|2292369": {
+   "juicio": "si"
+  },
+  "concepto|picoteo|menu_item|1111460": {
+   "juicio": "si"
+  },
+  "concepto|pizza|menu_item|1303445": {
+   "juicio": "si"
+  },
+  "concepto|pizza|menu_item|791294": {
+   "juicio": "no",
+   "nota": "bruschetta es entrada, no pizza"
+  },
+  "concepto|platos-listos|menu_item|1243871": {
+   "juicio": "si"
+  },
+  "concepto|platos-listos|menu_item|546203": {
+   "juicio": "si"
+  },
+  "concepto|platos-listos|menu_item|2344334": {
+   "juicio": "si"
+  },
+  "concepto|pollo-preparado|menu_item|217846": {
+   "juicio": "si"
+  },
+  "concepto|postres|menu_item|1928724": {
+   "juicio": "si"
+  },
+  "concepto|reposteria|catalog_item|63251": {
+   "juicio": "si"
+  },
+  "concepto|salsas|menu_item|302619": {
+   "juicio": "si"
+  },
+  "concepto|sandwiches|menu_item|148344": {
+   "juicio": "si"
+  },
+  "concepto|sandwiches|menu_item|208380": {
+   "juicio": "si"
+  },
+  "concepto|snacks-salados|catalog_item|349240": {
+   "juicio": "si"
+  },
+  "concepto|sushi|menu_item|1897216": {
+   "juicio": "si"
+  },
+  "concepto|sushi|menu_item|2099188406": {
+   "juicio": "si"
+  },
+  "concepto|sushi|menu_item|608227": {
+   "juicio": "si"
+  },
+  "concepto|sushi|menu_item|1838549": {
+   "juicio": "no",
+   "nota": "ceviche vegetariano, no sushi"
+  },
+  "concepto|sushi|menu_item|793647": {
+   "juicio": "si"
+  },
+  "concepto|sushi|menu_item|500541": {
+   "juicio": "si"
+  },
+  "concepto|vapeo|catalog_item|1358463": {
+   "juicio": "si"
+  },
+  "concepto|vitaminas|catalog_item|510995": {
+   "juicio": "si"
+  },
+  "marca|beauty-100|catalog_item|1371307": {
+   "juicio": "si"
+  },
+  "marca|casas-patronales|catalog_item|242773": {
+   "juicio": "si"
+  },
+  "marca|cristal|catalog_item|74610": {
+   "juicio": "si"
+  },
+  "marca|edra|catalog_item|1224755": {
+   "juicio": "si"
+  },
+  "marca|fructis|catalog_item|1464112": {
+   "juicio": "si"
+  },
+  "marca|iansa|catalog_item|1531484": {
+   "juicio": "si"
+  },
+  "marca|lider|catalog_item|96356": {
+   "juicio": "si"
+  },
+  "marca|miniso|catalog_item|553464": {
+   "juicio": "si"
+  },
+  "marca|nivea|catalog_item|1020005": {
+   "juicio": "si"
+  },
+  "marca|puripop|catalog_item|941718": {
+   "juicio": "si"
+  },
+  "marca|smart-clean|catalog_item|1424490": {
+   "juicio": "si"
+  },
+  "marca|tinto-c|catalog_item|279803": {
+   "juicio": "no",
+   "nota": "la marca es TH, no «Tinto C»"
+  },
+  "marca|virbac|catalog_item|159154": {
+   "juicio": "si"
+  },
+  "marca|yes|catalog_item|249499": {
+   "juicio": "si"
+  },
+  "atributo|adolescentes|catalog_item|742041": {
+   "juicio": "si"
+  },
+  "atributo|adulto-mayor|catalog_item|345073": {
+   "juicio": "si"
+  },
+  "atributo|alto-fibra|catalog_item|1528378": {
+   "juicio": "si"
+  },
+  "atributo|alto-proteina|catalog_item|88132": {
+   "juicio": "si"
+  },
+  "atributo|alto-proteina|menu_item|960035": {
+   "juicio": "si"
+  },
+  "atributo|artesanal|menu_item|2434715": {
+   "juicio": "si"
+  },
+  "atributo|bajo-sodio|catalog_item|1740": {
+   "juicio": "si"
+  },
+  "atributo|bebe|catalog_item|1069383": {
+   "juicio": "si"
+  },
+  "atributo|bebida-incluida|menu_item|1199561": {
+   "juicio": "si"
+  },
+  "atributo|biodegradable|catalog_item|1353804": {
+   "juicio": "dudoso",
+   "nota": "Servilletas de algodón; no se ve mención biodegradable"
+  },
+  "atributo|biodegradable|catalog_item|839089": {
+   "juicio": "si"
+  },
+  "atributo|cachorro|catalog_item|1656407": {
+   "juicio": "no",
+   "nota": "Peluche de juguete llamado Cachorro, no es para cachorros"
+  },
+  "atributo|capsulas|catalog_item|1375021": {
+   "juicio": "si"
+  },
+  "atributo|casero|menu_item|2092002050": {
+   "juicio": "si"
+  },
+  "atributo|chileno|catalog_item|1529925": {
+   "juicio": "si"
+  },
+  "atributo|combo|menu_item|136034": {
+   "juicio": "si"
+  },
+  "atributo|con-acompanamiento|menu_item|1085409": {
+   "juicio": "si"
+  },
+  "atributo|congelado|catalog_item|62501": {
+   "juicio": "si"
+  },
+  "atributo|congelado|menu_item|859479": {
+   "juicio": "si"
+  },
+  "atributo|crudo|menu_item|577767": {
+   "juicio": "si"
+  },
+  "atributo|cruelty-free|catalog_item|1542602": {
+   "juicio": "dudoso",
+   "nota": "Descripción visible no menciona cruelty free"
+  },
+  "atributo|cumpleanos|catalog_item|1366145": {
+   "juicio": "si"
+  },
+  "atributo|desayuno|menu_item|2461649": {
+   "juicio": "si"
+  },
+  "atributo|desechable|catalog_item|297042": {
+   "juicio": "si"
+  },
+  "atributo|eco|catalog_item|537612": {
+   "juicio": "si"
+  },
+  "atributo|embarazo-lactancia|catalog_item|723651": {
+   "juicio": "si"
+  },
+  "atributo|en-polvo|catalog_item|53755": {
+   "juicio": "si"
+  },
+  "atributo|familiar|menu_item|2435740": {
+   "juicio": "si"
+  },
+  "atributo|fiestas-patrias|catalog_item|939440": {
+   "juicio": "si"
+  },
+  "atributo|frito|menu_item|2497243": {
+   "juicio": "si"
+  },
+  "atributo|gato|catalog_item|1424499": {
+   "juicio": "si"
+  },
+  "atributo|granel|catalog_item|1636720": {
+   "juicio": "si"
+  },
+  "atributo|halal|catalog_item|1508636": {
+   "juicio": "dudoso",
+   "nota": "Certificación halal no visible en texto mostrado"
+  },
+  "atributo|halloween|catalog_item|1367304": {
+   "juicio": "si"
+  },
+  "atributo|hombre|catalog_item|612422": {
+   "juicio": "si"
+  },
+  "atributo|hombre|catalog_item|862170": {
+   "juicio": "si"
+  },
+  "atributo|horno|menu_item|961508": {
+   "juicio": "dudoso",
+   "nota": "Napolitana no indica que sea horneada"
+  },
+  "atributo|importado|catalog_item|298802": {
+   "juicio": "si"
+  },
+  "atributo|individual|menu_item|490713": {
+   "juicio": "si"
+  },
+  "atributo|instantaneo|catalog_item|557558": {
+   "juicio": "si"
+  },
+  "atributo|integral|menu_item|58695": {
+   "juicio": "si"
+  },
+  "atributo|keto|menu_item|1270521": {
+   "juicio": "si"
+  },
+  "atributo|kosher|catalog_item|1349969": {
+   "juicio": "si"
+  },
+  "atributo|lata|catalog_item|1359476": {
+   "juicio": "si"
+  },
+  "atributo|light|catalog_item|1730983": {
+   "juicio": "si"
+  },
+  "atributo|listo-para-comer|catalog_item|1099993": {
+   "juicio": "no",
+   "nota": "Empanadas para hornear, requieren preparación"
+  },
+  "atributo|mascota-senior|catalog_item|1300939": {
+   "juicio": "si"
+  },
+  "atributo|mujer|catalog_item|1718299": {
+   "juicio": "si"
+  },
+  "atributo|natural|catalog_item|1216008": {
+   "juicio": "si"
+  },
+  "atributo|navidad|catalog_item|1367116": {
+   "juicio": "si"
+  },
+  "atributo|ninos|catalog_item|133941": {
+   "juicio": "si"
+  },
+  "atributo|ninos|menu_item|1095745": {
+   "juicio": "si"
+  },
+  "atributo|organico|catalog_item|216280": {
+   "juicio": "si"
+  },
+  "atributo|otras-mascotas|catalog_item|146933": {
+   "juicio": "si"
+  },
+  "atributo|pack|catalog_item|1374991": {
+   "juicio": "si"
+  },
+  "atributo|para-compartir|menu_item|2390414": {
+   "juicio": "si"
+  },
+  "atributo|para-preparar|catalog_item|1531674": {
+   "juicio": "si"
+  },
+  "atributo|para-regalo|catalog_item|1363858": {
+   "juicio": "si"
+  },
+  "atributo|parrilla|menu_item|198839": {
+   "juicio": "si"
+  },
+  "atributo|perro|catalog_item|159154": {
+   "juicio": "si"
+  },
+  "atributo|perro|catalog_item|1730528": {
+   "juicio": "si"
+  },
+  "atributo|picante|menu_item|2460385": {
+   "juicio": "si"
+  },
+  "atributo|postre-incluido|menu_item|2334686": {
+   "juicio": "si"
+  },
+  "atributo|premium|menu_item|2090192523": {
+   "juicio": "si"
+  },
+  "atributo|recargable|catalog_item|734948": {
+   "juicio": "no",
+   "nota": "Recargable por batería, no es repuesto ni refill"
+  },
+  "atributo|reciclable|catalog_item|537597": {
+   "juicio": "si"
+  },
+  "atributo|refrigerado|catalog_item|63609": {
+   "juicio": "si"
+  },
+  "atributo|saludable|catalog_item|296183": {
+   "juicio": "si"
+  },
+  "atributo|san-valentin|catalog_item|1364549": {
+   "juicio": "si"
+  },
+  "atributo|sin-alcohol|catalog_item|237258": {
+   "juicio": "si"
+  },
+  "atributo|sin-azucar|catalog_item|1456624": {
+   "juicio": "dudoso",
+   "nota": "Stevia no visible en descripción mostrada"
+  },
+  "atributo|sin-cafeina|catalog_item|1035209": {
+   "juicio": "si"
+  },
+  "atributo|sin-cafeina|menu_item|2099266565": {
+   "juicio": "si"
+  },
+  "atributo|sin-gluten|catalog_item|611182": {
+   "juicio": "dudoso",
+   "nota": "Lleva avena; sin gluten no declarado en texto"
+  },
+  "atributo|sin-gluten|menu_item|1930756": {
+   "juicio": "si"
+  },
+  "atributo|sin-huevo|menu_item|699198": {
+   "juicio": "si"
+  },
+  "atributo|sin-lactosa|catalog_item|664632": {
+   "juicio": "si"
+  },
+  "atributo|sin-parabenos|catalog_item|1237941": {
+   "juicio": "si"
+  },
+  "atributo|sin-soya|catalog_item|677038": {
+   "juicio": "si"
+  },
+  "atributo|tamano-viaje|catalog_item|1532815": {
+   "juicio": "si"
+  },
+  "atributo|vegano|menu_item|1911095": {
+   "juicio": "dudoso",
+   "nota": "Solo el snicker se declara vegano; resto no consta"
+  },
+  "atributo|vegetariano|menu_item|1155731": {
+   "juicio": "si"
+  },
+  "atributo|vidrio|catalog_item|1344348": {
+   "juicio": "si"
+  },
+  "concepto|accesorios-fumador|catalog_item|88976": {
+   "juicio": "si"
+  },
+  "concepto|accesorios-fumador|catalog_item|1560174": {
+   "juicio": "si"
+  },
+  "concepto|accesorios-mascota|catalog_item|955470": {
+   "juicio": "si"
+  },
+  "concepto|alimento-perro|catalog_item|352758": {
+   "juicio": "no",
+   "nota": "Antipulgas, no alimento para perros"
+  },
+  "concepto|asiatica|catalog_item|1273683": {
+   "juicio": "si"
+  },
+  "concepto|audio|catalog_item|1567225": {
+   "juicio": "no",
+   "nota": "Es un libro, no producto de audio"
+  },
+  "concepto|calzado|catalog_item|1206635": {
+   "juicio": "no",
+   "nota": "Jeans son ropa, no calzado"
+  },
+  "concepto|celulares|catalog_item|1465250": {
+   "juicio": "si"
+  },
+  "concepto|cocina-menaje|catalog_item|1313195": {
+   "juicio": "si"
+  },
+  "concepto|decoracion|catalog_item|1402175": {
+   "juicio": "si"
+  },
+  "concepto|empanadas|menu_item|2506073": {
+   "juicio": "si"
+  },
+  "concepto|ensaladas-bowls|menu_item|590506": {
+   "juicio": "si"
+  },
+  "concepto|flores-regalos|catalog_item|1315730": {
+   "juicio": "si"
+  },
+  "concepto|gaseosas|catalog_item|866739": {
+   "juicio": "si"
+  },
+  "concepto|gaseosas|menu_item|1982585": {
+   "juicio": "si"
+  },
+  "concepto|hamburguesa|menu_item|1881519": {
+   "juicio": "si"
+  },
+  "concepto|hamburguesa|menu_item|1939923": {
+   "juicio": "si"
+  },
+  "concepto|joyeria|catalog_item|674852": {
+   "juicio": "si"
+  },
+  "concepto|lacteos|catalog_item|64845": {
+   "juicio": "si"
+  },
+  "concepto|limpieza|catalog_item|629962": {
+   "juicio": "no",
+   "nota": "Antiséptico tópico, no producto de limpieza"
+  },
+  "concepto|manualidades|catalog_item|839773": {
+   "juicio": "si"
+  },
+  "concepto|panaderia|catalog_item|1489012": {
+   "juicio": "si"
+  },
+  "concepto|pasteleria|menu_item|189847": {
+   "juicio": "si"
+  },
+  "concepto|peruana|menu_item|1295134": {
+   "juicio": "si"
+  },
+  "concepto|picoteo|menu_item|1980066": {
+   "juicio": "si"
+  },
+  "concepto|pizza|menu_item|149625": {
+   "juicio": "si"
+  },
+  "concepto|pizza|menu_item|1080598": {
+   "juicio": "si"
+  },
+  "concepto|platos-listos|menu_item|130421": {
+   "juicio": "si"
+  },
+  "concepto|platos-listos|menu_item|584243": {
+   "juicio": "si"
+  },
+  "concepto|platos-listos|menu_item|61864": {
+   "juicio": "si"
+  },
+  "concepto|postres|menu_item|1957992": {
+   "juicio": "si"
+  },
+  "concepto|primeros-auxilios|catalog_item|953484": {
+   "juicio": "si"
+  },
+  "concepto|ropa|catalog_item|1340861": {
+   "juicio": "si"
+  },
+  "concepto|salsas|catalog_item|1402717": {
+   "juicio": "no",
+   "nota": "Combo completo con bebida, no salsa"
+  },
+  "concepto|sandwiches|menu_item|1882092": {
+   "juicio": "si"
+  },
+  "concepto|sandwiches|menu_item|2099477258": {
+   "juicio": "si"
+  },
+  "concepto|snacks-salados|menu_item|1919810": {
+   "juicio": "no",
+   "nota": "Galletas con chips de chocolate, no snack salado"
+  },
+  "concepto|sushi|menu_item|1918271": {
+   "juicio": "si"
+  },
+  "concepto|sushi|menu_item|219194": {
+   "juicio": "si"
+  },
+  "concepto|sushi|menu_item|710268": {
+   "juicio": "si"
+  },
+  "concepto|sushi|menu_item|1915420": {
+   "juicio": "si"
+  },
+  "concepto|sushi|menu_item|928179": {
+   "juicio": "si"
+  },
+  "concepto|sushi|menu_item|50170": {
+   "juicio": "si"
+  },
+  "concepto|vapeo|catalog_item|1520645": {
+   "juicio": "si"
+  },
+  "marca|acuenta|catalog_item|1412784": {
+   "juicio": "si"
+  },
+  "marca|beauty-100|catalog_item|1722683": {
+   "juicio": "si"
+  },
+  "marca|chivas-regal|catalog_item|559867": {
+   "juicio": "si"
+  },
+  "marca|curaprox|catalog_item|1722221": {
+   "juicio": "si"
+  },
+  "marca|elvive|catalog_item|1290790": {
+   "juicio": "si"
+  },
+  "marca|frutisa|catalog_item|941271": {
+   "juicio": "si"
+  },
+  "marca|ilko|catalog_item|1645038": {
+   "juicio": "si"
+  },
+  "marca|llanquihue|catalog_item|903954": {
+   "juicio": "si"
+  },
+  "marca|miniso|catalog_item|796921": {
+   "juicio": "si"
+  },
+  "marca|oreo|catalog_item|1643628": {
+   "juicio": "si"
+  },
+  "marca|quillayes|catalog_item|1424556": {
+   "juicio": "si"
+  },
+  "marca|snack-mix|catalog_item|1311107": {
+   "juicio": "si"
+  },
+  "marca|torras|catalog_item|1273860": {
+   "juicio": "si"
+  },
+  "marca|virbac|catalog_item|878325": {
+   "juicio": "si"
+  },
+  "atributo|adolescentes|catalog_item|742044": {
+   "juicio": "si"
+  },
+  "atributo|adulto-mayor|catalog_item|40236": {
+   "juicio": "si"
+  },
+  "atributo|alto-fibra|catalog_item|249737": {
+   "juicio": "si"
+  },
+  "atributo|alto-proteina|catalog_item|1310909": {
+   "juicio": "no",
+   "nota": "Acondicionador de pelo, no alimento alto en proteína"
+  },
+  "atributo|artesanal|catalog_item|1350903": {
+   "juicio": "dudoso",
+   "nota": "Patagonia es cerveza industrial; artesanal discutible"
+  },
+  "atributo|artesanal|menu_item|268710": {
+   "juicio": "si"
+  },
+  "atributo|bajo-sodio|catalog_item|58879": {
+   "juicio": "si"
+  },
+  "atributo|bebe|catalog_item|1321892": {
+   "juicio": "si"
+  },
+  "atributo|bebida-incluida|menu_item|146012": {
+   "juicio": "si"
+  },
+  "atributo|biodegradable|catalog_item|1631028": {
+   "juicio": "no",
+   "nota": "Nada indica que la servilleta sea biodegradable"
+  },
+  "atributo|biodegradable|catalog_item|883328": {
+   "juicio": "si"
+  },
+  "atributo|cachorro|catalog_item|1702663": {
+   "juicio": "dudoso",
+   "nota": "Parece juguete, no producto para gatitos"
+  },
+  "atributo|capsulas|catalog_item|1375072": {
+   "juicio": "no",
+   "nota": "Espumador de leche, no cápsulas"
+  },
+  "atributo|casero|menu_item|217094": {
+   "juicio": "si"
+  },
+  "atributo|chileno|catalog_item|1570503": {
+   "juicio": "dudoso",
+   "nota": "Libro sobre Chile; origen chileno no confirmado"
+  },
+  "atributo|combo|menu_item|1924750": {
+   "juicio": "si"
+  },
+  "atributo|con-acompanamiento|menu_item|1178536": {
+   "juicio": "si"
+  },
+  "atributo|congelado|catalog_item|719203": {
+   "juicio": "si"
+  },
+  "atributo|congelado|menu_item|917831": {
+   "juicio": "si"
+  },
+  "atributo|crudo|menu_item|684806": {
+   "juicio": "si"
+  },
+  "atributo|cruelty-free|catalog_item|1626469": {
+   "juicio": "dudoso",
+   "nota": "Cruelty free no visible en la descripción mostrada"
+  },
+  "atributo|cumpleanos|catalog_item|1366764": {
+   "juicio": "si"
+  },
+  "atributo|desayuno|menu_item|262173": {
+   "juicio": "no",
+   "nota": "Trozo de torta panqueque, postre, no desayuno"
+  },
+  "atributo|desechable|catalog_item|544998": {
+   "juicio": "si"
+  },
+  "atributo|eco|catalog_item|567251": {
+   "juicio": "si"
+  },
+  "atributo|embarazo-lactancia|catalog_item|724624": {
+   "juicio": "si"
+  },
+  "atributo|en-polvo|catalog_item|58425": {
+   "juicio": "si"
+  },
+  "atributo|familiar|menu_item|2435785": {
+   "juicio": "si"
+  },
+  "atributo|fiestas-patrias|menu_item|2469720": {
+   "juicio": "si"
+  },
+  "atributo|frito|menu_item|257285": {
+   "juicio": "si"
+  },
+  "atributo|gato|catalog_item|1456354": {
+   "juicio": "si"
+  },
+  "atributo|granel|catalog_item|1637456": {
+   "juicio": "si"
+  },
+  "atributo|halal|catalog_item|1644752": {
+   "juicio": "dudoso",
+   "nota": "Halal no aparece en la información mostrada"
+  },
+  "atributo|halloween|catalog_item|1367310": {
+   "juicio": "si"
+  },
+  "atributo|hombre|catalog_item|1145253": {
+   "juicio": "si"
+  },
+  "atributo|horno|menu_item|109193": {
+   "juicio": "dudoso",
+   "nota": "Completo napolitano; no consta que sea horneado"
+  },
+  "atributo|importado|catalog_item|1498486": {
+   "juicio": "si"
+  },
+  "atributo|individual|catalog_item|1328224": {
+   "juicio": "no",
+   "nota": "Individual es mantel de mesa, no porción individual"
+  },
+  "atributo|instantaneo|catalog_item|113665": {
+   "juicio": "si"
+  },
+  "atributo|integral|catalog_item|127662": {
+   "juicio": "si"
+  },
+  "atributo|keto|catalog_item|546849": {
+   "juicio": "si"
+  },
+  "atributo|keto|menu_item|1897221": {
+   "juicio": "si"
+  },
+  "atributo|kosher|catalog_item|14478": {
+   "juicio": "si"
+  },
+  "atributo|lata|catalog_item|1370572": {
+   "juicio": "si"
+  },
+  "atributo|light|catalog_item|21447": {
+   "juicio": "si"
+  },
+  "atributo|listo-para-comer|catalog_item|1100810": {
+   "juicio": "si"
+  },
+  "atributo|mascota-senior|catalog_item|534245": {
+   "juicio": "si"
+  },
+  "atributo|mujer|catalog_item|1722225": {
+   "juicio": "si"
+  },
+  "atributo|natural|catalog_item|122563": {
+   "juicio": "no",
+   "nota": "Antitranspirante; sin respaldo de sin preservantes ni colorantes"
+  },
+  "atributo|navidad|catalog_item|1367159": {
+   "juicio": "si"
+  },
+  "atributo|ninos|catalog_item|73587": {
+   "juicio": "si"
+  },
+  "atributo|ninos|menu_item|1679298": {
+   "juicio": "si"
+  },
+  "atributo|organico|catalog_item|455869": {
+   "juicio": "si"
+  },
+  "atributo|otras-mascotas|catalog_item|1647399": {
+   "juicio": "no",
+   "nota": "Conserva de mariscos marca Dos Peces, no para mascotas"
+  },
+  "atributo|pack|catalog_item|1471810": {
+   "juicio": "si"
+  },
+  "atributo|para-compartir|menu_item|2423779": {
+   "juicio": "si"
+  },
+  "atributo|para-preparar|catalog_item|1653464": {
+   "juicio": "no",
+   "nota": "Especia lista para usar, no requiere preparación"
+  },
+  "atributo|para-regalo|catalog_item|1364550": {
+   "juicio": "si"
+  },
+  "atributo|parrilla|menu_item|2418675": {
+   "juicio": "si"
+  },
+  "atributo|perro|catalog_item|339781": {
+   "juicio": "si"
+  },
+  "atributo|perro|catalog_item|878433": {
+   "juicio": "si"
+  },
+  "atributo|picante|menu_item|2493240": {
+   "juicio": "si"
+  },
+  "atributo|postre-incluido|menu_item|2343218": {
+   "juicio": "si"
+  },
+  "atributo|premium|menu_item|230593": {
+   "juicio": "si"
+  },
+  "atributo|recargable|catalog_item|781172": {
+   "juicio": "no",
+   "nota": "Recargable por USB (batería), no recarga o refill"
+  },
+  "atributo|reciclable|catalog_item|537612": {
+   "juicio": "si"
+  },
+  "atributo|refrigerado|catalog_item|80661": {
+   "juicio": "si"
+  },
+  "atributo|saludable|catalog_item|559821": {
+   "juicio": "si"
+  },
+  "atributo|san-valentin|catalog_item|1366528": {
+   "juicio": "si"
+  },
+  "atributo|sin-alcohol|menu_item|102015": {
+   "juicio": "si"
+  },
+  "atributo|sin-azucar|catalog_item|1531484": {
+   "juicio": "si"
+  },
+  "atributo|sin-cafeina|catalog_item|674664": {
+   "juicio": "si"
+  },
+  "atributo|sin-cafeina|menu_item|2259832": {
+   "juicio": "si"
+  },
+  "atributo|sin-gluten|catalog_item|69090": {
+   "juicio": "si"
+  },
+  "atributo|sin-gluten|menu_item|356998": {
+   "juicio": "si"
+  },
+  "atributo|sin-huevo|menu_item|89717": {
+   "juicio": "no",
+   "nota": "El plato lleva huevo; sin huevo es solo una opción"
+  },
+  "atributo|sin-lactosa|menu_item|201029": {
+   "juicio": "si"
+  },
+  "atributo|sin-parabenos|catalog_item|1310855": {
+   "juicio": "dudoso",
+   "nota": "Sin parabenos no visible en la descripción mostrada"
+  },
+  "atributo|sin-soya|catalog_item|678085": {
+   "juicio": "si"
+  },
+  "atributo|tamano-viaje|catalog_item|1539381": {
+   "juicio": "si"
+  },
+  "atributo|vegano|menu_item|1924750": {
+   "juicio": "si"
+  },
+  "atributo|vegetariano|menu_item|1259503": {
+   "juicio": "si"
+  },
+  "atributo|vidrio|catalog_item|1530914": {
+   "juicio": "no",
+   "nota": "Es una botella de vidrio, no un envase"
+  },
+  "concepto|accesorios-fumador|catalog_item|1186939": {
+   "juicio": "si"
+  },
+  "concepto|accesorios-fumador|catalog_item|1643316": {
+   "juicio": "si"
+  },
+  "concepto|accesorios-moda|catalog_item|1654299": {
+   "juicio": "si"
+  },
+  "concepto|alimento-perro|catalog_item|151876": {
+   "juicio": "no",
+   "nota": "Snack para gatos, no alimento para perros"
+  },
+  "concepto|asiatica|menu_item|1132241": {
+   "juicio": "si"
+  },
+  "concepto|audio|catalog_item|1472284": {
+   "juicio": "si"
+  },
+  "concepto|carnes|menu_item|1163725": {
+   "juicio": "si"
+  },
+  "concepto|celulares|catalog_item|360044": {
+   "juicio": "si"
+  },
+  "concepto|cocina-menaje|catalog_item|1429573": {
+   "juicio": "si"
+  },
+  "concepto|decoracion|catalog_item|1530658": {
+   "juicio": "si"
+  },
+  "concepto|empanadas|menu_item|300575": {
+   "juicio": "si"
+  },
+  "concepto|ensaladas-bowls|menu_item|813606": {
+   "juicio": "si"
+  },
+  "concepto|flores-regalos|catalog_item|1564787": {
+   "juicio": "no",
+   "nota": "Libro de dibujo, no flores ni regalos"
+  },
+  "concepto|gaseosas|menu_item|1145885": {
+   "juicio": "si"
+  },
+  "concepto|gaseosas|menu_item|209092": {
+   "juicio": "si"
+  },
+  "concepto|hamburguesa|menu_item|2093251198": {
+   "juicio": "si"
+  },
+  "concepto|hamburguesa|menu_item|1979023": {
+   "juicio": "si"
+  },
+  "concepto|joyeria|catalog_item|1626412": {
+   "juicio": "si"
+  },
+  "concepto|lacteos|catalog_item|73963": {
+   "juicio": "si"
+  },
+  "concepto|limpieza|catalog_item|131318": {
+   "juicio": "si"
+  },
+  "concepto|maquillaje|catalog_item|340656": {
+   "juicio": "si"
+  },
+  "concepto|panales|catalog_item|127241": {
+   "juicio": "si"
+  },
+  "concepto|pasteleria|menu_item|1947797": {
+   "juicio": "no",
+   "nota": "Bubble tea con galleta, no pastelería"
+  },
+  "concepto|pescados-mariscos|menu_item|2092898357": {
+   "juicio": "si"
+  },
+  "concepto|pisco|catalog_item|1670077": {
+   "juicio": "no",
+   "nota": "Promo de bitter, no pisco"
+  },
+  "concepto|pizza|menu_item|1882109": {
+   "juicio": "si"
+  },
+  "concepto|pizza|menu_item|2339326": {
+   "juicio": "si"
+  },
+  "concepto|platos-listos|menu_item|152111": {
+   "juicio": "si"
+  },
+  "concepto|platos-listos|menu_item|584258": {
+   "juicio": "si"
+  },
+  "concepto|pollo|menu_item|1179319": {
+   "juicio": "si"
+  },
+  "concepto|postres|menu_item|2017492": {
+   "juicio": "si"
+  },
+  "concepto|quesos|catalog_item|111271": {
+   "juicio": "si"
+  },
+  "concepto|ropa|catalog_item|861732": {
+   "juicio": "si"
+  },
+  "concepto|salsas|menu_item|103809": {
+   "juicio": "si"
+  },
+  "concepto|sandwiches|menu_item|2335089": {
+   "juicio": "si"
+  },
+  "concepto|sandwiches|menu_item|235495": {
+   "juicio": "si"
+  },
+  "concepto|snacks-salados|menu_item|192807": {
+   "juicio": "si"
+  },
+  "concepto|sushi|menu_item|1939607": {
+   "juicio": "si"
+  },
+  "concepto|sushi|menu_item|2315504": {
+   "juicio": "si"
+  },
+  "concepto|sushi|menu_item|714285": {
+   "juicio": "si"
+  },
+  "concepto|sushi|menu_item|1915430": {
+   "juicio": "si"
+  },
+  "concepto|sushi|menu_item|106631": {
+   "juicio": "si"
+  },
+  "concepto|sushi|menu_item|508769": {
+   "juicio": "si"
+  },
+  "concepto|vapeo|catalog_item|1731332": {
+   "juicio": "si"
+  },
+  "marca|aliwen|catalog_item|133535": {
+   "juicio": "si"
+  },
+  "marca|beefeater|catalog_item|1533880": {
+   "juicio": "si"
+  },
+  "marca|churu|catalog_item|1216008": {
+   "juicio": "si"
+  },
+  "marca|divella|catalog_item|953687": {
+   "juicio": "si"
+  },
+  "marca|elvive|catalog_item|1290801": {
+   "juicio": "si"
+  },
+  "marca|gatorade|catalog_item|1409035": {
+   "juicio": "si"
+  },
+  "marca|ilko|catalog_item|725056": {
+   "juicio": "si"
+  },
+  "marca|maggi|catalog_item|100150": {
+   "juicio": "si"
+  },
+  "marca|miniso|catalog_item|255119": {
+   "juicio": "si"
+  },
+  "marca|palmolive|catalog_item|1371308": {
+   "juicio": "si"
+  },
+  "marca|ramazzotti|catalog_item|1642011": {
+   "juicio": "si"
+  },
+  "marca|soprole|catalog_item|1424549": {
+   "juicio": "si"
+  },
+  "marca|torre|catalog_item|696561": {
+   "juicio": "si"
+  },
+  "marca|virutex|catalog_item|1488194": {
+   "juicio": "si"
+  }
+ }
+}

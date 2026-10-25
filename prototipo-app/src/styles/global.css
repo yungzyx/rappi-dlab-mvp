@@ -1,0 +1,248 @@
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  font-family: var(--font);
+  color: var(--ink);
+  background: #e6e6ea;
+  -webkit-font-smoothing: antialiased;
+  overflow: hidden;
+  /* Sin rebote ni «deslizar para recargar» del navegador: el scroll vive dentro de cada pantalla */
+  overscroll-behavior: none;
+}
+
+button {
+  font: inherit;
+  color: inherit;
+  background: none;
+  border: 0;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+svg {
+  flex: none;
+}
+
+img {
+  display: block;
+  user-select: none;
+  -webkit-user-drag: none;
+}
+
+/* ---------- Marco del teléfono ---------- */
+.stage {
+  height: 100%;
+  display: grid;
+  place-items: center;
+}
+
+.phone {
+  position: relative;
+  width: 402px;
+  height: 874px;
+  overflow: hidden;
+  border-radius: 56px;
+  background: var(--surface);
+  overscroll-behavior: none;
+  box-shadow:
+    0 0 0 11px #111,
+    0 0 0 13px #3a3a3c,
+    0 40px 90px rgba(0, 0, 0, 0.35);
+  /* zoom (y no transform) para que el tamaño escalado cuente en el layout y quede centrado */
+  zoom: var(--phone-scale, 1);
+  isolation: isolate;
+}
+
+/*
+ * Teléfono real: la app ocupa toda la pantalla y la franja de la barra de estado falsa queda fuera
+ * (el sistema ya muestra la suya). El resto conserva las posiciones medidas en las capturas.
+ */
+@media (max-width: 500px) {
+  body {
+    background: var(--surface);
+  }
+
+  .stage {
+    display: block;
+  }
+
+  .phone {
+    width: 100vw;
+    height: calc(100dvh + var(--status-zone));
+    margin-top: calc(-1 * var(--status-zone));
+    border-radius: 0;
+    box-shadow: none;
+    zoom: 1;
+  }
+
+  /* .phone delante: el CSS del componente se carga después y, con la misma especificidad, ganaría */
+  .phone .status-bar {
+    display: none;
+  }
+}
+
+/* ---------- Pantallas y transiciones ---------- */
+.screen-wrap {
+  position: absolute;
+  inset: 0;
+}
+
+/* Pantallas debajo de la actual: montadas (conservan búsqueda y scroll) pero invisibles e inertes */
+.screen-wrap.is-under {
+  visibility: hidden;
+}
+
+.screen-wrap.enter-push {
+  animation: slide-in var(--duration-normal) var(--ease-out);
+}
+
+.screen-wrap.enter-pop {
+  animation: slide-back var(--duration-normal) var(--ease-out);
+}
+
+@keyframes slide-in {
+  from {
+    transform: translateX(100%);
+  }
+}
+
+@keyframes slide-back {
+  from {
+    transform: translateX(-30%);
+    opacity: 0.6;
+  }
+}
+
+.screen {
+  position: absolute;
+  inset: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  overscroll-behavior-y: contain;
+  scrollbar-width: none;
+}
+
+.screen::-webkit-scrollbar,
+.hscroll::-webkit-scrollbar {
+  display: none;
+}
+
+.hscroll {
+  position: relative;
+  display: flex;
+  overflow-x: auto;
+  scrollbar-width: none;
+  overscroll-behavior-x: contain;
+}
+
+/* Respuesta táctil común para todo lo clickeable */
+/* Foco visible solo al navegar con teclado (no al tocar) */
+:focus-visible {
+  outline: 2.5px solid var(--agent-orange);
+  outline-offset: 2px;
+}
+
+.tap {
+  transition:
+    transform var(--duration-fast) var(--ease-out),
+    opacity var(--duration-fast);
+}
+
+.tap:active {
+  transform: scale(0.96);
+  opacity: 0.85;
+}
+
+.section-title {
+  font-size: 23px;
+  font-weight: 500;
+  letter-spacing: -0.2px;
+}
+
+.free-delivery {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  height: 17px;
+  padding: 0 5px;
+  background: var(--yellow);
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: 0.1px;
+  white-space: nowrap;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .screen-wrap.enter-push,
+  .screen-wrap.enter-pop {
+    animation: none;
+  }
+}
+
+/* Barra de búsqueda común (Restaurants, verticales) y animación de textos que rotan */
+.search-bar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  height: 57px;
+  padding: 0 19px;
+  border: 1px solid var(--line);
+  border-radius: 99px;
+  background: var(--surface);
+  box-shadow: var(--shadow-search);
+  text-align: left;
+}
+
+.search-bar:active {
+  transform: scale(0.985);
+}
+
+.search-hint-window {
+  flex: 1;
+  overflow: hidden;
+  height: 22px;
+}
+
+.search-hint {
+  display: block;
+  font-size: 16.5px;
+  line-height: 22px;
+  color: #262626;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  animation: hint-up 420ms var(--ease-out);
+}
+
+@keyframes hint-up {
+  from {
+    transform: translateY(100%);
+    opacity: 0;
+  }
+}
+
+/* Solo para lectores de pantalla (p. ej. el anuncio de cada respuesta de Mochi). */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}

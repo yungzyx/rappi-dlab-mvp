@@ -1,0 +1,44 @@
+/* Una tarjeta abajo del teléfono, sobre todo lo demás, que se cierra con un toque */
+.privacy-notice {
+  position: absolute;
+  left: var(--gutter);
+  right: var(--gutter);
+  bottom: calc(var(--gutter) + env(safe-area-inset-bottom, 0px));
+  z-index: var(--z-privacy);
+  display: grid;
+  gap: 10px;
+  padding: 14px 16px;
+  border-radius: 18px;
+  background: var(--surface);
+  box-shadow: var(--glass-shadow);
+}
+
+.privacy-notice p {
+  color: var(--ink-2);
+  font-size: 14px;
+  line-height: 1.4;
+}
+
+.privacy-notice-actions {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+.privacy-notice-actions button {
+  min-height: 44px;
+  padding: 0 18px;
+  border-radius: 99px;
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.privacy-notice-account {
+  background: none;
+  color: var(--ink-2);
+}
+
+.privacy-notice-ok {
+  background: var(--rappi-red);
+  color: var(--surface);
+}

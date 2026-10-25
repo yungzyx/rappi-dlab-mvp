@@ -1,0 +1,267 @@
+/* Pago del pedido: diseño propio con el estilo de la app (no aparece en las capturas). */
+.checkout {
+  padding: 0 var(--gutter) 130px;
+  background: var(--surface-soft);
+}
+
+.checkout-header {
+  position: sticky;
+  top: 0;
+  z-index: 3;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin: 0 calc(-1 * var(--gutter));
+  padding: 62px var(--gutter) 12px;
+  background: rgba(247, 247, 248, 0.94);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+.checkout-header h1 {
+  font-size: 22px;
+  font-weight: 600;
+}
+
+.checkout-empty {
+  margin-top: 40px;
+  text-align: center;
+  color: var(--ink-2);
+}
+
+.checkout-continue {
+  display: block;
+  margin: 16px auto 0;
+  padding: 12px 24px;
+  border-radius: 99px;
+  background: var(--ink);
+  color: var(--surface);
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.checkout-modes {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  margin-top: 8px;
+  padding: 4px;
+  border-radius: 99px;
+  background: #e9ebef;
+}
+
+.checkout-mode {
+  height: 38px;
+  border-radius: 99px;
+  font-size: 15.5px;
+  font-weight: 600;
+  color: var(--ink-2);
+  transition:
+    background var(--duration-fast),
+    color var(--duration-fast);
+}
+
+.checkout-mode.is-active {
+  background: var(--surface);
+  color: var(--ink);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+}
+
+.checkout-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  margin-top: 14px;
+  padding: 14px 16px;
+  border-radius: 18px;
+  background: var(--surface);
+  box-shadow: 0 1px 6px rgba(0, 0, 0, 0.05);
+  text-align: left;
+}
+
+.checkout-card > span:not(.checkout-change) {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.checkout-card strong {
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.checkout-card small {
+  font-size: 13.5px;
+  color: var(--ink-2);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.checkout-change {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--agent-orange);
+}
+
+.checkout-eta {
+  margin: 8px 4px 0;
+  font-size: 13.5px;
+  color: var(--green-deep);
+  font-weight: 600;
+}
+
+.checkout-title {
+  margin-top: 26px;
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.checkout-items {
+  list-style: none;
+  margin-top: 6px;
+  padding: 0 14px;
+  border-radius: 18px;
+  background: var(--surface);
+}
+
+.checkout-items .product-row:last-child {
+  border-bottom: 0;
+}
+
+.checkout-tips {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.checkout-tip {
+  height: 40px;
+  border-radius: 12px;
+  background: var(--surface);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
+  font-size: 14px;
+  font-weight: 600;
+  transition:
+    background var(--duration-fast),
+    color var(--duration-fast);
+}
+
+.checkout-tip.is-active {
+  background: var(--ink);
+  color: var(--surface);
+}
+
+.checkout-summary {
+  margin-top: 22px;
+  padding: 14px 16px;
+  border-radius: 18px;
+  background: var(--surface);
+}
+
+.checkout-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 5px 0;
+  font-size: 15px;
+  color: var(--ink-2);
+}
+
+.checkout-row dd.is-accent {
+  color: var(--green-deep);
+  font-weight: 600;
+}
+
+.checkout-row.is-total {
+  margin-top: 6px;
+  padding-top: 10px;
+  border-top: 1px solid var(--line);
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--ink);
+}
+
+.checkout-footer {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 4;
+  padding: 12px var(--gutter) 30px;
+  background: linear-gradient(to top, var(--surface-soft) 70%, rgba(247, 247, 248, 0));
+}
+
+.checkout-place {
+  width: 100%;
+  height: 54px;
+  border-radius: 99px;
+  background: var(--accent-ink); /* blanco sobre él da 6,1:1 (el degradado anterior, 2,8 a 3,8:1) */
+  color: var(--surface);
+  font-size: 17px;
+  font-weight: 700;
+  box-shadow: 0 10px 24px rgba(184, 48, 13, 0.3);
+}
+
+/* «¿Me falta algo?» (prototipo final): solo si se pide, Mochi sugiere una cosa de otra vertical */
+.checkout-ask {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 4px 0 8px;
+  padding: 8px 14px 8px 8px;
+  border-radius: 99px;
+  background: var(--chip);
+  color: var(--ink);
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.checkout-suggestion {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  margin: 4px 0 8px;
+  padding: 12px 14px;
+  border-radius: 16px;
+  background: #fff4ec;
+}
+
+.checkout-suggestion-body p {
+  margin: 0 0 4px;
+  font-size: 14px;
+  line-height: 19px;
+}
+
+.checkout-suggestion-reason {
+  color: var(--agent-orange);
+  font-weight: 700;
+}
+
+.checkout-suggestion-action {
+  margin-top: 6px;
+  padding: 7px 14px;
+  border-radius: 99px;
+  background: var(--chip);
+  color: var(--ink);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.checkout-suggestion-action.is-primary {
+  background: var(--ink);
+  color: var(--surface);
+}
+
+.checkout-suggestion-age {
+  display: inline-block;
+  margin-left: 6px;
+  padding: 0 6px;
+  border-radius: 6px;
+  background: rgba(20, 20, 20, 0.78);
+  color: var(--surface);
+  font-size: 11px;
+  font-weight: 700;
+  vertical-align: 1px;
+}

@@ -1,0 +1,51 @@
+# Destinos curados para el último peldaño de un perfil de gusto (offers/perfiles.toml, campo `viaje`).
+#
+# Van rotulados «Idea para RappiTravel», sin precios ni fechas: RappiTravel no tiene catálogo en este prototipo.
+# Cada destino lleva la pregunta (`texto`) y hechos verificables con su fuente y su url (https). Son los de la demo
+# (prototipo-app/src/data/profiles.js y perfiles-demo.json, rama demo/prototipo-sushi), verificados el 13-10-2026.
+# offers/profiles.py los valida al cargar.
+
+[[destino]]
+id = "japon"
+nombre = "Japón"
+texto = "¿Y si un día vas a Japón?"
+
+[[destino.hechos]]
+texto = "La cocina japonesa (washoku) es Patrimonio Cultural Inmaterial de la Humanidad desde 2013."
+fuente = "UNESCO"
+url = "https://ich.unesco.org/en/RL/washoku-traditional-dietary-cultures-of-the-japanese-notably-for-the-celebration-of-new-year-00869"
+
+[[destino.hechos]]
+texto = "El santuario Fushimi Inari-taisha, en Kioto, es famoso por sus miles de torii naranjos que suben el monte Inari."
+fuente = "Wikipedia"
+url = "https://es.wikipedia.org/wiki/Fushimi_Inari-taisha"
+
+[[destino]]
+id = "colombia"
+nombre = "Colombia"
+texto = "¿Y si un día vas a Colombia?"
+
+[[destino.hechos]]
+texto = "El Paisaje Cultural Cafetero de Colombia fue inscrito en la Lista del Patrimonio Mundial de la UNESCO en 2011."
+fuente = "UNESCO (decisión 35 COM 8B.43)"
+url = "https://whc.unesco.org/en/decisions/4314"
+
+[[destino.hechos]]
+texto = "El Paisaje Cultural Cafetero abarca zonas de 47 municipios y 411 veredas de Caldas, Quindío, Risaralda y Valle del Cauca."
+fuente = "Wikipedia"
+url = "https://es.wikipedia.org/wiki/Paisaje_Cultural_Cafetero"
+
+[[destino]]
+id = "italia"
+nombre = "Italia"
+texto = "¿Y si un día vas a Italia?"
+
+[[destino.hechos]]
+texto = "El arte del pizzaiolo napolitano es Patrimonio Cultural Inmaterial de la Humanidad desde 2017."
+fuente = "UNESCO"
+url = "https://ich.unesco.org/en/RL/art-of-neapolitan-pizzaiuolo-00722"
+
+[[destino.hechos]]
+texto = "Según la tradición, la pizza margarita se creó en 1889 en Nápoles: el pizzaiolo Raffaele Esposito la habría hecho en honor a la reina Margarita de Saboya, con tomate, albahaca y mozzarella como los colores de la bandera italiana."
+fuente = "Wikipedia"
+url = "https://es.wikipedia.org/wiki/Pizza_margarita"

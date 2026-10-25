@@ -1,0 +1,350 @@
+{
+  "schema_version": 2,
+  "diagram_type": "workflow",
+  "meta": {
+    "title": "Rappi: catálogo, agente Mochi y motor multivertical",
+    "quality_profile": "showcase",
+    "views": [
+      {
+        "id": "consulta",
+        "label": "Consulta",
+        "focus": [
+          "prototipo",
+          "api",
+          "agente",
+          "busqueda"
+        ],
+        "note": "Una búsqueda llega al agente, que busca dentro del vertical y verifica antes de responder."
+      },
+      {
+        "id": "datos",
+        "label": "Datos offline",
+        "focus": [
+          "rappi",
+          "scraper",
+          "indexar",
+          "vectores",
+          "busqueda",
+          "conceptos"
+        ],
+        "note": "Tras cada refresh: conceptos, capa de datos (atributos, marcas, grafo), embeddings e5 y un índice HNSW por vertical."
+      },
+      {
+        "id": "motor",
+        "label": "Motor multivertical",
+        "focus": [
+          "combos",
+          "motor",
+          "ofertas",
+          "api",
+          "eventos"
+        ],
+        "note": "El motor junta la tabla de Rappi con los pedidos y señales: ordena la Home y da el paso y la recompra a las ofertas."
+      },
+      {
+        "id": "negocio",
+        "label": "Eventos y panel",
+        "focus": [
+          "api",
+          "eventos",
+          "motor",
+          "panel"
+        ],
+        "note": "Los pedidos y eventos (simulados y del prototipo) alimentan el motor y el panel: muestran la mecánica, no evidencia."
+      }
+    ],
+    "legend": {
+      "entries": {
+        "frontend": {
+          "label": "interfaz"
+        },
+        "backend": {
+          "label": "lógica / servicio"
+        },
+        "database": {
+          "label": "datos"
+        },
+        "security": {
+          "label": "control / reintento"
+        },
+        "messagebus": {
+          "label": "cola"
+        },
+        "external": {
+          "label": "sistema externo"
+        },
+        "cloud": {
+          "label": "API / nube"
+        }
+      }
+    }
+  },
+  "lanes": [
+    {
+      "id": "offline",
+      "label": "Datos · offline"
+    },
+    {
+      "id": "online",
+      "label": "Consulta · online"
+    },
+    {
+      "id": "cruce_lane",
+      "label": "Entre verticales: motor y ofertas"
+    },
+    {
+      "id": "negocio_lane",
+      "label": "Panel y dato de Rappi"
+    }
+  ],
+  "mainPath": [
+    "prototipo",
+    "api",
+    "agente",
+    "busqueda"
+  ],
+  "nodes": [
+    {
+      "id": "rappi",
+      "lane": "offline",
+      "col": 0,
+      "type": "external",
+      "label": "rappi.cl",
+      "sublabel": "páginas públicas",
+      "width": 140
+    },
+    {
+      "id": "scraper",
+      "lane": "offline",
+      "col": 1,
+      "type": "backend",
+      "label": "rappi-scraper",
+      "sublabel": "refresh semanal",
+      "width": 150
+    },
+    {
+      "id": "indexar",
+      "lane": "offline",
+      "col": 2,
+      "type": "backend",
+      "label": "Indexación",
+      "sublabel": "conceptos + capa de datos",
+      "tag": "e5",
+      "width": 170
+    },
+    {
+      "id": "vectores",
+      "lane": "offline",
+      "col": 3,
+      "type": "database",
+      "label": "Postgres + pgvector",
+      "sublabel": "catálogo · esquema capa",
+      "width": 170
+    },
+    {
+      "id": "prototipo",
+      "lane": "online",
+      "col": 0,
+      "type": "frontend",
+      "label": "prototipo-app",
+      "sublabel": "Home dinámica · ofertas",
+      "width": 160
+    },
+    {
+      "id": "api",
+      "lane": "online",
+      "col": 1,
+      "type": "backend",
+      "label": "API FastAPI",
+      "sublabel": "rappi-ia",
+      "width": 150
+    },
+    {
+      "id": "agente",
+      "lane": "online",
+      "col": 2,
+      "type": "backend",
+      "label": "Agente Mochi",
+      "sublabel": "entender → verificar",
+      "tag": "LLM opcional",
+      "width": 170
+    },
+    {
+      "id": "busqueda",
+      "lane": "online",
+      "col": 3,
+      "type": "database",
+      "label": "Búsqueda híbrida",
+      "sublabel": "léxico + vector · RRF",
+      "tag": "WHERE vertical",
+      "width": 170
+    },
+    {
+      "id": "combos",
+      "lane": "negocio_lane",
+      "col": 1,
+      "type": "external",
+      "label": "Tabla de Rappi",
+      "sublabel": "combos.toml",
+      "tag": "dato compartido por Rappi",
+      "width": 160
+    },
+    {
+      "id": "motor",
+      "lane": "cruce_lane",
+      "col": 1,
+      "type": "backend",
+      "label": "Motor multivertical",
+      "sublabel": "afinidad · combos · recompra",
+      "tag": "rappi-ia motor",
+      "width": 170
+    },
+    {
+      "id": "ofertas",
+      "lane": "cruce_lane",
+      "col": 2,
+      "type": "backend",
+      "label": "Ofertas y Home",
+      "sublabel": "/agent/offer · /verticales",
+      "width": 170,
+      "tag": "guardias"
+    },
+    {
+      "id": "conceptos",
+      "lane": "cruce_lane",
+      "col": 3,
+      "type": "database",
+      "label": "Conceptos · capa 2",
+      "sublabel": "perfil + complementos",
+      "width": 170
+    },
+    {
+      "id": "eventos",
+      "lane": "cruce_lane",
+      "col": 0,
+      "type": "database",
+      "label": "Pedidos y eventos",
+      "sublabel": "simulados + prototipo",
+      "width": 160
+    },
+    {
+      "id": "panel",
+      "lane": "negocio_lane",
+      "col": 0,
+      "type": "frontend",
+      "label": "dashboard-empresa",
+      "sublabel": "Entre verticales · Uso del MVP",
+      "width": 180
+    }
+  ],
+  "edges": [
+    {
+      "id": "prototipo-api",
+      "from": "prototipo",
+      "to": "api",
+      "label": "pregunta",
+      "variant": "emphasis"
+    },
+    {
+      "id": "api-agente",
+      "from": "api",
+      "to": "agente",
+      "variant": "emphasis",
+      "fromSide": "right",
+      "toSide": "left"
+    },
+    {
+      "id": "agente-busqueda",
+      "from": "agente",
+      "to": "busqueda",
+      "label": "en el vertical",
+      "variant": "emphasis"
+    },
+    {
+      "id": "rappi-scraper",
+      "from": "rappi",
+      "to": "scraper",
+      "label": "HTML",
+      "variant": "dashed",
+      "role": "async"
+    },
+    {
+      "id": "scraper-indexar",
+      "from": "scraper",
+      "to": "indexar",
+      "label": "tras refresh",
+      "variant": "dashed",
+      "role": "async"
+    },
+    {
+      "id": "indexar-vectores",
+      "from": "indexar",
+      "to": "vectores",
+      "variant": "dashed",
+      "role": "async"
+    },
+    {
+      "id": "vectores-busqueda",
+      "from": "vectores",
+      "to": "busqueda",
+      "label": "HNSW",
+      "variant": "dashed",
+      "role": "async"
+    },
+    {
+      "id": "combos-motor",
+      "from": "combos",
+      "to": "motor",
+      "label": "retención",
+      "variant": "dashed",
+      "role": "async"
+    },
+    {
+      "id": "api-ofertas",
+      "from": "api",
+      "to": "ofertas",
+      "label": "momento",
+      "role": "branch",
+      "fromSide": "bottom",
+      "toSide": "top"
+    },
+    {
+      "id": "motor-ofertas",
+      "from": "motor",
+      "to": "ofertas",
+      "label": "afinidad · paso",
+      "role": "branch",
+      "fromSide": "right",
+      "toSide": "left"
+    },
+    {
+      "id": "ofertas-conceptos",
+      "from": "ofertas",
+      "to": "conceptos",
+      "label": "complementos",
+      "role": "branch"
+    },
+    {
+      "id": "api-eventos",
+      "from": "api",
+      "to": "eventos",
+      "label": "registrar",
+      "role": "branch"
+    },
+    {
+      "id": "eventos-motor",
+      "from": "eventos",
+      "to": "motor",
+      "label": "señales",
+      "variant": "dashed",
+      "role": "async"
+    },
+    {
+      "id": "eventos-panel",
+      "from": "eventos",
+      "to": "panel",
+      "label": "/analytics",
+      "role": "branch"
+    }
+  ]
+}

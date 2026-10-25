@@ -1,0 +1,21 @@
+{
+  "source": "prototype",
+  "data": {
+    "as_of": "2026-09-27T11:46:34.446427-03:00",
+    "usuarios_activos": 6,
+    "pedidos_30d": 3,
+    "frecuencia": 0.5,
+    "mediana_dias_entre_pedidos": null,
+    "abandono_carrito_pct": 0,
+    "multi_vertical_pct": 100,
+    "en_riesgo": 0,
+    "perdidos": 0,
+    "busquedas_sin_resultado_pct": 0,
+    "conversion_sesiones_pct": null,
+    "source": "prototype"
+  },
+  "guardado": {
+    "origen": "npm run fixtures · uso del prototipo en la base local (no es evidencia)",
+    "fecha": "2026-09-27"
+  }
+}

@@ -1,0 +1,86 @@
+{
+  "source": "prototype",
+  "data": [
+    {
+      "concepto": "🍜 Sopas y caldos",
+      "vertical": "turbo",
+      "usuarios_que_buscan": 1,
+      "items_en_catalogo": 28,
+      "usuarios_por_item": 0.04
+    },
+    {
+      "concepto": "🍺 Cerveza",
+      "vertical": "licores",
+      "usuarios_que_buscan": 5,
+      "items_en_catalogo": 661,
+      "usuarios_por_item": 0.01
+    },
+    {
+      "concepto": "🧷 Pañales y toallitas",
+      "vertical": "farmacia",
+      "usuarios_que_buscan": 1,
+      "items_en_catalogo": 142,
+      "usuarios_por_item": 0.01
+    },
+    {
+      "concepto": "🍔 Hamburguesa",
+      "vertical": "restaurantes",
+      "usuarios_que_buscan": 3,
+      "items_en_catalogo": 12606,
+      "usuarios_por_item": 0
+    },
+    {
+      "concepto": "🍷 Vino",
+      "vertical": "licores",
+      "usuarios_que_buscan": 2,
+      "items_en_catalogo": 801,
+      "usuarios_por_item": 0
+    },
+    {
+      "concepto": "🧷 Pañales y toallitas",
+      "vertical": "supermercado",
+      "usuarios_que_buscan": 1,
+      "items_en_catalogo": 231,
+      "usuarios_por_item": 0
+    },
+    {
+      "concepto": "🍫 Chocolates",
+      "vertical": "chocolateria",
+      "usuarios_que_buscan": 1,
+      "items_en_catalogo": 423,
+      "usuarios_por_item": 0
+    },
+    {
+      "concepto": "🍺 Cerveza",
+      "vertical": "supermercado",
+      "usuarios_que_buscan": 1,
+      "items_en_catalogo": 264,
+      "usuarios_por_item": 0
+    },
+    {
+      "concepto": "🥨 Snacks salados",
+      "vertical": "licores",
+      "usuarios_que_buscan": 1,
+      "items_en_catalogo": 262,
+      "usuarios_por_item": 0
+    },
+    {
+      "concepto": "🍱 Platos listos",
+      "vertical": "supermercado",
+      "usuarios_que_buscan": 1,
+      "items_en_catalogo": 454,
+      "usuarios_por_item": 0
+    },
+    {
+      "concepto": "🍕 Pizza",
+      "vertical": "restaurantes",
+      "usuarios_que_buscan": 1,
+      "items_en_catalogo": 11155,
+      "usuarios_por_item": 0
+    }
+  ],
+  "guardado": {
+    "origen": "npm run fixtures · uso del prototipo en la base local (no es evidencia)",
+    "fecha": "2026-10-09"
+  }
+}

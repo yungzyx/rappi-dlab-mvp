@@ -1,0 +1,32 @@
+.offline-notice {
+  display: grid;
+  justify-items: center;
+  gap: 6px;
+  padding: 56px var(--gutter);
+  text-align: center;
+}
+
+.offline-notice h2 {
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: -0.2px;
+  color: var(--ink);
+}
+
+.offline-notice p {
+  color: var(--ink-2);
+  font-size: 15px;
+  line-height: 1.45;
+}
+
+.offline-notice-retry {
+  min-width: 160px;
+  height: 46px;
+  margin-top: 12px;
+  padding: 0 24px;
+  border-radius: 99px;
+  background: var(--rappi-red);
+  color: var(--surface);
+  font-size: 16px;
+  font-weight: 700;
+}

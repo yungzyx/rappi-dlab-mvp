@@ -1,0 +1,247 @@
+/* Mochi: una imagen con 4 poses en 2 × 2 (frontal, feliz / tímido, saltando); el estado elige cuál se ve.
+   El movimiento solo usa transform/opacity, que corren en la GPU; los cambios de pose mueven el fondo. */
+.mascot {
+  display: block;
+  position: relative;
+  flex: none;
+  isolation: isolate;
+  --mascot-look: 0deg;
+}
+
+/* La pose es cuadrada y se apoya abajo: de cuerpo entero la caja mide 1,2 × el ancho */
+.mascot-body {
+  position: absolute;
+  inset: auto 0 0;
+  aspect-ratio: 1;
+  transform-origin: 50% 85%;
+}
+
+.mascot-sprite {
+  position: absolute;
+  inset: 0;
+  background: url('../../assets/mochi-poses.webp') 0 0 / 200% 200% no-repeat;
+  transform: rotate(var(--mascot-look));
+  transition: transform 0.22s ease-out;
+  filter: drop-shadow(0 2px 2px rgb(155 57 11 / 9%));
+}
+
+.mascot-shadow {
+  position: absolute;
+  bottom: 3%;
+  left: 22%;
+  width: 56%;
+  height: 7%;
+  border-radius: 50%;
+  background: rgb(160 76 37 / 13%);
+  filter: blur(2px);
+}
+
+/* Como avatar: en un círculo, un poco más grande para que asome */
+.mascot--badge {
+  border-radius: 50%;
+  background: radial-gradient(circle at 45% 35%, #fff7ee, #ffe2ce);
+  box-shadow: inset 0 0 0 2px #fff4eb;
+}
+
+.mascot--badge .mascot-body {
+  inset: -7%;
+}
+
+.mascot--badge .mascot-shadow {
+  display: none;
+}
+
+/* ----- Poses ----- */
+.mascot.mascot--wave .mascot-sprite {
+  background-position: 100% 0;
+}
+
+.mascot.mascot--think .mascot-sprite,
+.mascot.mascot--listen .mascot-sprite {
+  background-position: 0 100%;
+}
+
+.mascot.mascot--jump .mascot-sprite {
+  background-position: 100% 100%;
+}
+
+@media (hover: hover) {
+  .mascot:hover .mascot-sprite {
+    background-position: 100% 0;
+  }
+}
+
+/* ----- Movimiento ----- */
+@media (prefers-reduced-motion: no-preference) {
+  .mascot-body {
+    animation: mascot-breathe 4.2s ease-in-out infinite;
+  }
+
+  .mascot-shadow {
+    animation: mascot-shadow 4.2s ease-in-out infinite;
+  }
+
+  /* Quieto, cada tanto sonríe un instante */
+  .mascot.mascot--idle .mascot-sprite {
+    animation: mascot-expression 9s step-end infinite;
+  }
+
+  .mascot.mascot--wave .mascot-body {
+    animation: mascot-wave 3.8s ease-in-out infinite;
+  }
+
+  .mascot.mascot--think .mascot-body {
+    animation: mascot-think 2.6s ease-in-out infinite;
+  }
+
+  .mascot.mascot--listen .mascot-body {
+    animation: mascot-listen 3.6s ease-in-out infinite;
+  }
+
+  .mascot.mascot--talk .mascot-body {
+    animation: mascot-talk 0.7s ease-in-out infinite;
+  }
+
+  .mascot.mascot--jump .mascot-body {
+    animation: mascot-boop 0.8s cubic-bezier(0.2, 0.8, 0.3, 1) 1;
+  }
+
+  @media (hover: hover) {
+    .mascot:hover .mascot-body {
+      animation: mascot-greet 0.7s ease-in-out 1;
+    }
+
+    .mascot:hover .mascot-sprite {
+      animation: none;
+    }
+  }
+
+  /* Al tocarlo salta (sin movimiento no hay salto, para no quedar pegado en esa pose) */
+  .mascot.mascot--boop .mascot-sprite {
+    background-position: 100% 100%;
+    animation: none;
+  }
+
+  .mascot.mascot--boop .mascot-body {
+    animation: mascot-boop 0.8s cubic-bezier(0.2, 0.8, 0.3, 1) 1;
+  }
+}
+
+/* Sin movimiento tampoco se inclina hacia el mouse */
+@media (prefers-reduced-motion: reduce) {
+  .mascot-sprite {
+    transform: none;
+    transition: none;
+  }
+}
+
+@keyframes mascot-breathe {
+  0%,
+  100% {
+    transform: translateY(0) scale(1);
+  }
+  50% {
+    transform: translateY(-2%) scale(1.025, 0.99);
+  }
+}
+
+@keyframes mascot-shadow {
+  0%,
+  100% {
+    transform: scale(1);
+    opacity: 0.8;
+  }
+  50% {
+    transform: scale(0.85);
+    opacity: 0.5;
+  }
+}
+
+@keyframes mascot-expression {
+  0%,
+  93%,
+  100% {
+    background-position: 0 0;
+  }
+  94% {
+    background-position: 100% 0;
+  }
+}
+
+@keyframes mascot-wave {
+  0%,
+  35%,
+  100% {
+    transform: translateY(0) rotate(0);
+  }
+  8%,
+  24% {
+    transform: translateY(-5%) rotate(-7deg);
+  }
+  16% {
+    transform: translateY(-6%) rotate(7deg);
+  }
+  65% {
+    transform: translateY(-2%);
+  }
+}
+
+@keyframes mascot-think {
+  0%,
+  100% {
+    transform: rotate(-4deg) translateY(0);
+  }
+  50% {
+    transform: rotate(4deg) translateY(-3%);
+  }
+}
+
+@keyframes mascot-listen {
+  0%,
+  60%,
+  100% {
+    transform: rotate(-5deg);
+  }
+  25% {
+    transform: rotate(2deg) translateY(-2%);
+  }
+}
+
+@keyframes mascot-talk {
+  0%,
+  100% {
+    transform: scale(1) translateY(0);
+  }
+  50% {
+    transform: scale(1.035, 0.97) translateY(-3%);
+  }
+}
+
+@keyframes mascot-greet {
+  0%,
+  100% {
+    transform: rotate(0);
+  }
+  30% {
+    transform: translateY(-8%) rotate(-9deg);
+  }
+  65% {
+    transform: translateY(-4%) rotate(7deg);
+  }
+}
+
+@keyframes mascot-boop {
+  0%,
+  100% {
+    transform: translateY(0) scale(1);
+  }
+  18% {
+    transform: translateY(4%) scale(1.1, 0.85);
+  }
+  48% {
+    transform: translateY(-20%) scale(0.94, 1.08) rotate(-8deg);
+  }
+  75% {
+    transform: translateY(0) scale(1.06, 0.94) rotate(4deg);
+  }
+}

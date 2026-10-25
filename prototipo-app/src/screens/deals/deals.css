@@ -1,0 +1,39 @@
+/* Medidas del video de Ofertas (px del cuadro × 0,437 o × 0,67 según el cuadro = pt). */
+.deals-crown {
+  width: 28px;
+  height: 20px;
+  /* el recorte trae fondo blanco: multiply lo funde con el encabezado gris */
+  mix-blend-mode: multiply;
+}
+
+/* ---------- Bajaron de precio, una sección por vertical ---------- */
+.deals-vertical,
+.deals-restaurants {
+  padding-top: 58px;
+}
+
+.deals-vertical-title {
+  padding: 0 var(--gutter);
+}
+
+.deals-product-row {
+  gap: 18px;
+  padding: 36px var(--gutter) 0;
+  scroll-padding-left: var(--gutter);
+}
+
+/* ---------- Mejor evaluados ---------- */
+.deals-restaurants-title {
+  padding: 0 var(--gutter);
+}
+
+.deals-card-row {
+  padding-top: 30px;
+}
+
+.deals-empty {
+  padding: 40px var(--gutter) 0;
+  color: var(--ink-2);
+  font-size: 15px;
+  line-height: 1.45;
+}

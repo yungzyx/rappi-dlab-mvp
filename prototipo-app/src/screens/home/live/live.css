@@ -1,0 +1,538 @@
+/* Prototipo final: Mochi de cuerpo entero dentro de la Home, bloques que se reordenan y foco con fondo oscuro. */
+/* La capa de Mochi es hermana de la Home (no hija): las dos llevan las variables. */
+.home--live,
+.live-layer {
+  --live-accent: #c43d20; /* rojo Rappi más oscuro: texto blanco encima con 5,2:1 */
+  --live-accent-soft: #fff1ea;
+  --live-spring: cubic-bezier(0.34, 1.32, 0.64, 1);
+  --live-glide: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.home--live {
+  background-color: var(--surface);
+  transition: background-color 520ms var(--live-glide);
+}
+
+.live-block {
+  position: relative;
+}
+
+/* ---------- Bloques propios ---------- */
+.live-card {
+  position: relative;
+  margin: 32px 14px 0;
+  padding: 18px 0 20px;
+  border-radius: 22px;
+  background: var(--surface);
+  box-shadow: 0 6px 22px rgba(60, 30, 20, 0.08);
+  transition: box-shadow 520ms var(--live-glide);
+}
+
+.live-items {
+  gap: 16px;
+  padding: 22px 18px 0;
+  scroll-padding-left: 18px;
+}
+
+.live-item {
+  flex: none;
+}
+
+/* Al aparecer, los ítems entran uno tras otro */
+.live-kit .live-item {
+  animation: live-item-in 460ms var(--live-glide) backwards;
+  animation-delay: calc(var(--i) * 70ms + 120ms);
+}
+
+@keyframes live-item-in {
+  from {
+    opacity: 0;
+    transform: translateY(14px) scale(0.94);
+  }
+}
+
+/* ---------- ¿Qué plan tienes hoy? ---------- */
+.live-plan-title {
+  padding: 0 18px;
+  font-size: 20px;
+  font-weight: 700;
+  letter-spacing: -0.3px;
+}
+
+.live-plan-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 14px 18px 0;
+}
+
+.live-plan-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  border-radius: 99px;
+  background: var(--chip);
+  color: var(--ink);
+  font-size: 14px;
+  font-weight: 600;
+  transition:
+    background-color 200ms,
+    color 200ms,
+    transform 200ms var(--live-spring);
+}
+
+.live-plan-chip.is-active {
+  background: var(--ink);
+  color: var(--surface);
+  transform: scale(1.04);
+}
+
+/* «Para ti»: la ocasión viene de lo que a la persona le gusta (la razón trae el detalle) */
+.live-plan-chip-tag {
+  padding: 1px 7px;
+  border-radius: 999px;
+  background: var(--accent-soft);
+  color: var(--accent-ink); /* 5,5:1 sobre var(--accent-soft) */
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.live-plan-empty {
+  padding: 14px 18px 0;
+  color: var(--ink-3);
+  font-size: 13.5px;
+}
+
+.live-kit {
+  animation: live-item-in 380ms var(--live-glide);
+}
+
+.live-kit .offer-why {
+  padding: 0 18px;
+}
+
+.live-kit-meta {
+  padding: 14px 18px 0;
+  color: var(--ink-2);
+  font-size: 13.5px;
+}
+
+.live-kit-add.is-added {
+  background: var(--ink);
+  animation: live-item-in 320ms var(--live-glide);
+}
+
+.live-kit-add {
+  display: block;
+  width: calc(100% - 36px);
+  margin: 20px 18px 0;
+  padding: 13px 0;
+  border-radius: 14px;
+  background: var(--live-accent);
+  color: var(--surface);
+  font-size: 15.5px;
+  font-weight: 700;
+}
+
+/* ---------- ¿Repetimos? ---------- */
+.live-card--repeat {
+  animation: live-item-in 380ms var(--live-glide);
+}
+
+.live-card--repeat .offer-why {
+  padding: 0 18px;
+}
+
+.live-repeat-item {
+  display: flex;
+  padding-top: 14px;
+}
+
+.live-repeat-actions {
+  display: flex;
+  gap: 10px;
+  margin: 20px 18px 0;
+}
+
+.live-repeat-actions .live-kit-add {
+  flex: 1;
+  width: auto;
+  margin: 0;
+}
+
+.live-repeat-later {
+  padding: 13px 18px;
+  border-radius: 14px;
+  background: var(--chip);
+  color: var(--ink);
+  font-size: 15.5px;
+  font-weight: 600;
+}
+
+/* ---------- Mochi y su globo ---------- */
+.live-layer {
+  position: absolute;
+  inset: 0;
+  z-index: var(--z-live-agent);
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.live-agent {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 84px;
+  transition:
+    transform 680ms var(--live-spring),
+    opacity 300ms;
+  will-change: transform;
+}
+
+.live-agent.is-away {
+  opacity: 0;
+}
+
+.live-agent-body[hidden] {
+  display: none;
+}
+
+.live-agent-body {
+  display: block;
+  pointer-events: auto;
+  filter: drop-shadow(0 8px 10px rgba(40, 20, 10, 0.25));
+  transition: transform 450ms var(--live-spring);
+}
+
+/* En reposo se asoma desde el borde derecho: medio cuerpo, inclinado hacia la pantalla */
+.live-agent.is-resting .live-agent-body {
+  transform: translateX(44px) rotate(-10deg);
+}
+
+/* Mientras se hace scroll, casi se esconde */
+.live-agent.is-resting.is-tucked .live-agent-body {
+  transform: translateX(72px) rotate(-4deg);
+}
+
+.live-agent-body:active {
+  transform: scale(0.92) rotate(-5deg);
+}
+
+.live-agent.is-entering .live-agent-body {
+  animation: live-enter 900ms var(--live-spring) backwards;
+}
+
+@keyframes live-enter {
+  0% {
+    transform: translateX(130px) rotate(18deg);
+  }
+  55% {
+    transform: translateX(-10px) rotate(-6deg);
+  }
+  100% {
+    transform: none;
+  }
+}
+
+.live-hop {
+  display: block;
+  animation: live-hop 560ms var(--live-glide);
+}
+
+@keyframes live-hop {
+  0% {
+    transform: translateY(0) scale(1.08, 0.9);
+  }
+  40% {
+    transform: translateY(-22px) scale(0.95, 1.06);
+  }
+  80% {
+    transform: translateY(0) scale(1.06, 0.94);
+  }
+  100% {
+    transform: none;
+  }
+}
+
+/* ---------- Gestos: cada frase trae uno y, en espera, va cambiando solo ---------- */
+.live-gesture {
+  display: block;
+  transform-origin: 50% 95%; /* desde los pies */
+}
+
+/* Saludo de entrada: llega, da un saltito y levanta los brazos */
+.live-gesture--greet {
+  animation: live-hello-body 1.7s var(--live-glide) 0.75s;
+}
+
+/* Los gestos con brazos (saludar, señalar, bailar, estirarse) ponen la pose feliz de Mochi; mirar, la tímida */
+.live-agent .live-gesture--greet .mascot .mascot-sprite {
+  animation: live-pose-happy 1.5s step-end 0.75s;
+}
+
+.live-agent .live-gesture--wave .mascot .mascot-sprite {
+  animation: live-pose-happy 1.5s step-end;
+}
+
+.live-gesture--wave {
+  animation: live-tilt 1.5s ease-in-out;
+}
+
+.live-gesture--hop {
+  animation: live-double-hop 950ms var(--live-glide);
+}
+
+.live-gesture--point {
+  animation: live-lean 1.8s var(--live-glide);
+}
+
+.live-agent .live-gesture--point .mascot .mascot-sprite {
+  animation: live-pose-happy 1.8s step-end;
+}
+
+.live-gesture--spin {
+  animation: live-spin 900ms var(--live-glide);
+}
+
+.live-agent .live-gesture--look .mascot .mascot-sprite {
+  animation: live-pose-shy 2.2s step-end;
+}
+
+.live-gesture--look {
+  animation: live-tilt 2.2s ease-in-out;
+}
+
+.live-gesture--dance {
+  animation: live-dance 1.8s ease-in-out;
+}
+
+.live-agent .live-gesture--dance .mascot .mascot-sprite {
+  animation: live-pose-happy 1.8s step-end;
+}
+
+.live-agent .live-gesture--stretch .mascot .mascot-sprite {
+  animation: live-pose-happy 1.3s step-end;
+}
+
+.live-gesture--stretch {
+  animation: live-stretch 1.3s var(--live-glide);
+}
+
+@keyframes live-hello-body {
+  0%,
+  100% {
+    transform: none;
+  }
+  15% {
+    transform: translateY(-14px) scale(0.96, 1.05);
+  }
+  28% {
+    transform: translateY(0) scale(1.06, 0.94);
+  }
+  40% {
+    transform: rotate(-6deg);
+  }
+  70% {
+    transform: rotate(4deg);
+  }
+}
+
+/* Al tocarlo o al celebrar, el salto gana sobre la pose del gesto */
+.live-agent .live-gesture .mascot.mascot--jump .mascot-sprite {
+  animation: none;
+}
+
+@keyframes live-pose-happy {
+  0%,
+  95% {
+    background-position: 100% 0;
+  }
+}
+
+@keyframes live-pose-shy {
+  0%,
+  95% {
+    background-position: 0 100%;
+  }
+}
+
+@keyframes live-lean {
+  0%,
+  100% {
+    transform: none;
+  }
+  20%,
+  80% {
+    transform: translateX(-5px) rotate(-7deg);
+  }
+}
+
+@keyframes live-tilt {
+  0%,
+  100% {
+    transform: none;
+  }
+  30% {
+    transform: rotate(-6deg);
+  }
+  65% {
+    transform: rotate(6deg);
+  }
+}
+
+@keyframes live-double-hop {
+  0%,
+  45%,
+  90%,
+  100% {
+    transform: none;
+  }
+  8%,
+  52% {
+    transform: scale(1.08, 0.9);
+  }
+  22% {
+    transform: translateY(-24px) scale(0.94, 1.07);
+  }
+  68% {
+    transform: translateY(-13px) scale(0.97, 1.03);
+  }
+}
+
+@keyframes live-spin {
+  0%,
+  100% {
+    transform: none;
+  }
+  25% {
+    transform: translateY(-18px) scaleX(0.15);
+  }
+  50% {
+    transform: translateY(-24px) scaleX(-1);
+  }
+  75% {
+    transform: translateY(-12px) scaleX(0.15);
+  }
+}
+
+@keyframes live-dance {
+  0%,
+  100% {
+    transform: none;
+  }
+  15%,
+  55% {
+    transform: translateX(-4px) rotate(-9deg);
+  }
+  35%,
+  75% {
+    transform: translateX(4px) translateY(-6px) rotate(9deg);
+  }
+}
+
+@keyframes live-stretch {
+  0%,
+  100% {
+    transform: none;
+  }
+  35%,
+  60% {
+    transform: scale(0.94, 1.12);
+  }
+  80% {
+    transform: scale(1.05, 0.95);
+  }
+}
+
+.live-bubble {
+  position: absolute;
+  top: 6px;
+  right: 76px;
+  width: max-content;
+  max-width: 236px;
+  padding: 11px 14px 12px;
+  border-radius: 18px 6px 18px 18px;
+  background: var(--surface);
+  color: var(--ink);
+  box-shadow: 0 10px 30px rgba(20, 10, 5, 0.22);
+  font-size: 14.5px;
+  font-weight: 500;
+  line-height: 19px;
+  pointer-events: auto;
+  transform-origin: right top;
+  animation: live-bubble-in 360ms var(--live-spring);
+}
+
+/* Lo que falta escribir: invisible, pero ya ocupa su lugar en el globo */
+.live-bubble-rest::after {
+  content: attr(data-rest);
+  visibility: hidden;
+}
+
+/* Hasta que termina de escribir, «¿Por qué?» y los botones ya ocupan su lugar, sin verse ni animarse */
+.live-bubble-more.is-pending {
+  visibility: hidden;
+}
+
+.live-bubble-more.is-pending * {
+  animation: none;
+}
+
+/* Abajo en la pantalla, el globo crece hacia arriba desde la cabeza de Mochi */
+.live-agent.is-low .live-bubble {
+  top: auto;
+  bottom: 46px;
+  border-radius: 18px 18px 6px 18px;
+  transform-origin: right bottom;
+}
+
+@keyframes live-bubble-in {
+  from {
+    opacity: 0;
+    transform: translateX(10px) scale(0.85);
+  }
+}
+
+.live-bubble-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 10px;
+  animation: live-item-in 300ms var(--live-glide);
+}
+
+.live-chip {
+  padding: 7px 12px;
+  border-radius: 99px;
+  background: var(--chip);
+  color: var(--ink);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.live-chip.is-primary {
+  background: #c43d20;
+  color: var(--surface);
+}
+
+/* ---------- Menos movimiento: sin saltos ni deslizamientos ---------- */
+@media (prefers-reduced-motion: reduce) {
+  .home--live,
+  .live-agent,
+  .live-card {
+    transition: none;
+  }
+
+  .live-agent.is-entering .live-agent-body,
+  .live-hop,
+  .live-gesture,
+  .live-gesture .mascot-sprite,
+  .live-bubble,
+  .live-bubble-actions,
+  .live-kit,
+  .live-card--repeat,
+  .live-item {
+    animation: none !important;
+  }
+}

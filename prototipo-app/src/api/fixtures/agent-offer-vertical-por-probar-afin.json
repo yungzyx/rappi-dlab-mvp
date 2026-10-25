@@ -1,0 +1,48 @@
+{
+  "actions": [
+    {
+      "label": "Abrir Rappi Mall",
+      "route": [
+        "retail"
+      ]
+    }
+  ],
+  "moment": "vertical_por_probar",
+  "products": [
+    {
+      "age_restricted": false,
+      "before": "$29.990",
+      "concept": "fragancias",
+      "discount": "-17%",
+      "entity_id": "96001",
+      "entity_type": "catalog_item",
+      "id": "cat-96001",
+      "img": "https://imagenes.prueba.invalid/productos/96001.png",
+      "name": "Perfume floral 100 ml (prueba)",
+      "presentation": "100 ml",
+      "price": "$24.990",
+      "price_value": 24990.0,
+      "store": "Tienda mall de prueba Centro",
+      "store_id": 9601,
+      "vertical": "mall"
+    }
+  ],
+  "prototype_vertical": "retail",
+  "reason": {
+    "basis": [
+      {
+        "id": "restaurantes+turbo+supermercado→restaurantes+turbo+supermercado+mall",
+        "kind": "combinacion",
+        "source": "rappi+supuesto"
+      },
+      {
+        "id": "mall",
+        "kind": "sin_pedidos",
+        "source": "contexto"
+      }
+    ],
+    "text": "Porque aún no pides en Rappi Mall."
+  },
+  "text": "Aún no pides en Rappi Mall: mira estas ofertas.",
+  "vertical": "mall"
+}

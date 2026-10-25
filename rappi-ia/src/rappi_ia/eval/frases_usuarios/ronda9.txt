@@ -1,0 +1,38 @@
+# desde dentro de una vertical
+algo para picar|licores
+pañales|supermercado
+vino|farmacia
+remedio para la tos|supermercado
+pizza|supermercado
+helado|farmacia
+cerveza|restaurantes
+algo dulce|farmacia
+# entradas raras
+holaaaa
+QUIERO CERVEZA
+cervezaaaa
+123
+?
+https://www.rappi.cl
+asdfgh
+jajaja
+ok gracias
+👍
+# nombres de vertical mal escritos o mezclados
+algo de la farmasia
+en el super algo para el desayuno
+del supermercado unas papas fritas
+en la botilleria un pisco
+# precio con vertical y concepto
+en la farmacia algo bajo 5 lucas
+vino tinto entre 5 y 10 mil
+cerveza a menos de mil
+# texto largo
+hola mochi buenas noches mira te cuento que mañana es el cumpleaños de mi hijo de 7 años y quiero hacerle una fiesta en la casa con sus amigos del colegio, necesito cosas para la fiesta
+hola mochi buenas noches mira te cuento que mañana es el cumpleaños de mi hijo de 7 años y quiero hacerle una fiesta en la casa con sus amigos del colegio, necesito cosas para la fiesta
+# seguimientos que cambian de tema
+pizza
++ y para tomar?
++ y de postre?
+pañales
++ y toallitas?

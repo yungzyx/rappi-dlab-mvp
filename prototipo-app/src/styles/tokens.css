@@ -1,0 +1,74 @@
+/* Colores muestreados de las capturas de la app iOS del 26-09-2026 (no versionadas).
+   1 px CSS = 1 pt de iPhone (402 pt de ancho). */
+:root {
+  --ink: #161616;
+  --ink-2: #4b4b4b;
+  --ink-3: #767676; /* 4,5:1 sobre blanco (AA) */
+  --surface: #ffffff;
+  --surface-muted: #f4f4f4;
+  --chip: #edeff3;
+  --tile: #f7f8f8;
+  --line: #e9e9ec;
+
+  --rappi-red: #db492a;
+  --yellow: #f6dd52;
+  --orange-bolt: #f39a2b;
+
+  /* Acento de la propuesta (Mochi, foco de teclado, seguimiento): más claro que el rojo de marca muestreado */
+  --agent-orange: #f0532b;
+  --agent-gradient: linear-gradient(135deg, #ff7a45, var(--agent-orange));
+  --accent-soft: #fff1e8; /* chips naranja claros */
+  --accent-ink: #b8300d; /* 5,5:1 sobre --accent-soft */
+  --accent-text: #b3461f;
+  --accent-deep: #8f2c16;
+  --price-yellow: #fadc24; /* precio y descuento de los productos */
+  --green-add: #34c859; /* botón «+» y «Go to checkout» del carro: texto --ink (8,2:1), no blanco (2,2:1) */
+  --green-deep: #1f8a3b; /* texto verde y contador del carro (4,9:1 con blanco) */
+  --green-status: #34c759; /* verde del sistema: batería, «en línea», pasos listos */
+  --surface-soft: #f7f7f8; /* fondo de pantallas con tarjetas blancas */
+  --ink-strike: #747474; /* precio tachado */
+  --ink-muted: #626a75;
+  --line-soft: #ebedf0;
+  --control-border: #c9cdd3; /* borde de radios y botón de borrar */
+
+  --tile-restaurants: #fdf7f2;
+  --tile-turbo: #ecf9e3;
+  --label-restaurants: #8b2f24;
+  --label-turbo: #3e7b4b;
+  --banner-cream: #f5ead8;
+  --banner-peach: #fdf0de;
+
+  --turbo-green: #478d66;
+  --turbo-search: rgba(255, 255, 255, 0.4);
+  --fee-bg: #fdfbe5;
+  --fee-ink: #806f1f; /* 4,8:1 sobre --fee-bg (AA) */
+
+  /* Capas, de abajo hacia arriba (las menores de 10 son locales a cada pantalla) */
+  --z-header: 20; /* encabezados pegados y compacto de la Home */
+  --z-back-to-top: 21;
+  --z-header-tabs: 22;
+  --z-live-agent: 25; /* sobre la Home, bajo la barra inferior y el carrito */
+  --z-nav: 30;
+  --z-agent: 37; /* Mochi flotante: sobre el carrito, bajo el buscador */
+  --z-panel: 38; /* buscador con Mochi */
+  --z-cart: 39; /* sobre el panel: el carrito se ve y se abre desde ahí */
+  --z-status: 40;
+  --z-privacy: 45; /* aviso de la primera visita: sobre el buscador, el carrito y la barra de estado; bajo las hojas */
+  --z-sheet: 60;
+  --z-toast: 70; /* sobre las hojas: el aviso de «+ Add new address» sale dentro de una */
+  --z-demo-toggle: 100;
+
+  --gutter: 25px;
+  /* Alto de la barra de estado de iOS en las capturas; en un teléfono real la dibuja el sistema */
+  --status-zone: 54px;
+  --font: 'Figtree Variable', -apple-system, system-ui, sans-serif;
+  --ease-out: cubic-bezier(0.2, 0.8, 0.2, 1);
+  --duration-fast: 150ms;
+  --duration-normal: 320ms;
+
+  --shadow-search: 0 6px 18px rgba(0, 0, 0, 0.07);
+  --shadow-chip: 0 1px 6px rgba(0, 0, 0, 0.1);
+  --glass-bg: rgba(255, 255, 255, 0.72);
+  --glass-border: rgba(0, 0, 0, 0.08);
+  --glass-shadow: 0 8px 28px rgba(0, 0, 0, 0.12);
+}

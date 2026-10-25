@@ -1,0 +1,767 @@
+# Atributos de ítem (capa de perfiles, docs/diseno/2026-10-06-capa-perfiles-design.md §4.1).
+#
+# Cada atributo se detecta, en este orden de confianza (gana la primera fuente que responde):
+#   1. `rappi`: campos de `catalog_items.attributes`. `keys` lista los nombres posibles del campo; sin `values` el campo
+#      es una bandera (true = lo tiene; un `false` explícito BLOQUEA las frases); con `values`, el atributo se marca si
+#      el campo trae alguno de esos valores.
+#   2. `phrases`: frases (sin tildes, palabras enteras) en el nombre, la categoría y la descripción hasta las
+#      advertencias del prospecto. Si aparece alguna de `negations` («contiene gluten») el atributo se descarta.
+#   3. `derived = true`: se calcula por SQL (precio, descuento, marca propia), no tiene frases.
+# `applies_to`: catalog_item (productos), menu_item (platos) o both. `value_type`: flag.
+# Para agregar un atributo basta una fila aquí y `make layers`; la versión se copia a `rules_version`.
+
+version = "2026-10-06"
+
+# ─── dieta ──────────────────────────────────────────────────────────────────────────────────────────────────────────
+[[attribute]]
+id = "sin-gluten"
+name = "Sin gluten"
+family = "dieta"
+applies_to = "both"
+description = "Apto para celíacos: sin gluten declarado."
+rappi = [{ keys = ["gluten_free", "pps_gluten_free"] }]
+phrases = ["sin gluten", "libre de gluten", "gluten free", "sin tacc", "libre de tacc", "apto celiacos", "para celiacos", "no contiene gluten"]
+negations = ["contiene gluten", "con gluten", "trazas de gluten", "puede contener gluten"]
+
+[[attribute]]
+id = "sin-lactosa"
+name = "Sin lactosa"
+family = "dieta"
+applies_to = "both"
+description = "Sin lactosa o deslactosado."
+rappi = [{ keys = ["lactose_free"] }]
+phrases = ["sin lactosa", "libre de lactosa", "deslactosado", "deslactosada", "lactose free", "zero lactosa", "cero lactosa", "no contiene lactosa"]
+negations = ["contiene lactosa", "con lactosa", "trazas de leche"]
+
+[[attribute]]
+id = "sin-azucar"
+name = "Sin azúcar"
+family = "dieta"
+applies_to = "both"
+description = "Sin azúcar añadida: sin azúcar, zero, stevia o endulzado sin azúcar."
+rappi = [{ keys = ["sugar_free", "pps_sugar_free", "calorie_free"] }]
+phrases = ["sin azucar", "sin azucares", "libre de azucar", "cero azucar", "zero azucar", "0 azucar", "sugar free", "sin azucar anadida", "con stevia", "stevia", "sin endulzante", "no contiene azucar"]
+negations = ["contiene azucar", "con azucar anadida", "azucar light", "azucar con stevia"]
+
+[[attribute]]
+id = "vegano"
+name = "Vegano"
+family = "dieta"
+applies_to = "both"
+description = "Sin ingredientes de origen animal."
+rappi = [{ keys = ["vegan"] }]
+phrases = ["vegano", "vegana", "veganos", "veganas", "100 vegetal", "plant based", "a base de plantas", "not burger", "not milk", "notmilk", "veggimilk", "notco"]
+catalog_phrases = ["bebida vegetal", "bebida de almendras", "bebida de almendra", "bebida de avena", "bebida de aveia", "bebida de soya", "leche de almendras", "leche de almendra", "leche de avena", "leche de coco", "leche de soya", "seitan"]
+negations = ["no vegano", "no es vegano"]
+
+[[attribute]]
+id = "vegetariano"
+name = "Vegetariano"
+family = "dieta"
+applies_to = "both"
+description = "Sin carne (puede llevar huevo o lácteos). Todo lo vegano también lo es."
+rappi = [{ keys = ["vegetarian"] }]
+phrases = ["vegetariano", "vegetariana", "veggie", "sin carne"]
+negations = ["no vegetariano", "con carne"]
+
+[[attribute]]
+id = "pescetariano"
+name = "Pescetariano"
+family = "dieta"
+applies_to = "menu_item"
+description = "Plato de pescado o mariscos, sin carne."
+phrases = ["pescetariano", "pescetariana", "pescetarianos"]
+negations = ["con pollo", "con carne"]
+
+[[attribute]]
+id = "keto"
+name = "Keto"
+family = "dieta"
+applies_to = "both"
+description = "Bajo en carbohidratos / dieta cetogénica."
+rappi = [{ keys = ["is_keto"] }]
+phrases = ["keto", "cetogenico", "cetogenica", "low carb", "bajo en carbohidratos", "sin carbohidratos"]
+
+[[attribute]]
+id = "alto-proteina"
+name = "Alto en proteína"
+family = "dieta"
+applies_to = "both"
+description = "Alto contenido de proteína."
+rappi = [{ keys = ["high_protein"] }]
+phrases = ["alto en proteina", "alta en proteina", "high protein", "proteico", "proteica", "whey", "protein"]
+
+[[attribute]]
+id = "integral"
+name = "Integral"
+family = "dieta"
+applies_to = "both"
+description = "Harina o grano integral."
+phrases = ["integral", "integrales", "multigrano", "whole grain"]
+negations = ["no integral"]
+only_groups = ["alcohol", "bebidas", "snacks", "dulces", "despensa", "frescos", "comida"]
+use_description = false
+
+[[attribute]]
+id = "alto-fibra"
+name = "Alto en fibra"
+family = "dieta"
+applies_to = "both"
+description = "Alto contenido de fibra."
+rappi = [{ keys = ["high_fiber"] }]
+phrases = ["alto en fibra", "alta en fibra", "high fiber", "rico en fibra"]  # «con fibra» describía carnes y telas
+only_groups = ["alcohol", "bebidas", "snacks", "dulces", "despensa", "frescos", "comida", "bebe"]
+
+[[attribute]]
+id = "bajo-sodio"
+name = "Bajo en sodio"
+family = "dieta"
+applies_to = "both"
+description = "Sin sal o bajo en sodio."
+rappi = [{ keys = ["salt_free"] }]
+phrases = ["bajo en sodio", "baja en sodio", "sin sal", "sin sodio", "reducido en sodio", "low sodium", "sin sal anadida"]
+negations = ["con sal"]
+
+[[attribute]]
+id = "light"
+name = "Light"
+family = "dieta"
+applies_to = "both"
+description = "Light, bajo en grasa o en calorías."
+rappi = [{ keys = ["is_light"] }]
+phrases = ["light", "lite", "bajo en grasa", "baja en grasa", "descremado", "descremada", "0 grasa", "sin grasa", "bajo en calorias", "diet"]
+negations = ["no light"]
+use_description = false
+only_groups = ["alcohol", "bebidas", "snacks", "dulces", "despensa", "frescos", "comida", "mascotas"]
+
+[[attribute]]
+id = "organico"
+name = "Orgánico"
+family = "dieta"
+applies_to = "both"
+description = "Certificación orgánica o declarado orgánico."
+rappi = [{ keys = ["organic", "pps_organic"] }]
+phrases = ["organico", "organica", "organicos", "organicas", "organic"]
+negations = ["no organico"]
+use_description = false  # «ácidos orgánicos», «orégano orgánico»: la descripción nombra ingredientes
+only_groups = ["alcohol", "bebidas", "snacks", "dulces", "despensa", "frescos", "comida", "belleza", "salud", "mascotas", "bebe"]
+
+[[attribute]]
+id = "sin-cafeina"
+name = "Sin cafeína"
+family = "dieta"
+applies_to = "both"
+description = "Descafeinado o sin cafeína."
+rappi = [{ keys = ["caffeine_free"] }]
+phrases = ["sin cafeina", "descafeinado", "descafeinada", "decaf", "libre de cafeina", "caffeine free"]
+negations = ["con cafeina"]
+
+[[attribute]]
+id = "sin-alcohol"
+name = "Sin alcohol"
+family = "dieta"
+applies_to = "both"
+description = "Cerveza, vino o licor sin alcohol."
+rappi = [{ keys = ["is_zero_alcohol"] }]  # «alcohol_free_pharma» marca enjuagues y remedios, no bebidas
+phrases = ["sin alcohol", "cero alcohol", "0 alcohol", "alcohol free", "desalcoholizado", "desalcoholizada", "no alcoholico", "non alcoholic"]
+negations = ["con alcohol"]
+only_groups = ["alcohol", "bebidas"]
+use_description = false  # la descripción de una gaseosa dice «sin alcohol»; el nombre de una cerveza 0,0 también
+
+[[attribute]]
+id = "natural"
+name = "Natural"
+family = "dieta"
+applies_to = "both"
+description = "Sin preservantes ni colorantes artificiales."
+rappi = [{ keys = ["preservative_free", "pps_natural_ingredients"] }]
+phrases = ["sin preservantes", "sin colorantes", "100 natural", "ingredientes naturales", "libre de preservantes", "sin aditivos", "all natural"]
+negations = ["contiene preservantes", "con preservantes", "con colorantes"]
+
+[[attribute]]
+id = "kosher"
+name = "Kosher"
+family = "dieta"
+applies_to = "catalog_item"
+description = "Certificado kosher."
+rappi = [{ keys = ["kosher", "pps_kosher"] }]
+phrases = ["kosher"]
+
+[[attribute]]
+id = "halal"
+name = "Halal"
+family = "dieta"
+applies_to = "both"
+description = "Certificado halal."
+phrases = ["halal"]
+
+# ─── alérgenos ──────────────────────────────────────────────────────────────────────────────────────────────────────
+[[attribute]]
+id = "sin-mani"
+name = "Sin maní"
+family = "alergenos"
+applies_to = "both"
+description = "Declarado libre de maní."
+phrases = ["sin mani", "libre de mani", "peanut free", "sin cacahuate"]
+negations = ["contiene mani", "trazas de mani", "puede contener mani", "con mani"]
+
+[[attribute]]
+id = "sin-frutos-secos"
+name = "Sin frutos secos"
+family = "alergenos"
+applies_to = "both"
+description = "Declarado libre de frutos secos."
+phrases = ["sin frutos secos", "libre de frutos secos", "nut free", "sin nueces", "libre de nueces"]
+negations = ["contiene frutos secos", "trazas de frutos secos", "puede contener frutos secos", "contiene nueces"]
+
+[[attribute]]
+id = "sin-huevo"
+name = "Sin huevo"
+family = "alergenos"
+applies_to = "both"
+description = "Declarado libre de huevo."
+phrases = ["sin huevo", "libre de huevo", "egg free", "sin huevos"]
+negations = ["contiene huevo", "trazas de huevo", "con huevo"]
+
+[[attribute]]
+id = "sin-soya"
+name = "Sin soya"
+family = "alergenos"
+applies_to = "both"
+description = "Declarado libre de soya."
+phrases = ["sin soya", "libre de soya", "soy free", "sin soja"]
+negations = ["contiene soya", "trazas de soya", "contiene soja"]
+
+[[attribute]]
+id = "sin-mariscos"
+name = "Sin mariscos"
+family = "alergenos"
+applies_to = "both"
+description = "Declarado libre de mariscos."
+phrases = ["sin mariscos", "libre de mariscos", "sin crustaceos"]
+negations = ["contiene mariscos", "trazas de mariscos", "contiene crustaceos"]
+
+# ─── público ────────────────────────────────────────────────────────────────────────────────────────────────────────
+[[attribute]]
+id = "bebe"
+name = "Para bebé"
+family = "publico"
+applies_to = "both"
+description = "Producto para bebés (0 a 3 años)."
+rappi = [{ keys = ["baby_stage", "baby_stage_food", "formula_stage", "baby_food_type"], values = [] }, { keys = ["bb_gender"], values = ["Unisex", "Niña", "Niño"] }]
+phrases = ["bebe", "bebes", "recien nacido", "lactante", "formula infantil", "panal", "panales", "mamadera", "chupete", "colado", "papilla"]
+negations = ["adulto", "incontinencia", "adulto mayor", "perro", "gato", "mascota", "bebida", "bebible", "baby back", "ribs", "munecas", "muneca", "doll", "baby back", "ribs"]
+
+[[attribute]]
+id = "ninos"
+name = "Para niños"
+family = "publico"
+applies_to = "both"
+description = "Producto o plato pensado para niños."
+rappi = [{ keys = ["life_stage_human"], values = ["Niños", "Ninos", "De 1 a 10 Años de Edad", "Niño", "Niña"] }, { keys = ["kid_stage", "pps_kid_stage"], values = [] }]
+phrases = ["ninos", "nino", "ninas", "nina", "infantil", "kids", "kid", "cajita feliz", "menu infantil", "happy meal"]
+negations = ["adulto"]
+
+[[attribute]]
+id = "adolescentes"
+name = "Para adolescentes"
+family = "publico"
+applies_to = "catalog_item"
+description = "Producto pensado para adolescentes."
+phrases = ["adolescente", "adolescentes", "teen", "juvenil"]
+
+[[attribute]]
+id = "adulto-mayor"
+name = "Para adulto mayor"
+family = "publico"
+applies_to = "catalog_item"
+description = "Producto pensado para adultos mayores (incluye incontinencia)."
+rappi = [{ keys = ["life_stage_human"], values = ["Adulto Mayor"] }]
+phrases = ["adulto mayor", "tercera edad", "incontinencia", "panal adulto", "panales adulto", "adultos mayores"]
+negations = ["perro", "gato", "mascota"]
+
+[[attribute]]
+id = "embarazo-lactancia"
+name = "Embarazo y lactancia"
+family = "publico"
+applies_to = "catalog_item"
+description = "Producto para embarazo, lactancia o maternidad."
+phrases = ["embarazo", "embarazada", "lactancia", "prenatal", "maternidad", "gestante", "post parto"]
+negations = ["dia de la madre"]
+
+[[attribute]]
+id = "hombre"
+name = "Para hombre"
+family = "publico"
+applies_to = "catalog_item"
+description = "Producto declarado para hombre."
+rappi = [{ keys = ["gender", "pps_gender"], values = ["Masculino", "Hombre"] }]
+phrases = ["hombre", "hombres", "masculino", "caballero", "for men", "pour homme", "men"]
+negations = ["unisex", "mujer", "hombre y mujer", "aji no men"]  # «Aji-no-men» es una sopa
+
+[[attribute]]
+id = "mujer"
+name = "Para mujer"
+family = "publico"
+applies_to = "catalog_item"
+description = "Producto declarado para mujer."
+rappi = [{ keys = ["gender", "pps_gender"], values = ["Femenino", "Mujer"] }]
+phrases = ["mujer", "mujeres", "femenino", "dama", "women", "woman", "pour femme"]
+negations = ["unisex", "hombre y mujer"]
+
+[[attribute]]
+id = "perro"
+name = "Para perro"
+family = "publico"
+applies_to = "catalog_item"
+description = "Producto para perros."
+rappi = [{ keys = ["type_of_pet"], values = ["Perro", "Perro y Gato"] }]
+phrases = ["perro", "perros", "canino", "dog", "dogs", "cachorro"]
+negations = ["perro caliente", "completo", "hot dog", "gato vino"]
+only_groups = ["mascotas"]
+
+[[attribute]]
+id = "gato"
+name = "Para gato"
+family = "publico"
+applies_to = "catalog_item"
+description = "Producto para gatos."
+rappi = [{ keys = ["type_of_pet"], values = ["Gato", "Perro y Gato"] }]
+phrases = ["gato", "gatos", "felino", "cat", "cats", "kitten"]
+negations = ["vino", "cerveza", "tinto", "blanco", "queso", "cabra", "liebre"]
+only_groups = ["mascotas"]
+
+[[attribute]]
+id = "otras-mascotas"
+name = "Para otras mascotas"
+family = "publico"
+applies_to = "catalog_item"
+description = "Productos para peces, aves, roedores, conejos u otras mascotas."
+rappi = [{ keys = ["type_of_pet"], values = ["Otros", "Otras Mascotas"] }]
+phrases = ["pez", "peces", "acuario", "pajaro", "aves", "hamster", "conejo", "roedor", "tortuga"]
+negations = ["perro", "gato"]
+only_groups = ["mascotas"]
+
+[[attribute]]
+id = "cachorro"
+name = "Cachorro o gatito"
+family = "publico"
+applies_to = "catalog_item"
+description = "Alimento o producto para cachorros y gatitos."
+rappi = [{ keys = ["dog_age", "cat_age", "pet_age", "lifestage_pets"], values = ["Cachorro", "Kitten", "Cachorros", "Cachorros y Perros Adultos"] }]
+phrases = ["cachorro", "cachorros", "puppy", "kitten", "gatito"]
+only_groups = ["mascotas"]
+
+[[attribute]]
+id = "mascota-senior"
+name = "Mascota senior"
+family = "publico"
+applies_to = "catalog_item"
+description = "Alimento o producto para perros y gatos mayores."
+rappi = [{ keys = ["dog_age", "cat_age", "pet_age", "lifestage_pets"], values = ["Senior"] }]
+phrases = ["perro senior", "gato senior", "dog senior", "cat senior", "senior dog", "senior cat"]
+
+# ─── formato ────────────────────────────────────────────────────────────────────────────────────────────────────────
+only_groups = ["mascotas"]
+
+[[attribute]]
+id = "familiar"
+name = "Familiar"
+family = "formato"
+applies_to = "both"
+description = "Tamaño familiar o para compartir."
+phrases = ["familiar", "tamano familiar", "formato familiar", "para compartir"]
+
+[[attribute]]
+id = "individual"
+name = "Individual"
+family = "formato"
+applies_to = "both"
+description = "Porción o tamaño individual."
+phrases = ["individual", "porcion individual", "unipersonal"]
+
+[[attribute]]
+id = "pack"
+name = "Pack"
+family = "formato"
+applies_to = "catalog_item"
+description = "Venta en pack (6, 12, 24 unidades)."
+phrases = ["pack", "tripack", "sixpack", "six pack", "caja de", "display"]
+
+[[attribute]]
+id = "granel"
+name = "A granel"
+family = "formato"
+applies_to = "catalog_item"
+description = "Venta a granel."
+phrases = ["granel", "a granel", "al peso"]
+
+[[attribute]]
+id = "congelado"
+name = "Congelado"
+family = "formato"
+applies_to = "both"
+description = "Producto congelado."
+rappi = [{ keys = ["is_frozen"] }]
+phrases = ["congelado", "congelada", "congelados", "congeladas", "ultracongelado"]
+
+[[attribute]]
+id = "refrigerado"
+name = "Refrigerado"
+family = "formato"
+applies_to = "catalog_item"
+description = "Producto refrigerado."
+phrases = ["refrigerado", "refrigerada", "fresco refrigerado"]
+
+[[attribute]]
+id = "listo-para-comer"
+name = "Listo para comer"
+family = "formato"
+applies_to = "both"
+description = "Listo para consumir, sin preparación."
+phrases = ["listo para comer", "listo para consumir", "ready to eat", "precocido", "precocida", "ready to drink", "listo para beber", "listo para tomar"]
+
+[[attribute]]
+id = "para-preparar"
+name = "Para preparar"
+family = "formato"
+applies_to = "catalog_item"
+description = "Requiere preparación: mezclas, polvos, deshidratados."
+phrases = ["para preparar", "polvo para preparar", "mezcla para", "deshidratado", "instantaneo para preparar", "preparado en polvo", "premezcla"]
+
+[[attribute]]
+id = "recargable"
+name = "Recargable"
+family = "formato"
+applies_to = "catalog_item"
+description = "Recarga, repuesto o refill."
+phrases = ["recarga", "recargable", "refill", "repuesto", "doypack"]
+
+[[attribute]]
+id = "desechable"
+name = "Desechable"
+family = "formato"
+applies_to = "catalog_item"
+description = "Desechable o de un solo uso."
+phrases = ["desechable", "desechables", "descartable", "de un solo uso", "disposable"]
+
+[[attribute]]
+id = "lata"
+name = "En lata"
+family = "formato"
+applies_to = "catalog_item"
+description = "Envase de lata."
+phrases = ["lata", "latas", "can"]
+negations = ["lata de conserva", "atun en lata", "conserva"]
+
+[[attribute]]
+id = "vidrio"
+name = "En vidrio"
+family = "formato"
+applies_to = "catalog_item"
+description = "Envase de vidrio."
+phrases = ["botella de vidrio", "envase de vidrio", "frasco de vidrio", "botellin"]
+
+[[attribute]]
+id = "retornable"
+name = "Retornable"
+family = "formato"
+applies_to = "catalog_item"
+description = "Envase retornable."
+phrases = ["retornable", "envase retornable", "botella retornable", "con envase"]
+negations = ["no retornable", "sin envase"]
+
+[[attribute]]
+id = "tamano-viaje"
+name = "Tamaño viaje"
+family = "formato"
+applies_to = "catalog_item"
+description = "Formato de viaje o muestra."
+phrases = ["tamano viaje", "travel size", "formato viaje", "mini size"]
+
+[[attribute]]
+id = "en-polvo"
+name = "En polvo"
+family = "formato"
+applies_to = "catalog_item"
+description = "Presentación en polvo."
+phrases = ["en polvo", "powder"]
+
+[[attribute]]
+id = "capsulas"
+name = "En cápsulas"
+family = "formato"
+applies_to = "catalog_item"
+description = "Presentación en cápsulas (café, suplementos)."
+phrases = ["capsula", "capsulas", "capsule", "capsules", "nespresso", "dolce gusto"]
+
+[[attribute]]
+id = "instantaneo"
+name = "Instantáneo"
+family = "formato"
+applies_to = "catalog_item"
+description = "Preparación instantánea."
+phrases = ["instantaneo", "instantanea", "instantaneos", "instant"]
+only_groups = ["alcohol", "bebidas", "snacks", "dulces", "despensa", "frescos", "comida", "bebe"]
+
+# ─── precio y calidad ───────────────────────────────────────────────────────────────────────────────────────────────
+[[attribute]]
+id = "premium"
+name = "Premium"
+family = "precio"
+applies_to = "both"
+description = "Línea premium, gourmet o de autor."
+phrases = ["premium", "gourmet", "reserva", "gran reserva", "edicion limitada", "de autor", "signature"]
+
+[[attribute]]
+id = "marca-propia"
+name = "Marca propia"
+family = "precio"
+applies_to = "catalog_item"
+description = "Marca de la propia tienda (Líder, Great Value, Nuestra Cocina…). Se calcula con las marcas."
+derived = true
+
+[[attribute]]
+id = "economico"
+name = "Económico"
+family = "precio"
+applies_to = "catalog_item"
+description = "Entre el 25 % más barato de su concepto en su vertical. Se calcula con los precios."
+derived = true
+
+[[attribute]]
+id = "con-descuento"
+name = "Con descuento"
+family = "precio"
+applies_to = "catalog_item"
+description = "Precio actual menor al precio normal. Se calcula con los precios."
+derived = true
+
+# ─── origen ─────────────────────────────────────────────────────────────────────────────────────────────────────────
+[[attribute]]
+id = "chileno"
+name = "Chileno"
+family = "origen"
+applies_to = "both"
+description = "Producto o plato de origen chileno."
+rappi = [{ keys = ["origin_wine", "beer_origin", "origin_whisky", "vodka_origin", "origin_gin", "coffee_origin", "origin", "pps_origin"], values = ["Chile", "Chileno", "Nacional"] }]
+phrases = ["chileno", "chilena", "de chile", "hecho en chile", "producto de chile", "valle central", "denominacion de origen chile"]
+
+[[attribute]]
+id = "importado"
+name = "Importado"
+family = "origen"
+applies_to = "catalog_item"
+description = "Producto importado."
+phrases = ["importado", "importada", "imported", "producto importado"]
+
+[[attribute]]
+id = "artesanal"
+name = "Artesanal"
+family = "origen"
+applies_to = "both"
+description = "Elaboración artesanal."
+rappi = [{ keys = ["is_crafted_beer"] }]
+phrases = ["artesanal", "artesanales", "craft", "hecho a mano"]
+negations = ["no artesanal", "industrial"]
+
+[[attribute]]
+id = "casero"
+name = "Casero"
+family = "origen"
+applies_to = "menu_item"
+description = "Plato casero o de la casa."
+phrases = ["casero", "casera", "hecho en casa", "estilo casero", "receta casera"]
+
+# ─── sustentable ────────────────────────────────────────────────────────────────────────────────────────────────────
+[[attribute]]
+id = "biodegradable"
+name = "Biodegradable"
+family = "sustentable"
+applies_to = "catalog_item"
+description = "Biodegradable o compostable."
+rappi = [{ keys = ["biodegradable"] }]
+phrases = ["biodegradable", "biodegradables", "compostable"]
+
+[[attribute]]
+id = "reciclable"
+name = "Reciclable"
+family = "sustentable"
+applies_to = "catalog_item"
+description = "Material reciclable o reciclado."
+phrases = ["reciclable", "reciclado", "reciclada", "material reciclado"]
+
+[[attribute]]
+id = "cruelty-free"
+name = "Cruelty free"
+family = "sustentable"
+applies_to = "catalog_item"
+description = "No probado en animales."
+rappi = [{ keys = ["cruelty_free", "pps_cruelty_free"] }]
+phrases = ["cruelty free", "no probado en animales", "libre de crueldad", "sin crueldad animal"]
+
+[[attribute]]
+id = "sin-parabenos"
+name = "Sin parabenos"
+family = "sustentable"
+applies_to = "catalog_item"
+description = "Cosmético sin parabenos."
+rappi = [{ keys = ["parabens_free", "pps_parabens_free"] }]
+phrases = ["sin parabenos", "libre de parabenos", "paraben free"]
+negations = ["contiene parabenos"]
+
+[[attribute]]
+id = "eco"
+name = "Eco"
+family = "sustentable"
+applies_to = "catalog_item"
+description = "Producto ecológico o sustentable."
+phrases = ["eco friendly", "ecofriendly", "sustentable", "amigable con el medio ambiente"]
+
+# ─── ocasión ────────────────────────────────────────────────────────────────────────────────────────────────────────
+[[attribute]]
+id = "para-regalo"
+name = "Para regalo"
+family = "ocasion"
+applies_to = "catalog_item"
+description = "Pensado para regalar: cajas de regalo, sets, ancheta."
+phrases = ["para regalo", "caja de regalo", "set de regalo", "pack regalo", "estuche de regalo", "ancheta"]
+
+[[attribute]]
+id = "navidad"
+name = "Navidad"
+family = "ocasion"
+applies_to = "both"
+description = "Artículo o producto de temporada navideña."
+phrases = ["navidad", "navideno", "navidena", "pascuero", "viejito pascuero", "pan de pascua", "cola de mono", "arbol de navidad"]
+
+[[attribute]]
+id = "fiestas-patrias"
+name = "Fiestas Patrias"
+family = "ocasion"
+applies_to = "both"
+description = "Artículo o producto de Fiestas Patrias."
+phrases = ["fiestas patrias", "dieciocho", "chilenidad", "terremoto", "ramada", "volantin", "bandera de chile"]
+
+[[attribute]]
+id = "halloween"
+name = "Halloween"
+family = "ocasion"
+applies_to = "catalog_item"
+description = "Artículo de Halloween."
+phrases = ["halloween", "dulce o truco", "calabaza decorativa", "disfraz de bruja"]
+
+[[attribute]]
+id = "san-valentin"
+name = "San Valentín"
+family = "ocasion"
+applies_to = "both"
+description = "Artículo de San Valentín."
+phrases = ["san valentin", "dia de los enamorados"]  # «Camarón Enamorado» es el nombre del plato
+
+[[attribute]]
+id = "cumpleanos"
+name = "Cumpleaños"
+family = "ocasion"
+applies_to = "catalog_item"
+description = "Artículo de cumpleaños y fiestas infantiles."
+phrases = ["cumpleanos", "pinata", "torta de cumpleanos", "velas de cumpleanos", "fiesta infantil", "globos de cumpleanos"]
+
+# ─── platos ─────────────────────────────────────────────────────────────────────────────────────────────────────────
+[[attribute]]
+id = "picante"
+name = "Picante"
+family = "platos"
+applies_to = "both"
+description = "Plato o producto picante."
+phrases = ["picante", "picantes", "spicy", "ajicito", "con aji", "merken", "habanero", "jalapeno", "sriracha"]
+negations = ["no picante", "sin picante", "hot dog", "hotdog"]
+
+[[attribute]]
+id = "combo"
+name = "Combo o promo"
+family = "platos"
+applies_to = "menu_item"
+description = "Combo, promoción o menú armado."
+phrases = ["combo", "promo", "promocion", "menu del dia", "2x1"]
+
+[[attribute]]
+id = "para-compartir"
+name = "Para compartir"
+family = "platos"
+applies_to = "menu_item"
+description = "Pensado para dos o más personas."
+phrases = ["para compartir", "para 2", "para 3", "para 4", "para 5", "para 6", "familiar", "picada", "2 personas", "3 personas", "4 personas"]
+
+[[attribute]]
+id = "saludable"
+name = "Saludable"
+family = "platos"
+applies_to = "both"
+description = "Plato o producto declarado saludable o liviano."
+phrases = ["saludable", "healthy", "liviano", "liviana", "fitness", "detox"]
+only_groups = ["alcohol", "bebidas", "snacks", "dulces", "despensa", "frescos", "comida", "bebe"]
+
+[[attribute]]
+id = "frito"
+name = "Frito"
+family = "platos"
+applies_to = "menu_item"
+description = "Plato frito."
+phrases = ["frito", "frita", "fritos", "fritas", "crispy", "apanado", "apanada", "empanizado", "tempura", "milanesa"]
+
+[[attribute]]
+id = "parrilla"
+name = "A la parrilla"
+family = "platos"
+applies_to = "menu_item"
+description = "Plato a la parrilla o a las brasas."
+phrases = ["a la parrilla", "parrilla", "parrillada", "a las brasas", "grill", "grillado", "asado de tira", "asado a la parrilla"]  # «bbq» es una salsa y «asado» también es a la olla
+
+[[attribute]]
+id = "horno"
+name = "Al horno"
+family = "platos"
+applies_to = "menu_item"
+description = "Plato horneado."
+phrases = ["al horno", "horneado", "horneada", "a la piedra", "gratinado", "gratinada", "napolitana"]
+
+[[attribute]]
+id = "crudo"
+name = "Crudo"
+family = "platos"
+applies_to = "menu_item"
+description = "Plato crudo: sushi, ceviche, tartar."
+phrases = ["crudo", "cruda", "ceviche", "tartar", "sashimi", "carpaccio", "poke", "nigiri", "tiradito"]
+
+[[attribute]]
+id = "con-acompanamiento"
+name = "Con acompañamiento"
+family = "platos"
+applies_to = "menu_item"
+description = "Incluye papas, ensalada u otro acompañamiento."
+phrases = ["con papas", "con ensalada", "con arroz", "con acompanamiento", "con guarnicion", "mas papas", "y papas"]
+
+[[attribute]]
+id = "bebida-incluida"
+name = "Bebida incluida"
+family = "platos"
+applies_to = "menu_item"
+description = "El combo o menú incluye bebida."
+phrases = ["con bebida", "mas bebida", "bebida incluida", "incluye bebida", "con gaseosa", "con jugo", "con coca cola", "con refresco", "y bebida"]
+
+[[attribute]]
+id = "desayuno"
+name = "Desayuno"
+family = "platos"
+applies_to = "menu_item"
+description = "Plato o combo de desayuno o brunch."
+phrases = ["desayuno", "brunch", "tostadas", "huevos revueltos", "panqueques", "croissant", "tostada", "breakfast"]
+
+[[attribute]]
+id = "postre-incluido"
+name = "Postre incluido"
+family = "platos"
+applies_to = "menu_item"
+description = "El combo o menú incluye postre."
+phrases = ["con postre", "mas postre", "postre incluido", "incluye postre", "y postre"]

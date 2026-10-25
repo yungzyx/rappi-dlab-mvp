@@ -1,0 +1,48 @@
+{
+  "fixed": [
+    "restaurantes",
+    "turbo"
+  ],
+  "order": [
+    {
+      "id": "farmacia",
+      "reason": {
+        "basis": [
+          {
+            "id": "farmacia",
+            "kind": "afinidad_vertical",
+            "source": "eventos"
+          }
+        ],
+        "text": "Porque pides seguido en farmacia."
+      },
+      "score": 1.0
+    },
+    {
+      "id": "supermercado",
+      "reason": null,
+      "score": 0.0
+    },
+    {
+      "id": "mall",
+      "reason": null,
+      "score": 0.0
+    },
+    {
+      "id": "licores",
+      "reason": null,
+      "score": 0.0
+    },
+    {
+      "id": "conveniencia",
+      "reason": null,
+      "score": 0.0
+    },
+    {
+      "id": "chocolateria",
+      "reason": null,
+      "score": 0.0
+    }
+  ],
+  "personalized": true
+}

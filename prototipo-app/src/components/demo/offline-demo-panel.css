@@ -1,0 +1,86 @@
+/* «Panel de la demo» de «Prototipo MVP.html»: fuera del teléfono, bajo el interruptor de modo */
+.offline-demo {
+  position: fixed;
+  top: 72px;
+  left: 20px;
+  z-index: var(--z-demo-toggle);
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+  max-width: min(340px, calc(100vw - 40px));
+}
+
+.offline-demo-toggle {
+  height: 38px;
+  padding: 0 16px;
+  border-radius: 99px;
+  background: var(--surface);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.offline-demo-panel {
+  max-height: calc(100vh - 140px);
+  overflow-y: auto;
+  padding: 14px 16px 16px;
+  border-radius: 18px;
+  background: var(--surface);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.14);
+}
+
+.offline-demo-panel h2 {
+  margin-top: 14px;
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.offline-demo-readout {
+  padding: 8px 10px;
+  border-radius: 10px;
+  background: var(--accent-soft);
+  color: var(--accent-ink);
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.35;
+}
+
+.offline-demo-help {
+  margin-top: 2px;
+  font-size: 12px;
+  color: var(--ink-3);
+}
+
+.offline-demo-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 8px;
+}
+
+.offline-demo-buttons button {
+  padding: 7px 11px;
+  border: 1.5px solid var(--line);
+  border-radius: 99px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.offline-demo-buttons button:hover {
+  border-color: var(--ink);
+}
+
+.offline-demo-buttons button.is-danger {
+  color: var(--accent-deep);
+}
+
+/* En el teléfono: abajo a la izquierda, para no tapar la barra de estado */
+@media (max-width: 500px) {
+  .offline-demo {
+    top: auto;
+    bottom: 12px;
+    left: 12px;
+    flex-direction: column-reverse;
+  }
+}

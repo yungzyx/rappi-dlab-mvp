@@ -1,0 +1,19 @@
+{
+  "data": {
+    "busquedas": 1,
+    "personas": 1,
+    "por_vertical": [
+      {
+        "concepto": null,
+        "sin_resultado": 1,
+        "vertical": "supermercado"
+      }
+    ],
+    "sin_resultado": 1
+  },
+  "guardado": {
+    "fecha": "2026-10-11",
+    "origen": "make contract · recorrido corto sobre el catálogo de prueba inventado"
+  },
+  "source": "prototype"
+}

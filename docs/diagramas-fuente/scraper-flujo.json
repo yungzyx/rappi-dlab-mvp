@@ -1,0 +1,258 @@
+{
+  "schema_version": 2,
+  "diagram_type": "workflow",
+  "meta": {
+    "title": "Flujo del scraper (rappi refresh)",
+    "quality_profile": "showcase",
+    "views": [
+      {
+        "id": "descubrir",
+        "label": "Descubrir",
+        "focus": [
+          "refresh",
+          "fuentes",
+          "discover",
+          "cola"
+        ],
+        "note": "Sin corrida abierta: lee listados por vertical (14 ciudades) y sitemaps de restaurantes; crea un job por marca."
+      },
+      {
+        "id": "descargar",
+        "label": "Descargar",
+        "focus": [
+          "cola",
+          "paginas",
+          "scrape",
+          "reintento",
+          "catalogo"
+        ],
+        "note": "Cada job prueba hasta 3 sucursales, recorre pasillos o menú y guarda con upserts; los fallidos se reintentan una vez."
+      },
+      {
+        "id": "cerrar",
+        "label": "Cerrar la corrida",
+        "focus": [
+          "catalogo",
+          "busqueda",
+          "reporte"
+        ],
+        "note": "Arma los documentos de búsqueda por vertical, deja el reporte de calidad y respalda la base."
+      }
+    ],
+    "legend": {
+      "entries": {
+        "frontend": {
+          "label": "interfaz"
+        },
+        "backend": {
+          "label": "lógica / servicio"
+        },
+        "database": {
+          "label": "datos"
+        },
+        "security": {
+          "label": "control / reintento"
+        },
+        "messagebus": {
+          "label": "cola"
+        },
+        "external": {
+          "label": "sistema externo"
+        },
+        "cloud": {
+          "label": "API / nube"
+        }
+      }
+    }
+  },
+  "lanes": [
+    {
+      "id": "rappi",
+      "label": "rappi.cl (páginas públicas)"
+    },
+    {
+      "id": "descubrimiento",
+      "label": "Descubrimiento"
+    },
+    {
+      "id": "descarga",
+      "label": "Descarga"
+    },
+    {
+      "id": "postgres",
+      "label": "Postgres + pgvector"
+    }
+  ],
+  "mainPath": [
+    "refresh",
+    "discover",
+    "cola",
+    "scrape",
+    "catalogo",
+    "busqueda",
+    "reporte"
+  ],
+  "nodes": [
+    {
+      "id": "fuentes",
+      "lane": "rappi",
+      "col": 1,
+      "type": "external",
+      "label": "Listados y sitemaps",
+      "sublabel": "verticales · cadenas",
+      "width": 150
+    },
+    {
+      "id": "paginas",
+      "lane": "rappi",
+      "col": 3,
+      "type": "external",
+      "label": "Páginas de tienda",
+      "sublabel": "JSON __NEXT_DATA__",
+      "width": 150
+    },
+    {
+      "id": "refresh",
+      "lane": "descubrimiento",
+      "col": 0,
+      "type": "frontend",
+      "label": "rappi refresh",
+      "sublabel": "log · caffeinate",
+      "width": 150
+    },
+    {
+      "id": "discover",
+      "lane": "descubrimiento",
+      "col": 1,
+      "type": "backend",
+      "label": "discover",
+      "sublabel": "1 job por marca",
+      "width": 150
+    },
+    {
+      "id": "cola",
+      "lane": "descubrimiento",
+      "col": 2,
+      "type": "messagebus",
+      "label": "Cola scrape_jobs",
+      "sublabel": "reanudable",
+      "width": 150
+    },
+    {
+      "id": "scrape",
+      "lane": "descarga",
+      "col": 3,
+      "type": "backend",
+      "label": "Descargar tienda",
+      "sublabel": "pasillos · menú",
+      "tag": "hasta 3 sucursales",
+      "width": 150
+    },
+    {
+      "id": "reintento",
+      "lane": "descarga",
+      "col": 4,
+      "type": "security",
+      "label": "Reintento",
+      "sublabel": "vuelve a la cola, 1 vez",
+      "width": 150
+    },
+    {
+      "id": "catalogo",
+      "lane": "postgres",
+      "col": 3,
+      "type": "database",
+      "label": "Catálogo + precios",
+      "sublabel": "upsert + snapshots",
+      "width": 150
+    },
+    {
+      "id": "busqueda",
+      "lane": "postgres",
+      "col": 4,
+      "type": "database",
+      "label": "build-search",
+      "sublabel": "docs por vertical",
+      "width": 150
+    },
+    {
+      "id": "reporte",
+      "lane": "postgres",
+      "col": 5,
+      "type": "database",
+      "label": "Reporte + respaldo",
+      "sublabel": "validaciones · pg_dump",
+      "width": 150
+    }
+  ],
+  "edges": [
+    {
+      "id": "refresh-discover",
+      "from": "refresh",
+      "to": "discover",
+      "label": "corrida nueva",
+      "variant": "emphasis"
+    },
+    {
+      "id": "fuentes-discover",
+      "from": "fuentes",
+      "to": "discover",
+      "label": "tiendas"
+    },
+    {
+      "id": "discover-cola",
+      "from": "discover",
+      "to": "cola",
+      "label": "jobs",
+      "variant": "emphasis"
+    },
+    {
+      "id": "cola-scrape",
+      "from": "cola",
+      "to": "scrape",
+      "label": "pendientes",
+      "variant": "emphasis",
+      "fromSide": "bottom",
+      "toSide": "left"
+    },
+    {
+      "id": "paginas-scrape",
+      "from": "paginas",
+      "to": "scrape",
+      "label": "HTML",
+      "fromSide": "bottom",
+      "toSide": "top"
+    },
+    {
+      "id": "scrape-catalogo",
+      "from": "scrape",
+      "to": "catalogo",
+      "label": "upsert",
+      "variant": "emphasis",
+      "fromSide": "bottom",
+      "toSide": "top"
+    },
+    {
+      "id": "scrape-reintento",
+      "from": "scrape",
+      "to": "reintento",
+      "label": "falló",
+      "variant": "security",
+      "role": "error",
+      "fromSide": "right",
+      "toSide": "left"
+    },
+    {
+      "id": "catalogo-busqueda",
+      "from": "catalogo",
+      "to": "busqueda",
+      "variant": "emphasis"
+    },
+    {
+      "id": "busqueda-reporte",
+      "from": "busqueda",
+      "to": "reporte",
+      "variant": "emphasis"
+    }
+  ]
+}

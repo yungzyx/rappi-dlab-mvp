@@ -1,0 +1,15 @@
+{
+  "data": {
+    "califican": 0,
+    "dia": "2026-10-02",
+    "personas": 16,
+    "por_concepto": 0,
+    "por_vertical": 0,
+    "recompra": 0
+  },
+  "guardado": {
+    "fecha": "2026-10-18",
+    "origen": "make contract · simulación chica con semilla fija (40 personas, 8 semanas)"
+  },
+  "source": "synthetic"
+}

@@ -1,0 +1,104 @@
+{
+  "data": {
+    "fino": [],
+    "nota": "uso del MVP, pocas personas: no es evidencia",
+    "propio": [],
+    "rappi": {
+      "filas": [
+        {
+          "combo": "rest",
+          "gasto_por_usuario": 42.0,
+          "pct_pedidos": 39.8,
+          "pct_usuarios": 62.6,
+          "pedidos_por_usuario": 1.9,
+          "retencion_m1": 0.47,
+          "usuarios": 739000
+        },
+        {
+          "combo": "turbo",
+          "gasto_por_usuario": 35.0,
+          "pct_pedidos": 3.9,
+          "pct_usuarios": 6.8,
+          "pedidos_por_usuario": 1.7,
+          "retencion_m1": 0.5,
+          "usuarios": 80000
+        },
+        {
+          "combo": "rest+turbo",
+          "gasto_por_usuario": 123.0,
+          "pct_pedidos": 12.2,
+          "pct_usuarios": 6.6,
+          "pedidos_por_usuario": 5.5,
+          "retencion_m1": 0.82,
+          "usuarios": 78000
+        },
+        {
+          "combo": "retail",
+          "gasto_por_usuario": 34.0,
+          "pct_pedidos": 2.5,
+          "pct_usuarios": 5.6,
+          "pedidos_por_usuario": 1.4,
+          "retencion_m1": 0.41,
+          "usuarios": 66000
+        },
+        {
+          "combo": "rest+retail",
+          "gasto_por_usuario": 116.0,
+          "pct_pedidos": 8.4,
+          "pct_usuarios": 5.4,
+          "pedidos_por_usuario": 4.7,
+          "retencion_m1": 0.76,
+          "usuarios": 64000
+        },
+        {
+          "combo": "rest+turbo+retail",
+          "gasto_por_usuario": 257.0,
+          "pct_pedidos": 16.4,
+          "pct_usuarios": 4.7,
+          "pedidos_por_usuario": 10.5,
+          "retencion_m1": 0.93,
+          "usuarios": 56000
+        },
+        {
+          "combo": "turbo+retail",
+          "gasto_por_usuario": 108.0,
+          "pct_pedidos": 2.6,
+          "pct_usuarios": 1.7,
+          "pedidos_por_usuario": 4.6,
+          "retencion_m1": 0.8,
+          "usuarios": 20000
+        },
+        {
+          "combo": "favor",
+          "gasto_por_usuario": 11.0,
+          "pct_pedidos": 1.0,
+          "pct_usuarios": 1.5,
+          "pedidos_por_usuario": 2.0,
+          "retencion_m1": 0.44,
+          "usuarios": 18000
+        }
+      ],
+      "nota": "Dato compartido por el equipo de Rappi: cohortes de enero a junio de 2026, Chile, agrupación gruesa (MX crosswalk). Es una correlación, no un efecto.",
+      "total": {
+        "combo": "total",
+        "gasto_por_usuario": 68.0,
+        "pct_pedidos": 100.0,
+        "pct_usuarios": 100.0,
+        "pedidos_por_usuario": 3.0,
+        "retencion_m1": 0.55,
+        "usuarios": 1180000
+      }
+    },
+    "supuesto": {
+      "decaimiento": 0.5,
+      "nota": "supuesto propio: cada vertical extra dentro de un grupo reduce la parte que no vuelve: 10 %, 5 %, 2,5 %…; cada servicio, 5 %; nunca llega a 100 %. Con datos reales se reemplaza por lo aprendido",
+      "reduccion_base": 0.1,
+      "servicio": 0.05
+    }
+  },
+  "guardado": {
+    "fecha": "2026-10-16",
+    "origen": "make contract · recorrido corto sobre el catálogo de prueba inventado"
+  },
+  "source": "prototype"
+}

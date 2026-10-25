@@ -1,0 +1,33 @@
+# conversación 1
+cerveza
++ más barata
++ y algo para picar
+# conversación 2
+pañales
++ talla g
++ de otra marca
+# conversación 3
+quiero una pizza
++ mejor sushi
+# conversación 4
+vino tinto
++ y en el súper?
+# conversación 5
+tengo hambre
++ algo más sano
+# conversación 6
+shampoo
++ para pelo graso
+# conversación 7
+chocolates
++ más grande
+# conversación 8
+comida pal perro
++ para gato
+# conversación 9
+leche
++ sin lactosa
+# conversación 10
+hamburguesa
++ con papas
++ y una bebida

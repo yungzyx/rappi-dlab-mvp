@@ -1,0 +1,12 @@
+node_modules/
+dist*/
+# Nada genera ya este directorio; la línea queda para que una exportación vieja del catálogo descargado
+# (menus.json) nunca se suba: los datos descargados no van a GitHub.
+src/data/generated/
+# Configuración local (p. ej. VITE_API_URL para apuntar a otra API)
+.env.local
+# La muestra del catálogo de la demo sin conexión (npm run demo:snapshot) y sus fotos (npm run demo:html, con su caché):
+# son datos descargados, no van a GitHub.
+src/api/offline/snapshot.json
+src/api/offline/photos.json
+.demo-cache/

@@ -1,0 +1,48 @@
+# dietas y condiciones
+pan sin gluten
+algo keto
+galletas para diabéticos
+leche sin lactosa
+comida para celíacos
+algo bajo en sodio
+# adulto mayor (frases largas, formales)
+buenas tardes, quisiera saber si tienen pañales para adulto
+necesito algo para la presión de mi mamá
+mi esposo tiene dolor de rodilla, qué le puedo comprar
+# frases largas con contexto
+vienen 6 amigos a ver el partido y no tengo nada
+estoy sola en casa con mi guagua y se me acabaron los pañales
+tengo una entrevista mañana y necesito una camisa
+llegué tarde del trabajo y no quiero cocinar
+# varias verticales en un mensaje
+pizza y una bebida
+remedio para el resfrío y unas sopas
+vino y flores para mi señora
+# tallas, medidas y formatos
+coca cola de 3 litros
+bolsa de hielo grande
+zapatillas talla 42
+pañales talla g de 50 unidades
+# marcas
+quiero un big mac
+algo de starbucks
+pringles
+nescafé
+# sí o no
+tienen helado de lúcuma?
+venden cigarros electrónicos?
+hay pisco sour preparado?
+# comida por momento del día
+qué desayuno
+algo para el bajón de la noche
+almuerzo saludable
+# seguimientos
+cerveza
++ sin alcohol
++ más grande
+café
++ en grano
++ y una cafetera?
+chocolate
++ amargo
++ pero que sea barato

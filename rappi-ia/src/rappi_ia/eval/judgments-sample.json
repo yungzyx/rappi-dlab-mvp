@@ -1,0 +1,3174 @@
+{
+ "nota": "Pares (consulta, producto) para juzgar a mano; ver src/rappi_ia/eval/judgments.py.",
+ "pares": [
+  {
+   "id": "chocolateria|alfajores|catalog_item|1051496",
+   "vertical": "chocolateria",
+   "consulta": "alfajores",
+   "tipo": "exacta",
+   "entity_type": "catalog_item",
+   "entity_id": "1051496",
+   "texto": "Mendocino Manjar. 1Und. Categoría: Dulces tipicos. Galleta suave con relleno de manjar casero, tributo al deseado alfajor de mendoza",
+   "concepto_auto": "golosinas",
+   "relevante_auto": true,
+   "modos": [
+    "hibrido"
+   ],
+   "origen": "al_azar"
+  },
+  {
+   "id": "chocolateria|alfajores|catalog_item|901978",
+   "vertical": "chocolateria",
+   "consulta": "alfajores",
+   "tipo": "exacta",
+   "entity_type": "catalog_item",
+   "entity_id": "901978",
+   "texto": "Caja Mini Bocados Alfajores. 1Und. Categoría: Alfajores. 4 alfajores de masa San Estanilao y manjar blanco, bañados en chocolate bitter. Especial para compartir entre 2.",
+   "concepto_auto": "galletas",
+   "relevante_auto": true,
+   "modos": [
+    "vector",
+    "hibrido_sin_refuerzo"
+   ],
+   "origen": "diferencia"
+  },
+  {
+   "id": "chocolateria|alfajores|catalog_item|917816",
+   "vertical": "chocolateria",
+   "consulta": "alfajores",
+   "tipo": "exacta",
+   "entity_type": "catalog_item",
+   "entity_id": "917816",
+   "texto": "Alfajor Individual. 1 Und. Categoría: Alfajores. Alfajor de mazapan con manajar envuelto en chocolate 54% cacao.",
+   "concepto_auto": "galletas",
+   "relevante_auto": true,
+   "modos": [
+    "vector",
+    "hibrido",
+    "hibrido_sin_refuerzo"
+   ],
+   "origen": "al_azar"
+  },
+  {
+   "id": "chocolateria|bombones para regalar|catalog_item|1489163",
+   "vertical": "chocolateria",
+   "consulta": "bombones para regalar",
+   "tipo": "necesidad",
+   "entity_type": "catalog_item",
+   "entity_id": "1489163",
+   "texto": "Caja Bombones. 120 g. Categoría: Chocolates. Exquisita selección de 12 bombones Entrelagos, con sabores tradicionales y Valdivianos.  \n100% cacao.",
+   "concepto_auto": "chocolates",
+   "relevante_auto": true,
+   "modos": [
+    "vector"
+   ],
+   "origen": "al_azar"
+  },
+  {
+   "id": "chocolateria|postre individual|catalog_item|873696",
+   "vertical": "chocolateria",
+   "consulta": "postre individual",
+   "tipo": "necesidad",
+   "entity_type": "catalog_item",
+   "entity_id": "873696",
+   "texto": "Volcán De Chocolate. 1Und. Categoría: Postres. Suave bizcocho con centro líquido de chocolate, postre individual congelado para hornear.",
+   "concepto_auto": "postres",
+   "relevante_auto": true,
+   "modos": [
+    "lexico"
+   ],
+   "origen": "al_azar"
+  },
+  {
+   "id": "chocolateria|postre individual|catalog_item|876480",
+   "vertical": "chocolateria",
+   "consulta": "postre individual",
+   "tipo": "necesidad",
+   "entity_type": "catalog_item",
+   "entity_id": "876480",
+   "texto": "Panacota Berries. 1 Und. Categoría: Postres. Postre de crema de leche y salsa de berries. Porción individual. Mantener refrigerado.",
+   "concepto_auto": "postres",
+   "relevante_auto": true,
+   "modos": [
+    "lexico",
+    "hibrido"
+   ],
+   "origen": "diferencia"
+  },
+  {
+   "id": "conveniencia|coca cola 1.5 litros|catalog_item|1295606",
+   "vertical": "conveniencia",
+   "consulta": "coca cola 1.5 litros",
+   "tipo": "exacta",
+   "entity_type": "catalog_item",
+   "entity_id": "1295606",
+   "texto": "Tres Erre Litro + Coca Cola 1.500cc + Hielo Kilo. 1Und. Categoría: Hielo. PROMO D E TRES ERRE LITRO MAS BEBIAD 1.500 MAS HIELO",
+   "concepto_auto": "hielo",
+   "relevante_auto": false,
+   "modos": [
+    "lexico",
+    "hibrido_sin_refuerzo"
+   ],
+   "origen": "diferencia"
+  },
+  {
+   "id": "conveniencia|coca cola 1.5 litros|catalog_item|1408269",
+   "vertical": "conveniencia",
+   "consulta": "coca cola 1.5 litros",
+   "tipo": "exacta",
+   "entity_type": "catalog_item",
+   "entity_id": "1408269",
+   "texto": "Cola-Cola Refresco Light. 1 x 1.5 L. Categoría: Gaseosas. Botella. Foto Referencial",
+   "concepto_auto": "gaseosas",
+   "relevante_auto": true,
+   "modos": [
+    "vector",
+    "hibrido"
+   ],
+   "origen": "diferencia"
+  },
+  {
+   "id": "conveniencia|galletas de chocolate|catalog_item|130676",
+   "vertical": "conveniencia",
+   "consulta": "galletas de chocolate",
+   "tipo": "exacta",
+   "entity_type": "catalog_item",
+   "entity_id": "130676",
+   "texto": "Costa Galleta Choco Chips Sabor a Chocolate. Marca: Costa. 1 X 125 g. Categoría: Galletas. Disfruta de las deliciosas galletas con chips de chocolate de Costa, que son perfectas para comer como snack o endulzarte en cualquier momento del día, en compañía de tu bebida favorita en cualquier ocasión.",
+   "concepto_auto": "galletas",
+   "relevante_auto": true,
+   "modos": [
+    "vector",
+    "hibrido",
+    "hibrido_sin_refuerzo"
+   ],
+   "origen": "al_azar"
+  },
+  {
+   "id": "conveniencia|galletas de chocolate|catalog_item|43996",
+   "vertical": "conveniencia",
+   "consulta": "galletas de chocolate",
+   "tipo": "exacta",
+   "entity_type": "catalog_item",
+   "entity_id": "43996",
+   "texto": "Mckay Morocha Galletas Mini con Cobertura de Chocolate. Marca: Mckay Morocha. 1 X 50 g. Categoría: Galletas. Exquisita galleta bañada en cobertura sabor chocolate, con un formato perfecto para colación y aquellos momentos de antojo en tu día a día. Disfruta de esta galleta con la bebida de tu preferencia.",
+   "concepto_auto": "galletas",
+   "relevante_auto": true,
+   "modos": [
+    "lexico"
+   ],
+   "origen": "al_azar"
+  },
+  {
+   "id": "conveniencia|helado|catalog_item|76318",
+   "vertical": "conveniencia",
+   "consulta": "helado",
+   "tipo": "exacta",
+   "entity_type": "catalog_item",
+   "entity_id": "76318",
+   "texto": "Savory-La Cremeria Helado Cremoso Sabor a Tres Leches. Marca: Savory-La Cremeria. 1 X 1 L. Categoría: Helados. Crema helada sabor a tres leches, ideal para compartir con la familia y amigos a cualquier hora del día. Viene en un práctico empaque que le brinda seguridad al helado.",
+   "concepto_auto": "helados",
+   "relevante_auto": true,
+   "modos": [
+    "lexico"
+   ],
+   "origen": "al_azar"
+  },
+  {
+   "id": "conveniencia|jugo de naranja|catalog_item|1531382",
+   "vertical": "conveniencia",
+   "consulta": "jugo de naranja",
+   "tipo": "exacta",
+   "entity_type": "catalog_item",
+   "entity_id": "1531382",
+   "texto": "Watts Jugo de Naranja Exprimido. Marca: Watts. 1 x 1.5 L. Categoría: Jugos. Caja.",
+   "concepto_auto": "jugos",
+   "relevante_auto": true,
+   "modos": [
+    "vector"
+   ],
+   "origen": "al_azar"
+  },
+  {
+   "id": "conveniencia|leche entera|catalog_item|78690",
+   "vertical": "conveniencia",
+   "consulta": "leche entera",
+   "tipo": "exacta",
+   "entity_type": "catalog_item",
+   "entity_id": "78690",
+   "texto": "Leche Semi Descremada Líder. Marca: Líder. 1 X 1 L. Categoría: Leche natural. La leche semidesnatada es, según médicos y expertos de la materia nutricional, es un punto intermedio entre la leche entera y la desnatada, porque cuenta con la mitad de grasa, así como de vitaminas A y E, conserva todas las propiedades de calcio, proteínas, lactosa y vitamina B.",
+   "concepto_auto": "lacteos",
+   "relevante_auto": true,
+   "modos": [
+    "lexico"
+   ],
+   "origen": "al_azar"
+  },
+  {
+   "id": "conveniencia|pan para el desayuno|catalog_item|1351916",
+   "vertical": "conveniencia",
+   "consulta": "pan para el desayuno",
+   "tipo": "necesidad",
+   "entity_type": "catalog_item",
+   "entity_id": "1351916",
+   "texto": "Pan Holandes. 1Und. Categoría: Panaderia salada",
+   "concepto_auto": "panaderia",
+   "relevante_auto": true,
+   "modos": [
+    "vector",
+    "hibrido"
+   ],
+   "origen": "diferencia"
+  },
+  {
+   "id": "conveniencia|pan para el desayuno|catalog_item|19968",
+   "vertical": "conveniencia",
+   "consulta": "pan para el desayuno",
+   "tipo": "necesidad",
+   "entity_type": "catalog_item",
+   "entity_id": "19968",
+   "texto": "Pan Blanco de Molde XL Lider. Marca: Lider. 1 X 750 g. Categoría: Pan salado fresco. Es ideal para preparar platillos nutritivos y deliciosos. Perfecto para acompañarte en tus desayunos.",
+   "concepto_auto": "panaderia",
+   "relevante_auto": true,
+   "modos": [
+    "lexico",
+    "vector",
+    "hibrido",
+    "hibrido_sin_refuerzo"
+   ],
+   "origen": "al_azar"
+  },
+  {
+   "id": "conveniencia|pan para el desayuno|catalog_item|24706",
+   "vertical": "conveniencia",
+   "consulta": "pan para el desayuno",
+   "tipo": "necesidad",
+   "entity_type": "catalog_item",
+   "entity_id": "24706",
+   "texto": "Danone Calán Yogurt Batido. Marca: Danone. 12 X 110 g. El pack de yogurt Calán con sabor a frutilla, damasco y vainilla es perfecto para consumirlo al desayuno o cuándo desees. Es bajo en grasa total y sin colorantes artificiales. Su increíble sabor y suave textura te encantará. Perfecto para toda la familia. Contiene 6 unidades sabor a frutilla, 4 con sabor a damasco y 2 de vainilla de 110 g c/u.",
+   "concepto_auto": "lacteos",
+   "relevante_auto": false,
+   "modos": [
+    "hibrido_sin_refuerzo"
+   ],
+   "origen": "diferencia"
+  },
+  {
+   "id": "conveniencia|pan para el desayuno|catalog_item|25688",
+   "vertical": "conveniencia",
+   "consulta": "pan para el desayuno",
+   "tipo": "necesidad",
+   "entity_type": "catalog_item",
+   "entity_id": "25688",
+   "texto": "Daily Fresh Sandwich Molde Jamon Palmito. Marca: Daily Fresh. 1 X 200 g. Categoría: Sandwiches y empanadas. Es un pan de molde integral relleno con jamón de pierna y pasta de palmitos con mayonesa, ideal para cualquier momento del día. packing: Caja",
+   "concepto_auto": "empanadas",
+   "relevante_auto": false,
+   "modos": [
+    "vector",
+    "hibrido_sin_refuerzo"
+   ],
+   "origen": "diferencia"
+  },
+  {
+   "id": "conveniencia|pan para el desayuno|catalog_item|294515",
+   "vertical": "conveniencia",
+   "consulta": "pan para el desayuno",
+   "tipo": "necesidad",
+   "entity_type": "catalog_item",
+   "entity_id": "294515",
+   "texto": "Pan de chocolate. Marca: Pan. 1 Und. Categoría: Panaderia salada. Masa dulce rellena de dos barritas de chocolate",
+   "concepto_auto": "panaderia",
+   "relevante_auto": true,
+   "modos": [
+    "hibrido"
+   ],
+   "origen": "diferencia"
+  },
+  {
+   "id": "conveniencia|pan para el desayuno|catalog_item|67377",
+   "vertical": "conveniencia",
+   "consulta": "pan para el desayuno",
+   "tipo": "necesidad",
+   "entity_type": "catalog_item",
+   "entity_id": "67377",
+   "texto": "Kingsbury Pan Pita Perfecto. Marca: Kingsbury. 1 X 300 g. Categoría: Panaderia salada. Este pan es una gran fuente de proteína y fibra dietética, además tiene solo 72 calorías por pan y es bajo en sodio.",
+   "concepto_auto": "panaderia",
+   "relevante_auto": true,
+   "modos": [
+    "hibrido"
+   ],
+   "origen": "diferencia"
+  },
+  {
+   "id": "conveniencia|panales|catalog_item|127241",
+   "vertical": "conveniencia",
+   "consulta": "panales",
+   "tipo": "sin_tildes",
+   "entity_type": "catalog_item",
+   "entity_id": "127241",
+   "texto": "Pampers Pañal Premium Care Talla M. Marca: Pampers. 1 X 86 Und. Categoría: Pañales. Protege delicadamente la piel de tu bebé con Pampers Premium Care, que es suave como algodón y ultra respirable. Con una exclusiva loción hipoalergénica que ayuda a prevenir irritaciones. Canales de aire ideal para una piel aireada y seca en todo momento. Ultra respirable para ayudar a mantener la piel de tu bebé fresca y sana.",
+   "concepto_auto": "panales",
+   "relevante_auto": true,
+   "modos": [
+    "hibrido"
+   ],
+   "origen": "diferencia"
+  },
+  {
+   "id": "conveniencia|panales|catalog_item|365243",
+   "vertical": "conveniencia",
+   "consulta": "panales",
+   "tipo": "sin_tildes",
+   "entity_type": "catalog_item",
+   "entity_id": "365243",
+   "texto": "Dog It Panal Desechable para Perro Talla M. Marca: Dog It. 1 X 1 Und. Categoría: Pañales y forros para Mascotas. Contiene 12 unidades. Los pañales desechables Klee de Dog It son unas alfombrillas educadoras útiles para entrenar a tu mascota en el difícil arte de hacer sus necesidades. Ideales para cachorros que habitan al interior de una casa para perros en cualquier etapa de la vida y para reemplazar los sucios periódicos. Absorben la humedad y los olores gracias a su tecnología quick dry que atrapa los líquidos y los convierte en gel en minutos, su aroma tentador hará que los cachorros o perros vayan hacia la carpeta, lo que contribuye a que hagan sus necesidades en el lugar correcto. Tienen 5 capas de protección que protege las superficies de manchas, facilitando la limpieza para un hogar más limpio y armonioso. Pueden ser usados en interiores y exteriores, transportadores, jaulas y casas para perro.",
+   "concepto_auto": "accesorios-mascota",
+   "relevante_auto": false,
+   "modos": [
+    "hibrido_sin_refuerzo"
+   ],
+   "origen": "diferencia"
+  },
+  {
+   "id": "conveniencia|papas fritas|catalog_item|2928",
+   "vertical": "conveniencia",
+   "consulta": "papas fritas",
+   "tipo": "exacta",
+   "entity_type": "catalog_item",
+   "entity_id": "2928",
+   "texto": "Marco Polo Papas Fritas Corte Americano. Marca: Marco Polo. 400 g. Categoría: Snacks salados. Papas fritas saladas con corte americano. Crujientes y sabrosas, ideal para compartir en un picoteo o fiesta.",
+   "concepto_auto": "snacks-salados",
+   "relevante_auto": true,
+   "modos": [
+    "hibrido"
+   ],
+   "origen": "diferencia"
+  },
+  {
+   "id": "conveniencia|papas fritas|catalog_item|63710",
+   "vertical": "conveniencia",
+   "consulta": "papas fritas",
+   "tipo": "exacta",
+   "entity_type": "catalog_item",
+   "entity_id": "63710",
+   "texto": "Marco Polo Papas Fritas Rústicas Sabor Queso y Orégano. Marca: Marco Polo. 185 g. Categoría: Snacks salados. Papas seleccionadas 100% naturales, para después cortarlas más gruesas y cocinarlas lentamente, dando como resultado unas papas fritas más crujientes y deliciosas, como hechas en casa.",
+   "concepto_auto": "snacks-salados",
+   "relevante_auto": true,
+   "modos": [
+    "lexico"
+   ],
+   "origen": "al_azar"
+  },
+  {
+   "id": "conveniencia|papas fritas|catalog_item|80326",
+   "vertical": "conveniencia",
+   "consulta": "papas fritas",
+   "tipo": "exacta",
+   "entity_type": "catalog_item",
+   "entity_id": "80326",
+   "texto": "Great Value Papas Fritas Congeladas Wedges Seasoned. Marca: Great Value. 907 g. Categoría: Papas, yucas y tuberculos. Great Value papas fritas congeladas wedges seasoned. Presentación en bolsa x 907 g.",
+   "concepto_auto": "verduras",
+   "relevante_auto": false,
+   "modos": [
+    "lexico",
+    "vector",
+    "hibrido_sin_refuerzo"
+   ],
+   "origen": "diferencia"
+  },
+  {
+   "id": "conveniencia|vino tinto|catalog_item|231362",
+   "vertical": "conveniencia",
+   "consulta": "vino tinto",
+   "tipo": "exacta",
+   "entity_type": "catalog_item",
+   "entity_id": "231362",
+   "texto": "Bestia Azul Vino Tinto Cabernet Sauvignon Reserva. Marca: Tinto C. 1 X 750 mL. Categoría: Vino tinto. Es de color rojo profundo brillante, con destellos violeta, en nariz se sienten notas a casis, frutas rojas y negras, junto a toques de vainilla y chocolate, en boca tiene una textura sedosa en el paladar junto a especias dulces, taninos firmes y agradable acidez. packing: Botella",
+   "concepto_auto": "vino",
+   "relevante_auto": true,
+   "modos": [
+    "vector",
+    "hibrido",
+    "hibrido_sin_refuerzo"
+   ],
+   "origen": "al_azar"
+  },
+  {
+   "id": "conveniencia|vino tinto|catalog_item|89560",
+   "vertical": "conveniencia",
+   "consulta": "vino tinto",
+   "tipo": "exacta",
+   "entity_type": "catalog_item",
+   "entity_id": "89560",
+   "texto": "Santa Helena Vino Tinto de Mesa 1 L. Marca: Santa Helena. 1 X 1 L. Categoría: Vino tinto. Es un vino fresco en boca, de excelente acidez que realza la fruta, con una rica concentración de taninos suaves y un final redondo, de color rojo rubí oscuro. Perfecto para acompañar carnes rojas, cordero, pato y quesos. El exceso de alcohol es perjudicial para la salud.",
+   "concepto_auto": "vino",
+   "relevante_auto": true,
+   "modos": [
+    "vector"
+   ],
+   "origen": "al_azar"
+  },
+  {
+   "id": "farmacia|cosas para el bebé recién nacido|catalog_item|135484",
+   "vertical": "farmacia",
+   "consulta": "cosas para el bebé recién nacido",
+   "tipo": "necesidad",
+   "entity_type": "catalog_item",
+   "entity_id": "135484",
+   "texto": "Simonds Shampoo & Jabón sin Perfume. Marca: Simonds. 1 X 500 mL. Categoría: Shampoo y jabón. Delicada fórmula de limpieza, extra suave, inocua, creada para el cuidado de la piel del bebé. Ideal para usar en todo el cuerpo y cabeza, desde el primer baño, especialmente para el recién nacido. Para piel sensible. Para pieles atópicas. packing: Pote",
+   "concepto_auto": "articulos-bebe",
+   "relevante_auto": true,
+   "modos": [
+    "lexico"
+   ],
+   "origen": "al_azar"
+  },
+  {
+   "id": "farmacia|cosas para el bebé recién nacido|catalog_item|251503",
+   "vertical": "farmacia",
+   "consulta": "cosas para el bebé recién nacido",
+   "tipo": "necesidad",
+   "entity_type": "catalog_item",
+   "entity_id": "251503",
+   "texto": "Avent Tetina Flujo Denso. Marca: Avent. 1 Und. Categoría: Mamaderas y tetinas. Tetina Flujo Rápido Avent Airflex Desde 6 Meses X 2 Un. Nuestra Confiable Gama Classic Se Ha Mejorado Para Proporcionar Una Experiencia De Alimentación Aún Más Agradable. Ahora, El Sistema Anticólicos, Clínicamente Comprobado, Está Integrado En La Tetina, Lo Que Hace Que La Mamadera Sea Muy Fácil De Limpiar Y Montar. Clínicamente Comprobado Que Reduce Los Malestares. Beneficios \nMientras El Bebé Se Alimenta, La Exclusiva Válvula De La Tetina Se Abre Para Permitir Que El Aire Entre En La Mamadera En Lugar De La Pancita Del Bebé. \nSe Reduce El Malestar, Especialmente Por La Noche: El Sueño Y La Nutrición Son Vitales Para La Salud Y Felicidad De Su Bebé. Se Realizó Un Ensayo Clínico Aleatorio Para Determinar Si El Diseño De Las Mamaderas Influye En El Comportamiento De Los Bebés. La Mamadera Classic Philips Avent Mostró Una Importante Reducción En La Irritabilidad, Con Cerca De 28 Minutos Por Día, En Comparación Con La Mamadera De Referencia (46 Minutos Contra 74 Minutos, P=0,05). Estos Resultados Se Notaron En Especial Durante La Noche. \nAntigoteo Para Una Alimentación Agradable: La Nueva Mamadera Classic+ Se Diseñó Para Evitar El Goteo Durante La Alimentación Y Disfrutar De Una Experiencia Realmente Agradable. \nCuello Ancho Y Menos Piezas Para Facilitar La Limpieza: Con Solo 4 Piezas, Un Cuello Ancho Y Esquinas Redondeadas, Nuestra Mamadera Es Fácil De Limpiar, De Forma Rápida Y En Profundidad. Tranquilidad Absoluta Con Una Mamadera Verdaderamente Limpia En Poco Tiempo. \nMenos Piezas Para Un Montaje Rápido Y Sencillo: La Nueva Mamadera Classic+ Solo Tiene 4 Piezas Para Montarla De Forma Rápida Y Sencilla. \nForma Ergonómica Para Sujetarlo Fácilmente: Debido A Su Forma Única, La Mamadera Es Fácil De Sujetar Y Sostener En Cualquier Dirección Para Una Comodidad Máxima, Incluso Para Las Pequeñas Maños Del Bebé. \nCompatibilidad Con La Línea Philips Avent: La Mamadera Classic+ De Philips Avent Es Compatible Con La Mayoría De Los Productos De La Gama Philips Avent. Le Aconsejamos Que Utilice La Mamadera Classic+ Solo Con Las Tetinas Classic+. \nVarios Niveles De Flujo De La Tetina Disponibles: La Gama Classic+ Philips Avent Ofrece Diferentes Niveles De Flujo De La Tetina Para Acompañar El Ritmo De Crecimiento De Su Bebé. Recuerde Que Las Indicaciones De Edad Son Aproximadas, Ya Que Los Bebés Crecen A Diferentes Ritmos. Todas Las Tetinas Están Disponibles En Paquetes Dobles: Flujo Para Recién Nacidos, Lento, Medio, Rápido Y Variable. \nSin Bpa: Conforme A La Directiva De La Ue (2011/8/Eu), La Mamadera Classic+ Philips Avent Está Fabricada Con Material Libre De Bpa (Polipropileno).",
+   "concepto_auto": "articulos-bebe",
+   "relevante_auto": true,
+   "modos": [
+    "lexico",
+    "hibrido",
+    "hibrido_sin_refuerzo"
+   ],
+   "origen": "al_azar"
+  },
+  {
+   "id": "farmacia|cosas para el bebé recién nacido|catalog_item|47561",
+   "vertical": "farmacia",
+   "consulta": "cosas para el bebé recién nacido",
+   "tipo": "necesidad",
+   "entity_type": "catalog_item",
+   "entity_id": "47561",
+   "texto": "Antiax (480 mg/100 mg). Marca: Antiax. 1 X 24 Und. Categoría: Antiácidos. Principio Activo: Simeticona - Magaldrate / Forma Farmacéutica: Comprimido Masticables / Dosis Por Forma Farmacéutica: 100 mg - 480 mg. ¿Para Qué Enfermedades o Condiciones se Prescribe Este Medicamento? Tratamiento de la Dispepsia, Flatulencia y Acidez Estomacal. ¿Cómo Debo Usar Este Producto? (Posología) Vía Oral Dosis: Según Prescripción Médica. Dosis Usual en Adultos y Niños Mayores de 12 Años: 1 a 2 Comprimidos Después de Las Principales Comidas. Presentación Antiax Viene en Formato de Comprimidos Masticables, el Envase Contiene 24 Unidades. Condiciones de Almacenamiento no Dejar al Alcance de Los Niños. Almacenar a la Temperatura Indicada en el Envase. Mantener en su Envase Original, Protegido Del Calor, Luz, Humedad. No Usar Este Producto Después de la Fecha de Vencimiento Indicada en el Envase. Principio Activo (Nombre Genérico) Simeticona / Megaldrate. Advertencias de Uso el Uso de Antiax Podría Enmascarar Los Síntomas de Enfermedades Más Graves Como Son Las Úlceras o Hemorragias Digestivas Secundarias al Abuso de Antiinflamatorios no Esteroidales. Si Los Síntomas Empeoran, o si a Pesar Del Tratamiento Persisten Por Más de 7 Días, o Recurren, se Debe Realizar un Examen Clínico Para Descartar Una Enfermedad Subyacente, Por Ejemplo Una Úlcera Péptica o un Proceso Maligno. Podría Causar Diarrea y También Deshidratación. Debe Usarse Con Precaución en Pacientes Con Daño Renal, Especialmente en Aquellos Que se Encuentran en Etapas Avanzadas de la Enfermedad. El Uso de Antiácidos Puede Ocasionar Alteraciones en la Absorción de Otros Medicamentos, Disminuyendo la Efectividad de Otras Terapias Medicamentosas Que se Administren Conjuntamente Con Antiácidos. Los Antiácidos Que Contienen Magnesio Pueden Originar, en Tratamientos Prolongados y en Pacientes Con Insuficiencia Renal, Hipermagnesemia. De no Existir Insuficiencia Renal, el Riñón Elimina Rápidamente Los Iones de Magnesio Absorbidos. Embarazo y Lactancia Embarazo: Los Antiácidos Que Contienen Aluminio se Han Utilizado en Dosis Habituales en Mujeres Embarazadas Con Función Renal Normal, la Probabilidad de Riesgo de Efectos Adversos en el Feto es Baja. Se ha Sugerido Que el Aluminio se Puede Llegar a Absorber Con el Uso de Antiácidos, lo Que Puede Dar Lugar a la Aparición de Alteraciones Funcionales en Los Órganos Fetales Potencialmente Sensibles, Incluyendo el Sistema Nervioso Central y Riñones. Sin Embargo, no Hay Datos Clínicos Para Apoyar Estos u Otros Efectos Teratogénicos o Toxicidad Embrionaria Por el Uso de Distintos Antiácidos Durante el Embarazo. Por Otra Parte la Biodisponibilidad Del Aluminio a Partir de Los Antiácidos es Baja, lo Que Limita la Potencial Exposición Del Feto al Aluminio. Sin Embargo, Conviene Tener en Cuenta la Posibilidad de la Aparición de Problemas Ligados a Una Disminución de la Absorción de Hierro, Fluoruros y Fosfatos en Tratamientos Prolongados y/o a Altas Dosis. Se Deben Sopesar Los Beneficios Potenciales Del Tratamiento Farmacológico Versus Los Riesgos Para el Feto Antes de Administrar Este Tipo de Medicamento Durante el Embarazo. Lactancia: La Información es Insuficiente Para Determinar el Riesgo Infantil Cuando se Administra Durante la Lactancia. Se Deben Sopesar Los Beneficios Potenciales Del Tratamiento Farmacológico Versus Los Riesgos Para el Feto Antes de Administrar Este Tipo de Medicamento Durante el Embarazo. El Aluminio Que es Absorbido Debido a la Ingesta Materna de Antiácidos en Dosis Normales es Bajo, en Pacientes Con Función Renal Normal. Por lo Tanto, Las Concentraciones en la Leche Materna Probablemente Sean Bajas. La Acumulación de Aluminio en el Recién Nacido o Lactante Puede, Sin Embargo, Ser Causa de Toxicidad, ya Que Las Cantidades de Aluminio Transferidas a Través de la Leche Materna Pueden Ser Aditivas a Otras Fuentes de Aluminio Tales Como Líquidos Administrados Por Vía Parenteral o a Través de la Nutrición. Los Bebés Prematuros y Los Nacidos Con Insuficiencia Renal Pueden Tener Mayor Riesgo de Acumulación de Aluminio. Dosificación Cada Comprimido Tiene Una Concentración de 100 mg de Simeticona y 480 mg de Megaldrate. Reacciones Adversas Los Efectos Adversos Más Comúnmente Reportados Tras la Administración de Simeticona Son Los Gastrointestinales, Eventos Que Incluyen Diarrea, Náuseas, Vómitos. Además se ha Reportado Cefalea, Faringitis, Rinitis y Otalgia Tras la Administración de Simeticona. Los Eventos Adversos Más Frecuentemente Descritos Tras la Administración de Antiácidos Que Contienen Aluminio o Magnesio Son Constipación y Diarrea. Además se Han Descrito Obstrucción Intestinal, Hiperosmolaridad y Prurito. Producto Del Uso Prolongado de Antiácidos se Han Reportado Otros Efectos Adversos: Disminución Del Colesterol Ldl, Hipermagnesemia, Deficiencia de Cobre, Deficiencia de Vitaminas y Osteomalacia. Se Han Reportado Casos de Pacientes en Diálisis Sometidos a Tratamiento Con Antiácidos Que Experimentaron Demencia. Otros Reportes Describen Encefalopatía Progresiva, Confusión, Convulsiones y Coma Tras la Administración de Antiácidos a Pacientes Con Insuficiencia Renal Grave. Contraindicaciones Antiax Está Contraindicado en Pacientes Que Posean Hipersensibilidad a Alguno de Los Componentes de la Fórmula. Está Contraindicado en Pacientes Que Padezcan o en Quienes se Sospeche Perforación u Obstrucción Intestinal. No Administrar a Menores de 12 Años, o en Pacientes Que Presenten Dolor Abdominal, Vómitos o Fiebre. Condición de Venta Venta Libre.",
+   "concepto_auto": "medicamentos",
+   "relevante_auto": false,
+   "modos": [
+    "lexico"
+   ],
+   "origen": "al_azar"
+  },
+  {
+   "id": "farmacia|parches curita|catalog_item|1319466",
+   "vertical": "farmacia",
+   "consulta": "parches curita",
+   "tipo": "exacta",
+   "entity_type": "catalog_item",
+   "entity_id": "1319466",
+   "texto": "Parche Curita Redondo X100. 100Und. Categoría: Parches y Telas Adhesivas. parche curitas redondos",
+   "concepto_auto": "primeros-auxilios",
+   "relevante_auto": true,
+   "modos": [
+    "lexico",
+    "vector",
+    "hibrido",
+    "hibrido_sin_refuerzo"
+   ],
+   "origen": "al_azar"
+  },
+  {
+   "id": "farmacia|pasta dental blanqueadora|catalog_item|774128",
+   "vertical": "farmacia",
+   "consulta": "pasta dental blanqueadora",
+   "tipo": "exacta",
+   "entity_type": "catalog_item",
+   "entity_id": "774128",
+   "texto": "Pasta Dental Colgate Luminous Glow 70 g. Marca: Colgate. 1 x 70 g. Categoría: Crema dental. La Pasta Dental Colgate Luminous White Glow es Ideal Para Blanquear Los Dientes en Casa y Eliminar Más de 10 Años de Manchas. Su Fórmula Contiene Peróxido de Hidrógeno al 3%, el Mismo Ingrediente Que Utilizan Los Dentistas, Que es el Nivel Más Alto en Una Pasta de Dientes Para Blanquear Los Dientes.Beneficios:-Remueve Más de 10 Años de Manchas -Nuestra Tecnología de Blanqueamiento Más Poderosa -Innovación-Seguro Para el Esmalte Dental Después de 4 Semanas, Con Uso Diario.",
+   "concepto_auto": "cuidado-oral",
+   "relevante_auto": true,
+   "modos": [
+    "vector",
+    "hibrido",
+    "hibrido_sin_refuerzo"
+   ],
+   "origen": "al_azar"
+  },
+  {
+   "id": "farmacia|pañales etapa 3|catalog_item|124368",
+   "vertical": "farmacia",
+   "consulta": "pañales etapa 3",
+   "tipo": "exacta",
+   "entity_type": "catalog_item",
+   "entity_id": "124368",
+   "texto": "Pampers Pañales Pants Premium Care Talla XXG. Marca: Pampers. 1 X 52 Und. Categoría: Pañales. Son pañales desechables que protegen delicadamente la piel de tu bebé, además son suaves como el algodón, respirables para ayudar a mantener la piel fresca y fáciles de poner por su diseño pants, sus fibras son capaces de evitar que se traspasen y puedan manchar en exceso la ropa.",
+   "concepto_auto": "panales",
+   "relevante_auto": true,
+   "modos": [
+    "hibrido"
+   ],
+   "origen": "diferencia"
+  },
+  {
+   "id": "farmacia|pañales etapa 3|catalog_item|128388",
+   "vertical": "farmacia",
+   "consulta": "pañales etapa 3",
+   "tipo": "exacta",
+   "entity_type": "catalog_item",
+   "entity_id": "128388",
+   "texto": "Cotidian Pañal Adulto Premium Etapa G. Marca: Cotidian. 1 X 20 Und. Categoría: Ropa Interior control de Incontinencia. Pañales para adultos con incontinencia fuerte. Cotidian ofrece mayor comodidad por su diseño anatómico, brindándote mayor confort y seguridad. Tiene control de olores, indicador de humedad, barreras anti-desborde, cintas reajustables, laterales respirables, doble núcleo muy absorbente.",
+   "concepto_auto": "panales",
+   "relevante_auto": true,
+   "modos": [
+    "lexico",
+    "hibrido"
+   ],
+   "origen": "diferencia"
+  },
+  {
+   "id": "farmacia|pañales etapa 3|catalog_item|1446592",
+   "vertical": "farmacia",
+   "consulta": "pañales etapa 3",
+   "tipo": "exacta",
+   "entity_type": "catalog_item",
+   "entity_id": "1446592",
+   "texto": "Pañales Desechables Nenitos Talla Xg, 32 Unidades. 1 Und. Categoría: Pañales. Hipoalerg&eacute;nicos, dermatol&oacute;gicamente testeados. Otorgan hasta 12 horas de protecci&oacute;n (dependiendo de los h&aacute;bitos y caracter&iacute;sticas del beb&eacute;)",
+   "concepto_auto": "panales",
+   "relevante_auto": true,
+   "modos": [
+    "vector",
+    "hibrido"
+   ],
+   "origen": "diferencia"
+  },
+  {
+   "id": "farmacia|pañales etapa 3|catalog_item|246052",
+   "vertical": "farmacia",
+   "consulta": "pañales etapa 3",
+   "tipo": "exacta",
+   "entity_type": "catalog_item",
+   "entity_id": "246052",
+   "texto": "Nan Fórmula Infantil Comfort Etapa 3. Marca: Nan. 1 X 800 g. Categoría: Formulas infantiles. Alimento lácteo en polvo con proteína parcialmente hidrolizada, probióticos, hierro y magnesio. A partir de 1 año. Incrementa el número de evacuaciones, mejora la función de la flora intestinal de tu pequeño. Favorece el desarrollo cognitivo. Presentación en lata X 800 g.",
+   "concepto_auto": "alimentacion-bebe",
+   "relevante_auto": false,
+   "modos": [
+    "lexico",
+    "hibrido_sin_refuerzo"
+   ],
+   "origen": "diferencia"
+  },
+  {
+   "id": "farmacia|pañales etapa 3|catalog_item|56087",
+   "vertical": "farmacia",
+   "consulta": "pañales etapa 3",
+   "tipo": "exacta",
+   "entity_type": "catalog_item",
+   "entity_id": "56087",
+   "texto": "Nan Fórmula Infantil L-Comfortis Etapa 3. Marca: Nan. 1 X 800 g. Categoría: Formulas infantiles. Esta fórmula contiene cultivos de probióticos, que actúan como un factor de bienestar y confort digestivo, además de una combinación de nutrientes que promueve el óptimo desarrollo del lactante. Contiene ácidos grasos esenciales presentes en la leche materna: DHA.",
+   "concepto_auto": "alimentacion-bebe",
+   "relevante_auto": false,
+   "modos": [
+    "hibrido_sin_refuerzo"
+   ],
+   "origen": "diferencia"
+  },
+  {
+   "id": "farmacia|pañales etapa 3|catalog_item|641087",
+   "vertical": "farmacia",
+   "consulta": "pañales etapa 3",
+   "tipo": "exacta",
+   "entity_type": "catalog_item",
+   "entity_id": "641087",
+   "texto": "Nido Leche en Polvo Etapa 3 +. Marca: Nido. 1 x 1350 mL. Categoría: Formulas infantiles. Lata",
+   "concepto_auto": "alimentacion-bebe",
+   "relevante_auto": false,
+   "modos": [
+    "hibrido_sin_refuerzo"
+   ],
+   "origen": "diferencia"
+  },
+  {
+   "id": "farmacia|perfume de mujer|catalog_item|731066",
+   "vertical": "farmacia",
+   "consulta": "perfume de mujer",
+   "tipo": "exacta",
+   "entity_type": "catalog_item",
+   "entity_id": "731066",
+   "texto": "Plaisance Perfume Mujer Hot Excess. Marca: Plaisance. 1 x 100 mL. Categoría: Fragancias. Caja",
+   "concepto_auto": "fragancias",
+   "relevante_auto": true,
+   "modos": [
+    "vector"
+   ],
+   "origen": "al_azar"
+  },
+  {
+   "id": "farmacia|protector solar factor 50|catalog_item|39158",
+   "vertical": "farmacia",
+   "consulta": "protector solar factor 50",
+   "tipo": "exacta",
+   "entity_type": "catalog_item",
+   "entity_id": "39158",
+   "texto": "Leblon Protector Solar Antioxidante F50 50. Marca: Leblon. 1 X 50 g. Categoría: Protectores solares corporales. Con vitaminas A, C y E, antioxidantes que ayudan a prevenir el envejecimiento prematuro, hidrata y regenera la piel, es hipoalergénico y resistente al agua. Aplicar abundantemente y en forma pareja 30 minutos antes de exponerse al sol.",
+   "concepto_auto": "dermocosmetica",
+   "relevante_auto": true,
+   "modos": [
+    "vector",
+    "hibrido",
+    "hibrido_sin_refuerzo"
+   ],
+   "origen": "al_azar"
+  },
+  {
+   "id": "farmacia|shampoo anticaspa|catalog_item|1507565",
+   "vertical": "farmacia",
+   "consulta": "shampoo anticaspa",
+   "tipo": "exacta",
+   "entity_type": "catalog_item",
+   "entity_id": "1507565",
+   "texto": "Isdin Shampoo Anticaspa Grasa Nutradeica. 1 x 200 mL. Categoría: Shampoo. Botella.",
+   "concepto_auto": "cuidado-cabello",
+   "relevante_auto": true,
+   "modos": [
+    "lexico",
+    "vector",
+    "hibrido",
+    "hibrido_sin_refuerzo"
+   ],
+   "origen": "al_azar"
+  },
+  {
+   "id": "farmacia|vitamina c efervescente|catalog_item|116077",
+   "vertical": "farmacia",
+   "consulta": "vitamina c efervescente",
+   "tipo": "exacta",
+   "entity_type": "catalog_item",
+   "entity_id": "116077",
+   "texto": "Eno Sal de Frutas Sabor Natural. Marca: Eno. 1 X 100 g. Categoría: Antiácidos. Principio Activo: Bicarbonato de Sodio - Acido Cítrico Anhidro - Carbonato de Sodio Anhidro / Forma Farmacéutica: Sal Efervescente / Dosis Por Forma Farmacéutica: 46.13 g - 43.87 g - 10 g. ¿Para Qué Enfermedades o Condiciones se Prescribe Este Medicamento? Antiácido. Alivio Sintomático y Temporal de Las Molestias Derivadas de la Hiperacidez Estomacal. ¿Cómo Debo Usar Este Producto? (Posología) Los Adultos y Niños Mayores de 12 Años: 5 g (1 Sobre o 1 Cucharada de 5 mL de Polvo) Disuelto en 1 Vaso Con ¾ Partes de Agua. La Dosificación Puede Repetirse Cada 2- 3 Horas Hasta 5 Veces al Día. Intervalo Mínimo de Dosificación: 2 Horas. La Dosis Diaria Máxima: 5 Sobres de 5 g. El Período Máximo de Uso de Antiácidos a Dosis Diaria Máxima es de 14 Días. Presentación Eno Viene en Formato de Sal Efervescente, el Envase Contiene 100 g. Condiciones de Almacenamiento Almacenar a no Más de 25°C. Mantener Fuera Del Alcance de Los Niños. Principio Activo (Nombre Genérico) Bicarbonato de Sodio / Acido Cítrico Anhidro / Carbonato de Sodio Anhidro. Advertencias de Uso el Uso de Elevadas Cantidades de Este Medicamento o Durante un Largo Periodo de Tiempo Puede Originar Alcalosis (Alteración Del Equilibrio Ácido-Base) Por lo Que no Debe Superar la Dosis Recomendada. No Usar Durante Más de 7 Días Seguidos. Si Después de Este Periodo Los Síntomas Persisten, Deje de Tomar el Medicamento y Consulte al Médico, ya Que Esto Podría Indicar la Existencia de Una Enfermedad Más Grave. Si Presenta Apendicitis o Sus Síntomas (Náuseas, Vómitos, Calambres, Dolor Abdominal) no Debe Tomar Este Medicamento. Este Medicamento no Está Indicado Para su Uso en Niños Menores de 12 Años. Dosificación Cada 100 g Contiene: Bicarbonato de Sodio 46.22 g. Acido Cítrico Anhidro 42.7 g. Carbonato de Sodio Anhidro 10 g. Reacciones Adversas Los Medicamentos Pueden Producir Algunos Efectos no Deseados Además de Los Que se Pretende Obtener. Cualquier Medicamento Puede Producir Efectos no Deseados Especialmente si se Toma Por un Período Prolongado y/o en Dosis Grandes. Eno es Generalmente Bien Tolerado y Seguro. Casualmente se Puede Presentar Los Efectos Siguientes Debido a Sus Propiedades Farmacológicas: Eructos (Se Considera un Efecto Beneficioso), Flatulencia, Distensión Abdominal (Debido a la Liberación de Anhídrido Carbónico). Si se Consumió en Cantidades Excesivas, la Presencia de Bicarbonato de Sodio Puede Causar Los Calambres Del Estómago, Eructos y Flatulencia Así Como Carga Excesiva de Sodio o Alkalosis Metabólica. Estas Molestias Desaparecen al Suspender el Medicamento. Contraindicaciones no Tome Este Medicamento si es Alérgico a Alguno de Sus Componentes. Hipocalemia, Enfermedades Renales o Hepáticas Graves (Insuficiencias) Dolor Abdominal, Vómitos, Fiebre, Pacientes Con Úlceras. Condición de Venta Venta Libre.",
+   "concepto_auto": "medicamentos",
+   "relevante_auto": false,
+   "modos": [
+    "lexico",
+    "hibrido_sin_refuerzo"
+   ],
+   "origen": "diferencia"
+  },
+  {
+   "id": "farmacia|vitamina c efervescente|catalog_item|1390440",
+   "vertical": "farmacia",
+   "consulta": "vitamina c efervescente",
+   "tipo": "exacta",
+   "entity_type": "catalog_item",
+   "entity_id": "1390440",
+   "texto": "German Energy (1000 mg/10 mg). 1 x 20 Und. Categoría: Vitaminas y multivitamínicos. Vitamina C (1000 mg) / Zinc (10 mg). Contiene 20 Tabetas Efervescente.",
+   "concepto_auto": "vitaminas",
+   "relevante_auto": true,
+   "modos": [
+    "lexico",
+    "vector",
+    "hibrido",
+    "hibrido_sin_refuerzo"
+   ],
+   "origen": "al_azar"
+  },
+  {
+   "id": "licores|aperol|catalog_item|758487",
+   "vertical": "licores",
+   "consulta": "aperol",
+   "tipo": "exacta",
+   "entity_type": "catalog_item",
+   "entity_id": "758487",
+   "texto": "Aperol / Undurraga Brut 750cc. Marca: Aperol. 1 X 750 mL. Categoría: Aperitivos. Perfecta Promo para compartir con tus amigos !",
+   "concepto_auto": "licores",
+   "relevante_auto": true,
+   "modos": [
+    "lexico",
+    "vector",
+    "hibrido",
+    "hibrido_sin_refuerzo"
+   ],
+   "origen": "al_azar"
+  },
+  {
+   "id": "licores|bebida para mezclar con pisco|catalog_item|1330680",
+   "vertical": "licores",
+   "consulta": "bebida para mezclar con pisco",
+   "tipo": "necesidad",
+   "entity_type": "catalog_item",
+   "entity_id": "1330680",
+   "texto": "Promo Pisco Mistral 750 Cc Bebida 1.5 Coca Zero Y Hielo. 1 X 750 mL. Categoría: Pisco. Promo pisco mistral 750 cc bebida 1.5 coca zero y hielo",
+   "concepto_auto": "pisco",
+   "relevante_auto": false,
+   "modos": [
+    "vector",
+    "hibrido"
+   ],
+   "origen": "diferencia"
+  },
+  {
+   "id": "licores|bebida para mezclar con pisco|catalog_item|1535031",
+   "vertical": "licores",
+   "consulta": "bebida para mezclar con pisco",
+   "tipo": "necesidad",
+   "entity_type": "catalog_item",
+   "entity_id": "1535031",
+   "texto": "Destilado Nacional Sin Alcohol Disco Wav 700cc. 1 X 700 mL. Categoría: Pisco. Bebida inspirada en nuestro destilado nacional, con el aroma y sabor característico de las uvas y el roble, sin el alcohol ni las calorías. Producido con tecnología WAV y su concepto de música, vibración y frecuencias. ¡Sigue el playlist QR! #elsabordelsonido\n\nPara cuando tengas que manejar, entrenar, levantarte temprano, para aquellos animales nocturnos, creadores de bebés, quienes están a dieta, quieren descansar o que simplemente buscan disfrutar de un rico cocktail sin presión social ni los efectos del alcohol y las calorías.\n\nCelebra esta noche con WAV dISCO y rómpela mañana. Creado para mezclar con bebida cola o en coctelería. Modo de consumo: En un vaso con hielo, agrega 50 ml de dISCO, rellena con bebida cola. Si quieres, agrega una rodaja de lima. Puedes refrigerar la bebida antes de servir.\n\nConsumir antes de 1 año a partir de la fecha de elaboración. Una vez abierto, consumir antes de 3 meses y refrigerar!\n\n¡No congelar! Conservar en un lugar fresco y seco, sin rayos UV.\n\nIngredientes: Agua, azúcar de caña, saborizante natural, saborizante idéntico a natural, sorbato de potasio, goma de celulosa, ácido cítrico, color caramelo.",
+   "concepto_auto": "pisco",
+   "relevante_auto": false,
+   "modos": [
+    "lexico",
+    "hibrido",
+    "hibrido_sin_refuerzo"
+   ],
+   "origen": "al_azar"
+  },
+  {
+   "id": "licores|bebida para mezclar con pisco|catalog_item|6765",
+   "vertical": "licores",
+   "consulta": "bebida para mezclar con pisco",
+   "tipo": "necesidad",
+   "entity_type": "catalog_item",
+   "entity_id": "6765",
+   "texto": "Campanario Sour Pisco Sour Sabor a Limón 700 cc. Marca: Campanario. 1 X 700 mL. Categoría: Pisco. Coctel Campanario Sour 16° 700cc . El verdadero Pisco Sour chileno que mezcla el jugo de limon de verdad con pisco de verdad. Naturalmente refrescante.",
+   "concepto_auto": "pisco",
+   "relevante_auto": false,
+   "modos": [
+    "hibrido",
+    "hibrido_sin_refuerzo"
+   ],
+   "origen": "al_azar"
+  },
+  {
+   "id": "licores|cerveza artesanal|catalog_item|1554018",
+   "vertical": "licores",
+   "consulta": "cerveza artesanal",
+   "tipo": "exacta",
+   "entity_type": "catalog_item",
+   "entity_id": "1554018",
+   "texto": "Pack Stout Artesanales 4x 473ml. 1 X 473 mL. Categoría: Cervezas. Pack Cerveza Stout: Intensidad y Sabor Tostado \nDisfruta de la experiencia definitiva para los amantes de la cerveza oscura. Este pack resalta por su carácter robusto y notas profundamente aromáticas.\nPerfil de Sabor: Notas intensas a café tostado y chocolate amargo.\nCuerpo y Textura: Una cerveza de cuerpo pleno y textura cremosa, coronada por una espuma densa y persistente.\nColor: Negro profundo con destellos opacos, característica distintiva de las maltas altamente tostadas.\nMaridaje Ideal: Perfecta para acompañar carnes ahumadas, hamburguesas, quesos fuertes o postres a base de chocolate como brownies.",
+   "concepto_auto": "cerveza",
+   "relevante_auto": true,
+   "modos": [
+    "lexico",
+    "vector",
+    "hibrido",
+    "hibrido_sin_refuerzo"
+   ],
+   "origen": "al_azar"
+  },
+  {
+   "id": "licores|cerveza artesanal|catalog_item|1654459",
+   "vertical": "licores",
+   "consulta": "cerveza artesanal",
+   "tipo": "exacta",
+   "entity_type": "catalog_item",
+   "entity_id": "1654459",
+   "texto": "Jester Cerveza Chido Wey - Mexican Style Lager. Marca: Jester. 473mL. Categoría: Cervezas. Chido Wey es una cerveza artesanal de estilo Mexican Style Lager con maíz producida por la reconocida Cervecería Jester en Santiago, Chile.\nEs una variedad diseñada para ser sumamente refrescante, ligera y fácil de tomar, ideal para los días de calor.\n\nCaracterísticas técnicas y de sabor.\nEstilo: Mexican Style Lager (Lager de estilo mexicano).\nAlcohol (ABV): 5.2%.\nFormato: Lata de 473cc.\nAspecto: Sin filtrar, color dorado y levemente nublada.\nAroma:  Notas limpias a granos de malta pilsner y maíz.\nBoca: Cuerpo suave, ligera, seca, de amargor balanceado y final crisp (crujiente).\nEs una cerveza reducida en gluten.\n\nMedalla de Plata en la Copa Cervecera del Pacífico en México.",
+   "concepto_auto": "cerveza",
+   "relevante_auto": true,
+   "modos": [
+    "lexico",
+    "hibrido",
+    "hibrido_sin_refuerzo"
+   ],
+   "origen": "al_azar"
+  },
+  {
+   "id": "licores|chela bien helada|catalog_item|354",
+   "vertical": "licores",
+   "consulta": "chela bien helada",
+   "tipo": "necesidad",
+   "entity_type": "catalog_item",
+   "entity_id": "354",
+   "texto": "Lola Sangría Receta Española 750 cc. Marca: Lola. 1 X 750 mL. Categoría: Cocteles. Deliciosa Sangría Que Viene Lista Para Servir Bien Helada Con Rodajas de Naranja y Frutas, es Una Bebida Gourmet Que Destaca Por su Cuerpo, Color y Excelente Sabor, Ideal Para Acompañar Las Carnes Rojas. El Exceso de Alcohol es Perjudicial Para la Salud. Foto Referencial",
+   "concepto_auto": "cocteles",
+   "relevante_auto": false,
+   "modos": [
+    "lexico"
+   ],
+   "origen": "al_azar"
+  },
+  {
+   "id": "licores|energetica|catalog_item|1667831",
+   "vertical": "licores",
+   "consulta": "energetica",
+   "tipo": "sin_tildes",
+   "entity_type": "catalog_item",
+   "entity_id": "1667831",
+   "texto": "Bebida Energética Monster Energy Lata. 1 Und. Categoría: Energizantes",
+   "concepto_auto": "energizantes",
+   "relevante_auto": true,
+   "modos": [
+    "vector"
+   ],
+   "origen": "al_azar"
+  },
+  {
+   "id": "licores|gin para preparar gin tonic|catalog_item|108697",
+   "vertical": "licores",
+   "consulta": "gin para preparar gin tonic",
+   "tipo": "necesidad",
+   "entity_type": "catalog_item",
+   "entity_id": "108697",
+   "texto": "Kantal Ginebra Destilado 750 cc. Marca: Kantal. 1 X 750 mL. Categoría: Ginebras. Es un gin floral, fresco y aromático, ideal para coctelería o gin tonic. Elaborado en origen en la cordillera de Colchagua, donde pasa su proceso de destilación en alambiques de cobre chileno. El exceso de alcohol es perjudicial para la salud.",
+   "concepto_auto": "gin",
+   "relevante_auto": true,
+   "modos": [
+    "lexico",
+    "hibrido"
+   ],
+   "origen": "diferencia"
+  },
+  {
+   "id": "licores|gin para preparar gin tonic|catalog_item|1546425",
+   "vertical": "licores",
+   "consulta": "gin para preparar gin tonic",
+   "tipo": "necesidad",
+   "entity_type": "catalog_item",
+   "entity_id": "1546425",
+   "texto": "Kantal Cóctel Ice Gin Tonic. 1 x 473 mL. Categoría: Cocteles. Lata.",
+   "concepto_auto": "cocteles",
+   "relevante_auto": false,
+   "modos": [
+    "vector",
+    "hibrido_sin_refuerzo"
+   ],
+   "origen": "diferencia"
+  },
+  {
+   "id": "licores|gin para preparar gin tonic|catalog_item|335892",
+   "vertical": "licores",
+   "consulta": "gin para preparar gin tonic",
+   "tipo": "necesidad",
+   "entity_type": "catalog_item",
+   "entity_id": "335892",
+   "texto": "Spirit Bebida Alcohólica Gin Tonic. Marca: Spirit. 1 X 275 mL. Categoría: Cocteles. Spirit Bebida Alcohólica Gin Tonic 275 cc",
+   "concepto_auto": "cocteles",
+   "relevante_auto": false,
+   "modos": [
+    "lexico",
+    "vector",
+    "hibrido",
+    "hibrido_sin_refuerzo"
+   ],
+   "origen": "al_azar"
+  },
+  {
+   "id": "licores|pisco 35 grados|catalog_item|137110",
+   "vertical": "licores",
+   "consulta": "pisco 35 grados",
+   "tipo": "exacta",
+   "entity_type": "catalog_item",
+   "entity_id": "137110",
+   "texto": "La Serena Pisco 35° 700 cc. Marca: La Serena. 1 X 700 mL. Categoría: Pisco. Pisco La Serena 35° 700cc . Pisco La Serena es un pisco especial de 35°, proveniente de la cuarta región de Chile. Ideal para preparaciones y coctelería.",
+   "concepto_auto": "pisco",
+   "relevante_auto": true,
+   "modos": [
+    "hibrido"
+   ],
+   "origen": "diferencia"
+  },
+  {
+   "id": "licores|pisco 35 grados|catalog_item|1581458",
+   "vertical": "licores",
+   "consulta": "pisco 35 grados",
+   "tipo": "exacta",
+   "entity_type": "catalog_item",
+   "entity_id": "1581458",
+   "texto": "Whisky Jack Daniels Blackberry 35° 750 Cc. 1 X 750 mL. Categoría: Whiskys. Jack Daniel’s Tennessee Blackberry es una mezcla perfecta de Jack Daniel’s Tennessee Whiskey y su propio licor de moras, que entrega un sabor dulce y a la vez auténtico, refrescante y explosivo como ningún otro. Sabor: Dulce y frutal, con notas marcadas de mora negra, vainilla, caramelo y un suave fondo ahumado.\n\nEspecificaciones técnicas\n\nPaís de origen: Estados Unidos\nGrados alcohólicos: 35º\nTamaño: 750 cc\nFormato: Vidrio\nCalorías cada 100 ml",
+   "concepto_auto": "whisky",
+   "relevante_auto": false,
+   "modos": [
+    "lexico"
+   ],
+   "origen": "al_azar"
+  },
+  {
+   "id": "licores|pisco 35 grados|catalog_item|279645",
+   "vertical": "licores",
+   "consulta": "pisco 35 grados",
+   "tipo": "exacta",
+   "entity_type": "catalog_item",
+   "entity_id": "279645",
+   "texto": "Mistral Ice Coctel Blend Con Notas Cítricas 275 cc. Marca: Mistral Ice. 1 X 275.0 mL. Categoría: Cocteles. Disfruta de un delicioso pisco de notas cítricas, suavemente gasificado y de 7 grados de alcohol, es un trago fresco, listo para tomar, ideal para consumirlo muy frío, entre 4° y 6° C destacando así su sabor cítrico. El exceso de alcohol es perjudicial para la salud.",
+   "concepto_auto": "cocteles",
+   "relevante_auto": false,
+   "modos": [
+    "vector",
+    "hibrido_sin_refuerzo"
+   ],
+   "origen": "diferencia"
+  },
+  {
+   "id": "licores|regalo para un amante del whisky|catalog_item|70699",
+   "vertical": "licores",
+   "consulta": "regalo para un amante del whisky",
+   "tipo": "necesidad",
+   "entity_type": "catalog_item",
+   "entity_id": "70699",
+   "texto": "Glenfiddich Whisky Single Malt de 18 Años. Marca: Glenfiddich. 1 X 750 mL. Categoría: Whiskys. Es un whisky escocés de una sola malta madurado en barricas de roble español. En nariz se percibe ligeramente dulce, perfumado con notas de manzana asada, nuez moscada, toques de pasas y vinos de Jerez. En boca se siente sedoso y lentamente se van percibiendo las capas de sabor como a frutos secos (avellanas y almendras) y con toques cítricos. Para disfrutar con algunas gotas de agua para que se abran los aromas y disfrutar de su máximo esplendor. El exceso de alcohol es perjudicial para la salud.",
+   "concepto_auto": "whisky",
+   "relevante_auto": true,
+   "modos": [
+    "vector"
+   ],
+   "origen": "al_azar"
+  },
+  {
+   "id": "licores|vino tinto cabernet sauvignon|catalog_item|1653546",
+   "vertical": "licores",
+   "consulta": "vino tinto cabernet sauvignon",
+   "tipo": "exacta",
+   "entity_type": "catalog_item",
+   "entity_id": "1653546",
+   "texto": "Vinos Francés Rouquets Cabernet Sauvignon. 750mL. Categoría: Vino tinto. Rouquets es un refinado Cabernet Sauvignon del Pay´s dOc en el sur de Francia, que expresa el carácter soleado de la región con un estilo elegante y equilibrado. \nEn nariz destacan aromas de frutos negros maduros, cassis y sutiles notas especiadas. En boca ofrece una textura redonda, taninos suaves y un final persistente.\n\nIdeal para acompañar carnes rojas, pastas con salsas intensas y quesos maduros.\nUna excelente alternativa para quienes buscan descubrir un auténtico vino francés, con la calidad y personalidad que distinguen a los grandes Cabernet Sauvignon de Bourdeaux y el sur de Francia.",
+   "concepto_auto": "vino",
+   "relevante_auto": true,
+   "modos": [
+    "lexico"
+   ],
+   "origen": "al_azar"
+  },
+  {
+   "id": "licores|vino tinto cabernet sauvignon|catalog_item|246223",
+   "vertical": "licores",
+   "consulta": "vino tinto cabernet sauvignon",
+   "tipo": "exacta",
+   "entity_type": "catalog_item",
+   "entity_id": "246223",
+   "texto": "Gato Vino Tinto Cabernet Sauvignon 1.5 L. Marca: Gato. 1 X 1.5 L. Categoría: Vino tinto. En boca es un vino fácil de beber, de taninos suaves con un ataque lleno de fruta y un agradable final. Es de color rojo intenso con tintes violáceos. Ideal para maridaje de cordero, conejo, carnes rojas asadas o en guiso. En aroma destacan las frutas frescas maduras, tales como moras y grosellas negras. El exceso de alcohol es perjudicial para la salud.",
+   "concepto_auto": "vino",
+   "relevante_auto": true,
+   "modos": [
+    "hibrido",
+    "hibrido_sin_refuerzo"
+   ],
+   "origen": "al_azar"
+  },
+  {
+   "id": "licores|whisky etiqueta negra|catalog_item|236479",
+   "vertical": "licores",
+   "consulta": "whisky etiqueta negra",
+   "tipo": "exacta",
+   "entity_type": "catalog_item",
+   "entity_id": "236479",
+   "texto": "Johnnie Walker Black Label Whisky 40° Botella. Marca: Johnnie Walker. 1 X 1 L. Categoría: Whiskys. El Johnnie Walker es un whisky con carácter y sabor intenso y un blend complejo con notas a frutos del bosque, vainilla y tierra ahumada. Su mezcla contiene whiskies de 4 lugares distintos de Escocia madurados durante 12 años que le dan equilibrio. Es rico, complejo y bien balanceado, profunda y enriquecedora. El exceso de alcohol es perjudicial para la salud.",
+   "concepto_auto": "whisky",
+   "relevante_auto": true,
+   "modos": [
+    "vector",
+    "hibrido"
+   ],
+   "origen": "al_azar"
+  },
+  {
+   "id": "licores|whisky etiqueta negra|catalog_item|26168",
+   "vertical": "licores",
+   "consulta": "whisky etiqueta negra",
+   "tipo": "exacta",
+   "entity_type": "catalog_item",
+   "entity_id": "26168",
+   "texto": "Johnnie Walker Whisky Escocés Añejado Black Label 12 Años 750 cc. Marca: Johnnie Walker. 1 X 750 mL. Categoría: Whiskys. Es un verdadero ícono, reconocido como referente para todas las otras mezclas de lujo. Creado usando solo whiskies de mínimo 12 años de añejamiento de los 4 rincones de Escocia, tiene un inconfundible carácter profundo, suave y complejo. Un whisky excepcional para compartir en cualquier ocasión, sea pasando un rato agradable en casa con sus amigos o en una salida inolvidable. El exceso de alcohol es perjudicial para la salud.",
+   "concepto_auto": "whisky",
+   "relevante_auto": true,
+   "modos": [
+    "vector",
+    "hibrido"
+   ],
+   "origen": "diferencia"
+  },
+  {
+   "id": "licores|whisky etiqueta negra|catalog_item|40114",
+   "vertical": "licores",
+   "consulta": "whisky etiqueta negra",
+   "tipo": "exacta",
+   "entity_type": "catalog_item",
+   "entity_id": "40114",
+   "texto": "Tarapaca Vino Tinto Gran Rva. Etiqueta Cabernet Sauvignon 750 cc. Marca: Tarapaca. 1 X 750 mL. Categoría: Vino tinto. En Nariz Presenta Notas de Frutas Negras, Como Grosella Negra y Cassis, Delicadas Notas Herbales y Cuero. En Boca Sabores a Taninos Robustos, Redondos, de Gran Longitud y Equilibrado. En su Preparación, la Cosecha Fue a Mano en su Totalidad. El Exceso de Alcohol es Perjudicial Para la Salud. Foto Referencial",
+   "concepto_auto": "vino",
+   "relevante_auto": false,
+   "modos": [
+    "lexico",
+    "hibrido_sin_refuerzo"
+   ],
+   "origen": "diferencia"
+  },
+  {
+   "id": "licores|whisky etiqueta negra|catalog_item|538267",
+   "vertical": "licores",
+   "consulta": "whisky etiqueta negra",
+   "tipo": "exacta",
+   "entity_type": "catalog_item",
+   "entity_id": "538267",
+   "texto": "Johnnie Walker Whisky Black Label Sherry Finish. Marca: Johnnie Walker. 1 X 750 mL. Categoría: Whiskys. Es el regalo idóneo para aquellos que quieren saborear algo especial. Un whisky escocés de mezcla suave, envejecido durante al menos doce años. Tiene un sabor vibrante, con cuerpo y una maduración adicional en barricas de jerez, que le confiere las notas dulces. Ideal para acompañar tus mejores momentos. El exceso de alcohol es perjudicial para la salud.",
+   "concepto_auto": "whisky",
+   "relevante_auto": true,
+   "modos": [
+    "vector",
+    "hibrido"
+   ],
+   "origen": "diferencia"
+  },
+  {
+   "id": "licores|whisky etiqueta negra|catalog_item|7381",
+   "vertical": "licores",
+   "consulta": "whisky etiqueta negra",
+   "tipo": "exacta",
+   "entity_type": "catalog_item",
+   "entity_id": "7381",
+   "texto": "Whisky Singleton Single Malt Scotch Whisky 12 Años 700ml. Marca: Singleton. 1 X 700 mL. Categoría: Whiskys. El Singleton of Dufftown 12 Años se destila en la destilería Dufftown en Speyside, el corazón de la producción de whisky de malta en Escocia. El whisky se ha destilado en la destilería desde 1896 y, desde la fermentación hasta la destilación, hacemos todo lo posible para garantizar que cada gota de licor sea de la más alta calidad.The Singleton of Dufftown tiene un aroma de nueces tostadas con ricas frutas, con toques de grosella negra, azúcar moreno y café en el paladar, antes de un final elegantemente seco y crujiente. Tiene el perfil de sabor para los nuevos bebedores de whisky de malta debido a su sabor suave, rico y accesible. Es perfecto solo o con hielo, pero también se mezcla perfectamente con refrescos para un trago largo de sabor refrescante.Un whisky de pura malta de Speyside perfectamente equilibrado. El Singleton of Dufftown de 12 años tiene la característica suavidad afrutada dulce de Singleton, con toques de azúcar moreno y café espresso.Suave y suave como la mantequilla, la familia Singleton es famosa por su rico carácter de Speyside, que proviene de una fermentación y destilación más largas para un sabor completo.El sabor inconfundible de The Singleton proviene de una selección única de barricas de roble europeo que aportan ricos aromas frutales y barricas de roble americano que liberan notas melosas de vainilla. Cuando maneje, no tome. www.DRINKiQ.com",
+   "concepto_auto": "whisky",
+   "relevante_auto": true,
+   "modos": [
+    "lexico",
+    "hibrido"
+   ],
+   "origen": "diferencia"
+  },
+  {
+   "id": "mall|aros de plata|catalog_item|321700",
+   "vertical": "mall",
+   "consulta": "aros de plata",
+   "tipo": "exacta",
+   "entity_type": "catalog_item",
+   "entity_id": "321700",
+   "texto": "Aros Flor Plata 925 Con Cristal Swaroski P1562003. Marca: AO. 1 Und. Categoría: Aretes y Earcuff. Simples y Sencillos en Plata Italiana 925 Rodinada y 7 Cristales Swarovski Cubic Zirconia Finamente Engastados. Además Gratis Caja Con Finos Bombones Españoles Para Endulzar tu Paladar . El Regalo Ideal. Producto Hipoalergénico y Libre de Níquel.Nota: Chocolates de la Foto Sujeto a Disponibilidad de Stock de lo Contrario se Enviará Otro Similar o de Mayor Valor.",
+   "concepto_auto": "joyeria",
+   "relevante_auto": true,
+   "modos": [
+    "vector"
+   ],
+   "origen": "al_azar"
+  },
+  {
+   "id": "mall|audífonos bluetooth|catalog_item|1117733",
+   "vertical": "mall",
+   "consulta": "audífonos bluetooth",
+   "tipo": "exacta",
+   "entity_type": "catalog_item",
+   "entity_id": "1117733",
+   "texto": "Audifono Bluetooth Mtv. 1 Und. Categoría: Audifonos. Disfruta de la libertad inalámbrica y el estilo con nuestros audífonos Bluetooth MTV. Diseñados para brindar un sonido de alta calidad y una experiencia auditiva envolvente, estos audífonos te permiten disfrutar de tu música, podcast y llamadas con total comodidad y claridad. Conéctalos fácilmente a tu dispositivo móvil y muévete con libertad mientras te sumerges en tu contenido favorito. Además, el estilo icónico de MTV, añaden un toque de estilo y autenticidad a tu experiencia auditiva. Con un diseño elegante y ergonómico, son ideales para usar en casa, en la calle o en el trabajo. ¡Disfruta de la comodidad y el estilo con nuestros audífonos Bluetooth MTV!",
+   "concepto_auto": "audio",
+   "relevante_auto": true,
+   "modos": [
+    "vector",
+    "hibrido",
+    "hibrido_sin_refuerzo"
+   ],
+   "origen": "al_azar"
+  },
+  {
+   "id": "mall|audífonos bluetooth|catalog_item|1281570",
+   "vertical": "mall",
+   "consulta": "audífonos bluetooth",
+   "tipo": "exacta",
+   "entity_type": "catalog_item",
+   "entity_id": "1281570",
+   "texto": "Audífonos Bluetooth Ihk-40 Con Cancelación De Ruido Activa. Hifi - Blanco. 1 Und. Categoría: Audifonos. Audífonos Bluetooth IHK-A40 | Sonido 3D Estéreo | ANC y ENC | Control Tacto |\nDescripción:\n¡Sumérgete en un mundo de sonido puro!\n\nLos audífonos inalámbricos IHK-A40 te ofrecen una experiencia auditiva inigualable. Con su tecnología de sonido 3D estéreo y reducción de ruido activa (ANC) y pasiva (ENC), disfrutarás de tus canciones favoritas con una claridad y profundidad asombrosas, aislando el ruido exterior para una inmersión total.\n\nCaracterísticas Destacadas:\n\nSonido Hi-Fi: Calidad de audio superior para una experiencia auditiva envolvente.\n3 Modos de Reproducción: Adapta tu sonido a cualquier situación con los modos ANC, Transparencia y Juego.\nControl Tacto: Maneja tus llamadas, música y asistente de voz con simples toques.\nBatería de Larga Duración: Hasta 5.5 horas de reproducción continua y 140 días en espera.\nConexión Bluetooth 5.3: Conexión estable y rápida.\nDiseño Ergonómico: Comodidad durante todo el día.\nResistencia al Agua: Ideales para hacer ejercicio.\n¿Por qué elegir los IHK-A40?\n\nSonido Impecable: Disfruta de tu música con una calidad de estudio.\nComodidad Máxima: Diseño ergonómico para un ajuste perfecto.\nVersatilidad: Perfectos para el día a día, el trabajo o el deporte.\nTecnología Avanzada: Bluetooth 5.3 y cancelación de ruido de última generación.\nEspecificaciones Técnicas:\n\nModelo: IHK-A40\nBluetooth: 5.3\nTiempo de espera: 140 días\nTiempo de llamadas: 3.5 horas\nReproducción de música: 5.5 horas\nTiempo de carga: 1.5 horas\nVoltage de carga: DC 5v\nRango de frecuencia: 20-20000Hz\nDistancia de transmisión: 10m-16m\nBatería Auriculares: 33mAh\nBatería caja de carga: 300 mAh\n\naudífonos bluetooth\nsonido 3D\nreducción de ruido\nANC\nENC\nHi-Fi\ncontrol táctil\nbatería larga duración\nbluetooth 5.3\nin-ear\nauriculares inalámbricos\naudífonos deportivos\noferta\nmejor precio\n\n¡No te quedes sin los tuyos! Aprovecha esta increíble oferta y lleva ahora mismo tus audífonos IHK-A40.",
+   "concepto_auto": "audio",
+   "relevante_auto": true,
+   "modos": [
+    "lexico"
+   ],
+   "origen": "al_azar"
+  },
+  {
+   "id": "mall|cargador tipo c|catalog_item|936453",
+   "vertical": "mall",
+   "consulta": "cargador tipo c",
+   "tipo": "exacta",
+   "entity_type": "catalog_item",
+   "entity_id": "936453",
+   "texto": "Cable De Carga Usb Tipo C – C Carga Rápida De 100w 1,2 Mt. 1Und. Categoría: Cargadores y Cables de Celular. Cable de carga USB tipo C – C carga rápida de 100W, 1.2 Metros modelo BL-CHCB410, puede transferir datos y cargar sus dispositivos de forma fiable. Está provisto de una trenza de nylon en el exterior para que también pueda soportar una mayor tensión de la flexión frecuente. Las piezas finales están hechas de metal para una mayor robustez.\n\nLargo: 12oomm.\nMaterial: TPE + Nylon.\nCompatible con cualquier edición USB.\nCable: Cable 99,99% cobre.\nSoporta carga rápida, 100W.\nSuper resistente.",
+   "concepto_auto": "celulares",
+   "relevante_auto": true,
+   "modos": [
+    "vector"
+   ],
+   "origen": "al_azar"
+  },
+  {
+   "id": "mall|cuaderno universitario|catalog_item|68282",
+   "vertical": "mall",
+   "consulta": "cuaderno universitario",
+   "tipo": "exacta",
+   "entity_type": "catalog_item",
+   "entity_id": "68282",
+   "texto": "Artel Cuaderno Universitario Matemática 7mm100hojas. Marca: Artel. 1Und. Categoría: Cuadernos. Cuaderno con diseño y color aleatorio de 100 hojas, un cuaderno universitario para matemáticas.",
+   "concepto_auto": "utiles",
+   "relevante_auto": true,
+   "modos": [
+    "lexico",
+    "hibrido",
+    "hibrido_sin_refuerzo"
+   ],
+   "origen": "al_azar"
+  },
+  {
+   "id": "mall|juguete para niño de 5 años|catalog_item|1486991",
+   "vertical": "mall",
+   "consulta": "juguete para niño de 5 años",
+   "tipo": "necesidad",
+   "entity_type": "catalog_item",
+   "entity_id": "1486991",
+   "texto": "Dora Set Figuras Amigos Fantásticos. 1 x 5 Und. Categoría: Otros Juguetes para Bebé. Set Contiene 5 Unidades. Amigos Fantásticos de Dora la Exploradora Los Más Pequeños Podrán Llevarse a Casa a Sus Personajes Favoritos de la Serie. Este Pack Incluye Cinco Figuras: Dora Botas Tico Isa y el Divertido Trío Fiesta Todos Con Diseño Fiel al Original y Extremidades Articuladas Para Jugar Sin Límites. Ideal Para Niñas y Niños a Partir de 3 Años Este Pack de Regalo es Perfecto Para Recrear Escenas de la Serie o Inventar Nuevas Aventuras.",
+   "concepto_auto": "juguetes-infantiles",
+   "relevante_auto": true,
+   "modos": [
+    "lexico",
+    "hibrido"
+   ],
+   "origen": "diferencia"
+  },
+  {
+   "id": "mall|juguete para niño de 5 años|catalog_item|1555211",
+   "vertical": "mall",
+   "consulta": "juguete para niño de 5 años",
+   "tipo": "necesidad",
+   "entity_type": "catalog_item",
+   "entity_id": "1555211",
+   "texto": "Kit Terrario Mini Garden - Unicornio. 5+. 1 Und. Categoría: Calendarios y planificadores. Decora, planta y cultiva tu propio mini terrario en un entorno con forma de huevo, temática de Unicornio. El juguete de Unicornio es un regalo divertido y atractivo para niños desde 5 años. Utilice las semillas de rápido crecimiento y las decoraciones submarinas para darle vida a su kit de terrario de Unicornio.\n\r\nEdad mínima recomendada: 5 años",
+   "concepto_auto": "utiles",
+   "relevante_auto": false,
+   "modos": [
+    "lexico",
+    "hibrido_sin_refuerzo"
+   ],
+   "origen": "diferencia"
+  },
+  {
+   "id": "mall|mochila para el colegio|catalog_item|1298499",
+   "vertical": "mall",
+   "consulta": "mochila para el colegio",
+   "tipo": "necesidad",
+   "entity_type": "catalog_item",
+   "entity_id": "1298499",
+   "texto": "Lonchera Escolar Tiny Tigre: Amplia, Resistente Y Fácil De Limpiar. 1Und. Categoría: Cambiadores. ¡Haz que cada comida fuera de casa sea una experiencia divertida y práctica con la Lonchera Tiny Love! Pensada especialmente para los pequeños amantes de los animales y los colores, esta lonchera combina un diseño único en 3D con funcionalidad.\n\nLa correa ajustable y el asa superior hacen que sea fácil de llevar y se adapte perfectamente a la altura de tu pequeño, brindando comodidad en cada aventura fuera de casa. Perfecta para el jardín, el colegio o un día de paseo, esta lonchera no solo es práctica, sino que también se convertirá en el accesorio favorito de tu hijo.\n\n¡Cuidamos lo que más amas!\n\nCaracterísticas:\n\nMedidas: 22,5 cm x 10,5 cm x 18 cm.\nMaterial: 600D poliéster + PEVA blanco impermeable, seguro para el contacto con alimentos.\nCompartimento principal amplio e impermeable, fácil de limpiar.\nCorrea ajustable y asa superior para adaptarse a la altura de cada niño/a.\nDiseño llamativo y divertido en 3D.",
+   "concepto_auto": "articulos-bebe",
+   "relevante_auto": false,
+   "modos": [
+    "lexico"
+   ],
+   "origen": "al_azar"
+  },
+  {
+   "id": "mall|mochila para el colegio|catalog_item|352047",
+   "vertical": "mall",
+   "consulta": "mochila para el colegio",
+   "tipo": "necesidad",
+   "entity_type": "catalog_item",
+   "entity_id": "352047",
+   "texto": "Hatchimals Mochila Peluche Draggle Hml-d8258 Fo. 1Und. Categoría: Peluches. Hatchimals - Mochila de felpa La mochila de felpa de Hatchimals es ideal para transportar los elementos esenciales de tu escuela infantil y utiles, juguetes. Esta preciosa mochila tiene un bolsillo con cremallera para almacenamiento con correas ajustables para el hombro para mayor comodidad.",
+   "concepto_auto": "juguetes-infantiles",
+   "relevante_auto": false,
+   "modos": [
+    "vector",
+    "hibrido_sin_refuerzo"
+   ],
+   "origen": "diferencia"
+  },
+  {
+   "id": "mall|mochila para el colegio|catalog_item|950921",
+   "vertical": "mall",
+   "consulta": "mochila para el colegio",
+   "tipo": "necesidad",
+   "entity_type": "catalog_item",
+   "entity_id": "950921",
+   "texto": "Mochila Buenavista Square L Rojo Italiano - Bolsillo Laptop. 1 Und. Categoría: Mochilas, Morrales y Tulas. La SQUARE L es una mochila urbana de diseño elegante con una división interior especial para laptop de hasta 17\"(*).\n\nSu tamaño grande es suficiente para llevar todo lo necesario para un largo día.\n\nTiene bolsillos laterales para guardar botellas con facilidad, bolsillos interiores y un bolsillo delantero con cierre.\n\nEstá hecha de poliéster de alta calidad, flexible, respirable, resistente al agua y de larga duración, con correas acolchadas, hebillas de metal y terminaciones resistentes para que te acompañe por siempre.\n\nMEDIDAS: 41 x 32 x 14 CM.\nCAPACIDAD: 18 Lt.\n\n* Puede variar según modelo o marca de laptop.\n** El color de la etiqueta de tu mochila podría no ser igual a la foto.",
+   "concepto_auto": "accesorios-moda",
+   "relevante_auto": true,
+   "modos": [
+    "vector",
+    "hibrido"
+   ],
+   "origen": "diferencia"
+  },
+  {
+   "id": "mall|polerón con capucha|catalog_item|1162186",
+   "vertical": "mall",
+   "consulta": "polerón con capucha",
+   "tipo": "exacta",
+   "entity_type": "catalog_item",
+   "entity_id": "1162186",
+   "texto": "Buzo Acanalado Arcoíris Niña Talla 3-6m. 1 Und. Categoría: Sacos y chamarras. Buzo de dos piezas Color  Rosado, Polerón sin capucha con lindo estampado de Arcoíris, con broches en la parte frontal para mejor postura. Pantalón con bolsillos y cordón en la pretina. Cómodo y versátil.",
+   "concepto_auto": "ropa",
+   "relevante_auto": true,
+   "modos": [
+    "lexico",
+    "hibrido"
+   ],
+   "origen": "diferencia"
+  },
+  {
+   "id": "mall|polerón con capucha|catalog_item|1162190",
+   "vertical": "mall",
+   "consulta": "polerón con capucha",
+   "tipo": "exacta",
+   "entity_type": "catalog_item",
+   "entity_id": "1162190",
+   "texto": "Buzo Acanalado Arcoíris Niña Talla 2 Años. 1 Und. Categoría: Sacos y chamarras. Buzo de dos piezas Color  Rosado, Polerón sin capucha con lindo estampado de Arcoíris, con broches en la parte frontal para mejor postura. Pantalón con bolsillos y cordón en la pretina. Cómodo y versátil.",
+   "concepto_auto": "ropa",
+   "relevante_auto": true,
+   "modos": [
+    "lexico",
+    "hibrido"
+   ],
+   "origen": "diferencia"
+  },
+  {
+   "id": "mall|polerón con capucha|catalog_item|1162191",
+   "vertical": "mall",
+   "consulta": "polerón con capucha",
+   "tipo": "exacta",
+   "entity_type": "catalog_item",
+   "entity_id": "1162191",
+   "texto": "Buzo Acanalado Arcoíris Niña Talla 18-24m. 1 Und. Categoría: Sacos y chamarras. Buzo de dos piezas Color  Rosado, Polerón sin capucha con lindo estampado de Arcoíris, con broches en la parte frontal para mejor postura. Pantalón con bolsillos y cordón en la pretina. Cómodo y versátil.",
+   "concepto_auto": "ropa",
+   "relevante_auto": true,
+   "modos": [
+    "lexico"
+   ],
+   "origen": "al_azar"
+  },
+  {
+   "id": "mall|polerón con capucha|catalog_item|1367356",
+   "vertical": "mall",
+   "consulta": "polerón con capucha",
+   "tipo": "exacta",
+   "entity_type": "catalog_item",
+   "entity_id": "1367356",
+   "texto": "Capa Doble Con Capucha 120 cm. 1 x 1 Und. Categoría: Disfraces. Con Capucha.",
+   "concepto_auto": "decoracion",
+   "relevante_auto": false,
+   "modos": [
+    "vector",
+    "hibrido_sin_refuerzo"
+   ],
+   "origen": "diferencia"
+  },
+  {
+   "id": "mall|polerón con capucha|catalog_item|1367357",
+   "vertical": "mall",
+   "consulta": "polerón con capucha",
+   "tipo": "exacta",
+   "entity_type": "catalog_item",
+   "entity_id": "1367357",
+   "texto": "Capa Doble Con Capucha 90 cm. 1 x 1 Und. Categoría: Disfraces. Con Capucha.",
+   "concepto_auto": "decoracion",
+   "relevante_auto": false,
+   "modos": [
+    "vector",
+    "hibrido_sin_refuerzo"
+   ],
+   "origen": "diferencia"
+  },
+  {
+   "id": "mall|polerón con capucha|catalog_item|1367473",
+   "vertical": "mall",
+   "consulta": "polerón con capucha",
+   "tipo": "exacta",
+   "entity_type": "catalog_item",
+   "entity_id": "1367473",
+   "texto": "Disfraz Unicornio Con Capucha Niña. 1 x 1 Und. Categoría: Disfraces. Unicornio Con Capucha Niña.",
+   "concepto_auto": "decoracion",
+   "relevante_auto": false,
+   "modos": [
+    "vector",
+    "hibrido_sin_refuerzo"
+   ],
+   "origen": "diferencia"
+  },
+  {
+   "id": "mall|polerón con capucha|catalog_item|1367534",
+   "vertical": "mall",
+   "consulta": "polerón con capucha",
+   "tipo": "exacta",
+   "entity_type": "catalog_item",
+   "entity_id": "1367534",
+   "texto": "Capa Con Capucha Negra 90 cm. 1 x 1 Und. Categoría: Disfraces. Con Capucha.",
+   "concepto_auto": "decoracion",
+   "relevante_auto": false,
+   "modos": [
+    "vector",
+    "hibrido_sin_refuerzo"
+   ],
+   "origen": "al_azar"
+  },
+  {
+   "id": "mall|regalo para mi polola|catalog_item|1336469",
+   "vertical": "mall",
+   "consulta": "regalo para mi polola",
+   "tipo": "necesidad",
+   "entity_type": "catalog_item",
+   "entity_id": "1336469",
+   "texto": "Sleepy Regalo. Marca: Lush. 1 Und. Categoría: Humectantes faciales. El regalo indispensable para quienes quieren un buen descanso Esta noche no hace falta que lo consultes con la almohada, ni siquiera que cuentes a todas las ovejas del rebaño, solo tienes que dejarlo en manos de la tonka, la lavanda y el ylang ylang: la fórmula para tener dulces sueños del regalo Sleepy.  Tu regalo contiene: Sleepy Hidratante corporal 45g, Sleepy Gel de ducha 100g",
+   "concepto_auto": "dermocosmetica",
+   "relevante_auto": false,
+   "modos": [
+    "lexico",
+    "hibrido",
+    "hibrido_sin_refuerzo"
+   ],
+   "origen": "al_azar"
+  },
+  {
+   "id": "mall|reloj para hombre|catalog_item|1461531",
+   "vertical": "mall",
+   "consulta": "reloj para hombre",
+   "tipo": "exacta",
+   "entity_type": "catalog_item",
+   "entity_id": "1461531",
+   "texto": "Reloj Lujo Chenxi 019a Hombre Dorado Blanco Acero Inoxidable Cuarzo. 1Und. Categoría: Otras joyas. Reloj Lujo Chenxi 019A Hombre Dorado Blanco Acero inoxidable Cuarzo\n\nCODIGO PRODUCTO: C-019A-02\nMARCA: CHENXI\nMODELO: 019A\nGENERO: HOMBRE\nCOLOR DE LA CAJA: DORADO BLANCO\nMATERIAL DE LA CORREA: ACERO INOXIDABLE\nTIPO DE CIERRE: DESPLEGABLE\nPESO: 150G\nTIPO DE MOVIMIENTO: CUARZO\nTIPO DE PANTALLA: ANALOGICO\nMATERIAL DE LA CAJA: ACERO INOXIDABLE\nRESISTENTE AL AGUA: SI\nPROFUNDIDAD DE RESISTENCIA AL AGUA: 30 METROS\nTIPO DE BATERIA: PILA RELOJ",
+   "concepto_auto": "joyeria",
+   "relevante_auto": true,
+   "modos": [
+    "lexico",
+    "vector",
+    "hibrido",
+    "hibrido_sin_refuerzo"
+   ],
+   "origen": "al_azar"
+  },
+  {
+   "id": "mall|ropa de bebé|catalog_item|1539228",
+   "vertical": "mall",
+   "consulta": "ropa de bebé",
+   "tipo": "exacta",
+   "entity_type": "catalog_item",
+   "entity_id": "1539228",
+   "texto": "Spray Quitamanchas Y Olores Para Ropa 473ml Drbrowns. 1Und. Categoría: Otros higiene y cuidado. El Spray Quitamanchas y Olores para Ropa Dr. Brown's 473 ml es tu mejor aliado para mantener la ropa de tu guagua, niños y toda la familia limpia, fresca y sin manchas difíciles. Formulado con ingredientes naturales y enzimas potentes, este spray elimina eficientemente las manchas más comunes —leche materna, fórmula, comida, suciedad y residuos de pañales— sin dañar los tejidos delicados.\n\nLibre de fragancias artificiales y completamente vegano, su fórmula suave e hipoalergénica está pensada para prendas infantiles, baberos, mantas, ropa de cama e incluso pañales de tela, cuidando la piel sensible de tu bebé y la de toda la familia.Además, no contiene fosfatos, formaldehído, cloro, parabenos, ftalatos ni colorantes, lo que lo convierte en un producto seguro y confiable para uso frecuente.\n\nFácil de usar, solo rocía sobre la mancha o el área con olor, deja actuar y lava como de costumbre, obteniendo resultados efectivos incluso en tejidos delicados sin dejar residuos fuertes.\n\nCualidades destacadas:\n\nElimina manchas y olores difíciles, incluso de leche materna, fórmula y comida.\nFórmula vegana y suave, ideal para ropa de bebés y niños.\nPotente acción enzimática que descompone manchas sin dañar las telas.\nHipoalergénico y sin fragancia, seguro para pieles sensibles.\nFácil de usar: aplicación directa en spray, rápida y eficaz.\nLibre de fosfatos, formaldehído, cloro, parabenos, ftalatos y colorantes. \nConsejos de uso\nRocía directamente sobre la mancha o área con olor antes del lavado.\nDeja actuar entre 5 y 30 minutos para obtener mejores resultados.\nLuego lava la prenda como de costumbre en lavadora oa mano.\nIdeal para usar en ropa de bebé, mantas, baberos y pañales de tela.\nPara manchas muy difíciles, repita la aplicación antes del lavado.\nEspecificaciones\nContenido: 473 ml\nUso: Quitamanchas y neutralizador de olores para ropa.\nFórmula: Enzimática, vegana y libre de químicos agresivos\nFragancia: Sin fragancia (hipoalergénico)\nSeguridad: Libre de fosfatos, cloro, parabenos, ftalatos y colorantes\nAplicación: Spray para telas lavables, incluyendo ropa de bebés y adultos.\nMarca: Dr. Brown's",
+   "concepto_auto": "articulos-bebe",
+   "relevante_auto": true,
+   "modos": [
+    "lexico",
+    "hibrido"
+   ],
+   "origen": "diferencia"
+  },
+  {
+   "id": "mall|ropa de bebé|catalog_item|1628702",
+   "vertical": "mall",
+   "consulta": "ropa de bebé",
+   "tipo": "exacta",
+   "entity_type": "catalog_item",
+   "entity_id": "1628702",
+   "texto": "Pack De Lujo Para Baño Con Asiento Twistshake. 1Und. Categoría: Bañera y soporte. Pack de lujo para baño con asiento: Baño seguro, cómodo y con estilo desde el primer día\n\nCon el Pack de lujo para baño con asiento, transforma la rutina del baño en un momento de conexión, confort y practicidad. Diseñado para acompañar a tu bebé desde recién nacido hasta los 4 años, este set todo en uno combina funcionalidad inteligente, diseño escandinavo y materiales seguros para crear una experiencia de baño superior. Este kit es una solución integral para padres que buscan calidad, seguridad y diseño en los productos para el cuidado de su bebé.\n\n¿Qué incluye este kit?\n\n- Bañera plegable: Espaciosa y con capacidad de 30 litros, se pliega a solo 10 cm de altura para un almacenamiento compacto.\n- Asiento: Cómodo y estable para ser usado desde el primer día ya que imita la posición natural del bebé, además cuenta con 3 inclinaciones diferentes y 2 botones de seguridad.\n- Soporte ergonómico: Eleva la bañera a una altura cómoda, evitando tensiones en la espalda durante el baño.\n- Juguetes: 6 juguetes para una diversión asegurada durante el baño.\n- Regadera: Jarra con flujo suave para enjuagar sin molestias, protegiendo los ojos y la piel del bebé\n- Manguera de drenaje: Facilita el vaciado rápido y limpio de la bañera.\n\nBeneficios clave\n\n- Ahorro de espacio: Diseño plegable ideal para hogares con espacio limitado.\n- Ergonomía para padres: El soporte ajustable previene dolores de espalda al evitar agacharse.\n- Seguridad al 100%: Botones de seguridad, bases antideslizantes, materiales seguros y de alta calidad\n- Comodidad para el bebé: El asiento brinda soporte estable y seguro desde el nacimiento.\n- Fácil limpieza: Materiales de secado rápido y sistema de drenaje eficiente.\n\n\nTips de uso\n\n- Prepara todo antes del baño: Ten a mano toalla, pañal limpio, ropa y productos de higiene. Así evitas dejar solo en ningún momento.\n- Usa el soporte para mayor comodidad: Eleva la bañera con el soporte incluido para evitar agacharte o forzar la espalda, especialmente útil en los primeros meses.\n- Aprovecha el asiento de baño para recién nacidos: Ideal para mantener al bebé seguro y cómodo sin que se deslice. Asegúrate de ajustar la inclinación según el tamaño del bebé.\n- Chequea la temperatura del agua: El agua debe estar entre 36-37 °C. Usa tu codo o un termómetro de baño para verificarla antes de sumergir al bebé.\n- Usa la regadera para enjuagues suaves: Vierte el agua con la regadera sobre el cuerpo o la cabecita del bebé sin que le entre jabón en los ojitos.\n- Drena fácilmente después del baño: Conecta la manguera de drenaje para vaciar la bañera sin levantar peso, ideal para mamás y papás primerizos.\n- Dobla y guarda en segundos: Una vez seco, pliega la bañera a solo 10 cm de altura y guárdala debajo de la cama o detrás de una puerta. ¡Perfecto para espacios pequeños!\n- Mantén todo limpio y seco: Después de cada uso, enjuaga y seca los accesorios para mantenerlos en perfecto estado y libres de humedad.\n- Usalo también como piscina pequeña en verano: Cuando el bebé crezca, puedes usar la bañera como piscina portátil para los días calurosos. ¡Diversión asegurada!\n\n\n\n\n\n\n\n\n\n\n\n\n\nEspecificaciones:\n\nDimensiones del soporte desplegado: 64,2 x 69,6 x 95,5 cm\nDimensiones del soporte plegado: 64,2 x 15 x 109,5 cm\nPeso del soporte: 4,5 kg\nDimensiones bañera desplegada: 79.5 x 47.5 x 20 cm\nDimensiones bañera plegada: 79.5 x 47.5 x 10 cm\nDimensiones asiento: 29 x 58 x 7 cm plegada y 29 x 58 x 22 cm en su altura máxima\nCapacidad: 30 litros\nMaterial: PP plástico, TPE goma, acero en el soporte\nLibre de: BPA, PVC, ftalatos\nSeguridad: Bases antideslizantes y seguros contra plegado\nMontaje y almacenamiento: Se puede plegar en 3 pasos para guardado compacto\nEdad recomendada: Desde recién nacido hasta 4 años\nOrigen: Suecia",
+   "concepto_auto": "articulos-bebe",
+   "relevante_auto": true,
+   "modos": [
+    "lexico",
+    "hibrido"
+   ],
+   "origen": "diferencia"
+  },
+  {
+   "id": "mall|ropa de bebé|catalog_item|1628715",
+   "vertical": "mall",
+   "consulta": "ropa de bebé",
+   "tipo": "exacta",
+   "entity_type": "catalog_item",
+   "entity_id": "1628715",
+   "texto": "Pack De Lujo Para Baño Con Asiento Twistshake. 1Und. Categoría: Bañera y soporte. Pack de lujo para baño con asiento: Baño seguro, cómodo y con estilo desde el primer día\n\nCon el Pack de lujo para baño con asiento, transforma la rutina del baño en un momento de conexión, confort y practicidad. Diseñado para acompañar a tu bebé desde recién nacido hasta los 4 años, este set todo en uno combina funcionalidad inteligente, diseño escandinavo y materiales seguros para crear una experiencia de baño superior. Este kit es una solución integral para padres que buscan calidad, seguridad y diseño en los productos para el cuidado de su bebé.\n\n¿Qué incluye este kit?\n\n- Bañera plegable: Espaciosa y con capacidad de 30 litros, se pliega a solo 10 cm de altura para un almacenamiento compacto.\n- Asiento: Cómodo y estable para ser usado desde el primer día ya que imita la posición natural del bebé, además cuenta con 3 inclinaciones diferentes y 2 botones de seguridad.\n- Soporte ergonómico: Eleva la bañera a una altura cómoda, evitando tensiones en la espalda durante el baño.\n- Juguetes: 6 juguetes para una diversión asegurada durante el baño.\n- Regadera: Jarra con flujo suave para enjuagar sin molestias, protegiendo los ojos y la piel del bebé\n- Manguera de drenaje: Facilita el vaciado rápido y limpio de la bañera.\n\nBeneficios clave\n\n- Ahorro de espacio: Diseño plegable ideal para hogares con espacio limitado.\n- Ergonomía para padres: El soporte ajustable previene dolores de espalda al evitar agacharse.\n- Seguridad al 100%: Botones de seguridad, bases antideslizantes, materiales seguros y de alta calidad\n- Comodidad para el bebé: El asiento brinda soporte estable y seguro desde el nacimiento.\n- Fácil limpieza: Materiales de secado rápido y sistema de drenaje eficiente.\n\n\nTips de uso\n\n- Prepara todo antes del baño: Ten a mano toalla, pañal limpio, ropa y productos de higiene. Así evitas dejar solo en ningún momento.\n- Usa el soporte para mayor comodidad: Eleva la bañera con el soporte incluido para evitar agacharte o forzar la espalda, especialmente útil en los primeros meses.\n- Aprovecha el asiento de baño para recién nacidos: Ideal para mantener al bebé seguro y cómodo sin que se deslice. Asegúrate de ajustar la inclinación según el tamaño del bebé.\n- Chequea la temperatura del agua: El agua debe estar entre 36-37 °C. Usa tu codo o un termómetro de baño para verificarla antes de sumergir al bebé.\n- Usa la regadera para enjuagues suaves: Vierte el agua con la regadera sobre el cuerpo o la cabecita del bebé sin que le entre jabón en los ojitos.\n- Drena fácilmente después del baño: Conecta la manguera de drenaje para vaciar la bañera sin levantar peso, ideal para mamás y papás primerizos.\n- Dobla y guarda en segundos: Una vez seco, pliega la bañera a solo 10 cm de altura y guárdala debajo de la cama o detrás de una puerta. ¡Perfecto para espacios pequeños!\n- Mantén todo limpio y seco: Después de cada uso, enjuaga y seca los accesorios para mantenerlos en perfecto estado y libres de humedad.\n- Usalo también como piscina pequeña en verano: Cuando el bebé crezca, puedes usar la bañera como piscina portátil para los días calurosos. ¡Diversión asegurada!\nEspecificaciones:\n\nDimensiones del soporte desplegado: 64,2 x 69,6 x 95,5 cm\nDimensiones del soporte plegado: 64,2 x 15 x 109,5 cm\nPeso del soporte: 4,5 kg\nDimensiones bañera desplegada: 79.5 x 47.5 x 20 cm\nDimensiones bañera plegada: 79.5 x 47.5 x 10 cm\nDimensiones asiento: 29 x 58 x 7 cm plegada y 29 x 58 x 22 cm en su altura máxima\nCapacidad: 30 litros\nMaterial: PP plástico, TPE goma, acero en el soporte\nLibre de: BPA, PVC, ftalatos\nSeguridad: Bases antideslizantes y seguros contra plegado\nMontaje y almacenamiento: Se puede plegar en 3 pasos para guardado compacto\nEdad recomendada: Desde recién nacido hasta 4 años\nOrigen: Suecia",
+   "concepto_auto": "articulos-bebe",
+   "relevante_auto": true,
+   "modos": [
+    "lexico",
+    "hibrido"
+   ],
+   "origen": "diferencia"
+  },
+  {
+   "id": "mall|ropa de bebé|catalog_item|1731725",
+   "vertical": "mall",
+   "consulta": "ropa de bebé",
+   "tipo": "exacta",
+   "entity_type": "catalog_item",
+   "entity_id": "1731725",
+   "texto": "Muñeca Bebe Reborn Emilia. 1Und. Categoría: Muñecas y peluches. Vive la magia de abrazar y cuidar a tu muñeco bebé Reborn\n\nDescubre este maravilloso muñeco bebé reborn  confeccionado con materiales de alta calidad que ofrecen una apariencia y tacto muy realistas. Su peso y tamaño se asemejan a los de un recién nacido, proporcionando una experiencia auténtica tanto para coleccionistas como para el juego simbólico de cuidar a un bebé.\n\n✨ Características:\n\nCuerpo de tela y extremidades de goma, suave y blandito al tacto.\nDiseño artesanal con detalles realistas que evocan un bebé de verdad.\nDimensiones: 40 cm de largo, tamaño similar al de un recién nacido.\nEmite sonidos realistas como un bebé recién nacido.\nConjunto de ropa encantador que aportan estilo y sofisticación\n\n🌱 Beneficios:\n\nIdeal para abrazar y disfrutar de horas de juego simbólico como mamá o papá.\nPerfecto para coleccionistas que buscan un muñeco con apariencia y tacto realista.\nEstimula la imaginación y fortalece la conexión emocional durante el juego.\n\n¡Sumérgete en la ternura y realismo de este muñeco bebé Reborn y crea momentos mágicos de juego y cuidado!",
+   "concepto_auto": "juguetes-infantiles",
+   "relevante_auto": false,
+   "modos": [
+    "lexico",
+    "hibrido_sin_refuerzo"
+   ],
+   "origen": "diferencia"
+  },
+  {
+   "id": "mall|ropa de bebé|catalog_item|1731728",
+   "vertical": "mall",
+   "consulta": "ropa de bebé",
+   "tipo": "exacta",
+   "entity_type": "catalog_item",
+   "entity_id": "1731728",
+   "texto": "Muñeca Bebe Reborn Pola. 1Und. Categoría: Muñecas y peluches. Vive la magia de abrazar y cuidar a tu muñeco bebé Reborn\n\nDescubre este maravilloso muñeco bebé reborn  confeccionado con materiales de alta calidad que ofrecen una apariencia y tacto muy realistas. Su peso y tamaño se asemejan a los de un recién nacido, proporcionando una experiencia auténtica tanto para coleccionistas como para el juego simbólico de cuidar a un bebé.\n\n✨ Características:\n\nCuerpo de tela y extremidades de goma, suave y blandito al tacto.\nDiseño artesanal con detalles realistas que evocan un bebé de verdad.\nDimensiones: 40 cm de largo, tamaño similar al de un recién nacido.\nEmite sonidos realistas como un bebé recién nacido.\nConjunto de ropa encantador que aportan estilo y sofisticación\n\n🌱 Beneficios:\n\nIdeal para abrazar y disfrutar de horas de juego simbólico como mamá o papá.\nPerfecto para coleccionistas que buscan un muñeco con apariencia y tacto realista.\nEstimula la imaginación y fortalece la conexión emocional durante el juego.\n\n¡Sumérgete en la ternura y realismo de este muñeco bebé Reborn y crea momentos mágicos de juego y cuidado!",
+   "concepto_auto": "juguetes-infantiles",
+   "relevante_auto": false,
+   "modos": [
+    "lexico",
+    "hibrido_sin_refuerzo"
+   ],
+   "origen": "diferencia"
+  },
+  {
+   "id": "mall|ropa de bebé|catalog_item|506651",
+   "vertical": "mall",
+   "consulta": "ropa de bebé",
+   "tipo": "exacta",
+   "entity_type": "catalog_item",
+   "entity_id": "506651",
+   "texto": "Suéter Punto Leo 0-3 Meses. 1Und. Categoría: Ropa bebés. Chalequito de bebé hecho de una mezcla de algodón y cashmere, perfecto para la canastilla de recién nacido y los primeros meses durante el invierno.\n\nLos botones en el hombro te permitirán poner y sacar el jersey con facilidad.\n\nPara combinarlo con el pantalón de punto y un gorro para formar un conjunto precioso.  \n\nLa colección de cashmere de Petit Oh!\n\nestá confeccionada en algodón y cashmere para las pieles más delicadas como la del bebé recién nacido.\n\nPoleron Punto LeoColor: Rayas Iron",
+   "concepto_auto": "ropa",
+   "relevante_auto": true,
+   "modos": [
+    "hibrido_sin_refuerzo"
+   ],
+   "origen": "diferencia"
+  },
+  {
+   "id": "mall|ropa de bebé|catalog_item|584473",
+   "vertical": "mall",
+   "consulta": "ropa de bebé",
+   "tipo": "exacta",
+   "entity_type": "catalog_item",
+   "entity_id": "584473",
+   "texto": "Vestido Floreado Bebé Niña Rosado Talla 18/24 Meses. 1 x 1 Und. Categoría: Ropa bebés. Vestido Liviano.|- Largo Medio Muslo.",
+   "concepto_auto": "ropa",
+   "relevante_auto": true,
+   "modos": [
+    "vector",
+    "hibrido_sin_refuerzo"
+   ],
+   "origen": "diferencia"
+  },
+  {
+   "id": "mall|ropa de bebé|catalog_item|768643",
+   "vertical": "mall",
+   "consulta": "ropa de bebé",
+   "tipo": "exacta",
+   "entity_type": "catalog_item",
+   "entity_id": "768643",
+   "texto": "Osito Jirafa Boy 3-6m. 1Und. Categoría: Ropa bebés. Enterito de Plush Bebé Niño.\n\nTela ultra suave\nCuello Redondo\nColor Verde con Jirafas bordadas\nModelo con broches en toda la parte delantera y entre piernas para facilitar la postura y muda de pañal de tu bebé.",
+   "concepto_auto": "ropa",
+   "relevante_auto": true,
+   "modos": [
+    "hibrido_sin_refuerzo"
+   ],
+   "origen": "diferencia"
+  },
+  {
+   "id": "mall|sarten antiadherente|catalog_item|1186668",
+   "vertical": "mall",
+   "consulta": "sarten antiadherente",
+   "tipo": "sin_tildes",
+   "entity_type": "catalog_item",
+   "entity_id": "1186668",
+   "texto": "Tostiarepas Eléctrico Antiadherente Sin Aceite Cocina. 1000Und. Categoría: Waffleras, tostadoras y sanducheras. Capacidad para cocinar 6 arepas\n* Listas en 7 minutos aproximadamente\n* Cierre con seguridad\n* Antiadherente\n* Fácil de limpiar\n* Diseño compacto",
+   "concepto_auto": "electrohogar",
+   "relevante_auto": false,
+   "modos": [
+    "vector",
+    "hibrido_sin_refuerzo"
+   ],
+   "origen": "diferencia"
+  },
+  {
+   "id": "mall|sarten antiadherente|catalog_item|1374540",
+   "vertical": "mall",
+   "consulta": "sarten antiadherente",
+   "tipo": "sin_tildes",
+   "entity_type": "catalog_item",
+   "entity_id": "1374540",
+   "texto": "Sartén Alta Lisa Volcánico 26 cm Le Creuset. 1 x 1 Und. Categoría: Cocción y horneado. Es Ideal Para Dorar o Freír Los Alimentos y Sellar Carnes. Su Superficie Está Formulada Para Alcanzar Mayores Temperaturas y Preparar Deliciosas Recetas a la Plancha Además Con el Uso Continuo el Material va Generando Una Pátina Natural Que Hace de Mejor Calidad el Sartén y Reduce la Cantidad de Grasa Necesaria Para Cocinar. Garantía de Por Vida.",
+   "concepto_auto": "cocina-menaje",
+   "relevante_auto": true,
+   "modos": [
+    "hibrido"
+   ],
+   "origen": "diferencia"
+  },
+  {
+   "id": "mall|sarten antiadherente|catalog_item|1643606",
+   "vertical": "mall",
+   "consulta": "sarten antiadherente",
+   "tipo": "sin_tildes",
+   "entity_type": "catalog_item",
+   "entity_id": "1643606",
+   "texto": "Maquina 6 Mini Donas. 15Und. Categoría: Waffleras, tostadoras y sanducheras. Descripción de producto\n- Prepara deliciosas mini donuts en casa en poco tiempo, perfecto para aperitivos, entretenimiento y niños. Relleno, esmerilado, esmaltado, decorado, salpicaduras, y más las posibilidades son infinitas.\n- Control de temperatura: utiliza este mini donut Maker para cocinar tu comida de la manera que quieras, ofreciendo más opciones para hornear donuts esponjosos o oscuros y crujientes de mínimo a máximo.\n- Fácil de limpiar: este mini donut Maker con material antiadherente de sartén, fácil de limpiar, no experimentarás perder tiempo quitando las manchas duras de la placa.\n\nEspecificaciones:\n- Máquina Mini donut maker\n- Material: antiadherente - Potencia: 850w\n- Corriente: 220v/240v - 50Hz-60Hz\n- Color: negro\n\nCaracterísticas adicionales:\n. Compacto y ligero\n. Rápido y fácil: Simplemente conéctalo y listo, se calienta en pocos minutos\n. La doble superficie antiadherente proporciona una cocción uniforme\n. Soportes antideslizantes\n. Perfecto para uso industrial a pequeña escala o para el hogar\n. Cómoda y practica para tener en cualquier lugar de la cocina\n. Luz indicadora\n. Control termostato\n. Protector de sobrecalentamiento\n. Fácil de guardar gracias a su pequeño tamaño\n. Capacidad para 6 mini donas\n. Carcasa de tacto frio\n. Pies antideslizantes\n. Mini donas de 4,5cm",
+   "concepto_auto": "electrohogar",
+   "relevante_auto": false,
+   "modos": [
+    "lexico",
+    "hibrido_sin_refuerzo"
+   ],
+   "origen": "diferencia"
+  },
+  {
+   "id": "mall|sarten antiadherente|catalog_item|1651006",
+   "vertical": "mall",
+   "consulta": "sarten antiadherente",
+   "tipo": "sin_tildes",
+   "entity_type": "catalog_item",
+   "entity_id": "1651006",
+   "texto": "Lechero Vitta 1.75 Litros Antiadherente Cherry. 1 Und. Categoría: Cocción y horneado. Formato de venta: Unidad Diámetro total: 14 cm Altura total: 12 cm Unidades por pack: 1 Capacidad en volumen: 1.75 L",
+   "concepto_auto": "cocina-menaje",
+   "relevante_auto": true,
+   "modos": [
+    "hibrido"
+   ],
+   "origen": "diferencia"
+  },
+  {
+   "id": "mall|sarten antiadherente|catalog_item|902244",
+   "vertical": "mall",
+   "consulta": "sarten antiadherente",
+   "tipo": "sin_tildes",
+   "entity_type": "catalog_item",
+   "entity_id": "902244",
+   "texto": "Tijera Antiadherente 15cm. Marca: Adix. 1Und. Categoría: Implementos de corte. Tijera Antiadherente de Pegamento 15cm\n\nHoja Negra\nAntiadherente\nMango Confortable",
+   "concepto_auto": "utiles",
+   "relevante_auto": false,
+   "modos": [
+    "vector",
+    "hibrido_sin_refuerzo"
+   ],
+   "origen": "diferencia"
+  },
+  {
+   "id": "mall|set de maquillaje|catalog_item|1411354",
+   "vertical": "mall",
+   "consulta": "set de maquillaje",
+   "tipo": "exacta",
+   "entity_type": "catalog_item",
+   "entity_id": "1411354",
+   "texto": "Kit Be Glamorous.. 1 Und. Categoría: Otros accesorios de belleza. Maquillaje  Maquillaje Para Rostro PETRIZZIO",
+   "concepto_auto": "maquillaje",
+   "relevante_auto": true,
+   "modos": [
+    "vector",
+    "hibrido"
+   ],
+   "origen": "diferencia"
+  },
+  {
+   "id": "mall|set de maquillaje|catalog_item|1669588",
+   "vertical": "mall",
+   "consulta": "set de maquillaje",
+   "tipo": "exacta",
+   "entity_type": "catalog_item",
+   "entity_id": "1669588",
+   "texto": "Glam Factor · Set De Barras De Maquillaje Stick Legends. 7Und. Categoría: Blush. Lleva tu maquillaje al siguiente nivel con Stick Legends.\n\nEsta colección de sticks reúne rubores, iluminadores, bronzer y contornos con una textura cremosa que se funde al instante en tu piel, permitiéndote esculpir, iluminar y dar color en cuestión de minutos.\n\nSu formato práctico hace que aplicarlos sea tan fácil como deslizar, difuminar y brillar. La esponja incluida está pensada para lograr un acabado perfecto y natural, sin marcas y con un glow que se siente profesional. Porque con Stick Legends, tu make up se convierte en pura actitud y cero complicaciones.\n\nSet Incluye:\n\n1. Baby Pink - Rubor En Barra\n2. Spice Girl - Rubor En Barra\n3. Fairy Glow - Iluminador En Barra\n4. Glazed Donut - Iluminador En Barra\n5. Sunny Bomb - Bronzer En Barra\n6. Cool Chai - Contorno En Barra\n7. Esponja de Maquillaje",
+   "concepto_auto": "maquillaje",
+   "relevante_auto": true,
+   "modos": [
+    "lexico",
+    "hibrido"
+   ],
+   "origen": "diferencia"
+  },
+  {
+   "id": "mall|set de maquillaje|catalog_item|549205",
+   "vertical": "mall",
+   "consulta": "set de maquillaje",
+   "tipo": "exacta",
+   "entity_type": "catalog_item",
+   "entity_id": "549205",
+   "texto": "Miniso Set de Mascarilla Tazón + Utensilios Belleza Candy Series. Marca: Miniso. 1 x 8 Und. Categoría: Bolsas al vacío y Selladores. Lucir divina necesita tiempo y dedicación. Ahora es mas fácil. Comienza tu ritual de belleza con el set de mascarilla que incluye utensilios. Caracteristicas del producto: 1.Alta calidad: durará mucho tiempo gracias a sus muchos usos. 2.Ahorro de espacio: su diseño compacto permite guardar en cualquier sitio. 3.Todo lo que necesita en 1 paquete: este es un gran pequeño con todo lo que puedas necesitar para mezclar tus propias máscaras faciales en tu hogar. 4.Tamaño de viaje: viajar fácilmente se adapta a un maletín pequeño de maquillaje o bolsa de plástico con cierre hermético.",
+   "concepto_auto": "papeles-desechables",
+   "relevante_auto": false,
+   "modos": [
+    "hibrido_sin_refuerzo"
+   ],
+   "origen": "diferencia"
+  },
+  {
+   "id": "mall|set de maquillaje|catalog_item|643750",
+   "vertical": "mall",
+   "consulta": "set de maquillaje",
+   "tipo": "exacta",
+   "entity_type": "catalog_item",
+   "entity_id": "643750",
+   "texto": "#mood 7-day Set. 1 Und. Categoría: Agua micelar y bifásicos. ¡Borra TODO el maquillaje con SOLO agua! ¡Incluyendo mascara de pestañas a prueba de agua, delineador de ojos, base, lápiz labial y más! Incluye: 7 toallitas de 13cm x 10cm.",
+   "concepto_auto": "dermocosmetica",
+   "relevante_auto": false,
+   "modos": [
+    "vector",
+    "hibrido_sin_refuerzo"
+   ],
+   "origen": "diferencia"
+  },
+  {
+   "id": "mall|set de maquillaje|catalog_item|836013",
+   "vertical": "mall",
+   "consulta": "set de maquillaje",
+   "tipo": "exacta",
+   "entity_type": "catalog_item",
+   "entity_id": "836013",
+   "texto": "Set De Minis Esponjas Blender De Maquillaje. 1Und. Categoría: Pinzas, brochas y perfiladores. El empaque es igual al de la imagen varia la forma de la Esponja Blender segun la disponibilidad , Ambas dan el mismo resultado profesional. \n\nSuave para aplicar polvo seco y base líquida. \n\nDiseño fácil de usar: la punta de la esponja es adecuada para usar en los ojos, labios y otras partes pequeñas.\n La sección transversal es adecuada para las mejillas y la frente. \n\nLa superficie curva es ideal para la nariz. Ultrafino y cómodo: puff flocado, la superficie de fibra de terciopelo vegetal ultrafina es cómoda, elástica, suave y agradable a la piel. \n\nFunciona especialmente bien en áreas difíciles de alcanzar para configurar el maquillaje y crear un acabado suave.",
+   "concepto_auto": "maquillaje",
+   "relevante_auto": true,
+   "modos": [
+    "hibrido"
+   ],
+   "origen": "diferencia"
+  },
+  {
+   "id": "mall|set de maquillaje|catalog_item|868583",
+   "vertical": "mall",
+   "consulta": "set de maquillaje",
+   "tipo": "exacta",
+   "entity_type": "catalog_item",
+   "entity_id": "868583",
+   "texto": "Set Maquillaje Belleza Hape. 1 Und. Categoría: Roles y Profesiones. Este kit de cosmética color rosado estimula el juego de roles y satisface la curiosidad del niño. Contiene artículos básicos para el cabello, uñas y maquillaje.  MATERIAL: Madera, tela. MEDIDA: 20.5 x 8 x 19.5 cm. EDAD: +3 años.",
+   "concepto_auto": "juguetes-infantiles",
+   "relevante_auto": false,
+   "modos": [
+    "vector",
+    "hibrido_sin_refuerzo"
+   ],
+   "origen": "diferencia"
+  },
+  {
+   "id": "restaurantes|arepas venezolanas|menu_item|1150166",
+   "vertical": "restaurantes",
+   "consulta": "arepas venezolanas",
+   "tipo": "exacta",
+   "entity_type": "menu_item",
+   "entity_id": "1150166",
+   "texto": "Arepa Domino. Arepa venezolana rellena con caraotas (porotos negros) y Queso llanero.. Sección: Arepas. Restaurante: El Arepazo. - Victoria. Cocina: Empanadas, Internacional",
+   "concepto_auto": "latina",
+   "relevante_auto": true,
+   "modos": [
+    "hibrido",
+    "hibrido_sin_refuerzo"
+   ],
+   "origen": "al_azar"
+  },
+  {
+   "id": "restaurantes|ensalada liviana|menu_item|1193617",
+   "vertical": "restaurantes",
+   "consulta": "ensalada liviana",
+   "tipo": "necesidad",
+   "entity_type": "menu_item",
+   "entity_id": "1193617",
+   "texto": "Crepe Huerta Fresca | Vegetariano. Crepe con verduras salteadas, salsa blanca y gratín suave, acompañado de ensalada mixta. Liviano y sabroso.. Sección: Platos que Reconfortan. Restaurante: Zanaholiva - Temuco. Cocina: Desayunos, Pastelería y Postres",
+   "concepto_auto": "ensaladas-bowls",
+   "relevante_auto": true,
+   "modos": [
+    "lexico"
+   ],
+   "origen": "al_azar"
+  },
+  {
+   "id": "restaurantes|gelato de pistacho|menu_item|1131572",
+   "vertical": "restaurantes",
+   "consulta": "gelato de pistacho",
+   "tipo": "exacta",
+   "entity_type": "menu_item",
+   "entity_id": "1131572",
+   "texto": "Pistaccio. Gelato de pistaccio, tamaño a elegir.. Sección: Gelatos. Restaurante: Lucca Gelato - Turbo - Las Condes. Cocina: Desayunos, Helados, Pastelería y Postres",
+   "concepto_auto": "pasteleria",
+   "relevante_auto": false,
+   "modos": [
+    "hibrido_sin_refuerzo"
+   ],
+   "origen": "diferencia"
+  },
+  {
+   "id": "restaurantes|pasta a la bolognesa|menu_item|1238774",
+   "vertical": "restaurantes",
+   "consulta": "pasta a la bolognesa",
+   "tipo": "exacta",
+   "entity_type": "menu_item",
+   "entity_id": "1238774",
+   "texto": "Lasagña bolognesa. Lasagña bolognesa con capas de pasta, carne molida y salsa de tomate.. Sección: Pasta Fresca. Restaurante: la Tavola - Madrid. Cocina: Internacional",
+   "concepto_auto": "hamburguesa",
+   "relevante_auto": false,
+   "modos": [
+    "vector",
+    "hibrido_sin_refuerzo"
+   ],
+   "origen": "diferencia"
+  },
+  {
+   "id": "restaurantes|pasta a la bolognesa|menu_item|595570",
+   "vertical": "restaurantes",
+   "consulta": "pasta a la bolognesa",
+   "tipo": "exacta",
+   "entity_type": "menu_item",
+   "entity_id": "595570",
+   "texto": "Lasagna Bolognesa. Lasagna Bolognesa con carne, salsa blanca, pomodoro y pesto.. Sección: Pasta. Restaurante: Bertazzo Trattoria y Cafe - Bustamante. Cocina: Desayunos, Internacional, Italiana",
+   "concepto_auto": "pastas",
+   "relevante_auto": true,
+   "modos": [
+    "vector",
+    "hibrido"
+   ],
+   "origen": "diferencia"
+  },
+  {
+   "id": "restaurantes|pescado frito|menu_item|1083621",
+   "vertical": "restaurantes",
+   "consulta": "pescado frito",
+   "tipo": "exacta",
+   "entity_type": "menu_item",
+   "entity_id": "1083621",
+   "texto": "Pescado Frito. Pescado Frito al estilo tradicional, jugoso, dorado Elija su acompañamiento: arroz, pure, papas fritas, ensalada mixta, papa mayo, papas salteadas. Sección: Platos principales. Restaurante: Amapola Posada - Bellavista. Cocina: Pescados y Mariscos",
+   "concepto_auto": "platos-listos",
+   "relevante_auto": false,
+   "modos": [
+    "lexico",
+    "hibrido_sin_refuerzo"
+   ],
+   "origen": "diferencia"
+  },
+  {
+   "id": "restaurantes|pescado frito|menu_item|1137266",
+   "vertical": "restaurantes",
+   "consulta": "pescado frito",
+   "tipo": "exacta",
+   "entity_type": "menu_item",
+   "entity_id": "1137266",
+   "texto": "Pescado Frito. Pescado frito con arroz papas fritas, ensalada y bebida a elegir.. Sección: Colación. Restaurante: Fuego Limon - Macul. Cocina: Internacional, Peruana",
+   "concepto_auto": "platos-listos",
+   "relevante_auto": false,
+   "modos": [
+    "vector",
+    "hibrido_sin_refuerzo"
+   ],
+   "origen": "diferencia"
+  },
+  {
+   "id": "restaurantes|pescado frito|menu_item|1962302",
+   "vertical": "restaurantes",
+   "consulta": "pescado frito",
+   "tipo": "exacta",
+   "entity_type": "menu_item",
+   "entity_id": "1962302",
+   "texto": "Filete de Pescado Frito. Filete de pescado frito con papas fritas y arroz blanco.. Sección: Platos Marinos. Restaurante: Angus Chickenn - Puente Alto. Cocina: Peruana, Pollo",
+   "concepto_auto": "platos-listos",
+   "relevante_auto": false,
+   "modos": [
+    "vector",
+    "hibrido_sin_refuerzo"
+   ],
+   "origen": "diferencia"
+  },
+  {
+   "id": "restaurantes|pescado frito|menu_item|2301905",
+   "vertical": "restaurantes",
+   "consulta": "pescado frito",
+   "tipo": "exacta",
+   "entity_type": "menu_item",
+   "entity_id": "2301905",
+   "texto": "Pescado Frito. Pescado frito con patacones, ensalada y queso frito. Sección: Colaciones. Restaurante: Cachi Burger - San Miguel. Cocina: Hamburguesa, Internacional",
+   "concepto_auto": "pescados-mariscos",
+   "relevante_auto": true,
+   "modos": [
+    "hibrido"
+   ],
+   "origen": "diferencia"
+  },
+  {
+   "id": "restaurantes|pescado frito|menu_item|2320944",
+   "vertical": "restaurantes",
+   "consulta": "pescado frito",
+   "tipo": "exacta",
+   "entity_type": "menu_item",
+   "entity_id": "2320944",
+   "texto": "PROMO 9 - 50 Fuego. 10- pollo queso cebollín frito en panko 10-camarón queso cebollín frito panko 10-kanikama queso cebollín frito en panko 10-carne queso cebollín frito panko 10-champiñón queso cebollín frito en panko.. Sección: PROMOCIONES. Restaurante: SUSHI BOM - Maipú. Cocina: Pescados y Mariscos, Sushi",
+   "concepto_auto": "sushi",
+   "relevante_auto": false,
+   "modos": [
+    "lexico"
+   ],
+   "origen": "al_azar"
+  },
+  {
+   "id": "restaurantes|pescado frito|menu_item|338193",
+   "vertical": "restaurantes",
+   "consulta": "pescado frito",
+   "tipo": "exacta",
+   "entity_type": "menu_item",
+   "entity_id": "338193",
+   "texto": "Pescado Frito. Pescado frito acompañado de papas fritas encima un pebre sin aji y una exquisita salsa acevichada. Sección: Colaciones. Restaurante: Sibaritas Club - El Llano. Cocina: Asiática, Sushi",
+   "concepto_auto": "pescados-mariscos",
+   "relevante_auto": true,
+   "modos": [
+    "hibrido"
+   ],
+   "origen": "diferencia"
+  },
+  {
+   "id": "restaurantes|pescado frito|menu_item|96793",
+   "vertical": "restaurantes",
+   "consulta": "pescado frito",
+   "tipo": "exacta",
+   "entity_type": "menu_item",
+   "entity_id": "96793",
+   "texto": "Pescado Frito. Filetes de pescado frito servidos con papas.. Sección: Fritos. Restaurante: Contento - Antofagasta. Cocina: Asiática, Internacional",
+   "concepto_auto": "pescados-mariscos",
+   "relevante_auto": true,
+   "modos": [
+    "vector",
+    "hibrido"
+   ],
+   "origen": "diferencia"
+  },
+  {
+   "id": "restaurantes|postre de chocolate|menu_item|1020235",
+   "vertical": "restaurantes",
+   "consulta": "postre de chocolate",
+   "tipo": "necesidad",
+   "entity_type": "menu_item",
+   "entity_id": "1020235",
+   "texto": "Triple Chocolate. Postre elaborado con suave envoltura de masa de arroz glutinoso relleno de cremoso helado sabor chocolate y salsa sabor chocolate en el centro, bañado con cobertura sabor chocolate. Sección: Postres. Restaurante: Maldito Arroz - Las Condes. Cocina: Asiática, Sushi",
+   "concepto_auto": "postres",
+   "relevante_auto": true,
+   "modos": [
+    "lexico",
+    "hibrido",
+    "hibrido_sin_refuerzo"
+   ],
+   "origen": "al_azar"
+  },
+  {
+   "id": "restaurantes|tiramisu|menu_item|113563",
+   "vertical": "restaurantes",
+   "consulta": "tiramisu",
+   "tipo": "sin_tildes",
+   "entity_type": "menu_item",
+   "entity_id": "113563",
+   "texto": "Tiramisu. Tiramisú con capas de galleta champaña, crema de café y licor de café.. Sección: Postres. Restaurante: Mega Ají Seco - Vergara. Cocina: Pescados y Mariscos",
+   "concepto_auto": "postres",
+   "relevante_auto": true,
+   "modos": [
+    "lexico",
+    "hibrido",
+    "hibrido_sin_refuerzo"
+   ],
+   "origen": "al_azar"
+  },
+  {
+   "id": "restaurantes|tiramisu|menu_item|944221",
+   "vertical": "restaurantes",
+   "consulta": "tiramisu",
+   "tipo": "sin_tildes",
+   "entity_type": "menu_item",
+   "entity_id": "944221",
+   "texto": "Tiramisu. Postre italiano con capas de crema y galletas empapadas en café, espolvoreado con cacao.. Sección: Postres. Restaurante: Barrio Nikkei - Ñuñoa. Cocina: Asiática, Internacional",
+   "concepto_auto": "postres",
+   "relevante_auto": true,
+   "modos": [
+    "vector"
+   ],
+   "origen": "al_azar"
+  },
+  {
+   "id": "supermercado|aceite de oliva extra virgen|catalog_item|1099620",
+   "vertical": "supermercado",
+   "consulta": "aceite de oliva extra virgen",
+   "tipo": "exacta",
+   "entity_type": "catalog_item",
+   "entity_id": "1099620",
+   "texto": "Aceite De Oliva 3 Del 72 1 Litro Blend. 1 X 1 L. Categoría: Aceite. <p>Aceite de Oliva Extra Virgen Blend - Producci&oacute;n Artesanal en Maule</p><p>Descubre el exquisito Aceite de Oliva Extra Virgen Blend, elaborado con esmero en la regi&oacute;n de Maule. Este aceite premium combina lo mejor de las variedades locales, garantizando un sabor &uacute;nico y una calidad insuperable. Ideal para elevar tus platillos gourmet, ensaladas y recetas favoritas. Aprovecha los beneficios del aceite de oliva extra virgen, rico en antioxidantes y &aacute;cidos grasos saludables.</p>",
+   "concepto_auto": "aceites-condimentos",
+   "relevante_auto": true,
+   "modos": [
+    "hibrido",
+    "hibrido_sin_refuerzo"
+   ],
+   "origen": "al_azar"
+  },
+  {
+   "id": "supermercado|algo calentito para la once|catalog_item|115811",
+   "vertical": "supermercado",
+   "consulta": "algo calentito para la once",
+   "tipo": "necesidad",
+   "entity_type": "catalog_item",
+   "entity_id": "115811",
+   "texto": "Iansa Chancaca Endulzante Libre de Gluten. Marca: Iansa. 1 X 225 g. Categoría: Endulzante. Es una deliciosa mezcla de distintos tipos de azúcares y melaza de caña, para disfrutar en familia todas tus ricas y calentitas preparaciones de invierno, no pueden faltar las sopaipillas pasadas o los ricos picarones, libre de colorantes, saborizantes, preservantes artificiales y sin gluten.",
+   "concepto_auto": "azucar",
+   "relevante_auto": false,
+   "modos": [
+    "lexico",
+    "hibrido",
+    "hibrido_sin_refuerzo"
+   ],
+   "origen": "al_azar"
+  },
+  {
+   "id": "supermercado|algo dulce para el cafe de la tarde|catalog_item|1301389",
+   "vertical": "supermercado",
+   "consulta": "algo dulce para el cafe de la tarde",
+   "tipo": "necesidad",
+   "entity_type": "catalog_item",
+   "entity_id": "1301389",
+   "texto": "Café Sueños Con Café 340 G (grano). 340g. Categoría: Café. \"Café de especialidad, proceso artesanal, con una noble causa de ayudar a los hijos con discapacidad física o mental de nuestros productores. 100% Arabica. Origen: Huila Colombia. Altitud: 1.350 - 1.900 m.s.n.m. Tueste: Medio. Variedad: Caturra, Castillo, Colombia. Aroma Floral, Cuerpo Medio, Acidez Media, Sabor Dulce Miel. SCA: 86\"",
+   "concepto_auto": "cafe",
+   "relevante_auto": false,
+   "modos": [
+    "hibrido"
+   ],
+   "origen": "diferencia"
+  },
+  {
+   "id": "supermercado|algo dulce para el cafe de la tarde|catalog_item|1402741",
+   "vertical": "supermercado",
+   "consulta": "algo dulce para el cafe de la tarde",
+   "tipo": "necesidad",
+   "entity_type": "catalog_item",
+   "entity_id": "1402741",
+   "texto": "Marley Capuccino Vainilla Mediano+ Muffin Chocolate Con Chips. 1 Und. Categoría: Panaderia dulce",
+   "concepto_auto": "pasteleria",
+   "relevante_auto": true,
+   "modos": [
+    "vector"
+   ],
+   "origen": "al_azar"
+  },
+  {
+   "id": "supermercado|almuerzo listo para calentar|catalog_item|1051505",
+   "vertical": "supermercado",
+   "consulta": "almuerzo listo para calentar",
+   "tipo": "necesidad",
+   "entity_type": "catalog_item",
+   "entity_id": "1051505",
+   "texto": "Cachapas Listas Para Comer. 1Und. Categoría: Otras comidas preparadas. Panqueque de choclo sellado al vacio 5 unid (con separador) listos para calentar y comer 100% maíz",
+   "concepto_auto": "latina",
+   "relevante_auto": false,
+   "modos": [
+    "lexico",
+    "vector",
+    "hibrido",
+    "hibrido_sin_refuerzo"
+   ],
+   "origen": "al_azar"
+  },
+  {
+   "id": "supermercado|almuerzo listo para calentar|catalog_item|1239915",
+   "vertical": "supermercado",
+   "consulta": "almuerzo listo para calentar",
+   "tipo": "necesidad",
+   "entity_type": "catalog_item",
+   "entity_id": "1239915",
+   "texto": "Ají De Gallina 800 Grs Le Banquet. 800 g. Categoría: Platos listos. Producto congelado. Calentar en agua hirviendo por 8-10 minutos y a disfrutar",
+   "concepto_auto": "platos-listos",
+   "relevante_auto": true,
+   "modos": [
+    "hibrido"
+   ],
+   "origen": "diferencia"
+  },
+  {
+   "id": "supermercado|almuerzo listo para calentar|catalog_item|1655692",
+   "vertical": "supermercado",
+   "consulta": "almuerzo listo para calentar",
+   "tipo": "necesidad",
+   "entity_type": "catalog_item",
+   "entity_id": "1655692",
+   "texto": "Lasaña Boloñesa Pf De 350 Gramos. 350g. Categoría: Listos para comer. La lasaña boloñesa PF de 350 gramos es una opción práctica y sabrosa para quienes buscan una comida reconfortante con el sabor clásico de la cocina italiana. Su combinación de pasta, salsa boloñesa y queso ofrece una textura cremosa y un perfil de sabor equilibrado, ideal para almuerzos o cenas en casa.\n\nGracias a su presentación de 350 gramos, resulta adecuada para una ración completa y ayuda a resolver una comida con rapidez sin renunciar al gusto. Solo requiere calentar y servir, lo que la convierte en una alternativa conveniente para el día a día, especialmente cuando se desea comer bien con poco tiempo.",
+   "concepto_auto": "platos-listos",
+   "relevante_auto": true,
+   "modos": [
+    "lexico",
+    "hibrido"
+   ],
+   "origen": "diferencia"
+  },
+  {
+   "id": "supermercado|almuerzo listo para calentar|catalog_item|196779",
+   "vertical": "supermercado",
+   "consulta": "almuerzo listo para calentar",
+   "tipo": "necesidad",
+   "entity_type": "catalog_item",
+   "entity_id": "196779",
+   "texto": "Humita. 1 Und. Categoría: Platos listos",
+   "concepto_auto": "platos-listos",
+   "relevante_auto": true,
+   "modos": [
+    "vector",
+    "hibrido"
+   ],
+   "origen": "diferencia"
+  },
+  {
+   "id": "supermercado|almuerzo listo para calentar|catalog_item|349552",
+   "vertical": "supermercado",
+   "consulta": "almuerzo listo para calentar",
+   "tipo": "necesidad",
+   "entity_type": "catalog_item",
+   "entity_id": "349552",
+   "texto": "Done By Deer Plato Silicona Peekaboo Elphee Gris. 1Und. Categoría: Vajilla y Cubertería. ¡Peekaboo es hora de comer! Elphee se asoma por el lateral del práctico plato de silicona listo para hacer de la hora de la comida un momento extra divertido del día. Con los bordes interiores redondeados, el plato es ideal para recoger con facilidad mientras los pequeños aprenden a alimentarse solos. El adorable plato está hecho de silicona de calidad alimentaria, lo que lo hace irrompible y apto para usar en el microondas, el horno, el congelador y el lavavajillas, además de tener características antideslizantes. La placa de silicona duradera es perfecta para calentar comidas. A los más pequeños les encantará que el simpático elefante se una a ellos a la hora de comer, y cuidado, la larga trompa de Elphee podría robarle un bocado. El práctico plato está en un verde suave a juego con la colección de vajilla Peekaboo y viene en una caja de regalo decorada con mucho gusto.",
+   "concepto_auto": "cocina-menaje",
+   "relevante_auto": false,
+   "modos": [
+    "hibrido_sin_refuerzo"
+   ],
+   "origen": "diferencia"
+  },
+  {
+   "id": "supermercado|almuerzo listo para calentar|catalog_item|349553",
+   "vertical": "supermercado",
+   "consulta": "almuerzo listo para calentar",
+   "tipo": "necesidad",
+   "entity_type": "catalog_item",
+   "entity_id": "349553",
+   "texto": "Done By Deer Plato Silicona Peekaboo Elphee Mostaza. 1Und. Categoría: Vajilla y Cubertería. ¡Peekaboo es hora de comer! Elphee se asoma por el lateral del práctico plato de silicona listo para hacer de la hora de la comida un momento extra divertido del día. Con los bordes interiores redondeados, el plato es ideal para recoger con facilidad mientras los pequeños aprenden a alimentarse solos. El adorable plato está hecho de silicona de calidad alimentaria, lo que lo hace irrompible y apto para usar en el microondas, el horno, el congelador y el lavavajillas, además de tener características antideslizantes. La placa de silicona duradera es perfecta para calentar comidas. A los más pequeños les encantará que el simpático elefante se una a ellos a la hora de comer, y cuidado, la larga trompa de Elphee podría robarle un bocado. El práctico plato está en un verde suave a juego con la colección de vajilla Peekaboo y viene en una caja de regalo decorada con mucho gusto.",
+   "concepto_auto": "cocina-menaje",
+   "relevante_auto": false,
+   "modos": [
+    "hibrido_sin_refuerzo"
+   ],
+   "origen": "diferencia"
+  },
+  {
+   "id": "supermercado|almuerzo listo para calentar|catalog_item|863481",
+   "vertical": "supermercado",
+   "consulta": "almuerzo listo para calentar",
+   "tipo": "necesidad",
+   "entity_type": "catalog_item",
+   "entity_id": "863481",
+   "texto": "Ensalada Pollo. 450g. Categoría: Ensaladas. Bowl Pollo Grill: Energía y Frescura en un solo lugar\nSi buscas un almuerzo completo, ligero y lleno de sabor, nuestro Bowl de Pollo es la opción perfecta. Combinamos proteínas de alta calidad con una selección de vegetales frescos para ofrecerte una comida balanceada que te mantendrá con energía todo el día.\n\n¿Qué hace especial a nuestro Bowl?\nLa Proteína: Tiernos trozos de pechuga de pollo grillada, sazonados a la perfección para un sabor casero y saludable.\n\nBase Crujiente: Un mix de hojas verdes frescas que incluye Lechuga Española y Escarola, seleccionadas para dar la textura ideal.\n\nAcompañamientos del Día: Creemos en la variedad, por eso cada día sorprendemos con complementos frescos como:\n\nGranos y Legumbres: Porotos negros, rojos, garbanzos, quinoa o fideos.\n\nVegetales de Estación: Choclo dulce, porotos verdes, beterraga, zanahoria rallada y tomate.\n\nToque Cítrico: Incluye rodajas de limón para realzar todos los sabores de forma natural.\n\nBeneficios:\n✅ 100% Nutritivo: Equilibrio perfecto entre proteína, fibra y carbohidratos.\n✅ Frescura Garantizada: Ingredientes procesados el mismo día.\n✅ Práctico: Presentación ideal para llevar a la oficina o disfrutar en casa.",
+   "concepto_auto": "ensaladas-bowls",
+   "relevante_auto": false,
+   "modos": [
+    "hibrido_sin_refuerzo"
+   ],
+   "origen": "diferencia"
+  },
+  {
+   "id": "supermercado|atun en lata|catalog_item|1216012",
+   "vertical": "supermercado",
+   "consulta": "atun en lata",
+   "tipo": "sin_tildes",
+   "entity_type": "catalog_item",
+   "entity_id": "1216012",
+   "texto": "Churu Bisque Atun. 1 Und. Categoría: Snacks para Mascotas. Inaba Churu Bisque Atún es un snack premium y saludable que complementa la alimentación de tu gato. Elaborado con ingredientes 100% naturales, como atún salvaje, este snack sin granos ni aditivos artificiales es ideal para agregar sabor y humedad a la comida diaria de tu felino, ayudándolo a mantenerse hidratado.\n\nCARACTERISTICAS\n\nIngredientes 100% Naturales: Hecho con atún salvaje, sin granos, conservantes ni colorantes artificiales.\nBajo en Calorías: Solo 16 kcal por sobre, ideal para el control del peso.\nAltamente Hidratante: Contiene un 91% de humedad, excelente para mejorar la hidratación de tu gato.\nEnriquecido con Vitaminas y Antioxidantes: Contiene Vitamina E y extracto de té verde para reforzar el sistema inmunológico.\nTextura Cremosa y Apetecible: Perfecto para mezclar con alimentos secos o servir como un snack delicioso.\nPresentación Individual: Práctico sobre de una sola porción, fácil de servir.\nLibre de Ingredientes Artificiales: Sin conservantes ni colorantes para una opción más natural y saludable.\nCOMPOSICIÓN\nCaldo de atún, suplemento de Vitamina E, Atún, goma guar, extracto de té verde, almidón de tapioca modificado, sabores naturales.\nANÁLISIS DE LOS COMPONENTES\n\nProteína cruda (mín.) 7%\nGrasa cruda (mín.) 0,2%\nFibra cruda (máx.) 0,3%\nHumedad (máx.) 91%\nVitamina E (mín.) 50 UI/kg\n400 kcal/kg, 16,0 kcal/paquete (ME)\nInstrucciones de alimentación:\nAlimente como una golosina para su gato. Este producto no está destinado a ser alimentado como una comida. Proporcione agua limpia y fresca diariamente. Para la salud de su mascota, visite regularmente a su veterinario.\nInstrucciones de almacenamiento\nRefrigere después de abrir y sirva lo antes posible.\nCONTIENE: Sobre de 40gr",
+   "concepto_auto": "alimento-perro",
+   "relevante_auto": false,
+   "modos": [
+    "vector",
+    "hibrido_sin_refuerzo"
+   ],
+   "origen": "diferencia"
+  },
+  {
+   "id": "supermercado|atun en lata|catalog_item|1627176",
+   "vertical": "supermercado",
+   "consulta": "atun en lata",
+   "tipo": "sin_tildes",
+   "entity_type": "catalog_item",
+   "entity_id": "1627176",
+   "texto": "Freshest Alimento Húmedo Gato Atún y Cangrejo Tasty 11506. 1 x 1 Und. Categoría: Snacks para Mascotas. Complementario Para Gatos Que Puedes Darle Como Snack Aportando Humedad a su Dieta Debido a su Alto Contenido de Agua. Utilizar Una Lata Por Día. No Apto Para Gatos Menores a 6 Meses de Edad. Beneficios Del Lata Tasty Freshest Atún y Cangrejo: Con Aceite de Pescado Añadido Con Taurina Añadida Enriquecido Con Probióticos Sin Adición de Grasas Libre de Granos Composición: Atún Cangrejo Sumo de Pescado Almidón de Papa Multivitaminas Hidrógeno Fosfato de Calcio Tripolifosfato de Sodio Glicerina Taurina Elementos Traza Mannose Oligosacáridos. Componentes Analiticos: Proteína Bruta 11% Aceites y Grasas Brutos 0.3% Fibras Brutas 1% Ceniza Bruta 2.5% Humedad 85% Contiene: 80 g. Somos la Tienda Para Amantes de Mascotas ya Sean Exóticas Perritos o Gatitos. Contamos Con la Mejor Atención al Cliente Tanto Presencial Como Online y en Nuestros Servicios de Despacho Envíos a Regiones Veterinaria y Peluquería. Nos Esforzamos Día a Día Para Entregar un Mejor Servicio a Nuestros Clientes. Contamos Con Todo lo Que tu Mascota Necesita Ven y Vive la Mejor Experiencia. Tus Mascotas. Cl tu Tienda Pet Lover Favorita.",
+   "concepto_auto": "alimento-perro",
+   "relevante_auto": false,
+   "modos": [
+    "lexico",
+    "hibrido_sin_refuerzo"
+   ],
+   "origen": "diferencia"
+  },
+  {
+   "id": "supermercado|atun en lata|catalog_item|1632568",
+   "vertical": "supermercado",
+   "consulta": "atun en lata",
+   "tipo": "sin_tildes",
+   "entity_type": "catalog_item",
+   "entity_id": "1632568",
+   "texto": "Coliseo Atún Lomo Agua. 1 x 142 g. Categoría: Pescado enlatado. Lata.",
+   "concepto_auto": "conservas",
+   "relevante_auto": true,
+   "modos": [
+    "hibrido"
+   ],
+   "origen": "diferencia"
+  },
+  {
+   "id": "supermercado|atun en lata|catalog_item|903583",
+   "vertical": "supermercado",
+   "consulta": "atun en lata",
+   "tipo": "sin_tildes",
+   "entity_type": "catalog_item",
+   "entity_id": "903583",
+   "texto": "La Romana Atún Agua. 1 x 140 g. Categoría: Pescado enlatado. Lata",
+   "concepto_auto": "conservas",
+   "relevante_auto": true,
+   "modos": [
+    "vector",
+    "hibrido"
+   ],
+   "origen": "diferencia"
+  },
+  {
+   "id": "supermercado|cafe molido|catalog_item|1667420",
+   "vertical": "supermercado",
+   "consulta": "cafe molido",
+   "tipo": "sin_tildes",
+   "entity_type": "catalog_item",
+   "entity_id": "1667420",
+   "texto": "Cafe Santo Domingo Molido 453g. 1Und. Categoría: Café. Santo Domingo Café Molido es más que un café; es una conexión con la rica herencia cafetalera de la República Dominicana. Con cada sorbo, te transporta a la cultura, la pasión y la tradición que han hecho de este café un verdadero tesoro. ¡Descubre el sabor auténtico de Santo Domingo en cada taza!",
+   "concepto_auto": "cafe",
+   "relevante_auto": true,
+   "modos": [
+    "lexico",
+    "vector",
+    "hibrido",
+    "hibrido_sin_refuerzo"
+   ],
+   "origen": "al_azar"
+  },
+  {
+   "id": "supermercado|cafe molido|catalog_item|9159",
+   "vertical": "supermercado",
+   "consulta": "cafe molido",
+   "tipo": "sin_tildes",
+   "entity_type": "catalog_item",
+   "entity_id": "9159",
+   "texto": "Café Caribe Molido Italianissimo. Marca: Café Caribe. 250 g. Categoría: Café. Cafe Molido Italianissimo Caribe 250 Gr",
+   "concepto_auto": "cafe",
+   "relevante_auto": true,
+   "modos": [
+    "vector",
+    "hibrido",
+    "hibrido_sin_refuerzo"
+   ],
+   "origen": "al_azar"
+  },
+  {
+   "id": "supermercado|carne molida|catalog_item|110376",
+   "vertical": "supermercado",
+   "consulta": "carne molida",
+   "tipo": "exacta",
+   "entity_type": "catalog_item",
+   "entity_id": "110376",
+   "texto": "Ariztía Carne Molida de Pavo. Marca: Ariztia. 400 g. Categoría: Pollo y aves. Carne molida de pavo, siempre criado sin hormonas y sin sal añadida.",
+   "concepto_auto": "pollo",
+   "relevante_auto": false,
+   "modos": [
+    "lexico",
+    "vector",
+    "hibrido_sin_refuerzo"
+   ],
+   "origen": "diferencia"
+  },
+  {
+   "id": "supermercado|carne molida|catalog_item|1630674",
+   "vertical": "supermercado",
+   "consulta": "carne molida",
+   "tipo": "exacta",
+   "entity_type": "catalog_item",
+   "entity_id": "1630674",
+   "texto": "Carne Molida De Ciervo, Real Foods, 500 Grs. 1Und. Categoría: Otras carnes. Carne Molida de Ciervo – 500 g 🦌\n\nCarne de ciervo de libre pastoreo, proveniente del sur de Chile, de animales criados en libertad. Destaca por su sabor intenso, textura magra y perfil más saludable, ideal para quienes buscan una proteína distinta y gourmet.\n\nPerfecta para:\n• Hamburguesas y medallones\n• Crudos o tártaros\n• Albóndigas y rellenos\n• Pastas (ragú o boloñesa)\n• Empanadas gourmet\n• Salteados y preparaciones rápidas\n• Lasagnas o pastel de carne",
+   "concepto_auto": "carnes",
+   "relevante_auto": true,
+   "modos": [
+    "lexico",
+    "vector",
+    "hibrido",
+    "hibrido_sin_refuerzo"
+   ],
+   "origen": "al_azar"
+  },
+  {
+   "id": "supermercado|cereal para ninos|catalog_item|1158862",
+   "vertical": "supermercado",
+   "consulta": "cereal para ninos",
+   "tipo": "sin_tildes",
+   "entity_type": "catalog_item",
+   "entity_id": "1158862",
+   "texto": "Unicornio Con Cereal. Marca: Caramel. 1Und. Categoría: Cereales. Unicornio de chocolate blanco y cereal",
+   "concepto_auto": "cereales",
+   "relevante_auto": true,
+   "modos": [
+    "hibrido"
+   ],
+   "origen": "diferencia"
+  },
+  {
+   "id": "supermercado|cereal para ninos|catalog_item|133404",
+   "vertical": "supermercado",
+   "consulta": "cereal para ninos",
+   "tipo": "sin_tildes",
+   "entity_type": "catalog_item",
+   "entity_id": "133404",
+   "texto": "Fitness Nestlé Cereal De Avena Sin Azúcar. Marca: Fitness. 330 g. Categoría: Cereales. El nuevo cereal Fitness original aporta más hierro  calcio  zinc y ácido fólico  nutrientes esenciales para las mujeres  tomar una porción de cereales integrales en el desayuno contribuye a lograr un estilo de vida más saludable. Packing: Caja",
+   "concepto_auto": "cereales",
+   "relevante_auto": true,
+   "modos": [
+    "hibrido",
+    "hibrido_sin_refuerzo"
+   ],
+   "origen": "al_azar"
+  },
+  {
+   "id": "supermercado|cereal para ninos|catalog_item|137071",
+   "vertical": "supermercado",
+   "consulta": "cereal para ninos",
+   "tipo": "sin_tildes",
+   "entity_type": "catalog_item",
+   "entity_id": "137071",
+   "texto": "Sales Rehidrat 90Rehidratantes. Marca: Sales. 4 Und. Categoría: Suero. Principio Activo: Cloruro de Sodio - Cloruro de Potasio - Citrato de Sodio - Glucosa Anhidra / Forma Farmacéutica: Oral Polvo Sólido / Dosis Por Forma Farmacéutica: 3.50 g - 1.50 g - 2.94 g - 20 g. ¿Para Qué Enfermedades o Condiciones se Prescribe Este Medicamento? Tratamiento Precoz en la Prevención de la Deshidratación en Lactantes y en Niños Con Diarrea Ligera o Moderada y Otros Estados Con Riesgo de Deshidratación. Como Complemento Para la Mantención de un Tratamiento Parenteral Correctivo de Diarreas Graves y Vómitos. Las Sales de Rehidratación se Recomiendan en el Tratamiento de la Diarrea Infecciosa Aguda, en Pacientes de Uti (Unidad de Tratamientos Intensivos) en la Terapia Enteral Con Líquidos, en la Rehidratación de Pacientes Quemados, en Pacientes Operados Para Balancear Los Fluidos y Electrolitos, y en la Deshidratación de Los Ancianos. ¿Cómo Debo Usar Este Producto? (Posología) el Médico Debe Señalar la Posología y el Tiempo de Tratamiento Apropiado a su Caso Particular, no Obstante la Dosis Usual Recomendada Es: Si se Conoce el Peso de Los Niños, Éste Debe Ser Usado Para Determinar la Cantidad Aproximada de Solución Necesaria. La Cantidad También Puede Ser Estimada Multiplicando el Peso de Los Niños en Kg Por 75 ml. Si el Peso no se Conoce, Seleccionar Una Cantidad Aproximada de Acuerdo a la Edad Del Niño. La Cantidad Exacta de la Solución Requerida Dependerá Del Estado de Deshidratación de Los Niños. Presentación la Sales de Rehidratación Vienen en Formato Polvo Sólido Diluíble de Administración Vía Oral, el Envase Contiene 4 Sobres de 28.4 g. Condiciones de Almacenamiento Almacenar a no Más de 25°C. Mantener en un Lugar Fresco y Seco. Mantener Alejado de Los Niños. Principio Activo (Nombre Genérico) Cloruro de Sodio / Cloruro de Potasio / Citrato de Sodio / Glucosa Anhidra. Advertencias de Uso Las Sales de Rehidratación Oral Deben Ser Reconstituidas Solo Con Agua y al Volumen Señalado. Es Recomendable Usar Agua Potable Fresca, Pero Cuando la Solución es Para Niños se Prefiere Hervida y Enfriada. No Debe Ser Hervida Después de su Preparación. No se Debe Agregar Otros Ingredientes Tales Como Azúcar. Las Soluciones Preparadas Sin Haber Sido Usadas no Deben Ser Almacenadas en el Refrigerador y se Debe Descartar 24 Horas Después de la Preparación. Solo se Puede Administrar Vía Oral. No Deben Ser Reconstituidas en Diluyentes Distintos al Agua. No Deben Ser Usadas Para Tratamiento en Pacientes Con Enfermedad Hepática o Renal, o Pacientes Con Diabetes. El Uso de Las Sales de Rehidratación en Pacientes Con Estas Condiciones Debe Ser Supervisado Por un Médico. Dosificación Cada Sobre Contiene: Cloruro de Sodio 3.50 g. Cloruro de Potasio 1.505 g. Citrato de Sodio 2.94 g. Glucosa Anhidra 20 g. Reacciones Adversas se Pueden Producir Vómitos, lo Que Indica Que la Administración de la Solución Fue Muy Rápida. Si Ocurren Vómitos, la Administración Debe Ser Interrumpida Por 10 Minutos y Luego Suministradas en Cantidades Más Pequeñas, Pero Más Frecuentemente. La Sobredosis de Sro en Pacientes Con Enfermedad Renal Podría Llevar a Una Hipernatremia e Hipokalemia. Contraindicaciones no Existen Contraindicaciones Para Las Sales de Rehidratación Oral. Sin Embargo, Puede Haber un Número de Condiciones Donde el Tratamiento Con Sales de Rehidratación es Inapropiado, Por Ejemplo, en Obstrucción Intestinal, Íleo Paralítico y Perforación Del Intestino, lo Cual Requiere Intervención Quirúrgica. Condición de Venta Venta Libre.",
+   "concepto_auto": "energizantes",
+   "relevante_auto": false,
+   "modos": [
+    "lexico"
+   ],
+   "origen": "al_azar"
+  },
+  {
+   "id": "supermercado|cereal para ninos|catalog_item|245144",
+   "vertical": "supermercado",
+   "consulta": "cereal para ninos",
+   "tipo": "sin_tildes",
+   "entity_type": "catalog_item",
+   "entity_id": "245144",
+   "texto": "Trix Cereal a Base de Maíz Sabores Frutales. Marca: Trix. 700 g. Categoría: Cereales. Si lo que te gusta es desayunar frutas, está es la mejor opción. cereales Trix® de Nestlé® con sabor a fruta, además fortificado con vitaminas y minerales.",
+   "concepto_auto": "cereales",
+   "relevante_auto": true,
+   "modos": [
+    "hibrido",
+    "hibrido_sin_refuerzo"
+   ],
+   "origen": "al_azar"
+  },
+  {
+   "id": "supermercado|cereal para ninos|catalog_item|43261",
+   "vertical": "supermercado",
+   "consulta": "cereal para ninos",
+   "tipo": "sin_tildes",
+   "entity_type": "catalog_item",
+   "entity_id": "43261",
+   "texto": "Cereal Bar Barra de Cereal con Chips de Chocolate. Marca: Cereal Bar. 1 X 21 g. Categoría: Barras de cereal y granola. Deliciosa barra de cereal con chips de chocolate, ideal para disfrutar en cualquier momento del día.",
+   "concepto_auto": "barras-cereal",
+   "relevante_auto": false,
+   "modos": [
+    "hibrido_sin_refuerzo"
+   ],
+   "origen": "diferencia"
+  },
+  {
+   "id": "supermercado|cereal para ninos|catalog_item|61368",
+   "vertical": "supermercado",
+   "consulta": "cereal para ninos",
+   "tipo": "sin_tildes",
+   "entity_type": "catalog_item",
+   "entity_id": "61368",
+   "texto": "Nestum Probiótico Trigo Miel. Marca: Nestum. 1 X 250 g. Categoría: Alimentos infantiles. Es un cereal infantil con ingredientes cuidadosamente seleccionados para tu bebé, que además contiene probióticos, vitaminas y minerales, contribuyendo así a una alimentación balanceada para un crecimiento saludable, ¡Es de fácil disolución y tiene un delicioso sabor que a tu bebé le encantará! Endulzado solo con miel. packing: Caja",
+   "concepto_auto": "alimentacion-bebe",
+   "relevante_auto": false,
+   "modos": [
+    "vector"
+   ],
+   "origen": "al_azar"
+  },
+  {
+   "id": "supermercado|cereal para ninos|catalog_item|6174",
+   "vertical": "supermercado",
+   "consulta": "cereal para ninos",
+   "tipo": "sin_tildes",
+   "entity_type": "catalog_item",
+   "entity_id": "6174",
+   "texto": "Cereal Bar Barras de Cereal Sabor a Chocolate. Marca: Cereal Bar. 1 X 144 g. Categoría: Barras de cereal y granola. Estas barras ofrecen la satisfacción del chocolate con la bondad de los cereales, creando un bocado indulgente y equilibrado. Perfectas para el desayuno, merienda o como energía rápida antes del ejercicio, estas barras de cereal proporcionan un impulso delicioso que te acompaña en tus momentos más activos.",
+   "concepto_auto": "barras-cereal",
+   "relevante_auto": false,
+   "modos": [
+    "lexico",
+    "hibrido_sin_refuerzo"
+   ],
+   "origen": "diferencia"
+  },
+  {
+   "id": "supermercado|cereal para ninos|catalog_item|99332",
+   "vertical": "supermercado",
+   "consulta": "cereal para ninos",
+   "tipo": "sin_tildes",
+   "entity_type": "catalog_item",
+   "entity_id": "99332",
+   "texto": "Naturnes Picado de Carne, Papa, Zanahoria y Espinaca para Bebé de 9 Meses. Marca: Naturnes. 1 X 215 g. Categoría: Alimentos infantiles. Alimento para bebés con ingredientes 100 % naturales. No contiene preservantes. Ideal para pequeños desde los 9 meses. Ingredientes cuidadosamente seleccionados para una alimentación completa y nutritiva.",
+   "concepto_auto": "alimentacion-bebe",
+   "relevante_auto": false,
+   "modos": [
+    "vector"
+   ],
+   "origen": "al_azar"
+  },
+  {
+   "id": "supermercado|cosas para el asado del domingo|catalog_item|1457353",
+   "vertical": "supermercado",
+   "consulta": "cosas para el asado del domingo",
+   "tipo": "necesidad",
+   "entity_type": "catalog_item",
+   "entity_id": "1457353",
+   "texto": "Corte Criollo Estomaguillo Premium. Aprox. 3400g/ud. Categoría: Res. Esta Compuesto Por La Coluda (hueso) Y Tapabarriga, Es Un Corte Grande Ideal Para Asar Al Palo En Cocción Lenta, Asado Clásico De Osorno Y Uno De Los Favoritos Del Profesor Klocker,- El Precio Final Puede Variar De Acuerdo Al Peso Real",
+   "concepto_auto": "carnes",
+   "relevante_auto": true,
+   "modos": [
+    "hibrido"
+   ],
+   "origen": "diferencia"
+  },
+  {
+   "id": "supermercado|cosas para el asado del domingo|catalog_item|1465049",
+   "vertical": "supermercado",
+   "consulta": "cosas para el asado del domingo",
+   "tipo": "necesidad",
+   "entity_type": "catalog_item",
+   "entity_id": "1465049",
+   "texto": "Set De Bbq 26 Piezas En Bolsa Delantal. 1Und. Categoría: Utensilios de Cocina. Todo lo que necesitas para ser el rey o la reina del asado 🔥\nEste completo set de 26 piezas viene en una bolsa de tela resistente que puedes colgarte como delantal parrillero: práctico, elegante y funcional.\nIncluye espátula, cuchillo, tenedor, pinzas, pinchos, anticuchos, termómetro, jeringa para carnes, saleros, pincel y escobilla para limpiar la parrilla.\nUn regalo ideal para los amantes del sabor, el fuego y los buenos momentos.",
+   "concepto_auto": "cocina-menaje",
+   "relevante_auto": false,
+   "modos": [
+    "vector",
+    "hibrido_sin_refuerzo"
+   ],
+   "origen": "diferencia"
+  },
+  {
+   "id": "supermercado|cosas para el asado del domingo|catalog_item|1669993",
+   "vertical": "supermercado",
+   "consulta": "cosas para el asado del domingo",
+   "tipo": "necesidad",
+   "entity_type": "catalog_item",
+   "entity_id": "1669993",
+   "texto": "Entraña Angus. 500g. Categoría: Res. Corte delgado, intenso en sabor, un ícono del “picoteo” en los asados. Nuestra entraña viene limpia, lista para cocinar. Ideal para la parrilla o sartén bien caliente. Se sirve a punto para conservar su jugosidad.",
+   "concepto_auto": "carnes",
+   "relevante_auto": true,
+   "modos": [
+    "hibrido"
+   ],
+   "origen": "diferencia"
+  },
+  {
+   "id": "supermercado|cosas para el asado del domingo|catalog_item|1720787",
+   "vertical": "supermercado",
+   "consulta": "cosas para el asado del domingo",
+   "tipo": "necesidad",
+   "entity_type": "catalog_item",
+   "entity_id": "1720787",
+   "texto": "Asado Americano Vacuno Friboi Black Angus Al Vacío 1.8 Kg. 1.8 Kg. Asado americano vacuno Friboi Black Angus al vacío 1.8 Kg",
+   "concepto_auto": "carnes",
+   "relevante_auto": true,
+   "modos": [
+    "hibrido",
+    "hibrido_sin_refuerzo"
+   ],
+   "origen": "al_azar"
+  },
+  {
+   "id": "supermercado|cosas para el asado del domingo|catalog_item|768575",
+   "vertical": "supermercado",
+   "consulta": "cosas para el asado del domingo",
+   "tipo": "necesidad",
+   "entity_type": "catalog_item",
+   "entity_id": "768575",
+   "texto": "Pollo Asado. 1 Und. Categoría: Listos para comer. POLLO ASADO ENTERO",
+   "concepto_auto": "platos-listos",
+   "relevante_auto": false,
+   "modos": [
+    "vector",
+    "hibrido_sin_refuerzo"
+   ],
+   "origen": "diferencia"
+  },
+  {
+   "id": "supermercado|cosas para el asado del domingo|catalog_item|768591",
+   "vertical": "supermercado",
+   "consulta": "cosas para el asado del domingo",
+   "tipo": "necesidad",
+   "entity_type": "catalog_item",
+   "entity_id": "768591",
+   "texto": "1/4 Pollo Asado. 1 Und. Categoría: Listos para comer. PECHUGA MAS TRUTO",
+   "concepto_auto": "platos-listos",
+   "relevante_auto": false,
+   "modos": [
+    "vector",
+    "hibrido_sin_refuerzo"
+   ],
+   "origen": "diferencia"
+  },
+  {
+   "id": "supermercado|cosas para el asado del domingo|catalog_item|826079",
+   "vertical": "supermercado",
+   "consulta": "cosas para el asado del domingo",
+   "tipo": "necesidad",
+   "entity_type": "catalog_item",
+   "entity_id": "826079",
+   "texto": "Asado Carnicero. Desde 1000g. Categoría: Res. ASADO CARNICERO",
+   "concepto_auto": "carnes",
+   "relevante_auto": true,
+   "modos": [
+    "hibrido"
+   ],
+   "origen": "diferencia"
+  },
+  {
+   "id": "supermercado|detergente para ropa|catalog_item|32992",
+   "vertical": "supermercado",
+   "consulta": "detergente para ropa",
+   "tipo": "exacta",
+   "entity_type": "catalog_item",
+   "entity_id": "32992",
+   "texto": "Ariel Detergente para Ropa Líquido con un Toque de Downy. Marca: Ariel. 1 X 1.2 L. Categoría: Detergentes. La solución definitiva para mantener tu ropa impecablemente limpia y con una fragancia fresca y duradera. Esta potente combinación de detergente y suavizante transformará tus lavados en una experiencia de limpieza y frescura que nunca querrás dejar de disfrutar. Rinde 2.4 litros.",
+   "concepto_auto": "limpieza",
+   "relevante_auto": true,
+   "modos": [
+    "lexico",
+    "vector",
+    "hibrido",
+    "hibrido_sin_refuerzo"
+   ],
+   "origen": "al_azar"
+  },
+  {
+   "id": "supermercado|fideos spaghetti|catalog_item|1225058",
+   "vertical": "supermercado",
+   "consulta": "fideos spaghetti",
+   "tipo": "exacta",
+   "entity_type": "catalog_item",
+   "entity_id": "1225058",
+   "texto": "Fideo De Arroz Fino 220. 220 g. Categoría: Pastas. Los vermicelli de arroz son fideos muy finos elaborados con arroz, conocidos a veces como fideos finos de arroz o palitos de arroz. Presentes en diversas cocinas de Asia, donde a menudo se comen como plato acompañados de sopa, salteados o ensalada.\n\nCuenta con más proteínas que otros cereales, además de los minerales como el fósforo, el hierro o el potasio rica en fibra, vitaminas y baja en sodio.",
+   "concepto_auto": "pastas",
+   "relevante_auto": true,
+   "modos": [
+    "vector",
+    "hibrido"
+   ],
+   "origen": "diferencia"
+  },
+  {
+   "id": "supermercado|fideos spaghetti|catalog_item|1549598",
+   "vertical": "supermercado",
+   "consulta": "fideos spaghetti",
+   "tipo": "exacta",
+   "entity_type": "catalog_item",
+   "entity_id": "1549598",
+   "texto": "Fideos Ottogi Sari. 1Und. Categoría: Listos para cocinar. Los Fideos Ottogi Sari son fideos coreanos premium sin condimentos incluidos, perfectos para personalizar tus platos a tu gusto. Con 110g de fideos suaves y masticables, son ideales para preparar sopas, guisos, salteados o como complemento de tus ramen favoritos.\nSu textura especial absorbe perfectamente los sabores de caldos, salsas y aderezos, permitiéndote crear desde platos tradicionales coreanos hasta recetas fusión innovadoras. Cocción rápida de 4-5 minutos y listo para disfrutar.\nPerfectos para agregar a tu ramen ya preparado si quieres una porción más abundante, o para crear tu propia sopa desde cero con los ingredientes y condimentos que prefieras. Versatilidad total en la cocina.",
+   "concepto_auto": "platos-listos",
+   "relevante_auto": false,
+   "modos": [
+    "vector",
+    "hibrido_sin_refuerzo"
+   ],
+   "origen": "diferencia"
+  },
+  {
+   "id": "supermercado|frutas frescas|catalog_item|1550981",
+   "vertical": "supermercado",
+   "consulta": "frutas frescas",
+   "tipo": "exacta",
+   "entity_type": "catalog_item",
+   "entity_id": "1550981",
+   "texto": "Ensalada De Frutas. 150g. Categoría: Ensaladas. Vaso de Fruta Natural: Frescura que te acompaña\nDale a tu cuerpo el shot de vitaminas que necesita con nuestro vaso de frutas seleccionadas. Una opción refrescante, saludable y lista para disfrutar en cualquier lugar.\n\n¿Qué hace especial a nuestro Mix de Frutas?\nSelección del Día: Elegimos las mejores frutas de la temporada para asegurar un sabor dulce y natural en cada bocado.\n\nVariedad de Colores: Cada vaso es una combinación vibrante de diferentes texturas y sabores que varían según la disponibilidad de mercado, garantizando siempre la máxima calidad.\n\nLista para Consumir: Fruta lavada, pelada y troceada diariamente. ¡Solo destapa y disfruta!\n\nIdeal para:\n✅ Un desayuno ligero y lleno de energía.\n✅ Snack saludable para la oficina o el colegio.\n✅ Postre natural después de almuerzo.\n\nPresentación:\nEnvase individual de 12oz / 16oz (ajustar según tamaño), diseñado para mantener la frescura y facilitar el transporte.\n\nNota para el cliente: El mix de frutas varía diariamente según la estación para ofrecerte siempre los productos más frescos y sabrosos del momento.",
+   "concepto_auto": "ensaladas-bowls",
+   "relevante_auto": false,
+   "modos": [
+    "lexico",
+    "hibrido_sin_refuerzo"
+   ],
+   "origen": "diferencia"
+  },
+  {
+   "id": "supermercado|frutas frescas|catalog_item|765234",
+   "vertical": "supermercado",
+   "consulta": "frutas frescas",
+   "tipo": "exacta",
+   "entity_type": "catalog_item",
+   "entity_id": "765234",
+   "texto": "Dibaq Sense Adult Salmon 12 Kg. 1 Und. Categoría: Alimento para perros. Alimento completo elaborado sin cereales y desarrollado para perros adultos de todas las razas.\nEl pescado fresco utilizado es en su origen de consumo humano, garantizando altos niveles de\nproteínas de calidad que ayudan a desarrollar y mantener la masa muscular.\n\nFormulado con un 67% de carnes, que se compone de:\n25% salmon fresco\n22% arenques fresco\n20% salmón deshidratado\nCOMPOSICIÓN: Salmón fresco 25%, arenques frescos 22%, salmón deshidratado 20%,\npatata, guisantes pelados, aceite de pollo, pulpa de remolacha, zooplacton marino\ndeshidratado, hidrolizado de salmón, verduras y frutas frescas 4% (espinacas,\nzanahorias, manzana), Ceratonia siliqua, aceite de salmón (fuente de ácidos grasos\nomega 3 y 6), sustancias minerales, pack protector articular (condrotina sulfato,\nglucosamina sulfato y MSM), yuca, raíz de achicoria (fuente de inulina-FOS), levaduras\n(MOS) y plantas aromáticas con propiedades antioxidantes naturales (romero, tomillo y\norégano).\nCOMPONENTES ANALÍTICOS: Proteína bruta 26%, Aceites y grasas brutos 15%, Fibras\nbrutas 2,8%, Materia inorgánica 5,9%, Vitamina A 16000 U.I., Vitamina D3 1550 U.I.,\nVitamina E (α-tocoferol) 110 mg.\n\nORIGEN: España",
+   "concepto_auto": "alimento-perro",
+   "relevante_auto": false,
+   "modos": [
+    "lexico"
+   ],
+   "origen": "al_azar"
+  },
+  {
+   "id": "supermercado|frutas frescas|catalog_item|842030",
+   "vertical": "supermercado",
+   "consulta": "frutas frescas",
+   "tipo": "exacta",
+   "entity_type": "catalog_item",
+   "entity_id": "842030",
+   "texto": "Manzana Pink Lady Malla. 1 Kg. Categoría: Frutas. Producto Fresco.",
+   "concepto_auto": "frutas",
+   "relevante_auto": true,
+   "modos": [
+    "hibrido"
+   ],
+   "origen": "diferencia"
+  },
+  {
+   "id": "supermercado|frutas frescas|catalog_item|994477",
+   "vertical": "supermercado",
+   "consulta": "frutas frescas",
+   "tipo": "exacta",
+   "entity_type": "catalog_item",
+   "entity_id": "994477",
+   "texto": "Champiñones Bandeja. 1 Und. Categoría: Frutos secos y semillas. verduras frescas",
+   "concepto_auto": "frutos-secos",
+   "relevante_auto": false,
+   "modos": [
+    "vector",
+    "hibrido_sin_refuerzo"
+   ],
+   "origen": "diferencia"
+  },
+  {
+   "id": "supermercado|helado de chocolate|catalog_item|876511",
+   "vertical": "supermercado",
+   "consulta": "helado de chocolate",
+   "tipo": "exacta",
+   "entity_type": "catalog_item",
+   "entity_id": "876511",
+   "texto": "Helado Chocolate Al 70%. 1 X 473 mL. Categoría: Helados. Helado a la crema de chocolate con 70% de cacao. \nMantener congelado.\nVolumen 473 cc.",
+   "concepto_auto": "helados",
+   "relevante_auto": true,
+   "modos": [
+    "vector"
+   ],
+   "origen": "al_azar"
+  },
+  {
+   "id": "supermercado|jamon de pavo|catalog_item|1531478",
+   "vertical": "supermercado",
+   "consulta": "jamon de pavo",
+   "tipo": "sin_tildes",
+   "entity_type": "catalog_item",
+   "entity_id": "1531478",
+   "texto": "Sandwich Croissant Jamón de Pavo Queso. 1 x 150 g. Producto Fresco.",
+   "concepto_auto": "empanadas",
+   "relevante_auto": false,
+   "modos": [
+    "lexico",
+    "hibrido_sin_refuerzo"
+   ],
+   "origen": "diferencia"
+  },
+  {
+   "id": "supermercado|leche descremada|catalog_item|116749",
+   "vertical": "supermercado",
+   "consulta": "leche descremada",
+   "tipo": "exacta",
+   "entity_type": "catalog_item",
+   "entity_id": "116749",
+   "texto": "Colun Leche Descremada en Polvo Bolsa. Marca: Colun. 1 X 350 g. Categoría: Leche en polvo. Es obtenida a partir de leche natural, descremada, pasteurizada y deshidratada por sistema spray, obteniéndose un polvo de fácil reconstitución en agua tibia, color blanco crema y sabor agradable. packing: Bolsa",
+   "concepto_auto": "lacteos",
+   "relevante_auto": true,
+   "modos": [
+    "lexico"
+   ],
+   "origen": "al_azar"
+  },
+  {
+   "id": "supermercado|mantequilla sin sal|catalog_item|1349728",
+   "vertical": "supermercado",
+   "consulta": "mantequilla sin sal",
+   "tipo": "exacta",
+   "entity_type": "catalog_item",
+   "entity_id": "1349728",
+   "texto": "Mantequilla Con Sal Emporio Aleman 250 Gr. Marca: Emporio Aleman. 250 g. Categoría: Sal. MANTEQUILLA CON SAL EMPORIO ALEMAN 250 GR",
+   "concepto_auto": "aceites-condimentos",
+   "relevante_auto": false,
+   "modos": [
+    "lexico",
+    "hibrido_sin_refuerzo"
+   ],
+   "origen": "diferencia"
+  },
+  {
+   "id": "supermercado|mantequilla sin sal|catalog_item|84703",
+   "vertical": "supermercado",
+   "consulta": "mantequilla sin sal",
+   "tipo": "exacta",
+   "entity_type": "catalog_item",
+   "entity_id": "84703",
+   "texto": "Soprole Mantequilla con Sal. Marca: Soprole. 1 X 125 g. Categoría: Mantequilla. Mantequilla fabricada a partir de pura crema de leche. Es natural y de irresistible sabor, perfecta para untar en el pan, así como para preparar las más exquisitas comidas y postres.",
+   "concepto_auto": "lacteos",
+   "relevante_auto": true,
+   "modos": [
+    "hibrido"
+   ],
+   "origen": "diferencia"
+  },
+  {
+   "id": "supermercado|palta hass|catalog_item|1000456",
+   "vertical": "supermercado",
+   "consulta": "palta hass",
+   "tipo": "exacta",
+   "entity_type": "catalog_item",
+   "entity_id": "1000456",
+   "texto": "Palta Hass Chilena. Desde 200g. Categoría: Frutas. 200 gramos por palta  chilena",
+   "concepto_auto": "frutas",
+   "relevante_auto": true,
+   "modos": [
+    "lexico"
+   ],
+   "origen": "al_azar"
+  },
+  {
+   "id": "supermercado|palta hass|catalog_item|1363463",
+   "vertical": "supermercado",
+   "consulta": "palta hass",
+   "tipo": "exacta",
+   "entity_type": "catalog_item",
+   "entity_id": "1363463",
+   "texto": "Palta Hass Malla Calibre Segunda. 700 g. Categoría: Verduras. Palta  Hass Malla 700 grs Calibre Segunda",
+   "concepto_auto": "verduras",
+   "relevante_auto": true,
+   "modos": [
+    "lexico",
+    "vector",
+    "hibrido_sin_refuerzo"
+   ],
+   "origen": "diferencia"
+  },
+  {
+   "id": "supermercado|panales para guagua|catalog_item|586242",
+   "vertical": "supermercado",
+   "consulta": "panales para guagua",
+   "tipo": "sin_tildes",
+   "entity_type": "catalog_item",
+   "entity_id": "586242",
+   "texto": "Acuarela VGH PAN ANARANJADO PYRROLE. 1 x 10 mL. Categoría: Otros Útiles escolares. Frasco",
+   "concepto_auto": "utiles",
+   "relevante_auto": false,
+   "modos": [
+    "vector"
+   ],
+   "origen": "al_azar"
+  },
+  {
+   "id": "supermercado|pasta de dientes|catalog_item|229844",
+   "vertical": "supermercado",
+   "consulta": "pasta de dientes",
+   "tipo": "exacta",
+   "entity_type": "catalog_item",
+   "entity_id": "229844",
+   "texto": "Pasta Dental Colgate Total Encías Saludables Con Flúor 150 mL. Marca: Colgate. 1 X 150 mL. Categoría: Crema dental. Fortalece Tus Encías Con la Pasta de Dientes Colgate Total Encías Saludables Que Ayuda a Prevenir Los Problemas en Las Encías, Gracias a su Fórmula Con Una Espuma Suave y Adecuada Que Brinda 24 Horas de Protección Antibacterial. Con el Cepillado 2 Veces Por Día y Uso Continuo Por 4 Semanas. Causados Por Bacterias.Beneficios:-Pasta de Dientes Colgate Para Prevenir Problemas en Las Encías -24 Horas de Protección Antibacterial-Colgate Total Encías Saludables, Pasta Dental Anticaries Con Flúor-Combate Bacterias en Encías, Erosión de Esmalte, Sensibilidad, Placa, Sarro, Manchas, Mal Aliento y Carie Dental-Con Tecnología Poderosa, Patentada y Preventiva Con el Cepillado 2 Veces Por Día y Uso Continuo Por 4 Semanas. Causados Por Bacterias. Patentada en Estados Unidos.",
+   "concepto_auto": "cuidado-oral",
+   "relevante_auto": true,
+   "modos": [
+    "lexico",
+    "vector",
+    "hibrido",
+    "hibrido_sin_refuerzo"
+   ],
+   "origen": "al_azar"
+  },
+  {
+   "id": "supermercado|pañales talla g|catalog_item|556987",
+   "vertical": "supermercado",
+   "consulta": "pañales talla g",
+   "tipo": "exacta",
+   "entity_type": "catalog_item",
+   "entity_id": "556987",
+   "texto": "Cotidian Pañal Adulto Plus Talla G. Marca: Cotidian. 1 x 20 Und. Categoría: Calzones Anatómicos. Contiene 20 Unidades",
+   "concepto_auto": "higiene-personal",
+   "relevante_auto": false,
+   "modos": [
+    "lexico"
+   ],
+   "origen": "al_azar"
+  },
+  {
+   "id": "supermercado|pañales talla g|catalog_item|73234",
+   "vertical": "supermercado",
+   "consulta": "pañales talla g",
+   "tipo": "exacta",
+   "entity_type": "catalog_item",
+   "entity_id": "73234",
+   "texto": "Huggies Pañal Active Sec Talla Xg. Marca: Huggies. 1 X 52 Und. Categoría: Pañales. Los pañales active sec, tienen la exclusiva tecnología xtra flex, que ofrece protección total y flexibilidad, para acompañar cada paso del desarrollo de tu bebé.",
+   "concepto_auto": "panales",
+   "relevante_auto": true,
+   "modos": [
+    "vector"
+   ],
+   "origen": "al_azar"
+  },
+  {
+   "id": "supermercado|queso gouda laminado|catalog_item|64163",
+   "vertical": "supermercado",
+   "consulta": "queso gouda laminado",
+   "tipo": "exacta",
+   "entity_type": "catalog_item",
+   "entity_id": "64163",
+   "texto": "Queso Gauda Laminado Lider. Marca: Lider. 250 g. Categoría: Quesos frescos. El queso gouda, se elabora a partir de leche pasteurizada, con una combinación de fermentos lácticos, que le dan un sabor y aroma agradable y característico. Este queso presenta pasta semidura, color amarillo mantecoso, sabor suave y ojos distribuidos uniformemente.",
+   "concepto_auto": "quesos",
+   "relevante_auto": true,
+   "modos": [
+    "lexico",
+    "vector",
+    "hibrido",
+    "hibrido_sin_refuerzo"
+   ],
+   "origen": "al_azar"
+  },
+  {
+   "id": "supermercado|queso gouda laminado|catalog_item|99848",
+   "vertical": "supermercado",
+   "consulta": "queso gouda laminado",
+   "tipo": "exacta",
+   "entity_type": "catalog_item",
+   "entity_id": "99848",
+   "texto": "Calo Queso Gauda Laminado. Marca: Calo. 250 g. Categoría: Quesos frescos. Es una obra maestra de la tradición quesera, un tesoro culinario que celebra la artesanía y el sabor auténtico. Este queso, cuidadosamente elaborado por expertos queseros, se destaca por su textura firme y su sabor robusto que evoca la riqueza del campo y la herencia quesera. Ideal para toda la familia y especialmente para niños por su sabor suave y rico. Buena fuente de calcio y vitaminas.",
+   "concepto_auto": "quesos",
+   "relevante_auto": true,
+   "modos": [
+    "vector"
+   ],
+   "origen": "al_azar"
+  },
+  {
+   "id": "supermercado|shampoo anticaspa|catalog_item|50015",
+   "vertical": "supermercado",
+   "consulta": "shampoo anticaspa",
+   "tipo": "exacta",
+   "entity_type": "catalog_item",
+   "entity_id": "50015",
+   "texto": "Del Alba Champú Anticaída. Marca: Antic. 1 X 300 mL. Categoría: Shampoo. Está enriquecido con aceite esencial orgánico, que además de entregarle un exquisito aroma, fortalece y revitaliza el pelo, neutralizando las emociones negativas que inciden sobre la salud de la piel y cabello.",
+   "concepto_auto": "cuidado-cabello",
+   "relevante_auto": true,
+   "modos": [
+    "vector"
+   ],
+   "origen": "al_azar"
+  },
+  {
+   "id": "supermercado|snack saludable para la oficina|catalog_item|1311107",
+   "vertical": "supermercado",
+   "consulta": "snack saludable para la oficina",
+   "tipo": "necesidad",
+   "entity_type": "catalog_item",
+   "entity_id": "1311107",
+   "texto": "Snack Mix Manzana Nuez 28g. 1 Und. Categoría: Frutos secos y semillas. Snack Mix Manzana Nuez – Nutrición y Sabor en Cada Bocado 🍏✨\n\nDisfruta de esta combinación irresistible de nueces, semillas y fruta deshidratada sin azúcar, perfecta para un snack saludable y natural.\n\n🌿 Beneficios:\n✔ Nueces y semillas: Ricas en grasas saludables y proteínas 🌰\n✔ Manzana y arándanos: Fuente de fibra y antioxidantes 🍎💜\n✔ Libre de grasas trans, sin sodio y sin gluten 🚫\n\n🥄 Ideal para calmar el hambre entre comidas y recargar energía\n\n¡Pruébalo y dale a tu día un boost de nutrición y sabor! 💛",
+   "concepto_auto": "frutos-secos",
+   "relevante_auto": true,
+   "modos": [
+    "hibrido_sin_refuerzo"
+   ],
+   "origen": "diferencia"
+  },
+  {
+   "id": "supermercado|snack saludable para la oficina|catalog_item|1533056",
+   "vertical": "supermercado",
+   "consulta": "snack saludable para la oficina",
+   "tipo": "necesidad",
+   "entity_type": "catalog_item",
+   "entity_id": "1533056",
+   "texto": "Pack Bites Saludables Almendra X 6 , 190 Grs Kayu. 1Und. Categoría: Barras de cereal y granola. Pack de 6 Bites\nEnergy Bite es un snack 100% natural, elaborado con dátiles, frutos secos, avena y cacao 100%. Sin azúcar añadida, sin sellos y lleno de energía real.",
+   "concepto_auto": "barras-cereal",
+   "relevante_auto": true,
+   "modos": [
+    "vector",
+    "hibrido_sin_refuerzo"
+   ],
+   "origen": "diferencia"
+  },
+  {
+   "id": "supermercado|snack saludable para la oficina|catalog_item|1533060",
+   "vertical": "supermercado",
+   "consulta": "snack saludable para la oficina",
+   "tipo": "necesidad",
+   "entity_type": "catalog_item",
+   "entity_id": "1533060",
+   "texto": "Pack Bites Saludables Mix 3 Maní - 3 Almendra X 6 , 190 Grs Kayu. 1Und. Categoría: Barras de cereal y granola. Pack de 6 Bites\nEnergy Bite es un snack 100% natural, elaborado con dátiles, frutos secos, avena y cacao 100%. Sin azúcar añadida, sin sellos y lleno de energía real.",
+   "concepto_auto": "barras-cereal",
+   "relevante_auto": true,
+   "modos": [
+    "vector",
+    "hibrido_sin_refuerzo"
+   ],
+   "origen": "diferencia"
+  },
+  {
+   "id": "supermercado|snack saludable para la oficina|catalog_item|1550981",
+   "vertical": "supermercado",
+   "consulta": "snack saludable para la oficina",
+   "tipo": "necesidad",
+   "entity_type": "catalog_item",
+   "entity_id": "1550981",
+   "texto": "Ensalada De Frutas. 150g. Categoría: Ensaladas. Vaso de Fruta Natural: Frescura que te acompaña\nDale a tu cuerpo el shot de vitaminas que necesita con nuestro vaso de frutas seleccionadas. Una opción refrescante, saludable y lista para disfrutar en cualquier lugar.\n\n¿Qué hace especial a nuestro Mix de Frutas?\nSelección del Día: Elegimos las mejores frutas de la temporada para asegurar un sabor dulce y natural en cada bocado.\n\nVariedad de Colores: Cada vaso es una combinación vibrante de diferentes texturas y sabores que varían según la disponibilidad de mercado, garantizando siempre la máxima calidad.\n\nLista para Consumir: Fruta lavada, pelada y troceada diariamente. ¡Solo destapa y disfruta!\n\nIdeal para:\n✅ Un desayuno ligero y lleno de energía.\n✅ Snack saludable para la oficina o el colegio.\n✅ Postre natural después de almuerzo.\n\nPresentación:\nEnvase individual de 12oz / 16oz (ajustar según tamaño), diseñado para mantener la frescura y facilitar el transporte.\n\nNota para el cliente: El mix de frutas varía diariamente según la estación para ofrecerte siempre los productos más frescos y sabrosos del momento.",
+   "concepto_auto": "ensaladas-bowls",
+   "relevante_auto": false,
+   "modos": [
+    "lexico",
+    "hibrido"
+   ],
+   "origen": "diferencia"
+  },
+  {
+   "id": "supermercado|snack saludable para la oficina|catalog_item|1629091",
+   "vertical": "supermercado",
+   "consulta": "snack saludable para la oficina",
+   "tipo": "necesidad",
+   "entity_type": "catalog_item",
+   "entity_id": "1629091",
+   "texto": "Cheetos Queso Picante 34g. 1Und. Categoría: Snacks salados. Disfruta del auténtico snack peruano Cheetos Queso Picante 34g, hecho en Perú con maíz inflado y un delicioso sabor a queso con picante. Este snack crocante es perfecto para quienes buscan un toque picante en su botana favorita. Ideal para disfrutar en casa, en reuniones, en la oficina o como piqueo peruano para cualquier ocasión.\n\n✔ Producto original de Perú\n✔ Textura crocante y sabor intenso a queso y picante\n✔ Presentación práctica de 34g, perfecta para llevar\n\nLleva el verdadero sabor de los snacks peruanos picantes a tu mesa con Cheetos Queso Picante, el clásico snack que combina diversión y sabor en cada bocado.",
+   "concepto_auto": "snacks-salados",
+   "relevante_auto": true,
+   "modos": [
+    "lexico",
+    "hibrido"
+   ],
+   "origen": "diferencia"
+  },
+  {
+   "id": "supermercado|snack saludable para la oficina|catalog_item|1657551",
+   "vertical": "supermercado",
+   "consulta": "snack saludable para la oficina",
+   "tipo": "necesidad",
+   "entity_type": "catalog_item",
+   "entity_id": "1657551",
+   "texto": "Barra Energética Con Creatina 45 Grs Power Food - Arándano. 1Und. Categoría: Otros Snacks y confitería. Barra Energética Arándano 🫐⚡\n\nImpulsa tu día de forma natural con nuestra *Barra Energética de Arándano*. Su delicioso sabor fresco y frutal la convierte en el snack perfecto para cualquier momento, entregando energía, proteína y creatina en una receta 100% natural y de origen vegetal.\n\n*Beneficios:*\n* 5 g de creatina\n* 10 g de proteína\n* Sin azúcares añadidos\n* 100% natural\n* Vegana\n\nIdeal para consumir antes o después del entrenamiento, en la oficina o cuando necesites una colación nutritiva y llena de sabor.",
+   "concepto_auto": "golosinas",
+   "relevante_auto": false,
+   "modos": [
+    "lexico",
+    "hibrido_sin_refuerzo"
+   ],
+   "origen": "diferencia"
+  },
+  {
+   "id": "supermercado|snack saludable para la oficina|catalog_item|1667951",
+   "vertical": "supermercado",
+   "consulta": "snack saludable para la oficina",
+   "tipo": "necesidad",
+   "entity_type": "catalog_item",
+   "entity_id": "1667951",
+   "texto": "Yumi Balsamico. 25g. Categoría: Snacks salados. Disfruta del exquisito Yumi Snack sabor Balsámico, elaborado con carne de vacuno madurado de primera calidad y condimentado con especias naturales. Cada porción de 25 g es alta en proteína y baja en carbohidratos, perfecta para dietas keto o estilos de vida saludables. Nuestro snack se prepara al estilo biltong sudafricano, secado lentamente para conservar su sabor y textura únicos. Ideal para llevar al trabajo, al gimnasio o disfrutar en cualquier momento del día.\n\nSin azúcares añadidos ni gluten, este snack de carne ofrece un impulso de energía limpia y saciedad duradera. ¡Prueba el delicioso toque de Balsámico en cada bocado!",
+   "concepto_auto": "snacks-salados",
+   "relevante_auto": true,
+   "modos": [
+    "hibrido"
+   ],
+   "origen": "diferencia"
+  },
+  {
+   "id": "supermercado|snack saludable para la oficina|catalog_item|337329",
+   "vertical": "supermercado",
+   "consulta": "snack saludable para la oficina",
+   "tipo": "necesidad",
+   "entity_type": "catalog_item",
+   "entity_id": "337329",
+   "texto": "Tika Snack Artesanal Patagonia Mix. Marca: Tika. 180 g. Categoría: Snacks salados. Una revolucionaria combinación de crujientes chips elaborados a partir de coloridos vegetales nativos, cosechados por hombres y mujeres del extremo sur del mundo. Este delicioso y elegante mix inigualable es un snack saludable, exótico e innovador, simplemente irresistible.",
+   "concepto_auto": "snacks-salados",
+   "relevante_auto": true,
+   "modos": [
+    "hibrido"
+   ],
+   "origen": "diferencia"
+  },
+  {
+   "id": "supermercado|snack saludable para la oficina|catalog_item|727390",
+   "vertical": "supermercado",
+   "consulta": "snack saludable para la oficina",
+   "tipo": "necesidad",
+   "entity_type": "catalog_item",
+   "entity_id": "727390",
+   "texto": "Evercrisp Snack Sabor Queso Mantecoso. Marca: Evercrisp. 330 g. Categoría: Snacks salados. Una bolsa naranja de queso sabor Ramitas. Elaborado con los mejores ingredientes, Ramitas es un snack que te hará sentir bien.",
+   "concepto_auto": "snacks-salados",
+   "relevante_auto": true,
+   "modos": [
+    "vector",
+    "hibrido"
+   ],
+   "origen": "diferencia"
+  },
+  {
+   "id": "supermercado|snack saludable para la oficina|catalog_item|81315",
+   "vertical": "supermercado",
+   "consulta": "snack saludable para la oficina",
+   "tipo": "necesidad",
+   "entity_type": "catalog_item",
+   "entity_id": "81315",
+   "texto": "Marco Polo Snack Frutos Secos Nut Mix. Marca: Marco Polo. 350 g. Categoría: Frutos secos y semillas. Este producto contiene una variedad de nueces de alta calidad, seleccionadas cuidadosamente para proporcionar un snack saludable y delicioso. Delicioso snack ideal para consumir con yogur griego o con lo que se te ocurra, es un alimento saludable y muy sabroso.",
+   "concepto_auto": "frutos-secos",
+   "relevante_auto": true,
+   "modos": [
+    "hibrido_sin_refuerzo"
+   ],
+   "origen": "diferencia"
+  },
+  {
+   "id": "supermercado|snack saludable para la oficina|catalog_item|863481",
+   "vertical": "supermercado",
+   "consulta": "snack saludable para la oficina",
+   "tipo": "necesidad",
+   "entity_type": "catalog_item",
+   "entity_id": "863481",
+   "texto": "Ensalada Pollo. 450g. Categoría: Ensaladas. Bowl Pollo Grill: Energía y Frescura en un solo lugar\nSi buscas un almuerzo completo, ligero y lleno de sabor, nuestro Bowl de Pollo es la opción perfecta. Combinamos proteínas de alta calidad con una selección de vegetales frescos para ofrecerte una comida balanceada que te mantendrá con energía todo el día.\n\n¿Qué hace especial a nuestro Bowl?\nLa Proteína: Tiernos trozos de pechuga de pollo grillada, sazonados a la perfección para un sabor casero y saludable.\n\nBase Crujiente: Un mix de hojas verdes frescas que incluye Lechuga Española y Escarola, seleccionadas para dar la textura ideal.\n\nAcompañamientos del Día: Creemos en la variedad, por eso cada día sorprendemos con complementos frescos como:\n\nGranos y Legumbres: Porotos negros, rojos, garbanzos, quinoa o fideos.\n\nVegetales de Estación: Choclo dulce, porotos verdes, beterraga, zanahoria rallada y tomate.\n\nToque Cítrico: Incluye rodajas de limón para realzar todos los sabores de forma natural.\n\nBeneficios:\n✅ 100% Nutritivo: Equilibrio perfecto entre proteína, fibra y carbohidratos.\n✅ Frescura Garantizada: Ingredientes procesados el mismo día.\n✅ Práctico: Presentación ideal para llevar a la oficina o disfrutar en casa.",
+   "concepto_auto": "ensaladas-bowls",
+   "relevante_auto": false,
+   "modos": [
+    "lexico",
+    "hibrido"
+   ],
+   "origen": "diferencia"
+  },
+  {
+   "id": "turbo|algo para limpiar el baño|catalog_item|134216",
+   "vertical": "turbo",
+   "consulta": "algo para limpiar el baño",
+   "tipo": "necesidad",
+   "entity_type": "catalog_item",
+   "entity_id": "134216",
+   "texto": "Virutex Toallas Desinfectantes Multiusos Aroma Limón. Marca: Virutex. 1 X 50 Und. Categoría: Paños multiusos. Toallas húmedas desinfectantes multiusos, aroma limón, que eliminan hasta un 99.9 % de gérmenes y bacterias. Fácil de usar, limpia, aromatiza y desinfecta de una sola pasada. Ideal para superficies lavables, como cocina, baño y escritorio.",
+   "concepto_auto": "limpieza",
+   "relevante_auto": true,
+   "modos": [
+    "lexico",
+    "hibrido",
+    "hibrido_sin_refuerzo"
+   ],
+   "origen": "al_azar"
+  },
+  {
+   "id": "turbo|cerveza en lata|catalog_item|136816",
+   "vertical": "turbo",
+   "consulta": "cerveza en lata",
+   "tipo": "exacta",
+   "entity_type": "catalog_item",
+   "entity_id": "136816",
+   "texto": "Cristal Cerveza Cero Radler 6 x 350 cc. Marca: Cristal. 6 X 350 mL. Categoría: Cervezas. Nace de la receta alemana de cerveza y jugo de limón 100 % natural, una propuesta doblemente refrescante y que puede ser disfrutada en cualquier lugar y momento del día.",
+   "concepto_auto": "cerveza",
+   "relevante_auto": true,
+   "modos": [
+    "hibrido"
+   ],
+   "origen": "diferencia"
+  },
+  {
+   "id": "turbo|cerveza en lata|catalog_item|40742",
+   "vertical": "turbo",
+   "consulta": "cerveza en lata",
+   "tipo": "exacta",
+   "entity_type": "catalog_item",
+   "entity_id": "40742",
+   "texto": "Red Bull Bebida Energizante en Lata 4 x 250 cc. Marca: Red Bull. 1 X 250 mL. Categoría: Energizantes. Es una bebida funcional que contiene principalmente agua, azúcar (sacarosa, glucosa), cafeína, taurina, así como diferentes vitaminas (niacina, ácido pantoténico, B6 y B12). Ideal para recargar tu día y afrontar todos tus retos. Contiene 4 latas de 250 mL c/u.",
+   "concepto_auto": "energizantes",
+   "relevante_auto": false,
+   "modos": [
+    "hibrido_sin_refuerzo"
+   ],
+   "origen": "diferencia"
+  },
+  {
+   "id": "turbo|cerveza en lata|catalog_item|76791",
+   "vertical": "turbo",
+   "consulta": "cerveza en lata",
+   "tipo": "exacta",
+   "entity_type": "catalog_item",
+   "entity_id": "76791",
+   "texto": "Pepsi Zero Bebida Lata 350 ml. Marca: Pepsi. 1 X 350 mL. Categoría: Gaseosas. Cambia tu rutina con Pepsi Zero en lata. Ideal para tener durante la semana, y refrescate con el sabor zero azúcar en cualquier momento del día.",
+   "concepto_auto": "gaseosas",
+   "relevante_auto": false,
+   "modos": [
+    "vector",
+    "hibrido_sin_refuerzo"
+   ],
+   "origen": "diferencia"
+  },
+  {
+   "id": "turbo|cerveza en lata|catalog_item|942240",
+   "vertical": "turbo",
+   "consulta": "cerveza en lata",
+   "tipo": "exacta",
+   "entity_type": "catalog_item",
+   "entity_id": "942240",
+   "texto": "Odissea Cerv. Odiseea Hoppy Ale 5.1 470 cc. Marca: Kross. 1 X 470 mL. Categoría: Cervezas. Lata.",
+   "concepto_auto": "cerveza",
+   "relevante_auto": true,
+   "modos": [
+    "lexico",
+    "hibrido"
+   ],
+   "origen": "diferencia"
+  },
+  {
+   "id": "turbo|jamon serrano|catalog_item|106390",
+   "vertical": "turbo",
+   "consulta": "jamon serrano",
+   "tipo": "sin_tildes",
+   "entity_type": "catalog_item",
+   "entity_id": "106390",
+   "texto": "Daily Fresh Sándwich de Jamón y Queso Premiun. Marca: Daily Fresh. 1 X 175 g. Categoría: Sandwiches y empanadas. Delicioso sándwich en pan de molde blanco, relleno con jamón de pierna, queso gouda y queso crema. Ideal para cualquier momento del día acompáñalo con tu bebida favorita.",
+   "concepto_auto": "empanadas",
+   "relevante_auto": false,
+   "modos": [
+    "vector",
+    "hibrido_sin_refuerzo"
+   ],
+   "origen": "diferencia"
+  },
+  {
+   "id": "turbo|jamon serrano|catalog_item|72525",
+   "vertical": "turbo",
+   "consulta": "jamon serrano",
+   "tipo": "sin_tildes",
+   "entity_type": "catalog_item",
+   "entity_id": "72525",
+   "texto": "Soler Jamón Crudo Laminado. Marca: Soler. 100 g. Categoría: Jamones. Soler Jamón Crudo Laminado 100 g",
+   "concepto_auto": "fiambres",
+   "relevante_auto": true,
+   "modos": [
+    "lexico",
+    "vector",
+    "hibrido",
+    "hibrido_sin_refuerzo"
+   ],
+   "origen": "al_azar"
+  },
+  {
+   "id": "turbo|jamon serrano|catalog_item|75401",
+   "vertical": "turbo",
+   "consulta": "jamon serrano",
+   "tipo": "sin_tildes",
+   "entity_type": "catalog_item",
+   "entity_id": "75401",
+   "texto": "Receta del Abuelo Jamón de Pierna Artesanal Corte Pluma. Marca: Receta Del Abuelo. 1 Und. Categoría: Jamones. Es una deliciosa opción que combina la tradición artesanal con la calidad de un jamón de pierna premium. Este producto destaca por su corte en finas lonchas tipo pluma, lo que resalta la textura suave y jugosa de la carne. Ofrece un sabor auténtico y ahumado, resultado de un proceso de curación cuidadoso y tradicional.",
+   "concepto_auto": "fiambres",
+   "relevante_auto": true,
+   "modos": [
+    "hibrido"
+   ],
+   "origen": "diferencia"
+  },
+  {
+   "id": "turbo|papas fritas|catalog_item|1642120",
+   "vertical": "turbo",
+   "consulta": "papas fritas",
+   "tipo": "exacta",
+   "entity_type": "catalog_item",
+   "entity_id": "1642120",
+   "texto": "Lay's Papa Artesanas Sal. 1 x 270 g. Categoría: Sal. Bolsa.",
+   "concepto_auto": "snacks-salados",
+   "relevante_auto": true,
+   "modos": [
+    "hibrido"
+   ],
+   "origen": "diferencia"
+  },
+  {
+   "id": "turbo|papas fritas|catalog_item|842017",
+   "vertical": "turbo",
+   "consulta": "papas fritas",
+   "tipo": "exacta",
+   "entity_type": "catalog_item",
+   "entity_id": "842017",
+   "texto": "Papa. Marca: Pesables. 1 Kg. Categoría: Papas, yucas y tuberculos. Producto Fresco.",
+   "concepto_auto": "verduras",
+   "relevante_auto": false,
+   "modos": [
+    "vector",
+    "hibrido_sin_refuerzo"
+   ],
+   "origen": "diferencia"
+  },
+  {
+   "id": "turbo|para picar viendo el partido|catalog_item|197006",
+   "vertical": "turbo",
+   "consulta": "para picar viendo el partido",
+   "tipo": "necesidad",
+   "entity_type": "catalog_item",
+   "entity_id": "197006",
+   "texto": "Golden Virginia Tabaco Picado Original. Marca: Golden Virginia. 1 X 40 g. Categoría: Cigarrillos. Tabaco Importado de Nivel Prémium Con Finas Hierbas.",
+   "concepto_auto": "cigarrillos",
+   "relevante_auto": false,
+   "modos": [
+    "hibrido",
+    "hibrido_sin_refuerzo"
+   ],
+   "origen": "al_azar"
+  },
+  {
+   "id": "turbo|para picar viendo el partido|catalog_item|905365",
+   "vertical": "turbo",
+   "consulta": "para picar viendo el partido",
+   "tipo": "necesidad",
+   "entity_type": "catalog_item",
+   "entity_id": "905365",
+   "texto": "Quilayes Tabla Selección N4. Marca: Queso Quillayes. 200 g. Categoría: Tablas picadas. Caja.",
+   "concepto_auto": "quesos",
+   "relevante_auto": false,
+   "modos": [
+    "hibrido",
+    "hibrido_sin_refuerzo"
+   ],
+   "origen": "al_azar"
+  },
+  {
+   "id": "turbo|te verde|catalog_item|1643001",
+   "vertical": "turbo",
+   "consulta": "te verde",
+   "tipo": "sin_tildes",
+   "entity_type": "catalog_item",
+   "entity_id": "1643001",
+   "texto": "Lipton té Verde Sabor Mango. 1 x 1.5 L. Categoría: Té listo. Sabor Mango.",
+   "concepto_auto": "te",
+   "relevante_auto": true,
+   "modos": [
+    "vector",
+    "hibrido"
+   ],
+   "origen": "diferencia"
+  },
+  {
+   "id": "turbo|te verde|catalog_item|1643002",
+   "vertical": "turbo",
+   "consulta": "te verde",
+   "tipo": "sin_tildes",
+   "entity_type": "catalog_item",
+   "entity_id": "1643002",
+   "texto": "Lipton té Verde Sabor Mango. 1 x 600 cc. Categoría: Té listo. Sabor Mango.",
+   "concepto_auto": "te",
+   "relevante_auto": true,
+   "modos": [
+    "vector",
+    "hibrido"
+   ],
+   "origen": "diferencia"
+  },
+  {
+   "id": "turbo|te verde|catalog_item|1669683",
+   "vertical": "turbo",
+   "consulta": "te verde",
+   "tipo": "sin_tildes",
+   "entity_type": "catalog_item",
+   "entity_id": "1669683",
+   "texto": "Los Granos Arveja Verde Partida. 1 Kg. Categoría: Granos. Los Granos Arveja Verde Partida 1 Kg",
+   "concepto_auto": "arroz-legumbres",
+   "relevante_auto": false,
+   "modos": [
+    "hibrido_sin_refuerzo"
+   ],
+   "origen": "diferencia"
+  },
+  {
+   "id": "turbo|te verde|catalog_item|67063",
+   "vertical": "turbo",
+   "consulta": "te verde",
+   "tipo": "sin_tildes",
+   "entity_type": "catalog_item",
+   "entity_id": "67063",
+   "texto": "Don Juan Aceitunas Verdes Descarozadas. Marca: Don Juan. 1 X 250 g. Categoría: Vegetales enlatadas. Disfruta de estas exquisitas aceitunas verdes y descarozadas, tienen una rica textura y muy buen sabor, ideales para cócteles y ensaladas. Perfectas para añadirlas en tus recetas favoritas, delicioso sabor y totalmente frescas.",
+   "concepto_auto": "conservas",
+   "relevante_auto": false,
+   "modos": [
+    "hibrido_sin_refuerzo"
+   ],
+   "origen": "diferencia"
+  },
+  {
+   "id": "turbo|te verde|catalog_item|787899",
+   "vertical": "turbo",
+   "consulta": "te verde",
+   "tipo": "sin_tildes",
+   "entity_type": "catalog_item",
+   "entity_id": "787899",
+   "texto": "Lipton té Verde Limón Sin Azúcar. Marca: Lipton. 1 x 600 mL. Categoría: Té listo. Botella.",
+   "concepto_auto": "te",
+   "relevante_auto": true,
+   "modos": [
+    "vector",
+    "hibrido"
+   ],
+   "origen": "diferencia"
+  }
+ ]
+}

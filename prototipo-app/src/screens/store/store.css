@@ -1,0 +1,268 @@
+/* Página de tienda: diseño propio siguiendo el estilo de la app (no aparece en los videos). */
+.store {
+  padding-bottom: 120px;
+}
+
+.store-hero {
+  height: 250px;
+  background: #f1f2f4;
+}
+
+.store-hero img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* Logos (tiendas de la grilla o favoritos): centrados sobre gris, sin recortar */
+.store-hero.is-logo {
+  display: grid;
+  place-items: center;
+}
+
+.store-hero.is-logo img {
+  width: 150px;
+  height: 150px;
+  object-fit: contain;
+}
+
+.store-round {
+  position: absolute;
+  top: 58px;
+  z-index: 3;
+  display: grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background: var(--surface);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.15);
+}
+
+.store-round--back {
+  left: var(--gutter);
+}
+
+.store-round--fav {
+  right: var(--gutter);
+  transition: color var(--duration-fast);
+}
+
+.store-round--fav.is-on {
+  color: var(--rappi-red);
+}
+
+.store-round--fav.is-on svg {
+  fill: currentColor;
+  animation: heart-pop 320ms var(--ease-out);
+}
+
+@keyframes heart-pop {
+  40% {
+    transform: scale(1.3);
+  }
+}
+
+.store-sheet {
+  position: relative;
+  margin-top: -26px;
+  padding: 24px var(--gutter) 0;
+  border-radius: 26px 26px 0 0;
+  background: var(--surface);
+}
+
+.store-sheet h1 {
+  font-size: 26px;
+  font-weight: 700;
+  letter-spacing: -0.3px;
+}
+
+.store-rating {
+  margin-top: 4px;
+  font-size: 15px;
+  font-weight: 500;
+}
+
+.store-meta {
+  margin-top: 8px;
+  padding-left: 0;
+}
+
+.store-modes {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  margin-top: 20px;
+  padding: 4px;
+  border-radius: 99px;
+  background: #eef0f3;
+}
+
+.store-mode {
+  height: 38px;
+  border-radius: 99px;
+  font-size: 15.5px;
+  font-weight: 500;
+  color: var(--ink-2);
+  transition:
+    background var(--duration-fast),
+    color var(--duration-fast);
+}
+
+.store-mode.is-active {
+  background: var(--surface);
+  color: var(--ink);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+}
+
+.store-title {
+  margin-top: 28px;
+}
+
+.store-products {
+  list-style: none;
+  margin-top: 6px;
+}
+
+/* ---------- Menú real ---------- */
+.menu-tabs {
+  position: sticky;
+  top: var(--status-zone);
+  z-index: 2;
+  display: flex;
+  gap: 8px;
+  margin: 22px calc(-1 * var(--gutter)) 0;
+  padding: 10px var(--gutter);
+  overflow-x: auto;
+  background: rgba(255, 255, 255, 0.96);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  box-shadow: 0 6px 12px -10px rgba(0, 0, 0, 0.2);
+  scrollbar-width: none;
+}
+
+.menu-tabs::-webkit-scrollbar {
+  display: none;
+}
+
+.menu-tab {
+  flex: none;
+  height: 34px;
+  padding: 0 14px;
+  border-radius: 99px;
+  background: var(--chip);
+  font-size: 14.5px;
+  font-weight: 500;
+  white-space: nowrap;
+  transition:
+    background var(--duration-fast),
+    color var(--duration-fast);
+}
+
+.menu-tab.is-active {
+  background: var(--ink);
+  color: var(--surface);
+}
+
+.menu-section {
+  padding-top: 18px;
+}
+
+/* «Ver más» al final de los productos de un pasillo */
+.store-more {
+  display: block;
+  height: 40px;
+  margin: 16px auto 0;
+  padding: 0 24px;
+  border-radius: 99px;
+  background: #ebeff3;
+  font-size: 15.5px;
+  font-weight: 500;
+}
+
+.store-more:disabled {
+  opacity: 0.6;
+}
+
+.menu-section h2 {
+  font-size: 20px;
+  font-weight: 600;
+}
+
+/* ---------- Esqueleto de carga ---------- */
+.menu-skeleton span {
+  display: block;
+  border-radius: 10px;
+  background: linear-gradient(90deg, #f0f1f3 25%, #f8f9fa 50%, #f0f1f3 75%) 0 0 / 200% 100%;
+  animation: shimmer 1.2s linear infinite;
+}
+
+.menu-skeleton-tabs {
+  display: flex;
+  gap: 8px;
+  margin-top: 22px;
+}
+
+.menu-skeleton-tabs span {
+  width: 96px;
+  height: 34px;
+  border-radius: 99px;
+}
+
+.menu-skeleton-row {
+  display: flex;
+  gap: 14px;
+  padding: 16px 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.menu-skeleton .menu-skeleton-lines {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  animation: none;
+  background: none;
+}
+
+.menu-skeleton-lines span {
+  height: 14px;
+}
+
+.menu-skeleton-lines span:nth-child(1) {
+  width: 70%;
+}
+
+.menu-skeleton-lines span:nth-child(3) {
+  width: 30%;
+}
+
+.menu-skeleton .menu-skeleton-photo {
+  width: 88px;
+  height: 88px;
+  border-radius: 14px;
+}
+
+@keyframes shimmer {
+  to {
+    background-position: -200% 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .menu-skeleton span {
+    animation: none;
+  }
+}
+
+.menu-source {
+  margin-top: 20px;
+  font-size: 12px;
+  color: var(--ink-3);
+}
+
+.store-empty {
+  margin-top: 12px;
+  font-size: 15px;
+  line-height: 21px;
+  color: var(--ink-2);
+}

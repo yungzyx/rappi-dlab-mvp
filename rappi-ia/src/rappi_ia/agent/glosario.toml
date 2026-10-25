@@ -1,0 +1,152 @@
+# Fichas de platos para «¿qué es un poke?» o «¿qué lleva una paella?» (agent/glossary.py). Escritas a mano: qué es el
+# plato, de dónde viene y qué lleva, sin precios, sin marcas y sin nada de salud o nutrición («sano», «light»). Mochi
+# dice la ficha y después busca el plato (`query`, por defecto el nombre) como cualquier pedido.
+#
+# - `keywords`: cómo se nombra en una pregunta (se normalizan: sin tildes ni ñ; una palabra suelta calza su plural).
+# - `text`: una o dos oraciones; las lee la persona tal cual (no pasan por el LLM).
+# Agregar un plato es escribir una ficha aquí.
+
+[[dish]]
+id = "poke"
+name = "Poke"
+keywords = ["poke", "poke bowl"]
+text = "Un poke es un bowl hawaiano: arroz con pescado crudo marinado (casi siempre salmón o atún), verduras y salsas."
+
+[[dish]]
+id = "ceviche"
+name = "Ceviche"
+keywords = ["ceviche", "cebiche"]
+text = "El ceviche es pescado o marisco crudo que se «cocina» en jugo de limón, con cebolla morada, cilantro y ají. Es típico de Perú y de Chile."
+
+[[dish]]
+id = "paella"
+name = "Paella"
+keywords = ["paella"]
+text = "La paella es un arroz español con azafrán, hecho en una sartén ancha. Lleva mariscos, pollo o los dos, con arvejas y pimentón."
+
+[[dish]]
+id = "ramen"
+name = "Ramen"
+keywords = ["ramen"]
+text = "El ramen es una sopa japonesa de fideos en caldo (de cerdo, pollo, miso o soya), con huevo, cebollín y carne. Los hay suaves y picantes: el nombre del plato lo dice."
+
+[[dish]]
+id = "sushi"
+name = "Sushi"
+keywords = ["sushi"]
+text = "El sushi es arroz avinagrado con pescado, mariscos o verduras. En Chile lo más pedido son los rolls: con palta, queso crema o fritos en tempura."
+
+[[dish]]
+id = "gyoza"
+name = "Gyozas"
+keywords = ["gyoza", "gyozas"]
+text = "Las gyozas son empanaditas japonesas de masa fina, rellenas de carne o verduras, a la plancha o al vapor."
+
+[[dish]]
+id = "bao"
+name = "Bao"
+keywords = ["bao", "baos"]
+text = "Un bao es un pan chino al vapor, suave, relleno de cerdo, pollo o verduras."
+
+[[dish]]
+id = "pad-thai"
+name = "Pad thai"
+keywords = ["pad thai", "padthai"]
+text = "El pad thai son tallarines de arroz salteados al wok, de Tailandia, con huevo, maní, brotes y camarón, pollo o tofu."
+
+[[dish]]
+id = "tempura"
+name = "Tempura"
+keywords = ["tempura"]
+text = "La tempura es una fritura japonesa liviana: verduras o mariscos en un batido crocante."
+
+[[dish]]
+id = "chapsui"
+name = "Chapsui"
+keywords = ["chapsui", "chap sui", "chapsuy"]
+text = "El chapsui es un salteado al wok de verduras con carne, pollo o camarón y salsa de soya, clásico de la comida chino-chilena."
+
+[[dish]]
+id = "burrito"
+name = "Burrito"
+keywords = ["burrito", "burritos"]
+text = "Un burrito es una tortilla de trigo enrollada con carne, porotos, arroz y queso, de México y Estados Unidos."
+
+[[dish]]
+id = "taco"
+name = "Tacos"
+keywords = ["taco", "tacos"]
+text = "Los tacos son tortillas de maíz o de trigo dobladas con carne, cebolla, cilantro y salsa, de México."
+
+[[dish]]
+id = "hummus"
+name = "Hummus"
+keywords = ["hummus", "humus"]
+text = "El hummus es una crema de garbanzos con tahini (pasta de sésamo), limón y ajo, de Medio Oriente."
+
+[[dish]]
+id = "falafel"
+name = "Falafel"
+keywords = ["falafel"]
+text = "El falafel son croquetas fritas de garbanzo con hierbas, de Medio Oriente; se comen en pan pita."
+
+[[dish]]
+id = "shawarma"
+name = "Shawarma"
+keywords = ["shawarma", "shawarmas"]
+text = "El shawarma es carne asada en un trompo, cortada fina y servida en pan pita con salsas, de Medio Oriente."
+
+[[dish]]
+id = "chorrillana"
+name = "Chorrillana"
+keywords = ["chorrillana"]
+text = "La chorrillana es un plato chileno para compartir: papas fritas con carne, cebolla y huevo frito encima."
+
+[[dish]]
+id = "completo"
+name = "Completo"
+keywords = ["completo", "completos", "italiano"]
+query = "completo"
+text = "El completo es el hot dog chileno: vienesa en pan con tomate, palta y mayonesa (ese es el «italiano»)."
+
+[[dish]]
+id = "barros-luco"
+name = "Barros Luco"
+keywords = ["barros luco"]
+text = "El Barros Luco es un sándwich chileno de carne a la plancha con queso derretido."
+
+[[dish]]
+id = "chacarero"
+name = "Chacarero"
+keywords = ["chacarero"]
+text = "El chacarero es un sándwich chileno de carne con porotos verdes, tomate y ají verde."
+
+[[dish]]
+id = "pastel-de-choclo"
+name = "Pastel de choclo"
+keywords = ["pastel de choclo"]
+text = "El pastel de choclo es un plato chileno: pino (carne con cebolla), pollo, huevo y aceitunas, cubiertos con pasta de choclo y gratinados al horno."
+
+[[dish]]
+id = "empanada-de-pino"
+name = "Empanada de pino"
+keywords = ["empanada de pino", "empanadas de pino"]
+text = "La empanada de pino es la chilena clásica, al horno: carne picada con cebolla, huevo duro, aceituna y pasas."
+
+[[dish]]
+id = "sopaipilla"
+name = "Sopaipillas"
+keywords = ["sopaipilla", "sopaipillas"]
+text = "Las sopaipillas son masas fritas de zapallo, chilenas; se comen con pebre o «pasadas» en chancaca."
+
+[[dish]]
+id = "tiramisu"
+name = "Tiramisú"
+keywords = ["tiramisu"]
+text = "El tiramisú es un postre italiano de bizcochos mojados en café, con crema de mascarpone y cacao."
+
+[[dish]]
+id = "brunch"
+name = "Brunch"
+keywords = ["brunch"]
+text = "El brunch junta el desayuno y el almuerzo: huevos, panes, tostadas, fruta y algo dulce, para comer a media mañana."

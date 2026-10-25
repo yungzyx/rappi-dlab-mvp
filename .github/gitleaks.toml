@@ -1,0 +1,16 @@
+# gitleaks (job «secretos» del CI): las reglas de siempre más estas excepciones, cada una un falso positivo revisado.
+
+[extend]
+useDefault = true
+
+[[allowlists]]
+description = "Páginas de rappi.cl guardadas para los tests: «key» es una clave de traducción del sitio, no un secreto"
+paths = ['''^rappi-scraper/tests/fixtures/[^/]+\.html$''']
+
+[[allowlists]]
+description = "La persona de prueba de los tests y su token, firmado con el secreto de los tests (no sirve fuera de ellos)"
+regexes = ['''^proto-0123456789abcdef(\.[A-Za-z0-9_-]+)?$''']
+
+[[allowlists]]
+description = "Nombres de claves de localStorage de la app (rappi-proto-…), no secretos"
+regexes = ['''^rappi-proto-[a-z0-9-]+$''']

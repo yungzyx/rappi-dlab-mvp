@@ -1,0 +1,390 @@
+/* ---------- Encabezado ---------- */
+.masthead {
+  padding-block: clamp(20px, 3vw, 36px) var(--space-5);
+}
+
+.masthead-inner {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-areas:
+    'brand controls'
+    'lede meta';
+  align-items: end;
+  gap: var(--space-4) var(--space-6);
+}
+
+.brand {
+  grid-area: brand;
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.brand-mark {
+  width: 40px;
+  height: 40px;
+  flex: none;
+}
+
+.brand-mark rect {
+  fill: var(--brand);
+}
+
+.brand-mark path {
+  fill: none;
+  stroke: var(--on-brand);
+  stroke-width: 3;
+  stroke-linecap: round;
+  transform-box: fill-box;
+  transform-origin: bottom;
+  /* Las barras crecen una vez al cargar: dice "datos" sin decirlo */
+  animation: grow-y var(--duration-enter) var(--ease-spring) both;
+}
+
+.brand-mark path:nth-child(3) {
+  animation-delay: 90ms;
+}
+
+.brand-mark path:nth-child(4) {
+  animation-delay: 180ms;
+}
+
+@keyframes grow-y {
+  from {
+    transform: scaleY(0);
+  }
+}
+
+.brand .eyebrow {
+  color: var(--brand-ink);
+}
+
+.brand h1 {
+  font-size: var(--text-display);
+  letter-spacing: -0.03em;
+  line-height: 1;
+}
+
+.masthead-controls {
+  grid-area: controls;
+  display: flex;
+  align-items: flex-end;
+  gap: var(--space-2);
+}
+
+.masthead-lede {
+  grid-area: lede;
+  max-width: 62ch;
+  font-size: var(--text-md);
+  color: var(--ink-2);
+}
+
+.masthead-lede strong {
+  color: var(--ink);
+  font-weight: 600;
+}
+
+.masthead-meta {
+  grid-area: meta;
+  justify-self: end;
+  font-size: var(--text-sm);
+  color: var(--ink-3);
+  white-space: nowrap;
+}
+
+.masthead-meta strong {
+  color: var(--ink);
+}
+
+/* Selector de fuente (radios nativos con forma de segmentos) */
+.segmented {
+  display: grid;
+  gap: 4px;
+  border: 0;
+}
+
+.segmented-legend {
+  padding: 0;
+  font-size: var(--text-xs);
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+
+.segmented-options {
+  display: inline-flex;
+  padding: 3px;
+  border-radius: 999px;
+  background: var(--surface-sunken);
+  box-shadow: inset 0 0 0 1px var(--hairline);
+}
+
+.segmented-option {
+  position: relative;
+  cursor: pointer;
+}
+
+.segmented-option input {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.segmented-option span {
+  display: block;
+  padding: 6px 14px;
+  border-radius: 999px;
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: var(--ink-2);
+  transition:
+    background var(--duration-fast),
+    color var(--duration-fast);
+}
+
+.segmented-option:hover span {
+  color: var(--ink);
+}
+
+.segmented-option input:checked + span {
+  color: var(--surface);
+  background: var(--ink);
+}
+
+.segmented-option input:focus-visible + span {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+
+.icon-button {
+  display: grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  color: var(--ink-2);
+  box-shadow: inset 0 0 0 1px var(--line-strong);
+  transition:
+    color var(--duration-fast),
+    background var(--duration-fast);
+}
+
+.icon-button:hover {
+  color: var(--ink);
+  background: var(--surface);
+}
+
+.icon-button:active {
+  transform: scale(0.96);
+}
+
+.icon-button svg {
+  width: 18px;
+  height: 18px;
+}
+
+/* ---------- Aviso de procedencia (permanente) ---------- */
+.provenance-row {
+  border-block: 1px solid var(--sim-edge);
+  color: var(--sim-ink);
+  background: var(--sim-hatch), var(--sim-bg);
+}
+
+.provenance-row--prototype {
+  border-color: var(--line-strong);
+  color: var(--ink);
+  background: var(--surface-sunken);
+}
+
+.provenance-row--offline {
+  border-top: 0;
+  border-color: var(--line-strong);
+  color: var(--ink);
+  background: var(--surface-raised);
+}
+
+.provenance-inner {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding-block: 10px;
+  font-size: var(--text-sm);
+}
+
+.provenance-inner > svg {
+  width: 18px;
+  height: 18px;
+  flex: none;
+}
+
+.provenance-inner p {
+  flex: 1;
+}
+
+.provenance-row--synthetic .provenance-inner p {
+  /* legible sobre el rayado: el texto lleva un fondo propio */
+  padding: 2px 6px;
+  margin-left: -6px;
+  border-radius: 4px;
+  background: color-mix(in srgb, var(--sim-bg) 88%, transparent);
+  box-decoration-break: clone;
+}
+
+/* ---------- Barra de pestañas (fija arriba) ---------- */
+.tabbar {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  background: color-mix(in srgb, var(--page) 92%, transparent);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid var(--line);
+}
+
+.tabbar-inner {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+}
+
+.tabs {
+  display: flex;
+  flex: 1;
+  min-width: 0;
+  gap: var(--space-1);
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.tabs::-webkit-scrollbar {
+  display: none;
+}
+
+.tab {
+  position: relative;
+  flex: none;
+  padding: 14px 12px 13px;
+  font-size: var(--text-base);
+  font-weight: 500;
+  color: var(--ink-2);
+  white-space: nowrap;
+  border-radius: 0;
+  transition: color var(--duration-fast);
+}
+
+.tab:first-child {
+  padding-left: 0;
+}
+
+.tab::after {
+  content: '';
+  position: absolute;
+  inset: auto 12px 0;
+  height: 3px;
+  border-radius: 3px 3px 0 0;
+  background: var(--brand);
+  transform: scaleX(0);
+  transition: transform var(--duration-normal) var(--ease-spring);
+}
+
+.tab:first-child::after {
+  left: 0;
+}
+
+.tab:hover {
+  color: var(--ink);
+}
+
+.tab[aria-selected='true'] {
+  color: var(--ink);
+  font-weight: 600;
+}
+
+.tab[aria-selected='true']::after {
+  transform: scaleX(1);
+}
+
+.tab:focus-visible {
+  outline-offset: -4px;
+}
+
+.tabbar-source {
+  flex: none;
+}
+
+.tab-short {
+  display: none;
+}
+
+/* ---------- Pie ---------- */
+.site-footer {
+  padding-block: var(--space-6) var(--space-7);
+  border-top: 1px solid var(--line);
+  font-size: var(--text-sm);
+  color: var(--ink-3);
+}
+
+.site-footer p + p {
+  margin-top: var(--space-2);
+}
+
+.site-footer a {
+  color: var(--brand-ink);
+}
+
+@media (max-width: 640px) {
+  .tab-long {
+    display: none;
+  }
+
+  .tab-short {
+    display: inline;
+  }
+
+  /* El aviso de arriba ya dice la fuente: la insignia le quitaba espacio a las pestañas */
+  .tabbar-source {
+    display: none;
+  }
+}
+
+@media (max-width: 760px) {
+  .masthead-inner {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas:
+      'brand'
+      'lede'
+      'controls'
+      'meta';
+    align-items: start;
+    gap: var(--space-3);
+  }
+
+  .brand-mark {
+    width: 34px;
+    height: 34px;
+  }
+
+  .masthead-controls {
+    justify-content: space-between;
+  }
+
+  .masthead-meta {
+    justify-self: start;
+    white-space: normal;
+  }
+
+  .provenance-inner {
+    align-items: flex-start;
+  }
+
+  .provenance-row--offline .provenance-inner {
+    flex-wrap: wrap;
+  }
+
+  /* Pista de que las pestañas siguen a la derecha */
+  .tabs {
+    padding-right: var(--space-5);
+    mask-image: linear-gradient(90deg, #000 calc(100% - 28px), transparent);
+  }
+}

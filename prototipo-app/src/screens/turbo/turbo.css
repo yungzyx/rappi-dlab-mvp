@@ -1,0 +1,306 @@
+/* Medidas tomadas de las capturas de la app iOS del 26-09-2026 (no versionadas). */
+.turbo {
+  padding-bottom: 150px;
+}
+
+.turbo-green {
+  background: var(--turbo-green);
+  color: var(--surface);
+  padding-top: 65px;
+}
+
+.turbo-header {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 42px;
+  padding: 0 var(--gutter);
+}
+
+.turbo-round {
+  position: absolute;
+  left: var(--gutter);
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: var(--surface);
+  color: var(--ink);
+}
+
+.turbo-round--more {
+  left: auto;
+  right: var(--gutter);
+  width: 42px;
+  height: 42px;
+}
+
+.turbo-logo {
+  height: 41px;
+}
+
+.turbo-eta {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  width: 241px;
+  height: 47px;
+  margin: 12px auto 0;
+  border-radius: 99px;
+  background: rgba(255, 255, 255, 0.14);
+  border: 1.5px solid rgba(255, 255, 255, 0.45);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.25);
+  font-size: 17.5px;
+}
+
+.turbo-eta strong {
+  font-size: 25px;
+  font-style: italic;
+  font-weight: 800;
+  letter-spacing: -0.5px;
+}
+
+.turbo-search {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: calc(100% - 2 * var(--gutter));
+  height: 49px;
+  margin: 29px var(--gutter) 0;
+  padding: 0 19px;
+  border-radius: 99px;
+  background: var(--turbo-search);
+  color: var(--surface);
+  font-size: 16.5px;
+  text-align: left;
+}
+
+.turbo-tabs {
+  gap: 9px;
+  margin-top: 22px;
+  padding: 0 var(--gutter);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.28);
+}
+
+/* Los pasillos de la tienda Turbo: solo texto (la base no guarda íconos de pasillo) */
+.turbo-tab {
+  flex: none;
+  position: relative;
+  padding: 12px 14px 14px;
+  color: var(--surface);
+  font-size: 16px;
+  white-space: nowrap;
+  opacity: 0.82;
+  transition: opacity var(--duration-fast);
+}
+
+.turbo-tab::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -1px;
+  height: 4px;
+  border-radius: 3px 3px 0 0;
+  background: var(--surface);
+  transform: scaleX(0);
+  transition: transform var(--duration-normal) var(--ease-out);
+}
+
+.turbo-tab.is-active {
+  opacity: 1;
+  font-weight: 700;
+}
+
+.turbo-tab.is-active::after {
+  transform: scaleX(1);
+}
+
+.turbo-hero {
+  display: block;
+  width: 100%;
+}
+
+.turbo-hero img {
+  width: 100%;
+}
+
+/* ---------- Tarifa de servicio ---------- */
+.turbo-fee {
+  position: relative;
+  display: flex;
+  gap: 10px;
+  margin: 20px var(--gutter) 0;
+  height: 92px;
+  padding: 19px 16px 0;
+  border-radius: 25px;
+  background: var(--fee-bg);
+  color: var(--fee-ink);
+}
+
+.turbo-fee img {
+  width: 28px;
+  height: 22px;
+  margin-top: 2px;
+}
+
+.turbo-fee-title {
+  font-size: 17.5px;
+  font-weight: 500;
+}
+
+.turbo-fee-sub {
+  margin-top: 2px;
+  font-size: 12.5px;
+}
+
+.turbo-fee-sub strong {
+  font-weight: 700;
+}
+
+.turbo-fee-track {
+  position: absolute;
+  left: 22px;
+  right: 22px;
+  bottom: 18px;
+  height: 4px;
+  border-radius: 2px;
+  background: #efedd8;
+}
+
+.turbo-fee-check {
+  position: absolute;
+  right: -6px;
+  top: 50%;
+  width: 15px;
+  height: 15px;
+  border-radius: 50%;
+  background: #dfe0dc;
+  border: 2px solid var(--surface);
+  transform: translateY(-50%);
+}
+
+/* ---------- Promos ---------- */
+.turbo-promos {
+  gap: 17px;
+  padding: 24px var(--gutter) 0;
+}
+
+.turbo-promo {
+  flex: none;
+  width: 146px;
+  height: 180px;
+  border-radius: 20px;
+  overflow: hidden;
+}
+
+.turbo-promo img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.bottom-nav--turbo .bottom-nav-pill {
+  flex: 0 0 282px;
+  margin-left: 4px;
+}
+
+.turbo-fee-fill {
+  position: absolute;
+  left: 0;
+  top: 0;
+  height: 100%;
+  border-radius: 2px;
+  background: var(--fee-ink);
+  transition: width var(--duration-normal) var(--ease-out);
+}
+
+.turbo-fee-check.is-done {
+  background: var(--fee-ink);
+}
+
+/* ---------- Productos por pestaña ---------- */
+.turbo-products {
+  padding: 28px var(--gutter) 0;
+}
+
+.turbo-products-title {
+  margin-bottom: 26px;
+}
+
+/* Mientras llegan los productos de un pasillo */
+.turbo-skeleton {
+  height: 260px;
+  border-radius: 15px;
+  background: var(--chip);
+}
+
+.turbo-more {
+  display: block;
+  height: 40px;
+  margin: 28px auto 0;
+  padding: 0 24px;
+  border-radius: 99px;
+  background: #ebeff3;
+  font-size: 15.5px;
+  font-weight: 500;
+}
+
+.turbo-more:disabled {
+  opacity: 0.6;
+}
+
+.turbo-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 32px 21px;
+}
+
+.turbo-grid .product-card {
+  width: 100%;
+}
+
+/* ---------- Pestañas Ofertas y Categorías ---------- */
+.turbo-page {
+  padding-bottom: 150px;
+}
+
+.turbo-page .turbo-grid {
+  padding: 26px var(--gutter) 0;
+}
+
+.turbo-page-note {
+  padding: 0 var(--gutter);
+  font-size: 15px;
+  color: var(--ink-2);
+}
+
+.turbo-categories {
+  list-style: none;
+  padding: 8px var(--gutter) 0;
+}
+
+.turbo-category {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  width: 100%;
+  min-height: 64px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--line);
+  text-align: left;
+  font-size: 17px;
+}
+
+.turbo-category span {
+  flex: 1;
+  font-weight: 500;
+}
+
+.turbo-category small {
+  font-size: 14px;
+  color: var(--ink-3);
+}

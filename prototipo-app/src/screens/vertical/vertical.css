@@ -1,0 +1,198 @@
+/* Medidas de las capturas de la app iOS del 26-09-2026, no versionadas
+   (px de la captura a 600 de ancho × 0,67 = pt). */
+.vertical {
+  padding-bottom: 110px;
+}
+
+.vertical-header {
+  display: flex;
+  align-items: center;
+  gap: 17px;
+  height: 50px;
+  margin-top: 59px;
+  padding: 0 var(--gutter);
+}
+
+.vertical-header .round-button {
+  width: 33px;
+  height: 33px;
+  flex: none;
+}
+
+.vertical-address {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  max-width: 250px;
+  text-align: left;
+}
+
+.vertical-address span {
+  max-width: 182px;
+  font-size: 17.5px;
+  font-weight: 600;
+  line-height: 20.5px;
+  letter-spacing: -0.1px;
+}
+
+.vertical-search-wrap {
+  padding: 18px var(--gutter) 0;
+}
+
+.vertical-search-wrap .search-bar {
+  height: 54px;
+}
+
+.vertical-search-hint {
+  font-size: 16.5px;
+  color: #9299a4;
+}
+
+/* ---------- Categorías (columnas de 84 pt) ---------- */
+.vertical-cats {
+  overflow: hidden;
+  padding: 16px 0 0 12px;
+}
+
+.vertical-cats.hscroll {
+  overflow-x: auto;
+}
+
+.vertical-cats-grid {
+  display: grid;
+  row-gap: 24px;
+  width: max-content;
+  padding-right: 12px;
+}
+
+.vertical-cat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 84px;
+}
+
+.vertical-cat-img {
+  width: 60px;
+  height: 70px;
+}
+
+.vertical-cat-img img {
+  height: 100%;
+}
+
+/* Ícono cortado por el borde: se deja a su ancho real, pegado a la izquierda */
+.vertical-cat-img.is-partial {
+  align-self: flex-start;
+  margin-left: 12px;
+}
+
+.vertical-cat-label {
+  display: grid;
+  place-items: center;
+  min-height: 34px;
+  margin-top: 4px;
+  max-width: 94px;
+  font-size: 14.5px;
+  line-height: 15.5px;
+  text-align: center;
+}
+
+/* ---------- Secciones ---------- */
+.vertical-section--products {
+  padding-top: 56px;
+}
+
+.vertical-section--stores {
+  padding-top: 34px;
+}
+
+.vertical-title-strong {
+  font-size: 22px;
+  font-weight: 800;
+  letter-spacing: -0.2px;
+  color: #2b0212;
+}
+
+.see-all {
+  flex: none;
+  height: 31px;
+  margin-right: 21px;
+  padding: 0 13px;
+  border: 1.5px solid #eceef2;
+  border-radius: 99px;
+  background: var(--surface);
+  font-size: 16.5px;
+  font-weight: 500;
+  color: #2b0212;
+}
+
+.vertical-product-row {
+  display: flex;
+  gap: 21px;
+  padding: 58px var(--gutter) 0;
+  overflow: hidden;
+}
+
+.vertical-product-row.hscroll {
+  overflow-x: auto;
+}
+
+/* ---------- Listas de tiendas ---------- */
+.vertical-store-list {
+  position: relative;
+  margin-top: 15px;
+  padding: 0 var(--gutter);
+}
+
+.vertical-store {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  width: 330px;
+  height: 82px;
+  text-align: left;
+}
+
+.vertical-store-logo {
+  flex: none;
+  width: 52px;
+  height: 52px;
+  margin-top: 8px;
+  border-radius: 50%;
+}
+
+.vertical-store-text {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.vertical-store-name {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.vertical-store-name strong {
+  font-size: 17.5px;
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.vertical-store-meta {
+  margin-top: 0;
+  padding-left: 0;
+  font-size: 15.5px;
+}
+
+.vertical-empty {
+  padding: 40px var(--gutter);
+  color: var(--ink-3);
+  font-size: 15px;
+  text-align: center;
+}

@@ -1,0 +1,18 @@
+# Respaldo nocturno del servidor, en el contenedor jobs (lo dispara rappi-backup.timer, todos los días 04:15):
+# deploy/scripts/backup-nightly.sh respalda la base en el volumen (quedan 3) y la copia fuera del equipo con restic. Sin
+# RESTIC_REPOSITORY sale con 2 y el servicio queda en rojo (`systemctl status rappi-backup`).
+# Independiente de la purga (rappi-purge.service) y de la descarga semanal: si una falla, el respaldo corre igual.
+[Unit]
+Description=Rappi: respaldo nocturno de la base y copia fuera del equipo
+Requires=docker.service
+After=docker.service network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+# Editar: la carpeta del repo en el servidor (la misma en rappi-purge.service y rappi-refresh.service).
+WorkingDirectory=/opt/rappi
+Environment=RAPPI_ENV_FILE=/etc/rappi/rappi.env
+ExecStart=/usr/bin/docker compose --env-file ${RAPPI_ENV_FILE} -f deploy/docker-compose.yml --profile jobs run --rm jobs bash deploy/scripts/backup-nightly.sh
+# Volcar y subir la base toma minutos; uno colgado no debe quedar hasta el día siguiente.
+TimeoutStartSec=6h

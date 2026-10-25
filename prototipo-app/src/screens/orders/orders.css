@@ -1,0 +1,114 @@
+/* Mis pedidos: diseño propio con el estilo de la app (no aparece en las capturas). */
+.orders {
+  padding: 0 var(--gutter) 40px;
+  background: var(--surface);
+}
+
+.orders-header {
+  position: sticky;
+  top: 0;
+  z-index: 3;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin: 0 calc(-1 * var(--gutter));
+  padding: 62px var(--gutter) 12px;
+  background: rgba(255, 255, 255, 0.94);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+.orders-header h1 {
+  font-size: 22px;
+  font-weight: 600;
+}
+
+.orders-list {
+  list-style: none;
+}
+
+.orders-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  width: 100%;
+  padding: 14px 4px;
+  border-bottom: 1px solid var(--line-soft);
+  text-align: left;
+}
+
+.orders-row img {
+  flex: none;
+  width: 52px;
+  height: 52px;
+  border-radius: 12px;
+  object-fit: cover;
+  background: #f1f1f1;
+}
+
+.orders-row-text {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  font-size: 14.5px;
+  color: var(--ink-muted);
+}
+
+.orders-row-text strong {
+  font-size: 16.5px;
+  font-weight: 500;
+  color: var(--ink);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.orders-status {
+  width: fit-content;
+  margin-top: 2px;
+  padding: 1px 8px;
+  border-radius: 99px;
+  background: var(--accent-soft);
+  color: var(--accent-ink);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.orders-status.is-done {
+  background: #e8f8ec;
+  color: #1f7a3a;
+}
+
+/* ---------- Sin pedidos ---------- */
+.orders-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  margin-top: 120px;
+  text-align: center;
+}
+
+.orders-empty p {
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.orders-empty small {
+  max-width: 260px;
+  font-size: 14px;
+  line-height: 20px;
+  color: var(--ink-2);
+}
+
+.orders-empty-button {
+  margin-top: 14px;
+  padding: 12px 24px;
+  border-radius: 99px;
+  background: var(--ink);
+  color: var(--surface);
+  font-size: 15px;
+  font-weight: 600;
+}

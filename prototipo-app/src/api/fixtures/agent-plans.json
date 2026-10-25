@@ -1,0 +1,67 @@
+[
+  {
+    "emoji": "☕",
+    "id": "once",
+    "name": "Once"
+  },
+  {
+    "emoji": "🎉",
+    "id": "carrete",
+    "name": "Carrete"
+  },
+  {
+    "emoji": "🔥",
+    "id": "asado",
+    "name": "Asado"
+  },
+  {
+    "emoji": "🍿",
+    "id": "panorama",
+    "name": "Panorama en casa"
+  },
+  {
+    "emoji": "🎁",
+    "id": "regalo",
+    "name": "Regalo"
+  },
+  {
+    "emoji": "🍽️",
+    "id": "hambre",
+    "name": "Hambre ya"
+  },
+  {
+    "emoji": "🎂",
+    "id": "cumpleanos",
+    "name": "Cumpleaños"
+  },
+  {
+    "emoji": "🇨🇱",
+    "id": "fiestas-patrias",
+    "name": "Fiestas Patrias"
+  },
+  {
+    "emoji": "📚",
+    "id": "estudiar",
+    "name": "Noche de estudio"
+  },
+  {
+    "emoji": "🍬",
+    "id": "antojo",
+    "name": "Antojo dulce"
+  },
+  {
+    "emoji": "🕯️",
+    "id": "cita",
+    "name": "Cena romántica"
+  },
+  {
+    "emoji": "💛",
+    "id": "animo",
+    "name": "Un mimo"
+  },
+  {
+    "emoji": "🧸",
+    "id": "regalo-nino",
+    "name": "Regalo para un niño"
+  }
+]

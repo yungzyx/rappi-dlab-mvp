@@ -1,0 +1,15 @@
+{
+  "source": "synthetic",
+  "data": {
+    "dia": "2026-10-17",
+    "personas": 2291,
+    "califican": 137,
+    "por_concepto": 126,
+    "por_vertical": 11,
+    "recompra": 86
+  },
+  "guardado": {
+    "origen": "npm run panel:snapshot · usuarios simulados de rappi_staging",
+    "fecha": "2026-10-24"
+  }
+}

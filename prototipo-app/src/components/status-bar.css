@@ -1,0 +1,59 @@
+.status-bar {
+  position: absolute;
+  inset: 0 0 auto;
+  z-index: var(--z-status);
+  height: 54px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 2px 32px 0 41px;
+  color: #000;
+  pointer-events: none;
+}
+
+.status-left {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.status-time {
+  font-family: -apple-system, 'SF Pro Text', var(--font);
+  font-size: 17px;
+  font-weight: 600;
+  letter-spacing: -0.2px;
+}
+
+.status-right {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.status-battery {
+  display: flex;
+  align-items: center;
+  gap: 1px;
+}
+
+.status-battery-level {
+  display: grid;
+  place-items: center;
+  width: 27px;
+  height: 13px;
+  border-radius: 4px;
+  background: var(--green-status);
+  color: var(--surface);
+  letter-spacing: -0.4px;
+  font-family: -apple-system, 'SF Pro Text', var(--font);
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.status-battery-nub {
+  width: 2px;
+  height: 5px;
+  border-radius: 0 2px 2px 0;
+  background: rgba(0, 0, 0, 0.3);
+}

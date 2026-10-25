@@ -1,0 +1,14 @@
+# NO SE ACTIVA SOLO. Se copia con los demás, pero `systemctl enable --now rappi-refresh.timer` solo cuando quien
+# despliega haya puesto el contacto del User-Agent (RAPPI_UA_CONTACT), aceptado el riesgo de la IP de datacenter y
+# apagado la tarea semanal de cualquier otro equipo (`make unschedule` allá): nunca dos descargas a la vez contra
+# rappi.cl.
+[Unit]
+Description=Rappi: descarga semanal (domingos 03:00, hora de Chile)
+
+[Timer]
+OnCalendar=Sun 03:00 America/Santiago
+# Si el servidor estaba apagado a esa hora, corre al encender.
+Persistent=true
+
+[Install]
+WantedBy=timers.target

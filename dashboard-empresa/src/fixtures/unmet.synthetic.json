@@ -1,0 +1,104 @@
+{
+  "data": {
+    "busquedas": 94,
+    "personas": 29,
+    "por_vertical": [
+      {
+        "concepto": "🧽 Limpieza",
+        "sin_resultado": 5,
+        "vertical": "supermercado"
+      },
+      {
+        "concepto": "🍦 Helados",
+        "sin_resultado": 4,
+        "vertical": "restaurantes"
+      },
+      {
+        "concepto": "🥗 Ensaladas y bowls",
+        "sin_resultado": 3,
+        "vertical": "restaurantes"
+      },
+      {
+        "concepto": "🇵🇪 Comida peruana",
+        "sin_resultado": 3,
+        "vertical": "restaurantes"
+      },
+      {
+        "concepto": "🍗 Pollo frito y asado",
+        "sin_resultado": 3,
+        "vertical": "restaurantes"
+      },
+      {
+        "concepto": "🐈 Alimento para gatos",
+        "sin_resultado": 3,
+        "vertical": "supermercado"
+      },
+      {
+        "concepto": "🍞 Pan",
+        "sin_resultado": 3,
+        "vertical": "supermercado"
+      },
+      {
+        "concepto": "🌮 Comida mexicana",
+        "sin_resultado": 2,
+        "vertical": "restaurantes"
+      },
+      {
+        "concepto": "🍝 Pastas",
+        "sin_resultado": 2,
+        "vertical": "restaurantes"
+      },
+      {
+        "concepto": "🐕 Alimento para perros",
+        "sin_resultado": 2,
+        "vertical": "supermercado"
+      },
+      {
+        "concepto": "🥛 Leche y yogur",
+        "sin_resultado": 2,
+        "vertical": "supermercado"
+      },
+      {
+        "concepto": "☕ Café",
+        "sin_resultado": 1,
+        "vertical": "conveniencia"
+      },
+      {
+        "concepto": "🥡 Comida asiática",
+        "sin_resultado": 1,
+        "vertical": "restaurantes"
+      },
+      {
+        "concepto": "🦴 Accesorios para mascotas",
+        "sin_resultado": 1,
+        "vertical": "supermercado"
+      },
+      {
+        "concepto": "🥣 Cereales y avena",
+        "sin_resultado": 1,
+        "vertical": "supermercado"
+      },
+      {
+        "concepto": "🍫 Chocolates",
+        "sin_resultado": 1,
+        "vertical": "supermercado"
+      },
+      {
+        "concepto": "🍎 Frutas",
+        "sin_resultado": 1,
+        "vertical": "supermercado"
+      },
+      {
+        "concepto": null,
+        "sin_resultado": 1,
+        "vertical": "supermercado"
+      }
+    ],
+    "sin_resultado": 39
+  },
+  "guardado": {
+    "fecha": "2026-10-17",
+    "origen": "make contract · simulación chica con semilla fija (40 personas, 8 semanas)"
+  },
+  "source": "synthetic"
+}

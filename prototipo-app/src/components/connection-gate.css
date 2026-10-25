@@ -1,0 +1,88 @@
+/* Va fuera del marco del teléfono (lo dibuja App): una tarjeta centrada sobre el fondo gris de la página */
+.connection-gate {
+  display: grid;
+  height: 100%;
+  overflow-y: auto;
+  padding: var(--gutter);
+}
+
+/* margin: auto centra y, si la ventana es muy baja, deja de cortar la parte de arriba */
+.connection-card {
+  display: grid;
+  justify-items: center;
+  gap: 10px;
+  width: min(100%, 420px);
+  margin: auto;
+  padding: 32px 24px 28px;
+  border-radius: 28px;
+  background: var(--surface);
+  box-shadow: var(--glass-shadow);
+  text-align: center;
+}
+
+.connection-message {
+  display: grid;
+  justify-items: center;
+  gap: 10px;
+}
+
+.connection-card h1 {
+  margin-top: 6px;
+  font-size: 24px;
+  font-weight: 700;
+  letter-spacing: -0.2px;
+}
+
+.connection-card p {
+  color: var(--ink-2);
+  font-size: 15px;
+  line-height: 1.45;
+  overflow-wrap: anywhere;
+}
+
+.connection-card code {
+  padding: 2px 7px;
+  border-radius: 6px;
+  background: var(--surface-muted);
+  color: var(--ink);
+  font-family: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+  font-size: 0.93em;
+  white-space: nowrap;
+}
+
+.connection-help {
+  margin-top: 4px;
+}
+
+.connection-retry {
+  min-width: 180px;
+  height: 48px;
+  margin-top: 14px;
+  padding: 0 24px;
+  border-radius: 99px;
+  background: var(--rappi-red);
+  color: var(--surface);
+  font-size: 17px;
+  font-weight: 700;
+}
+
+.connection-checking {
+  margin-top: 6px;
+  color: var(--ink-3);
+  font-size: 17px;
+  font-weight: 500;
+}
+
+/* La tarjeta aparece un instante después de abrir la página: si la API contesta rápido, no hay parpadeo */
+@media (prefers-reduced-motion: no-preference) {
+  .connection-card {
+    animation: connection-in var(--duration-normal) var(--ease-out) 250ms backwards;
+  }
+}
+
+@keyframes connection-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+}

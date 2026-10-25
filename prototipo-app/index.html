@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <title>Prototipo independiente con %AGENT_NAME%</title>
+    <meta name="robots" content="noindex, nofollow" />
+    <meta
+      name="description"
+      content="Maqueta navegable con %AGENT_NAME%, un asistente que recomienda entre verticales. Demo no oficial: prototipo independiente, no afiliado a Rappi."
+    />
+    <!-- Agregada a la pantalla de inicio del iPhone se abre a pantalla completa, sin la barra de Safari -->
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="apple-mobile-web-app-title" content="Demo no oficial" />
+    <meta name="theme-color" content="#ffffff" />
+    <!-- Con credenciales: tras la puerta de acceso (basic auth) el manifiesto se pide con ellas, si no da 401 -->
+    <link rel="manifest" href="/manifest.webmanifest" crossorigin="use-credentials" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <link rel="icon" type="image/png" href="/icon-192.png" />
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.jsx"></script>
+  </body>
+</html>

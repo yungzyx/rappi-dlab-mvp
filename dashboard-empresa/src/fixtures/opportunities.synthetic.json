@@ -1,0 +1,116 @@
+{
+  "source": "synthetic",
+  "data": [
+    {
+      "vertical": "restaurantes",
+      "concept_id": "peruana",
+      "que": "🇵🇪 Comida peruana",
+      "busquedas": 986,
+      "usuarios": 708,
+      "ciudades": [
+        "Antofagasta",
+        "Concepción",
+        "Santiago",
+        "Valparaíso"
+      ],
+      "recientes": 406,
+      "anteriores": 309,
+      "crecimiento_pct": 31,
+      "existe_en": null,
+      "accion": "Oportunidad: sumar comercios o categoría"
+    },
+    {
+      "vertical": "restaurantes",
+      "concept_id": "desayuno",
+      "que": "🥞 Desayunos y brunch",
+      "busquedas": 464,
+      "usuarios": 384,
+      "ciudades": [
+        "Antofagasta",
+        "Concepción",
+        "Santiago",
+        "Valparaíso"
+      ],
+      "recientes": 168,
+      "anteriores": 117,
+      "crecimiento_pct": 44,
+      "existe_en": null,
+      "accion": "Oportunidad: sumar comercios o categoría"
+    },
+    {
+      "vertical": "restaurantes",
+      "concept_id": "mexicana",
+      "que": "🌮 Comida mexicana",
+      "busquedas": 309,
+      "usuarios": 265,
+      "ciudades": [
+        "Antofagasta",
+        "Concepción",
+        "Santiago",
+        "Valparaíso"
+      ],
+      "recientes": 79,
+      "anteriores": 85,
+      "crecimiento_pct": -7,
+      "existe_en": null,
+      "accion": "Oportunidad: sumar comercios o categoría"
+    },
+    {
+      "vertical": "restaurantes",
+      "concept_id": "arabe",
+      "que": "🥙 Comida árabe",
+      "busquedas": 213,
+      "usuarios": 191,
+      "ciudades": [
+        "Antofagasta",
+        "Concepción",
+        "Santiago",
+        "Valparaíso"
+      ],
+      "recientes": 65,
+      "anteriores": 52,
+      "crecimiento_pct": 25,
+      "existe_en": null,
+      "accion": "Oportunidad: sumar comercios o categoría"
+    },
+    {
+      "vertical": "supermercado",
+      "concept_id": null,
+      "que": "kombucha",
+      "busquedas": 173,
+      "usuarios": 158,
+      "ciudades": [
+        "Antofagasta",
+        "Concepción",
+        "Santiago",
+        "Valparaíso"
+      ],
+      "recientes": 60,
+      "anteriores": 64,
+      "crecimiento_pct": -6,
+      "existe_en": null,
+      "accion": "Revisar la consulta: sumar sinónimo o concepto nuevo"
+    },
+    {
+      "vertical": "mall",
+      "concept_id": "automotriz",
+      "que": "🚗 Auto",
+      "busquedas": 34,
+      "usuarios": 32,
+      "ciudades": [
+        "Concepción",
+        "Santiago",
+        "Valparaíso"
+      ],
+      "recientes": 9,
+      "anteriores": 12,
+      "crecimiento_pct": -25,
+      "existe_en": "supermercado, conveniencia",
+      "accion": "Existe en otro vertical: que el agente lo ofrezca ahí"
+    }
+  ],
+  "guardado": {
+    "origen": "npm run panel:snapshot · usuarios simulados de rappi_staging",
+    "fecha": "2026-10-24"
+  }
+}

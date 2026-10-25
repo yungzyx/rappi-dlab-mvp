@@ -1,0 +1,606 @@
+{
+ "nota": "Categorías de planilla-categorias.csv; los ejemplos de productos están en data/eval/, fuera de git.",
+ "semilla": 7,
+ "categorias": [
+  {
+   "clave": "golf",
+   "vertical": "chocolateria",
+   "grupo": "acuerdo",
+   "concepto_propuesto": "articulos-deportivos"
+  },
+  {
+   "clave": "apósitos",
+   "vertical": "conveniencia",
+   "grupo": "juez",
+   "concepto_propuesto": "primeros-auxilios"
+  },
+  {
+   "clave": "arepas",
+   "vertical": "conveniencia",
+   "grupo": "acuerdo",
+   "concepto_propuesto": "panaderia"
+  },
+  {
+   "clave": "coronas florales",
+   "vertical": "conveniencia",
+   "grupo": "juez",
+   "concepto_propuesto": "flores-regalos"
+  },
+  {
+   "clave": "franelas",
+   "vertical": "conveniencia",
+   "grupo": "acuerdo",
+   "concepto_propuesto": "limpieza"
+  },
+  {
+   "clave": "germinados",
+   "vertical": "conveniencia",
+   "grupo": "juez",
+   "concepto_propuesto": "verduras"
+  },
+  {
+   "clave": "jugos naturales",
+   "vertical": "conveniencia",
+   "grupo": "acuerdo",
+   "concepto_propuesto": "jugos"
+  },
+  {
+   "clave": "llantas",
+   "vertical": "conveniencia",
+   "grupo": "sin_mapear",
+   "concepto_propuesto": "automotriz"
+  },
+  {
+   "clave": "otros fórmulas y alimentos",
+   "vertical": "conveniencia",
+   "grupo": "sin_mapear",
+   "concepto_propuesto": ""
+  },
+  {
+   "clave": "shampoo para auto",
+   "vertical": "conveniencia",
+   "grupo": "juez",
+   "concepto_propuesto": "limpieza"
+  },
+  {
+   "clave": "tacones",
+   "vertical": "conveniencia",
+   "grupo": "acuerdo",
+   "concepto_propuesto": "calzado"
+  },
+  {
+   "clave": "capilares",
+   "vertical": "farmacia",
+   "grupo": "sin_mapear",
+   "concepto_propuesto": "vitaminas"
+  },
+  {
+   "clave": "dolor menstrual",
+   "vertical": "farmacia",
+   "grupo": "sin_mapear",
+   "concepto_propuesto": "vitaminas"
+  },
+  {
+   "clave": "gotas, lubricantes y lágrimas",
+   "vertical": "farmacia",
+   "grupo": "juez",
+   "concepto_propuesto": "medicamentos"
+  },
+  {
+   "clave": "lentes de contacto",
+   "vertical": "farmacia",
+   "grupo": "sin_mapear",
+   "concepto_propuesto": ""
+  },
+  {
+   "clave": "otros maquillaje para labios",
+   "vertical": "farmacia",
+   "grupo": "sin_mapear",
+   "concepto_propuesto": "maquillaje"
+  },
+  {
+   "clave": "otros remedios digestivos",
+   "vertical": "farmacia",
+   "grupo": "acuerdo",
+   "concepto_propuesto": "medicamentos"
+  },
+  {
+   "clave": "otros salud sexual",
+   "vertical": "farmacia",
+   "grupo": "sin_mapear",
+   "concepto_propuesto": "limpieza"
+  },
+  {
+   "clave": "otros salud visual",
+   "vertical": "farmacia",
+   "grupo": "sin_mapear",
+   "concepto_propuesto": ""
+  },
+  {
+   "clave": "pomadas y ungüentos",
+   "vertical": "farmacia",
+   "grupo": "juez",
+   "concepto_propuesto": "dermocosmetica"
+  },
+  {
+   "clave": "preparaciones respiratorias",
+   "vertical": "farmacia",
+   "grupo": "juez",
+   "concepto_propuesto": "medicamentos"
+  },
+  {
+   "clave": "protectores labiales-balsamos",
+   "vertical": "farmacia",
+   "grupo": "acuerdo",
+   "concepto_propuesto": "dermocosmetica"
+  },
+  {
+   "clave": "protectores solares faciales",
+   "vertical": "farmacia",
+   "grupo": "acuerdo",
+   "concepto_propuesto": "dermocosmetica"
+  },
+  {
+   "clave": "remedios digestivos",
+   "vertical": "farmacia",
+   "grupo": "juez",
+   "concepto_propuesto": "medicamentos"
+  },
+  {
+   "clave": "removedor de esmaltes",
+   "vertical": "farmacia",
+   "grupo": "acuerdo",
+   "concepto_propuesto": "maquillaje"
+  },
+  {
+   "clave": "solución para lentes",
+   "vertical": "farmacia",
+   "grupo": "sin_mapear",
+   "concepto_propuesto": "limpieza"
+  },
+  {
+   "clave": "tampones",
+   "vertical": "farmacia",
+   "grupo": "acuerdo",
+   "concepto_propuesto": "higiene-femenina"
+  },
+  {
+   "clave": "vigorizantes",
+   "vertical": "farmacia",
+   "grupo": "acuerdo",
+   "concepto_propuesto": "bienestar-sexual"
+  },
+  {
+   "clave": "óleos calcáreos y algodones",
+   "vertical": "farmacia",
+   "grupo": "sin_mapear",
+   "concepto_propuesto": ""
+  },
+  {
+   "clave": "aguardientes",
+   "vertical": "licores",
+   "grupo": "acuerdo",
+   "concepto_propuesto": "licores"
+  },
+  {
+   "clave": "brandys",
+   "vertical": "licores",
+   "grupo": "acuerdo",
+   "concepto_propuesto": "licores"
+  },
+  {
+   "clave": "cognac",
+   "vertical": "licores",
+   "grupo": "acuerdo",
+   "concepto_propuesto": "licores"
+  },
+  {
+   "clave": "ginebras",
+   "vertical": "licores",
+   "grupo": "acuerdo",
+   "concepto_propuesto": "gin"
+  },
+  {
+   "clave": "otros cervezas y sidras",
+   "vertical": "licores",
+   "grupo": "juez",
+   "concepto_propuesto": "gaseosas"
+  },
+  {
+   "clave": "sidras",
+   "vertical": "licores",
+   "grupo": "juez",
+   "concepto_propuesto": "cerveza"
+  },
+  {
+   "clave": "vino blanco",
+   "vertical": "licores",
+   "grupo": "acuerdo",
+   "concepto_propuesto": "vino"
+  },
+  {
+   "clave": "whiskys",
+   "vertical": "licores",
+   "grupo": "acuerdo",
+   "concepto_propuesto": "whisky"
+  },
+  {
+   "clave": "antidepresivos",
+   "vertical": "mall",
+   "grupo": "sin_mapear",
+   "concepto_propuesto": ""
+  },
+  {
+   "clave": "arroceras y multicook",
+   "vertical": "mall",
+   "grupo": "sin_mapear",
+   "concepto_propuesto": "cocina-menaje"
+  },
+  {
+   "clave": "audio para vehículo",
+   "vertical": "mall",
+   "grupo": "sin_mapear",
+   "concepto_propuesto": "audio"
+  },
+  {
+   "clave": "barandas",
+   "vertical": "mall",
+   "grupo": "juez",
+   "concepto_propuesto": "juguetes-infantiles"
+  },
+  {
+   "clave": "blu-ray & películas dvd",
+   "vertical": "mall",
+   "grupo": "sin_mapear",
+   "concepto_propuesto": "chocolates"
+  },
+  {
+   "clave": "calcetines deportivos",
+   "vertical": "mall",
+   "grupo": "juez",
+   "concepto_propuesto": "ropa-interior"
+  },
+  {
+   "clave": "camisetas",
+   "vertical": "mall",
+   "grupo": "juez",
+   "concepto_propuesto": "ropa-interior"
+  },
+  {
+   "clave": "candados",
+   "vertical": "mall",
+   "grupo": "juez",
+   "concepto_propuesto": "ferreteria"
+  },
+  {
+   "clave": "cargadores, fulares y arneses",
+   "vertical": "mall",
+   "grupo": "acuerdo",
+   "concepto_propuesto": "articulos-bebe"
+  },
+  {
+   "clave": "cámaras web",
+   "vertical": "mall",
+   "grupo": "sin_mapear",
+   "concepto_propuesto": "tv-video"
+  },
+  {
+   "clave": "drones",
+   "vertical": "mall",
+   "grupo": "sin_mapear",
+   "concepto_propuesto": "tv-video"
+  },
+  {
+   "clave": "estuches y accesorios para lentes",
+   "vertical": "mall",
+   "grupo": "juez",
+   "concepto_propuesto": "accesorios-moda"
+  },
+  {
+   "clave": "grifería baños",
+   "vertical": "mall",
+   "grupo": "juez",
+   "concepto_propuesto": "ferreteria"
+  },
+  {
+   "clave": "juegos eróticos",
+   "vertical": "mall",
+   "grupo": "acuerdo",
+   "concepto_propuesto": "bienestar-sexual"
+  },
+  {
+   "clave": "marcadores y resaltadores",
+   "vertical": "mall",
+   "grupo": "acuerdo",
+   "concepto_propuesto": "utiles"
+  },
+  {
+   "clave": "monitores",
+   "vertical": "mall",
+   "grupo": "juez",
+   "concepto_propuesto": "computacion"
+  },
+  {
+   "clave": "otros cuadernos y apuntes",
+   "vertical": "mall",
+   "grupo": "juez",
+   "concepto_propuesto": "utiles"
+  },
+  {
+   "clave": "otros cuerdas",
+   "vertical": "mall",
+   "grupo": "juez",
+   "concepto_propuesto": "juguetes-infantiles"
+  },
+  {
+   "clave": "otros electro belleza",
+   "vertical": "mall",
+   "grupo": "sin_mapear",
+   "concepto_propuesto": "accesorios-moda"
+  },
+  {
+   "clave": "otros equipo de entrenamiento",
+   "vertical": "mall",
+   "grupo": "sin_mapear",
+   "concepto_propuesto": "ferreteria"
+  },
+  {
+   "clave": "otros gaming",
+   "vertical": "mall",
+   "grupo": "sin_mapear",
+   "concepto_propuesto": "libros"
+  },
+  {
+   "clave": "otros televisión y video",
+   "vertical": "mall",
+   "grupo": "juez",
+   "concepto_propuesto": "tv-video"
+  },
+  {
+   "clave": "pistolas de juguete y lanzadores",
+   "vertical": "mall",
+   "grupo": "acuerdo",
+   "concepto_propuesto": "juguetes-infantiles"
+  },
+  {
+   "clave": "raquetas de tenis",
+   "vertical": "mall",
+   "grupo": "sin_mapear",
+   "concepto_propuesto": ""
+  },
+  {
+   "clave": "refrigeración",
+   "vertical": "mall",
+   "grupo": "sin_mapear",
+   "concepto_propuesto": "hielo"
+  },
+  {
+   "clave": "relojes",
+   "vertical": "mall",
+   "grupo": "acuerdo",
+   "concepto_propuesto": "joyeria"
+  },
+  {
+   "clave": "relojes de pared y mesa",
+   "vertical": "mall",
+   "grupo": "sin_mapear",
+   "concepto_propuesto": "joyeria"
+  },
+  {
+   "clave": "sacos y soportes de boxeo",
+   "vertical": "mall",
+   "grupo": "sin_mapear",
+   "concepto_propuesto": "frutas"
+  },
+  {
+   "clave": "silbatos y cronómetros",
+   "vertical": "mall",
+   "grupo": "sin_mapear",
+   "concepto_propuesto": ""
+  },
+  {
+   "clave": "smartwatch y smartband",
+   "vertical": "mall",
+   "grupo": "acuerdo",
+   "concepto_propuesto": "celulares"
+  },
+  {
+   "clave": "telefonía fija e inalámbrica",
+   "vertical": "mall",
+   "grupo": "sin_mapear",
+   "concepto_propuesto": "celulares"
+  },
+  {
+   "clave": "árboles de navidad",
+   "vertical": "mall",
+   "grupo": "sin_mapear",
+   "concepto_propuesto": ""
+  },
+  {
+   "clave": "absorbentes de húmedad",
+   "vertical": "supermercado",
+   "grupo": "sin_mapear",
+   "concepto_propuesto": ""
+  },
+  {
+   "clave": "anchetas",
+   "vertical": "supermercado",
+   "grupo": "sin_mapear",
+   "concepto_propuesto": ""
+  },
+  {
+   "clave": "balones medicinales",
+   "vertical": "supermercado",
+   "grupo": "sin_mapear",
+   "concepto_propuesto": ""
+  },
+  {
+   "clave": "bolsas para basura",
+   "vertical": "supermercado",
+   "grupo": "acuerdo",
+   "concepto_propuesto": "papeles-desechables"
+  },
+  {
+   "clave": "cajas florales",
+   "vertical": "supermercado",
+   "grupo": "sin_mapear",
+   "concepto_propuesto": "flores-regalos"
+  },
+  {
+   "clave": "cajas sorpresas",
+   "vertical": "supermercado",
+   "grupo": "sin_mapear",
+   "concepto_propuesto": "juguetes-infantiles"
+  },
+  {
+   "clave": "calzones anatómicos",
+   "vertical": "supermercado",
+   "grupo": "juez",
+   "concepto_propuesto": "higiene-personal"
+  },
+  {
+   "clave": "centro de entretenimiento",
+   "vertical": "supermercado",
+   "grupo": "sin_mapear",
+   "concepto_propuesto": "muebles"
+  },
+  {
+   "clave": "collares y correas",
+   "vertical": "supermercado",
+   "grupo": "juez",
+   "concepto_propuesto": "accesorios-moda"
+  },
+  {
+   "clave": "complementos",
+   "vertical": "supermercado",
+   "grupo": "sin_mapear",
+   "concepto_propuesto": "salsas"
+  },
+  {
+   "clave": "crema, loción y gel",
+   "vertical": "supermercado",
+   "grupo": "juez",
+   "concepto_propuesto": "articulos-bebe"
+  },
+  {
+   "clave": "cuidado anti acné",
+   "vertical": "supermercado",
+   "grupo": "sin_mapear",
+   "concepto_propuesto": "dermocosmetica"
+  },
+  {
+   "clave": "césped para mascotas",
+   "vertical": "supermercado",
+   "grupo": "sin_mapear",
+   "concepto_propuesto": "alimento-gato"
+  },
+  {
+   "clave": "hierbas y aromáticas",
+   "vertical": "supermercado",
+   "grupo": "acuerdo",
+   "concepto_propuesto": "verduras"
+  },
+  {
+   "clave": "jabones para mascotas",
+   "vertical": "supermercado",
+   "grupo": "sin_mapear",
+   "concepto_propuesto": "higiene-personal"
+  },
+  {
+   "clave": "juguetes para mascotas",
+   "vertical": "supermercado",
+   "grupo": "acuerdo",
+   "concepto_propuesto": "accesorios-mascota"
+  },
+  {
+   "clave": "leche condensada",
+   "vertical": "supermercado",
+   "grupo": "acuerdo",
+   "concepto_propuesto": "reposteria"
+  },
+  {
+   "clave": "licuados",
+   "vertical": "supermercado",
+   "grupo": "juez",
+   "concepto_propuesto": "lacteos"
+  },
+  {
+   "clave": "mesas de comedor y antecomedor",
+   "vertical": "supermercado",
+   "grupo": "sin_mapear",
+   "concepto_propuesto": "muebles"
+  },
+  {
+   "clave": "mezclas saladas",
+   "vertical": "supermercado",
+   "grupo": "juez",
+   "concepto_propuesto": "arroz-legumbres"
+  },
+  {
+   "clave": "orquidea",
+   "vertical": "supermercado",
+   "grupo": "sin_mapear",
+   "concepto_propuesto": ""
+  },
+  {
+   "clave": "otras plantas",
+   "vertical": "supermercado",
+   "grupo": "sin_mapear",
+   "concepto_propuesto": ""
+  },
+  {
+   "clave": "otros artículos de papel",
+   "vertical": "supermercado",
+   "grupo": "juez",
+   "concepto_propuesto": "accesorios-moda"
+  },
+  {
+   "clave": "otros café, infusiones y modificadores de leche",
+   "vertical": "supermercado",
+   "grupo": "juez",
+   "concepto_propuesto": "cafe"
+  },
+  {
+   "clave": "otros calzados",
+   "vertical": "supermercado",
+   "grupo": "juez",
+   "concepto_propuesto": "calzado"
+  },
+  {
+   "clave": "otros frutas y verduras",
+   "vertical": "supermercado",
+   "grupo": "acuerdo",
+   "concepto_propuesto": "verduras"
+  },
+  {
+   "clave": "otros limpiadores",
+   "vertical": "supermercado",
+   "grupo": "acuerdo",
+   "concepto_propuesto": "limpieza"
+  },
+  {
+   "clave": "otros yogurt y bebidas lácteas",
+   "vertical": "supermercado",
+   "grupo": "juez",
+   "concepto_propuesto": "lacteos"
+  },
+  {
+   "clave": "papel decorativo y vinilos adhesivos",
+   "vertical": "supermercado",
+   "grupo": "sin_mapear",
+   "concepto_propuesto": ""
+  },
+  {
+   "clave": "rascadores y gimnasios",
+   "vertical": "supermercado",
+   "grupo": "juez",
+   "concepto_propuesto": "accesorios-mascota"
+  },
+  {
+   "clave": "otros azúcar y endulzantes",
+   "vertical": "turbo",
+   "grupo": "acuerdo",
+   "concepto_propuesto": "azucar"
+  }
+ ]
+}

@@ -1,0 +1,47 @@
+.error-screen {
+  display: grid;
+  align-content: center;
+  justify-items: center;
+  gap: 10px;
+  padding: 0 var(--gutter);
+  text-align: center;
+  background: var(--surface);
+}
+
+.error-screen h1 {
+  font-size: 22px;
+  font-weight: 700;
+}
+
+.error-screen p {
+  color: var(--ink-3);
+  font-size: 15px;
+}
+
+.error-screen-home {
+  margin-top: 14px;
+  padding: 0 24px;
+  height: 48px;
+  border-radius: 99px;
+  background: var(--rappi-red);
+  color: var(--surface);
+  font-weight: 700;
+}
+
+.error-screen-reload {
+  padding: 10px 24px;
+  background: none;
+  color: var(--ink-2);
+  font-size: 16px;
+  font-weight: 600;
+}
+
+/* El de la raíz no vive dentro del teléfono: ocupa la ventana */
+.error-screen--root {
+  min-height: 100dvh;
+}
+
+/* Mientras una pantalla perezosa carga: el fondo del teléfono, sin spinner */
+.screen-loading {
+  background: var(--surface);
+}

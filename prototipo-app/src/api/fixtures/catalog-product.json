@@ -1,0 +1,17 @@
+{
+  "age_restricted": false,
+  "before": null,
+  "concept": "snacks-salados",
+  "discount": null,
+  "entity_id": "91001",
+  "entity_type": "catalog_item",
+  "id": "cat-91001",
+  "img": "https://imagenes.prueba.invalid/productos/91001.png",
+  "name": "Papas fritas clásicas 180 g (prueba)",
+  "presentation": "180 g",
+  "price": "$1.990",
+  "price_value": 1990.0,
+  "store": "Supermercado de prueba Centro",
+  "store_id": 9101,
+  "vertical": "supermercado"
+}

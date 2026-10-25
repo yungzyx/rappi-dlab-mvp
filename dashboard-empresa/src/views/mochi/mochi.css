@@ -1,0 +1,26 @@
+/* ---------- Dos bloques lado a lado (por momento | entre verticales; servicios | motor; sube | surtido) ---------- */
+.pair {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-6) var(--space-7);
+  align-items: start;
+}
+
+.pair-item {
+  display: grid;
+  gap: var(--space-3);
+  align-content: start;
+  min-width: 0;
+}
+
+.pair-item > .subhead {
+  margin-top: 0;
+  padding-bottom: var(--space-2);
+  border-bottom: 2px solid var(--ink);
+}
+
+@media (max-width: 1000px) {
+  .pair {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

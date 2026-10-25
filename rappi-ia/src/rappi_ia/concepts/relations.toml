@@ -1,0 +1,290 @@
+# Relaciones del grafo de conocimiento (capa de perfiles, docs/diseno/2026-10-06-capa-perfiles-design.md §4.3).
+#
+# `relation` define el vocabulario; `edge` son las aristas curadas a mano (las demás se derivan de la taxonomía, el catálogo
+# y los eventos). Nodos como «tipo:id» (concept, group, attribute, segment, brand, vertical, occasion, service, canonical,
+# term). `complementa` curadas viven en complements.toml.
+version = "2026-10-06"
+
+[[relation]]
+id = "complementa"
+name = "Complementa"
+from_kinds = ["concept"]
+to_kinds = ["concept"]
+is_symmetric = false
+description = "Quien lleva X suele querer Y: base de la sugerencia entre verticales (curada y aprendida de pedidos)."
+
+[[relation]]
+id = "co_busqueda"
+name = "Se busca junto a"
+from_kinds = ["concept"]
+to_kinds = ["concept"]
+is_symmetric = false
+description = "Conceptos que una misma persona busca o pide en la misma sesión (aprendida; peso = P(B | A))."
+
+[[relation]]
+id = "sustituye"
+name = "Sustituye a"
+from_kinds = ["concept"]
+to_kinds = ["concept"]
+is_symmetric = true
+description = "Si no hay X aquí, Y cumple la misma necesidad (curada)."
+
+[[relation]]
+id = "es_tipo_de"
+name = "Es un tipo de"
+from_kinds = ["concept"]
+to_kinds = ["group"]
+is_symmetric = false
+description = "Concepto → grupo de la taxonomía."
+
+[[relation]]
+id = "de_ocasion"
+name = "Es de la ocasión"
+from_kinds = ["concept"]
+to_kinds = ["occasion"]
+is_symmetric = false
+description = "Conceptos que arma una ocasión (asado, carrete, once…)."
+
+[[relation]]
+id = "se_vende_en"
+name = "Se vende en"
+from_kinds = ["concept"]
+to_kinds = ["vertical"]
+is_symmetric = false
+description = "Concepto → vertical donde tiene surtido; peso = oferta relativa a la vertical donde más tiene."
+
+[[relation]]
+id = "tiene_atributo"
+name = "Tiene el atributo"
+from_kinds = ["concept"]
+to_kinds = ["attribute"]
+is_symmetric = false
+description = "Qué conceptos ofrecen opción sin gluten, vegana, para bebé…; peso = parte de sus ítems con el atributo."
+
+[[relation]]
+id = "marca_de"
+name = "Marca de"
+from_kinds = ["brand"]
+to_kinds = ["concept"]
+is_symmetric = false
+description = "Marca → conceptos donde vende; peso = parte de sus productos."
+
+[[relation]]
+id = "afin_a"
+name = "Afín a"
+from_kinds = ["segment"]
+to_kinds = ["concept", "group", "attribute", "vertical"]
+is_symmetric = false
+description = "Qué mirar primero para cada segmento; sale de la regla del segmento."
+
+[[relation]]
+id = "equivale"
+name = "Equivale"
+from_kinds = ["canonical"]
+to_kinds = ["vertical"]
+is_symmetric = false
+description = "El mismo producto canónico (con ids distintos de Rappi) vendido en esa vertical."
+
+[[relation]]
+id = "conflicto"
+name = "En conflicto con"
+from_kinds = ["concept", "group", "segment"]
+to_kinds = ["concept", "group", "segment"]
+is_symmetric = true
+description = "Nunca sugerir juntos: alcohol y tabaco con artículos de bebé, por ejemplo."
+
+[[relation]]
+id = "sinonimo"
+name = "Sinónimo de"
+from_kinds = ["term"]
+to_kinds = ["concept"]
+is_symmetric = false
+description = "Palabra o frase de consulta → concepto que nombra (taxonomía y query_keywords)."
+
+# ─── sustituye (curadas): una sola dirección; la relación es simétrica ───────────────────────────────────────────────
+[[edge]]
+from = "concept:gaseosas"
+relation = "sustituye"
+to = "concept:jugos"
+weight = 0.5
+
+[[edge]]
+from = "concept:gaseosas"
+relation = "sustituye"
+to = "concept:agua"
+weight = 0.3
+
+[[edge]]
+from = "concept:cafe"
+relation = "sustituye"
+to = "concept:te"
+weight = 0.6
+
+[[edge]]
+from = "concept:chocolates"
+relation = "sustituye"
+to = "concept:golosinas"
+weight = 0.6
+
+[[edge]]
+from = "concept:helados"
+relation = "sustituye"
+to = "concept:postres"
+weight = 0.6
+
+[[edge]]
+from = "concept:galletas"
+relation = "sustituye"
+to = "concept:barras-cereal"
+weight = 0.4
+
+[[edge]]
+from = "concept:galletas"
+relation = "sustituye"
+to = "concept:snacks-salados"
+weight = 0.3
+
+[[edge]]
+from = "concept:pizza"
+relation = "sustituye"
+to = "concept:hamburguesa"
+weight = 0.4
+
+[[edge]]
+from = "concept:hamburguesa"
+relation = "sustituye"
+to = "concept:sandwiches"
+weight = 0.5
+
+[[edge]]
+from = "concept:sushi"
+relation = "sustituye"
+to = "concept:asiatica"
+weight = 0.4
+
+[[edge]]
+from = "concept:empanadas"
+relation = "sustituye"
+to = "concept:sandwiches"
+weight = 0.3
+
+[[edge]]
+from = "concept:carnes"
+relation = "sustituye"
+to = "concept:pollo"
+weight = 0.5
+
+[[edge]]
+from = "concept:pollo"
+relation = "sustituye"
+to = "concept:pollo-preparado"
+weight = 0.5
+
+[[edge]]
+from = "concept:pastas"
+relation = "sustituye"
+to = "concept:arroz-legumbres"
+weight = 0.5
+
+[[edge]]
+from = "concept:vino"
+relation = "sustituye"
+to = "concept:espumante"
+weight = 0.4
+
+[[edge]]
+from = "concept:pisco"
+relation = "sustituye"
+to = "concept:ron"
+weight = 0.4
+
+[[edge]]
+from = "concept:ron"
+relation = "sustituye"
+to = "concept:vodka"
+weight = 0.4
+
+[[edge]]
+from = "concept:gin"
+relation = "sustituye"
+to = "concept:vodka"
+weight = 0.5
+
+[[edge]]
+from = "concept:whisky"
+relation = "sustituye"
+to = "concept:ron"
+weight = 0.3
+
+[[edge]]
+from = "concept:cerveza"
+relation = "sustituye"
+to = "concept:cocteles"
+weight = 0.3
+
+# ─── conflicto (curadas): nunca sugerir juntos ───────────────────────────────────────────────────────────────────────
+[[edge]]
+from = "group:alcohol"
+relation = "conflicto"
+to = "concept:panales"
+weight = 1.0
+
+[[edge]]
+from = "group:alcohol"
+relation = "conflicto"
+to = "concept:alimentacion-bebe"
+weight = 1.0
+
+[[edge]]
+from = "group:alcohol"
+relation = "conflicto"
+to = "concept:articulos-bebe"
+weight = 1.0
+
+[[edge]]
+from = "group:alcohol"
+relation = "conflicto"
+to = "concept:juguetes-infantiles"
+weight = 1.0
+
+[[edge]]
+from = "group:tabaco"
+relation = "conflicto"
+to = "concept:panales"
+weight = 1.0
+
+[[edge]]
+from = "group:tabaco"
+relation = "conflicto"
+to = "concept:alimentacion-bebe"
+weight = 1.0
+
+[[edge]]
+from = "group:tabaco"
+relation = "conflicto"
+to = "concept:articulos-bebe"
+weight = 1.0
+
+[[edge]]
+from = "group:tabaco"
+relation = "conflicto"
+to = "concept:juguetes-infantiles"
+weight = 1.0
+
+[[edge]]
+from = "group:adultos"
+relation = "conflicto"
+to = "concept:juguetes-infantiles"
+weight = 1.0
+
+[[edge]]
+from = "group:adultos"
+relation = "conflicto"
+to = "concept:alimentacion-bebe"
+weight = 1.0
+
+[[edge]]
+from = "group:adultos"
+relation = "conflicto"
+to = "concept:articulos-bebe"
+weight = 1.0

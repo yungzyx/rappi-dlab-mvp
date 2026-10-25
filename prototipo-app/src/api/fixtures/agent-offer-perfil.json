@@ -1,0 +1,201 @@
+{
+  "actions": [
+    {
+      "label": "Abrir restaurantes",
+      "route": [
+        "restaurants"
+      ]
+    },
+    {
+      "label": "Abrir Turbo",
+      "route": [
+        "turbo"
+      ]
+    },
+    {
+      "label": "Abrir Express",
+      "route": [
+        "express"
+      ]
+    },
+    {
+      "label": "Abrir el súper",
+      "route": [
+        "grocery"
+      ]
+    },
+    {
+      "label": "Abrir chocolaterías",
+      "route": [
+        "chocolates"
+      ]
+    },
+    {
+      "label": "Abrir RappiTravel",
+      "route": [
+        "travel"
+      ],
+      "service": "rappitravel"
+    }
+  ],
+  "escalera": [
+    {
+      "products": [
+        {
+          "age_restricted": false,
+          "before": null,
+          "concept": "sushi",
+          "discount": null,
+          "entity_id": "98006",
+          "entity_type": "menu_item",
+          "id": "menu-98006",
+          "img": "https://imagenes.prueba.invalid/platos/98006.png",
+          "name": "Roll salmón palta 10 piezas (prueba)",
+          "presentation": null,
+          "price": "$7.490",
+          "price_value": 7490.0,
+          "store": "Sushi y hamburguesas de prueba Norte",
+          "store_id": 9802,
+          "vertical": "restaurantes"
+        }
+      ],
+      "prototype_vertical": "restaurants",
+      "texto": "Asiáticos que todavía no pruebas",
+      "vertical": "restaurantes"
+    },
+    {
+      "products": [
+        {
+          "age_restricted": false,
+          "before": null,
+          "concept": "despensa-asiatica",
+          "discount": null,
+          "entity_id": "93004",
+          "entity_type": "catalog_item",
+          "id": "cat-93004",
+          "img": "https://imagenes.prueba.invalid/productos/93004.png",
+          "name": "Salsa de soya 150 ml (prueba)",
+          "presentation": "150 ml",
+          "price": "$1.990",
+          "price_value": 1990.0,
+          "store": "Tienda turbo de prueba Sur",
+          "store_id": 9302,
+          "vertical": "turbo"
+        }
+      ],
+      "prototype_vertical": "turbo",
+      "texto": "Para hacer sushi en casa, en minutos",
+      "vertical": "turbo"
+    },
+    {
+      "products": [
+        {
+          "age_restricted": false,
+          "before": null,
+          "concept": "snacks-asiaticos",
+          "discount": null,
+          "entity_id": "92006",
+          "entity_type": "catalog_item",
+          "id": "cat-92006",
+          "img": "https://imagenes.prueba.invalid/productos/92006.png",
+          "name": "Ramen instantáneo picante 120 g (prueba)",
+          "presentation": "120 g",
+          "price": "$1.490",
+          "price_value": 1490.0,
+          "store": "Tienda express de prueba Centro",
+          "store_id": 9201,
+          "vertical": "conveniencia"
+        }
+      ],
+      "prototype_vertical": "express",
+      "texto": "Snacks asiáticos para el antojo",
+      "vertical": "conveniencia"
+    },
+    {
+      "products": [
+        {
+          "age_restricted": false,
+          "before": null,
+          "concept": "bebidas-asiaticas",
+          "discount": null,
+          "entity_id": "91502",
+          "entity_type": "catalog_item",
+          "id": "cat-91502",
+          "img": "https://imagenes.prueba.invalid/productos/91502.png",
+          "name": "Té matcha en polvo 100 g (prueba)",
+          "presentation": "100 g",
+          "price": "$5.990",
+          "price_value": 5990.0,
+          "store": "Supermercado de prueba Norte",
+          "store_id": 9102,
+          "vertical": "supermercado"
+        }
+      ],
+      "prototype_vertical": "grocery",
+      "texto": "Tu despensa asiática",
+      "vertical": "supermercado"
+    },
+    {
+      "products": [
+        {
+          "age_restricted": false,
+          "before": null,
+          "concept": "chocolates",
+          "discount": null,
+          "entity_id": "97009",
+          "entity_type": "catalog_item",
+          "id": "cat-97009",
+          "img": "https://imagenes.prueba.invalid/productos/97009.png",
+          "name": "Chocolate blanco con matcha 100 g (prueba)",
+          "presentation": "100 g",
+          "price": "$2.990",
+          "price_value": 2990.0,
+          "store": "Chocolatería de prueba Centro",
+          "store_id": 9701,
+          "vertical": "chocolateria"
+        }
+      ],
+      "prototype_vertical": "chocolates",
+      "texto": "El matcha, pero en chocolate",
+      "vertical": "chocolateria"
+    }
+  ],
+  "moment": "perfil",
+  "perfil": {
+    "emoji": "🥢",
+    "id": "asiatico",
+    "nombre": "Amante de lo asiático"
+  },
+  "reason": {
+    "basis": [
+      {
+        "id": "asiatico",
+        "kind": "perfil",
+        "source": "contexto"
+      }
+    ],
+    "text": "Porque elegiste «Amante de lo asiático»."
+  },
+  "text": "Por tu gusto por lo asiático, mira esto en otras verticales.",
+  "viaje": {
+    "etiqueta": "Idea para RappiTravel",
+    "hechos": [
+      {
+        "fuente": "UNESCO",
+        "texto": "La cocina japonesa (washoku) es Patrimonio Cultural Inmaterial de la Humanidad desde 2013.",
+        "url": "https://ich.unesco.org/en/RL/washoku-traditional-dietary-cultures-of-the-japanese-notably-for-the-celebration-of-new-year-00869"
+      },
+      {
+        "fuente": "Wikipedia",
+        "texto": "El santuario Fushimi Inari-taisha, en Kioto, es famoso por sus miles de torii naranjos que suben el monte Inari.",
+        "url": "https://es.wikipedia.org/wiki/Fushimi_Inari-taisha"
+      }
+    ],
+    "id": "japon",
+    "nombre": "Japón",
+    "route": [
+      "travel"
+    ],
+    "texto": "¿Y si un día vas a Japón?"
+  }
+}

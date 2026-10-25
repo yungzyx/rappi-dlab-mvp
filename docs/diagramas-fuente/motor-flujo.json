@@ -1,0 +1,346 @@
+{
+  "schema_version": 1,
+  "diagram_type": "dataflow",
+  "meta": {
+    "title": "Motor multivertical: de las señales a la Home y las ofertas",
+    "quality_profile": "showcase",
+    "views": [
+      {
+        "id": "home",
+        "label": "1. Orden de la Home",
+        "focus": [
+          "senales",
+          "pedidos",
+          "afinidad",
+          "home_api",
+          "home"
+        ],
+        "note": "Restaurantes y Turbo van fijos; los otros seis accesos se ordenan por la afinidad de la persona."
+      },
+      {
+        "id": "recompra_vista",
+        "label": "2. ¿Repetimos?",
+        "focus": [
+          "pedidos",
+          "recompra",
+          "repetir",
+          "ofertas"
+        ],
+        "note": "Lo que la persona pide con ritmo y está por tocarle, según sus propios pedidos."
+      },
+      {
+        "id": "probar_vista",
+        "label": "3. Vertical por probar",
+        "focus": [
+          "combos",
+          "paso",
+          "pedidos",
+          "cruzada",
+          "probar",
+          "ofertas"
+        ],
+        "note": "El grupo que más retención suma a su combinación del mes, con productos de lo más pedido empujados por reglas (λ)."
+      }
+    ],
+    "viewBox": [
+      1080,
+      500
+    ],
+    "legend": {
+      "entries": {
+        "emphasis": {
+          "label": "de la persona"
+        },
+        "dashed": {
+          "label": "dato de Rappi"
+        },
+        "default": {
+          "label": "de la población"
+        },
+        "database": {
+          "label": "datos de la persona"
+        }
+      }
+    }
+  },
+  "stages": [
+    {
+      "label": "Señales"
+    },
+    {
+      "label": "Motor"
+    },
+    {
+      "label": "Mezcla"
+    },
+    {
+      "label": "API :8000"
+    },
+    {
+      "label": "App"
+    }
+  ],
+  "nodes": [
+    {
+      "id": "senales",
+      "type": "database",
+      "label": "Señales",
+      "sublabel": "pedidos · visitas",
+      "stage": 0,
+      "row": 0,
+      "tag": "últimos 180 días"
+    },
+    {
+      "id": "pedidos",
+      "type": "database",
+      "label": "Pedidos",
+      "sublabel": "solo modo propuesta",
+      "stage": 0,
+      "row": 1,
+      "tag": "app_orders"
+    },
+    {
+      "id": "combos",
+      "type": "external",
+      "label": "Tabla de Rappi",
+      "sublabel": "combos.toml",
+      "stage": 0,
+      "row": 2,
+      "tag": "dato compartido por Rappi"
+    },
+    {
+      "id": "afinidad",
+      "type": "backend",
+      "label": "Afinidad",
+      "sublabel": "peso × 0,5^(días/30)",
+      "stage": 1,
+      "row": 0,
+      "tag": "+ transiciones"
+    },
+    {
+      "id": "recompra",
+      "type": "backend",
+      "label": "Recompra",
+      "sublabel": "ritmo por concepto",
+      "stage": 1,
+      "row": 1,
+      "tag": "replenishment"
+    },
+    {
+      "id": "cruzada",
+      "type": "backend",
+      "label": "Compra cruzada",
+      "sublabel": "más pedido × reglas",
+      "stage": 2,
+      "row": 2,
+      "tag": "λ en validación"
+    },
+    {
+      "id": "paso",
+      "type": "backend",
+      "label": "Paso de combinación",
+      "sublabel": "Rappi + aprendida",
+      "stage": 1,
+      "row": 2,
+      "tag": "combo_stats"
+    },
+    {
+      "id": "home_api",
+      "type": "cloud",
+      "label": "Orden de la Home",
+      "sublabel": "/profile/{id}/verticales",
+      "stage": 3,
+      "row": 0,
+      "tag": "next_verticals"
+    },
+    {
+      "id": "repetir",
+      "type": "cloud",
+      "label": "recompra",
+      "sublabel": "«¿Repetimos?»",
+      "stage": 3,
+      "row": 1,
+      "tag": "/agent/offer"
+    },
+    {
+      "id": "probar",
+      "type": "cloud",
+      "label": "vertical_por_probar",
+      "sublabel": "grupo que más retiene",
+      "stage": 3,
+      "row": 2,
+      "tag": "/agent/offer"
+    },
+    {
+      "id": "home",
+      "type": "frontend",
+      "label": "Home dinámica",
+      "sublabel": "6 accesos ordenados",
+      "stage": 4,
+      "row": 0,
+      "tag": "«Ordenadas según lo que más usas»",
+      "width": 132
+    },
+    {
+      "id": "ofertas",
+      "type": "frontend",
+      "label": "Ofertas de Mochi",
+      "sublabel": "con su «Porque…»",
+      "stage": 4,
+      "row": 1,
+      "tag": "basis"
+    }
+  ],
+  "flows": [
+    {
+      "id": "f_senales",
+      "from": "senales",
+      "to": "afinidad",
+      "label": "señales",
+      "variant": "emphasis",
+      "route": "straight",
+      "fromSide": "right",
+      "toSide": "left"
+    },
+    {
+      "id": "f_orden",
+      "from": "afinidad",
+      "to": "home_api",
+      "label": "puntaje",
+      "variant": "emphasis",
+      "route": "straight",
+      "fromSide": "right",
+      "toSide": "left"
+    },
+    {
+      "id": "f_home",
+      "from": "home_api",
+      "to": "home",
+      "label": "orden",
+      "variant": "emphasis",
+      "route": "straight",
+      "fromSide": "right",
+      "toSide": "left"
+    },
+    {
+      "id": "f_ritmo",
+      "from": "pedidos",
+      "to": "recompra",
+      "label": "ritmo",
+      "variant": "emphasis",
+      "route": "straight",
+      "fromSide": "right",
+      "toSide": "left"
+    },
+    {
+      "id": "f_toca",
+      "from": "recompra",
+      "to": "repetir",
+      "label": "le toca",
+      "route": "straight",
+      "fromSide": "right",
+      "toSide": "left",
+      "variant": "emphasis"
+    },
+    {
+      "id": "f_repetir",
+      "from": "repetir",
+      "to": "ofertas",
+      "label": "oferta",
+      "route": "straight",
+      "fromSide": "right",
+      "toSide": "left",
+      "variant": "emphasis"
+    },
+    {
+      "id": "f_retencion",
+      "from": "combos",
+      "to": "paso",
+      "label": "retención",
+      "variant": "dashed",
+      "route": "straight",
+      "fromSide": "right",
+      "toSide": "left"
+    },
+    {
+      "id": "f_grupo",
+      "from": "paso",
+      "to": "cruzada",
+      "label": "grupo",
+      "fromSide": "right",
+      "toSide": "left",
+      "route": "straight"
+    },
+    {
+      "id": "f_pares",
+      "from": "pedidos",
+      "to": "cruzada",
+      "label": "conceptos",
+      "variant": "emphasis",
+      "fromSide": "bottom",
+      "toSide": "top",
+      "via": [
+        [
+          100,
+          328
+        ],
+        [
+          530,
+          328
+        ]
+      ]
+    },
+    {
+      "id": "f_productos",
+      "from": "cruzada",
+      "to": "probar",
+      "label": "productos",
+      "route": "straight",
+      "fromSide": "right",
+      "toSide": "left"
+    },
+    {
+      "id": "f_probar",
+      "from": "probar",
+      "to": "ofertas",
+      "label": "oferta",
+      "fromSide": "right",
+      "toSide": "bottom",
+      "via": [
+        [
+          960,
+          385
+        ]
+      ]
+    }
+  ],
+  "cards": [
+    {
+      "dot": "emerald",
+      "title": "Home",
+      "items": [
+        "Afinidad: Σ peso × 0,5^(días/30) en 180 días (pedido 5, carro 1,5, abrir 1)",
+        "Puntaje = a·afinidad + b·transición + c·popularidad; b y c se eligen en validación",
+        "Farmacia y Licores solo suben por señales de la propia persona"
+      ]
+    },
+    {
+      "dot": "cyan",
+      "title": "Ofertas",
+      "items": [
+        "Paso: la tabla de Rappi pesa como 100 personas; con 30 o más se mezcla con lo aprendido",
+        "Productos: popularidad × (1 + λ·(lift − 1)); con λ = 0, lo más pedido",
+        "Recompra: lo que pide con ritmo y está por tocarle"
+      ]
+    },
+    {
+      "dot": "orange",
+      "title": "Límites",
+      "items": [
+        "Datos simulados: prueban la mecánica, no el efecto",
+        "La tabla de Rappi es una correlación, no un efecto",
+        "Ningún concepto sensible entra a compra cruzada ni a recompra"
+      ]
+    }
+  ]
+}

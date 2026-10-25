@@ -1,0 +1,177 @@
+/* ---------- Escalera de Rappi: gráfico de pesas (hoy → sumando un grupo), etiqueta | pista | ganancia ---------- */
+.ladder {
+  display: grid;
+  gap: var(--space-3);
+}
+
+.ladder-rows,
+.ladder-axis {
+  display: grid;
+  grid-template-columns: minmax(150px, 220px) minmax(0, 1fr) 128px;
+  column-gap: var(--space-6);
+}
+
+.ladder-rows {
+  list-style: none;
+  border-top: 1px solid var(--line);
+}
+
+/* Subgrid: todas las filas comparten columnas, así las pistas empiezan en el mismo x. */
+.ladder-row {
+  display: grid;
+  grid-column: 1 / -1;
+  grid-template-columns: subgrid;
+  align-items: center;
+  padding-block: var(--space-3);
+  border-bottom: 1px solid var(--line);
+  transition: background var(--duration-fast);
+}
+
+.ladder-row:hover {
+  background: linear-gradient(90deg, transparent, var(--surface-sunken) 8%, var(--surface-sunken) 92%, transparent);
+}
+
+.ladder-label {
+  display: grid;
+  gap: 1px;
+  min-width: 0;
+}
+
+.ladder-label strong {
+  font-size: var(--text-sm);
+  font-weight: 600;
+}
+
+.ladder-label span,
+.ladder-gain span {
+  font-size: var(--text-xs);
+  color: var(--ink-3);
+}
+
+.ladder-track {
+  position: relative;
+  height: 28px;
+}
+
+.ladder-tick {
+  position: absolute;
+  inset-block: 0;
+  width: 1px;
+  background: var(--line);
+}
+
+.ladder-link {
+  position: absolute;
+  top: 50%;
+  height: 2px;
+  border-radius: 2px;
+  background: color-mix(in srgb, var(--data) 45%, var(--deemph));
+  transform: translateY(-50%);
+}
+
+.ladder-dot {
+  position: absolute;
+  top: 50%;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  box-shadow: 0 0 0 2px var(--page);
+  transform: translate(-50%, -50%);
+}
+
+.ladder-dot--from,
+.ladder-key--from {
+  background: var(--deemph);
+}
+
+.ladder-dot--to,
+.ladder-key--to {
+  background: var(--data);
+}
+
+.ladder-value {
+  position: absolute;
+  top: 50%;
+  font-size: var(--text-xs);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  color: var(--ink-2);
+  white-space: nowrap;
+  transform: translateY(-50%);
+}
+
+.ladder-value--from {
+  right: calc(100% + 6px);
+}
+
+.ladder-value--to {
+  left: calc(100% + 6px);
+  color: var(--ink);
+}
+
+.ladder-gain {
+  display: grid;
+  justify-items: end;
+  text-align: right;
+}
+
+.ladder-gain strong {
+  font-size: var(--text-lg);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+.ladder-key {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+}
+
+.ladder-axis-track {
+  position: relative;
+  height: 16px;
+}
+
+.ladder-axis-track span {
+  position: absolute;
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+  color: var(--ink-3);
+  transform: translateX(-50%);
+}
+
+@media (max-width: 640px) {
+  /* La columna de la diferencia tiene el mismo ancho en las filas y en el eje: si no, las marcas no calzan */
+  .ladder-rows,
+  .ladder-axis {
+    grid-template-columns: minmax(0, 1fr) 104px;
+    column-gap: var(--space-4);
+  }
+
+  .ladder-label {
+    grid-column: 1 / -1;
+    margin-bottom: var(--space-1);
+  }
+
+  .ladder-axis > span:first-child {
+    display: none;
+  }
+
+  /* En angosto se rotula cada 20 puntos: las marcas de 10 se tocan */
+  .ladder-axis-track span:nth-child(even) {
+    visibility: hidden;
+  }
+}
+
+@media (forced-colors: active) {
+  .ladder-dot--to,
+  .ladder-key--to {
+    background: CanvasText;
+  }
+
+  .ladder-dot--from,
+  .ladder-key--from {
+    background: GrayText;
+  }
+}

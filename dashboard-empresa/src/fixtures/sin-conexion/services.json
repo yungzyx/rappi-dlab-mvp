@@ -1,0 +1,27 @@
+{
+  "source": "synthetic",
+  "data": [
+    {
+      "servicio": "rappitravel",
+      "nombre": "✈️ RappiTravel",
+      "ofrecido": 442,
+      "abierto": 157,
+      "desde_home": 0,
+      "ganchos_mostrados": 0,
+      "ganchos_aceptados": 0
+    },
+    {
+      "servicio": "rappifavor",
+      "nombre": "🛵 RappiFavor",
+      "ofrecido": 1341,
+      "abierto": 258,
+      "desde_home": 0,
+      "ganchos_mostrados": 0,
+      "ganchos_aceptados": 0
+    }
+  ],
+  "guardado": {
+    "origen": "npm run panel:snapshot · usuarios simulados de rappi_staging",
+    "fecha": "2026-10-24"
+  }
+}

@@ -1,0 +1,17 @@
+{
+  "data": {
+    "evaluacion": null,
+    "fecha": "2026-10-04T12:00:00+00:00",
+    "lambda_cruzada": 1.0,
+    "pesos": {
+      "afinidad": 1.0,
+      "popularidad": 0.1,
+      "transicion": 0.3
+    }
+  },
+  "guardado": {
+    "fecha": "2026-10-16",
+    "origen": "make contract · recorrido corto sobre el catálogo de prueba inventado"
+  },
+  "source": "prototype"
+}

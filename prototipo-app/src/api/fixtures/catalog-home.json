@@ -1,0 +1,153 @@
+{
+  "fast_restaurants": [
+    {
+      "area": "Providencia",
+      "cover": "https://imagenes.prueba.invalid/platos/98010.png",
+      "cuisines": [
+        "Americana"
+      ],
+      "eta": "15 min",
+      "fee": "$990",
+      "id": 9803,
+      "name": "Sándwiches de prueba",
+      "rating": 4.2
+    },
+    {
+      "area": "Vitacura",
+      "cover": "https://imagenes.prueba.invalid/platos/98018.png",
+      "cuisines": [
+        "Pastelería y Postres"
+      ],
+      "eta": "20 min",
+      "fee": "$690",
+      "id": 9806,
+      "name": "Pastelería de prueba",
+      "rating": 4.6
+    }
+  ],
+  "low_fee_restaurants": [
+    {
+      "area": "",
+      "cover": "https://imagenes.prueba.invalid/platos/98006.png",
+      "cuisines": [
+        "Hamburguesa",
+        "Sushi"
+      ],
+      "eta": "35 min",
+      "fee": "$0",
+      "id": 9802,
+      "name": "Sushi y hamburguesas de prueba Norte",
+      "rating": null
+    },
+    {
+      "area": "Santiago",
+      "cover": null,
+      "cuisines": [
+        "Pescados y Mariscos"
+      ],
+      "eta": "30 min",
+      "fee": "$0",
+      "id": 9807,
+      "name": "Cevichería de prueba",
+      "rating": null
+    },
+    {
+      "area": "Vitacura",
+      "cover": "https://imagenes.prueba.invalid/platos/98018.png",
+      "cuisines": [
+        "Pastelería y Postres"
+      ],
+      "eta": "20 min",
+      "fee": "$690",
+      "id": 9806,
+      "name": "Pastelería de prueba",
+      "rating": 4.6
+    },
+    {
+      "area": "Providencia",
+      "cover": "https://imagenes.prueba.invalid/platos/98010.png",
+      "cuisines": [
+        "Americana"
+      ],
+      "eta": "15 min",
+      "fee": "$990",
+      "id": 9803,
+      "name": "Sándwiches de prueba",
+      "rating": 4.2
+    },
+    {
+      "area": "",
+      "cover": "https://imagenes.prueba.invalid/platos/98002.png",
+      "cuisines": [
+        "Pizzas"
+      ],
+      "eta": "25 min",
+      "fee": "$1.490",
+      "id": 9801,
+      "name": "Pizzería de prueba Centro",
+      "rating": 4.6
+    },
+    {
+      "area": "Las Condes",
+      "cover": "https://imagenes.prueba.invalid/platos/98015.png",
+      "cuisines": [
+        "Desayunos"
+      ],
+      "eta": null,
+      "fee": "$1.990",
+      "id": 9805,
+      "name": "Café de prueba",
+      "rating": 3.9
+    }
+  ],
+  "nearby_stores": [
+    {
+      "eta": "30 min",
+      "id": 9402,
+      "logo": "https://images.rappi.cl/marketplace/prueba-9402.png",
+      "name": "Botillería de prueba Oriente",
+      "products": 8,
+      "vertical": "licores"
+    },
+    {
+      "eta": "30 min",
+      "id": 9102,
+      "logo": "https://images.rappi.cl/marketplace/prueba-9102.png",
+      "name": "Supermercado de prueba Norte",
+      "products": 35,
+      "vertical": "supermercado"
+    },
+    {
+      "eta": "30 min",
+      "id": 9602,
+      "logo": "https://images.rappi.cl/marketplace/prueba-9602.png",
+      "name": "Tienda mall de prueba Norte",
+      "products": 8,
+      "vertical": "mall"
+    },
+    {
+      "eta": "25 min",
+      "id": 9101,
+      "logo": "https://images.rappi.cl/marketplace/prueba-9101.png",
+      "name": "Supermercado de prueba Centro",
+      "products": 36,
+      "vertical": "supermercado"
+    },
+    {
+      "eta": "25 min",
+      "id": 9301,
+      "logo": "https://images.rappi.cl/marketplace/prueba-9301.png",
+      "name": "Tienda turbo de prueba Centro",
+      "products": 8,
+      "vertical": "turbo"
+    },
+    {
+      "eta": "30 min",
+      "id": 9702,
+      "logo": "https://images.rappi.cl/marketplace/prueba-9702.png",
+      "name": "Chocolatería de prueba Oriente",
+      "products": 8,
+      "vertical": "chocolateria"
+    }
+  ]
+}
