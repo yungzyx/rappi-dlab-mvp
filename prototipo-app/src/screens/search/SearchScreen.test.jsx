@@ -101,10 +101,79 @@ describe('SearchScreen', () => {
     expect(new URL(fetchMock.mock.calls.at(-1)[0]).searchParams.has('correct')).toBe(false)
   })
 
-  test('el título de sugerencias no dice recientes: son ideas fijas, no un historial', () => {
+  test('sin historial ni «Lo más buscado», el buscador muestra las ideas fijas', async () => {
     setup()
+    await advance(0)
     expect(screen.getByRole('heading', { name: 'Ideas para buscar' })).toBeTruthy()
-    expect(screen.queryByText(/recent/i)).toBeNull()
+    expect(screen.queryByText('Búsquedas recientes')).toBeNull()
+  })
+
+  test('antes de escribir: las recientes de la persona y lo más buscado con su población', async () => {
+    setup(
+      {},
+      {
+        'GET /profile/*': { recientes: ['pizza', 'agua'], mas_buscado: ['papas fritas'], poblacion: 'synthetic' },
+      },
+    )
+    await advance(0)
+    expect(screen.getByRole('heading', { name: 'Búsquedas recientes' })).toBeTruthy()
+    expect(screen.getByText('Entre las personas simuladas de la demo.')).toBeTruthy()
+    expect(screen.queryByRole('heading', { name: 'Ideas para buscar' })).toBeNull()
+    fireEvent.click(screen.getByRole('button', { name: 'papas fritas' }))
+    await advance(250)
+    expect(searches()).toEqual([
+      expect.objectContaining({
+        query: 'papas fritas',
+        payload: expect.objectContaining({ fuente: 'lo-mas-buscado' }),
+      }),
+    ])
+  })
+
+  test('las tiendas y los restaurantes que se llaman así salen antes de los productos, con «Ver todos»', async () => {
+    const store = (id) => ({ ...fixture('catalog-vertical-stores').stores[0], id, name: `Tienda ${id}` })
+    const withPlaces = (req) => ({
+      ...searchRoute(req),
+      places: { stores: [store(1), store(2), store(3), store(4)], restaurants: [] },
+    })
+    const { input, push } = setup({}, { '/search': withPlaces })
+    await type(input, 'cerveza')
+    const block = screen.getByRole('heading', { name: 'Tiendas' }).parentElement
+    expect(within(block).getAllByRole('listitem')).toHaveLength(3)
+    fireEvent.click(within(block).getByRole('button', { name: 'Ver todos (4)' }))
+    expect(within(block).getAllByRole('listitem')).toHaveLength(4)
+    fireEvent.click(within(block).getByText('Tienda 4'))
+    expect(push).toHaveBeenCalledWith(
+      'store',
+      expect.objectContaining({
+        store: expect.objectContaining({ id: 4, placement: expect.objectContaining({ origin: 'resultados-tiendas' }) }),
+      }),
+    )
+  })
+
+  test('«Ver todos en…» de un grupo busca solo en esa vertical', async () => {
+    const { input, push } = setup()
+    await type(input, 'cerveza')
+    fireEvent.click(screen.getByRole('button', { name: 'Ver todos en Licores' }))
+    expect(push).toHaveBeenCalledWith('search', { query: 'cerveza', vertical: 'liquor', only: true })
+  })
+
+  test('sin resultados y con permiso de la API, «Lo que sea» abre RappiFavor con lo escrito', async () => {
+    const { input, push } = setup() // «xyzzy» no tiene nada que las guardias bloqueen
+    await type(input, 'xyzzy')
+    expect(screen.getByText('¿No lo encuentras? Te lo conseguimos')).toBeTruthy()
+    fireEvent.click(screen.getByRole('button', { name: 'Pedir «xyzzy» con RappiFavor' }))
+    expect(push).toHaveBeenCalledWith('favor', { text: 'xyzzy' })
+    const services = events.track.mock.calls.filter(([type]) => type.startsWith('service_'))
+    expect(services.map(([type, fields]) => [type, fields.origin, fields.payload.servicio])).toEqual([
+      ['service_shown', 'lo-que-sea', 'rappifavor'],
+      ['service_opened', 'lo-que-sea', 'rappifavor'],
+    ])
+  })
+
+  test('sin el permiso de la API (las guardias), no ofrece «Lo que sea»', async () => {
+    const { input } = setup({}, { '/search': (req) => ({ ...searchRoute(req), whim_allowed: false }) })
+    await type(input, 'xyzzy')
+    expect(screen.queryByText('¿No lo encuentras? Te lo conseguimos')).toBeNull()
   })
 
   test('la búsqueda manda la vertical de la pantalla de origen como «current»', async () => {

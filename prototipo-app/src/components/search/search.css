@@ -157,3 +157,38 @@
   font-size: 13.5px;
   font-weight: 700;
 }
+
+/* De qué población sale «Lo más buscado» */
+.search-note {
+  margin-top: 2px;
+  font-size: 13px;
+  color: var(--ink-3);
+}
+
+/* «Lo que sea»: RappiFavor con lo que no se encontró */
+.search-whim {
+  margin-top: 22px;
+  padding: 16px;
+  border-radius: 18px;
+  background: var(--accent-soft);
+  color: var(--ink);
+  font-size: 14px;
+  line-height: 1.4;
+}
+
+.search-whim strong {
+  display: block;
+  margin-bottom: 2px;
+  font-size: 16px;
+}
+
+.search-whim-action {
+  margin-top: 12px;
+  min-height: 40px;
+  padding: 0 16px;
+  border-radius: 99px;
+  background: var(--ink);
+  color: var(--surface);
+  font-size: 15px;
+  font-weight: 600;
+}

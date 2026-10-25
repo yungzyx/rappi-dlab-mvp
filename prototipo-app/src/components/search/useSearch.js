@@ -3,8 +3,9 @@ import { envelope } from '../../api/attribution'
 import { useSearchApi } from '../../api/useSearchApi'
 import { useEvents } from '../../state/EventsContext'
 
-// De dónde salió el texto buscado (`payload.fuente`): escrito, una sugerencia (idea o búsqueda reciente) o el aviso de
-// la corrección («buscar tal cual»). Equivale a SEARCH_SOURCE de la app de Rappi.
+// De dónde salió el texto buscado (`payload.fuente`): escrito, una sugerencia (una idea, una búsqueda reciente
+// —`reciente`— o «Lo más buscado» —`lo-mas-buscado`—) o el aviso de la corrección («buscar tal cual»). Equivale a
+// SEARCH_SOURCE de la app de Rappi.
 const TYPED = 'tipeada'
 const SUGGESTED = 'sugerencia'
 const CORRECTION = 'correccion'
@@ -12,18 +13,19 @@ const CORRECTION = 'correccion'
 /**
  * Búsqueda en vivo en el catálogo de la API (todas las verticales, agrupada). La comparten el buscador de «Rappi hoy»
  * y el del agente (prototipo final). `vertical`: la de la pantalla desde la que se abrió (la API la suma a las que busca
- * y el embudo del panel se mide por vertical).
+ * y el embudo del panel se mide por vertical). Con `only`, busca solo en esa vertical («Ver todos en…» de un grupo).
  * Devuelve `{ query, setQuery, data, loading, error, retry, hasQuery, logSearch, pick, searchExact }`; `data`,
  * `loading` y `error` son los de `useSearchApi`. Si la API corrigió un error de tipeo (`data.correctedQuery`),
  * `searchExact(term)` vuelve a buscar `term` tal cual, hasta que llegue la respuesta de otro texto; esa búsqueda
  * también se registra.
  */
-export function useSearch({ initial = '', vertical } = {}) {
+export function useSearch({ initial = '', vertical, only = false } = {}) {
   const [query, setQuery] = useState(initial)
   const [exactText, setExactText] = useState(null)
   const text = query.trim()
   const hasQuery = text.length > 0
-  const { data, loading, error, retry } = useSearchApi(query, { current: vertical, exactQuery: exactText })
+  const scope = only && vertical ? { vertical } : { current: vertical, exactQuery: exactText }
+  const { data, loading, error, retry } = useSearchApi(query, scope)
   const events = useEvents()
   const logged = useRef(null)
   const wanted = useRef(null) // lo que la persona terminó de buscar y aún espera su respuesta
@@ -75,10 +77,10 @@ export function useSearch({ initial = '', vertical } = {}) {
     else wanted.current = clean
   }
 
-  /** Una búsqueda reciente: se escribe en el campo y se registra al llegar su respuesta. */
-  const pick = (term) => {
+  /** Una sugerencia (`from`: la fuente; una idea por defecto): se escribe en el campo y se registra al llegar su respuesta. */
+  const pick = (term, from = SUGGESTED) => {
     setQuery(term)
-    logSearch(term, SUGGESTED)
+    logSearch(term, from)
   }
 
   const searchExact = (term) => {

@@ -214,13 +214,17 @@ Las pantallas de catálogo leen la API (`/catalog`, `src/api/catalog.js`) y la a
 | Pantalla | Qué viene de la API |
 |---|---|
 | Verticales (Súper, Farmacia, Rappi Mall, Licores, Express, Chocolates) | Las tiendas (una tarjeta por formato) y «Bajaron de precio» |
-| Tienda | Sus pasillos, de a una página de productos (24, con «Ver más») y el precio vigente de cada uno |
+| Tienda | Sus pasillos, de a una página de productos (24, con «Ver más») y el precio vigente de cada uno; sus promos publicadas (con la barra «Agrega $X» si la promo dice su mínimo), si estaba cerrada en la descarga y, en la propuesta, «Para ti» |
+| Restaurantes | Los chips «Destacados», «35 min», «+ 4,5» y «Con promociones» y «Ordenar» (Recomendado, Tiempo, Envío, Calificación) filtran y ordenan en `/catalog/restaurants`; los cerrados según su horario publicado van al final |
+| Ficha de producto | «Disponible en N tiendas» con precio, tiempo y envío, «Mejor precio» y «Más rápido», «Pocas unidades» y, agotado, productos similares de esa tienda |
+| Buscador | Las búsquedas recientes y «Lo más buscado» (`/profile/{id}/busquedas`), tiendas y restaurantes además de productos, «Ver todos» y, sin resultados, «Lo que sea» (RappiFavor con lo escrito, si las guardias lo permiten) |
 | Restaurante | Su menú con precios; la portada es la foto de un plato popular |
 | Turbo | Los pasillos de la tienda Turbo con más productos vigentes y sus productos |
 | Ofertas | «Bajaron de precio» por vertical (se excluyen las bajas de más de 60 %: en la base real eran graneles, precio por kilo contra precio por unidad) y «Mejor evaluados» |
 | Favoritos e Inicio | «Los mejores» y las listas de la Home (restaurantes rápidos, «Cerca de ti», «Mejor evaluados») |
 
 - **Un producto muestra el precio y la tienda de su oferta vigente más barata entre las tiendas que se pueden abrir**, para que el precio y la tienda nunca se contradigan. Si ninguna tienda abrible lo vende, no ofrece «Ver tienda».
+- **Horario, stock y promos son los del día de la descarga:** abierto o cerrado sale del horario que publicó el restaurante (comparado con la hora de Santiago) o de cómo estaba la tienda al bajarla, y la app lo dice («no el estado en vivo»). «Destacados» (nota 4,5 o más con al menos 100 opiniones) y «Pocas unidades» (hasta 5) son reglas de la demo, rotuladas. Programar un pedido a una tienda cerrada no está.
 - **Sin «Envío más barato»:** el costo de envío es $0 en el 91 % de la base, casi seguro «sin dato», así que la Home y Ofertas muestran «Mejor evaluados» y un envío de $0 no se presenta como gratis.
 - **Si la API falla** en una pantalla, esa pantalla muestra «Sin conexión» con «Reintentar» y el resto de la app sigue usable; una tienda que no está en la base muestra «Esta tienda no está en el catálogo».
 - **Nada local:** el buscador (`/search`), las preguntas a Mochi (`/agent/ask`), sus kits y comentarios (`/agent/plans`, `/agent/offer`), «Para ti» y «Descubre» (`/recommendations`) y lo aprendido (`/profile`) salen de la API: nada se responde en el navegador. Mochi no propone por su cuenta alcohol, farmacia, bebé ni salud: solo el kit de una ocasión elegida puede traer alcohol, con +18.

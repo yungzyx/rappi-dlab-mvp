@@ -417,3 +417,15 @@
   overflow: hidden;
   text-overflow: ellipsis;
 }
+
+/* La promo publicada de la tienda bajo su tarjeta. */
+.featured-promo {
+  display: block;
+  width: fit-content;
+  margin: 6px 0 0 14px;
+}
+
+.store-tile-promo {
+  margin-top: 4px;
+  font-size: 11px;
+}

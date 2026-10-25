@@ -162,4 +162,86 @@ describe('Restaurantes con el catálogo real', () => {
     fireEvent.click(category('Turbo Restaurantes'))
     expect(push).toHaveBeenCalledWith('search', { query: 'turbo', vertical: 'restaurants' })
   })
+
+  test('los chips filtran en la API: 35 min, + 4,5, Destacados (con su regla) y Con promociones', async () => {
+    const fetchMock = stubApi({ '/catalog/restaurants': byCuisine })
+    renderRestaurants()
+    await waitFor(() => expect(listed()).toHaveLength(7))
+
+    fireEvent.click(screen.getByRole('button', { name: '35 min' }))
+    await waitFor(() =>
+      expect(queries(fetchMock, '/catalog/restaurants').at(-1)).toEqual({ sort: 'rating', max_eta: '35' }),
+    )
+    fireEvent.click(screen.getByRole('button', { name: '+ 4,5' }))
+    await waitFor(() =>
+      expect(queries(fetchMock, '/catalog/restaurants').at(-1)).toEqual({
+        sort: 'rating',
+        max_eta: '35',
+        min_rating: '4.5',
+      }),
+    )
+    fireEvent.click(screen.getByRole('button', { name: '35 min' }))
+    fireEvent.click(screen.getByRole('button', { name: '+ 4,5' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Destacados' }))
+    await waitFor(() =>
+      expect(queries(fetchMock, '/catalog/restaurants').at(-1)).toEqual({ sort: 'rating', top: 'true' }),
+    )
+    expect(screen.getByText(/regla de la demo, no de Rappi/)).toBeTruthy()
+    fireEvent.click(screen.getByRole('button', { name: 'Destacados' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Con promociones' }))
+    await waitFor(() =>
+      expect(queries(fetchMock, '/catalog/restaurants').at(-1)).toEqual({ sort: 'rating', promo: 'true' }),
+    )
+    expect(screen.getByRole('button', { name: 'Con promociones' }).getAttribute('aria-pressed')).toBe('true')
+  })
+
+  test('un filtro sin restaurantes lo dice', async () => {
+    stubApi({ '/catalog/restaurants': (req) => (req.query.get('promo') ? [] : fixture('catalog-restaurants')) })
+    renderRestaurants()
+    await waitFor(() => expect(listed()).toHaveLength(7))
+    fireEvent.click(screen.getByRole('button', { name: 'Con promociones' }))
+    expect(await screen.findByText('Ningún restaurante del catálogo calza con estos filtros.')).toBeTruthy()
+  })
+
+  test('Ordenar abre los órdenes y la lista se pide y se titula con el elegido', async () => {
+    const fetchMock = stubApi({ '/catalog/restaurants': byCuisine })
+    renderRestaurants()
+    await waitFor(() => expect(listed()).toHaveLength(7))
+
+    fireEvent.click(screen.getByRole('button', { name: 'Ordenar' }))
+    const sheet = within(await screen.findByRole('dialog', { name: 'Ordenar por' }))
+    expect(sheet.getAllByRole('button').map((button) => button.querySelector('strong').textContent)).toEqual([
+      'Recomendado',
+      'Tiempo de entrega',
+      'Costo de envío',
+      'Calificación',
+    ])
+    fireEvent.click(sheet.getByRole('button', { name: /Tiempo de entrega/ }))
+    await waitFor(() => expect(queries(fetchMock, '/catalog/restaurants').at(-1)).toEqual({ sort: 'eta' }))
+    expect(screen.getByRole('heading', { name: 'Más rápidos' })).toBeTruthy()
+  })
+
+  test('un restaurante cerrado lo dice en su tarjeta y la lista explica que es el horario publicado', async () => {
+    const closed = (req) =>
+      byCuisine(req).map((restaurant, i) =>
+        i === 6
+          ? {
+              ...restaurant,
+              hours: {
+                source: 'horario',
+                open: false,
+                closes_at: null,
+                opens_at: '11:00',
+                opens_tomorrow: true,
+                today: null,
+              },
+            }
+          : restaurant,
+      )
+    stubApi({ '/catalog/restaurants': closed })
+    renderRestaurants()
+    await waitFor(() => expect(listed()).toHaveLength(7))
+    expect(screen.getByText('Cerrado · Abre mañana a las 11:00')).toBeTruthy()
+    expect(screen.getByText(/horario publicado en Rappi el día de la descarga, no el estado en vivo/)).toBeTruthy()
+  })
 })

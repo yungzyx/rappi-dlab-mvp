@@ -520,7 +520,9 @@ export default function AssistantPanel({ push, vertical, depth = 1 }) {
               error={search.error}
               onRetry={search.retry}
               onOpenProduct={openProduct}
+              onOpenStore={openStore}
               onSearchExact={search.searchExact}
+              onOpenFavor={(text) => go('favor', { text })}
               onOpenVertical={(vertical) => go(...routeForScreen(vertical))}
               onTryAnother={() => {
                 search.setQuery('')

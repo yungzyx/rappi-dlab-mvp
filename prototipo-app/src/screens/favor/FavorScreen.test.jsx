@@ -6,11 +6,11 @@ import FavorScreen from './FavorScreen'
 
 afterEach(cleanup)
 
-const renderFavor = (back = vi.fn()) =>
+const renderFavor = (back = vi.fn(), params) =>
   render(
     <ToastProvider>
       <AddressProvider>
-        <FavorScreen back={back} />
+        <FavorScreen back={back} params={params} />
       </AddressProvider>
     </ToastProvider>,
   )
@@ -33,6 +33,14 @@ describe('FavorScreen', () => {
     fireEvent.change(screen.getByLabelText('Retiro en'), { target: { value: 'Av. Providencia 1234' } })
     fireEvent.click(screen.getByRole('button', { name: 'Pedir RappiFavor' }))
     expect(screen.getByText(/Un Rappitendero va en camino/)).toBeTruthy()
+  })
+
+  test('desde «Lo que sea» abre las compras con lo buscado ya escrito', () => {
+    renderFavor(vi.fn(), { text: ' zapatillas de cuero ' })
+    expect(screen.getByRole('button', { name: /Compras en cualquier tienda/ }).getAttribute('aria-pressed')).toBe(
+      'true',
+    )
+    expect(screen.getByLabelText('Qué hay que hacer').value).toBe('Conseguir: zapatillas de cuero')
   })
 
   test('vuelve atrás', () => {

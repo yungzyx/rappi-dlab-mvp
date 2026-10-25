@@ -88,8 +88,13 @@
       "vertical": "supermercado"
     }
   ],
+  "places": {
+    "restaurants": [],
+    "stores": []
+  },
   "query": "cervezaaaa",
   "request_id": "contrato-search-grouped-corrected",
   "unmet": false,
-  "unmet_reason": null
+  "unmet_reason": null,
+  "whim_allowed": false
 }

@@ -1,23 +1,39 @@
 import { useState } from 'react'
+import { placeList } from '../../api/attribution'
 import { restaurants as loadRestaurants } from '../../api/catalog'
 import { useApi } from '../../api/useApi'
 import BackButton from '../../components/BackButton'
 import Carousel, { Dots } from '../../components/Carousel'
 import HScroll from '../../components/HScroll'
 import OfflineNotice from '../../components/OfflineNotice'
+import Sheet from '../../components/Sheet'
 import { useToast } from '../../components/Toast'
-import { BoltIcon, ChevronDown, SearchIcon, SlidersIcon, StarIcon, TrophyIcon } from '../../components/Icons'
+import { HOURS_SOURCE_NOTE, isClosed } from '../../components/storeHours'
+import {
+  BadgePercentIcon,
+  BoltIcon,
+  ChevronDown,
+  SearchIcon,
+  SlidersIcon,
+  StarIcon,
+  TrophyIcon,
+} from '../../components/Icons'
 import { useOpenSearch } from '../../hooks/useOpenSearch'
 import { useAddress } from '../../state/AddressContext'
 import { RestaurantCard } from '../home/StoreCards'
-import { BANNERS, CATEGORIES, FILTERS } from './data'
+import { BANNERS, CATEGORIES, DEFAULT_SORT, FILTERS, SORTS, TOP_RULE } from './data'
 import './restaurants.css'
 
 const FILTER_ICONS = {
   trophy: () => <TrophyIcon size={17} />,
   bolt: () => <BoltIcon size={17} />,
   star: (active) => <StarIcon size={17} filled={active} />,
+  percent: () => <BadgePercentIcon size={17} />,
 }
+
+/** Los parámetros de la API de los filtros encendidos (`FILTERS[].query`). */
+const filterQuery = (active) =>
+  FILTERS.filter((filter) => active.has(filter.id)).reduce((query, filter) => ({ ...query, ...filter.query }), {})
 
 export default function RestaurantsScreen({ back, push }) {
   const toast = useToast()
@@ -26,7 +42,17 @@ export default function RestaurantsScreen({ back, push }) {
   const [activeFilters, setActiveFilters] = useState(() => new Set())
   const [bannerIndex, setBannerIndex] = useState(0)
   const [cuisine, setCuisine] = useState(null) // la cocina que filtra la lista, o ninguna
-  const list = useApi(() => loadRestaurants({ sort: 'rating', cuisine }), [cuisine])
+  const [sort, setSort] = useState(DEFAULT_SORT)
+  const [sorting, setSorting] = useState(false) // la hoja de «Ordenar»
+  const filters = [...activeFilters].sort().join(',')
+  const list = useApi(
+    () => loadRestaurants({ sort, cuisine, ...filterQuery(activeFilters) }),
+    [cuisine, sort, filters], // `filters` resume el Set (que cambia de identidad en cada toque)
+  )
+  // Cada restaurante con su lugar en la lista: abrirlo dice de qué lista y posición salió.
+  const shown = list.data ? placeList(list.data, { surface: 'restaurants', origin: 'lista' }) : null
+  const anyClosed = shown?.some((restaurant) => isClosed(restaurant.hours))
+  const sortTitle = SORTS.find((option) => option.id === sort)?.title
 
   const toggleFilter = (id) =>
     setActiveFilters((prev) => {
@@ -64,7 +90,7 @@ export default function RestaurantsScreen({ back, push }) {
         </button>
         {FILTERS.map((filter) => {
           const isActive = activeFilters.has(filter.id)
-          const onClick = filter.kind === 'toggle' ? () => toggleFilter(filter.id) : () => toast()
+          const onClick = filter.kind === 'toggle' ? () => toggleFilter(filter.id) : () => setSorting(true)
           return (
             <button
               key={filter.id}
@@ -118,20 +144,24 @@ export default function RestaurantsScreen({ back, push }) {
       </Carousel>
       <Dots count={BANNERS.length} active={bannerIndex} className="rest-banner-dots" />
 
-      <h2 className="section-title rest-title">{cuisine ?? 'Mejor evaluados'}</h2>
+      <h2 className="section-title rest-title">{cuisine ?? sortTitle}</h2>
       <p className="rest-real-note">Menús y precios reales de Rappi Chile</p>
+      {activeFilters.has('top') && <p className="rest-real-note">{TOP_RULE}</p>}
+      {anyClosed && <p className="rest-real-note">Los cerrados van al final. {HOURS_SOURCE_NOTE.horario}</p>}
       {list.error && <OfflineNotice onRetry={list.retry} />}
       {!list.data && !list.error && <div className="rest-skeleton" aria-hidden="true" />}
       {list.data?.length === 0 && (
         <p className="rest-empty">
-          {cuisine
-            ? 'Todavía no hay restaurantes de esta cocina en el catálogo.'
-            : 'Todavía no hay restaurantes en el catálogo.'}
+          {activeFilters.size > 0
+            ? 'Ningún restaurante del catálogo calza con estos filtros.'
+            : cuisine
+              ? 'Todavía no hay restaurantes de esta cocina en el catálogo.'
+              : 'Todavía no hay restaurantes en el catálogo.'}
         </p>
       )}
-      {list.data?.length > 0 && (
+      {shown?.length > 0 && (
         <div className="rest-list">
-          {list.data.map((restaurant) => (
+          {shown.map((restaurant) => (
             // Abre su menú: el id dice cuál sucursal es (dos pueden llamarse igual).
             <RestaurantCard
               key={restaurant.id}
@@ -141,6 +171,27 @@ export default function RestaurantsScreen({ back, push }) {
           ))}
         </div>
       )}
+
+      <Sheet open={sorting} onClose={() => setSorting(false)} title="Ordenar por">
+        <ul className="rest-sorts">
+          {SORTS.map((option) => (
+            <li key={option.id}>
+              <button
+                type="button"
+                className={option.id === sort ? 'rest-sort is-active tap' : 'rest-sort tap'}
+                aria-pressed={option.id === sort}
+                onClick={() => {
+                  setSort(option.id)
+                  setSorting(false)
+                }}
+              >
+                <strong>{option.label}</strong>
+                <small>{option.hint}</small>
+              </button>
+            </li>
+          ))}
+        </ul>
+      </Sheet>
     </div>
   )
 }

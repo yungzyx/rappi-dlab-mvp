@@ -7,9 +7,10 @@ import HScroll from '../../components/HScroll'
 import OfflineNotice from '../../components/OfflineNotice'
 import { ProductCard } from '../../components/ProductCard'
 import TabPage from '../../components/TabPage'
+import ThresholdBar from '../../components/ThresholdBar'
 import { useToast } from '../../components/Toast'
 import { useOpenSearch } from '../../hooks/useOpenSearch'
-import { formatPrice, useCart } from '../../state/CartContext'
+import { useCart } from '../../state/CartContext'
 import FavoritesScreen from '../favorites/FavoritesScreen'
 import { BadgePercentIcon, GridIcon, HeartIcon, MoreIcon, SearchIcon, SpeedBoltIcon } from '../../components/Icons'
 import turboLogo from '../../assets/turbo-logo.webp'
@@ -118,8 +119,6 @@ function ProductGrid({ products, onOpenStore }) {
 function TurboFeed({ back, toast, shop, onOpenStore, onSearch }) {
   const cart = useCart()
   const gridRef = useRef(null)
-  const remaining = Math.max(FEE_GOAL - cart.total, 0)
-  const progress = Math.min(cart.total / FEE_GOAL, 1)
   const eta = shop.info?.eta
 
   // El hero lleva a la grilla de productos.
@@ -168,25 +167,14 @@ function TurboFeed({ back, toast, shop, onOpenStore, onSearch }) {
         <img src={turboHero} alt="Todo tu súper y más en minutos" />
       </button>
 
-      <div className="turbo-fee">
-        <img src={turboCrown} alt="" loading="lazy" />
-        <div>
-          <p className="turbo-fee-title">100% de descuento en la tarifa de servicio</p>
-          <p className="turbo-fee-sub">
-            {remaining > 0 ? (
-              <>
-                Agrega <strong>{formatPrice(remaining)}</strong> para tener este descuento.
-              </>
-            ) : (
-              <>Descuento activado.</>
-            )}
-          </p>
-        </div>
-        <div className="turbo-fee-track">
-          <span className="turbo-fee-fill" style={{ width: `${progress * 100}%` }} />
-          <span className={progress >= 1 ? 'turbo-fee-check is-done' : 'turbo-fee-check'} />
-        </div>
-      </div>
+      <ThresholdBar
+        goal={FEE_GOAL}
+        total={cart.total}
+        icon={turboCrown}
+        title="100% de descuento en la tarifa de servicio"
+        pending={(amount) => <>Agrega {amount} para tener este descuento.</>}
+        done="Descuento activado."
+      />
 
       <HScroll className="turbo-promos">
         {PROMOS.map((promo) => (

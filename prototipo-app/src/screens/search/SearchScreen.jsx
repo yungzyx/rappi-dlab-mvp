@@ -3,17 +3,26 @@ import { SearchIcon } from '../../components/Icons'
 import BackButton from '../../components/BackButton'
 import { PopularStores, SearchIdeas, SearchResults } from '../../components/search/SearchSections'
 import { useSearch } from '../../components/search/useSearch'
+import { VERTICAL_NAMES } from '../../data/verticals'
 import '../../components/search/search.css'
 
-/** Buscador (funcionalidad agregada): busca en vivo en el catálogo de todas las verticales, agrupado por vertical. */
+/**
+ * Buscador (funcionalidad agregada): busca en vivo en el catálogo de todas las verticales, agrupado por vertical, con las
+ * tiendas y los restaurantes que se llaman así. Con `params.only`, busca solo en `params.vertical` («Ver todos en…»).
+ */
 export default function SearchScreen({ back, push, params }) {
+  const only = Boolean(params.only && params.vertical)
   const { query, setQuery, data, loading, error, retry, hasQuery, logSearch, pick, searchExact } = useSearch({
     initial: params.query ?? '',
     vertical: params.vertical,
+    only,
   })
   const openStore = (store) => push('store', { store })
   // El producto tocado va con la tienda: la página registra que se vio.
   const openProduct = (product) => push('store', { store: storeOfProduct(product), item: product })
+  const seeAll = (vertical) => push('search', { query: query.trim(), vertical, only: true })
+  // «Lo que sea»: RappiFavor con lo buscado ya escrito.
+  const openFavor = (text) => push('favor', { text })
 
   return (
     <div className="screen search">
@@ -24,7 +33,7 @@ export default function SearchScreen({ back, push, params }) {
           <input
             autoFocus
             type="search"
-            placeholder="¿Qué quieres hoy?"
+            placeholder={only ? `Buscar en ${VERTICAL_NAMES[params.vertical] ?? params.vertical}` : '¿Qué quieres hoy?'}
             value={query}
             maxLength={500}
             onChange={(e) => setQuery(e.target.value)}
@@ -53,7 +62,10 @@ export default function SearchScreen({ back, push, params }) {
         error={error}
         onRetry={retry}
         onOpenProduct={openProduct}
+        onOpenStore={openStore}
         onSearchExact={searchExact}
+        onSeeAll={only ? undefined : seeAll}
+        onOpenFavor={openFavor}
       />
     </div>
   )

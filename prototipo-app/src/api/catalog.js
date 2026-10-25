@@ -31,6 +31,10 @@ const ratingText = (rating) => (Number(rating) > 0 ? Number(rating).toFixed(1) :
  * - Tienda (`logo`): `img` es su logo (`logo: true`) y `vertical` el id del prototipo.
  * - Restaurante (`cover`): la base no guarda logos, así que `img` es la foto de un plato (`logo: false`).
  * Lo que la API no sabe (tiempo, nota) queda `undefined`, y un envío de $0 también: es un dato que falta, no «envío gratis».
+ * - `hours`: abierto o cerrado según lo publicado el día de la descarga (`source`: `horario` de un restaurante comparado
+ *   con la hora local, o `descarga` de una tienda), nunca el estado en vivo; `null` si no se sabe.
+ * - `promos`: las promos que la tienda publicó (`{ type, title, value, threshold }`); `promo`: un restaurante con algún
+ *   plato rebajado.
  */
 export function toPrototypeStore(card) {
   const restaurant = 'cover' in card
@@ -45,6 +49,9 @@ export function toPrototypeStore(card) {
     vertical: restaurant ? 'restaurants' : (screenForBackend(card.vertical) ?? card.vertical),
     rating: ratingText(card.rating),
     fee: parsePrice(card.fee) > 0 ? card.fee : undefined,
+    hours: card.hours ?? null,
+    promos: card.promos ?? [],
+    promo: Boolean(card.promo),
   }
 }
 
@@ -81,10 +88,70 @@ export async function product(entityType, id) {
   return toPrototypeProduct(await read(`/catalog/products/${segment(entityType)}/${segment(id)}`))
 }
 
-/** Restaurantes con algún plato con precio, de una cocina si se pide, por `sort` (`rating`, `eta` o `fee`). */
-export async function restaurants({ cuisine, sort, limit } = {}) {
-  const cards = await read('/catalog/restaurants', { cuisine, sort, limit })
+/**
+ * Restaurantes con algún plato con precio, de una cocina si se pide, por `sort` (`recommended`, `rating`, `eta` o `fee`),
+ * con los filtros de la lista: hasta `maxEta` minutos, desde `minRating`, destacados (`top`) o con platos rebajados
+ * (`promo`). Los cerrados según su horario publicado llegan al final.
+ */
+export async function restaurants({ cuisine, sort, limit, maxEta, minRating, top, promo } = {}) {
+  const cards = await read('/catalog/restaurants', {
+    cuisine,
+    sort,
+    limit,
+    max_eta: maxEta,
+    min_rating: minRating,
+    top: top || undefined,
+    promo: promo || undefined,
+  })
   return cards.map(toPrototypeStore)
+}
+
+/** Una tienda de la comparación de `productStores` en el formato del prototipo. */
+const toOfferStore = (entry) => ({
+  storeId: entry.store_id,
+  store: entry.store,
+  logo: entry.logo || PLACEHOLDER_IMG,
+  vertical: screenForBackend(entry.vertical) ?? entry.vertical,
+  backendVertical: entry.vertical,
+  price: entry.price,
+  before: entry.before ?? undefined,
+  eta: entry.eta ?? undefined,
+  fee: entry.fee ?? undefined,
+  available: entry.available,
+  lowStock: entry.low_stock,
+  bestPrice: entry.best_price,
+  fastest: entry.fastest,
+})
+
+/**
+ * Dónde está un producto del catálogo (`entityId`): `{ count, stores, here, similar }`. `stores`: cada tienda con su
+ * precio, tiempo y envío publicados y las marcas «Mejor precio» y «Más rápido», con su lugar en la ficha
+ * (`comparar-tiendas`); `here`: la tienda `storeId` (con «Pocas unidades»), o null; `similar`: si ahí está agotado, los
+ * del mismo concepto que esa tienda sí tiene (`similares`).
+ */
+export async function productStores(entityId, storeId) {
+  const reply = await read(`/catalog/products/catalog_item/${segment(entityId)}/stores`, { store_id: storeId })
+  return {
+    count: reply.count,
+    stores: placeList(reply.stores.map(toOfferStore), { surface: 'store', origin: 'comparar-tiendas' }),
+    here: reply.here ? toOfferStore(reply.here) : null,
+    similar: placeList(reply.similar.map(toPrototypeProduct), { surface: 'store', origin: 'similares' }),
+  }
+}
+
+/**
+ * «Para ti» en una tienda (solo la propuesta): `{ requestId, products, basis }`, los productos de la tienda que calzan
+ * con los intereses de la persona, ya con las guardias de las ofertas y marcados con su lugar (`para-ti` en la tienda:
+ * abrirlos es un `recommendation_click`).
+ */
+export async function storeForYou(storeId, userId) {
+  const reply = await read(`/catalog/stores/${segment(storeId)}/para-ti`, { user_id: userId })
+  const requestId = reply.request_id ?? null
+  return {
+    requestId,
+    basis: reply.basis ?? [],
+    products: placeList(reply.products.map(toPrototypeProduct), { surface: 'store', origin: 'para-ti', requestId }),
+  }
 }
 
 /** El restaurante y su menú: `{ restaurant, sections: [{ name, items }] }`. El `storeId` de un plato es el del restaurante. */

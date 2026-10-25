@@ -5,12 +5,26 @@ import rcatCulinaria from '../../assets/rcat-culinaria.webp'
 import promoWraps from '../../assets/promo-wraps.webp'
 import promoBurger from '../../assets/promo-hamburguesa.webp'
 
+// Cada filtro que se enciende es un parámetro de `/catalog/restaurants` (`query`); «Ordenar» abre los órdenes.
 export const FILTERS = [
   { id: 'sort', label: 'Ordenar', kind: 'menu' },
-  { id: 'top', label: 'Destacados', icon: 'trophy', kind: 'toggle' },
-  { id: 'fast', label: '35 min', icon: 'bolt', kind: 'toggle' },
-  { id: 'rating', label: '+ 4,5', icon: 'star', kind: 'toggle' },
+  { id: 'top', label: 'Destacados', icon: 'trophy', kind: 'toggle', query: { top: true } },
+  { id: 'fast', label: '35 min', icon: 'bolt', kind: 'toggle', query: { maxEta: 35 } },
+  { id: 'rating', label: '+ 4,5', icon: 'star', kind: 'toggle', query: { minRating: 4.5 } },
+  { id: 'promo', label: 'Con promociones', icon: 'percent', kind: 'toggle', query: { promo: true } },
 ]
+
+// «Destacados» es una regla propia de la demo (rappi-ia: catalog/restaurants.py, TOP_MIN_*), no la de Rappi.
+export const TOP_RULE = 'Destacados: nota 4,5 o más y al menos 100 opiniones (regla de la demo, no de Rappi).'
+
+// Los órdenes de la lista (`sort` de la API) y el título que toma la lista con cada uno.
+export const SORTS = [
+  { id: 'recommended', label: 'Recomendado', hint: 'Los que más opiniones tienen', title: 'Recomendados' },
+  { id: 'eta', label: 'Tiempo de entrega', hint: 'El menor primero', title: 'Más rápidos' },
+  { id: 'fee', label: 'Costo de envío', hint: 'El más barato primero', title: 'Envío más barato' },
+  { id: 'rating', label: 'Calificación', hint: 'La mejor nota primero', title: 'Mejor evaluados' },
+]
+export const DEFAULT_SORT = 'rating'
 
 // "Experiencia Culinaria" queda cortada en el borde de la captura; se recorta igual.
 // `cuisine`: la cocina de la API (`/catalog/restaurants?cuisine=`) que filtra la lista; sin ella, la categoría abre el buscador.
