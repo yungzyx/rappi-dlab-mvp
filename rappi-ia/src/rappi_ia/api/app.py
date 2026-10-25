@@ -31,15 +31,18 @@ from ..agent.grouped_search import SpareConnector, search_grouped
 from ..agent.rappi_agent import PROTOTYPE_VERTICALS, Context
 from ..agent.tools import VERTICAL_LABELS, search_products, suggest_complement
 from ..analytics import queries
+from ..catalog.restaurants import search_restaurants
+from ..catalog.stores import search_stores
 from ..concepts.taxonomy import load_taxonomy
 from ..db import pending_migrations
 from ..events import store as events
+from ..events.searches import recent_searches, top_searches
 from ..layers.segments import recalculate_user_segments
 from ..motor.build import refresh_user, refresh_user_conn
 from ..motor.home import home_verticals
 from ..motor.predict import next_verticals
 from ..offers.engine import most_ordered
-from ..offers.guards import is_offerable, offerable_vertical
+from ..offers.guards import is_offerable, offerable_vertical, whim_allowed
 from ..offers.profiles import active_profiles, person_city
 from ..retrieval.hybrid import MODES
 from ..text import contract_articles
@@ -437,7 +440,19 @@ def search(
             spare,
             correct,
         )
-        return {**grouped.to_dict(), "request_id": served_request_id()}
+        found = grouped.to_dict()
+        # Además de productos, las tiendas y los restaurantes que se llaman así (o de esa cocina): si los hay, la
+        # búsqueda sí encontró algo. Sin nada, `whim_allowed` dice si la app puede ofrecer «Lo que sea» (RappiFavor)
+        # con lo escrito, según las guardias.
+        places = {"stores": search_stores(conn, q), "restaurants": search_restaurants(conn, q)}
+        if places["stores"] or places["restaurants"]:
+            found.update(unmet=False, unmet_reason=None)
+        return {
+            **found,
+            "places": places,
+            "whim_allowed": found["unmet"] and whim_allowed(q),
+            "request_id": served_request_id(),
+        }
     code = backend_vertical(vertical)
     try:
         outcome = search_products(
@@ -571,6 +586,18 @@ def home_shortcuts(user_id: ShortPath, conn: Connection = Depends(get_conn)) -> 
     Restaurantes y Turbo van fijos; los otros seis se ordenan por lo que la persona más usa. `request_id` es el id de
     esta respuesta: los toques a los accesos lo devuelven en sus eventos."""
     return {**home_verticals(conn, user_id), "request_id": served_request_id()}
+
+
+@app.get("/profile/{user_id}/busquedas", dependencies=[Depends(owner_in_path)])
+def searches_before_typing(user_id: ShortPath, conn: Connection = Depends(get_conn)) -> dict:
+    """Lo que el buscador muestra antes de escribir (`events/searches.py`): `recientes` de la persona y `mas_buscado`
+    de la población declarada (`poblacion`), con el id de esta respuesta para los eventos de lo que se toque."""
+    return {
+        "recientes": recent_searches(conn, user_id),
+        "mas_buscado": top_searches(conn),
+        "poblacion": config.MOTOR_POBLACION,
+        "request_id": served_request_id(),
+    }
 
 
 @app.delete("/profile/{user_id}", dependencies=[Depends(owner_in_path)])

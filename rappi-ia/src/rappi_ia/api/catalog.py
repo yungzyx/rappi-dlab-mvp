@@ -11,10 +11,12 @@ from psycopg import Connection
 from pydantic import Field
 
 from ..catalog.deals import deals
+from ..catalog.for_you import store_for_you
 from ..catalog.home import home
-from ..catalog.restaurants import Sort, restaurant_menu, restaurants
-from ..catalog.stores import line_prices, product_detail, store_page, vertical_stores
+from ..catalog.restaurants import Filters, Sort, restaurant_menu, restaurants
+from ..catalog.stores import line_prices, product_detail, product_stores, store_page, vertical_stores
 from .deps import Clean, backend_vertical, get_conn
+from .identity import owner_in_query
 from .logs import served_request_id
 
 router = APIRouter(prefix="/catalog", tags=["catalog"])
@@ -63,6 +65,32 @@ def store(
     return reply
 
 
+@router.get("/stores/{store_id}/para-ti", dependencies=[Depends(owner_in_query)])
+def store_for_you_tab(
+    store_id: int,
+    user_id: Annotated[str, Query(min_length=1, max_length=64)],
+    conn: Connection = Depends(get_conn),
+) -> dict:
+    """«Para ti» en la tienda: lo que tiene de los intereses de la persona, con las guardias de las ofertas (vacío si
+    nada calza). `request_id` va en los eventos de lo que se toque."""
+    return {**store_for_you(conn, store_id, user_id), "request_id": served_request_id()}
+
+
+@router.get("/products/{entity_type}/{entity_id}/stores")
+def product_store_list(
+    entity_type: str,
+    entity_id: str,
+    store_id: int | None = None,
+    conn: Connection = Depends(get_conn),
+) -> dict:
+    """Dónde está un producto del catálogo: cada tienda con su precio, tiempo y envío, las marcas «Mejor precio» y «Más
+    rápido», la tienda `store_id` (`here`, con «Pocas unidades») y, si ahí está agotado, productos similares."""
+    reply = product_stores(conn, entity_id, store_id) if entity_type == "catalog_item" else None
+    if reply is None:
+        raise HTTPException(404, PRODUCT_NOT_FOUND)
+    return reply
+
+
 @router.get("/products/{entity_type}/{entity_id}")
 def product(entity_type: str, entity_id: str, conn: Connection = Depends(get_conn)) -> dict:
     """Un producto (`catalog_item`) con su oferta vigente más barata, o un plato (`menu_item`) con su último precio."""
@@ -91,10 +119,17 @@ def restaurant_list(
     cuisine: Annotated[str | None, Query(max_length=64)] = None,
     sort: Sort = "rating",
     limit: int = Query(30, ge=1, le=100),
+    max_eta: int | None = Query(None, ge=1, le=240),
+    min_rating: float | None = Query(None, ge=0, le=5, allow_inf_nan=False),
+    top: bool = False,
+    promo: bool = False,
     conn: Connection = Depends(get_conn),
 ) -> list[dict]:
-    """Los restaurantes con algún plato con precio, de una cocina si se pide, por nota, tiempo de entrega o envío."""
-    return restaurants(conn, cuisine or None, sort, limit)
+    """Los restaurantes con algún plato con precio, de una cocina si se pide, por opiniones, nota, tiempo de entrega o
+    envío, con los filtros de la lista: hasta `max_eta` minutos, desde `min_rating`, destacados (`top`) o con platos
+    rebajados (`promo`). Los cerrados según su horario publicado van al final."""
+    filters = Filters(max_eta=max_eta, min_rating=min_rating, top=top, promo=promo)
+    return restaurants(conn, cuisine or None, sort, limit, filters)
 
 
 @router.get("/restaurants/{store_id}/menu")

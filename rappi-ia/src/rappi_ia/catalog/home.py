@@ -6,8 +6,9 @@ from rappi_scraper.storage.search import MIN_PRICE
 
 from .. import config
 from .cache import cached
-from .restaurants import restaurants
-from .stores import CURRENT_OFFERS, OWN_VERTICAL, downloaded_cte, not_pushed_params, store_card
+from .hours import closed_last
+from .restaurants import restaurants, with_hours
+from .stores import CURRENT_OFFERS, OWN_VERTICAL, STORE_STATE, downloaded_cte, not_pushed_params, store_card
 
 NEARBY_STORES = 6
 FAST_RESTAURANTS = 2
@@ -30,7 +31,8 @@ nearest AS MATERIALIZED (
     ORDER BY km, d.store_id
     LIMIT %(limit)s
 )
-SELECT s.store_id, btrim(coalesce(b.name, s.name)), s.raw->>'image', s.raw->>'eta_value', o.products, {OWN_VERTICAL}
+SELECT s.store_id, btrim(coalesce(b.name, s.name)), s.raw->>'image', s.raw->>'eta_value', o.products, {OWN_VERTICAL},
+       {STORE_STATE}
 FROM nearest d
 CROSS JOIN LATERAL (SELECT count(DISTINCT sp.master_product_id) AS products {CURRENT_OFFERS}) o
 JOIN stores s ON s.store_id = d.store_id
@@ -41,8 +43,15 @@ ORDER BY d.km, d.store_id"""
 def home(conn: Connection) -> dict:
     """Lo que la Home muestra del catálogo: `nearby_stores` (las tiendas más cercanas al punto fijo de la demo),
     `fast_restaurants` (los de menor tiempo de entrega; uno sin tiempo no es rápido) y `low_fee_restaurants` (los de
-    menor costo de envío). Una lista sin datos queda vacía. Sale de la caché del catálogo (catalog/cache.py)."""
-    return cached("home", conn, lambda: _home(conn))
+    menor costo de envío). Una lista sin datos queda vacía. Sale de la caché del catálogo (catalog/cache.py); el
+    estado de cada restaurante según su horario publicado se compara con la hora de cada request, y los cerrados van
+    al final."""
+    lists = cached("home", conn, lambda: _home(conn))
+    return {
+        **lists,
+        "fast_restaurants": with_hours(lists["fast_restaurants"]),
+        "low_fee_restaurants": with_hours(lists["low_fee_restaurants"]),
+    }
 
 
 def _home(conn: Connection) -> dict:
@@ -56,4 +65,4 @@ def _home(conn: Connection) -> dict:
 
 def _nearby_stores(conn: Connection, lat: float, lng: float, limit: int) -> list[dict]:
     params = {"lat": lat, "lng": lng, "limit": limit, "min_price": MIN_PRICE, **not_pushed_params()}
-    return [store_card(*row) for row in conn.execute(_NEARBY, params)]
+    return closed_last([store_card(*row) for row in conn.execute(_NEARBY, params)])

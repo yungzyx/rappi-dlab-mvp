@@ -46,8 +46,8 @@ NOT_PUSHED_STORES = {SEX_SHOP, SMOKING_SHOP, PHARMACY_IN_SUPER}
 PLAIN_DEALS = ["96101", "96201", "91401"]  # el producto corriente de cada una, con baja de precio
 SENSITIVE_DEALS = ["96102", "96202", "91402", "95001"]  # gel íntimo, papelillos, antiácido y paracetamol (farmacia)
 DISH_PHOTOS = "https://imagenes.prueba.invalid/platos/"
-CARD_KEYS = {"id", "name", "area", "cover", "rating", "eta", "fee", "cuisines"}
-STORE_KEYS = {"id", "name", "logo", "eta", "products", "vertical"}
+CARD_KEYS = {"id", "name", "area", "cover", "rating", "reviews", "eta", "fee", "cuisines", "promo", "schedule", "hours"}
+STORE_KEYS = {"id", "name", "logo", "eta", "products", "vertical", "promos", "hours"}
 PRODUCT_KEYS = {
     "id", "entity_type", "entity_id", "name", "vertical", "concept", "price", "price_value", "before", "discount",
     "store", "img", "age_restricted", "store_id", "presentation",
