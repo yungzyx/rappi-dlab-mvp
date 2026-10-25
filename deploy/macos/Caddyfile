@@ -1,0 +1,85 @@
+# Demo pública desde un Mac: Cloudflare Tunnel → Caddy (127.0.0.1:CADDY_PORT) → la app, el panel y la API de
+# producción. TLS lo pone Cloudflare. Mismas reglas que deploy/Caddyfile: puerta sobre todo el sitio, cabeceras de
+# seguridad, CSP estricta y la API en /api sin el prefijo. Variables de deploy/macos/comun.sh y tunel.env.
+{
+	admin off
+	auto_https off
+}
+
+(cabeceras) {
+	header {
+		defer
+		Strict-Transport-Security "max-age=31536000"
+		X-Content-Type-Options nosniff
+		Referrer-Policy no-referrer
+		X-Robots-Tag "noindex, nofollow"
+		Permissions-Policy "camera=(), microphone=(), geolocation=()"
+		-Server
+	}
+}
+
+(archivos) {
+	handle /assets/* {
+		@existe file
+		header @existe Cache-Control "private, max-age=31536000, immutable"
+		file_server
+	}
+	handle {
+		header Cache-Control "no-cache"
+		try_files {path} /index.html
+		file_server
+	}
+}
+
+# Cualquier nombre (llega el del túnel), pero solo en 127.0.0.1: desde afuera se entra únicamente por el túnel.
+http://:{$CADDY_PORT} {
+	bind 127.0.0.1
+	encode zstd gzip
+
+	basic_auth {
+		{$BASIC_AUTH_USER} {$BASIC_AUTH_HASH}
+	}
+
+	request_body {
+		max_size 1MB
+	}
+
+	import cabeceras
+	@mapa path /panel/presentacion/mapa-multivertical.html
+	@no_mapa not path /panel/presentacion/mapa-multivertical.html
+	header @no_mapa {
+		defer
+		Content-Security-Policy "default-src 'self'; img-src 'self' https://images.rappi.cl data:; connect-src 'self'; frame-ancestors 'none'"
+	}
+	header @mapa {
+		defer
+		Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self'; frame-ancestors 'none'"
+	}
+
+	handle_path /api/* {
+		reverse_proxy 127.0.0.1:{$API_PORT} {
+			# El túnel llega desde localhost: la IP real del visitante viene en Cf-Connecting-Ip.
+			header_up X-Forwarded-For {http.request.header.Cf-Connecting-Ip}
+		}
+	}
+
+	handle /panel {
+		redir * /panel/
+	}
+
+	handle_path /panel/* {
+		root * {$SRV_DIR}/panel
+		import archivos
+	}
+
+	handle {
+		root * {$SRV_DIR}/app
+		import archivos
+	}
+
+	handle_errors {
+		import cabeceras
+		header Cache-Control "no-store"
+		respond "{err.status_code} {err.status_text}"
+	}
+}
