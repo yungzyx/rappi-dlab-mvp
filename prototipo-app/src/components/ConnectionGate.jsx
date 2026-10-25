@@ -21,13 +21,16 @@ export default function ConnectionGate({ children }) {
     let current = true
     let timer
     const check = async () => {
-      const result = await checkConnection()
-      const ready =
-        result.ok &&
-        (await ensureSession().then(
+      // A la vez: la primera visita no espera la respuesta de /health para pedir la sesión (en una red móvil lenta,
+      // cada viaje de ida y vuelta es medio segundo). Con la sesión ya guardada, ensureSession no pide nada.
+      const [result, hasSession] = await Promise.all([
+        checkConnection(),
+        ensureSession().then(
           () => true,
           () => false,
-        ))
+        ),
+      ])
+      const ready = result.ok && hasSession
       if (!current) return
       if (ready) {
         setStatus('online')

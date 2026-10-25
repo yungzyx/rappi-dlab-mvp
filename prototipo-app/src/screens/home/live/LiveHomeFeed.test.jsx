@@ -983,11 +983,15 @@ describe('Home del prototipo final', () => {
   })
 
   test('en la cuenta, «Repetir escena de Mochi» aparece solo en el prototipo final', async () => {
+    await import('../../account/AccountScreen') // la pestaña es perezosa: con el módulo ya cargado, entra al avanzar
     await renderHome({ tab: 'account' })
+    await advance(100)
     expect(screen.getByRole('button', { name: /Repetir escena de Mochi/ })).toBeTruthy()
     cleanup()
     localStorage.setItem('rappi-proto-demo-mode', 'actual')
     await renderHome({ tab: 'account' })
+    await advance(100)
+    expect(screen.getByRole('button', { name: 'Borrar mis datos' })).toBeTruthy()
     expect(screen.queryByRole('button', { name: /Repetir escena de Mochi/ })).toBeNull()
   })
 
