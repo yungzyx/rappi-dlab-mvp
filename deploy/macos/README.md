@@ -17,7 +17,7 @@ Nada escucha hacia la red: Caddy y la API solo atienden en `127.0.0.1`, y se ent
 |---|---|---|
 | `api` | siempre (se reinicia si se cae) | `api.sh`: la API con `API_ENV=production`, `/analytics` encendido para el panel, 2 procesos |
 | `caddy` | siempre | `caddy.sh`: la puerta (`basic_auth`), las cabeceras y la CSP de `deploy/Caddyfile`, la API en `/api` |
-| `tunel` | siempre | `tunel.sh`: túnel rápido (URL `….trycloudflare.com` que cambia en cada inicio) o, con `TUNNEL_TOKEN`, un túnel con nombre y URL fija |
+| `tunel` | siempre | `tunel.sh`: un túnel con nombre y URL fija (`TUNNEL_NAME` o `TUNNEL_TOKEN`) o, sin ellos, un túnel rápido (URL `….trycloudflare.com` que cambia en cada inicio) |
 | `vigilante` | cada 5 min | `vigilante.sh`: reinicia lo que lleve dos revisiones caído, anota la URL vigente en `url.txt` y avisa con una notificación, y rota los registros de más de 20 MB |
 | `actualizar` | cada 15 min | `actualizar.sh`: si `origin/main` cambió, trae los cambios, instala dependencias si cambiaron, respalda y migra si hay migraciones, construye y reinicia solo la API (la URL no cambia) |
 | `respaldo` | 03:30 | `respaldo.sh`: `pg_dump -Fc` de la base, comprobado con `pg_restore --list`; guarda los 3 más nuevos y no respalda si falta espacio |
@@ -31,7 +31,7 @@ Nada escucha hacia la red: Caddy y la API solo atienden en `127.0.0.1`, y se ent
 4. Los archivos servidos la primera vez: `deploy/macos/actualizar.sh --forzar` (o copiar `prototipo-app/dist` y `dashboard-empresa/dist` a `~/rappi-tunel/srv/app` y `srv/panel`).
 5. `deploy/macos/instalar.sh` desde la copia de `~/rappi-prod`. La URL queda en `~/rappi-tunel/url.txt`.
 
-Para quitar todo: `deploy/macos/instalar.sh --quitar`. Registros en `~/rappi-tunel/logs/`.
+Para cambiar la clave de la puerta: `deploy/macos/cambiar-clave.sh` (la pide dos veces sin mostrarla, guarda solo su hash y reinicia Caddy). Para quitar todo: `deploy/macos/instalar.sh --quitar`. Registros en `~/rappi-tunel/logs/`.
 
 ## Requisitos del Mac
 
@@ -54,6 +54,6 @@ Cada persona de la prueba crea una sesión del prototipo: después hay que olvid
 
 ## Límites
 
-- **El túnel rápido** no tiene garantía de disponibilidad y su URL cambia en cada inicio. Con una cuenta de Cloudflare y un dominio, `TUNNEL_TOKEN` en `tunel.env` da una URL fija sin cambiar nada más.
+- **El túnel rápido** no tiene garantía de disponibilidad y su URL cambia en cada inicio. Para una URL fija, con una cuenta de Cloudflare y un dominio: `cloudflared tunnel login` (autoriza el dominio en el navegador), `cloudflared tunnel create <nombre>`, `cloudflared tunnel route dns <nombre> <dominio>`, y en `tunel.env` `TUNNEL_NAME=<nombre>` y `PUBLIC_URL=https://<dominio>`. La credencial del túnel queda en `~/.cloudflared/`, fuera del repo.
 - **Depende del Mac:** si se apaga o pierde internet, la demo cae. Para algo permanente, un servidor (`infra/oci/` y [docs/despliegue.md](../../docs/despliegue.md)).
 - **Los respaldos quedan en el mismo Mac:** para una copia afuera, sumar un destino (por ejemplo restic, como en el servidor).

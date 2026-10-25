@@ -3,7 +3,7 @@
 # respalda la base si hay migraciones pendientes y migra, construye la app y el panel, cambia los archivos servidos de
 # una vez y reinicia solo la API (el túnel sigue igual). Uso: deploy/macos/actualizar.sh [--forzar]
 . "$(dirname "$0")/comun.sh"
-cd "$REPO_DIR"
+cd "$REPO_DIR" || exit 1
 [ -z "$(git status --porcelain --untracked-files=no)" ] || { log "La copia $REPO_DIR tiene cambios sin commit: no actualizo"; exit 1; }
 
 git fetch -q origin main
