@@ -13,6 +13,8 @@ from pydantic import ConfigDict, Field
 
 from .. import config
 from ..agent.grouped_search import SpareConnector
+from ..events import experiments
+from ..events import store as events
 from ..offers import autonomy, preferences
 from ..offers.engine import Offer, OfferError, ProfileOffer, home_occasions, make_offer
 from ..offers.personal import user_interests
@@ -25,6 +27,11 @@ from .services import Services
 router = APIRouter(prefix="/agent", tags=["agent"])
 
 MAX_LINES = 100  # como un pedido (OrderIn)
+# Lo que Mochi propone solo: el grupo de control de las ofertas (`ofertas_control`) no lo ve. Un plan o un perfil de
+# gusto los pide la persona: esos se muestran siempre.
+HOLDOUT_MOMENTS = frozenset(
+    {"carrito", "checkout", "sin_resultado", "proximo_pedido", "vertical_por_probar", "recompra", "volver", "ontop"}
+)
 OFFER_CAP = concurrency_cap("offer", config.API_MAX_CONCURRENT_OFFER, wait_s=config.API_CAP_WAIT_S)
 
 
@@ -89,6 +96,9 @@ class ProfileContext(Clean):
 
 class OfferBase(Clean):
     user_id: str | None = Field(default=None, max_length=64)
+    # La sesión de la app (la de sus eventos): con ella, una oferta retenida al grupo de control queda registrada en la
+    # sesión donde se habría visto. Sin ella, la persona no entra al grupo de control.
+    session_id: str | None = Field(default=None, max_length=64)
 
 
 class PlanIn(OfferBase):
@@ -162,6 +172,9 @@ def offer(
     """La oferta de un momento: `{ moment, text, products, vertical, prototype_vertical, reason, actions, request_id }`,
     o 204 (`request_id`: el id de esta respuesta, que la app repite en los eventos de la oferta).
     El momento `ontop` suma `plazo_min` (el plazo para sumar sus productos al pedido en curso, un supuesto).
+    Grupo de control (`ofertas_control`, con OFFERS_CONTROL_PCT): a quien está en `control`, una oferta de los momentos
+    que Mochi propone solo (HOLDOUT_MOMENTS) no se le muestra (204) y queda como impresión contrafactual
+    (`offer_withheld`, con lo que habría mostrado); hace falta `user_id` y `session_id`.
     El momento `perfil` tiene su forma: `{ moment, text, perfil, escalera, viaje, reason, actions }` (la escalera de
     un perfil de gusto: `offers/profiles.py`; sus peldaños se buscan a la vez con las conexiones del pool que sobran,
     `spare`, como `/search`). Una ocasión o un perfil que no existe, o una ocasión que el agente no arma (guagua,
@@ -179,7 +192,55 @@ def offer(
     found = _with_preferences(found, mine)
     if body.moment == "recompra":
         found = _with_auto_order(conn, found, body.user_id)
-    return Response(status_code=204) if found is None else {**found.to_dict(), "request_id": served_request_id()}
+    if found is None:
+        return Response(status_code=204)
+    request_id = served_request_id()
+    if _withheld(conn, body, found, request_id):
+        return Response(status_code=204)
+    return {**found.to_dict(), "request_id": request_id}
+
+
+def _withheld(conn: Connection, body, found: Offer | ProfileOffer, request_id: str | None) -> bool:
+    """Si la oferta se retiene (la persona está en el grupo de control): entonces queda registrada como `offer_withheld`
+    en su sesión, con lo que habría mostrado en `app_event_items` (concepto y vertical incluidos), y la respuesta es un
+    204 como el de un momento sin oferta. Un plan o un perfil nunca se retienen, ni una oferta sin persona o sin
+    sesión."""
+    if body.moment not in HOLDOUT_MOMENTS or not body.user_id or not body.session_id or isinstance(found, ProfileOffer):
+        return False
+    try:
+        events.ensure_user(conn, body.user_id)
+    except ValueError:  # un id de otra población (simulada): no entra al experimento
+        return False
+    variant = experiments.offers_variant(conn, body.user_id)
+    if variant != experiments.CONTROL:
+        conn.commit()  # su asignación (tratamiento), si era la primera vez
+        return False
+    concept = found.reason.get("concept")
+    withheld = events.Event(
+        user_id=body.user_id,
+        session_id=body.session_id,
+        type="offer_withheld",
+        vertical=found.vertical,
+        concept_id=concept,
+        results=len(found.products),
+        payload={"moment": body.moment, "experiment": experiments.OFFERS_CONTROL, "variant": variant},
+        surface="agent",
+        origin=f"agent-{body.moment}",
+        request_id=request_id,
+        items=[
+            {
+                "position": position,
+                "entity_type": product["entity_type"],
+                "entity_id": product["entity_id"],
+                "concept_id": product.get("concept"),
+                "vertical": product.get("vertical"),
+            }
+            for position, product in enumerate(found.products[: events.MAX_EVENT_ITEMS])
+        ],
+    )
+    events.record(conn, [withheld], source="prototype")
+    conn.commit()
+    return True
 
 
 def _with_preferences(found: Offer | ProfileOffer | None, mine: preferences.Preferences) -> Offer | ProfileOffer | None:

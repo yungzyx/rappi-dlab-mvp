@@ -22,7 +22,7 @@ Flujo típico (después de cada `rappi refresh` del scraper):
     rappi-ia jev-piloto              # con clave y planillas juzgadas: mide a Jev y propone adoptarlo (o no)
     rappi-ia synth                   # usuarios y eventos SIMULADOS para el panel (reemplaza los anteriores)
     rappi-ia analytics               # resumen de métricas del panel (frecuencia, abandono, oportunidades…)
-    rappi-ia purge                   # borra consultas de más de 90 días y personas del prototipo sin actividad
+    rappi-ia purge                   # borra consultas e impresiones de más de 90 días y personas sin actividad
     rappi-ia multivertical           # mapa multivertical (docs/mapas/)
     rappi-ia seed-demo               # catálogo de prueba inventado, SOLO en la base DATABASE_URL_TEST (_test)
     rappi-ia doctor                  # revisa (solo lectura) que DATABASE_URL tenga catálogo; sale 1 si no
@@ -553,13 +553,21 @@ def cmd_jev_piloto(conn, args) -> None:
 
 
 def cmd_purge(conn, args) -> None:
-    from .events.store import QUERY_RETENTION_DAYS, purge_inactive_users, purge_old_queries
+    from .events.store import (
+        IMPRESSION_RETENTION_DAYS,
+        QUERY_RETENTION_DAYS,
+        purge_inactive_users,
+        purge_old_impressions,
+        purge_old_queries,
+    )
 
     n = purge_old_queries(conn, args.dias or QUERY_RETENTION_DAYS)
+    seen = purge_old_impressions(conn, args.dias or IMPRESSION_RETENTION_DAYS)
     days = config.PROTOTYPE_USER_RETENTION_DAYS
     users = purge_inactive_users(conn, days)
     conn.commit()
     print(f"Consultas de más de {args.dias or QUERY_RETENTION_DAYS} días borradas: {n}")
+    print(f"Elementos vistos (impresiones) de más de {args.dias or IMPRESSION_RETENTION_DAYS} días borrados: {seen}")
     print(f"Usuarios del prototipo sin actividad en {days} días borrados: {users}")
 
 
@@ -865,8 +873,8 @@ def build_parser() -> argparse.ArgumentParser:
     synth.add_argument("--hasta", help="fecha final AAAA-MM-DD (por defecto hoy)")
     purge = sub.add_parser(
         "purge",
-        help="borra el texto de consultas más antiguas que la retención (90 días) y a las personas del prototipo sin "
-        "actividad en PROTOTYPE_USER_RETENTION_DAYS (180)",
+        help="borra el texto de consultas y los elementos vistos (impresiones) más antiguos que la retención (90 días) "
+        "y a las personas del prototipo sin actividad en PROTOTYPE_USER_RETENTION_DAYS (180)",
     )
     purge.add_argument("--dias", type=int)
     mv = sub.add_parser(

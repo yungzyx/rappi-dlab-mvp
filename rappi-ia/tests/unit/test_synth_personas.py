@@ -40,7 +40,7 @@ def _simulate(persona: synth.Persona, users: int = 60, seed: int = 7) -> dict[st
     """Corre a `users` personas con el generador con semilla y devuelve lo que escribió (pedidos, líneas y eventos)."""
     rng = random.Random(seed)
     catalog = _catalog(persona)
-    buffers = {key: io.StringIO() for key in ("users", "sessions", "events", "orders", "lines")}
+    buffers = {key: io.StringIO() for key in ("users", "sessions", "events", "orders", "lines", "items")}
     counts = {"usuarios": 0, "eventos": 0, "pedidos": 0}
     for n in range(users):
         state = synth.UserState(

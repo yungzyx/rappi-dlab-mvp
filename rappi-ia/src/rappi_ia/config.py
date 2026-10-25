@@ -134,6 +134,13 @@ API_SECRET_FILE = DATA_DIR / "api-secret"
 # proceso, como API_RATE_PER_MIN; en local, este equipo no tiene tope.
 API_NEW_USERS_PER_IP_DAY = int(os.environ.get("API_NEW_USERS_PER_IP_DAY", "20"))
 
+# Grupo de control de las ofertas de Mochi (experimento `ofertas_control`, migración 047): el porcentaje de personas
+# (por un sorteo estable con su id) a las que Mochi no les muestra lo que propone solo; cada oferta retenida queda como
+# impresión contrafactual (`offer_withheld`). 0 (lo de siempre) lo apaga: nadie entra y nada se retiene.
+OFFERS_CONTROL_PCT = int(os.environ.get("OFFERS_CONTROL_PCT", "0"))
+if not 0 <= OFFERS_CONTROL_PCT <= 50:
+    raise RuntimeError(f"OFFERS_CONTROL_PCT va de 0 a 50 (vale {OFFERS_CONTROL_PCT})")
+
 # `rappi-ia purge` borra a las personas del prototipo sin actividad (eventos ni pedidos) en estos días.
 PROTOTYPE_USER_RETENTION_DAYS = int(os.environ.get("PROTOTYPE_USER_RETENTION_DAYS", "180"))
 

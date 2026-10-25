@@ -35,6 +35,7 @@ from ..catalog.restaurants import search_restaurants
 from ..catalog.stores import search_stores
 from ..concepts.taxonomy import load_taxonomy
 from ..db import pending_migrations
+from ..events import experiments
 from ..events import store as events
 from ..events.searches import recent_searches, top_searches
 from ..layers.segments import recalculate_user_segments
@@ -266,6 +267,16 @@ MAX_PAYLOAD_KEYS = 10
 MAX_PAYLOAD_BYTES = 2048
 
 
+class EventItemIn(Clean):
+    """Un elemento de un `list_view`: lo que quedó a la vista en la lista, en su lugar (migración 047)."""
+
+    position: int = Field(ge=0, le=999)
+    entity_type: Literal[tuple(sorted(events.ITEM_ENTITY_TYPES))]  # type: ignore[valid-type]
+    entity_id: str = Field(min_length=1, max_length=64)
+    concept_id: str | None = Field(default=None, max_length=64)
+    vertical: str | None = Field(default=None, max_length=64)
+
+
 class EventIn(Clean):
     type: str = Field(max_length=64)
     session_id: str = Field(max_length=64)
@@ -289,6 +300,8 @@ class EventIn(Clean):
     origin: str | None = Field(default=None, pattern=r"^[a-z0-9_-]{1,40}$")
     position: int | None = Field(default=None, ge=0, le=999)
     request_id: str | None = Field(default=None, pattern=r"^[A-Za-z0-9._-]{1,64}$")
+    # Solo en `list_view`: los elementos que quedaron a la vista, cada uno con su lugar (`app_event_items`).
+    items: list[EventItemIn] = Field(default_factory=list, max_length=events.MAX_EVENT_ITEMS)
 
     @field_validator("payload")
     @classmethod
@@ -562,7 +575,9 @@ def _top_row(conn: Connection, user_id: str, current: str | None, taken: set[str
 @app.post("/session")
 def new_session(body: SessionIn, request: Request, conn: Connection = Depends(get_conn)) -> dict:
     """El id de este navegador y su token (X-User-Token). Un id viejo de la app (de antes de la identidad firmada) se
-    reclama una sola vez y conserva lo que ya tenía; si no, una persona nueva, con un tope por IP al día (429)."""
+    reclama una sola vez y conserva lo que ya tenía; si no, una persona nueva, con un tope por IP al día (429). Aquí se
+    le asigna su variante del grupo de control de las ofertas (`ofertas_control`, si está encendido): una vez y estable.
+    """
     user_id = identity.claim_legacy(conn, body.legacy_user_id)
     if user_id is None:
         client = request.client
@@ -572,6 +587,7 @@ def new_session(body: SessionIn, request: Request, conn: Connection = Depends(ge
             conn.rollback()
             raise HTTPException(429, TOO_MANY, headers={"Retry-After": str(retry)})
         user_id = identity.create_user(conn)
+    experiments.offers_variant(conn, user_id)  # su variante del grupo de control de las ofertas, si está encendido
     conn.commit()
     return {"user_id": user_id, "token": identity.sign(user_id)}
 
@@ -665,7 +681,16 @@ def _save_events(connect, body: EventsIn) -> int:
             n = events.record(
                 conn,
                 [
-                    events.Event(user_id=body.user_id, **{**e.model_dump(), "vertical": backend_vertical(e.vertical)})
+                    events.Event(
+                        user_id=body.user_id,
+                        **{
+                            **e.model_dump(),
+                            "vertical": backend_vertical(e.vertical),
+                            "items": [
+                                {**item.model_dump(), "vertical": backend_vertical(item.vertical)} for item in e.items
+                            ],
+                        },
+                    )
                     for e in body.events
                 ],
                 source="prototype",
@@ -758,6 +783,8 @@ ANALYTICS = {
     "combos": queries.combos,
     "motor": queries.motor,
     "home": queries.home,
+    "ctr-posicion": queries.ctr_by_position,
+    "embudo-sesion": queries.session_funnel,
 }
 
 

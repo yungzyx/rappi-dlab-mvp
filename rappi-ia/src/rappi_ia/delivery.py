@@ -42,6 +42,9 @@ PERSON_TABLES = {
     "app_users": "source = 'synthetic'",
     "app_events": f"source = 'synthetic' AND {_USERS}",
     "app_sessions": f"source = 'synthetic' AND {_USERS}",
+    # Lo que cada lista dejó a la vista (migración 047): va con sus eventos simulados.
+    "app_event_items": f"event_id IN (SELECT event_id FROM public.app_events WHERE source = 'synthetic' AND {_USERS})",
+    "experiment_assignments": f"source = 'synthetic' AND {_USERS}",
     "agent_preferences": f"source = 'synthetic' AND {_USERS}",
     "agent_autonomy": f"source = 'synthetic' AND {_USERS}",
     "app_orders": _ORDERS,

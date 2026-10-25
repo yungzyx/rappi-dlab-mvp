@@ -113,7 +113,7 @@ funnel_steps AS (
            bool_or(type = 'order_placed') AS pedido
     FROM app_events
     WHERE source = %(source)s AND vertical IS NOT NULL
-      AND type NOT IN ('suggestion_shown', 'suggestion_dismissed')
+      AND type NOT IN ('suggestion_shown', 'suggestion_dismissed', 'list_view', 'offer_withheld')
     GROUP BY 1, 2
 )"""
 
@@ -690,6 +690,50 @@ def home(conn: Connection, source: str = "synthetic") -> dict:
     )
     [totals] = _rows(conn, f"SELECT count(DISTINCT user_id) AS personas, count(*) AS toques {taps}", {"source": source})
     return {**totals, "verticales": rows}
+
+
+CTR_POSITIONS = 10  # las primeras posiciones de cada lista que muestra el panel
+
+
+def ctr_by_position(conn: Connection, source: str = "synthetic") -> dict:
+    """CTR por posición (`capa.v_ctr_posicion`, migración 048) en el prototipo con Mochi (`modo = 'propuesta'`):
+    `posiciones`, las primeras CTR_POSITIONS de todas las listas juntas, y `listas`, cada pantalla y lista con sus
+    totales, de la más vista a la menos. Un elemento cuenta una vez por sesión, respuesta y lugar."""
+    _check(source)
+    params = {"source": source, "positions": CTR_POSITIONS}
+    where = "FROM capa.v_ctr_posicion WHERE source = %(source)s AND modo = 'propuesta'"
+    positions = _rows(
+        conn,
+        f"""SELECT position AS posicion, sum(impresiones)::bigint AS impresiones, sum(clics)::bigint AS clics,
+                   round(sum(clics)::numeric / sum(impresiones), 4) AS ctr
+            {where} AND position < %(positions)s GROUP BY position ORDER BY position""",
+        params,
+    )
+    lists = _rows(
+        conn,
+        f"""SELECT surface AS pantalla, origin AS lista, sum(impresiones)::bigint AS impresiones,
+                   sum(clics)::bigint AS clics, round(sum(clics)::numeric / sum(impresiones), 4) AS ctr
+            {where} GROUP BY surface, origin ORDER BY 3 DESC, 1, 2""",
+        params,
+    )
+    return {"posiciones": positions, "listas": lists}
+
+
+def session_funnel(conn: Connection, source: str = "synthetic") -> list[dict]:
+    """El embudo por sesión (`capa.v_embudo_sesion`, migración 048), por modo: sesiones → vieron algo → además tocaron
+    algo → además agregaron al carro → además pidieron. Cada paso exige los anteriores."""
+    _check(source)
+    return _rows(
+        conn,
+        """SELECT modo, count(*) AS sesiones,
+                  count(*) FILTER (WHERE vio) AS vieron,
+                  count(*) FILTER (WHERE vio AND clic) AS tocaron,
+                  count(*) FILTER (WHERE vio AND clic AND carro) AS agregaron,
+                  count(*) FILTER (WHERE vio AND clic AND carro AND pedido) AS pidieron
+           FROM capa.v_embudo_sesion WHERE source = %(source)s
+           GROUP BY modo ORDER BY modo = 'actual', modo""",
+        {"source": source},
+    )
 
 
 def multi_vertical_retention(conn: Connection, source: str = "synthetic") -> list[dict]:

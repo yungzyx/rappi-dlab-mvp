@@ -68,6 +68,14 @@ SUPUESTOS (editables aquí):
 - Parte de los carros abandonados alcanza a iniciar el pago (CHECKOUT_ABANDON_SHARE); el resto se va antes.
 - Aceptar una sugerencia cruzada acorta un poco el ritmo de compra (SUGGESTION_CADENCE_BOOST).
 - Algunos antojos no existen en el catálogo y crecen con el tiempo (WISHES): alimentan "oportunidades".
+- Impresiones (migración 047): cada búsqueda con resultados deja a la vista entre RESULTS_VISIBLE resultados (un
+  `list_view` con sus elementos, `surface = search`, `origin = resultados` y un `request_id` propio de la búsqueda), y
+  lo que se ve y se agrega después sale de ahí, con su lugar. SUPUESTO PROPIO, no un dato de Rappi: el lugar de lo que
+  se toca sigue un sesgo de posición (POSITION_DECAY: cada lugar más abajo se toca 0,75 veces lo del anterior), así que
+  el CTR por posición de los simulados es el que se puso, no evidencia. Los lugares y el relleno de la lista salen de un
+  sorteo aparte por sesión (semilla, persona y sesión): no tocan el de la conducta, y lo calibrado sigue igual.
+- Experimentos: toda persona simulada está en `modo_app = propuesta` (sus sesiones son de ese modo). El grupo de control
+  de las ofertas no se simula: su efecto saldría de un supuesto puesto aquí, y retener sugerencias movería lo calibrado.
 """
 
 import io
@@ -411,6 +419,8 @@ SUGGESTION_ACCEPT = 0.22  # probabilidad base de aceptar una sugerencia cruzada 
 # Sugerencias que van a Turbo cuando Turbo vende el concepto (el resto sigue el orden del agente).
 TURBO_SUGGESTION = 0.5
 SUGGESTION_CADENCE_BOOST = 0.93  # aceptar una sugerencia acorta el ritmo 7%
+RESULTS_VISIBLE = (4, 8)  # cuántos resultados de una búsqueda quedan a la vista (supuesto propio)
+POSITION_DECAY = 0.75  # sesgo de posición: cada lugar más abajo se toca esta fracción de lo del anterior (supuesto)
 MODALITIES = (("texto", 1.0),)  # solo texto; se sigue sorteando para conservar la misma secuencia aleatoria
 PREFERRED_ATTRIBUTES = ("sin-gluten", "vegano", "alto-proteina", "con-descuento")
 PREFER_SHARE = 0.85  # con qué frecuencia elige un ítem con su atributo cuando el concepto tiene alguno
@@ -630,6 +640,8 @@ def generate(
         "events": io.StringIO(),
         "orders": io.StringIO(),
         "lines": io.StringIO(),
+        "assignments": io.StringIO(),
+        "items": io.StringIO(),
     }
     counts = {"usuarios": 0, "eventos": 0, "pedidos": 0}
     for n in range(users):
@@ -654,11 +666,13 @@ def generate(
             _iso(signup),
             draw_pro(seed, n, archetype),
         )
+        _write(buffers["assignments"], state.user_id, MODE_EXPERIMENT, "propuesta", _iso(signup), "synthetic")
         counts["usuarios"] += 1
-        _simulate_user(rng, catalog, state, signup, end, start, buffers, counts)
+        _simulate_user(rng, catalog, state, signup, end, start, buffers, counts, seed)
 
     _copy(conn, "app_users (user_id, source, segment, city, consent_notifications, created_at, pro)", buffers["users"])
-    _copy(conn, "app_sessions (user_id, session_id, started_at, mode, source)", buffers["sessions"])
+    _copy(conn, "experiment_assignments (user_id, experiment_id, variant, assigned_at, source)", buffers["assignments"])
+    _copy(conn, "app_sessions (user_id, session_id, started_at, mode, source, variants)", buffers["sessions"])
     _copy(conn, "app_orders (order_id, user_id, session_id, cart_id, ts, vertical, total, source)", buffers["orders"])
     _copy(
         conn,
@@ -668,16 +682,18 @@ def generate(
     _copy(
         conn,
         "app_events (user_id, session_id, ts, type, vertical, concept_id, entity_type, entity_id, cart_id, query,"
-        " modality, results, unmet, value, payload, source, client_event_id, client_ts, seq)",
+        " modality, results, unmet, value, payload, source, client_event_id, client_ts, seq, surface, origin, position,"
+        " request_id)",
         buffers["events"],
     )
+    _copy_items(conn, buffers["items"])
     conn.commit()
     log.info("Simulados: %s", counts)
     return counts
 
 
 def _simulate_user(
-    rng, catalog: Catalog, s: UserState, signup: datetime, end: datetime, start: datetime, buffers, counts
+    rng, catalog: Catalog, s: UserState, signup: datetime, end: datetime, start: datetime, buffers, counts, seed=0
 ):
     day = signup
     while day < end and s.active:
@@ -686,20 +702,22 @@ def _simulate_user(
         if day >= end:
             break
         ts = day.replace(hour=rng.choice(s.persona.hours), minute=rng.randrange(60))
-        _session(rng, catalog, s, ts, start, buffers, counts)
+        _session(rng, catalog, s, ts, start, buffers, counts, seed)
         s.active = rng.random() < _stay_probability(s, ts, gap)
 
 
-def _session(rng, catalog: Catalog, s: UserState, ts: datetime, start: datetime, buffers, counts) -> None:
+def _session(rng, catalog: Catalog, s: UserState, ts: datetime, start: datetime, buffers, counts, seed=0) -> None:
     session_id = uuid.UUID(int=rng.getrandbits(128)).hex[:16]
     events = buffers["events"]
-    _write(buffers["sessions"], s.user_id, session_id, _iso(ts), "propuesta", "synthetic")
+    _write(buffers["sessions"], s.user_id, session_id, _iso(ts), "propuesta", "synthetic", SESSION_VARIANTS)
     seq = 0
 
-    def emit(kind, when, **kw):
+    def emit(kind, when, at=None, **kw):
         # El sobre de la app (migración 043): id, hora y orden de cada evento en su sesión. El id sale de la persona, la
-        # sesión y el orden (no del sorteo), así la simulación con la misma semilla no cambia.
+        # sesión y el orden (no del sorteo), así la simulación con la misma semilla no cambia. `at` es un orden ya
+        # reservado (el list_view de la búsqueda se escribe al final, cuando se sabe qué se tocó en él).
         nonlocal seq
+        order = seq if at is None else at
         _write(
             events,
             s.user_id,
@@ -718,11 +736,16 @@ def _session(rng, catalog: Catalog, s: UserState, ts: datetime, start: datetime,
             kw.get("value"),
             json.dumps(kw.get("payload", {})),
             "synthetic",
-            uuid.uuid5(SYNTHETIC_EVENTS, f"{s.user_id}|{session_id}|{seq}"),
+            _event_uuid(s.user_id, session_id, order),
             _iso(when),
-            seq,
+            order,
+            kw.get("surface"),
+            kw.get("origin"),
+            kw.get("position"),
+            kw.get("request"),
         )
-        seq += 1
+        if at is None:
+            seq += 1
         counts["eventos"] += 1
 
     emit("app_open", ts)
@@ -763,19 +786,67 @@ def _session(rng, catalog: Catalog, s: UserState, ts: datetime, start: datetime,
     prefer = s.persona.prefer
     item = catalog.pick(rng, vertical, concept, prefer)
     kind = "ask" if rng.random() < 0.3 else "search"
+    modality = _modality(rng)  # antes que los resultados: el mismo orden de sorteo de siempre
+    results = 0 if item is None else rng.randint(4, 20)
+    # La búsqueda tiene su id (el request_id de /search); la pregunta a Mochi, el de /agent/ask.
+    request = f"syn-{_event_uuid(s.user_id, session_id, seq).hex[:16]}"
     emit(
         kind,
         clock,
         vertical=vertical,
         concept=concept,
         query=catalog.names.get(concept, concept).lower(),
-        modality=_modality(rng),
-        results=0 if item is None else rng.randint(4, 20),
+        modality=modality,
+        results=results,
         unmet=item is None,
+        surface="search" if kind == "search" else "agent",
+        request=request,
     )
     if item is None:
         s.recent_unmet.append(ts)
         return
+    view = _ResultsView(
+        random.Random(f"imp-{seed}-{s.user_id}-{session_id}"),
+        catalog,
+        vertical,
+        concept,
+        prefer,
+        results,
+        surface="search" if kind == "search" else "agent",
+        origin="resultados" if kind == "search" else "agent-ask",
+        request=request,
+    )
+    view_seq = seq
+    seq += 1  # su lugar en la sesión, justo después de la búsqueda
+    try:
+        _shop(rng, catalog, s, ts, clock, buffers, counts, emit, session_id, vertical, concept, prefer, item, view)
+    finally:
+        emit(
+            "list_view",
+            clock + timedelta(seconds=1),
+            at=view_seq,
+            vertical=vertical,
+            surface=view.surface,
+            origin=view.origin,
+            position=view.highest(),
+            request=request,
+        )
+        for position, (etype, eid) in view.items():
+            _write(
+                buffers["items"],
+                s.user_id,
+                _event_uuid(s.user_id, session_id, view_seq),
+                position,
+                etype,
+                eid,
+                concept,
+                vertical,
+            )
+
+
+def _shop(rng, catalog, s, ts, clock, buffers, counts, emit, session_id, vertical, concept, prefer, item, view) -> None:
+    """Lo que sigue a una búsqueda con resultados: mirar, agregar, la sugerencia de Mochi y pagar (o abandonar). Lo que
+    se mira y se agrega sale de los resultados (`view`), con su lugar."""
     if rng.random() < BROWSE_ONLY:
         return
     cart_id = uuid.UUID(int=rng.getrandbits(128)).hex[:12]
@@ -783,7 +854,8 @@ def _session(rng, catalog: Catalog, s: UserState, ts: datetime, start: datetime,
     for _ in range(1 + int(rng.random() < 0.5) + int(rng.random() < 0.2)):
         item = catalog.pick(rng, vertical, concept, prefer) or item
         clock += timedelta(seconds=rng.randint(10, 90))
-        emit("view_item", clock, vertical=vertical, concept=concept, etype=item[0], eid=item[1], value=item[2])
+        where = {"surface": view.surface, "origin": view.origin, "position": view.place(item), "request": view.request}
+        emit("view_item", clock, vertical=vertical, concept=concept, etype=item[0], eid=item[1], value=item[2], **where)
         emit(
             "cart_add",
             clock + timedelta(seconds=5),
@@ -793,6 +865,7 @@ def _session(rng, catalog: Catalog, s: UserState, ts: datetime, start: datetime,
             eid=item[1],
             cart=cart_id,
             value=item[2],
+            **where,
         )
         lines.append((item, concept, False))
 
@@ -856,6 +929,71 @@ def _session(rng, catalog: Catalog, s: UserState, ts: datetime, start: datetime,
         emit("order_placed", when, vertical=order_vertical, cart=cart_id, value=round(total))
         counts["pedidos"] += 1
         s.orders_by_vertical.setdefault(order_vertical, []).append(ts)
+
+
+MODE_EXPERIMENT = "modo_app"
+SESSION_VARIANTS = json.dumps({MODE_EXPERIMENT: "propuesta"})  # el eco de los experimentos en app_sessions
+
+
+def _event_uuid(user_id: str, session_id: str, seq: int) -> uuid.UUID:
+    """El id de un evento simulado: de la persona, la sesión y su orden (la misma semilla da los mismos ids)."""
+    return uuid.uuid5(SYNTHETIC_EVENTS, f"{user_id}|{session_id}|{seq}")
+
+
+class _ResultsView:
+    """Los resultados de una búsqueda que quedaron a la vista (el `list_view` y sus elementos). Usa su propio sorteo
+    (`imp`), nunca el de la conducta: el tamaño de la lista, el lugar de lo que se toca (con el sesgo de POSITION_DECAY)
+    y el relleno de los lugares que nadie tocó."""
+
+    def __init__(self, imp, catalog, vertical, concept, prefer, results, surface, origin, request):
+        self.imp, self.catalog = imp, catalog
+        self.vertical, self.concept, self.prefer = vertical, concept, prefer
+        self.slots = min(results, imp.randint(*RESULTS_VISIBLE))
+        self.surface, self.origin, self.request = surface, origin, request
+        self.placed: dict[int, tuple[str, str]] = {}
+
+    def place(self, item) -> int:
+        """El lugar de un resultado que se tocó: el suyo si ya estaba, o uno libre con el sesgo de posición."""
+        key = (item[0], item[1])
+        for position, placed in self.placed.items():
+            if placed == key:
+                return position
+        free = [p for p in range(self.slots) if p not in self.placed] or [len(self.placed)]
+        position = self.imp.choices(free, weights=[POSITION_DECAY**p for p in free])[0]
+        self.placed[position] = key
+        return position
+
+    def items(self) -> list[tuple[int, tuple[str, str]]]:
+        """Todos los lugares a la vista, en orden: los tocados y, en los demás, otros resultados del mismo concepto."""
+        out = []
+        for position in range(max(self.slots, len(self.placed))):
+            if position in self.placed:
+                out.append((position, self.placed[position]))
+            elif (other := self.catalog.pick(self.imp, self.vertical, self.concept, self.prefer)) is not None:
+                out.append((position, (other[0], other[1])))
+        return out
+
+    def highest(self) -> int:
+        """La mayor posición vista."""
+        return max(self.slots, len(self.placed), 1) - 1
+
+
+def _copy_items(conn: Connection, buffer: io.StringIO) -> None:
+    """Los elementos de los `list_view` simulados: se copian a una tabla temporal con el id de su evento
+    (`client_event_id`) y de ahí a `app_event_items` con su `event_id`, que recién da la base."""
+    conn.execute(
+        """CREATE TEMP TABLE synth_items (user_id text, client_event_id uuid, position smallint, entity_type text,
+                                          entity_id text, concept_id text, vertical text) ON COMMIT DROP"""
+    )
+    _copy(conn, "synth_items", buffer)
+    conn.execute(
+        """INSERT INTO app_event_items (event_id, position, entity_type, entity_id, concept_id, vertical)
+           SELECT e.event_id, t.position, t.entity_type, t.entity_id, c.concept_id, t.vertical
+           FROM synth_items t
+           JOIN app_events e ON e.user_id = t.user_id AND e.client_event_id = t.client_event_id
+           LEFT JOIN concepts c ON c.concept_id = t.concept_id
+           ON CONFLICT DO NOTHING"""
+    )
 
 
 def _stay_probability(s: UserState, now: datetime, gap: float) -> float:
