@@ -5,6 +5,7 @@
 // puerto (`VITE_API_URL`, la misma variable que lee la app). El recorrido paga una compra y deja eventos en la base de
 // la API: por eso no corre sin `SCREENSHOTS_ALLOW_WRITES=1`, y se corre sobre una copia
 // (`DATABASE_URL=postgresql:///rappi_staging make mvp`), nunca sobre `rappi`.
+// La conversación (45, 46 y 48) se pide en el buscador y se refina con los chips «Más barato» y «Sin carne».
 // «¿Repetimos?» necesita tres compras con ritmo: esa oferta sale del fixture del contrato, con un café real del catálogo.
 import { mkdirSync, readFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
@@ -122,6 +123,28 @@ async function run(page) {
   await tap('.assistant-chip', 'carrete')
   await wait(3800) // Mochi responde
   await shot('20-asistente')
+
+  // Seguir con Mochi sin chat: se le pide algo en el buscador y se refina con los chips de un toque.
+  // Se espera a que arriba diga lo pedido («Pediste «…» · «…»») y a que Mochi termine de escribir.
+  const asked = async (text) => {
+    await page.locator('.agent-asked', { hasText: text }).waitFor({ timeout: 20000 })
+    await wait(3800)
+  }
+  const askTyped = async (text) => {
+    const input = page.locator('[role="dialog"] input[type="search"]')
+    await input.fill(text)
+    await input.press('Enter')
+    await asked(text)
+  }
+  await askTyped('¿qué llevo para un asado de 6?')
+  await shot('45-conversacion-asado')
+  await tap('.agent-follow-chip', 'Más barato')
+  await asked('«más barato»')
+  await shot('46-conversacion-mas-barato')
+  await askTyped('¿tienen pizza?')
+  await tap('.agent-follow-chip', 'Sin carne')
+  await asked('«sin carne»')
+  await shot('48-conversacion-sin-carne')
   await tap('[role="dialog"] .search-back')
   await wait(600)
 
