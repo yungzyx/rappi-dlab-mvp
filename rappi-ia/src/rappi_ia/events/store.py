@@ -404,7 +404,8 @@ def _order_of_event(e: Event) -> dict:
 
 def _record_ratings(conn: Connection, ratings: list[tuple[Event, int, list[str], datetime]]) -> None:
     """Cada calificación queda en el pedido de su carro y su tienda (`_ORDER_OF_EVENT`). Las de «Rappi hoy»
-    (`payload.mode = 'actual'`) no: ese modo no enseña, y la calificación pausa la recompra."""
+    (`payload.mode = 'actual'`) no: ese modo no enseña, y la calificación pausa la recompra. Un pedido cancelado no se
+    califica: no llegó."""
     rows = [
         {"stars": stars, "reasons": reasons, "at": rated_at, **_order_of_event(e)}
         for e, stars, reasons, rated_at in ratings
@@ -414,7 +415,7 @@ def _record_ratings(conn: Connection, ratings: list[tuple[Event, int, list[str],
         with conn.cursor() as cur:
             cur.executemany(
                 f"""UPDATE app_orders SET rating = %(stars)s, rating_reasons = %(reasons)s, rated_at = %(at)s
-                    WHERE {_ORDER_OF_EVENT}""",
+                    WHERE status = 'confirmado' AND {_ORDER_OF_EVENT}""",
                 rows,
             )
 

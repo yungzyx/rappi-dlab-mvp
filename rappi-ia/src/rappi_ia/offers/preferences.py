@@ -299,7 +299,7 @@ def ordered_stores(conn: Connection, user_id: str) -> list[str]:
                SELECT btrim(coalesce(b.name, s.name)) AS name, max(o.ts) AS last
                FROM app_orders o JOIN app_order_lines l USING (order_id)
                JOIN stores s ON s.store_id = l.store_id LEFT JOIN brands b ON b.brand_id = s.brand_id
-               WHERE o.user_id = %s AND o.mode = 'propuesta' AND l.store_id IS NOT NULL
+               WHERE o.user_id = %s AND o.mode = 'propuesta' AND o.status = 'confirmado' AND l.store_id IS NOT NULL
                GROUP BY 1
            ) ordered ORDER BY last DESC, name LIMIT %s""",
         (user_id, MAX_STORE_OPTIONS),

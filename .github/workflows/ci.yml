@@ -61,10 +61,17 @@ jobs:
       - name: Tests (unitarios + integración contra Postgres)
         run: python -m pytest
 
-  rappi-ia:
+  # Los tests de rappi-ia en 3 partes paralelas, cada una con su Postgres (servicios distintos: no se pisan). Juntos
+  # tardaban de 13 a 22 minutos según el runner (26-10-2026), casi todo en los de integración, que resetean la base en
+  # cada test. El reparto es por archivo (tests/conftest.py, RAPPI_IA_TEST_SHARD).
+  rappi-ia-tests:
+    name: rappi-ia (tests ${{ matrix.parte }}/3)
     runs-on: ubuntu-latest
-    # En main ya tardaba 18 a 19 minutos (25-10-2026): con los tests de las fases 6 y 7, 20 no alcanzaba.
-    timeout-minutes: 30
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        parte: [1, 2, 3]
     defaults:
       run:
         working-directory: rappi-ia
@@ -86,6 +93,7 @@ jobs:
     env:
       DATABASE_URL_TEST: postgresql://postgres:postgres@localhost:5432/rappi_ia_test
       RAPPI_IA_LIGHT: "1"  # sin modelos: los tests usan un embedder falso determinista
+      RAPPI_IA_TEST_SHARD: ${{ matrix.parte }}/3
 
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -110,13 +118,42 @@ jobs:
           sudo apt-get install -y -q postgresql-client-17
           echo "PG_DUMP=/usr/lib/postgresql/17/bin/pg_dump" >> "$GITHUB_ENV"
 
+      - name: Tests (unitarios + integración contra Postgres, una parte)
+        run: python -m pytest
+
+  # El check «rappi-ia» que pide la protección de main: el lint y el resultado de las 3 partes. Corre aunque una parte
+  # falle (`!cancelled()`): entonces falla él también, en vez de quedar saltado (un check saltado cuenta como aprobado).
+  rappi-ia:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    needs: rappi-ia-tests
+    if: ${{ !cancelled() }}
+    defaults:
+      run:
+        working-directory: rappi-ia
+
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Las 3 partes de los tests
+        run: test "${{ needs.rappi-ia-tests.result }}" = success
+
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
+        with:
+          python-version: "3.13"
+          cache: pip
+          cache-dependency-path: |
+            rappi-ia/pyproject.toml
+            rappi-ia/requirements.lock.txt
+            rappi-scraper/pyproject.toml
+
+      - name: Instalar (sin extras de modelos)
+        run: python -m pip install -c requirements.lock.txt -e ../rappi-scraper -e ".[api,dev]"  # las versiones del lock
+
       - name: Lint
         run: |
           python -m ruff check src tests
           python -m ruff format --check src tests
-
-      - name: Tests (unitarios + integración contra Postgres)
-        run: python -m pytest
 
   prototipo-app:
     runs-on: ubuntu-latest

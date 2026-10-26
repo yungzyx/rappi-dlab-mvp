@@ -59,6 +59,7 @@ REASONS = {
     "minimo": "no llega a la compra mínima de {store} ({minimum})",
     "tope": "pasa tu tope de {cap} por pedido",
     "distinto": "ya no es lo de siempre",
+    "calificacion": "calificaste mal un pedido de {store} hace poco",
 }
 
 
@@ -318,10 +319,16 @@ def _closed(conn: Connection, store: dict, now: datetime | None = None) -> bool:
 
 
 def decide(
-    conn: Connection, mine: Autonomy | None, found: Usual, now: datetime | None = None, lines: list[dict] | None = None
+    conn: Connection,
+    user_id: str,
+    mine: Autonomy | None,
+    found: Usual,
+    now: datetime | None = None,
+    lines: list[dict] | None = None,
 ) -> Decision:
     """Si Mochi pide solo lo de siempre (`found`) o lo deja para revisar antes, con el primer límite que falla. Con
-    `lines` (las de un pedido que llega a la API), además tiene que ser lo de siempre tal cual."""
+    `lines` (las de un pedido que llega a la API), además tiene que ser lo de siempre tal cual. Una tienda que la
+    persona calificó mal hace poco (`winback.paused`, la misma pausa de la recompra y el «volver») se revisa antes."""
     store = found.store
     if mine is None:
         return _review("sin_permiso")
@@ -331,6 +338,10 @@ def decide(
         return _review("no_disponible", name=found.missing[0], store=store["name"])
     if lines is not None and _shape(lines) != _shape([_line(line) for line in found.lines]):
         return _review("distinto")
+    from .winback import paused  # import diferido: winback importa agent.grouped_search, que importa este módulo
+
+    if store["id"] in paused(conn, user_id).stores:
+        return _review("calificacion", store=store["name"])
     if _guarded(conn, found):
         return _review("guardia")
     if _closed(conn, store, now):
@@ -375,7 +386,7 @@ def plan(conn: Connection, user_id: str, said: str | None, now: datetime | None 
     if found is None:
         return None
     mine = load(conn, user_id)
-    decision = decide(conn, mine, found, now)
+    decision = decide(conn, user_id, mine, found, now)
     return {
         "modo": "pedir" if decision.allowed else "revisar",
         "tienda": store,
@@ -406,5 +417,5 @@ def check_order(conn: Connection, user_id: str, store_id: int | None, lines: lis
     if found is None:
         return _review("distinto"), []
     mine = load(conn, user_id)
-    decision = decide(conn, mine, found, lines=lines)
+    decision = decide(conn, user_id, mine, found, lines=lines)
     return decision, basis(mine, found) if decision.allowed else []

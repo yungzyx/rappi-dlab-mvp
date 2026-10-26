@@ -14,7 +14,7 @@ from psycopg import Connection
 from rappi_scraper.storage.search import MIN_PRICE
 
 from ..catalog import hours as clock
-from ..catalog.stores import BIGINT_MAX, product_detail
+from ..catalog.stores import BIGINT_MAX
 
 CONTEXT_TYPES = frozenset({"view_store", "view_item", "cart_add"})
 KEY = "catalogo"
@@ -26,6 +26,20 @@ JOIN store_products sp ON sp.store_id = x.store_id AND sp.master_product_id = x.
 JOIN v_latest_offers l ON l.store_id = sp.store_id AND l.sku = sp.sku
 WHERE l.current AND l.in_stock IS NOT FALSE AND l.price >= %(min_price)s
 ORDER BY x.n, l.price, sp.sku"""
+
+# Sin tienda, la oferta vigente más barata del producto, como la ficha (`product_detail`): primero las tiendas que se
+# abren con él en un pasillo (y entonces la tienda es esa), si no, cualquiera (sin tienda). El lote, en una consulta.
+_CHEAPEST = """
+SELECT DISTINCT ON (x.n) x.n, l.price, l.real_price, CASE WHEN o.openable THEN l.store_id END
+FROM unnest(%(ids)s::bigint[]) WITH ORDINALITY x(id, n)
+JOIN store_products sp ON sp.master_product_id = x.id
+JOIN v_latest_offers l ON l.store_id = sp.store_id AND l.sku = sp.sku
+CROSS JOIN LATERAL (
+    SELECT EXISTS (SELECT 1 FROM aisles a
+                   WHERE a.store_id = l.store_id AND a.aisle_id = sp.aisle_id AND a.parent_aisle_id IS NULL) AS openable
+) o
+WHERE l.current AND l.in_stock IS NOT FALSE AND l.price >= %(min_price)s
+ORDER BY x.n, o.openable DESC, l.price, l.store_id"""
 
 _DISHES = """
 SELECT mi.item_id, mi.store_id, mp.price, mp.real_price, mp.discount_pct, mp.is_available
@@ -76,6 +90,7 @@ def pin(conn: Connection, events: list, now=None) -> None:
     found: dict[int, dict] = {}  # índice en `wanted` → contexto
     store_of: dict[int, int] = {}  # índice → tienda cuyo estado se busca
     in_store = []  # (índice, producto, tienda)
+    anywhere = []  # (índice, producto): sin tienda, la oferta más barata
     dishes = []  # (índice, plato)
     for i, e in enumerate(wanted):
         e.payload.pop(KEY, None)
@@ -87,10 +102,8 @@ def pin(conn: Connection, events: list, now=None) -> None:
             if store is not None:
                 in_store.append((i, entity, store))
                 store_of[i] = store
-            elif (detail := product_detail(conn, "catalog_item", str(entity))) is not None:
-                found[i] = _price(detail["price_value"], _before(detail), None)
-                if detail.get("store_id") is not None:
-                    store_of[i] = detail["store_id"]
+            else:
+                anywhere.append((i, entity))
         elif e.entity_type == "menu_item" and entity is not None:
             dishes.append((i, entity))
     if in_store:
@@ -100,6 +113,13 @@ def pin(conn: Connection, events: list, now=None) -> None:
         )
         for n, price, real, discount in rows:
             found[in_store[n - 1][0]] = _price(price, real, discount)
+    if anywhere:
+        rows = conn.execute(_CHEAPEST, {"ids": [p for _, p in anywhere], "min_price": MIN_PRICE})
+        for n, price, real, store_id in rows:
+            i = anywhere[n - 1][0]
+            found[i] = _price(price, real, None)
+            if store_id is not None:
+                store_of[i] = store_id
     if dishes:
         by_dish = {row[0]: row for row in conn.execute(_DISHES, ([d for _, d in dishes],))}
         for i, dish in dishes:
@@ -117,9 +137,3 @@ def pin(conn: Connection, events: list, now=None) -> None:
     for i, e in enumerate(wanted):
         if found.get(i):
             e.payload[KEY] = found[i]
-
-
-def _before(detail: dict) -> float | None:
-    """El precio de lista de la ficha («$2.990» → 2990), que solo trae texto."""
-    digits = "".join(ch for ch in str(detail.get("before") or "") if ch.isdigit())
-    return float(digits) if digits else None

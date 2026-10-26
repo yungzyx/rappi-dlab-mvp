@@ -345,16 +345,18 @@ def plan(conn: Connection, embedder: TextEmbedder | None, occasion_id: str, city
         embedder = MemoizedQueryEmbedder(embedder)
         embedder.embed_queries([c.name for c in concepts])
     candidates = {c.id: _kit_verticals(conn, c, occasion.vertical) for c in concepts}
-    found: dict[tuple[str, str], Product | None] = {}
+    found: dict[tuple[str, str], list[Product]] = {}
+    stores: dict[str, int | None] = {}  # la tienda del kit en cada vertical: dos de la misma vertical, un solo pedido
 
     def pick(concept: Concept, avoid: set[str]) -> Product | None:
         for vertical in candidates[concept.id]:
             if vertical in avoid:
                 continue
             if (concept.id, vertical) not in found:
-                found[concept.id, vertical] = _kit_product(conn, embedder, concept, vertical, city)
-            if found[concept.id, vertical]:
-                return found[concept.id, vertical]
+                found[concept.id, vertical] = _kit_products(conn, embedder, concept, vertical, city)
+            if options := found[concept.id, vertical]:
+                same = stores.get(vertical)
+                return next((p for p in options if same is not None and p.store_id == same), options[0])
         return None
 
     kit: list[tuple[Concept, Product]] = []
@@ -369,14 +371,16 @@ def plan(conn: Connection, embedder: TextEmbedder | None, occasion_id: str, city
         if product:
             kit.append((concept, product))
             used.add(product.vertical)
+            stores.setdefault(product.vertical, product.store_id)
         else:
             left.append(concept)
-    for concept in left:  # …y lo que falte, de otra vertical si la hay y, si no, de una ya usada
+    for concept in left:  # …y lo que falte, de otra vertical si la hay y, si no, de una ya usada (en su misma tienda)
         if len(kit) >= KIT_SIZE:
             break
         if product := pick(concept, used) or pick(concept, set()):
             kit.append((concept, product))
             used.add(product.vertical)
+            stores.setdefault(product.vertical, product.store_id)
     if not kit:
         return None
     verticals = list(dict.fromkeys(p.vertical for _, p in kit))
@@ -412,12 +416,13 @@ def _kit_verticals(conn: Connection, concept: Concept, fixed: str | None) -> lis
     return allowed[:KIT_VERTICALS]
 
 
-def _kit_product(
+def _kit_products(
     conn: Connection, embedder: TextEmbedder | None, concept: Concept, vertical: str, city: str
-) -> Product | None:
-    """El primer producto del concepto en la vertical que dice qué es y que se puede destacar (`featured`, con los
-    platos de `city`): se saltan los de nombre pelado. En restaurantes se piden más candidatos (los de la ciudad se
-    filtran después, como en la escalera de un perfil)."""
+) -> list[Product]:
+    """Los productos del concepto en la vertical que dicen qué son y que se pueden destacar (`featured`, con los platos
+    de `city`), en el orden de la búsqueda: el kit toma el primero o, si ya lleva algo de esa vertical, uno de la misma
+    tienda. Se saltan los de nombre pelado. En restaurantes se piden más candidatos (los de la ciudad se filtran
+    después, como en la escalera de un perfil)."""
     k = RESTAURANT_CANDIDATES if vertical == "restaurantes" else KIT_CANDIDATES
     for mode in ("vector", "hibrido") if embedder is not None else ("hibrido",):
         outcome = search_products(
@@ -433,9 +438,9 @@ def _kit_product(
         )
         candidates = [p for p in outcome.products if p.concept == concept.id and not _bare(p, concept)]
         shown = {p["id"] for p in featured(conn, [p.to_dict() for p in candidates], city)}
-        if product := next((p for p in candidates if p.id in shown), None):
-            return product
-    return None
+        if products := [p for p in candidates if p.id in shown]:
+            return products
+    return []
 
 
 def _bare(product: Product, concept: Concept) -> bool:

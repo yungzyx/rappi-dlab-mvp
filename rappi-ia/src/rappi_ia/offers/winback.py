@@ -87,7 +87,8 @@ def paused(conn: Connection, user_id: str | None, now: datetime | None = None) -
     now = now or datetime.now(UTC)
     rows = conn.execute(
         """SELECT l.concept_id, l.store_id FROM app_orders o JOIN app_order_lines l USING (order_id)
-           WHERE o.user_id = %s AND o.mode = 'propuesta' AND o.rating <= %s AND o.rated_at > %s""",
+           WHERE o.user_id = %s AND o.mode = 'propuesta' AND o.status = 'confirmado'
+             AND o.rating <= %s AND o.rated_at > %s""",
         (user_id, LOW_RATING, now - timedelta(days=PAUSE_DAYS)),
     ).fetchall()
     return Paused(frozenset(c for c, _ in rows if c is not None), frozenset(int(s) for _, s in rows if s is not None))
@@ -239,7 +240,9 @@ def reference_day(conn: Connection, source: str) -> date | None:
     pasada, como en `motor.build`) u hoy en el prototipo. None si la fuente simulada no tiene pedidos."""
     if source == "prototype":
         return datetime.now(TZ).date()
-    last = conn.execute("SELECT max(ts) FROM app_orders WHERE source = %s AND mode = 'propuesta'", (source,)).fetchone()
+    last = conn.execute(
+        "SELECT max(ts) FROM app_orders WHERE source = %s AND mode = 'propuesta' AND status = 'confirmado'", (source,)
+    ).fetchone()
     return last[0].astimezone(TZ).date() if last[0] else None
 
 
@@ -249,7 +252,9 @@ def reach(conn: Connection, source: str) -> dict:
     (la Home le muestra la recompra). Sin productos ni lo ya mostrado: es quién califica, no a quién se le mostró."""
     today = reference_day(conn, source)
     people = conn.execute(
-        "SELECT count(DISTINCT user_id) FROM app_orders WHERE source = %s AND mode = 'propuesta'", (source,)
+        """SELECT count(DISTINCT user_id) FROM app_orders
+           WHERE source = %s AND mode = 'propuesta' AND status = 'confirmado'""",
+        (source,),
     ).fetchone()[0]
     found = lapses(conn, today, source=source) if today else {}
     repeat = set()

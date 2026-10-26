@@ -4,8 +4,9 @@
   eventos y el texto de las consultas se borra a los QUERY_RETENTION_DAYS (events/store.py).
 - Lo más buscado: lo que más personas buscaron y encontraron en los últimos TOP_WINDOW_DAYS días, solo de la población
   que se declara (`config.MOTOR_POBLACION`): `synthetic` y `prototype` nunca se mezclan, y la respuesta dice cuál es.
-  Una búsqueda entra solo si la hicieron al menos TOP_MIN_PEOPLE personas (nadie ve lo que escribió una sola) y si no es
-  algo que la app no propone por su cuenta (`offers/guards.py`: alcohol, salud, bebé, lo sensible).
+  Una búsqueda entra solo si la hicieron al menos TOP_MIN_PEOPLE personas (nadie ve lo que escribió una sola), si
+  encuentra algo en el catálogo (lo revisa la API, no se cree el `results` de la app) y si no es algo que la app no
+  propone por su cuenta (`offers/guards.py`: alcohol, salud, bebé, lo sensible).
 """
 
 from psycopg import Connection
@@ -35,16 +36,26 @@ SELECT query FROM (
 ORDER BY ts DESC
 LIMIT %(limit)s"""
 
+# `results` y `unmet` los manda la app: además, cada candidata tiene que encontrar algo en el catálogo de hoy (todas sus
+# palabras en un documento de búsqueda, o en el nombre de una tienda). Así un evento `search` inventado con
+# `results: 5` no pone un texto cualquiera en el buscador de todos.
 _TOP = """
-SELECT min(btrim(query)), count(DISTINCT user_id) AS people
-FROM app_events
-WHERE type = 'search' AND source = %(population)s AND ts >= now() - make_interval(days => %(days)s)
-  AND query IS NOT NULL AND btrim(query) <> '' AND query NOT LIKE %(redacted)s
-  AND unmet IS NOT TRUE AND coalesce(results, 0) > 0
-GROUP BY lower(btrim(query))
-HAVING count(DISTINCT user_id) >= %(min_people)s
-ORDER BY people DESC, 1
-LIMIT %(pool)s"""
+SELECT query, people FROM (
+    SELECT min(btrim(query)) AS query, count(DISTINCT user_id) AS people
+    FROM app_events
+    WHERE type = 'search' AND source = %(population)s AND ts >= now() - make_interval(days => %(days)s)
+      AND query IS NOT NULL AND btrim(query) <> '' AND query NOT LIKE %(redacted)s
+      AND unmet IS NOT TRUE AND coalesce(results, 0) > 0
+    GROUP BY lower(btrim(query))
+    HAVING count(DISTINCT user_id) >= %(min_people)s
+    ORDER BY people DESC, 1
+    LIMIT %(pool)s
+) top
+CROSS JOIN LATERAL (SELECT plainto_tsquery('spanish', es_unaccent(top.query)) AS q) words
+WHERE numnode(words.q) > 0
+  AND (EXISTS (SELECT 1 FROM search_documents d WHERE d.tsv_unaccent @@ words.q)
+       OR EXISTS (SELECT 1 FROM stores s WHERE to_tsvector('spanish', es_unaccent(s.name)) @@ words.q))
+ORDER BY people DESC, 1"""
 
 
 def recent_searches(conn: Connection, user_id: str, limit: int = RECENT_SEARCHES) -> list[str]:

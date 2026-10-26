@@ -3,7 +3,8 @@
 Es una recomendación que la persona no pidió, así que pasa por las guardias de las ofertas (`offers/guards.py`): nada
 de Farmacia ni Licores, de una tienda Farmacia, Sex shop o Smoking shop, +18, bebé, salud ni un concepto sensible. El
 interés es el perfil de la persona (`events.store.profile`, con decaimiento de 14 días); sin interés que calce no hay
-pestaña. Solo lo pide la propuesta: «Rappi hoy» no enseña.
+pestaña. Como «Para ti» de la Home, es de Mochi: su dieta y sus alergias (`offers/preferences.py`) sacan lo que no
+puede comer (sin reordenar: manda el interés). Solo lo pide la propuesta: «Rappi hoy» no enseña.
 """
 
 from psycopg import Connection
@@ -11,6 +12,7 @@ from rappi_scraper.storage.search import MIN_PRICE
 
 from ..concepts.taxonomy import load_taxonomy
 from ..events import store as events
+from ..offers import preferences
 from ..offers.engine import _offerable_products
 from ..offers.guards import is_offerable, offerable_vertical
 from .stores import BIGINT_MAX, OWN_VERTICAL, product_card
@@ -69,6 +71,7 @@ def store_for_you(conn: Connection, store_id: int, user_id: str) -> dict:
     entity_type = "menu_item" if restaurant else "catalog_item"
     cards = [product_card(row, vertical, name, store_id, taxonomy, entity_type).to_dict() for row in rows]
     cards = [c for c in _offerable_products(conn, cards) if c["price_value"] is not None]
+    cards = preferences.load(conn, user_id).only_filters().keep(cards)
     cards.sort(key=lambda c: (interests.index(c["concept"]), c["price_value"], c["id"]))
     chosen = cards[:FOR_YOU_PRODUCTS]
     used = [c for c in interests if any(p["concept"] == c for p in chosen)]

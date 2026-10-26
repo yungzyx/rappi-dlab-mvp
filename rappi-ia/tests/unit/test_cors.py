@@ -52,3 +52,23 @@ def test_preflight_allows_delete_for_the_profile():
 
     assert reply.status_code == 200
     assert "DELETE" in reply.headers["access-control-allow-methods"]
+
+
+def test_preflight_allows_put_for_preferences_and_autonomy():
+    """La app guarda «Mis preferencias» y «Pedir por mí» con PUT desde otro puerto (make mvp, LAN=1)."""
+    from fastapi.testclient import TestClient
+
+    from rappi_ia.api.app import app
+
+    for path in ("/profile/u-1/preferencias", "/profile/u-1/autonomia"):
+        reply = TestClient(app).options(
+            path,
+            headers={
+                "Origin": "http://localhost:5174",
+                "Access-Control-Request-Method": "PUT",
+                "Access-Control-Request-Headers": "content-type,x-user-token",
+            },
+        )
+
+        assert reply.status_code == 200, path
+        assert "PUT" in reply.headers["access-control-allow-methods"]

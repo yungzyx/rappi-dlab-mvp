@@ -4,6 +4,7 @@ razón de una oferta ni quedan como consulta, y se borran con «olvida mis prefe
 
 from datetime import datetime, time, timedelta
 
+import psycopg
 import pytest
 from fastapi.testclient import TestClient
 
@@ -19,6 +20,7 @@ from rappi_ia.embeddings.text_store import embed_search_documents
 from rappi_ia.events import store as events
 from rappi_ia.motor.build import refresh_user_conn
 from rappi_ia.motor.model import TZ
+from rappi_ia.offers import preferences
 
 USER = "u-prefs"
 
@@ -220,6 +222,14 @@ def test_a_simulated_person_cannot_set_them(client, db):
     reply = client.post("/agent/ask", json={"message": "soy vegano", "user_id": "u-simulada", "mode": "propuesta"})
     assert reply.status_code == 400
     assert stored(db, "u-simulada") == []
+
+
+def test_the_base_keeps_the_population_of_the_person(db):
+    """Como en agent_autonomy (049): una preferencia del prototipo nunca queda colgada de alguien simulado (051)."""
+    db.execute("INSERT INTO app_users (user_id, source) VALUES ('u-simulada', 'synthetic')")
+    with pytest.raises(psycopg.errors.RaiseException), db.transaction():
+        preferences.add(db, "u-simulada", [("dieta", "vegano")], source="prototype")
+    assert preferences.add(db, "u-simulada", [("dieta", "vegano")], source="synthetic") == 1
 
 
 def test_it_is_a_person_table(db):

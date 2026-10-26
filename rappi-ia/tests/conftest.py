@@ -23,6 +23,40 @@ from rappi_ia.db import connect, database_url  # noqa: E402
 from rappi_ia.demo.seed import reset_test_database  # noqa: E402
 from rappi_ia.layers.segments import forget_source_spend  # noqa: E402
 
+# El CI corre la suite en partes paralelas, cada una con su Postgres: `RAPPI_IA_TEST_SHARD=2/3` deja la segunda de
+# tres. Reparte archivos enteros (sus fixtures de módulo no se repiten), de más a menos pesado y siempre a la parte más
+# liviana: un test de integración pesa 1 (resetea la base) y uno unitario casi nada. Sin la variable, corre todo.
+SHARD_ENV = "RAPPI_IA_TEST_SHARD"
+UNIT_TEST_WEIGHT = 0.02
+
+
+def shard_files(weights: dict[str, float], parts: int) -> list[set[str]]:
+    """Los archivos de cada parte: el reparto es estable (mismos archivos, mismas partes) y parejo en peso."""
+    loads = [0.0] * parts
+    shards: list[set[str]] = [set() for _ in range(parts)]
+    for path, weight in sorted(weights.items(), key=lambda kv: (-kv[1], kv[0])):
+        lightest = min(range(parts), key=lambda i: (loads[i], i))
+        loads[lightest] += weight
+        shards[lightest].add(path)
+    return shards
+
+
+def pytest_collection_modifyitems(config, items):
+    spec = os.environ.get(SHARD_ENV)
+    if not spec:
+        return
+    part, parts = (int(n) for n in spec.split("/"))
+    if not 1 <= part <= parts:
+        raise pytest.UsageError(f"{SHARD_ENV}={spec}: la parte va de 1 a {parts}")
+    weights: dict[str, float] = {}
+    for item in items:
+        path = item.nodeid.split("::")[0]
+        weights[path] = weights.get(path, 0.0) + (1.0 if "/integration/" in f"/{path}" else UNIT_TEST_WEIGHT)
+    keep = shard_files(weights, parts)[part - 1]
+    selected = [item for item in items if item.nodeid.split("::")[0] in keep]
+    config.hook.pytest_deselected(items=[item for item in items if item.nodeid.split("::")[0] not in keep])
+    items[:] = selected
+
 
 @pytest.fixture(autouse=True)
 def real_db_guard(monkeypatch):

@@ -2,18 +2,23 @@
 fuera de la recompra, el motor y los segmentos; la calificación de un pedido por tienda; y programar, el tipo de
 entrega y la preferencia de sustitución en `POST /orders`. Sobre el catálogo de prueba (`seed_demo`)."""
 
+import json
 from contextlib import contextmanager
 from datetime import UTC, datetime, time, timedelta
 
 import pytest
 
 from owner_client import OwnerClient
+from rappi_ia.analytics import queries
 from rappi_ia.api import app as api
+from rappi_ia.api import identity
 from rappi_ia.demo.seed import seed_demo
 from rappi_ia.events import store as events
 from rappi_ia.motor.build import refresh_user_conn
 from rappi_ia.motor.data import load_orders
 from rappi_ia.motor.model import TZ
+from rappi_ia.offers import autonomy
+from rappi_ia.offers.winback import paused
 
 USER = "u-flujos"
 COFFEE = ("catalog_item", "91004")  # café molido, en el súper Centro
@@ -136,16 +141,68 @@ def test_a_cancelled_order_does_not_count_for_the_motor_or_the_repeat(client, db
     assert db.execute("SELECT orders FROM user_vertical_affinity WHERE user_id = %s", (USER,)).fetchone() == (2,)
 
 
+def test_a_cancellation_by_beacon_also_recalculates_the_motor(client, db):
+    """Lo que quedó en cola al cerrar la pestaña llega por el beacon: también recalcula a la persona."""
+    for n, days in enumerate((21, 14, 7)):
+        bought(db, "supermercado", COFFEE, days, SUPER_CENTRO, f"c-{n}")
+    refresh_user_conn(db, USER)
+    payload = {"reason": "ya_no", "stage": "antes_de_tienda"}
+    event = {"type": "order_cancelled", "session_id": "s-c", "cart_id": "c-2", "payload": payload}
+    body = {"user_id": USER, "events": [event], "token": identity.sign(USER)}
+
+    reply = client.post("/events/beacon", content=json.dumps(body), headers={"content-type": "text/plain"})
+
+    assert reply.status_code == 204
+    assert statuses(db, "c-2") == {"supermercado": "cancelado"}
+    assert db.execute("SELECT orders FROM user_vertical_affinity WHERE user_id = %s", (USER,)).fetchone() == (2,)
+
+
 def test_a_cancelled_order_is_not_the_usual_order_of_its_store(client, db):
     """«Pedir por mí» repite el último pedido de la tienda: uno cancelado no es lo de siempre."""
-    from rappi_ia.offers import autonomy
-
     bought(db, "supermercado", COFFEE, 3, SUPER_CENTRO, "c-viejo")
     bought(db, "supermercado", ("catalog_item", "91002"), 0, SUPER_CENTRO, "c-nuevo", concept="galletas")
     cancel(client, "c-nuevo")
 
     found = autonomy.usual(db, USER, {"id": SUPER_CENTRO, "name": "Súper", "vertical": "supermercado"})
     assert [line["product"]["entity_id"] for line in found.lines] == [COFFEE[1]]
+
+
+def test_a_cancelled_order_does_not_count_in_the_business_panel(client, db, monkeypatch):
+    """El panel (analytics/queries.py y capa.v_embudo_sesion) tampoco cuenta un pedido cancelado: ni en los pedidos de
+    30 días, la serie semanal, Pro y sin Pro, el embudo ni los autopedidos."""
+    line = {"entity_type": COFFEE[0], "entity_id": COFFEE[1], "concept_id": "cafe", "unit_price": 1990}
+    for cart in ("c-ok", "c-no"):
+        steps = [
+            events.Event(USER, cart, kind, vertical="supermercado", cart_id=cart, entity_type=COFFEE[0])
+            for kind in ("cart_add", "checkout_start")
+        ]
+        events.record(db, steps)
+        events.record_order(
+            db,
+            USER,
+            cart,
+            cart,
+            "supermercado",
+            [{**line, "store_id": SUPER_CENTRO}],
+            pro=True,
+            placed={"origin": autonomy.ORIGIN},
+        )
+
+    cancel(client, "c-no")
+
+    assert queries.kpis(db, "prototype")["pedidos_30d"] == 1
+    assert sum(week["pedidos"] for week in queries.weekly(db, "prototype")) == 1
+    assert [row["piden"] for row in queries.funnel(db, "prototype")] == [1]
+    assert queries.offers(db, "prototype")["autopedidos"] == {"pedidos": 1, "personas": 1}
+    funnel = db.execute(
+        """SELECT session_id, pedido, pedidos, monto_pedidos FROM capa.v_embudo_sesion
+           WHERE user_id = %s AND session_id LIKE 'c-%%' ORDER BY 1""",
+        (USER,),
+    ).fetchall()
+    assert funnel == [("c-no", False, 0, 0), ("c-ok", True, 1, 1990)]
+    monkeypatch.setattr(queries, "MIN_GROUP_USERS", 1)  # una sola persona: el grupo sale igual
+    [pro] = queries.pro_split(db, "prototype")["grupos"]
+    assert (pro["grupo"], pro["pedidos_30d"], pro["recompra_pct"]) == ("pro", 1, 0)
 
 
 # ── la calificación de un pedido por tienda ──────────────────────────────────
@@ -163,6 +220,18 @@ def test_a_rating_with_its_store_rates_only_that_order(client, db):
 
     rows = dict(db.execute("SELECT vertical, rating FROM app_orders WHERE cart_id = 'c-dos'").fetchall())
     assert rows == {"supermercado": 2, "turbo": None}
+
+
+def test_a_cancelled_order_cannot_be_rated_nor_pause_the_repeat(client, db):
+    """Un pedido cancelado no llegó: su calificación no queda y no pausa la recompra ni el «volver» de su tienda."""
+    bought(db, "supermercado", COFFEE, 0, SUPER_CENTRO, "c-no")
+    cancel(client, "c-no")
+    event = {"type": "order_rated", "session_id": "s-r", "cart_id": "c-no", "payload": {"stars": 1}}
+
+    assert client.post("/events", json={"user_id": USER, "events": [event]}).status_code == 200
+
+    assert db.execute("SELECT rating FROM app_orders WHERE cart_id = 'c-no'").fetchone() == (None,)
+    assert SUPER_CENTRO not in paused(db, USER).stores
 
 
 # ── programar, tipo de entrega y sustitución ─────────────────────────────────
@@ -191,6 +260,18 @@ def test_an_order_keeps_its_slot_its_delivery_type_and_the_substitution_of_each_
         "confirmado",
     )
     assert db.execute("SELECT substitution FROM app_order_lines").fetchone() == ("reembolso",)
+
+
+def test_a_slot_without_zone_is_utc_whatever_the_zone_of_the_session(client, db):
+    """La API valida una hora sin zona como UTC: se guarda igual, aunque la sesión de Postgres esté en Santiago."""
+    db.execute("SET TimeZone = 'America/Santiago'")
+    slot = (datetime.now(UTC) + timedelta(hours=3)).replace(minute=0, second=0, microsecond=0)
+
+    assert (
+        client.post("/orders", json=order_body(scheduled_for=slot.replace(tzinfo=None).isoformat())).status_code == 200
+    )
+
+    assert db.execute("SELECT scheduled_for FROM app_orders").fetchone() == (slot,)
 
 
 def test_an_order_for_now_has_no_slot(client, db):

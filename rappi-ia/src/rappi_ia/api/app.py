@@ -150,7 +150,7 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=config.API_CORS_ORIGINS,
     allow_origin_regex=CORS_ORIGIN_REGEX,
-    allow_methods=["GET", "POST", "DELETE"],
+    allow_methods=["GET", "POST", "PUT", "DELETE"],  # PUT: «Mis preferencias» y «Pedir por mí»
     allow_headers=["content-type", identity.TOKEN_HEADER.lower()],
 )
 app.add_middleware(AccessLog)  # el más externo: también los 413 y 429 llevan su id y su línea
@@ -369,6 +369,13 @@ class OrderIn(Clean):
     scheduled_for: datetime | None = None
     # Tipo de entrega (sus montos son supuestos de la app): básica, sin prisa o prioritaria.
     delivery_type: Literal["basica", "sin_prisa", "prioritaria"] | None = None
+
+    @field_validator("scheduled_for")
+    @classmethod
+    def _utc_if_naive(cls, when: datetime | None) -> datetime | None:
+        """Una hora sin zona es UTC, la misma con que se valida (`_schedulable`): sin esto, Postgres la guardaba con la
+        zona de la sesión (America/Santiago corría la franja 3 horas)."""
+        return when.replace(tzinfo=UTC) if when is not None and when.tzinfo is None else when
 
 
 # ── Agente ──────────────────────────────────────────────────────────────────
@@ -682,14 +689,20 @@ def post_events(
     motor y los segmentos de la persona (un pedido cancelado deja de contar), como después de un pedido."""
     owner_of_body(request, body.user_id)
     saved = _save_events(lambda: nullcontext(conn), body)
-    if any(e.type == "order_cancelled" and e.payload.get("mode") != "actual" for e in body.events):
-        background.add_task(recalculate_user_segments, connector, body.user_id)
-        background.add_task(refresh_user, connector, body.user_id)
+    _recalc_if_cancelled(background, connector, body)
     return {"guardados": saved}
 
 
+def _recalc_if_cancelled(background: BackgroundTasks, connector, body: EventsIn) -> None:
+    """Una cancelación del prototipo final recalcula el motor y los segmentos de la persona, ya respondido: un pedido
+    cancelado deja de contar. Vale para /events y para el beacon (lo que quedó en cola al cerrar la pestaña)."""
+    if any(e.type == "order_cancelled" and e.payload.get("mode") != "actual" for e in body.events):
+        background.add_task(recalculate_user_segments, connector, body.user_id)
+        background.add_task(refresh_user, connector, body.user_id)
+
+
 @app.post("/events/beacon", status_code=204)
-async def post_events_beacon(request: Request, connector=Depends(get_connector)) -> None:
+async def post_events_beacon(request: Request, background: BackgroundTasks, connector=Depends(get_connector)) -> None:
     """Lo que queda en cola al cerrar la pestaña (navigator.sendBeacon). Llega como text/plain, que no necesita
     preflight de CORS; el contenido es el mismo JSON de /events, más el token de la persona (`token`: sendBeacon no
     manda cabeceras). Valida el origen, el tamaño y el token antes de pedir una conexión: una página ajena no gasta
@@ -707,6 +720,7 @@ async def post_events_beacon(request: Request, connector=Depends(get_connector))
         raise HTTPException(422, "Eventos inválidos") from exc
     identity.require_user(body.user_id, identity.verify(body.token))
     await run_in_threadpool(_save_events, connector, body)
+    _recalc_if_cancelled(background, connector, body)
 
 
 def _save_events(connect, body: EventsIn) -> int:
@@ -799,9 +813,8 @@ SCHEDULE_AHEAD = timedelta(days=2)  # la app ofrece franjas de hoy y de mañana
 
 def _schedulable(when: datetime) -> bool:
     """Una franja programada es futura (con un margen para el reloj del teléfono) y de hoy o mañana."""
-    moment = when if when.tzinfo else when.replace(tzinfo=UTC)
     now = datetime.now(UTC)
-    return now - timedelta(hours=1) <= moment <= now + SCHEDULE_AHEAD
+    return now - timedelta(hours=1) <= when <= now + SCHEDULE_AHEAD
 
 
 @app.get("/concepts")

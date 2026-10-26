@@ -9,6 +9,7 @@ import { OFFER_BLOCKED_VERTICALS } from './motor'
 import { offerableProduct } from './offers'
 import { isConfirmed, updateState } from './state'
 import { normalize } from './text'
+import { paused } from './winback'
 
 export const LIMITS = { min: 1000, max: 200_000, suggested: 20_000, stores: 10 } // offers/autonomy.py
 const ORIGIN = 'agent-autopedido'
@@ -27,6 +28,7 @@ const REASONS = {
   cerrada: ({ store }) => `${store} está cerrada ahora, según el horario que publicó`,
   tope: ({ cap }) => `pasa tu tope de ${clp(cap)} por pedido`,
   distinto: () => 'ya no es lo de siempre',
+  calificacion: ({ store }) => `calificaste mal un pedido de ${store} hace poco`,
 }
 const SKIP = new Set(['el', 'la', 'los', 'las', 'de', 'del', 'en'])
 
@@ -137,7 +139,7 @@ const shape = (lines) =>
     .join('|')
 
 /** offers/autonomy.py: decide (el primer límite que falla, o ninguno). */
-function decide(snapshot, mine, found, now, lines = null) {
+function decide(snapshot, state, mine, found, now, lines = null) {
   const { store } = found
   const review = (code, values = {}) => ({ code, reason: REASONS[code](values) })
   if (!mine) return review('sin_permiso')
@@ -145,6 +147,7 @@ function decide(snapshot, mine, found, now, lines = null) {
   if (found.missing.length) return review('no_disponible', { name: found.missing[0], store: store.name })
   const usualLines = found.lines.map(({ product, qty }) => ({ ...product, qty }))
   if (lines && shape(lines) !== shape(usualLines)) return review('distinto')
+  if (paused(state, now).stores.has(Number(store.id))) return review('calificacion', { store: store.name })
   const concepts = snapshot.meta.concepts
   if (
     OFFER_BLOCKED_VERTICALS.includes(store.vertical) ||
@@ -200,7 +203,7 @@ export function usualAnswer(snapshot, state, body, now) {
   if (!found.lines.length)
     return reply(`Lo de siempre en ${store.name} ya no está a la venta ahí. Mira en «Mis pedidos» otro que repetir.`)
   const mine = state.autonomy ?? null
-  const failed = decide(snapshot, mine, found, now)
+  const failed = decide(snapshot, state, mine, found, now)
   const units = found.lines.reduce((sum, l) => sum + l.qty, 0)
   const items = `${units} ${units === 1 ? 'producto' : 'productos'}`
   const start = `lo de siempre en ${store.name}: ${items} por ${clp(found.subtotal)}`
@@ -233,7 +236,7 @@ export function checkAutoOrder(snapshot, state, body, now) {
   const known = ids.size === 1 && storesOf(snapshot, state).find((store) => ids.has(store.id))
   const found = body.mode !== 'actual' && known ? usual(snapshot, state, known) : null
   const failed = found
-    ? decide(snapshot, state.autonomy ?? null, found, now, body.lines)
+    ? decide(snapshot, state, state.autonomy ?? null, found, now, body.lines)
     : { code: 'distinto', reason: REASONS.distinto() }
   if (failed) return { status: 409, body: { detail: { codigo: failed.code, motivo: failed.reason } } }
   return { origin: ORIGIN, basis: basis(state.autonomy, known) }
