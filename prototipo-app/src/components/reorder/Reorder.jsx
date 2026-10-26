@@ -5,6 +5,7 @@ import { REORDER_ORIGIN, availability, canReorder, reorderLines, reorderPlan } f
 import { formatPrice, lineKey, parsePrice, useCart } from '../../state/CartContext'
 import { useEvents } from '../../state/EventsContext'
 import { useOrders } from '../../state/OrdersContext'
+import { orderTotal } from '../../screens/tracking/liveChanges'
 import { isDelivered, secondsSince } from '../../screens/tracking/progress'
 import HScroll from '../HScroll'
 import Img from '../Img'
@@ -220,7 +221,8 @@ export function ReorderHomeRow() {
             <Img src={order.items[0]?.img} />
             <strong>{order.stores.join(', ') || 'Tu pedido'}</strong>
             <span>
-              {units(order.items)} {units(order.items) === 1 ? 'producto' : 'productos'} · {formatPrice(order.total)}
+              {units(order.items)} {units(order.items) === 1 ? 'producto' : 'productos'} ·{' '}
+              {formatPrice(orderTotal(order))}
             </span>
             <ReorderButton order={order} surface="home" position={position} />
           </div>

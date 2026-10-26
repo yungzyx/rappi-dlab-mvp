@@ -3,18 +3,21 @@ import { formatPrice } from '../../state/CartContext'
 import { COUPONS, CREDITS, PRO, findCoupon } from './pricing'
 
 /**
- * Beneficios del checkout, todos de ejemplo: los créditos del banner de la Home (solo en productos, con vencimiento),
- * un cupón activo a la vez y lo que ahorra (o ahorraría) Rappi Pro. `totals` es lo que da `checkoutTotals`.
+ * Beneficios del checkout, todos de ejemplo: el saldo de créditos de la demo (solo en productos; los del banner de la
+ * Home vencen, `expiring`, y lo que sumaron la ayuda o una cancelación no), un cupón activo a la vez (cada uno se usa
+ * una vez, `usedCoupons`) y lo que ahorra (o ahorraría) Rappi Pro. `totals` es lo que da `checkoutTotals`.
  */
 export default function CheckoutBenefits({
   totals,
   isPro,
   credits,
   onCredits,
-  creditsExpired,
+  available,
+  expiring,
   coupon,
   onCoupon,
   minutesLeft,
+  usedCoupons = [],
 }) {
   return (
     <>
@@ -22,23 +25,25 @@ export default function CheckoutBenefits({
       <div className="checkout-benefits">
         <label className="checkout-benefit">
           <span>
-            <strong>{formatPrice(CREDITS.amount)} en créditos de ejemplo</strong>
+            <strong>
+              {available > 0 ? `${formatPrice(available)} en créditos de ejemplo` : 'Créditos de ejemplo'}
+            </strong>
             <small>
-              {creditsExpired
-                ? 'Vencieron: ya no se pueden usar'
-                : `${CREDITS.rule}. Vencen en ${formatMinutes(minutesLeft)}.`}
+              {available === 0
+                ? 'Ya los usaste o vencieron: no te quedan créditos'
+                : `${CREDITS.rule}.${expiring > 0 ? ` ${formatPrice(expiring)} vencen en ${formatMinutes(minutesLeft)}.` : ''}`}
             </small>
           </span>
           <input
             type="checkbox"
             role="switch"
             aria-label="Usar créditos"
-            checked={credits && !creditsExpired}
-            disabled={creditsExpired}
+            checked={credits && available > 0}
+            disabled={available === 0}
             onChange={(e) => onCredits(e.target.checked)}
           />
         </label>
-        <CouponField coupon={coupon} result={totals.coupon} onCoupon={onCoupon} />
+        <CouponField coupon={coupon} result={totals.coupon} onCoupon={onCoupon} usedCoupons={usedCoupons} />
       </div>
       <ProRow isPro={isPro} saving={totals.proSaving} />
     </>
@@ -51,7 +56,7 @@ const formatMinutes = (minutes) => {
 }
 
 /** «Ingresar cupón»: un cupón de ejemplo a la vez (otro reemplaza al anterior), con su motivo si no aplica. */
-function CouponField({ coupon, result, onCoupon }) {
+function CouponField({ coupon, result, onCoupon, usedCoupons }) {
   const [code, setCode] = useState('')
   const [error, setError] = useState(null)
   const [replaced, setReplaced] = useState(null)
@@ -60,6 +65,10 @@ function CouponField({ coupon, result, onCoupon }) {
     const found = findCoupon(value)
     if (!found) {
       setError('Ese cupón no existe en la demo')
+      return
+    }
+    if (usedCoupons.includes(found.code)) {
+      setError('Ya usaste este cupón de ejemplo: se usa una vez')
       return
     }
     setError(null)

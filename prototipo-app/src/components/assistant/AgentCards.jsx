@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useCartPricing } from '../../screens/checkout/useCartPricing'
 import { UNDO_MS } from '../../screens/checkout/undo'
+import { orderTotal } from '../../screens/tracking/liveChanges'
 import { etaMinutes, secondsSince, statusOf } from '../../screens/tracking/progress'
 import { formatPrice, lineKey, parsePrice, useCart } from '../../state/CartContext'
 import { useOrders } from '../../state/OrdersContext'
@@ -208,7 +209,7 @@ function OrderLine({ order, now, named, onTrack }) {
         {minutes > 0 && ` · llega en ${minutes} min`}
       </p>
       <p className="agent-summary-note">
-        {units} {units === 1 ? 'producto' : 'productos'} · {formatPrice(order.total)}
+        {units} {units === 1 ? 'producto' : 'productos'} · {formatPrice(orderTotal(order))}
       </p>
       <button type="button" className="agent-msg-action tap" onClick={() => onTrack(order.id)}>
         Ver seguimiento →

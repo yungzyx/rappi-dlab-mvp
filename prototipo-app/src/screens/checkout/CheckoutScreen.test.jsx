@@ -12,6 +12,7 @@ import { DemoProvider } from '../../state/DemoContext'
 import { OrdersProvider } from '../../state/OrdersContext'
 import { ProfileProvider } from '../../state/ProfileContext'
 import { setPro } from '../../state/pro'
+import { addCredits, readWallet } from '../../state/credits'
 import CheckoutScreen from './CheckoutScreen'
 import { forgetAge } from './restrictions'
 
@@ -348,6 +349,46 @@ describe('créditos y cupones de ejemplo', () => {
     expect(screen.getByText(/Reemplazó a SUPER20/)).toBeTruthy()
     expect(screen.queryByText('Cupón SUPER20')).toBeNull()
     expect(screen.getByText('Cupón BIENVENIDA')).toBeTruthy()
+  })
+
+  test('los créditos usados salen del saldo: el pedido siguiente ya no los tiene', async () => {
+    renderCheckout([OIL])
+    await pay()
+    await vi.waitFor(() => expect(api.sendOrder).toHaveBeenCalled())
+    const [order] = JSON.parse(localStorage.getItem('rappi-proto-orders'))
+    expect(order.credits).toBe(1_900)
+    expect(readWallet()).toMatchObject({ welcome: 0, extra: 0 })
+    cleanup()
+    renderCheckout([OIL])
+    await act(tick)
+    expect(screen.queryByText('−$1.900')).toBeNull()
+    expect(screen.getByText('Ya los usaste o vencieron: no te quedan créditos')).toBeTruthy()
+    expect(screen.getByRole('switch', { name: 'Usar créditos' }).disabled).toBe(true)
+  })
+
+  test('los créditos que sumó la ayuda o una cancelación se usan en el checkout', async () => {
+    addCredits(1_000)
+    renderCheckout([OIL])
+    await act(tick)
+    expect(screen.getByText('$2.900 en créditos de ejemplo')).toBeTruthy()
+    expect(screen.getByText('−$2.900')).toBeTruthy()
+  })
+
+  test('un cupón se usa una vez', async () => {
+    renderCheckout([OIL, OIL, OIL, OIL])
+    await act(tick)
+    fireEvent.click(screen.getByRole('button', { name: 'BIENVENIDA' }))
+    await pay()
+    await vi.waitFor(() => expect(api.sendOrder).toHaveBeenCalled())
+    const [order] = JSON.parse(localStorage.getItem('rappi-proto-orders'))
+    expect(order.coupon).toEqual({ code: 'BIENVENIDA', amount: 2_000 })
+    expect(readWallet().coupons).toEqual(['BIENVENIDA'])
+    cleanup()
+    renderCheckout([OIL, OIL, OIL, OIL])
+    await act(tick)
+    fireEvent.click(screen.getByRole('button', { name: 'BIENVENIDA' }))
+    expect(screen.getByText('Ya usaste este cupón de ejemplo: se usa una vez')).toBeTruthy()
+    expect(screen.queryByText('Cupón BIENVENIDA')).toBeNull()
   })
 
   test('el cupón de Supermercado en un carro sin súper no descuenta nada', async () => {

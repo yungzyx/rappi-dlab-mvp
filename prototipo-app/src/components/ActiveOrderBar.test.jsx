@@ -23,6 +23,9 @@ function Place() {
       <button type="button" onClick={() => orders.cancel(orders.orders[0].id, { reason: 'ya_no' })}>
         cancelar
       </button>
+      <button type="button" onClick={() => orders.hold(orders.orders[0].id, 'cambio')}>
+        agotar
+      </button>
     </>
   )
 }
@@ -69,4 +72,18 @@ test('una compra en dos tiendas son dos pedidos en curso; uno cancelado ya no es
   expect(screen.getByText('2 pedidos en curso')).toBeTruthy()
   fireEvent.click(screen.getByText('cancelar'))
   expect(screen.getByText('Pedido en curso')).toBeTruthy()
+})
+
+test('con un producto agotado esperando respuesta, la barra dice que el pedido la espera', () => {
+  render(
+    <OrdersProvider>
+      <CartProvider>
+        <Place />
+        <ActiveOrderBar push={() => {}} />
+      </CartProvider>
+    </OrdersProvider>,
+  )
+  fireEvent.click(screen.getByText('pedir'))
+  fireEvent.click(screen.getByText('agotar'))
+  expect(screen.getByText('Tus productos te necesitan')).toBeTruthy()
 })

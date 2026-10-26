@@ -25,7 +25,7 @@ import CancelOrder from './CancelOrder'
 import { cancelStage } from './cancel'
 import { TURBO_GUARANTEE } from './delay'
 import HelpOrder from './HelpOrder'
-import { hasLiveChanges } from './liveChanges'
+import { adjustedTotal, hasLiveChanges } from './liveChanges'
 import { LiveChangeAlert, LiveChangeResult } from './LiveChangeCards'
 import TrackingMap from './TrackingMap'
 import {
@@ -557,7 +557,7 @@ function TipAfter({ order }) {
 
 function OrderSummary({ order }) {
   const change = order.liveChange
-  const total = order.total + (change?.delta ?? 0)
+  const total = adjustedTotal(order)
   return (
     <details className="tracking-summary">
       <summary>Detalle del pedido · {formatPrice(total)}</summary>

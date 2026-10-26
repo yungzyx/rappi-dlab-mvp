@@ -135,6 +135,29 @@ describe('OrdersScreen', () => {
     expect(screen.getByText('Ayuda con este pedido')).toBeTruthy()
   })
 
+  test('el total es el del seguimiento: con el ajuste del sustituto, y cancelado solo su costo', () => {
+    const substituted = {
+      index: 0,
+      choice: 'sustituto',
+      product: { name: 'Café en grano', price: '$3.190' },
+      delta: -2_800,
+    }
+    setup({ ...ORDER, items: [line(COFFEE)], total: 14_440, liveChange: substituted })
+    fireEvent.click(screen.getByText('pedir'))
+    expect(screen.getByText(/Hoy · \$11\.640/)).toBeTruthy()
+
+    cleanup()
+    localStorage.clear()
+    setup({
+      ...ORDER,
+      items: [line(COFFEE)],
+      total: 14_440,
+      cancelled: { reason: 'ya_no', stage: 'en_tienda', fee: 990 },
+    })
+    fireEvent.click(screen.getByText('pedir'))
+    expect(screen.getByText(/Hoy · \$990/)).toBeTruthy()
+  })
+
   test('programado: «Programado · hoy HH:00–HH:00» hasta su franja', () => {
     const slot = new Date(Date.now() + 3 * 3_600_000).setMinutes(0, 0, 0)
     setup({ ...ORDER, items: [line(COFFEE)], scheduledFor: slot })

@@ -7,19 +7,18 @@ import { userId } from '../../api/user'
 import { useToast } from '../../components/Toast'
 import { ChevronRight } from '../../components/Icons'
 import { CardIcon, PinIcon } from '../../components/LineIcons'
-import { CREDITS as CREDITS_BANNER } from '../../data/home'
 import { useAddress } from '../../state/AddressContext'
 import { sessionId, useEvents } from '../../state/EventsContext'
 import { formatPrice, useCart } from '../../state/CartContext'
 import { usePro } from '../../state/pro'
-import { getDeadline } from '../home/CreditsBanner'
+import { markCoupon, spendCredits, useWallet } from '../../state/credits'
 import CheckoutBasket from './CheckoutBasket'
 import CheckoutBenefits from './CheckoutBenefits'
 import CheckoutDelivery from './CheckoutDelivery'
 import CheckoutSuggestion from './CheckoutSuggestion'
 import { useOrders } from '../../state/OrdersContext'
 import { useDemo } from '../../state/DemoContext'
-import { DEFAULT_TIP, TIPS, checkoutTotals, deliveryType, orderAmounts, pricedBasket } from './pricing'
+import { DEFAULT_TIP, TIPS, checkoutTotals, deliveryType, orderShares, pricedBasket } from './pricing'
 import { ageConfirmed, confirmAge, hasAgeRestricted, needsPrescription } from './restrictions'
 import { anyClosed, slotsFor } from './schedule'
 import { DEFAULT_SUBSTITUTION, SUBSTITUTION_VERTICALS } from '../tracking/liveChanges'
@@ -71,9 +70,13 @@ export default function CheckoutScreen({ back, push }) {
   const priced = baskets.map((basket) =>
     pricedBasket(basket, termsOf(basket), { isPro, pickup, type: chosenType ?? 'basica' }),
   )
-  const minutesLeft = useMinutesLeft(getDeadline(CREDITS_BANNER.title, CREDITS_BANNER.expiresInMinutes))
-  const creditsExpired = minutesLeft === 0
-  const totals = checkoutTotals(priced, { tip, pickup, coupon, credits: useCredits && !creditsExpired })
+  // El saldo de créditos de ejemplo (state/credits.js): los del banner hasta que vencen, más lo que sumaron la ayuda,
+  // la garantía de Turbo o una cancelación.
+  const wallet = useWallet()
+  const minutesLeft = useMinutesLeft(wallet.expiresAt)
+  const expiring = minutesLeft > 0 ? wallet.welcome : 0
+  const available = expiring + wallet.extra
+  const totals = checkoutTotals(priced, { tip, pickup, coupon, credits: useCredits ? available : 0 })
   const stores = baskets.map((basket) => basket.store).filter(Boolean)
   const prescriptionMissing = priced.some(needsPrescription) && !prescription
   const mustSchedule = closed && !scheduled
@@ -117,8 +120,9 @@ export default function CheckoutScreen({ back, push }) {
         .then(() => health())
         .then((online) => online && Promise.all(pending.map((order) => sendOrder(order).catch(() => {})))),
     )
-    // Un pedido por tienda, como los que recibe la API: cada uno con su total (orderAmounts suma el del checkout).
-    const amounts = orderAmounts(priced, totals)
+    // Un pedido por tienda, como los que recibe la API: cada uno con su total (orderShares suma el del checkout) y lo
+    // que usó de créditos y cupón, que vuelven si se cancela.
+    const shares = orderShares(priced, totals)
     const [id] = orders.placeMany(
       priced.map((basket, i) => ({
         stores: basket.store ? [basket.store] : [],
@@ -140,7 +144,9 @@ export default function CheckoutScreen({ back, push }) {
             product: reorderable(product),
             ...(substitution ? { substitution } : {}),
           })),
-        total: amounts[i],
+        total: shares[i].total,
+        ...(shares[i].credits > 0 ? { credits: shares[i].credits } : {}),
+        ...(shares[i].coupon > 0 ? { coupon: { code: coupon.code, amount: shares[i].coupon } } : {}),
         pickup,
         address: address.selected.line,
         payment: 'Visa •••• 4242',
@@ -148,6 +154,9 @@ export default function CheckoutScreen({ back, push }) {
         ...(chosenType ? { deliveryType: chosenType, etaShift: deliveryType(chosenType).etaShift } : {}),
       })),
     )
+    // Lo usado sale del saldo de la demo: los créditos se gastan y el cupón queda usado.
+    spendCredits(totals.credits)
+    if (totals.couponAmount > 0) markCoupon(coupon.code)
     cart.clear()
     // El seguimiento (del primero) reemplaza al checkout en el historial: "volver" no regresa a un carrito vacío.
     push('tracking', { orderId: id }, { swap: true })
@@ -284,8 +293,10 @@ export default function CheckoutScreen({ back, push }) {
           isPro={isPro}
           credits={useCredits}
           onCredits={setUseCredits}
-          creditsExpired={creditsExpired}
+          available={available}
+          expiring={expiring}
           minutesLeft={minutesLeft}
+          usedCoupons={wallet.coupons}
           coupon={coupon}
           onCoupon={setCoupon}
         />

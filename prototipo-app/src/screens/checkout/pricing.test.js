@@ -94,12 +94,12 @@ describe('cupones y créditos de ejemplo', () => {
     const priced = [pricedBasket(basket(12000), RESTAURANT), pricedBasket(basket(4000, 'turbo'), null)]
     const plain = checkoutTotals(priced, { tip: 1000 })
     expect(plain.total).toBe(16000 + 1490 + 990 + 490 + 490 + 1000)
-    const discounted = checkoutTotals(priced, { tip: 1000, coupon: findCoupon('BIENVENIDA'), credits: true })
+    const discounted = checkoutTotals(priced, { tip: 1000, coupon: findCoupon('BIENVENIDA'), credits: CREDITS.amount })
     expect(discounted.couponAmount).toBe(2000)
     expect(discounted.credits).toBe(CREDITS.amount)
     expect(discounted.total).toBe(plain.total - 2000 - CREDITS.amount)
     // Un pedido chico: los créditos no pasan del valor de los productos.
-    const small = checkoutTotals([pricedBasket(basket(1000), RESTAURANT)], { credits: true })
+    const small = checkoutTotals([pricedBasket(basket(1000), RESTAURANT)], { credits: CREDITS.amount })
     expect(small.credits).toBe(1000)
     // Un cupón que no aplica no descuenta nada y dice por qué.
     const notHere = checkoutTotals(priced, { coupon: findCoupon('SUPER20') })
@@ -130,7 +130,7 @@ describe('tipo de entrega y el total de cada pedido', () => {
       pricedBasket(basket(4000, 'licores', 'a'), null, { type: 'prioritaria' }),
       pricedBasket(basket(12_000, 'supermercado', 'b'), null),
     ]
-    const totals = checkoutTotals(priced, { tip: 1000, coupon: findCoupon('SUPER20'), credits: true })
+    const totals = checkoutTotals(priced, { tip: 1000, coupon: findCoupon('SUPER20'), credits: CREDITS.amount })
     const amounts = orderAmounts(priced, totals)
     expect(amounts.reduce((a, b) => a + b, 0)).toBe(totals.total)
     expect(amounts[1]).toBe(12_000 + priced[1].delivery + priced[1].service - totals.couponAmount)

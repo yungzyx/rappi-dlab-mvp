@@ -3,6 +3,7 @@ import Sheet from '../../components/Sheet'
 import { formatPrice, parsePrice } from '../../state/CartContext'
 import { useOrders } from '../../state/OrdersContext'
 import { HELP_REASONS, HELP_WINDOW_HOURS, REFUND_METHODS, clockAndDay, helpDeadline } from './help'
+import { deliveredItems } from './liveChanges'
 
 /**
  * «Ayuda con este pedido», de demostración y sin dinero real: «Problemas con productos» (cuáles y qué pasó), «¿Dónde
@@ -18,7 +19,9 @@ export default function HelpOrder({ order, deliveredAt, now, className = 'tracki
   const [method, setMethod] = useState(null)
   const deadline = helpDeadline(deliveredAt)
   const late = now != null && now > deadline
-  const amount = chosen.reduce((sum, i) => sum + parsePrice(order.items[i].price) * (order.items[i].qty ?? 1), 0)
+  // Lo que llegó (con el sustituto en vez del agotado, sin lo reembolsado): se reembolsa lo que se cobró.
+  const items = deliveredItems(order)
+  const amount = chosen.reduce((sum, i) => sum + parsePrice(items[i].price) * (items[i].qty ?? 1), 0)
 
   const start = () => {
     setStep('products')
@@ -51,7 +54,7 @@ export default function HelpOrder({ order, deliveredAt, now, className = 'tracki
                 <strong>Problemas con productos</strong> · ¿Cuáles?
               </p>
               <div className="tracking-options" role="group" aria-label="Productos con problemas">
-                {order.items.map((item, i) => {
+                {items.map((item, i) => {
                   const on = chosen.includes(i)
                   return (
                     <button

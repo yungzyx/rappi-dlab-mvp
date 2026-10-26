@@ -3,7 +3,12 @@ import { FLOATING_GAP, floatingInset } from './floatingInset'
 
 // Elementos de mentira: jsdom no calcula el layout, así que la geometría va a mano (alto del teléfono 874).
 const phone = { clientHeight: 874 }
-const at = (offsetTop, offsetHeight, offsetParent = phone) => ({ isConnected: true, offsetTop, offsetHeight, offsetParent })
+const at = (offsetTop, offsetHeight, offsetParent = phone) => ({
+  isConnected: true,
+  offsetTop,
+  offsetHeight,
+  offsetParent,
+})
 
 describe('relleno de lo que flota abajo', () => {
   test('sin nada flotando no hay relleno', () => {

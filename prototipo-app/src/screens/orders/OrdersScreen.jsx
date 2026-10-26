@@ -7,6 +7,7 @@ import { ReorderButton } from '../../components/reorder/Reorder'
 import { formatPrice } from '../../state/CartContext'
 import { useOrders } from '../../state/OrdersContext'
 import HelpOrder from '../tracking/HelpOrder'
+import { orderTotal } from '../tracking/liveChanges'
 import { deliveredAt, statusOf } from '../tracking/progress'
 import { relativeDay } from './dates'
 import './orders.css'
@@ -68,7 +69,7 @@ export default function OrdersScreen({ back, push, reset }) {
                   <span className="orders-row-text">
                     <strong>{order.stores.join(', ') || 'Tu pedido'}</strong>
                     <span>
-                      {relativeDay(order.placedAt, now)} · {formatPrice(order.total)}
+                      {relativeDay(order.placedAt, now)} · {formatPrice(orderTotal(order))}
                       {/* Lo pidió Mochi solo, con permiso («Pedir por mí»: api/autonomy.js). */}
                       {order.byAgent && ` · Lo pidió ${AGENT_NAME} por ti`}
                     </span>

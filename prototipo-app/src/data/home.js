@@ -13,11 +13,10 @@ import chipRappiFavorOff from '../assets/chip-rappifavor-off.webp'
 import bannerDescuentos from '../assets/banner-descuentos.webp'
 import bannerCena from '../assets/banner-cena.webp'
 
+// El banner de créditos de la Home: el monto y el vencimiento son el saldo de ejemplo de la demo (state/credits.js).
 export const CREDITS = {
   logo: chipLoyalty,
-  title: '$1.900 en créditos',
-  subtitle: 'para tu próximo pedido',
-  expiresInMinutes: 116,
+  subtitle: 'de ejemplo, para tu próximo pedido',
 }
 
 export const MAIN_TILES = [
