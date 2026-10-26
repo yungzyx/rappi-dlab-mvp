@@ -41,7 +41,9 @@ export default function CancelOrder({ order, stage }) {
       firstStep.current = false
       return
     }
-    body.current?.querySelector('button')?.focus({ preventScroll: true })
+    // En el paso de confirmar, el foco va a «Mantener mi pedido»: un Enter de más no cancela.
+    const target = body.current?.querySelector('[data-autofocus]') ?? body.current?.querySelector('button')
+    target?.focus({ preventScroll: true })
   }, [reason, rescued])
 
   const start = () => {
@@ -152,7 +154,7 @@ export default function CancelOrder({ order, stage }) {
               <button type="button" className="tracking-sheet-danger tap" onClick={confirm}>
                 {fee ? `Cancelar pedido · ${formatPrice(fee)}` : 'Cancelar pedido'}
               </button>
-              <button type="button" className="tracking-sheet-secondary" onClick={close}>
+              <button type="button" className="tracking-sheet-secondary" data-autofocus onClick={close}>
                 Mantener mi pedido
               </button>
             </>

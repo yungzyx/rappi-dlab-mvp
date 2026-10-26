@@ -44,7 +44,9 @@ export function useFloatingInset(target) {
     update(phone)
     return () => {
       floating.delete(el)
-      update(phone)
+      // Después del render, no en medio: entre la limpieza y el efecto siguiente el relleno bajaría un instante (sin
+      // este elemento) y, al medir, el navegador recortaría el scroll de la pantalla al fondo.
+      queueMicrotask(() => update(phone))
     }
   })
 }

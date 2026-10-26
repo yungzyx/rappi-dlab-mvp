@@ -395,15 +395,15 @@
 .store-name {
   max-width: 100%;
   margin-top: 7px;
-  font-size: 17px;
-  line-height: 21px;
+  font-size: 14px;
+  line-height: 17px;
   font-weight: 500;
-  /* Dos líneas: «Supermercado de prueba Norte» y «… Centro» se distinguen (en una, las dos eran «Supermerc…») */
+  hyphens: auto;
+  /* Hasta tres líneas: «Supermercado de prueba Norte» y «… Centro» se distinguen (en una, las dos eran «Supermerc…») */
   display: -webkit-box;
-  -webkit-line-clamp: 2;
+  -webkit-line-clamp: 3;
   -webkit-box-orient: vertical;
   overflow: hidden;
-  overflow-wrap: anywhere;
 }
 
 .store-when {
