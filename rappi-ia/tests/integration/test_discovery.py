@@ -19,6 +19,7 @@ from rappi_ia.catalog.stores import product_stores, search_stores, store_page, v
 from rappi_ia.demo.seed import seed_demo
 from rappi_ia.events import store as events
 from rappi_ia.events.searches import TOP_MIN_PEOPLE, recent_searches, top_searches
+from rappi_ia.offers import preferences
 
 CENTRO, EXPRESS_CENTRO, FARMACIA, MALL_CENTRO = 9101, 9201, 9501, 9601
 PIZZERIA, SUSHI, SANDWICHES, PARRILLA, CAFE = 9801, 9802, 9803, 9804, 9805
@@ -223,6 +224,17 @@ def test_store_for_you_follows_the_person_and_the_guards(seeded):
     assert store_for_you(seeded, EXPRESS_CENTRO, "sin-historial") == {"products": [], "basis": []}
 
 
+def test_store_for_you_leaves_out_what_the_person_cannot_eat(seeded):
+    """Su dieta y sus alergias filtran «Para ti» de la tienda, como el de la Home: sin lactosa, nada «con leche»."""
+    chocolate = concept_of(seeded, CHOCOLATE)
+    events.record(seeded, [events.Event("p-leche", "s1", "cart_add", concept_id=chocolate, entity_type="catalog_item")])
+    assert [p["entity_id"] for p in store_for_you(seeded, EXPRESS_CENTRO, "p-leche")["products"]] == [CHOCOLATE]
+
+    preferences.add(seeded, "p-leche", [("alergia", "lactosa")])
+
+    assert store_for_you(seeded, EXPRESS_CENTRO, "p-leche")["products"] == []
+
+
 def test_store_for_you_endpoint_is_only_for_its_owner(client):
     body = client.get(f"/catalog/stores/{EXPRESS_CENTRO}/para-ti", params={"user_id": "p-nueva"}).json()
     assert body["products"] == [] and body["request_id"]
@@ -260,6 +272,13 @@ def test_top_searches_use_one_population_with_enough_people(seeded):
         events.record(seeded, searches(f"p-{n}", "helado"))  # del prototipo: otra población
     assert top_searches(seeded, "synthetic") == ["papas fritas"]  # la cerveza no se propone sola
     assert top_searches(seeded, "prototype") == ["helado"]
+
+
+def test_a_top_search_has_to_find_something_in_the_catalog(seeded):
+    """`results` y `unmet` los manda la app: una búsqueda inventada con «5 resultados» no llega a «Lo más buscado»."""
+    for n in range(TOP_MIN_PEOPLE):
+        events.record(seeded, searches(f"p-{n}", "helado", "compra aquí www", "pizzeria de prueba"))
+    assert top_searches(seeded, "prototype") == ["helado", "pizzeria de prueba"]
 
 
 def test_searches_endpoint_declares_its_population(client):

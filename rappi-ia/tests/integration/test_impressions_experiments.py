@@ -7,6 +7,7 @@ from datetime import date
 
 import pytest
 from psycopg import errors
+from test_query_budget import CountingConnection
 
 from owner_client import OwnerClient
 from rappi_ia import config
@@ -14,11 +15,12 @@ from rappi_ia.agent.compose import TemplateComposer
 from rappi_ia.agent.rappi_agent import RappiAgent
 from rappi_ia.api import app as api
 from rappi_ia.api.services import Services
+from rappi_ia.catalog.stores import product_detail
 from rappi_ia.delivery import PERSON_TABLES, unknown_person_tables
 from rappi_ia.demo.seed import seed_demo
 from rappi_ia.embeddings.base import HashEmbedder
 from rappi_ia.embeddings.text_store import embed_search_documents
-from rappi_ia.events import experiments
+from rappi_ia.events import catalog_context, experiments
 from rappi_ia.events import store as events
 from rappi_ia.events.synth import generate
 
@@ -187,6 +189,24 @@ def test_views_and_cart_pin_the_price_and_open_state_they_saw(client, db):
     assert rows["search"] == {"precio": 1}
 
 
+def test_products_without_store_are_pinned_like_their_card_in_one_query(db):
+    """Sin `payload.store_id`, el precio y la tienda son los de la ficha (`product_detail`), y todo el lote se resuelve
+    en una consulta, no en una por evento."""
+    seed_demo(db)
+    ids = [CHIPS, "91002", "91003", "91004", "92002"]
+    batch = [events.Event("u-lote", "s", "view_item", entity_type="catalog_item", entity_id=i) for i in ids * 4]
+    counting = CountingConnection(db)
+
+    catalog_context.pin(counting, batch)
+
+    assert len(counting.statements) <= 2  # los precios y el estado de las tiendas
+    for e in batch[: len(ids)]:
+        card = product_detail(db, "catalog_item", e.entity_id)
+        assert e.payload["catalogo"]["precio"] == round(card["price_value"])
+        if card["store_id"] is None:
+            assert "abierta" not in e.payload["catalogo"]
+
+
 # ── Experimentos ─────────────────────────────────────────────────────────────
 def test_the_draw_is_stable_and_off_by_default(db, monkeypatch):
     assert experiments.bucket("proto-1", "ofertas_control") == experiments.bucket("proto-1", "ofertas_control")
@@ -344,6 +364,34 @@ def test_the_amplitude_bridge_uses_rappis_names_and_envelope(client, db):
     assert rows["search"][:2] == ("LOCAL_SEARCH_NULL_RESULTS", True)
     assert rows["cart_remove"][:2] == ("MVP_CART_REMOVE", False)
     assert all(r[3] for r in rows.values())  # todos con uuid, también los que no lo trajeron
+
+
+def test_every_event_type_says_if_rappi_has_it(db):
+    """Cada tipo de EVENT_TYPES sale en el puente con un nombre, y `equivalente` es false solo en los MVP_ (migración
+    051: antes `order_cancelled` salía MVP_ y equivalente). Un tipo nuevo sin traducción obliga a decidirlo aquí."""
+    events.ensure_user(db, "u-tipos", "prototype")
+    db.execute(
+        """INSERT INTO app_events (user_id, session_id, type, source)
+           SELECT 'u-tipos', 's-tipos', t, 'prototype' FROM unnest(%s::text[]) t""",
+        (sorted(events.EVENT_TYPES),),
+    )
+    rows = {
+        kind: (name, equivalent)
+        for kind, name, equivalent in db.execute(
+            "SELECT evento_mvp, event_type, equivalente FROM capa.v_eventos_amplitude WHERE user_id = 'u-tipos'"
+        )
+    }
+
+    assert set(rows) == events.EVENT_TYPES
+    assert all(equivalent == (not name.startswith("MVP_")) for name, equivalent in rows.values())
+    assert {kind for kind, (_, equivalent) in rows.items() if not equivalent} == {
+        "cart_remove",
+        "suggestion_dismissed",
+        "reorder",
+        "offer_withheld",
+        "order_cancelled",
+    }
+    assert rows["order_cancelled"] == ("MVP_ORDER_CANCELLED", False)
 
 
 def test_the_synthetic_population_has_impressions_positions_and_its_mode(db):

@@ -96,6 +96,18 @@ def test_plan_kit_spreads_across_verticals_and_includes_chosen_alcohol_with_age_
     assert body["text"].startswith("Tu kit «Carrete»: cerveza, ") and body["actions"][0]["query"].startswith("Cerveza")
 
 
+def test_a_kit_takes_each_vertical_from_one_store_when_it_can(client):
+    """Dos productos de la misma vertical salen de la misma tienda si esa tienda los tiene: la cerveza y el pisco del
+    carrete, de una botillería y no de dos (eran dos pedidos, cada uno lejos de su mínimo)."""
+    products = offer(client, "plan", {"occasion": "carrete"}).json()["products"]
+
+    by_vertical: dict[str, set[int]] = {}
+    for product in products:
+        by_vertical.setdefault(product["vertical"], set()).add(product["store_id"])
+    assert len([p for p in products if p["vertical"] == "licores"]) >= 2
+    assert all(len(stores) == 1 for stores in by_vertical.values()), by_vertical
+
+
 def test_agent_offer_and_plans_routes(client):
     """Las rutas son /agent/offer y /agent/plans; las de /mochi/* ya no existen."""
     plans = client.get("/agent/plans")
