@@ -287,3 +287,17 @@ def test_the_repeat_offer_suggests_it_in_a_chosen_store(client, db):
         "label": "Pide lo de siempre por mí",
         "ask": "Pide lo de siempre en Supermercado de prueba Centro",
     }
+
+
+def test_the_stores_ordered_from_are_options_for_favorites(client, db):
+    """«Mis preferencias» ofrece marcar como favoritas las tiendas donde ya pidió (sin escribirlas), y marcarla la
+    guarda."""
+    before = client.get(f"/profile/{USER}/preferencias").json()
+    assert not any(o["tipo"] == "tienda" for o in before["opciones"])
+    assert order(client, CENTRO, "supermercado", COFFEE).status_code == 200
+    store = {"tipo": "tienda", "valor": "Supermercado de prueba Centro", "nombre": "Supermercado de prueba Centro"}
+    assert store in client.get(f"/profile/{USER}/preferencias").json()["opciones"]
+    saved = client.put(
+        f"/profile/{USER}/preferencias", json={"preferencias": [{"tipo": "tienda", "valor": store["valor"]}]}
+    )
+    assert saved.json()["preferencias"] == [store]

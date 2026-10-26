@@ -185,11 +185,12 @@ const label = (meta, { tipo, valor }) => {
 export const describe = (meta, saved = []) =>
   KINDS.flatMap((kind) => saved.filter((p) => p.tipo === kind)).map((p) => ({ ...p, nombre: label(meta, p) }))
 
-/** Lo que el panel ofrece marcar (las tiendas se dicen por chat). */
-export const options = (meta) =>
+/** Lo que el panel ofrece marcar: dietas, alergias, cocinas y las tiendas `stores` (las de sus pedidos). */
+export const options = (meta, stores = []) =>
   describe(meta, [
     ...RULES.map((rule) => ({ tipo: rule.tipo, valor: rule.id })),
     ...CUISINES.filter((c) => meta.concepts[c]).map((c) => ({ tipo: 'cocina', valor: c })),
+    ...stores.map((name) => ({ tipo: 'tienda', valor: name })),
   ])
 
 const valid = (meta, { tipo, valor }) =>
@@ -222,7 +223,7 @@ export function cleaned(snapshot, list, current = []) {
   return kept.slice(0, MAX_PREFERENCES)
 }
 
-// ── Lo que se dice por chat (offers/preferences.py: read_command) ───────────
+// ── Lo que llega escrito por el buscador (offers/preferences.py: read_command) ─
 const LEADS = /^(?:(?:oye|bueno|ok|hola)\s+)*(?:(?:recuerda que|acuerdate que|anota que|toma nota|yo)\s+)?/
 const CLEAR =
   /^(?:olvida|olvidate de|borra|borrame|elimina|quita|limpia|resetea)\s+(?:todas\s+)?(?:mis|las)\s+preferencias\b/

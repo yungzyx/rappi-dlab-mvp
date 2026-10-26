@@ -380,11 +380,12 @@ export const HELP_EXAMPLES = [
 ]
 const HELP_TEXT =
   `Soy ${AGENT_NAME} 🧡, tu asistente en Rappi. Puedo repetir lo de siempre, armarte un kit o mostrarte algo para ti. ` +
-  'Pídeme lo que necesites («pañales talla G», «algo de sushi», «una once para 4») y te muestro lo que hay, aunque ' +
-  'esté en otra vertical. También recuerdo tu dieta y tus alergias, y te llevo a RappiTravel o RappiFavor.'
+  'Busca lo que necesites («pañales talla G», «algo de sushi», «una once para 4») y te muestro lo que hay, aunque ' +
+  'esté en otra vertical. Tu dieta y tus alergias las marcas en «Mis preferencias», y te llevo a RappiTravel o ' +
+  'RappiFavor.'
 const HELP_TODAY =
   `Soy ${AGENT_NAME} 🧡, tu asistente en Rappi. ` +
-  'Pídeme lo que necesites («pañales talla G», «algo de sushi», «una once para 4») y te muestro lo que hay, aunque ' +
+  'Busca lo que necesites («pañales talla G», «algo de sushi», «una once para 4») y te muestro lo que hay, aunque ' +
   'esté en otra vertical.'
 const SUMMARY_TEXT =
   'Este es el resumen de tu pedido antes de pagar 🧾. Revísalo y paga en el checkout: yo nunca hago el pedido por ti.'
@@ -450,8 +451,10 @@ function recommend(snapshot, body, { interests, userId }) {
     reply.text = `Por tu interés en ${concept.emoji} ${name} 😉 Mira lo que encontré de «${name}» en ${labels[vertical] ?? vertical}.`
     return reply
   }
-  // La ayuda grabada, con los atajos de hoy (una muestra de antes traía «Tengo fiebre» entre los ejemplos).
-  return snapshot.help ? { ...snapshot.help, actions: helpReply(mode).actions } : helpReply(mode)
+  // La ayuda grabada, con el texto y los atajos de hoy (una muestra de antes traía «Tengo fiebre» entre los ejemplos, y
+  // otra invitaba a escribirle a Mochi).
+  const help = helpReply(mode)
+  return snapshot.help ? { ...snapshot.help, text: help.text, actions: help.actions } : help
 }
 
 // agent/understand.py (SYMPTOMS, MEDICINE_WORDS y ADVICE) y rappi_agent.py (ADVICE_*), en corto: consejo médico y
@@ -466,7 +469,7 @@ const CHILD = /\b(?:hij[oa]s?|nin[oa]s?|guaguas?|bebes?|niet[oa]|sobrin[oa])\b/
 const ADVICE_TEXT =
   'No puedo decirte qué remedio tomar o dar, ni cuánto: eso lo ve un médico o un químico farmacéutico 💊.'
 const ADVICE_CHILD = ' Pregúntale a su pediatra.'
-const ADVICE_END = ' Si es urgente, llama al SAMU (131). Si ya sabes qué remedio buscas, escríbeme su nombre.'
+const ADVICE_END = ' Si es urgente, llama al SAMU (131). Si ya sabes qué remedio buscas, búscalo por su nombre.'
 const NO_REMEDIES =
   'Esta demo sin conexión no busca remedios. Pregúntale al químico farmacéutico qué te sirve para eso.'
 const NEW_QUESTION = 'Esta demo sin conexión no entiende preguntas nuevas'

@@ -53,6 +53,9 @@ function storesOf(snapshot, state) {
   return [...seen.values()]
 }
 
+/** Las tiendas de sus pedidos que la hoja «Mis preferencias» ofrece marcar (offers/preferences.py: ordered_stores). */
+export const orderedStores = (snapshot, state) => [...new Set(storesOf(snapshot, state).map((s) => s.name))].slice(0, 8)
+
 /** Las que puede elegir: ninguna de Farmacia ni Licores. */
 const choosable = (snapshot, state) =>
   storesOf(snapshot, state)
@@ -191,7 +194,7 @@ export function usualAnswer(snapshot, state, body, now) {
   if (!found)
     return reply(
       said
-        ? `No encuentro un pedido tuyo en «${said}». ¿Me dices la tienda como sale en «Mis pedidos»?`
+        ? `No encuentro un pedido tuyo en «${said}». En «Mis pedidos» están las tiendas donde pediste.`
         : 'Todavía no tienes un pedido que repetir. Cuando pidas algo, te lo repito cuando quieras 🔁.',
     )
   if (!found.lines.length)

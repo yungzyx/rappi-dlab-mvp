@@ -85,3 +85,21 @@ describe('pedir por mí sin conexión', () => {
     expect(readState().autonomy).toBeUndefined()
   })
 })
+
+describe('las tiendas de sus pedidos en «Mis preferencias» (offers/preferences.py: ordered_stores)', () => {
+  test('se ofrecen para marcarlas como favoritas, sin escribirlas, y marcarlas las guarda', () => {
+    const stores = () => call('GET', '/profile/u/preferencias').body.opciones.filter((o) => o.tipo === 'tienda')
+    expect(stores()).toEqual([])
+    order(line(coffee))
+    order(line(cookies))
+    expect(stores().map((o) => o.nombre)).toEqual(['Súper Norte', 'Súper Centro'])
+    const saved = call('PUT', '/profile/u/preferencias', { preferencias: [{ tipo: 'tienda', valor: 'Súper Norte' }] })
+    expect(saved.body.preferencias).toEqual([{ tipo: 'tienda', valor: 'Súper Norte', nombre: 'Súper Norte' }])
+  })
+
+  test('una tienda que no encuentra no pide que se la escriban de nuevo', () => {
+    const reply = say('mi tienda favorita es la inventada')
+    expect(reply.text).not.toMatch(/dímela|escríbe/i)
+    expect(reply.actions).toEqual([{ label: 'Ver mis preferencias', panel: 'preferencias' }])
+  })
+})

@@ -1,5 +1,14 @@
 import { describe, expect, test } from 'vitest'
-import { HELP_ACTIONS, HELP_EXAMPLES, ask, detectConcepts, matchProducts, namesQuery, search } from './search'
+import {
+  HELP_ACTIONS,
+  HELP_EXAMPLES,
+  ask,
+  detectConcepts,
+  helpReply,
+  matchProducts,
+  namesQuery,
+  search,
+} from './search'
 import { META, product } from '../../test/offlineMeta'
 
 const coffee = product(1, { name: 'Café molido 250 g' })
@@ -92,17 +101,20 @@ describe('«qué me recomiendas» (rappi_agent.py: _recommend)', () => {
     const reply = (interests) =>
       ask(wider, { message: 'qué me recomiendas', mode: 'propuesta' }, { interests, userId: 'proto-1' })
     expect(reply(['a', 'b', 'cafe']).products).toEqual([coffee])
-    expect(reply(['a', 'b', 'c', 'cafe'])).toEqual({ ...HELP, actions: HELP_ACTIONS })
+    expect(reply(['a', 'b', 'c', 'cafe'])).toEqual({ ...HELP, text: helpReply().text, actions: HELP_ACTIONS })
   })
 
   test('sin productos que Mochi pueda ofrecer de un interés prueba el siguiente; sin nada, los ejemplos', () => {
     expect(recommend(['cerveza', 'juguetes']).text).toBe(
       'Por tu interés en 🧸 juguetes 😉 Mira lo que encontré de «juguetes» en Rappi Mall.',
     )
-    // La ayuda grabada, con los atajos de hoy: lo que Mochi sabe hacer y, en «Rappi hoy», solo ejemplos.
-    expect(recommend(['cerveza'])).toEqual({ ...HELP, actions: HELP_ACTIONS })
-    expect(recommend([])).toEqual({ ...HELP, actions: HELP_ACTIONS })
-    expect(recommend(['cafe'], { mode: 'actual' })).toEqual({ ...HELP, actions: HELP_EXAMPLES })
+    // La ayuda grabada, con el texto y los atajos de hoy: lo que Mochi sabe hacer y, en «Rappi hoy», solo ejemplos.
+    const today = helpReply('actual').text
+    expect(recommend(['cerveza'])).toEqual({ ...HELP, text: helpReply().text, actions: HELP_ACTIONS })
+    expect(recommend([])).toEqual({ ...HELP, text: helpReply().text, actions: HELP_ACTIONS })
+    expect(recommend(['cafe'], { mode: 'actual' })).toEqual({ ...HELP, text: today, actions: HELP_EXAMPLES })
+    // Mochi no tiene chat: la ayuda no pide que le escriban.
+    for (const text of [helpReply().text, today]) expect(text).not.toMatch(/Pídeme|dime|escríbeme|cuéntame/i)
   })
 })
 
