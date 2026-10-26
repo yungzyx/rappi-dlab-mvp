@@ -1,8 +1,9 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useCart } from '../state/CartContext'
 import { useOrders } from '../state/OrdersContext'
 import { etaMinutes, isDelivered, secondsSince, statusOf } from '../screens/tracking/progress'
 import { ChevronRight } from './Icons'
+import { useFloatingInset } from './floatingInset'
 import './active-order-bar.css'
 
 const TICK_MS = 1000
@@ -28,6 +29,8 @@ export default function ActiveOrderBar({ push, raised }) {
   const [now, setNow] = useState(() => Date.now())
   const order = activeOrder(orders, now)
   const id = order?.id
+  const bar = useRef(null)
+  useFloatingInset(() => bar.current)
 
   // Avanza mientras haya un pedido en curso; sin él no hay reloj.
   useEffect(() => {
@@ -42,7 +45,7 @@ export default function ActiveOrderBar({ push, raised }) {
   const count = orders.filter((other) => inCourse(other, now)).length
   const classes = ['active-order-bar', 'tap', raised && 'is-raised', withCart && 'with-cart'].filter(Boolean)
   return (
-    <button type="button" className={classes.join(' ')} onClick={() => push('tracking', { orderId: order.id })}>
+    <button ref={bar} type="button" className={classes.join(' ')} onClick={() => push('tracking', { orderId: order.id })}>
       <span className="active-order-dot" aria-hidden="true" />
       <span className="active-order-text">
         <strong>{count > 1 ? `${count} pedidos en curso` : 'Pedido en curso'}</strong>

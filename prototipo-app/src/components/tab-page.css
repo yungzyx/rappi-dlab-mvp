@@ -1,5 +1,5 @@
 .tab-page {
-  padding-bottom: 150px;
+  padding-bottom: max(150px, var(--floating-bottom, 0px)); /* lo que flota abajo: floatingInset.js */
 }
 
 .tab-title {

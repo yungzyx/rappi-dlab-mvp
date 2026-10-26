@@ -963,16 +963,16 @@ export default function AssistantPanel({ push, vertical, depth = 1 }) {
         )}
       </div>
 
-      <Sheet open={editing} onClose={() => setEditing(false)} title={PREFERENCES_TITLE}>
+      <Sheet open={editing} onClose={() => setEditing(false)} title={PREFERENCES_TITLE} overPhone>
         <PreferencesEditor key={preferencesOpen} onSaved={() => setEditing(false)} />
       </Sheet>
 
-      <Sheet open={tuning} onClose={() => setTuning(false)} title={AUTONOMY_TITLE}>
+      <Sheet open={tuning} onClose={() => setTuning(false)} title={AUTONOMY_TITLE} overPhone>
         <AutonomyEditor key={autonomyOpen} onSaved={() => setTuning(false)} onTurnedOff={undoAllAuto} />
       </Sheet>
 
       {/* «Olvidar» borra lo mismo que Cuenta → «Borrar mis datos»: pide la misma confirmación. */}
-      <Sheet open={confirmingForget} onClose={closeForget} title={FORGET_TITLE}>
+      <Sheet open={confirmingForget} onClose={closeForget} title={FORGET_TITLE} overPhone>
         <ForgetConfirm forgetting={forgetting} failed={forgetFailed} onConfirm={forgetAll} onCancel={closeForget} />
       </Sheet>
     </div>

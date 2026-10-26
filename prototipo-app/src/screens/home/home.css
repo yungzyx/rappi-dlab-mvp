@@ -1,7 +1,7 @@
 /* Medidas tomadas de las capturas y el video de la app iOS del 26-09-2026, no versionados
    (px del cuadro × 0,437 = pt). */
 .home {
-  padding-bottom: 150px;
+  padding-bottom: max(150px, var(--floating-bottom, 0px)); /* lo que flota abajo: floatingInset.js */
 }
 
 /* ---------- Encabezado grande ---------- */

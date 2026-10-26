@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { basketsOf, cartEventFields } from '../api/orders'
 import { pricedBasket } from '../screens/checkout/pricing'
 import { useStoreTerms } from '../screens/checkout/useStoreTerms'
@@ -6,6 +6,7 @@ import { formatPrice, lineKey, parsePrice, useCart } from '../state/CartContext'
 import { useEvents } from '../state/EventsContext'
 import AddButton from './AddButton'
 import BasketMinimum from './BasketMinimum'
+import { useFloatingInset } from './floatingInset'
 import Img from './Img'
 import Sheet from './Sheet'
 import './cart.css'
@@ -15,6 +16,8 @@ export default function CartBar({ raised, push }) {
   const cart = useCart()
   const events = useEvents()
   const [open, setOpen] = useState(false)
+  const bar = useRef(null)
+  useFloatingInset(() => bar.current)
 
   if (cart.count === 0 && !open) return null
 
@@ -33,6 +36,7 @@ export default function CartBar({ raised, push }) {
     <>
       {cart.count > 0 && (
         <button
+          ref={bar}
           type="button"
           className={raised ? 'cart-bar is-raised tap' : 'cart-bar tap'}
           onClick={() => setOpen(true)}

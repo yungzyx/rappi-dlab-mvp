@@ -42,7 +42,7 @@
   overflow-y: auto;
   overscroll-behavior-y: contain;
   /* Con productos en el carrito, su barra flota sobre el panel: el último bloque no queda detrás */
-  padding-bottom: calc(120px + env(safe-area-inset-bottom, 0px));
+  padding-bottom: max(calc(120px + env(safe-area-inset-bottom, 0px)), var(--floating-bottom, 0px));
   scrollbar-width: none;
 }
 
@@ -51,7 +51,7 @@
 }
 
 .assistant.has-cart .agent-search-body {
-  padding-bottom: calc(180px + env(safe-area-inset-bottom, 0px));
+  padding-bottom: max(calc(180px + env(safe-area-inset-bottom, 0px)), var(--floating-bottom, 0px));
 }
 
 .agent-block {

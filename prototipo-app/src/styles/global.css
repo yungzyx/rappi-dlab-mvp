@@ -132,6 +132,8 @@ img {
   overflow-x: hidden;
   overscroll-behavior-y: contain;
   scrollbar-width: none;
+  /* Lo que flota abajo (carro, «Pedido en curso», Mochi) no tapa el final: lo mide components/floatingInset.js */
+  padding-bottom: var(--floating-bottom, 0px);
 }
 
 .screen::-webkit-scrollbar,

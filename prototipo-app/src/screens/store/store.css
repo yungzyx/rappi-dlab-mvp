@@ -1,6 +1,6 @@
 /* Página de tienda: diseño propio siguiendo el estilo de la app (no aparece en los videos). */
 .store {
-  padding-bottom: 120px;
+  padding-bottom: max(120px, var(--floating-bottom, 0px)); /* lo que flota abajo: floatingInset.js */
 }
 
 .store-hero {

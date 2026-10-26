@@ -1,6 +1,6 @@
 /* Medidas de las capturas de la app iOS del 26-09-2026, no versionadas (px a 600 de ancho × 0,67 = pt). */
 .travel {
-  padding-bottom: 60px;
+  padding-bottom: max(60px, var(--floating-bottom, 0px)); /* lo que flota abajo: floatingInset.js */
 }
 
 .travel-hero {

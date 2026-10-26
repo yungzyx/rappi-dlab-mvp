@@ -1,6 +1,6 @@
 /* Medidas tomadas de las capturas de la app iOS del 26-09-2026 (no versionadas). */
 .turbo {
-  padding-bottom: 150px;
+  padding-bottom: max(150px, var(--floating-bottom, 0px)); /* lo que flota abajo: floatingInset.js */
 }
 
 .turbo-green {
@@ -196,7 +196,7 @@
 
 /* ---------- Pestañas Ofertas y Categorías ---------- */
 .turbo-page {
-  padding-bottom: 150px;
+  padding-bottom: max(150px, var(--floating-bottom, 0px)); /* lo que flota abajo: floatingInset.js */
 }
 
 .turbo-page .turbo-grid {
