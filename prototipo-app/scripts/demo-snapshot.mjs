@@ -25,7 +25,7 @@ const PYTHON = `${ROOT}../rappi-ia/.venv/bin/python`
 // Cuánto se lleva la muestra: lo justo para recorrer la demo sin que el archivo pase de ~3 MB.
 const STORE_VERTICALS = ['supermercado', 'farmacia', 'mall', 'licores', 'conveniencia', 'chocolateria', 'turbo']
 const STORES_PER_VERTICAL = 3
-const AISLES_PER_STORE = 6
+const AISLES_PER_STORE = 4
 const TURBO_AISLES = 14 // la tienda de la pantalla Turbo: más pasillos, es la que más se recorre
 const RESTAURANTS = 16
 const CUISINES = ['Pizzas', 'Hamburguesa', 'Experiencias Culinarias']
