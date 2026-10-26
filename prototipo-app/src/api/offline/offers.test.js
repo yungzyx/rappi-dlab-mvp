@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'vitest'
-import { complementOf, makeOffer, offerableProduct, onTopOffer } from './offers'
+import { complementOf, kitStores, makeOffer, offerableProduct, onTopOffer } from './offers'
 import { decodeSnapshot } from './snapshot'
 import { CONCEPTS, META, product, recordedStep } from '../../test/offlineMeta'
 
@@ -487,5 +487,22 @@ describe('OnTop de Turbo', () => {
     expect(made.plazo_min).toBe(15)
     expect(made.reason.basis).toContainEqual({ kind: 'ontop', id: 'turbo@15min', source: 'rappi+supuesto' })
     expect(made.text).toContain('(de ejemplo)')
+  })
+})
+
+describe('kitStores (engine.py: kit_stores)', () => {
+  test('lo que queda del kit suma en su tienda, con el mínimo que grabó la API', () => {
+    const recorded = [
+      { store_id: 1, store: 'Botillería', subtotal: 8780, min_order: 5000, missing: 0, below_min: false },
+      { store_id: 2, store: 'Turbo', subtotal: 1490, min_order: null, missing: null, below_min: false },
+    ]
+    const kept = [
+      { store_id: 1, store: 'Botillería', price_value: 1790 },
+      { store_id: 2, store: 'Turbo', price_value: 1490 },
+    ]
+    expect(kitStores(kept, recorded)).toEqual([
+      { store_id: 1, store: 'Botillería', subtotal: 1790, min_order: 5000, missing: 3210, below_min: true },
+      { store_id: 2, store: 'Turbo', subtotal: 1490, min_order: null, missing: null, below_min: false },
+    ])
   })
 })

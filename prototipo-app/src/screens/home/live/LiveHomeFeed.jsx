@@ -87,6 +87,7 @@ export default function LiveHomeFeed({ push, active = true }) {
   const [plan, setPlan] = useState(() => session.plan?.id ?? null) // la ocasión elegida
   const [kit, setKit] = useState(() => session.plan?.kit ?? null) // sus productos (la oferta `plan`); null mientras llega
   const [kitReason, setKitReason] = useState(() => session.plan?.reason ?? null) // por qué ese kit (`reason` de la oferta)
+  const [kitStores, setKitStores] = useState(() => session.plan?.stores ?? []) // sus tiendas y sus mínimos (`stores`)
   const [kitAdded, setKitAdded] = useState(null) // plan cuyo kit ya está en el carro
   const [say, setSay] = useState(null)
   const [target, setTarget] = useState(null) // id del bloque donde se para el agente
@@ -408,6 +409,7 @@ export default function LiveHomeFeed({ push, active = true }) {
       setPlan(null)
       setKit(null)
       setKitReason(null)
+      setKitStores([])
       setKitAdded(null)
       setPresent(false)
       speak(null)
@@ -426,6 +428,7 @@ export default function LiveHomeFeed({ push, active = true }) {
     setPlan(id)
     setKit(null)
     setKitReason(null)
+    setKitStores([])
     setKitAdded(null)
     let made = null
     try {
@@ -441,9 +444,10 @@ export default function LiveHomeFeed({ push, active = true }) {
     // Cada producto del kit es una sugerencia mostrada, con su propio concepto.
     for (const product of made.products)
       noteShown(events.track, [product], { origin: `agent-${made.moment}`, generation: profile.resets })
-    session.plan = { id, kit: made.products, reason: made.reason } // la Home vuelve a montarse al cambiar de pestaña: el kit sigue ahí
+    session.plan = { id, kit: made.products, reason: made.reason, stores: made.stores } // la Home vuelve a montarse al cambiar de pestaña: el kit sigue ahí
     setKit(made.products)
     setKitReason(made.reason)
+    setKitStores(made.stores)
     speak({ text: `${chosen.emoji} ${made.text}`, mood: 'wave', gesture: 'hop' }, 'plan', 4500)
   }
 
@@ -559,6 +563,7 @@ export default function LiveHomeFeed({ push, active = true }) {
         plan={plan}
         kit={kit}
         kitReason={kitReason}
+        kitStores={kitStores}
         added={kitAdded === plan}
         onPick={pickPlan}
         onOpen={openFromBlock}

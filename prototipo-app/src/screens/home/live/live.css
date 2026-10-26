@@ -118,6 +118,13 @@
   font-size: 13.5px;
 }
 
+/* Las tiendas del kit que no llegan a su compra mínima (el kit no suma productos para llegar). */
+.live-kit-min {
+  padding: 6px 18px 0;
+  color: var(--ink-2);
+  font-size: 13px;
+}
+
 .live-kit-add.is-added {
   background: var(--ink);
   animation: live-item-in 320ms var(--live-glide);

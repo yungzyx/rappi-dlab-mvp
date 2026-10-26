@@ -466,5 +466,25 @@ export function makeOffer(snapshot, state, now, { moment, context = {} }) {
   }
 }
 
+/**
+ * Las tiendas de un kit (engine.py: kit_stores), en el orden de sus productos: lo que suma ahí y si llega a la compra
+ * mínima que grabó la API (`recorded`, sus `stores`; sin ella, `null`: la app pone su supuesto). Para un kit que la
+ * dieta y las alergias recortaron.
+ */
+export function kitStores(products, recorded = []) {
+  const totals = new Map()
+  for (const product of products) {
+    if (product.store_id == null) continue
+    if (!totals.has(product.store_id))
+      totals.set(product.store_id, { store_id: product.store_id, store: product.store, subtotal: 0 })
+    totals.get(product.store_id).subtotal += Math.round(product.price_value ?? 0)
+  }
+  return [...totals.values()].map((entry) => {
+    const minimum = recorded.find((r) => r.store_id === entry.store_id)?.min_order ?? null
+    const missing = minimum == null ? null : Math.max(0, minimum - entry.subtotal)
+    return { ...entry, min_order: minimum, missing, below_min: Boolean(missing) }
+  })
+}
+
 /** Un kit grabado ya pasó las guardias del backend (el de un carrete puede traer alcohol, con su marca +18). */
 const guardedPlan = (offer) => (offer ? clone(offer) : null)

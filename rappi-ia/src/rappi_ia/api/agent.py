@@ -16,7 +16,7 @@ from ..agent.grouped_search import SpareConnector
 from ..events import experiments
 from ..events import store as events
 from ..offers import autonomy, preferences
-from ..offers.engine import Offer, OfferError, ProfileOffer, home_occasions, make_offer
+from ..offers.engine import Offer, OfferError, PlanOffer, ProfileOffer, home_occasions, kit_stores, make_offer
 from ..offers.personal import user_interests
 from .deps import Clean, backend_vertical, get_conn, get_services, get_spare_connector
 from .identity import owner_in_query, owner_of_body
@@ -171,7 +171,9 @@ def offer(
 ):
     """La oferta de un momento: `{ moment, text, products, vertical, prototype_vertical, reason, actions, request_id }`,
     o 204 (`request_id`: el id de esta respuesta, que la app repite en los eventos de la oferta).
-    El momento `ontop` suma `plazo_min` (el plazo para sumar sus productos al pedido en curso, un supuesto).
+    El momento `ontop` suma `plazo_min` (el plazo para sumar sus productos al pedido en curso, un supuesto), y el
+    `plan`, `stores`: sus tiendas, un pedido cada una, con lo que suma el kit y si llega a la compra mínima del
+    catálogo (`below_min`, `missing`).
     Grupo de control (`ofertas_control`, con OFFERS_CONTROL_PCT): a quien está en `control`, una oferta de los momentos
     que Mochi propone solo (HOLDOUT_MOMENTS) no se le muestra (204) y queda como impresión contrafactual
     (`offer_withheld`, con lo que habría mostrado); hace falta `user_id` y `session_id`.
@@ -190,6 +192,8 @@ def offer(
     except OfferError as exc:
         raise HTTPException(422, str(exc)) from exc
     found = _with_preferences(found, mine)
+    if isinstance(found, PlanOffer) and mine:  # lo que su dieta sacó del kit ya no suma en su tienda
+        found = replace(found, stores=kit_stores(conn, found.products))
     if body.moment == "recompra":
         found = _with_auto_order(conn, found, body.user_id)
     if found is None:

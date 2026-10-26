@@ -1,5 +1,5 @@
 import { describe, expect, test, vi } from 'vitest'
-import { openItem } from './LiveBlocks'
+import { kitShortStores, openItem } from './LiveBlocks'
 
 describe('openItem', () => {
   test('un producto de la API abre su tienda por id, con la vertical del prototipo', () => {
@@ -26,5 +26,24 @@ describe('openItem', () => {
     const [, { store }] = push.mock.calls[0]
     expect(store).toEqual({ name: 'Tienda de prueba', img: 'x.webp', logo: true })
     expect(Number.isInteger(store.id)).toBe(false) // nada de la API: no se abre por id
+  })
+})
+
+describe('kitShortStores', () => {
+  const beer = { id: 'cat-1', price: '$1.790', storeId: 9401, store: 'Botillería', backendVertical: 'licores' }
+  const ice = { id: 'cat-2', price: '$1.490', storeId: 9301, store: 'Turbo', backendVertical: 'turbo' }
+  const cola = { id: 'cat-3', price: '$1.290', storeId: 9201, store: 'Express', backendVertical: 'conveniencia' }
+
+  test('la tienda que la API marca bajo su mínimo del catálogo, sin rótulo de ejemplo', () => {
+    const stores = [
+      { storeId: 9401, minOrder: 20000, missing: 18210, belowMin: true },
+      { storeId: 9201, minOrder: 0, missing: 0, belowMin: false },
+    ]
+    expect(kitShortStores([beer, cola], stores)).toEqual([{ store: 'Botillería', missing: 18210, example: false }])
+  })
+
+  test('sin mínimo en el catálogo, el supuesto del carro, de ejemplo; con él y sin marca, nada', () => {
+    const stores = [{ storeId: 9201, minOrder: 0, missing: 0, belowMin: false }]
+    expect(kitShortStores([ice, cola], stores)).toEqual([{ store: 'Turbo', missing: 1510, example: true }])
   })
 })

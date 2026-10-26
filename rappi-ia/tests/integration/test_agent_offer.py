@@ -108,6 +108,40 @@ def test_a_kit_takes_each_vertical_from_one_store_when_it_can(client):
     assert all(len(stores) == 1 for stores in by_vertical.values()), by_vertical
 
 
+def test_the_carrete_kit_comes_from_one_store_per_vertical_and_says_its_stores(client):
+    """ui B10: la cerveza y el pisco salen de la botillería que tiene los dos (la cerveza más barata es de otra), y
+    `stores` trae una entrada por tienda del kit, en el orden de sus productos, con lo que el kit suma ahí."""
+    body = offer(client, "plan", {"occasion": "carrete"}).json()
+    products = body["products"]
+
+    stores = list(dict.fromkeys(p["store_id"] for p in products))
+    assert [s["store_id"] for s in body["stores"]] == stores
+    assert len(stores) == len({p["vertical"] for p in products})
+    for entry in body["stores"]:
+        mine = [p for p in products if p["store_id"] == entry["store_id"]]
+        assert entry["store"] == mine[0]["store"]
+        assert entry["subtotal"] == sum(round(p["price_value"]) for p in mine)
+
+
+def test_a_kit_marks_the_store_below_its_catalog_minimum_without_adding_products(client, db):
+    """Si una tienda del kit no llega a la compra mínima que trae el catálogo, el kit no suma productos que la ocasión
+    no pidió: la marca (`below_min`, `missing`). Sin mínimo en el catálogo no se sabe (`None`): la app pone su
+    supuesto."""
+    first = offer(client, "plan", {"occasion": "carrete"}).json()
+    liquor = next(p["store_id"] for p in first["products"] if p["vertical"] == "licores")
+    db.execute("UPDATE stores SET raw = raw || '{\"mov_value\": 20000}'::jsonb WHERE store_id = %s", (liquor,))
+
+    body = offer(client, "plan", {"occasion": "carrete"}).json()
+
+    assert [p["entity_id"] for p in body["products"]] == [p["entity_id"] for p in first["products"]]
+    marked = next(s for s in body["stores"] if s["store_id"] == liquor)
+    assert marked["min_order"] == 20000 and marked["below_min"]
+    assert marked["missing"] == 20000 - marked["subtotal"] > 0
+    for entry in body["stores"]:
+        if entry["store_id"] != liquor and entry["min_order"] is None:
+            assert entry["missing"] is None and entry["below_min"] is False
+
+
 def test_agent_offer_and_plans_routes(client):
     """Las rutas son /agent/offer y /agent/plans; las de /mochi/* ya no existen."""
     plans = client.get("/agent/plans")

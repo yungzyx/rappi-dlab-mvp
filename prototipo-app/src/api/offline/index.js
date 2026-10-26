@@ -10,7 +10,8 @@
 // - rappi-ia/src/rappi_ia/motor/home.py ............ el orden de los accesos de la Home (motor.js: homeVerticals)
 // - rappi-ia/src/rappi_ia/motor/combos.py, combos.toml y predict.py ... la escalera fina (motor.js: targetStep)
 // - rappi-ia/src/rappi_ia/motor/model.py, data.py .. la afinidad propia, sin «Rappi hoy» (motor.js)
-// - rappi-ia/src/rappi_ia/offers/engine.py ......... vertical por probar, recompra, volver, complementos (offers.js)
+// - rappi-ia/src/rappi_ia/offers/engine.py ......... vertical por probar, recompra, volver, complementos (offers.js) y
+//   las tiendas de un kit recortado por la dieta (offers.js: kitStores; el kit mismo es el grabado)
 // - rappi-ia/src/rappi_ia/offers/winback.py y motor/model.py (replenishment) ... recompra y volver (winback.js), con la
 //   pausa por una calificación mala (winback.js: paused, de los eventos `order_rated`); un pedido cancelado
 //   (`order_cancelled`, state.js: cancelOrders e isConfirmed) no cuenta para la recompra, el motor ni los perfiles
@@ -68,7 +69,7 @@ import {
 } from './autonomy'
 import { catalogRoute } from './catalog'
 import { contractArticles, homeVerticals } from './motor'
-import { makeOffer } from './offers'
+import { kitStores, makeOffer } from './offers'
 import { applied, cleaned, CUISINES, describe, findStore, options, readCommand, withoutOf } from './preferences'
 import { ask, backendVertical, detectConcepts, search } from './search'
 import { loadSnapshot } from './snapshot'
@@ -169,6 +170,7 @@ function recommendations(snapshot, state, now, query) {
     rows.push({
       reason: `Por tu interés en ${interest.emoji} ${interest.name.toLowerCase()}`,
       concept: target,
+      concept_label: concepts[target]?.name,
       vertical: recorded.vertical,
       prototype_vertical: recorded.prototype_vertical,
       products: recorded.products,
@@ -276,7 +278,9 @@ function offeredWithPreferences(snapshot, state, offer) {
     return steps.length ? { ...offer, escalera: steps } : null
   }
   const products = mine.products(offer.products ?? [])
-  return offer.products?.length && !products.length ? null : { ...offer, products }
+  if (offer.products?.length && !products.length) return null
+  // Lo que la dieta sacó de un kit ya no suma en su tienda (api/agent.py: offer).
+  return offer.stores ? { ...offer, products, stores: kitStores(products, offer.stores) } : { ...offer, products }
 }
 
 // rappi_agent.py: los textos de `_preference`.
