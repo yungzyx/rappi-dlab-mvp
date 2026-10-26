@@ -143,6 +143,35 @@ export async function productStores(entityId, storeId, { substitutes = false } =
   }
 }
 
+// Lo que ya se revisó al agregar desde la lista de una tienda: producto@tienda → si está agotado ahí.
+const stockChecks = new Map()
+
+/**
+ * ¿Está agotado este producto en su tienda? Lo dice la ficha (`productStores`: sin stock o con 0 unidades), que el
+ * listado del pasillo no trae. Una vez por producto y tienda; si la API no contesta, no se sabe (false) y se vuelve a
+ * preguntar la próxima vez. Un plato no tiene stock.
+ */
+export function soldOutHere(product) {
+  if (product?.entityType !== 'catalog_item' || product.entityId == null || product.storeId == null)
+    return Promise.resolve(false)
+  const key = `${product.entityId}@${product.storeId}`
+  if (!stockChecks.has(key))
+    stockChecks.set(
+      key,
+      productStores(product.entityId, product.storeId).then(
+        (reply) => reply.here?.available === false,
+        () => {
+          stockChecks.delete(key)
+          return false
+        },
+      ),
+    )
+  return stockChecks.get(key)
+}
+
+/** Para los tests: olvida lo revisado. */
+export const forgetStockChecks = () => stockChecks.clear()
+
 /**
  * «Para ti» en una tienda (solo la propuesta): `{ requestId, products, basis }`, los productos de la tienda que calzan
  * con los intereses de la persona, ya con las guardias de las ofertas y marcados con su lugar (`para-ti` en la tienda:
@@ -190,8 +219,13 @@ export async function home() {
 }
 
 // Las condiciones de compra ya pedidas, por tienda (null = la API no la conoce): el carro y el checkout las leen sin
-// volver a pedirlas. Son datos del catálogo, no de la persona.
-const knownTerms = new Map()
+// volver a pedirlas. Son datos del catálogo, no de la persona. Llevan la hora en que llegaron: el abierto o cerrado y
+// los tramos de hoy y mañana se calculan al pedirlas, así que valen unos minutos y hasta que cambia el día (si no, una
+// tienda que abría a las 10:00 seguía cerrada en el checkout a las 10:05).
+const knownTerms = new Map() // id → { terms, at }
+const TERMS_FRESH_MS = 5 * 60_000
+const dayOf = (ts) => new Date(ts).toDateString()
+const fresh = (entry, now) => entry && now - entry.at < TERMS_FRESH_MS && dayOf(entry.at) === dayOf(now)
 const TERMS_PER_REQUEST = 20 // api/catalog.py: hasta 20 tiendas por consulta
 
 /**
@@ -199,16 +233,17 @@ const TERMS_PER_REQUEST = 20 // api/catalog.py: hasta 20 tiendas por consulta
  * minOrder, servicePct, hours, spans } | null)`. Cada dato puede ser null (el catálogo no lo trae): el checkout pone su supuesto.
  */
 export async function storeTerms(storeIds) {
-  const missing = [...new Set(storeIds)].filter((id) => !knownTerms.has(id))
+  const now = Date.now()
+  const missing = [...new Set(storeIds)].filter((id) => !fresh(knownTerms.get(id), now))
   for (let i = 0; i < missing.length; i += TERMS_PER_REQUEST) {
     const chunk = missing.slice(i, i + TERMS_PER_REQUEST)
     const reply = await read('/catalog/terms', { stores: chunk.join(',') })
     const found = new Map(reply.stores.map((t) => [t.store_id, t]))
     for (const id of chunk) {
       const t = found.get(id)
-      knownTerms.set(
-        id,
-        t
+      knownTerms.set(id, {
+        at: now,
+        terms: t
           ? {
               deliveryFee: t.delivery_fee,
               minOrder: t.min_order,
@@ -218,10 +253,10 @@ export async function storeTerms(storeIds) {
               spans: t.spans ?? null,
             }
           : null,
-      )
+      })
     }
   }
-  return new Map(storeIds.map((id) => [id, knownTerms.get(id) ?? null]))
+  return new Map(storeIds.map((id) => [id, knownTerms.get(id)?.terms ?? null]))
 }
 
 /** Solo para los tests: olvida las condiciones ya pedidas. */

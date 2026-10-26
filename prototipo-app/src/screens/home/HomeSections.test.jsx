@@ -104,12 +104,12 @@ test('abrir RappiTravel o RappiFavor llama a onService una vez con su servicio; 
   fireEvent.click(screen.getByLabelText('RappiFavor (no disponible)'))
   expect(onService).not.toHaveBeenCalled()
   fireEvent.click(screen.getByText('RappiTravel'))
-  expect(onService).toHaveBeenCalledExactlyOnceWith('rappitravel')
+  expect(onService).toHaveBeenCalledExactlyOnceWith('rappitravel', { origin: 'accesos', position: expect.any(Number) })
   unmount()
   onService.mockClear()
   render(<Shortcuts push={vi.fn()} proposal onService={onService} />, { wrapper: ToastProvider })
   for (const name of ['RappiFavor', 'RappiTravel', 'Farmacia', 'Lealtad']) fireEvent.click(screen.getByText(name))
-  expect(onService.mock.calls).toEqual([['rappifavor'], ['rappitravel']])
+  expect(onService.mock.calls.map(([service]) => service)).toEqual(['rappifavor', 'rappitravel'])
 })
 
 test('los dos accesos grandes llaman a onOpen con restaurantes y turbo', () => {

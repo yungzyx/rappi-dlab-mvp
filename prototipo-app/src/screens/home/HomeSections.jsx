@@ -80,7 +80,8 @@ export function Shortcuts({ push, proposal = false, order = null, caption = null
                 if (item.vertical) onOpen?.(item.vertical, { origin: 'accesos', position })
                 if (unavailable) toast(`${item.label} no está disponible`)
                 else if (route) {
-                  if (item.service) onService?.(item.service) // abrir RappiFavor o RappiTravel: `service_opened`
+                  // abrir RappiFavor o RappiTravel: `service_opened`, con su lugar en los accesos
+                  if (item.service) onService?.(item.service, { origin: 'accesos', position })
                   push(...route)
                 } else toast()
               }}
@@ -144,7 +145,11 @@ export function useHomeCatalog() {
   return {
     fastRestaurants: lists.data?.fastRestaurants ?? [],
     nearbyStores: lists.data?.nearbyStores ?? [],
-    bestRated: placeList(bestRated.data, { surface: 'home', origin: 'mejor-evaluados' }),
+    // Solo los que tienen nota: uno sin nota no es de los mejor evaluados.
+    bestRated: placeList(
+      (bestRated.data ?? []).filter((store) => store.rating),
+      { surface: 'home', origin: 'mejor-evaluados' },
+    ),
   }
 }
 

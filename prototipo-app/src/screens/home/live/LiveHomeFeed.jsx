@@ -5,6 +5,7 @@ import { conceptOf } from '../../../api/orders'
 import { noteShown } from '../../../api/suggestions'
 import { userId } from '../../../api/user'
 import DemoDisclaimer from '../../../components/DemoDisclaimer'
+import { PRIVACY_CLOSED_EVENT, privacyPending } from '../../../components/PrivacyNotice'
 import SmartBar from '../../../components/assistant/SmartBar'
 import { useToast } from '../../../components/Toast'
 import { ChevronDown } from '../../../components/Icons'
@@ -22,7 +23,7 @@ import { CREDITS } from '../../../data/home'
 import '../home.css'
 import { useVerticalOrder } from '../useVerticalOrder'
 import LiveAgent from './LiveAgent'
-import { PlanBlock, RepeatBlock, openItem } from './LiveBlocks'
+import { PlanBlock, RepeatBlock, kitAddedText, openItem } from './LiveBlocks'
 import { REPLAY_EVENT, markTourSeen, session, tourSeen } from '../../../state/liveMemory'
 import { isHushed, isQuiet, noteDismissed } from '../../../state/agentQuiet'
 import { today } from '../../../utils/today'
@@ -80,6 +81,7 @@ export default function LiveHomeFeed({ push, active = true }) {
   const lastOrder = `${orders[0]?.id ?? ''}|${orders.filter((order) => order.rating).length}`
   const reduceMotion = useReducedMotion()
   const [replays, setReplays] = useState(0)
+  const [privacyClosed, setPrivacyClosed] = useState(0) // sube al cerrarse el aviso de privacidad: recién ahí saluda
 
   const [plans, setPlans] = useState([]) // las ocasiones que el agente sabe armar (GET /agent/plans)
   const [plan, setPlan] = useState(() => session.plan?.id ?? null) // la ocasión elegida
@@ -193,10 +195,16 @@ export default function LiveHomeFeed({ push, active = true }) {
 
   const openFromBlock = (product) => openItem(product, push)
 
-  // Primera vez en la Home: entra y saluda. No sugiere nada ni mueve la Home.
+  // Primera vez en la Home: entra y saluda. No sugiere nada ni mueve la Home. Con el aviso de privacidad abierto (la
+  // primera visita), espera a que se cierre: el aviso tapaba el saludo y la guía.
   useEffect(() => {
     if (session.played) return undefined
     clearTimers()
+    if (privacyPending()) {
+      const start = () => setPrivacyClosed((n) => n + 1)
+      window.addEventListener(PRIVACY_CLOSED_EVENT, start, { once: true })
+      return () => window.removeEventListener(PRIVACY_CLOSED_EVENT, start)
+    }
     later(reduceMotion ? 0 : T.enter, () => {
       setPresent(true)
       setEntering(true)
@@ -212,9 +220,9 @@ export default function LiveHomeFeed({ push, active = true }) {
       if (free && !silent() && !tourSeen()) showTour(0)
     })
     return clearTimers
-    // Solo al montar (o al repetir la escena).
+    // Solo al montar (o al repetir la escena, o al cerrarse el aviso de privacidad).
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [replays])
+  }, [replays, privacyClosed])
 
   // Lo último que se agregó al carro lo comenta la oferta `carrito` de la API; sin oferta (204) o si falla, no dice nada.
   async function commentOn(added) {
@@ -445,7 +453,7 @@ export default function LiveHomeFeed({ push, active = true }) {
     setKitAdded(plan)
     buzz()
     toast(`Agregaste ${kit.length} productos del kit`)
-    speak({ text: '¡Listo! Llega todo junto 🛵 Ve tu carro abajo.', mood: 'wave', gesture: 'spin' }, 'plan', 3500)
+    speak({ text: kitAddedText(kit), mood: 'wave', gesture: 'spin' }, 'plan', 3500)
   }
 
   // Tocar al agente: la API propone la vertical que la persona aún no prueba (según sus pedidos), con sus ofertas.
@@ -470,7 +478,8 @@ export default function LiveHomeFeed({ push, active = true }) {
     const open = made.actions.find((action) => action.route)
     // Si el paso es un servicio sin catálogo (RappiFavor, RappiTravel), se anota ofrecido y, al abrirlo, abierto: así
     // la escalera sigue.
-    if (open?.service) events.track('service_shown', { payload: { servicio: open.service } })
+    const offered = envelope({ surface: 'home', origin: `agent-${made.moment}`, requestId: made.requestId })
+    if (open?.service) events.track('service_shown', { ...offered, payload: { servicio: open.service } })
     // La burbuja no lleva productos: no promete «mira estas ofertas» (eso lo dice el texto de la API, que sí los muestra).
     const name = VERTICAL_NAMES[screenForBackend(made.backendVertical)]
     speak(
@@ -485,7 +494,8 @@ export default function LiveHomeFeed({ push, active = true }) {
                 {
                   label: open.label,
                   onClick: () => {
-                    if (open.service) events.track('service_opened', { payload: { servicio: open.service } })
+                    if (open.service)
+                      events.track('service_opened', { ...offered, payload: { servicio: open.service } })
                     visit(made.vertical, open.route)
                   },
                 },
@@ -519,7 +529,11 @@ export default function LiveHomeFeed({ push, active = true }) {
       }),
     })
   /** Abrir RappiFavor o RappiTravel desde la Home cuenta como usarlo, igual que desde la oferta de Mochi. */
-  const openService = (servicio) => events.track('service_opened', { payload: { servicio, desde: 'home' } })
+  const openService = (servicio, where) =>
+    events.track('service_opened', {
+      ...envelope({ surface: 'home', ...where, requestId: verticalOrder.requestId }),
+      payload: { servicio, desde: 'home' },
+    })
 
   const blocks = {
     essentials: (

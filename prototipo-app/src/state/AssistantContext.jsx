@@ -1,4 +1,5 @@
-import { createContext, useContext, useEffect, useMemo, useState } from 'react'
+import { createContext, useContext, useEffect, useMemo, useRef, useState } from 'react'
+import { useDemo } from './DemoContext'
 
 const AssistantContext = createContext(null)
 
@@ -14,12 +15,21 @@ const AssistantContext = createContext(null)
  */
 export function AssistantProvider({ children }) {
   const [session, setSession] = useState(null)
+  // El buscador con Mochi es del prototipo final: «Rappi hoy» tiene el buscador de siempre. Al pasar a «Rappi hoy» (el
+  // interruptor o la tecla D) se cierra, y volver atrás no lo reabre ahí (mostraba el perfil de gusto y lo aprendido).
+  // Sin el proveedor del modo (tests de piezas sueltas) cuenta como el prototipo final.
+  const final = useDemo()?.isFinal ?? true
+  const finalRef = useRef(final)
+  useEffect(() => {
+    finalRef.current = final
+  })
+  if (!final && session) setSession(null)
 
   // Volver (o avanzar) a la entrada del historial del asistente lo reabre con la búsqueda que tenía: así, abrir una
   // tienda desde el agente y volver no deja la Home con el panel cerrado y la búsqueda perdida.
   useEffect(() => {
     const onPopState = (event) => {
-      if (!event.state?.assistant) return
+      if (!event.state?.assistant || !finalRef.current) return
       setSession((prev) => prev ?? { search: event.state.assistantSearch ?? '', openedAt: Date.now() })
     }
     window.addEventListener('popstate', onPopState)

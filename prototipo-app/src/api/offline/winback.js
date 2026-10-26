@@ -194,8 +194,10 @@ export function paused(state, now) {
     bad.some(
       (e) =>
         e.cart_id === order.cart_id &&
-        (e.payload.store_id == null ||
-          order.lines.some((line) => Number(line.store_id) === Number(e.payload.store_id))),
+        // Sin tienda, el pedido de esa vertical (events/store.py: _ORDER_OF_EVENT), como al cancelar (state.js).
+        (e.payload.store_id == null
+          ? !e.vertical || order.vertical === e.vertical
+          : order.lines.some((line) => Number(line.store_id) === Number(e.payload.store_id))),
     )
   const concepts = new Set()
   const stores = new Set()

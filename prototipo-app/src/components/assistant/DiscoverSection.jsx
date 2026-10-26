@@ -15,16 +15,20 @@ const conceptLabel = (concept) => {
   return words.charAt(0).toUpperCase() + words.slice(1)
 }
 
-/** El título de una tarjeta: el complemento y su vertical, o «Lo más pedido en…» (fila sin concepto). */
+/**
+ * El título de una tarjeta: el complemento y su vertical, o «Lo más pedido en…» (fila sin concepto). El nombre del
+ * concepto, si la API lo manda (`concept_label`, con tildes); si no, del id («cafe» → «Cafe»).
+ */
 const cardTitle = (row) => {
   const vertical = VERTICAL_NAMES[row.prototype_vertical]
-  return row.kind === 'lo_mas_pedido' ? `Lo más pedido en ${vertical}` : `${conceptLabel(row.concept)} en ${vertical}`
+  if (row.kind === 'lo_mas_pedido') return `Lo más pedido en ${vertical}`
+  return `${row.concept_label ?? conceptLabel(row.concept)} en ${vertical}`
 }
 
 /**
  * «Descubre con el agente»: tarjetas de /recommendations, cada una con un complemento de lo que le gusta a la persona en una
  * vertical que quizá aún no abre, o con lo más pedido en una vertical (`kind: 'lo_mas_pedido'`). `rows` son las filas de
- * la API (hasta 3); tocar una tarjeta abre su vertical.
+ * la API (hasta 3); tocar una tarjeta abre su vertical (`onOpen(vertical, { row, position })`).
  */
 export default function DiscoverSection({ rows, onOpen }) {
   const cards = rows.filter((row) => VERTICAL_NAMES[row.prototype_vertical])
@@ -43,7 +47,7 @@ export default function DiscoverSection({ rows, onOpen }) {
             type="button"
             className="discover-card tap"
             style={{ animationDelay: `${180 + i * 80}ms` }}
-            onClick={() => onOpen(row.prototype_vertical)}
+            onClick={() => onOpen(row.prototype_vertical, { row, position: i })}
           >
             <span className="discover-card-art" aria-hidden="true">
               <img src={TILE_IMAGES[row.prototype_vertical]} alt="" draggable="false" loading="lazy" />

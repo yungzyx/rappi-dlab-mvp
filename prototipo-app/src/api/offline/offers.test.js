@@ -448,6 +448,13 @@ describe('pedido cancelado (state.js: isConfirmed)', () => {
     const here = { ...elsewhere, payload: { stars: 1, store_id: coffee.store_id } }
     expect(offer('recompra', state({ orders, events: [here] }))).toBeNull()
   })
+
+  test('sin tienda, la calificación pausa solo el pedido de su vertical (events/store.py: _ORDER_OF_EVENT)', () => {
+    const orders = weekly()
+    const rating = { type: 'order_rated', ts: NOW - DAY_MS, cart_id: 'c-2', vertical: 'turbo', payload: { stars: 1 } }
+    expect(offer('recompra', state({ orders, events: [rating] }))).not.toBeNull()
+    expect(offer('recompra', state({ orders, events: [{ ...rating, vertical: 'supermercado' }] }))).toBeNull()
+  })
 })
 
 describe('OnTop de Turbo', () => {

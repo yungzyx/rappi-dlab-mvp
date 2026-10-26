@@ -146,7 +146,13 @@ function AlsoIn({ alsoIn, onAction }) {
             type="button"
             className="agent-msg-store agent-msg-also-vertical tap"
             style={{ animationDelay: `${240 + i * 60}ms` }}
-            onClick={() => vertical.route && onAction({ route: vertical.route })}
+            onClick={() =>
+              vertical.route &&
+              onAction({
+                route: vertical.route,
+                opens: { vertical: vertical.vertical, origin: 'tambien-en', position: i },
+              })
+            }
           >
             <span className="agent-msg-also-logos">
               {vertical.stores.map((store) => (
@@ -180,7 +186,6 @@ export default function AgentMessage({
   message,
   onStreamDone,
   onOpenProduct,
-  onOpenStore,
   onAction,
   onRetry,
   onCancel,
@@ -236,25 +241,6 @@ export default function AgentMessage({
             </div>
           )}
           {message.alsoIn?.verticals?.length > 0 && <AlsoIn alsoIn={message.alsoIn} onAction={onAction} />}
-          {message.stores?.length > 0 && (
-            <div className="agent-msg-stores">
-              {message.stores.map((store, i) => (
-                <button
-                  key={store.name}
-                  type="button"
-                  className="agent-msg-store tap"
-                  style={{ animationDelay: `${120 + i * 60}ms` }}
-                  onClick={() => onOpenStore(store)}
-                >
-                  <Img src={store.img} className={store.logo ? 'is-logo' : undefined} />
-                  <span>
-                    <strong>{store.name}</strong>
-                    {store.eta && <small>{store.eta}</small>}
-                  </span>
-                </button>
-              ))}
-            </div>
-          )}
           {message.retry && (
             <button type="button" className="agent-msg-action tap" onClick={onRetry}>
               Reintentar

@@ -153,3 +153,33 @@ test('/catalog/terms sin conexión: el envío de los restaurantes grabados y nul
   expect(call('POST', '/orders', order)).toMatchObject({ status: 400 })
   expect(call('POST', '/orders', { ...order, lines: [line(9101), line(9101)] }).status ?? 200).toBe(200)
 })
+
+test('POST /orders: un pedido de Mochi no se programa y una franja es de hoy o mañana (api/app.py)', () => {
+  const { body: session } = call('POST', '/session', {})
+  const base = {
+    user_id: session.user_id,
+    vertical: 'grocery',
+    mode: 'propuesta',
+    lines: [{ entity_type: 'catalog_item', entity_id: '1', qty: 1 }],
+  }
+  const soon = new Date(Date.now() + 2 * 3_600_000).toISOString()
+  expect(call('POST', '/orders', { ...base, scheduled_for: soon }).body.order_id).toMatch(/^o-/)
+  expect(call('POST', '/orders', { ...base, scheduled_for: soon, autopedido: {} })).toMatchObject({ status: 400 })
+  const later = new Date(Date.now() + 5 * 86_400_000).toISOString()
+  expect(call('POST', '/orders', { ...base, scheduled_for: later })).toMatchObject({
+    status: 400,
+    body: { detail: 'Solo se programa para hoy o mañana' },
+  })
+})
+
+test('un pedido no suma interés aparte de sus eventos, como en la API', () => {
+  const { body: session } = call('POST', '/session', {})
+  const id = session.user_id
+  call('POST', '/orders', {
+    user_id: id,
+    vertical: 'grocery',
+    mode: 'propuesta',
+    lines: [{ entity_type: 'catalog_item', entity_id: '1', concept_id: 'cafe', qty: 1 }],
+  })
+  expect(call('GET', `/profile/${id}`).body.interests).toEqual([])
+})

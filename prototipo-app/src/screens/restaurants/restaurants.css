@@ -1,6 +1,6 @@
 /* Medidas tomadas de las capturas de la app iOS del 26-09-2026 (no versionadas). */
 .restaurants {
-  padding-bottom: 60px;
+  padding-bottom: max(60px, var(--floating-bottom, 0px)); /* lo que flota abajo: floatingInset.js */
 }
 
 .rest-header {

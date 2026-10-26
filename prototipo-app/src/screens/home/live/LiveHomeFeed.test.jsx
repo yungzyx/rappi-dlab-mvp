@@ -3,6 +3,7 @@ import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, test, vi 
 import { fixture, stubApi } from '../../../test/api'
 import { routeForScreen } from '../../../data/verticals'
 import { today } from '../../../utils/today'
+import { kitAddedText } from './LiveBlocks'
 
 const events = vi.hoisted(() => ({ track: vi.fn(), flush: async () => {}, clear: () => {}, settled: async () => {} }))
 vi.mock('../../../state/EventsContext', async (importOriginal) => ({
@@ -23,6 +24,7 @@ beforeEach(async () => {
   vi.resetModules()
   localStorage.setItem('rappi-proto-demo-mode', 'final')
   localStorage.setItem('rappi-proto-guia-vista', '1') // como quien ya vio la guía (sus tests la quitan)
+  localStorage.setItem('rappi-proto-privacy-seen', '1') // y el aviso de privacidad (su test lo quita)
   await import('../../../state/EventsContext')
   const demo = await import('../../../state/DemoContext')
   const profile = await import('../../../state/ProfileContext')
@@ -163,6 +165,17 @@ describe('Home del prototipo final', () => {
     expect(screen.getByTestId('assistant').textContent).toBe('abierto')
   })
 
+  test('con el aviso de privacidad abierto, Mochi espera a que se cierre para saludar', async () => {
+    localStorage.removeItem('rappi-proto-privacy-seen')
+    const { container } = await renderHome()
+    await advance(900 + 3000)
+    expect(container.querySelector('.live-bubble')).toBeNull()
+    localStorage.setItem('rappi-proto-privacy-seen', '1')
+    act(() => window.dispatchEvent(new Event('rappi-privacy-closed')))
+    await advance(900 + 1000)
+    expect(container.querySelector('.live-bubble p').textContent).toMatch(/^¡Hola! Ahora vivo en tu Home/)
+  })
+
   test('Mochi entra y saluda sin sugerir productos ni reordenar ni oscurecer la Home', async () => {
     const { container } = await renderHome()
     expect(blockOrder(container)).toEqual(['essentials', 'promos', 'turbo', 'plan', 'nearby', 'lower'])
@@ -249,6 +262,9 @@ describe('Home del prototipo final', () => {
       expect(accepted.map(([, fields]) => fields.concept_id).sort()).toEqual(kit.products.map((p) => p.concept).sort())
       expect(tracked('suggestion_shown', 'agent-plan')).toHaveLength(kit.products.length)
       expect(screen.getByRole('button', { name: /En tu carro · Ir a pagar/ })).toBeTruthy()
+      // Cuatro tiendas son cuatro pedidos: Mochi no dice «llega todo junto».
+      expect(screen.getByText(/4 tiendas, un pedido por tienda/)).toBeTruthy()
+      expect(kitAddedText(kit.products)).toBe('¡Listo! Está en tu carro: llega en 4 pedidos, uno por tienda 🛵')
     })
 
     test('plans sends the user and shows Para ti for occasions with a reason', async () => {
@@ -425,9 +441,14 @@ describe('Home del prototipo final', () => {
       await advance(3000)
       expect(container.querySelector('.live-bubble p').textContent).toBe(made.text)
       const service = (type) => events.track.mock.calls.filter(([name]) => name === type).map(([, fields]) => fields)
-      expect(service('service_shown')).toEqual([{ payload: { servicio: 'rappifavor' } }])
+      const offered = { surface: 'home', origin: 'agent-vertical_por_probar' }
+      expect(service('service_shown')).toEqual([
+        expect.objectContaining({ ...offered, payload: { servicio: 'rappifavor' } }),
+      ])
       fireEvent.click(screen.getByRole('button', { name: 'Abrir RappiFavor' }))
-      expect(service('service_opened')).toEqual([{ payload: { servicio: 'rappifavor' } }])
+      expect(service('service_opened')).toEqual([
+        expect.objectContaining({ ...offered, payload: { servicio: 'rappifavor' } }),
+      ])
       expect(push).toHaveBeenLastCalledWith('favor')
     })
 
@@ -1131,8 +1152,16 @@ describe('Home del prototipo final', () => {
       const services = events.track.mock.calls.filter(([type]) => type === 'service_opened').map(([, fields]) => fields)
       // Con `desde: 'home'` el panel no los cuenta como aperturas de lo que ofreció Mochi.
       expect(services).toEqual([
-        { payload: { servicio: 'rappitravel', desde: 'home' } },
-        { payload: { servicio: 'rappifavor', desde: 'home' } },
+        expect.objectContaining({
+          surface: 'home',
+          origin: 'accesos',
+          payload: { servicio: 'rappitravel', desde: 'home' },
+        }),
+        expect.objectContaining({
+          surface: 'home',
+          origin: 'accesos',
+          payload: { servicio: 'rappifavor', desde: 'home' },
+        }),
       ])
     })
   })

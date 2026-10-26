@@ -1,18 +1,21 @@
 // «Pedir por mí» sin conexión, en corto (rappi-ia offers/autonomy.py, api/autonomy.py, rappi_agent.py: _usual_order y
 // api/app.py: _auto_order). El permiso vive en el estado de la API simulada (state.js). Lo de siempre es el último
 // pedido de este navegador en esa tienda, con los precios de la muestra grabada (no los de hoy). Los límites son los
-// mismos: solo en las tiendas elegidas, nunca alcohol, +18, farmacia, bebé ni salud (offerableProduct), nunca sobre el
+// mismos: solo en las tiendas elegidas, nunca alcohol, +18, farmacia, bebé ni salud (autoOrderBlocked), nunca sobre el
 // tope ni en una tienda que la muestra trae cerrada. La compra mínima no está en la muestra: la de ejemplo la revisa
 // la app. «Olvidar» la borra con todo el estado.
 import { restaurantHours } from './catalog'
 import { OFFER_BLOCKED_VERTICALS } from './motor'
-import { offerableProduct } from './offers'
+import { autoOrderBlocked } from './offers'
 import { isConfirmed, updateState } from './state'
 import { normalize } from './text'
 import { paused } from './winback'
 
 export const LIMITS = { min: 1000, max: 200_000, suggested: 20_000, stores: 10 } // offers/autonomy.py
 const ORIGIN = 'agent-autopedido'
+// offers/autonomy.py: ASK_LABEL y ASK_TEXT.
+const ASK_LABEL = 'Pide lo de siempre por mí'
+const ASK_TEXT = (store) => `Pide lo de siempre en ${store}`
 // agent/understand.py: USUAL_ORDER.
 const USUAL = new RegExp(
   '\\b(?:lo de siempre|lo mismo de siempre|mi pedido de siempre|el pedido de siempre|lo que pido siempre' +
@@ -63,6 +66,18 @@ const choosable = (snapshot, state) =>
   storesOf(snapshot, state)
     .filter((store) => !OFFER_BLOCKED_VERTICALS.includes(store.vertical))
     .slice(0, LIMITS.stores)
+
+/**
+ * La recompra de una tienda donde la persona deja que Mochi pida solo suma «Pide lo de siempre por mí» (api/agent.py:
+ * _with_auto_order): le pide a Mochi lo de siempre ahí, que vuelve a revisar cada límite antes de pedir.
+ */
+export function withAutoOrder(snapshot, state, offer) {
+  const storeId = offer?.products?.[0]?.store_id
+  if (!offer || !state.autonomy?.stores.includes(storeId)) return offer
+  const store = storesOf(snapshot, state).find((s) => s.id === storeId)
+  if (!store) return offer
+  return { ...offer, actions: [...(offer.actions ?? []), { label: ASK_LABEL, ask: ASK_TEXT(store.name) }] }
+}
 
 /** `GET /profile/{id}/autonomia`. */
 export function autonomyReply(snapshot, state) {
@@ -151,7 +166,7 @@ function decide(snapshot, state, mine, found, now, lines = null) {
   const concepts = snapshot.meta.concepts
   if (
     OFFER_BLOCKED_VERTICALS.includes(store.vertical) ||
-    found.lines.some(({ product }) => !offerableProduct({ ...product, vertical: store.vertical }, concepts))
+    found.lines.some(({ product }) => autoOrderBlocked(product, concepts))
   )
     return review('guardia')
   if (closed(snapshot, store, now)) return review('cerrada', { store: store.name })

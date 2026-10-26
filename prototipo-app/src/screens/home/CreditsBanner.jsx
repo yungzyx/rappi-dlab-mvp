@@ -1,27 +1,26 @@
 import { useEffect, useState } from 'react'
 import { ChevronRight } from '../../components/Icons'
+import { formatPrice } from '../../state/CartContext'
+import { availableCredits, useWallet, welcomeLeft } from '../../state/credits'
 
 const MINUTE_MS = 60_000
 const TICK_MS = 1_000
 
-// Fecha límite fija al cargar la página, para que el contador no se reinicie al cambiar de pantalla.
-const deadlines = new Map()
-
-export function getDeadline(key, minutes) {
-  if (!deadlines.has(key)) deadlines.set(key, Date.now() + minutes * MINUTE_MS)
-  return deadlines.get(key)
-}
-
-function formatRemaining(ms) {
+/** «1 h 56 min» (como en el checkout), o «56 min». */
+export function formatRemaining(ms) {
   const totalMinutes = Math.max(0, Math.ceil(ms / MINUTE_MS))
-  const hours = String(Math.floor(totalMinutes / 60)).padStart(2, '0')
-  const minutes = String(totalMinutes % 60).padStart(2, '0')
-  return `${hours}h: ${minutes}m`
+  const hours = Math.floor(totalMinutes / 60)
+  const minutes = totalMinutes % 60
+  return hours > 0 ? `${hours} h ${minutes} min` : `${minutes} min`
 }
 
-/** Banner de créditos con cuenta regresiva ("01h: 56m"), como en la Home del video. */
+/**
+ * Banner de créditos con cuenta regresiva, como en la Home del video. Muestra el saldo de créditos de ejemplo de la
+ * demo (state/credits.js): baja al usarlos en el checkout, sube con la ayuda o una cancelación y desaparece en cero. La
+ * cuenta regresiva es la de los créditos del banner (una sola fecha, guardada: la misma en los dos modos).
+ */
 export default function CreditsBanner({ credits, onClick }) {
-  const deadline = getDeadline(credits.title, credits.expiresInMinutes)
+  const wallet = useWallet()
   const [now, setNow] = useState(() => Date.now())
 
   useEffect(() => {
@@ -29,14 +28,16 @@ export default function CreditsBanner({ credits, onClick }) {
     return () => clearInterval(timer)
   }, [])
 
+  const amount = availableCredits(wallet, now)
+  if (amount <= 0) return null
   return (
     <button type="button" className="credits-banner tap" onClick={onClick}>
       <img src={credits.logo} alt="" />
       <span className="credits-text">
-        <strong>{credits.title}</strong>
+        <strong>{formatPrice(amount)} en créditos</strong>
         <span>{credits.subtitle}</span>
       </span>
-      <span className="credits-timer">{formatRemaining(deadline - now)}</span>
+      {welcomeLeft(wallet, now) > 0 && <span className="credits-timer">{formatRemaining(wallet.expiresAt - now)}</span>}
       <ChevronRight size={18} />
     </button>
   )

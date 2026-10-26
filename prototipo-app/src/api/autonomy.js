@@ -5,7 +5,7 @@
 // tarifa de ejemplo) antes de abrir la ventana de «Deshacer pedido»; el pedido sale recién al cerrarse la ventana, y la
 // API vuelve a revisar cada límite (un 409 con el motivo lo deja para revisar antes).
 import { request } from './client'
-import { basketsOf, buildOrders } from './orders'
+import { basketsOf, buildOrders, orderVertical } from './orders'
 import { userId } from './user'
 import { formatPrice } from '../state/CartContext'
 import { checkoutTotals, pricedBasket } from '../screens/checkout/pricing'
@@ -73,6 +73,10 @@ const stored = ({ placement: _placement, fromSuggestion: _from, suggestionOrigin
 export function demoOrder(order, { cartId, total, address }) {
   return {
     stores: [order.store.name],
+    // Como los del checkout: con su tienda y su vertical (los cambios en vivo del Súper, y el pedido que se califica o
+    // se cancela se encuentra por carro y tienda).
+    storeId: order.store.id,
+    vertical: orderVertical(order.lines[0]?.product) ?? null,
     cartId,
     items: order.lines.map(({ product, qty }) => ({
       name: product.name,

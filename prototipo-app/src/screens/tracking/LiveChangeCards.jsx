@@ -23,7 +23,7 @@ export function LiveChangeAlert({ order }) {
 
   useEffect(() => {
     if (!item) return undefined
-    orders.hold(order.id)
+    orders.hold(order.id, 'cambio')
     let current = true
     productStores(item.entityId, item.product.storeId, { substitutes: true }).then(
       (reply) =>
@@ -43,7 +43,7 @@ export function LiveChangeAlert({ order }) {
   if (!item) return null
   const resolve = (choice, substitute) => {
     orders.resolveLiveChange(order.id, resolveChange(item, index, choice, substitute))
-    orders.release(order.id)
+    orders.release(order.id, 'cambio')
   }
   const preferred = item.substitution
   const options = SUBSTITUTIONS.map((option) => ({ ...option, preferred: option.id === preferred }))

@@ -12,6 +12,7 @@ import { DemoProvider } from '../../state/DemoContext'
 import { OrdersProvider } from '../../state/OrdersContext'
 import { ProfileProvider } from '../../state/ProfileContext'
 import { setPro } from '../../state/pro'
+import { addCredits, readWallet } from '../../state/credits'
 import CheckoutScreen from './CheckoutScreen'
 import { forgetAge } from './restrictions'
 
@@ -123,6 +124,7 @@ describe('inicio de pago', () => {
     const starts = checkoutStarts()
     expect(starts.map((fields) => fields.vertical).sort()).toEqual(['licores', 'supermercado'])
     expect(new Set(starts.map((fields) => fields.cart_id)).size).toBe(1)
+    expect(starts.every((fields) => fields.surface === 'checkout')).toBe(true)
   })
 
   test('volver sin pagar deja el inicio de pago y ningún pedido', () => {
@@ -256,19 +258,43 @@ describe('entrega: tipo y programar', () => {
     expect(saved.scheduledFor).toBe(new Date(sent.scheduled_for).getTime())
   })
 
-  test('con la tienda cerrada solo se programa: «Ahora» no se puede y pide una franja', async () => {
+  test('con la tienda cerrada solo se programa: «Ahora» no se puede y queda elegida la primera franja', async () => {
     terms.byStore[OIL.storeId] = { ...NO_MINIMUM, hours: { source: 'descarga', open: false }, spans: null }
     renderCheckout([OIL])
     await act(tick)
     expect(screen.getByText('La tienda está cerrada pero puedes programar tu pedido.')).toBeTruthy()
     expect(screen.getByRole('radio', { name: 'Ahora' }).disabled).toBe(true)
-    expect(placeButton().disabled).toBe(true)
-    fireEvent.click(screen.getByRole('radio', { name: 'Programar' }))
-    // Cerrada en la descarga y sin hora de apertura: las franjas son de mañana.
-    expect(
-      screen.getAllByRole('radio', { name: /^(hoy|mañana)/ }).every((slot) => /^mañana/.test(slot.textContent)),
-    ).toBe(true)
+    expect(screen.getByRole('radio', { name: 'Programar' }).getAttribute('aria-checked')).toBe('true')
+    // Cerrada en la descarga y sin hora de apertura: las franjas son de mañana, y el encabezado no promete «Llega en».
+    const slots = screen.getAllByRole('radio', { name: /^(hoy|mañana)/ })
+    expect(slots.every((slot) => /^mañana/.test(slot.textContent))).toBe(true)
+    expect(slots[0].getAttribute('aria-checked')).toBe('true')
+    expect(screen.getByText(/^Programado para mañana/)).toBeTruthy()
+    expect(screen.queryByText(/^Llega en/)).toBeNull()
     expect(placeButton().disabled).toBe(false)
+  })
+
+  test('Retiro con la tienda cerrada también se programa, con sus franjas a la vista', async () => {
+    terms.byStore[OIL.storeId] = { ...NO_MINIMUM, hours: { source: 'descarga', open: false }, spans: null }
+    renderCheckout([OIL])
+    await act(tick)
+    fireEvent.click(screen.getByRole('radio', { name: 'Retiro' }))
+    expect(screen.getAllByRole('radio', { name: /^mañana/ }).length).toBeGreaterThan(0)
+    expect(screen.getByText(/^Retiro programado para mañana/)).toBeTruthy()
+    expect(placeButton().disabled).toBe(false)
+    await pay()
+    await vi.waitFor(() => expect(api.sendOrder).toHaveBeenCalled())
+    const [saved] = JSON.parse(localStorage.getItem('rappi-proto-orders'))
+    expect(saved).toMatchObject({ pickup: true, scheduledFor: expect.any(Number) })
+  })
+
+  test('una franja elegida en Envío sigue en Retiro y el encabezado lo dice', async () => {
+    renderCheckout([OIL])
+    await act(tick)
+    fireEvent.click(screen.getByRole('radio', { name: 'Programar' }))
+    fireEvent.click(screen.getByRole('radio', { name: 'Retiro' }))
+    expect(screen.getByText(/^Retiro programado para/)).toBeTruthy()
+    expect(screen.queryByText('Listo en 15–20 min')).toBeNull()
   })
 })
 
@@ -348,6 +374,46 @@ describe('créditos y cupones de ejemplo', () => {
     expect(screen.getByText(/Reemplazó a SUPER20/)).toBeTruthy()
     expect(screen.queryByText('Cupón SUPER20')).toBeNull()
     expect(screen.getByText('Cupón BIENVENIDA')).toBeTruthy()
+  })
+
+  test('los créditos usados salen del saldo: el pedido siguiente ya no los tiene', async () => {
+    renderCheckout([OIL])
+    await pay()
+    await vi.waitFor(() => expect(api.sendOrder).toHaveBeenCalled())
+    const [order] = JSON.parse(localStorage.getItem('rappi-proto-orders'))
+    expect(order.credits).toBe(1_900)
+    expect(readWallet()).toMatchObject({ welcome: 0, extra: 0 })
+    cleanup()
+    renderCheckout([OIL])
+    await act(tick)
+    expect(screen.queryByText('−$1.900')).toBeNull()
+    expect(screen.getByText('Ya los usaste o vencieron: no te quedan créditos')).toBeTruthy()
+    expect(screen.getByRole('switch', { name: 'Usar créditos' }).disabled).toBe(true)
+  })
+
+  test('los créditos que sumó la ayuda o una cancelación se usan en el checkout', async () => {
+    addCredits(1_000)
+    renderCheckout([OIL])
+    await act(tick)
+    expect(screen.getByText('$2.900 en créditos de ejemplo')).toBeTruthy()
+    expect(screen.getByText('−$2.900')).toBeTruthy()
+  })
+
+  test('un cupón se usa una vez', async () => {
+    renderCheckout([OIL, OIL, OIL, OIL])
+    await act(tick)
+    fireEvent.click(screen.getByRole('button', { name: 'BIENVENIDA' }))
+    await pay()
+    await vi.waitFor(() => expect(api.sendOrder).toHaveBeenCalled())
+    const [order] = JSON.parse(localStorage.getItem('rappi-proto-orders'))
+    expect(order.coupon).toEqual({ code: 'BIENVENIDA', amount: 2_000 })
+    expect(readWallet().coupons).toEqual(['BIENVENIDA'])
+    cleanup()
+    renderCheckout([OIL, OIL, OIL, OIL])
+    await act(tick)
+    fireEvent.click(screen.getByRole('button', { name: 'BIENVENIDA' }))
+    expect(screen.getByText('Ya usaste este cupón de ejemplo: se usa una vez')).toBeTruthy()
+    expect(screen.queryByText('Cupón BIENVENIDA')).toBeNull()
   })
 
   test('el cupón de Supermercado en un carro sin súper no descuenta nada', async () => {

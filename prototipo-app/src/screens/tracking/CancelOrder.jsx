@@ -25,12 +25,26 @@ export default function CancelOrder({ order, stage }) {
   const [frozen, setFrozen] = useState(null)
   const fee = frozen ? cancelFee(order, frozen) : 0
   const rescue = CANCEL_REASONS.find((r) => r.id === reason)?.rescue
-  // Si la pantalla se va con la hoja abierta, el pedido sigue su reloj.
-  const holding = useRef(null)
+  // Si la hoja se va (la pantalla se cierra o el paso cambia en el mismo render en que se abrió), el pedido sigue su
+  // reloj: soltar sin pausa de «Cancelar» no hace nada, así que no depende de que el efecto haya visto la hoja abierta.
+  const release = useRef(orders.release)
   useEffect(() => {
-    holding.current = open ? () => orders.release(order.id) : null
+    release.current = orders.release
   })
-  useEffect(() => () => holding.current?.(), [])
+  useEffect(() => () => release.current(order.id, 'cancelar'), [order.id])
+  // Al pasar de paso desaparece el botón que tenía el foco: el foco va al primer control del paso nuevo (VoiceOver lo
+  // anuncia), no al body.
+  const body = useRef(null)
+  const firstStep = useRef(true)
+  useEffect(() => {
+    if (firstStep.current) {
+      firstStep.current = false
+      return
+    }
+    // En el paso de confirmar, el foco va a «Mantener mi pedido»: un Enter de más no cancela.
+    const target = body.current?.querySelector('[data-autofocus]') ?? body.current?.querySelector('button')
+    target?.focus({ preventScroll: true })
+  }, [reason, rescued])
 
   const start = () => {
     setFrozen(stage)
@@ -38,12 +52,12 @@ export default function CancelOrder({ order, stage }) {
     setRescued(false)
     setOpen(true)
     // Uno programado todavía no corre: no hay reloj que detener (si no, su franja se correría).
-    if (stage !== 'programado') orders.hold(order.id)
+    if (stage !== 'programado') orders.hold(order.id, 'cancelar')
   }
 
   const close = () => {
     setOpen(false)
-    orders.release(order.id)
+    orders.release(order.id, 'cancelar')
   }
 
   const confirm = () => {
@@ -80,12 +94,12 @@ export default function CancelOrder({ order, stage }) {
         Cancelar pedido
       </button>
       <Sheet open={open} onClose={close} title="Cancelar pedido">
-        <div className="tracking-sheet-body">
+        <div ref={body} className="tracking-sheet-body">
           {reason === null || (rescue && !rescued) ? null : <CostNote fee={fee} stage={frozen} />}
           {reason === null && (
             <>
               <p>¿Por qué quieres cancelar?</p>
-              <div className="tracking-options" aria-label="Motivo">
+              <div className="tracking-options" role="group" aria-label="Motivo">
                 {CANCEL_REASONS.map((option) => (
                   <button
                     key={option.id}
@@ -140,7 +154,7 @@ export default function CancelOrder({ order, stage }) {
               <button type="button" className="tracking-sheet-danger tap" onClick={confirm}>
                 {fee ? `Cancelar pedido · ${formatPrice(fee)}` : 'Cancelar pedido'}
               </button>
-              <button type="button" className="tracking-sheet-secondary" onClick={close}>
+              <button type="button" className="tracking-sheet-secondary" data-autofocus onClick={close}>
                 Mantener mi pedido
               </button>
             </>

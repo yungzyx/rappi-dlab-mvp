@@ -18,7 +18,7 @@ test('muestra una tarjeta por fila de recomendaciones y abre su vertical', () =>
   expect(card.textContent).toContain('Por tu interés en 🍕 pizza')
   expect(card.textContent).toContain('Gaseosas en Express')
   fireEvent.click(card)
-  expect(onOpen).toHaveBeenCalledWith('express')
+  expect(onOpen).toHaveBeenCalledWith('express', expect.objectContaining({ position: expect.any(Number) }))
 })
 
 test('la fila de lo más pedido (sin concepto) se titula con su vertical', () => {
@@ -29,7 +29,7 @@ test('la fila de lo más pedido (sin concepto) se titula con su vertical', () =>
   expect(card.textContent).toContain('Lo más pedido estas semanas en el súper')
   expect(card.textContent).toContain('Lo más pedido en Súper')
   fireEvent.click(card)
-  expect(onOpen).toHaveBeenCalledWith('grocery')
+  expect(onOpen).toHaveBeenCalledWith('grocery', expect.objectContaining({ position: expect.any(Number) }))
 })
 
 test('no muestra nada sin filas, ni filas de una vertical que la app no conoce', () => {

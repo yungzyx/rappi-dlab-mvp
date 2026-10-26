@@ -37,3 +37,23 @@ export function resolveChange(item, index, choice, substitute) {
     delta: parsePrice(substitute.price) * qty - before,
   }
 }
+
+/**
+ * Las líneas como llegan: el sustituto elegido en lugar del agotado, y sin la línea si se reembolsó. Cada una lleva
+ * `index`, su lugar en `order.items`. Las usan la ayuda (lo que se reembolsa es lo que se cobró) y el detalle.
+ */
+export function deliveredItems(order) {
+  const change = order?.liveChange
+  return (order?.items ?? []).flatMap((item, index) => {
+    if (change?.index !== index) return [{ ...item, index }]
+    if (!change.product) return []
+    const { name, img, price } = change.product
+    return [{ ...item, name, img, price, index, substitute: true }]
+  })
+}
+
+/** El total con el «Ajuste en el total» del cambio en vivo (el sustituto o el reembolso). */
+export const adjustedTotal = (order) => order.total + (order.liveChange?.delta ?? 0)
+
+/** Lo que se cobra de un pedido, el mismo en el seguimiento, «Mis pedidos» y Cuenta: cancelado, solo su costo. */
+export const orderTotal = (order) => (order.cancelled ? (order.cancelled.fee ?? 0) : adjustedTotal(order))

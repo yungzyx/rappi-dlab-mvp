@@ -8,6 +8,7 @@ import { useDemo } from '../../state/DemoContext'
 import { AGENT_CART_EVENT, REPLAY_EVENT } from '../../state/liveMemory'
 import { isHushed, isQuiet, noteDismissed, noteEngaged, quietToday, wake } from '../../state/agentQuiet'
 import { today } from '../../utils/today'
+import { useFloatingInset } from '../floatingInset'
 import Mascot from './Mascot'
 import './agent-presence.css'
 
@@ -49,6 +50,8 @@ export default function AgentPresence({ screen, homeTab, raised }) {
   const body = useRef(null)
   const drag = useRef(null)
   const timers = useRef({})
+  // Lo que cuenta para el relleno de las pantallas es Mochi (o su pestañita), no sus globos pasajeros.
+  useFloatingInset(() => host.current?.querySelector('.agent-presence-body, .agent-quiet-tab'))
 
   const hidden =
     !demo.isFinal || assistant.isOpen || AGENT_HIDDEN_SCREENS.has(screen) || (screen === 'home' && homeTab === 'home')

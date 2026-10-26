@@ -77,6 +77,9 @@ export const storeKeyOf = (product) =>
  * subtotal }]`. `vertical` es el código del backend de la primera línea (una tienda con dos verticales, como un súper
  * que también es express, es un solo pedido).
  */
+/** En cuántos pedidos sale una lista de productos (uno por tienda), como el kit de un plan. */
+export const storeCount = (products) => basketsOf(products.map((product) => ({ product, qty: 1 }))).length
+
 export function basketsOf(items) {
   const byStore = new Map()
   for (const line of items) {

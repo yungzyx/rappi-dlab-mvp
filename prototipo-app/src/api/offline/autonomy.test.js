@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, test } from 'vitest'
+import { withAutoOrder } from './autonomy'
 import { route } from './index'
 import { readState } from './state'
 import { META, product } from '../../test/offlineMeta'
@@ -13,10 +14,20 @@ const cookies = product(3, {
   store: 'Súper Norte',
   store_id: 12,
 })
+// Un combo con bebida de un restaurante: la API lo pide solo (no es alcohol ni de un concepto que no ofrece).
+const combo = product(4, {
+  entity_type: 'menu_item',
+  name: 'Combo sushi + Bebida 350cc',
+  concept: null,
+  price_value: 8990,
+  store: 'Sushi de prueba',
+  store_id: 21,
+  vertical: 'restaurantes',
+})
 const snapshot = {
   meta: META,
-  documents: 3,
-  pool: [coffee, beer, cookies],
+  documents: 4,
+  pool: [coffee, beer, cookies, combo],
   byEntity: new Map(),
   catalog: { home: {}, restaurants: { rating: [] }, deals: {}, verticalStores: {}, stores: {}, menus: {} },
   recommendations: { rows: [] },
@@ -98,6 +109,25 @@ describe('pedir por mí sin conexión', () => {
     allow([11])
     rate('c-no', 1)
     expect(say('lo de siempre').autopedido.codigo).not.toBe('calificacion')
+  })
+
+  test('un plato sin concepto o con bebida se pide solo, como en la API', () => {
+    const dish = { entity_type: 'menu_item', entity_id: combo.entity_id, store_id: 21, qty: 1 }
+    call('POST', '/orders', { user_id: 'u', vertical: 'restaurantes', mode: 'propuesta', lines: [dish], cart_id: 'c' })
+    allow([21])
+    expect(say('pide lo de siempre en sushi de prueba').autopedido).toMatchObject({ modo: 'pedir' })
+  })
+
+  test('la recompra de una tienda con permiso trae «Pide lo de siempre por mí»', () => {
+    order(line(coffee))
+    const offer = { products: [{ store_id: 11 }], actions: [{ label: 'Agregar al carro' }] }
+    expect(withAutoOrder(snapshot, readState(), offer).actions).toHaveLength(1)
+    allow([11])
+    expect(withAutoOrder(snapshot, readState(), offer).actions.at(-1)).toEqual({
+      label: 'Pide lo de siempre por mí',
+      ask: 'Pide lo de siempre en Súper Centro',
+    })
+    expect(withAutoOrder(snapshot, readState(), { ...offer, products: [{ store_id: 12 }] }).actions).toHaveLength(1)
   })
 
   test('se apaga en un toque, no corre en «Rappi hoy» y se va con «Olvidar»', () => {

@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, test, vi } from 'vitest'
-import { offer, plans } from './agent'
+import { offer, plans, profileLadder } from './agent'
 import { fixture, stubApi } from '../test/api'
 import { userId } from './user'
 
@@ -26,6 +26,16 @@ describe('agent', () => {
     })
 
     expect(await offer('checkout', { cart: [] })).toBeNull()
+  })
+
+  test('la escalera del perfil lleva las posiciones de corrido entre peldaños: ninguna se repite', async () => {
+    const reply = fixture('agent-offer-perfil')
+    reply.escalera[0].products = [...reply.escalera[0].products, ...reply.escalera[1].products]
+    stubApi({ 'POST /agent/offer': reply })
+    const ladder = await profileLadder('sushi')
+    const positions = ladder.steps.flatMap((step) => step.products.map((p) => p.placement.position))
+    expect(positions).toEqual([...positions.keys()])
+    expect(ladder.steps[1].products[0].placement).toMatchObject({ origin: 'agent-perfil', position: 2 })
   })
 
   test('las ofertas usan /agent/offer y el origen agent-<momento>', async () => {

@@ -109,7 +109,8 @@
 
 .reorder-items {
   gap: 14px;
-  padding: 12px 0 4px;
+  /* El «+» de la tarjeta asoma sobre la foto: con menos aire invadía la nota de arriba */
+  padding: 20px 0 4px;
 }
 
 .reorder-item {

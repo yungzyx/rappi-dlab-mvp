@@ -57,7 +57,8 @@ export default function AccountSheets({ sheet, onClose }) {
                 type="button"
                 className={option === language ? 'sheet-option is-selected' : 'sheet-option'}
                 aria-pressed={option === language}
-                onClick={() => setLanguage(option)}
+                // La demo está solo en español: otro idioma no cambia nada, y lo dice.
+                onClick={() => (option === LANGUAGES[0] ? setLanguage(option) : toast('La demo está solo en español'))}
               >
                 {option}
                 <span className="sheet-radio" />

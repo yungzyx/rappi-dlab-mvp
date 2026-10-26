@@ -1,6 +1,8 @@
 import { useState } from 'react'
+import { productItem } from '../../api/impressions'
 import { MAIN_TILES, SHORTCUTS } from '../../data/home'
 import { VERTICAL_NAMES } from '../../data/verticals'
+import { useImpressions } from '../../hooks/useImpressions'
 import { useProductSheet } from '../../state/ProductSheetContext'
 import AddButton from '../AddButton'
 import { Dots } from '../Carousel'
@@ -45,10 +47,12 @@ export function ProfileCard({ profile }) {
   )
 }
 
+/** Un producto de un peldaño: cuenta como visto en su lista (`list_view`) cuando aparece en pantalla. */
 function StepProduct({ product, onOpenProduct }) {
   const sheet = useProductSheet()
+  const watch = useImpressions()
   return (
-    <li className="taste-product">
+    <li className="taste-product" ref={watch(product, productItem(product))}>
       <button
         type="button"
         className="taste-product-main tap"
@@ -151,7 +155,9 @@ export function LadderRail({ ladder, onOpenVertical, onOpenTravel, onOpenProduct
               <button
                 type="button"
                 className="taste-step-more tap"
-                onClick={() => (trip ? onOpenTravel() : onOpenVertical(step.vertical))}
+                onClick={() =>
+                  trip ? onOpenTravel() : onOpenVertical(step.vertical, { vertical: step.backendVertical, position: i })
+                }
               >
                 {trip ? 'Abrir RappiTravel ✈️' : `Ver ${name} ›`}
               </button>

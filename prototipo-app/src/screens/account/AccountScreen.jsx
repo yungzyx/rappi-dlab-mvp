@@ -11,6 +11,7 @@ import { useOrders } from '../../state/OrdersContext'
 import { setPro, usePro } from '../../state/pro'
 import { formatPrice } from '../../state/CartContext'
 import { relativeDay } from '../orders/dates'
+import { orderTotal } from '../tracking/liveChanges'
 import dealsCrown from '../../assets/deals-crown.webp'
 import AccountSheets from './AccountSheets'
 import { APP_VERSION, PRO_PLAN, PROFILE, SECTIONS } from './data'
@@ -124,7 +125,7 @@ export default function AccountScreen({ onBack, push }) {
               <span>
                 <strong>{order.stores.join(', ') || 'Tu pedido'}</strong>
                 <span>
-                  {relativeDay(order.placedAt)} · {formatPrice(order.total)}
+                  {relativeDay(order.placedAt)} · {formatPrice(orderTotal(order))}
                 </span>
               </span>
               <ChevronRight size={18} />

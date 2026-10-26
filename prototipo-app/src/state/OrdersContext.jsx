@@ -1,6 +1,7 @@
-import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react'
+import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react'
 import { DELAY, DEMO_DELAY_EVENT, delayCompensation } from '../screens/tracking/delay'
 import { flowFor, isAhead, isDelivered, secondsSince } from '../screens/tracking/progress'
+import { addCredits, markCoupon } from './credits'
 import { loadStored, saveStored } from './storage'
 
 // Pedidos hechos en la demo, uno por tienda (como en la API: un carro con dos tiendas son dos pedidos, con el mismo
@@ -21,6 +22,17 @@ const isOrder = (order) =>
   order.items.every((item) => item && typeof item === 'object') &&
   Number.isFinite(order.total)
 
+/**
+ * Al cargar, la pausa de «Cancelar pedido» se suelta: la hoja ya no está abierta (una recarga no la cierra) y el pedido
+ * quedaba detenido para siempre. La de un producto agotado (`heldBy: 'cambio'`) sigue: el pedido espera a la persona.
+ */
+export const releaseStaleHolds = (orders, now = Date.now()) =>
+  orders.map((order) =>
+    order.heldAt && order.heldBy === 'cancelar'
+      ? { ...order, heldAt: undefined, heldBy: undefined, pausedMs: (order.pausedMs ?? 0) + now - order.heldAt }
+      : order,
+  )
+
 /** El pedido que el «Panel de la demo» atrasa: el más reciente que va en curso (ni programado, ni entregado). */
 const delayable = (orders, now) =>
   orders.find(
@@ -31,13 +43,18 @@ const OrdersContext = createContext(null)
 
 export function OrdersProvider({ children }) {
   const [orders, setOrders] = useState(() =>
-    loadStored(STORAGE_KEY, (value) => Array.isArray(value) && value.every(isOrder), []),
+    releaseStaleHolds(loadStored(STORAGE_KEY, (value) => Array.isArray(value) && value.every(isOrder), [])),
   )
+
+  const current = useRef(orders)
+  useEffect(() => {
+    current.current = orders
+  })
 
   const save = useCallback((change) => {
     setOrders((prev) => {
       const next = change(prev)
-      saveStored(STORAGE_KEY, next)
+      if (next !== prev) saveStored(STORAGE_KEY, next)
       return next
     })
   }, [])
@@ -57,22 +74,36 @@ export function OrdersProvider({ children }) {
   )
 
   // Lo que se le suma a un pedido ya hecho (la calificación, la propina, una cancelación…) queda en el mismo pedido.
+  // Un cambio vacío (soltar un pedido que no estaba detenido) no guarda nada ni vuelve a pintar.
   const update = useCallback(
     (id, change) =>
-      save((prev) =>
-        prev.map((order) =>
-          order.id === id ? { ...order, ...(typeof change === 'function' ? change(order) : change) } : order,
-        ),
-      ),
+      save((prev) => {
+        let changed = false
+        const next = prev.map((order) => {
+          if (order.id !== id) return order
+          const patch = typeof change === 'function' ? change(order) : change
+          if (!Object.keys(patch).length) return order
+          changed = true
+          return { ...order, ...patch }
+        })
+        return changed ? next : prev
+      }),
     [save],
   )
 
-  // El reloj de un pedido se detiene mientras la persona decide algo que el pedido espera, y sigue donde quedó.
-  const hold = useCallback((id) => update(id, (order) => (order.heldAt ? {} : { heldAt: Date.now() })), [update])
+  // El reloj de un pedido se detiene mientras la persona decide algo que el pedido espera, y sigue donde quedó. `by`
+  // dice quién lo detuvo ('cancelar' o 'cambio'): cada uno suelta solo su pausa (cerrar «Cancelar pedido» no suelta la
+  // de un producto agotado que sigue sin respuesta).
+  const hold = useCallback(
+    (id, by) => update(id, (order) => (order.heldAt ? {} : { heldAt: Date.now(), heldBy: by })),
+    [update],
+  )
   const release = useCallback(
-    (id) =>
+    (id, by) =>
       update(id, (order) =>
-        order.heldAt ? { heldAt: undefined, pausedMs: (order.pausedMs ?? 0) + Date.now() - order.heldAt } : {},
+        order.heldAt && (!by || !order.heldBy || order.heldBy === by)
+          ? { heldAt: undefined, heldBy: undefined, pausedMs: (order.pausedMs ?? 0) + Date.now() - order.heldAt }
+          : {},
       ),
     [update],
   )
@@ -81,17 +112,17 @@ export function OrdersProvider({ children }) {
   useEffect(() => {
     const onDelay = () => {
       const now = Date.now()
-      save((prev) => {
-        const target = delayable(prev, now)
-        if (!target) return prev
-        const delay = {
-          ...DELAY,
-          from: secondsSince(target, now),
-          at: now,
-          credits: delayCompensation(flowFor(target), target),
-        }
-        return prev.map((order) => (order.id === target.id ? { ...order, delay } : order))
-      })
+      const target = delayable(current.current, now)
+      if (!target) return
+      const delay = {
+        ...DELAY,
+        from: secondsSince(target, now),
+        at: now,
+        credits: delayCompensation(flowFor(target), target),
+      }
+      save((prev) => prev.map((order) => (order.id === target.id && !order.delay ? { ...order, delay } : order)))
+      // La garantía de Turbo de ejemplo se paga en el saldo de créditos de la demo.
+      addCredits(delay.credits)
     }
     window.addEventListener(DEMO_DELAY_EVENT, onDelay)
     return () => window.removeEventListener(DEMO_DELAY_EVENT, onDelay)
@@ -111,22 +142,36 @@ export function OrdersProvider({ children }) {
       rate: (id, rating) => update(id, { rating }),
       /** La propina que se suma después de entregar (en la demo no se cobra). */
       tipAfter: (id, amount) => update(id, { tipAfter: amount }),
-      /** Cancelar: `{ reason, stage, fee }` (el costo es de ejemplo). Suelta el reloj. */
-      cancel: (id, cancelled) =>
-        update(id, (order) => ({
+      /**
+       * Cancelar: `{ reason, stage, fee }` (el costo es de ejemplo). Suelta el reloj, y los créditos y el cupón que usó
+       * el pedido vuelven al saldo de la demo.
+       */
+      cancel: (id, cancelled) => {
+        const order = orders.find((o) => o.id === id)
+        if (!order || order.cancelled) return
+        update(id, (prev) => ({
           cancelled: { ...cancelled, at: Date.now() },
           heldAt: undefined,
-          pausedMs: (order.pausedMs ?? 0) + (order.heldAt ? Date.now() - order.heldAt : 0),
-        })),
+          heldBy: undefined,
+          pausedMs: (prev.pausedMs ?? 0) + (prev.heldAt ? Date.now() - prev.heldAt : 0),
+        }))
+        addCredits(order.credits ?? 0)
+        if (order.coupon) markCoupon(order.coupon.code, false)
+      },
       /** «Aún tiene solución»: cambiar la dirección o el medio de pago en vez de cancelar. */
       change: (id, change) => update(id, change),
       hold,
       release,
       /** El cambio en vivo ya resuelto (`liveChanges.js: resolveChange`). */
       resolveLiveChange: (id, liveChange) => update(id, { liveChange }),
-      /** Una solicitud de «Ayuda con este pedido» (de demostración: no mueve dinero). */
-      addHelp: (id, request) =>
-        update(id, (order) => ({ help: [...(order.help ?? []), { ...request, at: Date.now() }] })),
+      /**
+       * Una solicitud de «Ayuda con este pedido» (de demostración: no mueve dinero real). Un reembolso en créditos se
+       * suma al saldo de créditos de ejemplo.
+       */
+      addHelp: (id, request) => {
+        update(id, (order) => ({ help: [...(order.help ?? []), { ...request, at: Date.now() }] }))
+        if (request.method === 'creditos') addCredits(request.amount)
+      },
     }),
     [orders, placeMany, update, hold, release],
   )

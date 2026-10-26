@@ -138,6 +138,28 @@ describe('la ayuda, el resumen y el último pedido (rappi_agent.py: _small_talk)
     const order = said('¿dónde viene mi pedido?')
     expect(order.intent.kind).toBe('pedido')
     expect(order.actions).toEqual([{ label: 'Ver mis pedidos', route: ['orders'] }])
+    // Los textos fijos de hoy: «Pedir por mí» sí pide, y el seguimiento cancela (ya no «el chat de soporte»).
+    expect(summary.text).toMatch(/si no me diste permiso con «Pedir por mí»/)
+    expect(order.text).toMatch(/lo cancelas antes de que salga/)
+    expect(order.text).not.toMatch(/chat/)
+  })
+
+  test('el saludo, el «gracias», el fuera de tema y una risa tienen su respuesta, con ideas para tocar', () => {
+    const hello = said('hola')
+    expect(hello).toMatchObject({ intent: { kind: 'saludo' }, actions: HELP_ACTIONS })
+    expect(hello.text).toMatch(/^¡Hola! Soy .+ Toca una idea/)
+    expect(said('holaaaa', 'actual').actions).toEqual(HELP_EXAMPLES)
+    expect(said('ok gracias')).toMatchObject({ intent: { kind: 'gracias' } })
+    expect(said('ok gracias').actions ?? []).toEqual([])
+    expect(said('cuéntame un chiste')).toMatchObject({ intent: { kind: 'fuera' }, actions: HELP_ACTIONS })
+    const laugh = said('jajaja')
+    expect(laugh).toMatchObject({ intent: { kind: 'vacio' }, actions: HELP_ACTIONS })
+    expect(laugh.unmet).toBeFalsy()
+  })
+
+  test('gana la frase con más palabras, y una ocasión se busca', () => {
+    expect(said('ayuda con mi pedido').intent.kind).toBe('pedido')
+    expect(said('ayuda para el asado').intent.kind).not.toBe('ayuda')
   })
 })
 

@@ -23,7 +23,8 @@ const MIN_SERVICE_FEE = 490
 // dice «≥20 %»). El precio del plan sí es el público de Rappi (CLP 4.990 al mes, docs/ecosistema-rappi.md).
 export const PRO = { freeDeliveryMin: 10000, serviceDiscount: 0.2, monthlyPrice: 4990 }
 
-// Créditos de ejemplo: los $1.900 del banner de la Home (data/home.js, CREDITS), que vencen con su cuenta regresiva.
+// Créditos de ejemplo: los $1.900 del banner de la Home, que vencen con su cuenta regresiva. El saldo (lo gastado y lo
+// que suman la ayuda, la garantía de Turbo y las cancelaciones) vive en state/credits.js.
 export const CREDITS = { amount: 1900, rule: 'Solo en productos: no en envío, servicio ni propina' }
 
 // Cupones de ejemplo. Uno activo a la vez (otro reemplaza al anterior). SUPER20 es solo de tiendas de Supermercado:
@@ -137,9 +138,10 @@ export function couponDiscount(coupon, baskets) {
 
 /**
  * Los totales del checkout a partir de las canastas con sus montos (`pricedBasket`). `coupon`: el cupón activo o null;
- * `credits`: si se usan los créditos (ya vigentes). Los créditos van solo en productos, después del cupón.
+ * `credits`: los créditos que se pueden usar (el saldo vigente, 0 si no se usan). Van solo en productos, después del
+ * cupón.
  */
-export function checkoutTotals(priced, { tip = 0, pickup = false, coupon = null, credits = false } = {}) {
+export function checkoutTotals(priced, { tip = 0, pickup = false, coupon = null, credits = 0 } = {}) {
   const subtotal = sum(priced, 'subtotal')
   const delivery = sum(priced, 'delivery')
   const typeFee = sum(priced, 'typeFee')
@@ -147,7 +149,7 @@ export function checkoutTotals(priced, { tip = 0, pickup = false, coupon = null,
   const appliedTip = pickup ? 0 : tip
   const couponResult = coupon ? couponDiscount(coupon, priced) : null
   const couponAmount = couponResult?.amount ?? 0
-  const creditsAmount = credits ? Math.min(CREDITS.amount, subtotal - couponAmount) : 0
+  const creditsAmount = Math.max(0, Math.min(credits, subtotal - couponAmount))
   return {
     subtotal,
     delivery,
@@ -169,13 +171,30 @@ export function checkoutTotals(priced, { tip = 0, pickup = false, coupon = null,
  * canasta en adelante; y la propina, en el primer pedido.
  */
 export function orderAmounts(priced, totals) {
+  return orderShares(priced, totals).map((share) => share.total)
+}
+
+/**
+ * Lo de cada pedido (`orderAmounts`) con lo que usó de los descuentos: `{ total, credits, coupon }`. Si se cancela ese
+ * pedido, sus créditos vuelven al saldo y su cupón se puede volver a usar (state/credits.js).
+ */
+export function orderShares(priced, totals) {
   let credits = totals.credits
   return priced.map((basket, i) => {
     const coupon = totals.coupon?.basketKey === basket.key ? totals.couponAmount : 0
     const used = Math.min(credits, basket.subtotal - coupon)
     credits -= used
-    return (
-      basket.subtotal + basket.delivery + basket.typeFee + basket.service - coupon - used + (i === 0 ? totals.tip : 0)
-    )
+    return {
+      total:
+        basket.subtotal +
+        basket.delivery +
+        basket.typeFee +
+        basket.service -
+        coupon -
+        used +
+        (i === 0 ? totals.tip : 0),
+      credits: used,
+      coupon,
+    }
   })
 }

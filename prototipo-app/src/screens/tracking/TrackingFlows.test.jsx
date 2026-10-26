@@ -1,5 +1,6 @@
 // Los flujos del seguimiento de la fase 8: cancelar con rescate, programado, cambios en vivo del Súper, el atraso del
 // «Panel de la demo», «Ayuda con este pedido» y la compra dividida en pedidos por tienda.
+import { useState } from 'react'
 import { act, cleanup, fireEvent, render, screen, within } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest'
 import { fixture, stubApi } from '../../test/api'
@@ -10,6 +11,7 @@ import { CartProvider } from '../../state/CartContext'
 import { DemoProvider } from '../../state/DemoContext'
 import { resetQuiet } from '../../state/agentQuiet'
 import { OrdersProvider, useOrders } from '../../state/OrdersContext'
+import { markCoupon, readWallet, spendCredits } from '../../state/credits'
 import { ProfileProvider } from '../../state/ProfileContext'
 import { DEMO_DELAY_EVENT } from './delay'
 import TrackingScreen from './TrackingScreen'
@@ -199,6 +201,9 @@ describe('programado', () => {
     await advance(1000)
     expect(screen.getByText('Programado para')).toBeTruthy()
     expect(screen.getByRole('heading', { name: 'hoy 15:00–16:00' })).toBeTruthy()
+    // Confirmado ya está hecho; sin ruta en el mapa hasta su franja.
+    expect(screen.getByText('Pedido confirmado').closest('li').className).toBe('is-done')
+    expect(document.querySelector('.tracking-route')).toBeNull()
     fireEvent.click(screen.getByRole('button', { name: 'Cancelar pedido' }))
     fireEvent.click(screen.getByRole('button', { name: 'Otro motivo' }))
     expect(screen.getByText('Tu pedido aún no empieza: cancelarlo no tiene costo.')).toBeTruthy()
@@ -260,6 +265,10 @@ describe('atraso del «Panel de la demo»', () => {
     expect(notice.textContent).toMatch(/te devolvemos \$6\.500 en Créditos de/)
     expect(notice.textContent).toMatch(/son de ejemplo, no reglas de Rappi/)
     expect(Number(screen.getByRole('heading', { level: 1 }).textContent.replace(/\D/g, ''))).toBeGreaterThan(before)
+    // La garantía de ejemplo se suma al saldo de créditos de la demo (lo usa el próximo checkout), una sola vez.
+    expect(readWallet().extra).toBe(6_500)
+    act(() => window.dispatchEvent(new Event(DEMO_DELAY_EVENT)))
+    expect(readWallet().extra).toBe(6_500)
     // Se queda en su paso unos segundos más: a los 20 s de la demo todavía no llega.
     await advance(16_000)
     expect(screen.queryByText('¡Disfruta tu pedido!')).toBeNull()
@@ -295,8 +304,141 @@ describe('ayuda con este pedido', () => {
     expect(saved()[0].help).toEqual([
       expect.objectContaining({ items: [0], reason: 'mal_estado', method: 'creditos', amount: 10_000 }),
     ])
+    // El reembolso en créditos de ejemplo se suma al saldo de la demo.
+    expect(readWallet().extra).toBe(10_000)
+  })
+
+  test('después de un sustituto, se reembolsa el sustituto que se cobró y no el agotado', async () => {
+    renderTracking([SUPER])
+    await advance(4000)
+    const alert = screen.getByRole('region', { name: 'Tus productos te necesitan' })
+    fireEvent.click(within(alert).getByRole('button', { name: /Elegir un sustituto/ }))
+    fireEvent.click(within(alert).getAllByRole('button')[0])
+    const { product } = saved()[0].liveChange
+    await advance(21_000)
+    fireEvent.click(screen.getByRole('button', { name: 'Ayuda con este pedido' }))
+    const sheet = screen.getByRole('dialog', { name: 'Ayuda con este pedido' })
+    expect(within(sheet).queryByRole('button', { name: '2 × Tallarines (prueba)' })).toBeNull()
+    fireEvent.click(within(sheet).getByRole('button', { name: `2 × ${product.name}` }))
+    fireEvent.click(within(sheet).getByRole('button', { name: 'No llegó' }))
+    fireEvent.click(within(sheet).getByRole('button', { name: 'Siguiente' }))
+    const charged = 2 * Number(product.price.replace(/\D/g, ''))
+    expect(saved()[0].liveChange.delta).toBe(charged - 2_580)
+    expect(within(sheet).getByText(`$${charged.toLocaleString('es-CL')}`, { exact: false })).toBeTruthy()
+  })
+
+  test('con el producto reembolsado en vivo, ya no aparece para pedir ayuda', async () => {
+    renderTracking([SUPER])
+    await advance(4000)
+    fireEvent.click(screen.getByRole('button', { name: /Prefiero el reembolso/ }))
+    await advance(21_000)
+    fireEvent.click(screen.getByRole('button', { name: 'Ayuda con este pedido' }))
+    const sheet = screen.getByRole('dialog', { name: 'Ayuda con este pedido' })
+    expect(
+      within(within(sheet).getByRole('group', { name: 'Productos con problemas' })).queryAllByRole('button'),
+    ).toEqual([])
   })
 })
+
+describe('créditos y cupón de un pedido cancelado', () => {
+  test('vuelven al saldo de la demo: los créditos se suman y el cupón se puede volver a usar', async () => {
+    spendCredits(1_000)
+    markCoupon('BIENVENIDA')
+    renderTracking([{ ...RESTAURANT, credits: 1_000, coupon: { code: 'BIENVENIDA', amount: 2_000 } }])
+    await advance(1000)
+    fireEvent.click(screen.getByRole('button', { name: 'Cancelar pedido' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Ya no lo necesito' }))
+    fireEvent.click(within(screen.getByRole('dialog')).getByRole('button', { name: 'Cancelar pedido' }))
+    expect(readWallet().extra).toBe(1_000)
+    expect(readWallet().coupons).toEqual([])
+  })
+})
+
+describe('la pausa de «Cancelar pedido»', () => {
+  test('si el paso cambia justo al abrir la hoja, el pedido no queda detenido', async () => {
+    renderTracking()
+    await advance(8_500) // el último tic del reloj fue a los 8 s: todavía se puede cancelar
+    vi.setSystemTime(Date.now() + 1_000) // el reloj real ya pasó a «En camino», sin tic todavía
+    fireEvent.click(screen.getByRole('button', { name: 'Cancelar pedido' }))
+    await advance(0)
+    expect(saved()[0].heldAt).toBeUndefined()
+    await advance(1000) // con el tic, ya va en camino: no se cancela
+    expect(screen.queryByRole('button', { name: 'Cancelar pedido' })).toBeNull()
+    await advance(15_000)
+    expect(screen.getByText('¡Disfruta tu pedido!')).toBeTruthy()
+  })
+
+  test('al recargar con la hoja abierta, el pedido sigue su reloj', async () => {
+    renderTracking()
+    await advance(1000)
+    fireEvent.click(screen.getByRole('button', { name: 'Cancelar pedido' }))
+    expect(saved()[0]).toMatchObject({ heldBy: 'cancelar' })
+    const stored = localStorage.getItem('rappi-proto-orders')
+    cleanup()
+    localStorage.setItem('rappi-proto-orders', stored) // lo que quedó guardado al recargar, con la pausa
+    render(
+      <OrdersProvider>
+        <Saved />
+      </OrdersProvider>,
+    )
+    expect(saved()[0].heldAt).toBeUndefined()
+    expect(saved()[0].pausedMs).toBeGreaterThanOrEqual(0)
+  })
+})
+
+describe('pasar de un pedido a otro de la misma compra', () => {
+  test('la calificación de un pedido no aparece marcada en el otro', async () => {
+    function Switcher() {
+      const orders = useOrders()
+      const [index, setIndex] = useState(0)
+      const order = orders.orders[index]
+      if (!order)
+        return (
+          <button type="button" onClick={() => orders.placeMany([RESTAURANT, SUPER])}>
+            pedir
+          </button>
+        )
+      return (
+        <>
+          <button type="button" onClick={() => setIndex(1)}>
+            otro
+          </button>
+          <TrackingScreen back={() => {}} reset={() => {}} push={push} params={{ orderId: order.id }} />
+        </>
+      )
+    }
+    render(
+      <DemoProvider>
+        <ProfileProvider>
+          <AssistantProvider>
+            <CartProvider>
+              <OrdersProvider>
+                <AddressProvider>
+                  <ToastProvider>
+                    <Switcher />
+                  </ToastProvider>
+                </AddressProvider>
+              </OrdersProvider>
+            </CartProvider>
+          </AssistantProvider>
+        </ProfileProvider>
+      </DemoProvider>,
+    )
+    fireEvent.click(screen.getByText('pedir'))
+    await advance(21_000)
+    fireEvent.click(screen.getByRole('radio', { name: '2 estrellas' }))
+    expect(screen.getByRole('radio', { name: '2 estrellas' }).getAttribute('aria-checked')).toBe('true')
+    fireEvent.click(screen.getByText('otro'))
+    expect(screen.getByRole('radio', { name: '2 estrellas' }).getAttribute('aria-checked')).toBe('false')
+  })
+})
+
+// Lee los pedidos del proveedor (y los guarda, como al cambiar algo).
+function Saved() {
+  const orders = useOrders()
+  orders.orders.length && localStorage.setItem('rappi-proto-orders', JSON.stringify(orders.orders))
+  return null
+}
 
 describe('una compra en dos tiendas', () => {
   test('cada pedido tiene su seguimiento y se pasa de uno a otro; la calificación dice su tienda', async () => {

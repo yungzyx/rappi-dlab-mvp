@@ -21,7 +21,7 @@ const canDrag = () => typeof window !== 'undefined' && window.matchMedia?.('(poi
  * Producto de supermercado/farmacia/botillería (Meat & Seafood, beers, Baby care…). Tocarlo abre su hoja; el "+" va
  * aparte. Con `impression`, la tarjeta cuenta como vista en su lista cuando aparece en pantalla (api/impressions.js).
  */
-export function ProductCard({ product, onOpenStore, impression = false }) {
+export function ProductCard({ product, onOpenStore, impression = false, showStore = true }) {
   const sheet = useProductSheet()
   const watch = useImpressions()
   const final = useDemo()?.isFinal === true
@@ -92,7 +92,7 @@ export function ProductCard({ product, onOpenStore, impression = false }) {
         <span className="product-name">{product.name}</span>
         <span className="product-size">{product.size}</span>
         <span className="product-unit">{product.unit}</span>
-        <StoreLine item={product} />
+        {showStore && <StoreLine item={product} />}
       </button>
       <AddButton product={product} className="add-button--grocery" />
     </div>

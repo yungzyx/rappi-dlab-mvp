@@ -5,6 +5,7 @@ import { REORDER_ORIGIN, availability, canReorder, reorderLines, reorderPlan } f
 import { formatPrice, lineKey, parsePrice, useCart } from '../../state/CartContext'
 import { useEvents } from '../../state/EventsContext'
 import { useOrders } from '../../state/OrdersContext'
+import { orderTotal } from '../../screens/tracking/liveChanges'
 import { isDelivered, secondsSince } from '../../screens/tracking/progress'
 import HScroll from '../HScroll'
 import Img from '../Img'
@@ -179,7 +180,8 @@ export function ReorderCarousel({ storeId, onOpenStore }) {
       <HScroll className="reorder-items">
         {products.map((product) => (
           <div key={lineKey(product)} className="reorder-item">
-            <ProductCard product={product} onOpenStore={onOpenStore} />
+            {/* Dentro de su propia tienda no repite el nombre de la tienda; cuenta como vista en su lista. */}
+            <ProductCard product={product} onOpenStore={onOpenStore} showStore={false} impression />
           </div>
         ))}
       </HScroll>
@@ -220,7 +222,8 @@ export function ReorderHomeRow() {
             <Img src={order.items[0]?.img} />
             <strong>{order.stores.join(', ') || 'Tu pedido'}</strong>
             <span>
-              {units(order.items)} {units(order.items) === 1 ? 'producto' : 'productos'} · {formatPrice(order.total)}
+              {units(order.items)} {units(order.items) === 1 ? 'producto' : 'productos'} ·{' '}
+              {formatPrice(orderTotal(order))}
             </span>
             <ReorderButton order={order} surface="home" position={position} />
           </div>

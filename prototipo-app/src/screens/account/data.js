@@ -22,8 +22,9 @@ import {
 export const PROFILE = { initials: 'CD', name: 'Cliente Demo' }
 
 export const PRO_PLAN = {
+  // Supuesto de la demo (no es una cifra de Rappi): se rotula «de ejemplo».
   savings: '$15.400',
-  note: 'Es lo que ahorra en promedio al mes un usuario Pro.',
+  note: 'Ahorro de ejemplo al mes de un usuario Pro (no es una cifra de Rappi).',
   pitch: 'Envíos gratis sobre $10.000 y menos tarifa de servicio (montos de ejemplo).',
   toggle: 'Demo: toca para cambiar de persona Pro a sin Pro.',
 }
