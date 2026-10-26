@@ -194,4 +194,39 @@ describe('pedir por mí', () => {
     expect(deletes).toHaveLength(1)
     expect(orderCalls()).toHaveLength(0)
   })
+
+  test('otra respuesta no se lleva el «Deshacer pedido»: la tarjeta queda fija y se puede deshacer', async () => {
+    api.ask.mockResolvedValueOnce(fixture('agent-ask-autopedido')).mockResolvedValue(fixture('agent-ask'))
+    await ask('pide lo de siempre')
+    fireEvent.click(screen.getByRole('button', { name: '🍫 Algo dulce' }))
+    await advance(1000)
+    expect(api.ask).toHaveBeenCalledTimes(2)
+    expect(document.querySelectorAll('.agent-auto')).toHaveLength(1)
+    fireEvent.click(screen.getByRole('button', { name: 'Deshacer pedido' }))
+    await advance(UNDO_MS * 2)
+    expect(orderCalls()).toHaveLength(0)
+    expect(demoOrders).toHaveLength(0)
+  })
+
+  test('si no se deshace, sale igual aunque haya llegado otra respuesta', async () => {
+    api.ask.mockResolvedValueOnce(fixture('agent-ask-autopedido')).mockResolvedValue(fixture('agent-ask'))
+    await ask('pide lo de siempre')
+    fireEvent.click(screen.getByRole('button', { name: '🍫 Algo dulce' }))
+    await advance(UNDO_MS)
+    await advance(0)
+    await advance(0)
+    expect(orderCalls()).toHaveLength(1)
+    expect(demoOrders).toHaveLength(1)
+    // Ya salió: la tarjeta deja de estar fija y queda la última respuesta.
+    expect(document.querySelector('.agent-auto')).toBeNull()
+  })
+
+  test('cerrar el buscador con el pedido en su ventana lo deshace: nada sale sin que se vea', async () => {
+    api.ask.mockResolvedValue(fixture('agent-ask-autopedido'))
+    await ask('pide lo de siempre')
+    fireEvent.click(screen.getByRole('button', { name: 'Volver' }))
+    await advance(UNDO_MS * 2)
+    expect(orderCalls()).toHaveLength(0)
+    expect(demoOrders).toHaveLength(0)
+  })
 })

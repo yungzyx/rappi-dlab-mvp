@@ -28,6 +28,7 @@ import { useToast } from '../Toast'
 import BackButton from '../BackButton'
 import ForgetConfirm, { FORGET_TITLE } from '../ForgetConfirm'
 import Sheet from '../Sheet'
+import { AutoOrderCard } from './AgentCards'
 import AgentMessage from './AgentMessage'
 import AskAgentRow from './AskAgentRow'
 import AutonomyEditor from './AutonomyEditor'
@@ -59,6 +60,8 @@ const STOPPED = 'Listo, paré aquí.'
 const AUTO_OFF = 'Listo: vuelvo a revisar antes de pedir.'
 const AUTO_OFF_FAILED = 'No pude apagarlo ahora. Intenta de nuevo.'
 const AUTO_NOT_SENT = 'no pude enviarlo ahora'
+const AUTO_SENT = (store) => `Listo, pedí lo de siempre en ${store}: está en Mis pedidos.`
+const AUTO_UNDONE_ON_CLOSE = (store) => `No pedí lo de siempre en ${store}: cerraste antes de que saliera.`
 const KIT_OPTIONS = 4
 // Lo que Mochi sabe hacer, al abrir (como el «Puedo ayudarte a:» de la app de Rappi): repetir lo de siempre (la
 // recompra), armar un kit (los planes) y algo para ti (el perfil de gusto o, sin él, lo que le recomienda). Nada de
@@ -149,6 +152,8 @@ export default function AssistantPanel({ push, vertical, depth = 1 }) {
   const [tuning, setTuning] = useState(false)
   const [autoStatus, setAutoStatus] = useState({})
   const autoTimers = useRef(new Map())
+  // La respuesta en pantalla: un autopedido que sale cuando ya no se ve avisa con un toast.
+  const shownAnswer = useRef(null)
   // La respuesta en curso, para «Cancelar» (su AbortController).
   const pending = useRef(null)
   const search = useSearch({ vertical })
@@ -339,6 +344,17 @@ export default function AssistantPanel({ push, vertical, depth = 1 }) {
   }
 
   /**
+   * Lo que Mochi iba a pedir solo y todavía está en su ventana: con el buscador cerrado ya no se ve su «Deshacer
+   * pedido», así que no sale (nada se pide sin que la ventana esté a la vista) y un toast lo dice.
+   */
+  const undoWaitingOnClose = () => {
+    const waiting = messages.filter((m) => m.autoOrder && autoStatus[m.autoOrder.key]?.state === 'waiting')
+    if (!waiting.length) return
+    undoAllAuto()
+    toast?.(AUTO_UNDONE_ON_CLOSE(waiting.at(-1).autoOrder.store.name))
+  }
+
+  /**
    * Cerrada la ventana: el pedido va a la API marcado `autopedido`, que vuelve a revisar cada límite. Si lo toma, queda
    * en los pedidos de la demo con su seguimiento; si no (un 409 con el motivo, o sin conexión), se revisa antes.
    */
@@ -355,6 +371,7 @@ export default function AssistantPanel({ push, vertical, depth = 1 }) {
       )
       const orderId = orders?.place(demoOrder(order, { cartId, total: order.total, address: address?.selected.line }))
       setAuto(order.key, { state: 'sent', orderId })
+      if (shownAnswer.current?.autoOrder?.key !== order.key) toast?.(AUTO_SENT(order.store.name))
     } catch (error) {
       setAuto(order.key, { state: 'review', reason: error?.detail?.motivo ?? AUTO_NOT_SENT })
     }
@@ -592,6 +609,7 @@ export default function AssistantPanel({ push, vertical, depth = 1 }) {
   }, [phase])
 
   const close = ({ viaHistory = false } = {}) => {
+    undoWaitingOnClose()
     setPhase('closing')
     later(() => {
       setPhase('closed')
@@ -641,6 +659,10 @@ export default function AssistantPanel({ push, vertical, depth = 1 }) {
 
   // Teclado y VoiceOver: foco adentro al abrir, Escape cierra, Tab no sale, el foco vuelve al cerrar.
   useDialog(rootRef, assistant.isOpen, () => closeRef.current())
+
+  useEffect(() => {
+    shownAnswer.current = messages.findLast((m) => m.from === 'bot')
+  }, [messages])
 
   const markStreamed = useCallback((id) => {
     setMood((m) => (m === 'talk' ? 'idle' : m))
@@ -692,6 +714,11 @@ export default function AssistantPanel({ push, vertical, depth = 1 }) {
 
   // Lo que el agente muestra es su última respuesta (no un historial), con lo dicho en esa conversación.
   const current = messages.findLast((m) => m.from === 'bot')
+  // Un autopedido en su ventana (o saliendo) queda fijo arriba aunque llegue otra respuesta: su «Deshacer pedido» no se
+  // pierde con un chip, una idea u otra búsqueda.
+  const pinnedAuto = messages.findLast(
+    (m) => m.autoOrder && m !== current && ['waiting', 'sending'].includes(autoStatus[m.autoOrder.key]?.state),
+  )
   const asked = messages.findLast((m) => m.from === 'user')
   const showAsked = asked && current && messages.indexOf(asked) < messages.indexOf(current)
   // Mientras Mochi escribe no se sabe si la pregunta sigue la conversación: solo ella.
@@ -821,6 +848,19 @@ export default function AssistantPanel({ push, vertical, depth = 1 }) {
               </p>
 
               {taste && <ProfileCard profile={taste.profile} />}
+
+              {pinnedAuto && (
+                <AutoOrderCard
+                  order={pinnedAuto.autoOrder}
+                  status={autoStatus[pinnedAuto.autoOrder.key]}
+                  revealed
+                  onShown={armAuto}
+                  onUndo={undoAuto}
+                  onReview={reviewAuto}
+                  onTurnOff={turnOffAuto}
+                  onTrack={(orderId) => go('tracking', { orderId })}
+                />
+              )}
 
               {showAsked && (
                 <p className="agent-asked">
