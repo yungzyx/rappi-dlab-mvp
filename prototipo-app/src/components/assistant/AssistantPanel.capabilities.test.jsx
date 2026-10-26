@@ -210,6 +210,41 @@ describe('el estado del pedido', () => {
   })
 })
 
+describe('el último pedido, con un botón', () => {
+  const placedAt = () => Date.now() - 10_000
+  const order = () => ({
+    id: 'order-1',
+    placedAt: placedAt(),
+    stores: ['Pizzería'],
+    items: [{ name: 'Pizza' }],
+    total: 9990,
+  })
+
+  test('sin pedidos no hay botón; con uno, «Mi último pedido» lo muestra sin preguntarle a la API', async () => {
+    await renderPanel()
+    expect(screen.queryByRole('button', { name: '📦 Mi último pedido' })).toBeNull()
+    cleanup()
+    localStorage.setItem('rappi-proto-orders', JSON.stringify([order()]))
+    const push = await renderPanel()
+    fireEvent.click(screen.getByRole('button', { name: '📦 Mi último pedido' }))
+    await runUntilIdle()
+    expect(api.ask).not.toHaveBeenCalled()
+    expect(bubbles().at(-1)).toBe('Así va tu último pedido 🛵')
+    const card = screen.getByRole('region', { name: 'Tu último pedido' })
+    fireEvent.click(within(card).getByRole('button', { name: 'Ver seguimiento →' }))
+    await runUntilIdle()
+    expect(push).toHaveBeenCalledWith('tracking', { orderId: 'order-1' })
+  })
+
+  test('también en «Rappi hoy», sin los atajos de la propuesta', async () => {
+    localStorage.setItem('rappi-proto-demo-mode', 'actual')
+    localStorage.setItem('rappi-proto-orders', JSON.stringify([order()]))
+    await renderPanel()
+    expect(screen.getByRole('button', { name: '📦 Mi último pedido' })).toBeTruthy()
+    expect(screen.queryByRole('button', { name: '🔁 Repite lo de siempre' })).toBeNull()
+  })
+})
+
 describe('mientras espera la respuesta', () => {
   test('dice qué hace y «Cancelar» corta la respuesta en curso', async () => {
     let signal
@@ -226,11 +261,43 @@ describe('mientras espera la respuesta', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Cancelar' }))
     await runUntilIdle()
     expect(signal.aborted).toBe(true)
-    expect(bubbles().at(-1)).toBe('Listo, paré aquí. ¿Qué otra cosa buscas?')
+    expect(bubbles().at(-1)).toBe('Listo, paré aquí.')
   })
 })
 
 describe('mis preferencias', () => {
+  test('se abren con su botón y todo se elige con opciones, también las tiendas de sus pedidos', async () => {
+    const withStore = {
+      ...fixture('profile-preferencias'),
+      preferencias: [],
+      opciones: [...fixture('profile-preferencias').opciones, { tipo: 'tienda', valor: 'Jumbo', nombre: 'Jumbo' }],
+    }
+    fetchMock = stubApi({
+      '/catalog/home': fixture('catalog-home'),
+      'GET /profile/*': (req) => (req.path.endsWith('/preferencias') ? withStore : undefined),
+      'PUT /profile/*': (req) => ({ ...withStore, preferencias: req.body.preferencias }),
+    })
+    await renderPanel()
+    fireEvent.click(screen.getByRole('button', { name: 'Mis preferencias' }))
+    await runUntilIdle()
+    const sheet = screen.getByRole('dialog', { name: 'Mis preferencias' })
+    expect(sheet.querySelector('input, textarea')).toBeNull()
+    expect(sheet.textContent).not.toMatch(/chat|dímel/i)
+    fireEvent.click(within(sheet).getByRole('button', { name: 'Jumbo' }))
+    fireEvent.click(within(sheet).getByRole('button', { name: 'Guardar' }))
+    await runUntilIdle()
+    const put = fetchMock.mock.calls.find(([, init]) => init?.method === 'PUT')
+    expect(JSON.parse(put[1].body).preferencias).toEqual([{ tipo: 'tienda', valor: 'Jumbo' }])
+  })
+
+  test('sin tiendas de sus pedidos, dice que aparecen al pedir (no que se las escriba)', async () => {
+    await renderPanel()
+    fireEvent.click(screen.getByRole('button', { name: 'Mis preferencias' }))
+    await runUntilIdle()
+    const sheet = screen.getByRole('dialog', { name: 'Mis preferencias' })
+    expect(sheet.textContent).toContain('Cuando pidas en una tienda, aparece aquí para marcarla.')
+  })
+
   test('se abren desde la respuesta, muestran lo guardado y se guardan', async () => {
     api.ask.mockResolvedValueOnce(fixture('agent-ask-preferencia'))
     await renderPanel()

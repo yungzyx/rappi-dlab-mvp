@@ -1,5 +1,5 @@
 // Si lo escrito en el buscador parece una pregunta para Mochi y no el nombre de un producto: entonces Enter le pregunta
-// a Mochi (y su fila va resaltada); si no, Enter busca como siempre. Tocar «Pregúntale a Mochi» pregunta siempre.
+// a Mochi (y su fila va resaltada); si no, Enter busca como siempre. Tocar «Pídele a Mochi» se lo pide siempre.
 
 const strip = (text) =>
   text

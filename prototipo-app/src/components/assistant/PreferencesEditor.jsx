@@ -7,9 +7,10 @@ export const PREFERENCES_TITLE = 'Mis preferencias'
 const same = (a) => (b) => a.tipo === b.tipo && a.valor === b.valor
 
 /**
- * «Mis preferencias», dentro de una hoja: la dieta, las alergias y las cocinas que se marcan, y las tiendas favoritas
- * que se dijeron por chat (aquí solo se quitan). Se monta al abrir la hoja (lee lo guardado) y guarda con «Guardar»
- * (`PUT /profile/{id}/preferencias`). `onSaved` recibe la lista que quedó.
+ * «Mis preferencias», dentro de una hoja: la dieta, las alergias, las cocinas y las tiendas favoritas se eligen entre
+ * opciones, sin escribir nada (las tiendas son aquellas donde la persona ya pidió, más las que ya tenía marcadas). Se
+ * monta al abrir la hoja (lee lo guardado) y guarda con «Guardar» (`PUT /profile/{id}/preferencias`). `onSaved` recibe
+ * la lista que quedó.
  */
 export default function PreferencesEditor({ onSaved }) {
   const [status, setStatus] = useState('loading') // loading | ready | saving | error | save-error
@@ -50,7 +51,9 @@ export default function PreferencesEditor({ onSaved }) {
     setChosen((list) => (list.some(same(option)) ? list.filter((p) => !same(option)(p)) : [...list, option]))
   const filters = options.filter((o) => o.tipo === 'dieta' || o.tipo === 'alergia')
   const cuisines = options.filter((o) => o.tipo === 'cocina')
-  const stores = chosen.filter((p) => p.tipo === 'tienda')
+  // Las marcadas primero (también una que ya no sale entre las de sus pedidos), y después las demás de sus pedidos.
+  const marked = chosen.filter((p) => p.tipo === 'tienda')
+  const stores = [...marked, ...options.filter((o) => o.tipo === 'tienda' && !marked.some(same(o)))]
   const busy = status === 'saving'
 
   return (
@@ -61,24 +64,13 @@ export default function PreferencesEditor({ onSaved }) {
       </p>
       <Group title="Dieta y alergias" options={filters} chosen={chosen} onToggle={toggle} disabled={busy} />
       <Group title="Cocinas favoritas" options={cuisines} chosen={chosen} onToggle={toggle} disabled={busy} />
-      <h3 className="agent-prefs-title">Tiendas favoritas</h3>
       {stores.length ? (
-        <div className="agent-prefs-chips">
-          {stores.map((store) => (
-            <button
-              key={store.valor}
-              type="button"
-              className="assistant-chip agent-prefs-chip is-on"
-              aria-label={`Quitar ${store.nombre}`}
-              disabled={busy}
-              onClick={() => toggle(store)}
-            >
-              {store.nombre} ×
-            </button>
-          ))}
-        </div>
+        <Group title="Tiendas favoritas" options={stores} chosen={chosen} onToggle={toggle} disabled={busy} />
       ) : (
-        <p className="agent-prefs-note">Dímelas en el chat: «mi tienda favorita es…».</p>
+        <>
+          <h3 className="agent-prefs-title">Tiendas favoritas</h3>
+          <p className="agent-prefs-note">Cuando pidas en una tienda, aparece aquí para marcarla.</p>
+        </>
       )}
       {status === 'save-error' && <p role="alert">No pude guardar. No cambió nada: inténtalo de nuevo.</p>}
       <button type="button" className="sheet-confirm-primary tap" disabled={busy} onClick={() => save(chosen)}>

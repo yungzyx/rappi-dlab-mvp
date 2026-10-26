@@ -9,14 +9,14 @@
 //   con --kit: busca «cerveza» en el buscador con Mochi (ve la búsqueda agrupada por vertical), vuelve a la Home, elige
 //     la ocasión «Carrete», agrega el kit que arma Mochi (`plan`) y paga; scripts/mvp-check.sh verifica después en la base
 //     de prueba que el pedido tiene líneas sembradas y al menos una aceptación `agent-plan`;
-//   con --ask: preguntarle a Mochi en texto libre. En el buscador con Mochi escribe «¿qué es un completo?»: la primera fila
-//     es «Pregúntale a <agente>», resaltada; Enter se lo pregunta y la tarjeta de Mochi muestra «Preguntaste «…»», la
+//   con --ask: pedirle algo a Mochi en texto libre. En el buscador con Mochi escribe «¿qué es un completo?»: la primera
+//     fila es «Pídele a <agente>», resaltada; Enter se lo pide y la tarjeta de Mochi muestra «Pediste «…»», la
 //     ficha del plato y el completo del catálogo de prueba. Después «mi hijo tiene fiebre, ¿qué le doy?»: Mochi no da
 //     consejo médico, nombra al químico farmacéutico y ofrece «Ir a Farmacia», sin productos;
-//   con --follow: seguir la conversación con Mochi. Pregunta «¿tienen pizza?» y toca «Más barato» debajo de la respuesta:
-//     la tarjeta dice «Preguntaste «¿tienen pizza?» · «más barato»», «Lo más barato de…» y la pizza más barata del
-//     catálogo de prueba va primero. Después escribe «otra opción» en el campo para seguir: ya vio las dos, y Mochi lo
-//     dice («No encontré otras opciones de…») en vez de repetirlas;
+//   con --follow: refinar la respuesta de Mochi con chips (sin chat). Pregunta «¿tienen pizza?» y toca «Más barato»
+//     debajo de la respuesta: la tarjeta dice «Pediste «¿tienen pizza?» · «más barato»», «Lo más barato de…» y la pizza
+//     más barata del catálogo de prueba va primero. Después toca «Otra opción»: ya vio las dos, y Mochi lo dice («No
+//     encontré otras opciones de…») en vez de repetirlas. No hay ningún campo para escribirle aparte del buscador;
 //   con --home: Home dinámica. Una persona nueva ve los 6 accesos en el orden fijo, con Lealtad y Beneficios Pro al final y
 //     sin el texto «Ordenadas según lo que más usas»; toca «Rappi Mall» tres veces, volviendo a la Home cada
 //     vez, espera a que la API acepte los toques (`vertical_open`; al volver a la Home la app los manda y vuelve a pedir
@@ -210,7 +210,7 @@ async function checkKit(page) {
 }
 
 /**
- * Preguntarle a Mochi en texto libre desde el buscador: la ficha de un plato con lo que hay, y una pregunta de salud que
+ * Pedirle algo a Mochi en texto libre desde el buscador: la ficha de un plato con lo que hay, y una pregunta de salud que
  * no responde con remedios. Los textos son los de la app y la API (AskAgentRow, agent/glosario.toml, rappi_agent.py).
  */
 async function checkAsk(page) {
@@ -220,12 +220,10 @@ async function checkAsk(page) {
   const field = panel.getByRole('searchbox', { name: 'Buscar en Rappi' })
   const ask = async (question) => {
     await step(page, `escribir «${question}»`, () => field.fill(question))
-    const row = panel.getByRole('button', { name: `Pregúntale a ${AGENT_NAME}: «${question}»` })
-    await step(page, `ver «Pregúntale a ${AGENT_NAME}» resaltada`, () =>
-      row.and(panel.locator('.is-question')).waitFor(),
-    )
-    await step(page, 'preguntar con Enter', () => field.press('Enter'))
-    await step(page, `ver «Preguntaste «${question}»»`, () => panel.getByText(`Preguntaste «${question}»`).waitFor())
+    const row = panel.getByRole('button', { name: `Pídele a ${AGENT_NAME}: «${question}»` })
+    await step(page, `ver «Pídele a ${AGENT_NAME}» resaltada`, () => row.and(panel.locator('.is-question')).waitFor())
+    await step(page, 'pedírselo con Enter', () => field.press('Enter'))
+    await step(page, `ver «Pediste «${question}»»`, () => panel.getByText(`Pediste «${question}»`).waitFor())
   }
   await ask('¿qué es un completo?')
   await step(page, 'ver la ficha del completo', () =>
@@ -262,7 +260,7 @@ async function checkFollow(page) {
   await step(page, 'ver la respuesta con pizzas', () => bubble(/pizza/i))
   await step(page, 'tocar «Más barato»', () => panel.getByRole('button', { name: 'Más barato' }).click())
   await step(page, 'ver lo dicho en la conversación', () =>
-    panel.getByText('Preguntaste «¿tienen pizza?» · «más barato»').waitFor(),
+    panel.getByText('Pediste «¿tienen pizza?» · «más barato»').waitFor(),
   )
   await step(page, 'ver «Lo más barato de…»', () => bubble(/^Lo más barato de .*pizza/))
   await step(page, 'ver primero la pizza más barata', async () => {
@@ -273,11 +271,13 @@ async function checkFollow(page) {
     const first = (await panel.locator('.agent-msg-product-name').first().textContent()) ?? ''
     if (!first.startsWith('Pizza margarita mediana')) throw new Error(`la primera es «${first}»`)
   })
-  const follow = panel.getByRole('textbox', { name: `Sigue la conversación con ${AGENT_NAME}` })
-  await step(page, 'escribir «otra opción» en el campo para seguir', () => follow.fill('otra opción'))
-  await step(page, 'mandarlo con Enter', () => follow.press('Enter'))
+  await step(page, 'ver que no hay otro campo para escribirle', async () => {
+    const fields = await panel.locator('input, textarea, [contenteditable]').count()
+    if (fields !== 1) throw new Error(`hay ${fields} campos de texto en el panel`)
+  })
+  await step(page, 'tocar «Otra opción»', () => panel.getByRole('button', { name: 'Otra opción' }).click())
   await step(page, 'ver que no repite lo que ya mostró', () => bubble(/^No encontré otras opciones de .*pizza/))
-  return 'preguntó «¿tienen pizza?», tocó «Más barato» (la más barata primero) y escribió «otra opción» (sin repetir)'
+  return 'preguntó «¿tienen pizza?», tocó «Más barato» (la más barata primero) y «Otra opción» (sin repetir)'
 }
 
 /** Cuánto se espera a que Mochi termine de saludar y responda a un toque. */

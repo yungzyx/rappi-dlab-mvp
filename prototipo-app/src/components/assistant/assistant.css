@@ -29,46 +29,10 @@
   margin: 0;
 }
 
+/* El borde animado es el de la barra de la Home (`.smart-border`, smart-bar.css) */
 .agent-search-field {
-  --ring: 1.5px;
-  position: relative;
-  isolation: isolate;
-  overflow: hidden;
   border: 0;
   box-shadow: 0 6px 18px rgba(255, 90, 54, 0.12);
-}
-
-/* Borde con degradado (mismo truco que la barra de la Home): un cuadrado que gira detrás y un relleno blanco encima */
-.agent-search-field::before {
-  content: '';
-  position: absolute;
-  z-index: -2;
-  left: 50%;
-  top: 50%;
-  width: 130%;
-  aspect-ratio: 1;
-  background: conic-gradient(
-    #ffd9cb 0deg 150deg,
-    #ffc2a6 190deg,
-    #ff9a3d 250deg,
-    #ff5a36 300deg,
-    #ff3d7f 335deg,
-    #ffd9cb
-  );
-  transform: translate(-50%, -50%) rotate(0deg);
-}
-
-.agent-search-field::after {
-  content: '';
-  position: absolute;
-  z-index: -1;
-  inset: var(--ring);
-  border-radius: 99px;
-  background: var(--surface);
-}
-
-.assistant.is-open .agent-search-field::before {
-  animation: ring-turn 1100ms 120ms var(--ease-out) both;
 }
 
 /* ---------- Cuerpo ---------- */
@@ -185,12 +149,6 @@
   color: var(--ink-2);
 }
 
-@keyframes ring-turn {
-  to {
-    transform: translate(-50%, -50%) rotate(360deg);
-  }
-}
-
 @keyframes mascot-pop {
   0% {
     transform: scale(0.4) rotate(-14deg);
@@ -210,7 +168,6 @@
     transition: none;
   }
 
-  .assistant.is-open .agent-search-field::before,
   .assistant.is-open .agent-card,
   .assistant.is-open .agent-block,
   .assistant.is-open .agent-card-mascot {
@@ -265,20 +222,20 @@
   width: 100%;
 }
 
+/* El texto de la respuesta encabeza su tarjeta: a lo ancho y sin la cola de una burbuja de chat */
 .agent-msg-bubble {
-  max-width: 82%;
-  width: fit-content;
   padding: 11px 15px;
-  border-radius: 20px 20px 20px 6px;
+  border-radius: 16px;
   background: var(--surface);
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.06);
   font-size: 15.5px;
   line-height: 21px;
-  transform-origin: bottom left;
+  transform-origin: top left;
 }
 
 .agent-msg-typing {
   display: flex;
+  width: fit-content;
   gap: 5px;
   padding: 15px 16px;
 }
@@ -510,12 +467,8 @@
   background: #fff1eb;
 }
 
-/* ---------- Seguir la conversación con Mochi ---------- */
-.agent-follow {
-  margin-top: 2px;
-}
-
-/* Como la fila de productos: hasta el borde, con el margen adentro (la burbuja ya va con el margen de la pantalla) */
+/* ---------- Refinar la respuesta de Mochi (chips de un toque) ---------- */
+/* Como la fila de productos: hasta el borde, con el margen adentro (el texto ya va con el margen de la pantalla) */
 .agent-follow-chips {
   margin: 0 calc(-1 * var(--gutter));
   padding: 4px var(--gutter) 8px;
@@ -527,51 +480,8 @@
   font-weight: 600;
 }
 
-.agent-follow-chip:disabled,
-.agent-follow-send:disabled {
+.agent-follow-chip:disabled {
   opacity: 0.5;
-}
-
-.agent-follow-form {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin: 2px 0 10px;
-  padding: 0 5px 0 15px;
-  height: 44px;
-  border: 1.5px solid #ffd9ca;
-  border-radius: 99px;
-  background: var(--surface);
-}
-
-.agent-follow-form:focus-within {
-  border-color: var(--agent-orange);
-}
-
-.agent-follow-form input {
-  flex: 1;
-  min-width: 0;
-  border: 0;
-  outline: none;
-  background: none;
-  font: inherit;
-  font-size: 16px; /* 16 px: el celular no hace zoom al tocarlo */
-  color: var(--ink);
-}
-
-.agent-follow-form input::placeholder {
-  color: var(--ink-3);
-}
-
-.agent-follow-send {
-  display: grid;
-  flex: none;
-  place-items: center;
-  width: 34px;
-  height: 34px;
-  border-radius: 50%;
-  background: var(--agent-orange);
-  color: var(--surface);
 }
 
 /* ---------- Keyframes ---------- */
@@ -687,7 +597,7 @@
   font-weight: 800;
 }
 
-/* «Pregúntale a Mochi»: primera fila del buscador mientras se escribe (AskAgentRow) */
+/* «Pídele a Mochi»: primera fila del buscador mientras se escribe (AskAgentRow) */
 .agent-ask-row {
   display: flex;
   align-items: center;
