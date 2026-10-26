@@ -12,7 +12,8 @@
 // - rappi-ia/src/rappi_ia/motor/model.py, data.py .. la afinidad propia, sin «Rappi hoy» (motor.js)
 // - rappi-ia/src/rappi_ia/offers/engine.py ......... vertical por probar, recompra, volver, complementos (offers.js)
 // - rappi-ia/src/rappi_ia/offers/winback.py y motor/model.py (replenishment) ... recompra y volver (winback.js), con la
-//   pausa por una calificación mala (winback.js: paused, de los eventos `order_rated`)
+//   pausa por una calificación mala (winback.js: paused, de los eventos `order_rated`); un pedido cancelado
+//   (`order_cancelled`, state.js: cancelOrders e isConfirmed) no cuenta para la recompra, el motor ni los perfiles
 // - rappi-ia/src/rappi_ia/offers/engine.py (ontop_offer) ... el OnTop de Turbo en el seguimiento (offers.js: onTopOffer)
 // - rappi-ia/src/rappi_ia/catalog/stores.py (line_prices) y api/catalog.py (availability) ... «Pídelo de nuevo»
 //   (index.js: availability, con los precios de la muestra)
@@ -59,7 +60,7 @@ import { makeOffer } from './offers'
 import { applied, cleaned, CUISINES, describe, findStore, options, readCommand, withoutOf } from './preferences'
 import { ask, backendVertical, detectConcepts, search } from './search'
 import { loadSnapshot } from './snapshot'
-import { addEvents, addOrder, clearState, readState, updateState } from './state'
+import { addEvents, addOrder, cancelOrders, clearState, isConfirmed, readState, updateState } from './state'
 import { profileOffer, tastesReply } from './tastes'
 
 const DAY_MS = 86_400_000
@@ -122,7 +123,8 @@ export function interests(snapshot, state, now) {
       INTEREST_WEIGHTS[type] * 0.5 ** (Math.max(now - ts, 0) / DAY_MS / INTEREST_HALF_LIFE_DAYS)
   }
   for (const e of state.events) if (e.payload?.mode !== 'actual') add(e.concept_id, e.type, e.ts)
-  for (const o of state.orders) for (const line of o.lines) add(line.concept_id, 'order_placed', o.ts)
+  for (const o of state.orders.filter(isConfirmed))
+    for (const line of o.lines) add(line.concept_id, 'order_placed', o.ts)
   return Object.entries(scores)
     .filter(([, s]) => s >= 0.05)
     .sort((a, b) => b[1] - a[1])
@@ -395,7 +397,9 @@ function answer(snapshot, { method, path, query, body }, now) {
     // Las impresiones (`list_view`, api/impressions.js) no se guardan: sin conexión nada las lee, y llenarían el
     // almacenamiento del navegador. Cuentan como recibidas, como en la API.
     const sent = body?.events ?? []
-    addEvents(sent.filter((e) => e.type !== 'list_view').map((e) => storedEvent(e, now)))
+    const stored = sent.filter((e) => e.type !== 'list_view').map((e) => storedEvent(e, now))
+    addEvents(stored)
+    cancelOrders(stored) // un pedido cancelado deja de contar (events/store.py: _record_cancellations)
     return key === 'POST /events' ? { body: { guardados: sent.length } } : { status: 204, body: null }
   }
   if (key === 'POST /orders') {

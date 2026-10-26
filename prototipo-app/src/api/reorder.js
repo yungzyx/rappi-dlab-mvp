@@ -7,9 +7,14 @@ import { request } from './client'
 const AVAILABILITY_TIMEOUT_MS = 5_000
 export const REORDER_ORIGIN = 'pidelo-de-nuevo'
 
-/** Las líneas de un pedido que se pueden volver a pedir: las que guardaron su producto con su id del catálogo. */
+/**
+ * Las líneas de un pedido que se pueden volver a pedir: las que guardaron su producto con su id del catálogo. Un pedido
+ * cancelado no es una compra: no tiene nada que volver a pedir.
+ */
 export const reorderLines = (order) =>
-  (order?.items ?? []).filter((item) => item.product?.entityId != null && Number.isInteger(item.qty) && item.qty > 0)
+  (order?.cancelled ? [] : (order?.items ?? [])).filter(
+    (item) => item.product?.entityId != null && Number.isInteger(item.qty) && item.qty > 0,
+  )
 
 /** ¿Tiene algo que volver a pedir? (Los pedidos de antes no guardaban el producto.) */
 export const canReorder = (order) => reorderLines(order).length > 0

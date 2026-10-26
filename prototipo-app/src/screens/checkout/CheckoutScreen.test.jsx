@@ -181,6 +181,97 @@ describe('un pedido por tienda', () => {
   })
 })
 
+describe('Mis pedidos: un pedido de la demo por tienda', () => {
+  test('dos tiendas son dos pedidos guardados, con su tienda y su vertical, que suman el total del checkout', async () => {
+    renderCheckout()
+    await act(tick)
+    const total = screen.getByText('Total').nextSibling.textContent
+    await pay()
+    await vi.waitFor(() => expect(api.sendOrder).toHaveBeenCalledTimes(2))
+    const saved = JSON.parse(localStorage.getItem('rappi-proto-orders'))
+    expect(saved).toHaveLength(2)
+    expect(saved.map((order) => order.vertical).sort()).toEqual(['licores', 'supermercado'])
+    expect(saved.map((order) => order.storeId).sort()).toEqual([BEER.storeId, OIL.storeId].sort())
+    expect(new Set(saved.map((order) => order.cartId)).size).toBe(1)
+    expect(saved.every((order) => order.items.length === 1)).toBe(true)
+    const sum = saved.reduce((acc, order) => acc + order.total, 0)
+    expect(`$${sum.toLocaleString('es-CL')}`).toBe(total)
+  })
+})
+
+describe('si un producto se agota (Súper y Turbo)', () => {
+  test('el Súper pregunta por línea; la elección va en la línea del pedido y la de Licores no pregunta', async () => {
+    renderCheckout()
+    await act(tick)
+    expect(screen.queryByLabelText(`Si se agota ${BEER.name}`)).toBeNull()
+    const select = screen.getByLabelText(`Si se agota ${OIL.name}`)
+    expect(select.value).toBe('elijan') // por defecto, «Si no contesto, elijan por mí»
+    fireEvent.change(select, { target: { value: 'reembolso' } })
+    await pay()
+    await vi.waitFor(() => expect(api.sendOrder).toHaveBeenCalledTimes(2))
+    const sent = Object.fromEntries(api.sendOrder.mock.calls.map(([order]) => [order.vertical, order]))
+    expect(sent.supermercado.lines[0].substitution).toBe('reembolso')
+    expect(sent.licores.lines[0].substitution).toBeUndefined()
+    const saved = JSON.parse(localStorage.getItem('rappi-proto-orders'))
+    expect(saved.find((order) => order.vertical === 'supermercado').items[0].substitution).toBe('reembolso')
+  })
+})
+
+describe('entrega: tipo y programar', () => {
+  test('«Prioritaria» suma su monto de ejemplo y va en el pedido', async () => {
+    renderCheckout([OIL])
+    await act(tick)
+    const before = screen.getByText('Total').nextSibling.textContent
+    fireEvent.click(screen.getByRole('radio', { name: /Prioritaria/ }))
+    expect(screen.getByText('Entrega prioritaria (de ejemplo)')).toBeTruthy()
+    expect(screen.getByText('Total').nextSibling.textContent).not.toBe(before)
+    await pay()
+    await vi.waitFor(() => expect(api.sendOrder).toHaveBeenCalledTimes(1))
+    expect(api.sendOrder.mock.calls[0][0]).toMatchObject({ delivery_type: 'prioritaria' })
+    expect(api.sendOrder.mock.calls[0][0].scheduled_for).toBeUndefined()
+  })
+
+  test('programar: la franja va en el pedido, y deshacer vuelve al checkout con la franja elegida', async () => {
+    undo.UNDO_MS = 60_000
+    renderCheckout([OIL])
+    await act(tick)
+    fireEvent.click(screen.getByRole('radio', { name: 'Programar' }))
+    const slots = screen.getAllByRole('radio', { name: /^(hoy|mañana) \d\d:00–\d\d:00$/ })
+    expect(slots.length).toBeGreaterThan(0)
+    fireEvent.click(slots[1])
+    await pay()
+    expect(screen.getByText(/Programado para (hoy|mañana)/, { selector: '.checkout-sheet p' })).toBeTruthy()
+    fireEvent.click(screen.getByText('Deshacer pedido'))
+    await act(tick)
+    expect(api.sendOrder).not.toHaveBeenCalled()
+    expect(screen.getAllByRole('radio', { name: /^(hoy|mañana)/ })[1].getAttribute('aria-checked')).toBe('true')
+
+    undo.UNDO_MS = 0
+    fireEvent.click(placeButton())
+    await vi.waitFor(() => expect(api.sendOrder).toHaveBeenCalledTimes(1))
+    const sent = api.sendOrder.mock.calls[0][0]
+    expect(new Date(sent.scheduled_for).getMinutes()).toBe(0)
+    expect(sent.delivery_type).toBe('basica')
+    const [saved] = JSON.parse(localStorage.getItem('rappi-proto-orders'))
+    expect(saved.scheduledFor).toBe(new Date(sent.scheduled_for).getTime())
+  })
+
+  test('con la tienda cerrada solo se programa: «Ahora» no se puede y pide una franja', async () => {
+    terms.byStore[OIL.storeId] = { ...NO_MINIMUM, hours: { source: 'descarga', open: false }, spans: null }
+    renderCheckout([OIL])
+    await act(tick)
+    expect(screen.getByText('La tienda está cerrada pero puedes programar tu pedido.')).toBeTruthy()
+    expect(screen.getByRole('radio', { name: 'Ahora' }).disabled).toBe(true)
+    expect(placeButton().disabled).toBe(true)
+    fireEvent.click(screen.getByRole('radio', { name: 'Programar' }))
+    // Cerrada en la descarga y sin hora de apertura: las franjas son de mañana.
+    expect(
+      screen.getAllByRole('radio', { name: /^(hoy|mañana)/ }).every((slot) => /^mañana/.test(slot.textContent)),
+    ).toBe(true)
+    expect(placeButton().disabled).toBe(false)
+  })
+})
+
 describe('compra mínima y envío por tienda', () => {
   test('bajo la compra mínima no se puede pedir: «Te faltan $X para hacer el pedido»', async () => {
     terms.byStore[OIL.storeId] = { deliveryFee: null, minOrder: 8490, servicePct: null }
@@ -295,7 +386,7 @@ describe('restricciones al pagar', () => {
     fireEvent.click(screen.getByText('No'))
     fireEvent.click(screen.getByText('Quitar los productos +18'))
     expect(screen.queryByText(BEER.name)).toBeNull()
-    expect(screen.getByText(OIL.name)).toBeTruthy()
+    expect(screen.getAllByText(OIL.name).length).toBeGreaterThan(0)
     const removes = events.track.mock.calls.filter(([type]) => type === 'cart_remove')
     expect(removes.map(([, fields]) => fields.entity_id)).toEqual([BEER.entityId])
     expect(api.sendOrder).not.toHaveBeenCalled()
@@ -330,7 +421,7 @@ describe('deshacer pedido', () => {
     expect(api.sendOrder).not.toHaveBeenCalled()
     expect(push).not.toHaveBeenCalled()
     expect(localStorage.getItem('rappi-proto-orders')).toBeNull()
-    expect(screen.getByText(OIL.name)).toBeTruthy()
+    expect(screen.getAllByText(OIL.name).length).toBeGreaterThan(0)
   })
 
   test('pasada la ventana sale el pedido y abre su seguimiento', async () => {

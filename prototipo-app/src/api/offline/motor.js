@@ -3,6 +3,8 @@
 // se aprende de la población (transiciones, popularidad, retención aprendida) no está: solo la persona y la tabla de
 // Rappi con el supuesto del rendimiento decreciente (combos.toml, que llega en la muestra como `meta.combos`).
 
+import { isConfirmed } from './state'
+
 const DAY_MS = 86_400_000
 
 // motor/model.py
@@ -28,7 +30,8 @@ export const OFFER_BLOCKED_VERTICALS = ['farmacia', 'licores']
 /** «de el súper» → «del súper» y «a el súper» → «al súper» (text.py: contract_articles). */
 export const contractArticles = (text) => text.replace(/\b(de|a) el\b/g, (_, word) => (word === 'de' ? 'del' : 'al'))
 
-const isProposal = (order) => order.mode === 'propuesta'
+// Un pedido cancelado no es una compra (motor/data.py: status = 'confirmado').
+const isProposal = (order) => order.mode === 'propuesta' && isConfirmed(order)
 const isTaught = (event) => event.payload?.mode !== 'actual' // lo hecho en «Rappi hoy» no enseña
 
 /** Las señales de afinidad (motor/data.py: load_signals): sus pedidos `propuesta` y sus eventos con vertical. */

@@ -46,6 +46,16 @@ export const COUPONS = [
   },
 ]
 
+// Tipo de entrega. Supuestos de la demo (la app de Rappi muestra «Envío prioritario» con recargo y franjas con
+// descuento, pero los montos los manda su servidor): «Sin prisa» descuenta del envío y tarda más, «Prioritaria» suma y
+// llega antes. `etaShift`: minutos que suma o resta al tiempo estimado. Por pedido (cada tienda es un pedido).
+export const DELIVERY_TYPES = [
+  { id: 'basica', label: 'Básica', eta: '25–35 min', fee: 0, etaShift: 0 },
+  { id: 'sin_prisa', label: 'Sin prisa', eta: '40–55 min', fee: -500, etaShift: 15 },
+  { id: 'prioritaria', label: 'Prioritaria', eta: '15–25 min', fee: 990, etaShift: -8 },
+]
+export const deliveryType = (id) => DELIVERY_TYPES.find((type) => type.id === id) ?? DELIVERY_TYPES[0]
+
 const round10 = (value) => Math.round(value / 10) * 10
 const sum = (list, key) => list.reduce((total, item) => total + item[key], 0)
 
@@ -87,19 +97,23 @@ export function basketTerms(basket, catalog) {
  * pedido); `proMissing`: lo que falta para el envío gratis con Pro; `full*`: el monto sin Pro; `proSaving`: lo que Pro
  * ahorra en esta canasta (envío sobre el mínimo y descuento en servicio). Retiro en tienda: sin envío.
  */
-export function pricedBasket(basket, catalog, { isPro = false, pickup = false } = {}) {
+export function pricedBasket(basket, catalog, { isPro = false, pickup = false, type = 'basica' } = {}) {
   const terms = basketTerms(basket, catalog)
   const { subtotal } = basket
   const fullDelivery = pickup ? 0 : terms.delivery.value
   const reachesPro = subtotal >= PRO.freeDeliveryMin
   const fullService = subtotal === 0 ? 0 : Math.max(terms.service.min, round10(subtotal * terms.service.rate))
   const proService = round10(fullService * (1 - PRO.serviceDiscount))
+  const delivery = isPro && reachesPro ? 0 : fullDelivery
+  // «Sin prisa» no deja el envío bajo $0; con retiro en tienda no hay tipo de entrega.
+  const typeFee = pickup ? 0 : Math.max(-delivery, deliveryType(type).fee)
   return {
     ...basket,
     terms,
     missing: Math.max(0, terms.minOrder.value - subtotal),
     fullDelivery,
-    delivery: isPro && reachesPro ? 0 : fullDelivery,
+    delivery,
+    typeFee,
     proMissing: pickup || reachesPro ? 0 : PRO.freeDeliveryMin - subtotal,
     fullService,
     service: isPro ? proService : fullService,
@@ -128,6 +142,7 @@ export function couponDiscount(coupon, baskets) {
 export function checkoutTotals(priced, { tip = 0, pickup = false, coupon = null, credits = false } = {}) {
   const subtotal = sum(priced, 'subtotal')
   const delivery = sum(priced, 'delivery')
+  const typeFee = sum(priced, 'typeFee')
   const service = sum(priced, 'service')
   const appliedTip = pickup ? 0 : tip
   const couponResult = coupon ? couponDiscount(coupon, priced) : null
@@ -136,6 +151,7 @@ export function checkoutTotals(priced, { tip = 0, pickup = false, coupon = null,
   return {
     subtotal,
     delivery,
+    typeFee,
     service,
     tip: appliedTip,
     coupon: couponResult,
@@ -143,6 +159,23 @@ export function checkoutTotals(priced, { tip = 0, pickup = false, coupon = null,
     credits: creditsAmount,
     proSaving: sum(priced, 'proSaving'),
     short: priced.filter((b) => b.missing > 0),
-    total: subtotal + delivery + service + appliedTip - couponAmount - creditsAmount,
+    total: subtotal + delivery + typeFee + service + appliedTip - couponAmount - creditsAmount,
   }
+}
+
+/**
+ * El total de cada pedido (una canasta, en el orden de `priced`), que suman el total del checkout: sus productos, envío,
+ * tipo de entrega y servicio; el cupón en la canasta donde aplica; los créditos (solo en productos) de la primera
+ * canasta en adelante; y la propina, en el primer pedido.
+ */
+export function orderAmounts(priced, totals) {
+  let credits = totals.credits
+  return priced.map((basket, i) => {
+    const coupon = totals.coupon?.basketKey === basket.key ? totals.couponAmount : 0
+    const used = Math.min(credits, basket.subtotal - coupon)
+    credits -= used
+    return (
+      basket.subtotal + basket.delivery + basket.typeFee + basket.service - coupon - used + (i === 0 ? totals.tip : 0)
+    )
+  })
 }

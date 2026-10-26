@@ -425,6 +425,31 @@ describe('calificación mala (winback.js: paused)', () => {
   })
 })
 
+describe('pedido cancelado (state.js: isConfirmed)', () => {
+  const weekly = () =>
+    [21, 14, 7].map((days, i) => ({ ...ago(days, order('supermercado', [line(coffee)])), cart_id: `c-${i}` }))
+
+  test('un pedido cancelado no cuenta para la recompra', () => {
+    const orders = weekly()
+    expect(offer('recompra', state({ orders }))).not.toBeNull()
+    const cancelled = orders.map((o, i) => (i === 2 ? { ...o, status: 'cancelado' } : o))
+    expect(offer('recompra', state({ orders: cancelled }))).toBeNull()
+  })
+
+  test('la calificación con su tienda pausa solo el pedido de esa tienda', () => {
+    const orders = weekly()
+    const elsewhere = {
+      type: 'order_rated',
+      ts: NOW - DAY_MS,
+      cart_id: 'c-2',
+      payload: { stars: 1, store_id: 999_999 },
+    }
+    expect(offer('recompra', state({ orders, events: [elsewhere] }))).not.toBeNull()
+    const here = { ...elsewhere, payload: { stars: 1, store_id: coffee.store_id } }
+    expect(offer('recompra', state({ orders, events: [here] }))).toBeNull()
+  })
+})
+
 describe('OnTop de Turbo', () => {
   const items = [{ entity_type: 'menu_item', entity_id: '9' }]
   const recorded = {

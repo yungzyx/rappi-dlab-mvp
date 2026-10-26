@@ -3,6 +3,8 @@
 // (`meta.profiles[…].concepts`). Lo que se responde (sus gustos y su escalera) es lo grabado de la API real para una
 // persona de prueba con ese perfil (`snapshot.tastes`).
 
+import { isConfirmed } from './state'
+
 export const MIN_ORDERS = 3
 
 /** Los perfiles activos de la persona, el principal primero y después por pedidos: `[{ id, orders }]`. */
@@ -11,7 +13,8 @@ export function activeTastes(snapshot, state) {
   for (const [id, profile] of Object.entries(snapshot.meta.profiles ?? {})) {
     if (!snapshot.tastes?.[id]) continue
     const orders = state.orders.filter(
-      (o) => o.mode === 'propuesta' && o.lines.some((line) => profile.concepts.includes(line.concept_id)),
+      (o) =>
+        o.mode === 'propuesta' && isConfirmed(o) && o.lines.some((line) => profile.concepts.includes(line.concept_id)),
     ).length
     if (orders >= MIN_ORDERS) found.push({ id, orders, main: profile.main })
   }

@@ -127,10 +127,14 @@ const toOfferStore = (entry) => ({
  * Dónde está un producto del catálogo (`entityId`): `{ count, stores, here, similar }`. `stores`: cada tienda con su
  * precio, tiempo y envío publicados y las marcas «Mejor precio» y «Más rápido», con su lugar en la ficha
  * (`comparar-tiendas`); `here`: la tienda `storeId` (con «Pocas unidades»), o null; `similar`: si ahí está agotado, los
- * del mismo concepto que esa tienda sí tiene (`similares`).
+ * del mismo concepto que esa tienda sí tiene (`similares`). Con `substitutes`, esos mismos aunque ahí esté disponible: los
+ * sustitutos de los cambios en vivo del seguimiento.
  */
-export async function productStores(entityId, storeId) {
-  const reply = await read(`/catalog/products/catalog_item/${segment(entityId)}/stores`, { store_id: storeId })
+export async function productStores(entityId, storeId, { substitutes = false } = {}) {
+  const reply = await read(`/catalog/products/catalog_item/${segment(entityId)}/stores`, {
+    store_id: storeId,
+    ...(substitutes ? { sustitutos: true } : {}),
+  })
   return {
     count: reply.count,
     stores: placeList(reply.stores.map(toOfferStore), { surface: 'store', origin: 'comparar-tiendas' }),
@@ -192,7 +196,7 @@ const TERMS_PER_REQUEST = 20 // api/catalog.py: hasta 20 tiendas por consulta
 
 /**
  * Lo que el catálogo sabe de las condiciones de compra de cada tienda (`/catalog/terms`): `Map(storeId → { deliveryFee,
- * minOrder, servicePct } | null)`. Cada dato puede ser null (el catálogo no lo trae): el checkout pone su supuesto.
+ * minOrder, servicePct, hours, spans } | null)`. Cada dato puede ser null (el catálogo no lo trae): el checkout pone su supuesto.
  */
 export async function storeTerms(storeIds) {
   const missing = [...new Set(storeIds)].filter((id) => !knownTerms.has(id))
@@ -202,7 +206,19 @@ export async function storeTerms(storeIds) {
     const found = new Map(reply.stores.map((t) => [t.store_id, t]))
     for (const id of chunk) {
       const t = found.get(id)
-      knownTerms.set(id, t ? { deliveryFee: t.delivery_fee, minOrder: t.min_order, servicePct: t.service_pct } : null)
+      knownTerms.set(
+        id,
+        t
+          ? {
+              deliveryFee: t.delivery_fee,
+              minOrder: t.min_order,
+              servicePct: t.service_pct,
+              // Para programar: abierto o cerrado según lo publicado y, en un restaurante, sus tramos de hoy y mañana.
+              hours: t.hours ?? null,
+              spans: t.spans ?? null,
+            }
+          : null,
+      )
     }
   }
   return new Map(storeIds.map((id) => [id, knownTerms.get(id) ?? null]))

@@ -13,9 +13,17 @@ const ORDER = {
 function Place() {
   const orders = useOrders()
   return (
-    <button type="button" onClick={() => orders.place(ORDER)}>
-      pedir
-    </button>
+    <>
+      <button type="button" onClick={() => orders.place(ORDER)}>
+        pedir
+      </button>
+      <button type="button" onClick={() => orders.placeMany([ORDER, { ...ORDER, stores: ['Súper'] }])}>
+        pedir en dos tiendas
+      </button>
+      <button type="button" onClick={() => orders.cancel(orders.orders[0].id, { reason: 'ya_no' })}>
+        cancelar
+      </button>
+    </>
   )
 }
 
@@ -46,4 +54,19 @@ test('«Pedido en curso» con el paso y lo que falta; abre el seguimiento y se v
   expect(push).toHaveBeenCalledWith('tracking', { orderId: expect.stringMatching(/^order-/) })
   act(() => vi.advanceTimersByTime(14_000))
   expect(screen.queryByText('Pedido en curso')).toBeNull()
+})
+
+test('una compra en dos tiendas son dos pedidos en curso; uno cancelado ya no está en curso', () => {
+  render(
+    <OrdersProvider>
+      <CartProvider>
+        <Place />
+        <ActiveOrderBar push={() => {}} />
+      </CartProvider>
+    </OrdersProvider>,
+  )
+  fireEvent.click(screen.getByText('pedir en dos tiendas'))
+  expect(screen.getByText('2 pedidos en curso')).toBeTruthy()
+  fireEvent.click(screen.getByText('cancelar'))
+  expect(screen.getByText('Pedido en curso')).toBeTruthy()
 })

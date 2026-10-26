@@ -109,6 +109,27 @@ test('la calificación queda con su carro y el pedido guarda el suyo: con eso se
   expect(saved.events.find((e) => e.type === 'order_rated')).toMatchObject({ cart_id: 'c-1', payload: { stars: 2 } })
 })
 
+test('order_cancelled cancela el pedido de su carro y su tienda (en los dos modos); el otro de la compra sigue', () => {
+  const placed = (vertical, store) =>
+    call('POST', '/orders', {
+      user_id: 'u',
+      cart_id: 'c-2',
+      vertical,
+      lines: [{ entity_type: 'catalog_item', entity_id: '1', store_id: store }],
+    })
+  placed('supermercado', 1)
+  placed('turbo', 2)
+  const cancel = { type: 'order_cancelled', cart_id: 'c-2', payload: { reason: 'ya_no', stage: 'antes_de_tienda' } }
+  call('POST', '/events', {
+    user_id: 'u',
+    events: [{ ...cancel, payload: { ...cancel.payload, store_id: 2, mode: 'actual' } }],
+  })
+  expect(readState().orders.map((o) => [o.vertical, o.status ?? 'confirmado'])).toEqual([
+    ['supermercado', 'confirmado'],
+    ['turbo', 'cancelado'],
+  ])
+})
+
 test('/catalog/terms sin conexión: el envío de los restaurantes grabados y null en lo demás; un pedido es de una tienda', () => {
   const sample = {
     ...snapshot,

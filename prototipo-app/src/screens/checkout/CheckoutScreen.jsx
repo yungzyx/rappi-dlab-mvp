@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import BackButton from '../../components/BackButton'
 import Sheet from '../../components/Sheet'
 import { health, sendOrder } from '../../api/client'
-import { basketsOf, buildOrders, cartEventFields, trackOrder } from '../../api/orders'
+import { basketsOf, buildOrders, cartEventFields, orderVertical, trackOrder } from '../../api/orders'
 import { userId } from '../../api/user'
 import { useToast } from '../../components/Toast'
 import { ChevronRight } from '../../components/Icons'
@@ -15,11 +15,15 @@ import { usePro } from '../../state/pro'
 import { getDeadline } from '../home/CreditsBanner'
 import CheckoutBasket from './CheckoutBasket'
 import CheckoutBenefits from './CheckoutBenefits'
+import CheckoutDelivery from './CheckoutDelivery'
 import CheckoutSuggestion from './CheckoutSuggestion'
 import { useOrders } from '../../state/OrdersContext'
 import { useDemo } from '../../state/DemoContext'
-import { DEFAULT_TIP, TIPS, checkoutTotals, pricedBasket } from './pricing'
+import { DEFAULT_TIP, TIPS, checkoutTotals, deliveryType, orderAmounts, pricedBasket } from './pricing'
 import { ageConfirmed, confirmAge, hasAgeRestricted, needsPrescription } from './restrictions'
+import { anyClosed, slotsFor } from './schedule'
+import { DEFAULT_SUBSTITUTION, SUBSTITUTION_VERTICALS } from '../tracking/liveChanges'
+import { slotLabel } from '../tracking/progress'
 import { UNDO_MS } from './undo'
 import { useStoreTerms } from './useStoreTerms'
 import './checkout.css'
@@ -49,17 +53,31 @@ export default function CheckoutScreen({ back, push }) {
   const [prescription, setPrescription] = useState(false)
   const [asking, setAsking] = useState(null) // la hoja de edad: 'ask' o 'refused'
   const [placing, setPlacing] = useState(false) // la ventana de «Deshacer pedido»
+  const [type, setType] = useState('basica') // el tipo de entrega (pricing.js: DELIVERY_TYPES, de ejemplo)
+  const [when, setWhen] = useState('now') // 'now' o el inicio de la franja programada (ms)
   const pickup = mode === 'Retiro'
 
   const baskets = basketsOf(cart.items)
   const termsOf = useStoreTerms(baskets)
-  const priced = baskets.map((basket) => pricedBasket(basket, termsOf(basket), { isPro, pickup }))
+  // Con una tienda cerrada según lo publicado, solo se programa; las franjas sirven a todas las tiendas de la compra.
+  const storeHours = baskets.map((basket) => termsOf(basket))
+  const closed = anyClosed(storeHours)
+  const [now] = useState(() => Date.now())
+  const slots = slotsFor(storeHours, now)
+  const slot = when !== 'now' && slots.some((s) => s.from === when) ? when : null
+  const scheduled = slot !== null
+  // Programado o retiro: sin tipo de entrega (la franja es la entrega básica).
+  const chosenType = pickup ? null : scheduled ? 'basica' : type
+  const priced = baskets.map((basket) =>
+    pricedBasket(basket, termsOf(basket), { isPro, pickup, type: chosenType ?? 'basica' }),
+  )
   const minutesLeft = useMinutesLeft(getDeadline(CREDITS_BANNER.title, CREDITS_BANNER.expiresInMinutes))
   const creditsExpired = minutesLeft === 0
   const totals = checkoutTotals(priced, { tip, pickup, coupon, credits: useCredits && !creditsExpired })
   const stores = baskets.map((basket) => basket.store).filter(Boolean)
   const prescriptionMissing = priced.some(needsPrescription) && !prescription
-  const blocked = totals.short.length > 0 || prescriptionMissing
+  const mustSchedule = closed && !scheduled
+  const blocked = totals.short.length > 0 || prescriptionMissing || mustSchedule
 
   // Abrir el checkout es iniciar el pago (quien vuelve atrás sin pagar es el abandono de esa etapa). Uno por carro
   // y vertical, porque el embudo del panel se mide por sesión y vertical; el ref evita contarlo dos veces en StrictMode.
@@ -74,14 +92,20 @@ export default function CheckoutScreen({ back, push }) {
     }
   }, [cart.id, verticals, events])
 
-  // Pasada la ventana de «Deshacer pedido»: recién ahí sale cada pedido (uno por tienda) y se guarda el de la demo.
+  // Pasada la ventana de «Deshacer pedido»: recién ahí sale cada pedido (uno por tienda) y se guardan los de la demo.
   const commit = () => {
-    const pending = buildOrders(cart.items, {
+    // En el Súper y Turbo cada línea va con qué hacer si se agota (sin elegir, «Si no contesto, elijan por mí»).
+    const substitutionOf = (line) =>
+      SUBSTITUTION_VERTICALS.has(orderVertical(line.product)) ? (line.substitution ?? DEFAULT_SUBSTITUTION) : undefined
+    const items = cart.items.map((line) => ({ ...line, substitution: substitutionOf(line) }))
+    const pending = buildOrders(items, {
       userId: userId(),
       sessionId: sessionId(),
       cartId: cart.id,
       mode: demo.isFinal ? 'propuesta' : 'actual',
       pro: isPro,
+      scheduledFor: slot,
+      deliveryType: chosenType,
     })
     // Registro para el panel (si la API está arriba). No bloquea el pedido de la demo. Antes salen los eventos en cola
     // (y se esperan los lotes en camino): el servidor les pone la hora al recibirlos, y checkout_start va primero.
@@ -93,27 +117,39 @@ export default function CheckoutScreen({ back, push }) {
         .then(() => health())
         .then((online) => online && Promise.all(pending.map((order) => sendOrder(order).catch(() => {})))),
     )
-    const id = orders.place({
-      stores,
-      cartId: cart.id,
-      items: cart.items.map(({ product, qty }) => ({
-        name: product.name,
-        img: product.img,
-        price: product.price,
-        qty,
-        // Con ellos el agente arma el próximo pedido al entregar (oferta `proximo_pedido`).
-        entityType: product.entityType,
-        entityId: product.entityId,
-        // Los pasos del seguimiento dependen de la vertical; «Pídelo de nuevo» vuelve a armar el carro con el producto.
-        vertical: product.vertical,
-        product: reorderable(product),
+    // Un pedido por tienda, como los que recibe la API: cada uno con su total (orderAmounts suma el del checkout).
+    const amounts = orderAmounts(priced, totals)
+    const [id] = orders.placeMany(
+      priced.map((basket, i) => ({
+        stores: basket.store ? [basket.store] : [],
+        storeId: basket.storeId,
+        vertical: basket.vertical,
+        cartId: cart.id,
+        items: basket.lines
+          .map((line) => ({ line, substitution: substitutionOf(line) }))
+          .map(({ line: { product, qty }, substitution }) => ({
+            name: product.name,
+            img: product.img,
+            price: product.price,
+            qty,
+            // Con ellos el agente arma el próximo pedido al entregar (oferta `proximo_pedido`).
+            entityType: product.entityType,
+            entityId: product.entityId,
+            // Los pasos del seguimiento dependen de la vertical; «Pídelo de nuevo» vuelve a armar el carro con el producto.
+            vertical: product.vertical,
+            product: reorderable(product),
+            ...(substitution ? { substitution } : {}),
+          })),
+        total: amounts[i],
+        pickup,
+        address: address.selected.line,
+        payment: 'Visa •••• 4242',
+        ...(slot ? { scheduledFor: slot } : {}),
+        ...(chosenType ? { deliveryType: chosenType, etaShift: deliveryType(chosenType).etaShift } : {}),
       })),
-      total: totals.total,
-      pickup,
-      address: address.selected.line,
-    })
+    )
     cart.clear()
-    // El seguimiento reemplaza al checkout en el historial: "volver" desde ahí no regresa a un carrito vacío.
+    // El seguimiento (del primero) reemplaza al checkout en el historial: "volver" no regresa a un carrito vacío.
     push('tracking', { orderId: id }, { swap: true })
   }
 
@@ -175,7 +211,24 @@ export default function CheckoutScreen({ back, push }) {
           </span>
           <ChevronRight size={18} />
         </button>
-        <p className="checkout-eta">{pickup ? 'Listo en 15–20 min' : 'Llega en 25–35 min'}</p>
+        <p className="checkout-eta">
+          {pickup
+            ? 'Listo en 15–20 min'
+            : scheduled
+              ? `Programado para ${slotLabel(slot, now)}`
+              : `Llega en ${deliveryType(type).eta}`}
+        </p>
+        {!pickup && (
+          <CheckoutDelivery
+            type={type}
+            onType={setType}
+            when={slot ?? 'now'}
+            onWhen={setWhen}
+            slots={slots}
+            closed={closed}
+            baskets={baskets.length}
+          />
+        )}
 
         <h2 className="checkout-title">Tu pedido</h2>
         {baskets.length > 1 && (
@@ -191,6 +244,8 @@ export default function CheckoutScreen({ back, push }) {
             pickup={pickup}
             prescription={prescription}
             onPrescription={setPrescription}
+            substitutionOf={cart.substitutionOf}
+            onSubstitution={cart.setSubstitution}
           />
         ))}
         <CheckoutSuggestion />
@@ -244,6 +299,13 @@ export default function CheckoutScreen({ back, push }) {
               accent={totals.delivery === 0}
             />
           )}
+          {totals.typeFee !== 0 && (
+            <SummaryRow
+              label={`Entrega ${deliveryType(chosenType).label.toLowerCase()} (de ejemplo)`}
+              value={totals.typeFee > 0 ? formatPrice(totals.typeFee) : `−${formatPrice(-totals.typeFee)}`}
+              accent={totals.typeFee < 0}
+            />
+          )}
           <SummaryRow
             label={isPro ? 'Tarifa de servicio (con Pro)' : 'Tarifa de servicio'}
             value={formatPrice(totals.service)}
@@ -256,8 +318,8 @@ export default function CheckoutScreen({ back, push }) {
           <SummaryRow label="Total" value={formatPrice(totals.total)} total />
         </dl>
         <p className="checkout-note">
-          Lo marcado «de ejemplo» son supuestos de la demo (envíos, mínimos y tarifas que el catálogo no trae, créditos,
-          cupones y el beneficio Pro), no tarifas ni políticas de Rappi.
+          Lo marcado «de ejemplo» son supuestos de la demo (envíos, mínimos y tarifas que el catálogo no trae, tipos de
+          entrega, créditos, cupones y el beneficio Pro), no tarifas ni políticas de Rappi.
         </p>
       </div>
 
@@ -267,7 +329,9 @@ export default function CheckoutScreen({ back, push }) {
           <p className="checkout-blocked" role="status">
             {totals.short.length > 0
               ? `Te faltan ${formatPrice(totals.short[0].missing)} para hacer el pedido en ${totals.short[0].store || 'la tienda'}`
-              : 'Marca que tienes la receta médica para seguir'}
+              : prescriptionMissing
+                ? 'Marca que tienes la receta médica para seguir'
+                : 'La tienda está cerrada: elige una franja para programar tu pedido'}
           </p>
         )}
         <button type="button" className="checkout-place tap" onClick={placeOrder} disabled={blocked}>
@@ -286,7 +350,13 @@ export default function CheckoutScreen({ back, push }) {
         onRemove={removeAgeRestricted}
         onClose={() => setAsking(null)}
       />
-      <UndoSheet open={placing} orders={baskets.length} onDone={commit} onUndo={() => setPlacing(false)} />
+      <UndoSheet
+        open={placing}
+        orders={baskets.length}
+        scheduled={scheduled ? slotLabel(slot, now) : null}
+        onDone={commit}
+        onUndo={() => setPlacing(false)}
+      />
     </>
   )
 }
@@ -327,7 +397,7 @@ function AgeSheet({ state, onYes, onNo, onRemove, onClose }) {
  * «Pedido creado» con «Deshacer pedido» unos segundos (`UNDO_MS`). Al cerrarse la ventana sale el pedido (`onDone`);
  * deshacer (o cerrar la hoja) lo anula antes de enviar nada y vuelve al checkout con el carro intacto.
  */
-function UndoSheet({ open, orders, onDone, onUndo }) {
+function UndoSheet({ open, orders, scheduled, onDone, onUndo }) {
   const done = useRef(onDone)
   useEffect(() => {
     done.current = onDone
@@ -341,8 +411,8 @@ function UndoSheet({ open, orders, onDone, onUndo }) {
     <Sheet open={open} onClose={onUndo} title="¡Pedido creado!">
       <div className="checkout-sheet">
         <p>
-          {orders > 1 ? `Estamos enviando tus ${orders} pedidos.` : 'Estamos enviando tu pedido.'} ¿Quieres modificar
-          algo? Tienes unos segundos.
+          {orders > 1 ? `Estamos enviando tus ${orders} pedidos.` : 'Estamos enviando tu pedido.'}
+          {scheduled && ` Programado para ${scheduled}.`} ¿Quieres modificar algo? Tienes unos segundos.
         </p>
         <span className="checkout-undo-bar" style={{ animationDuration: `${UNDO_MS}ms` }} />
         <button type="button" className="checkout-sheet-secondary is-strong" onClick={onUndo}>

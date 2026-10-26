@@ -102,9 +102,10 @@ export function basketsOf(items) {
  * sin él no existe (nunca se inventa un id) y se descarta con un aviso en desarrollo. Un producto sin vertical del
  * catálogo sigue en el carrito de la demo, pero no se envía: la API rechazaría el pedido completo. En «Rappi hoy»
  * (`mode: 'actual'`) la app no aprende: el pedido va marcado y sin conceptos, como los eventos de ese modo. `pro`: si la
- * persona es Rappi Pro en la app (el backend lo guarda en la persona); sin él, el pedido no lo dice.
+ * persona es Rappi Pro en la app (el backend lo guarda en la persona); sin él, el pedido no lo dice. `scheduledFor` (ms):
+ * el inicio de la franja si se programó; `deliveryType`: basica, sin_prisa o prioritaria (sin él, un retiro).
  */
-export function buildOrders(items, { userId, sessionId, cartId, mode = 'propuesta', pro }) {
+export function buildOrders(items, { userId, sessionId, cartId, mode = 'propuesta', pro, scheduledFor, deliveryType }) {
   const orders = []
   for (const basket of basketsOf(items)) {
     const lines = basket.lines.flatMap((line) => orderLine(line, mode))
@@ -116,6 +117,9 @@ export function buildOrders(items, { userId, sessionId, cartId, mode = 'propuest
         vertical: basket.vertical,
         mode,
         ...(pro == null ? {} : { pro }),
+        // Programado: el inicio de la franja; el tipo de entrega (sus montos son de ejemplo, pricing.js).
+        ...(scheduledFor ? { scheduled_for: new Date(scheduledFor).toISOString() } : {}),
+        ...(deliveryType ? { delivery_type: deliveryType } : {}),
         lines,
       })
   }
@@ -123,7 +127,7 @@ export function buildOrders(items, { userId, sessionId, cartId, mode = 'propuest
 }
 
 /** Una línea del carro → `[línea de POST /orders]`, o `[]` si no se puede enviar (sin vertical del catálogo o sin id). */
-function orderLine({ product, qty, fromSuggestion }, mode) {
+function orderLine({ product, qty, fromSuggestion, substitution }, mode) {
   if (!orderVertical(product)) return []
   if (product.entityId == null) {
     if (import.meta.env.DEV) console.warn(`Línea sin entityId descartada del pedido: ${product.name ?? product.id}`)
@@ -139,6 +143,8 @@ function orderLine({ product, qty, fromSuggestion }, mode) {
       qty,
       unit_price: parsePrice(product.price) || undefined,
       from_suggestion: Boolean(fromSuggestion ?? product.fromSuggestion),
+      // Qué hacer si se agota: solo en el Súper y Turbo, donde el checkout lo pregunta.
+      ...(substitution ? { substitution } : {}),
     },
   ]
 }

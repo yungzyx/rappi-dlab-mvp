@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useCartPricing } from '../../screens/checkout/useCartPricing'
 import { UNDO_MS } from '../../screens/checkout/undo'
-import { flowFor, isDelivered, minutesLeft, stepAt } from '../../screens/tracking/progress'
+import { etaMinutes, secondsSince, statusOf } from '../../screens/tracking/progress'
 import { formatPrice, lineKey, parsePrice, useCart } from '../../state/CartContext'
 import { useOrders } from '../../state/OrdersContext'
 
@@ -171,23 +171,40 @@ function Row({ label, value, total = false }) {
   )
 }
 
-/** El último pedido de la demo: su estado y cuánto falta (la misma línea de tiempo del seguimiento), y su seguimiento. */
+/**
+ * «¿Dónde está mi pedido?»: los pedidos de la última compra (uno por tienda), cada uno con su estado y cuánto falta (la
+ * misma línea de tiempo del seguimiento: programado, atrasado o cancelado incluidos) y su seguimiento, donde se cancela
+ * o se pide ayuda. Es una tarjeta con botones, no una conversación.
+ */
 export function LastOrderCard({ onTrack }) {
-  const order = useOrders()?.orders[0]
+  const ordersState = useOrders()
+  const last = ordersState?.orders[0]
   const [now] = useState(() => Date.now()) // la hora en que Mochi respondió (como el seguimiento al abrirse)
-  if (!order) return <p className="agent-card-note">Todavía no tienes pedidos en esta demo.</p>
-  const seconds = (now - order.placedAt) / 1000
-  const flow = flowFor(order) // los pasos de su vertical, como en el seguimiento
-  const minutes = isDelivered(seconds) ? 0 : minutesLeft(seconds, flow)
-  const units = order.items.reduce((sum, item) => sum + (item.qty ?? 1), 0)
+  if (!last) return <p className="agent-card-note">Todavía no tienes pedidos en esta demo.</p>
+  const purchase = ordersState.siblingsOf ? ordersState.siblingsOf(last) : [last]
   return (
     <section className="agent-summary agent-order" aria-label="Tu último pedido">
       <p className="agent-order-title">
-        <strong>Tu último pedido</strong>
-        {order.stores.length > 0 && <small>{order.stores.join(', ')}</small>}
+        <strong>{purchase.length > 1 ? `Tu última compra: ${purchase.length} pedidos` : 'Tu último pedido'}</strong>
+        {purchase.length === 1 && last.stores.length > 0 && <small>{last.stores.join(', ')}</small>}
       </p>
+      {purchase.map((order) => (
+        <OrderLine key={order.id} order={order} now={now} named={purchase.length > 1} onTrack={onTrack} />
+      ))}
+    </section>
+  )
+}
+
+function OrderLine({ order, now, named, onTrack }) {
+  const status = statusOf(order, now)
+  const minutes = status.kind === 'active' ? etaMinutes(order, secondsSince(order, now)) : 0
+  const units = order.items.reduce((sum, item) => sum + (item.qty ?? 1), 0)
+  return (
+    <>
+      {named && <p className="agent-order-store">{order.stores.join(', ') || 'Tienda'}</p>}
       <p className="agent-order-status">
-        {flow.steps[stepAt(seconds, flow)].label}
+        {status.label}
+        {order.delay && status.kind === 'active' && ' · viene atrasado'}
         {minutes > 0 && ` · llega en ${minutes} min`}
       </p>
       <p className="agent-summary-note">
@@ -196,6 +213,6 @@ export function LastOrderCard({ onTrack }) {
       <button type="button" className="agent-msg-action tap" onClick={() => onTrack(order.id)}>
         Ver seguimiento →
       </button>
-    </section>
+    </>
   )
 }

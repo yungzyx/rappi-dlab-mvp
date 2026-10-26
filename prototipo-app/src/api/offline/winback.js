@@ -3,6 +3,7 @@
 // available). El panel de la demo siembra personas con semanas de historial para verla. Los productos y el texto de
 // las ofertas están en offers.js.
 import { OFFER_BLOCKED_VERTICALS } from './motor'
+import { isConfirmed } from './state'
 
 const DAY_MS = 86_400_000
 // motor/model.py
@@ -48,7 +49,8 @@ const median = (values) => {
 /** Los días de Santiago distintos de unos pedidos, en orden. */
 export const orderDays = (orders) => [...new Set(orders.map((o) => localDay(o.ts)))].sort((a, b) => a - b)
 
-const proposals = (state) => state.orders.filter((o) => o.mode === 'propuesta').sort((a, b) => a.ts - b.ts)
+const proposals = (state) =>
+  state.orders.filter((o) => o.mode === 'propuesta' && isConfirmed(o)).sort((a, b) => a.ts - b.ts)
 
 /**
  * Por concepto, con al menos 3 días de compra distintos en pedidos `propuesta` y un ritmo regular (coeficiente de
@@ -178,22 +180,27 @@ export function available(state, candidates, now) {
 /**
  * Lo que no se ofrece en la recompra ni en el «volver» por una calificación mala (winback.py: paused): los conceptos y
  * las tiendas de los pedidos `propuesta` cuyo carro se calificó (`order_rated`, fuera de «Rappi hoy») con 3 estrellas o
- * menos en los últimos 30 días. Vale la última calificación de cada carro.
+ * menos en los últimos 30 días. Vale la última calificación de cada pedido: su carro y, si la trae, su tienda
+ * (`payload.store_id`: un carro con dos tiendas son dos pedidos).
  */
 export function paused(state, now) {
   const last = new Map()
+  const keyOf = (e) => `${e.cart_id}|${e.payload?.store_id ?? ''}`
   for (const e of state.events)
     if (e.type === 'order_rated' && e.cart_id && e.payload?.mode !== 'actual' && Number.isInteger(e.payload?.stars))
-      if (!last.has(e.cart_id) || last.get(e.cart_id).ts <= e.ts) last.set(e.cart_id, e)
-  const bad = new Set(
-    [...last.values()]
-      .filter((e) => e.payload.stars <= LOW_RATING && e.ts > now - PAUSE_DAYS * DAY_MS)
-      .map((e) => e.cart_id),
-  )
+      if (!last.has(keyOf(e)) || last.get(keyOf(e)).ts <= e.ts) last.set(keyOf(e), e)
+  const bad = [...last.values()].filter((e) => e.payload.stars <= LOW_RATING && e.ts > now - PAUSE_DAYS * DAY_MS)
+  const rated = (order) =>
+    bad.some(
+      (e) =>
+        e.cart_id === order.cart_id &&
+        (e.payload.store_id == null ||
+          order.lines.some((line) => Number(line.store_id) === Number(e.payload.store_id))),
+    )
   const concepts = new Set()
   const stores = new Set()
   for (const order of state.orders)
-    if (order.mode === 'propuesta' && bad.has(order.cart_id))
+    if (order.mode === 'propuesta' && rated(order))
       for (const line of order.lines) {
         if (line.concept_id) concepts.add(line.concept_id)
         if (line.store_id != null) stores.add(Number(line.store_id))

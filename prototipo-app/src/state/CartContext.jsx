@@ -1,7 +1,7 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react'
 import { loadStored, saveStored } from './storage'
 
-// El carro sobrevive a una recarga (líneas, id y notas), como los pedidos.
+// El carro sobrevive a una recarga (líneas, id, notas y qué hacer si se agota), como los pedidos.
 const STORAGE_KEY = 'rappi-proto-cart'
 
 const newCartId = () => `c-${Date.now().toString(36)}${Math.random().toString(36).slice(2, 7)}`
@@ -50,6 +50,7 @@ const rekeyed = (lines) =>
           qty: same.qty + line.qty,
           fromSuggestion: Boolean(same.fromSuggestion || line.fromSuggestion),
           note: same.note ?? line.note,
+          substitution: same.substitution ?? line.substitution,
         }
       : line
     return byKey
@@ -79,7 +80,8 @@ export function CartProvider({ children }) {
       // Si alguna unidad vino de una sugerencia, la línea lo recuerda (no la pisa un "+" desde otra tarjeta).
       const fromSuggestion = Boolean(prev[key]?.fromSuggestion || product.fromSuggestion)
       const note = prev[key]?.note
-      return qty > 0 ? { ...rest, [key]: { product, qty, fromSuggestion, note } } : rest
+      const substitution = prev[key]?.substitution
+      return qty > 0 ? { ...rest, [key]: { product, qty, fromSuggestion, note, substitution } } : rest
     })
   }, [])
 
@@ -87,6 +89,12 @@ export function CartProvider({ children }) {
   const setNote = useCallback((product, note) => {
     const key = lineKey(product)
     setLines((prev) => (prev[key] ? { ...prev, [key]: { ...prev[key], note: note || undefined } } : prev))
+  }, [])
+
+  // Qué hacer si se agota (checkout de Súper y Turbo: screens/tracking/liveChanges.js): vive en la línea, como la nota.
+  const setSubstitution = useCallback((product, substitution) => {
+    const key = lineKey(product)
+    setLines((prev) => (prev[key] ? { ...prev, [key]: { ...prev[key], substitution } } : prev))
   }, [])
 
   const value = useMemo(() => {
@@ -100,16 +108,18 @@ export function CartProvider({ children }) {
       total,
       qtyOf: (product) => lines[lineKey(product)]?.qty ?? 0,
       noteOf: (product) => lines[lineKey(product)]?.note ?? '',
+      substitutionOf: (product) => lines[lineKey(product)]?.substitution ?? null,
       add: (product) => change(product, 1),
       remove: (product) => change(product, -1),
       setNote,
+      setSubstitution,
       // Tras un pedido, el carro siguiente es otro (el abandono se mide por carro).
       clear: () => {
         setLines({})
         setCartId(newCartId())
       },
     }
-  }, [lines, change, setNote, cartId])
+  }, [lines, change, setNote, setSubstitution, cartId])
 
   return <CartContext.Provider value={value}>{children}</CartContext.Provider>
 }

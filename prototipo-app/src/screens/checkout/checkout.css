@@ -538,3 +538,139 @@
     animation: none;
   }
 }
+
+/* ---------- Entrega: ahora o programar, tipo de entrega (montos de ejemplo) ---------- */
+.checkout-closed {
+  margin-top: 10px;
+  padding: 10px 14px;
+  border-radius: 14px;
+  background: var(--fee-bg);
+  color: var(--fee-ink);
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.checkout-when {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.checkout-chip,
+.checkout-slot,
+.checkout-type {
+  border-radius: 12px;
+  background: var(--surface);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
+  font-size: 14px;
+  font-weight: 600;
+  transition:
+    background var(--duration-fast),
+    color var(--duration-fast);
+}
+
+.checkout-chip {
+  height: 40px;
+}
+
+.checkout-chip:disabled {
+  opacity: 0.45;
+}
+
+.checkout-chip.is-on,
+.checkout-slot.is-on,
+.checkout-type.is-on {
+  background: var(--ink);
+  color: var(--surface);
+}
+
+.checkout-types {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.checkout-type {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  padding: 10px;
+  text-align: left;
+}
+
+.checkout-type small {
+  font-size: 12px;
+  font-weight: 500;
+  opacity: 0.8;
+}
+
+.checkout-slots {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  max-height: 200px;
+  margin-top: 8px;
+  overflow-y: auto;
+}
+
+.checkout-slot {
+  padding: 8px 12px;
+}
+
+.checkout-basis-note,
+.checkout-blocked-note {
+  margin-top: 6px;
+  font-size: 12px;
+  line-height: 16px;
+  color: var(--ink-3);
+}
+
+/* ---------- Si un producto se agota (Súper y Turbo) ---------- */
+.checkout-substitutions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid var(--line);
+}
+
+.checkout-substitutions p {
+  display: flex;
+  flex-direction: column;
+  font-size: 14px;
+}
+
+.checkout-substitutions small {
+  font-size: 12px;
+  color: var(--ink-2);
+}
+
+.checkout-substitution {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  font-size: 13px;
+}
+
+.checkout-substitution span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.checkout-substitution select {
+  flex: none;
+  max-width: 55%;
+  padding: 6px 8px;
+  border: 1px solid var(--control-border);
+  border-radius: 10px;
+  background: var(--surface);
+  font: inherit;
+  font-size: 13px;
+}
