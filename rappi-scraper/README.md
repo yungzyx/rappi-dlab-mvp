@@ -166,7 +166,7 @@ rappi-scraper/
 │   │   ├── search.py               documentos y búsqueda por vertical
 │   │   ├── backup.py               respaldo con pg_dump, validación y rotación
 │   │   ├── export.py               catálogo por vertical a CSV (`rappi export-csv`)
-│   │   └── migrations/             esquema SQL versionado, un solo historial para toda la base (001–043; las de rappi-ia: 009–013, 016, 020, 022–031, 033–037 y 041–043)
+│   │   └── migrations/             esquema SQL versionado, un solo historial para toda la base (001–051; las de rappi-ia: 009–013, 016, 020, 022–031, 033–037 y 041–051)
 ├── tests/
 │   ├── unit/                     sin red ni base de datos
 │   ├── integration/              contra la base `rappi_test`
@@ -214,7 +214,7 @@ make lint         # ruff: errores comunes + formato
 make format       # aplica el formato
 ```
 
-- **Tests:** las cifras vigentes están en [README.md#resultados](../README.md#resultados) (fila «Calidad»). Los de integración usan la base `rappi_test`, nunca `rappi`.
+- **Tests:** las cifras vigentes están en [README.md#resultados](../README.md#resultados) (fila «Tests»). Los de integración usan la base `rappi_test`, nunca `rappi`.
 - **CI:** GitHub Actions (`.github/workflows/ci.yml`) corre lint y tests contra Postgres + pgvector.
 - **Convención:** el código (funciones, variables, módulos) va en inglés; lo que ve el usuario (logs, CLI, columnas de CSV, valores de verticales) en español.
 

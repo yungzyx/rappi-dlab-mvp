@@ -28,8 +28,8 @@ Sin Homebrew (Linux, o un Mac sin él): Python 3.13, Node y Docker; Postgres va 
 ## 2. Código
 
 ```bash
-gh repo clone yungzyx/rappi-dlab
-cd rappi-dlab
+gh repo clone yungzyx/rappi-dlab-mvp
+cd rappi-dlab-mvp
 ```
 
 Si este equipo va a correr la actualización semanal, clona el repositorio **fuera** de Documentos, Escritorio y Descargas (por ejemplo, directamente en tu carpeta de usuario). macOS no deja que las tareas programadas (launchd) lean esas carpetas, y la actualización fallaría sin avisar.

@@ -2,7 +2,7 @@
 
 Cómo dejar el MVP (la app, la API, el panel opcional y Postgres) en un servidor Linux con Docker Compose, detrás de Caddy con TLS y una puerta de acceso. Es una **demo cerrada**: todo el sitio pide usuario y clave. Abrirla al público exige autorización de Rappi por los datos ([§9](#9-riesgos)).
 
-La demo local (`make mvp` en un Mac) está en [instalacion.md](instalacion.md#5-el-mvp), y la demo pública desde un Mac con Cloudflare Tunnel, sin servidor, en [deploy/macos/](../deploy/macos/README.md). Todo lo de este documento vive en [`deploy/`](../deploy/).
+La demo local (`make mvp` en un Mac) está en [instalacion.md](instalacion.md#5-el-mvp), y la demo desde un Mac con Cloudflare Tunnel y la misma puerta de acceso, sin servidor, en [deploy/macos/](../deploy/macos/README.md). Todo lo de este documento vive en [`deploy/`](../deploy/).
 
 ## 0. Lo que hay que decidir o conseguir
 
@@ -114,6 +114,7 @@ Todas van en `/etc/rappi/rappi.env`, salvo las que fija `docker-compose.yml` o l
 | `MVP_HOME_LAT` / `MVP_HOME_LNG` | api («Cerca de ti») | `-33.4263` / `-70.6106` | — | no |
 | `PROFILE_CITY` | api (la ciudad de los restaurantes de un perfil de gusto si la persona no tiene) | `Santiago de Chile` | `Viña del Mar` | no |
 | `MOTOR_POBLACION` | api (la población de la que aprende el motor multivertical: `synthetic` o `prototype`; nunca se mezclan, y otro valor no deja arrancar) | `synthetic` (simulada: no es evidencia) | `prototype` | no |
+| `OFFERS_CONTROL_PCT` | api (el porcentaje de personas del grupo de control `ofertas_control`, de 0 a 50: no ven lo que Mochi propone solo y queda `offer_withheld`) | `0` (apagado) | `10` | no |
 | `TEXT_EMBEDDING_MODEL` | api, jobs | `intfloat/multilingual-e5-base` | — | no |
 | `TEXT_EMBEDDING_REVISION` | api, jobs, y al construir la imagen | `d128750597153bb5987e10b1c3493a34e5a4502a` (con el modelo por defecto) | — | no |
 | `HF_HUB_OFFLINE` / `HF_HOME` | api, jobs (los fija la imagen) | `1` / `/opt/hf` | — | no |
