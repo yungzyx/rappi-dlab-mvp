@@ -1,4 +1,5 @@
 import { cleanup, fireEvent, render, screen, within } from '@testing-library/react'
+import { placeList } from '../api/attribution'
 import { afterEach, describe, expect, test, vi } from 'vitest'
 import { toPrototypeProduct } from '../api/client'
 import { fixture } from '../test/api'
@@ -74,6 +75,24 @@ describe('ProductSheet', () => {
 
     fireEvent.click(screen.getByRole('button', { name: /Ver tienda/ }))
     expect(onOpenStore).toHaveBeenCalledTimes(1)
+  })
+
+  test('abrir la hoja es ver el producto: un view_item con su lugar, aunque no venga de una recomendación', () => {
+    const placed = { ...beer, entityType: 'catalog_item', entityId: '94001' }
+    const [card] = placeList([placed], { surface: 'deals', origin: 'bajaron-licores' })
+    renderWith(<ProductCard product={card} onOpenStore={() => {}} />)
+    fireEvent.click(screen.getByText(beer.name))
+    const views = events.track.mock.calls.filter(([type]) => type === 'view_item').map(([, fields]) => fields)
+    expect(views).toEqual([
+      expect.objectContaining({
+        entity_type: 'catalog_item',
+        entity_id: '94001',
+        surface: 'deals',
+        origin: 'bajaron-licores',
+        position: 0,
+      }),
+    ])
+    expect(events.track.mock.calls.some(([type]) => type === 'recommendation_click')).toBe(false)
   })
 
   test('sin tienda conocida (storeId) la hoja muestra su nombre pero no ofrece «Ver tienda»', () => {

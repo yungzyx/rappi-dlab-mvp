@@ -38,7 +38,7 @@ from rappi_ia.offers import autonomy
 
 FIXTURES = Path(__file__).resolve().parents[3] / "prototipo-app" / "src" / "api" / "fixtures"
 PANEL_FIXTURES = Path(__file__).resolve().parents[3] / "dashboard-empresa" / "src" / "fixtures"
-PANEL_METRICS = ("offers", "unmet", "combos", "motor", "volver", "ctr-posicion", "embudo-sesion")
+PANEL_METRICS = ("offers", "unmet", "combos", "motor", "volver", "ctr-posicion", "embudo-sesion", "pro")
 # Las métricas de /analytics que guarda `npm run fixtures` (dashboard-empresa/scripts/update-fixtures.mjs).
 PANEL_SHAPE = ("kpis", "weekly", "opportunities", "trends", "at-risk", "suggestions", "services", "assortment")
 PANEL_ORIGINS = {
@@ -105,6 +105,8 @@ CONTRACT: tuple[Example, ...] = (
         {"message": "soy vegetariano", "user_id": "u-contrato", "session_id": "s-contrato"},
     ),
     Example("profile-preferencias", "GET", "/profile/u-contrato/preferencias", after="agent-ask-preferencia"),
+    # El buscador con la dieta de quien dijo «soy vegetariano»: sin la pizza pepperoni y con el aviso.
+    Example("search-grouped-preferencias", "GET", "/search?q=pizza&user_id=u-contrato", after="agent-ask-preferencia"),
     # «Pide lo de siempre en…»: con «Pedir por mí» en el súper Centro, Mochi lo pide solo (u-autopedido); sin permiso,
     # lo deja para revisar antes (u-revisar). Y el ajuste de quien lo encendió.
     Example(

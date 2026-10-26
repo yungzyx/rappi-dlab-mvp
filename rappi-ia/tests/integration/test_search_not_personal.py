@@ -1,5 +1,7 @@
 """La búsqueda no se personaliza: lo que se encuentra con una consulta no depende de lo que la persona hizo antes.
-Solo las ofertas del agente (`/agent/offer`, `/agent/plans`) usan su historia. Las dos personas vienen de `people`."""
+Solo las ofertas del agente (`/agent/offer`, `/agent/plans`) usan su historia. Las dos personas vienen de `people`.
+La única excepción del buscador es explícita: la dieta y las alergias que la persona le dijo a Mochi filtran (`user_id`,
+ver test_agent_preferences.py); quien no dijo ninguna ve lo mismo que sin `user_id`."""
 
 import pytest
 from personal_helpers import GRILL, NEWBIE, SWEET, prepare_people
@@ -14,12 +16,12 @@ def people(db, monkeypatch):
     yield from prepare_people(db, monkeypatch)
 
 
-def test_search_route_takes_no_user():
+def test_search_route_takes_no_profile():
     route = next(r for r in api.app.routes if getattr(r, "path", None) == "/search")
     params = {
         p.name for p in (*route.dependant.query_params, *route.dependant.path_params, *route.dependant.body_params)
     }
-    assert "user_id" not in params and "profile" not in params
+    assert "profile" not in params and "session_id" not in params
 
 
 def count_products(body):
@@ -50,7 +52,7 @@ def test_search_results_do_not_depend_on_history(people, query, extra, minimum):
 
     anonymous = search()
     assert count_products(anonymous) >= minimum  # hay resultados con qué comparar
-    # Aunque se le pase un usuario, la ruta lo ignora: ve lo mismo quien tiene historia que quien no.
+    # Con un usuario sin preferencias dichas, ve lo mismo quien tiene historia que quien no.
     for user in (SWEET, GRILL, NEWBIE):
         assert search(user_id=user) == anonymous
     assert search() == anonymous  # y lo que ya hicieron (sus eventos y pedidos) no la movió

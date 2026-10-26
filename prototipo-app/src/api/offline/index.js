@@ -40,8 +40,8 @@
 //   sea», comparar entre tiendas ni «Para ti» en la tienda: esas rutas responden 404 o vacío y la app no las muestra.
 // - rappi-ia/src/rappi_ia/offers/preferences.py y preferencias.toml, api/preferences.py y rappi_agent.py
 //   (_preference) ... las preferencias explícitas: en la hoja del panel (con las tiendas de sus pedidos), lo que llega
-//   escrito por el buscador, y el filtro y el orden de lo que Mochi muestra
-//   y ofrece (preferences.js; index.js: preferenceAnswer, withPreferences)
+//   escrito por el buscador, el filtro y el orden de lo que Mochi muestra y ofrece, y el filtro del buscador con
+//   `user_id` (preferences.js; index.js: preferenceAnswer, withPreferences, searchedWithPreferences)
 // - rappi-ia/src/rappi_ia/agent/rappi_agent.py (_small_talk, HELP_ACTIONS) y compose.py ... la ayuda con los atajos de
 //   lo que Mochi sabe hacer, el resumen antes de pagar y el último pedido (search.js: appQuestion, helpReply)
 // - rappi-ia/src/rappi_ia/catalog/terms.py ........ las condiciones de compra de las tiendas (catalog.js: storeTerms;
@@ -217,6 +217,33 @@ function withPreferences(snapshot, state, reply, { notice = false } = {}) {
   }
 }
 
+/**
+ * api/app.py (search): con `user_id`, la dieta y las alergias de la persona filtran lo buscado, sin ordenar por sus
+ * favoritas, y `preferences_notice` lo dice. Si sacaron todo, no es «sin resultado»: la muestra sí lo tenía.
+ */
+function searchedWithPreferences(snapshot, state, found, query) {
+  const mine = applied(snapshot.meta, query.get('user_id') ? (state.preferences ?? []) : [])
+  let dropped = 0
+  const keep = (products) => {
+    const kept = mine.keep(products)
+    dropped += products.length - kept.length
+    return kept
+  }
+  const reply = found.groups
+    ? {
+        ...found,
+        groups: found.groups.map((g) => ({ ...g, products: keep(g.products) })).filter((g) => g.products.length),
+      }
+    : { ...found, products: keep(found.products) }
+  const shown = reply.groups ? reply.groups.flatMap((g) => g.products) : reply.products
+  const emptied = dropped > 0 && !shown.length
+  return {
+    ...reply,
+    ...(emptied ? { unmet: false, unmet_reason: null } : {}),
+    preferences_notice: mine.notice(shown, dropped),
+  }
+}
+
 /** api/agent.py (_with_preferences): una oferta que se queda sin lo que traía no se ofrece (204). */
 function offeredWithPreferences(snapshot, state, offer) {
   const mine = applied(snapshot.meta, state.preferences)
@@ -371,7 +398,7 @@ function answer(snapshot, { method, path, query, body }, now) {
     return { body: { user_id: userId, token: `offline.${userId}` } }
   }
   if (key === 'POST /catalog/availability') return { body: availability(snapshot, body?.lines ?? []) }
-  if (key === 'GET /search') return { body: search(snapshot, query) }
+  if (key === 'GET /search') return { body: searchedWithPreferences(snapshot, state, search(snapshot, query), query) }
   if (key === 'POST /agent/ask') {
     const said = preferenceAnswer(snapshot, state, body ?? {}) ?? usualAnswer(snapshot, state, body ?? {}, now)
     if (said) return { body: said }

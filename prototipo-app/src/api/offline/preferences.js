@@ -159,8 +159,11 @@ export function applied(meta, saved = []) {
       const kept = list.filter(keeps)
       return [...kept.filter(favorite), ...kept.filter((p) => !favorite(p))]
     },
-    notice: (list) => {
-      if (!filters.length || !list.some((p) => isFood(meta, p))) return null
+    /** Solo la dieta y las alergias, sin ordenar: lo del buscador (api/app.py: search, `only_filters`). */
+    keep: (list) => list.filter(keeps),
+    /** Con `dropped` (lo que sacó el buscador), lo dice aunque no quede comida que mostrar. */
+    notice: (list, dropped = 0) => {
+      if (!filters.length || (!dropped && !list.some((p) => isFood(meta, p)))) return null
       return `Por tus preferencias, saqué lo que dice tener ${withoutOf(saved)}; revisa los ingredientes en la tienda.`
     },
   }

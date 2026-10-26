@@ -120,6 +120,25 @@ describe('la API simulada', () => {
     expect(readState().preferences).toEqual([])
   })
 
+  test('el buscador con user_id filtra con la dieta y lo dice; si saca todo, no es «sin resultado»', () => {
+    const search = (q) => {
+      const [path, query] = q.split('?')
+      return route(snapshot, { method: 'GET', path, query: new URLSearchParams(query), body: null }).body
+    }
+    const names = (found) => found.groups.flatMap((g) => g.products.map((p) => p.name))
+    say('soy vegetariano')
+    const anonymous = search('/search?q=pizza')
+    expect(names(anonymous)).toContain('Pizza pepperoni')
+    expect(anonymous.preferences_notice).toBeNull()
+    const mine = search('/search?q=pizza&user_id=p')
+    expect(names(mine)).toEqual([])
+    expect(mine.unmet).toBe(false)
+    expect(mine.preferences_notice).toMatch(/saqué lo que dice tener carne/)
+    const vertical = search('/search?q=pizza&vertical=supermercado&user_id=p')
+    expect(vertical.products).toEqual([])
+    expect(vertical.preferences_notice).toMatch(/carne/)
+  })
+
   test('el panel las lee y las reemplaza; una tienda que no está en la muestra no queda', () => {
     const empty = call('GET', '/profile/p/preferencias').body
     expect(empty.preferencias).toEqual([])

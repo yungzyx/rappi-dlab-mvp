@@ -185,7 +185,7 @@ describe('Home del prototipo final', () => {
     const rest = () => said.querySelector('.live-bubble-rest')
     expect(said.textContent.length).toBeGreaterThan(0)
     expect(said.textContent + rest().dataset.rest).toBe(
-      '¡Hola! Ahora vivo en tu Home 👋 Pídeme ideas o prueba una vertical nueva.',
+      '¡Hola! Ahora vivo en tu Home 👋 Toca una idea o prueba una vertical nueva.',
     )
 
     await advance(2000) // terminó de escribir
@@ -858,6 +858,8 @@ describe('Home del prototipo final', () => {
       const { container } = await renderHome()
       await advance(AFTER_GREETING)
       expect(status(container)).toMatch(/^Arriba está mi buscador/)
+      // Mochi no tiene chat: ni la guía ni el saludo invitan a escribirle (26-10).
+      expect(status(container)).not.toMatch(/pídeme|dime|escríbeme|cuéntame|pregúntame/i)
       expect(at(container)).toBe('essentials')
       await next('Siguiente')
       expect(status(container)).toMatch(/si me tocas/)

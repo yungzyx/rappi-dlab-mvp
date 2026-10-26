@@ -1,8 +1,10 @@
 """La búsqueda de la app sin vertical: la misma consulta en todas las verticales que corresponden, agrupada.
 
 Es la búsqueda que la persona escribe, así que no lleva las guardias de las ofertas del agente (la cerveza trae
-Licores) ni se personaliza; lo sensible, como siempre, solo si se nombra (`_allowed` en agent/tools.py). Los resultados
-son productos y platos, nunca tiendas.
+Licores) ni se personaliza; lo sensible, como siempre, solo si se nombra (`_allowed` en agent/tools.py). La única
+excepción es la dieta y las alergias que la persona le dijo al agente: si quien llama las pone
+(`offers.preferences.applied`), filtran igual que en el agente, y `dropped` cuenta lo que sacaron. Los resultados son
+productos y platos, nunca tiendas.
 """
 
 import contextvars
@@ -59,6 +61,7 @@ class GroupedResult:
     unmet: bool = False
     unmet_reason: str | None = None
     corrected_query: str | None = None  # lo que se buscó si se corrigieron errores de tipeo (retrieval/spelling.py)
+    dropped: int = 0  # lo que la dieta y las alergias sacaron de los grupos (offers/preferences.py)
 
     def to_dict(self) -> dict:
         return {
@@ -164,7 +167,7 @@ def search_grouped(
     again, strict = _search_grouped(conn, fixed, embedder, current, limit, price_max, mode, spare)
     if not again.groups or not strict:
         return found
-    return GroupedResult(q, again.groups, corrected_query=fixed)
+    return GroupedResult(q, again.groups, corrected_query=fixed, dropped=again.dropped)
 
 
 def _search_grouped(
@@ -199,9 +202,12 @@ def _search_grouped(
         for vertical, outcome in outcomes
         if outcome.products
     ]
+    dropped = sum(outcome.dropped for _, outcome in outcomes)
     if groups:
         groups.sort(key=lambda group: group.vertical != current)  # estable: solo sube la de la pantalla actual
-        return GroupedResult(q, groups), strict
+        return GroupedResult(q, groups, dropped=dropped), strict
+    if dropped:  # el catálogo sí lo tiene: no es demanda sin resultado, lo sacaron sus preferencias
+        return GroupedResult(q, [], dropped=dropped), strict
     reason = next((o.result.unmet_reason for _, o in searched if o.result.unmet_reason), None)
     if reason is None and not concepts:
         best = max((o.result.max_cosine or 0.0 for _, o in searched), default=0.0)

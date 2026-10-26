@@ -1,0 +1,12 @@
+{
+  "data": {
+    "grupos": [],
+    "minimo_personas": 20,
+    "sin_dato": 0
+  },
+  "guardado": {
+    "fecha": "2026-10-26",
+    "origen": "make contract · simulación chica con semilla fija (40 personas, 8 semanas)"
+  },
+  "source": "synthetic"
+}

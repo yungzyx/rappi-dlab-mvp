@@ -184,6 +184,20 @@ describe('SearchScreen', () => {
     expect(url.searchParams.get('current')).toBe('liquor')
   })
 
+  test('en el prototipo final la búsqueda va con la persona (su dieta filtra); en «Rappi hoy», no', async () => {
+    const { input, fetchMock } = setup()
+    await type(input, 'cerveza')
+    const sent = () => new URL(fetchMock.mock.calls.filter(([u]) => u.includes('/search')).at(-1)[0]).searchParams
+    expect(sent().get('user_id')).toMatch(/^proto-/)
+    cleanup()
+    localStorage.setItem('rappi-proto-demo-mode', 'actual')
+    const today = setup()
+    await type(today.input, 'cerveza')
+    expect(
+      new URL(today.fetchMock.mock.calls.find(([u]) => u.includes('/search'))[0]).searchParams.has('user_id'),
+    ).toBe(false)
+  })
+
   test('una consulta que viene en los parámetros (una categoría) se busca de inmediato', async () => {
     const { input, fetchMock } = setup({ query: 'cerveza', vertical: 'liquor' })
     expect(input.value).toBe('cerveza')

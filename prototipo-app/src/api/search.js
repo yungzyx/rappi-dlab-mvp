@@ -26,14 +26,17 @@ const groupOf = (backendVertical, prototypeVertical, products) => ({
  * - Sin `vertical`, también las tiendas y los restaurantes que se llaman así o son de esa cocina (`places: { stores,
  *   restaurants }`, cada uno con su lugar); si no hubo nada, `whimAllowed` dice si se puede ofrecer «Lo que sea»
  *   (RappiFavor) con lo escrito, según las guardias de la API.
+ * - Con `userId` (solo en la propuesta), la dieta y las alergias que la persona le dijo a Mochi filtran los resultados
+ *   (como en Mochi, sin ordenar por sus favoritas) y `preferencesNotice` lo dice (null si no filtró).
  * Un mismo producto puede salir en varios grupos con el mismo `id`: las llaves de la lista deben incluir la vertical.
  */
-export async function searchAll(q, { vertical, current, limit, exact } = {}) {
+export async function searchAll(q, { vertical, current, limit, exact, userId } = {}) {
   const params = new URLSearchParams({ q })
   if (vertical) params.set('vertical', vertical)
   else if (current) params.set('current', current)
   if (limit) params.set('limit', String(limit))
   if (exact) params.set('correct', 'false')
+  if (userId) params.set('user_id', userId)
   const response = await request(`/search?${params}`, { timeout: SEARCH_TIMEOUT_MS })
   const requestId = response.request_id ?? null
   const found = response.groups
@@ -61,6 +64,7 @@ export async function searchAll(q, { vertical, current, limit, exact } = {}) {
     unmet: Boolean(response.unmet),
     unmetReason: response.unmet_reason ?? null,
     correctedQuery: response.corrected_query ?? null,
+    preferencesNotice: response.preferences_notice ?? null,
   }
 }
 

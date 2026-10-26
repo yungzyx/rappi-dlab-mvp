@@ -5,6 +5,7 @@ razón de una oferta ni quedan como consulta, y se borran con «olvida mis prefe
 from datetime import datetime, time, timedelta
 
 import pytest
+from fastapi.testclient import TestClient
 
 from owner_client import OwnerClient
 from rappi_ia import delivery
@@ -83,6 +84,50 @@ def test_a_diet_filters_what_mochi_shows_and_says_it_filters_by_name(client):
     assert "Pizza margarita mediana (prueba)" in names(after)
     assert "saqué lo que dice tener carne" in after["text"]
     assert after["reason"] is None or "carne" not in str(after["reason"])  # nunca es la razón
+
+
+def search_names(reply):
+    if "groups" in reply:
+        return [p["name"] for g in reply["groups"] for p in g["products"]]
+    return [p["name"] for p in reply["products"]]
+
+
+def test_the_search_filters_with_diet_and_allergies_like_mochi(client):
+    """`/search` con `user_id`: la misma dieta filtra lo buscado y la respuesta lo dice; sin `user_id`, nada cambia."""
+    say(client, "no como carne")
+    for path in ("/search?q=pizza", "/search?q=pizza&vertical=restaurants"):
+        anonymous = client.get(path).json()
+        assert "Pizza pepperoni familiar (prueba)" in search_names(anonymous)
+        assert anonymous["preferences_notice"] is None
+        mine = client.get(f"{path}&user_id={USER}").json()
+        assert "Pizza pepperoni familiar (prueba)" not in search_names(mine)
+        assert "Pizza margarita mediana (prueba)" in search_names(mine)
+        assert "saqué lo que dice tener carne" in mine["preferences_notice"]
+
+
+def test_the_search_does_not_order_by_favorites(client):
+    """En el buscador las favoritas no ordenan (solo filtran la dieta y las alergias): mismo orden, sin aviso."""
+    anonymous = client.get("/search?q=pizza").json()
+    say(client, "mi comida favorita es el sushi")
+    mine = client.get(f"/search?q=pizza&user_id={USER}").json()
+    assert search_names(mine) == search_names(anonymous)
+    assert mine["preferences_notice"] is None
+
+
+def test_a_search_emptied_by_preferences_is_not_unmet(client):
+    """Si la dieta saca todo lo encontrado, el catálogo sí lo tenía: no es «sin resultado» ni ofrece «Lo que sea»."""
+    say(client, "no como carne")
+    found = client.get(f"/search?q=parrillada&user_id={USER}").json()
+    assert found["groups"] == []
+    assert found["unmet"] is False and found["whim_allowed"] is False
+    assert "carne" in found["preferences_notice"]
+
+
+def test_the_search_with_someone_elses_id_is_refused(client):
+    """Las preferencias son de la persona: `/search?user_id=` sin su token no responde."""
+    plain = TestClient(api.app)
+    assert plain.get(f"/search?q=pizza&user_id={USER}").status_code == 401
+    assert plain.get("/search?q=pizza").status_code == 200
 
 
 def test_rappi_hoy_neither_saves_nor_applies_them(client, db):

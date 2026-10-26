@@ -132,6 +132,27 @@ describe('Ofertas con el catálogo real', () => {
     expect(screen.queryByText(/Crazy Deals|Top 10|Most Ordered|New in Rappi/)).toBeNull()
   })
 
+  test('cada fila es una lista con su lugar: las bajas de cada vertical y «Mejor evaluados»', async () => {
+    stubDeals()
+    const push = renderDeals()
+    const grocery = within(await screen.findByRole('region', { name: 'Bajaron de precio en Súper' }))
+    fireEvent.click(grocery.getByText('Café molido tostado 250 g (prueba)'))
+    fireEvent.click(within(screen.getByRole('dialog')).getByRole('button', { name: /Ver tienda/ }))
+    const [, { item }] = push.mock.calls.at(-1)
+    expect(item.placement).toMatchObject({ surface: 'deals', origin: 'bajaron-supermercado' })
+    expect(Number.isInteger(item.placement.position)).toBe(true)
+
+    const best = within(await screen.findByRole('region', { name: 'Mejor evaluados' }))
+    await waitFor(() => expect(best.getAllByRole('button')).toHaveLength(6))
+    fireEvent.click(best.getAllByRole('button')[1])
+    expect(push.mock.calls.at(-1)[1].store.placement).toEqual({
+      surface: 'deals',
+      origin: 'mejor-evaluados',
+      position: 1,
+      requestId: undefined,
+    })
+  })
+
   test('ninguna tienda tocable en Restaurantes, Ofertas ni Home es local: Ofertas, cada push de tienda lleva un id numérico', async () => {
     stubDeals()
     const push = renderDeals()

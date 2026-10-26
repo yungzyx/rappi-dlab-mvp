@@ -40,6 +40,7 @@
       }
     ]
   },
+  "preferences_notice": null,
   "query": "chocolateria de prueba",
   "request_id": "contrato-search-grouped-places",
   "unmet": false,

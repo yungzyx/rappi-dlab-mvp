@@ -5,6 +5,7 @@
     "restaurants": [],
     "stores": []
   },
+  "preferences_notice": null,
   "query": "xyzzy",
   "request_id": "contrato-search-grouped-unmet",
   "unmet": true,

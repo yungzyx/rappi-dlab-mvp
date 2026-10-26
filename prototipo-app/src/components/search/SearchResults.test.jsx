@@ -160,6 +160,40 @@ describe('SearchResults sin resultados', () => {
   })
 })
 
+describe('SearchResults con preferencias', () => {
+  const NOTICE = 'Por tus preferencias, saqué lo que dice tener carne; revisa los ingredientes en la tienda.'
+
+  test('dice que filtró por sus preferencias junto a los resultados', () => {
+    const raw = fixture('search-grouped-preferencias')
+    const data = {
+      query: 'pizza',
+      unmet: false,
+      preferencesNotice: raw.preferences_notice,
+      groups: raw.groups.map((g) => ({
+        vertical: g.prototype_vertical,
+        backendVertical: g.vertical,
+        products: g.products.map((p) => ({ id: p.id, name: p.name, price: p.price, store: p.store })),
+      })),
+    }
+    render(<SearchResults query="pizza" data={data} />, { wrapper: Providers })
+    expect(screen.getByRole('status').textContent).toBe(NOTICE)
+    expect(screen.getByText('Pizza margarita mediana (prueba)')).toBeTruthy()
+  })
+
+  test('si sacaron todo, lo dice sin ofrecer otra vertical ni «Lo que sea»', async () => {
+    const fetchMock = stubApi({})
+    const data = { query: 'parrillada', groups: [], unmet: false, whimAllowed: false, preferencesNotice: NOTICE }
+    render(<SearchResults query="parrillada" data={data} onOpenVertical={() => {}} onOpenFavor={() => {}} />, {
+      wrapper: Providers,
+    })
+    await flush()
+    expect(screen.getByText('Nada de lo que encontré para «parrillada» calza con tus preferencias.')).toBeTruthy()
+    expect(screen.getByText(NOTICE)).toBeTruthy()
+    expect(document.querySelector('.mascot')).toBeNull()
+    expect(fetchMock).not.toHaveBeenCalled() // no pide la oferta «sin resultado» a Mochi
+  })
+})
+
 describe('SearchResults con resultados', () => {
   const data = () => {
     const raw = fixture('search-grouped')
