@@ -97,9 +97,8 @@ export function Churn({ source }) {
           <h3 className="subhead">Qué pedían y cómo llegarles</h3>
           <p className="block-note">
             Con aviso aceptado: recordatorio en su ritmo con lo que más pedían y un complemento. Sin aviso: solo{' '}
-            {AGENT_NAME}
-            en la app. Muestra de {formatNumber(rows.length)} de las {formatNumber(kpis.en_riesgo + kpis.perdidos)},
-            primero las en riesgo más atrasadas respecto de su ritmo.
+            {AGENT_NAME} en la app. Muestra de {formatNumber(rows.length)} de las{' '}
+            {formatNumber(kpis.en_riesgo + kpis.perdidos)}, primero las en riesgo más atrasadas respecto de su ritmo.
           </p>
           {shownAtRisk === 0 && kpis.en_riesgo > 0 && (
             <p className="table-warning status status--warn">
