@@ -5,6 +5,7 @@
     "cuisines": [
       "Carnes"
     ],
+    "display_name": "Parrilla de prueba - Ñuñoa",
     "eta": "40 min",
     "fee": "$2.490",
     "hours": {
@@ -64,6 +65,7 @@
     "cuisines": [
       "Pizzas"
     ],
+    "display_name": "Pizzería de prueba Centro",
     "eta": "25 min",
     "fee": "$1.490",
     "hours": {
@@ -123,6 +125,7 @@
     "cuisines": [
       "Pastelería y Postres"
     ],
+    "display_name": "Pastelería de prueba - Vitacura",
     "eta": "20 min",
     "fee": "$690",
     "hours": {
@@ -146,6 +149,7 @@
     "cuisines": [
       "Americana"
     ],
+    "display_name": "Sándwiches de prueba - Providencia",
     "eta": "15 min",
     "fee": "$990",
     "hours": {
@@ -175,6 +179,7 @@
     "cuisines": [
       "Desayunos"
     ],
+    "display_name": "Café de prueba - Las Condes",
     "eta": null,
     "fee": "$1.990",
     "hours": {
@@ -235,6 +240,7 @@
       "Hamburguesa",
       "Sushi"
     ],
+    "display_name": "Sushi y hamburguesas de prueba Norte",
     "eta": "35 min",
     "fee": "$0",
     "hours": {
@@ -258,6 +264,7 @@
     "cuisines": [
       "Pescados y Mariscos"
     ],
+    "display_name": "Cevichería de prueba - Santiago",
     "eta": "30 min",
     "fee": "$0",
     "hours": {

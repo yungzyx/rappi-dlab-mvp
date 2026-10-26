@@ -25,6 +25,6 @@
   "request_id": "contrato-agent-ask-resumen",
   "stores": [],
   "tags": [],
-  "text": "Este es el resumen de tu pedido antes de pagar 🧾. Revísalo y paga en el checkout: yo nunca hago el pedido por ti.",
+  "text": "Este es el resumen de tu pedido antes de pagar 🧾. Revísalo y paga en el checkout: si no me diste permiso con «Pedir por mí», el pedido lo haces tú.",
   "unmet": false
 }

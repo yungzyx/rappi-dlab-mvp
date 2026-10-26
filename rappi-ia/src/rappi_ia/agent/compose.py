@@ -95,15 +95,18 @@ class TemplateComposer:
                 "Los remedios para la presión, la diabetes o el colesterol son con receta médica: en Farmacia te la "
                 "piden al comprar 💊."
             )
+        # El pedido y el resumen dicen lo que la demo hace hoy: con «Pedir por mí» Mochi sí pide (con sus límites) y el
+        # seguimiento cancela antes de que salga. Son los mismos de la app (AssistantPanel.jsx) y de la copia sin
+        # conexión (api/offline/search.js: SUMMARY_TEXT y ORDER_TEXT).
         if d.kind == "pedido":
             return (
-                "Tu pedido lo sigues en «Mis pedidos» 🛵: ahí ves dónde viene y, para cancelarlo o un reclamo, está el "
-                "chat de soporte."
+                "Tu pedido lo sigues en «Mis pedidos» 🛵: ahí ves dónde viene, lo cancelas antes de que salga o pides "
+                "ayuda si algo llegó mal."
             )
         if d.kind == "resumen":
             return (
-                "Este es el resumen de tu pedido antes de pagar 🧾. Revísalo y paga en el checkout: yo nunca hago el "
-                "pedido por ti."
+                "Este es el resumen de tu pedido antes de pagar 🧾. Revísalo y paga en el checkout: si no me diste "
+                "permiso con «Pedir por mí», el pedido lo haces tú."
             )
         if d.kind == "fuera":
             return "De eso no sé mucho 🧡, lo mío es ayudarte a pedir: comida, súper, farmacia…"

@@ -33,6 +33,7 @@
         "cuisines": [
           "Pizzas"
         ],
+        "display_name": "Pizzería de prueba Centro",
         "eta": "25 min",
         "fee": "$1.490",
         "hours": {

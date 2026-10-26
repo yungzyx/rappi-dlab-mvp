@@ -214,10 +214,27 @@ def test_the_summary_is_a_review_before_paying(text):
     reply = RappiAgent().reply(None, text, Context())
     assert reply["intent"]["kind"] == "resumen"
     assert reply["actions"] == [{"label": "Revisar y pagar", "route": ["checkout"]}]
-    assert "nunca hago el pedido por ti" in reply["text"]
+    assert "si no me diste permiso con «Pedir por mí», el pedido lo haces tú" in reply["text"]
+    assert "nunca hago el pedido" not in reply["text"]  # con «Pedir por mí» Mochi sí pide
 
 
 def test_order_status_leads_to_my_orders():
     reply = RappiAgent().reply(None, "¿dónde viene mi pedido?", Context())
     assert reply["intent"]["kind"] == "pedido"
     assert reply["actions"] == [{"label": "Ver mis pedidos", "route": ["orders"]}]
+    assert "lo cancelas antes de que salga" in reply["text"] and "chat" not in reply["text"]  # Mochi no tiene chat
+
+
+def _js_constant(path: Path, name: str) -> str:
+    """El texto de una constante de la app hecha de cadenas con comillas simples unidas con `+`."""
+    code = path.read_text(encoding="utf-8")
+    body = re.search(rf"const {name} =\n?(.*?)\n(?:export )?const ", code, re.S).group(1)
+    return "".join(re.findall(r"'((?:[^'\\]|\\.)*)'", body))
+
+
+@pytest.mark.parametrize(("kind", "name"), [("resumen", "SUMMARY_TEXT"), ("pedido", "ORDER_TEXT")])
+def test_the_summary_and_order_texts_are_the_apps(kind, name):
+    """El resumen y el pedido dicen lo mismo en la API, en la app y en la copia sin conexión."""
+    text = TemplateComposer().compose(Draft(kind=kind))
+    for path in (APPS[0] / "components/assistant/AssistantPanel.jsx", APPS[0] / "api/offline/search.js"):
+        assert _js_constant(path, name) == text, path.name

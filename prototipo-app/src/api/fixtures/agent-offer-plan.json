@@ -12,16 +12,16 @@
       "before": null,
       "concept": "cerveza",
       "discount": null,
-      "entity_id": "94001",
+      "entity_id": "94002",
       "entity_type": "catalog_item",
-      "id": "cat-94001",
-      "img": "https://imagenes.prueba.invalid/productos/94001.png",
-      "name": "Cerveza rubia lata 470 cc (prueba)",
-      "presentation": "470 cc",
-      "price": "$1.190",
-      "price_value": 1190.0,
-      "store": "Botillería de prueba Oriente",
-      "store_id": 9402,
+      "id": "cat-94002",
+      "img": "https://imagenes.prueba.invalid/productos/94002.png",
+      "name": "Cerveza negra botella 330 cc (prueba)",
+      "presentation": "330 cc",
+      "price": "$1.790",
+      "price_value": 1790.0,
+      "store": "Botillería de prueba Centro",
+      "store_id": 9401,
       "vertical": "licores"
     },
     {
@@ -89,6 +89,32 @@
     "text": "Porque elegiste «Carrete»."
   },
   "request_id": "contrato-agent-offer-plan",
+  "stores": [
+    {
+      "below_min": false,
+      "min_order": null,
+      "missing": null,
+      "store": "Botillería de prueba Centro",
+      "store_id": 9401,
+      "subtotal": 8780
+    },
+    {
+      "below_min": false,
+      "min_order": 0,
+      "missing": 0,
+      "store": "Tienda express de prueba Centro",
+      "store_id": 9201,
+      "subtotal": 1290
+    },
+    {
+      "below_min": false,
+      "min_order": null,
+      "missing": null,
+      "store": "Tienda turbo de prueba Centro",
+      "store_id": 9301,
+      "subtotal": 1490
+    }
+  ],
   "text": "Tu kit «Carrete»: cerveza, bebidas gaseosas, hielo y pisco, de Licores, Express y Turbo.",
   "vertical": "licores"
 }

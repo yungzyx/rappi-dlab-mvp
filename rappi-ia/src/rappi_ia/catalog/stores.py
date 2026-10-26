@@ -44,10 +44,12 @@ def not_pushed_params() -> dict[str, list[str]]:
 
 
 # Las ofertas vigentes de UNA tienda con su pasillo, una por producto del catálogo (la más barata, si la tienda lo tiene
-# en dos SKU): `offers` es el CTE de la página de la tienda (`_STORE_PAGE`).
+# en dos SKU, la misma que elige la ficha: `_PRODUCT_STORES`): `offers` es el CTE de la página de la tienda
+# (`_STORE_PAGE`). `run_id` y `sku` llevan a su stock.
 _STORE_OFFERS = """
 offers AS (
-    SELECT DISTINCT ON (sp.master_product_id) sp.master_product_id, a.aisle_id, a.name AS aisle, l.price, l.real_price
+    SELECT DISTINCT ON (sp.master_product_id) sp.master_product_id, a.aisle_id, a.name AS aisle, l.price, l.real_price,
+           l.run_id, sp.sku
     FROM v_latest_offers l
     JOIN store_products sp ON sp.store_id = %(store_id)s AND sp.sku = l.sku
     JOIN aisles a ON a.store_id = %(store_id)s AND a.aisle_id = sp.aisle_id AND a.parent_aisle_id IS NULL
@@ -77,6 +79,8 @@ OWN_VERTICAL = """(
 # - El pasillo elegido es el pedido (`%(aisle_id)s`, si la tienda lo tiene) o, sin pedir uno (`%(first)s`), el primero.
 # - Los productos van por nombre (y por id, que desempata nombres repetidos: sin eso, una página podría repetir o
 #   saltarse productos).
+# - Cada producto trae su stock del mismo snapshot de la oferta vigente (`price_snapshots` por su llave, como la ficha):
+#   la fila dice «Agotado» sin preguntar a la ficha.
 _STORE_PAGE = f"""
 WITH {_STORE_OFFERS},
 aisle_list AS (
@@ -91,11 +95,12 @@ chosen AS (
 page AS (
     SELECT ci.master_product_id AS mid, ci.master_product_id::text AS id, ci.name, o.price, o.real_price,
            NULLIF(ci.image_url, '') AS image, ci.presentation, ci.is_alcoholic OR ci.age_restricted AS adult,
-           ic.concept_id
+           ic.concept_id, ps.stock
     FROM offers o
     JOIN chosen USING (aisle_id)
     JOIN catalog_items ci ON ci.master_product_id = o.master_product_id
     LEFT JOIN item_concepts ic ON ic.entity_type = 'catalog_item' AND ic.entity_id = ci.master_product_id::text
+    LEFT JOIN price_snapshots ps ON ps.run_id = o.run_id AND ps.store_id = %(store_id)s AND ps.sku = o.sku
     ORDER BY ci.name, ci.master_product_id
     LIMIT %(limit)s OFFSET %(offset)s
 )
@@ -103,7 +108,7 @@ SELECT s.store_id, btrim(coalesce(b.name, s.name)), s.raw->>'image', s.raw->>'et
        (SELECT count(*) FROM offers), {OWN_VERTICAL},
        (SELECT json_agg(json_build_array(aisle_id, name, products) ORDER BY products DESC, aisle_id) FROM aisle_list),
        (SELECT aisle_id FROM chosen),
-       (SELECT json_agg(json_build_array(id, name, price, real_price, image, presentation, adult, concept_id)
+       (SELECT json_agg(json_build_array(id, name, price, real_price, image, presentation, adult, concept_id, stock)
                         ORDER BY name, mid)
         FROM page),
        {STORE_STATE}
@@ -296,7 +301,8 @@ def store_page(
 ) -> dict | None:
     """La tienda con sus pasillos y una página de los productos de uno (el primero, si no se pide uno). `None` si la
     tienda no existe o no tiene ofertas vigentes. Con un pasillo que la tienda no tiene (o sin ofertas), `aisle` es
-    `None` y no hay productos."""
+    `None` y no hay productos. Cada producto suma `stock` (las unidades del snapshot de su oferta; `None` si la tienda
+    no las publicó) y `available`, con la regla de la ficha (`_offer_entry`): con 0 unidades está agotado."""
     if not 0 <= store_id <= BIGINT_MAX:
         return None
     params = {
@@ -314,12 +320,13 @@ def store_page(
     aisles = [{"id": id_, "name": name, "products": count} for id_, name, count in row[6] or []]
     chosen = next((a for a in aisles if a["id"] == row[7]), None)
     taxonomy = load_taxonomy()
-    products = [product_card(p, store["vertical"], store["name"], store_id, taxonomy) for p in row[8] or []]
+    products = [(product_card(p[:8], store["vertical"], store["name"], store_id, taxonomy), p[8]) for p in row[8] or []]
     return {
         "store": store,
         "aisles": aisles,
         "aisle": chosen,
-        "products": [p.to_dict() for p in products[:page_size]],
+        # Una oferta vigente nunca es `in_stock = false` (`_STORE_OFFERS`): solo las unidades en 0 la dejan agotada.
+        "products": [{**p.to_dict(), "available": stock != 0, "stock": stock} for p, stock in products[:page_size]],
         "page": page,
         "has_more": len(products) > page_size,
     }

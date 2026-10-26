@@ -20,7 +20,7 @@ function toAction({ route, ask, ...action }) {
 /**
  * La oferta del agente para un momento (`carrito`, `checkout`, `sin_resultado`, `proximo_pedido`, `plan`,
  * `vertical_por_probar`, `recompra`, `volver`, `ontop`) con su contexto, o `null` si no tiene nada que ofrecer (204): entonces el agente no dice nada.
- * Devuelve `{ moment, text, products, vertical, backendVertical, reason, actions, windowMin, requestId }`; la `vertical` es la de
+ * Devuelve `{ moment, text, products, vertical, backendVertical, reason, actions, windowMin, stores, requestId }`; la `vertical` es la de
  * la app y cada producto lleva `fromSuggestion` y `suggestionOrigin: 'agent-<momento>'` para los eventos y el pedido,
  * y su lugar (`placement`: `surface`, la pantalla donde se muestra la oferta; su posición y la respuesta), y cada
  * acción la `route` de la app (`push(...route)`).
@@ -49,6 +49,16 @@ export async function offer(moment, context = {}, { userId, surface } = {}) {
     actions: (response.actions ?? []).map(toAction),
     // El plazo del OnTop de Turbo (momento `ontop`, un supuesto): minutos desde el pedido para sumar sus productos.
     windowMin: response.plazo_min ?? null,
+    // Las tiendas de un kit (momento `plan`), un pedido cada una: lo que suma ahí y su compra mínima del catálogo
+    // (`minOrder` null si no la sabe), con la marca de la que no llega (`belowMin`, `missing`).
+    stores: (response.stores ?? []).map((store) => ({
+      storeId: store.store_id,
+      store: store.store,
+      subtotal: store.subtotal,
+      minOrder: store.min_order ?? null,
+      missing: store.missing ?? null,
+      belowMin: Boolean(store.below_min),
+    })),
     requestId,
   }
 }

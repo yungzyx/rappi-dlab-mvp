@@ -847,12 +847,19 @@ describe('Para ti y Descubre con Mochi', () => {
       {
         ...row,
         concept: 'helados',
+        concept_label: undefined, // sin el nombre de la API, el título sale del id
         prototype_vertical: 'grocery',
         vertical: 'supermercado',
         reason: 'Por tu interés en 🍫 chocolate',
       },
-      { ...row, concept: 'snacks-salados', prototype_vertical: 'liquor', vertical: 'licores' },
-      { ...row, concept: 'jugos', prototype_vertical: 'restaurants', vertical: 'restaurantes' },
+      {
+        ...row,
+        concept: 'snacks-salados',
+        concept_label: 'Snacks salados',
+        prototype_vertical: 'liquor',
+        vertical: 'licores',
+      },
+      { ...row, concept: 'jugos', concept_label: 'Jugos', prototype_vertical: 'restaurants', vertical: 'restaurantes' },
     ]
     stubCatalog({ '/recommendations': data })
     const push = vi.fn()
@@ -860,7 +867,7 @@ describe('Para ti y Descubre con Mochi', () => {
 
     const cards = document.querySelectorAll('.discover-card')
     expect(cards).toHaveLength(3)
-    expect(cards[0].textContent).toContain('Gaseosas en Express')
+    expect(cards[0].textContent).toContain('Bebidas gaseosas en Express') // el nombre de la taxonomía (ui C1)
     expect(cards[1].textContent).toContain('Helados en Súper')
     fireEvent.click(cards[1])
     await runUntilIdle()

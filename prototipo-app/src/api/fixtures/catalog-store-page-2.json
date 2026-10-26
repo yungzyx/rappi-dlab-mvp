@@ -36,6 +36,7 @@
   "products": [
     {
       "age_restricted": false,
+      "available": true,
       "before": null,
       "concept": "reposteria",
       "discount": null,
@@ -47,12 +48,14 @@
       "presentation": "1 kg",
       "price": "$1.090",
       "price_value": 1090.0,
+      "stock": null,
       "store": "Supermercado de prueba Centro",
       "store_id": 9101,
       "vertical": "supermercado"
     },
     {
       "age_restricted": false,
+      "available": true,
       "before": null,
       "concept": "pastas",
       "discount": null,
@@ -64,12 +67,14 @@
       "presentation": "200 g",
       "price": "$1.590",
       "price_value": 1590.0,
+      "stock": null,
       "store": "Supermercado de prueba Centro",
       "store_id": 9101,
       "vertical": "supermercado"
     },
     {
       "age_restricted": false,
+      "available": true,
       "before": null,
       "concept": "arroz-legumbres",
       "discount": null,
@@ -81,12 +86,14 @@
       "presentation": "400 g",
       "price": "$1.490",
       "price_value": 1490.0,
+      "stock": null,
       "store": "Supermercado de prueba Centro",
       "store_id": 9101,
       "vertical": "supermercado"
     },
     {
       "age_restricted": false,
+      "available": true,
       "before": null,
       "concept": "conservas",
       "discount": null,
@@ -98,12 +105,14 @@
       "presentation": "400 g",
       "price": "$2.490",
       "price_value": 2490.0,
+      "stock": null,
       "store": "Supermercado de prueba Centro",
       "store_id": 9101,
       "vertical": "supermercado"
     },
     {
       "age_restricted": false,
+      "available": true,
       "before": null,
       "concept": "reposteria",
       "discount": null,
@@ -115,12 +124,14 @@
       "presentation": "400 g",
       "price": "$1.990",
       "price_value": 1990.0,
+      "stock": null,
       "store": "Supermercado de prueba Centro",
       "store_id": 9101,
       "vertical": "supermercado"
     },
     {
       "age_restricted": false,
+      "available": true,
       "before": null,
       "concept": "conservas",
       "discount": null,
@@ -132,6 +143,7 @@
       "presentation": "400 g",
       "price": "$1.090",
       "price_value": 1090.0,
+      "stock": null,
       "store": "Supermercado de prueba Centro",
       "store_id": 9101,
       "vertical": "supermercado"

@@ -46,7 +46,10 @@ NOT_PUSHED_STORES = {SEX_SHOP, SMOKING_SHOP, PHARMACY_IN_SUPER}
 PLAIN_DEALS = ["96101", "96201", "91401"]  # el producto corriente de cada una, con baja de precio
 SENSITIVE_DEALS = ["96102", "96202", "91402", "95001"]  # gel íntimo, papelillos, antiácido y paracetamol (farmacia)
 DISH_PHOTOS = "https://imagenes.prueba.invalid/platos/"
-CARD_KEYS = {"id", "name", "area", "cover", "rating", "reviews", "eta", "fee", "cuisines", "promo", "schedule", "hours"}
+CARD_KEYS = {
+    *("id", "name", "area", "display_name", "cover", "rating", "reviews", "eta", "fee", "cuisines", "promo"),
+    *("schedule", "hours"),
+}
 STORE_KEYS = {"id", "name", "logo", "eta", "products", "vertical", "promos", "hours"}
 PRODUCT_KEYS = {
     "id", "entity_type", "entity_id", "name", "vertical", "concept", "price", "price_value", "before", "discount",
@@ -124,6 +127,20 @@ def test_restaurant_card_has_rating_eta_fee_and_cuisines(seeded):
     # Sin nota, el campo queda vacío; con envío gratis, es «$0»; sin tiempo de entrega, tampoco hay.
     assert cards[SUSHI]["rating"] is None and cards[SUSHI]["fee"] == "$0"
     assert cards[CAFE]["eta"] is None and cards[CAFE]["fee"] == "$1.990"
+
+
+def test_the_shown_name_is_the_one_of_its_dishes_and_orders(seeded):
+    """ui C11: «Pastelería de prueba» en la lista y «Pastelería de prueba - Vitacura» en el carro y los pedidos. La
+    tarjeta trae `display_name`, el mismo `store` de sus platos (el que llega al carro, al checkout y a sus pedidos)."""
+    cards = {card["id"]: card for card in restaurants(seeded, limit=100)}
+
+    assert cards[SANDWICHES]["display_name"] == "Sándwiches de prueba - Providencia"
+    assert cards[PIZZERIA]["display_name"] == cards[PIZZERIA]["name"] == "Pizzería de prueba Centro"
+    for store_id in (SANDWICHES, PIZZERIA):
+        menu = restaurant_menu(seeded, store_id)
+        dishes = [dish for section in menu["sections"] for dish in section["items"]]
+        assert menu["restaurant"]["display_name"] == cards[store_id]["display_name"]
+        assert {dish["store"] for dish in dishes} == {cards[store_id]["display_name"]}
 
 
 def test_name_splits_at_the_last_separator(seeded):

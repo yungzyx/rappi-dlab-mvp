@@ -251,6 +251,8 @@ def _card(
         "id": store_id,
         "name": name,
         "area": area,
+        # El nombre que muestra la app: el mismo de sus platos (`store`), del carro y de sus pedidos, con el área.
+        "display_name": full_name.strip(),
         "cover": cover,
         "rating": float(rating) if rating is not None else None,
         "reviews": reviews,

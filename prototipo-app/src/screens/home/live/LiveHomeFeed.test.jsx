@@ -262,9 +262,13 @@ describe('Home del prototipo final', () => {
       expect(accepted.map(([, fields]) => fields.concept_id).sort()).toEqual(kit.products.map((p) => p.concept).sort())
       expect(tracked('suggestion_shown', 'agent-plan')).toHaveLength(kit.products.length)
       expect(screen.getByRole('button', { name: /En tu carro · Ir a pagar/ })).toBeTruthy()
-      // Cuatro tiendas son cuatro pedidos: Mochi no dice «llega todo junto».
-      expect(screen.getByText(/4 tiendas, un pedido por tienda/)).toBeTruthy()
-      expect(kitAddedText(kit.products)).toBe('¡Listo! Está en tu carro: llega en 4 pedidos, uno por tienda 🛵')
+      // Tres tiendas son tres pedidos (la cerveza y el pisco, de una sola botillería): Mochi no dice «llega todo junto».
+      expect(screen.getByText(/3 tiendas, un pedido por tienda/)).toBeTruthy()
+      expect(kitAddedText(kit.products)).toBe('¡Listo! Está en tu carro: llega en 3 pedidos, uno por tienda 🛵')
+      // La tienda turbo no llega a la compra mínima, que el catálogo no sabe: el supuesto del carro, de ejemplo.
+      expect(
+        screen.getByText('En Tienda turbo de prueba Centro te faltan $1.510 para la compra mínima (de ejemplo).'),
+      ).toBeTruthy()
     })
 
     test('plans sends the user and shows Para ti for occasions with a reason', async () => {

@@ -59,7 +59,7 @@ describe('Restaurantes con el catálogo real', () => {
     renderRestaurants()
 
     await waitFor(() => expect(listed()).toHaveLength(7))
-    expect(listed()[0]).toBe('Parrilla de prueba')
+    expect(listed()[0]).toBe('Parrilla de prueba - Ñuñoa')
     expect(queries(fetchMock, '/catalog/restaurants')).toEqual([{ sort: 'rating' }])
 
     fireEvent.click(category('Pizzas'))
@@ -135,10 +135,10 @@ describe('Restaurantes con el catálogo real', () => {
 
     const card = (name) => screen.getByText(name).closest('.featured-card')
     const meta = (name) => card(name).querySelector('.featured-meta')
-    expect(meta('Café de prueba').textContent).toBe('$1.990') // sin tiempo: sin «•» al principio
-    expect(meta('Café de prueba').querySelector('.meta-sep')).toBeNull()
+    expect(meta('Café de prueba - Las Condes').textContent).toBe('$1.990') // sin tiempo: sin «•» al principio
+    expect(meta('Café de prueba - Las Condes').querySelector('.meta-sep')).toBeNull()
     expect(meta('Pizzería de prueba Centro').textContent).toBe('25 min•$1.490')
-    expect(meta('Cevichería de prueba').textContent).toBe('30 min') // envío $0: dato que falta, no «envío gratis»
+    expect(meta('Cevichería de prueba - Santiago').textContent).toBe('30 min') // envío $0: dato que falta, no «envío gratis»
     expect(screen.queryByText(/free|gratis|\$0/i)).toBeNull()
   })
 

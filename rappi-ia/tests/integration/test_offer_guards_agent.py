@@ -173,6 +173,8 @@ def test_recommendations_respect_the_guards(demo_client):
 
     assert [row["concept"] for row in rows] == ["gaseosas"]
     assert not any(p["age_restricted"] for row in rows for p in row["products"])
+    # ui C1: el título de la tarjeta usa el nombre del concepto de la taxonomía, no su id («Bebidas gaseosas»).
+    assert [row["concept_label"] for row in rows] == ["Bebidas gaseosas"]
 
 
 def test_recommendations_never_name_an_unofferable_interest(demo, demo_client):

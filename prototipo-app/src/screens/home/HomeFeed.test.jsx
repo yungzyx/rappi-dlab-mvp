@@ -123,8 +123,8 @@ describe('Home de «Rappi hoy»', () => {
       expect(nearby.getByText(name)).toBeTruthy()
     expect(nearby.getAllByText('30 min').length).toBeGreaterThan(0)
     // Restaurantes rápidos y Mejor evaluados salen de la API; no hay «Envío más barato» (casi todos traen $0: falta el dato).
-    expect(section('Restaurantes rápidos').getByText('Sándwiches de prueba')).toBeTruthy()
-    expect(section('Restaurantes rápidos').getByText('Pastelería de prueba')).toBeTruthy()
+    expect(section('Restaurantes rápidos').getByText('Sándwiches de prueba - Providencia')).toBeTruthy()
+    expect(section('Restaurantes rápidos').getByText('Pastelería de prueba - Vitacura')).toBeTruthy()
     await screen.findByRole('region', { name: 'Mejor evaluados' })
     // Solo los que tienen nota: el de ejemplo sin nota no va en «Mejor evaluados».
     expect(section('Mejor evaluados').getAllByRole('button')).toHaveLength(5)

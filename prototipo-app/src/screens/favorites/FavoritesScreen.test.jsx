@@ -114,10 +114,10 @@ describe('Favoritos con el catálogo real', () => {
         .getAllByRole('button')
         .map((button) => button.querySelector('.featured-title').textContent)
     expect(titles('Los mejores restaurantes')).toEqual([
-      'Parrilla de prueba',
+      'Parrilla de prueba - Ñuñoa',
       'Pizzería de prueba Centro',
-      'Pastelería de prueba',
-      'Sándwiches de prueba',
+      'Pastelería de prueba - Vitacura',
+      'Sándwiches de prueba - Providencia',
     ])
     expect(titles('Los mejores supermercados')).toEqual([
       'Supermercado de prueba Centro',

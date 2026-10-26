@@ -56,6 +56,7 @@ from ..agent.verticals import contending_verticals, ranked_verticals, typical_ve
 from ..catalog.cache import cached
 from ..catalog.deals import deals
 from ..catalog.stores import BIGINT_MAX, product_card, product_detail
+from ..catalog.terms import store_terms
 from ..concepts.taxonomy import Concept, Service, load_taxonomy
 from ..embeddings.base import MemoizedQueryEmbedder, TextEmbedder
 from ..motor.combos import SERVICES, Step, load_combos
@@ -233,6 +234,17 @@ class Offer:
 
 
 @dataclass
+class PlanOffer(Offer):
+    """El kit de una ocasión: la oferta de siempre más sus tiendas (`stores`, `kit_stores`), un pedido por tienda, cada
+    una con lo que el kit suma ahí y si llega a la compra mínima que trae el catálogo."""
+
+    stores: list[dict] = field(default_factory=list)
+
+    def to_dict(self) -> dict:
+        return {**super().to_dict(), "stores": self.stores}
+
+
+@dataclass
 class ProfileOffer:
     """La oferta del momento `perfil`: la escalera de un perfil, de a un peldaño, y su viaje (una idea para
     RappiTravel)."""
@@ -334,7 +346,10 @@ def plan(conn: Connection, embedder: TextEmbedder | None, occasion_id: str, city
     entre verticales, salvo que la ocasión tenga una fija (`vertical` en la taxonomía: «Hambre ya» es pedir comida
     lista): entonces sale de ahí. Es lo único que el agente arma con alcohol, con su marca +18, porque la persona eligió
     la ocasión; nunca con lo sensible, farmacia, bebé ni salud. Cada producto se puede destacar (`featured`: con foto y,
-    los platos, sin relleno y de un local de `city`; sin ella, `config.PROFILE_CITY`)."""
+    los platos, sin relleno y de un local de `city`; sin ella, `config.PROFILE_CITY`).
+    Elegidas las verticales, los productos salen de la menor cantidad de tiendas (`_fewest_stores`): cada tienda es un
+    pedido con su envío y su mínimo. El kit no suma productos que la ocasión no pide para llegar a un mínimo: dice qué
+    tienda queda bajo el suyo (`stores`, `kit_stores`)."""
     city = city or config.PROFILE_CITY
     taxonomy = load_taxonomy()
     occasion = taxonomy.occasions.get(occasion_id)
@@ -346,7 +361,6 @@ def plan(conn: Connection, embedder: TextEmbedder | None, occasion_id: str, city
         embedder.embed_queries([c.name for c in concepts])
     candidates = {c.id: _kit_verticals(conn, c, occasion.vertical) for c in concepts}
     found: dict[tuple[str, str], list[Product]] = {}
-    stores: dict[str, int | None] = {}  # la tienda del kit en cada vertical: dos de la misma vertical, un solo pedido
 
     def pick(concept: Concept, avoid: set[str]) -> Product | None:
         for vertical in candidates[concept.id]:
@@ -355,8 +369,7 @@ def plan(conn: Connection, embedder: TextEmbedder | None, occasion_id: str, city
             if (concept.id, vertical) not in found:
                 found[concept.id, vertical] = _kit_products(conn, embedder, concept, vertical, city)
             if options := found[concept.id, vertical]:
-                same = stores.get(vertical)
-                return next((p for p in options if same is not None and p.store_id == same), options[0])
+                return options[0]
         return None
 
     kit: list[tuple[Concept, Product]] = []
@@ -371,18 +384,18 @@ def plan(conn: Connection, embedder: TextEmbedder | None, occasion_id: str, city
         if product:
             kit.append((concept, product))
             used.add(product.vertical)
-            stores.setdefault(product.vertical, product.store_id)
         else:
             left.append(concept)
-    for concept in left:  # …y lo que falte, de otra vertical si la hay y, si no, de una ya usada (en su misma tienda)
+    for concept in left:  # …y lo que falte, de otra vertical si la hay y, si no, de una ya usada
         if len(kit) >= KIT_SIZE:
             break
         if product := pick(concept, used) or pick(concept, set()):
             kit.append((concept, product))
             used.add(product.vertical)
-            stores.setdefault(product.vertical, product.store_id)
     if not kit:
         return None
+    chosen = _fewest_stores([found[c.id, p.vertical] for c, p in kit])
+    kit = [(concept, product) for (concept, _), product in zip(kit, chosen, strict=True)]
     verticals = list(dict.fromkeys(p.vertical for _, p in kit))
     text = contract_articles(
         PLAN_TEXT.format(
@@ -393,10 +406,11 @@ def plan(conn: Connection, embedder: TextEmbedder | None, occasion_id: str, city
     )
     # «Más ideas» busca lo que el agente busca para una ocasión: los nombres de sus primeros conceptos que arma
     query = " ".join(c.name for c in concepts[:4])
-    return Offer(
+    products = [p.to_dict() for _, p in kit]
+    return PlanOffer(
         "plan",
         text,
-        [p.to_dict() for _, p in kit],
+        products,
         verticals[0],
         _reason(
             REASON_PLAN.format(occasion=occasion.name),
@@ -404,7 +418,54 @@ def plan(conn: Connection, embedder: TextEmbedder | None, occasion_id: str, city
             occasion=occasion.id,
         ),
         [{"label": PLAN_ACTION, "query": query}],
+        kit_stores(conn, products),
     )
+
+
+def _fewest_stores(options: list[list[Product]]) -> list[Product]:
+    """Un producto de cada lista (las opciones de un concepto del kit en su vertical, en el orden de la búsqueda), de la
+    menor cantidad de tiendas: una y otra vez, la tienda que tiene algo de más conceptos de los que faltan (con las
+    mismas, la que aparece antes: el primer concepto y su mejor opción) da su primera opción a cada uno. Una tienda con
+    dos verticales (un súper que también es Express) junta las dos. Lo que no tiene tienda queda con su primera
+    opción."""
+    chosen = [found[0] for found in options]
+    left = set(range(len(options)))
+    while left:
+        reach: dict[int, list] = {}  # tienda -> [conceptos que cubre, (concepto, opción) donde aparece primero]
+        for i in sorted(left):
+            here: dict[int, int] = {}
+            for j, product in enumerate(options[i]):
+                if product.store_id is not None:
+                    here.setdefault(product.store_id, j)
+            for store_id, j in here.items():
+                reach.setdefault(store_id, [0, (i, j)])[0] += 1
+        if not reach:
+            break
+        best = max(reach, key=lambda store_id: (reach[store_id][0], tuple(-n for n in reach[store_id][1])))
+        for i in sorted(left):
+            if match := next((p for p in options[i] if p.store_id == best), None):
+                chosen[i] = match
+                left.discard(i)
+    return chosen
+
+
+def kit_stores(conn: Connection, products: list[dict]) -> list[dict]:
+    """Las tiendas de un kit, en el orden de sus productos: cada una es un pedido. `subtotal` es lo que el kit suma ahí
+    (una unidad de cada producto) y `min_order`, la compra mínima que trae el catálogo (catalog/terms.py; `None` si no
+    la sabe: la app pone su supuesto rotulado). `below_min` marca la tienda que no llega a ese mínimo y `missing` dice
+    cuánto falta (`None` sin mínimo conocido). Un producto sin tienda no cuenta."""
+    totals: dict[int, dict] = {}
+    for product in products:
+        if (store_id := product.get("store_id")) is None:
+            continue
+        entry = totals.setdefault(store_id, {"store_id": store_id, "store": product["store"], "subtotal": 0})
+        entry["subtotal"] += round(product["price_value"] or 0)
+    known = {t["store_id"]: t["min_order"] for t in store_terms(conn, list(totals))} if totals else {}
+    for entry in totals.values():
+        minimum = known.get(entry["store_id"])
+        missing = max(0, minimum - entry["subtotal"]) if minimum is not None else None
+        entry.update(min_order=minimum, missing=missing, below_min=bool(missing))
+    return list(totals.values())
 
 
 def _kit_verticals(conn: Connection, concept: Concept, fixed: str | None) -> list[str]:
