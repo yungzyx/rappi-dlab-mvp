@@ -38,7 +38,8 @@
 //   events/searches.py (index.js: searchesReply). Sin conexión no hay «Lo más buscado», tiendas en la búsqueda, «Lo que
 //   sea», comparar entre tiendas ni «Para ti» en la tienda: esas rutas responden 404 o vacío y la app no las muestra.
 // - rappi-ia/src/rappi_ia/offers/preferences.py y preferencias.toml, api/preferences.py y rappi_agent.py
-//   (_preference) ... las preferencias explícitas: por chat, en el panel, y el filtro y el orden de lo que Mochi muestra
+//   (_preference) ... las preferencias explícitas: en la hoja del panel (con las tiendas de sus pedidos), lo que llega
+//   escrito por el buscador, y el filtro y el orden de lo que Mochi muestra
 //   y ofrece (preferences.js; index.js: preferenceAnswer, withPreferences)
 // - rappi-ia/src/rappi_ia/agent/rappi_agent.py (_small_talk, HELP_ACTIONS) y compose.py ... la ayuda con los atajos de
 //   lo que Mochi sabe hacer, el resumen antes de pagar y el último pedido (search.js: appQuestion, helpReply)
@@ -51,7 +52,7 @@
 //   `request_id` de las respuestas que ordenan cosas (index.js: served)
 // No hay población que aprenda (transiciones, popularidad, retención aprendida) ni búsqueda semántica, y lo pedido en
 // la demo se repite sin esperar su ritmo (offers.js: repeatOffer): es una demo, no evidencia.
-import { autonomyReply, checkAutoOrder, saveAutonomy, turnOffAutonomy, usualAnswer } from './autonomy'
+import { autonomyReply, checkAutoOrder, orderedStores, saveAutonomy, turnOffAutonomy, usualAnswer } from './autonomy'
 import { catalogRoute } from './catalog'
 import { contractArticles, homeVerticals } from './motor'
 import { makeOffer } from './offers'
@@ -234,8 +235,8 @@ const PREFERENCES_TODAY =
   'En «Rappi hoy» no guardo preferencias. En la propuesta recuerdo tu dieta, tus alergias y tus favoritas, y las ' +
   'borras cuando quieras 🔒.'
 const PREFERENCES_NONE =
-  'Todavía no tengo preferencias tuyas. Dime, por ejemplo, «soy vegetariano», «no como maní» o «mi comida favorita ' +
-  'es el sushi», o márcalas en «Mis preferencias».'
+  'Todavía no tengo preferencias tuyas. Márcalas en «Mis preferencias»: tu dieta, tus alergias y tus cocinas y ' +
+  'tiendas favoritas.'
 const joinNames = (names) => (names.length === 1 ? names[0] : `${names.slice(0, -1).join(', ')} y ${names.at(-1)}`)
 
 /**
@@ -274,7 +275,13 @@ function preferenceAnswer(snapshot, state, body) {
   let items = command.items
   if (command.store) {
     const store = findStore(snapshot, command.store)
-    if (!store) return reply(`No encontré «${command.store}» entre las tiendas de Rappi: dímela como sale en la app.`)
+    if (!store)
+      return reply(
+        `No encontré «${command.store}» entre las tiendas de Rappi. Elige tus favoritas en «Mis preferencias».`,
+        {
+          actions: [{ label: 'Ver mis preferencias', panel: 'preferencias' }],
+        },
+      )
     items = [...items, { tipo: 'tienda', valor: store }]
   }
   const current = state.preferences ?? []
@@ -313,7 +320,7 @@ function preferenceAnswer(snapshot, state, body) {
       ...(favorites.length ? [`Tus favoritas: ${favorites.join(', ')}.`] : []),
     ]
     text = listed.length
-      ? `Esto recuerdo de ti. ${parts.join(' ')} Las cambias en «Mis preferencias» o me dices «olvida mis preferencias».`
+      ? `Esto recuerdo de ti. ${parts.join(' ')} Las cambias o las olvidas en «Mis preferencias».`
       : PREFERENCES_NONE
   }
   return reply(text, {
@@ -422,7 +429,8 @@ function answer(snapshot, { method, path, query, body }, now) {
         updateState((s) => ({ ...s, preferences: list }))
       }
       const saved = readState().preferences ?? []
-      return { body: { preferencias: describe(snapshot.meta, saved), opciones: options(snapshot.meta) } }
+      const stores = orderedStores(snapshot, readState())
+      return { body: { preferencias: describe(snapshot.meta, saved), opciones: options(snapshot.meta, stores) } }
     }
     if (profile[2] === '/autonomia') {
       if (method === 'GET') return { body: autonomyReply(snapshot, state) }

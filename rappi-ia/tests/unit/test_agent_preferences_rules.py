@@ -3,6 +3,7 @@ ordenan y qué dice el agente. También los atajos de la ayuda (sin salud) y las
 
 import pytest
 
+from rappi_ia.agent import rappi_agent as agent
 from rappi_ia.agent.compose import Draft, TemplateComposer
 from rappi_ia.agent.rappi_agent import HELP_ACTIONS, HELP_EXAMPLES, Context, RappiAgent
 from rappi_ia.agent.understand import Understander
@@ -113,6 +114,43 @@ def test_in_rappi_hoy_nothing_is_saved():
     reply = RappiAgent().reply(None, "soy vegetariano", Context(mode="actual", user_id="u-1"))
     assert reply["intent"]["kind"] == "preferencia" and "Rappi hoy" in reply["text"]
     assert "preferences" not in reply
+
+
+# Mochi no tiene chat: ninguna respuesta pide que la persona le escriba (las acciones se tocan, el buscador busca).
+ASKS_TO_WRITE = ("dime", "dímel", "cuéntame", "escríbe", "pídeme", "me dices", "pregúntame", "por chat")
+
+
+@pytest.mark.parametrize(
+    "kind",
+    ["saludo", "gracias", "ayuda", "envio", "memoria", "receta", "pedido", "resumen", "fuera", "ofertas", "vacio"],
+)
+def test_no_fixed_text_asks_to_write_to_mochi(kind):
+    for learns in (True, False):
+        text = TemplateComposer().compose(Draft(kind=kind, learns=learns)).lower()
+        assert not any(phrase in text for phrase in ASKS_TO_WRITE), (kind, text)
+
+
+def test_the_agent_texts_do_not_ask_to_write_either():
+    texts = [
+        agent.ADVICE_NAME,
+        agent.PREFERENCES_NO_USER,
+        agent.PREFERENCES_NONE,
+        agent.USUAL_NOT_FOUND,
+        agent._listed_text([("dieta", "vegetariano")]),
+    ]
+    for text in texts:
+        assert not any(phrase in text.lower() for phrase in ASKS_TO_WRITE), text
+
+
+@pytest.mark.parametrize(("text", "kind"), [("hola", "saludo"), ("jajaja", "vacio")])
+def test_a_greeting_or_an_empty_message_leaves_ideas_to_tap(text, kind):
+    reply = RappiAgent().reply(None, text, Context())
+    assert reply["intent"]["kind"] == kind and reply["actions"] == HELP_ACTIONS
+    assert RappiAgent().reply(None, text, Context(mode="actual"))["actions"] == HELP_EXAMPLES
+
+
+def test_no_preferences_yet_leads_to_the_sheet():
+    assert "Mis preferencias" in agent.PREFERENCES_NONE and "soy vegetariano" not in agent.PREFERENCES_NONE
 
 
 def test_help_shows_capabilities_and_no_health_example():

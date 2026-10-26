@@ -1,6 +1,6 @@
 """Las preferencias explícitas de la persona con el agente, para el panel del asistente (offers/preferences.py): verlas
-y cambiarlas (una lista vacía las borra). Por chat se fijan en /agent/ask («soy vegetariano», «olvida mis
-preferencias»).
+y cambiarlas (una lista vacía las borra), eligiendo entre opciones. Si «soy vegetariano» llega escrito por el buscador,
+/agent/ask también lo entiende.
 
 `app.py` incluye este router; las dependencias viven en `deps.py`, así este módulo no importa `app`.
 """
@@ -34,14 +34,14 @@ class PreferencesIn(Clean):
 def _reply(conn: Connection, user_id: str) -> dict:
     return {
         "preferencias": preferences.describe(preferences.saved(conn, user_id)),
-        "opciones": preferences.options(),
+        "opciones": preferences.options(preferences.ordered_stores(conn, user_id)),
     }
 
 
 @router.get("/{user_id}/preferencias", dependencies=[Depends(owner_in_path)])
 def get_preferences(user_id: ShortPath, conn: Connection = Depends(get_conn)) -> dict:
     """`{ preferencias: [{ tipo, valor, nombre }], opciones: [...] }`: las suyas (por tipo, en el orden en que las
-    dijo) y lo que el panel ofrece marcar (dietas, alergias y cocinas; las tiendas se dicen por chat)."""
+    dijo) y lo que el panel ofrece marcar (dietas, alergias, cocinas y las tiendas donde ya pidió)."""
     return _reply(conn, user_id)
 
 

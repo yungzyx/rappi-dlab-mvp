@@ -1,29 +1,18 @@
 /*
- * Borde animado: detrás de la barra gira un cuadrado con un degradado cónico (una "estela" brillante sobre
- * una base durazno) y encima va el relleno blanco, dejando ver solo 2,5 px de borde. Gira con transform,
- * en sentido horario, así que corre en la GPU.
+ * Borde animado (`.smart-border`): detrás del elemento gira un cuadrado con un degradado cónico (una "estela"
+ * brillante sobre una base durazno) y encima va el relleno blanco, dejando ver solo `--smart-border` de borde. Gira con
+ * transform, en sentido horario, así que corre en la GPU. Lo usan la barra de la Home y el campo del buscador con Mochi.
  */
-.smart-bar {
+.smart-border {
   --smart-border: 2.5px;
   position: relative;
   isolation: isolate;
   overflow: hidden;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  width: 100%;
-  height: 57px;
-  padding: 0 17px;
+  border: 0;
   border-radius: 99px;
-  box-shadow:
-    0 8px 22px rgba(255, 90, 54, 0.14),
-    0 2px 6px rgba(0, 0, 0, 0.05);
-  cursor: pointer;
-  transition: transform var(--duration-fast) var(--ease-out);
-  -webkit-tap-highlight-color: transparent;
 }
 
-.smart-bar::before {
+.smart-border::before {
   content: '';
   position: absolute;
   z-index: -2;
@@ -43,13 +32,29 @@
   animation: smart-orbit 2.8s linear infinite;
 }
 
-.smart-bar::after {
+.smart-border::after {
   content: '';
   position: absolute;
   z-index: -1;
   inset: var(--smart-border);
-  border-radius: 99px;
+  border-radius: inherit;
   background: var(--surface);
+}
+
+/* Barra de búsqueda inteligente de la Home */
+.smart-bar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  height: 57px;
+  padding: 0 17px;
+  box-shadow:
+    0 8px 22px rgba(255, 90, 54, 0.14),
+    0 2px 6px rgba(0, 0, 0, 0.05);
+  cursor: pointer;
+  transition: transform var(--duration-fast) var(--ease-out);
+  -webkit-tap-highlight-color: transparent;
 }
 
 .smart-bar:active {
@@ -115,7 +120,7 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .smart-bar::before,
+  .smart-border::before,
   .sparkle-big,
   .sparkle-small {
     animation: none;

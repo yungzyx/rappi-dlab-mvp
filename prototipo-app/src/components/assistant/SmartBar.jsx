@@ -46,7 +46,7 @@ export default function SmartBar({ compact = false }) {
 
   return (
     <div
-      className={compact ? 'smart-bar is-compact' : 'smart-bar'}
+      className={compact ? 'smart-bar smart-border is-compact' : 'smart-bar smart-border'}
       role="button"
       tabIndex={0}
       aria-label={`Abrir buscador con ${AGENT_NAME}`}

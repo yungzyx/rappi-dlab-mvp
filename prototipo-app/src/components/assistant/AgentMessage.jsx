@@ -16,7 +16,7 @@ const TICK_MS = 30
 export const PROGRESS = ['Entendiendo tu pedido', 'Buscando opciones', 'Revisando disponibilidad', 'Casi listo']
 const PROGRESS_MS = 1400
 
-/** «Escribiendo…» con lo que está haciendo y, si se puede, «Cancelar» la respuesta en curso. */
+/** Mientras busca: lo que está haciendo y, si se puede, «Cancelar» la respuesta en curso. */
 function Thinking({ progress, onCancel }) {
   const [step, setStep] = useState(0)
   useEffect(() => {
@@ -27,7 +27,7 @@ function Thinking({ progress, onCancel }) {
   return (
     <div className="agent-msg-row">
       <div className="agent-msg-thinking">
-        <div className="agent-msg-bubble agent-msg-typing" aria-label="Escribiendo">
+        <div className="agent-msg-bubble agent-msg-typing" aria-label="Buscando">
           <span />
           <span />
           <span />
@@ -44,8 +44,8 @@ function Thinking({ progress, onCancel }) {
 }
 
 /**
- * Texto que aparece letra por letra, como si el asistente lo estuviera escribiendo (entero con «reducir movimiento»).
- * Lo que falta va invisible detrás (`data-rest`, que pinta el CSS): la burbuja mide desde el principio lo que medirá al
+ * Texto que aparece letra por letra (entero con «reducir movimiento»).
+ * Lo que falta va invisible detrás (`data-rest`, que pinta el CSS): el texto mide desde el principio lo que medirá al
  * terminar y las palabras no saltan de línea, así que lo de abajo no se mueve. No es texto de la página: el lector de
  * pantalla oye la respuesta entera en el anunciador del panel.
  */
@@ -168,8 +168,9 @@ function AlsoIn({ alsoIn, onAction }) {
 }
 
 /**
- * Una respuesta del agente con tarjetas (lo elegido se muestra aparte, sin burbuja). `followUp` (para seguir la
- * conversación) va justo debajo de sus productos, antes de la sugerencia de otra tienda. Con `orderSummary`, el resumen
+ * Una respuesta del agente con tarjetas: su texto las encabeza (no es una burbuja de chat) y lo elegido se muestra
+ * aparte. `followUp` (los chips para refinarla) va justo debajo de sus productos, antes de la sugerencia de otra
+ * tienda. Con `orderSummary`, el resumen
  * del carro antes de pagar; con `lastOrder`, el último pedido (`onTrack` abre su seguimiento); con `autoOrder`, lo de
  * siempre que Mochi pide solo o deja para revisar (`autoOrder` de las props: su estado y lo que hacen sus botones, que
  * lleva AssistantPanel). Mientras espera, si la respuesta se puede cortar (`cancellable`), dice qué está haciendo y

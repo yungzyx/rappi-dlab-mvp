@@ -60,25 +60,25 @@ class TemplateComposer:
     def main(self, d: Draft) -> str:
         if d.kind == "saludo":
             extra = f" Veo tu interés en {d.interest_label}." if d.interest_label else ""
-            return f"¡Hola! Soy {config.AGENT_NAME} 🧡.{extra} ¿Qué se te antoja hoy?"
+            return f"¡Hola! Soy {config.AGENT_NAME} 🧡.{extra} Toca una idea o busca lo que quieras."
         if d.kind == "gracias":
             return "¡De nada! Aquí estoy si necesitas algo más 🧡"
         if d.kind == "ayuda" and not d.learns:
             return (
-                f"Soy {config.AGENT_NAME} 🧡, tu asistente en Rappi. Pídeme lo que necesites («pañales talla G», "
+                f"Soy {config.AGENT_NAME} 🧡, tu asistente en Rappi. Busca lo que necesites («pañales talla G», "
                 "«algo de sushi», «una once para 4») y te muestro lo que hay, aunque esté en otra vertical."
             )
         if d.kind == "ayuda":
             return (
                 f"Soy {config.AGENT_NAME} 🧡, tu asistente en Rappi. Puedo repetir lo de siempre, armarte un kit o "
-                "mostrarte algo para ti. Pídeme lo que necesites («pañales talla G», «algo de sushi», «una once "
-                "para 4») y te muestro lo que hay, aunque esté en otra vertical. También recuerdo tu dieta y tus "
-                "alergias, y te llevo a RappiTravel o RappiFavor."
+                "mostrarte algo para ti. Busca lo que necesites («pañales talla G», «algo de sushi», «una once "
+                "para 4») y te muestro lo que hay, aunque esté en otra vertical. Tu dieta y tus alergias las marcas "
+                "en «Mis preferencias», y te llevo a RappiTravel o RappiFavor."
             )
         if d.kind == "envio":
             return (
                 "El horario, el tiempo y el costo de envío los ves en cada tienda antes de pagar, y la app te muestra "
-                "las que están abiertas cerca de ti 🛵. ¿Qué te gustaría pedir?"
+                "las que están abiertas cerca de ti 🛵."
             )
         if d.kind == "memoria" and not d.learns:
             return (
@@ -88,12 +88,12 @@ class TemplateComposer:
         if d.kind == "memoria":
             return (
                 "Recuerdo tus gustos por tema para recomendarte mejor, lo que buscas por un tiempo y las preferencias "
-                "que me digas (dieta, alergias, favoritas). En mi panel, «Olvidar» lo borra todo 🔒."
+                "que marques (dieta, alergias, favoritas). En mi panel, «Olvidar» lo borra todo 🔒."
             )
         if d.kind == "receta":
             return (
                 "Los remedios para la presión, la diabetes o el colesterol son con receta médica: en Farmacia te la "
-                "piden al comprar 💊. Si necesitas otra cosa de farmacia, dime qué."
+                "piden al comprar 💊."
             )
         if d.kind == "pedido":
             return (
@@ -106,14 +106,17 @@ class TemplateComposer:
                 "pedido por ti."
             )
         if d.kind == "fuera":
-            return "De eso no sé mucho 🧡, lo mío es ayudarte a pedir. ¿Se te antoja algo? Comida, súper, farmacia…"
+            return "De eso no sé mucho 🧡, lo mío es ayudarte a pedir: comida, súper, farmacia…"
         if d.kind == "ofertas":
             return (
                 "Las ofertas del día están en la pestaña Ofertas del inicio 🔥. "
-                "Si me dices qué buscas, te muestro lo más barato."
+                "Al buscar algo, «Más barato» lo ordena por precio."
             )
         if d.kind == "vacio":
-            return "Cuéntame qué buscas: un antojo (sushi, café…), un producto o una ocasión (asado, once…)."
+            return (
+                "No entendí qué buscas. Toca una idea o busca un antojo (sushi, café…), un producto o una ocasión "
+                "(asado, once…)."
+            )
         if d.kind == "aclarar":
             store = next((o for o in d.options if o != "restaurantes"), "una tienda")
             return f"¿{d.concept_label} para pedir ya de un restaurante o para comprar en {store}?"

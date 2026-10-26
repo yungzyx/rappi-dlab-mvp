@@ -42,7 +42,7 @@ Para partir de cero: **↺ Repetir escena** (junto al interruptor, arriba a la i
 
 ### 2. El buscador con Mochi (unos 6 minutos)
 
-En el prototipo final la barra de la Home abre el buscador con Mochi. El campo de arriba («Busca o pregúntale a Mochi») busca tiendas y productos y, si lo escrito parece una pregunta, se la hace a Mochi; las ideas de Mochi están en los botones de «Toca y te armo algo».
+En el prototipo final la barra de la Home abre el buscador con Mochi. El campo de arriba («Busca o pídele algo a Mochi») busca tiendas y productos y, si lo escrito parece una pregunta, se la pide a Mochi. Es el único campo de texto: Mochi no tiene chat, su respuesta se refina con chips («Más barato», «Otra opción», «Sin carne») y sus ideas y acciones son botones.
 
 | # | Qué tocar | Qué mostrar | Qué decir |
 |---|---|---|---|
@@ -58,7 +58,7 @@ En el prototipo final la barra de la Home abre el buscador con Mochi. El campo d
 | 6c | En la Home, un acceso de vertical (**Súper**, **Licores**…) → una tienda → **Ver más**. | Las tiendas reales de la vertical, la tienda con sus pasillos y precios vigentes, y la página siguiente de productos; en Licores, la marca **+18**. | Opcional: las pantallas de siempre, pero con el catálogo real. |
 | 7 | En el buscador con Mochi, escribe **chela**. | No hay resultados con esa palabra, pero Mochi dice dónde sí hay lo que se buscaba («… sí hay en Licores») y **Ver en Licores** lleva ahí. | Un «sin resultados» no termina en un callejón sin salida: Mochi entiende el tema. |
 | 7b | En el buscador con Mochi, escribe **cerveza**. | La API busca en todas las verticales y muestra **un grupo por vertical** (Licores, Express, Súper…), con «Ver más» en cada uno y la marca **+18**. Con el buscador abierto desde una vertical, esa va primero. | Un mismo producto se encuentra en varias verticales, sin elegir una antes. |
-| 7c | En el buscador con Mochi, escribe **¿qué llevo para un asado de 6?** y Enter. | La primera fila, resaltada, dice «Pregúntale a Mochi «…»». La respuesta sale en la tarjeta de Mochi con «Preguntaste «…»»: carne para asado del catálogo y «Para 6 personas, calcula unos 2,1 kg de carne». | A Mochi también se le escribe: una pregunta, una respuesta, con productos reales y su razón. Lo entienden reglas, no un LLM. |
+| 7c | En el buscador con Mochi, escribe **¿qué llevo para un asado de 6?** y Enter. | La primera fila, resaltada, dice «Pídele a Mochi «…»». La respuesta sale en la tarjeta de Mochi con «Pediste «…»»: carne para asado del catálogo y «Para 6 personas, calcula unos 2,1 kg de carne». | A Mochi se le pide algo desde el buscador: una pregunta, una respuesta (sin chat), con productos reales y su razón. Lo entienden reglas, no un LLM. |
 | 7d | Escribe **mi hijo tiene fiebre, ¿qué le doy?** y Enter. | Mochi no muestra remedios ni aconseja: nombra al médico, al químico farmacéutico o al pediatra, el SAMU (131) si es urgente, y deja **Ir a Farmacia**. | Mochi no da consejo médico. |
 | 8 | En el checkout, toca **¿Me falta algo? Pregúntale a Mochi**. | Una sola sugerencia de otra vertical con su razón («Para completar lo que llevas: …, en …»), **Agregar** y **Deshacer**. Nunca trae alcohol, farmacia, bebé ni salud: Mochi no los propone por su cuenta. | Mochi sugiere cuando se le pide, en el momento en que más sirve, y sin empujar lo delicado. |
 

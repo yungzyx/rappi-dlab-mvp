@@ -1,6 +1,7 @@
-"""Preferencias explícitas de la persona con el agente: lo que dice de sí misma («soy vegetariano», «no como maní», «mi
-tienda favorita es…»), por chat o en el panel del asistente. Tabla `agent_preferences` (migración 045); las opciones de
-dieta y alergias, en offers/preferencias.toml.
+"""Preferencias explícitas de la persona con el agente: su dieta, sus alergias y sus cocinas y tiendas favoritas. Se
+eligen entre opciones en la hoja «Mis preferencias» del buscador con Mochi (sin escribir); si una frase como «soy
+vegetariano» o «mi tienda favorita es…» llega por el buscador, también se entiende. Tabla
+`agent_preferences` (migración 045); las opciones de dieta y alergias, en offers/preferencias.toml.
 
 Reglas:
 - La dieta y las alergias solo filtran lo que el agente muestra (respuestas, sugerencias y ofertas), por el nombre del
@@ -277,14 +278,35 @@ def describe(items: Iterable[tuple[str, str]]) -> list[dict]:
     return [{"tipo": k, "valor": v, "nombre": label(k, v)} for k, v in items]
 
 
-def options() -> list[dict]:
-    """Lo que el panel ofrece marcar: las dietas, las alergias y las cocinas (las tiendas se dicen por chat)."""
+MAX_STORE_OPTIONS = 8  # tiendas de sus pedidos que la hoja ofrece marcar
+
+
+def ordered_stores(conn: Connection, user_id: str) -> list[str]:
+    """Las tiendas donde la persona ya pidió en «Propuesta» (la más reciente primero, hasta MAX_STORE_OPTIONS), como las
+    nombra `find_store`: la marca de la tienda o, sin marca, su nombre. Son las que la hoja ofrece marcar como
+    favoritas: así se eligen sin escribirlas."""
+    rows = conn.execute(
+        """SELECT name FROM (
+               SELECT btrim(coalesce(b.name, s.name)) AS name, max(o.ts) AS last
+               FROM app_orders o JOIN app_order_lines l USING (order_id)
+               JOIN stores s ON s.store_id = l.store_id LEFT JOIN brands b ON b.brand_id = s.brand_id
+               WHERE o.user_id = %s AND o.mode = 'propuesta' AND l.store_id IS NOT NULL
+               GROUP BY 1
+           ) ordered ORDER BY last DESC, name LIMIT %s""",
+        (user_id, MAX_STORE_OPTIONS),
+    ).fetchall()
+    return [name for (name,) in rows]
+
+
+def options(stores: Iterable[str] = ()) -> list[dict]:
+    """Lo que el panel ofrece marcar: las dietas, las alergias, las cocinas y las tiendas `stores` (las de sus pedidos,
+    `ordered_stores`)."""
     found = load_options()
     rules = [(rule.kind, rule.id) for rule in found.rules.values()]
-    return describe([*rules, *(("cocina", c) for c in found.cuisines)])
+    return describe([*rules, *(("cocina", c) for c in found.cuisines), *(("tienda", s) for s in stores)])
 
 
-# ── Lo que se dice por chat ──────────────────────────────────────────────────
+# ── Lo que llega escrito por el buscador ─────────────────────────────────────
 @dataclass(frozen=True)
 class Command:
     """Lo que pidió la persona sobre sus preferencias: `agregar`, `quitar`, `mostrar` u `olvidar`. `store` es lo que

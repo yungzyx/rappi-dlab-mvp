@@ -92,7 +92,7 @@ describe('el nombre del agente sale de AGENT_NAME', () => {
     fireEvent.click(screen.getByText('abrir'))
     for (let i = 0; i < 100 && vi.getTimerCount() > 0; i++) await act(() => vi.advanceTimersByTimeAsync(250))
     const bubbles = [...document.querySelectorAll('.agent-msg-bubble')].map((el) => el.textContent)
-    expect(bubbles[0]).toBe('¡Hola! Soy Koko, tu asistente de compras 🧡 ¿Qué se te antoja hoy?')
+    expect(bubbles[0]).toBe('¡Hola! Soy Koko, tu asistente de compras 🧡 Toca una idea o busca lo que quieras.')
     expect(screen.getByRole('dialog', { name: 'Buscador con Koko' })).toBeTruthy()
   })
 })

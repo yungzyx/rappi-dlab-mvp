@@ -47,15 +47,15 @@ const FOR_YOU_WAIT_MS = 3000 // lo que el saludo espera lo que se pide al abrir;
 
 const DISCOVER_ROWS = 3
 
-const GREETING = `¡Hola! Soy ${AGENT_NAME}, tu asistente de compras 🧡 ¿Qué se te antoja hoy?`
+const GREETING = `¡Hola! Soy ${AGENT_NAME}, tu asistente de compras 🧡 Toca una idea o busca lo que quieras.`
 const OFFLINE = 'Sin conexión'
 const NOTHING_TO_PAIR = 'No se me ocurre nada para acompañar eso'
 const NOTHING_TO_TRY = 'No se me ocurre nada nuevo para probar'
 const NOTHING_TO_REPEAT = 'Todavía no veo algo que pidas seguido. Cuando repitas un pedido, te lo traigo aquí 🔁'
 const NOTHING_IN_KIT = 'No pude armar ese kit ahora. Prueba con otra ocasión.'
-const NOTHING_FOR_YOU = 'Todavía no tengo algo armado para ti. Cuéntame qué se te antoja.'
+const NOTHING_FOR_YOU = 'Todavía no tengo algo armado para ti. Cuando pidas un par de veces, te lo traigo aquí ✨'
 const PICK_A_KIT = '¿Para qué te armo el kit? 🧺'
-const STOPPED = 'Listo, paré aquí. ¿Qué otra cosa buscas?'
+const STOPPED = 'Listo, paré aquí.'
 const AUTO_OFF = 'Listo: vuelvo a revisar antes de pedir.'
 const AUTO_OFF_FAILED = 'No pude apagarlo ahora. Intenta de nuevo.'
 const AUTO_NOT_SENT = 'no pude enviarlo ahora'
@@ -68,6 +68,13 @@ const CAPABILITIES = [
   { id: 'plan', label: '🧺 Arma un kit' },
   { id: 'perfil', label: '✨ Algo para ti' },
 ]
+// El último pedido, en los dos modos (la app de Rappi también lo muestra): solo si la demo ya tiene uno.
+const LAST_ORDER = { id: 'pedido', label: '📦 Mi último pedido' }
+const LAST_ORDER_ANSWER = {
+  text: 'Así va tu último pedido 🛵',
+  lastOrder: true,
+  actions: [{ label: 'Ver mis pedidos', route: ['orders'] }],
+}
 const withoutEmoji = (label) => label.replace(/^\S+\s/, '')
 // Las ideas de siempre, como texto fijo: tocar una le pregunta eso al agente.
 const CHIPS = ['🍔 ¿Qué almuerzo hoy?', '🍻 Arma un carrete', '🔥 Ofertas de hoy', '🍫 Algo dulce', '🎁 Un regalo']
@@ -75,8 +82,8 @@ const CHIPS = ['🍔 ¿Qué almuerzo hoy?', '🍻 Arma un carrete', '🔥 Oferta
 let nextId = 1
 
 /**
- * Lo dicho en la conversación de la respuesta `index`: los mensajes de la persona desde el que la empezó (la respuesta
- * que no siguió a otra), en orden. «Preguntaste «asado de 6» · «más barato»».
+ * Lo pedido y sus refinamientos para la respuesta `index`: los mensajes de la persona desde el que la empezó (la
+ * respuesta que no siguió a otra), en orden. «Pediste «asado de 6» · «más barato»».
  */
 function conversationTrail(messages, index) {
   const trail = []
@@ -95,9 +102,10 @@ function conversationTrail(messages, index) {
 const asForYou = (product) => ({ ...product, fromSuggestion: true, suggestionOrigin: 'para-ti' })
 
 /**
- * Buscador con el agente: el buscador de siempre, con lo que el agente sabe de la persona en bloques que se
- * tocan (sin escribir una pregunta) y una invitación a descubrir otras verticales. Siempre montado (para no perder lo que
- * el agente respondió); se muestra al abrirlo.
+ * Buscador con el agente: el buscador de siempre (la única entrada de texto), con lo que el agente sabe de la persona en
+ * bloques que se tocan y una invitación a descubrir otras verticales. Mochi responde con tarjetas, no con un chat: se
+ * ve su última respuesta, que se refina con chips, y las acciones (preferencias, «Pedir por mí», «Olvidar», atajos y
+ * el último pedido) son botones. Siempre montado (para no perder lo que el agente respondió); se muestra al abrirlo.
  */
 export default function AssistantPanel({ push, vertical, depth = 1 }) {
   const assistant = useAssistant()
@@ -454,13 +462,15 @@ export default function AssistantPanel({ push, vertical, depth = 1 }) {
   }
 
   /**
-   * Un atajo de lo que Mochi sabe hacer: «Repite lo de siempre» (la recompra), «Arma un kit» (elegir una ocasión) o
-   * «Algo para ti» (su perfil de gusto; sin perfil, lo que le recomienda, como «¿qué me recomiendas?»).
+   * Un atajo de lo que Mochi sabe hacer: «Repite lo de siempre» (la recompra), «Arma un kit» (elegir una ocasión),
+   * «Algo para ti» (su perfil de gusto; sin perfil, lo que le recomienda, como «¿qué me recomiendas?») o «Mi último
+   * pedido» (su estado y su seguimiento, que arma el panel con los pedidos de la demo, sin pasar por la API).
    */
   const runCapability = (id, label) => {
     if (forgetting) return
     addMessage({ from: 'user', text: withoutEmoji(label) })
-    if (id === 'recompra') ask((signal) => offered('recompra', {}, NOTHING_TO_REPEAT, signal))
+    if (id === 'pedido') ask(() => LAST_ORDER_ANSWER, { cancellable: false })
+    else if (id === 'recompra') ask((signal) => offered('recompra', {}, NOTHING_TO_REPEAT, signal))
     else if (id === 'plan') ask((signal) => kitOptions(signal))
     else if (taste) ask((signal) => forYou(taste, signal))
     else ask((signal) => answer('qué me recomiendas', undefined, signal))
@@ -503,7 +513,7 @@ export default function AssistantPanel({ push, vertical, depth = 1 }) {
     ask((signal) => answer(clean, askVertical, signal))
   }
 
-  /** Lo escrito en el buscador, como pregunta a Mochi: el campo se vacía y vuelve su tarjeta, arriba, con la respuesta. */
+  /** Lo escrito en el buscador, como pedido a Mochi: el campo se vacía y vuelve su tarjeta, arriba, con la respuesta. */
   const askTyped = () => {
     const text = search.query.trim()
     if (!text || forgetting) return
@@ -688,6 +698,8 @@ export default function AssistantPanel({ push, vertical, depth = 1 }) {
   const trail = showAsked && !current.typing ? conversationTrail(messages, messages.indexOf(current)) : []
   if (showAsked && !trail.length) trail.push(asked)
   const openStore = (store) => go('store', { store })
+  // Los atajos: los de la propuesta y, en los dos modos, el último pedido si la demo tiene uno.
+  const capabilities = [...(demo.isFinal ? CAPABILITIES : []), ...(orders?.orders.length ? [LAST_ORDER] : [])]
   // Un producto o plato de la API abre su tienda por id (otras pueden tener el mismo nombre); sin `storeId` no hay
   // tienda que abrir.
   const openProduct = (product) => {
@@ -710,13 +722,13 @@ export default function AssistantPanel({ push, vertical, depth = 1 }) {
 
       <header className="search-header agent-search-header">
         <BackButton className="search-back" onClick={() => close()} />
-        <label className="search-field agent-search-field">
+        <label className="search-field agent-search-field smart-border">
           <SparkleIcon size={20} />
           <input
             ref={inputRef}
             type="search"
             aria-label="Buscar en Rappi"
-            placeholder={`Busca o pregúntale a ${AGENT_NAME}`}
+            placeholder={`Busca o pídele algo a ${AGENT_NAME}`}
             value={search.query}
             maxLength={500}
             onChange={(e) => search.setQuery(e.target.value)}
@@ -726,7 +738,7 @@ export default function AssistantPanel({ push, vertical, depth = 1 }) {
               else search.logSearch(search.query)
             }}
             aria-describedby={search.hasQuery && looksLikeQuestion(search.query) ? askHintId : undefined}
-            // Pasar con Tab a «Pregúntale a Mochi» no es terminar una búsqueda
+            // Pasar con Tab a «Pídele a Mochi» no es terminar una búsqueda
             onBlur={(e) => e.relatedTarget?.classList.contains('agent-ask-row') || search.logSearch(search.query)}
           />
           {search.hasQuery && (
@@ -804,7 +816,7 @@ export default function AssistantPanel({ push, vertical, depth = 1 }) {
               </div>
               <p className="agent-ai-notice">
                 {demo.isFinal
-                  ? `${AGENT_NAME} usa IA: recuerda tus gustos por tema y las preferencias que le digas, y los borras cuando quieras.`
+                  ? `${AGENT_NAME} usa IA: recuerda tus gustos por tema y las preferencias que marques, y los borras cuando quieras.`
                   : `${AGENT_NAME} usa IA. En «Rappi hoy» no aprende de lo que buscas.`}
               </p>
 
@@ -812,7 +824,7 @@ export default function AssistantPanel({ push, vertical, depth = 1 }) {
 
               {showAsked && (
                 <p className="agent-asked">
-                  {trail[0].typed ? 'Preguntaste' : 'Elegiste'} {trail.map((m) => `«${m.text}»`).join(' · ')}
+                  {trail[0].typed ? 'Pediste' : 'Elegiste'} {trail.map((m) => `«${m.text}»`).join(' · ')}
                 </p>
               )}
               {current && (
@@ -837,19 +849,19 @@ export default function AssistantPanel({ push, vertical, depth = 1 }) {
                   }
                   onRetry={() => !forgetting && current.retry()}
                   followUp={
-                    // Seguir la conversación, debajo de los productos: sugerencias (sin salud) y un campo para Mochi
+                    // Refinar la respuesta, debajo de los productos: chips de un toque (sin salud), sin campo para escribir
                     showAsked && !current.retry ? (
-                      <FollowUp message={current} disabled={forgetting} onSend={(text) => send(text, undefined)} />
+                      <FollowUp message={current} disabled={forgetting} onRefine={(chip) => send(chip.message)} />
                     ) : null
                   }
                 />
               )}
 
-              {demo.isFinal && !current?.health && (
+              {capabilities.length > 0 && !current?.health && (
                 <>
                   <p className="agent-picks-label">Puedo ayudarte a:</p>
                   <div className="assistant-chips agent-capabilities">
-                    {CAPABILITIES.map((capability) => (
+                    {capabilities.map((capability) => (
                       <button
                         key={capability.id}
                         type="button"

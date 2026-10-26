@@ -45,7 +45,9 @@ Un mensaje corto que no nombra nada nuevo (o que empieza con «con», «sin», �
 
 ## 4. En la app
 
-Debajo de la respuesta de Mochi (si trajo productos y no es de salud), sugerencias para seguir: «Más barato», «Otra opción» y, con una ocasión o una cantidad de personas, «Para N personas» (N = las de ahora más 2). Siempre hay un campo «Sigue con Mochi…» que le habla a Mochi (no busca). Arriba de la respuesta, lo dicho en la conversación: «Preguntaste «asado de 6» · «más barato»». Las guardias no cambian: las sugerencias no ofrecen nada que Mochi no ofrecería por su cuenta, y bajo una respuesta de salud no hay sugerencias (sí el campo).
+Debajo de la respuesta de Mochi (si trajo productos y no es de salud), chips de un toque para refinarla: «Más barato», «Otra opción», «Sin carne» (en restaurantes, si no lo dice ya) y, con una ocasión o una cantidad de personas, «Para N personas» (N = las de ahora más 2). Arriba de la respuesta, lo pedido: «Pediste «asado de 6» · «más barato»». Las guardias no cambian: los chips no ofrecen nada que Mochi no ofrecería por su cuenta, y bajo una respuesta de salud no hay chips.
+
+**Desde el 26-10-2026 no hay campo «Sigue con Mochi»** ([decisión](../decisiones.md#agente-mochi)): Mochi no tiene chat. Cada chip manda la frase que `_follow_up` ya entiende con el `previous` de siempre, así que la API no cambió; un refinamiento sin chip («menos de 10 lucas», «en el súper mejor») se puede escribir en el buscador y tocar «Pídele a Mochi», que sigue la respuesta anterior.
 
 ## 5. Demo sin conexión
 

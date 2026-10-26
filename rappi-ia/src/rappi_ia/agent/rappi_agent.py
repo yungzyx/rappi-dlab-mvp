@@ -1,17 +1,19 @@
-"""El agente, un turno de conversación: entender → herramientas → componer → verificar → registrar.
+"""El agente, un turno (una respuesta o un refinamiento de la anterior): entender → herramientas → componer → verificar
+→ registrar.
 
 Reglas de conducta (docs/diseno-ia.md §4) que se aplican aquí, en código:
 1. Solo productos recuperados de la base, con precio vigente.        → tools.search_products
 2. La respuesta sale del vertical actual; lo cruzado va aparte.       → `suggestion`
 3. Máximo 1 sugerencia cruzada por respuesta y 1 por tema por sesión. → `shown_topics`
 4. Si no encuentra, lo dice y lo marca como demanda no satisfecha.    → `unmet`
-5. Si es ambiguo entre verticales, pregunta.                          → intent "aclarar"
+5. Si es ambiguo entre verticales, da las opciones para elegir.      → intent "aclarar"
 6. Sensibles, alcohol, farmacia, bebé y salud: nunca por iniciativa propia ni como complemento
    (offers/guards.py); si se piden, +18 y farmacia con aviso.         → tools + avisos
    Tampoco da consejo médico («¿qué le doy?»): lo ve un médico o el químico farmacéutico. → intent "consejo"
 7. En modo "Rappi hoy" no hay sugerencias cruzadas ni aprendizaje.
 8. Las preferencias explícitas (offers/preferences.py) solo filtran (dieta, alergias) y ordenan (favoritas) lo que se
-   muestra, y solo en «Propuesta». Se fijan por chat («soy vegetariano») o en el panel.  → intent "preferencia"
+   muestra, y solo en «Propuesta». Se marcan en el panel; si «soy vegetariano» llega por el buscador, también.
+                                                                         → intent "preferencia"
 9. Por defecto no hace un pedido: el resumen lo arma la app y se paga en el checkout de siempre.  → intent "resumen"
 10. Con «Pedir por mí» (offers/autonomy.py) pide solo «lo de siempre» en las tiendas elegidas, hasta el tope, sin
     alcohol, +18, farmacia, bebé ni salud y con una ventana para deshacer; si algo falla, lo deja para revisar antes.
@@ -86,7 +88,7 @@ NO_REMEDY = (
 ADVICE_TEXT = "No puedo decirte qué remedio tomar o dar, ni cuánto: eso lo ve un médico o un químico farmacéutico 💊."
 ADVICE_CHILD = " Pregúntale a su pediatra."
 ADVICE_URGENT = " Si es urgente, llama al SAMU (131)."
-ADVICE_NAME = " Si ya sabes qué remedio buscas, escríbeme su nombre."
+ADVICE_NAME = " Si ya sabes qué remedio buscas, búscalo por su nombre."
 REMEDY_WORDS = {"remedio", "remedios", "medicamento", "medicamentos", "pastilla", "pastillas", "algo", "para"}
 # Palabras de un pedido que no son un detalle que deba decir el nombre del producto («lúcuma» en «helado de lúcuma» sí).
 NOT_DETAIL = {
@@ -158,12 +160,12 @@ PREFERENCES_TODAY = (
     "En «Rappi hoy» no guardo preferencias. En la propuesta recuerdo tu dieta, tus alergias y tus favoritas, y las "
     "borras cuando quieras 🔒."
 )
-PREFERENCES_NO_USER = "Para recordarlo necesito tu sesión: vuelve a abrir la app y dímelo de nuevo."
+PREFERENCES_NO_USER = "Para recordarlo necesito tu sesión: vuelve a abrir la app."
 # «Pide lo de siempre en…» (offers/autonomy.py). Lo que la app hace con la respuesta: con `autopedido.modo` «pedir», el
 # resumen ya enviado con la ventana de deshacer; con «revisar», el resumen que lleva al checkout.
 USUAL_TODAY = "En «Rappi hoy» no pido por ti: en «Mis pedidos» tienes «Pídelo de nuevo»."
 USUAL_NONE = "Todavía no tienes un pedido que repetir. Cuando pidas algo, te lo repito cuando quieras 🔁."
-USUAL_NOT_FOUND = "No encuentro un pedido tuyo en «{store}». ¿Me dices la tienda como sale en «Mis pedidos»?"
+USUAL_NOT_FOUND = "No encuentro un pedido tuyo en «{store}». En «Mis pedidos» están las tiendas donde pediste."
 USUAL_GONE = "Lo de siempre en {store} ya no está a la venta ahí. Mira en «Mis pedidos» otro que repetir."
 USUAL_ORDERING = (
     "Listo, pido lo de siempre en {store}: {items} por {total}, dentro de tu tope de {cap}. Tienes unos segundos para "
@@ -173,9 +175,12 @@ USUAL_REVIEW = "Te armé lo de siempre en {store}: {items} por {total}. Revísal
 USUAL_REVIEW_WHY = "Te armé lo de siempre en {store}: {items} por {total}. Esta vez lo revisas tú: {why}."
 USUAL_SETTINGS = {"label": "Cómo pido por ti", "panel": "autonomia"}
 PREFERENCES_NONE = (
-    "Todavía no tengo preferencias tuyas. Dime, por ejemplo, «soy vegetariano», «no como maní» o «mi comida favorita "
-    "es el sushi», o márcalas en «Mis preferencias»."
+    "Todavía no tengo preferencias tuyas. Márcalas en «Mis preferencias»: tu dieta, tus alergias y tus cocinas y "
+    "tiendas favoritas."
 )
+PREFERENCES_ACTION = {"label": "Ver mis preferencias", "panel": "preferencias"}
+# Lo que se puede tocar bajo un saludo, un mensaje vacío o algo que no es de Rappi: nadie queda frente a un campo vacío.
+IDEA_KINDS = ("ayuda", "saludo", "vacio", "fuera")
 
 
 class RappiAgent:
@@ -623,8 +628,10 @@ class RappiAgent:
         label = self.taxonomy.concepts[interest].label.lower() if interest else None
         text = self.composer.compose(Draft(kind=intent.kind, interest_label=label, learns=ctx.mode == "propuesta"))
         response = _base(intent, text)
-        if intent.kind == "ayuda":  # lo que sabe hacer, para tocar: nadie empieza frente a un campo vacío
+        if intent.kind in IDEA_KINDS:  # lo que sabe hacer, para tocar: nadie empieza frente a un campo vacío
             response["actions"] = HELP_ACTIONS if ctx.mode == "propuesta" else HELP_EXAMPLES
+        if intent.kind == "receta":  # lo demás de farmacia, en su pantalla
+            response["actions"] = [{"label": "Ir a Farmacia", "vertical": "farmacia"}]
         if intent.kind == "pedido":  # la app muestra su último pedido con el seguimiento; esto lleva a todos
             response["actions"] = [{"label": "Ver mis pedidos", "route": ["orders"]}]
         if intent.kind == "resumen":  # la app arma el resumen con su carro; pagar es siempre en el checkout
@@ -645,8 +652,10 @@ class RappiAgent:
             store = prefs.find_store(conn, command.store)
             if store is None:
                 response["text"] = (
-                    f"No encontré «{command.store}» entre las tiendas de Rappi: dímela como sale en la app."
+                    f"No encontré «{command.store}» entre las tiendas de Rappi. Elige tus favoritas en «Mis "
+                    "preferencias»."
                 )
+                response["actions"] = [PREFERENCES_ACTION]
                 return response
             items.append(("tienda", store))
         if command.action == "agregar":
@@ -665,7 +674,7 @@ class RappiAgent:
         current = prefs.saved(conn, ctx.user_id)
         response["text"] = text or _listed_text(current)
         response["preferences"] = prefs.describe(current)
-        response["actions"] = [{"label": "Ver mis preferencias", "panel": "preferencias"}]
+        response["actions"] = [PREFERENCES_ACTION]
         return response
 
     def _usual_order(self, conn: Connection, intent: Intent, ctx: Context) -> dict:
@@ -1035,7 +1044,7 @@ def _listed_text(items: list[tuple[str, str]]) -> str:
         parts.append(f"Dieta y alergias: {', '.join(filters)}.")
     if favorites:
         parts.append(f"Tus favoritas: {', '.join(favorites)}.")
-    change = "Las cambias en «Mis preferencias» o me dices «olvida mis preferencias»."
+    change = "Las cambias o las olvidas en «Mis preferencias»."
     return f"Esto recuerdo de ti. {' '.join(parts)} {change}"
 
 

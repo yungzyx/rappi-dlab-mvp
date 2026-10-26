@@ -633,16 +633,16 @@ describe('sin escribir una pregunta', () => {
   })
 })
 
-describe('preguntarle a Mochi desde el buscador', () => {
+describe('pedirle algo a Mochi desde el buscador', () => {
   const QUESTION = '¿qué llevo para un asado de 6?'
 
-  test('el campo invita a preguntar y lo escrito trae primero «Pregúntale a Mochi»', async () => {
+  test('el campo invita a buscar o pedirle algo y lo escrito trae primero «Pídele a Mochi»', async () => {
     await renderPanel()
     const field = screen.getByLabelText('Buscar en Rappi')
-    expect(field.placeholder).toBe('Busca o pregúntale a Mochi')
+    expect(field.placeholder).toBe('Busca o pídele algo a Mochi')
     fireEvent.change(field, { target: { value: 'cerveza' } })
     await runUntilIdle()
-    const row = screen.getByRole('button', { name: 'Pregúntale a Mochi: «cerveza»' })
+    const row = screen.getByRole('button', { name: 'Pídele a Mochi: «cerveza»' })
     // Antes que los resultados de la búsqueda, y sin resaltar: «cerveza» es un producto.
     expect(row.compareDocumentPosition(screen.getByRole('heading', { name: 'Licores' }))).toBe(
       Node.DOCUMENT_POSITION_FOLLOWING,
@@ -650,42 +650,40 @@ describe('preguntarle a Mochi desde el buscador', () => {
     expect(row.classList.contains('is-question')).toBe(false)
   })
 
-  test('con un error de tipeo corregido, conviven «Pregúntale a Mochi» y «Mostrando resultados para…»', async () => {
+  test('con un error de tipeo corregido, conviven «Pídele a Mochi» y «Mostrando resultados para…»', async () => {
     stubCatalog({ '/search': fixture('search-grouped-corrected') })
     await renderPanel()
     fireEvent.change(screen.getByLabelText('Buscar en Rappi'), { target: { value: 'cervezaaaa' } })
     await runUntilIdle()
-    const row = screen.getByRole('button', { name: 'Pregúntale a Mochi: «cervezaaaa»' })
+    const row = screen.getByRole('button', { name: 'Pídele a Mochi: «cervezaaaa»' })
     const notice = screen.getByText(/^Mostrando resultados para «cerveza»/)
     expect(row.compareDocumentPosition(notice)).toBe(Node.DOCUMENT_POSITION_FOLLOWING)
   })
 
-  test('una pregunta va resaltada y Enter se la pregunta a Mochi, no la busca', async () => {
+  test('una pregunta va resaltada y Enter se la pide a Mochi, no la busca', async () => {
     api.ask.mockResolvedValueOnce(apiAnswer('Mira estas opciones de asado 🔥 en el súper.'))
     await renderPanel()
     const field = screen.getByLabelText('Buscar en Rappi')
     fireEvent.change(field, { target: { value: QUESTION } })
     await runUntilIdle()
-    expect(screen.getByRole('button', { name: `Pregúntale a Mochi: «${QUESTION}»` }).classList).toContain('is-question')
+    expect(screen.getByRole('button', { name: `Pídele a Mochi: «${QUESTION}»` }).classList).toContain('is-question')
 
     fireEvent.keyDown(field, { key: 'Enter' })
     await runUntilIdle()
     expect(api.ask.mock.calls[0][0].message).toBe(QUESTION)
     expect(field.value).toBe('')
-    expect(screen.getByText(`Preguntaste «${QUESTION}»`)).toBeTruthy()
+    expect(screen.getByText(`Pediste «${QUESTION}»`)).toBeTruthy()
     expect(bubbles()).toContain('Mira estas opciones de asado 🔥 en el súper.')
     expect(tracked('search')).toEqual([]) // es una pregunta a Mochi, no una búsqueda
   })
 
-  test('la fila resaltada dice que Enter pregunta, también al lector de pantalla; sin resaltar, no', async () => {
+  test('la fila resaltada dice que Enter se lo pide, también al lector de pantalla; sin resaltar, no', async () => {
     await renderPanel()
     const field = screen.getByLabelText('Buscar en Rappi')
     fireEvent.change(field, { target: { value: QUESTION } })
     await runUntilIdle()
     expect(screen.getByText('Enter')).toBeTruthy()
-    expect(document.getElementById(field.getAttribute('aria-describedby')).textContent).toBe(
-      'Enter le pregunta a Mochi',
-    )
+    expect(document.getElementById(field.getAttribute('aria-describedby')).textContent).toBe('Enter se lo pide a Mochi')
     fireEvent.change(field, { target: { value: 'cerveza' } })
     await runUntilIdle()
     expect(screen.queryByText('Enter')).toBeNull()
@@ -697,7 +695,7 @@ describe('preguntarle a Mochi desde el buscador', () => {
     const field = screen.getByLabelText('Buscar en Rappi')
     fireEvent.change(field, { target: { value: QUESTION } })
     await runUntilIdle()
-    const row = screen.getByRole('button', { name: `Pregúntale a Mochi: «${QUESTION}»` })
+    const row = screen.getByRole('button', { name: `Pídele a Mochi: «${QUESTION}»` })
     fireEvent.blur(field, { relatedTarget: row })
     await runUntilIdle()
     expect(tracked('search')).toEqual([])
@@ -715,16 +713,16 @@ describe('preguntarle a Mochi desde el buscador', () => {
     expect(screen.queryByRole('button', { name: '🍻 Arma un carrete' })).toBeNull()
   })
 
-  test('tocar «Pregúntale a Mochi» pregunta aunque lo escrito sea un producto', async () => {
+  test('tocar «Pídele a Mochi» se lo pide aunque lo escrito sea un producto', async () => {
     api.ask.mockResolvedValueOnce(apiAnswer('Mira estas cervezas'))
     await renderPanel()
     const field = screen.getByLabelText('Buscar en Rappi')
     fireEvent.change(field, { target: { value: 'cerveza' } })
     await runUntilIdle()
-    fireEvent.click(screen.getByRole('button', { name: 'Pregúntale a Mochi: «cerveza»' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Pídele a Mochi: «cerveza»' }))
     await runUntilIdle()
     expect(api.ask.mock.calls[0][0].message).toBe('cerveza')
-    expect(screen.getByText('Preguntaste «cerveza»')).toBeTruthy()
+    expect(screen.getByText('Pediste «cerveza»')).toBeTruthy()
     expect(tracked('search')).toEqual([])
   })
 })
@@ -771,7 +769,7 @@ describe('Para ti y Descubre con Mochi', () => {
     const fetchMock = stubCatalog({ '/recommendations': rows() })
     await renderPanel()
 
-    expect(bubbles()[0]).toBe('¡Hola! Soy Mochi, tu asistente de compras 🧡 ¿Qué se te antoja hoy?')
+    expect(bubbles()[0]).toBe('¡Hola! Soy Mochi, tu asistente de compras 🧡 Toca una idea o busca lo que quieras.')
     expect(screen.getByText('Gaseosa cola 500 cc (prueba)')).toBeTruthy()
     expect(document.querySelector('.agent-msg-reason').textContent).toBe('Por tu interés en 🍕 pizza')
     // Una sola petición sirve a «Para ti» y a «Descubre con Mochi».
@@ -828,7 +826,7 @@ describe('Para ti y Descubre con Mochi', () => {
   test('Para ti se oculta si recommendations viene vacío o falla', async () => {
     stubCatalog({ '/recommendations': { user_id: 'u', interests: [], rows: [] } })
     await renderPanel()
-    expect(bubbles()[0]).toBe('¡Hola! Soy Mochi, tu asistente de compras 🧡 ¿Qué se te antoja hoy?')
+    expect(bubbles()[0]).toBe('¡Hola! Soy Mochi, tu asistente de compras 🧡 Toca una idea o busca lo que quieras.')
     expect(document.querySelector('.agent-msg-products')).toBeNull()
     expect(screen.queryByText('Descubre con Mochi')).toBeNull()
 
@@ -1113,26 +1111,56 @@ describe('conversación', () => {
     expect(api.ask.mock.calls[2][0].previous).toEqual(BEERS.conversation)
   })
 
-  test('bajo la respuesta, sugerencias para seguir y un campo que le habla a Mochi', async () => {
+  test('bajo la respuesta, chips para refinarla y ningún campo para escribirle a Mochi', async () => {
     api.ask.mockResolvedValue(CHEAPER)
     api.ask.mockResolvedValueOnce(BEERS)
     await renderPanel()
     say('cerveza')
     await runUntilIdle()
 
+    // La única entrada de texto es el buscador de siempre
+    const dialog = screen.getByRole('dialog', { name: 'Buscador con Mochi' })
+    expect([...dialog.querySelectorAll('input, textarea, [contenteditable]')]).toEqual([
+      screen.getByLabelText('Buscar en Rappi'),
+    ])
+    expect(screen.queryByText(/Sigue con Mochi/)).toBeNull()
     fireEvent.click(screen.getByRole('button', { name: 'Más barato' }))
     await runUntilIdle()
+    // El chip manda la frase que el seguimiento de la API ya entiende, con el turno anterior: no se escribe nada
     expect(api.ask.mock.calls[1][0]).toMatchObject({ message: 'más barato', previous: BEERS.conversation })
-
-    // «sin alcohol» no parece una pregunta: en el buscador buscaría; aquí se lo dice a Mochi
-    const field = screen.getByLabelText('Sigue la conversación con Mochi')
-    fireEvent.change(field, { target: { value: 'sin alcohol' } })
-    fireEvent.submit(field.closest('form'))
-    await runUntilIdle()
-    expect(api.ask.mock.calls[2][0].message).toBe('sin alcohol')
-    // Bajo la respuesta nueva, el campo vacío y las sugerencias antes que la de otra tienda
-    expect(screen.getByLabelText('Sigue la conversación con Mochi').value).toBe('')
+    expect(screen.getByText('Elegiste «cerveza» · «más barato»')).toBeTruthy()
     expect(tracked('search')).toEqual([])
+  })
+
+  test('en restaurantes, «Sin carne» refina con un toque; si ya no lleva carne, no se ofrece', async () => {
+    const pizza = { ...BEERS.conversation, query: 'pizza', concepts: ['pizza'], vertical: 'restaurantes' }
+    api.ask.mockResolvedValueOnce({
+      ...BEERS,
+      text: 'Mira estas pizzas',
+      vertical: 'restaurantes',
+      conversation: pizza,
+    })
+    api.ask.mockResolvedValueOnce({
+      ...BEERS,
+      text: 'Mira estas pizzas sin carne',
+      conversation: { ...pizza, query: 'pizza sin carne' },
+    })
+    await renderPanel()
+    say('pizza')
+    await runUntilIdle()
+    fireEvent.click(screen.getByRole('button', { name: 'Sin carne' }))
+    await runUntilIdle()
+    expect(api.ask.mock.calls[1][0]).toMatchObject({ message: 'sin carne', previous: pizza })
+    expect(screen.queryByRole('button', { name: 'Sin carne' })).toBeNull()
+    expect(screen.getByRole('button', { name: 'Otra opción' })).toBeTruthy()
+  })
+
+  test('fuera de restaurantes no hay «Sin carne»', async () => {
+    api.ask.mockResolvedValueOnce(BEERS)
+    await renderPanel()
+    say('cerveza')
+    await runUntilIdle()
+    expect(screen.queryByRole('button', { name: 'Sin carne' })).toBeNull()
   })
 
   test('ya ordenado por precio no ofrece «Más barato»; «Otra opción» sí', async () => {
@@ -1171,7 +1199,7 @@ describe('conversación', () => {
     expect(screen.getByText('Elegiste «pañales»')).toBeTruthy()
   })
 
-  test('bajo una respuesta de salud no hay sugerencias para seguir, pero sí el campo', async () => {
+  test('bajo una respuesta de salud no hay chips para refinarla ni campo', async () => {
     api.ask.mockResolvedValueOnce({
       ...BEERS,
       text: 'Mira estas opciones de medicamentos',
@@ -1183,7 +1211,7 @@ describe('conversación', () => {
     await runUntilIdle()
     expect(screen.queryByRole('button', { name: 'Más barato' })).toBeNull()
     expect(screen.queryByRole('button', { name: 'Otra opción' })).toBeNull()
-    expect(screen.getByLabelText('Sigue la conversación con Mochi')).toBeTruthy()
+    expect(screen.queryByRole('group', { name: 'Refinar' })).toBeNull()
   })
 })
 
