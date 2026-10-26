@@ -77,7 +77,9 @@ export default function RealMenu({ sections, scrollRef }) {
           </ul>
         </section>
       ))}
-      <p className="menu-source">Menú y precios del catálogo descargado de Rappi Chile. Las fotos se cargan desde Rappi.</p>
+      <p className="menu-source">
+        Menú y precios del catálogo descargado de Rappi Chile. Las fotos se cargan desde Rappi.
+      </p>
     </>
   )
 }

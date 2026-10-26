@@ -219,8 +219,13 @@ export async function home() {
 }
 
 // Las condiciones de compra ya pedidas, por tienda (null = la API no la conoce): el carro y el checkout las leen sin
-// volver a pedirlas. Son datos del catálogo, no de la persona.
-const knownTerms = new Map()
+// volver a pedirlas. Son datos del catálogo, no de la persona. Llevan la hora en que llegaron: el abierto o cerrado y
+// los tramos de hoy y mañana se calculan al pedirlas, así que valen unos minutos y hasta que cambia el día (si no, una
+// tienda que abría a las 10:00 seguía cerrada en el checkout a las 10:05).
+const knownTerms = new Map() // id → { terms, at }
+const TERMS_FRESH_MS = 5 * 60_000
+const dayOf = (ts) => new Date(ts).toDateString()
+const fresh = (entry, now) => entry && now - entry.at < TERMS_FRESH_MS && dayOf(entry.at) === dayOf(now)
 const TERMS_PER_REQUEST = 20 // api/catalog.py: hasta 20 tiendas por consulta
 
 /**
@@ -228,16 +233,17 @@ const TERMS_PER_REQUEST = 20 // api/catalog.py: hasta 20 tiendas por consulta
  * minOrder, servicePct, hours, spans } | null)`. Cada dato puede ser null (el catálogo no lo trae): el checkout pone su supuesto.
  */
 export async function storeTerms(storeIds) {
-  const missing = [...new Set(storeIds)].filter((id) => !knownTerms.has(id))
+  const now = Date.now()
+  const missing = [...new Set(storeIds)].filter((id) => !fresh(knownTerms.get(id), now))
   for (let i = 0; i < missing.length; i += TERMS_PER_REQUEST) {
     const chunk = missing.slice(i, i + TERMS_PER_REQUEST)
     const reply = await read('/catalog/terms', { stores: chunk.join(',') })
     const found = new Map(reply.stores.map((t) => [t.store_id, t]))
     for (const id of chunk) {
       const t = found.get(id)
-      knownTerms.set(
-        id,
-        t
+      knownTerms.set(id, {
+        at: now,
+        terms: t
           ? {
               deliveryFee: t.delivery_fee,
               minOrder: t.min_order,
@@ -247,10 +253,10 @@ export async function storeTerms(storeIds) {
               spans: t.spans ?? null,
             }
           : null,
-      )
+      })
     }
   }
-  return new Map(storeIds.map((id) => [id, knownTerms.get(id) ?? null]))
+  return new Map(storeIds.map((id) => [id, knownTerms.get(id)?.terms ?? null]))
 }
 
 /** Solo para los tests: olvida las condiciones ya pedidas. */

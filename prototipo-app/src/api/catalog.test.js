@@ -352,3 +352,20 @@ describe('descubrimiento', () => {
     })
   })
 })
+
+describe('las condiciones de compra (storeTerms)', () => {
+  test('se guardan unos minutos: el abierto o cerrado de una tienda se vuelve a pedir después', async () => {
+    const { storeTerms, forgetStoreTerms } = await import('./catalog')
+    vi.useFakeTimers({ now: new Date(2026, 9, 26, 9, 55) })
+    const calls = stubApi({ '/catalog/terms': fixture('catalog-terms') })
+    const terms = () => calls.mock.calls.filter(([url]) => String(url).includes('/catalog/terms'))
+    await storeTerms([9101])
+    await storeTerms([9101])
+    expect(terms()).toHaveLength(1)
+    vi.setSystemTime(new Date(2026, 9, 26, 10, 5))
+    await storeTerms([9101])
+    expect(terms()).toHaveLength(2)
+    forgetStoreTerms()
+    vi.useRealTimers()
+  })
+})

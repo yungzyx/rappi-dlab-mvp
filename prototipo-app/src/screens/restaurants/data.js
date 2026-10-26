@@ -44,5 +44,10 @@ export const CATEGORIES = [
 // Promociones genéricas de ejemplo, sin marcas: no son tiendas del catálogo y no abren ninguna.
 export const BANNERS = [
   { id: 'wraps', title: 'Hasta 40% de descuento', place: 'en wraps y bowls · promo de ejemplo', img: promoWraps },
-  { id: 'hamburguesas', title: 'Hasta 30% de descuento', place: 'en hamburguesas · promo de ejemplo', img: promoBurger },
+  {
+    id: 'hamburguesas',
+    title: 'Hasta 30% de descuento',
+    place: 'en hamburguesas · promo de ejemplo',
+    img: promoBurger,
+  },
 ]
