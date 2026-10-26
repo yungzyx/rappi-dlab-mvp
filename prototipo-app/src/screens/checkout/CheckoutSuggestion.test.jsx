@@ -54,7 +54,7 @@ const renderCheckout = (products = [PISCO]) => {
   act(() => products.forEach((product) => probe.cart.add(product)))
   return view
 }
-const ASK = '¿Me falta algo? Pregúntale a Mochi'
+const ASK = '¿Me falta algo? Pídele a Mochi'
 const ask = async () => {
   fireEvent.click(screen.getByRole('button', { name: ASK }))
   await act(async () => {}) // la respuesta de la API

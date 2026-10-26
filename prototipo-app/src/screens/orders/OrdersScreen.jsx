@@ -6,28 +6,27 @@ import Img from '../../components/Img'
 import { ReorderButton } from '../../components/reorder/Reorder'
 import { formatPrice } from '../../state/CartContext'
 import { useOrders } from '../../state/OrdersContext'
-import { flowFor, isDelivered, secondsSince, stepAt } from '../tracking/progress'
+import HelpOrder from '../tracking/HelpOrder'
+import { deliveredAt, statusOf } from '../tracking/progress'
 import { relativeDay } from './dates'
 import './orders.css'
 
 const TICK_MS = 1000
 
 /**
- * El estado de un pedido en la lista: el paso en que va (los de su vertical), «Por calificar» si ya se entregó y falta
- * su calificación, o «Entregado».
+ * El estado de un pedido en la lista: el paso en que va (los de su vertical, «· atrasado» si se atrasó), «Programado ·
+ * hoy 15:00–16:00», «Cancelado», «Por calificar» si ya se entregó y falta su calificación, o «Entregado».
  */
 export function orderStatus(order, now) {
-  const seconds = secondsSince(order, now)
-  if (!isDelivered(seconds)) {
-    const flow = flowFor(order)
-    return { label: flow.steps[stepAt(seconds, flow)].short, done: false }
-  }
-  return { label: order.rating ? 'Entregado' : 'Por calificar', done: true }
+  const status = statusOf(order, now)
+  if (status.kind !== 'delivered') return { label: status.short, done: status.done, kind: status.kind }
+  return { label: order.rating ? 'Entregado' : 'Por calificar', done: true, kind: status.kind }
 }
 
 /**
- * Pedidos hechos en la demo (funcionalidad agregada). Cada fila abre su seguimiento, en curso o entregado; uno
- * entregado trae «Pídelo de nuevo».
+ * Pedidos hechos en la demo (funcionalidad agregada), uno por tienda: una compra en dos tiendas son dos filas. Cada
+ * fila abre su seguimiento, en curso, programado, cancelado o entregado; uno entregado trae «Pídelo de nuevo» y «Ayuda
+ * con este pedido».
  */
 export default function OrdersScreen({ back, push, reset }) {
   const { orders } = useOrders()
@@ -73,12 +72,25 @@ export default function OrdersScreen({ back, push, reset }) {
                       {/* Lo pidió Mochi solo, con permiso («Pedir por mí»: api/autonomy.js). */}
                       {order.byAgent && ` · Lo pidió ${AGENT_NAME} por ti`}
                     </span>
-                    <span className={status.done ? 'orders-status is-done' : 'orders-status'}>{status.label}</span>
+                    <span
+                      className={
+                        status.kind === 'cancelled'
+                          ? 'orders-status is-cancelled'
+                          : status.done
+                            ? 'orders-status is-done'
+                            : 'orders-status'
+                      }
+                    >
+                      {status.label}
+                    </span>
                   </span>
                   <ChevronRight size={18} />
                 </button>
-                {status.done && (
-                  <ReorderButton order={order} surface="orders" position={position} className="orders-reorder" />
+                {status.kind === 'delivered' && (
+                  <div className="orders-actions">
+                    <ReorderButton order={order} surface="orders" position={position} className="orders-reorder" />
+                    <HelpOrder order={order} deliveredAt={deliveredAt(order)} now={now} className="orders-help tap" />
+                  </div>
                 )}
               </li>
             )

@@ -3,6 +3,7 @@
 // del checkout y del próximo pedido, el OnTop de Turbo y las respuestas grabadas (kits de una ocasión, sin resultado). Todo lo que se ofrece pasa por `offerableProduct` (offers/guards.py).
 import { NONE_COMBO, OFFER_BLOCKED_VERTICALS, contractArticles, currentFine, stepSignal, targetStep } from './motor'
 import { entityKey } from './snapshot'
+import { isConfirmed } from './state'
 import { normalize } from './text'
 import {
   BASIS_KINDS,
@@ -158,7 +159,7 @@ const daysAgo = (now, ts) => {
 /** Las líneas de pedidos `propuesta`, de la más reciente a la más antigua, con su pedido. */
 const linesNewestFirst = (state) =>
   state.orders
-    .filter((o) => o.mode === 'propuesta')
+    .filter((o) => o.mode === 'propuesta' && isConfirmed(o))
     .sort((a, b) => b.ts - a.ts)
     .flatMap((order) => [...order.lines].reverse().map((line) => ({ line, order })))
 

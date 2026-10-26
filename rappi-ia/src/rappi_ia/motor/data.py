@@ -2,6 +2,7 @@
 
 `synthetic` y `prototype` nunca se mezclan: cada función filtra la fuente de la persona, del pedido y del evento. Lo que
 pasa en «Rappi hoy» no enseña: solo entran pedidos `mode = 'propuesta'` y ningún evento con `payload.mode = 'actual'`.
+Un pedido cancelado (`status = 'cancelado'`, migración 050) no entra: no es una compra.
 """
 
 from dataclasses import dataclass
@@ -78,7 +79,7 @@ def load_orders(
             FROM app_orders o
             JOIN app_users u USING (user_id)
             LEFT JOIN app_order_lines l USING (order_id)
-            WHERE o.mode = 'propuesta' AND {where}
+            WHERE o.mode = 'propuesta' AND o.status = 'confirmado' AND {where}
             ORDER BY o.ts, o.order_id, l.line_no""",
         params,
     ).fetchall()

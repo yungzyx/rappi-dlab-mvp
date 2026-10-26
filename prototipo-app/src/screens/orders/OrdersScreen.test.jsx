@@ -118,6 +118,30 @@ describe('OrdersScreen', () => {
     expect(push).toHaveBeenCalledWith('tracking', { orderId: expect.stringMatching(/^order-/) })
   })
 
+  test('un pedido cancelado dice «Cancelado» y no ofrece «Pídelo de nuevo» ni ayuda; uno entregado ofrece ayuda', () => {
+    setup({ ...ORDER, items: [line(COFFEE)], cancelled: { reason: 'ya_no', stage: 'antes_de_tienda', fee: 0 } })
+    fireEvent.click(screen.getByText('pedir'))
+    expect(screen.getByText('Cancelado')).toBeTruthy()
+    deliver()
+    expect(screen.getByText('Cancelado')).toBeTruthy()
+    expect(screen.queryByText('Pídelo de nuevo')).toBeNull()
+    expect(screen.queryByText('Ayuda con este pedido')).toBeNull()
+
+    cleanup()
+    localStorage.clear()
+    setup({ ...ORDER, items: [line(COFFEE)] })
+    fireEvent.click(screen.getByText('pedir'))
+    deliver()
+    expect(screen.getByText('Ayuda con este pedido')).toBeTruthy()
+  })
+
+  test('programado: «Programado · hoy HH:00–HH:00» hasta su franja', () => {
+    const slot = new Date(Date.now() + 3 * 3_600_000).setMinutes(0, 0, 0)
+    setup({ ...ORDER, items: [line(COFFEE)], scheduledFor: slot })
+    fireEvent.click(screen.getByText('pedir'))
+    expect(screen.getByText(/^Programado · (hoy|mañana) \d\d:00–\d\d:00$/)).toBeTruthy()
+  })
+
   test('«Pídelo de nuevo» arma el carro con lo que sigue disponible, al precio de hoy, y marca lo que no', async () => {
     setup()
     fireEvent.click(screen.getByText('pedir'))

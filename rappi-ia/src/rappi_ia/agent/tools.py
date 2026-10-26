@@ -474,7 +474,8 @@ def _recently_offered(conn: Connection, user_id: str) -> set[str]:
     rows = conn.execute(
         """SELECT DISTINCT e.concept_id
            FROM app_events e
-           JOIN (SELECT max(ts) AS ts FROM app_orders WHERE user_id = %(user)s AND mode = 'propuesta') o
+           JOIN (SELECT max(ts) AS ts FROM app_orders
+                 WHERE user_id = %(user)s AND mode = 'propuesta' AND status = 'confirmado') o
              ON e.ts < o.ts
            WHERE e.user_id = %(user)s AND e.type = 'suggestion_shown' AND e.concept_id IS NOT NULL
              AND coalesce(e.origin, e.payload ->> 'origen') = ANY(%(origins)s)
@@ -490,7 +491,8 @@ def _ordered_lately(conn: Connection, user_id: str, concepts: list[str]) -> bool
     reglas de compra cruzada (`cross_picks`) pueden salir de ellos."""
     return conn.execute(
         """SELECT EXISTS (SELECT 1 FROM app_orders o JOIN app_order_lines l USING (order_id)
-                          WHERE o.user_id = %s AND o.mode = 'propuesta' AND l.concept_id = ANY(%s)
+                          WHERE o.user_id = %s AND o.mode = 'propuesta' AND o.status = 'confirmado'
+                            AND l.concept_id = ANY(%s)
                             AND o.ts > now() - make_interval(days => %s) AND o.ts <= now())""",
         (user_id, concepts, RECENT_DAYS),
     ).fetchone()[0]

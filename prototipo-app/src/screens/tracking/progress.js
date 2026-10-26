@@ -117,8 +117,77 @@ export function pointOnRoute(progress, route = ROUTE) {
   return route[route.length - 1]
 }
 
-/** Segundos desde que se hizo el pedido. */
-export const secondsSince = (order, now) => (order ? (now - order.placedAt) / 1000 : 0)
+/** Cuándo empieza su línea de tiempo: la franja si se programó; si no, cuando se hizo. */
+export const startOf = (order) => order?.scheduledFor ?? order?.placedAt ?? 0
+
+/** ¿Es un pedido programado que todavía no empieza? */
+export const isAhead = (order, now) => Boolean(order?.scheduledFor) && now < order.scheduledFor
+
+/**
+ * Segundos del pedido en su línea de tiempo (negativos si está programado y no empieza). El reloj de la demo se
+ * detiene mientras la persona decide algo que el pedido espera (`heldAt`: cancelar o un producto agotado; lo esperado
+ * suma en `pausedMs`), y un atraso (`delay`, desde el «Panel de la demo») deja el pedido en su paso `delay.seconds`
+ * segundos a partir de `delay.from`.
+ */
+export function secondsSince(order, now) {
+  if (!order) return 0
+  const raw = ((order.heldAt ?? now) - startOf(order) - (order.pausedMs ?? 0)) / 1000
+  const delay = order.delay
+  if (!delay || raw <= delay.from) return raw
+  return Math.max(delay.from, raw - delay.seconds)
+}
+
+/** Cuándo se entregó (o se entregará) el pedido, con lo que esperó y su atraso (ms). */
+export const deliveredAt = (order) =>
+  startOf(order) + (order?.pausedMs ?? 0) + ((order?.delay?.seconds ?? 0) + DELIVERED.at) * 1000
+
+/**
+ * Los minutos que muestra el seguimiento: los del flujo más lo que suma el tipo de entrega (`etaShift`: «Sin prisa»
+ * más, «Prioritaria» menos) y un atraso (`delay.minutes`), que se van gastando con el viaje.
+ */
+export function etaMinutes(order, seconds, flow = flowFor(order)) {
+  const base = minutesLeft(seconds, flow)
+  if (base === 0) return 0
+  const left = 1 - rideProgress(seconds)
+  const extra = ((order?.etaShift ?? 0) + (order?.delay?.minutes ?? 0)) * left
+  return Math.max(1, Math.round(base + extra))
+}
+
+/**
+ * El estado de un pedido para las listas y la barra «Pedido en curso»: `{ kind, label, short, done }`. `kind` es
+ * `cancelled`, `scheduled` (programado y sin empezar), `active` o `delivered`.
+ */
+export function statusOf(order, now) {
+  if (order?.cancelled) return { kind: 'cancelled', label: 'Pedido cancelado', short: 'Cancelado', done: true }
+  if (isAhead(order, now))
+    return {
+      kind: 'scheduled',
+      label: `Programado para ${slotLabel(order.scheduledFor, now)}`,
+      short: `Programado · ${slotLabel(order.scheduledFor, now)}`,
+      done: false,
+    }
+  const seconds = secondsSince(order, now)
+  if (isDelivered(seconds)) return { kind: 'delivered', label: DELIVERED.label, short: DELIVERED.short, done: true }
+  const flow = flowFor(order)
+  const step = flow.steps[stepAt(seconds, flow)]
+  return {
+    kind: 'active',
+    label: step.label,
+    short: order?.delay ? `${step.short} · atrasado` : step.short,
+    done: false,
+  }
+}
+
+const SLOT_MS = 3_600_000
+const hourOf = (ts) =>
+  new Date(ts).toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit', hourCycle: 'h23' })
+const dayStart = (ts) => new Date(ts).setHours(0, 0, 0, 0)
+
+/** «hoy 15:00–16:00» o «mañana 10:00–11:00»: la franja de una hora que empieza en `from`. */
+export function slotLabel(from, now = Date.now()) {
+  const day = dayStart(from) === dayStart(now) ? 'hoy' : 'mañana'
+  return `${day} ${hourOf(from)}–${hourOf(from + SLOT_MS)}`
+}
 
 /**
  * Código de entrega de 4 dígitos (el «handshake» de la app de Rappi): sale del id del pedido, así es siempre el mismo

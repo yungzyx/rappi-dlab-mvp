@@ -7,7 +7,7 @@
 import { restaurantHours } from './catalog'
 import { OFFER_BLOCKED_VERTICALS } from './motor'
 import { offerableProduct } from './offers'
-import { updateState } from './state'
+import { isConfirmed, updateState } from './state'
 import { normalize } from './text'
 
 export const LIMITS = { min: 1000, max: 200_000, suggested: 20_000, stores: 10 } // offers/autonomy.py
@@ -43,7 +43,7 @@ const productOf = (snapshot, line) =>
 function storesOf(snapshot, state) {
   const seen = new Map()
   for (const order of [...state.orders].reverse()) {
-    if (order.mode === 'actual') continue
+    if (order.mode === 'actual' || !isConfirmed(order)) continue
     for (const line of order.lines) {
       if (line.store_id == null || seen.has(line.store_id)) continue
       const name = productOf(snapshot, line)?.store ?? `Tienda ${line.store_id}`
@@ -112,7 +112,7 @@ function findStore(snapshot, state, said) {
 function usual(snapshot, state, store) {
   const order = [...state.orders]
     .reverse()
-    .find((o) => o.mode !== 'actual' && o.lines.some((line) => line.store_id === store.id))
+    .find((o) => o.mode !== 'actual' && isConfirmed(o) && o.lines.some((line) => line.store_id === store.id))
   if (!order) return null
   const lines = []
   const missing = []

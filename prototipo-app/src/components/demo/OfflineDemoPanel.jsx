@@ -9,6 +9,7 @@ import {
 } from '../../api/offline/personas'
 import { loadSnapshot } from '../../api/offline/snapshot'
 import { OFFLINE_STATE_EVENT } from '../../api/offline/state'
+import { DEMO_DELAY_EVENT } from '../../screens/tracking/delay'
 import './offline-demo-panel.css'
 
 // Los 6 accesos chicos que ordena la Home (motor/home.py), con su nombre en la fila de accesos.
@@ -23,7 +24,8 @@ const VISITS = [
 
 /**
  * «Panel de la demo» de «Prototipo MVP.html» (solo el build sin conexión): elegir una persona con su historial, sumar
- * visitas a los accesos para ver cómo se reordena la Home, y leer en qué paso de la escalera está la persona.
+ * visitas a los accesos para ver cómo se reordena la Home, leer en qué paso de la escalera está la persona y atrasar el
+ * pedido en curso (el mensaje proactivo y, en Turbo, la garantía de ejemplo con Créditos).
  */
 export default function OfflineDemoPanel() {
   const [open, setOpen] = useState(false)
@@ -83,6 +85,17 @@ export default function OfflineDemoPanel() {
             ))}
             <button type="button" className="is-danger" onClick={clearHistory}>
               Borrar historial
+            </button>
+          </div>
+
+          <h2>Pedido en curso</h2>
+          <p className="offline-demo-help">
+            Atrasa el pedido en curso: sube el tiempo, llega un mensaje y, en Turbo, la garantía de ejemplo se paga en
+            Créditos de ejemplo.
+          </p>
+          <div className="offline-demo-buttons">
+            <button type="button" onClick={() => window.dispatchEvent(new Event(DEMO_DELAY_EVENT))}>
+              Atrasar el pedido en curso
             </button>
           </div>
         </section>

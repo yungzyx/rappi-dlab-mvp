@@ -112,7 +112,7 @@ def current_fine(conn: Connection, user_id: str, now: datetime | None = None) ->
             v
             for (v,) in conn.execute(
                 """SELECT DISTINCT vertical FROM app_orders
-                   WHERE user_id = %s AND mode = 'propuesta' AND ts > %s AND ts <= %s""",
+                   WHERE user_id = %s AND mode = 'propuesta' AND status = 'confirmado' AND ts > %s AND ts <= %s""",
                 (user_id, since, now),
             )
         ]

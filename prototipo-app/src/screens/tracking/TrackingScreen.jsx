@@ -21,15 +21,24 @@ import { useOrders } from '../../state/OrdersContext'
 import { useProfile } from '../../state/ProfileContext'
 import { today } from '../../utils/today'
 import { TIPS } from '../checkout/pricing'
+import CancelOrder from './CancelOrder'
+import { cancelStage } from './cancel'
+import { TURBO_GUARANTEE } from './delay'
+import HelpOrder from './HelpOrder'
+import { hasLiveChanges } from './liveChanges'
+import { LiveChangeAlert, LiveChangeResult } from './LiveChangeCards'
 import TrackingMap from './TrackingMap'
 import {
+  deliveredAt,
   deliveryCode,
+  etaMinutes,
   flowFor,
+  isAhead,
   isDelivered,
   isRiding,
-  minutesLeft,
   rideProgress,
   secondsSince,
+  slotLabel,
   stepAt,
 } from './progress'
 import './tracking.css'
@@ -50,9 +59,11 @@ export const RATING_REASONS = [
 ]
 
 /**
- * Seguimiento del pedido (funcionalidad agregada): los pasos de su vertical avanzan solos y el agente recorre el mapa.
- * En camino muestra el código de entrega; entregado, la calificación, la propina y «Pídelo de nuevo». En el prototipo
- * final, mientras llega, el OnTop de Turbo.
+ * Seguimiento de un pedido (una tienda; los otros de la misma compra se eligen arriba): los pasos de su vertical
+ * avanzan solos y el agente recorre el mapa. Antes de «En camino» se puede cancelar (con rescate); en el Súper, en «En
+ * tienda», un producto agotado de demostración pide qué hacer; un atraso del «Panel de la demo» trae su mensaje. En
+ * camino muestra el código de entrega; entregado, la calificación, la propina, «Pídelo de nuevo» y «Ayuda con este
+ * pedido». Programado, espera su franja. En el prototipo final, mientras llega, el OnTop de Turbo.
  */
 export default function TrackingScreen({ back, reset, push, params }) {
   const orders = useOrders()
@@ -62,17 +73,23 @@ export default function TrackingScreen({ back, reset, push, params }) {
 
   const seconds = secondsSince(order, now)
   const flow = flowFor(order)
-  const step = stepAt(seconds, flow)
-  const delivered = isDelivered(seconds)
-  const riding = isRiding(seconds)
-  const arrived = riding && minutesLeft(seconds, flow) === 0
+  const cancelled = Boolean(order?.cancelled)
+  const ahead = isAhead(order, now)
+  const live = Boolean(order) && !cancelled && !ahead
+  const step = ahead ? -1 : stepAt(seconds, flow)
+  const delivered = live && isDelivered(seconds)
+  const riding = live && isRiding(seconds)
+  const minutes = etaMinutes(order, seconds, flow)
+  const arrived = riding && minutes === 0
+  const stage = cancelStage(order, now)
 
-  // El reloj avanza hasta la entrega: después ya no hay nada que mover.
+  // El reloj avanza hasta la entrega (o hasta cancelar): después ya no hay nada que mover.
+  const ticking = Boolean(order) && !cancelled && !delivered
   useEffect(() => {
-    if (delivered) return undefined
+    if (!ticking) return undefined
     const timer = setInterval(() => setNow(Date.now()), TICK_MS)
     return () => clearInterval(timer)
-  }, [delivered])
+  }, [ticking])
 
   if (!order) {
     return (
@@ -85,7 +102,23 @@ export default function TrackingScreen({ back, reset, push, params }) {
     )
   }
 
-  const eta = delivered ? 'Entregado 🎉' : arrived ? 'Llegó tu Rappi' : `${minutesLeft(seconds, flow)} min`
+  const eta = cancelled
+    ? 'Pedido cancelado'
+    : ahead
+      ? slotLabel(order.scheduledFor, now)
+      : delivered
+        ? 'Entregado 🎉'
+        : arrived
+          ? 'Llegó tu Rappi'
+          : `${minutes} min`
+  const label = cancelled
+    ? order.stores.join(', ') || 'Tu pedido'
+    : ahead
+      ? 'Programado para'
+      : delivered
+        ? '¡Disfruta tu pedido!'
+        : 'Llegada estimada'
+  const changing = live && !delivered && hasLiveChanges(order) && flow.steps[step]?.id === 'in-store'
   return (
     <div className="screen tracking">
       <div className="tracking-map-wrap">
@@ -99,33 +132,120 @@ export default function TrackingScreen({ back, reset, push, params }) {
       </div>
 
       <section className="tracking-sheet">
-        <p className="tracking-eta-label">{delivered ? '¡Disfruta tu pedido!' : 'Llegada estimada'}</p>
+        <PurchaseOrders order={order} push={push} />
+        <p className="tracking-eta-label">{label}</p>
         <h1 className="tracking-eta">{eta}</h1>
-        {flow.promise && !delivered && <p className="tracking-promise">{flow.promise}</p>}
+        {flow.promise && live && !delivered && (
+          <p className="tracking-promise">
+            {flow.promise}
+            <small>
+              Garantía de ejemplo: {TURBO_GUARANTEE.minutes} min o gratis en Créditos (no es una condición de Rappi).
+            </small>
+          </p>
+        )}
 
-        <ol className="tracking-steps">
-          {flow.steps.map((item, i) => (
-            <li key={item.id} className={i < step || delivered ? 'is-done' : i === step ? 'is-current' : undefined}>
-              <span className="tracking-dot" />
-              {item.label}
-            </li>
-          ))}
-        </ol>
+        {cancelled ? (
+          <Cancelled order={order} />
+        ) : (
+          <ol className="tracking-steps">
+            {flow.steps.map((item, i) => (
+              <li key={item.id} className={i < step || delivered ? 'is-done' : i === step ? 'is-current' : undefined}>
+                <span className="tracking-dot" />
+                {item.label}
+              </li>
+            ))}
+          </ol>
+        )}
 
+        {order.delay && !cancelled && <DelayNotice order={order} flow={flow} delivered={delivered} />}
+        {changing && !order.liveChange && <LiveChangeAlert order={order} />}
+        <LiveChangeResult order={order} />
         {riding && !order.pickup && <DeliveryCode orderId={order.id} />}
         {!delivered && riding && <Courier />}
-        {!delivered && demo.isFinal && <OnTop order={order} flow={flow} now={now} push={push} />}
+        {live && !delivered && demo.isFinal && <OnTop order={order} flow={flow} now={now} push={push} />}
+        {stage && !changing && <CancelOrder order={order} stage={stage} />}
         {delivered && <Delivered order={order} push={push} />}
+        {delivered && <HelpOrder order={order} deliveredAt={deliveredAt(order)} now={now} />}
 
         <OrderSummary order={order} />
 
-        {delivered && (
+        {(delivered || cancelled) && (
           <button type="button" className="tracking-home-button tap" onClick={reset}>
             Volver al inicio
           </button>
         )}
       </section>
     </div>
+  )
+}
+
+/** Los pedidos de la misma compra (uno por tienda): «Pedido 1 de 2 · Tienda», para pasar de uno a otro. */
+function PurchaseOrders({ order, push }) {
+  const siblings = useOrders().siblingsOf(order)
+  if (siblings.length < 2) return null
+  return (
+    <nav className="tracking-purchase" aria-label="Tus pedidos de esta compra">
+      <p>Tu compra se dividió en {siblings.length} pedidos, uno por tienda</p>
+      <div className="tracking-purchase-tabs">
+        {siblings.map((other, i) => (
+          <button
+            key={other.id}
+            type="button"
+            aria-current={other.id === order.id ? 'page' : undefined}
+            className={other.id === order.id ? 'tracking-purchase-tab is-on tap' : 'tracking-purchase-tab tap'}
+            onClick={() => other.id !== order.id && push('tracking', { orderId: other.id }, { swap: true })}
+          >
+            Pedido {i + 1} · {other.stores.join(', ') || 'Tienda'}
+          </button>
+        ))}
+      </div>
+    </nav>
+  )
+}
+
+/** El pedido cancelado: por qué y lo que costó (de ejemplo). */
+function Cancelled({ order }) {
+  const { fee, stage } = order.cancelled
+  return (
+    <div className="tracking-cancelled" role="status">
+      <p>
+        <strong>Cancelaste este pedido</strong>
+      </p>
+      <p>
+        {fee
+          ? `Costo de cancelación: ${formatPrice(fee)} (de ejemplo, no la política de Rappi).`
+          : stage === 'programado'
+            ? 'Estaba programado y aún no empezaba: no tuvo costo.'
+            : 'La tienda aún no lo empezaba: no tuvo costo.'}
+      </p>
+    </div>
+  )
+}
+
+/**
+ * El mensaje proactivo de un atraso (lo gatilla el «Panel de la demo»): el tiempo estimado subió y, en Turbo, la
+ * garantía de ejemplo se cumple con Créditos de ejemplo.
+ */
+function DelayNotice({ order, flow, delivered }) {
+  const credits = order.delay.credits ?? 0
+  return (
+    <section className="tracking-delay" role="status" aria-label="Tu pedido viene atrasado">
+      <p className="tracking-delay-from">Mensaje de soporte</p>
+      <p>
+        {delivered
+          ? 'Tu pedido llegó con atraso. Gracias por esperarlo.'
+          : `Tu pedido viene atrasado unos ${order.delay.minutes} min. Ya estamos en eso y te avisamos apenas avance.`}
+      </p>
+      {flow.id === 'turbo' && credits > 0 && (
+        <p className="tracking-delay-credits">
+          Pasó los {TURBO_GUARANTEE.minutes} min de la garantía: te devolvemos {formatPrice(credits)} en Créditos de
+          ejemplo.
+        </p>
+      )}
+      <small className="tracking-demo-note">
+        Demostración: el atraso, la garantía y la compensación son de ejemplo, no reglas de Rappi.
+      </small>
+    </section>
   )
 }
 
@@ -331,8 +451,18 @@ function Rating({ order }) {
     orders.rate(order.id, { stars, reasons: chosen })
     // Sin carro (un pedido guardado antes) la API no sabría qué pedido es: queda solo en el teléfono.
     // Sale al tiro (no espera el lote de 5 s): al volver a la Home, la recompra ya debe saber de una calificación mala.
+    // Un pedido es de una tienda: la tienda (o la vertical) dice cuál de los del carro se califica.
     if (order.cartId) {
-      events.track('order_rated', { surface: 'tracking', cart_id: order.cartId, payload: { stars, reasons: chosen } })
+      events.track('order_rated', {
+        surface: 'tracking',
+        cart_id: order.cartId,
+        ...(order.vertical ? { vertical: order.vertical } : {}),
+        payload: {
+          stars,
+          reasons: chosen,
+          ...(Number.isSafeInteger(order.storeId) ? { store_id: order.storeId } : {}),
+        },
+      })
       events.flush()
     }
     toast('¡Gracias por tu calificación!')
@@ -426,20 +556,33 @@ function TipAfter({ order }) {
 }
 
 function OrderSummary({ order }) {
+  const change = order.liveChange
+  const total = order.total + (change?.delta ?? 0)
   return (
     <details className="tracking-summary">
-      <summary>Detalle del pedido · {formatPrice(order.total)}</summary>
+      <summary>Detalle del pedido · {formatPrice(total)}</summary>
       <ul>
-        {order.items.map((item, i) => (
-          <li key={`${i}-${item.name}`}>
-            <span>
-              {item.qty} × {item.name}
-            </span>
-            <b>{item.price}</b>
-          </li>
-        ))}
+        {order.items.map((item, i) =>
+          change?.index === i ? (
+            <li key={`${i}-${item.name}`}>
+              <span>
+                {item.qty} × {change.product ? change.product.name : <s>{item.name}</s>}
+              </span>
+              <b>{change.product ? change.product.price : 'Reembolsado'}</b>
+            </li>
+          ) : (
+            <li key={`${i}-${item.name}`}>
+              <span>
+                {item.qty} × {item.name}
+              </span>
+              <b>{item.price}</b>
+            </li>
+          ),
+        )}
       </ul>
       <p>{order.pickup ? 'Retiro en tienda' : `Entrega en ${order.address}`}</p>
+      {order.payment && <p>Pago: {order.payment} (de ejemplo)</p>}
+      {order.help?.length > 0 && <p>Solicitudes de ayuda: {order.help.length} (de demostración)</p>}
     </details>
   )
 }

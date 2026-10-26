@@ -199,7 +199,7 @@ export function ReorderHomeRow() {
   const orders = useOrders()?.orders ?? NO_ORDERS
   const titleId = useId()
   const [now, setNow] = useState(() => Date.now())
-  const pending = orders.some((order) => !isDelivered(secondsSince(order, now)))
+  const pending = orders.some((order) => !order.cancelled && !isDelivered(secondsSince(order, now)))
   useEffect(() => {
     if (!pending) return undefined
     const timer = setInterval(() => setNow(Date.now()), HOME_TICK_MS)

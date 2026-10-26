@@ -450,7 +450,7 @@ WITH raw AS (
            l.concept_id, o.vertical, NULL, NULL, l.entity_type, l.entity_id, l.from_suggestion, NULL,
            sum(l.qty) OVER (PARTITION BY l.order_id), o.total
     FROM app_order_lines l JOIN app_orders o USING (order_id)
-    WHERE o.source = %(source)s AND o.mode = 'propuesta' AND l.concept_id IS NOT NULL
+    WHERE o.source = %(source)s AND o.mode = 'propuesta' AND o.status = 'confirmado' AND l.concept_id IS NOT NULL
       AND (%(user)s::text IS NULL OR o.user_id = %(user)s)
 ),
 needed AS (SELECT DISTINCT concept_id FROM raw WHERE concept_id IS NOT NULL),
@@ -509,10 +509,13 @@ def load_signals(conn: Connection, source: str, user_id: str | None = None) -> d
 
 
 # `{only}` es el filtro por persona (vacío para toda la fuente): va dentro de cada consulta, donde se leen sus filas.
-_ORDERS_90 = "FROM app_orders o WHERE o.source = %(source)s AND o.ts >= %(now)s - interval '90 days'{only}"
+_ORDERS_90 = (
+    "FROM app_orders o WHERE o.source = %(source)s AND o.status = 'confirmado'"
+    " AND o.ts >= %(now)s - interval '90 days'{only}"
+)
 _METRIC_SQL = {
     "dias_sin_pedido": """SELECT user_id, extract(epoch FROM %(now)s - max(ts)) / 86400 FROM app_orders
-                          WHERE source = %(source)s{only} GROUP BY 1""",
+                          WHERE source = %(source)s AND status = 'confirmado'{only} GROUP BY 1""",
     "dias_desde_alta": """SELECT u.user_id,
                                  greatest(0, extract(epoch FROM %(now)s - least(u.created_at, min(e.ts))) / 86400)
                           FROM app_users u JOIN app_events e ON e.user_id = u.user_id
@@ -538,21 +541,23 @@ _METRIC_SQL = {
                                           THEN 1 ELSE 0 END
                      FROM (SELECT user_id, ts, ts - lag(ts) OVER w AS gap,
                                   row_number() OVER (PARTITION BY user_id ORDER BY ts DESC, order_id DESC) AS rn
-                           FROM app_orders WHERE source = %(source)s AND ts <= %(now)s{only}
+                           FROM app_orders
+                           WHERE source = %(source)s AND status = 'confirmado' AND ts <= %(now)s{only}
                            WINDOW w AS (PARTITION BY user_id ORDER BY ts, order_id)) t
                      WHERE rn = 1 AND gap IS NOT NULL""",
     "concentracion_marca": """SELECT user_id, max(n)::float / sum(n) FROM (
                                  SELECT o.user_id, ib.brand_key, sum(l.qty) AS n
                                  FROM app_order_lines l JOIN app_orders o USING (order_id)
                                  JOIN item_brands ib ON ib.entity_type = l.entity_type AND ib.entity_id = l.entity_id
-                                 WHERE o.source = %(source)s AND o.mode = 'propuesta'
+                                 WHERE o.source = %(source)s AND o.mode = 'propuesta' AND o.status = 'confirmado'
                                    AND o.ts >= %(now)s - interval '90 days'{only}
                                  GROUP BY 1, 2) t
                               GROUP BY 1 HAVING sum(n) >= %(min_lines)s""",
     "conceptos_distintos_90d": """SELECT user_id, count(DISTINCT concept_id) FROM (
                                      SELECT o.user_id, l.concept_id
                                      FROM app_order_lines l JOIN app_orders o USING (order_id)
-                                     WHERE o.source = %(source)s AND o.ts >= %(now)s - interval '90 days'{only}
+                                     WHERE o.source = %(source)s AND o.status = 'confirmado'
+                                       AND o.ts >= %(now)s - interval '90 days'{only}
                                      UNION ALL
                                      SELECT user_id, concept_id FROM app_events
                                      WHERE source = %(source)s AND type IN ('view_item', 'cart_add', 'search')
@@ -561,7 +566,8 @@ _METRIC_SQL = {
     "ticket_creciente": """SELECT user_id, avg(total) FILTER (WHERE ts >= %(now)s - interval '45 days')
                                          / avg(total) FILTER (WHERE ts < %(now)s - interval '45 days')
                            FROM app_orders
-                           WHERE source = %(source)s AND ts >= %(now)s - interval '90 days'{only}
+                           WHERE source = %(source)s AND status = 'confirmado'
+                             AND ts >= %(now)s - interval '90 days'{only}
                            GROUP BY 1 HAVING count(*) FILTER (WHERE ts >= %(now)s - interval '45 days') >= 2
                                          AND count(*) FILTER (WHERE ts < %(now)s - interval '45 days') >= 2""",
 }

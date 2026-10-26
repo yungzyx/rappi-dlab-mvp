@@ -2,32 +2,90 @@
   "stores": [
     {
       "delivery_fee": 1990,
+      "hours": {
+        "closes_at": null,
+        "open": true,
+        "opens_at": null,
+        "opens_tomorrow": false,
+        "source": "descarga",
+        "today": null
+      },
       "min_order": 0,
       "service_pct": null,
+      "spans": null,
       "store_id": 9101
     },
     {
       "delivery_fee": 990,
+      "hours": {
+        "closes_at": null,
+        "open": true,
+        "opens_at": null,
+        "opens_tomorrow": false,
+        "source": "descarga",
+        "today": null
+      },
       "min_order": 8490,
       "service_pct": 5.0,
+      "spans": null,
       "store_id": 9102
     },
     {
       "delivery_fee": 1290,
+      "hours": {
+        "closes_at": null,
+        "open": true,
+        "opens_at": null,
+        "opens_tomorrow": false,
+        "source": "descarga",
+        "today": null
+      },
       "min_order": 0,
       "service_pct": null,
+      "spans": null,
       "store_id": 9201
     },
     {
       "delivery_fee": 1490,
+      "hours": {
+        "closes_at": null,
+        "open": true,
+        "opens_at": null,
+        "opens_tomorrow": false,
+        "source": "descarga",
+        "today": null
+      },
       "min_order": null,
       "service_pct": null,
+      "spans": null,
       "store_id": 9301
     },
     {
       "delivery_fee": 1490,
+      "hours": {
+        "closes_at": "23:30",
+        "open": true,
+        "opens_at": null,
+        "opens_tomorrow": false,
+        "source": "horario",
+        "today": "11:00–23:30"
+      },
       "min_order": null,
       "service_pct": null,
+      "spans": {
+        "hoy": [
+          [
+            "11:00",
+            "23:30"
+          ]
+        ],
+        "manana": [
+          [
+            "11:00",
+            "23:30"
+          ]
+        ]
+      },
       "store_id": 9801
     }
   ]

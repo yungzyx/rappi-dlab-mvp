@@ -481,3 +481,213 @@
   font-size: 13px;
   color: var(--ink-3);
 }
+
+/* ---------- Fase 8: compra en varios pedidos, cancelar, cambios en vivo, atraso y ayuda ---------- */
+.tracking-promise small {
+  display: block;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--ink-3);
+}
+
+.tracking-purchase {
+  margin-bottom: 10px;
+  font-size: 13px;
+  color: var(--ink-2);
+}
+
+.tracking-purchase-tabs {
+  display: flex;
+  gap: 6px;
+  margin-top: 6px;
+  overflow-x: auto;
+}
+
+.tracking-purchase-tab {
+  flex: none;
+  padding: 6px 12px;
+  border-radius: 99px;
+  border: 1.5px solid var(--line);
+  background: var(--surface);
+  font-size: 13px;
+}
+
+.tracking-purchase-tab.is-on {
+  border-color: var(--ink);
+  background: var(--ink);
+  color: var(--surface);
+}
+
+.tracking-cancel,
+.tracking-help-button {
+  display: block;
+  margin: 14px auto 0;
+  padding: 9px 18px;
+  border-radius: 99px;
+  border: 1.5px solid var(--line);
+  background: var(--surface);
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.tracking-cancel {
+  color: var(--rappi-red);
+}
+
+.tracking-sheet-body {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 0 4px 8px;
+  font-size: 14.5px;
+}
+
+.tracking-options {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.tracking-option {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  padding: 11px 14px;
+  border-radius: 14px;
+  border: 1.5px solid var(--line);
+  background: var(--surface);
+  font-size: 14px;
+  text-align: left;
+}
+
+.tracking-option small {
+  font-size: 12.5px;
+  color: var(--ink-2);
+}
+
+.tracking-option.is-on,
+.tracking-option.is-preferred {
+  border-color: var(--ink);
+}
+
+.tracking-option.is-on {
+  background: var(--chip);
+}
+
+.tracking-option:disabled {
+  opacity: 0.5;
+}
+
+.tracking-rescue-title {
+  display: flex;
+  flex-direction: column;
+}
+
+.tracking-rescue-title small,
+.tracking-cost small {
+  display: block;
+  font-size: 12.5px;
+  color: var(--ink-2);
+}
+
+.tracking-cost.is-fee {
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: var(--fee-bg);
+  color: var(--fee-ink);
+}
+
+.tracking-sheet-danger {
+  padding: 12px;
+  border-radius: 14px;
+  background: var(--rappi-red);
+  color: var(--surface);
+  font-weight: 700;
+}
+
+.tracking-sheet-secondary {
+  padding: 10px;
+  font-weight: 600;
+  color: var(--ink-2);
+}
+
+.tracking-cancelled,
+.tracking-delay,
+.tracking-live,
+.tracking-live-result {
+  margin-top: 14px;
+  padding: 12px 14px;
+  border-radius: 16px;
+  background: var(--surface-muted);
+  font-size: 14px;
+  line-height: 20px;
+}
+
+.tracking-delay {
+  background: var(--fee-bg);
+}
+
+.tracking-delay-from {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--fee-ink);
+}
+
+.tracking-delay-credits {
+  margin-top: 6px;
+  font-weight: 600;
+}
+
+.tracking-live h2 {
+  font-size: 16px;
+}
+
+.tracking-live-item,
+.tracking-substitute {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 8px 0;
+  text-align: left;
+}
+
+.tracking-live-item img,
+.tracking-substitute img {
+  width: 44px;
+  height: 44px;
+  border-radius: 10px;
+  object-fit: cover;
+}
+
+.tracking-live-item span,
+.tracking-substitute span {
+  display: flex;
+  flex-direction: column;
+}
+
+.tracking-live-item small,
+.tracking-substitute small {
+  font-size: 12.5px;
+  color: var(--ink-2);
+}
+
+.tracking-substitutes ul {
+  list-style: none;
+}
+
+.tracking-demo-note {
+  display: block;
+  margin-top: 8px;
+  font-size: 12px;
+  color: var(--ink-3);
+}
+
+.tracking-help-window {
+  font-size: 13px;
+  color: var(--ink-2);
+}
+
+.tracking-reason-send:disabled {
+  opacity: 0.4;
+}

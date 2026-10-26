@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useCart } from '../state/CartContext'
 import { useOrders } from '../state/OrdersContext'
-import { flowFor, isDelivered, minutesLeft, secondsSince, stepAt } from '../screens/tracking/progress'
+import { etaMinutes, isDelivered, secondsSince, statusOf } from '../screens/tracking/progress'
 import { ChevronRight } from './Icons'
 import './active-order-bar.css'
 
@@ -9,14 +9,17 @@ const TICK_MS = 1000
 // Fuera del proveedor de pedidos (tests de pantallas sueltas) no hay pedidos.
 const NO_ORDERS = []
 
-/** El pedido en curso más reciente (el último que todavía no se entrega), o null. */
+/** ¿Sigue en curso? Ni entregado ni cancelado (uno programado cuenta: espera su franja). */
+const inCourse = (order, now) => !order.cancelled && !isDelivered(secondsSince(order, now))
+
+/** El pedido en curso más reciente (el último que todavía no se entrega ni se canceló), o null. */
 export function activeOrder(orders, now) {
-  return orders.find((order) => !isDelivered(secondsSince(order, now))) ?? null
+  return orders.find((order) => inCourse(order, now)) ?? null
 }
 
 /**
  * Barra «Pedido en curso» fuera del seguimiento (la de la app de Rappi y su Live Activity): el paso en que va el pedido
- * y cuánto falta. Tocarla abre su seguimiento. Sobre la barra del carro si hay productos; a la izquierda de Mochi. Un
+ * y cuánto falta (o su franja, si está programado). Con varios en curso (una compra en dos tiendas), cuántos son. Tocarla abre su seguimiento. Sobre la barra del carro si hay productos; a la izquierda de Mochi. Un
  * pedido recién hecho (todavía sin tic del reloj) cuenta como en curso: aún no pasa su hora.
  */
 export default function ActiveOrderBar({ push, raised }) {
@@ -34,17 +37,17 @@ export default function ActiveOrderBar({ push, raised }) {
   }, [id])
 
   if (!order) return null
-  const seconds = secondsSince(order, now)
-  const flow = flowFor(order)
-  const minutes = minutesLeft(seconds, flow)
+  const status = statusOf(order, now)
+  const minutes = status.kind === 'active' ? etaMinutes(order, secondsSince(order, now)) : 0
+  const count = orders.filter((other) => inCourse(other, now)).length
   const classes = ['active-order-bar', 'tap', raised && 'is-raised', withCart && 'with-cart'].filter(Boolean)
   return (
     <button type="button" className={classes.join(' ')} onClick={() => push('tracking', { orderId: order.id })}>
       <span className="active-order-dot" aria-hidden="true" />
       <span className="active-order-text">
-        <strong>Pedido en curso</strong>
+        <strong>{count > 1 ? `${count} pedidos en curso` : 'Pedido en curso'}</strong>
         <span>
-          {flow.steps[stepAt(seconds, flow)].short}
+          {status.short}
           {minutes > 0 ? ` · ${minutes} min` : ''}
         </span>
       </span>

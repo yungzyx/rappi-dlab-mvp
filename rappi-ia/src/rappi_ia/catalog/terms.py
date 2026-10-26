@@ -1,5 +1,6 @@
-"""Condiciones de compra de cada tienda para el carro y el checkout: costo de envío, compra mínima y tarifa de servicio,
-solo las que trae el catálogo (solo lectura). Lo que falta va en `None`: la app pone su supuesto rotulado por vertical
+"""Condiciones de compra de cada tienda para el carro y el checkout: costo de envío, compra mínima, tarifa de servicio y
+el horario (abierto o cerrado y los tramos de hoy y mañana, para programar), solo lo que trae el catálogo (solo
+lectura). Lo que falta va en `None`: la app pone su supuesto rotulado por vertical
 (prototipo-app/src/screens/checkout/pricing.js) y nunca lo presenta como dato de Rappi.
 
 De dónde sale cada dato:
@@ -15,6 +16,9 @@ import math
 
 from psycopg import Connection
 
+from . import hours
+from .hours import day_spans, normalize_schedule, restaurant_hours, store_hours
+
 MAX_STORES = 20  # un carro de la demo no tiene más tiendas
 MIN_DELIVERY_FEE = 100  # bajo esto no es un envío en pesos chilenos (ver arriba)
 MAX_SERVICE_PCT = 50  # un porcentaje mayor no es una tarifa de servicio
@@ -24,7 +28,8 @@ SELECT s.store_id, d.delivery_cost,
        s.raw ->> 'mov_value',
        s.raw -> 'charges' -> 'delivery' ->> 'delivery_fee_charge',
        s.raw ->> 'delivery_price',
-       s.raw ->> 'percentage_service_fee'
+       s.raw ->> 'percentage_service_fee',
+       d.store_id IS NOT NULL, d.schedules, s.raw
 FROM stores s
 LEFT JOIN restaurant_details d ON d.store_id = s.store_id
 WHERE s.store_id = ANY(%(ids)s)
@@ -42,12 +47,16 @@ def _number(value) -> float | None:
 
 def store_terms(conn: Connection, store_ids: list[int]) -> list[dict]:
     """Las condiciones de las tiendas pedidas que están en el catálogo, por id: `delivery_fee` y `min_order` en pesos
-    (`int`), `service_pct` en porcentaje; `None` si el catálogo no lo sabe. Las que no existen no salen."""
+    (`int`), `service_pct` en porcentaje; `None` si el catálogo no lo sabe. `hours`: abierto o cerrado como en las
+    tarjetas (catalog/hours.py, a la hora de Santiago de esta consulta); `spans`: los tramos publicados de hoy y mañana
+    de un restaurante (una tienda no publica su horario: `None`). Las que no existen no salen."""
     ids = sorted(set(store_ids))[:MAX_STORES]
     if not ids:
         return []
+    now = hours.now_local()  # por el módulo: los tests la fijan
     out = []
-    for store_id, delivery_cost, mov, fee_charge, delivery_price, service in conn.execute(_TERMS, {"ids": ids}):
+    rows = conn.execute(_TERMS, {"ids": ids})
+    for store_id, delivery_cost, mov, fee_charge, delivery_price, service, is_restaurant, schedules, raw in rows:
         delivery = None
         for candidate in (_number(delivery_cost), _number(fee_charge), _number(delivery_price)):
             if candidate is not None and candidate >= MIN_DELIVERY_FEE:
@@ -61,6 +70,16 @@ def store_terms(conn: Connection, store_ids: list[int]) -> list[dict]:
                 "delivery_fee": delivery,
                 "min_order": round(minimum) if minimum is not None and minimum >= 0 else None,
                 "service_pct": pct if pct is not None and 0 < pct <= MAX_SERVICE_PCT else None,
+                **_hours(is_restaurant, schedules, raw, now),
             }
         )
     return out
+
+
+def _hours(is_restaurant: bool, schedules, raw, now) -> dict:
+    """El horario de una tienda del carro: el publicado de un restaurante (con sus tramos de hoy y mañana) o cómo
+    estaba la tienda al bajarla."""
+    if is_restaurant:
+        schedule = normalize_schedule(schedules)
+        return {"hours": restaurant_hours(schedule, now), "spans": day_spans(schedule, now)}
+    return {"hours": store_hours(raw), "spans": None}

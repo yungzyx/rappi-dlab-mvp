@@ -7,6 +7,7 @@ import {
   checkoutTotals,
   couponDiscount,
   findCoupon,
+  orderAmounts,
   pricedBasket,
 } from './pricing'
 
@@ -111,5 +112,27 @@ describe('cupones y créditos de ejemplo', () => {
     const totals = checkoutTotals(priced, { tip: 1500, pickup: true })
     expect(totals.short.map((b) => b.subtotal)).toEqual([1000])
     expect(totals.tip).toBe(0)
+  })
+})
+
+describe('tipo de entrega y el total de cada pedido', () => {
+  test('«Sin prisa» descuenta del envío sin dejarlo bajo $0, «Prioritaria» suma, y el retiro no tiene tipo', () => {
+    const terms = { deliveryFee: 300, minOrder: 0, servicePct: null }
+    expect(pricedBasket(basket(5000), terms, { type: 'sin_prisa' }).typeFee).toBe(-300)
+    expect(pricedBasket(basket(5000), null, { type: 'prioritaria' }).typeFee).toBe(990)
+    expect(pricedBasket(basket(5000), null, { type: 'prioritaria', pickup: true }).typeFee).toBe(0)
+    const totals = checkoutTotals([pricedBasket(basket(5000), null, { type: 'prioritaria' })])
+    expect(totals.typeFee).toBe(990)
+  })
+
+  test('los totales de los pedidos suman el del checkout: cupón en su canasta, créditos y propina en el primero', () => {
+    const priced = [
+      pricedBasket(basket(4000, 'licores', 'a'), null, { type: 'prioritaria' }),
+      pricedBasket(basket(12_000, 'supermercado', 'b'), null),
+    ]
+    const totals = checkoutTotals(priced, { tip: 1000, coupon: findCoupon('SUPER20'), credits: true })
+    const amounts = orderAmounts(priced, totals)
+    expect(amounts.reduce((a, b) => a + b, 0)).toBe(totals.total)
+    expect(amounts[1]).toBe(12_000 + priced[1].delivery + priced[1].service - totals.couponAmount)
   })
 })

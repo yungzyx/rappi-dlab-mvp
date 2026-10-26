@@ -441,14 +441,17 @@ def search_stores(conn: Connection, q: str, limit: int = SEARCH_STORES) -> list[
     return closed_last([store_card(*row) for row in rows])
 
 
-def product_stores(conn: Connection, entity_id: str, store_id: int | None = None) -> dict | None:
+def product_stores(
+    conn: Connection, entity_id: str, store_id: int | None = None, substitutes: bool = False
+) -> dict | None:
     """Dónde está un producto del catálogo: `{count, stores, here, similar}`.
     - `stores`: cada tienda que lo vende (vigente, en un pasillo), por precio, con su tiempo y envío publicados, si está
       disponible y si quedan pocas unidades (`low_stock`). Entre las disponibles, si hay más de una y no todas son
       iguales, `best_price` marca la más barata y `fastest` la de menor tiempo. `count` cuenta las disponibles.
     - `here`: la de `store_id`, si lo vende (None si no).
     - `similar`: si en `store_id` está agotado (sin stock o con 0 unidades), los productos del mismo concepto que esa
-      tienda sí tiene, del más barato al más caro.
+      tienda sí tiene, del más barato al más caro. Con `substitutes`, aunque ahí esté disponible: los sustitutos que
+      el seguimiento ofrece si el producto se agota (en la demo, un agotado simulado).
     None si el id no es un producto del catálogo."""
     item_id = int(entity_id) if entity_id.isascii() and entity_id.isdigit() else None
     if item_id is None or item_id > BIGINT_MAX:
@@ -459,7 +462,7 @@ def product_stores(conn: Connection, entity_id: str, store_id: int | None = None
     _mark_best(available, "price_value", "best_price")
     _mark_best(available, "eta_minutes", "fastest")
     here = next((s for s in stores if s["store_id"] == store_id), None)
-    similar = _similar(conn, item_id, store_id) if here is not None and not here["available"] else []
+    similar = _similar(conn, item_id, store_id) if here is not None and (substitutes or not here["available"]) else []
     return {"count": len(available), "stores": stores, "here": here, "similar": similar}
 
 

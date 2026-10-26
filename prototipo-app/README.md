@@ -81,6 +81,7 @@ Cómo funciona: el build de la demo (`vite build --mode demo`; sus variables est
 - **Persona:** borra lo de ahora y siembra un historial en la API simulada, de un clic: «Nueva (sin historial)», «Solo Restaurantes», «Restaurantes + Turbo», «Restaurantes + Turbo + Súper», «Todo el catálogo» (Mochi ofrece RappiFavor y, abierto RappiFavor, RappiTravel), «Usa mucho Farmacia» (Farmacia sube primera en la Home y Mochi igual nunca la ofrece), «Dejó de pedir su plato de siempre» y «Dejó Turbo hace 40 días» (semanas de pedidos: la Home muestra «¿Volvemos a…?»; con dos «Después» no vuelve) y los cinco perfiles de gusto (asiático, café, italiano, mascotero y carrete sin alcohol: tres pedidos de un concepto del perfil lo activan, y el buscador con Mochi muestra su perfil y su escalera, grabados de la API real).
 - **Mover la Home:** «+1 visita a Súper», Farmacia, Rappi Mall, Licores, Express o Chocolates registra un toque a ese acceso en el prototipo (no en «Rappi hoy») y la Home se reordena en vivo; «Borrar historial» la deja en su orden fijo.
 - Una línea con la combinación de la persona y el paso que Mochi propondría («Hoy: restaurantes+turbo → siguiente: supermercado»).
+- **Pedido en curso:** «Atrasar el pedido en curso» deja el pedido en su paso unos segundos y sube el tiempo estimado; el seguimiento muestra un mensaje de soporte y, en Turbo, la garantía de ejemplo (15 min o gratis) se paga en Créditos de ejemplo. Es de demostración y no se guarda en la base.
 
 La muestra son datos descargados del catálogo, así que no va a git (`.gitignore`). Para regenerarla y armar el HTML:
 
@@ -167,7 +168,7 @@ En el prototipo final no hay filas de sugerencias al entrar a una vertical ni en
 
 - **Sin resultados:** si el buscador con Mochi no encuentra nada pero la consulta es de un tema conocido («chela» → cerveza), Mochi dice «Aquí no hay «chela», pero en Licores sí» y lleva ahí. Si no reconoce el tema, invita a buscar con otras palabras. Nunca ofrece Farmacia ni cosas de bebé por su cuenta.
 - **Pedido en camino:** en el mapa, Mochi está tímido mientras se prepara el pedido, de frente en camino y feliz con «¡Ya casi!» en el tramo final; al llegar, salta.
-- **¿Me falta algo?:** en el checkout, un botón «¿Me falta algo? Pregúntale a Mochi». Solo al tocarlo, Mochi sugiere UNA cosa de otra vertical con su razón («Llevas 🍺 Cerveza → 🥩 Carnes»), «Agregar» y «Deshacer». Nada aparece por su cuenta.
+- **¿Me falta algo?:** en el checkout, un botón «¿Me falta algo? Pídele a Mochi». Solo al tocarlo, Mochi sugiere UNA cosa de otra vertical con su razón («Llevas 🍺 Cerveza → 🥩 Carnes»), «Agregar» y «Deshacer». Nada aparece por su cuenta.
 
 ### Mochi fuera de la Home
 

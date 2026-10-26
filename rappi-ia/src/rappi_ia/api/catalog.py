@@ -82,11 +82,13 @@ def product_store_list(
     entity_type: str,
     entity_id: str,
     store_id: int | None = None,
+    sustitutos: bool = False,
     conn: Connection = Depends(get_conn),
 ) -> dict:
     """Dónde está un producto del catálogo: cada tienda con su precio, tiempo y envío, las marcas «Mejor precio» y «Más
-    rápido», la tienda `store_id` (`here`, con «Pocas unidades») y, si ahí está agotado, productos similares."""
-    reply = product_stores(conn, entity_id, store_id) if entity_type == "catalog_item" else None
+    rápido», la tienda `store_id` (`here`, con «Pocas unidades») y, si ahí está agotado, productos similares.
+    `sustitutos=true` los trae aunque esté disponible: los sustitutos del mismo concepto para los cambios en vivo."""
+    reply = product_stores(conn, entity_id, store_id, sustitutos) if entity_type == "catalog_item" else None
     if reply is None:
         raise HTTPException(404, PRODUCT_NOT_FOUND)
     return reply

@@ -10,7 +10,7 @@ import threading
 import time
 from contextlib import asynccontextmanager, nullcontext
 from dataclasses import replace
-from datetime import datetime
+from datetime import UTC, datetime, timedelta
 from importlib.metadata import version
 from typing import Annotated, Literal
 from urllib.parse import urlsplit
@@ -346,6 +346,8 @@ class OrderLineIn(Clean):
     # Se ignora: el precio de cada línea sale del catálogo. Queda para no romper a un cliente que lo manda.
     unit_price: float | None = Field(default=None, ge=0, le=100_000_000, allow_inf_nan=False)
     from_suggestion: bool = False
+    # Qué hacer si se agota (checkout de Súper y Turbo): sustituto, «Si no contesto, elijan por mí» o reembolso.
+    substitution: Literal["sustituto", "elijan", "reembolso"] | None = None
 
 
 class AutoOrderIn(Clean):
@@ -363,6 +365,10 @@ class OrderIn(Clean):
     mode: Literal["propuesta", "actual"] = "propuesta"  # en «Rappi hoy» (actual) el pedido no entra al perfil
     pro: bool | None = None  # si la persona es Rappi Pro en la app (app_users.pro); sin él, no cambia
     autopedido: AutoOrderIn | None = None  # lo pidió Mochi solo: la API vuelve a revisar cada límite
+    # Programar: el inicio de la franja de una hora (hoy o mañana). Un pedido de Mochi nunca se programa.
+    scheduled_for: datetime | None = None
+    # Tipo de entrega (sus montos son supuestos de la app): básica, sin prisa o prioritaria.
+    delivery_type: Literal["basica", "sin_prisa", "prioritaria"] | None = None
 
 
 # ── Agente ──────────────────────────────────────────────────────────────────
@@ -664,9 +670,22 @@ def forget(user_id: ShortPath, concept: ShortQuery | None = None, conn: Connecti
 
 
 @app.post("/events")
-def post_events(body: EventsIn, request: Request, conn: Connection = Depends(get_conn)) -> dict:
+def post_events(
+    body: EventsIn,
+    request: Request,
+    background: BackgroundTasks,
+    # Alcance `function`, como /orders: la conexión se suelta antes del recálculo en segundo plano.
+    conn: Connection = Depends(get_conn, scope="function"),
+    connector=Depends(get_connector),
+) -> dict:
+    """Guarda los eventos del lote. Si trae la cancelación de un pedido del prototipo final, ya respondido recalcula el
+    motor y los segmentos de la persona (un pedido cancelado deja de contar), como después de un pedido."""
     owner_of_body(request, body.user_id)
-    return {"guardados": _save_events(lambda: nullcontext(conn), body)}
+    saved = _save_events(lambda: nullcontext(conn), body)
+    if any(e.type == "order_cancelled" and e.payload.get("mode") != "actual" for e in body.events):
+        background.add_task(recalculate_user_segments, connector, body.user_id)
+        background.add_task(refresh_user, connector, body.user_id)
+    return {"guardados": saved}
 
 
 @app.post("/events/beacon", status_code=204)
@@ -742,6 +761,10 @@ def post_order(
     # Un pedido es de una tienda: un carro con dos restaurantes son dos pedidos (la app manda uno por tienda).
     if len({line.store_id for line in body.lines if line.store_id is not None}) > 1:
         raise HTTPException(400, "Un pedido es de una sola tienda")
+    if body.autopedido and body.scheduled_for is not None:  # «Pedir por mí» pide para ahora, nunca programa
+        raise HTTPException(400, "Un pedido de Mochi no se programa")
+    if body.scheduled_for is not None and not _schedulable(body.scheduled_for):
+        raise HTTPException(400, "Solo se programa para hoy o mañana")
     placed = _auto_order(conn, body) if body.autopedido else None
     lines, skipped = events.catalog_prices(conn, [line.model_dump() for line in body.lines])
     if not lines:  # sin decir cuál: la respuesta no sirve para sondear el catálogo
@@ -758,6 +781,8 @@ def post_order(
             mode=body.mode,
             pro=body.pro,
             placed=placed,
+            scheduled_for=body.scheduled_for,
+            delivery_type=body.delivery_type,
         )
     except ValueError as exc:  # un usuario de otra fuente (simulado)
         raise rejected(exc, body.user_id) from exc
@@ -767,6 +792,16 @@ def post_order(
     background.add_task(recalculate_user_segments, connector, body.user_id)
     background.add_task(refresh_user, connector, body.user_id)
     return {"order_id": order_id, "lineas_omitidas": skipped}
+
+
+SCHEDULE_AHEAD = timedelta(days=2)  # la app ofrece franjas de hoy y de mañana
+
+
+def _schedulable(when: datetime) -> bool:
+    """Una franja programada es futura (con un margen para el reloj del teléfono) y de hoy o mañana."""
+    moment = when if when.tzinfo else when.replace(tzinfo=UTC)
+    now = datetime.now(UTC)
+    return now - timedelta(hours=1) <= moment <= now + SCHEDULE_AHEAD
 
 
 @app.get("/concepts")

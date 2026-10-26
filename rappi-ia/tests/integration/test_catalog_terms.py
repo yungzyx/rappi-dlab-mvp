@@ -27,8 +27,17 @@ def client(seeded):
     api.app.dependency_overrides.clear()
 
 
+PRICES = ("store_id", "delivery_fee", "min_order", "service_pct")
+
+
+def _prices(terms: dict) -> dict:
+    return {key: terms[key] for key in PRICES}
+
+
 def test_each_store_has_what_the_catalog_knows(seeded):
-    terms = {t["store_id"]: t for t in store_terms(seeded, [SUPER_CENTRO, SUPER_NORTE, EXPRESS, TURBO, PIZZERIA])}
+    terms = {
+        t["store_id"]: _prices(t) for t in store_terms(seeded, [SUPER_CENTRO, SUPER_NORTE, EXPRESS, TURBO, PIZZERIA])
+    }
     # «Sin mínimo» es un dato (mov_value 0); el envío es el delivery_price de la tienda.
     assert terms[SUPER_CENTRO] == {"store_id": SUPER_CENTRO, "delivery_fee": 1990, "min_order": 0, "service_pct": None}
     assert terms[SUPER_NORTE] == {"store_id": SUPER_NORTE, "delivery_fee": 990, "min_order": 8490, "service_pct": 5}
@@ -51,8 +60,34 @@ def test_a_delivery_price_that_is_not_pesos_is_unknown(seeded):
 
 def test_a_zero_delivery_cost_is_unknown_and_a_missing_store_does_not_come(seeded):
     terms = store_terms(seeded, [SUSHI, 123456789, SUSHI])
-    assert terms == [{"store_id": SUSHI, "delivery_fee": None, "min_order": None, "service_pct": None}]
+    assert [_prices(t) for t in terms] == [
+        {"store_id": SUSHI, "delivery_fee": None, "min_order": None, "service_pct": None}
+    ]
     assert store_terms(seeded, []) == []
+
+
+def test_a_restaurant_brings_its_published_hours_and_todays_and_tomorrows_spans(seeded, fixed_local_time):
+    """Para programar: el horario publicado del restaurante (jueves 13:00 en los tests) y sus tramos de hoy y mañana."""
+    seeded.execute(
+        """UPDATE restaurant_details SET schedules = %s::jsonb WHERE store_id = %s""",
+        (
+            '[{"day": "thu", "open_time": "12:00:00", "close_time": "16:00:00"},'
+            ' {"day": "thu", "open_time": "19:00:00", "close_time": "01:00:00"},'
+            ' {"day": "fri", "open_time": "12:00:00", "close_time": "23:00:00"}]',
+            PIZZERIA,
+        ),
+    )
+    [terms] = store_terms(seeded, [PIZZERIA])
+    assert terms["hours"]["open"] is True and terms["hours"]["closes_at"] == "16:00"
+    # El tramo que pasa la medianoche cierra a las 24:00 de su día.
+    assert terms["spans"] == {"hoy": [["12:00", "16:00"], ["19:00", "24:00"]], "manana": [["12:00", "23:00"]]}
+
+
+def test_a_store_says_how_it_was_when_downloaded_and_has_no_spans(seeded):
+    seeded.execute("""UPDATE stores SET raw = raw || '{"is_open": false}' WHERE store_id = %s""", (SUPER_NORTE,))
+    [terms] = store_terms(seeded, [SUPER_NORTE])
+    assert terms["hours"]["open"] is False and terms["hours"]["source"] == "descarga"
+    assert terms["spans"] is None
 
 
 def test_route(client):

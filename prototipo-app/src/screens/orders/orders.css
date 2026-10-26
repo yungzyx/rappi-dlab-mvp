@@ -31,8 +31,21 @@
   border-bottom: 1px solid var(--line-soft);
 }
 
-.orders-reorder {
+.orders-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
   margin: 0 0 14px 70px;
+}
+
+.orders-help {
+  padding: 7px 12px;
+  border-radius: 99px;
+  border: 1.5px solid var(--line);
+  background: var(--surface);
+  font-size: 13px;
+  font-weight: 600;
 }
 
 .orders-row {
@@ -86,6 +99,11 @@
 .orders-status.is-done {
   background: #e8f8ec;
   color: #1f7a3a;
+}
+
+.orders-status.is-cancelled {
+  background: var(--chip);
+  color: var(--ink-2);
 }
 
 /* ---------- Sin pedidos ---------- */

@@ -28,7 +28,8 @@ def home_verticals(conn: Connection, user_id: str) -> dict:
     order = [{"id": v, "score": round(scores[v].score, 4), "reason": None} for v in ids]
     if used:
         ordered = conn.execute(
-            "SELECT 1 FROM app_orders WHERE user_id = %s AND mode = 'propuesta' AND vertical = %s LIMIT 1",
+            """SELECT 1 FROM app_orders
+               WHERE user_id = %s AND mode = 'propuesta' AND status = 'confirmado' AND vertical = %s LIMIT 1""",
             (user_id, used[0]),
         ).fetchone()
         template = REASON_ORDERS if ordered else REASON_VISITS
