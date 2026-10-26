@@ -12,8 +12,6 @@
     "tope_min": 1000,
     "tope_sugerido": 20000
   },
-  "tiendas": [
-    9101
-  ],
+  "tiendas": [9101],
   "tope": 20000
 }

@@ -201,6 +201,9 @@ describe('programado', () => {
     await advance(1000)
     expect(screen.getByText('Programado para')).toBeTruthy()
     expect(screen.getByRole('heading', { name: 'hoy 15:00–16:00' })).toBeTruthy()
+    // Confirmado ya está hecho; sin ruta en el mapa hasta su franja.
+    expect(screen.getByText('Pedido confirmado').closest('li').className).toBe('is-done')
+    expect(document.querySelector('.tracking-route')).toBeNull()
     fireEvent.click(screen.getByRole('button', { name: 'Cancelar pedido' }))
     fireEvent.click(screen.getByRole('button', { name: 'Otro motivo' }))
     expect(screen.getByText('Tu pedido aún no empieza: cancelarlo no tiene costo.')).toBeTruthy()

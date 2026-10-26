@@ -3,9 +3,7 @@
     {
       "label": "Ver bebidas gaseosas",
       "query": "bebidas gaseosas",
-      "route": [
-        "express"
-      ]
+      "route": ["express"]
     }
   ],
   "moment": "proximo_pedido",

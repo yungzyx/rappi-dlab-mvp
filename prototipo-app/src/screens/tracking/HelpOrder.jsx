@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import Sheet from '../../components/Sheet'
 import { formatPrice, parsePrice } from '../../state/CartContext'
 import { useOrders } from '../../state/OrdersContext'
@@ -23,6 +23,15 @@ export default function HelpOrder({ order, deliveredAt, now, className = 'tracki
   const items = deliveredItems(order)
   const amount = chosen.reduce((sum, i) => sum + parsePrice(items[i].price) * (items[i].qty ?? 1), 0)
 
+  // Al cambiar de paso, el foco va al primer control del paso nuevo (o al aviso de «Recibimos tu solicitud»).
+  const body = useRef(null)
+  const shownStep = useRef(step)
+  useEffect(() => {
+    if (shownStep.current === step) return
+    shownStep.current = step
+    body.current?.querySelector('[role="status"], button:not([disabled])')?.focus({ preventScroll: true })
+  }, [step])
+
   const start = () => {
     setStep('products')
     setChosen([])
@@ -42,7 +51,7 @@ export default function HelpOrder({ order, deliveredAt, now, className = 'tracki
         Ayuda con este pedido
       </button>
       <Sheet open={open} onClose={() => setOpen(false)} title="Ayuda con este pedido">
-        <div className="tracking-sheet-body">
+        <div ref={body} className="tracking-sheet-body">
           <p className="tracking-help-window">
             {late
               ? `El plazo para pedir ayuda con este pedido terminó el ${clockAndDay(deadline)}.`
@@ -119,7 +128,7 @@ export default function HelpOrder({ order, deliveredAt, now, className = 'tracki
             </>
           )}
           {step === 'done' && (
-            <p className="tracking-help-done" role="status">
+            <p className="tracking-help-done" role="status" tabIndex={-1}>
               Recibimos tu solicitud: {formatPrice(amount)} en{' '}
               {REFUND_METHODS.find((m) => m.id === method)?.label.toLowerCase()},{' '}
               {REFUND_METHODS.find((m) => m.id === method)?.when.toLowerCase()}.

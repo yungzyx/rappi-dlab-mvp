@@ -2,9 +2,7 @@
   "actions": [
     {
       "label": "Abrir RappiFavor",
-      "route": [
-        "favor"
-      ],
+      "route": ["favor"],
       "service": "rappifavor"
     }
   ],

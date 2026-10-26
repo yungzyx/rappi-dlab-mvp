@@ -2,9 +2,7 @@
   {
     "area": "Ñuñoa",
     "cover": "https://imagenes.prueba.invalid/platos/98012.png",
-    "cuisines": [
-      "Carnes"
-    ],
+    "cuisines": ["Carnes"],
     "eta": "40 min",
     "fee": "$2.490",
     "hours": {
@@ -61,9 +59,7 @@
   {
     "area": "",
     "cover": "https://imagenes.prueba.invalid/platos/98002.png",
-    "cuisines": [
-      "Pizzas"
-    ],
+    "cuisines": ["Pizzas"],
     "eta": "25 min",
     "fee": "$1.490",
     "hours": {

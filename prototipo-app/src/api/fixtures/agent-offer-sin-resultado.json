@@ -3,9 +3,7 @@
     {
       "label": "Ver pizza",
       "query": "pizza",
-      "route": [
-        "restaurants"
-      ]
+      "route": ["restaurants"]
     }
   ],
   "moment": "sin_resultado",

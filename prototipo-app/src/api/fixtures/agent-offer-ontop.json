@@ -2,9 +2,7 @@
   "actions": [
     {
       "label": "Ver toda la tienda",
-      "route": [
-        "turbo"
-      ]
+      "route": ["turbo"]
     }
   ],
   "moment": "ontop",

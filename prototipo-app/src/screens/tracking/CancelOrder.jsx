@@ -32,6 +32,17 @@ export default function CancelOrder({ order, stage }) {
     release.current = orders.release
   })
   useEffect(() => () => release.current(order.id, 'cancelar'), [order.id])
+  // Al pasar de paso desaparece el botón que tenía el foco: el foco va al primer control del paso nuevo (VoiceOver lo
+  // anuncia), no al body.
+  const body = useRef(null)
+  const firstStep = useRef(true)
+  useEffect(() => {
+    if (firstStep.current) {
+      firstStep.current = false
+      return
+    }
+    body.current?.querySelector('button')?.focus({ preventScroll: true })
+  }, [reason, rescued])
 
   const start = () => {
     setFrozen(stage)
@@ -81,7 +92,7 @@ export default function CancelOrder({ order, stage }) {
         Cancelar pedido
       </button>
       <Sheet open={open} onClose={close} title="Cancelar pedido">
-        <div className="tracking-sheet-body">
+        <div ref={body} className="tracking-sheet-body">
           {reason === null || (rescue && !rescued) ? null : <CostNote fee={fee} stage={frozen} />}
           {reason === null && (
             <>

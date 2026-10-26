@@ -117,16 +117,20 @@ export default function TrackingScreen({ back, reset, push, params }) {
       ? 'Programado para'
       : delivered
         ? '¡Disfruta tu pedido!'
-        : 'Llegada estimada'
+        : arrived
+          ? 'Estado del pedido'
+          : 'Llegada estimada'
   const changing = live && !delivered && hasLiveChanges(order) && flow.steps[step]?.id === 'in-store'
   return (
     <div className="screen tracking">
       <div className="tracking-map-wrap">
         {/* La pose (tímido antes del viaje) y «¡Ya casi!» son del prototipo final; «Rappi hoy» queda como antes. */}
         <TrackingMap
-          progress={rideProgress(seconds)}
+          progress={ahead ? 0 : rideProgress(seconds)}
           delivered={delivered}
           step={demo.isFinal ? (riding || delivered ? 2 : 1) : undefined}
+          route={!ahead && !cancelled}
+          store={flow.id === 'restaurants' ? 'restaurant' : 'shop'}
         />
         <BackButton className="tracking-back" onClick={back} />
       </div>
@@ -151,7 +155,13 @@ export default function TrackingScreen({ back, reset, push, params }) {
         ) : (
           <ol className="tracking-steps">
             {flow.steps.map((item, i) => (
-              <li key={item.id} className={i < step || delivered ? 'is-done' : i === step ? 'is-current' : undefined}>
+              // Programado: confirmado ya está hecho, y lo demás espera su franja.
+              <li
+                key={item.id}
+                className={
+                  i < step || delivered || (ahead && i === 0) ? 'is-done' : i === step ? 'is-current' : undefined
+                }
+              >
                 <span className="tracking-dot" />
                 {item.label}
               </li>
@@ -257,16 +267,16 @@ function DeliveryCode({ orderId }) {
     <div className="tracking-code" role="note" aria-label="Código de entrega">
       <span>Código de entrega</span>
       <strong>{deliveryCode(orderId)}</strong>
-      <small>Dáselo a tu Rappi solo cuando tengas el pedido en tus manos.</small>
+      <small>Dáselo a tu Rappi solo cuando tengas el pedido en tus manos. Código de ejemplo de la demo.</small>
     </div>
   )
 }
 
-// Conversación fija con el Rappitendero (el prototipo no tiene chat en vivo).
+// Mensajes fijos del Rappitendero (el prototipo no tiene chat en vivo). Solo suyos: ninguno se escribe como si fuera
+// de la persona, que nunca lo escribió.
 const COURIER_CHAT = [
   { from: 'courier', text: 'Hola, ya tengo tu pedido y voy en camino 🛵' },
-  { from: 'user', text: 'Gracias. Si no contesto el timbre, llámame.' },
-  { from: 'courier', text: 'Perfecto, llego en unos minutos.' },
+  { from: 'courier', text: 'Llego en unos minutos.' },
 ]
 
 function Courier() {
@@ -277,7 +287,7 @@ function Courier() {
       <span className="tracking-courier-text">
         <strong>Carlos R.</strong>
         <small>
-          Tu Rappi · <StarIcon filled size={12} /> 4,9
+          Tu Rappi · <StarIcon filled size={12} /> 4,9 · de ejemplo
         </small>
       </span>
       <button type="button" className="tracking-contact tap" aria-label="Contactar" onClick={() => setChatOpen(true)}>
@@ -291,7 +301,9 @@ function Courier() {
             </li>
           ))}
         </ul>
-        <p className="tracking-chat-note">Carlos R. está conduciendo: responde cuando pueda.</p>
+        <p className="tracking-chat-note">
+          Carlos R. está conduciendo: responde cuando pueda. Repartidor y mensajes de ejemplo de la demo.
+        </p>
       </Sheet>
     </div>
   )
@@ -304,7 +316,8 @@ const entitiesOf = (order) =>
     .map((item) => ({ entity_type: item.entityType, entity_id: item.entityId }))
 
 /** «HH:MM» de una hora (ms), en la hora del teléfono. */
-export const clock = (ts) => new Date(ts).toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit' })
+export const clock = (ts) =>
+  new Date(ts).toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit', hourCycle: 'h23' })
 
 /** ¿El agente puede ofrecer algo ahora? En silencio (por hoy o porque lo ignoraron) no ofrece ni se le pide. */
 const agentMaySpeak = () => !isQuiet(today()) && !isHushed()

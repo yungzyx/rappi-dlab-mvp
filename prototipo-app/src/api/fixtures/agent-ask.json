@@ -2,25 +2,18 @@
   "actions": [],
   "age_notice": false,
   "conversation": {
-    "concepts": [
-      "pizza"
-    ],
+    "concepts": ["pizza"],
     "occasion": null,
     "order": null,
     "people": null,
     "price_max": null,
-    "product_ids": [
-      "98001",
-      "98002"
-    ],
+    "product_ids": ["98001", "98002"],
     "query": "pizza",
     "symptom": false,
     "vertical": "restaurantes"
   },
   "intent": {
-    "concepts": [
-      "pizza"
-    ],
+    "concepts": ["pizza"],
     "confidence": 0.9,
     "follow_up": false,
     "kind": "buscar",
@@ -97,9 +90,7 @@
     "reason": "Porque llevas 🍕 pizza",
     "vertical": "conveniencia"
   },
-  "tags": [
-    "pizza"
-  ],
+  "tags": ["pizza"],
   "text": "Mira estas opciones de 🍕 pizza en restaurantes.",
   "unmet": false,
   "unmet_reason": null,

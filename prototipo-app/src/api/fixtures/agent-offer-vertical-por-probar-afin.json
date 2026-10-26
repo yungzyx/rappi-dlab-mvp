@@ -2,9 +2,7 @@
   "actions": [
     {
       "label": "Abrir Rappi Mall",
-      "route": [
-        "retail"
-      ]
+      "route": ["retail"]
     }
   ],
   "moment": "vertical_por_probar",

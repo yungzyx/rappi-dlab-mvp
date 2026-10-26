@@ -2,39 +2,27 @@
   "actions": [
     {
       "label": "Abrir restaurantes",
-      "route": [
-        "restaurants"
-      ]
+      "route": ["restaurants"]
     },
     {
       "label": "Abrir Turbo",
-      "route": [
-        "turbo"
-      ]
+      "route": ["turbo"]
     },
     {
       "label": "Abrir Express",
-      "route": [
-        "express"
-      ]
+      "route": ["express"]
     },
     {
       "label": "Abrir el súper",
-      "route": [
-        "grocery"
-      ]
+      "route": ["grocery"]
     },
     {
       "label": "Abrir chocolaterías",
-      "route": [
-        "chocolates"
-      ]
+      "route": ["chocolates"]
     },
     {
       "label": "Abrir RappiTravel",
-      "route": [
-        "travel"
-      ],
+      "route": ["travel"],
       "service": "rappitravel"
     }
   ],
@@ -194,9 +182,7 @@
     ],
     "id": "japon",
     "nombre": "Japón",
-    "route": [
-      "travel"
-    ],
+    "route": ["travel"],
     "texto": "¿Y si un día vas a Japón?"
   }
 }

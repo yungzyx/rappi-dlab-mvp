@@ -2,9 +2,7 @@
   "actions": [
     {
       "label": "Abrir el súper",
-      "route": [
-        "grocery"
-      ]
+      "route": ["grocery"]
     }
   ],
   "moment": "vertical_por_probar",
