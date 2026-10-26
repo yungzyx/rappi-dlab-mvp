@@ -12,7 +12,10 @@ Reglas de conducta (docs/diseno-ia.md §4) que se aplican aquí, en código:
 7. En modo "Rappi hoy" no hay sugerencias cruzadas ni aprendizaje.
 8. Las preferencias explícitas (offers/preferences.py) solo filtran (dieta, alergias) y ordenan (favoritas) lo que se
    muestra, y solo en «Propuesta». Se fijan por chat («soy vegetariano») o en el panel.  → intent "preferencia"
-9. Nunca hace un pedido: el resumen lo arma la app y se paga en el checkout de siempre.  → intent "resumen"
+9. Por defecto no hace un pedido: el resumen lo arma la app y se paga en el checkout de siempre.  → intent "resumen"
+10. Con «Pedir por mí» (offers/autonomy.py) pide solo «lo de siempre» en las tiendas elegidas, hasta el tope, sin
+    alcohol, +18, farmacia, bebé ni salud y con una ventana para deshacer; si algo falla, lo deja para revisar antes.
+    Solo en «Propuesta».                                                              → intent "autopedido"
 """
 
 import copy
@@ -25,6 +28,7 @@ from psycopg import Connection
 from ..concepts.taxonomy import load_taxonomy
 from ..embeddings.base import MemoizedQueryEmbedder, TextEmbedder
 from ..events.store import ensure_user
+from ..offers import autonomy
 from ..offers import preferences as prefs
 from ..offers.guards import is_offerable, offerable_vertical, unofferable_subverticals
 from ..text import normalize, tokens
@@ -155,6 +159,19 @@ PREFERENCES_TODAY = (
     "borras cuando quieras 🔒."
 )
 PREFERENCES_NO_USER = "Para recordarlo necesito tu sesión: vuelve a abrir la app y dímelo de nuevo."
+# «Pide lo de siempre en…» (offers/autonomy.py). Lo que la app hace con la respuesta: con `autopedido.modo` «pedir», el
+# resumen ya enviado con la ventana de deshacer; con «revisar», el resumen que lleva al checkout.
+USUAL_TODAY = "En «Rappi hoy» no pido por ti: en «Mis pedidos» tienes «Pídelo de nuevo»."
+USUAL_NONE = "Todavía no tienes un pedido que repetir. Cuando pidas algo, te lo repito cuando quieras 🔁."
+USUAL_NOT_FOUND = "No encuentro un pedido tuyo en «{store}». ¿Me dices la tienda como sale en «Mis pedidos»?"
+USUAL_GONE = "Lo de siempre en {store} ya no está a la venta ahí. Mira en «Mis pedidos» otro que repetir."
+USUAL_ORDERING = (
+    "Listo, pido lo de siempre en {store}: {items} por {total}, dentro de tu tope de {cap}. Tienes unos segundos para "
+    "deshacerlo."
+)
+USUAL_REVIEW = "Te armé lo de siempre en {store}: {items} por {total}. Revísalo antes de pedir."
+USUAL_REVIEW_WHY = "Te armé lo de siempre en {store}: {items} por {total}. Esta vez lo revisas tú: {why}."
+USUAL_SETTINGS = {"label": "Cómo pido por ti", "panel": "autonomia"}
 PREFERENCES_NONE = (
     "Todavía no tengo preferencias tuyas. Dime, por ejemplo, «soy vegetariano», «no como maní» o «mi comida favorita "
     "es el sushi», o márcalas en «Mis preferencias»."
@@ -208,6 +225,8 @@ class RappiAgent:
             return self._recommend(conn, intent, ctx)
         if intent.kind == "preferencia":
             return self._preference(conn, intent, ctx)
+        if intent.kind == "autopedido":
+            return self._usual_order(conn, intent, ctx)
         if intent.kind in (
             "saludo",
             "gracias",
@@ -647,6 +666,40 @@ class RappiAgent:
         response["text"] = text or _listed_text(current)
         response["preferences"] = prefs.describe(current)
         response["actions"] = [{"label": "Ver mis preferencias", "panel": "preferencias"}]
+        return response
+
+    def _usual_order(self, conn: Connection, intent: Intent, ctx: Context) -> dict:
+        """«Pide lo de siempre en X»: su último pedido en esa tienda con el precio de hoy (`autonomy.plan`). Con «Pedir
+        por mí» y cada límite cumplido, Mochi lo pide solo (`autopedido.modo` «pedir»: la app muestra el resumen ya
+        enviado y la ventana de deshacer, y recién al cerrarse sale el pedido); si no, lo deja para revisar antes y dice
+        por qué. En «Rappi hoy» no: ahí está «Pídelo de nuevo»."""
+        response = _base(intent, USUAL_TODAY if ctx.mode != "propuesta" else PREFERENCES_NO_USER)
+        if ctx.mode != "propuesta" or not ctx.user_id:
+            response["actions"] = [{"label": "Ver mis pedidos", "route": ["orders"]}]
+            return response
+        plan = autonomy.plan(conn, ctx.user_id, intent.query or None)
+        if plan is None:
+            response["text"] = USUAL_NOT_FOUND.format(store=intent.query) if intent.query else USUAL_NONE
+            response["actions"] = [{"label": "Ver mis pedidos", "route": ["orders"]}]
+            return response
+        if not plan["lineas"]:
+            response["text"] = USUAL_GONE.format(store=plan["tienda"]["name"])
+            response["actions"] = [{"label": "Ver mis pedidos", "route": ["orders"]}]
+            return response
+        units = sum(line["qty"] for line in plan["lineas"])
+        values = {
+            "store": plan["tienda"]["name"],
+            "items": f"{units} {'producto' if units == 1 else 'productos'}",
+            "total": clp(plan["subtotal"]),
+        }
+        if plan["modo"] == "pedir":
+            response["text"] = USUAL_ORDERING.format(**values, cap=clp(plan["tope"]))
+        elif plan["codigo"] == "sin_permiso":
+            response["text"] = USUAL_REVIEW.format(**values)
+        else:
+            response["text"] = USUAL_REVIEW_WHY.format(**values, why=plan["motivo"])
+        response["autopedido"] = plan
+        response["actions"] = [USUAL_SETTINGS]
         return response
 
     def _clarify(self, intent: Intent) -> dict:

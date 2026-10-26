@@ -917,3 +917,98 @@
   font-size: 13.5px;
   color: #b42318;
 }
+
+/* ---------- «Pedir por mí»: lo de siempre y su ventana de deshacer ---------- */
+.agent-auto-window {
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid var(--line);
+  font-size: 13.5px;
+  line-height: 19px;
+}
+
+.agent-auto-window .agent-msg-action {
+  margin-top: 8px;
+}
+
+.agent-auto-window .agent-msg-action.is-strong {
+  font-weight: 700;
+}
+
+/* La misma barra que «Deshacer pedido» en el checkout (checkout.css: checkout-undo-bar). */
+.agent-auto-bar {
+  display: block;
+  height: 6px;
+  margin-top: 8px;
+  border-radius: 99px;
+  background: var(--green-deep);
+  transform-origin: left;
+  animation: agent-auto-undo linear forwards;
+}
+
+@keyframes agent-auto-undo {
+  to {
+    transform: scaleX(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .agent-auto-bar {
+    animation: none;
+  }
+}
+
+.agent-auto-off {
+  margin-top: 8px;
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  font-size: 13px;
+  color: var(--ink-3);
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.agent-autonomy-modes {
+  display: grid;
+  gap: 8px;
+}
+
+.agent-autonomy-mode {
+  display: grid;
+  gap: 2px;
+  padding: 12px 14px;
+  border: 1.5px solid var(--line);
+  border-radius: 14px;
+  background: var(--surface);
+  text-align: left;
+  font: inherit;
+  color: inherit;
+}
+
+.agent-autonomy-mode small {
+  font-size: 13px;
+  color: var(--ink-3);
+}
+
+.agent-autonomy-mode.is-on {
+  border-color: var(--agent-orange);
+  background: #fff1eb;
+}
+
+.agent-autonomy-cap {
+  display: grid;
+  gap: 6px;
+  margin-top: 14px;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.agent-autonomy-cap input {
+  padding: 10px 12px;
+  border: 1.5px solid var(--line);
+  border-radius: 12px;
+  font: inherit;
+  font-weight: 400;
+}

@@ -1,9 +1,11 @@
 import { useCallback, useEffect, useId, useLayoutEffect, useRef, useState } from 'react'
 import { AGENT_NAME } from '../../agent/name'
 import { envelope } from '../../api/attribution'
-import { storeOfProduct } from '../../api/catalog'
-import { ask as askAgent, profile as remoteProfile, recommendations, toMessage } from '../../api/client'
+import { AUTONOMY_TITLE, appCheck, autoOrderBody, demoOrder, turnOffAutonomy } from '../../api/autonomy'
+import { storeOfProduct, storeTerms } from '../../api/catalog'
+import { ask as askAgent, profile as remoteProfile, recommendations, sendOrder, toMessage } from '../../api/client'
 import { offer, plans, profileLadder, tasteProfiles } from '../../api/agent'
+import { cartEventFields, trackOrder } from '../../api/orders'
 import { firstShowing, noteShown } from '../../api/suggestions'
 import { userId } from '../../api/user'
 import { askAbout } from '../../assistant/agentAsk'
@@ -18,11 +20,17 @@ import { useAssistant } from '../../state/AssistantContext'
 import { useCart } from '../../state/CartContext'
 import { useDialog } from '../../hooks/useDialog'
 import { useProfile } from '../../state/ProfileContext'
+import { useAddress } from '../../state/AddressContext'
+import { useOrders } from '../../state/OrdersContext'
+import { usePro } from '../../state/pro'
+import { UNDO_MS } from '../../screens/checkout/undo'
+import { useToast } from '../Toast'
 import BackButton from '../BackButton'
 import ForgetConfirm, { FORGET_TITLE } from '../ForgetConfirm'
 import Sheet from '../Sheet'
 import AgentMessage from './AgentMessage'
 import AskAgentRow from './AskAgentRow'
+import AutonomyEditor from './AutonomyEditor'
 import DiscoverSection from './DiscoverSection'
 import FollowUp from './FollowUp'
 import Mascot from './Mascot'
@@ -48,6 +56,9 @@ const NOTHING_IN_KIT = 'No pude armar ese kit ahora. Prueba con otra ocasión.'
 const NOTHING_FOR_YOU = 'Todavía no tengo algo armado para ti. Cuéntame qué se te antoja.'
 const PICK_A_KIT = '¿Para qué te armo el kit? 🧺'
 const STOPPED = 'Listo, paré aquí. ¿Qué otra cosa buscas?'
+const AUTO_OFF = 'Listo: vuelvo a revisar antes de pedir.'
+const AUTO_OFF_FAILED = 'No pude apagarlo ahora. Intenta de nuevo.'
+const AUTO_NOT_SENT = 'no pude enviarlo ahora'
 const KIT_OPTIONS = 4
 // Lo que Mochi sabe hacer, al abrir (como el «Puedo ayudarte a:» de la app de Rappi): repetir lo de siempre (la
 // recompra), armar un kit (los planes) y algo para ti (el perfil de gusto o, sin él, lo que le recomienda). Nada de
@@ -95,6 +106,10 @@ export default function AssistantPanel({ push, vertical, depth = 1 }) {
   const demo = useDemo()
   const events = useEvents()
   const cart = useCart()
+  const orders = useOrders()
+  const address = useAddress()
+  const toast = useToast()
+  const isPro = usePro()
   const [phase, setPhase] = useState('closed')
   const [messages, setMessages] = useState([])
   const [mood, setMood] = useState('idle')
@@ -119,12 +134,25 @@ export default function AssistantPanel({ push, vertical, depth = 1 }) {
   // «Mis preferencias»: la hoja y su editor (una clave nueva cada vez que se abre: vuelve a leer lo guardado).
   const [preferencesOpen, setPreferencesOpen] = useState(0)
   const [editing, setEditing] = useState(false)
+  // «Pedir por mí»: la hoja del ajuste, y el estado de cada «lo de siempre» que Mochi pide solo (clave → { state,
+  // reason, orderId }) con su ventana de «Deshacer pedido» (clave → temporizador). La ventana la lleva el panel, que
+  // siempre está montado: sigue aunque la respuesta cambie.
+  const [autonomyOpen, setAutonomyOpen] = useState(0)
+  const [tuning, setTuning] = useState(false)
+  const [autoStatus, setAutoStatus] = useState({})
+  const autoTimers = useRef(new Map())
   // La respuesta en curso, para «Cancelar» (su AbortController).
   const pending = useRef(null)
   const search = useSearch({ vertical })
 
   const later = (fn, ms) => timers.current.push(setTimeout(fn, ms))
-  useEffect(() => () => timers.current.forEach(clearTimeout), [])
+  useEffect(
+    () => () => {
+      timers.current.forEach(clearTimeout)
+      autoTimers.current.forEach(clearTimeout)
+    },
+    [],
+  )
 
   const addMessage = (message) => setMessages((prev) => [...prev, { id: nextId++, ...message }])
 
@@ -188,6 +216,7 @@ export default function AssistantPanel({ push, vertical, depth = 1 }) {
     if (action.capability) return runCapability(action.capability, action.label)
     if (action.offer) return askOffer(action.offer, withoutEmoji(action.label), NOTHING_IN_KIT)
     if (action.panel === 'preferencias') return openPreferences()
+    if (action.panel === 'autonomia') return openAutonomy()
     if (action.service) events.track('service_opened', { payload: { servicio: action.service } })
     go(...action.route)
   }
@@ -248,6 +277,7 @@ export default function AssistantPanel({ push, vertical, depth = 1 }) {
       // sigue (un saludo, un consejo médico) no lo borra.
       if (response.conversation) lastTurn.current = response.conversation
       const message = noteSuggestion(toMessage(response))
+      if (message.autoOrder) return await checkAutoOrder(message)
       if (message.kind === 'resumen') return { ...message, orderSummary: true }
       if (message.kind === 'pedido') return { ...message, lastOrder: true }
       return message
@@ -255,6 +285,94 @@ export default function AssistantPanel({ push, vertical, depth = 1 }) {
       if (signal?.aborted) return { text: STOPPED }
       return offline((retrySignal) => answer(text, askVertical, retrySignal))
     }
+  }
+
+  /**
+   * «Pide lo de siempre»: con «Pedir por mí», antes de abrir la ventana se suma lo que la API no sabe (el envío y la
+   * tarifa, de ejemplo si el catálogo no los trae, como en el checkout) y se compara con el tope y la compra mínima; si
+   * no cumple, se revisa antes y Mochi dice por qué. Cada uno lleva su clave (`key`) para su estado y su ventana.
+   */
+  const checkAutoOrder = async (message) => {
+    const order = { ...message.autoOrder, key: `auto-${nextId++}` }
+    if (order.mode !== 'pedir') return { ...message, autoOrder: order }
+    const terms = await storeTerms([order.store.id]).catch(() => new Map())
+    const { total, reason } = appCheck(order, terms.get(order.store.id) ?? null, { isPro })
+    if (!reason) return { ...message, autoOrder: { ...order, total } }
+    return {
+      ...message,
+      text: `Te armé lo de siempre en ${order.store.name}. Esta vez lo revisas tú: ${reason}.`,
+      autoOrder: { ...order, total, mode: 'revisar', code: 'app', reason },
+    }
+  }
+
+  const setAuto = (key, status) => setAutoStatus((prev) => ({ ...prev, [key]: status }))
+
+  /** Abre la ventana de «Deshacer pedido» (una vez por pedido): al cerrarse, sale el pedido (`commitAuto`). */
+  const armAuto = (order) => {
+    if (order.mode !== 'pedir' || autoTimers.current.has(order.key)) return
+    setAuto(order.key, { state: 'waiting' })
+    autoTimers.current.set(
+      order.key,
+      setTimeout(() => commitAuto(order), UNDO_MS),
+    )
+  }
+
+  /** Deshacer: el pedido no sale (nunca llegó a la API). */
+  const undoAuto = (order) => {
+    clearTimeout(autoTimers.current.get(order.key))
+    setAuto(order.key, { state: 'undone' })
+  }
+
+  const undoAllAuto = () => {
+    for (const [key, timer] of autoTimers.current) {
+      clearTimeout(timer)
+      setAutoStatus((prev) => (prev[key]?.state === 'waiting' ? { ...prev, [key]: { state: 'undone' } } : prev))
+    }
+  }
+
+  /**
+   * Cerrada la ventana: el pedido va a la API marcado `autopedido`, que vuelve a revisar cada límite. Si lo toma, queda
+   * en los pedidos de la demo con su seguimiento; si no (un 409 con el motivo, o sin conexión), se revisa antes.
+   */
+  const commitAuto = async (order) => {
+    setAuto(order.key, { state: 'sending' })
+    const cartId = `c-auto-${Date.now().toString(36)}`
+    const body = autoOrderBody(order, { sessionId: sessionId(), cartId, pro: isPro })
+    try {
+      // Antes salen los eventos en cola (como en el checkout); todo el camino cuenta como pedido en vuelo para «Olvidar».
+      await trackOrder(
+        Promise.resolve(events.flush?.())
+          .then(() => events.settled?.())
+          .then(() => sendOrder(body)),
+      )
+      const orderId = orders?.place(demoOrder(order, { cartId, total: order.total, address: address?.selected.line }))
+      setAuto(order.key, { state: 'sent', orderId })
+    } catch (error) {
+      setAuto(order.key, { state: 'review', reason: error?.detail?.motivo ?? AUTO_NOT_SENT })
+    }
+  }
+
+  /** «Revisar y pagar»: lo de siempre al carro (con lo que ya tenía) y al checkout de siempre. */
+  const reviewAuto = (order) => {
+    for (const { product, qty } of order.lines) {
+      for (let n = 0; n < qty; n += 1) cart.add(product)
+      events.track('cart_add', cartEventFields(product, cart.id, { qty }))
+    }
+    go('checkout')
+  }
+
+  /** «Apagar «Pedir por mí»» en un toque: también deshace lo que esté en su ventana. */
+  const turnOffAuto = () => {
+    undoAllAuto()
+    turnOffAutonomy().then(
+      () => toast?.(AUTO_OFF),
+      () => toast?.(AUTO_OFF_FAILED),
+    )
+  }
+
+  const openAutonomy = () => {
+    setAutonomyOpen((n) => n + 1)
+    setTuning(true)
   }
 
   /** Una oferta del agente para un momento (`carrito`, `vertical_por_probar`…); `nothing` es lo que dice si no tiene nada. */
@@ -536,6 +654,7 @@ export default function AssistantPanel({ push, vertical, depth = 1 }) {
   const forgetAll = async () => {
     setForgetting(true) // mientras tanto no se envía nada: una pregunta nueva recrearía lo borrado
     setForgetFailed(false)
+    undoAllAuto() // lo que Mochi iba a pedir solo no sale
     profileGeneration.current++
     lastTurn.current = null
     profile.reset()
@@ -674,6 +793,11 @@ export default function AssistantPanel({ push, vertical, depth = 1 }) {
                     {PREFERENCES_TITLE}
                   </button>
                 )}
+                {demo.isFinal && (
+                  <button type="button" onClick={openAutonomy}>
+                    {AUTONOMY_TITLE}
+                  </button>
+                )}
                 <button type="button" onClick={() => setConfirmingForget(true)}>
                   Olvidar
                 </button>
@@ -702,6 +826,15 @@ export default function AssistantPanel({ push, vertical, depth = 1 }) {
                   onAction={onAction}
                   onCancel={cancelAnswer}
                   onTrack={(orderId) => go('tracking', { orderId })}
+                  autoOrder={
+                    current.autoOrder && {
+                      status: autoStatus[current.autoOrder.key],
+                      onShown: armAuto,
+                      onUndo: undoAuto,
+                      onReview: reviewAuto,
+                      onTurnOff: turnOffAuto,
+                    }
+                  }
                   onRetry={() => !forgetting && current.retry()}
                   followUp={
                     // Seguir la conversación, debajo de los productos: sugerencias (sin salud) y un campo para Mochi
@@ -780,6 +913,10 @@ export default function AssistantPanel({ push, vertical, depth = 1 }) {
 
       <Sheet open={editing} onClose={() => setEditing(false)} title={PREFERENCES_TITLE}>
         <PreferencesEditor key={preferencesOpen} onSaved={() => setEditing(false)} />
+      </Sheet>
+
+      <Sheet open={tuning} onClose={() => setTuning(false)} title={AUTONOMY_TITLE}>
+        <AutonomyEditor key={autonomyOpen} onSaved={() => setTuning(false)} onTurnedOff={undoAllAuto} />
       </Sheet>
 
       {/* «Olvidar» borra lo mismo que Cuenta → «Borrar mis datos»: pide la misma confirmación. */}

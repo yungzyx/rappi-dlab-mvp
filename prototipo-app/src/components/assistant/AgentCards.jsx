@@ -1,5 +1,6 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useCartPricing } from '../../screens/checkout/useCartPricing'
+import { UNDO_MS } from '../../screens/checkout/undo'
 import { flowFor, isDelivered, minutesLeft, stepAt } from '../../screens/tracking/progress'
 import { formatPrice, lineKey, parsePrice, useCart } from '../../state/CartContext'
 import { useOrders } from '../../state/OrdersContext'
@@ -56,6 +57,107 @@ function OrderSummary({ items }) {
         Lo que el catálogo no trae del envío y la tarifa, la propina y el tiempo son de ejemplo; los créditos y cupones
         se eligen en el pago. Nada se pide hasta que lo confirmes ahí.
       </p>
+    </section>
+  )
+}
+
+/**
+ * «Pide lo de siempre en…» (api/autonomy.js): lo de siempre en esa tienda con el precio de hoy, calculado como en el
+ * checkout pero sin propina (se elige al recibirlo). Con «Pedir por mí» (`status` de AssistantPanel): ya enviado con la
+ * ventana de «Deshacer pedido» (`waiting`; el pedido sale al cerrarse), enviándose, hecho o deshecho. Sin permiso, o si
+ * algo no cumple sus límites, se revisa antes (`review`, con el motivo) y lleva al checkout de siempre. `onShown` abre la
+ * ventana cuando la tarjeta ya se ve (`revealed`: terminó de escribirse el texto de arriba).
+ */
+export function AutoOrderCard({ order, status, revealed, onShown, onUndo, onReview, onTurnOff, onTrack }) {
+  const { totals: price } = useCartPricing(order.lines, { tip: 0 })
+  useEffect(() => {
+    if (revealed) onShown?.(order)
+    // Solo cuando se ve: la ventana la lleva el panel, que sigue aunque la tarjeta se desmonte.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [revealed])
+  const state = status?.state ?? (order.mode === 'pedir' ? 'waiting' : 'review')
+  const units = order.lines.reduce((sum, line) => sum + line.qty, 0)
+  return (
+    <section className="agent-summary agent-auto" aria-label="Lo de siempre">
+      <p className="agent-order-title">
+        <strong>Lo de siempre</strong>
+        <small>{order.store.name}</small>
+      </p>
+      <ul className="agent-summary-lines">
+        {order.lines.slice(0, SHOWN_LINES).map(({ product, qty }) => (
+          <li key={lineKey(product)}>
+            <span>
+              {qty} × {product.name}
+            </span>
+            <b>{formatPrice(parsePrice(product.price) * qty)}</b>
+          </li>
+        ))}
+        {order.lines.length > SHOWN_LINES && (
+          <li className="agent-summary-more">y {order.lines.length - SHOWN_LINES} más</li>
+        )}
+      </ul>
+      <dl className="agent-summary-rows">
+        <Row label={`Productos (${units})`} value={formatPrice(price.subtotal)} />
+        <Row label="Envío" value={price.delivery === 0 ? 'Gratis con Pro' : formatPrice(price.delivery)} />
+        <Row label="Tarifa de servicio" value={formatPrice(price.service)} />
+        <Row label="Total" value={formatPrice(price.total)} total />
+      </dl>
+      {state === 'waiting' && (
+        <div className="agent-auto-window" role="status">
+          <p>
+            <strong>Pedido enviado.</strong> ¿Quieres modificar algo? Tienes unos segundos para deshacerlo.
+          </p>
+          <span className="agent-auto-bar" style={{ animationDuration: `${UNDO_MS}ms` }} />
+          <button type="button" className="agent-msg-action is-strong tap" onClick={() => onUndo(order)}>
+            Deshacer pedido
+          </button>
+        </div>
+      )}
+      {state === 'sending' && (
+        <p className="agent-auto-window" role="status">
+          Enviando tu pedido…
+        </p>
+      )}
+      {state === 'sent' && (
+        <div className="agent-auto-window" role="status">
+          <p>
+            <strong>Listo, lo pedí por ti</strong> con tu permiso
+            {order.cap != null ? `, dentro de tu tope de ${formatPrice(order.cap)}` : ''}.
+          </p>
+          <button type="button" className="agent-msg-action tap" onClick={() => onTrack(status.orderId)}>
+            Ver seguimiento →
+          </button>
+        </div>
+      )}
+      {state === 'undone' && (
+        <div className="agent-auto-window" role="status">
+          <p>Deshiciste el pedido: no se pidió nada.</p>
+          <button type="button" className="agent-msg-action tap" onClick={() => onReview(order)}>
+            Revisar y pagar →
+          </button>
+        </div>
+      )}
+      {state === 'review' && (
+        <div className="agent-auto-window">
+          {status?.reason && <p>Esta vez lo revisas tú: {status.reason}.</p>}
+          <button type="button" className="agent-msg-action tap" onClick={() => onReview(order)}>
+            Revisar y pagar →
+          </button>
+        </div>
+      )}
+      <p className="agent-summary-note">
+        Tu último pedido en esta tienda, con el precio de hoy. Lo que el catálogo no trae del envío y la tarifa es de
+        ejemplo; la propina la eliges al recibirlo.
+        {order.mode === 'pedir' || status
+          ? ' Solo pido lo de siempre, nunca alcohol, +18, farmacia, bebé ni salud.'
+          : ''}
+      </p>
+      {/* Apagarlo en un toque; «Cómo pido por ti» (el ajuste) va en las acciones de la respuesta. */}
+      {order.mode === 'pedir' && state !== 'review' && (
+        <button type="button" className="agent-auto-off" onClick={onTurnOff}>
+          Apagar «Pedir por mí»
+        </button>
+      )}
     </section>
   )
 }

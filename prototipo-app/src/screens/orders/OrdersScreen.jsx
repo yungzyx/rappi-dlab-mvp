@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { AGENT_NAME } from '../../agent/name'
 import BackButton from '../../components/BackButton'
 import { ChevronRight } from '../../components/Icons'
 import Img from '../../components/Img'
@@ -69,6 +70,8 @@ export default function OrdersScreen({ back, push, reset }) {
                     <strong>{order.stores.join(', ') || 'Tu pedido'}</strong>
                     <span>
                       {relativeDay(order.placedAt, now)} · {formatPrice(order.total)}
+                      {/* Lo pidió Mochi solo, con permiso («Pedir por mí»: api/autonomy.js). */}
+                      {order.byAgent && ` · Lo pidió ${AGENT_NAME} por ti`}
                     </span>
                     <span className={status.done ? 'orders-status is-done' : 'orders-status'}>{status.label}</span>
                   </span>

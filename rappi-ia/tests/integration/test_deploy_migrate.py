@@ -279,6 +279,10 @@ def test_grants_file_lets_the_api_role_write_only_its_tables(db):
         "INSERT INTO agent_preferences (user_id, kind, value, source) VALUES ('proto-permisos', 'dieta', 'vegano',"
         " 'prototype')"
     )
+    conn.execute(  # y su permiso para que Mochi pida solo (migración 049)
+        "INSERT INTO agent_autonomy (user_id, store_ids, max_total, source) VALUES ('proto-permisos', ARRAY[1], 20000,"
+        " 'prototype')"
+    )
     conn.execute("SELECT count(*) FROM capa.combo_stats")
     for forbidden in (
         "INSERT INTO combo_steps (data_source, from_combo, to_combo, users, prob) VALUES ('synthetic', 'a', 'b', 1, 1)",

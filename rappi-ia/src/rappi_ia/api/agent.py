@@ -13,7 +13,7 @@ from pydantic import ConfigDict, Field
 
 from .. import config
 from ..agent.grouped_search import SpareConnector
-from ..offers import preferences
+from ..offers import autonomy, preferences
 from ..offers.engine import Offer, OfferError, ProfileOffer, home_occasions, make_offer
 from ..offers.personal import user_interests
 from .deps import Clean, backend_vertical, get_conn, get_services, get_spare_connector
@@ -177,6 +177,8 @@ def offer(
     except OfferError as exc:
         raise HTTPException(422, str(exc)) from exc
     found = _with_preferences(found, mine)
+    if body.moment == "recompra":
+        found = _with_auto_order(conn, found, body.user_id)
     return Response(status_code=204) if found is None else {**found.to_dict(), "request_id": served_request_id()}
 
 
@@ -197,6 +199,20 @@ def _with_preferences(found: Offer | ProfileOffer | None, mine: preferences.Pref
     if found.products and not kept:
         return None
     return replace(found, products=kept)
+
+
+def _with_auto_order(conn: Connection, found: Offer | None, user_id: str | None) -> Offer | None:
+    """La recompra de una tienda donde la persona deja que Mochi pida solo («Pedir por mí», offers/autonomy.py) suma
+    «Pídelo por mí»: le pide a Mochi lo de siempre ahí (`ask`), que vuelve a revisar cada límite antes de pedir."""
+    mine = autonomy.load(conn, user_id)
+    if found is None or mine is None or not found.products:
+        return found
+    store_id = found.products[0].get("store_id")
+    store = next((s for s in autonomy.ordered_stores(conn, user_id) if s["id"] == store_id), None)
+    if store is None or store_id not in mine.store_ids:
+        return found
+    action = {"label": autonomy.ASK_LABEL, "ask": autonomy.ASK_TEXT.format(store=store["name"])}
+    return replace(found, actions=[*found.actions, action])
 
 
 @router.get("/plans", dependencies=[Depends(owner_in_query)])

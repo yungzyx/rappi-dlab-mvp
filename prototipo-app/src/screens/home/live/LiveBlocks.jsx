@@ -4,6 +4,7 @@ import { ProductCard } from '../../../components/ProductCard'
 import { storeOfProduct } from '../../../api/catalog'
 import { formatPrice, parsePrice } from '../../../state/CartContext'
 import { VERTICAL_NAMES } from '../../../data/verticals'
+import { useAssistant } from '../../../state/AssistantContext'
 
 /** Abre la tienda de un producto o plato que el agente ofreció (por su id; sin él, con el nombre y el logo que trae). */
 export function openItem(product, push) {
@@ -73,11 +74,14 @@ export function PlanBlock({ plans, plan, kit, kitReason, added, onPick, onOpen, 
  * «¿Repetimos?»: lo que la persona pide con ritmo y ya le toca (la oferta `recompra` de la API), con el último producto
  * que compró de eso; o «¿Volvemos a…?» (la oferta `volver`): lo que pedía con ritmo y dejó de pedir. «Ver producto»
  * abre su tienda con el producto destacado: la aceptación cuenta recién al agregarlo al carro (lleva su origen,
- * `agent-recompra` o `agent-volver`). «Después» lo deja para otra vez.
+ * `agent-recompra` o `agent-volver`). «Después» lo deja para otra vez. En una tienda donde la persona deja que Mochi
+ * pida solo («Pedir por mí»), la recompra trae «Pide lo de siempre por mí» (`ask`): abre a Mochi con ese pedido.
  */
 export function RepeatBlock({ offer, onLater, onOpen }) {
+  const assistant = useAssistant()
   const [product] = offer.products
   const see = offer.actions[0]
+  const auto = offer.actions.find((action) => action.ask)
   return (
     <section
       className="live-card live-card--repeat"
@@ -92,6 +96,15 @@ export function RepeatBlock({ offer, onLater, onOpen }) {
         <button type="button" className="live-kit-add tap" onClick={() => onOpen(product)}>
           {see?.label ?? 'Ver producto'}
         </button>
+        {auto && assistant && (
+          <button
+            type="button"
+            className="live-repeat-later tap"
+            onClick={() => assistant.open({ query: auto.ask.text })}
+          >
+            {auto.label}
+          </button>
+        )}
         <button type="button" className="live-repeat-later tap" onClick={onLater}>
           Después
         </button>

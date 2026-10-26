@@ -1,0 +1,19 @@
+{
+  "modo": "pedir",
+  "opciones": {
+    "tiendas": [
+      {
+        "id": 9101,
+        "name": "Supermercado de prueba Centro",
+        "vertical": "supermercado"
+      }
+    ],
+    "tope_max": 200000,
+    "tope_min": 1000,
+    "tope_sugerido": 20000
+  },
+  "tiendas": [
+    9101
+  ],
+  "tope": 20000
+}
