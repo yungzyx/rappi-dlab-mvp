@@ -63,7 +63,8 @@ jobs:
 
   rappi-ia:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    # En main ya tardaba 18 a 19 minutos (25-10-2026): con los tests de las fases 6 y 7, 20 no alcanzaba.
+    timeout-minutes: 30
     defaults:
       run:
         working-directory: rappi-ia
