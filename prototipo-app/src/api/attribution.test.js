@@ -4,11 +4,12 @@ let envelope
 let placeList
 let placementFields
 let noteRecommendationClick
+let noteItemView
 
 describe('el sobre de los eventos (attribution.js)', () => {
   beforeEach(async () => {
     vi.resetModules() // lo ya clicado vive en el módulo (lo que dura la pestaña)
-    ;({ envelope, placeList, placementFields, noteRecommendationClick } = await import('./attribution'))
+    ;({ envelope, placeList, placementFields, noteRecommendationClick, noteItemView } = await import('./attribution'))
   })
 
   test('envelope arma solo los campos que la API acepta', () => {
@@ -57,5 +58,19 @@ describe('el sobre de los eventos (attribution.js)', () => {
     const [result] = placeList([{ id: 'r' }], { surface: 'search', origin: 'resultados' })
     expect(noteRecommendationClick(track, result, fields)).toBe(false) // un resultado de búsqueda no es recomendación
     expect(noteRecommendationClick(track, { id: 'x' }, fields)).toBe(false)
+  })
+
+  test('ver un producto en la hoja y después en su tienda («Ver tienda») es una sola vista', () => {
+    const track = vi.fn()
+    const fields = { entity_type: 'catalog_item', entity_id: '91001' }
+    const [card] = placeList([{ id: 'p' }], { surface: 'deals', origin: 'bajaron-supermercado' })
+    expect(noteItemView(track, card, fields, { fromSheet: true })).toBe(true)
+    expect(noteItemView(track, card, fields)).toBe(false) // la tienda, con el mismo producto y lugar
+    expect(noteItemView(track, card, fields)).toBe(true) // volver a la tienda después sí cuenta
+    expect(track.mock.calls.map(([type]) => type)).toEqual(['view_item', 'view_item'])
+    // Otro lugar u otro producto no se confunden; sin entidad no hay vista.
+    noteItemView(track, card, fields, { fromSheet: true })
+    expect(noteItemView(track, { ...card, placement: { ...card.placement, position: 3 } }, fields)).toBe(true)
+    expect(noteItemView(track, { id: 'sin-entidad' }, {})).toBe(false)
   })
 })
