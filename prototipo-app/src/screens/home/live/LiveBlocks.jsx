@@ -2,6 +2,7 @@ import OfferWhy from '../../../components/assistant/OfferWhy'
 import HScroll from '../../../components/HScroll'
 import { ProductCard } from '../../../components/ProductCard'
 import { storeOfProduct } from '../../../api/catalog'
+import { storeCount } from '../../../api/orders'
 import { formatPrice, parsePrice } from '../../../state/CartContext'
 import { VERTICAL_NAMES } from '../../../data/verticals'
 import { useAssistant } from '../../../state/AssistantContext'
@@ -17,10 +18,19 @@ export function openItem(product, push) {
   })
 }
 
+/** Lo que dice Mochi al agregar un kit: un pedido es de una tienda, así que uno de varias tiendas no «llega todo junto». */
+export function kitAddedText(kit) {
+  const stores = storeCount(kit)
+  return stores > 1
+    ? `¡Listo! Está en tu carro: llega en ${stores} pedidos, uno por tienda 🛵`
+    : '¡Listo! Está en tu carro 🛵 Velo abajo.'
+}
+
 /** «¿Qué plan tienes hoy?»: las ocasiones salen de la API y el agente arma, también con la API, un kit de varias verticales. */
 export function PlanBlock({ plans, plan, kit, kitReason, added, onPick, onOpen, onAddKit, onCheckout }) {
   const total = (kit ?? []).reduce((sum, product) => sum + parsePrice(product.price), 0)
   const verticals = [...new Set((kit ?? []).map((product) => VERTICAL_NAMES[product.vertical] ?? product.vertical))]
+  const stores = storeCount(kit ?? [])
   return (
     <section className="live-card live-card--plan">
       <h2 className="live-plan-title">¿Qué plan tienes hoy?</h2>
@@ -44,6 +54,7 @@ export function PlanBlock({ plans, plan, kit, kitReason, added, onPick, onOpen, 
         <div key={plan} className="live-kit">
           <p className="live-kit-meta">
             Tu kit en {verticals.length} {verticals.length === 1 ? 'vertical' : 'verticales'}: {verticals.join(', ')}
+            {stores > 1 && ` · ${stores} tiendas, un pedido por tienda`}
           </p>
           <OfferWhy reason={kitReason} />
           <HScroll className="live-items">

@@ -232,7 +232,7 @@ export default function StoreScreen({ back, params }) {
             {showingForYou && !restaurant && (
               <ul className="store-products" aria-label={FOR_YOU}>
                 {forYouProducts.map((product) => (
-                  <ProductRow key={product.id} product={product} impression />
+                  <ProductRow key={product.id} product={product} impression checkStock />
                 ))}
               </ul>
             )}
@@ -242,7 +242,7 @@ export default function StoreScreen({ back, params }) {
                 <>
                   <ul className="store-products">
                     {inStore(products).map((product) => (
-                      <ProductRow key={product.id} product={product} impression />
+                      <ProductRow key={product.id} product={product} impression checkStock />
                     ))}
                   </ul>
                   {hasMore && (

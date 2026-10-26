@@ -143,6 +143,35 @@ export async function productStores(entityId, storeId, { substitutes = false } =
   }
 }
 
+// Lo que ya se revisó al agregar desde la lista de una tienda: producto@tienda → si está agotado ahí.
+const stockChecks = new Map()
+
+/**
+ * ¿Está agotado este producto en su tienda? Lo dice la ficha (`productStores`: sin stock o con 0 unidades), que el
+ * listado del pasillo no trae. Una vez por producto y tienda; si la API no contesta, no se sabe (false) y se vuelve a
+ * preguntar la próxima vez. Un plato no tiene stock.
+ */
+export function soldOutHere(product) {
+  if (product?.entityType !== 'catalog_item' || product.entityId == null || product.storeId == null)
+    return Promise.resolve(false)
+  const key = `${product.entityId}@${product.storeId}`
+  if (!stockChecks.has(key))
+    stockChecks.set(
+      key,
+      productStores(product.entityId, product.storeId).then(
+        (reply) => reply.here?.available === false,
+        () => {
+          stockChecks.delete(key)
+          return false
+        },
+      ),
+    )
+  return stockChecks.get(key)
+}
+
+/** Para los tests: olvida lo revisado. */
+export const forgetStockChecks = () => stockChecks.clear()
+
 /**
  * «Para ti» en una tienda (solo la propuesta): `{ requestId, products, basis }`, los productos de la tienda que calzan
  * con los intereses de la persona, ya con las guardias de las ofertas y marcados con su lugar (`para-ti` en la tienda:

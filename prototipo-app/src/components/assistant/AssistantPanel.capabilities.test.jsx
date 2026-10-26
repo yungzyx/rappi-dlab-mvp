@@ -236,12 +236,12 @@ describe('el último pedido, con un botón', () => {
     expect(push).toHaveBeenCalledWith('tracking', { orderId: 'order-1' })
   })
 
-  test('también en «Rappi hoy», sin los atajos de la propuesta', async () => {
+  test('en «Rappi hoy» el buscador con Mochi no se abre: es el buscador de siempre', async () => {
     localStorage.setItem('rappi-proto-demo-mode', 'actual')
     localStorage.setItem('rappi-proto-orders', JSON.stringify([order()]))
     await renderPanel()
-    expect(screen.getByRole('button', { name: '📦 Mi último pedido' })).toBeTruthy()
-    expect(screen.queryByRole('button', { name: '🔁 Repite lo de siempre' })).toBeNull()
+    expect(screen.queryByRole('dialog', { name: /Buscador con/ })).toBeNull()
+    expect(screen.queryByRole('button', { name: '📦 Mi último pedido' })).toBeNull()
   })
 })
 

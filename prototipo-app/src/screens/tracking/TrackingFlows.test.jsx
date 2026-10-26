@@ -1,5 +1,6 @@
 // Los flujos del seguimiento de la fase 8: cancelar con rescate, programado, cambios en vivo del Súper, el atraso del
 // «Panel de la demo», «Ayuda con este pedido» y la compra dividida en pedidos por tienda.
+import { useState } from 'react'
 import { act, cleanup, fireEvent, render, screen, within } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest'
 import { fixture, stubApi } from '../../test/api'
@@ -379,6 +380,53 @@ describe('la pausa de «Cancelar pedido»', () => {
     )
     expect(saved()[0].heldAt).toBeUndefined()
     expect(saved()[0].pausedMs).toBeGreaterThanOrEqual(0)
+  })
+})
+
+describe('pasar de un pedido a otro de la misma compra', () => {
+  test('la calificación de un pedido no aparece marcada en el otro', async () => {
+    function Switcher() {
+      const orders = useOrders()
+      const [index, setIndex] = useState(0)
+      const order = orders.orders[index]
+      if (!order)
+        return (
+          <button type="button" onClick={() => orders.placeMany([RESTAURANT, SUPER])}>
+            pedir
+          </button>
+        )
+      return (
+        <>
+          <button type="button" onClick={() => setIndex(1)}>
+            otro
+          </button>
+          <TrackingScreen back={() => {}} reset={() => {}} push={push} params={{ orderId: order.id }} />
+        </>
+      )
+    }
+    render(
+      <DemoProvider>
+        <ProfileProvider>
+          <AssistantProvider>
+            <CartProvider>
+              <OrdersProvider>
+                <AddressProvider>
+                  <ToastProvider>
+                    <Switcher />
+                  </ToastProvider>
+                </AddressProvider>
+              </OrdersProvider>
+            </CartProvider>
+          </AssistantProvider>
+        </ProfileProvider>
+      </DemoProvider>,
+    )
+    fireEvent.click(screen.getByText('pedir'))
+    await advance(21_000)
+    fireEvent.click(screen.getByRole('radio', { name: '2 estrellas' }))
+    expect(screen.getByRole('radio', { name: '2 estrellas' }).getAttribute('aria-checked')).toBe('true')
+    fireEvent.click(screen.getByText('otro'))
+    expect(screen.getByRole('radio', { name: '2 estrellas' }).getAttribute('aria-checked')).toBe('false')
   })
 })
 

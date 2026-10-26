@@ -243,6 +243,9 @@ export function toPrototypeProduct(p) {
     vertical: screenForBackend(p.vertical) ?? p.vertical,
     backendVertical: p.vertical,
     ageRestricted: Boolean(p.age_restricted),
+    // Agotado en su tienda, si la respuesta lo dice (`available: false` o `stock: 0`; el listado de los pasillos todavía
+    // no lo trae: lo revisa la fila al agregar, catalog.js: soldOutHere).
+    ...(p.available === false || p.stock === 0 ? { soldOut: true } : {}),
   }
 }
 

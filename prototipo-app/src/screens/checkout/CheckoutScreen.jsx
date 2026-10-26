@@ -63,9 +63,11 @@ export default function CheckoutScreen({ back, push }) {
   const closed = anyClosed(storeHours)
   const [now] = useState(() => Date.now())
   const slots = slotsFor(storeHours, now)
-  const slot = when !== 'now' && slots.some((s) => s.from === when) ? when : null
+  // Con la tienda cerrada, «Ahora» no se puede: queda elegida la primera franja (se cambia por otra), en Envío y Retiro.
+  const slot =
+    when !== 'now' && slots.some((s) => s.from === when) ? when : closed && slots.length ? slots[0].from : null
   const scheduled = slot !== null
-  // Programado o retiro: sin tipo de entrega (la franja es la entrega básica).
+  // Programado o retiro: sin tipo de entrega (la franja es la entrega básica). Un retiro también se programa.
   const chosenType = pickup ? null : scheduled ? 'basica' : type
   const priced = baskets.map((basket) =>
     pricedBasket(basket, termsOf(basket), { isPro, pickup, type: chosenType ?? 'basica' }),
@@ -146,6 +148,7 @@ export default function CheckoutScreen({ back, push }) {
           })),
         total: shares[i].total,
         ...(shares[i].credits > 0 ? { credits: shares[i].credits } : {}),
+        ...(i === 0 && totals.tip > 0 ? { tip: totals.tip } : {}),
         ...(shares[i].coupon > 0 ? { coupon: { code: coupon.code, amount: shares[i].coupon } } : {}),
         pickup,
         address: address.selected.line,
@@ -197,13 +200,13 @@ export default function CheckoutScreen({ back, push }) {
       <div className="screen checkout">
         <CheckoutHeader back={back} />
 
-        <div className="checkout-modes" role="tablist">
+        <div className="checkout-modes" role="radiogroup" aria-label="Cómo lo recibes">
           {MODES.map((option) => (
             <button
               key={option}
               type="button"
-              role="tab"
-              aria-selected={option === mode}
+              role="radio"
+              aria-checked={option === mode}
               className={option === mode ? 'checkout-mode is-active' : 'checkout-mode'}
               onClick={() => setMode(option)}
             >
@@ -221,23 +224,25 @@ export default function CheckoutScreen({ back, push }) {
           <ChevronRight size={18} />
         </button>
         <p className="checkout-eta">
-          {pickup
-            ? 'Listo en 15–20 min'
-            : scheduled
-              ? `Programado para ${slotLabel(slot, now)}`
-              : `Llega en ${deliveryType(type).eta}`}
+          {scheduled
+            ? `${pickup ? 'Retiro programado' : 'Programado'} para ${slotLabel(slot, now)}`
+            : closed
+              ? 'Programa tu pedido'
+              : pickup
+                ? 'Listo en 15–20 min'
+                : `Llega en ${deliveryType(type).eta}`}
         </p>
-        {!pickup && (
-          <CheckoutDelivery
-            type={type}
-            onType={setType}
-            when={slot ?? 'now'}
-            onWhen={setWhen}
-            slots={slots}
-            closed={closed}
-            baskets={baskets.length}
-          />
-        )}
+        <CheckoutDelivery
+          type={type}
+          onType={setType}
+          when={slot ?? 'now'}
+          onWhen={setWhen}
+          slots={slots}
+          closed={closed}
+          baskets={baskets.length}
+          pickup={pickup}
+          published={storeHours.every((terms) => terms?.spans && (terms.spans.hoy.length || terms.spans.manana.length))}
+        />
 
         <h2 className="checkout-title">Tu pedido</h2>
         {baskets.length > 1 && (

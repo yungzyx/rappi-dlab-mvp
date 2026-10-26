@@ -131,7 +131,9 @@ export default function TrackingScreen({ back, reset, push, params }) {
         <BackButton className="tracking-back" onClick={back} />
       </div>
 
-      <section className="tracking-sheet">
+      {/* Por pedido: al pasar a otro pedido de la misma compra, su calificación, su ayuda y su cancelación empiezan de
+          cero (antes las estrellas de uno aparecían marcadas en el otro). */}
+      <section key={order.id} className="tracking-sheet">
         <PurchaseOrders order={order} push={push} />
         <p className="tracking-eta-label">{label}</p>
         <h1 className="tracking-eta">{eta}</h1>
@@ -531,7 +533,15 @@ function TipAfter({ order }) {
   return (
     <div className="tracking-tip">
       <p>
-        <strong>Agrega una propina</strong> · El 100% es para tu Rappi
+        {order.tip ? (
+          <>
+            <strong>Ya diste {formatPrice(order.tip)} de propina</strong> · ¿Quieres sumar más?
+          </>
+        ) : (
+          <>
+            <strong>Agrega una propina</strong> · El 100% es para tu Rappi
+          </>
+        )}
       </p>
       <div className="tracking-tip-chips" role="radiogroup" aria-label="Propina">
         {TIPS.filter((amount) => amount > 0).map((amount) => (

@@ -3,6 +3,7 @@ import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, test, vi 
 import { fixture, stubApi } from '../../../test/api'
 import { routeForScreen } from '../../../data/verticals'
 import { today } from '../../../utils/today'
+import { kitAddedText } from './LiveBlocks'
 
 const events = vi.hoisted(() => ({ track: vi.fn(), flush: async () => {}, clear: () => {}, settled: async () => {} }))
 vi.mock('../../../state/EventsContext', async (importOriginal) => ({
@@ -249,6 +250,9 @@ describe('Home del prototipo final', () => {
       expect(accepted.map(([, fields]) => fields.concept_id).sort()).toEqual(kit.products.map((p) => p.concept).sort())
       expect(tracked('suggestion_shown', 'agent-plan')).toHaveLength(kit.products.length)
       expect(screen.getByRole('button', { name: /En tu carro · Ir a pagar/ })).toBeTruthy()
+      // Cuatro tiendas son cuatro pedidos: Mochi no dice «llega todo junto».
+      expect(screen.getByText(/4 tiendas, un pedido por tienda/)).toBeTruthy()
+      expect(kitAddedText(kit.products)).toBe('¡Listo! Está en tu carro: llega en 4 pedidos, uno por tienda 🛵')
     })
 
     test('plans sends the user and shows Para ti for occasions with a reason', async () => {

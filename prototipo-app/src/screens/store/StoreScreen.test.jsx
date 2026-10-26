@@ -2,6 +2,7 @@ import { StrictMode } from 'react'
 import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import { afterAll, afterEach, beforeAll, describe, expect, test, vi } from 'vitest'
 import { placeList } from '../../api/attribution'
+import { forgetStockChecks } from '../../api/catalog'
 import { toPrototypeProduct } from '../../api/client'
 import { fixture, stubApi } from '../../test/api'
 import { ToastProvider } from '../../components/Toast'
@@ -73,6 +74,7 @@ afterAll(() => {
 })
 afterEach(() => {
   cleanup()
+  forgetStockChecks()
   vi.unstubAllGlobals()
   events.track.mockClear()
   localStorage.clear()
@@ -369,7 +371,12 @@ describe('visita a una tienda (embudo del panel)', () => {
     await waitFor(() => expect(rows()).toHaveLength(25))
     const second = document.querySelectorAll('.store-products .product-row')[2]
     fireEvent.click(within(second).getByLabelText(/^Agregar /))
-    expect(tracked('cart_add')).toEqual([expect.objectContaining({ surface: 'store', origin: 'pasillo', position: 1 })])
+    // Antes de agregar desde el pasillo revisa si está agotado ahí (la respuesta de ejemplo no lo conoce: se agrega).
+    await waitFor(() =>
+      expect(tracked('cart_add')).toEqual([
+        expect.objectContaining({ surface: 'store', origin: 'pasillo', position: 1 }),
+      ]),
+    )
   })
 })
 
@@ -413,7 +420,7 @@ describe('producto que llegó tocándolo', () => {
 
     const row = [...document.querySelectorAll('.product-row')].find((node) => node.textContent.includes(offered.name))
     fireEvent.click(within(row).getByLabelText(`Agregar ${offered.name}`))
-    fireEvent.click(within(row).getByLabelText(/^Agregar uno de/)) // otra unidad: no es otra aceptación
+    fireEvent.click(await within(row).findByLabelText(/^Agregar uno de/)) // otra unidad: no es otra aceptación
     const accepted = tracked('suggestion_accepted')
     expect(accepted).toEqual([expect.objectContaining({ concept_id: 'cafe', origin: 'agent-recompra' })])
   })
@@ -422,6 +429,19 @@ describe('producto que llegó tocándolo', () => {
     stubCatalog()
     openStore({ store: PIZZERIA, item: elsewhere() })
     expect(await screen.findByText('Lo que elegiste')).toBeTruthy()
+  })
+})
+
+describe('agotado en la tienda', () => {
+  test('desde el pasillo no se agrega: la fila dice «Agotado» y no lleva «+»', async () => {
+    stubCatalog({ 'GET /catalog/products/catalog_item/*': fixture('catalog-product-stores-agotado') })
+    openStore({ store: GROCERY })
+    await waitFor(() => expect(rows()).toHaveLength(24))
+    const row = document.querySelectorAll('.store-products .product-row')[0]
+    fireEvent.click(within(row).getByLabelText(/^Agregar /))
+    await waitFor(() => expect(within(row).getByText('Agotado')).toBeTruthy())
+    expect(within(row).queryByLabelText(/^Agregar /)).toBeNull()
+    expect(tracked('cart_add')).toEqual([])
   })
 })
 

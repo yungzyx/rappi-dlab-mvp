@@ -648,6 +648,12 @@ export default function AssistantPanel({ push, vertical, depth = 1 }) {
   useEffect(() => {
     closeRef.current = close
   })
+  // Si lo cierra otro (al pasar a «Rappi hoy», AssistantContext), el panel también se va, con su animación.
+  useEffect(() => {
+    if (!assistant.isOpen && phase === 'open') closeRef.current({ viaHistory: true })
+    // Solo cuando cambia si está abierto.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [assistant.isOpen])
   useEffect(() => {
     if (!assistant.isOpen) return undefined
     const onPopState = (event) => {
@@ -682,7 +688,8 @@ export default function AssistantPanel({ push, vertical, depth = 1 }) {
   const waiting = !search.hasQuery && !messages.some((m) => m.from === 'bot' && !m.typing)
   const style = { transitionDuration: `${phase === 'closing' ? CLOSE_MS : OPEN_MS}ms` }
   // Lo aprendido viene de rappi-ia (conceptos, sin sensibles); sin perfil del servidor no se muestra.
-  const learned = learnedRemote ?? []
+  // En «Rappi hoy» Mochi no aprende: no muestra lo aprendido.
+  const learned = demo.isFinal ? (learnedRemote ?? []) : []
   const forgetAll = async () => {
     setForgetting(true) // mientras tanto no se envía nada: una pregunta nueva recrearía lo borrado
     setForgetFailed(false)
@@ -847,7 +854,7 @@ export default function AssistantPanel({ push, vertical, depth = 1 }) {
                   : `${AGENT_NAME} usa IA. En «Rappi hoy» no aprende de lo que buscas.`}
               </p>
 
-              {taste && <ProfileCard profile={taste.profile} />}
+              {taste && demo.isFinal && <ProfileCard profile={taste.profile} />}
 
               {pinnedAuto && (
                 <AutoOrderCard
@@ -937,7 +944,7 @@ export default function AssistantPanel({ push, vertical, depth = 1 }) {
               )}
             </section>
 
-            {taste && (
+            {taste && demo.isFinal && (
               <LadderRail
                 ladder={taste.ladder}
                 onOpenVertical={(screen) => go(...routeForScreen(screen))}

@@ -22,7 +22,7 @@ import { CREDITS } from '../../../data/home'
 import '../home.css'
 import { useVerticalOrder } from '../useVerticalOrder'
 import LiveAgent from './LiveAgent'
-import { PlanBlock, RepeatBlock, openItem } from './LiveBlocks'
+import { PlanBlock, RepeatBlock, kitAddedText, openItem } from './LiveBlocks'
 import { REPLAY_EVENT, markTourSeen, session, tourSeen } from '../../../state/liveMemory'
 import { isHushed, isQuiet, noteDismissed } from '../../../state/agentQuiet'
 import { today } from '../../../utils/today'
@@ -445,7 +445,7 @@ export default function LiveHomeFeed({ push, active = true }) {
     setKitAdded(plan)
     buzz()
     toast(`Agregaste ${kit.length} productos del kit`)
-    speak({ text: '¡Listo! Llega todo junto 🛵 Ve tu carro abajo.', mood: 'wave', gesture: 'spin' }, 'plan', 3500)
+    speak({ text: kitAddedText(kit), mood: 'wave', gesture: 'spin' }, 'plan', 3500)
   }
 
   // Tocar al agente: la API propone la vertical que la persona aún no prueba (según sus pedidos), con sus ofertas.
