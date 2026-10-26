@@ -160,10 +160,25 @@ def test_low_stock_and_sold_out_with_similar_products(seeded):
     assert [p["price_value"] for p in similar] == sorted(p["price_value"] for p in similar)
 
 
+def test_substitutes_come_even_if_the_product_is_available(seeded):
+    """Los cambios en vivo del Súper: el agotado es simulado, así que el producto está disponible y aun así se piden los
+    sustitutos del mismo concepto en la misma tienda."""
+    assert product_stores(seeded, CAFE_MOLIDO, CENTRO)["similar"] == []
+    reply = product_stores(seeded, CAFE_MOLIDO, CENTRO, substitutes=True)
+    assert reply["here"]["available"] is True
+    similar = reply["similar"]
+    assert similar and all(p["concept"] == concept_of(seeded, CAFE_MOLIDO) for p in similar)
+    assert CAFE_MOLIDO not in [p["entity_id"] for p in similar]
+    # Sin la tienda no hay sustitutos (son de esa tienda).
+    assert product_stores(seeded, CAFE_MOLIDO, substitutes=True)["similar"] == []
+
+
 def test_product_stores_endpoint(client):
     assert client.get(f"/catalog/products/catalog_item/{CHOCOLATE}/stores").json()["count"] == 4
     assert client.get("/catalog/products/menu_item/98001/stores").status_code == 404
     assert client.get("/catalog/products/catalog_item/abc/stores").status_code == 404
+    reply = client.get(f"/catalog/products/catalog_item/{CAFE_MOLIDO}/stores?store_id={CENTRO}&sustitutos=true")
+    assert reply.json()["similar"]
 
 
 # ── Promos y estado de la tienda ────────────────────────────────────────────

@@ -93,6 +93,17 @@ def restaurant_hours(schedule: list[dict], now: datetime) -> dict:
     }
 
 
+def day_spans(schedule: list[dict], now: datetime) -> dict:
+    """Los tramos publicados de hoy y de mañana (`{hoy, manana}`, cada uno `[[abre, cierra]]` en «HH:MM»), para
+    programar un pedido dentro del horario. Un tramo que pasa la medianoche cierra a las «24:00» de su día (lo de
+    después es del día siguiente). Sin horario, las dos listas van vacías."""
+
+    def spans(day: str) -> list[list[str]]:
+        return [[_text(o), "24:00" if c <= o else _text(c)] for o, c in _spans_of(schedule, day)] if schedule else []
+
+    return {"hoy": spans(DAYS[now.weekday()]), "manana": spans(DAYS[(now.weekday() + 1) % 7])}
+
+
 def store_hours(raw: dict | None) -> dict | None:
     """Cómo estaba la tienda al bajarla (`raw.is_open`), con la hora a la que abría si Rappi la publicó
     (`raw.next_schedule`). None si la descarga no lo dice."""

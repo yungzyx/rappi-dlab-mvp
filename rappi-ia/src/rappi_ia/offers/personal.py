@@ -96,7 +96,8 @@ def _brand_orders(conn: Connection, user_id: str) -> dict[str, int]:
            JOIN app_order_lines l USING (order_id)
            JOIN item_brands b ON b.entity_type = l.entity_type AND b.entity_id = l.entity_id
            JOIN product_brands p USING (brand_key)
-           WHERE o.user_id = %s AND o.mode = 'propuesta' AND p.kind <> 'cadena' AND NOT p.is_store_brand
+           WHERE o.user_id = %s AND o.mode = 'propuesta' AND o.status = 'confirmado'
+             AND p.kind <> 'cadena' AND NOT p.is_store_brand
            GROUP BY b.brand_key
            HAVING count(DISTINCT o.order_id) >= %s
            ORDER BY orders DESC, b.brand_key""",

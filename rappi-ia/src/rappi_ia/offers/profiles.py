@@ -308,7 +308,8 @@ def _counts(conn: Connection, user_id: str, concepts: list[str], days: int) -> d
     rows = conn.execute(
         """SELECT l.concept_id, 'pedidos', count(DISTINCT o.order_id)
            FROM app_orders o JOIN app_order_lines l USING (order_id)
-           WHERE o.user_id = %(user)s AND o.mode = 'propuesta' AND l.concept_id = ANY(%(concepts)s)
+           WHERE o.user_id = %(user)s AND o.mode = 'propuesta' AND o.status = 'confirmado'
+             AND l.concept_id = ANY(%(concepts)s)
              AND o.ts >= now() - make_interval(days => %(days)s)
            GROUP BY 1
            UNION ALL
@@ -383,7 +384,8 @@ def ordered_restaurants(conn: Connection, user_id: str | None) -> set[int]:
     rows = conn.execute(
         """SELECT DISTINCT store_id FROM menu_items
            WHERE item_id = ANY(ARRAY(SELECT l.entity_id FROM app_orders o JOIN app_order_lines l USING (order_id)
-                                     WHERE o.user_id = %s AND o.mode = 'propuesta' AND l.entity_type = 'menu_item'
+                                     WHERE o.user_id = %s AND o.mode = 'propuesta' AND o.status = 'confirmado'
+                                       AND l.entity_type = 'menu_item'
                                        AND l.entity_id ~ '^[0-9]+$')::bigint[])""",
         (user_id,),
     )

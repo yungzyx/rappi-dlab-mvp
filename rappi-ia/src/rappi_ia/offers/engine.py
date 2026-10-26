@@ -534,7 +534,8 @@ def tried_verticals(conn: Connection, user_id: str | None) -> set[str]:
     if user_id is None:
         return set()
     rows = conn.execute(
-        "SELECT DISTINCT vertical FROM app_orders WHERE user_id = %s AND mode = 'propuesta'", (user_id,)
+        "SELECT DISTINCT vertical FROM app_orders WHERE user_id = %s AND mode = 'propuesta' AND status = 'confirmado'",
+        (user_id,),
     ).fetchall()
     return {vertical for (vertical,) in rows}
 
@@ -872,7 +873,8 @@ def _repeat_product(
     kind = "menu_item" if vertical == "restaurantes" else "catalog_item"
     row = conn.execute(
         """SELECT l.entity_id FROM app_order_lines l JOIN app_orders o USING (order_id)
-           WHERE o.user_id = %s AND o.mode = 'propuesta' AND l.concept_id = %s AND l.entity_type = %s
+           WHERE o.user_id = %s AND o.mode = 'propuesta' AND o.status = 'confirmado' AND l.concept_id = %s
+             AND l.entity_type = %s
            ORDER BY o.ts DESC, o.order_id DESC, l.line_no DESC LIMIT 1""",
         (user_id, concept.id, kind),
     ).fetchone()
@@ -938,7 +940,8 @@ def _last_bought_in(conn: Connection, user_id: str, vertical: str, hold: Paused 
     kind = "menu_item" if vertical == "restaurantes" else "catalog_item"
     rows = conn.execute(
         """SELECT l.entity_id FROM app_order_lines l JOIN app_orders o USING (order_id)
-           WHERE o.user_id = %s AND o.mode = 'propuesta' AND o.vertical = %s AND l.entity_type = %s
+           WHERE o.user_id = %s AND o.mode = 'propuesta' AND o.status = 'confirmado' AND o.vertical = %s
+             AND l.entity_type = %s
            ORDER BY o.ts DESC, o.order_id DESC, l.line_no DESC LIMIT %s""",
         (user_id, vertical, kind, WINBACK_VERTICAL_PRODUCTS),
     ).fetchall()

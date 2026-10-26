@@ -108,7 +108,7 @@ FROM app_orders o
 JOIN app_order_lines l USING (order_id)
 JOIN stores s ON s.store_id = l.store_id
 LEFT JOIN brands b ON b.brand_id = s.brand_id
-WHERE o.user_id = %(user)s AND o.mode = 'propuesta' AND l.store_id IS NOT NULL
+WHERE o.user_id = %(user)s AND o.mode = 'propuesta' AND o.status = 'confirmado' AND l.store_id IS NOT NULL
   AND o.vertical <> ALL(%(blocked)s)
   AND NOT EXISTS (SELECT 1 FROM v_store_verticals v WHERE v.store_id = l.store_id AND v.vertical = ANY(%(blocked)s))
   AND NOT EXISTS (SELECT 1 FROM store_verticals v WHERE v.store_id = l.store_id AND v.subvertical = ANY(%(sub)s))
@@ -186,7 +186,7 @@ def find_ordered_store(conn: Connection, user_id: str, said: str | None) -> dict
         """SELECT l.store_id, btrim(coalesce(b.name, s.name)), o.vertical
            FROM app_orders o JOIN app_order_lines l USING (order_id)
            JOIN stores s ON s.store_id = l.store_id LEFT JOIN brands b ON b.brand_id = s.brand_id
-           WHERE o.user_id = %s AND o.mode = 'propuesta' AND l.store_id IS NOT NULL
+           WHERE o.user_id = %s AND o.mode = 'propuesta' AND o.status = 'confirmado' AND l.store_id IS NOT NULL
            ORDER BY o.ts DESC, o.order_id DESC LIMIT 200""",
         (user_id,),
     ).fetchall()
@@ -224,7 +224,8 @@ def usual(conn: Connection, user_id: str, store: dict) -> Usual | None:
            FROM app_order_lines l JOIN app_orders o USING (order_id)
            WHERE o.order_id = (
                SELECT o2.order_id FROM app_orders o2 JOIN app_order_lines l2 USING (order_id)
-               WHERE o2.user_id = %(user)s AND o2.mode = 'propuesta' AND l2.store_id = %(store)s
+               WHERE o2.user_id = %(user)s AND o2.mode = 'propuesta' AND o2.status = 'confirmado'
+                 AND l2.store_id = %(store)s
                ORDER BY o2.ts DESC, o2.order_id DESC LIMIT 1)
              AND l.store_id = %(store)s
            ORDER BY l.line_no""",
@@ -396,7 +397,7 @@ def check_order(conn: Connection, user_id: str, store_id: int | None, lines: lis
             """SELECT o.vertical, btrim(coalesce(b.name, s.name))
                FROM app_orders o JOIN app_order_lines l USING (order_id)
                JOIN stores s ON s.store_id = l.store_id LEFT JOIN brands b ON b.brand_id = s.brand_id
-               WHERE o.user_id = %s AND o.mode = 'propuesta' AND l.store_id = %s
+               WHERE o.user_id = %s AND o.mode = 'propuesta' AND o.status = 'confirmado' AND l.store_id = %s
                ORDER BY o.ts DESC LIMIT 1""",
             (user_id, store_id),
         ).fetchone()

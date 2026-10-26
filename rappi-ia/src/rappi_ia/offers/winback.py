@@ -141,7 +141,7 @@ def _vertical_lapses(conn: Connection, today: date, user_id: str | None, source:
     rows = conn.execute(
         f"""SELECT o.user_id, o.vertical, count(DISTINCT timezone(%s, o.ts)::date), max(o.ts)
             FROM app_orders o JOIN app_users u USING (user_id)
-            WHERE o.mode = 'propuesta' AND o.source = u.source AND o.ts < %s AND {where}
+            WHERE o.mode = 'propuesta' AND o.status = 'confirmado' AND o.source = u.source AND o.ts < %s AND {where}
             GROUP BY 1, 2""",
         [TZ.key, end, *params],
     ).fetchall()
@@ -206,7 +206,8 @@ def available(conn: Connection, user_id: str, candidates: list[Lapse], now: date
     ordered = dict(
         conn.execute(
             """SELECT l.concept_id, max(o.ts) FROM app_order_lines l JOIN app_orders o USING (order_id)
-               WHERE o.user_id = %s AND o.mode = 'propuesta' AND l.concept_id = ANY(%s) GROUP BY 1""",
+               WHERE o.user_id = %s AND o.mode = 'propuesta' AND o.status = 'confirmado'
+                 AND l.concept_id = ANY(%s) GROUP BY 1""",
             (user_id, concepts),
         ).fetchall()
     )

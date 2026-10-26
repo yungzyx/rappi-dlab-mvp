@@ -37,6 +37,7 @@ EVENT_TYPES = {
     "vertical_open",  # se abrió un vertical desde la Home (en el campo `vertical`); alimenta la afinidad del motor
     "order_rated",  # la calificación de un pedido entregado (`payload.stars` y `payload.reasons`; el pedido, `cart_id`)
     "reorder",  # «Pídelo de nuevo»: el carro con un pedido anterior (`payload.available` y `payload.unavailable`)
+    "order_cancelled",  # la persona canceló un pedido (`payload.reason` y `.stage`; el pedido, `cart_id` y su tienda)
     "list_view",  # lo que una lista dejó a la vista (sus elementos en `app_event_items`; `position`, la mayor vista)
     "offer_withheld",  # una oferta de Mochi retenida al grupo de control (lo que habría mostrado, en `app_event_items`)
 }
@@ -52,6 +53,11 @@ IMPRESSION_RETENTION_DAYS = 90  # los elementos de las impresiones se borran com
 # «¿Qué problema tuvo el pedido?» (con 3 estrellas o menos): los motivos que la app puede mandar en `order_rated`.
 RATING_REASONS = frozenset({"tarde", "faltante", "mal_estado", "equivocado", "repartidor", "otro"})
 LOW_RATING = 3  # 3 estrellas o menos es una calificación mala: pausa la recompra y el «volver» (offers/winback.py)
+# «¿Por qué quieres cancelar?»: los motivos que la app puede mandar en `order_cancelled`.
+CANCEL_REASONS = frozenset({"direccion", "pago", "demora", "productos", "ya_no", "otro"})
+# El momento del pedido en que se canceló: antes de que la tienda lo empiece (gratis), ya empezado (con un costo de
+# ejemplo en la app) o programado y sin empezar.
+CANCEL_STAGES = frozenset({"antes_de_tienda", "en_tienda", "programado"})
 # Dónde estaba lo que se tocó, se vio o se agregó: el CHECK de `app_events.surface` (migración 043).
 SURFACES = frozenset(
     {
@@ -243,6 +249,7 @@ def record(conn: Connection, events: list[Event], source: str = "prototype", ses
     for e in events:
         _check_items(e)
     ratings = [(e, _rating(e)) for e in events if e.type == "order_rated"]
+    cancellations = [e for e in events if e.type == "order_cancelled" and _check_cancellation(e)]
     for user_id in dict.fromkeys(e.user_id for e in events):
         ensure_user(conn, user_id, source)
         if session is not None:
@@ -304,6 +311,7 @@ def record(conn: Connection, events: list[Event], source: str = "prototype", ses
     _record_items(conn, [(event_id, e) for event_id, e in zip(ids, events, strict=True) if event_id and e.items], known)
     _record_sessions(conn, starts, source, session or SessionInfo())
     _record_ratings(conn, [(e, stars, reasons, _client_ts(e, now) or e.ts or now) for e, (stars, reasons) in ratings])
+    _record_cancellations(conn, [(e, _client_ts(e, now) or e.ts or now) for e in cancellations])
     return saved
 
 
@@ -370,22 +378,69 @@ def _rating(e: Event) -> tuple[int, list[str]]:
         raise ValueError(f"Motivo de calificación desconocido: {reasons!r}")
     if not e.cart_id:
         raise ValueError("Una calificación necesita el pedido (cart_id)")
+    _store_of(e)
     return stars, list(dict.fromkeys(reasons))
 
 
+def _store_of(e: Event) -> int | None:
+    """La tienda del pedido de un evento (`payload.store_id`), o None. Una que no es un id rechaza el lote."""
+    store_id = e.payload.get("store_id")
+    if store_id is not None and (not isinstance(store_id, int) or isinstance(store_id, bool) or store_id < 0):
+        raise ValueError(f"Tienda inválida: {store_id!r}")
+    return store_id
+
+
+# El pedido de un evento: el de su carro y su tienda (un carro con dos tiendas son dos pedidos; `payload.store_id`, si
+# viene, elige el de la tienda) o, sin tienda, el de su vertical. Sin tienda ni vertical, todos los del carro.
+_ORDER_OF_EVENT = """user_id = %(user)s AND cart_id = %(cart)s
+    AND (%(store)s::bigint IS NULL OR EXISTS (SELECT 1 FROM app_order_lines l
+                                              WHERE l.order_id = app_orders.order_id AND l.store_id = %(store)s))
+    AND (%(store)s::bigint IS NOT NULL OR %(vertical)s::text IS NULL OR vertical = %(vertical)s)"""
+
+
+def _order_of_event(e: Event) -> dict:
+    return {"user": e.user_id, "cart": e.cart_id, "store": _store_of(e), "vertical": e.vertical}
+
+
 def _record_ratings(conn: Connection, ratings: list[tuple[Event, int, list[str], datetime]]) -> None:
-    """Cada calificación queda en los pedidos de su carro (`app_orders`: un carro con dos verticales son dos pedidos).
-    Las de «Rappi hoy» (`payload.mode = 'actual'`) no: ese modo no enseña, y la calificación pausa la recompra."""
+    """Cada calificación queda en el pedido de su carro y su tienda (`_ORDER_OF_EVENT`). Las de «Rappi hoy»
+    (`payload.mode = 'actual'`) no: ese modo no enseña, y la calificación pausa la recompra."""
     rows = [
-        (stars, reasons, rated_at, e.user_id, e.cart_id)
+        {"stars": stars, "reasons": reasons, "at": rated_at, **_order_of_event(e)}
         for e, stars, reasons, rated_at in ratings
         if e.payload.get("mode") != "actual"
     ]
     if rows:
         with conn.cursor() as cur:
             cur.executemany(
-                """UPDATE app_orders SET rating = %s, rating_reasons = %s, rated_at = %s
-                   WHERE user_id = %s AND cart_id = %s""",
+                f"""UPDATE app_orders SET rating = %(stars)s, rating_reasons = %(reasons)s, rated_at = %(at)s
+                    WHERE {_ORDER_OF_EVENT}""",
+                rows,
+            )
+
+
+def _check_cancellation(e: Event) -> bool:
+    """Un `order_cancelled` necesita su pedido (`cart_id`), un motivo y una etapa conocidos y, si trae tienda, un id.
+    Uno que no cumple rechaza el lote, como un tipo desconocido."""
+    if not e.cart_id:
+        raise ValueError("Una cancelación necesita el pedido (cart_id)")
+    if e.payload.get("reason") not in CANCEL_REASONS:
+        raise ValueError(f"Motivo de cancelación desconocido: {e.payload.get('reason')!r}")
+    if e.payload.get("stage") not in CANCEL_STAGES:
+        raise ValueError(f"Etapa de cancelación desconocida: {e.payload.get('stage')!r}")
+    _store_of(e)
+    return True
+
+
+def _record_cancellations(conn: Connection, cancellations: list[tuple[Event, datetime]]) -> None:
+    """Cada cancelación deja cancelado el pedido de su carro y su tienda (`_ORDER_OF_EVENT`), en los dos modos: es lo
+    que pasó con el pedido. Un pedido ya cancelado no cambia (un reintento no mueve la hora)."""
+    rows = [{"reason": e.payload["reason"], "at": at, **_order_of_event(e)} for e, at in cancellations]
+    if rows:
+        with conn.cursor() as cur:
+            cur.executemany(
+                f"""UPDATE app_orders SET status = 'cancelado', cancelled_at = %(at)s, cancel_reason = %(reason)s
+                    WHERE status = 'confirmado' AND {_ORDER_OF_EVENT}""",
                 rows,
             )
 
@@ -429,28 +484,32 @@ def record_order(
     mode: str = "propuesta",
     pro: bool | None = None,
     placed: dict | None = None,
+    scheduled_for: datetime | None = None,
+    delivery_type: str | None = None,
 ) -> str:
     """Pedido + líneas (producto o plato) + evento `order_placed`. Los precios de `lines` se guardan tal cual: la API
     los pone antes con `catalog_prices`. Un pedido en modo `actual` («Rappi hoy») no entra al perfil. `pro`: si la
     persona es Rappi Pro según la app (`app_users.pro`); `None` no lo cambia. `placed`: el sobre del `order_placed`
     (`surface`, `origin`, `request_id`) y lo que suma a su payload (`payload`), como en un pedido que Mochi hizo solo
-    (offers/autonomy.py)."""
+    (offers/autonomy.py). `scheduled_for`: el inicio de la franja si se programó; `delivery_type`: basica, sin_prisa o
+    prioritaria. Cada línea puede traer su preferencia de sustitución (`substitution`)."""
     order_id = f"ord-{uuid.uuid4().hex[:12]}"
     total = sum(float(line.get("unit_price") or 0) * int(line.get("qty", 1)) for line in lines)
     ensure_user(conn, user_id, source)
     if pro is not None:
         conn.execute("UPDATE app_users SET pro = %s WHERE user_id = %s", (pro, user_id))
     conn.execute(
-        """INSERT INTO app_orders (order_id, user_id, session_id, cart_id, ts, vertical, total, source, mode)
-           VALUES (%s, %s, %s, %s, coalesce(%s, now()), %s, %s, %s, %s)""",
-        (order_id, user_id, session_id, cart_id, ts, vertical, total, source, mode),
+        """INSERT INTO app_orders (order_id, user_id, session_id, cart_id, ts, vertical, total, source, mode,
+                                   scheduled_for, delivery_type)
+           VALUES (%s, %s, %s, %s, coalesce(%s, now()), %s, %s, %s, %s, %s, %s)""",
+        (order_id, user_id, session_id, cart_id, ts, vertical, total, source, mode, scheduled_for, delivery_type),
     )
     known = _known_concepts(conn)
     with conn.cursor() as cur:
         cur.executemany(
             """INSERT INTO app_order_lines (order_id, line_no, entity_type, entity_id, concept_id, qty, unit_price,
-                                            from_suggestion, store_id)
-               VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)""",
+                                            from_suggestion, store_id, substitution)
+               VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)""",
             [
                 (
                     order_id,
@@ -463,6 +522,7 @@ def record_order(
                     line.get("unit_price"),
                     bool(line.get("from_suggestion")),
                     line.get("store_id"),
+                    line.get("substitution"),
                 )
                 for i, line in enumerate(lines, start=1)
             ],
