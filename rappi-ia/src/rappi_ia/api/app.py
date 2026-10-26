@@ -535,7 +535,8 @@ def recommendations(
     svc: Services = Depends(get_services),
 ) -> dict:
     """ "Para ti, de otras tiendas": intereses del usuario → complementos → productos de otro vertical. Si quedan filas
-    libres, una más con lo más pedido de la vertical que mejor le calza (`_top_row`)."""
+    libres, una más con lo más pedido de la vertical que mejor le calza (`_top_row`). Una fila con concepto trae su
+    nombre visible (`concept_label`, el de la taxonomía: «Café», no el id «cafe»)."""
     interests = list(events.profile(conn, user_id))
     taxonomy = load_taxonomy()
     mine = preferences.load(
@@ -558,6 +559,7 @@ def recommendations(
                     # En el inicio no hay carro: la razón es el interés aprendido, no "porque llevas".
                     "reason": f"Por tu interés en {interest.emoji} {interest.name.lower()}",
                     "concept": suggestion.concept,
+                    "concept_label": label.name if (label := taxonomy.concepts.get(suggestion.concept)) else None,
                     "vertical": suggestion.vertical,
                     "prototype_vertical": PROTOTYPE_VERTICALS.get(suggestion.vertical),
                     "products": [p.to_dict() for p in suggestion.products],

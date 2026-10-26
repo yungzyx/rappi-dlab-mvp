@@ -16,7 +16,8 @@ test('muestra una tarjeta por fila de recomendaciones y abre su vertical', () =>
   expect(screen.getByRole('heading', { name: 'Descubre con Mochi' })).toBeTruthy()
   const [card] = document.querySelectorAll('.discover-card')
   expect(card.textContent).toContain('Por tu interés en 🍕 pizza')
-  expect(card.textContent).toContain('Gaseosas en Express')
+  // El nombre del concepto que manda la API (`concept_label`), no el id: «Bebidas gaseosas», no «Gaseosas» (ui C1).
+  expect(card.textContent).toContain('Bebidas gaseosas en Express')
   fireEvent.click(card)
   expect(onOpen).toHaveBeenCalledWith('express', expect.objectContaining({ position: expect.any(Number) }))
 })

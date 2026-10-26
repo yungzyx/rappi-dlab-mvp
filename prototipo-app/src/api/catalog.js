@@ -35,13 +35,15 @@ const ratingText = (rating) => (Number(rating) > 0 ? Number(rating).toFixed(1) :
  *   con la hora local, o `descarga` de una tienda), nunca el estado en vivo; `null` si no se sabe.
  * - `promos`: las promos que la tienda publicó (`{ type, title, value, threshold }`); `promo`: un restaurante con algún
  *   plato rebajado.
+ * - `name`: en un restaurante, su `display_name` («Pastelería - Vitacura»), el mismo de sus platos, del carro y de sus
+ *   pedidos; una respuesta grabada sin él usa `name` («Pastelería»).
  */
 export function toPrototypeStore(card) {
   const restaurant = 'cover' in card
   const eta = card.eta || undefined
   return {
     id: card.id,
-    name: card.name,
+    name: card.display_name ?? card.name,
     img: (restaurant ? card.cover : card.logo) || PLACEHOLDER_IMG,
     logo: !restaurant,
     eta,
@@ -147,8 +149,8 @@ export async function productStores(entityId, storeId, { substitutes = false } =
 const stockChecks = new Map()
 
 /**
- * ¿Está agotado este producto en su tienda? Lo dice la ficha (`productStores`: sin stock o con 0 unidades), que el
- * listado del pasillo no trae. Una vez por producto y tienda; si la API no contesta, no se sabe (false) y se vuelve a
+ * ¿Está agotado este producto en su tienda? Lo dice la ficha (`productStores`: sin stock o con 0 unidades), para lo
+ * que llega sin `available` ni `stock` (el listado del pasillo sí los trae). Una vez por producto y tienda; si la API no contesta, no se sabe (false) y se vuelve a
  * preguntar la próxima vez. Un plato no tiene stock.
  */
 export function soldOutHere(product) {

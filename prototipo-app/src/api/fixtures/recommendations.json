@@ -6,6 +6,7 @@
   "rows": [
     {
       "concept": "gaseosas",
+      "concept_label": "Bebidas gaseosas",
       "products": [
         {
           "age_restricted": false,

@@ -17,7 +17,7 @@ from rappi_ia.agent.tools import search_products
 from rappi_ia.agent.verticals import LOGO_BASE_URL
 from rappi_ia.api import app as api
 from rappi_ia.catalog import cache as catalog_cache
-from rappi_ia.catalog.stores import offer_price, product_detail, store_page, vertical_stores
+from rappi_ia.catalog.stores import offer_price, product_detail, product_stores, store_page, vertical_stores
 from rappi_ia.demo.seed import DEMO_VERTICALS, seed_demo
 from rappi_ia.events.store import catalog_prices
 
@@ -185,7 +185,7 @@ def test_store_page_prices_are_the_stores_own_and_current(seeded):
     assert norte["Papas fritas clásicas 180 g (prueba)"]["price_value"] == 2090
     assert set(norte["Papas fritas clásicas 180 g (prueba)"]) == {
         "id", "entity_type", "entity_id", "name", "vertical", "concept", "price", "price_value", "before",
-        "discount", "store", "img", "age_restricted", "store_id", "presentation",
+        "discount", "store", "img", "age_restricted", "store_id", "presentation", "available", "stock",
     }  # fmt: skip
     papas = centro["Papas fritas clásicas 180 g (prueba)"]
     assert (papas["id"], papas["entity_type"], papas["entity_id"]) == ("cat-91001", "catalog_item", "91001")
@@ -582,3 +582,18 @@ def test_offer_of_a_skipped_aisle_is_current_everywhere(seeded):
     assert product_detail(seeded, "catalog_item", "91201") is None
     assert offer_price(seeded, "catalog_item", "91201", CENTRO) is None
     assert seeded.execute("SELECT count(*) FROM search_documents WHERE entity_id = '91201'").fetchone()[0] == 0
+
+
+def test_store_page_says_which_products_are_sold_out_like_the_product_sheet(seeded):
+    """ui B6: el listado del pasillo trae `available` y `stock` de cada producto, con la regla de la ficha
+    (`product_stores`): los tallarines con 0 unidades están agotados; el café, con 3, no; sin unidades publicadas, se
+    sabe que hay (`stock` en `None`)."""
+    products = {p["entity_id"]: p for p in all_products(seeded, 9101)}
+    noodles, coffee = products["91101"], products["91004"]
+
+    assert (noodles["available"], noodles["stock"]) == (False, 0)
+    assert (coffee["available"], coffee["stock"]) == (True, 3)
+    assert all(p["available"] and p["stock"] is None for k, p in products.items() if k not in ("91101", "91004"))
+    for product in (noodles, coffee):
+        here = product_stores(seeded, product["entity_id"], 9101)["here"]
+        assert here["available"] == product["available"]

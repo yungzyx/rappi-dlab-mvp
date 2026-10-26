@@ -150,7 +150,8 @@ describe('restaurantes', () => {
     expect(list).toHaveLength(7)
     expect(list[0]).toEqual({
       id: 9804,
-      name: 'Parrilla de prueba',
+      // El nombre visible (`display_name`), el mismo de sus platos, del carro y de sus pedidos (ui C11).
+      name: 'Parrilla de prueba - Ñuñoa',
       img: 'https://imagenes.prueba.invalid/platos/98012.png',
       logo: false,
       eta: '40 min',
@@ -177,7 +178,7 @@ describe('restaurantes', () => {
     const list = await restaurants()
     const byName = (name) => list.find((card) => card.name === name)
 
-    const noEta = byName('Café de prueba')
+    const noEta = byName('Café de prueba - Las Condes')
     expect(noEta.eta).toBeUndefined()
     expect(noEta.etaIcon).toBe('none')
     expect(noEta.fee).toBe('$1.990')
@@ -187,7 +188,7 @@ describe('restaurantes', () => {
     expect(freeLooking.deliveryLabel).toBeUndefined()
     expect(freeLooking.rating).toBeUndefined()
 
-    const noCover = byName('Cevichería de prueba')
+    const noCover = byName('Cevichería de prueba - Santiago')
     expect(noCover.img).toBe(PLACEHOLDER_IMG)
     expect(noCover.logo).toBe(false)
     // El horario dice con null lo que no aplica (un abierto no tiene «abre a las»): el resto no inventa nada.
@@ -308,7 +309,7 @@ describe('descubrimiento', () => {
       top: 'true',
       promo: 'true',
     })
-    expect(list.map((card) => card.name)).toEqual(['Parrilla de prueba', 'Pizzería de prueba Centro'])
+    expect(list.map((card) => card.name)).toEqual(['Parrilla de prueba - Ñuñoa', 'Pizzería de prueba Centro'])
   })
 
   test('productStores: cada tienda con sus marcas y su lugar en la ficha', async () => {
