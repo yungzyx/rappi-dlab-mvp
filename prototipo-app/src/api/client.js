@@ -280,6 +280,7 @@ export function toAutoOrder(plan, requestId = null) {
 /**
  * Respuesta de /agent/ask → mensaje del agente en el prototipo ({ text, products, reason, actions, suggestion… }). Los
  * productos quedan marcados con su lugar en la respuesta (`agent-ask`, o el servicio de la sugerencia) y su `request_id`.
+ * Los de la sugerencia siguen la cuenta después de los de la respuesta: cada producto tiene su lugar en ella.
  */
 export function toMessage(response) {
   const requestId = response.request_id ?? null
@@ -301,7 +302,7 @@ export function toMessage(response) {
             fromSuggestion: true,
             suggestionOrigin,
           })),
-          { surface: 'agent', origin: suggestionOrigin, requestId },
+          { surface: 'agent', origin: suggestionOrigin, requestId, start: (response.products ?? []).length },
         ),
       }
     : null
