@@ -74,6 +74,32 @@ describe('pedir por mí sin conexión', () => {
     expect(allow([99]).status).toBe(422)
   })
 
+  test('una tienda que calificó mal hace poco se revisa antes; un pedido cancelado no se califica', () => {
+    const rate = (cart, stars) =>
+      call('POST', '/events', {
+        user_id: 'u',
+        events: [{ type: 'order_rated', session_id: 's', cart_id: cart, payload: { stars, store_id: 11 } }],
+      })
+    order(line(coffee))
+    allow([11])
+    rate('c', 2)
+    expect(say('lo de siempre').autopedido).toMatchObject({ codigo: 'calificacion', modo: 'revisar' })
+    const auto = { user_id: 'u', vertical: 'supermercado', lines: [line(coffee)], autopedido: {} }
+    expect(call('POST', '/orders', auto)).toMatchObject({ status: 409, body: { detail: { codigo: 'calificacion' } } })
+
+    localStorage.clear()
+    const cancelled = { reason: 'ya_no', stage: 'antes_de_tienda' }
+    for (const cart of ['c-ok', 'c-no'])
+      call('POST', '/orders', { user_id: 'u', vertical: 'supermercado', lines: [line(coffee)], cart_id: cart })
+    call('POST', '/events', {
+      user_id: 'u',
+      events: [{ type: 'order_cancelled', session_id: 's', cart_id: 'c-no', payload: cancelled }],
+    })
+    allow([11])
+    rate('c-no', 1)
+    expect(say('lo de siempre').autopedido.codigo).not.toBe('calificacion')
+  })
+
   test('se apaga en un toque, no corre en «Rappi hoy» y se va con «Olvidar»', () => {
     order(line(coffee))
     allow([11])

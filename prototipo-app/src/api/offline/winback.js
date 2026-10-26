@@ -181,7 +181,7 @@ export function available(state, candidates, now) {
  * Lo que no se ofrece en la recompra ni en el «volver» por una calificación mala (winback.py: paused): los conceptos y
  * las tiendas de los pedidos `propuesta` cuyo carro se calificó (`order_rated`, fuera de «Rappi hoy») con 3 estrellas o
  * menos en los últimos 30 días. Vale la última calificación de cada pedido: su carro y, si la trae, su tienda
- * (`payload.store_id`: un carro con dos tiendas son dos pedidos).
+ * (`payload.store_id`: un carro con dos tiendas son dos pedidos). Un pedido cancelado no se califica: no pausa nada.
  */
 export function paused(state, now) {
   const last = new Map()
@@ -200,7 +200,7 @@ export function paused(state, now) {
   const concepts = new Set()
   const stores = new Set()
   for (const order of state.orders)
-    if (order.mode === 'propuesta' && rated(order))
+    if (order.mode === 'propuesta' && isConfirmed(order) && rated(order))
       for (const line of order.lines) {
         if (line.concept_id) concepts.add(line.concept_id)
         if (line.store_id != null) stores.add(Number(line.store_id))

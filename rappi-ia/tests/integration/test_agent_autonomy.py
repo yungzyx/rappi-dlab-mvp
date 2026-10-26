@@ -200,6 +200,22 @@ def test_never_in_a_closed_store(client, monkeypatch):
     assert plan["codigo"] == "cerrada" and "según el horario que publicó" in plan["motivo"]
 
 
+def test_not_alone_after_a_bad_rating_of_that_store(client, db):
+    """Como la recompra y el «volver» (`winback.paused`): una tienda que calificó mal hace poco se revisa antes."""
+    order(client, CENTRO, "supermercado", COFFEE)
+    allow(client, [CENTRO])
+    rating = {"type": "order_rated", "session_id": "s-r", "cart_id": "c-1"}
+    rating["payload"] = {"stars": 2, "reasons": ["faltante"], "store_id": CENTRO}
+    assert client.post("/events", json={"user_id": USER, "events": [rating]}).status_code == 200
+
+    plan = say(client, "pide lo de siempre en el supermercado de prueba centro")["autopedido"]
+
+    assert plan["modo"] == "revisar" and plan["codigo"] == "calificacion"
+    assert "calificaste mal un pedido de Supermercado de prueba Centro" in plan["motivo"]
+    rejected = order(client, CENTRO, "supermercado", COFFEE, cart="c-auto", autopedido={})
+    assert rejected.status_code == 409 and rejected.json()["detail"]["codigo"] == "calificacion"
+
+
 def test_only_the_usual_and_undo_sends_nothing(client, db):
     order(client, CENTRO, "supermercado", COFFEE)
     allow(client, [CENTRO])
@@ -301,3 +317,15 @@ def test_the_stores_ordered_from_are_options_for_favorites(client, db):
         f"/profile/{USER}/preferencias", json={"preferencias": [{"tipo": "tienda", "valor": store["valor"]}]}
     )
     assert saved.json()["preferencias"] == [store]
+
+
+def test_a_store_whose_only_order_was_cancelled_is_not_an_option(client):
+    """Ni «Mis preferencias» ni «Pedir por mí» ofrecen una tienda de la que solo hay un pedido cancelado."""
+    assert order(client, CENTRO, "supermercado", COFFEE).status_code == 200
+    cancelled = {"type": "order_cancelled", "session_id": "s-c", "cart_id": "c-1"}
+    cancelled["payload"] = {"reason": "ya_no", "stage": "antes_de_tienda"}
+    assert client.post("/events", json={"user_id": USER, "events": [cancelled]}).status_code == 200
+
+    options = client.get(f"/profile/{USER}/preferencias").json()["opciones"]
+    assert not any(o["tipo"] == "tienda" for o in options)
+    assert client.get(f"/profile/{USER}/autonomia").json()["opciones"]["tiendas"] == []

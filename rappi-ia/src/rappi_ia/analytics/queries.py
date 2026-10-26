@@ -76,7 +76,7 @@ _RHYTHM = f"""
 user_orders AS (  -- por día con pedidos: dos pedidos del mismo carro (dos verticales) no son "ritmo 0"
     SELECT user_id, day AS ts, lag(day) OVER (PARTITION BY user_id ORDER BY day) AS prev
     FROM (SELECT DISTINCT user_id, date_trunc('day', ts) AS day FROM app_orders
-          WHERE source = %(source)s AND ts > {_AS_OF} - interval '180 days') d
+          WHERE source = %(source)s AND status = 'confirmado' AND ts > {_AS_OF} - interval '180 days') d
 ),
 rhythm AS (
     SELECT user_id, count(*) + 1 AS orders,
@@ -86,7 +86,7 @@ rhythm AS (
 ),
 last_order AS (  -- compras, no pedidos: un carro dividido en dos verticales es una sola compra
     SELECT user_id, count(DISTINCT coalesce(cart_id, order_id)) AS orders, max(ts) AS last_ts
-    FROM app_orders WHERE source = %(source)s GROUP BY user_id
+    FROM app_orders WHERE source = %(source)s AND status = 'confirmado' GROUP BY user_id
 ),
 risk AS (
     SELECT l.user_id, l.orders, r.days AS rhythm,
@@ -98,8 +98,13 @@ risk AS (
     FROM last_order l LEFT JOIN rhythm r USING (user_id)
 )"""
 
+# Un `order_placed` (el evento `e`) cuyo pedido se canceló no cuenta: el evento queda, pero el pedido no ocurrió
+# (migración 050). Los simulados no traen `payload.order_id` ni se cancelan, así que siguen contando.
+_NOT_CANCELLED = """NOT (e.type = 'order_placed' AND EXISTS (
+        SELECT 1 FROM app_orders x WHERE x.order_id = e.payload ->> 'order_id' AND x.status = 'cancelado'))"""
+
 # Embudo (ver funnel()): una fila por sesión y vertical; la entrada se mira en toda la sesión.
-_FUNNEL = """
+_FUNNEL = f"""
 entry AS (  -- buscó, chateó, navegó, aceptó una sugerencia o agregó desde una lista (el «+» solo manda cart_add),
             -- en cualquier vertical (o sin vertical)
     SELECT DISTINCT session_id FROM app_events
@@ -111,9 +116,10 @@ funnel_steps AS (
            bool_or(type = 'cart_add') AS carro,
            bool_or(type = 'checkout_start') AS pago,
            bool_or(type = 'order_placed') AS pedido
-    FROM app_events
+    FROM app_events e
     WHERE source = %(source)s AND vertical IS NOT NULL
       AND type NOT IN ('suggestion_shown', 'suggestion_dismissed', 'list_view', 'offer_withheld')
+      AND {_NOT_CANCELLED}
     GROUP BY 1, 2
 )"""
 
@@ -129,7 +135,7 @@ def kpis(conn: Connection, source: str = "synthetic") -> dict:
             ),
             orders30 AS (
                 SELECT count(*) AS n FROM app_orders
-                WHERE source = %(source)s AND ts > {_AS_OF} - interval '{ACTIVE_DAYS} days'
+                WHERE source = %(source)s AND status = 'confirmado' AND ts > {_AS_OF} - interval '{ACTIVE_DAYS} days'
             ),
             {_CARTS.strip()},
             abandoned AS (  -- carros con actividad en los últimos 30 días, como los demás indicadores
@@ -137,7 +143,9 @@ def kpis(conn: Connection, source: str = "synthetic") -> dict:
             ),
             multi AS (
                 SELECT user_id, count(DISTINCT vertical) AS verticals FROM app_orders
-                WHERE source = %(source)s AND ts > {_AS_OF} - interval '{MULTI_VERTICAL_DAYS} days' GROUP BY user_id
+                WHERE source = %(source)s AND status = 'confirmado'
+                  AND ts > {_AS_OF} - interval '{MULTI_VERTICAL_DAYS} days'
+                GROUP BY user_id
             ),
             searches AS (  -- solo lo que sabe si encontró algo: la búsqueda local del prototipo no lo sabe (unmet NULL)
                 SELECT count(*) FILTER (WHERE unmet) AS unmet, count(*) FILTER (WHERE unmet IS NOT NULL) AS total
@@ -192,7 +200,7 @@ def weekly(conn: Connection, source: str = "synthetic") -> list[dict]:
            ),
            orders AS (
                SELECT date_trunc('week', ts) AS week, count(*) AS pedidos
-               FROM app_orders WHERE source = %(source)s GROUP BY 1
+               FROM app_orders WHERE source = %(source)s AND status = 'confirmado' GROUP BY 1
            ),
            abandonment AS (  -- cada carro, en la semana de su último evento
                SELECT date_trunc('week', last_cart_ts) AS week,
@@ -311,7 +319,8 @@ def cohorts(conn: Connection, source: str = "synthetic", max_weeks: int = 8) -> 
     return _rows(
         conn,
         f"""WITH firsts AS (
-               SELECT user_id, date_trunc('week', min(ts)) AS cohort FROM app_orders WHERE source = %(source)s
+               SELECT user_id, date_trunc('week', min(ts)) AS cohort FROM app_orders
+               WHERE source = %(source)s AND status = 'confirmado'
                GROUP BY 1
            ),
            sizes AS (SELECT cohort, count(*) AS usuarios FROM firsts GROUP BY 1 HAVING count(*) >= %(min_users)s),
@@ -319,7 +328,7 @@ def cohorts(conn: Connection, source: str = "synthetic", max_weeks: int = 8) -> 
                SELECT DISTINCT o.user_id, f.cohort,
                       -- en días enteros: el cambio de hora (semana de 6 días y 23 h) no corre las semanas
                       (date_trunc('week', o.ts)::date - f.cohort::date) / 7 AS k
-               FROM app_orders o JOIN firsts f USING (user_id) WHERE o.source = %(source)s
+               FROM app_orders o JOIN firsts f USING (user_id) WHERE o.source = %(source)s AND o.status = 'confirmado'
            ),
            grid AS (
                SELECT s.cohort, s.usuarios, k
@@ -365,7 +374,7 @@ def at_risk(conn: Connection, source: str = "synthetic", limit: int = 100) -> li
                 SELECT DISTINCT ON (o.user_id) o.user_id, l.concept_id, count(*) AS n
                 FROM app_order_lines l JOIN app_orders o USING (order_id)
                 JOIN concepts c ON c.concept_id = l.concept_id
-                WHERE o.source = %(source)s AND NOT c.sensitive
+                WHERE o.source = %(source)s AND o.status = 'confirmado' AND NOT c.sensitive
                 GROUP BY o.user_id, l.concept_id
                 ORDER BY o.user_id, n DESC
             )
@@ -413,7 +422,7 @@ def suggestions(conn: Connection, source: str = "synthetic") -> list[dict]:
            converted AS (
                SELECT l.concept_id, o.vertical, count(*) AS convertidas
                FROM app_order_lines l JOIN app_orders o USING (order_id)
-               WHERE o.source = %(source)s AND l.from_suggestion GROUP BY 1, 2
+               WHERE o.source = %(source)s AND o.status = 'confirmado' AND l.from_suggestion GROUP BY 1, 2
            )
            SELECT c.emoji || ' ' || c.name AS concepto, s.vertical, s.mostradas, s.aceptadas, s.ignoradas,
                   coalesce(cv.convertidas, 0) AS convertidas,
@@ -530,8 +539,8 @@ def offers(conn: Connection, source: str = "synthetic") -> dict:
     # aceptadas. Su `order_placed` lleva el origen `agent-autopedido`.
     [auto] = _rows(
         conn,
-        """SELECT count(*) AS pedidos, count(DISTINCT user_id) AS personas FROM app_events
-           WHERE source = %(source)s AND type = 'order_placed' AND origin = %(origin)s""",
+        f"""SELECT count(*) AS pedidos, count(DISTINCT user_id) AS personas FROM app_events e
+            WHERE source = %(source)s AND type = 'order_placed' AND origin = %(origin)s AND {_NOT_CANCELLED}""",
         {"source": source, "origin": AUTO_ORDER_ORIGIN},
     )
     row["autopedidos"] = auto
@@ -747,19 +756,22 @@ def multi_vertical_retention(conn: Connection, source: str = "synthetic") -> lis
     return _rows(
         conn,
         f"""WITH firsts AS (
-                SELECT user_id, min(ts) AS first_ts FROM app_orders WHERE source = %(source)s GROUP BY 1
+                SELECT user_id, min(ts) AS first_ts FROM app_orders
+                WHERE source = %(source)s AND status = 'confirmado' GROUP BY 1
             ),
             eligible AS (SELECT * FROM firsts WHERE first_ts <= {_AS_OF} - interval '{RETENTION_TO} days'),
             early AS (  -- compras (un carro dividido en dos verticales es una), como en el estado de riesgo
                 SELECT e.user_id, count(DISTINCT coalesce(o.cart_id, o.order_id)) AS compras,
                        count(DISTINCT o.vertical) AS verticales
-                FROM eligible e JOIN app_orders o ON o.user_id = e.user_id AND o.source = %(source)s
+                FROM eligible e
+                JOIN app_orders o ON o.user_id = e.user_id AND o.source = %(source)s AND o.status = 'confirmado'
                 WHERE o.ts < e.first_ts + interval '{MULTI_VERTICAL_DAYS} days'
                 GROUP BY e.user_id
             ),
             retained AS (
                 SELECT e.user_id, EXISTS (
-                    SELECT 1 FROM app_orders o WHERE o.user_id = e.user_id AND o.source = %(source)s
+                    SELECT 1 FROM app_orders o
+                    WHERE o.user_id = e.user_id AND o.source = %(source)s AND o.status = 'confirmado'
                       AND o.ts >= e.first_ts + interval '{RETENTION_FROM} days'
                       AND o.ts < e.first_ts + interval '{RETENTION_TO} days') AS kept
                 FROM eligible e
@@ -794,7 +806,7 @@ def pro_split(conn: Connection, source: str = "synthetic") -> dict:
                    count(DISTINCT o.vertical) FILTER (WHERE o.ts > {_AS_OF} - interval '{MULTI_VERTICAL_DAYS} days')
                        AS verticales_60d,
                    bool_or(o.ts > {_AS_OF} - interval '{MULTI_VERTICAL_DAYS} days') AS activa_60d
-            FROM app_orders o WHERE o.source = %(source)s GROUP BY o.user_id
+            FROM app_orders o WHERE o.source = %(source)s AND o.status = 'confirmado' GROUP BY o.user_id
         ),
         people AS (
             SELECT p.*, u.pro FROM purchases p JOIN app_users u ON u.user_id = p.user_id AND u.source = %(source)s
@@ -804,7 +816,8 @@ def pro_split(conn: Connection, source: str = "synthetic") -> dict:
         f"""WITH {people.strip()},
             retained AS (
                 SELECT p.user_id, EXISTS (
-                    SELECT 1 FROM app_orders o WHERE o.user_id = p.user_id AND o.source = %(source)s
+                    SELECT 1 FROM app_orders o
+                    WHERE o.user_id = p.user_id AND o.source = %(source)s AND o.status = 'confirmado'
                       AND o.ts >= p.first_ts + interval '{RETENTION_FROM} days'
                       AND o.ts < p.first_ts + interval '{RETENTION_TO} days') AS kept
                 FROM people p WHERE p.first_ts <= {_AS_OF} - interval '{RETENTION_TO} days'
@@ -845,7 +858,7 @@ _AFFINITY_SQL = """
 WITH bought AS (
     SELECT DISTINCT o.user_id, l.concept_id
     FROM app_order_lines l JOIN app_orders o USING (order_id) JOIN concepts c ON c.concept_id = l.concept_id
-    WHERE o.source = %(source)s AND NOT l.from_suggestion AND NOT c.sensitive
+    WHERE o.source = %(source)s AND o.status = 'confirmado' AND NOT l.from_suggestion AND NOT c.sensitive
 ),
 users AS (SELECT count(DISTINCT user_id)::float AS n FROM bought),
 per_concept AS (SELECT concept_id, count(*) AS n FROM bought GROUP BY 1),
