@@ -1072,7 +1072,8 @@ def test_questions_about_the_app_get_an_answer_not_products(rappi_agent):
     assert "envío" in agent.reply(db, "hacen delivery?", Context())["text"]
     assert "Ofertas" in agent.reply(db, "tienen ofertas?", Context())["text"]
     off_topic = agent.reply(db, "cuéntame un chiste", Context(mode="propuesta"))
-    assert not off_topic["products"] and not off_topic.get("unmet") and not off_topic["actions"]
+    # Sin chat: lo que no es de Rappi deja las ideas para tocar, no un campo vacío.
+    assert not off_topic["products"] and not off_topic.get("unmet") and off_topic["actions"] == help_["actions"]
     assert "pedir" in off_topic["text"]
     memory = agent.reply(db, "olvida lo que te dije", Context(mode="propuesta"))
     assert not memory["products"] and "Olvidar" in memory["text"]
