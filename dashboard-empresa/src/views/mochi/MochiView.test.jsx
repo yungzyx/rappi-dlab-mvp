@@ -39,6 +39,15 @@ describe('MochiView', () => {
     expect(within(plan).getByText('Un kit para una ocasión que la persona elige (carrete, asado)')).toBeTruthy()
   })
 
+  test('the orders Mochi placed alone, with permission, are counted apart from the offers', async () => {
+    serveFixtures()
+    await renderWithData(<MochiView source="prototype" />)
+
+    const line = await screen.findByTestId('autopedidos')
+    expect(line.textContent).toContain('con permiso («Pedir por mí»): 1 de 1 persona.')
+    expect(line.textContent).toContain('No cuentan como ofertas aceptadas.')
+  })
+
   test('each moment has its Spanish label, and a rate the backend computes is shown', async () => {
     serveFixturesWith(
       offersWith([

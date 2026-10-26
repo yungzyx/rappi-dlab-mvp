@@ -36,14 +36,15 @@ let healthCache = { at: 0, value: null }
 /**
  * Por qué falló una petición a la API: `offline` (no hay quien responda, o lo que responde no es la API),
  * `timeout` (no contestó a tiempo), `cancelled` (la cortó quien la pidió) o `http` (contestó con un error; `status` es
- * su código).
+ * su código). Un 409 trae el `detail` de la API (el motivo por el que no tomó un pedido que Mochi hizo solo).
  */
 export class ApiError extends Error {
-  constructor(kind, { status, cause } = {}) {
+  constructor(kind, { status, cause, detail } = {}) {
     super(kind === 'http' ? `API ${status}` : `API ${kind}`, { cause })
     this.name = 'ApiError'
     this.kind = kind
     this.status = status
+    this.detail = detail
   }
 }
 
@@ -103,7 +104,10 @@ async function send(path, { method = 'GET', body, timeout = DEFAULT_TIMEOUT_MS, 
       signal: controller.signal,
       ...(keepalive ? { keepalive: true } : {}),
     })
-    if (!response.ok) throw new ApiError('http', { status: response.status })
+    if (!response.ok) {
+      const detail = response.status === 409 ? (await response.json().catch(() => null))?.detail : undefined
+      throw new ApiError('http', { status: response.status, detail })
+    }
     if (response.status === 204) return null
     return await response.json()
   } catch (error) {
@@ -248,6 +252,31 @@ function verticalView(vertical) {
   return screen ? { label: VERTICAL_NAMES[screen], route: routeForScreen(screen) } : { label: null, route: null }
 }
 
+// El origen de lo que Mochi pide solo («Pedir por mí», api/autonomy.js): su `order_placed` lo lleva.
+export const AUTO_ORDER_ORIGIN = 'agent-autopedido'
+
+/**
+ * El plan de «pide lo de siempre» que trae `/agent/ask` (`autopedido`) → `{ mode, store, lines: [{ product, qty }],
+ * subtotal, cap, code, reason, basis, requestId }`. Los productos llevan su lugar (`agent-autopedido`).
+ */
+export function toAutoOrder(plan, requestId = null) {
+  const products = placeList(
+    plan.lineas.map((line) => toPrototypeProduct(line.product)),
+    { surface: 'agent', origin: AUTO_ORDER_ORIGIN, requestId },
+  )
+  return {
+    mode: plan.modo,
+    store: plan.tienda,
+    lines: products.map((product, i) => ({ product, qty: plan.lineas[i].qty })),
+    subtotal: plan.subtotal,
+    cap: plan.tope,
+    code: plan.codigo,
+    reason: plan.motivo,
+    basis: plan.basis,
+    requestId,
+  }
+}
+
 /**
  * Respuesta de /agent/ask → mensaje del agente en el prototipo ({ text, products, reason, actions, suggestion… }). Los
  * productos quedan marcados con su lugar en la respuesta (`agent-ask`, o el servicio de la sugerencia) y su `request_id`.
@@ -310,6 +339,8 @@ export function toMessage(response) {
       if (a.vertical && !a.route) return { label: a.label, route: verticalView(a.vertical).route }
       return a
     }),
+    // «Pide lo de siempre en…» (api/autonomy.js): el pedido que Mochi hace solo o deja para revisar antes.
+    ...(response.autopedido ? { autoOrder: toAutoOrder(response.autopedido, requestId) } : {}),
     tags: response.tags ?? [],
     concepts: response.intent?.concepts ?? [],
     unmet: Boolean(response.unmet),

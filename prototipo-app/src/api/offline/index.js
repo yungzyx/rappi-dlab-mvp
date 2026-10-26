@@ -43,10 +43,14 @@
 //   lo que Mochi sabe hacer, el resumen antes de pagar y el último pedido (search.js: appQuestion, helpReply)
 // - rappi-ia/src/rappi_ia/catalog/terms.py ........ las condiciones de compra de las tiendas (catalog.js: storeTerms;
 //   la muestra solo sabe el envío de los restaurantes)
+// - rappi-ia/src/rappi_ia/offers/autonomy.py, api/autonomy.py, agent/understand.py (USUAL_ORDER), rappi_agent.py
+//   (_usual_order) y api/app.py (_auto_order) ... «Pedir por mí»: el permiso, «pide lo de siempre en…» y la revisión
+//   del pedido que Mochi hace solo (autonomy.js)
 // - rappi-ia/src/rappi_ia/api/app.py y api/catalog.py ... las rutas (index.js, catalog.js, search.js), con el
 //   `request_id` de las respuestas que ordenan cosas (index.js: served)
 // No hay población que aprenda (transiciones, popularidad, retención aprendida) ni búsqueda semántica, y lo pedido en
 // la demo se repite sin esperar su ritmo (offers.js: repeatOffer): es una demo, no evidencia.
+import { autonomyReply, checkAutoOrder, saveAutonomy, turnOffAutonomy, usualAnswer } from './autonomy'
 import { catalogRoute } from './catalog'
 import { contractArticles, homeVerticals } from './motor'
 import { makeOffer } from './offers'
@@ -359,7 +363,7 @@ function answer(snapshot, { method, path, query, body }, now) {
   if (key === 'POST /catalog/availability') return { body: availability(snapshot, body?.lines ?? []) }
   if (key === 'GET /search') return { body: search(snapshot, query) }
   if (key === 'POST /agent/ask') {
-    const said = preferenceAnswer(snapshot, state, body ?? {})
+    const said = preferenceAnswer(snapshot, state, body ?? {}) ?? usualAnswer(snapshot, state, body ?? {}, now)
     if (said) return { body: said }
     const mine = interests(snapshot, state, now).map((i) => i.concept)
     const reply = ask(snapshot, body, { interests: mine, userId: state.userId })
@@ -391,6 +395,9 @@ function answer(snapshot, { method, path, query, body }, now) {
     // Un pedido es de una tienda (api/app.py: post_order).
     if (new Set(body.lines.map((line) => line.store_id).filter((id) => id != null)).size > 1)
       return { status: 400, body: { detail: 'Un pedido es de una sola tienda' } }
+    // Un pedido que Mochi hizo solo se vuelve a revisar con lo de siempre de ahora (api/app.py: _auto_order).
+    const auto = body.autopedido ? checkAutoOrder(snapshot, state, body, now) : null
+    if (auto?.status) return auto
     const order = {
       order_id: `o-${randomHex()}`,
       ts: now,
@@ -398,11 +405,12 @@ function answer(snapshot, { method, path, query, body }, now) {
       mode: body.mode ?? 'propuesta',
       cart_id: body.cart_id ?? null,
       lines: body.lines,
+      ...(auto ? { origin: auto.origin, basis: auto.basis } : {}),
     }
     addOrder(order)
     return { body: { order_id: order.order_id, lineas_omitidas: 0 } }
   }
-  const profile = /^\/profile\/([^/]+)(\/verticales|\/gustos|\/busquedas|\/preferencias)?$/.exec(path)
+  const profile = /^\/profile\/([^/]+)(\/verticales|\/gustos|\/busquedas|\/preferencias|\/autonomia)?$/.exec(path)
   if (profile) {
     const userId = decodeURIComponent(profile[1])
     if (profile[2] === '/preferencias' && (method === 'GET' || method === 'PUT')) {
@@ -412,6 +420,11 @@ function answer(snapshot, { method, path, query, body }, now) {
       }
       const saved = readState().preferences ?? []
       return { body: { preferencias: describe(snapshot.meta, saved), opciones: options(snapshot.meta) } }
+    }
+    if (profile[2] === '/autonomia') {
+      if (method === 'GET') return { body: autonomyReply(snapshot, state) }
+      if (method === 'PUT') return saveAutonomy(snapshot, state, body)
+      if (method === 'DELETE') return turnOffAutonomy(snapshot)
     }
     if (method === 'DELETE' && !profile[2])
       return { body: { user_id: userId, concept: null, eventos_borrados: clearState() } }

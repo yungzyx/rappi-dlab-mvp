@@ -3,7 +3,7 @@ import AddButton from '../AddButton'
 import HScroll from '../HScroll'
 import Img from '../Img'
 import OfferWhy from './OfferWhy'
-import { LastOrderCard, OrderSummaryCard } from './AgentCards'
+import { AutoOrderCard, LastOrderCard, OrderSummaryCard } from './AgentCards'
 import { useReducedMotion } from '../../hooks/useReducedMotion'
 import { useProductSheet } from '../../state/ProductSheetContext'
 import { typedEnd } from '../../utils/typed'
@@ -162,8 +162,10 @@ function AlsoIn({ alsoIn, onAction }) {
 /**
  * Una respuesta del agente con tarjetas (lo elegido se muestra aparte, sin burbuja). `followUp` (para seguir la
  * conversación) va justo debajo de sus productos, antes de la sugerencia de otra tienda. Con `orderSummary`, el resumen
- * del carro antes de pagar; con `lastOrder`, el último pedido (`onTrack` abre su seguimiento). Mientras espera, si la
- * respuesta se puede cortar (`cancellable`), dice qué está haciendo y ofrece «Cancelar» (`onCancel`).
+ * del carro antes de pagar; con `lastOrder`, el último pedido (`onTrack` abre su seguimiento); con `autoOrder`, lo de
+ * siempre que Mochi pide solo o deja para revisar (`autoOrder` de las props: su estado y lo que hacen sus botones, que
+ * lleva AssistantPanel). Mientras espera, si la respuesta se puede cortar (`cancellable`), dice qué está haciendo y
+ * ofrece «Cancelar» (`onCancel`).
  */
 export default function AgentMessage({
   message,
@@ -174,6 +176,7 @@ export default function AgentMessage({
   onRetry,
   onCancel,
   onTrack,
+  autoOrder,
   followUp,
 }) {
   const [revealed, setRevealed] = useState(!message.animate)
@@ -197,6 +200,9 @@ export default function AgentMessage({
           {message.reason && <p className="agent-msg-reason">{message.reason}</p>}
           {message.orderSummary && <OrderSummaryCard />}
           {message.lastOrder && <LastOrderCard onTrack={onTrack} />}
+          {message.autoOrder && (
+            <AutoOrderCard order={message.autoOrder} revealed={revealed} onTrack={onTrack} {...autoOrder} />
+          )}
           {message.products?.length > 0 && <ProductCards products={message.products} onOpenProduct={onOpenProduct} />}
           {message.offerReason && <OfferWhy reason={message.offerReason} />}
           {followUp}

@@ -6,8 +6,13 @@ import { userId } from './user'
 
 const OFFER_TIMEOUT_MS = 5_000
 
-/** La acción del servidor trae la vertical de la app (`route: ['express']`); aquí pasa a la ruta de su pantalla. */
-function toAction({ route, ...action }) {
+/**
+ * La acción del servidor trae la vertical de la app (`route: ['express']`); aquí pasa a la ruta de su pantalla. Una que
+ * le pide algo a Mochi (`ask`, como «Pide lo de siempre por mí» en la recompra) queda `{ ask: { text } }`, como las de
+ * /agent/ask.
+ */
+function toAction({ route, ask, ...action }) {
+  if (typeof ask === 'string') return { ...action, ask: { text: ask } }
   return route?.[0] ? { ...action, route: routeForScreen(route[0]) } : action
 }
 

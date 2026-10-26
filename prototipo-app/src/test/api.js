@@ -48,6 +48,7 @@ const isSlow = (value) => typeof value === 'object' && value !== null && typeof 
 async function respond(route, req, signal) {
   const value = typeof route === 'function' ? route(req) : route
   if (value === undefined) return json(404, { detail: 'Not Found' })
+  if (value instanceof Response) return value
   if (value === 'offline') throw new TypeError('Failed to fetch')
   if (typeof value === 'number')
     return value === 204 ? new Response(null, { status: 204 }) : json(value, { detail: `HTTP ${value}` })
@@ -102,6 +103,7 @@ function parseBody(body) {
  * - 'offline': el fetch falla, como sin red;
  * - 'slow:<ms>': responde la fixture de la ruta pasados esos ms (se rinde si la petición se aborta);
  * - { slow: ms, body }: responde `body` (cualquiera de estos valores) pasados esos ms;
+ * - una `Response`: tal cual (un error con su cuerpo, como el 409 de un pedido que Mochi hizo solo);
  * - (req) => valor: decide según `req = { method, path, query: URLSearchParams, body }` (el cuerpo, ya leído como JSON).
  * Una clave puede terminar en `/*` para calzar cualquier ruta que empiece así (`'GET /orders/*'`). `POST /session`
  * responde la sesión de ejemplo; las de `routes` la reemplazan.
