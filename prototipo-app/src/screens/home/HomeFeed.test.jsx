@@ -88,7 +88,15 @@ describe('Home de «Rappi hoy»', () => {
     fireEvent.click(screen.getByText('RappiTravel'))
     expect(events.track.mock.calls.filter(([type]) => type === 'vertical_open')).toHaveLength(1)
     expect(events.track.mock.calls.filter(([type]) => type === 'service_opened')).toEqual([
-      ['service_opened', { payload: { servicio: 'rappitravel', desde: 'home' } }],
+      [
+        'service_opened',
+        {
+          surface: 'home',
+          origin: 'accesos',
+          position: expect.any(Number),
+          payload: { servicio: 'rappitravel', desde: 'home' },
+        },
+      ],
     ])
   })
 

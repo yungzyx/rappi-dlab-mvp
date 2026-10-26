@@ -470,7 +470,8 @@ export default function LiveHomeFeed({ push, active = true }) {
     const open = made.actions.find((action) => action.route)
     // Si el paso es un servicio sin catálogo (RappiFavor, RappiTravel), se anota ofrecido y, al abrirlo, abierto: así
     // la escalera sigue.
-    if (open?.service) events.track('service_shown', { payload: { servicio: open.service } })
+    const offered = envelope({ surface: 'home', origin: `agent-${made.moment}`, requestId: made.requestId })
+    if (open?.service) events.track('service_shown', { ...offered, payload: { servicio: open.service } })
     // La burbuja no lleva productos: no promete «mira estas ofertas» (eso lo dice el texto de la API, que sí los muestra).
     const name = VERTICAL_NAMES[screenForBackend(made.backendVertical)]
     speak(
@@ -485,7 +486,8 @@ export default function LiveHomeFeed({ push, active = true }) {
                 {
                   label: open.label,
                   onClick: () => {
-                    if (open.service) events.track('service_opened', { payload: { servicio: open.service } })
+                    if (open.service)
+                      events.track('service_opened', { ...offered, payload: { servicio: open.service } })
                     visit(made.vertical, open.route)
                   },
                 },
@@ -519,7 +521,11 @@ export default function LiveHomeFeed({ push, active = true }) {
       }),
     })
   /** Abrir RappiFavor o RappiTravel desde la Home cuenta como usarlo, igual que desde la oferta de Mochi. */
-  const openService = (servicio) => events.track('service_opened', { payload: { servicio, desde: 'home' } })
+  const openService = (servicio, where) =>
+    events.track('service_opened', {
+      ...envelope({ surface: 'home', ...where, requestId: verticalOrder.requestId }),
+      payload: { servicio, desde: 'home' },
+    })
 
   const blocks = {
     essentials: (

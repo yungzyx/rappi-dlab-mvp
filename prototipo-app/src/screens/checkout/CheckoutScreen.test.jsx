@@ -124,6 +124,7 @@ describe('inicio de pago', () => {
     const starts = checkoutStarts()
     expect(starts.map((fields) => fields.vertical).sort()).toEqual(['licores', 'supermercado'])
     expect(new Set(starts.map((fields) => fields.cart_id)).size).toBe(1)
+    expect(starts.every((fields) => fields.surface === 'checkout')).toBe(true)
   })
 
   test('volver sin pagar deja el inicio de pago y ningún pedido', () => {

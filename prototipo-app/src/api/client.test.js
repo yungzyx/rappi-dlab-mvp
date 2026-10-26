@@ -162,10 +162,17 @@ describe('de la API al prototipo', () => {
       {
         label: 'Súper',
         route: ['vertical', { id: 'grocery' }],
+        vertical: 'supermercado',
         items: 262,
         stores: [{ name: 'Unimarc', logo: 'https://x/u.png' }],
       },
-      { label: 'Turbo', route: ['turbo'], items: 50, stores: [{ name: 'Rappi Drinks', logo: null }] },
+      {
+        label: 'Turbo',
+        route: ['turbo'],
+        vertical: 'turbo',
+        items: 50,
+        stores: [{ name: 'Rappi Drinks', logo: null }],
+      },
     ])
     expect(toMessage({ text: 'Mira' }).alsoIn).toBeNull()
   })

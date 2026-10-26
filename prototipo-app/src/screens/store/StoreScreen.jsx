@@ -77,9 +77,10 @@ export default function StoreScreen({ back, params }) {
   useEffect(() => {
     if (!loaded || tracked.current === loaded.id) return
     tracked.current = loaded.id
-    // Con el sobre de dónde se tocó la tienda (una lista de la Home, por ejemplo), si venía de una.
+    // Con el sobre de dónde se tocó la tienda (una lista de la Home, por ejemplo) o, si se llegó tocando un producto
+    // (la búsqueda, Ofertas, Mochi), el de ese producto.
     events.track('view_store', {
-      ...placementFields(given),
+      ...placementFields(given?.placement ? given : item),
       vertical: loaded.vertical,
       entity_type: 'store',
       entity_id: String(loaded.id),

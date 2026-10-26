@@ -93,7 +93,7 @@ export default function CheckoutScreen({ back, push }) {
       const key = `${cart.id}|${vertical}`
       if (started.current.has(key)) continue
       started.current.add(key)
-      events.track('checkout_start', { cart_id: cart.id, vertical })
+      events.track('checkout_start', { cart_id: cart.id, vertical, surface: 'checkout' })
     }
   }, [cart.id, verticals, events])
 

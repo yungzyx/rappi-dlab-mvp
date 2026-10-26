@@ -114,6 +114,17 @@ function conversationTrail(messages, index) {
   return trail
 }
 
+/**
+ * El sobre de lo que ofrece una respuesta de Mochi (un servicio, sobre todo): en el buscador, con el origen de la
+ * respuesta (su sugerencia, la oferta del momento o `agent-ask`) y su `request_id`.
+ */
+const placementOf = (message) =>
+  envelope({
+    surface: 'agent',
+    origin: message?.origin ?? message?.suggestion?.origin ?? 'agent-ask',
+    requestId: message?.requestId,
+  })
+
 /** Lo que sale de «Para ti» es una sugerencia del agente: agregarlo se cuenta como aceptada y no enseña afinidad. */
 const asForYou = (product) => ({ ...product, fromSuggestion: true, suggestionOrigin: 'para-ti' })
 
@@ -233,8 +244,9 @@ export default function AssistantPanel({ push, vertical, depth = 1 }) {
    * pestaña (firstShowing): AddButton registra la mostrada que falte al aceptarla y no debe contarse dos veces.
    */
   const noteSuggestion = (message) => {
-    // Un servicio sin catálogo (RappiTravel, RappiFavor) ofrecido: cada vez que el agente lo ofrece.
-    if (message.service) events.track('service_shown', { payload: { servicio: message.service } })
+    // Un servicio sin catálogo (RappiTravel, RappiFavor) ofrecido: cada vez que el agente lo ofrece, con su respuesta.
+    if (message.service)
+      events.track('service_shown', { ...placementOf(message), payload: { servicio: message.service } })
     if (!message.suggestion) return message
     const { concept, vertical, origin = 'agent-ask' } = message.suggestion
     noteShownTopic(concept)
@@ -247,13 +259,26 @@ export default function AssistantPanel({ push, vertical, depth = 1 }) {
     return message
   }
 
+  /** `vertical_open` desde el buscador con Mochi: qué vertical, desde qué bloque y en qué lugar. */
+  const noteVerticalOpen = ({ vertical, origin, position, requestId }) => {
+    if (vertical)
+      events.track('vertical_open', { vertical, ...envelope({ surface: 'agent', origin, position, requestId }) })
+  }
+
   const onAction = (action) => {
     if (action.ask) return send(action.ask.text, action.ask.vertical)
     if (action.capability) return runCapability(action.capability, action.label)
     if (action.offer) return askOffer(action.offer, withoutEmoji(action.label), NOTHING_IN_KIT)
     if (action.panel === 'preferencias') return openPreferences()
     if (action.panel === 'autonomia') return openAutonomy()
-    if (action.service) events.track('service_opened', { payload: { servicio: action.service } })
+    // Abrir una vertical desde una respuesta («También en») deja su lugar, como un acceso de la Home.
+    if (action.opens) noteVerticalOpen({ ...action.opens, requestId: shownAnswer.current?.requestId })
+    // Abrir un servicio cuenta con la respuesta de donde salió (la que está en pantalla, o el lugar que trae la acción).
+    if (action.service)
+      events.track('service_opened', {
+        ...(action.placement ? envelope(action.placement) : placementOf(shownAnswer.current)),
+        payload: { servicio: action.service },
+      })
     go(...action.route)
   }
 
@@ -437,9 +462,11 @@ export default function AssistantPanel({ push, vertical, depth = 1 }) {
         generation: profile.resets,
       })
       // Un servicio sin catálogo ofrecido (el paso de la escalera puede ser RappiFavor o RappiTravel, sin productos).
+      const shown = { origin: `agent-${moment}`, requestId: made.requestId }
       for (const action of made.actions)
-        if (action.service) events.track('service_shown', { payload: { servicio: action.service } })
-      return { text: made.text, products: made.products, actions: made.actions, offerReason: made.reason }
+        if (action.service)
+          events.track('service_shown', { ...placementOf(shown), payload: { servicio: action.service } })
+      return { text: made.text, products: made.products, actions: made.actions, offerReason: made.reason, ...shown }
     } catch {
       if (signal?.aborted) return { text: STOPPED }
       return offline((retrySignal) => offered(moment, context, nothing, retrySignal))
@@ -981,8 +1008,17 @@ export default function AssistantPanel({ push, vertical, depth = 1 }) {
             {taste && demo.isFinal && (
               <LadderRail
                 ladder={taste.ladder}
-                onOpenVertical={(screen) => go(...routeForScreen(screen))}
-                onOpenTravel={() => onAction({ route: taste.ladder.trip?.route ?? ['travel'], service: 'rappitravel' })}
+                onOpenVertical={(screen, where) => {
+                  noteVerticalOpen({ ...where, origin: 'agent-perfil', requestId: taste.ladder.requestId })
+                  go(...routeForScreen(screen))
+                }}
+                onOpenTravel={() =>
+                  onAction({
+                    route: taste.ladder.trip?.route ?? ['travel'],
+                    service: 'rappitravel',
+                    placement: { surface: 'agent', origin: 'agent-perfil', requestId: taste.ladder.requestId },
+                  })
+                }
                 onOpenProduct={openProduct}
               />
             )}
@@ -993,7 +1029,18 @@ export default function AssistantPanel({ push, vertical, depth = 1 }) {
 
             {discoverRows.length > 0 && (
               <div className="agent-block">
-                <DiscoverSection rows={discoverRows} onOpen={(vertical) => go(...routeForScreen(vertical))} />
+                <DiscoverSection
+                  rows={discoverRows}
+                  onOpen={(screen, { row, position }) => {
+                    noteVerticalOpen({
+                      vertical: row.vertical,
+                      origin: 'descubre',
+                      position,
+                      requestId: row.products[0]?.placement?.requestId,
+                    })
+                    go(...routeForScreen(screen))
+                  }}
+                />
               </div>
             )}
 

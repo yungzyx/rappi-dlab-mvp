@@ -80,7 +80,8 @@ export function Shortcuts({ push, proposal = false, order = null, caption = null
                 if (item.vertical) onOpen?.(item.vertical, { origin: 'accesos', position })
                 if (unavailable) toast(`${item.label} no está disponible`)
                 else if (route) {
-                  if (item.service) onService?.(item.service) // abrir RappiFavor o RappiTravel: `service_opened`
+                  // abrir RappiFavor o RappiTravel: `service_opened`, con su lugar en los accesos
+                  if (item.service) onService?.(item.service, { origin: 'accesos', position })
                   push(...route)
                 } else toast()
               }}

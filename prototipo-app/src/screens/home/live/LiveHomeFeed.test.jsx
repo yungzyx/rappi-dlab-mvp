@@ -429,9 +429,14 @@ describe('Home del prototipo final', () => {
       await advance(3000)
       expect(container.querySelector('.live-bubble p').textContent).toBe(made.text)
       const service = (type) => events.track.mock.calls.filter(([name]) => name === type).map(([, fields]) => fields)
-      expect(service('service_shown')).toEqual([{ payload: { servicio: 'rappifavor' } }])
+      const offered = { surface: 'home', origin: 'agent-vertical_por_probar' }
+      expect(service('service_shown')).toEqual([
+        expect.objectContaining({ ...offered, payload: { servicio: 'rappifavor' } }),
+      ])
       fireEvent.click(screen.getByRole('button', { name: 'Abrir RappiFavor' }))
-      expect(service('service_opened')).toEqual([{ payload: { servicio: 'rappifavor' } }])
+      expect(service('service_opened')).toEqual([
+        expect.objectContaining({ ...offered, payload: { servicio: 'rappifavor' } }),
+      ])
       expect(push).toHaveBeenLastCalledWith('favor')
     })
 
@@ -1135,8 +1140,16 @@ describe('Home del prototipo final', () => {
       const services = events.track.mock.calls.filter(([type]) => type === 'service_opened').map(([, fields]) => fields)
       // Con `desde: 'home'` el panel no los cuenta como aperturas de lo que ofreció Mochi.
       expect(services).toEqual([
-        { payload: { servicio: 'rappitravel', desde: 'home' } },
-        { payload: { servicio: 'rappifavor', desde: 'home' } },
+        expect.objectContaining({
+          surface: 'home',
+          origin: 'accesos',
+          payload: { servicio: 'rappitravel', desde: 'home' },
+        }),
+        expect.objectContaining({
+          surface: 'home',
+          origin: 'accesos',
+          payload: { servicio: 'rappifavor', desde: 'home' },
+        }),
       ])
     })
   })

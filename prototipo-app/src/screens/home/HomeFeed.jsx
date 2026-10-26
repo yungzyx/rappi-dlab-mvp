@@ -25,7 +25,8 @@ export default function HomeFeed({ push }) {
   // El sobre dice qué acceso de la Home se tocó y en qué lugar estaba (en «Rappi hoy» el orden es fijo).
   const openVertical = (vertical, where) =>
     events.track('vertical_open', { vertical, ...envelope({ surface: 'home', ...where }) })
-  const openService = (servicio) => events.track('service_opened', { payload: { servicio, desde: 'home' } })
+  const openService = (servicio, where) =>
+    events.track('service_opened', { ...envelope({ surface: 'home', ...where }), payload: { servicio, desde: 'home' } })
   const openSearch = () => push('search')
   const screenRef = useRef(null)
   const [{ collapsed: isCollapsed, showBackToTop }, onScroll] = useScrollState({

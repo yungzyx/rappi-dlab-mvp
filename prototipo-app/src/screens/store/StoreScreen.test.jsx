@@ -367,6 +367,8 @@ describe('visita a una tienda (embudo del panel)', () => {
         request_id: 'recs-1',
       }),
     ])
+    // La visita a la tienda dice de dónde se llegó: el producto tocado.
+    expect(tracked('view_store')[0]).toMatchObject({ surface: 'agent', origin: 'para-ti', request_id: 'recs-1' })
     // El producto no está en el primer pasillo: va arriba, en «Lo que elegiste», y después los 24 del pasillo.
     await waitFor(() => expect(rows()).toHaveLength(25))
     const second = document.querySelectorAll('.store-products .product-row')[2]

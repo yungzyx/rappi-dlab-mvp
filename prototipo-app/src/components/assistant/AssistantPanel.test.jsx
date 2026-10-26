@@ -955,9 +955,22 @@ describe('«¿Qué puedo probar?» (una oferta pedida desde fuera)', () => {
 
     expect(made.products).toEqual([])
     expect(bubbles()).toContain(made.text)
-    expect(tracked('service_shown')).toEqual([{ payload: { servicio: 'rappifavor' } }])
+    // Con el sobre de la oferta: el buscador, el momento y su respuesta.
+    expect(tracked('service_shown')).toEqual([
+      expect.objectContaining({
+        surface: 'agent',
+        origin: 'agent-vertical_por_probar',
+        payload: { servicio: 'rappifavor' },
+      }),
+    ])
     fireEvent.click(screen.getByRole('button', { name: /^Abrir RappiFavor/ }))
-    expect(tracked('service_opened')).toEqual([{ payload: { servicio: 'rappifavor' } }])
+    expect(tracked('service_opened')).toEqual([
+      expect.objectContaining({
+        surface: 'agent',
+        origin: 'agent-vertical_por_probar',
+        payload: { servicio: 'rappifavor' },
+      }),
+    ])
     expect(push).toHaveBeenCalledWith('favor', undefined)
   })
 
@@ -997,7 +1010,9 @@ describe('servicios sin catálogo', () => {
     say('me voy de vacaciones')
     await runUntilIdle()
 
-    expect(tracked('service_shown')).toEqual([{ payload: { servicio: 'rappitravel' } }])
+    expect(tracked('service_shown')).toEqual([
+      expect.objectContaining({ surface: 'agent', payload: { servicio: 'rappitravel' } }),
+    ])
     expect(tracked('suggestion_shown')).toContainEqual({
       concept_id: 'dermocosmetica',
       vertical: 'farmacia',
@@ -1007,7 +1022,9 @@ describe('servicios sin catálogo', () => {
 
     fireEvent.click(screen.getByText('Abrir RappiTravel →'))
     await runUntilIdle()
-    expect(tracked('service_opened')).toEqual([{ payload: { servicio: 'rappitravel' } }])
+    expect(tracked('service_opened')).toEqual([
+      expect.objectContaining({ surface: 'agent', payload: { servicio: 'rappitravel' } }),
+    ])
     expect(push).toHaveBeenCalledWith('travel', undefined)
   })
 })

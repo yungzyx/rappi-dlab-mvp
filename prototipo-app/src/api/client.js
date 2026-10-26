@@ -315,6 +315,7 @@ export function toMessage(response) {
         verticals: response.also_in.verticals.map((v) => ({
           label: verticalView(v.vertical).label ?? v.vertical,
           route: verticalView(v.vertical).route,
+          vertical: v.vertical, // el código del backend, para el `vertical_open` al abrirla
           items: v.items,
           stores: v.stores,
         })),

@@ -176,6 +176,28 @@ describe('la conversación y lo que no es de ella', () => {
   })
 })
 
+describe('abrir una vertical desde Mochi', () => {
+  test('«También en» deja un vertical_open con su lugar y la respuesta', async () => {
+    const reply = fixture('agent-ask')
+    reply.also_in = {
+      label: '🍺 Cerveza',
+      verticals: [
+        { vertical: 'turbo', prototype_vertical: 'express', items: 5, stores: [{ name: 'Turbo', logo: null }] },
+      ],
+    }
+    api.ask.mockResolvedValueOnce(reply)
+    const push = await renderPanel()
+    say('cerveza')
+    await runUntilIdle()
+    fireEvent.click(document.querySelector('.agent-msg-also-vertical'))
+    await runUntilIdle()
+    expect(events.track.mock.calls.filter(([type]) => type === 'vertical_open').map(([, f]) => f)).toEqual([
+      { vertical: 'turbo', surface: 'agent', origin: 'tambien-en', position: 0, request_id: 'contrato-agent-ask' },
+    ])
+    expect(push).toHaveBeenCalled()
+  })
+})
+
 describe('el resumen antes de pagar', () => {
   test('con el carro: productos, envío, tarifa, propina, total y tiempo, como el checkout; lleva a pagar', async () => {
     api.ask.mockResolvedValueOnce(fixture('agent-ask-resumen'))

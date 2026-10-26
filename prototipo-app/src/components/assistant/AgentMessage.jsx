@@ -146,7 +146,13 @@ function AlsoIn({ alsoIn, onAction }) {
             type="button"
             className="agent-msg-store agent-msg-also-vertical tap"
             style={{ animationDelay: `${240 + i * 60}ms` }}
-            onClick={() => vertical.route && onAction({ route: vertical.route })}
+            onClick={() =>
+              vertical.route &&
+              onAction({
+                route: vertical.route,
+                opens: { vertical: vertical.vertical, origin: 'tambien-en', position: i },
+              })
+            }
           >
             <span className="agent-msg-also-logos">
               {vertical.stores.map((store) => (

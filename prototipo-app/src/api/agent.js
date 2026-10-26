@@ -84,6 +84,9 @@ export async function profileLadder(profileId) {
   if (!response) return null
   const trip = response.viaje
   const requestId = response.request_id ?? null
+  // Las posiciones siguen de corrido entre peldaños (como searchAll): los peldaños comparten origen y respuesta, y
+  // dos productos distintos no pueden quedar en el mismo lugar (las filas de «Algo para ti» los juntan).
+  let start = 0
   return {
     requestId,
     text: response.text,
@@ -93,14 +96,18 @@ export async function profileLadder(profileId) {
       vertical: screenForBackend(step.vertical) ?? step.prototype_vertical,
       backendVertical: step.vertical,
       text: step.texto,
-      products: placeList(
-        step.products.map((p) => ({
-          ...toPrototypeProduct(p),
-          fromSuggestion: true,
-          suggestionOrigin: 'agent-perfil',
-        })),
-        { surface: 'agent', origin: 'agent-perfil', requestId },
-      ),
+      products: (() => {
+        const placed = placeList(
+          step.products.map((p) => ({
+            ...toPrototypeProduct(p),
+            fromSuggestion: true,
+            suggestionOrigin: 'agent-perfil',
+          })),
+          { surface: 'agent', origin: 'agent-perfil', requestId, start },
+        )
+        start += placed.length
+        return placed
+      })(),
     })),
     trip: trip
       ? {
