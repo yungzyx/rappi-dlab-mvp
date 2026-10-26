@@ -16,4 +16,5 @@ export const PANEL_METRICS = [
   'assortment',
   'ctr-posicion',
   'embudo-sesion',
+  'pro',
 ]

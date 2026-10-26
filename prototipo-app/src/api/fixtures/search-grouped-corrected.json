@@ -92,6 +92,7 @@
     "restaurants": [],
     "stores": []
   },
+  "preferences_notice": null,
   "query": "cervezaaaa",
   "request_id": "contrato-search-grouped-corrected",
   "unmet": false,

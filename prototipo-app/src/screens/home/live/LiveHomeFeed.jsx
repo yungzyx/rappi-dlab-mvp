@@ -46,11 +46,15 @@ const silent = () => isQuiet(today()) || isHushed()
 
 // Guía de la primera vez, tras el saludo: el buscador y qué pasa al tocarlo. Se ve una vez («Repetir escena» la repite).
 const TOUR = [
-  { text: 'Arriba está mi buscador: búscame lo que quieras o pídeme ideas 🔎', at: 'essentials', gesture: 'point' },
+  {
+    text: 'Arriba está mi buscador: búscame lo que quieras o toca una de sus ideas 🔎',
+    at: 'essentials',
+    gesture: 'point',
+  },
   { text: 'Y si me tocas, te propongo una vertical nueva para probar ✨', at: 'essentials', gesture: 'hop' },
 ]
 
-const GREETING = '¡Hola! Ahora vivo en tu Home 👋 Pídeme ideas o prueba una vertical nueva.'
+const GREETING = '¡Hola! Ahora vivo en tu Home 👋 Toca una idea o prueba una vertical nueva.'
 
 const HOME_PLANS = 5 // la Home muestra solo los primeros planes del servidor (once, carrete, asado, panorama, regalo)
 

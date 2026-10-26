@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { noteRecommendationClick, placeList, placementFields } from '../../api/attribution'
+import { noteItemView, noteRecommendationClick, placeList, placementFields } from '../../api/attribution'
 import { menu as loadMenu, storeForYou } from '../../api/catalog'
 import { cartEventFields } from '../../api/orders'
 import { useApi } from '../../api/useApi'
@@ -90,7 +90,7 @@ export default function StoreScreen({ back, params }) {
     // hoja del producto.
     if (item) {
       const fields = { ...cartEventFields(item), vertical: item.vertical ?? loaded.vertical }
-      events.track('view_item', fields)
+      noteItemView(events.track, item, fields) // si ya se vio en la hoja («Ver tienda»), no se cuenta otra vez
       noteRecommendationClick(events.track, item, fields)
     }
   }, [loaded, item, given, events])

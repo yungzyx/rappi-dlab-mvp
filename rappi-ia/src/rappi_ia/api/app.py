@@ -432,7 +432,7 @@ GROUPED_SEARCH_LIMIT = 6  # por grupo
 VERTICAL_SEARCH_LIMIT = 10
 
 
-@app.get("/search", dependencies=[Depends(SEARCH_CAP)])
+@app.get("/search", dependencies=[Depends(SEARCH_CAP), Depends(owner_in_query)])
 def search(
     q: str = Query(min_length=1, max_length=200),
     vertical: ShortQuery | None = None,
@@ -441,6 +441,7 @@ def search(
     limit: int | None = Query(None, ge=1, le=50),
     mode: str = Query("hibrido"),
     correct: bool = True,
+    user_id: ShortQuery | None = None,
     conn: Connection = Depends(get_conn),
     svc: Services = Depends(get_services),
     spare: SpareConnector = Depends(get_spare_connector),
@@ -449,22 +450,29 @@ def search(
     pantalla, `current`) y agrupa: `limit` es por grupo. Las verticales se buscan en paralelo con las conexiones del
     pool que sobran (`spare`, sin tomar su reserva); sin ninguna, en serie. Si queda «sin resultado», corrige los
     errores de tipeo y vuelve a buscar: `corrected_query` dice qué se buscó (null si nada); `correct=false` busca tal
-    cual."""
+    cual. Con `user_id` (la app lo manda solo en la propuesta), la dieta y las alergias que la persona le dijo a Mochi
+    filtran los resultados igual que en el agente (offers/preferences.py), sin ordenar por sus favoritas;
+    `preferences_notice` lo dice (null si no filtró). Si sacaron todo lo encontrado, no cuenta como «sin resultado»:
+    el catálogo lo tiene."""
     if mode not in MODES:
         raise HTTPException(400, f"mode debe ser uno de {MODES}")
+    mine = preferences.load(conn, user_id).only_filters()
     if vertical is None:
-        grouped = search_grouped(
-            conn,
-            q,
-            svc.embedder,
-            backend_vertical(current),
-            limit or GROUPED_SEARCH_LIMIT,
-            price_max,
-            mode,
-            spare,
-            correct,
-        )
+        with preferences.applied(mine):
+            grouped = search_grouped(
+                conn,
+                q,
+                svc.embedder,
+                backend_vertical(current),
+                limit or GROUPED_SEARCH_LIMIT,
+                price_max,
+                mode,
+                spare,
+                correct,
+            )
         found = grouped.to_dict()
+        shown = [p for g in grouped.groups for p in g.products]
+        found["preferences_notice"] = mine.notice(shown, grouped.dropped)
         # Además de productos, las tiendas y los restaurantes que se llaman así (o de esa cocina): si los hay, la
         # búsqueda sí encontró algo. Sin nada, `whim_allowed` dice si la app puede ofrecer «Lo que sea» (RappiFavor)
         # con lo escrito, según las guardias.
@@ -479,17 +487,28 @@ def search(
         }
     code = backend_vertical(vertical)
     try:
-        outcome = search_products(
-            conn, code, q, None, svc.embedder, price_max, k=limit or VERTICAL_SEARCH_LIMIT, mode=mode, correct=correct
-        )
+        with preferences.applied(mine):
+            outcome = search_products(
+                conn,
+                code,
+                q,
+                None,
+                svc.embedder,
+                price_max,
+                k=limit or VERTICAL_SEARCH_LIMIT,
+                mode=mode,
+                correct=correct,
+            )
     except ValueError as exc:
         raise rejected(exc) from exc
+    emptied = outcome.dropped > 0 and not outcome.products  # lo encontrado lo sacaron sus preferencias
     return {
         "vertical": code,
         "products": [p.to_dict() for p in outcome.products],
-        "unmet": outcome.result.unmet,
-        "unmet_reason": outcome.result.unmet_reason,
+        "unmet": outcome.result.unmet and not emptied,
+        "unmet_reason": None if emptied else outcome.result.unmet_reason,
         "corrected_query": outcome.corrected_query,
+        "preferences_notice": mine.notice(outcome.products, outcome.dropped),
         "request_id": served_request_id(),
     }
 
@@ -778,6 +797,7 @@ ANALYTICS = {
     "volver": queries.winback,
     "unmet": queries.unmet,
     "multi-vertical": queries.multi_vertical_retention,
+    "pro": queries.pro_split,
     "affinity": queries.affinity,
     "assortment": queries.assortment_vs_demand,
     "combos": queries.combos,

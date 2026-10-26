@@ -1,5 +1,5 @@
 import { createContext, useCallback, useContext, useMemo, useState } from 'react'
-import { noteRecommendationClick } from '../api/attribution'
+import { noteItemView, noteRecommendationClick } from '../api/attribution'
 import { cartEventFields } from '../api/orders'
 import { useEvents } from './EventsContext'
 
@@ -8,8 +8,8 @@ const ProductSheetContext = createContext({ open: () => {}, close: () => {}, cur
 
 /**
  * Producto abierto en la hoja inferior. `open(product, { onOpenStore })`: la hoja ofrece «Ver tienda» si viene y el
- * producto sabe su tienda (`storeId`). Abrir un producto que vino de una recomendación (Mochi, «Para ti») es su
- * `recommendation_click`, con su lugar.
+ * producto sabe su tienda (`storeId`). Abrir un producto es verlo (`view_item`, con su lugar si venía de una lista);
+ * si vino de una recomendación (Mochi, «Para ti»), es además su `recommendation_click`.
  */
 export function ProductSheetProvider({ children }) {
   const [current, setCurrent] = useState(null)
@@ -18,7 +18,9 @@ export function ProductSheetProvider({ children }) {
 
   const open = useCallback(
     (product, { onOpenStore } = {}) => {
-      noteRecommendationClick(track, product, cartEventFields(product))
+      const fields = cartEventFields(product)
+      noteItemView(track, product, fields, { fromSheet: true })
+      noteRecommendationClick(track, product, fields)
       setCurrent({ product, onOpenStore })
       setIsOpen(true)
     },

@@ -295,13 +295,18 @@ describe('visita a una tienda (embudo del panel)', () => {
     stubCatalog()
     openStore({ store: PIZZERIA })
     await screen.findByRole('navigation', { name: 'Secciones del menú' })
-    expect(tracked('view_store')).toEqual([
-      expect.objectContaining({
-        vertical: 'restaurants',
-        entity_id: '9801',
-        payload: { name: 'Pizzería de prueba Centro' },
-      }),
-    ])
+    // view_store sale de un efecto pasivo: React lo corre en otra tarea del scheduler (setImmediate), después de
+    // pintar. findBy* termina con un setTimeout(0), y en una máquina cargada ese llega antes que el efecto: hay que
+    // esperarlo, como en los otros tests de esta sección.
+    await waitFor(() =>
+      expect(tracked('view_store')).toEqual([
+        expect.objectContaining({
+          vertical: 'restaurants',
+          entity_id: '9801',
+          payload: { name: 'Pizzería de prueba Centro' },
+        }),
+      ]),
+    )
   })
 
   test('abrirla desde un producto es ver ese producto: view_item con su vertical y su concepto, una vez', async () => {

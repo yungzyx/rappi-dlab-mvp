@@ -113,6 +113,12 @@
   color: var(--ink-2);
 }
 
+.search-preferences {
+  margin: 14px 0 0;
+  font-size: 13px;
+  color: var(--ink-2);
+}
+
 .search-exact {
   display: block;
   margin-top: 2px;

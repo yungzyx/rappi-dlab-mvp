@@ -73,3 +73,25 @@ export function noteRecommendationClick(track, item, fields) {
   track('recommendation_click', { ...fields, ...placementFields(item) })
   return true
 }
+
+// Abrir un producto en la hoja y tocar «Ver tienda» es una sola vista: la tienda no repite su `view_item`.
+let sheetView = null
+const viewKey = (item, fields) =>
+  `${item?.placement?.requestId ?? ''}|${item?.placement?.origin ?? ''}|${item?.placement?.position ?? ''}|${fields.entity_type}:${fields.entity_id}`
+
+/**
+ * Registra `view_item` (ver un producto) con `fields` (los del carro: entidad, concepto, vertical y el sobre de su lugar).
+ * `fromSheet`: se abrió en la hoja del producto; si después se llega a su tienda con el mismo producto y el mismo lugar,
+ * la tienda no lo cuenta otra vez. Sin entidad no registra nada. Devuelve si lo registró.
+ */
+export function noteItemView(track, item, fields, { fromSheet = false } = {}) {
+  if (!fields.entity_type || !fields.entity_id) return false
+  const key = viewKey(item, fields)
+  if (!fromSheet && sheetView === key) {
+    sheetView = null
+    return false
+  }
+  sheetView = fromSheet ? key : null
+  track('view_item', fields)
+  return true
+}

@@ -106,6 +106,9 @@ describe('de la API al prototipo', () => {
     expect(message.reason).toBeNull() // la razón se muestra con la sugerencia, no dos veces
     expect(message.suggestion).toMatchObject({ vertical: 'supermercado', concept: 'snacks-salados' })
     expect(message.suggestion.products[0].fromSuggestion).toBe(true)
+    // Cada producto con su lugar en la respuesta: los de la sugerencia siguen después de los de la respuesta.
+    expect(message.products.map((p) => p.placement.position)).toEqual([0])
+    expect(message.suggestion.products.map((p) => p.placement.position)).toEqual([1])
     expect(message.actions[0]).toEqual({
       label: 'Pedir de un restaurante',
       ask: { text: 'pizza', vertical: 'restaurantes' },

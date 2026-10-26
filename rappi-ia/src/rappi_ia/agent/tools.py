@@ -94,6 +94,7 @@ class SearchOutcome:
     products: list[Product]
     cheapest_without_filter: Product | None = None
     corrected_query: str | None = None  # con `correct`, la consulta corregida que se buscó (retrieval/spelling.py)
+    dropped: int = 0  # lo que la dieta y las alergias sacaron de lo que se iba a mostrar (offers/preferences.py)
 
 
 @dataclass
@@ -172,7 +173,12 @@ def _search_products(
     strict = symptom or vertical == "farmacia"
     hits = _focus([h for h in result.hits if _allowed(h.concept_id, concepts, strict)], result, capped)
     products = _dedupe(_within_budget(_with_prices(conn, vertical, hits, offer, adult_ok), price_max))
-    products = preferences.rank(preferences.keep(products)[:k]) if preferences else products[:k]
+    dropped = 0
+    if preferences:
+        dropped = sum(not preferences.keeps(p) for p in products[:k])
+        products = preferences.rank(preferences.keep(products)[:k])
+    else:
+        products = products[:k]
     cheapest = None
     if not products and capped:
         unfiltered = retrieve(conn, vertical, query, embedder, k=k * 2, mode=mode, concepts=concepts, words=words)
@@ -182,7 +188,7 @@ def _search_products(
         candidates = preferences.keep(candidates) if preferences else candidates
         priced = [p for p in candidates if p.price_value is not None]
         cheapest = min(priced, key=lambda p: p.price_value) if priced else None
-    return SearchOutcome(result, products, cheapest)
+    return SearchOutcome(result, products, cheapest, dropped=dropped)
 
 
 CANDIDATE_REMEDIES = 30  # se filtran después: muchos calzan solo por las advertencias del prospecto

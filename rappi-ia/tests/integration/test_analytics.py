@@ -677,3 +677,50 @@ def test_services_never_mix_simulated_and_prototype_events(db):
     events.record(db, [events.Event("u1", "s1", "service_shown", payload=travel)], source="synthetic")
     rows = {r["servicio"]: r for r in queries.services(db, "prototype")}
     assert rows["rappitravel"]["ofrecido"] == 0
+
+
+def test_pro_and_not_pro_are_split_with_exact_numbers(db, monkeypatch):
+    """Pro y sin Pro (app_users.pro): pedidos de 30 días, recompra, multi-vertical de 60 días y retención (61 a 120),
+    con el mínimo de personas por grupo; quien no tiene la marca va aparte."""
+    days = {
+        "p1": [(0, "supermercado"), (70, "licores"), (100, "supermercado")],
+        "p2": [(0, "supermercado")],
+        "n1": [(0, "supermercado"), (10, "supermercado")],
+        "n2": [(0, "supermercado"), (80, "supermercado")],
+        "u0": [(0, "supermercado")],
+    }
+    for user, orders in days.items():
+        for day, vertical in orders:
+            _retention_order(db, user, day, vertical)
+    events.record(db, [events.Event("z", "s", "app_open", ts=RETENTION_T0 + timedelta(days=125))])
+    db.execute("UPDATE app_users SET pro = true WHERE user_id IN ('p1', 'p2')")
+    db.execute("UPDATE app_users SET pro = false WHERE user_id IN ('n1', 'n2')")
+
+    hidden = queries.pro_split(db, "prototype")
+    assert hidden == {"grupos": [], "sin_dato": 1, "minimo_personas": queries.MIN_GROUP_USERS}  # 2 < mínimo
+    monkeypatch.setattr(queries, "MIN_GROUP_USERS", 2)
+    split = queries.pro_split(db, "prototype")
+    assert split["grupos"] == [
+        {
+            "grupo": "pro",
+            "personas": 2,
+            "pedidos_30d": 1,
+            "pedidos_por_persona_30d": 0.5,
+            "recompra_pct": 50.0,
+            "multi_vertical_pct": 100.0,
+            "retencion_n": 2,
+            "retencion_pct": 50.0,
+        },
+        {
+            "grupo": "sin_pro",
+            "personas": 2,
+            "pedidos_30d": 0,
+            "pedidos_por_persona_30d": 0.0,
+            "recompra_pct": 100.0,
+            "multi_vertical_pct": 0.0,
+            "retencion_n": 2,
+            "retencion_pct": 50.0,
+        },
+    ]
+    assert split["sin_dato"] == 1
+    assert queries.pro_split(db, "synthetic")["grupos"] == []  # nunca mezcla fuentes

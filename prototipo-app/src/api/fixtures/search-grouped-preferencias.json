@@ -1,0 +1,98 @@
+{
+  "corrected_query": null,
+  "groups": [
+    {
+      "products": [
+        {
+          "age_restricted": false,
+          "before": null,
+          "concept": "pizza",
+          "discount": null,
+          "entity_id": "98002",
+          "entity_type": "menu_item",
+          "id": "menu-98002",
+          "img": "https://imagenes.prueba.invalid/platos/98002.png",
+          "name": "Pizza margarita mediana (prueba)",
+          "presentation": null,
+          "price": "$8.990",
+          "price_value": 8990.0,
+          "store": "Pizzería de prueba Centro",
+          "store_id": 9801,
+          "vertical": "restaurantes"
+        }
+      ],
+      "prototype_vertical": "restaurants",
+      "vertical": "restaurantes"
+    }
+  ],
+  "places": {
+    "restaurants": [
+      {
+        "area": "",
+        "cover": "https://imagenes.prueba.invalid/platos/98002.png",
+        "cuisines": [
+          "Pizzas"
+        ],
+        "eta": "25 min",
+        "fee": "$1.490",
+        "hours": {
+          "closes_at": "23:30",
+          "open": true,
+          "opens_at": null,
+          "opens_tomorrow": false,
+          "source": "horario",
+          "today": "11:00–23:30"
+        },
+        "id": 9801,
+        "name": "Pizzería de prueba Centro",
+        "promo": false,
+        "rating": 4.6,
+        "reviews": 120,
+        "schedule": [
+          {
+            "close": "23:30",
+            "day": "mon",
+            "open": "11:00"
+          },
+          {
+            "close": "23:30",
+            "day": "tue",
+            "open": "11:00"
+          },
+          {
+            "close": "23:30",
+            "day": "wed",
+            "open": "11:00"
+          },
+          {
+            "close": "23:30",
+            "day": "thu",
+            "open": "11:00"
+          },
+          {
+            "close": "23:30",
+            "day": "fri",
+            "open": "11:00"
+          },
+          {
+            "close": "23:30",
+            "day": "sat",
+            "open": "11:00"
+          },
+          {
+            "close": "23:30",
+            "day": "sun",
+            "open": "11:00"
+          }
+        ]
+      }
+    ],
+    "stores": []
+  },
+  "preferences_notice": "Por tus preferencias, saqué lo que dice tener carne; revisa los ingredientes en la tienda.",
+  "query": "pizza",
+  "request_id": "contrato-search-grouped-preferencias",
+  "unmet": false,
+  "unmet_reason": null,
+  "whim_allowed": false
+}

@@ -1,4 +1,5 @@
 import { useId } from 'react'
+import { placeList } from '../../api/attribution'
 import { deals as loadDeals, restaurants, storeOfProduct } from '../../api/catalog'
 import { useApi } from '../../api/useApi'
 import HScroll from '../../components/HScroll'
@@ -26,7 +27,10 @@ async function loadAllDeals() {
   )
 }
 
-/** Pestaña Offers → "Deals" (video del 26-09-2026). Las bajas de precio y los restaurantes salen de la API. */
+/**
+ * Pestaña Offers → "Deals" (video del 26-09-2026). Las bajas de precio y los restaurantes salen de la API. Cada fila es
+ * una lista con su lugar (pantalla `deals`): abrir, agregar y ver lo dicen.
+ */
 export default function DealsScreen({ push }) {
   const toast = useToast()
   const deals = useApi(loadAllDeals, [])
@@ -69,18 +73,19 @@ export default function DealsScreen({ push }) {
   )
 }
 
-/** «Bajaron de precio» de una vertical: sus productos con el precio anterior y el descuento. */
+/** «Bajaron de precio» de una vertical: sus productos con el precio anterior y el descuento (lista `bajaron-<vertical>`). */
 function DealsSection({ vertical, products, onOpenStore }) {
   const titleId = useId()
   const name = VERTICAL_NAMES[screenForBackend(vertical)] ?? vertical
+  const placed = placeList(products, { surface: 'deals', origin: `bajaron-${vertical}` })
   return (
     <section className="deals-vertical" aria-labelledby={titleId}>
       <h2 id={titleId} className="section-title deals-vertical-title">
         Bajaron de precio en {name}
       </h2>
       <HScroll className="deals-product-row">
-        {products.map((product) => (
-          <ProductCard key={product.id} product={product} onOpenStore={() => onOpenStore(product)} />
+        {placed.map((product) => (
+          <ProductCard key={product.id} product={product} onOpenStore={() => onOpenStore(product)} impression />
         ))}
       </HScroll>
     </section>
@@ -96,8 +101,8 @@ function BestRated({ stores, push }) {
         Mejor evaluados
       </h2>
       <HScroll className="card-row deals-card-row">
-        {stores.map((store) => (
-          <RestaurantCard key={store.id} store={store} onClick={() => push('store', { store })} />
+        {placeList(stores, { surface: 'deals', origin: 'mejor-evaluados' }).map((store) => (
+          <RestaurantCard key={store.id} store={store} onClick={() => push('store', { store })} impression />
         ))}
       </HScroll>
     </section>

@@ -113,4 +113,55 @@ describe('CustomersView', () => {
     expect(screen.getByText(/ninguna es de una persona en riesgo/)).toBeTruthy()
     expect(screen.getByText('Sin concepto top')).toBeTruthy()
   })
+
+  test('Pro y sin Pro: pedidos, recompra, multi-vertical y retención de cada grupo, con el supuesto de los simulados', async () => {
+    const row = (grupo, personas, pedidos, porPersona, recompra, multi, retencion) => ({
+      grupo,
+      personas,
+      pedidos_30d: pedidos,
+      pedidos_por_persona_30d: porPersona,
+      recompra_pct: recompra,
+      multi_vertical_pct: multi,
+      retencion_n: personas,
+      retencion_pct: retencion,
+    })
+    serveFixturesWith({
+      pro: {
+        source: 'synthetic',
+        data: {
+          grupos: [row('pro', 420, 1310, 3.12, 81.4, 58.3, 64.2), row('sin_pro', 980, 1205, 1.23, 52.9, 21.7, null)],
+          sin_dato: 3,
+          minimo_personas: 20,
+        },
+      },
+    })
+    await renderWithData(<CustomersView source="synthetic" />)
+
+    const pro = section('Pro y sin Pro')
+    const rows = within(within(pro).getByRole('table', { name: 'Pro y sin Pro' }))
+      .getAllByRole('row')
+      .slice(1)
+    const cells = (r) =>
+      within(r)
+        .getAllByRole('cell')
+        .map((cell) => cell.textContent)
+    expect(cells(rows[0])).toEqual(['Pro', '420', '1.310', '3,12', '81,4%', '58,3%', '64,2%'])
+    expect(cells(rows[1])).toEqual(['Sin Pro', '980', '1.205', '1,23', '52,9%', '21,7%', '—'])
+    expect(within(pro).getByText(/3 personas con pedidos no tienen la marca/)).toBeTruthy()
+    expect(within(pro).getByText(/lo sortea el generador/)).toBeTruthy()
+    expect(within(pro).getByText('Simulado')).toBeTruthy()
+  })
+
+  test('Pro y sin Pro con el prototipo: sin grupos con el mínimo de personas, lo dice y lleva el rótulo', async () => {
+    serveFixtures()
+    await renderWithData(<CustomersView source="prototype" />)
+
+    const pro = section('Pro y sin Pro')
+    expect(within(pro).getByText('Todavía no hay grupos que mostrar')).toBeTruthy()
+    expect(
+      within(pro).getByText(/al menos 20 personas con pedidos\. 8 personas con pedidos no tienen la marca/),
+    ).toBeTruthy()
+    expect(within(pro).getByText(NOT_EVIDENCE)).toBeTruthy()
+    expect(within(pro).queryByText(/lo sortea el generador/)).toBeNull()
+  })
 })

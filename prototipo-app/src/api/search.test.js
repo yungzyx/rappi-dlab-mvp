@@ -29,6 +29,18 @@ describe('searchAll', () => {
     expect(Object.fromEntries(url.searchParams)).toEqual({ q: 'cerveza', current: 'grocery', limit: '4' })
   })
 
+  test('con la persona, manda su id y trae el aviso de lo que sacaron su dieta y sus alergias', async () => {
+    const calls = stubApi({ '/search': fixture('search-grouped-preferencias') })
+    const result = await searchAll('pizza', { userId: 'u-contrato' })
+    expect(new URL(calls.mock.calls[0][0]).searchParams.get('user_id')).toBe('u-contrato')
+    expect(result.preferencesNotice).toMatch(/saqué lo que dice tener carne/)
+    expect(result.groups.flatMap((g) => g.products.map((p) => p.name))).not.toContain(
+      'Pizza pepperoni familiar (prueba)',
+    )
+    stubApi({ '/search': fixture('search-grouped') })
+    expect((await searchAll('cerveza')).preferencesNotice).toBeNull()
+  })
+
   test('sin coincidencias devuelve unmet con su motivo y ningún grupo', async () => {
     stubApi({ '/search': fixture('search-grouped-unmet') })
     const result = await searchAll('xyzzy')
