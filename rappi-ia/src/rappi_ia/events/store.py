@@ -320,8 +320,9 @@ def _returned_ids(cur, n: int) -> list[int | None]:
 
 
 def _check_items(e: Event) -> None:
-    """Solo `list_view` y `offer_withheld` traen elementos, hasta MAX_EVENT_ITEMS, cada uno con su lugar (sin repetir)
-    y un tipo conocido. Uno que no cumple rechaza el lote, como un tipo desconocido."""
+    """Solo `list_view` y `offer_withheld` traen elementos, hasta MAX_EVENT_ITEMS, cada uno con su lugar y un tipo
+    conocido. Uno que no cumple rechaza el lote, como un tipo desconocido. Dos en el mismo lugar no: queda el primero
+    (`_record_items`), y el lote, con sus eventos de carro, no se pierde por una impresión."""
     if not e.items:
         return
     if e.type not in ITEM_EVENT_TYPES:
@@ -331,8 +332,6 @@ def _check_items(e: Event) -> None:
     positions = [item.get("position") for item in e.items]
     if any(not isinstance(p, int) or isinstance(p, bool) or not 0 <= p <= 999 for p in positions):
         raise ValueError("Posición de un elemento inválida")
-    if len(set(positions)) != len(positions):
-        raise ValueError("Dos elementos en la misma posición")
     if any(item.get("entity_type") not in ITEM_ENTITY_TYPES or not item.get("entity_id") for item in e.items):
         raise ValueError("Elemento sin tipo o sin id")
 
@@ -356,7 +355,7 @@ def _record_items(conn: Connection, saved: list[tuple[int, Event]], known: set[s
         with conn.cursor() as cur:
             cur.executemany(
                 """INSERT INTO app_event_items (event_id, position, entity_type, entity_id, concept_id, vertical)
-                   VALUES (%s, %s, %s, %s, %s, %s)""",
+                   VALUES (%s, %s, %s, %s, %s, %s) ON CONFLICT (event_id, position) DO NOTHING""",
                 rows,
             )
 

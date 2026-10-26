@@ -107,6 +107,20 @@ def test_a_list_view_saves_its_visible_items_with_their_place(client, db):
     assert len(items_of(db, "u-imp")) == 2
 
 
+def test_two_items_in_the_same_place_keep_the_first_and_the_batch_is_saved(client, db):
+    cart = {
+        "type": "cart_add",
+        "session_id": "s-imp",
+        "cart_id": "c",
+        "entity_type": "catalog_item",
+        "entity_id": CHIPS,
+    }
+    assert post(client, "u-doble", list_view(product(0), product(0, "91003", "gaseosas")), cart).json() == {
+        "guardados": 2
+    }
+    assert [row[2] for row in items_of(db, "u-doble")] == [CHIPS]
+
+
 def test_in_rappi_hoy_the_items_go_without_concept(client, db):
     post(client, "u-hoy", list_view(product(0), mode="actual"))
     assert items_of(db, "u-hoy") == [(0, "catalog_item", CHIPS, None, "supermercado")]
@@ -117,7 +131,6 @@ def test_in_rappi_hoy_the_items_go_without_concept(client, db):
     [
         {"type": "view_item", "session_id": "s", "items": [product(0)]},  # solo list_view trae elementos
         list_view(*[product(i) for i in range(events.MAX_EVENT_ITEMS + 1)]),
-        list_view(product(0), product(0)),  # dos en el mismo lugar
         list_view({"position": 0, "entity_type": "concepto", "entity_id": "x"}),
         {"type": "offer_withheld", "session_id": "s"},  # la retención la decide solo /agent/offer
     ],

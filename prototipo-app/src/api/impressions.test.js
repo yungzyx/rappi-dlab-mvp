@@ -130,6 +130,14 @@ describe('impresiones de listas', () => {
     })
   })
 
+  it('dos elementos en el mismo lugar de una lista (productos y sugerencia del agente) van en eventos distintos', () => {
+    const placement = { surface: 'agent', origin: 'agent-ask', requestId: 'a1' }
+    const nodes = mount([...placeList(products(2), placement), ...placeList(products(1, 5), placement)])
+    for (const node of nodes) show(node)
+    flushImpressions()
+    expect(track.mock.calls.map(([, event]) => event.items.map((item) => item.position))).toEqual([[0, 1], [0]])
+  })
+
   it('ignora lo que no tiene lugar o id, y sin IntersectionObserver no hace nada', () => {
     expect(impressionRef(products(1)[0], productItem(products(1)[0]))).toBeUndefined() // sin placement
     const [noId] = placeList([{ id: 'x' }], { surface: 'home', origin: 'accesos' })

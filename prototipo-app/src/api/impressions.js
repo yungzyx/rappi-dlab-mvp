@@ -63,6 +63,20 @@ function describe(placement, fields) {
 
 const itemKey = (placement, item) => `${listKey(placement)}|${item.position}|${item.entity_type}:${item.entity_id}`
 
+/**
+ * Los elementos de una lista en eventos de hasta MAX_ITEMS, sin dos en el mismo lugar: una respuesta del agente trae
+ * sus productos y los de su sugerencia con el mismo sobre, cada grupo desde la posición 0.
+ */
+function chunks(items) {
+  const out = []
+  for (const item of items) {
+    let chunk = out.find((c) => c.length < MAX_ITEMS && !c.some((other) => other.position === item.position))
+    if (!chunk) out.push((chunk = []))
+    chunk.push(item)
+  }
+  return out
+}
+
 /** Manda lo visto: un `list_view` por lista (de a MAX_ITEMS), en orden de posición. */
 export function flushImpressions() {
   clearTimeout(timer)
@@ -72,9 +86,8 @@ export function flushImpressions() {
   if (!sink) return
   for (const [key, { placement, items }] of lists) {
     const sorted = [...items.values()].sort((a, b) => a.position - b.position)
-    for (let start = 0; start < sorted.length; start += MAX_ITEMS) {
-      const chunk = sorted.slice(start, start + MAX_ITEMS)
-      const top = Math.max(highest.get(key) ?? -1, chunk.at(-1).position)
+    for (const chunk of chunks(sorted)) {
+      const top = Math.max(highest.get(key) ?? -1, ...chunk.map((item) => item.position))
       highest.set(key, top)
       sink('list_view', { ...envelope({ ...placement, position: top }), items: chunk })
     }
