@@ -180,7 +180,8 @@ export function ReorderCarousel({ storeId, onOpenStore }) {
       <HScroll className="reorder-items">
         {products.map((product) => (
           <div key={lineKey(product)} className="reorder-item">
-            <ProductCard product={product} onOpenStore={onOpenStore} />
+            {/* Dentro de su propia tienda no repite el nombre de la tienda; cuenta como vista en su lista. */}
+            <ProductCard product={product} onOpenStore={onOpenStore} showStore={false} impression />
           </div>
         ))}
       </HScroll>

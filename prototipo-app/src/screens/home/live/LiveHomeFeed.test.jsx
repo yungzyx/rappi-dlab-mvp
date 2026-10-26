@@ -24,6 +24,7 @@ beforeEach(async () => {
   vi.resetModules()
   localStorage.setItem('rappi-proto-demo-mode', 'final')
   localStorage.setItem('rappi-proto-guia-vista', '1') // como quien ya vio la guía (sus tests la quitan)
+  localStorage.setItem('rappi-proto-privacy-seen', '1') // y el aviso de privacidad (su test lo quita)
   await import('../../../state/EventsContext')
   const demo = await import('../../../state/DemoContext')
   const profile = await import('../../../state/ProfileContext')
@@ -162,6 +163,17 @@ describe('Home del prototipo final', () => {
     expect(screen.getByTestId('assistant').textContent).toBe('cerrado')
     fireEvent.click(screen.getByRole('button', { name: 'Abrir buscador con Mochi' }))
     expect(screen.getByTestId('assistant').textContent).toBe('abierto')
+  })
+
+  test('con el aviso de privacidad abierto, Mochi espera a que se cierre para saludar', async () => {
+    localStorage.removeItem('rappi-proto-privacy-seen')
+    const { container } = await renderHome()
+    await advance(900 + 3000)
+    expect(container.querySelector('.live-bubble')).toBeNull()
+    localStorage.setItem('rappi-proto-privacy-seen', '1')
+    act(() => window.dispatchEvent(new Event('rappi-privacy-closed')))
+    await advance(900 + 1000)
+    expect(container.querySelector('.live-bubble p').textContent).toMatch(/^¡Hola! Ahora vivo en tu Home/)
   })
 
   test('Mochi entra y saluda sin sugerir productos ni reordenar ni oscurecer la Home', async () => {

@@ -40,7 +40,7 @@ export function MotorCheck({ data, source }) {
   if (!data) {
     return (
       <EmptyState title="El motor todavía no corrió">
-        Aparece cuando corre el motor sobre los pedidos de esta fuente (rappi-ia motor).
+        Aparece cuando corre el motor sobre los pedidos de esta fuente.
       </EmptyState>
     )
   }

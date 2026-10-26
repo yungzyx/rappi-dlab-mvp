@@ -5,6 +5,7 @@ import { conceptOf } from '../../../api/orders'
 import { noteShown } from '../../../api/suggestions'
 import { userId } from '../../../api/user'
 import DemoDisclaimer from '../../../components/DemoDisclaimer'
+import { PRIVACY_CLOSED_EVENT, privacyPending } from '../../../components/PrivacyNotice'
 import SmartBar from '../../../components/assistant/SmartBar'
 import { useToast } from '../../../components/Toast'
 import { ChevronDown } from '../../../components/Icons'
@@ -80,6 +81,7 @@ export default function LiveHomeFeed({ push, active = true }) {
   const lastOrder = `${orders[0]?.id ?? ''}|${orders.filter((order) => order.rating).length}`
   const reduceMotion = useReducedMotion()
   const [replays, setReplays] = useState(0)
+  const [privacyClosed, setPrivacyClosed] = useState(0) // sube al cerrarse el aviso de privacidad: recién ahí saluda
 
   const [plans, setPlans] = useState([]) // las ocasiones que el agente sabe armar (GET /agent/plans)
   const [plan, setPlan] = useState(() => session.plan?.id ?? null) // la ocasión elegida
@@ -193,10 +195,16 @@ export default function LiveHomeFeed({ push, active = true }) {
 
   const openFromBlock = (product) => openItem(product, push)
 
-  // Primera vez en la Home: entra y saluda. No sugiere nada ni mueve la Home.
+  // Primera vez en la Home: entra y saluda. No sugiere nada ni mueve la Home. Con el aviso de privacidad abierto (la
+  // primera visita), espera a que se cierre: el aviso tapaba el saludo y la guía.
   useEffect(() => {
     if (session.played) return undefined
     clearTimers()
+    if (privacyPending()) {
+      const start = () => setPrivacyClosed((n) => n + 1)
+      window.addEventListener(PRIVACY_CLOSED_EVENT, start, { once: true })
+      return () => window.removeEventListener(PRIVACY_CLOSED_EVENT, start)
+    }
     later(reduceMotion ? 0 : T.enter, () => {
       setPresent(true)
       setEntering(true)
@@ -212,9 +220,9 @@ export default function LiveHomeFeed({ push, active = true }) {
       if (free && !silent() && !tourSeen()) showTour(0)
     })
     return clearTimers
-    // Solo al montar (o al repetir la escena).
+    // Solo al montar (o al repetir la escena, o al cerrarse el aviso de privacidad).
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [replays])
+  }, [replays, privacyClosed])
 
   // Lo último que se agregó al carro lo comenta la oferta `carrito` de la API; sin oferta (204) o si falla, no dice nada.
   async function commentOn(added) {

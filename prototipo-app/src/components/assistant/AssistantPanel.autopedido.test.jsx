@@ -128,7 +128,13 @@ describe('pedir por mí', () => {
     await advance(0)
     expect(screen.getByText(/lo pedí por ti/)).toBeTruthy()
     expect(demoOrders).toHaveLength(1)
-    expect(demoOrders[0]).toMatchObject({ stores: ['Supermercado de prueba Centro'], total: 6470, byAgent: true })
+    expect(demoOrders[0]).toMatchObject({
+      stores: ['Supermercado de prueba Centro'],
+      storeId: 9101,
+      vertical: 'supermercado',
+      total: 6470,
+      byAgent: true,
+    })
   })
 
   test('«Deshacer pedido» no manda nada', async () => {

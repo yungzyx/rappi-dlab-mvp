@@ -126,7 +126,8 @@ describe('Home de «Rappi hoy»', () => {
     expect(section('Restaurantes rápidos').getByText('Sándwiches de prueba')).toBeTruthy()
     expect(section('Restaurantes rápidos').getByText('Pastelería de prueba')).toBeTruthy()
     await screen.findByRole('region', { name: 'Mejor evaluados' })
-    expect(section('Mejor evaluados').getAllByRole('button')).toHaveLength(6)
+    // Solo los que tienen nota: el de ejemplo sin nota no va en «Mejor evaluados».
+    expect(section('Mejor evaluados').getAllByRole('button')).toHaveLength(5)
     expect(screen.queryByText(/lower fees|Envío más barato|Stores near by you/)).toBeNull()
     const asked = fetchMock.mock.calls
       .map(([url]) => new URL(url))
@@ -168,10 +169,10 @@ describe('Home de «Rappi hoy»', () => {
     for (const name of ['Cerca de ti', 'Restaurantes rápidos', 'Mejor evaluados'])
       for (const button of section(name).getAllByRole('button')) if (button.textContent) fireEvent.click(button)
     const stores = push.mock.calls.filter(([screenName]) => screenName === 'store').map(([, params]) => params.store)
-    // 6 cercanas + 2 rápidas + 6 mejor evaluados (el botón «Ver todas» de Cerca de ti solo avisa).
-    expect(stores).toHaveLength(14)
+    // 6 cercanas + 2 rápidas + 5 mejor evaluados con nota (el botón «Ver todas» de Cerca de ti solo avisa).
+    expect(stores).toHaveLength(13)
     expect(stores.every((store) => Number.isInteger(store.id))).toBe(true)
-    expect(stores.filter((store) => store.vertical === 'restaurants')).toHaveLength(8)
+    expect(stores.filter((store) => store.vertical === 'restaurants')).toHaveLength(7)
     expect(stores.find((store) => store.id === 9402)).toMatchObject({
       vertical: 'liquor',
       name: 'Botillería de prueba Oriente',

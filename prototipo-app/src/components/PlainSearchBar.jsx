@@ -3,7 +3,7 @@ import { SearchIcon } from './Icons'
 
 // Textos que rota el buscador de la Home real (capturas y video del 26-09-2026).
 const HINTS = [
-  'Encuentra lo que sea en 10 min con Turbo',
+  'Lo que sea en 10 min con Turbo', // «Encuentra lo que sea…» se cortaba a 375 px
   'Busca "Plátano"',
   '¿Qué quieres hoy?',
   'Busca "Agua"',
