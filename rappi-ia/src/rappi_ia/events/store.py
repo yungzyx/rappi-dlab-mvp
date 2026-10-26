@@ -347,10 +347,13 @@ def record_order(
     ts: datetime | None = None,
     mode: str = "propuesta",
     pro: bool | None = None,
+    placed: dict | None = None,
 ) -> str:
     """Pedido + líneas (producto o plato) + evento `order_placed`. Los precios de `lines` se guardan tal cual: la API
     los pone antes con `catalog_prices`. Un pedido en modo `actual` («Rappi hoy») no entra al perfil. `pro`: si la
-    persona es Rappi Pro según la app (`app_users.pro`); `None` no lo cambia."""
+    persona es Rappi Pro según la app (`app_users.pro`); `None` no lo cambia. `placed`: el sobre del `order_placed`
+    (`surface`, `origin`, `request_id`) y lo que suma a su payload (`payload`), como en un pedido que Mochi hizo solo
+    (offers/autonomy.py)."""
     order_id = f"ord-{uuid.uuid4().hex[:12]}"
     total = sum(float(line.get("unit_price") or 0) * int(line.get("qty", 1)) for line in lines)
     ensure_user(conn, user_id, source)
@@ -394,7 +397,8 @@ def record_order(
                 vertical=vertical,
                 cart_id=cart_id,
                 value=total,
-                payload={"order_id": order_id, "lines": len(lines)},
+                payload={"order_id": order_id, "lines": len(lines), **(placed or {}).get("payload", {})},
+                **{k: v for k, v in (placed or {}).items() if k in ("surface", "origin", "request_id")},
             )
         ],
         source,

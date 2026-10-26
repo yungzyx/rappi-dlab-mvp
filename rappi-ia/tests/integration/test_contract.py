@@ -34,6 +34,7 @@ from rappi_ia.events import store as events
 from rappi_ia.events.synth import generate
 from rappi_ia.motor.build import build_motor, refresh_user_conn
 from rappi_ia.motor.model import TZ
+from rappi_ia.offers import autonomy
 
 FIXTURES = Path(__file__).resolve().parents[3] / "prototipo-app" / "src" / "api" / "fixtures"
 PANEL_FIXTURES = Path(__file__).resolve().parents[3] / "dashboard-empresa" / "src" / "fixtures"
@@ -104,6 +105,21 @@ CONTRACT: tuple[Example, ...] = (
         {"message": "soy vegetariano", "user_id": "u-contrato", "session_id": "s-contrato"},
     ),
     Example("profile-preferencias", "GET", "/profile/u-contrato/preferencias", after="agent-ask-preferencia"),
+    # «Pide lo de siempre en…»: con «Pedir por mí» en el súper Centro, Mochi lo pide solo (u-autopedido); sin permiso,
+    # lo deja para revisar antes (u-revisar). Y el ajuste de quien lo encendió.
+    Example(
+        "agent-ask-autopedido",
+        "POST",
+        "/agent/ask",
+        {"message": "pide lo de siempre en el supermercado de prueba centro", "user_id": "u-autopedido"},
+    ),
+    Example(
+        "agent-ask-autopedido-revisar",
+        "POST",
+        "/agent/ask",
+        {"message": "pide lo de siempre en el supermercado de prueba centro", "user_id": "u-revisar"},
+    ),
+    Example("profile-autonomia", "GET", "/profile/u-autopedido/autonomia"),
     Example("recommendations", "GET", "/recommendations?user_id=u-contrato&vertical=restaurants"),
     Example("agent-plans", "GET", "/agent/plans"),
     Example("agent-plans-afin", "GET", "/agent/plans?user_id=u-afin"),
@@ -311,6 +327,11 @@ def client(db):
     for vertical in ("restaurantes", "turbo", "supermercado", "conveniencia", "mall", "chocolateria"):
         line = {"entity_type": "catalog_item", "entity_id": "91001", "concept_id": None, "unit_price": 1990}
         events.record_order(db, "u-servicios", f"s-servicios-{vertical}", f"c-servicios-{vertical}", vertical, [line])
+    # Dos personas que pidieron café en el súper Centro, para «pide lo de siempre»: una con «Pedir por mí» ahí (tope de
+    # $20.000) y otra sin permiso.
+    for person in ("u-autopedido", "u-revisar"):
+        events.record_order(db, person, f"s-{person}", f"c-{person}", "supermercado", [{**coffee, "store_id": 9101}])
+    autonomy.save(db, "u-autopedido", [9101], 20_000)
     # Una persona de antes de la identidad firmada, para el ejemplo de `/session`.
     db.execute("INSERT INTO app_users (user_id, source) VALUES ('proto-0123456789abcdef', 'prototype')")
     db.commit()
@@ -415,6 +436,11 @@ def prototype_journey(client) -> None:
         },
     ]
     assert client.post("/events", json={"user_id": "u-panel", "events": sent}).json() == {"guardados": len(sent)}
+    # Y un pedido que Mochi hizo solo con permiso («Pedir por mí»): el panel lo cuenta aparte.
+    usual = {"entity_type": "catalog_item", "entity_id": "91004", "store_id": 9101}
+    auto = {"user_id": "u-autopedido", "session_id": "s-panel", "cart_id": "c-panel-auto", "vertical": "supermercado"}
+    placed = client.post("/orders", json={**auto, "lines": [usual], "autopedido": {"request_id": "r-panel"}})
+    assert placed.status_code == 200, placed.text
 
 
 @pytest.mark.parametrize("source", ["prototype", "synthetic"])

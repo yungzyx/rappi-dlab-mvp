@@ -1,5 +1,9 @@
 {
   "data": {
+    "autopedidos": {
+      "pedidos": 0,
+      "personas": 0
+    },
     "momentos": [
       {
         "aceptacion_pct": 43.8,
@@ -11,7 +15,7 @@
     "personas": 12
   },
   "guardado": {
-    "fecha": "2026-10-17",
+    "fecha": "2026-10-25",
     "origen": "make contract · simulación chica con semilla fija (40 personas, 8 semanas)"
   },
   "source": "synthetic"

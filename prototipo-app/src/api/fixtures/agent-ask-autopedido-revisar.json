@@ -1,0 +1,63 @@
+{
+  "actions": [
+    {
+      "label": "Cómo pido por ti",
+      "panel": "autonomia"
+    }
+  ],
+  "age_notice": false,
+  "autopedido": {
+    "basis": [],
+    "codigo": "sin_permiso",
+    "lineas": [
+      {
+        "product": {
+          "age_restricted": false,
+          "before": null,
+          "concept": "cafe",
+          "discount": null,
+          "entity_id": "91004",
+          "entity_type": "catalog_item",
+          "id": "cat-91004",
+          "img": "https://imagenes.prueba.invalid/productos/91004.png",
+          "name": "Café molido tostado 250 g (prueba)",
+          "presentation": "250 g",
+          "price": "$3.990",
+          "price_value": 3990.0,
+          "store": "Supermercado de prueba Centro",
+          "store_id": 9101,
+          "vertical": "supermercado"
+        },
+        "qty": 1
+      }
+    ],
+    "modo": "revisar",
+    "motivo": "no me diste permiso para pedir por ti",
+    "subtotal": 3990,
+    "tienda": {
+      "id": 9101,
+      "name": "Supermercado de prueba Centro",
+      "vertical": "supermercado"
+    },
+    "tope": null
+  },
+  "conversation": null,
+  "intent": {
+    "concepts": [],
+    "confidence": 1.0,
+    "follow_up": false,
+    "kind": "autopedido",
+    "occasion": null,
+    "price_max": null,
+    "query": "el supermercado de prueba centro",
+    "symptom": false,
+    "vertical": null
+  },
+  "products": [],
+  "reason": null,
+  "request_id": "contrato-agent-ask-autopedido-revisar",
+  "stores": [],
+  "tags": [],
+  "text": "Te armé lo de siempre en Supermercado de prueba Centro: 1 producto por $3.990. Revísalo antes de pedir.",
+  "unmet": false
+}

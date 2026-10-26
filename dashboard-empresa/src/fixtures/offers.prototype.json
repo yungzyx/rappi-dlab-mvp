@@ -1,5 +1,9 @@
 {
   "data": {
+    "autopedidos": {
+      "pedidos": 1,
+      "personas": 1
+    },
     "momentos": [
       {
         "aceptacion_pct": null,
@@ -17,7 +21,7 @@
     "personas": 1
   },
   "guardado": {
-    "fecha": "2026-10-11",
+    "fecha": "2026-10-25",
     "origen": "make contract · recorrido corto sobre el catálogo de prueba inventado"
   },
   "source": "prototype"

@@ -12,6 +12,7 @@ from psycopg.rows import dict_row
 from ..agent.verticals import MIN_ITEMS_ELSEWHERE, SHARES
 from ..concepts.taxonomy import load_taxonomy
 from ..motor.combos import OWN_SIGNALS_ONLY, expected_fine_retention, load_combos
+from ..offers.autonomy import ORIGIN as AUTO_ORDER_ORIGIN
 from ..offers.winback import reach
 
 SOURCES = ("synthetic", "prototype")
@@ -489,7 +490,8 @@ def offers(conn: Connection, source: str = "synthetic") -> dict:
 
     `agent-<momento>` es el origen actual; `mochi-<momento>` y `chat` son nombres históricos que siguen en la base.
     Los servicios (RappiTravel, RappiFavor) tienen su propia vista y el aviso sobre el carro no es una oferta: no
-    entran. El % de aceptación necesita 10 mostradas, como en `suggestions`.
+    entran. El % de aceptación necesita 10 mostradas, como en `suggestions`. `autopedidos` cuenta aparte los pedidos
+    que Mochi hizo solo con permiso («Pedir por mí»): `{pedidos, personas}`.
     """
     _check(source)
     params = {
@@ -524,6 +526,15 @@ def offers(conn: Connection, source: str = "synthetic") -> dict:
         params,
     )
     row["momentos"].sort(key=lambda m: OFFER_ORDER.index(m["momento"]))
+    # Los pedidos que Mochi hizo solo, con permiso («Pedir por mí», offers/autonomy.py), aparte: no son ofertas
+    # aceptadas. Su `order_placed` lleva el origen `agent-autopedido`.
+    [auto] = _rows(
+        conn,
+        """SELECT count(*) AS pedidos, count(DISTINCT user_id) AS personas FROM app_events
+           WHERE source = %(source)s AND type = 'order_placed' AND origin = %(origin)s""",
+        {"source": source, "origin": AUTO_ORDER_ORIGIN},
+    )
+    row["autopedidos"] = auto
     return row
 
 

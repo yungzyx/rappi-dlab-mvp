@@ -76,6 +76,14 @@ MEMORY_QUESTIONS = [
     "mis datos personales",
     "mi privacidad",
 ]
+# «Pide lo de siempre en el Supermercado Centro»: su último pedido en una tienda (offers/autonomy.py). Con «Pedir por
+# mí» Mochi lo pide solo; sin él, lo deja listo para revisar antes. Al final del mensaje, y lo que sigue a «en» o «de»
+# es la tienda: «lo de siempre pero sin palta» no es esto.
+USUAL_ORDER = re.compile(
+    r"\b(?:lo de siempre|lo mismo de siempre|mi pedido de siempre|el pedido de siempre|lo que pido siempre"
+    r"|repite(?:me)? mi (?:ultimo )?pedido|repetir mi (?:ultimo )?pedido)"
+    r"(?:\s+(?:en|de|del|a)\s+(?P<store>[a-z0-9 ]+?))?\s*$"
+)
 # Muletillas al dictar por voz («eh quiero este una coca po»): solo se quitan en los bordes del mensaje.
 VOICE_FILLERS = {"eh", "em", "mm", "mmm", "este", "ya", "mira", "oye", "po", "pues"}
 _CALLS = GREETING_WORDS | THANKS_WORDS | VOICE_FILLERS  # lo que va antes de nombrar a quien se le habla
@@ -430,6 +438,7 @@ class Intent:
     # saludo | gracias | ayuda | envio | ofertas | fuera | pedido | receta | memoria | buscar | ocasion | aclarar
     # | servicio | vacio | consejo (consejo médico) | que_es (ficha de un plato) | acompanar (con qué acompañar algo)
     # | resumen (el carro antes de pagar) | preferencia (dieta, alergias y favoritas: offers/preferences.py)
+    # | autopedido (lo de siempre en una tienda, `query` es la tienda: offers/autonomy.py)
     kind: str
     text: str
     vertical: str | None = None
@@ -492,6 +501,9 @@ class Understander:
             return Intent("preferencia", text, current_vertical, confidence=1.0, preference=preference)
         if self.memory_questions.best(normalized):
             return Intent("memoria", text, current_vertical, confidence=1.0)
+        usual = USUAL_ORDER.search(normalized)
+        if usual:
+            return Intent("autopedido", text, current_vertical, confidence=1.0, query=(usual["store"] or "").strip())
 
         price_max, without_price = _price(text)
         # Habla chilena: «pa» y «pal» son «para» y «para el» («algo pa comer», «juguete pal gato»).

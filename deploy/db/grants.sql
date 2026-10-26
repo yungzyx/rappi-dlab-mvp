@@ -13,11 +13,11 @@ GRANT USAGE ON SCHEMA public, capa TO {api_role};
 GRANT SELECT ON ALL TABLES IN SCHEMA public, capa TO {api_role};
 
 -- Escribir: solo los datos de las personas del prototipo (sesión, eventos, sesiones de la app, pedidos, preferencias
--- con el agente, segmentos, afinidad por vertical y recompra) y las definiciones de segmentos, que el recálculo
--- después de un pedido vuelve a sembrar si cambiaron las reglas.
+-- y permiso para pedir con el agente, segmentos, afinidad por vertical y recompra) y las definiciones de segmentos,
+-- que el recálculo después de un pedido vuelve a sembrar si cambiaron las reglas.
 GRANT INSERT, UPDATE, DELETE ON
-    app_users, app_events, app_sessions, app_orders, app_order_lines, agent_preferences, user_segments,
-    user_segment_history, segment_defs, user_vertical_affinity, replenishment
+    app_users, app_events, app_sessions, app_orders, app_order_lines, agent_preferences, agent_autonomy,
+    user_segments, user_segment_history, segment_defs, user_vertical_affinity, replenishment
     TO {api_role};
 
 -- Las secuencias de esas tablas (p. ej. app_events.event_id), para poder insertar.

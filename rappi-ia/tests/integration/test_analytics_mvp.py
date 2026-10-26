@@ -14,7 +14,7 @@ from rappi_ia.events import store as events
 
 NOW = datetime(2026, 10, 11, 12, tzinfo=UTC)
 EMPTY = {
-    "offers": {"personas": 0, "momentos": []},
+    "offers": {"personas": 0, "momentos": [], "autopedidos": {"pedidos": 0, "personas": 0}},
     "unmet": {"personas": 0, "busquedas": 0, "sin_resultado": 0, "por_vertical": []},
 }
 
@@ -106,6 +106,7 @@ def test_offers_unknown_origin_is_sin_momento(concepts):
     assert data == {
         "personas": 1,
         "momentos": [{"momento": "sin_momento", "mostradas": 4, "aceptadas": 0, "aceptacion_pct": None}],
+        "autopedidos": {"pedidos": 0, "personas": 0},  # los que Mochi pidió solo van aparte
     }
 
 

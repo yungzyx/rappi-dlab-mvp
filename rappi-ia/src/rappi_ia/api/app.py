@@ -41,7 +41,7 @@ from ..layers.segments import recalculate_user_segments
 from ..motor.build import refresh_user, refresh_user_conn
 from ..motor.home import home_verticals
 from ..motor.predict import next_verticals
-from ..offers import preferences
+from ..offers import autonomy, preferences
 from ..offers.engine import most_ordered
 from ..offers.guards import is_offerable, offerable_vertical, whim_allowed
 from ..offers.profiles import active_profiles, person_city
@@ -49,6 +49,7 @@ from ..retrieval.hybrid import MODES
 from ..text import contract_articles
 from . import deps, identity, prewarm
 from .agent import router as agent_router
+from .autonomy import router as autonomy_router
 from .catalog import router as catalog_router
 from .deps import (
     Clean,
@@ -334,6 +335,12 @@ class OrderLineIn(Clean):
     from_suggestion: bool = False
 
 
+class AutoOrderIn(Clean):
+    """Un pedido que Mochi hizo solo («Pedir por mí», offers/autonomy.py): la respuesta de /agent/ask que lo armó."""
+
+    request_id: str | None = Field(default=None, pattern=r"^[A-Za-z0-9._-]{1,64}$")
+
+
 class OrderIn(Clean):
     user_id: str = Field(max_length=64)
     session_id: str = Field(max_length=64)
@@ -342,6 +349,7 @@ class OrderIn(Clean):
     lines: list[OrderLineIn] = Field(min_length=1, max_length=100)
     mode: Literal["propuesta", "actual"] = "propuesta"  # en «Rappi hoy» (actual) el pedido no entra al perfil
     pro: bool | None = None  # si la persona es Rappi Pro en la app (app_users.pro); sin él, no cambia
+    autopedido: AutoOrderIn | None = None  # lo pidió Mochi solo: la API vuelve a revisar cada límite
 
 
 # ── Agente ──────────────────────────────────────────────────────────────────
@@ -690,6 +698,7 @@ def post_order(
     # Un pedido es de una tienda: un carro con dos restaurantes son dos pedidos (la app manda uno por tienda).
     if len({line.store_id for line in body.lines if line.store_id is not None}) > 1:
         raise HTTPException(400, "Un pedido es de una sola tienda")
+    placed = _auto_order(conn, body) if body.autopedido else None
     lines, skipped = events.catalog_prices(conn, [line.model_dump() for line in body.lines])
     if not lines:  # sin decir cuál: la respuesta no sirve para sondear el catálogo
         raise HTTPException(400, "Producto no disponible")
@@ -704,6 +713,7 @@ def post_order(
             source="prototype",
             mode=body.mode,
             pro=body.pro,
+            placed=placed,
         )
     except ValueError as exc:  # un usuario de otra fuente (simulado)
         raise rejected(exc, body.user_id) from exc
@@ -770,6 +780,26 @@ def analytics(
 
 
 # ── Auxiliares ───────────────────────────────────────────────────────────────
+def _auto_order(conn: Connection, body: OrderIn) -> dict:
+    """Un pedido que Mochi hizo solo, ya cerrada la ventana de deshacer: solo en la propuesta y si sigue siendo lo de
+    siempre y pasa cada límite (`autonomy.check_order`). Si no, un 409 con el motivo (`detail.motivo`): la app lo deja
+    para revisar antes. Devuelve el sobre de su `order_placed`: origen `agent-autopedido` y la `basis`."""
+    stores = {line.store_id for line in body.lines}
+    decision, why = (
+        autonomy.check_order(conn, body.user_id, next(iter(stores)), [line.model_dump() for line in body.lines])
+        if body.mode == "propuesta" and len(stores) == 1
+        else (autonomy.Decision(False, "distinto", autonomy.REASONS["distinto"]), [])
+    )
+    if not decision.allowed:
+        raise HTTPException(409, {"codigo": decision.code, "motivo": decision.text})
+    return {
+        "surface": "agent",
+        "origin": autonomy.ORIGIN,
+        "request_id": body.autopedido.request_id,
+        "payload": {"autopedido": True, "basis": why},
+    }
+
+
 def _context(conn, vertical, user_id, profile, shown_topics, mode) -> Context:
     if profile is None and user_id and mode == "propuesta":
         profile = events.profile(conn, user_id)
@@ -830,3 +860,4 @@ if config.API_ENABLE_ANALYTICS:
 app.include_router(catalog_router)
 app.include_router(agent_router)
 app.include_router(preferences_router)
+app.include_router(autonomy_router)
