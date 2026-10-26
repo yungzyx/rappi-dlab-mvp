@@ -114,8 +114,10 @@ def _serial(test_url, q: str) -> dict:
 
 def _served(reply) -> dict:
     """La respuesta sin su `request_id` (el id de cada request) ni lo que la API suma a los grupos (tiendas,
-    restaurantes y «Lo que sea», que no se buscan por vertical): lo demás se compara con lo calculado en serie."""
-    return {k: v for k, v in reply.json().items() if k not in {"request_id", "places", "whim_allowed"}}
+    restaurantes, «Lo que sea» y el aviso de las preferencias, que no se buscan por vertical): lo demás se compara con
+    lo calculado en serie."""
+    skipped = {"request_id", "places", "whim_allowed", "preferences_notice"}
+    return {k: v for k, v in reply.json().items() if k not in skipped}
 
 
 def test_with_a_free_pool_the_groups_are_the_same_as_in_series(catalog, test_url, make_pool, client, spares):

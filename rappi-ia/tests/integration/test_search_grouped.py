@@ -202,6 +202,7 @@ def test_grouped_endpoint_shape(client):
         "corrected_query",
         "places",
         "whim_allowed",
+        "preferences_notice",  # null sin `user_id` (test_agent_preferences.py)
         "request_id",
     }
     assert body["query"] == "cerveza" and body["unmet"] is False
@@ -218,7 +219,15 @@ def test_grouped_endpoint_shape(client):
 def test_vertical_search_is_unchanged(client):
     body = client.get("/search", params={"q": "cerveza", "vertical": "licores"}).json()
 
-    assert set(body) == {"vertical", "products", "unmet", "unmet_reason", "corrected_query", "request_id"}
+    assert set(body) == {
+        "vertical",
+        "products",
+        "unmet",
+        "unmet_reason",
+        "corrected_query",
+        "preferences_notice",
+        "request_id",
+    }
     assert body["vertical"] == "licores" and body["products"] and body["unmet"] is False
     same = client.get("/search", params={"q": "cerveza", "vertical": "liquor"}).json()  # id del prototipo
     assert {**same, "request_id": body["request_id"]} == body  # cada respuesta tiene su id
