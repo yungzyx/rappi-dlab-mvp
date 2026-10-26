@@ -66,6 +66,12 @@ describe('Favoritos con el catálogo real', () => {
     expect(push).toHaveBeenCalledWith('store', {
       store: expect.objectContaining({ id: 9801, vertical: 'restaurants', name: 'Pizzería de prueba Centro' }),
     })
+    // Con su lugar: la pantalla de favoritos y su lista.
+    expect(push.mock.calls.at(-1)[1].store.placement).toMatchObject({
+      surface: 'favorites',
+      origin: 'tus-favoritos',
+      position: 0,
+    })
     // Ya no hay tiendas inventadas entre los favoritos.
     expect(screen.queryByAltText("McDonald's")).toBeNull()
     await screen.findByRole('region', { name: 'Los mejores restaurantes' })

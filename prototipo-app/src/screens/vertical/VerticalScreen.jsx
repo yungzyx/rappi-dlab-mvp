@@ -1,4 +1,6 @@
 import { useId } from 'react'
+import { placeList } from '../../api/attribution'
+import { storeItem } from '../../api/impressions'
 import { deals as loadDeals, verticalStores } from '../../api/catalog'
 import { useApi } from '../../api/useApi'
 import BackButton from '../../components/BackButton'
@@ -8,6 +10,7 @@ import OfflineNotice from '../../components/OfflineNotice'
 import { ProductCard } from '../../components/ProductCard'
 import { StoreMeta } from '../../components/StoreMeta'
 import { ChevronDown, SearchIcon } from '../../components/Icons'
+import { useImpressions } from '../../hooks/useImpressions'
 import { useOpenSearch } from '../../hooks/useOpenSearch'
 import { useAddress } from '../../state/AddressContext'
 import { VERTICALS } from './data'
@@ -16,7 +19,11 @@ import './vertical.css'
 // Las tiendas que se ven en la pantalla; «Ver más» abre la lista con todas.
 const VISIBLE_STORES = 4
 
-/** Plantilla común de Súper, Farmacia, Rappi Mall, Licores, Express y Chocolates: la UI es de aquí, las tiendas y las bajas de precio, de la API. */
+/**
+ * Plantilla común de Súper, Farmacia, Rappi Mall, Licores, Express y Chocolates: la UI es de aquí, las tiendas y las bajas
+ * de precio, de la API. Las tiendas y las bajas llevan su lugar (pantalla `vertical`, listas `tiendas` y
+ * `bajaron-de-precio`): abrir, agregar y ver lo dicen.
+ */
 export default function VerticalScreen({ back, push, params }) {
   // Un id desconocido (enlace viejo) no rompe la pantalla: muestra un estado vacío más abajo y no pide nada.
   const vertical = VERTICALS[params.id]
@@ -72,7 +79,7 @@ export default function VerticalScreen({ back, push, params }) {
       )}
       {stores.data?.stores.length > 0 && (
         <StoreSection
-          stores={stores.data.stores}
+          stores={placeList(stores.data.stores, { surface: 'vertical', origin: 'tiendas' })}
           onOpen={openStore}
           onMore={() => push('list', { title: 'Tiendas', stores: stores.data.stores })}
         />
@@ -81,7 +88,7 @@ export default function VerticalScreen({ back, push, params }) {
       {/* Las bajas de precio son un extra: si no vienen (o falló esa llamada), la sección no aparece. */}
       {deals.data?.length > 0 && (
         <DealsSection
-          deals={deals.data}
+          deals={placeList(deals.data, { surface: 'vertical', origin: 'bajaron-de-precio' })}
           onOpenStore={openProductStore}
           onSeeAll={() => push('list', { title: 'Bajaron de precio', products: deals.data })}
         />
@@ -121,7 +128,7 @@ function DealsSection({ deals, onOpenStore, onSeeAll }) {
       </div>
       <HScroll className="vertical-product-row">
         {deals.map((item) => (
-          <ProductCard key={item.id} product={item} onOpenStore={() => onOpenStore(item)} />
+          <ProductCard key={item.id} product={item} onOpenStore={() => onOpenStore(item)} impression />
         ))}
       </HScroll>
     </section>
@@ -130,6 +137,7 @@ function DealsSection({ deals, onOpenStore, onSeeAll }) {
 
 function StoreSection({ stores, onOpen, onMore }) {
   const titleId = useId()
+  const watch = useImpressions()
   return (
     <section className="vertical-section vertical-section--stores" aria-labelledby={titleId}>
       <div className="section-head">
@@ -142,7 +150,13 @@ function StoreSection({ stores, onOpen, onMore }) {
       </div>
       <div className="vertical-store-list">
         {stores.slice(0, VISIBLE_STORES).map((store) => (
-          <button key={store.id} type="button" className="vertical-store tap" onClick={() => onOpen(store)}>
+          <button
+            key={store.id}
+            ref={watch(store, storeItem(store))}
+            type="button"
+            className="vertical-store tap"
+            onClick={() => onOpen(store)}
+          >
             <Img src={store.img} className="vertical-store-logo" />
             <span className="vertical-store-text">
               <span className="vertical-store-name">

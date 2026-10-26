@@ -168,6 +168,12 @@ describe('catálogo real en la vertical', () => {
     expect(push).toHaveBeenLastCalledWith('store', {
       store: expect.objectContaining({ id: 9102, name: 'Supermercado de prueba Norte', vertical: 'grocery' }),
     })
+    // Con su lugar en la lista de la vertical: su visita (view_store) lo dice.
+    expect(push.mock.calls.at(-1)[1].store.placement).toMatchObject({
+      surface: 'vertical',
+      origin: 'tiendas',
+      position: 1,
+    })
   })
 
   test('una tienda de la lista abre su página y su visita va a la vertical de la pantalla', async () => {
