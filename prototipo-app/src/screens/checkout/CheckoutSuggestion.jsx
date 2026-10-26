@@ -63,7 +63,7 @@ export default function CheckoutSuggestion() {
     return (
       <button type="button" className="checkout-ask tap" disabled={asking} onClick={ask}>
         <Mascot size={28} badge />
-        ¿Me falta algo? Pregúntale a {AGENT_NAME}
+        ¿Me falta algo? Pídele a {AGENT_NAME}
       </button>
     )
   }
