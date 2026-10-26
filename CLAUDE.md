@@ -8,6 +8,7 @@ Documentación: índice en [docs/README.md](docs/README.md) · cifras en [README
 
 ## Convenciones
 
+- Mochi sin chat (26-10): la única entrada de texto es el buscador («Busca o pídele algo a Mochi»); Mochi responde con tarjetas (su última respuesta, sin historial ni burbujas), que se refinan con chips de un toque (`components/assistant/FollowUp.jsx`: mandan la frase que `agent/understand.py: _follow_up` ya entiende, con `previous`), y sus acciones (preferencias, «Pedir por mí», «Olvidar», atajos, último pedido) son botones. Ningún campo nuevo para escribirle ni texto que pida «dime», «cuéntame» o «escríbeme» (`ASKS_TO_WRITE` en los tests). El borde animado del buscador es `.smart-border` (`smart-bar.css`), el mismo de la Home.
 - La mascota y asistente se llama **Mochi** (antes, Bigotes), pero el código usa nombres neutros (`RappiAgent`, `/agent/ask`, `AgentMessage`, clases `agent-*`) porque el nombre puede cambiar. El nombre visible vive en un solo lugar por lado: en `rappi-ia`, `config.AGENT_NAME` (variable de entorno `AGENT_NAME`, por defecto «Mochi»); en la app, `prototipo-app/src/agent/name.js`. El agente responde por texto y el prototipo lo usa como buscador y con ofertas. Los documentos fechados todavía dicen Bigotes.
 
 - Código (funciones, módulos, variables) en inglés; todo lo que ve el usuario (logs, CLI, docs, columnas) en español.
