@@ -28,7 +28,7 @@ import { useToast } from '../Toast'
 import BackButton from '../BackButton'
 import ForgetConfirm, { FORGET_TITLE } from '../ForgetConfirm'
 import Sheet from '../Sheet'
-import { AutoOrderCard } from './AgentCards'
+import { AutoOrderCard, shownOrder } from './AgentCards'
 import AgentMessage from './AgentMessage'
 import AskAgentRow from './AskAgentRow'
 import AutonomyEditor from './AutonomyEditor'
@@ -73,11 +73,24 @@ const CAPABILITIES = [
 ]
 // El último pedido, en los dos modos (la app de Rappi también lo muestra): solo si la demo ya tiene uno.
 const LAST_ORDER = { id: 'pedido', label: '📦 Mi último pedido' }
-const LAST_ORDER_ANSWER = {
-  text: 'Así va tu último pedido 🛵',
+// La tarjeta muestra el pedido en curso más reciente o, sin uno, el último (LastOrderCard): el texto dice cuál.
+const lastOrderAnswer = (order) => ({
+  text: !order
+    ? 'Todavía no tienes pedidos en esta demo.'
+    : order.cancelled
+      ? 'Tu último pedido se canceló.'
+      : 'Así va tu último pedido 🛵',
   lastOrder: true,
   actions: [{ label: 'Ver mis pedidos', route: ['orders'] }],
-}
+})
+// Los textos fijos del resumen y del pedido los pone la app, que sabe lo que la demo hace hoy: con «Pedir por mí»
+// Mochi sí pide, y el seguimiento cancela con rescate (los mismos de la copia sin conexión, api/offline/search.js).
+const SUMMARY_TEXT =
+  'Este es el resumen de tu pedido antes de pagar 🧾. Revísalo y paga en el checkout: si no me diste permiso con ' +
+  '«Pedir por mí», el pedido lo haces tú.'
+const ORDER_TEXT =
+  'Tu pedido lo sigues en «Mis pedidos» 🛵: ahí ves dónde viene, lo cancelas antes de que salga o pides ayuda si ' +
+  'algo llegó mal.'
 const withoutEmoji = (label) => label.replace(/^\S+\s/, '')
 // Las ideas de siempre, como texto fijo: tocar una le pregunta eso al agente.
 const CHIPS = ['🍔 ¿Qué almuerzo hoy?', '🍻 Arma un carrete', '🔥 Ofertas de hoy', '🍫 Algo dulce', '🎁 Un regalo']
@@ -158,7 +171,17 @@ export default function AssistantPanel({ push, vertical, depth = 1 }) {
   const pending = useRef(null)
   const search = useSearch({ vertical })
 
-  const later = (fn, ms) => timers.current.push(setTimeout(fn, ms))
+  // Cada temporizador sale de la lista al correr (si no, crecía toda la sesión).
+  const later = (fn, ms) => {
+    const id = setTimeout(() => {
+      timers.current = timers.current.filter((t) => t !== id)
+      fn()
+    }, ms)
+    timers.current.push(id)
+    return id
+  }
+  // El cierre en curso: reabrir antes de que termine lo cancela (si no, cerraba el panel recién abierto).
+  const closing = useRef(null)
   useEffect(
     () => () => {
       timers.current.forEach(clearTimeout)
@@ -291,8 +314,8 @@ export default function AssistantPanel({ push, vertical, depth = 1 }) {
       if (response.conversation) lastTurn.current = response.conversation
       const message = noteSuggestion(toMessage(response))
       if (message.autoOrder) return await checkAutoOrder(message)
-      if (message.kind === 'resumen') return { ...message, orderSummary: true }
-      if (message.kind === 'pedido') return { ...message, lastOrder: true }
+      if (message.kind === 'resumen') return { ...message, text: SUMMARY_TEXT, orderSummary: true }
+      if (message.kind === 'pedido') return { ...message, text: ORDER_TEXT, lastOrder: true }
       return message
     } catch {
       if (signal?.aborted) return { text: STOPPED }
@@ -402,6 +425,8 @@ export default function AssistantPanel({ push, vertical, depth = 1 }) {
 
   /** Una oferta del agente para un momento (`carrito`, `vertical_por_probar`…); `nothing` es lo que dice si no tiene nada. */
   const offered = async (moment, context, nothing, signal) => {
+    // Lo que se muestra ya no es esa conversación: «más barato» después no refina algo que no está en pantalla.
+    lastTurn.current = null
     try {
       const made = await offer(moment, context, { userId: userId(), surface: 'agent' })
       if (signal?.aborted) return { text: STOPPED }
@@ -448,6 +473,7 @@ export default function AssistantPanel({ push, vertical, depth = 1 }) {
 
   /** «Arma un kit»: las ocasiones que sabe armar (las que le gustan primero), para elegir una. */
   const kitOptions = async (signal) => {
+    lastTurn.current = null
     try {
       const list = await plans()
       if (signal?.aborted) return { text: STOPPED }
@@ -465,6 +491,7 @@ export default function AssistantPanel({ push, vertical, depth = 1 }) {
 
   /** «Algo para ti» con un perfil de gusto: su escalera (el momento `perfil`) en una sola fila de productos. */
   const forYou = async (found, signal) => {
+    lastTurn.current = null
     try {
       const ladder = await profileLadder(found.profile.id)
       if (signal?.aborted) return { text: STOPPED }
@@ -486,8 +513,10 @@ export default function AssistantPanel({ push, vertical, depth = 1 }) {
   const runCapability = (id, label) => {
     if (forgetting) return
     addMessage({ from: 'user', text: withoutEmoji(label) })
-    if (id === 'pedido') ask(() => LAST_ORDER_ANSWER, { cancellable: false })
-    else if (id === 'recompra') ask((signal) => offered('recompra', {}, NOTHING_TO_REPEAT, signal))
+    if (id === 'pedido') {
+      lastTurn.current = null // otra tarjeta en pantalla: «más barato» ya no refina la respuesta de antes
+      ask(() => lastOrderAnswer(shownOrder(orders?.orders ?? [])), { cancellable: false })
+    } else if (id === 'recompra') ask((signal) => offered('recompra', {}, NOTHING_TO_REPEAT, signal))
     else if (id === 'plan') ask((signal) => kitOptions(signal))
     else if (taste) ask((signal) => forYou(taste, signal))
     else ask((signal) => answer('qué me recomiendas', undefined, signal))
@@ -568,6 +597,8 @@ export default function AssistantPanel({ push, vertical, depth = 1 }) {
   useLayoutEffect(() => {
     const session = assistant.session
     if (!session) return
+    clearTimeout(closing.current)
+    closing.current = null
     // Paso 1 de la animación: hay que pintar la posición inicial antes de deslizar, así que el render extra es buscado.
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setPhase('entering')
@@ -610,8 +641,12 @@ export default function AssistantPanel({ push, vertical, depth = 1 }) {
 
   const close = ({ viaHistory = false } = {}) => {
     undoWaitingOnClose()
+    // Lo que no es de una visita al panel no sigue en la próxima (horas después, «más barato» no refina nada).
+    lastTurn.current = null
     setPhase('closing')
-    later(() => {
+    clearTimeout(closing.current)
+    closing.current = later(() => {
+      closing.current = null
       setPhase('closed')
       assistant.close({ viaHistory })
     }, CLOSE_MS)
@@ -881,7 +916,6 @@ export default function AssistantPanel({ push, vertical, depth = 1 }) {
                   message={current.orderSummary && cart.count === 0 ? { ...current, actions: [] } : current}
                   onStreamDone={() => markStreamed(current.id)}
                   onOpenProduct={openProduct}
-                  onOpenStore={openStore}
                   onAction={onAction}
                   onCancel={cancelAnswer}
                   onTrack={(orderId) => go('tracking', { orderId })}

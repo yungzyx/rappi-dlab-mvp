@@ -2,7 +2,7 @@ import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { beforeEach, describe, expect, test } from 'vitest'
 import { route } from './index'
-import { CUISINES, FOOD_GROUPS, RULES, applied, readCommand } from './preferences'
+import { CUISINES, FOOD_GROUPS, RULES, applied, readCommand, withoutOf } from './preferences'
 import { readState } from './state'
 import { normalize } from './text'
 import { META, product } from '../../test/offlineMeta'
@@ -154,4 +154,14 @@ describe('la API simulada', () => {
     call('DELETE', '/profile/p') // «Olvidar»: también las preferencias
     expect(readState().preferences).toEqual([])
   })
+})
+
+test('el aviso dice primero la dieta y después las alergias, como la API, y al guardar une con «o»', () => {
+  const items = [
+    { tipo: 'alergia', valor: 'mani' },
+    { tipo: 'dieta', valor: 'vegetariano' },
+    { tipo: 'alergia', valor: 'mariscos' },
+  ]
+  expect(withoutOf(items)).toMatch(/^carne, .+ o .+$/)
+  expect(withoutOf(items, { joined: true })).toMatch(/^carne o .+ o .+$/)
 })

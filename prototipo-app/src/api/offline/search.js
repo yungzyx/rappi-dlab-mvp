@@ -366,7 +366,25 @@ const APP_QUESTIONS = [
       ...['no llega', 'no ha llegado', 'llego mal'],
     ],
   ],
+  // Fuera de tema: se contesta y se vuelve a lo que Mochi sabe hacer (no es demanda no atendida).
+  [
+    'fuera',
+    [
+      ...['clima', 'chiste', 'capital de', 'te quiero', 'te amo', 'eres tonto', 'tonto', 'idiota', 'como estas'],
+      ...['quien gano', 'noticias'],
+    ],
+  ],
 ]
+// text.py: GREETING_WORDS y THANKS_WORDS; understand.py: LAUGHTER y LINK (un saludo, un «gracias», una risa o un link
+// no piden nada).
+const GREETING_WORDS = new Set(['hola', 'holi', 'buenas', 'buenos', 'dias', 'tardes', 'noches', 'hey', 'wena', 'alo'])
+GREETING_WORDS.add('ola')
+const THANKS_WORDS = new Set(['gracias', 'muchas', 'vale', 'listo', 'ok', 'okay', 'perfecto', 'genial', 'bacan'])
+THANKS_WORDS.add('buenisimo')
+const LAUGHTER = /^(?:(?:j[aeiou]){2,}j?|(?:[aeiou]?j){2,}|x+d+|lol|jsjs\w*)$/
+const LINK = /https?:\/\/|www\./i
+// rappi_agent.py: IDEA_KINDS, las respuestas que dejan ideas para tocar.
+const IDEA_KINDS = new Set(['ayuda', 'saludo', 'vacio', 'fuera'])
 export const HELP_ACTIONS = [
   { label: '🔁 Repite lo de siempre', capability: 'recompra' },
   { label: '🧺 Arma un kit', capability: 'plan' },
@@ -387,10 +405,22 @@ const HELP_TODAY =
   `Soy ${AGENT_NAME} 🧡, tu asistente en Rappi. ` +
   'Busca lo que necesites («pañales talla G», «algo de sushi», «una once para 4») y te muestro lo que hay, aunque ' +
   'esté en otra vertical.'
-const SUMMARY_TEXT =
-  'Este es el resumen de tu pedido antes de pagar 🧾. Revísalo y paga en el checkout: yo nunca hago el pedido por ti.'
-const ORDER_TEXT =
-  'Tu pedido lo sigues en «Mis pedidos» 🛵: ahí ves dónde viene y, para cancelarlo o un reclamo, está el chat de soporte.'
+// El resumen y el pedido: los mismos textos que pone la app (components/assistant/AssistantPanel.jsx).
+export const SUMMARY_TEXT =
+  'Este es el resumen de tu pedido antes de pagar 🧾. Revísalo y paga en el checkout: si no me diste permiso con ' +
+  '«Pedir por mí», el pedido lo haces tú.'
+export const ORDER_TEXT =
+  'Tu pedido lo sigues en «Mis pedidos» 🛵: ahí ves dónde viene, lo cancelas antes de que salga o pides ayuda si ' +
+  'algo llegó mal.'
+// compose.py: saludo, gracias, fuera y vacio.
+const SMALL_TALK = {
+  saludo: (interest) =>
+    `¡Hola! Soy ${AGENT_NAME} 🧡.${interest ? ` Veo tu interés en ${interest}.` : ''} Toca una idea o busca lo que quieras.`,
+  gracias: () => '¡De nada! Aquí estoy si necesitas algo más 🧡',
+  fuera: () => 'De eso no sé mucho 🧡, lo mío es ayudarte a pedir: comida, súper, farmacia…',
+  vacio: () =>
+    'No entendí qué buscas. Toca una idea o busca un antojo (sushi, café…), un producto o una ocasión (asado, once…).',
+}
 
 /** La ayuda: lo que Mochi sabe hacer (la app resuelve cada `capability`); en «Rappi hoy», solo ejemplos. */
 export const helpReply = (mode) =>
@@ -398,12 +428,53 @@ export const helpReply = (mode) =>
     actions: mode === 'actual' ? HELP_EXAMPLES : HELP_ACTIONS,
   })
 
-/** «¿qué puedes hacer?», «quiero pagar», «¿dónde viene mi pedido?»: la respuesta, o null si no es una de esas. */
+/**
+ * Un saludo, un «gracias», una risa o un link (understand.py, al principio de `understand`; rappi_agent.py:
+ * _small_talk): la respuesta, con las ideas para tocar salvo en el «gracias», o null si no es uno de esos.
+ */
+function smallTalk(snapshot, message, mode, interests) {
+  const normalized = normalize(message.replace(/([^\W\d_xw])\1{2,}/giu, '$1'))
+  const words = normalized.split(' ').filter(Boolean)
+  const names = new Set([normalize(AGENT_NAME)])
+  let kind = null
+  if (!/[a-z]/.test(normalized) || LINK.test(message) || words.every((w) => LAUGHTER.test(w))) kind = 'vacio'
+  else if (words.every((w) => GREETING_WORDS.has(w) || names.has(w)) && words.some((w) => GREETING_WORDS.has(w)))
+    kind = 'saludo'
+  else if (
+    words.every((w) => THANKS_WORDS.has(w) || GREETING_WORDS.has(w) || names.has(w)) &&
+    words.some((w) => THANKS_WORDS.has(w))
+  )
+    kind = 'gracias'
+  if (!kind) return null
+  const interest = mode === 'actual' ? null : snapshot.meta.concepts[interests?.[0]]?.label?.toLowerCase()
+  return smallTalkReply(kind, mode, interest)
+}
+
+const smallTalkReply = (kind, mode, interest = null) =>
+  textReply(SMALL_TALK[kind](interest), kind, {
+    ...(IDEA_KINDS.has(kind) ? { actions: mode === 'actual' ? HELP_EXAMPLES : HELP_ACTIONS } : {}),
+  })
+
+/**
+ * «¿qué puedes hacer?», «quiero pagar», «¿dónde viene mi pedido?», «¿cómo está el clima?»: la respuesta, o null si no
+ * es una de esas. Como `KeywordMatcher.best`, gana la frase con más palabras («ayuda con mi pedido» es del pedido), y
+ * una ocasión nombrada («ayuda para el asado») se busca, no se contesta.
+ */
 function appQuestion(snapshot, message, mode) {
   const said = ` ${normalize(message)} `
-  if (detectConcepts(snapshot.meta, message).length) return null
-  const kind = APP_QUESTIONS.find(([, phrases]) => phrases.some((p) => said.includes(` ${p} `)))?.[0]
+  if (detectConcepts(snapshot.meta, message).length || namesOccasion(snapshot.meta, message)) return null
+  let kind = null
+  let longest = 0
+  for (const [candidate, phrases] of APP_QUESTIONS)
+    for (const phrase of phrases) {
+      const size = phrase.split(' ').length
+      if (size > longest && said.includes(` ${phrase} `)) {
+        kind = candidate
+        longest = size
+      }
+    }
   if (kind === 'ayuda') return helpReply(mode)
+  if (kind === 'fuera') return smallTalkReply('fuera', mode)
   if (kind === 'resumen')
     return textReply(SUMMARY_TEXT, 'resumen', { actions: [{ label: 'Revisar y pagar', route: ['checkout'] }] })
   if (kind === 'pedido')
@@ -555,6 +626,8 @@ function answer(snapshot, body, { interests = [], userId = null } = {}) {
   // Como en agent/understand.py, solo si no nombra algo: «¿me recomiendas un vino?» busca vino.
   const named = detectConcepts(snapshot.meta, message).length || namesOccasion(snapshot.meta, message)
   if (asksRecommendation(message) && !named) return recommend(snapshot, body, { interests, userId })
+  const chatted = smallTalk(snapshot, message, body?.mode, interests)
+  if (chatted) return chatted
   const asked = appQuestion(snapshot, message, body?.mode)
   if (asked) return asked
   const recorded = snapshot.ask[normalize(message)]

@@ -5,6 +5,7 @@ import { orderTotal } from '../../screens/tracking/liveChanges'
 import { etaMinutes, secondsSince, statusOf } from '../../screens/tracking/progress'
 import { formatPrice, lineKey, parsePrice, useCart } from '../../state/CartContext'
 import { useOrders } from '../../state/OrdersContext'
+import { activeOrder } from '../ActiveOrderBar'
 
 // El tiempo del checkout (CheckoutScreen): de ejemplo, como el envío, la tarifa y la propina de pricing.js.
 const ETA = 'Llega en 25–35 min'
@@ -172,6 +173,9 @@ function Row({ label, value, total = false }) {
   )
 }
 
+/** El pedido que muestra «Mi último pedido»: el más reciente en curso (no uno cancelado después) o, sin uno, el último. */
+export const shownOrder = (orders, now = Date.now()) => activeOrder(orders, now) ?? orders[0] ?? null
+
 /**
  * «¿Dónde está mi pedido?»: los pedidos de la última compra (uno por tienda), cada uno con su estado y cuánto falta (la
  * misma línea de tiempo del seguimiento: programado, atrasado o cancelado incluidos) y su seguimiento, donde se cancela
@@ -179,8 +183,8 @@ function Row({ label, value, total = false }) {
  */
 export function LastOrderCard({ onTrack }) {
   const ordersState = useOrders()
-  const last = ordersState?.orders[0]
   const [now] = useState(() => Date.now()) // la hora en que Mochi respondió (como el seguimiento al abrirse)
+  const last = shownOrder(ordersState?.orders ?? [], now)
   if (!last) return <p className="agent-card-note">Todavía no tienes pedidos en esta demo.</p>
   const purchase = ordersState.siblingsOf ? ordersState.siblingsOf(last) : [last]
   return (

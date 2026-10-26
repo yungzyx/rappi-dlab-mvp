@@ -57,6 +57,21 @@ export function offerableProduct(product, concepts) {
 }
 
 /**
+ * Lo que «Pedir por mí» no pide solo (offers/autonomy.py: _guarded, línea por línea): +18, un concepto que el agente no
+ * ofrece, un nombre que dice alcohol (del catálogo o de un plato) o bebé (solo del catálogo). A diferencia de
+ * `offerableProduct`, un plato sin concepto o de bebidas sí se pide: es lo que la persona ya pidió. La muestra no trae
+ * la sección ni la descripción de los platos (el backend también las lee): sin ellas, decide el nombre.
+ */
+export function autoOrderBlocked(product, concepts) {
+  if (!product || product.age_restricted) return true
+  const concept = product.concept ? concepts[product.concept] : null
+  if (concept && !concept.offerable) return true
+  const name = normalize(product.name)
+  if (product.entity_type === 'menu_item') return MENU_ALCOHOL_NAME.test(name)
+  return ALCOHOL_NAME.test(name) || BABY_NAME.test(name)
+}
+
+/**
  * Si el producto se puede destacar como plato principal (offers/featured.py con `main`, y las reglas de
  * offers/destacado.toml que trae `meta.featured`): con foto y, si es un plato, desde el precio mínimo, de un concepto
  * que es plato y no de una sección de relleno (`section`, la del menú grabado: «Bebidas», «Agregados»). Desde el precio

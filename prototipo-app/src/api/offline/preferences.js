@@ -169,10 +169,16 @@ export function applied(meta, saved = []) {
   }
 }
 
-/** Lo que sacan la dieta y las alergias de `items`: «carne o maní». */
-export function withoutOf(items) {
-  const said = [...new Set(items.map((p) => FILTERS.includes(p.tipo) && BY_ID[p.valor]?.sin).filter(Boolean))]
-  return said.length === 1 ? said[0] : `${said.slice(0, -1).join(', ')} o ${said.at(-1)}`
+/**
+ * Lo que sacan la dieta y las alergias de `items`, la dieta primero como en la API (preferences.py: saved, por tipo):
+ * «carne, maní o mariscos» (preferences.py: _join). `joined`: todo con « o », como al guardar (rappi_agent.py:
+ * _saved_text).
+ */
+export function withoutOf(items, { joined = false } = {}) {
+  const ordered = FILTERS.flatMap((kind) => items.filter((p) => p.tipo === kind))
+  const said = [...new Set(ordered.map((p) => BY_ID[p.valor]?.sin).filter(Boolean))]
+  if (joined || said.length === 1) return said.join(' o ')
+  return `${said.slice(0, -1).join(', ')} o ${said.at(-1)}`
 }
 
 const label = (meta, { tipo, valor }) => {

@@ -1,6 +1,9 @@
 """Las preferencias explícitas con el agente sin base (offers/preferences.py): qué frases las fijan, qué sacan, qué
 ordenan y qué dice el agente. También los atajos de la ayuda (sin salud) y las intenciones `resumen` y `pedido`."""
 
+import re
+from pathlib import Path
+
 import pytest
 
 from rappi_ia.agent import rappi_agent as agent
@@ -127,7 +130,10 @@ def test_in_rappi_hoy_nothing_is_saved():
 
 
 # Mochi no tiene chat: ninguna respuesta pide que la persona le escriba (las acciones se tocan, el buscador busca).
-ASKS_TO_WRITE = ("dime", "dímel", "cuéntame", "escríbe", "pídeme", "me dices", "pregúntame", "por chat")
+ASKS_TO_WRITE = (
+    *("dime", "dímel", "cuéntame", "escríbe", "pídeme", "me dices", "pregúntame", "por chat"),
+    *("dile", "escríbele", "pídele que"),
+)
 
 
 @pytest.mark.parametrize(
@@ -150,6 +156,33 @@ def test_the_agent_texts_do_not_ask_to_write_either():
     ]
     for text in texts:
         assert not any(phrase in text.lower() for phrase in ASKS_TO_WRITE), text
+
+
+# Los textos de la app (prototipo-app y el panel): las cadenas y el texto de JSX, sin comentarios ni tests. Una frase
+# cuenta si empieza una palabra («dile» sí, «dimensiones» no).
+APPS = [Path(__file__).resolve().parents[3] / name / "src" for name in ("prototipo-app", "dashboard-empresa")]
+_STRINGS = re.compile(r"'(?:[^'\\\n]|\\.)*'|\"(?:[^\"\\\n]|\\.)*\"|`(?:[^`\\]|\\.)*`")
+_JSX_TEXT = re.compile(r"[>}]([^<>{}]*)[<{]")
+_COMMENTS = re.compile(r"/\*.*?\*/|(?<![:\\])//[^\n]*", re.S)
+
+
+def _app_texts():
+    for root in APPS:
+        for path in sorted(root.rglob("*.js*")):
+            if path.suffix not in (".js", ".jsx") or ".test." in path.name:
+                continue
+            code = _COMMENTS.sub(" ", path.read_text(encoding="utf-8"))
+            yield from ((path, m.group(0)) for m in _STRINGS.finditer(code))
+            if path.suffix == ".jsx":
+                yield from ((path, m.group(1)) for m in _JSX_TEXT.finditer(code))
+
+
+def test_the_app_texts_do_not_ask_to_write_either():
+    """Lo que ve la persona en la app tampoco pide que le escriba a Mochi («Dile a Mochi…»)."""
+    phrases = [re.compile(rf"(?<![\wáéíóúüñ]){re.escape(p)}") for p in ASKS_TO_WRITE]
+    found = [(path.name, text) for path, text in _app_texts() if any(p.search(text.lower()) for p in phrases)]
+    assert all(root.is_dir() for root in APPS)
+    assert found == []
 
 
 @pytest.mark.parametrize(("text", "kind"), [("hola", "saludo"), ("jajaja", "vacio")])

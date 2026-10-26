@@ -42,25 +42,37 @@
 //   (_preference) ... las preferencias explícitas: en la hoja del panel (con las tiendas de sus pedidos), lo que llega
 //   escrito por el buscador, el filtro y el orden de lo que Mochi muestra y ofrece, y el filtro del buscador con
 //   `user_id` (preferences.js; index.js: preferenceAnswer, withPreferences, searchedWithPreferences)
-// - rappi-ia/src/rappi_ia/agent/rappi_agent.py (_small_talk, HELP_ACTIONS) y compose.py ... la ayuda con los atajos de
-//   lo que Mochi sabe hacer, el resumen antes de pagar y el último pedido (search.js: appQuestion, helpReply)
+// - rappi-ia/src/rappi_ia/agent/rappi_agent.py (_small_talk, HELP_ACTIONS, IDEA_KINDS), understand.py (APP_QUESTIONS,
+//   GREETING_WORDS, THANKS_WORDS, LAUGHTER) y compose.py ... el saludo, el «gracias», el fuera de tema y lo vacío, la
+//   ayuda con los atajos de lo que Mochi sabe hacer, el resumen antes de pagar y el último pedido (search.js:
+//   smallTalk, appQuestion, helpReply). Los textos del resumen y del pedido son los de la app (AssistantPanel.jsx)
 // - rappi-ia/src/rappi_ia/catalog/terms.py ........ las condiciones de compra de las tiendas (catalog.js: storeTerms;
 //   la muestra solo sabe el envío de los restaurantes)
 // - rappi-ia/src/rappi_ia/offers/autonomy.py, api/autonomy.py, agent/understand.py (USUAL_ORDER), rappi_agent.py
-//   (_usual_order) y api/app.py (_auto_order) ... «Pedir por mí»: el permiso, «pide lo de siempre en…» y la revisión
-//   del pedido que Mochi hace solo (autonomy.js)
+//   (_usual_order), api/agent.py (_with_auto_order) y api/app.py (_auto_order, post_order) ... «Pedir por mí»: el
+//   permiso, «pide lo de siempre en…», el botón de la recompra, la revisión del pedido que Mochi hace solo
+//   (autonomy.js) y los 400 de un autopedido programado o una franja que no es de hoy ni de mañana. Las tiendas que
+//   Rappi rotula Farmacia, Sex shop o Smoking shop no se distinguen en la muestra (solo la vertical)
 // - rappi-ia/src/rappi_ia/api/app.py y api/catalog.py ... las rutas (index.js, catalog.js, search.js), con el
 //   `request_id` de las respuestas que ordenan cosas (index.js: served)
 // No hay población que aprenda (transiciones, popularidad, retención aprendida) ni búsqueda semántica, y lo pedido en
 // la demo se repite sin esperar su ritmo (offers.js: repeatOffer): es una demo, no evidencia.
-import { autonomyReply, checkAutoOrder, orderedStores, saveAutonomy, turnOffAutonomy, usualAnswer } from './autonomy'
+import {
+  autonomyReply,
+  checkAutoOrder,
+  orderedStores,
+  saveAutonomy,
+  turnOffAutonomy,
+  usualAnswer,
+  withAutoOrder,
+} from './autonomy'
 import { catalogRoute } from './catalog'
 import { contractArticles, homeVerticals } from './motor'
 import { makeOffer } from './offers'
 import { applied, cleaned, CUISINES, describe, findStore, options, readCommand, withoutOf } from './preferences'
 import { ask, backendVertical, detectConcepts, search } from './search'
 import { loadSnapshot } from './snapshot'
-import { addEvents, addOrder, cancelOrders, clearState, isConfirmed, readState, updateState } from './state'
+import { addEvents, addOrder, cancelOrders, clearState, readState, updateState } from './state'
 import { profileOffer, tastesReply } from './tastes'
 
 const DAY_MS = 86_400_000
@@ -104,6 +116,13 @@ const storedEvent = (event, now) => ({
 /** Una respuesta que ordena cosas, con su `request_id` (api/logs.py: served_request_id), como la de la API. */
 const served = (body) => body && { ...body, request_id: `offline-${randomHex()}` }
 
+// api/app.py: SCHEDULE_AHEAD y _schedulable (una franja futura, con una hora de margen, de hoy o mañana).
+const SCHEDULE_AHEAD_MS = 2 * DAY_MS
+const schedulable = (when, now) => {
+  const moment = typeof when === 'number' ? when : Date.parse(when)
+  return Number.isFinite(moment) && now - 3_600_000 <= moment && moment <= now + SCHEDULE_AHEAD_MS
+}
+
 // Las rutas cuyas respuestas llevan `request_id` en la API.
 const SERVED = new Set([
   'GET /search',
@@ -113,7 +132,10 @@ const SERVED = new Set([
   'GET /catalog/home',
 ])
 
-/** Interés por concepto con decaimiento de 14 días (events/store.py: profile), de sus eventos y pedidos. */
+/**
+ * Interés por concepto con decaimiento de 14 días (events/store.py: profile), de sus eventos. Los pedidos no suman
+ * aparte: en la API el `order_placed` de un pedido no lleva concepto (events/store.py: record_order).
+ */
 export function interests(snapshot, state, now) {
   const scores = {}
   const add = (concept, type, ts) => {
@@ -123,8 +145,6 @@ export function interests(snapshot, state, now) {
       INTEREST_WEIGHTS[type] * 0.5 ** (Math.max(now - ts, 0) / DAY_MS / INTEREST_HALF_LIFE_DAYS)
   }
   for (const e of state.events) if (e.payload?.mode !== 'actual') add(e.concept_id, e.type, e.ts)
-  for (const o of state.orders.filter(isConfirmed))
-    for (const line of o.lines) add(line.concept_id, 'order_placed', o.ts)
   return Object.entries(scores)
     .filter(([, s]) => s >= 0.05)
     .sort((a, b) => b[1] - a[1])
@@ -324,7 +344,7 @@ function preferenceAnswer(snapshot, state, body) {
     const parts = [`Anotado: ${joinNames(names)} 🧡.`]
     if (filters.length) {
       parts.push(
-        `Desde ahora saco de lo que te muestro lo que dice tener ${withoutOf(filters)}. ` +
+        `Desde ahora saco de lo que te muestro lo que dice tener ${withoutOf(filters, { joined: true })}. ` +
           'Lo veo por el nombre del producto: revisa siempre los ingredientes en la tienda.',
       )
     }
@@ -413,7 +433,8 @@ function answer(snapshot, { method, path, query, body }, now) {
         ? profileOffer(snapshot, state, body.context?.perfil)
         : makeOffer(snapshot, state, now, body ?? {})
     const kept = offer && offeredWithPreferences(snapshot, state, offer)
-    return kept ? { body: kept } : { status: 204, body: null }
+    const made = body?.moment === 'recompra' ? withAutoOrder(snapshot, state, kept) : kept
+    return made ? { body: made } : { status: 204, body: null }
   }
   if (key === 'GET /recommendations') {
     const reply = recommendations(snapshot, state, now, query)
@@ -436,6 +457,11 @@ function answer(snapshot, { method, path, query, body }, now) {
     // Un pedido es de una tienda (api/app.py: post_order).
     if (new Set(body.lines.map((line) => line.store_id).filter((id) => id != null)).size > 1)
       return { status: 400, body: { detail: 'Un pedido es de una sola tienda' } }
+    // «Pedir por mí» pide para ahora, y una franja es de hoy o mañana (api/app.py: post_order y _schedulable).
+    if (body.autopedido && body.scheduled_for != null)
+      return { status: 400, body: { detail: 'Un pedido de Mochi no se programa' } }
+    if (body.scheduled_for != null && !schedulable(body.scheduled_for, now))
+      return { status: 400, body: { detail: 'Solo se programa para hoy o mañana' } }
     // Un pedido que Mochi hizo solo se vuelve a revisar con lo de siempre de ahora (api/app.py: _auto_order).
     const auto = body.autopedido ? checkAutoOrder(snapshot, state, body, now) : null
     if (auto?.status) return auto

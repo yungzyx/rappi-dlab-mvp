@@ -161,6 +161,21 @@ describe('lo que Mochi sabe hacer', () => {
   })
 })
 
+describe('la conversación y lo que no es de ella', () => {
+  test('después de una oferta o un kit, «más barato» ya no refina la respuesta de antes', async () => {
+    const beers = { ...fixture('agent-ask'), conversation: { query: 'cerveza', concepts: ['cerveza'] } }
+    api.ask.mockResolvedValue(beers)
+    await renderPanel()
+    say('cerveza')
+    await runUntilIdle()
+    fireEvent.click(screen.getByRole('button', { name: '🔁 Repite lo de siempre' }))
+    await runUntilIdle()
+    say('más barato')
+    await runUntilIdle()
+    expect(api.ask.mock.calls.at(-1)[0].previous).toBeUndefined()
+  })
+})
+
 describe('el resumen antes de pagar', () => {
   test('con el carro: productos, envío, tarifa, propina, total y tiempo, como el checkout; lleva a pagar', async () => {
     api.ask.mockResolvedValueOnce(fixture('agent-ask-resumen'))
@@ -189,6 +204,19 @@ describe('el resumen antes de pagar', () => {
     await runUntilIdle()
     expect(screen.getByText(/Tu carro está vacío/)).toBeTruthy()
     expect(screen.queryByRole('button', { name: 'Revisar y pagar →' })).toBeNull()
+  })
+
+  test('el texto dice lo de hoy: con «Pedir por mí» Mochi sí pide; el pedido se cancela en su seguimiento', async () => {
+    api.ask.mockResolvedValueOnce(fixture('agent-ask-resumen')).mockResolvedValueOnce(fixture('agent-ask-pedido'))
+    await renderPanel()
+    say('quiero pagar')
+    await runUntilIdle()
+    expect(bubbles().at(-1)).toMatch(/si no me diste permiso con «Pedir por mí», el pedido lo haces tú/)
+    expect(bubbles().at(-1)).not.toMatch(/nunca hago el pedido/)
+    say('¿dónde viene mi pedido?')
+    await runUntilIdle()
+    expect(bubbles().at(-1)).toMatch(/lo cancelas antes de que salga/)
+    expect(bubbles().at(-1)).not.toMatch(/chat/)
   })
 })
 
@@ -234,6 +262,23 @@ describe('el último pedido, con un botón', () => {
     fireEvent.click(within(card).getByRole('button', { name: 'Ver seguimiento →' }))
     await runUntilIdle()
     expect(push).toHaveBeenCalledWith('tracking', { orderId: 'order-1' })
+  })
+
+  test('con un pedido en curso muestra ese, no uno cancelado después; uno cancelado lo dice', async () => {
+    const active = order()
+    const cancelled = { ...order(), id: 'order-2', stores: ['Súper'], cancelled: { reason: 'ya_no', fee: 0 } }
+    localStorage.setItem('rappi-proto-orders', JSON.stringify([cancelled, active]))
+    await renderPanel()
+    fireEvent.click(screen.getByRole('button', { name: '📦 Mi último pedido' }))
+    await runUntilIdle()
+    expect(bubbles().at(-1)).toBe('Así va tu último pedido 🛵')
+    expect(screen.getByRole('region', { name: 'Tu último pedido' }).textContent).toContain('Pizzería')
+    cleanup()
+    localStorage.setItem('rappi-proto-orders', JSON.stringify([cancelled]))
+    await renderPanel()
+    fireEvent.click(screen.getByRole('button', { name: '📦 Mi último pedido' }))
+    await runUntilIdle()
+    expect(bubbles().at(-1)).toBe('Tu último pedido se canceló.')
   })
 
   test('en «Rappi hoy» el buscador con Mochi no se abre: es el buscador de siempre', async () => {
