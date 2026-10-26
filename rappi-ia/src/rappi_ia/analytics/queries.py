@@ -774,6 +774,60 @@ def multi_vertical_retention(conn: Connection, source: str = "synthetic") -> lis
     )
 
 
+def pro_split(conn: Connection, source: str = "synthetic") -> dict:
+    """Pro y sin Pro (`app_users.pro`, migración 046), entre las personas de la fuente con algún pedido: cuántas son,
+    sus pedidos de los últimos 30 días (y por persona), recompra (% con una segunda compra; una compra es un carro),
+    multi-vertical (% con 2+ verticales entre quienes pidieron en los últimos 60 días, como en `kpis`) y retención
+    (pedido entre los días 61 y 120 desde el primero, solo de quien tiene esa historia, como en
+    `multi_vertical_retention`). Un grupo con menos de MIN_GROUP_USERS personas no sale (privacidad), y su retención
+    tampoco con menos elegibles. `sin_dato`: personas con pedidos y sin la marca (las de antes de la 046).
+
+    En los simulados la marca es un SUPUESTO del generador que sigue a cuántas verticales combina cada arquetipo
+    (events/synth.py, PRO_SHARE): ahí la diferencia en multi-vertical la puso el generador, no es evidencia."""
+    _check(source)
+    params = {"source": source, "min_users": MIN_GROUP_USERS}
+    people = f"""
+        purchases AS (
+            SELECT o.user_id, min(o.ts) AS first_ts,
+                   count(DISTINCT coalesce(o.cart_id, o.order_id)) AS compras,
+                   count(*) FILTER (WHERE o.ts > {_AS_OF} - interval '{ACTIVE_DAYS} days') AS pedidos_30d,
+                   count(DISTINCT o.vertical) FILTER (WHERE o.ts > {_AS_OF} - interval '{MULTI_VERTICAL_DAYS} days')
+                       AS verticales_60d,
+                   bool_or(o.ts > {_AS_OF} - interval '{MULTI_VERTICAL_DAYS} days') AS activa_60d
+            FROM app_orders o WHERE o.source = %(source)s GROUP BY o.user_id
+        ),
+        people AS (
+            SELECT p.*, u.pro FROM purchases p JOIN app_users u ON u.user_id = p.user_id AND u.source = %(source)s
+        )"""
+    groups = _rows(
+        conn,
+        f"""WITH {people.strip()},
+            retained AS (
+                SELECT p.user_id, EXISTS (
+                    SELECT 1 FROM app_orders o WHERE o.user_id = p.user_id AND o.source = %(source)s
+                      AND o.ts >= p.first_ts + interval '{RETENTION_FROM} days'
+                      AND o.ts < p.first_ts + interval '{RETENTION_TO} days') AS kept
+                FROM people p WHERE p.first_ts <= {_AS_OF} - interval '{RETENTION_TO} days'
+            )
+            SELECT CASE WHEN p.pro THEN 'pro' ELSE 'sin_pro' END AS grupo,
+                   count(*) AS personas,
+                   sum(p.pedidos_30d)::bigint AS pedidos_30d,
+                   round(sum(p.pedidos_30d)::numeric / count(*), 2) AS pedidos_por_persona_30d,
+                   round(100.0 * avg((p.compras >= 2)::int), 1) AS recompra_pct,
+                   round(100.0 * count(*) FILTER (WHERE p.verticales_60d >= 2)
+                         / nullif(count(*) FILTER (WHERE p.activa_60d), 0), 1) AS multi_vertical_pct,
+                   count(r.user_id) AS retencion_n,
+                   CASE WHEN count(r.user_id) >= %(min_users)s THEN round(100.0 * avg(r.kept::int), 1) END
+                       AS retencion_pct
+            FROM people p LEFT JOIN retained r USING (user_id)
+            WHERE p.pro IS NOT NULL
+            GROUP BY 1 HAVING count(*) >= %(min_users)s ORDER BY 1""",
+        params,
+    )
+    [missing] = _rows(conn, f"WITH {people.strip()} SELECT count(*) AS sin_dato FROM people WHERE pro IS NULL", params)
+    return {"grupos": groups, "sin_dato": missing["sin_dato"], "minimo_personas": MIN_GROUP_USERS}
+
+
 def affinity(conn: Connection, source: str = "synthetic", limit: int = 25) -> list[dict]:
     """Afinidad dirigida A → B: P(B | A) entre usuarios que compran A (lift como filtro), sin sensibles.
 

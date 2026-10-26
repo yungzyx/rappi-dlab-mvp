@@ -16,7 +16,7 @@ const SNAPSHOT = `${ROOT}snapshot/panel.json`
 const FIXTURES = `${ROOT}src/fixtures/`
 const OFFLINE = `${FIXTURES}sin-conexion/`
 // Las que escribe `make contract` en rappi-ia (tests/integration/test_contract.py, PANEL_METRICS): aquí no se tocan.
-const CONTRACT = new Set(['offers', 'unmet', 'combos', 'motor', 'volver', 'ctr-posicion', 'embudo-sesion'])
+const CONTRACT = new Set(['offers', 'unmet', 'combos', 'motor', 'volver', 'ctr-posicion', 'embudo-sesion', 'pro'])
 
 if (!existsSync(SNAPSHOT)) {
   console.error('Falta la foto de la API (snapshot/panel.json): corre antes `npm run panel:snapshot`.')

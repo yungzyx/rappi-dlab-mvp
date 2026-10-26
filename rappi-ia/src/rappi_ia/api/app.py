@@ -797,6 +797,7 @@ ANALYTICS = {
     "volver": queries.winback,
     "unmet": queries.unmet,
     "multi-vertical": queries.multi_vertical_retention,
+    "pro": queries.pro_split,
     "affinity": queries.affinity,
     "assortment": queries.assortment_vs_demand,
     "combos": queries.combos,

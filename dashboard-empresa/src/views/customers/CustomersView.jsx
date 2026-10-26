@@ -4,6 +4,7 @@ import { ProvenanceBadge } from '../../components/ProvenanceBadge.jsx'
 import { SourceNote } from '../../components/SourceNote.jsx'
 import { useAnalytics } from '../../lib/useAnalytics.js'
 import { Churn } from './Churn.jsx'
+import { ProSplit } from './ProSplit.jsx'
 import { RetentionLadder } from './RetentionLadder.jsx'
 import './customers.css'
 
@@ -22,7 +23,10 @@ function Ladder() {
   )
 }
 
-/** Gerencia: dónde está la venta cruzada (la tabla de Rappi) y a quién estamos perdiendo (la fuente elegida). */
+/**
+ * Gerencia: dónde está la venta cruzada (la tabla de Rappi), Pro frente a sin Pro y a quién estamos perdiendo (la fuente
+ * elegida).
+ */
 export function CustomersView({ source }) {
   return (
     <div className="view">
@@ -41,6 +45,25 @@ export function CustomersView({ source }) {
         <div className="block">
           <Async>
             <Ladder />
+          </Async>
+        </div>
+      </section>
+
+      <section className="section" aria-labelledby="pro">
+        <div className="section-head">
+          <h2 id="pro" tabIndex={-1}>
+            Pro y sin Pro
+          </h2>
+          <p>
+            Rappi Pro une las verticales con envío gratis. Lado a lado: cuánto piden, cuántos vuelven a comprar y
+            cuántos combinan verticales en cada grupo. Es una comparación, no un efecto: quien ya pide más se hace Pro.
+          </p>
+          <ProvenanceBadge kind={source} />
+        </div>
+        <div className="block">
+          <SourceNote source={source} />
+          <Async>
+            <ProSplit source={source} />
           </Async>
         </div>
       </section>
