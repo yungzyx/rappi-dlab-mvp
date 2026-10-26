@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { envelope } from '../../api/attribution'
 import { useSearchApi } from '../../api/useSearchApi'
+import { userId } from '../../api/user'
+import { useDemo } from '../../state/DemoContext'
 import { useEvents } from '../../state/EventsContext'
 
 // De dónde salió el texto buscado (`payload.fuente`): escrito, una sugerencia (una idea, una búsqueda reciente
@@ -17,14 +19,17 @@ const CORRECTION = 'correccion'
  * Devuelve `{ query, setQuery, data, loading, error, retry, hasQuery, logSearch, pick, searchExact }`; `data`,
  * `loading` y `error` son los de `useSearchApi`. Si la API corrigió un error de tipeo (`data.correctedQuery`),
  * `searchExact(term)` vuelve a buscar `term` tal cual, hasta que llegue la respuesta de otro texto; esa búsqueda
- * también se registra.
+ * también se registra. En el prototipo final la búsqueda va con la persona: su dieta y sus alergias (las que le dijo
+ * a Mochi) filtran los resultados; en «Rappi hoy», no.
  */
 export function useSearch({ initial = '', vertical, only = false } = {}) {
   const [query, setQuery] = useState(initial)
   const [exactText, setExactText] = useState(null)
   const text = query.trim()
   const hasQuery = text.length > 0
-  const scope = only && vertical ? { vertical } : { current: vertical, exactQuery: exactText }
+  const person = useDemo()?.isFinal ? userId() : undefined
+  const scope =
+    only && vertical ? { vertical, userId: person } : { current: vertical, exactQuery: exactText, userId: person }
   const { data, loading, error, retry } = useSearchApi(query, scope)
   const events = useEvents()
   const logged = useRef(null)

@@ -105,6 +105,8 @@ CONTRACT: tuple[Example, ...] = (
         {"message": "soy vegetariano", "user_id": "u-contrato", "session_id": "s-contrato"},
     ),
     Example("profile-preferencias", "GET", "/profile/u-contrato/preferencias", after="agent-ask-preferencia"),
+    # El buscador con la dieta de quien dijo «soy vegetariano»: sin la pizza pepperoni y con el aviso.
+    Example("search-grouped-preferencias", "GET", "/search?q=pizza&user_id=u-contrato", after="agent-ask-preferencia"),
     # «Pide lo de siempre en…»: con «Pedir por mí» en el súper Centro, Mochi lo pide solo (u-autopedido); sin permiso,
     # lo deja para revisar antes (u-revisar). Y el ajuste de quien lo encendió.
     Example(

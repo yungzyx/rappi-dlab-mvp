@@ -93,6 +93,16 @@ def test_the_notice_names_what_is_left_out_and_only_with_food():
     assert prefs.build([("cocina", "sushi")]).notice([product("Roll", "sushi")]) is None
 
 
+def test_the_search_keeps_only_the_filters_and_says_when_it_emptied():
+    """El buscador (`/search`) filtra con la dieta y las alergias pero no ordena; si sacó todo, igual lo dice."""
+    mine = prefs.build([("dieta", "vegetariano"), ("cocina", "sushi"), ("tienda", "Jumbo")]).only_filters()
+    shown = [product("Pizza", "pizza"), product("Roll", "sushi")]
+    assert mine.rank(shown) == shown and mine.filters and not (mine.cuisines or mine.stores)
+    assert prefs.build([("cocina", "sushi")]).only_filters().notice([product("Roll", "sushi")], dropped=1) is None
+    assert "carne" in mine.notice([], dropped=2)
+    assert mine.notice([]) is None
+
+
 def test_applied_sets_them_only_for_the_turn():
     mine = prefs.build([("dieta", "vegano")])
     assert prefs.active() is None

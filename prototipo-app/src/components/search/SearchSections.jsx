@@ -98,7 +98,9 @@ export function PopularStores({ onOpen }) {
  * hay, o «Sin conexión». Un producto se abre en su tienda (`onOpenProduct`). Mientras carga se ven los resultados
  * anteriores. Con `onOpenVertical` (solo el buscador con el agente), sin resultados el agente no deja un callejón sin salida:
  * ofrece la vertical que tiene lo buscado o invita a buscar con otras palabras (`onTryAnother`). Si la API corrigió un
- * error de tipeo, dice qué buscó y, con `onSearchExact`, ofrece buscar lo escrito tal cual.
+ * error de tipeo, dice qué buscó y, con `onSearchExact`, ofrece buscar lo escrito tal cual. Si la dieta o las
+ * alergias de la persona sacaron algo (`data.preferencesNotice`, solo en la propuesta), lo dice; si sacaron todo, no
+ * es «sin resultado» (ni Mochi ni «Lo que sea» lo ofrecen).
  * Antes de los productos van las tiendas y los restaurantes que se llaman así (`onOpenStore`), cada bloque con «Ver
  * todos». Con `onSeeAll(vertical)`, «Ver todos» de un grupo de productos abre la búsqueda solo en esa vertical (si no,
  * muestra el resto ahí mismo). Sin resultados y con `onOpenFavor(texto)`, ofrece «Lo que sea»: pedirlo con RappiFavor,
@@ -129,9 +131,23 @@ export function SearchResults({
   const text = query.trim()
   const stores = data.places?.stores ?? []
   const restaurants = data.places?.restaurants ?? []
+  // La dieta y las alergias que la persona le dijo a Mochi filtran la búsqueda de la propuesta: la API lo dice.
+  const filtered = data.preferencesNotice && (
+    <p className="search-preferences" role="status">
+      {data.preferencesNotice}
+    </p>
+  )
   // Sin nada que mostrar, el aviso espera a que llegue la respuesta de lo escrito (no se mezcla con lo de antes).
   if (data.groups.length === 0 && stores.length === 0 && restaurants.length === 0) {
     if (loading) return null
+    // Lo encontrado lo sacaron sus preferencias: el catálogo sí lo tiene, así que no es «sin resultado».
+    if (filtered && !data.unmet)
+      return (
+        <>
+          <p className="search-empty">Nada de lo que encontré para «{text}» calza con tus preferencias.</p>
+          {filtered}
+        </>
+      )
     const whim = data.whimAllowed && onOpenFavor && (
       <WhimOffer key={`whim|${text}`} query={text} requestId={data.requestId} onOpenFavor={onOpenFavor} />
     )
@@ -150,6 +166,7 @@ export function SearchResults({
 
   return (
     <>
+      {filtered}
       {data.correctedQuery && (
         <p className="search-corrected" role="status">
           Mostrando resultados para «{data.correctedQuery}».

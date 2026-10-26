@@ -14,7 +14,9 @@ Reglas:
 
 Mientras el agente responde un turno o arma una oferta, las de la persona quedan puestas (`applied`) y
 `agent.tools.search_products` filtra con ellas antes de cortar los resultados (`active().keep`). Lo que llega por otro
-camino (la recompra, los peldaños de un perfil) lo filtra quien arma la respuesta (`keep_dicts`).
+camino (la recompra, los peldaños de un perfil) lo filtra quien arma la respuesta (`keep_dicts`). El buscador de la app
+(`/search` con `user_id`) usa el mismo filtro, solo con la dieta y las alergias (`only_filters`): no ordena por las
+favoritas, y la respuesta dice cuando filtró (`preferences_notice`).
 """
 
 import re
@@ -139,9 +141,16 @@ class Preferences:
         store = normalize(_get(product, "store") or "")
         return any(store == s or store.startswith(f"{s} ") for s in self.stores)
 
-    def notice(self, products: Iterable) -> str | None:
-        """Lo que el agente dice al mostrar comida con dieta o alergias puestas: filtra por el nombre."""
-        if not self.filters or not any(is_food(_get(p, "concept"), _get(p, "entity_type")) for p in products):
+    def only_filters(self) -> "Preferences":
+        """Solo la dieta y las alergias: lo que usa el buscador (`/search`), que filtra pero no ordena."""
+        return Preferences(filters=self.filters)
+
+    def notice(self, products: Iterable, dropped: int = 0) -> str | None:
+        """Lo que el agente dice al mostrar comida con dieta o alergias puestas: filtra por el nombre. Con `dropped`
+        (lo que el filtro sacó, en `/search`) lo dice aunque no haya quedado nada que mostrar."""
+        if not self.filters:
+            return None
+        if not dropped and not any(is_food(_get(p, "concept"), _get(p, "entity_type")) for p in products):
             return None
         said = _join([rule.without for rule in self.filters])
         return f"Por tus preferencias, saqué lo que dice tener {said}; revisa los ingredientes en la tienda."
