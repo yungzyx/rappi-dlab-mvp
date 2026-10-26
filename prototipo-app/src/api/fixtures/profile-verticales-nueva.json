@@ -1,5 +1,8 @@
 {
-  "fixed": ["restaurantes", "turbo"],
+  "fixed": [
+    "restaurantes",
+    "turbo"
+  ],
   "order": [
     {
       "id": "supermercado",

@@ -2,7 +2,9 @@
   "actions": [
     {
       "label": "Abrir Turbo",
-      "route": ["turbo"]
+      "route": [
+        "turbo"
+      ]
     }
   ],
   "moment": "vertical_por_probar",

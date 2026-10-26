@@ -3,7 +3,9 @@
     {
       "area": "Providencia",
       "cover": "https://imagenes.prueba.invalid/platos/98010.png",
-      "cuisines": ["Americana"],
+      "cuisines": [
+        "Americana"
+      ],
       "eta": "15 min",
       "fee": "$990",
       "hours": {
@@ -30,7 +32,9 @@
     {
       "area": "Vitacura",
       "cover": "https://imagenes.prueba.invalid/platos/98018.png",
-      "cuisines": ["Pastelería y Postres"],
+      "cuisines": [
+        "Pastelería y Postres"
+      ],
       "eta": "20 min",
       "fee": "$690",
       "hours": {
@@ -53,7 +57,10 @@
     {
       "area": "",
       "cover": "https://imagenes.prueba.invalid/platos/98006.png",
-      "cuisines": ["Hamburguesa", "Sushi"],
+      "cuisines": [
+        "Hamburguesa",
+        "Sushi"
+      ],
       "eta": "35 min",
       "fee": "$0",
       "hours": {
@@ -74,7 +81,9 @@
     {
       "area": "Santiago",
       "cover": null,
-      "cuisines": ["Pescados y Mariscos"],
+      "cuisines": [
+        "Pescados y Mariscos"
+      ],
       "eta": "30 min",
       "fee": "$0",
       "hours": {
@@ -95,7 +104,9 @@
     {
       "area": "Vitacura",
       "cover": "https://imagenes.prueba.invalid/platos/98018.png",
-      "cuisines": ["Pastelería y Postres"],
+      "cuisines": [
+        "Pastelería y Postres"
+      ],
       "eta": "20 min",
       "fee": "$690",
       "hours": {
@@ -116,7 +127,9 @@
     {
       "area": "Providencia",
       "cover": "https://imagenes.prueba.invalid/platos/98010.png",
-      "cuisines": ["Americana"],
+      "cuisines": [
+        "Americana"
+      ],
       "eta": "15 min",
       "fee": "$990",
       "hours": {
@@ -143,7 +156,9 @@
     {
       "area": "",
       "cover": "https://imagenes.prueba.invalid/platos/98002.png",
-      "cuisines": ["Pizzas"],
+      "cuisines": [
+        "Pizzas"
+      ],
       "eta": "25 min",
       "fee": "$1.490",
       "hours": {
@@ -200,7 +215,9 @@
     {
       "area": "Las Condes",
       "cover": "https://imagenes.prueba.invalid/platos/98015.png",
-      "cuisines": ["Desayunos"],
+      "cuisines": [
+        "Desayunos"
+      ],
       "eta": null,
       "fee": "$1.990",
       "hours": {

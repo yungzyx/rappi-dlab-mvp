@@ -2,7 +2,9 @@
   "actions": [
     {
       "label": "Ver producto",
-      "route": ["grocery"],
+      "route": [
+        "grocery"
+      ],
       "store_id": 9101
     }
   ],

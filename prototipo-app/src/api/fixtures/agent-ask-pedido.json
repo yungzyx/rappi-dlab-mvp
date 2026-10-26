@@ -2,7 +2,9 @@
   "actions": [
     {
       "label": "Ver mis pedidos",
-      "route": ["orders"]
+      "route": [
+        "orders"
+      ]
     }
   ],
   "age_notice": false,

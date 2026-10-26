@@ -30,7 +30,9 @@
       {
         "area": "",
         "cover": "https://imagenes.prueba.invalid/platos/98002.png",
-        "cuisines": ["Pizzas"],
+        "cuisines": [
+          "Pizzas"
+        ],
         "eta": "25 min",
         "fee": "$1.490",
         "hours": {

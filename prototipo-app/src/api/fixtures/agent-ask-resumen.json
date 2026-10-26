@@ -2,7 +2,9 @@
   "actions": [
     {
       "label": "Revisar y pagar",
-      "route": ["checkout"]
+      "route": [
+        "checkout"
+      ]
     }
   ],
   "age_notice": false,

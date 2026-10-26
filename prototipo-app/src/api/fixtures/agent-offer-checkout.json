@@ -3,7 +3,9 @@
     {
       "label": "Ver snacks salados",
       "query": "snacks salados",
-      "route": ["express"]
+      "route": [
+        "express"
+      ]
     }
   ],
   "moment": "checkout",
