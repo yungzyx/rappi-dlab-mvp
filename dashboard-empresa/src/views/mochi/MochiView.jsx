@@ -10,6 +10,7 @@ import { formatNumber, formatPct, formatSignedPct } from '../../lib/format.js'
 import { verticalLabel } from '../../lib/labels.js'
 import { useAnalytics, useAnalyticsMany } from '../../lib/useAnalytics.js'
 import { thinAssortment } from './demand.js'
+import { CtrByPosition, SessionFunnel } from './ListsAndFunnel.jsx'
 import { MotorCheck } from './MotorCheck.jsx'
 import { OffersByMoment } from './OffersByMoment.jsx'
 import { offerTotals, suggestionTotals } from './offers.js'
@@ -112,6 +113,14 @@ function Unmet({ source }) {
       {opportunities.length > 0 && <UnmetDemand rows={opportunities} />}
     </>
   )
+}
+
+function Ctr({ source }) {
+  return <CtrByPosition data={useAnalytics('ctr-posicion', source)} />
+}
+
+function Funnel({ source }) {
+  return <SessionFunnel rows={useAnalytics('embudo-sesion', source)} />
 }
 
 function Rising({ source }) {
@@ -227,6 +236,37 @@ export function MochiView({ source }) {
               <h3 className="subhead">El motor contra una regla simple</h3>
               <Async>
                 <Motor source={source} />
+              </Async>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section className="section" aria-labelledby="listas">
+        <div className="section-head">
+          <h2 id="listas" tabIndex={-1}>
+            Qué se ve y qué se toca
+          </h2>
+          <p>
+            Lo que cada lista de la app dejó a la vista (al menos la mitad en pantalla), cuánto se tocó según su lugar y
+            hasta dónde llega cada sesión. El primer lugar se toca más también por estar primero: este es el sesgo que
+            hay que descontar antes de comparar órdenes.
+          </p>
+          <ProvenanceBadge kind={source} />
+        </div>
+        <div className="block">
+          <SourceNote source={source} />
+          <div className="pair">
+            <div className="pair-item">
+              <h3 className="subhead">CTR por posición</h3>
+              <Async>
+                <Ctr source={source} />
+              </Async>
+            </div>
+            <div className="pair-item">
+              <h3 className="subhead">Embudo por sesión</h3>
+              <Async>
+                <Funnel source={source} />
               </Async>
             </div>
           </div>

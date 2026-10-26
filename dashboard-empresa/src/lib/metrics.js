@@ -14,4 +14,6 @@ export const PANEL_METRICS = [
   'unmet',
   'trends',
   'assortment',
+  'ctr-posicion',
+  'embudo-sesion',
 ]

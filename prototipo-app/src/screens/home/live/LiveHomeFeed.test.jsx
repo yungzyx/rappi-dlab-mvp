@@ -75,7 +75,10 @@ const stubAgent = (routes = {}) =>
     ...routes,
   })
 const allOfferRequests = (mock = api) =>
-  mock.mock.calls.filter(([url]) => url.endsWith('/agent/offer')).map(([, init]) => JSON.parse(init.body))
+  mock.mock.calls
+    .filter(([url]) => url.endsWith('/agent/offer'))
+    .map(([, init]) => JSON.parse(init.body))
+    .map(({ session_id: _session, ...body }) => body) // la sesión la revisa api/agent.test.js
 // La recompra (y, sin ella, «¿Volvemos a…?») se pide sola cada vez que la Home está arriba: sus tests la miran con
 // `repeatRequests` y `winbackRequests`.
 const SLOT_MOMENTS = ['recompra', 'volver']

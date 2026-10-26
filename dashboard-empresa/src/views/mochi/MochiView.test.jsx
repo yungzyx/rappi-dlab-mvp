@@ -75,8 +75,36 @@ describe('MochiView', () => {
     serveFixtures()
     await renderWithData(<MochiView source="prototype" />)
 
-    expect(screen.getAllByText(NOT_EVIDENCE)).toHaveLength(2)
+    expect(screen.getAllByText(NOT_EVIDENCE)).toHaveLength(3) // ofertas, listas y búsquedas
     expect(screen.queryByText(/datos simulados/i)).toBeNull()
+  })
+
+  test('lists: CTR by position and the session funnel, each step out of all sessions', async () => {
+    serveFixturesWith({
+      'ctr-posicion': {
+        source: 'prototype',
+        data: {
+          posiciones: [
+            { posicion: 0, impresiones: 10, clics: 3, ctr: 0.3 },
+            { posicion: 1, impresiones: 8, clics: 1, ctr: 0.125 },
+          ],
+          listas: [],
+        },
+      },
+      'embudo-sesion': {
+        source: 'prototype',
+        data: [{ modo: 'propuesta', sesiones: 4, vieron: 4, tocaron: 2, agregaron: 1, pidieron: 1 }],
+      },
+    })
+    await renderWithData(<MochiView source="prototype" />)
+
+    const ctr = await screen.findByRole('table', { name: 'CTR por posición en las listas' })
+    expect(bodyRows(ctr).map(cells)).toEqual([
+      ['1.º', '10', '3', '30,0%'],
+      ['2.º', '8', '1', '12,5%'],
+    ])
+    const funnel = screen.getByRole('table', { name: 'Embudo por sesión' })
+    expect(bodyRows(funnel).map((row) => cells(row)[2])).toEqual(['100,0%', '100,0%', '50,0%', '25,0%', '25,0%'])
   })
 
   test('synthetic: the simulator has no moment, so the cross suggestions carry the section', async () => {

@@ -72,7 +72,7 @@ export default function RealMenu({ sections, scrollRef }) {
           <h2>{section.name}</h2>
           <ul className="store-products">
             {section.items.map((item) => (
-              <ProductRow key={item.id} product={item} showDescription />
+              <ProductRow key={item.id} product={item} showDescription impression />
             ))}
           </ul>
         </section>

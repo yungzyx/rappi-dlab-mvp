@@ -3,6 +3,7 @@ import { routeForScreen, screenForBackend } from '../data/verticals'
 import { placeList } from './attribution'
 import { request, toPrototypeProduct } from './client'
 import { userId } from './user'
+import { sessionId } from '../state/EventsContext'
 
 const OFFER_TIMEOUT_MS = 5_000
 
@@ -28,7 +29,8 @@ function toAction({ route, ask, ...action }) {
 export async function offer(moment, context = {}, { userId, surface } = {}) {
   const response = await request('/agent/offer', {
     method: 'POST',
-    body: { moment, ...(userId ? { user_id: userId } : {}), context },
+    // La sesión: si la persona está en el grupo de control de las ofertas, la retenida queda en esta sesión (204).
+    body: { moment, ...(userId ? { user_id: userId, session_id: sessionId() } : {}), context },
     timeout: OFFER_TIMEOUT_MS,
   })
   if (!response) return null

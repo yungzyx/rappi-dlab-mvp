@@ -38,7 +38,12 @@ export function cartEventFields(item, cartId, { qty } = {}) {
     entity_type: item.entityType,
     entity_id: item.entityId,
     value: parsePrice(item.price) || undefined,
-    payload: { ...(item.fromSuggestion ? { from_suggestion: true } : {}), ...(qty ? { qty } : {}) },
+    // La tienda: con ella la API fija el precio y la oferta vigentes que se vieron ahí (payload.catalogo).
+    payload: {
+      ...(item.fromSuggestion ? { from_suggestion: true } : {}),
+      ...(qty ? { qty } : {}),
+      ...(Number.isSafeInteger(item.storeId) && item.storeId >= 0 ? { store_id: item.storeId } : {}),
+    },
   }
 }
 

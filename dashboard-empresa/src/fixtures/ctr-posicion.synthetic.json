@@ -1,0 +1,75 @@
+{
+  "data": {
+    "listas": [
+      {
+        "clics": 45,
+        "ctr": 0.1965,
+        "impresiones": 229,
+        "lista": "resultados",
+        "pantalla": "search"
+      },
+      {
+        "clics": 14,
+        "ctr": 0.1505,
+        "impresiones": 93,
+        "lista": "agent-ask",
+        "pantalla": "agent"
+      }
+    ],
+    "posiciones": [
+      {
+        "clics": 16,
+        "ctr": 0.2909,
+        "impresiones": 55,
+        "posicion": 0
+      },
+      {
+        "clics": 17,
+        "ctr": 0.3091,
+        "impresiones": 55,
+        "posicion": 1
+      },
+      {
+        "clics": 8,
+        "ctr": 0.1455,
+        "impresiones": 55,
+        "posicion": 2
+      },
+      {
+        "clics": 10,
+        "ctr": 0.1818,
+        "impresiones": 55,
+        "posicion": 3
+      },
+      {
+        "clics": 2,
+        "ctr": 0.0465,
+        "impresiones": 43,
+        "posicion": 4
+      },
+      {
+        "clics": 3,
+        "ctr": 0.0909,
+        "impresiones": 33,
+        "posicion": 5
+      },
+      {
+        "clics": 2,
+        "ctr": 0.1111,
+        "impresiones": 18,
+        "posicion": 6
+      },
+      {
+        "clics": 1,
+        "ctr": 0.125,
+        "impresiones": 8,
+        "posicion": 7
+      }
+    ]
+  },
+  "guardado": {
+    "fecha": "2026-10-25",
+    "origen": "make contract · simulación chica con semilla fija (40 personas, 8 semanas)"
+  },
+  "source": "synthetic"
+}

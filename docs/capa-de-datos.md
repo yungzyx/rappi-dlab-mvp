@@ -39,6 +39,10 @@ Los conceptos (la taxonomía propia de 136 conceptos: 116 tipos de producto en 2
 | `capa.trends` | un vertical, concepto o producto, por fuente | Lo más pedido y lo que sube (4 semanas contra las 4 anteriores) |
 | `capa.replenishment` | un concepto que una persona recompra | Cada cuántos días y cuándo le toca de nuevo (personal) |
 | `capa.layer_runs` | una corrida de una capa | De dónde viene cada dato: qué reglas, cuándo y cuántas filas |
+| `capa.v_carros_abandonados` | un carro abandonado (personal) | Carros con algo adentro, sin pedido 60 minutos después de su último evento, y si llegaron a pagar |
+| `capa.v_embudo_sesion` | una sesión (personal) | Si vio una lista, tocó algo, agregó al carro, fue a pagar y pidió, con su modo y sus variantes |
+| `capa.v_ctr_posicion` | un lugar de una lista, por fuente, modo y pantalla | Impresiones, clics y CTR por posición (sin conceptos sensibles): el sesgo de posición |
+| `capa.v_eventos_amplitude` | un evento (personal) | Nuestros eventos con los nombres y el sobre del plan de tracking de Rappi ([equivalencias](#impresiones-experimentos-y-vistas-derivadas)) |
 
 Cada vista y cada columna tienen comentario: `\d+ capa.items` en `psql` los muestra.
 
@@ -163,6 +167,37 @@ Los eventos de la app (`app_events`) llevan, desde la migración 043, el mismo s
 - **El reintento**: la app reintenta un lote que no llegó (sin red, sin respuesta, 429 o 5xx), con una cola de 200 eventos como tope; uno que la API rechazó (400, 403, 422) no. Tras «Olvidar», lo que estaba en camino no vuelve a la cola.
 
 `app_sessions` guarda una fila por sesión (30 minutos sin actividad la cierran): `started_at`, `app_version`, `platform`, `mode` (`propuesta` o `actual` al empezar) y `entry` (`directa`, `enlace` o `push`). Nace con el primer evento de la sesión que llega, sea de la app o del servidor (una pregunta a Mochi), y los lotes siguientes de la app solo completan lo que faltaba. Es una tabla de personas: está en `PERSON_TABLES` (`rappi_ia/delivery.py`), se borra con la persona («Olvidar» y la purga de inactivas, en cascada) y el generador simulado la llena para sus sesiones. El generador también llena `client_event_id` (un uuid5 de la persona, la sesión y el orden: la misma semilla da los mismos ids), `client_ts` y `seq`.
+
+## Impresiones, experimentos y vistas derivadas
+
+Desde las migraciones 047 y 048, los eventos dicen también **qué se vio**, **en qué variante estaba la persona** y **cómo estaba el catálogo**, y cuatro vistas de `capa` los leen. El diseño y su porqué están en [decisiones.md](decisiones.md#datos-simulados-y-panel) (25-10-2026).
+
+- **`list_view` y `app_event_items`**: lo que una lista dejó a la vista. La app cuenta un elemento cuando queda visible al menos la mitad, una vez por pestaña, lista (pantalla, lista y `request_id`) y lugar, y manda lo visto de cada lista en un evento por segundo, con hasta 20 elementos (`prototipo-app/src/api/impressions.js` y `hooks/useImpressions.js`). El evento lleva `surface`, `origin` y `request_id` de la lista, y en `position` la mayor posición vista; cada elemento, su lugar, qué es (`catalog_item`, `menu_item`, `store` o `vertical`), su id, su concepto y su vertical. Listas que lo cuentan: los accesos y las listas de tiendas de la Home, los resultados del buscador (productos y tiendas), los pasillos y el menú de una tienda, la lista de Restaurantes, la grilla de Turbo, y lo que muestra Mochi (sus mensajes, el kit, la recompra y el OnTop). En «Rappi hoy» los elementos van sin concepto. `app_event_items` es tabla de personas (`PERSON_TABLES`), se va con el evento («Olvidar», en cascada; olvidar un concepto borra sus elementos) y `rappi-ia purge` la borra a los 90 días (`purge_old_impressions`): queda el `list_view`.
+- **Experimentos** (`experiments`, `experiment_assignments`): cada persona tiene una variante por experimento, asignada una vez y estable, con su población (un trigger exige la de `app_users`: nunca se mezclan). `modo_app` (`propuesta` o `actual`) es el modo de su primera sesión y **no es al azar**: lo elige quien presenta, así que comparar variantes describe y no mide un efecto. `ofertas_control` (`tratamiento` o `control`) sí es al azar: un hash estable del id, en `POST /session` o la primera vez que pide una oferta. Viene apagado (`OFFERS_CONTROL_PCT=0`); encendido, a la variante `control` no se le muestran las ofertas que Mochi propone solo (carrito, checkout, sin resultado, próximo pedido, vertical por probar, recompra, volver y OnTop; nunca un plan ni un perfil, que la persona pide): la API responde 204 y registra la **impresión contrafactual** `offer_withheld` en su sesión (`session_id` de la oferta), con lo que habría mostrado en `app_event_items`. El eco: `app_sessions.variants` guarda las variantes de la persona al empezar cada sesión. El generador simulado pone a todos en `modo_app = propuesta` y no simula el grupo de control.
+- **El catálogo al registrar** (`payload.catalogo`): en `view_store`, `view_item` y `cart_add` la API fija el precio (`precio`), la oferta (`precio_lista` y `descuento_pct`, si hay), la disponibilidad de un plato (`disponible`) y si la tienda estaba abierta (`abierta`, con `horario`: `horario` publicado o estado de la `descarga`), de `v_latest_offers` en la tienda del evento (`payload.store_id`, que manda la app) y de `latest_menu_prices` (`rappi_ia/events/catalog_context.py`). Lo pone siempre el servidor.
+- **Vistas** (migración 048): `capa.v_carros_abandonados` (un carro con algo adentro cuyo último evento fue hace más de 60 minutos, sin pedido del mismo carro en esa hora; el panel sigue contando el de 24 horas), `capa.v_embudo_sesion` (vio → tocó → carro → pago → pedido, por sesión; cada paso se marca aunque falte el anterior), `capa.v_ctr_posicion` (de lo visto en un lugar, lo que se tocó en la misma sesión desde el mismo `surface`, `origin`, `position` y `request_id`; abrir la hoja de un producto que no viene de una recomendación no deja evento y no cuenta) y `capa.v_eventos_amplitude`. El panel las lee con `/analytics/ctr-posicion` y `/analytics/embudo-sesion`.
+
+`capa.v_eventos_amplitude` traduce cada evento al plan de tracking de la app de Rappi (docs/investigacion/app-rappi-2026-10-25.md):
+
+| Nuestro evento | `event_type` (Rappi) | Nota |
+|---|---|---|
+| `app_open` | `APP_LAUNCH` | |
+| `search` | `LOCAL_SEARCH`, o `LOCAL_SEARCH_NULL_RESULTS` si `unmet` | |
+| `ask` (y `chat`, el nombre de antes) | `RECEIVE_MESSAGE_CHAT_V2` | |
+| `view_store` | `VIEW_STORE` | Rappi separa el clic (`SELECT_STORE`) de la vista |
+| `view_item` | `VIEW_PRODUCT_DESCRIPTION` | |
+| `cart_add` | `ADD_TO_CART` | Rappi pone el origen en el nombre (`ADD_TO_CART_AISLE`…); aquí va en `SOURCE` |
+| `checkout_start` | `PROCEED_TO_CHECKOUT` | |
+| `order_placed` | `ORDER_PLACED_CONFIRMED_BACK` | Lo crea el servidor, como el `_BACK` de Rappi |
+| `list_view`, `suggestion_shown` | `VIEW_COMPONENT` | Lo visto, en `PRODUCT_ID_LIST` y `STORE_ID_LIST` |
+| `suggestion_accepted` | `SELECT_PRODUCT` | |
+| `recommendation_click` | `SELECT_STORE` (una tienda) o `SELECT_PRODUCT` | |
+| `service_shown` / `service_opened` | `home_placement_content_view` / `home_placement_content_click` | |
+| `vertical_open` | `SELECT_STORE_TYPE` | |
+| `order_rated` | `RATE_STAR_TAP` | |
+| `cart_remove`, `suggestion_dismissed`, `reorder`, `offer_withheld` | `MVP_CART_REMOVE`, `MVP_SUGGESTION_DISMISSED`, `MVP_REORDER`, `MVP_OFFER_WITHHELD` | Sin equivalente (`equivalente = false`) |
+
+Y el sobre: `uuid` (`client_event_id`, o uno fijo derivado de `event_id` en los eventos del servidor), `sequence_number` (`seq`), `session_id` y `session_start_ms` (el inicio de la sesión en milisegundos, que es el `session_id` de Amplitude), `timestamp` (`client_ts` o la llegada, en milisegundos), `user_id`, `platform`, `version_name`; en `event_properties`, en mayúsculas: `CONTEXT` (`surface`), `SOURCE` y `COMPONENT_NAME` (`origin`), `COMPONENT_INDEX` (`position`), `VERTICAL`, `STORE_ID`, `PRODUCT_ID`, `REQUEST_ID`, `CART_ID`, `PRODUCT_VALUE`, `TOTAL`, `RESULTS`, `PRICE`, `OFFER_VALUE` y `OPEN` (de `payload.catalogo`), `PRODUCT_ID_LIST`, `STORE_ID_LIST` y `LAST_POSITION_VIEWED`; en `user_properties`, `EXPERIMENTS` (las variantes) y `APP_MODE`. La consulta y los conceptos no van.
 
 ## Privacidad
 

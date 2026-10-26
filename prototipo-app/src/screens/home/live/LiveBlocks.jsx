@@ -49,7 +49,7 @@ export function PlanBlock({ plans, plan, kit, kitReason, added, onPick, onOpen, 
           <HScroll className="live-items">
             {kit.map((product, i) => (
               <div key={product.id} className="live-item" style={{ '--i': i }}>
-                <ProductCard product={product} onOpenStore={() => onOpen(product)} />
+                <ProductCard product={product} onOpenStore={() => onOpen(product)} impression />
               </div>
             ))}
           </HScroll>
@@ -90,7 +90,7 @@ export function RepeatBlock({ offer, onLater, onOpen }) {
       <h2 className="live-plan-title">{offer.text}</h2>
       <OfferWhy reason={offer.reason} />
       <div className="live-items live-repeat-item">
-        <ProductCard product={product} onOpenStore={() => onOpen(product)} />
+        <ProductCard product={product} onOpenStore={() => onOpen(product)} impression />
       </div>
       <div className="live-repeat-actions">
         <button type="button" className="live-kit-add tap" onClick={() => onOpen(product)}>

@@ -15,6 +15,7 @@ from psycopg.types.json import Jsonb
 from ..catalog.stores import line_prices
 from ..concepts.matcher import KeywordMatcher
 from ..concepts.taxonomy import load_taxonomy
+from . import catalog_context, experiments
 
 EVENT_TYPES = {
     "app_open",
@@ -36,10 +37,18 @@ EVENT_TYPES = {
     "vertical_open",  # se abrió un vertical desde la Home (en el campo `vertical`); alimenta la afinidad del motor
     "order_rated",  # la calificación de un pedido entregado (`payload.stars` y `payload.reasons`; el pedido, `cart_id`)
     "reorder",  # «Pídelo de nuevo»: el carro con un pedido anterior (`payload.available` y `payload.unavailable`)
+    "list_view",  # lo que una lista dejó a la vista (sus elementos en `app_event_items`; `position`, la mayor vista)
+    "offer_withheld",  # una oferta de Mochi retenida al grupo de control (lo que habría mostrado, en `app_event_items`)
 }
-# Lo que el cliente puede mandar a /events: `order_placed` nace solo en /orders, con un pedido guardado detrás.
-CLIENT_EVENT_TYPES = EVENT_TYPES - {"order_placed"}
+# Lo que el cliente puede mandar a /events: `order_placed` nace solo en /orders, con un pedido guardado detrás, y
+# `offer_withheld`, solo en /agent/offer, que es quien decide retener la oferta.
+CLIENT_EVENT_TYPES = EVENT_TYPES - {"order_placed", "offer_withheld"}
+# Los eventos que traen elementos (`app_event_items`), y cuántos como mucho en uno.
+ITEM_EVENT_TYPES = frozenset({"list_view", "offer_withheld"})
+ITEM_ENTITY_TYPES = frozenset({"catalog_item", "menu_item", "store", "vertical"})
+MAX_EVENT_ITEMS = 20
 QUERY_RETENTION_DAYS = 90
+IMPRESSION_RETENTION_DAYS = 90  # los elementos de las impresiones se borran como el texto de las consultas
 # «¿Qué problema tuvo el pedido?» (con 3 estrellas o menos): los motivos que la app puede mandar en `order_rated`.
 RATING_REASONS = frozenset({"tarde", "faltante", "mal_estado", "equivocado", "repartidor", "otro"})
 LOW_RATING = 3  # 3 estrellas o menos es una calificación mala: pausa la recompra y el «volver» (offers/winback.py)
@@ -164,6 +173,8 @@ class Event:
     origin: str | None = None
     position: int | None = None
     request_id: str | None = None
+    # Los elementos de un `list_view` u `offer_withheld`: `{position, entity_type, entity_id, concept_id, vertical}`.
+    items: list[dict] = field(default_factory=list)
 
 
 @dataclass(frozen=True)
@@ -220,17 +231,24 @@ def record(conn: Connection, events: list[Event], source: str = "prototype", ses
     """Guarda eventos válidos (tipo conocido, concepto existente) y devuelve cuántos entraron. Cada persona del lote se
     crea una sola vez (un lote de la app trae hasta 200 eventos de una misma persona). Un evento con `client_event_id`
     que ya estaba (un lote reintentado) no entra otra vez. Cada sesión del lote queda en `app_sessions` con su primer
-    evento (y `session`, lo que la app cuenta de ella)."""
+    evento (y `session`, lo que la app cuenta de ella: su modo es también la variante de `modo_app` de la persona, si
+    aún no tenía). Los elementos de un `list_view` u `offer_withheld` van a `app_event_items`, y `view_store`,
+    `view_item` y `cart_add` llevan el catálogo tal como estaba (`payload.catalogo`, events/catalog_context.py)."""
     unknown = next((e.type for e in events if e.type not in EVENT_TYPES), None)
     if unknown is not None:
         raise ValueError(f"Tipo de evento desconocido: {unknown}")
     surface = next((e.surface for e in events if e.surface is not None and e.surface not in SURFACES), None)
     if surface is not None:
         raise ValueError(f"Superficie desconocida: {surface}")
+    for e in events:
+        _check_items(e)
     ratings = [(e, _rating(e)) for e in events if e.type == "order_rated"]
     for user_id in dict.fromkeys(e.user_id for e in events):
         ensure_user(conn, user_id, source)
+        if session is not None:
+            experiments.assign_mode(conn, user_id, session.mode)
     known = _known_concepts(conn)
+    catalog_context.pin(conn, events)
     now = datetime.now(UTC)
     rows = []
     starts: dict[tuple[str, str], datetime | None] = {}
@@ -267,6 +285,7 @@ def record(conn: Connection, events: list[Event], source: str = "prototype", ses
         key = (e.user_id, e.session_id)
         if key not in starts or (start is not None and (starts[key] is None or start < starts[key])):
             starts[key] = start
+    ids: list[int | None] = []
     with conn.cursor() as cur:
         cur.executemany(
             """INSERT INTO app_events (user_id, session_id, ts, type, vertical, concept_id, entity_type, entity_id,
@@ -274,13 +293,71 @@ def record(conn: Connection, events: list[Event], source: str = "prototype", ses
                                        client_event_id, client_ts, seq, surface, origin, position, request_id)
                VALUES (%s, %s, coalesce(%s, now()), %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s,
                        %s, %s, %s, %s, %s, %s, %s)
-               ON CONFLICT (user_id, client_event_id) WHERE client_event_id IS NOT NULL DO NOTHING""",
+               ON CONFLICT (user_id, client_event_id) WHERE client_event_id IS NOT NULL DO NOTHING
+               RETURNING event_id""",
             rows,
+            returning=True,
         )
-        saved = cur.rowcount
+        if rows:
+            ids = _returned_ids(cur, len(rows))
+    saved = sum(event_id is not None for event_id in ids)
+    _record_items(conn, [(event_id, e) for event_id, e in zip(ids, events, strict=True) if event_id and e.items], known)
     _record_sessions(conn, starts, source, session or SessionInfo())
     _record_ratings(conn, [(e, stars, reasons, _client_ts(e, now) or e.ts or now) for e, (stars, reasons) in ratings])
     return saved
+
+
+def _returned_ids(cur, n: int) -> list[int | None]:
+    """El `event_id` de cada fila de un `executemany(..., returning=True)`, en orden: None para la que no entró (un
+    reintento de un evento que ya estaba)."""
+    ids: list[int | None] = []
+    while True:
+        row = cur.fetchone()
+        ids.append(row[0] if row else None)
+        if not cur.nextset():
+            break
+    return ids if len(ids) == n else ids + [None] * (n - len(ids))
+
+
+def _check_items(e: Event) -> None:
+    """Solo `list_view` y `offer_withheld` traen elementos, hasta MAX_EVENT_ITEMS, cada uno con su lugar y un tipo
+    conocido. Uno que no cumple rechaza el lote, como un tipo desconocido. Dos en el mismo lugar no: queda el primero
+    (`_record_items`), y el lote, con sus eventos de carro, no se pierde por una impresión."""
+    if not e.items:
+        return
+    if e.type not in ITEM_EVENT_TYPES:
+        raise ValueError(f"El evento {e.type} no lleva elementos")
+    if len(e.items) > MAX_EVENT_ITEMS:
+        raise ValueError(f"Demasiados elementos en un evento: {len(e.items)}")
+    positions = [item.get("position") for item in e.items]
+    if any(not isinstance(p, int) or isinstance(p, bool) or not 0 <= p <= 999 for p in positions):
+        raise ValueError("Posición de un elemento inválida")
+    if any(item.get("entity_type") not in ITEM_ENTITY_TYPES or not item.get("entity_id") for item in e.items):
+        raise ValueError("Elemento sin tipo o sin id")
+
+
+def _record_items(conn: Connection, saved: list[tuple[int, Event]], known: set[str]) -> None:
+    """Los elementos de cada `list_view` u `offer_withheld` que entró. En «Rappi hoy» (`payload.mode = 'actual'`) van
+    sin concepto, como sus eventos: ese modo no enseña."""
+    rows = [
+        (
+            event_id,
+            item["position"],
+            item["entity_type"],
+            str(item["entity_id"])[:64],
+            item.get("concept_id") if e.payload.get("mode") != "actual" and item.get("concept_id") in known else None,
+            item.get("vertical"),
+        )
+        for event_id, e in saved
+        for item in e.items
+    ]
+    if rows:
+        with conn.cursor() as cur:
+            cur.executemany(
+                """INSERT INTO app_event_items (event_id, position, entity_type, entity_id, concept_id, vertical)
+                   VALUES (%s, %s, %s, %s, %s, %s) ON CONFLICT (event_id, position) DO NOTHING""",
+                rows,
+            )
 
 
 def _rating(e: Event) -> tuple[int, list[str]]:
@@ -318,19 +395,23 @@ def _record_sessions(
 ) -> None:
     """Una fila de `app_sessions` por sesión: la crea su primer evento y los siguientes solo completan lo que faltaba
     (un evento del servidor, como `ask`, no trae la versión de la app) y adelantan el inicio si llegó un evento
-    anterior."""
+    anterior. `variants` es el eco de los experimentos: las variantes de la persona cuando nació la sesión."""
     with conn.cursor() as cur:
         cur.executemany(
-            """INSERT INTO app_sessions (user_id, session_id, started_at, app_version, platform, mode, entry, source)
-               VALUES (%s, %s, coalesce(%s, now()), %s, %s, %s, %s, %s)
+            """INSERT INTO app_sessions (user_id, session_id, started_at, app_version, platform, mode, entry, source,
+                                         variants)
+               VALUES (%s, %s, coalesce(%s, now()), %s, %s, %s, %s, %s,
+                       (SELECT jsonb_object_agg(experiment_id, variant) FROM experiment_assignments
+                        WHERE user_id = %s))
                ON CONFLICT (user_id, session_id) DO UPDATE SET
                    started_at = least(app_sessions.started_at, EXCLUDED.started_at),
                    app_version = coalesce(app_sessions.app_version, EXCLUDED.app_version),
                    platform = coalesce(app_sessions.platform, EXCLUDED.platform),
                    mode = coalesce(app_sessions.mode, EXCLUDED.mode),
-                   entry = coalesce(app_sessions.entry, EXCLUDED.entry)""",
+                   entry = coalesce(app_sessions.entry, EXCLUDED.entry),
+                   variants = coalesce(app_sessions.variants, EXCLUDED.variants)""",
             [
-                (user_id, session_id, start, info.app_version, info.platform, info.mode, info.entry, source)
+                (user_id, session_id, start, info.app_version, info.platform, info.mode, info.entry, source, user_id)
                 for (user_id, session_id), start in starts.items()
             ],
         )
@@ -454,6 +535,12 @@ def forget(conn: Connection, user_id: str, concept_id: str | None = None) -> int
     deleted = conn.execute(
         "DELETE FROM app_events WHERE user_id = %s AND concept_id = %s", (user_id, concept_id)
     ).rowcount
+    # Lo que se le mostró de ese concepto en una lista (sus impresiones), aunque la lista sea de varios.
+    deleted += conn.execute(
+        """DELETE FROM app_event_items i USING app_events e
+           WHERE e.event_id = i.event_id AND e.user_id = %s AND i.concept_id = %s""",
+        (user_id, concept_id),
+    ).rowcount
     deleted += conn.execute(
         """UPDATE app_order_lines l SET concept_id = NULL FROM app_orders o
            WHERE o.order_id = l.order_id AND o.user_id = %s AND l.concept_id = %s""",
@@ -493,5 +580,15 @@ def purge_old_queries(conn: Connection, days: int = QUERY_RETENTION_DAYS) -> int
     """Borra el texto de consultas más antiguas que `days` (quedan los agregados por concepto)."""
     return conn.execute(
         "UPDATE app_events SET query = NULL WHERE query IS NOT NULL AND ts < now() - make_interval(days => %s)",
+        (days,),
+    ).rowcount
+
+
+def purge_old_impressions(conn: Connection, days: int = IMPRESSION_RETENTION_DAYS) -> int:
+    """Borra los elementos de las impresiones (`app_event_items`) de eventos más antiguos que `days`: es la tabla que
+    más crece. Queda el evento (`list_view` con su lista, pantalla y mayor posición vista). Devuelve cuántos borró."""
+    return conn.execute(
+        """DELETE FROM app_event_items i USING app_events e
+           WHERE e.event_id = i.event_id AND e.ts < now() - make_interval(days => %s)""",
         (days,),
     ).rowcount

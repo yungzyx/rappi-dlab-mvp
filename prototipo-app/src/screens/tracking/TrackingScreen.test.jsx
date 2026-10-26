@@ -101,6 +101,7 @@ const offerRequests = (moment = 'proximo_pedido') =>
   api.mock.calls
     .filter(([url]) => url.endsWith('/agent/offer'))
     .map(([, init]) => JSON.parse(init.body))
+    .map(({ session_id: _session, ...body }) => body) // la sesión la revisa api/agent.test.js
     .filter((body) => body.moment === moment)
 const NEXT_CARD = /¿Y ahora/
 

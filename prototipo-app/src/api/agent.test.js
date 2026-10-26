@@ -36,14 +36,18 @@ describe('agent', () => {
     expect(made.products.every((p) => p.suggestionOrigin === 'agent-plan')).toBe(true)
   })
 
-  test('offer manda el momento, el contexto y el usuario', async () => {
+  test('offer manda el momento, el contexto, el usuario y su sesión (para el grupo de control)', async () => {
     const calls = stubApi({ 'POST /agent/offer': fixture('agent-offer-plan') })
     await offer('plan', { occasion: 'carrete' }, { userId: 'u1' })
     expect(JSON.parse(calls.mock.calls[0][1].body)).toEqual({
       moment: 'plan',
       user_id: 'u1',
+      session_id: expect.stringMatching(/^s-[0-9a-f]{16}$/),
       context: { occasion: 'carrete' },
     })
+    // Sin persona no va la sesión: nadie entra al grupo de control.
+    await offer('plan', { occasion: 'carrete' })
+    expect(JSON.parse(calls.mock.calls[1][1].body)).toEqual({ moment: 'plan', context: { occasion: 'carrete' } })
   })
 
   test('las acciones traen la ruta de la pantalla de la app (Turbo tiene la suya) o ninguna si la vertical no se conoce', async () => {

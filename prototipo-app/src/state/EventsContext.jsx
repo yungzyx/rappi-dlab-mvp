@@ -156,6 +156,8 @@ export function EventsProvider({ children }) {
     // En «Rappi hoy» el evento va sin concepto y marcado `payload.mode = 'actual'`: el motor y los segmentos lo saltan.
     if (!proposal.current) {
       delete event.concept_id
+      // Los elementos de un `list_view` (api/impressions.js) también van sin concepto.
+      if (event.items) event.items = event.items.map(({ concept_id: _concept, ...item }) => item)
       event.payload = { ...event.payload, mode: 'actual' }
     }
     queue.current.push(event)

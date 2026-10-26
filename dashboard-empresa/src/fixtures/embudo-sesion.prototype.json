@@ -1,0 +1,17 @@
+{
+  "data": [
+    {
+      "agregaron": 0,
+      "modo": "propuesta",
+      "pidieron": 0,
+      "sesiones": 24,
+      "tocaron": 1,
+      "vieron": 2
+    }
+  ],
+  "guardado": {
+    "fecha": "2026-10-25",
+    "origen": "make contract · recorrido corto sobre el catálogo de prueba inventado"
+  },
+  "source": "prototype"
+}

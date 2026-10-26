@@ -1,4 +1,6 @@
+import { storeItem } from '../../api/impressions'
 import Img from '../../components/Img'
+import { useImpressions } from '../../hooks/useImpressions'
 import { StarIcon } from '../../components/Icons'
 import { EtaIcon, PromoTag, StoreMeta } from '../../components/StoreMeta'
 import { hoursLabel, isClosed } from '../../components/storeHours'
@@ -7,11 +9,17 @@ import './home.css'
 /**
  * Tarjeta ancha de restaurante o tienda (Inicio, Ofertas, Favoritos).
  * Campos opcionales: rating, deliveryLabel (píldora amarilla), fee (costo de envío), distance, logo (la foto es un logo y
- * se ve entera).
+ * se ve entera). Con `impression`, cuenta como vista en su lista cuando aparece en pantalla (api/impressions.js).
  */
-export function RestaurantCard({ store, onClick }) {
+export function RestaurantCard({ store, onClick, impression = false }) {
+  const watch = useImpressions()
   return (
-    <button type="button" className="featured-card tap" onClick={onClick}>
+    <button
+      type="button"
+      className="featured-card tap"
+      onClick={onClick}
+      ref={impression ? watch(store, storeItem(store)) : undefined}
+    >
       <span className={store.logo ? 'featured-media is-logo' : 'featured-media'}>
         <Img src={store.img} draggable="false" />
       </span>
@@ -31,9 +39,15 @@ export function RestaurantCard({ store, onClick }) {
 }
 
 /** Logo de tienda + nombre + tiempo de entrega (si lo hay) o «Cerrada», y su promo, para la grilla «Cerca de ti». */
-export function StoreTile({ store, onClick }) {
+export function StoreTile({ store, onClick, impression = false }) {
+  const watch = useImpressions()
   return (
-    <button type="button" className="store-tile tap" onClick={onClick}>
+    <button
+      type="button"
+      className="store-tile tap"
+      onClick={onClick}
+      ref={impression ? watch(store, storeItem(store)) : undefined}
+    >
       <Img src={store.img} />
       <span className="store-name">{store.name}</span>
       {isClosed(store.hours) ? (

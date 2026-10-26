@@ -30,7 +30,8 @@
 // - rappi-ia/src/rappi_ia/agent/understand.py (_follow_up) y rappi_agent.py (_conversation, _without, _keeps, DIETS) ...
 //   seguir la conversación (conversation.js); los seguimientos de eval/frases_usuarios/conversaciones.txt salen grabados
 // - rappi-ia/src/rappi_ia/events/store.py .......... el perfil de intereses (index.js: interests) y el sobre de cada
-//   evento (index.js: storedEvent; el origen, en `origin` o, en los eventos de antes, `payload.origen`)
+//   evento (index.js: storedEvent; el origen, en `origin` o, en los eventos de antes, `payload.origen`); las impresiones
+//   (`list_view`) no se guardan, y sin conexión no hay grupo de control de las ofertas (OFFERS_CONTROL_PCT)
 // - rappi-ia/src/rappi_ia/offers/profiles.py ....... los perfiles de gusto activos (tastes.js)
 // - rappi-ia/src/rappi_ia/catalog/hours.py y catalog/restaurants.py (filtros, «Destacados», with_hours) ... abierto o
 //   cerrado según el horario publicado y los filtros de restaurantes (catalog.js); las búsquedas recientes de
@@ -384,9 +385,11 @@ function answer(snapshot, { method, path, query, body }, now) {
     return { body: { ...reply, rows } }
   }
   if (key === 'POST /events' || key === 'POST /events/beacon') {
-    const events = (body?.events ?? []).map((e) => storedEvent(e, now))
-    addEvents(events)
-    return key === 'POST /events' ? { body: { guardados: events.length } } : { status: 204, body: null }
+    // Las impresiones (`list_view`, api/impressions.js) no se guardan: sin conexión nada las lee, y llenarían el
+    // almacenamiento del navegador. Cuentan como recibidas, como en la API.
+    const sent = body?.events ?? []
+    addEvents(sent.filter((e) => e.type !== 'list_view').map((e) => storedEvent(e, now)))
+    return key === 'POST /events' ? { body: { guardados: sent.length } } : { status: 204, body: null }
   }
   if (key === 'POST /orders') {
     const vertical = backendVertical(body?.vertical)

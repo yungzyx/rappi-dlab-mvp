@@ -235,7 +235,7 @@ function OnTop({ order, flow, now, push }) {
       <HScroll className="tracking-ontop-items">
         {made.products.map((product) => (
           <div key={product.id} className="tracking-ontop-item">
-            <ProductCard product={product} />
+            <ProductCard product={product} impression />
           </div>
         ))}
       </HScroll>

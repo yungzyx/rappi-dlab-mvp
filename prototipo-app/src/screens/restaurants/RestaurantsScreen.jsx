@@ -167,6 +167,7 @@ export default function RestaurantsScreen({ back, push }) {
               key={restaurant.id}
               store={restaurant}
               onClick={() => push('store', { store: restaurant })}
+              impression
             />
           ))}
         </div>

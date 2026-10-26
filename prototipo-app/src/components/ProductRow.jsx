@@ -1,3 +1,5 @@
+import { productItem } from '../api/impressions'
+import { useImpressions } from '../hooks/useImpressions'
 import { useProductSheet } from '../state/ProductSheetContext'
 import AddButton from './AddButton'
 import Img from './Img'
@@ -6,12 +8,20 @@ import './product-row.css'
 
 /**
  * Producto en formato lista (página de tienda y resultados del buscador). Tocarlo abre su hoja; el "+" va aparte.
- * Con `onOpenStore`, la hoja ofrece «Ver tienda».
+ * Con `onOpenStore`, la hoja ofrece «Ver tienda». Con `impression`, la fila cuenta como vista en su lista cuando aparece
+ * en pantalla (api/impressions.js).
  */
-export default function ProductRow({ product, showStore = false, showDescription = false, onOpenStore }) {
+export default function ProductRow({
+  product,
+  showStore = false,
+  showDescription = false,
+  onOpenStore,
+  impression = false,
+}) {
   const sheet = useProductSheet()
+  const watch = useImpressions()
   return (
-    <li className="product-row">
+    <li className="product-row" ref={impression ? watch(product, productItem(product)) : undefined}>
       <button type="button" className="product-row-main" onClick={() => sheet.open(product, { onOpenStore })}>
         <span className="product-row-text">
           <strong>{product.name}</strong>

@@ -1,10 +1,12 @@
 import { useId, useState } from 'react'
-import { placeList } from '../../api/attribution'
+import { place, placeList } from '../../api/attribution'
+import { verticalItem } from '../../api/impressions'
 import { home, restaurants } from '../../api/catalog'
 import { useApi } from '../../api/useApi'
 import Carousel, { Dots } from '../../components/Carousel'
 import HScroll from '../../components/HScroll'
 import { useToast } from '../../components/Toast'
+import { useImpressions } from '../../hooks/useImpressions'
 import { ChevronRight } from '../../components/Icons'
 import { RestaurantCard, StoreTile } from './StoreCards'
 import { MAIN_TILES, PROMOS, PROMO_START_INDEX, SHORTCUTS, orderShortcuts } from '../../data/home'
@@ -17,6 +19,7 @@ import './home.css'
  * `{ origin: 'accesos-grandes', position }`, para el sobre del evento).
  */
 export function MainTiles({ push, onOpen }) {
+  const watch = useImpressions()
   return (
     <section className="home-tiles">
       {MAIN_TILES.map((tile, position) => (
@@ -24,6 +27,10 @@ export function MainTiles({ push, onOpen }) {
           key={tile.id}
           type="button"
           className={`home-tile home-tile--${tile.id} tap`}
+          ref={watch(
+            place(tile, { surface: 'home', origin: 'accesos-grandes', position }),
+            verticalItem(tile.vertical),
+          )}
           onClick={() => {
             onOpen?.(tile.vertical, { origin: 'accesos-grandes', position })
             push(tile.screen)
@@ -42,10 +49,12 @@ export function MainTiles({ push, onOpen }) {
  * `order` (códigos del backend; sin él, el orden fijo) con Lealtad y Beneficios Pro al final. `caption` va bajo la fila;
  * en el prototipo final su línea queda reservada (vacía si no hay leyenda) para que la fila no se mueva al aparecer.
  * `onOpen(vertical, where)` avisa qué vertical se tocó (código del backend) y dónde estaba (`where`: `{ origin:
- * 'accesos', position }`, su lugar en la fila tal como se ve); los accesos sin vertical no avisan.
+ * 'accesos', position }`, su lugar en la fila tal como se ve); los accesos sin vertical no avisan. Cada acceso con
+ * vertical cuenta como visto en la fila (api/impressions.js), con `requestId`, la respuesta que ordenó la fila.
  */
-export function Shortcuts({ push, proposal = false, order = null, caption = null, onOpen, onService }) {
+export function Shortcuts({ push, proposal = false, order = null, caption = null, onOpen, onService, requestId }) {
   const toast = useToast()
+  const watch = useImpressions()
   return (
     <>
       <HScroll className="home-shortcuts">
@@ -58,6 +67,14 @@ export function Shortcuts({ push, proposal = false, order = null, caption = null
               key={item.id}
               type="button"
               className={unavailable ? 'home-shortcut is-unavailable tap' : 'home-shortcut tap'}
+              ref={
+                item.vertical
+                  ? watch(
+                      place(item, { surface: 'home', origin: 'accesos', position, requestId }),
+                      verticalItem(item.vertical),
+                    )
+                  : undefined
+              }
               aria-label={unavailable ? `${item.label} (no disponible)` : undefined}
               onClick={() => {
                 if (item.vertical) onOpen?.(item.vertical, { origin: 'accesos', position })
@@ -142,7 +159,7 @@ function RestaurantRow({ title, stores, push }) {
       </h2>
       <HScroll className="home-cards home-cards--list">
         {stores.map((store) => (
-          <RestaurantCard key={store.id} store={store} onClick={() => push('store', { store })} />
+          <RestaurantCard key={store.id} store={store} onClick={() => push('store', { store })} impression />
         ))}
       </HScroll>
     </section>
@@ -171,7 +188,7 @@ export function NearbyStores({ stores, push }) {
       </div>
       <div className="home-store-grid">
         {stores.map((store) => (
-          <StoreTile key={store.id} store={store} onClick={() => push('store', { store })} />
+          <StoreTile key={store.id} store={store} onClick={() => push('store', { store })} impression />
         ))}
       </div>
     </section>

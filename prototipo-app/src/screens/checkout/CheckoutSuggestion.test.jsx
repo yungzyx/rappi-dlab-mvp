@@ -74,7 +74,10 @@ afterEach(() => {
   localStorage.clear()
 })
 const offerRequests = () =>
-  api.mock.calls.filter(([url]) => url.endsWith('/agent/offer')).map(([, init]) => JSON.parse(init.body))
+  api.mock.calls
+    .filter(([url]) => url.endsWith('/agent/offer'))
+    .map(([, init]) => JSON.parse(init.body))
+    .map(({ session_id: _session, ...body }) => body) // la sesión la revisa api/agent.test.js
 
 describe('«¿Me falta algo?» en el checkout (solo si se pide)', () => {
   // Primero: lo mostrado se recuerda lo que dura la pestaña (este archivo).

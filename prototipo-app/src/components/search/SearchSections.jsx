@@ -88,7 +88,7 @@ export function PopularStores({ onOpen }) {
   return (
     <>
       <h2 className="search-heading">Tiendas populares</h2>
-      <StoreList stores={stores} onOpen={onOpen} />
+      <StoreList stores={stores} onOpen={onOpen} impression />
     </>
   )
 }
@@ -188,7 +188,7 @@ function PlaceGroup({ title, places, onOpen }) {
       <h2 id={titleId} className="search-heading">
         {title}
       </h2>
-      <StoreList stores={expanded ? places : places.slice(0, PLACES_PREVIEW)} onOpen={onOpen} />
+      <StoreList stores={expanded ? places : places.slice(0, PLACES_PREVIEW)} onOpen={onOpen} impression />
       {!expanded && hidden > 0 && (
         <button type="button" className="search-more tap" onClick={() => setExpanded(true)}>
           Ver todos ({places.length})
@@ -215,6 +215,7 @@ function ResultGroup({ group, onOpenProduct, onSeeAll }) {
             key={product.id}
             product={product}
             showStore
+            impression
             onOpenStore={onOpenProduct && product.storeId != null ? () => onOpenProduct(product) : undefined}
           />
         ))}
