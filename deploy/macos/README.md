@@ -1,6 +1,6 @@
-# Demo pública desde un Mac (Cloudflare Tunnel)
+# Demo desde un Mac (Cloudflare Tunnel, con puerta de acceso)
 
-Publica el MVP desde un Mac con la base ya cargada, sin servidor ni Docker: la API en modo producción, Caddy con la puerta de acceso y un túnel de Cloudflare con HTTPS. Sirve para pruebas con personas mientras no hay un servidor; para un servidor está [docs/despliegue.md](../../docs/despliegue.md) (y la infraestructura en Oracle Cloud, en `infra/oci/`).
+Publica el MVP desde un Mac con la base ya cargada, sin servidor ni Docker: la API en modo producción, Caddy con la puerta de acceso y un túnel de Cloudflare con HTTPS. Sirve para pruebas con personas mientras no hay un servidor; para un servidor está [docs/despliegue.md](../../docs/despliegue.md).
 
 ```
 visitante ──HTTPS──▶ Cloudflare ──túnel──▶ Caddy 127.0.0.1:8080 (puerta, CSP) ─┬─▶ archivos de la app y el panel
@@ -55,5 +55,5 @@ Cada persona de la prueba crea una sesión del prototipo: después hay que olvid
 ## Límites
 
 - **El túnel rápido** no tiene garantía de disponibilidad y su URL cambia en cada inicio. Para una URL fija, con una cuenta de Cloudflare y un dominio: `cloudflared tunnel login` (autoriza el dominio en el navegador), `cloudflared tunnel create <nombre>`, `cloudflared tunnel route dns <nombre> <dominio>`, y en `tunel.env` `TUNNEL_NAME=<nombre>` y `PUBLIC_URL=https://<dominio>`. La credencial del túnel queda en `~/.cloudflared/`, fuera del repo.
-- **Depende del Mac:** si se apaga o pierde internet, la demo cae. Para algo permanente, un servidor (`infra/oci/` y [docs/despliegue.md](../../docs/despliegue.md)).
+- **Depende del Mac:** si se apaga o pierde internet, la demo cae. Para algo permanente, un servidor ([docs/despliegue.md](../../docs/despliegue.md)).
 - **Los respaldos quedan en el mismo Mac:** para una copia afuera, sumar un destino (por ejemplo restic, como en el servidor).

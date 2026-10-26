@@ -8,7 +8,7 @@ Hecho con Vite + React 19. **Necesita la API de [`rappi-ia`](../rappi-ia/)**: si
 
 ![Modo demo: la misma app en el prototipo final y en «Rappi hoy»](docs/screenshots/00-modo-demo.jpg)
 
-*Las capturas de las pantallas se tomaron el 24-10-2026 con la API corriendo sobre una copia de la base (`rappi_staging`) y el catálogo real (`npm run screenshots`); solo la ficha de Mochi es anterior. «¿Repetimos?» sale de la respuesta de ejemplo del contrato con un café real del catálogo: es una ilustración, no un hábito medido. Como el recorrido paga una compra y deja un pedido y sus eventos (`source = 'prototype'`) en la base que use la API, `npm run screenshots` se niega a correr sin `SCREENSHOTS_ALLOW_WRITES=1`: se corre con la API sobre `rappi_staging`, nunca sobre `rappi`.*
+*Las capturas de las pantallas se tomaron el 26-10-2026 con la API corriendo sobre una copia de la base (`rappi_staging`) y el catálogo real (`npm run screenshots`); solo la ficha de Mochi es anterior. «¿Repetimos?» sale de la respuesta de ejemplo del contrato con un café real del catálogo: es una ilustración, no un hábito medido. Como el recorrido paga una compra y deja un pedido y sus eventos (`source = 'prototype'`) en la base que use la API, `npm run screenshots` se niega a correr sin `SCREENSHOTS_ALLOW_WRITES=1`: se corre con la API sobre `rappi_staging`, nunca sobre `rappi`.*
 
 ## Cómo correrlo
 
@@ -29,7 +29,7 @@ npm run dev              # http://localhost:5174
 npm run dev -- --host    # para abrirlo en el iPhone
 ```
 
-**Instalarla en el teléfono:** en Android, Chrome ofrece **Instalar app** (o menú ⋮ → **Agregar a la pantalla principal**); en el iPhone, desde Safari: **Compartir → Agregar a pantalla de inicio**. Queda como «Mochi · demo», con el ícono de Mochi, y se abre a pantalla completa (el gesto "volver" funciona). El manifiesto lo arma `vite.config.js` con el nombre del agente; tras la puerta de acceso se pide con credenciales (`crossorigin="use-credentials"` en `index.html`). Chrome solo la instala con HTTPS (la demo pública lo tiene): por la red local (`npm run dev -- --host`) crea un acceso directo.
+**Instalarla en el teléfono:** en Android, Chrome ofrece **Instalar app** (o menú ⋮ → **Agregar a la pantalla principal**); en el iPhone, desde Safari: **Compartir → Agregar a pantalla de inicio**. Queda como «Mochi · demo», con el ícono de Mochi, y se abre a pantalla completa (el gesto "volver" funciona). El manifiesto lo arma `vite.config.js` con el nombre del agente; tras la puerta de acceso se pide con credenciales (`crossorigin="use-credentials"` en `index.html`). Chrome solo la instala con HTTPS (la demo en un servidor o por el túnel lo tiene): por la red local (`npm run dev -- --host`) crea un acceso directo.
 
 ![Los íconos de la app instalada: Android (maskable), iPhone y la pestaña](docs/screenshots/40-instalar.jpg)
 
@@ -66,7 +66,7 @@ Si la API se cae con la app ya abierta, el buscador con Mochi dice «Sin conexi�
 | `npm run demo:html` | Arma «Prototipo MVP.html»: la app en un solo archivo, sin la API (ver «Demo sin conexión») |
 | `node scripts/make-icons.mjs` | Regenera los íconos de la app instalada (`public/`: manifiesto, iPhone y pestaña) desde la pose de frente de `src/assets/mochi-poses.webp`, sin el logo que trae la mochila, con el Chrome instalado |
 
-Tests: las cifras vigentes están en [README.md#resultados](../README.md#resultados) (fila «Calidad»). CI en GitHub Actions: lint, tests y build.
+Tests: las cifras vigentes están en [README.md#resultados](../README.md#resultados) (fila «Tests»). CI en GitHub Actions: lint, tests y build.
 
 **Accesibilidad:** el buscador con Mochi y las hojas inferiores se usan con teclado y VoiceOver (el foco entra al abrir, Escape cierra, Tab no se sale y el foco vuelve al cerrar), cada respuesta de Mochi se anuncia completa al lector de pantalla y las áreas táctiles miden al menos 40 px.
 
@@ -138,7 +138,7 @@ En el prototipo final la barra de la Home («¿Qué se te antoja hoy?») abre el
 - **Pedir por mí:** en su hoja del buscador con Mochi, «Revisar antes de pedir» (por defecto) o «Pedir por mí» en las tiendas que elijas, con un tope por pedido (`GET`/`PUT`/`DELETE /profile/{id}/autonomia`). «Pide lo de siempre en…» (o «Pide lo de siempre por mí» en la recompra) muestra lo de siempre con el cálculo del checkout, sin propina: con permiso, ya enviado y con «Deshacer pedido» unos segundos (el pedido sale al cerrarse la ventana y la API lo vuelve a revisar; la tarjeta queda fija arriba aunque llegue otra respuesta, y cerrar el buscador antes lo deshace); sin permiso, o si pasa el tope con el envío y la tarifa de ejemplo, lleva al checkout de siempre y dice por qué. Nunca alcohol, +18, farmacia, bebé ni salud. Se apaga en un toque.
 - **Mientras piensa:** dice qué está haciendo («Entendiendo tu pedido», «Buscando opciones»…) y deja **Cancelar** la respuesta en curso.
 - **Toca y te armo algo:** botones con ideas fijas («¿Qué almuerzo hoy?», «Arma un carrete», «Algo dulce»). Al tocar uno, Mochi responde con productos y tiendas; si abres una tienda desde ahí y vuelves, la búsqueda sigue donde estaba.
-- **El campo de búsqueda** consulta la API y muestra los productos en un grupo por vertical, con la de la pantalla primero y «Ver más» en cada uno; sin resultados, Mochi dice dónde sí hay lo buscado. Debajo siguen «Ideas para buscar», que son ideas fijas y no un historial, y «Tiendas populares», como en la app.
+- **El campo de búsqueda** consulta la API y muestra los productos en un grupo por vertical, con la de la pantalla primero y «Ver más» en cada uno; sin resultados, Mochi dice dónde sí hay lo buscado. Antes de escribir muestra las búsquedas recientes de la persona y «Lo más buscado» (con la población de la que sale); sin ninguna de las dos, «Ideas para buscar», que son ideas fijas. Debajo, «Tiendas populares», como en la app.
 - **Refinar sin chat:** Mochi no tiene un campo para escribirle; la única entrada de texto es el buscador («Busca o pídele algo a Mochi»). Debajo de su respuesta, chips de un toque: «Más barato», «Otra opción», «Sin carne» (en restaurantes) y, con una ocasión o personas, «Para N personas». Cada respuesta trae el estado de la conversación (`conversation`) y el chip lo manda como `previous` con la frase que la API ya entiende; lo que nombra otra cosa empieza de nuevo. Arriba queda lo pedido: «Pediste «asado de 6» · «más barato»» ([diseño](../docs/diseno/2026-10-25-mochi-conversacion-design.md)).
 - **Mi último pedido:** con pedidos en la demo, un botón muestra su estado y lleva a su seguimiento. El buscador con Mochi es del prototipo final: al pasar a «Rappi hoy» se cierra y no se reabre ahí.
 - **Descubre con Mochi:** complementos de lo que le gusta a la persona, de `/recommendations`, cada uno con su vertical para abrirla.
@@ -148,11 +148,11 @@ En el prototipo final la barra de la Home («¿Qué se te antoja hoy?») abre el
 
 *Buscador con Mochi tras tocar «Arma un carrete» (con el MVP corriendo).*
 
-| <img src="docs/screenshots/45-conversacion-asado.jpg" width="240" alt="Mochi responde «¿qué llevo para un asado de 6?» con cortes de asado y «Para 6 personas, calcula unos 2,1 kg de carne»; debajo, «Más barato», «Otra opción», «Para 8 personas» y el campo «Sigue con Mochi»"> | <img src="docs/screenshots/46-conversacion-mas-barato.jpg" width="240" alt="Tras tocar «Más barato»: «Preguntaste «¿qué llevo para un asado de 6?» · «más barato»» y «Lo más barato de asado en el súper», con los cortes más baratos"> | <img src="docs/screenshots/48-conversacion-sin-carne.jpg" width="240" alt="«¿tienen pizza?» y después «sin carne» en el campo para seguir: pizzas vegetarianas y veganas de restaurantes"> |
+| <img src="docs/screenshots/45-conversacion-asado.jpg" width="240" alt="Mochi responde «¿qué llevo para un asado de 6?» con cortes de asado y «Para 6 personas, calcula unos 2,1 kg de carne»; debajo, «Más barato», «Otra opción», «Para 8 personas» "> | <img src="docs/screenshots/46-conversacion-mas-barato.jpg" width="240" alt="Tras tocar «Más barato»: «Pediste «¿qué llevo para un asado de 6?» · «más barato»» y «Lo más barato de asado en el súper», con los cortes más baratos para las mismas 6 personas"> | <img src="docs/screenshots/48-conversacion-sin-carne.jpg" width="240" alt="«¿tienen pizza?» y después el chip «Sin carne»: «Pediste «¿tienen pizza?» · «sin carne»» y pizzas veganas y veggie de restaurantes"> |
 |---|---|---|
-| Una pregunta y lo que se puede seguir | «Más barato»: el mismo asado, para 6 | «sin carne» escrito en el campo para seguir |
+| Lo pedido y los chips para refinarlo | «Más barato»: el mismo asado, para 6 | El chip «Sin carne» bajo «¿tienen pizza?» |
 
-*Seguir la conversación con Mochi (API sobre una copia de la base, 25-10-2026). Desde el 26-10 ya no está el campo «Sigue con Mochi»: «sin carne» es un chip.*
+*Refinar con chips, sin chat (API sobre una copia de la base). Lo pedido se escribe en el buscador; lo demás es un toque.*
 
 Mochi es la mochila Rappi con bigote. En la app usa 4 poses de una sola imagen (`src/assets/mochi-poses.webp`): frontal (quieto), feliz (saluda o lo señalas con el mouse), tímido (piensa o escucha) y saltando (al tocarlo). Respira, se inclina hacia el mouse y, en la Home, salta, gira y baila según lo que dice.
 
@@ -185,12 +185,12 @@ En el prototipo final, Mochi flota a un costado en las demás pantallas (no en l
 | Checkout | Seguimiento | Entregado |
 |:---:|:---:|:---:|
 | <img src="docs/screenshots/25-checkout.jpg" width="240" alt="Checkout"> | <img src="docs/screenshots/26-seguimiento.jpg" width="240" alt="Seguimiento"> | <img src="docs/screenshots/27-entregado.jpg" width="240" alt="Pedido entregado"> |
-| Un pedido por tienda: envío o retiro (los dos se programan), tipo de entrega, propina, mínimo de compra, Pro, créditos y cupón (los supuestos, rotulados «de ejemplo»), y «Deshacer pedido» unos segundos. El medio de pago es un texto de ejemplo. | Simulado: los pasos avanzan solos y Mochi recorre la ruta en el mapa. | Calificación y la siguiente sugerencia cruzada. |
+| Un pedido por tienda: envío o retiro (los dos se programan), tipo de entrega, propina, mínimo de compra, Pro, créditos y cupón (los supuestos, rotulados «de ejemplo»), y «Deshacer pedido» unos segundos. El medio de pago es un texto de ejemplo. | Simulado: los pasos de cada vertical avanzan solos y Mochi recorre la ruta en el mapa, con el código de entrega y, si el pedido no es de Turbo, el OnTop («suma esto antes de las…», de ejemplo). Antes de «En camino», «Cancelar pedido». | Calificación (con 3 estrellas o menos, sus motivos), propina después, «Pídelo de nuevo», «Ayuda con este pedido» y la siguiente sugerencia cruzada. |
 
 También:
 
 - **Hoja de producto:** al tocar un producto se abre una hoja con la cantidad, notas para la tienda y el total, y desde ahí se puede ir a la tienda.
-- **Mis pedidos** (en Cuenta): cada pedido hecho en el prototipo abre su seguimiento, en curso o entregado; el carro (líneas y notas), los favoritos, la dirección y el programa de lealtad se guardan en este navegador y sobreviven a una recarga (los pedidos y los eventos del carro además van a la API: ver Privacidad).
+- **Mis pedidos** (en Cuenta): un pedido por tienda (los de una misma compra se recorren con «Pedido 1 · Tienda»), cada uno con su paso, «Por calificar», «Pídelo de nuevo» y «Ayuda con este pedido», y abre su seguimiento; fuera del seguimiento, la barra «Pedido en curso» lo sigue; el carro (líneas y notas), los favoritos, la dirección y el programa de lealtad se guardan en este navegador y sobreviven a una recarga (los pedidos y los eventos del carro además van a la API: ver Privacidad).
 - **Turbo** con los pasillos de su tienda con más productos vigentes (pestañas arriba y en Categorías), con sus productos y «Ver más», que se agregan al carro, además de las pestañas Favoritos y Ofertas.
 - **Menús reales** de los restaurantes, con pestañas por sección: salen de la API (`/catalog`), el catálogo que descarga el scraper. La portada es la foto de un plato popular: la base no guarda los logos de los restaurantes.
 - **Lealtad**, con tres programas de ejemplo (ficticios) para vincular uno.
@@ -241,7 +241,7 @@ Las pantallas de catálogo leen la API (`/catalog`, `src/api/catalog.js`) y la a
 - **Real:** las tiendas, productos, precios, menús y ofertas que muestran las pantallas (vienen de la API, que lee la base que descarga el scraper), el carrito, los pedidos y el historial del navegador.
   - **De la API** vienen también la búsqueda y los productos y precios que muestra Mochi.
 - **De las capturas:** el diseño (títulos, filas de categorías, íconos). Los banners y promociones son genéricos o de ejemplo, y los programas de lealtad, ficticios. No son catálogo: no apuntan a ninguna tienda ni producto.
-- **Simulado:** el pago y el seguimiento (el pedido «llega» a los 20 s).
+- **Simulado:** el pago y el seguimiento (el pedido «llega» a los 20 s), el agotado en vivo del Súper (rotulado «Demostración»; los sustitutos sí son del catálogo), el atraso (solo desde el «Panel de la demo») y la ayuda, que no mueve dinero ni se guarda en la base.
 - **Privacidad:** el id de usuario es seudónimo (`proto-…`, guardado en este navegador). La API lo entrega firmado (`POST /session`). **Al servidor** (con ese id y su token) van las búsquedas y lo que le preguntas a Mochi (el texto que escribes), los eventos de uso (carro con su `cart_id`, sugerencias vistas y aceptadas: `POST /events`), y los pedidos (`POST /orders`: líneas, tienda y vertical, sin la dirección). **Solo en este navegador** quedan las líneas del carro y sus notas, los favoritos, la dirección elegida, el programa de lealtad, y una copia de cada pedido (con la dirección) para su seguimiento. La primera visita muestra un aviso de qué se guarda; **Cuenta → Borrar mis datos** (y **Olvidar** en el buscador con Mochi, que aparece siempre y pide la misma confirmación) borra en la API el perfil, los eventos y los pedidos, vacía las claves `rappi-proto-*` del navegador, genera un id nuevo y recarga la app en la Home. En modo "Rappi hoy" no se aprende.
 - **Supuestos:** textos cortados en el borde de las capturas, marcados como "supuesto" en los archivos `data.js`. La nota de un producto no se muestra; el envío y la compra mínima salen del catálogo o son supuestos rotulados «de ejemplo» (`src/screens/checkout/pricing.js`), y un $0 en el catálogo es un dato que falta, no «envío gratis».
 - **Créditos y cupones de ejemplo:** un saldo en el navegador (`src/state/credits.js`; «Olvidar» lo borra). Empieza con los $1.900 del banner de la Home, que vencen con su cuenta regresiva (la misma en los dos modos); el checkout los gasta, y la ayuda con reembolso en créditos, la garantía de Turbo y la cancelación de un pedido (lo que había usado) suman. Cada cupón se usa una vez y vuelve si se cancela su pedido. El banner muestra el saldo y desaparece en cero.

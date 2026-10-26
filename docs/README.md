@@ -11,6 +11,7 @@
 | Ver el prototipo final: la Home que aprende, Mochi en la Home y el buscador con Mochi | [prototipo-app/README.md](../prototipo-app/README.md) | 5 min |
 | Mostrarlo a alguien del negocio (guion de unos 12 minutos) | [demo.md](demo.md) | 3 min |
 | Saber qué se decidió y por qué | [decisiones.md](decisiones.md) | 5 min |
+| Ver qué cambió el 25 y 26-10-2026 (las fases de la comparación con la app de Rappi y la revisión), con sus PR | [README principal](../README.md#cambios-del-25-y-26-10-2026) | 3 min |
 
 ## 2. Cómo funciona
 
@@ -20,7 +21,7 @@
 | Entender el diseño del RAG, del agente Mochi y del panel | [diseno-ia.md](diseno-ia.md) | 20 min |
 | Conocer el modelo de datos (capas 1 a 3) | [ecosistema-rappi.md §3](ecosistema-rappi.md#3-modelo-de-datos-del-ecosistema-propuesta) | 5 min |
 | Usar desde otra herramienta lo que la base le suma al catálogo (atributos, marcas, grafo, segmentos y el motor multivertical) | [capa-de-datos.md](capa-de-datos.md) | 8 min |
-| Comparar el MVP con la app de Rappi (cómo captura señales y qué hace por área), las equivalencias de eventos y el plan por fases | [investigacion/app-rappi-2026-10-25.md](investigacion/app-rappi-2026-10-25.md) | 10 min |
+| Comparar el MVP con la app de Rappi (cómo captura señales, qué hace por área y qué tenemos tras las fases), las equivalencias de eventos y el plan por fases | [investigacion/app-rappi-2026-10-25.md](investigacion/app-rappi-2026-10-25.md) | 10 min |
 | Conocer la capa de IA, su API y cómo se evalúa | [rappi-ia/README.md](../rappi-ia/README.md) | 10 min |
 | Usar o modificar el scraper | [rappi-scraper/README.md](../rappi-scraper/README.md) | 10 min |
 | Activar a Jev (opcional y apagado: etiqueta categorías y juzga la búsqueda) | [jev.md](jev.md) | 5 min |
@@ -35,7 +36,7 @@ Las especificaciones con que se construyeron las piezas grandes. Cada una dice a
 | [MVP integrado](diseno/2026-10-10-mvp-integrado-design.md) | 10-10-2026 | La app conectada a la API: catálogo real, buscador y ofertas de Mochi sobre el RAG, panel y Jev, en 7 etapas |
 | [Perfiles de gusto](diseno/2026-10-14-perfiles-de-gusto-design.md) | 14-10-2026 | Escaleras de verticales por gusto (el sushi como narrativa), en datos |
 | [Motor multivertical y Home dinámica](diseno/2026-10-16-motor-multivertical-design.md) | 16-10-2026 | Afinidad, transiciones, combinaciones, compra cruzada, tendencias y recompra (migración 036), con la tabla de Rappi completa |
-| [Conversar con Mochi](diseno/2026-10-25-mochi-conversacion-design.md) | 25-10-2026 | Seguir la conversación («más barato», «sin carne», «para 10 personas»): el estado que viaja con la app y cómo se combina con lo nuevo |
+| [Conversar con Mochi](diseno/2026-10-25-mochi-conversacion-design.md) | 25-10-2026 | Seguir la conversación («más barato», «sin carne», «para 10 personas»): el estado que viaja con la app y cómo se combina con lo nuevo. Desde el 26-10, con chips y sin campo para escribirle |
 
 Las migraciones 022 a 026, 036 y 037 citan en su primera línea la carpeta anterior de estos diseños: los archivos son los mismos de [diseno/](diseno/), y lo de la escalera fina (037) está en [capa-de-datos.md](capa-de-datos.md#la-escalera-fina).
 
@@ -62,6 +63,9 @@ Las fuentes JSON de los diagramas están en [diagramas-fuente/](diagramas-fuente
 | Las cifras vigentes, con qué tipo de dato es cada una | [README.md#resultados](../README.md#resultados) |
 | La evaluación de la búsqueda vigente (set del 22-10-2026: nDCG@10 y «sin resultado») | [resultados/busqueda-2026-10-22.md](resultados/busqueda-2026-10-22.md) |
 | La corrección de errores de tipeo (24-10-2026) | [resultados/busqueda-2026-10-24.md](resultados/busqueda-2026-10-24.md) |
+| La búsqueda con el juez de tres niveles y los cambios del 25-10-2026 | [resultados/busqueda-2026-10-25.md](resultados/busqueda-2026-10-25.md) |
+| El juicio LLM doble ciego de 200 pares (25-10-2026) | [resultados/juicio-llm-busqueda-2026-10-25.md](resultados/juicio-llm-busqueda-2026-10-25.md) |
+| Las conversaciones con Mochi, antes y después (25-10-2026) | [resultados/mochi-conversacion-2026-10-25.md](resultados/mochi-conversacion-2026-10-25.md) |
 | Los reportes anteriores de la búsqueda, uno por fecha (con otros sets: no se comparan con los de arriba) | [resultados/](resultados/) (`busqueda-2026-09-30.md` a `busqueda-2026-10-06.md`) |
 | La evaluación del motor multivertical sobre datos simulados (16-10-2026) | [resultados/motor-2026-10-16.md](resultados/motor-2026-10-16.md) |
 | Los datos simulados recalibrados a la mezcla de la tabla de Rappi: antes y después (17-10-2026) | [resultados/simulados-2026-10-17.md](resultados/simulados-2026-10-17.md) |

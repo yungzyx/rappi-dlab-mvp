@@ -2,6 +2,8 @@
 
 Fecha: 25-10-2026. Que se pueda seguir hablando con Mochi después de la primera respuesta («¿y algo más barato?», «sin carne», «para 10 personas», «en el súper mejor», «otra opción»), sin LLM y sin que la API guarde una sesión.
 
+> Lo que cambió después: desde el 26-10-2026 no hay campo «Sigue con Mochi». Los seguimientos son chips que mandan la misma frase con el `previous` (§4 y la [decisión](../decisiones.md#agente-mochi) «Mochi sin chat»).
+
 ## 1. Qué había
 
 - `POST /agent/ask` ya aceptaba `previous` (lo pedido, los conceptos, la vertical y los productos mostrados) y `agent/understand.py` (`_follow_up`) leía un mensaje corto como seguimiento: «talla g» tras «pañales», «más barata», «de otra marca», «y en el súper?».
