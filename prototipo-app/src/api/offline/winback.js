@@ -1,4 +1,4 @@
-// La recompra con ritmo y «¿Volvemos a…?» sin conexión: la tabla `replenishment` del motor (motor/model.py), armada
+// La recompra con ritmo y "¿Volvemos a…?" sin conexión: la tabla `replenishment` del motor (motor/model.py), armada
 // aquí con los pedidos de este navegador, y a quién le toca una invitación a volver (offers/winback.py: lapses y
 // available). El panel de la demo siembra personas con semanas de historial para verla. Los productos y el texto de
 // las ofertas están en offers.js.
@@ -146,7 +146,7 @@ export function lapses(snapshot, state, now) {
 }
 
 /** Si un evento de la app es de esta invitación (winback.py: _same): la de un concepto lleva su concepto; la de una
- * vertical, `payload.kind` «vuelta» y su vertical. */
+ * vertical, `payload.kind` "vuelta" y su vertical. */
 const same = (lapse, event) =>
   lapse.kind === 'concepto'
     ? event.payload?.kind !== BASIS_KINDS.vertical && event.concept_id === lapse.key
@@ -155,8 +155,8 @@ const same = (lapse, event) =>
 /**
  * Las invitaciones que se pueden mostrar ahora (winback.py: available): sin las descartadas dos veces después de su
  * último pedido, y con pausa por persona: si en los últimos 7 días se le mostró una, solo esa (si sigue calificando).
- * Cuentan los eventos con origen `agent-volver` (`origin`, o `payload.origen` en los de antes), salvo los de «Rappi
- * hoy». Lo que volvió a pedir ya no está en
+ * Cuentan los eventos con origen `agent-volver` (`origin`, o `payload.origen` en los de antes), salvo los de "Rappi
+ * hoy". Lo que volvió a pedir ya no está en
  * `candidates`: aquí la recompra se calcula con los mismos pedidos.
  */
 export function available(state, candidates, now) {
@@ -178,8 +178,8 @@ export function available(state, candidates, now) {
 }
 
 /**
- * Lo que no se ofrece en la recompra ni en el «volver» por una calificación mala (winback.py: paused): los conceptos y
- * las tiendas de los pedidos `propuesta` cuyo carro se calificó (`order_rated`, fuera de «Rappi hoy») con 3 estrellas o
+ * Lo que no se ofrece en la recompra ni en el "volver" por una calificación mala (winback.py: paused): los conceptos y
+ * las tiendas de los pedidos `propuesta` cuyo carro se calificó (`order_rated`, fuera de "Rappi hoy") con 3 estrellas o
  * menos en los últimos 30 días. Vale la última calificación de cada pedido: su carro y, si la trae, su tienda
  * (`payload.store_id`: un carro con dos tiendas son dos pedidos). Un pedido cancelado no se califica: no pausa nada.
  */

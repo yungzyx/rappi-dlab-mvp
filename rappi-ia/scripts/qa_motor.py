@@ -199,7 +199,7 @@ def bases_of(call: dict) -> list[dict]:
 
 def concept_ids_in_basis(signal: dict) -> list[str]:
     """Los conceptos que nombra una señal: `concepto`, `carrito`, `pedido`, `recompra` o una compra cruzada
-    («A→B@vertical» o «B@vertical»)."""
+    ("A→B@vertical" o "B@vertical")."""
     kind, signal_id = signal.get("kind"), str(signal.get("id", ""))
     if kind in ("concepto", "carrito", "pedido", "recompra"):
         return [signal_id]
@@ -296,7 +296,7 @@ def summarize(conn, calls: list[dict]) -> dict:
             if "  " in text or re.search(r"\b(de|a) el\b", low):
                 hit("texto_mal_formado", call, text)
 
-    # Coherencia: «Aún no pides en X» para una vertical donde la persona sí pidió.
+    # Coherencia: "Aún no pides en X" para una vertical donde la persona sí pidió.
     coherence = Counter()
     for call in calls:
         body = call["body"]

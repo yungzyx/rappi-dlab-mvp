@@ -30,7 +30,7 @@
   height: 36px;
   padding: 0 8px;
   border-radius: 99px;
-  background: var(--green-deep); /* el verde del «+» daba 2,2:1 con el número blanco */
+  background: var(--green-deep); /* el verde del "+" daba 2,2:1 con el número blanco */
   font-weight: 700;
 }
 

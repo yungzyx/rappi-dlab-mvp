@@ -43,7 +43,7 @@ const then = (message, previous = PIZZA, recorded = {}) =>
 const names = (reply) => reply.products.map((p) => p.name)
 
 describe('qué dice un seguimiento (agent/understand.py: _follow_up, en corto)', () => {
-  test('el orden, el tope, las personas, lo que no va, la vertical y «otra opción»', () => {
+  test('el orden, el tope, las personas, lo que no va, la vertical y "otra opción"', () => {
     expect(readRefinement('¿y algo más barato?')).toEqual({ order: 'barato' })
     expect(readRefinement('uno más caro')).toEqual({ order: 'caro' })
     expect(readRefinement('menos de 10 lucas')).toEqual({ priceMax: 10000 })
@@ -61,7 +61,7 @@ describe('qué dice un seguimiento (agent/understand.py: _follow_up, en corto)',
 })
 
 describe('el seguimiento sobre la muestra (agent/rappi_agent.py, en corto)', () => {
-  test('«sin carne»: solo lo que el nombre dice que no tiene (vegetariana, veggie), no la «Carnivori»', () => {
+  test('"sin carne": solo lo que el nombre dice que no tiene (vegetariana, veggie), no la "Carnivori"', () => {
     const reply = then('sin carne')
     expect(names(reply).sort()).toEqual(['Pizza vegetariana familiar', 'Pizza veggie mediana'])
     expect(reply.text).toBe('Mira estas opciones de 🍕 pizza sin carne en restaurantes.')
@@ -73,7 +73,7 @@ describe('el seguimiento sobre la muestra (agent/rappi_agent.py, en corto)', () 
     expect(reply.intent.follow_up).toBe(true)
   })
 
-  test('«más barato» ordena y queda para los turnos siguientes; «otra opción» salta lo ya mostrado', () => {
+  test('"más barato" ordena y queda para los turnos siguientes; "otra opción" salta lo ya mostrado', () => {
     const cheaper = then('más barato')
     expect(names(cheaper)[0]).toBe('Pizza veggie mediana')
     expect(cheaper.text).toMatch(/^Lo más barato de 🍕 pizza en restaurantes/)
@@ -119,7 +119,7 @@ describe('el seguimiento sobre la muestra (agent/rappi_agent.py, en corto)', () 
     expect(then('sin carne', PIZZA, { [followKey(PIZZA, 'sin carne')]: recorded })).toBe(recorded)
   })
 
-  test('«¿y…?» con algo nuevo es otro pedido para la misma gente', () => {
+  test('"¿y…?" con algo nuevo es otro pedido para la misma gente', () => {
     const recorded = { text: 'Mira estas bebidas.', products: [pool[6]], vertical: 'conveniencia', intent: {} }
     const asado = { ...PIZZA, people: 6 }
     const reply = ask(

@@ -7,7 +7,7 @@ afterEach(cleanup)
 
 const asian = () => fixture('profile-gustos').perfiles[0]
 
-test('«Tu perfil»: nombre, nivel en minúscula, el «por qué» y «Olvidar» arriba a la derecha', () => {
+test('"Tu perfil": nombre, nivel en minúscula, el "por qué" y "Olvidar" arriba a la derecha', () => {
   const onForget = vi.fn()
   render(<ProfileCard profile={asian()} onForget={onForget} />)
   const card = screen.getByRole('region', { name: 'Tu perfil' })
@@ -22,7 +22,7 @@ test('«Tu perfil»: nombre, nivel en minúscula, el «por qué» y «Olvidar» 
   expect(onForget).toHaveBeenCalledTimes(1)
 })
 
-test('sin `onForget` no hay «Olvidar», y mientras se olvida no se toca dos veces', () => {
+test('sin `onForget` no hay "Olvidar", y mientras se olvida no se toca dos veces', () => {
   render(<ProfileCard profile={asian()} />)
   expect(screen.queryByRole('button', { name: 'Olvidar' })).toBeNull()
   cleanup()
@@ -30,7 +30,7 @@ test('sin `onForget` no hay «Olvidar», y mientras se olvida no se toca dos vec
   expect(screen.getByRole('button', { name: 'Olvidar' }).disabled).toBe(true)
 })
 
-test('«¿Por qué?» junta pedidos y búsquedas de cada concepto; sin su nombre, el id', () => {
+test('"¿Por qué?" junta pedidos y búsquedas de cada concepto; sin su nombre, el id', () => {
   const profile = {
     ...asian(),
     basis: [
@@ -51,7 +51,7 @@ test('«¿Por qué?» junta pedidos y búsquedas de cada concepto; sin su nombre
   ])
 })
 
-test('sin pedidos ni búsquedas que mostrar, no hay «¿Por qué?»', () => {
+test('sin pedidos ni búsquedas que mostrar, no hay "¿Por qué?"', () => {
   const profile = { ...asian(), basis: [{ kind: 'concepto', id: 'sushi', score: 2, source: 'segmento:sushi' }] }
   render(<ProfileCard profile={profile} />)
   expect(screen.queryByRole('button', { name: /¿Por qué\?/ })).toBeNull()

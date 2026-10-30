@@ -73,7 +73,7 @@ function WeeklyTable({ rows, asOf }) {
   return <DataTable caption="Serie semanal" columns={columns} rows={rows} rowKey={(row) => row.semana} />
 }
 
-/** «Cómo va»: 3 indicadores con su tendencia semanal y 2 de 30 y 60 días con lo que los explica; la serie, en tabla. */
+/** "Cómo va": 3 indicadores con su tendencia semanal y 2 de 30 y 60 días con lo que los explica; la serie, en tabla. */
 export function Pulse({ source }) {
   const [rows, kpis] = useAnalyticsMany(['weekly', 'kpis'], source)
   return (

@@ -6,9 +6,9 @@ import { formatPrice } from '../../state/CartContext'
 const CAP_STEP = 1000
 
 /**
- * «Pedir por mí», dentro de una hoja: «Revisar antes de pedir» (por defecto) o «Pedir por mí» en las tiendas que elija
- * (de las que ya pidió) y con un tope por pedido. Volver a «Revisar antes de pedir» lo apaga en un toque (`DELETE`);
- * «Guardar» lo enciende o lo cambia (`PUT /profile/{id}/autonomia`). `onTurnedOff` deshace lo que esté en su ventana.
+ * "Pedir por mí", dentro de una hoja: "Revisar antes de pedir" (por defecto) o "Pedir por mí" en las tiendas que elija
+ * (de las que ya pidió) y con un tope por pedido. Volver a "Revisar antes de pedir" lo apaga en un toque (`DELETE`);
+ * "Guardar" lo enciende o lo cambia (`PUT /profile/{id}/autonomia`). `onTurnedOff` deshace lo que esté en su ventana.
  */
 export default function AutonomyEditor({ onSaved, onTurnedOff }) {
   const [status, setStatus] = useState('loading') // loading | ready | saving | error | save-error
@@ -50,7 +50,7 @@ export default function AutonomyEditor({ onSaved, onTurnedOff }) {
       })
       .catch(() => setStatus('save-error'))
   }
-  // «Revisar antes de pedir» apaga al tiro lo que estaba encendido; si no estaba, solo se elige.
+  // "Revisar antes de pedir" apaga al tiro lo que estaba encendido; si no estaba, solo se elige.
   const review = () => {
     setMode('revisar')
     if (setting.mode === 'pedir') run(turnOffAutonomy, () => onTurnedOff?.())
@@ -132,7 +132,7 @@ export default function AutonomyEditor({ onSaved, onTurnedOff }) {
             Solo pido lo de siempre: tu último pedido en esa tienda, con el precio de hoy. Nunca alcohol, +18, farmacia,
             bebé ni salud, nunca sobre tu tope ni en una tienda cerrada, y te doy unos segundos para deshacerlo (si
             cierras el buscador antes, no lo pido). Si algo no calza, te lo dejo para que lo revises. Cuando te toque
-            repetir, toca «Pide lo de siempre por mí» en la Home.
+            repetir, toca "Pide lo de siempre por mí" en la Home.
           </p>
         </>
       )}

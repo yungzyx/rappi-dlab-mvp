@@ -7,7 +7,7 @@ from rappi_scraper.storage.search import VERTICALS
 from rappi_ia.concepts.taxonomy import load_taxonomy
 from rappi_ia.eval.search_eval import load_queries
 
-MIN_NEGATIVES = 5  # con 1 a 4 negativas, la precisión ≥ 0,9 de «sin resultado» es 1,0 o nada
+MIN_NEGATIVES = 5  # con 1 a 4 negativas, la precisión ≥ 0,9 de "sin resultado" es 1,0 o nada
 MIN_POSITIVES_NEW_VERTICALS = 10
 TIPOS = {"exacta", "necesidad", "sin_tildes", "negativa"}
 

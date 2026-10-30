@@ -23,12 +23,12 @@ def test_kappa_is_one_when_the_raters_always_agree():
 
 
 def test_kappa_is_zero_when_agreement_is_what_chance_gives():
-    # Cada uno dice «sí» la mitad de las veces y coinciden en la mitad: justo lo esperable por azar.
+    # Cada uno dice "sí" la mitad de las veces y coinciden en la mitad: justo lo esperable por azar.
     assert cohen_kappa([1, 1, 0, 0], [1, 0, 1, 0]) == pytest.approx(0.0)
 
 
 def test_kappa_matches_the_textbook_two_by_two_example():
-    """20 de acuerdo en «sí», 15 en «no», 5 y 10 de desacuerdo (N = 50): acuerdo observado 0,70; esperado por azar
+    """20 de acuerdo en "sí", 15 en "no", 5 y 10 de desacuerdo (N = 50): acuerdo observado 0,70; esperado por azar
     (25/50)(30/50) + (25/50)(20/50) = 0,50; κ = (0,70 - 0,50) / (1 - 0,50) = 0,4."""
     a = [1] * 20 + [1] * 5 + [0] * 10 + [0] * 15
     b = [1] * 20 + [0] * 5 + [1] * 10 + [0] * 15
@@ -95,7 +95,7 @@ def test_read_search_sheet_maps_the_three_values_and_counts_blank_and_invalid_ro
 
 
 def test_read_search_sheet_forgives_case_spaces_accents_in_the_header_and_numbers_style_saves(tmp_path):
-    """Excel en español guarda con «;» y sin BOM; Numbers con «,». El valor se escribe a mano: «Sirve », «A MEDIAS»."""
+    """Excel en español guarda con ";" y sin BOM; Numbers con ",". El valor se escribe a mano: "Sirve ", "A MEDIAS"."""
     text = (
         "id;consulta;vertical;posicion;nombre;categoria;tienda;juicio\n"
         "a;pisco;licores;1;Pisco;Pisco;Tienda;  Sirve \n"
@@ -283,14 +283,14 @@ def test_search_sheet_is_read_in_any_encoding_excel_or_numbers_may_save(tmp_path
     path = tmp_path / "s.csv"
     data = SEARCH_TEXT.encode(encoding)
     if encoding == "utf-16-le":
-        data = b"\xff\xfe" + data  # con BOM, como lo guarda Excel («Texto Unicode»)
+        data = b"\xff\xfe" + data  # con BOM, como lo guarda Excel ("Texto Unicode")
     path.write_bytes(data)
 
     assert read_search_sheet(path) == {"a": 2, "b": 0}
 
 
 def test_macroman_bytes_do_not_crash_the_reader(tmp_path):
-    """«CSV (Macintosh)»: bytes que cp1252 no define (0x81, 0x8d, 0x8f, 0x90, 0x9d). Los textos pueden salir mal,
+    """ "CSV (Macintosh)": bytes que cp1252 no define (0x81, 0x8d, 0x8f, 0x90, 0x9d). Los textos pueden salir mal,
     pero el id y el juicio (ASCII) se leen y no se cae."""
     path = tmp_path / "s.csv"
     path.write_bytes(SEARCH_TEXT.replace(";", ",").encode("mac_roman") + "x,\x81\x8d\x8f\x90\x9d".encode("latin-1"))
@@ -354,7 +354,7 @@ def test_eval_human_explains_a_sheet_whose_filled_rows_are_all_invalid(tmp_path,
     monkeypatch.setattr(sheets, "sheet_dir", lambda: tmp_path)
     monkeypatch.setattr("rappi_ia.eval.judgments.JUDGMENTS_FILE", tmp_path / "no-hay.json")
 
-    cli.cmd_eval_human(None, None)  # no se cae ni dice «todavía no hay juicios»
+    cli.cmd_eval_human(None, None)  # no se cae ni dice "todavía no hay juicios"
 
     out = capsys.readouterr().out
     assert "3 inválidas" in out and "1 vacías" in out and "valores permitidos" in out

@@ -42,7 +42,7 @@ def test_every_concept_of_the_blocked_groups_is_blocked():
 
 
 def test_the_whole_health_group_is_blocked_even_when_the_concept_itself_is_harmless():
-    # «Farmacia y cuidado personal»: vitaminas, higiene y dermocosmética no son sensibles, pero son salud.
+    # "Farmacia y cuidado personal": vitaminas, higiene y dermocosmética no son sensibles, pero son salud.
     for concept_id in ("vitaminas", "dermocosmetica", "higiene-personal", "cuidado-oral", "alimentacion-bebe"):
         assert not concept(concept_id).sensitive and not concept(concept_id).age_restricted
         assert not is_offerable(concept(concept_id)), concept_id
@@ -100,11 +100,11 @@ def test_a_kit_never_comes_from_pharmacy_and_only_alcohol_comes_from_licores():
 @pytest.mark.parametrize(
     "name",
     [
-        "Soju Uva Verde 13.0",  # en la base real: categoría «Frutas», sin marca de alcohol ni +18
-        "Patagonia Cerveza Red Lager Austral",  # en «frutas»
-        "3R Pisco 35 + Coca-Cola Gaseosa + Hielo Líquidos",  # en «gaseosas»
-        "Viejo de Caldas Ron",  # en «decoracion»
-        "Toreto Vino Tinto Cabernet Sauvignon Gran Reserva",  # en «utiles»
+        "Soju Uva Verde 13.0",  # en la base real: categoría "Frutas", sin marca de alcohol ni +18
+        "Patagonia Cerveza Red Lager Austral",  # en "frutas"
+        "3R Pisco 35 + Coca-Cola Gaseosa + Hielo Líquidos",  # en "gaseosas"
+        "Viejo de Caldas Ron",  # en "decoracion"
+        "Toreto Vino Tinto Cabernet Sauvignon Gran Reserva",  # en "utiles"
         "Gin Santos + 2 Red Bull Yellow + Sprite Zero 1.5lts + Hielo 2kg",
         "Makgeolli Original 750 ml",
         "Umeshu Choya 500 ml",
@@ -121,10 +121,10 @@ def test_a_catalog_name_that_says_alcohol_is_never_offered(name):
 @pytest.mark.parametrize(
     ("entity_type", "name"),
     [
-        ("catalog_item", "Ronda de quesos"),  # «ron» es palabra entera: ni «ronda» ni «roncito»
+        ("catalog_item", "Ronda de quesos"),  # "ron" es palabra entera: ni "ronda" ni "roncito"
         ("catalog_item", "Roncito Chocolate"),
-        ("catalog_item", "Ginger Ale 350 ml"),  # «gin» tampoco está en «ginger»
-        ("menu_item", "Sake Roll"),  # en un menú «sake» es salmón: la lista de los platos no lo tiene
+        ("catalog_item", "Ginger Ale 350 ml"),  # "gin" tampoco está en "ginger"
+        ("menu_item", "Sake Roll"),  # en un menú "sake" es salmón: la lista de los platos no lo tiene
         ("menu_item", "Sake Nigiri 2 piezas"),
         ("menu_item", "Margarita pizza"),  # la margarita de una pizza no es el cóctel
         ("menu_item", "Pizza Margarita Familiar"),
@@ -142,7 +142,7 @@ def test_a_catalog_name_that_says_alcohol_is_never_offered(name):
         ("menu_item", "La corona de Juana"),
         ("menu_item", "Corona Sacra"),  # quesadillas
         ("menu_item", "Pizza stella mediana"),
-        ("menu_item", "Merluza Austral"),  # «austral» no es la cerveza: 47 platos de merluza
+        ("menu_item", "Merluza Austral"),  # "austral" no es la cerveza: 47 platos de merluza
         ("menu_item", "Iced Latte Cristal"),
         ("menu_item", "Negroni / Salame Milano Laminado 100 G"),
         # Una piña colada sin alcohol: jugo, batido, té de burbujas o helado (en la base real, 10 de 27).
@@ -153,7 +153,7 @@ def test_a_catalog_name_that_says_alcohol_is_never_offered(name):
         ("menu_item", "Shakes de Piña Colada"),
         ("menu_item", "Piña Colada Tea"),
         ("menu_item", "Helado Piña Colada"),
-        # «mimosa» no está en la lista: en la base real solo hay dos y son sin alcohol (un jugo y «Sin Alcohol»).
+        # "mimosa" no está en la lista: en la base real solo hay dos y son sin alcohol (un jugo y "Sin Alcohol").
         ("menu_item", "Mimosa"),
         ("menu_item", "Mimosa Sabores"),
     ],
@@ -169,7 +169,7 @@ def test_words_that_only_look_like_alcohol_are_not_blocked(entity_type, name):
         ("Tako Sour", "sushi"),  # un roll
         ("Ceviche Sour", "pescados-mariscos"),
         ("Sour", "salsas"),
-        ("Piña colada", "jugos"),  # en «Smoothies»
+        ("Piña colada", "jugos"),  # en "Smoothies"
     ],
 )
 def test_a_drink_word_is_food_when_the_dish_concept_says_so(name, concept):
@@ -225,12 +225,12 @@ def test_other_sections_are_not_blocked(section):
 @pytest.mark.parametrize(
     "name",
     [
-        "Soju Durazno",  # en la base real: 5 platos «Soju …» con concepto `asiatica`
-        "Sangría de la casa",  # y dos «Sangría» en `gaseosas`
+        "Soju Durazno",  # en la base real: 5 platos "Soju …" con concepto `asiatica`
+        "Sangría de la casa",  # y dos "Sangría" en `gaseosas`
         "Michelada clásica",
         "Schop Kunstmann 500 cc",
         "Shop artesanal",
-        "Promo pizza familiar + cerveza",  # «pizza» solo libra a la margarita, no a la cerveza
+        "Promo pizza familiar + cerveza",  # "pizza" solo libra a la margarita, no a la cerveza
         "Chelas x 2",
         "Copa de vino tinto",
         "Pisco sour",
@@ -249,7 +249,7 @@ def test_other_sections_are_not_blocked(section):
         "Negroni",
         "Mango Sour 480ml",
         "Amareto Sour",
-        "Sake sour",  # sin concepto: el «sour» de un trago
+        "Sake sour",  # sin concepto: el "sour" de un trago
         "Sour Peruano 1 l",
         "Makgeoli 750ml",
         "Caipiriña",
@@ -286,7 +286,7 @@ def test_a_dish_name_that_says_alcohol_is_never_offered(name):
 
 
 def test_a_margarita_that_is_a_pizza_by_its_concept_is_not_blocked():
-    """En la base real, 24 pizzas se llaman «Margarita Familiar», «Margarita Mediana»… sin decir pizza."""
+    """En la base real, 24 pizzas se llaman "Margarita Familiar", "Margarita Mediana"… sin decir pizza."""
     assert not alcohol_in_name("menu_item", "Margarita Familiar", "pizza")
     assert alcohol_in_name("menu_item", "Margarita Familiar", "cocteles")
     assert alcohol_in_name("menu_item", "Margarita Familiar")
@@ -308,7 +308,7 @@ def test_the_menu_alcohol_words_leave_out_sake():
 
 
 def test_vertical_to_try_never_offers_a_deal_whose_name_says_alcohol(monkeypatch):
-    """«Vertical por probar» ofrece rebajas de `deals()`, que trae `is_alcoholic OR age_restricted` de la tienda: un
+    """ "Vertical por probar" ofrece rebajas de `deals()`, que trae `is_alcoholic OR age_restricted` de la tienda: un
     soju sin esas marcas tampoco se ofrece."""
     from rappi_ia.offers import engine
 
@@ -332,7 +332,7 @@ def test_vertical_to_try_never_offers_a_deal_whose_name_says_alcohol(monkeypatch
 @pytest.mark.parametrize(
     "name",
     [
-        "Fisher-price Juguete Para Bebés Set De Cocina De Madera",  # el primero de «vertical por probar» en Mall
+        "Fisher-price Juguete Para Bebés Set De Cocina De Madera",  # el primero de "vertical por probar" en Mall
         "Juguete Didáctico Bebé Mapache",
         "Pack Bodie de Bebé Niña Pink/Rosado Talla 3/6M Colloky",
         "Popeye Jabón para Ropa de Bebé",
@@ -350,9 +350,9 @@ def test_a_catalog_name_that_says_baby_is_never_offered(name):
 @pytest.mark.parametrize(
     ("entity_type", "name"),
     [
-        ("catalog_item", "Bebida cola 500 cc"),  # palabra entera: ni «bebida» ni «bebestible»
+        ("catalog_item", "Bebida cola 500 cc"),  # palabra entera: ni "bebida" ni "bebestible"
         ("catalog_item", "Bebestible de almendras 1 L"),
-        ("catalog_item", "Casco Infantil Globber Primo Lights Emerald Green"),  # «infantil» es de niños, no de bebé
+        ("catalog_item", "Casco Infantil Globber Primo Lights Emerald Green"),  # "infantil" es de niños, no de bebé
         ("catalog_item", "Enciclopedia Infantil de Los Dinosaurios"),
         ("menu_item", "Papilla de bebé"),  # solo productos del catálogo
     ],
@@ -362,7 +362,7 @@ def test_words_that_do_not_say_baby_are_not_blocked(entity_type, name):
 
 
 def test_vertical_to_try_never_offers_a_deal_whose_name_says_baby(monkeypatch):
-    """En la base real, «vertical por probar» en Mall partía con un juguete para bebés (de juguetes-infantiles)."""
+    """En la base real, "vertical por probar" en Mall partía con un juguete para bebés (de juguetes-infantiles)."""
     from rappi_ia.offers import engine
 
     found = [
@@ -427,7 +427,7 @@ def test_a_cocktail_bar_spelled_with_ck_is_a_drinks_section():
 @pytest.mark.parametrize(
     "description",
     [
-        # «Barra Barbazul» en la base real del 24-10-2026: sin concepto y sin alcohol en el nombre ni en la sección
+        # "Barra Barbazul" en la base real del 24-10-2026: sin concepto y sin alcohol en el nombre ni en la sección
         "Vodka ron gin blue curacao jugo de limón y sprite. puedes elegir de 475cc o de 1 litro",
         "Jagermeister manifest gin jugo de pomelo piña jugo de limon jarabe de azúcar ginger ale.",
         "Mistral barrica tostada pulpa de piña pulpa de frutilla jugo de limón syrup simple y aperol.",
@@ -435,7 +435,7 @@ def test_a_cocktail_bar_spelled_with_ck_is_a_drinks_section():
         "HAVANA 7, un corto con bebida.",
         "EXTRA SHOT KAHLUA",
         "Whiskey con coca-cola",
-        "Corto + Bebida",  # «Absolute Blue» y «Havana Especial», en «Combinados» junto a platos peruanos
+        "Corto + Bebida",  # "Absolute Blue" y "Havana Especial", en "Combinados" junto a platos peruanos
         "Cerveza a elección.",
         # combos y packs que traen el alcohol
         "2 Tártaros (250 grs de carne magra, pepinillo, cebolla) + 2 cervezas heineken.",
@@ -443,7 +443,7 @@ def test_a_cocktail_bar_spelled_with_ck_is_a_drinks_section():
         "Kit Carniceria 2 + 4 Coca Cola elección + botella de alto del Carmen 35 + hielo cubo 2 kilos.",
         "Incluye caja y un regalo especial para gozadores, el vino veneris, pinot noir de casa blanca año 2021.",
         "Fiesta para 1 elige tus papas fritas de 300grs y mixea con tu gaseosa o cóctel favorito",
-        "Mojito con o sin alcohol",  # «sin alcohol» no la libra: también puede ser con
+        "Mojito con o sin alcohol",  # "sin alcohol" no la libra: también puede ser con
         "Piña colada (con o sin alcohol)",
         # una palabra de comida en otra parte de la descripción no la libra (revisión de código)
         "Combo after office: tabla de empanadas + 2 cócteles a elección",
@@ -538,7 +538,7 @@ def test_a_dish_description_only_counts_without_concept_or_with_a_drink_concept(
 
 
 def test_the_queries_must_clean_the_html_entities_of_a_description():
-    """Sin limpiar, «C&oacute;ctel» no calza: por eso las consultas leen `clean_html(mi.description)` (lo prueban los
+    """Sin limpiar, "C&oacute;ctel" no calza: por eso las consultas leen `clean_html(mi.description)` (lo prueban los
     tests de integración)."""
     assert not alcohol_in_description("C&oacute;ctel de la casa", None)
     assert alcohol_in_description("Cóctel de la casa", None)
@@ -546,7 +546,7 @@ def test_the_queries_must_clean_the_html_entities_of_a_description():
 
 @pytest.mark.parametrize("name", ["ABSOLUTE PEAR", "Absolut Mandarin", "Jarra de Ramazzoti"])
 def test_a_dish_named_after_a_vodka_or_a_misspelled_ramazzotti_says_alcohol(name):
-    """En la base real del 24-10-2026, «ABSOLUTE PEAR» («Corto con pera y bebida con hielo») era un sándwich."""
+    """En la base real del 24-10-2026, "ABSOLUTE PEAR" ("Corto con pera y bebida con hielo") era un sándwich."""
     assert alcohol_in_name("menu_item", name, "sandwiches")
 
 

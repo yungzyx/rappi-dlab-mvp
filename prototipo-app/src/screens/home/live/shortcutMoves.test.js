@@ -12,7 +12,7 @@ describe('qué acceso se movió', () => {
 })
 
 describe('lo que dice Mochi', () => {
-  test('con la razón de la API la dice, sin el «Porque»', () => {
+  test('con la razón de la API la dice, sin el "Porque"', () => {
     const reason = { text: 'Porque entras seguido a Rappi Mall.', basis: [] }
     expect(moveText({ vertical: 'mall', to: 0, reason })).toBe(
       'Moví Rappi Mall al primer lugar: entras seguido a Rappi Mall.',

@@ -8,9 +8,9 @@ const RETRY_MS = 2000 // sin conexión, se vuelve a preguntar solo: el MVP puede
 
 /**
  * Sin la API no hay agente, y la app no arranca con reglas locales: antes de montar `children` revisa la API y saca la
- * sesión de este navegador (la primera vez, `POST /session` con el id que ya tenía): sin sesión es «Sin conexión».
+ * sesión de este navegador (la primera vez, `POST /session` con el id que ya tenía): sin sesión es "Sin conexión".
  * Mientras revisa o sin conexión no se monta la app, así que ningún contexto llama a la API. Sin conexión
- * vuelve a preguntar cada 2 s, en silencio (la pantalla no cambia), y «Reintentar» pregunta ya. Una vez dentro,
+ * vuelve a preguntar cada 2 s, en silencio (la pantalla no cambia), y "Reintentar" pregunta ya. Una vez dentro,
  * la app sigue sola: sus propios errores de red los maneja ella.
  */
 export default function ConnectionGate({ children }) {
@@ -52,7 +52,7 @@ export default function ConnectionGate({ children }) {
 }
 
 /**
- * El aviso de «Conectando…» (`status` 'checking') o «Sin conexión» con «Reintentar» (`status` 'offline'): lo usa la puerta
+ * El aviso de "Conectando…" (`status` 'checking') o "Sin conexión" con "Reintentar" (`status` 'offline'): lo usa la puerta
  * de conexión.
  */
 function ConnectionNotice({ status, onRetry }) {
@@ -75,7 +75,7 @@ function ConnectionNotice({ status, onRetry }) {
                     Levanta el MVP con <code>make mvp</code> en la carpeta del proyecto y vuelve a intentar.
                   </p>
                   <p>
-                    Si acabas de correr <code>make mvp</code>, espera «MVP listo».
+                    Si acabas de correr <code>make mvp</code>, espera "MVP listo".
                   </p>
                 </>
               ) : (
@@ -84,7 +84,7 @@ function ConnectionNotice({ status, onRetry }) {
             </>
           )}
         </div>
-        {/* Siempre montado una vez sin conexión: así el foco no cae al body con cada «Reintentar». */}
+        {/* Siempre montado una vez sin conexión: así el foco no cae al body con cada "Reintentar". */}
         {status === 'offline' && (
           <button type="button" className="connection-retry tap" onClick={onRetry}>
             Reintentar

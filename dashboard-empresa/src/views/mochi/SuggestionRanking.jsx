@@ -10,7 +10,7 @@ import { MIN_SHOWN_FOR_RATE } from './offers.js'
 const PREVIEW_ROWS = 8
 
 /**
- * Sugerencias entre verticales (al preguntarle a Mochi y en «Para ti») por concepto y vertical: cuántas se aceptaron de
+ * Sugerencias entre verticales (al preguntarle a Mochi y en "Para ti") por concepto y vertical: cuántas se aceptaron de
  * las mostradas y cuántas llegaron a un pedido. Primero las más mostradas; el resto, a pedido. Incluye lo que la persona
  * pidió al preguntarle (una cerveza, si la pidió): Mochi no propone alcohol por su cuenta, y la nota lo dice.
  */

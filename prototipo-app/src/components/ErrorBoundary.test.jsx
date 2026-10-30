@@ -10,7 +10,7 @@ function Broken({ fail }) {
 }
 
 describe('ErrorBoundary', () => {
-  test('una pantalla rota muestra el aviso y «Volver al inicio» llama a onReset y limpia el error', () => {
+  test('una pantalla rota muestra el aviso y "Volver al inicio" llama a onReset y limpia el error', () => {
     const silence = vi.spyOn(console, 'error').mockImplementation(() => {})
     const onReset = vi.fn()
     let fail = true
@@ -35,7 +35,7 @@ describe('ErrorBoundary', () => {
     silence.mockRestore()
   })
 
-  test('una pantalla rota también ofrece «Recargar»', () => {
+  test('una pantalla rota también ofrece "Recargar"', () => {
     const silence = vi.spyOn(console, 'error').mockImplementation(() => {})
     const onReload = vi.fn()
     render(
@@ -49,7 +49,7 @@ describe('ErrorBoundary', () => {
     silence.mockRestore()
   })
 
-  test('un error de render fuera de una pantalla muestra «Recargar» (variante raíz)', () => {
+  test('un error de render fuera de una pantalla muestra "Recargar" (variante raíz)', () => {
     const silence = vi.spyOn(console, 'error').mockImplementation(() => {})
     const onReload = vi.fn()
     render(

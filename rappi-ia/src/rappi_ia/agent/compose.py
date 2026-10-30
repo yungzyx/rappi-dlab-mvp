@@ -39,14 +39,14 @@ class Draft:
     suggestion_label: str | None = None
     age_notice: bool = False
     interest_label: str | None = None
-    learns: bool = True  # en «Rappi hoy» no se aprende nada
+    learns: bool = True  # en "Rappi hoy" no se aprende nada
     unmet: bool = False
-    people: int | None = None  # para cuántas personas («asado de 6»)
+    people: int | None = None  # para cuántas personas ("asado de 6")
     portion: tuple[int, str] | None = None  # gramos por persona y de qué, de la ocasión (taxonomy.toml)
-    without: list[str] = field(default_factory=list)  # lo que no va y los productos no tienen («sin carne»)
-    other: bool = False  # «otra opción»: sin lo que ya se mostró
-    cheap: bool = False  # «más barato»: lo más barato primero
-    elsewhere: str | None = None  # la vertical donde sí hay lo que aquí no («en el súper mejor» para un desayuno)
+    without: list[str] = field(default_factory=list)  # lo que no va y los productos no tienen ("sin carne")
+    other: bool = False  # "otra opción": sin lo que ya se mostró
+    cheap: bool = False  # "más barato": lo más barato primero
+    elsewhere: str | None = None  # la vertical donde sí hay lo que aquí no ("en el súper mejor" para un desayuno)
 
 
 class TemplateComposer:
@@ -65,15 +65,15 @@ class TemplateComposer:
             return "¡De nada! Aquí estoy si necesitas algo más 🧡"
         if d.kind == "ayuda" and not d.learns:
             return (
-                f"Soy {config.AGENT_NAME} 🧡, tu asistente en Rappi. Busca lo que necesites («pañales talla G», "
-                "«algo de sushi», «una once para 4») y te muestro lo que hay, aunque esté en otra vertical."
+                f'Soy {config.AGENT_NAME} 🧡, tu asistente en Rappi. Busca lo que necesites ("pañales talla G", '
+                '"algo de sushi", "una once para 4") y te muestro lo que hay, aunque esté en otra vertical.'
             )
         if d.kind == "ayuda":
             return (
                 f"Soy {config.AGENT_NAME} 🧡, tu asistente en Rappi. Puedo repetir lo de siempre, armarte un kit o "
-                "mostrarte algo para ti. Busca lo que necesites («pañales talla G», «algo de sushi», «una once "
-                "para 4») y te muestro lo que hay, aunque esté en otra vertical. Tu dieta y tus alergias las marcas "
-                "en «Mis preferencias», y te llevo a RappiTravel o RappiFavor."
+                'mostrarte algo para ti. Busca lo que necesites ("pañales talla G", "algo de sushi", "una once '
+                'para 4") y te muestro lo que hay, aunque esté en otra vertical. Tu dieta y tus alergias las marcas '
+                'en "Mis preferencias", y te llevo a RappiTravel o RappiFavor.'
             )
         if d.kind == "envio":
             return (
@@ -82,38 +82,38 @@ class TemplateComposer:
             )
         if d.kind == "memoria" and not d.learns:
             return (
-                "En «Rappi hoy» no aprendo de lo que buscas. En la propuesta recuerdo tus gustos por tema para "
-                "recomendarte mejor, y con «Olvidar» se borra todo 🔒."
+                'En "Rappi hoy" no aprendo de lo que buscas. En la propuesta recuerdo tus gustos por tema para '
+                'recomendarte mejor, y con "Olvidar" se borra todo 🔒.'
             )
         if d.kind == "memoria":
             return (
                 "Recuerdo tus gustos por tema para recomendarte mejor, lo que buscas por un tiempo y las preferencias "
-                "que marques (dieta, alergias, favoritas). En mi panel, «Olvidar» lo borra todo 🔒."
+                'que marques (dieta, alergias, favoritas). En mi panel, "Olvidar" lo borra todo 🔒.'
             )
         if d.kind == "receta":
             return (
                 "Los remedios para la presión, la diabetes o el colesterol son con receta médica: en Farmacia te la "
                 "piden al comprar 💊."
             )
-        # El pedido y el resumen dicen lo que la demo hace hoy: con «Pedir por mí» Mochi sí pide (con sus límites) y el
+        # El pedido y el resumen dicen lo que la demo hace hoy: con "Pedir por mí" Mochi sí pide (con sus límites) y el
         # seguimiento cancela antes de que salga. Son los mismos de la app (AssistantPanel.jsx) y de la copia sin
         # conexión (api/offline/search.js: SUMMARY_TEXT y ORDER_TEXT).
         if d.kind == "pedido":
             return (
-                "Tu pedido lo sigues en «Mis pedidos» 🛵: ahí ves dónde viene, lo cancelas antes de que salga o pides "
+                'Tu pedido lo sigues en "Mis pedidos" 🛵: ahí ves dónde viene, lo cancelas antes de que salga o pides '
                 "ayuda si algo llegó mal."
             )
         if d.kind == "resumen":
             return (
                 "Este es el resumen de tu pedido antes de pagar 🧾. Revísalo y paga en el checkout: si no me diste "
-                "permiso con «Pedir por mí», el pedido lo haces tú."
+                'permiso con "Pedir por mí", el pedido lo haces tú.'
             )
         if d.kind == "fuera":
             return "De eso no sé mucho 🧡, lo mío es ayudarte a pedir: comida, súper, farmacia…"
         if d.kind == "ofertas":
             return (
                 "Las ofertas del día están en la pestaña Ofertas del inicio 🔥. "
-                "Al buscar algo, «Más barato» lo ordena por precio."
+                'Al buscar algo, "Más barato" lo ordena por precio.'
             )
         if d.kind == "vacio":
             return (
@@ -128,15 +128,15 @@ class TemplateComposer:
             return f"No encontré {d.concept_label or d.query} bajo {d.price_max} en {d.vertical_label}.{cheapest}"
         if d.kind == "sin_resultado" and d.elsewhere and d.concept_label:
             return f"En {d.vertical_label} no hay {_mid_sentence(d.concept_label)}, pero en {d.elsewhere} sí."
-        what = _mid_sentence(d.concept_label) if d.concept_label else f"«{d.query}»"
-        if d.concept_label and d.without:  # «🍕 pizza sin carne», «sushi sin palta ni queso crema»
+        what = _mid_sentence(d.concept_label) if d.concept_label else f'"{d.query}"'
+        if d.concept_label and d.without:  # "🍕 pizza sin carne", "sushi sin palta ni queso crema"
             what += " sin " + " ni ".join(w.removeprefix("sin ") for w in d.without)
         budget = f" bajo {d.price_max}" if d.price_max else ""
-        if d.kind == "sin_resultado" and d.other:  # «otra opción» y no queda nada que no haya visto
+        if d.kind == "sin_resultado" and d.other:  # "otra opción" y no queda nada que no haya visto
             return f"No encontré otras opciones de {what}{budget} en {d.vertical_label}."
         if d.kind == "sin_resultado":
             noted = " Lo anoté para que el equipo sepa que buscas eso 📝" if d.unmet else ""
-            return f"No encontré «{d.query}» en {d.vertical_label}.{noted}"
+            return f'No encontré "{d.query}" en {d.vertical_label}.{noted}'
         lead = "Otras opciones de" if d.other else "Lo más barato de" if d.cheap else "Mira estas opciones de"
         return f"{lead} {what}{budget} en {d.vertical_label}."
 
@@ -148,7 +148,7 @@ def notices(d: Draft) -> list[str]:
 
 
 def _for_people(d: Draft) -> str | None:
-    """«Para 6 personas, calcula unos 2,1 kg de carne.» Sin porción en la ocasión, solo lo que se entendió."""
+    """ "Para 6 personas, calcula unos 2,1 kg de carne." Sin porción en la ocasión, solo lo que se entendió."""
     if d.kind != "resultados" or not d.people:
         return None
     if not d.portion:

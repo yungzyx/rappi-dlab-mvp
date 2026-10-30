@@ -5,7 +5,7 @@ import rcatCulinaria from '../../assets/rcat-culinaria.webp'
 import promoWraps from '../../assets/promo-wraps.webp'
 import promoBurger from '../../assets/promo-hamburguesa.webp'
 
-// Cada filtro que se enciende es un parámetro de `/catalog/restaurants` (`query`); «Ordenar» abre los órdenes.
+// Cada filtro que se enciende es un parámetro de `/catalog/restaurants` (`query`); "Ordenar" abre los órdenes.
 export const FILTERS = [
   { id: 'sort', label: 'Ordenar', kind: 'menu' },
   { id: 'top', label: 'Destacados', icon: 'trophy', kind: 'toggle', query: { top: true } },
@@ -14,7 +14,7 @@ export const FILTERS = [
   { id: 'promo', label: 'Con promociones', icon: 'percent', kind: 'toggle', query: { promo: true } },
 ]
 
-// «Destacados» es una regla propia de la demo (rappi-ia: catalog/restaurants.py, TOP_MIN_*), no la de Rappi.
+// "Destacados" es una regla propia de la demo (rappi-ia: catalog/restaurants.py, TOP_MIN_*), no la de Rappi.
 export const TOP_RULE = 'Destacados: nota 4,5 o más y al menos 100 opiniones (regla de la demo, no de Rappi).'
 
 // Los órdenes de la lista (`sort` de la API) y el título que toma la lista con cada uno.

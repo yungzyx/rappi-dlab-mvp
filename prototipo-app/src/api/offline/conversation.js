@@ -1,5 +1,5 @@
 // Seguir la conversación con Mochi sin conexión: copia corta de agent/understand.py (_follow_up) y de
-// agent/rappi_agent.py (_conversation y lo que va «sin», el orden por precio y «otra opción»). Primero, el seguimiento
+// agent/rappi_agent.py (_conversation y lo que va "sin", el orden por precio y "otra opción"). Primero, el seguimiento
 // grabado de la API real (los de eval/frases_usuarios/conversaciones.txt, `npm run demo:snapshot`); si no hay, se arma
 // sobre los productos de la muestra. Lo que no puede (remedios, o nada en la muestra que cumpla lo pedido) lo dice.
 import { namesQuery } from './search'
@@ -17,7 +17,7 @@ const NUMBERS = { dos: 2, tres: 3, cuatro: 4, cinco: 5, seis: 6, siete: 7, ocho:
 const NUMBERS_TOO = { doce: 12, quince: 15, veinte: 20, treinta: 30 }
 const HOW_MANY = `(\\d{1,2}|${Object.keys({ ...NUMBERS, ...NUMBERS_TOO }).join('|')})`
 const MAX_PEOPLE = 40
-// understand.py: VERTICAL_MENTIONS, las que sirven para «en el súper mejor» o «y en la farmacia?».
+// understand.py: VERTICAL_MENTIONS, las que sirven para "en el súper mejor" o "y en la farmacia?".
 const MENTIONS = [
   [/\b(?:super|supermercado|lider|jumbo|unimarc|tottus)\b/g, 'supermercado'],
   [/\bfarmacias?\b/g, 'farmacia'],
@@ -28,7 +28,7 @@ const MENTIONS = [
   [/\bchocolateria\b/g, 'chocolateria'],
   [/\ben el mall\b/g, 'mall'],
 ]
-// Lo que acompaña un seguimiento sin decir nada más (understand.py: FOLLOW_UP_FILLER y lo que va con «otra opción»).
+// Lo que acompaña un seguimiento sin decir nada más (understand.py: FOLLOW_UP_FILLER y lo que va con "otra opción").
 const FILLER = new Set([
   'y',
   'mejor',
@@ -62,8 +62,8 @@ const stem = (word) =>
 
 /**
  * Lo que dice un seguimiento: `{ order, priceMax, people, without, vertical, other }`, o null si el mensaje nombra algo
- * más (un tema nuevo, que se responde como siempre). «más barato», «menos de 10 lucas», «para 10 personas», «somos 8»,
- * «sin carne», «en el súper mejor», «otra opción».
+ * más (un tema nuevo, que se responde como siempre). "más barato", "menos de 10 lucas", "para 10 personas", "somos 8",
+ * "sin carne", "en el súper mejor", "otra opción".
  */
 export function readRefinement(message) {
   let said = ` ${normalize(message)} `
@@ -105,16 +105,16 @@ export function readRefinement(message) {
   return rest.length || !Object.keys(found).length ? null : found
 }
 
-/** Lo que va «sin» en una consulta («pizza sin carne»): las palabras tras «sin». */
+/** Lo que va "sin" en una consulta ("pizza sin carne"): las palabras tras "sin". */
 const withoutIn = (query) => [...` ${normalize(query)} `.matchAll(/ sin ([a-z]{3,})(?= )/g)].map((m) => m[1])
 
-/** Si el nombre dice el régimen («sin lactosa», «vegetariana»). */
+/** Si el nombre dice el régimen ("sin lactosa", "vegetariana"). */
 function saysFreeFrom(name, word) {
   const other = DIET_NAMES[word] ? `|${DIET_NAMES[word]}` : ''
   return new RegExp(`\\b(?:(?:sin|libre de|cero|0)\\s+${stem(word)}(?:es|s)?${other})\\b`).test(normalize(name))
 }
 
-/** Si el producto cumple lo que va «sin» (rappi_agent.py: _keeps). «Sin alcohol» no pide nada a lo que no tiene. */
+/** Si el producto cumple lo que va "sin" (rappi_agent.py: _keeps). "Sin alcohol" no pide nada a lo que no tiene. */
 function keeps(product, without) {
   return without.every((word) => {
     if (word === 'alcohol' && !product.age_restricted) return true
@@ -133,7 +133,7 @@ const core = (query) =>
     .replace(/\s+/g, ' ')
     .trim()
 
-/** «Para 6 personas, calcula unos 2,1 kg de carne.» (compose.py: _for_people). */
+/** "Para 6 personas, calcula unos 2,1 kg de carne." (compose.py: _for_people). */
 function forPeople(people, occasion) {
   if (!people) return ''
   if (!occasion?.portion) return ` Para ${people} personas: revisa para cuántos alcanza cada producto.`
@@ -148,7 +148,7 @@ const money = (value) => `$${Math.round(value).toLocaleString('es-CL')}`
 function nameOf(meta, previous, occasion) {
   if (occasion) return `${occasion.name.toLowerCase()} ${occasion.emoji}`
   const concept = meta.concepts[previous.concepts?.[0]]
-  return concept ? `${concept.emoji} ${concept.name.toLowerCase()}` : `«${previous.query}»`
+  return concept ? `${concept.emoji} ${concept.name.toLowerCase()}` : `"${previous.query}"`
 }
 
 /** El estado de la conversación que la app devuelve como `previous` (rappi_agent.py: _conversation). */
@@ -167,7 +167,7 @@ const state = (fields) => ({
 
 /**
  * La respuesta a un seguimiento sobre la muestra: los productos de lo pedido antes (sus conceptos o, en una ocasión, los
- * suyos que Mochi propone) en la vertical, con lo que va «sin», el tope, sin lo ya mostrado si se pide «otra opción» y
+ * suyos que Mochi propone) en la vertical, con lo que va "sin", el tope, sin lo ya mostrado si se pide "otra opción" y
  * por precio si se pide. Si nada de la muestra cumple, lo dice; los remedios no los busca.
  */
 export function followUp(snapshot, body, refinement) {
@@ -249,7 +249,7 @@ function reply(text, products, vertical, intent, conversation, { snapshot, ageNo
 /**
  * El estado de una respuesta que no lo trae (las grabadas con una API anterior y las que arma la demo): lo pedido, sus
  * conceptos (vacío en una ocasión), la vertical y lo mostrado; null si no se sigue (un saludo, un consejo, sin nada).
- * «¿y para tomar?» después de un asado de 6 conserva las 6 personas, como la API.
+ * "¿y para tomar?" después de un asado de 6 conserva las 6 personas, como la API.
  */
 export function withConversation(answer, body) {
   const previous = body?.previous

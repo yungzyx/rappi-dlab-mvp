@@ -21,7 +21,7 @@ const colorOf = (raw) => {
   const value = raw.trim()
   if (/^#[0-9a-f]{6}$/i.test(value)) return value
   const name = value.match(/^var\((--[\w-]+)\)$/)?.[1]
-  if (!name) throw new Error(`«${value}» no es un color sólido`)
+  if (!name) throw new Error(`"${value}" no es un color sólido`)
   return colorOf(tokens.match(new RegExp(`${name}:\\s*([^;]+);`))[1].replace(/\/\*.*?\*\//g, ''))
 }
 const property = (file, selector, name) => {
@@ -31,11 +31,11 @@ const property = (file, selector, name) => {
 
 // [qué es, hoja, selector, color del texto o ícono, fondo, mínimo WCAG AA: 4,5 texto y 3 ícono o texto grande]
 const PAIRS = [
-  ['«Go to checkout» del carro (17 px)', '../components/cart.css', '.cart-checkout', 'color', 'background', 4.5],
-  ['«+» y contador del botón de agregar', '../components/add-button.css', '.add-button', 'color', 'background', 4.5],
-  ['«Place order» (17 px)', '../screens/checkout/checkout.css', '.checkout-place', 'color', 'background', 4.5],
+  ['"Go to checkout" del carro (17 px)', '../components/cart.css', '.cart-checkout', 'color', 'background', 4.5],
+  ['"+" y contador del botón de agregar', '../components/add-button.css', '.add-button', 'color', 'background', 4.5],
+  ['"Place order" (17 px)', '../screens/checkout/checkout.css', '.checkout-place', 'color', 'background', 4.5],
   [
-    'barra «Agrega $X» (Turbo y promos de tienda)',
+    'barra "Agrega $X" (Turbo y promos de tienda)',
     '../components/threshold-bar.css',
     '.threshold-bar',
     'color',

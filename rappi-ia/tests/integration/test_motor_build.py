@@ -1,5 +1,5 @@
 """`rappi-ia motor` (motor/build.py): arma las tablas del motor por fuente y recalcula a cada persona después de su
-pedido y de «Olvidar».
+pedido y de "Olvidar".
 
 Sobre el catálogo inventado de la demo y personas simuladas: prueba la mecánica, no un efecto.
 """
@@ -270,7 +270,7 @@ def test_build_failure_marks_the_run_failed(simulated, monkeypatch):
     assert _rows(simulated, "vertical_transitions") == 0  # nada a medias
 
 
-# Después de un pedido y de «Olvidar»
+# Después de un pedido y de "Olvidar"
 
 
 @pytest.fixture
@@ -355,7 +355,7 @@ def _same(db):
     yield db
 
 
-# «Olvidar» mientras corre `build_motor`: con dos conexiones
+# "Olvidar" mientras corre `build_motor`: con dos conexiones
 
 
 @pytest.fixture
@@ -373,7 +373,7 @@ def two_people(client, db):
 
 
 def _forget_after_the_build_read_the_orders(monkeypatch, test_url, user, concept=None):
-    """«Olvidar» (como `DELETE /profile`) en otra conexión, confirmado justo después de que `build_motor` leyó los
+    """ "Olvidar" (como `DELETE /profile`) en otra conexión, confirmado justo después de que `build_motor` leyó los
     pedidos de la fuente: lo que leyó ya no está al día."""
     from rappi_ia.motor import build
 
@@ -419,7 +419,7 @@ def test_a_concept_forgotten_during_the_build_stays_forgotten(two_people, monkey
 
 
 def test_the_build_waits_for_a_forget_in_flight_and_skips_the_person(two_people, test_url):
-    """«Olvidar» tiene el candado de u2 y no confirma: el build lo espera y después salta a u2, que ya no está."""
+    """ "Olvidar" tiene el candado de u2 y no confirma: el build lo espera y después salta a u2, que ya no está."""
     db = two_people
     with connect(test_url) as in_flight:
         events.forget(in_flight, "u2")

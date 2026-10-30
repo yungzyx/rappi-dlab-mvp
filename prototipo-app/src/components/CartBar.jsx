@@ -11,7 +11,7 @@ import Img from './Img'
 import Sheet from './Sheet'
 import './cart.css'
 
-/** Barra flotante «Ver carro» (aparece con productos) y la hoja con el detalle del carro, una canasta por tienda. */
+/** Barra flotante "Ver carro" (aparece con productos) y la hoja con el detalle del carro, una canasta por tienda. */
 export default function CartBar({ raised, push }) {
   const cart = useCart()
   const events = useEvents()

@@ -6,7 +6,7 @@ const isStoredStores = (value) =>
   Array.isArray(value) && value.every((store) => store && typeof store === 'object' && typeof store.name === 'string')
 
 // Un favorito sin id numérico es de una tienda local, de cuando las tiendas no salían de la base: ya no existe, y su
-// enlace llevaría a «Esta tienda no está en el catálogo».
+// enlace llevaría a "Esta tienda no está en el catálogo".
 const inCatalog = (store) => Number.isInteger(store.id)
 
 // Sin el menú real (`sections`): la pestaña solo necesita nombre y foto, y el catálogo completa el resto al abrirla.

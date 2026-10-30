@@ -69,7 +69,7 @@ export default function CheckoutBasket({
   )
 }
 
-/** El envío de la canasta y de dónde sale: del catálogo, o un supuesto por vertical («de ejemplo»). */
+/** El envío de la canasta y de dónde sale: del catálogo, o un supuesto por vertical ("de ejemplo"). */
 function DeliveryLine({ basket, isPro }) {
   const example = basket.terms.delivery.basis === 'supuesto' ? ' · envío de ejemplo' : ''
   if (isPro && basket.delivery === 0)

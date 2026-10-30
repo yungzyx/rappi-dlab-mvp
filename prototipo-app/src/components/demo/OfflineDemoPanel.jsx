@@ -27,7 +27,7 @@ const VISITS = [
 ]
 
 /**
- * «Panel de la demo» de «Prototipo MVP.html» (solo el build sin conexión): elegir una persona con su historial, sumar
+ * "Panel de la demo" de "Prototipo MVP.html" (solo el build sin conexión): elegir una persona con su historial, sumar
  * visitas a los accesos para ver cómo se reordena la Home, leer en qué paso de la escalera está la persona, atrasar el
  * pedido en curso (el mensaje proactivo y, en Turbo, la garantía de ejemplo con Créditos) y, en el prototipo final,
  * ocultar a Mochi o traerlo de vuelta (como su menú y Cuenta, pero sin confirmar).
@@ -90,7 +90,7 @@ export default function OfflineDemoPanel() {
           </div>
 
           <h2>Mover la Home</h2>
-          <p className="offline-demo-help">Cada toque es una visita al acceso en el prototipo (no en «Rappi hoy»).</p>
+          <p className="offline-demo-help">Cada toque es una visita al acceso en el prototipo (no en "Rappi hoy").</p>
           <div className="offline-demo-buttons">
             {VISITS.map(([vertical, label]) => (
               <button key={vertical} type="button" onClick={() => addVisit(vertical)}>

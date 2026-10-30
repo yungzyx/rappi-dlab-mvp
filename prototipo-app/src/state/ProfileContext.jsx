@@ -1,7 +1,7 @@
 import { createContext, useContext, useMemo, useState } from 'react'
 
-// El perfil de la persona lo construye el servidor con sus eventos (`/profile`). Aquí solo queda la «generación»:
-// un contador que sube con «Olvidar», para que lo mostrado y aceptado antes de olvidar cuente como sugerencia nueva
+// El perfil de la persona lo construye el servidor con sus eventos (`/profile`). Aquí solo queda la "generación":
+// un contador que sube con "Olvidar", para que lo mostrado y aceptado antes de olvidar cuente como sugerencia nueva
 // (`firstShowing`) y lo pedido antes a la API ya no valga.
 const ProfileContext = createContext(null)
 

@@ -333,7 +333,7 @@
   font-weight: 700;
 }
 
-/* ---------- Calificación, propina y «Pídelo de nuevo» ---------- */
+/* ---------- Calificación, propina y "Pídelo de nuevo" ---------- */
 .tracking-stars button:disabled {
   cursor: default;
 }

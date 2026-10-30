@@ -11,7 +11,7 @@ const COLUMNS = [
     key: 'abierto',
     header: 'Se abrió',
     numeric: true,
-    // El % desde 10 ofrecidas, como el resto del panel, y solo si no pasa de las ofrecidas: «abierto» también cuenta
+    // El % desde 10 ofrecidas, como el resto del panel, y solo si no pasa de las ofrecidas: "abierto" también cuenta
     // aperturas que no vienen de una oferta de Mochi.
     render: (row) =>
       row.ofrecido >= MIN_SHOWN_FOR_RATE && row.abierto <= row.ofrecido

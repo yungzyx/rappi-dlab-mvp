@@ -45,7 +45,7 @@
   --data: var(--brand);
   --data-ink: var(--brand-ink);
   --data-wash: var(--brand-wash);
-  /* Contexto (chispas, «hoy» en la escalera): >= 3:1 con el fondo y ΔE >= 9 con el acento */
+  /* Contexto (chispas, "hoy" en la escalera): >= 3:1 con el fondo y ΔE >= 9 con el acento */
   --deemph: light-dark(#8a8a8a, #6b6b6b);
   --ord-1: light-dark(#ffb59f, #8a2c14);
   --ord-2: light-dark(#ff8a6a, #c8360f);

@@ -1,5 +1,5 @@
 """`rappi-ia motor`: arma las tablas del motor de una fuente (población y cada persona) y recalcula a una persona
-después de su pedido o de «Olvidar».
+después de su pedido o de "Olvidar".
 
 Las tablas de población (transiciones, combinaciones, compra cruzada, tendencias) se reemplazan enteras por fuente;
 las de cada persona (afinidad, recompra), por persona. El modelo vive en `model.py` (funciones puras) y lo que se lee de
@@ -183,9 +183,9 @@ PERSONAL_BATCH = 200  # personas por transacción: cada una tiene tomado su cand
 
 def _build_personal(conn: Connection, source: str, now: datetime, sensitive: frozenset[str]) -> tuple[int, int]:
     """La afinidad y la recompra de todas las personas de la fuente, por lotes confirmados uno a uno. En cada lote,
-    toma el candado de cada persona (el de `refresh_user_conn` y «Olvidar»), en orden de id para que dos corridas no se
+    toma el candado de cada persona (el de `refresh_user_conn` y "Olvidar"), en orden de id para que dos corridas no se
     bloqueen en cruz; salta a quien ya no está (lo olvidaron) o la purga está borrando, y relee sus datos dentro del
-    candado: un «Olvidar» que terminó mientras se armaba la población no se deshace. Solo borra y reescribe a quienes
+    candado: un "Olvidar" que terminó mientras se armaba la población no se deshace. Solo borra y reescribe a quienes
     siguen. Devuelve cuántas filas de cada una escribió."""
     users = sorted(u for (u,) in conn.execute("SELECT user_id FROM app_users WHERE source = %s", (source,)))
     affinity_n = replenish_n = 0
@@ -286,9 +286,9 @@ def _copy(conn: Connection, table: str, columns: str, rows: list[tuple]) -> int:
 
 def refresh_user_conn(conn: Connection, user_id: str, now: datetime | None = None) -> None:
     """La afinidad y la recompra de una persona del prototipo, recalculadas con sus propios datos en la transacción de
-    `conn`, sin confirmarla. Si la persona ya no está («Olvidar» entero), solo borra lo suyo; a una simulada no la toca
+    `conn`, sin confirmarla. Si la persona ya no está ("Olvidar" entero), solo borra lo suyo; a una simulada no la toca
     (sus filas las arma `build_motor`, con el `now` de su fuente). Toma el candado por persona que comparten el
-    recálculo de segmentos y «Olvidar»."""
+    recálculo de segmentos y "Olvidar"."""
     lock_user_segments(conn, user_id)
     row = conn.execute("SELECT source FROM app_users WHERE user_id = %s", (user_id,)).fetchone()
     if row is not None and row[0] != "prototype":

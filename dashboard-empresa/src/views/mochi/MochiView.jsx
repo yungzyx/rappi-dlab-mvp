@@ -304,7 +304,7 @@ export function MochiView({ source }) {
           </h2>
           <p>
             Cada búsqueda o pregunta a {AGENT_NAME} sin resultado es demanda que el catálogo no cubre: qué falta, dónde
-            y para cuántas personas. «No está en la muestra» no es «Rappi no lo vende»: la muestra pública trae hasta 24
+            y para cuántas personas. "No está en la muestra" no es "Rappi no lo vende": la muestra pública trae hasta 24
             productos por sub-pasillo.
           </p>
           <ProvenanceBadge kind={source} />
@@ -319,7 +319,7 @@ export function MochiView({ source }) {
               <h3 className="subhead">Lo que sube</h3>
               <p className="cell-sub">
                 Búsquedas, preguntas a {AGENT_NAME} y agregados al carro: últimas 4 semanas contra las 4 anteriores. Lo
-                que sube y tiene surtido es campaña con horario; lo que sube «sin surtido», demanda que cubrir.
+                que sube y tiene surtido es campaña con horario; lo que sube "sin surtido", demanda que cubrir.
               </p>
               <Async>
                 <Rising source={source} />

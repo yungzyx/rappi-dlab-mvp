@@ -29,7 +29,7 @@ describe('contraste', () => {
     expect(contrast(value('color'), value('background'))).toBeGreaterThanOrEqual(4.5)
   })
 
-  test('«Pídele a Mochi» resaltada se lee (AA, 4,5:1): el título y lo escrito sobre el naranja claro', () => {
+  test('"Pídele a Mochi" resaltada se lee (AA, 4,5:1): el título y lo escrito sobre el naranja claro', () => {
     for (const ink of ['--accent-ink', '--ink-2'])
       expect(contrast(token(ink), token('--accent-soft'))).toBeGreaterThanOrEqual(4.5)
   })

@@ -31,17 +31,17 @@ const EMPTY = { query: 'chela', groups: [], unmet: true, unmetReason: null }
 const flush = () => act(async () => {})
 
 describe('SearchResults sin resultados', () => {
-  test('sin Mochi (el buscador de «Rappi hoy») sigue el texto de siempre y no llama a la API', async () => {
+  test('sin Mochi (el buscador de "Rappi hoy") sigue el texto de siempre y no llama a la API', async () => {
     const fetchMock = stubApi({})
     render(<SearchResults query="chela" data={EMPTY} />)
     await flush()
-    expect(screen.getByText('Sin resultados para «chela».')).toBeTruthy()
+    expect(screen.getByText('Sin resultados para "chela".')).toBeTruthy()
     expect(document.querySelector('.mascot')).toBeNull()
     expect(fetchMock).not.toHaveBeenCalled()
   })
 
   // Primero: lo mostrado se recuerda lo que dura la pestaña (este archivo), y la siguiente prueba muestra la misma oferta.
-  test('la oferta sin_resultado registra su mostrada y, al tocar «Ver en…», una aceptada (una sola vez)', async () => {
+  test('la oferta sin_resultado registra su mostrada y, al tocar "Ver en…", una aceptada (una sola vez)', async () => {
     events.track.mockClear()
     stubApi({ 'POST /agent/offer': fixture('agent-offer-sin-resultado') })
     render(
@@ -100,7 +100,7 @@ describe('SearchResults sin resultados', () => {
     )
     await flush()
 
-    expect(screen.getByText('No encontré «pizza hawaiana», pero pizza sí hay en restaurantes.')).toBeTruthy()
+    expect(screen.getByText('No encontré "pizza hawaiana", pero pizza sí hay en restaurantes.')).toBeTruthy()
     expect(document.querySelector('.search-agent .mascot')).toBeTruthy()
     expect(JSON.parse(fetchMock.mock.calls[0][1].body)).toMatchObject({
       moment: 'sin_resultado',
@@ -123,13 +123,13 @@ describe('SearchResults sin resultados', () => {
     )
     await flush()
 
-    expect(screen.getByText('No encontré «xyzzy». ¿Lo buscamos con otras palabras?')).toBeTruthy()
+    expect(screen.getByText('No encontré "xyzzy". ¿Lo buscamos con otras palabras?')).toBeTruthy()
     expect(screen.queryByRole('button', { name: /^Ver en/ })).toBeNull()
     fireEvent.click(screen.getByRole('button', { name: 'Probar otra búsqueda' }))
     expect(onTryAnother).toHaveBeenCalledTimes(1)
   })
 
-  test('si la oferta falla, Mochi no dice nada de más: también solo «Probar otra búsqueda»', async () => {
+  test('si la oferta falla, Mochi no dice nada de más: también solo "Probar otra búsqueda"', async () => {
     stubApi({ 'POST /agent/offer': 'offline' })
     render(
       <SearchResults
@@ -180,17 +180,17 @@ describe('SearchResults con preferencias', () => {
     expect(screen.getByText('Pizza margarita mediana (prueba)')).toBeTruthy()
   })
 
-  test('si sacaron todo, lo dice sin ofrecer otra vertical ni «Lo que sea»', async () => {
+  test('si sacaron todo, lo dice sin ofrecer otra vertical ni "Lo que sea"', async () => {
     const fetchMock = stubApi({})
     const data = { query: 'parrillada', groups: [], unmet: false, whimAllowed: false, preferencesNotice: NOTICE }
     render(<SearchResults query="parrillada" data={data} onOpenVertical={() => {}} onOpenFavor={() => {}} />, {
       wrapper: Providers,
     })
     await flush()
-    expect(screen.getByText('Nada de lo que encontré para «parrillada» calza con tus preferencias.')).toBeTruthy()
+    expect(screen.getByText('Nada de lo que encontré para "parrillada" calza con tus preferencias.')).toBeTruthy()
     expect(screen.getByText(NOTICE)).toBeTruthy()
     expect(document.querySelector('.mascot')).toBeNull()
-    expect(fetchMock).not.toHaveBeenCalled() // no pide la oferta «sin resultado» a Mochi
+    expect(fetchMock).not.toHaveBeenCalled() // no pide la oferta "sin resultado" a Mochi
   })
 })
 
@@ -217,7 +217,7 @@ describe('SearchResults con resultados', () => {
     }
   }
 
-  test('cada grupo lleva el nombre de su vertical y muestra pocos productos con «Ver más»', () => {
+  test('cada grupo lleva el nombre de su vertical y muestra pocos productos con "Ver más"', () => {
     render(<SearchResults query="cerveza" data={data()} />, { wrapper: Providers })
     expect(screen.getByRole('heading', { name: 'Licores' })).toBeTruthy()
     expect(screen.getByText('Cerveza 2')).toBeTruthy()
@@ -228,7 +228,7 @@ describe('SearchResults con resultados', () => {
     expect(screen.queryByRole('button', { name: /Ver más/ })).toBeNull()
   })
 
-  test('«Ver más» vuelve a cerrarse con una consulta nueva', () => {
+  test('"Ver más" vuelve a cerrarse con una consulta nueva', () => {
     const { rerender } = render(<SearchResults query="cerveza" data={data()} />, { wrapper: Providers })
     fireEvent.click(screen.getByRole('button', { name: 'Ver más (2)' }))
     expect(screen.getByText('Cerveza 4')).toBeTruthy()
@@ -239,7 +239,7 @@ describe('SearchResults con resultados', () => {
   })
 
   test('lo que la vertical de la pantalla no vende sale solo donde se vende, sin un grupo de esa vertical', async () => {
-    // Desde Turbo, «televisor 55 pulgadas»: la API ya no trae el cable HDMI de Turbo, solo el grupo del Mall.
+    // Desde Turbo, "televisor 55 pulgadas": la API ya no trae el cable HDMI de Turbo, solo el grupo del Mall.
     const fetchMock = stubApi({})
     const tv = { id: 'cat-1', name: 'Televisor smart 55 pulgadas', price: '$299.990', store: 'Tienda', storeId: 1 }
     const found = { query: 'televisor 55 pulgadas', unmet: false, groups: [{ vertical: 'retail', products: [tv] }] }
@@ -251,7 +251,7 @@ describe('SearchResults con resultados', () => {
     expect(screen.getByRole('heading', { name: 'Rappi Mall' })).toBeTruthy()
     expect(screen.queryByRole('heading', { name: 'Turbo' })).toBeNull()
     expect(screen.getByText('Televisor smart 55 pulgadas')).toBeTruthy()
-    expect(fetchMock).not.toHaveBeenCalled() // con resultados, Mochi no ofrece «Ver en…»
+    expect(fetchMock).not.toHaveBeenCalled() // con resultados, Mochi no ofrece "Ver en…"
   })
 
   test('el mismo producto en varios grupos no repite llaves', () => {

@@ -79,7 +79,7 @@ afterEach(() => {
 })
 
 describe('la ficha compara el producto entre tiendas', () => {
-  test('«Disponible en N tiendas» con precio, tiempo, envío y las marcas; «Pocas unidades» en la suya', async () => {
+  test('"Disponible en N tiendas" con precio, tiempo, envío y las marcas; "Pocas unidades" en la suya', async () => {
     const fetchMock = stubApi({ '/catalog/products/catalog_item/92002/stores': compare })
     renderRow(chocolate)
     const block = within(await screen.findByRole('region', { name: 'Comparar tiendas' }))

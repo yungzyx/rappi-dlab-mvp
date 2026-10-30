@@ -66,7 +66,7 @@ const added = (product) => act(() => window.dispatchEvent(new CustomEvent(AGENT_
 const bubble = () => document.querySelector('.agent-bubble')
 
 describe('Mochi y el carro', () => {
-  test('al agregar dice «¡Listo! … está en tu carrito» y se va a los 4 s', async () => {
+  test('al agregar dice "¡Listo! … está en tu carrito" y se va a los 4 s', async () => {
     vi.useFakeTimers()
     mountTree()
     added(BEER)
@@ -75,7 +75,7 @@ describe('Mochi y el carro', () => {
     expect(bubble()).toBeNull()
   })
 
-  test('«Deshacer» quita el producto', async () => {
+  test('"Deshacer" quita el producto', async () => {
     mountTree()
     act(() => probe.cart.add(BEER))
     added(BEER)
@@ -118,7 +118,7 @@ describe('Mochi flotante', () => {
     expect(agentButton()).toBeTruthy()
   })
 
-  test('en «Rappi hoy» no aparece', async () => {
+  test('en "Rappi hoy" no aparece', async () => {
     localStorage.setItem('rappi-proto-demo-mode', 'actual')
     mountTree()
     expect(agentButton()).toBeNull()
@@ -149,7 +149,7 @@ describe('Mochi flotante', () => {
     expect(document.activeElement).toBe(agentButton())
   })
 
-  test('«¿Qué puedo probar?» abre el buscador con la oferta de la vertical por probar, sin contexto', async () => {
+  test('"¿Qué puedo probar?" abre el buscador con la oferta de la vertical por probar, sin contexto', async () => {
     mountTree()
     fireEvent.click(agentButton())
     fireEvent.click(screen.getByRole('button', { name: '¿Qué puedo probar?' }))
@@ -165,7 +165,7 @@ describe('Mochi flotante', () => {
     expect(screen.getByRole('button', { name: `Revisar mi carrito · ${formatPrice(probe.cart.total)}` })).toBeTruthy()
   })
 
-  test('«Mover a la izquierda» lo cambia de lado y lo recuerda', async () => {
+  test('"Mover a la izquierda" lo cambia de lado y lo recuerda', async () => {
     const { container } = mountTree()
     fireEvent.click(agentButton())
     fireEvent.click(screen.getByRole('button', { name: 'Mover a la izquierda' }))
@@ -188,7 +188,7 @@ describe('Mochi flotante', () => {
     expect(screen.queryByRole('group', { name: 'Opciones de Mochi' })).toBeNull()
   })
 
-  test('«Silenciar por hoy» lo deja como pestañita y tocarla lo despierta', async () => {
+  test('"Silenciar por hoy" lo deja como pestañita y tocarla lo despierta', async () => {
     const { container } = mountTree()
     fireEvent.click(agentButton())
     fireEvent.click(screen.getByRole('button', { name: 'Silenciar por hoy' }))
@@ -199,7 +199,7 @@ describe('Mochi flotante', () => {
     expect(agentButton()).toBeTruthy()
   })
 
-  test('«Ocultar a Mochi» pide confirmar; «Cancelar» vuelve al menú y «Ocultar» lo saca para siempre', async () => {
+  test('"Ocultar a Mochi" pide confirmar; "Cancelar" vuelve al menú y "Ocultar" lo saca para siempre', async () => {
     const { container } = mountTree()
     fireEvent.click(agentButton())
     fireEvent.click(screen.getByRole('button', { name: 'Ocultar a Mochi' }))
@@ -228,7 +228,7 @@ describe('Mochi flotante', () => {
     expect(bubble()).toBeNull()
   })
 
-  test('«Repetir escena» trae de vuelta a Mochi oculto, como a una persona nueva', async () => {
+  test('"Repetir escena" trae de vuelta a Mochi oculto, como a una persona nueva', async () => {
     localStorage.setItem(HIDDEN_KEY, '1')
     mountTree()
     expect(agentButton()).toBeNull()
@@ -257,7 +257,7 @@ describe('Mochi flotante', () => {
     expect(classes).toContain('is-raised')
   })
 
-  test('«Repetir escena» lo despierta', async () => {
+  test('"Repetir escena" lo despierta', async () => {
     localStorage.setItem(QUIET_KEY, today())
     const { container } = mountTree()
     expect(container.querySelector('.agent-presence').classList).toContain('is-quiet')
@@ -265,7 +265,7 @@ describe('Mochi flotante', () => {
     expect(container.querySelector('.agent-presence').classList).not.toContain('is-quiet')
   })
 
-  test('«Buscar con Mochi» abre el buscador', async () => {
+  test('"Buscar con Mochi" abre el buscador', async () => {
     mountTree()
     fireEvent.click(agentButton())
     fireEvent.click(screen.getByRole('button', { name: 'Buscar con Mochi' }))

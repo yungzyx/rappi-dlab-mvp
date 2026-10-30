@@ -114,7 +114,7 @@ def _serial(test_url, q: str) -> dict:
 
 def _served(reply) -> dict:
     """La respuesta sin su `request_id` (el id de cada request) ni lo que la API suma a los grupos (tiendas,
-    restaurantes, «Lo que sea» y el aviso de las preferencias, que no se buscan por vertical): lo demás se compara con
+    restaurantes, "Lo que sea" y el aviso de las preferencias, que no se buscan por vertical): lo demás se compara con
     lo calculado en serie."""
     skipped = {"request_id", "places", "whim_allowed", "preferences_notice"}
     return {k: v for k, v in reply.json().items() if k not in skipped}

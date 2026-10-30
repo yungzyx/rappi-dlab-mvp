@@ -15,7 +15,7 @@ WINE = {"query": "vino bueno", "concepts": ["vino"], "vertical": "licores", "pri
 
 
 def test_another_option_keeps_the_price_cap():
-    """«un vino bueno hasta 10 mil» → «otra opción» volvía a mostrar vinos de $23.590."""
+    """ "un vino bueno hasta 10 mil" → "otra opción" volvía a mostrar vinos de $23.590."""
     intent = _then(WINE, "otra opción")
     assert intent.follow_up and intent.exclude_previous and intent.price_max == 10000
     assert intent.concepts == ["vino"] and intent.query == "vino bueno"
@@ -33,7 +33,7 @@ def test_the_order_by_price_is_kept_until_it_changes():
 
 
 def test_order_words_do_not_pile_up_in_the_query():
-    """pañales talla G → «más baratos» perdía la talla entre «panales talla g mas baratos»."""
+    """pañales talla G → "más baratos" perdía la talla entre "panales talla g mas baratos"."""
     previous = {"query": "panales talla g", "concepts": ["panales"], "vertical": "farmacia"}
     intent = _then(previous, "más baratos")
     assert intent.query == "panales talla g" and intent.cheapest
@@ -52,7 +52,7 @@ def test_people_are_kept_and_replaced():
 
 
 def test_an_occasion_follow_up_is_still_the_occasion():
-    """Un asado «más barato» traía albóndigas y seitán: el seguimiento era una búsqueda de «carnes»."""
+    """Un asado "más barato" traía albóndigas y seitán: el seguimiento era una búsqueda de "carnes"."""
     once = {"query": "algo para una once para 4", "concepts": [], "occasion": "once", "vertical": "supermercado"}
     intent = _then(once, "sin lactosa")
     assert intent.kind == "ocasion" and intent.occasion == "once" and not intent.explicit_concepts
@@ -65,14 +65,14 @@ def test_an_occasion_follow_up_is_still_the_occasion():
 
 
 def test_a_symptom_follow_up_still_looks_for_the_symptom():
-    """«algo para el resfrío» → «más barato» traía sal de fruta: el síntoma se perdía."""
+    """ "algo para el resfrío" → "más barato" traía sal de fruta: el síntoma se perdía."""
     cold = {"query": "algo para el resfrio", "concepts": [], "vertical": "farmacia", "symptom": True}
     intent = _then(cold, "más barato")
     assert intent.follow_up and intent.symptom and intent.cheapest and intent.query == "algo para el resfrio"
 
 
 def test_without_meat_refines_the_previous_request():
-    """«algo sin carne» después de «tengo hambre» buscaba proteína de soya en Express: «sin carne» nombra lo vegano,
+    """ "algo sin carne" después de "tengo hambre" buscaba proteína de soya en Express: "sin carne" nombra lo vegano,
     pero tras un pedido es lo que no va."""
     hungry = {"query": "tengo hambre", "concepts": [], "occasion": "hambre", "vertical": "restaurantes"}
     intent = _then(hungry, "algo sin carne")
@@ -90,7 +90,7 @@ def test_a_new_topic_starts_from_scratch():
 
 
 def test_and_something_new_is_the_same_gathering():
-    """«¿y para tomar?» después de un asado de 6: otra cosa, para las mismas 6 personas."""
+    """ "¿y para tomar?" después de un asado de 6: otra cosa, para las mismas 6 personas."""
     asado = {"query": "asado de 6", "concepts": ["carnes"], "occasion": "asado", "vertical": "supermercado",
              "people": 6, "price_max": 20000.0}  # fmt: skip
     drinks = _then(asado, "¿y para tomar?")

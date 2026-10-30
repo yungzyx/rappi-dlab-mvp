@@ -5,21 +5,21 @@
 #   1. en línea: la app abre en la Home conectada;
 #   2. compra: Home → Grocery → primera tienda → agregar un producto → carrito → pagar, y en rappi_ia_test (solo lectura)
 #      queda un pedido `prototype` cuyas líneas son productos (o platos) sembrados;
-#   3. kit de Mochi: «cerveza» en el buscador con Mochi (grupos por vertical) → plan «Carrete» en la Home → agregar el
+#   3. kit de Mochi: "cerveza" en el buscador con Mochi (grupos por vertical) → plan "Carrete" en la Home → agregar el
 #      kit → pagar, y en rappi_ia_test (solo lectura) el pedido tiene líneas sembradas y la persona dejó al menos una
 #      `suggestion_accepted` con origen `agent-plan`;
-#   4. preguntarle a Mochi: «¿qué es un completo?» en el buscador con Mochi (Enter le pregunta: ficha y producto) y
-#      «mi hijo tiene fiebre, ¿qué le doy?» (sin consejo médico, con «Ir a Farmacia»);
-#   5. seguir la conversación: «¿tienen pizza?», «Más barato» debajo de la respuesta (la más barata primero, con lo dicho
-#      arriba) y «otra opción» escrita en el campo para seguir (Mochi dice que no hay otras, sin repetir);
-#   6. home: la Home dinámica; una persona nueva ve el orden fijo y, tras tocar «Retail» (Rappi Mall) tres veces, Retail
-#      queda primero con el texto «Ordenadas según lo que más usas»;
+#   4. preguntarle a Mochi: "¿qué es un completo?" en el buscador con Mochi (Enter le pregunta: ficha y producto) y
+#      "mi hijo tiene fiebre, ¿qué le doy?" (sin consejo médico, con "Ir a Farmacia");
+#   5. seguir la conversación: "¿tienen pizza?", "Más barato" debajo de la respuesta (la más barata primero, con lo dicho
+#      arriba) y "otra opción" escrita en el campo para seguir (Mochi dice que no hay otras, sin repetir);
+#   6. home: la Home dinámica; una persona nueva ve el orden fijo y, tras tocar "Retail" (Rappi Mall) tres veces, Retail
+#      queda primero con el texto "Ordenadas según lo que más usas";
 #   7. combinación: una persona nueva pide en Restaurantes, vuelve a la Home y toca a Mochi: la oferta es de Turbo (el
-#      siguiente peldaño de la escalera de combinaciones) y su «¿Por qué?» muestra la razón;
-#   8. panel: «Mochi y búsquedas» del panel (fuente prototipo) muestra lo que dejó la revisión 3 (una oferta aceptada
-#      en «Plan») con el rótulo «uso del MVP, pocas personas: no es evidencia». Corre después de las demás, con la API
+#      siguiente peldaño de la escalera de combinaciones) y su "¿Por qué?" muestra la razón;
+#   8. panel: "Mochi y búsquedas" del panel (fuente prototipo) muestra lo que dejó la revisión 3 (una oferta aceptada
+#      en "Plan") con el rótulo "uso del MVP, pocas personas: no es evidencia". Corre después de las demás, con la API
 #      todavía en marcha;
-#   9. sin API: se detiene la API y la app muestra «Sin conexión con Mochi».
+#   9. sin API: se detiene la API y la app muestra "Sin conexión con Mochi".
 set -euo pipefail
 SELF="$(cd "$(dirname "$0")" && pwd)/$(basename "$0")"
 cd "$(dirname "$0")/.."

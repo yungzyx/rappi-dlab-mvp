@@ -1,10 +1,10 @@
-"""«Para ti» dentro de una tienda: lo que esa tienda tiene vigente de los conceptos que más le interesan a la persona.
+""" "Para ti" dentro de una tienda: lo que esa tienda tiene vigente de los conceptos que más le interesan a la persona.
 
 Es una recomendación que la persona no pidió, así que pasa por las guardias de las ofertas (`offers/guards.py`): nada
 de Farmacia ni Licores, de una tienda Farmacia, Sex shop o Smoking shop, +18, bebé, salud ni un concepto sensible. El
 interés es el perfil de la persona (`events.store.profile`, con decaimiento de 14 días); sin interés que calce no hay
-pestaña. Como «Para ti» de la Home, es de Mochi: su dieta y sus alergias (`offers/preferences.py`) sacan lo que no
-puede comer (sin reordenar: manda el interés). Solo lo pide la propuesta: «Rappi hoy» no enseña.
+pestaña. Como "Para ti" de la Home, es de Mochi: su dieta y sus alergias (`offers/preferences.py`) sacan lo que no
+puede comer (sin reordenar: manda el interés). Solo lo pide la propuesta: "Rappi hoy" no enseña.
 """
 
 from psycopg import Connection

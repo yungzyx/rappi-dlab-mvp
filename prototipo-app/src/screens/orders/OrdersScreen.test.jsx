@@ -103,7 +103,7 @@ describe('OrdersScreen', () => {
     expect(reset).toHaveBeenCalled()
   })
 
-  test('cada pedido muestra su día real, el paso de su vertical, «Por calificar» al entregar y abre su seguimiento', () => {
+  test('cada pedido muestra su día real, el paso de su vertical, "Por calificar" al entregar y abre su seguimiento', () => {
     const { push } = setup({ ...ORDER, items: [line(COFFEE)] })
     fireEvent.click(screen.getByText('pedir'))
     expect(screen.getByText('Unimarc')).toBeTruthy()
@@ -118,7 +118,7 @@ describe('OrdersScreen', () => {
     expect(push).toHaveBeenCalledWith('tracking', { orderId: expect.stringMatching(/^order-/) })
   })
 
-  test('un pedido cancelado dice «Cancelado» y no ofrece «Pídelo de nuevo» ni ayuda; uno entregado ofrece ayuda', () => {
+  test('un pedido cancelado dice "Cancelado" y no ofrece "Pídelo de nuevo" ni ayuda; uno entregado ofrece ayuda', () => {
     setup({ ...ORDER, items: [line(COFFEE)], cancelled: { reason: 'ya_no', stage: 'antes_de_tienda', fee: 0 } })
     fireEvent.click(screen.getByText('pedir'))
     expect(screen.getByText('Cancelado')).toBeTruthy()
@@ -158,14 +158,14 @@ describe('OrdersScreen', () => {
     expect(screen.getByText(/Hoy · \$990/)).toBeTruthy()
   })
 
-  test('programado: «Programado · hoy HH:00–HH:00» hasta su franja', () => {
+  test('programado: "Programado · hoy HH:00–HH:00" hasta su franja', () => {
     const slot = new Date(Date.now() + 3 * 3_600_000).setMinutes(0, 0, 0)
     setup({ ...ORDER, items: [line(COFFEE)], scheduledFor: slot })
     fireEvent.click(screen.getByText('pedir'))
     expect(screen.getByText(/^Programado · (hoy|mañana) \d\d:00–\d\d:00$/)).toBeTruthy()
   })
 
-  test('«Pídelo de nuevo» arma el carro con lo que sigue disponible, al precio de hoy, y marca lo que no', async () => {
+  test('"Pídelo de nuevo" arma el carro con lo que sigue disponible, al precio de hoy, y marca lo que no', async () => {
     setup()
     fireEvent.click(screen.getByText('pedir'))
     deliver()
@@ -214,7 +214,7 @@ describe('OrdersScreen', () => {
     )
   })
 
-  test('un pedido guardado sin sus productos (de antes) no ofrece «Pídelo de nuevo»', () => {
+  test('un pedido guardado sin sus productos (de antes) no ofrece "Pídelo de nuevo"', () => {
     setup({ stores: ['Unimarc'], items: [{ name: 'Palta', img: 'p.webp', price: '$1.000', qty: 1 }], total: 1000 })
     fireEvent.click(screen.getByText('pedir'))
     deliver()

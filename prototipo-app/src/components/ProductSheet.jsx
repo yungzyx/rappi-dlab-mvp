@@ -57,7 +57,7 @@ function ProductDetail({ product, onOpenStore }) {
   const total = formatPrice(qty * parsePrice(product.price))
 
   const confirm = () => {
-    // Cada unidad pasa por «agregar» o «quitar» como con el botón "+": mismos eventos y mismo aviso del agente.
+    // Cada unidad pasa por "agregar" o "quitar" como con el botón "+": mismos eventos y mismo aviso del agente.
     for (let i = inCart; i < qty; i += 1) add(product)
     for (let i = inCart; i > qty; i -= 1) remove(product)
     cart.setNote(product, note.trim())
@@ -83,7 +83,7 @@ function ProductDetail({ product, onOpenStore }) {
       {product.description && <p className="product-sheet-description">{product.description}</p>}
 
       {product.store &&
-        // «Ver tienda» abre la tienda por su id: sin `storeId` no hay a cuál ir y solo se muestra el nombre.
+        // "Ver tienda" abre la tienda por su id: sin `storeId` no hay a cuál ir y solo se muestra el nombre.
         (onOpenStore && product.storeId ? (
           <button type="button" className="product-sheet-store tap" onClick={openStore}>
             <StoreLogo item={product} />
@@ -149,8 +149,8 @@ function ProductDetail({ product, onOpenStore }) {
 }
 
 /**
- * «Disponible en N tiendas»: cada tienda con su precio, tiempo y envío publicados, y las marcas «Mejor precio» y «Más
- * rápido» (si hay de dónde elegir). Tocar otra abre el producto con esa tienda.
+ * "Disponible en N tiendas": cada tienda con su precio, tiempo y envío publicados, y las marcas "Mejor precio" y "Más
+ * rápido" (si hay de dónde elegir). Tocar otra abre el producto con esa tienda.
  */
 function StoreCompare({ count, offers, current, onChoose }) {
   const available = offers.filter((offer) => offer.available)

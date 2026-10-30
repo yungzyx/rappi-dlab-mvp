@@ -55,7 +55,7 @@ beforeEach(async () => {
       </demo.DemoProvider>
     )
   }
-  // A mediodía: «en silencio por hoy» guarda la fecha y los tests adelantan el reloj; con la hora real, un test que
+  // A mediodía: "en silencio por hoy" guarda la fecha y los tests adelantan el reloj; con la hora real, un test que
   // partía justo antes de la medianoche terminaba en otro día.
   vi.useFakeTimers({ now: new Date(2026, 9, 21, 12) })
   // La Home pide su catálogo a la API (sin respuestas, esas secciones no se ven) y a Mochi sus ocasiones y ofertas.
@@ -68,7 +68,7 @@ const OFFER_FIXTURES = {
   carrito: 'agent-offer-carrito',
   vertical_por_probar: 'agent-offer-vertical-por-probar',
 }
-// Lo que dice Mochi al tocarlo: la burbuja no lleva productos, así que no promete «mira estas ofertas» como el texto de la API.
+// Lo que dice Mochi al tocarlo: la burbuja no lleva productos, así que no promete "mira estas ofertas" como el texto de la API.
 const POKE_LINE = '¿Y si pruebas algo de Súper?'
 const stubAgent = (routes = {}) =>
   stubApi({
@@ -81,13 +81,13 @@ const allOfferRequests = (mock = api) =>
     .filter(([url]) => url.endsWith('/agent/offer'))
     .map(([, init]) => JSON.parse(init.body))
     .map(({ session_id: _session, ...body }) => body) // la sesión la revisa api/agent.test.js
-// La recompra (y, sin ella, «¿Volvemos a…?») se pide sola cada vez que la Home está arriba: sus tests la miran con
+// La recompra (y, sin ella, "¿Volvemos a…?") se pide sola cada vez que la Home está arriba: sus tests la miran con
 // `repeatRequests` y `winbackRequests`.
 const SLOT_MOMENTS = ['recompra', 'volver']
 const offerRequests = (mock = api) => allOfferRequests(mock).filter((body) => !SLOT_MOMENTS.includes(body.moment))
 const repeatRequests = (mock = api) => allOfferRequests(mock).filter((body) => body.moment === 'recompra')
 const winbackRequests = (mock = api) => allOfferRequests(mock).filter((body) => body.moment === 'volver')
-// Con una recompra o un «¿Volvemos a…?» que ofrecer (los demás momentos, como siempre).
+// Con una recompra o un "¿Volvemos a…?" que ofrecer (los demás momentos, como siempre).
 const stubSlot = (slot) =>
   stubAgent({
     'POST /agent/offer': (req) => {
@@ -229,7 +229,7 @@ describe('Home del prototipo final', () => {
     expect(screen.queryByText('Sin conexión')).toBeNull()
   })
 
-  test('la Home no muestra el pasaporte ni «Jugar»', async () => {
+  test('la Home no muestra el pasaporte ni "Jugar"', async () => {
     const { container } = await renderHome()
     expect(screen.queryByText(/pasaporte/i)).toBeNull()
     expect(screen.queryByRole('button', { name: /Jugar/ })).toBeNull()
@@ -262,7 +262,7 @@ describe('Home del prototipo final', () => {
       expect(accepted.map(([, fields]) => fields.concept_id).sort()).toEqual(kit.products.map((p) => p.concept).sort())
       expect(tracked('suggestion_shown', 'agent-plan')).toHaveLength(kit.products.length)
       expect(screen.getByRole('button', { name: /En tu carro · Ir a pagar/ })).toBeTruthy()
-      // Tres tiendas son tres pedidos (la cerveza y el pisco, de una sola botillería): Mochi no dice «llega todo junto».
+      // Tres tiendas son tres pedidos (la cerveza y el pisco, de una sola botillería): Mochi no dice "llega todo junto".
       expect(screen.getByText(/3 tiendas, un pedido por tienda/)).toBeTruthy()
       expect(kitAddedText(kit.products)).toBe('¡Listo! Está en tu carro: llega en 3 pedidos, uno por tienda 🛵')
       // La tienda turbo no llega a la compra mínima, que el catálogo no sabe: el supuesto del carro, de ejemplo.
@@ -486,7 +486,7 @@ describe('Home del prototipo final', () => {
     })
   })
 
-  describe('«¿Repetimos?» (la recompra)', () => {
+  describe('"¿Repetimos?" (la recompra)', () => {
     const repeatBlock = (container) => container.querySelector('.live-block--recompra')
 
     test('sin recompra (204) no hay bloque, y la Home la pidió sin contexto', async () => {
@@ -529,7 +529,7 @@ describe('Home del prototipo final', () => {
       expect(tracked('suggestion_shown', 'agent-recompra')).toHaveLength(1)
     })
 
-    test('«Ver producto» lleva a su tienda con el producto destacado y no cuenta una aceptación', async () => {
+    test('"Ver producto" lleva a su tienda con el producto destacado y no cuenta una aceptación', async () => {
       api = stubRepeat()
       const push = vi.fn()
       const made = fixture('agent-offer-recompra')
@@ -551,7 +551,7 @@ describe('Home del prototipo final', () => {
       )
     })
 
-    test('«Después» quita el bloque, cuenta como ignorar a Mochi y no se vuelve a pedir', async () => {
+    test('"Después" quita el bloque, cuenta como ignorar a Mochi y no se vuelve a pedir', async () => {
       api = stubRepeat()
       const quiet = await import('../../../state/agentQuiet')
       const { container, rerender } = await renderHome()
@@ -587,7 +587,7 @@ describe('Home del prototipo final', () => {
     }
     let forget
 
-    test('tras «Olvidar» no se vuelve a pedir ni a contar; si el borrado falla, pide al volver a la Home', async () => {
+    test('tras "Olvidar" no se vuelve a pedir ni a contar; si el borrado falla, pide al volver a la Home', async () => {
       api = stubRepeat()
       const { container, rerender } = render(forgetTree(true))
       await advance(100)
@@ -604,7 +604,7 @@ describe('Home del prototipo final', () => {
       expect(repeatRequests()).toHaveLength(2)
     })
 
-    test('la recompra que venía en camino al «Olvidar» ni se muestra ni se cuenta', async () => {
+    test('la recompra que venía en camino al "Olvidar" ni se muestra ni se cuenta', async () => {
       api = stubAgent({
         'POST /agent/offer': (req) =>
           req.body.moment === 'recompra'
@@ -623,7 +623,7 @@ describe('Home del prototipo final', () => {
     })
   })
 
-  describe('«¿Volvemos a…?» (lo que dejó de pedir)', () => {
+  describe('"¿Volvemos a…?" (lo que dejó de pedir)', () => {
     const slotBlock = (container) => container.querySelector('.live-block--recompra')
 
     test('sin recompra, ocupa su lugar, dice por qué y registra la mostrada con su origen', async () => {
@@ -652,7 +652,7 @@ describe('Home del prototipo final', () => {
       ])
     })
 
-    test('la recompra gana: con una, «¿Volvemos a…?» ni se pide', async () => {
+    test('la recompra gana: con una, "¿Volvemos a…?" ni se pide', async () => {
       api = stubWinback({ recompra: 'agent-offer-recompra' })
       const { container } = await renderHome()
       await advance(100)
@@ -674,7 +674,7 @@ describe('Home del prototipo final', () => {
       expect(tracked('suggestion_shown', 'agent-volver')).toHaveLength(1)
     })
 
-    test('«Ver producto» lleva a su tienda con el origen de la oferta', async () => {
+    test('"Ver producto" lleva a su tienda con el origen de la oferta', async () => {
       api = stubWinback()
       const push = vi.fn()
       const { container } = await renderHome({ push })
@@ -687,7 +687,7 @@ describe('Home del prototipo final', () => {
       )
     })
 
-    test('«Después» registra el descarte (la API deja de ofrecerla con dos) y no se vuelve a pedir', async () => {
+    test('"Después" registra el descarte (la API deja de ofrecerla con dos) y no se vuelve a pedir', async () => {
       api = stubWinback()
       const { container, rerender } = await renderHome()
       await advance(100)
@@ -760,10 +760,10 @@ describe('Home del prototipo final', () => {
       rerender(homeTree({ active: false }))
       rerender(homeTree({ active: true }))
       await advance(100)
-      expect(winbackRequests()).toHaveLength(1) // guardada como «no hay»
+      expect(winbackRequests()).toHaveLength(1) // guardada como "no hay"
     })
 
-    test('si la Home invitó a volver a una vertical, tocar a Mochi no dice «Vuelve a…» de esa misma', async () => {
+    test('si la Home invitó a volver a una vertical, tocar a Mochi no dice "Vuelve a…" de esa misma', async () => {
       const back = fixture('agent-offer-volver')
       back.reason = { text: 'Porque pediste 3 veces en el súper…', basis: [{ kind: 'vuelta', id: 'supermercado' }] }
       const toTry = fixture('agent-offer-vertical-por-probar')
@@ -794,7 +794,7 @@ describe('Home del prototipo final', () => {
       ])
     })
 
-    test('«Después» en la recompra no registra un descarte de «¿Volvemos a…?»', async () => {
+    test('"Después" en la recompra no registra un descarte de "¿Volvemos a…?"', async () => {
       api = stubRepeat()
       const { container } = await renderHome()
       await advance(100)
@@ -856,7 +856,7 @@ describe('Home del prototipo final', () => {
     })
   })
 
-  test('«Después» cuenta como ignorarlo: a la segunda, Mochi se calla', async () => {
+  test('"Después" cuenta como ignorarlo: a la segunda, Mochi se calla', async () => {
     const quiet = await import('../../../state/agentQuiet')
     await renderHome()
     await advance(900 + 3400 + 6000)
@@ -893,7 +893,7 @@ describe('Home del prototipo final', () => {
       expect(localStorage.getItem(memory.TOUR_KEY)).toBeTruthy()
     })
 
-    test('«Saltar» la termina y no vuelve', async () => {
+    test('"Saltar" la termina y no vuelve', async () => {
       const { container } = await renderHome()
       await advance(AFTER_GREETING)
       await next('Saltar')
@@ -912,7 +912,7 @@ describe('Home del prototipo final', () => {
       expect(status(container)).not.toMatch(/^Arriba está mi buscador/)
     })
 
-    test('«Repetir escena» la vuelve a mostrar', async () => {
+    test('"Repetir escena" la vuelve a mostrar', async () => {
       localStorage.setItem(memory.TOUR_KEY, '1')
       const { container } = await renderHome()
       await advance(AFTER_GREETING)
@@ -963,7 +963,7 @@ describe('Home del prototipo final', () => {
       }
     })
 
-    test('al terminar la guía, Mochi muestra lo pendiente de «al volver»', async () => {
+    test('al terminar la guía, Mochi muestra lo pendiente de "al volver"', async () => {
       const { container, rerender } = await renderHome()
       await advance(AFTER_GREETING)
       rerender(homeTree({ active: false })) // se abrió algo encima en medio de la guía
@@ -977,7 +977,7 @@ describe('Home del prototipo final', () => {
       expect(status(container)).toBe(fixture('agent-offer-carrito').text)
     })
 
-    test('con «reducir movimiento» también funciona', async () => {
+    test('con "reducir movimiento" también funciona', async () => {
       const original = window.matchMedia
       window.matchMedia = () => ({ matches: true, addEventListener() {}, removeEventListener() {} })
       try {
@@ -998,7 +998,7 @@ describe('Home del prototipo final', () => {
     expect(container.querySelector('.live-bubble p').textContent).toBe(POKE_LINE)
   })
 
-  test('«¿Por qué?» y los botones del globo ocupan su lugar mientras escribe, sin verse hasta terminar', async () => {
+  test('"¿Por qué?" y los botones del globo ocupan su lugar mientras escribe, sin verse hasta terminar', async () => {
     const { container } = await renderHome()
     await advance(900 + 3400)
     fireEvent.click(screen.getByRole('button', { name: /^Mochi:/ }))
@@ -1014,7 +1014,7 @@ describe('Home del prototipo final', () => {
     expect(within(more()).getByRole('button', { name: '¿Por qué?' })).toBeTruthy()
   })
 
-  test('«Repetir escena» vuelve a saludar', async () => {
+  test('"Repetir escena" vuelve a saludar', async () => {
     const { container } = await renderHome()
     await advance(900 + 3400 + 6000)
     act(() => memory.resetLive())
@@ -1033,7 +1033,7 @@ describe('Home del prototipo final', () => {
     expect(live.classList.contains('is-tucked')).toBe(false)
   })
 
-  test('el kit agregado cambia el botón a «En tu carro»', async () => {
+  test('el kit agregado cambia el botón a "En tu carro"', async () => {
     await renderHome()
     await advance(100)
     fireEvent.click(screen.getByRole('radio', { name: 'Carrete' }))
@@ -1042,7 +1042,7 @@ describe('Home del prototipo final', () => {
     expect(screen.getByRole('button', { name: /En tu carro · Ir a pagar/ })).toBeTruthy()
   })
 
-  test('en la cuenta, «Repetir escena de Mochi» aparece solo en el prototipo final', async () => {
+  test('en la cuenta, "Repetir escena de Mochi" aparece solo en el prototipo final', async () => {
     await import('../../account/AccountScreen') // la pestaña es perezosa: con el módulo ya cargado, entra al avanzar
     await renderHome({ tab: 'account' })
     await advance(100)

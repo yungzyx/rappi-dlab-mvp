@@ -1,11 +1,11 @@
-"""«de el» → «del» y «a el» → «al»: las plantillas interpolan etiquetas como «el súper» después de «de» o «a»."""
+""" "de el" → "del" y "a el" → "al": las plantillas interpolan etiquetas como "el súper" después de "de" o "a"."""
 
 from rappi_ia.text import contract_articles
 
 
 def test_de_el_becomes_del():
     assert contract_articles("Aún no pruebas lo de el súper.") == "Aún no pruebas lo del súper."
-    assert contract_articles("Tu kit «Once»: pan, de el súper y Express.") == "Tu kit «Once»: pan, del súper y Express."
+    assert contract_articles('Tu kit "Once": pan, de el súper y Express.') == 'Tu kit "Once": pan, del súper y Express.'
 
 
 def test_a_el_becomes_al():

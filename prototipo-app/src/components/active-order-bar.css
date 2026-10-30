@@ -1,4 +1,4 @@
-/* «Pedido en curso»: flota abajo a la izquierda (a la derecha queda Mochi), sobre la barra del carro si la hay. */
+/* "Pedido en curso": flota abajo a la izquierda (a la derecha queda Mochi), sobre la barra del carro si la hay. */
 .active-order-bar {
   position: absolute;
   left: var(--gutter);

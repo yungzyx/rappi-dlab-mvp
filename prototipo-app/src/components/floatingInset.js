@@ -1,6 +1,6 @@
 import { useLayoutEffect } from 'react'
 
-// Lo que flota abajo del teléfono (la barra del carro, «Pedido en curso» y Mochi) tapaba el «+» de los últimos productos.
+// Lo que flota abajo del teléfono (la barra del carro, "Pedido en curso" y Mochi) tapaba el "+" de los últimos productos.
 // Cada uno se registra aquí y el teléfono lleva en `--floating-bottom` cuánto ocupa lo más alto de ellos, más un margen:
 // las pantallas lo usan como relleno inferior (`max(<el suyo>, var(--floating-bottom))`), así el final de la lista
 // siempre se puede subir por encima de lo que flota, y el relleno cambia cuando aparece o se va algo.

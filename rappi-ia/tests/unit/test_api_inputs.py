@@ -113,7 +113,7 @@ def test_event_value_accepts_a_big_cart_line():
 
 
 def test_query_canceled_is_504(client, conn):
-    """Una consulta que pasó el statement_timeout no es «base caída»: la app no debe decir «Sin conexión»."""
+    """Una consulta que pasó el statement_timeout no es "base caída": la app no debe decir "Sin conexión"."""
     conn.error = QueryCanceled("canceling statement due to statement timeout")
     reply = client.get("/profile/u1")
     assert reply.status_code == 504

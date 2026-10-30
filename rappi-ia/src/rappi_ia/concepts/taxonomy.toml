@@ -5,18 +5,18 @@
 #   y se normalizan al cargar (sin tildes ni ñ, minúsculas). Una palabra suelta también calza su plural
 #   (s/es); las frases calzan completas. Evitar palabras ambiguas (collar, arnés, papel, filtro, tenis).
 # - `sensitive = true`: el agente nunca lo sugiere por iniciativa propia (solo responde si se lo piden). Sus keywords no
-#   pueden ser palabras de uso común («puro», «pipa», «lubricante»): el plato o el utensilio quedaría oculto como sensible.
-#   Su nombre de una sola palabra («Medicamentos») tampoco asigna productos (concepts/assign.py).
+#   pueden ser palabras de uso común ("puro", "pipa", "lubricante"): el plato o el utensilio quedaría oculto como sensible.
+#   Su nombre de una sola palabra ("Medicamentos") tampoco asigna productos (concepts/assign.py).
 # - `query_keywords`: palabras que sirven para pedir el concepto en una consulta, pero que no asignan productos
-#   («lubricante» pide bienestar sexual; «Lubricante para lentes» no lo es). En las consultas también cuenta el nombre.
-#   Una palabra suelta de estas solo cuenta si es todo el pedido: «lubricante wd-40» no pide bienestar sexual.
+#   ("lubricante" pide bienestar sexual; "Lubricante para lentes" no lo es). En las consultas también cuenta el nombre.
+#   Una palabra suelta de estas solo cuenta si es todo el pedido: "lubricante wd-40" no pide bienestar sexual.
 # - `product_keywords`: lo contrario; asignan productos del catálogo pero no leen consultas. Para palabras que en un
-#   producto nombran el concepto y en una consulta piden otra cosa: «Panko Blanco 1 kg» es despensa asiática, pero
-#   quien escribe «panko roll» pide sushi. Tampoco nombran el plato de un menú (concepts/assign.py).
+#   producto nombran el concepto y en una consulta piden otra cosa: "Panko Blanco 1 kg" es despensa asiática, pero
+#   quien escribe "panko roll" pide sushi. Tampoco nombran el plato de un menú (concepts/assign.py).
 # - `age_restricted = true`: +18; la respuesta lleva el recordatorio.
 # - `prepared = true` (en el grupo o en el concepto): se pide hecho, así que también se busca en restaurantes.
 #   El resto nunca compite en restaurantes aunque sus locales lo tengan (gaseosas, papas fritas en combos).
-# - `broad = true`: agrupa productos de varios tipos («picoteo», «desayuno»). Donde el vertical no lo vende, la búsqueda
+# - `broad = true`: agrupa productos de varios tipos ("picoteo", "desayuno"). Donde el vertical no lo vende, la búsqueda
 #   no exige que el nombre del producto diga lo pedido (agent/tools._focus).
 
 version = "2026-10-25"
@@ -133,7 +133,7 @@ emoji = "🍺"
 age_restricted = true
 keywords = ["cerveza", "chela", "lager", "ipa", "stout", "pilsner", "pale ale", "heineken", "kunstmann", "cristal", "escudo", "royal guard", "corona extra", "stella artois", "austral", "becker", "budweiser", "michelob", "sidra"]
 query_keywords = ["serbesa", "serveza", "chelita", "chelitas", "beer", "beers"]
-# La ginger beer es una gaseosa de jengibre («Fentimans Cerveza de Jengibre», «Corteza Jesuita Cerveza Ginger Beer»).
+# La ginger beer es una gaseosa de jengibre ("Fentimans Cerveza de Jengibre", "Corteza Jesuita Cerveza Ginger Beer").
 avoid = ["ginger beer", "cerveza de jengibre"]
 
 [[concept]]
@@ -207,7 +207,7 @@ name = "Licores y aperitivos"
 emoji = "🍹"
 age_restricted = true
 keywords = ["licor", "crema de licor", "aperitivo", "aperol", "campari", "fernet", "jägermeister", "jagermeister", "baileys", "amaretto", "amareto", "cognac", "coñac", "brandy", "aguardiente", "vermouth", "vermut", "martini", "anís", "araucano", "manzanilla licor", "soju", "makgeolli", "ramazzotti"]
-# «Combo Eros Ramazzotti» es un combo de paninos con el nombre del cantante.
+# "Combo Eros Ramazzotti" es un combo de paninos con el nombre del cantante.
 avoid = ["eros ramazzotti"]
 
 [[concept]]
@@ -216,16 +216,16 @@ parent = "alcohol"
 name = "Cócteles listos"
 emoji = "🍹"
 age_restricted = true
-# «cocktelería» es una sección de tragos con otra ortografía. Desde «tom collins», los cócteles que los menús nombran
+# "cocktelería" es una sección de tragos con otra ortografía. Desde "tom collins", los cócteles que los menús nombran
 # sin decir alcohol (base real del 22-10-2026). Fuera, los que en los menús, el catálogo o una búsqueda son otra cosa:
-# «vaina» (porotos, vainilla, espadas), «algarrobina» (un jarabe), «mule» (tazones de cobre), «negroni» (salames y
-# tomates), «chilcano» (una sopa), «manhattan» (hamburguesas), «cola de mono» (té y helado), «piña colada» (jugos y
-# helados), «terremoto» y «michelada» (helados, salsas). Esos los bloquean las guardias de ofertas por el nombre del
+# "vaina" (porotos, vainilla, espadas), "algarrobina" (un jarabe), "mule" (tazones de cobre), "negroni" (salames y
+# tomates), "chilcano" (una sopa), "manhattan" (hamburguesas), "cola de mono" (té y helado), "piña colada" (jugos y
+# helados), "terremoto" y "michelada" (helados, salsas). Esos los bloquean las guardias de ofertas por el nombre del
 # plato, y la vaina y la algarrobina de un menú quedan como alcohol por su sección.
 keywords = ["cóctel", "coctel", "cocktail", "cocktelería", "hard seltzer", "seltzer", "mojito", "margarita", "spritz", "ready to drink", "tom collins", "daiquiri", "daikiri", "caipiriña", "caipirinha", "caipiroska", "bloody mary", "cuba libre", "kir royal", "ruso blanco", "ruso negro", "cosmopolitan", "clavo oxidado"]
-# «qué trago me recomiendas»: pide alcohol por su nombre (se busca, con +18); sin esto era la ayuda.
+# "qué trago me recomiendas": pide alcohol por su nombre (se busca, con +18); sin esto era la ayuda.
 query_keywords = ["trago", "tragos"]
-# Score es una marca de energéticas: «Score Mojito» no es un mojito.
+# Score es una marca de energéticas: "Score Mojito" no es un mojito.
 avoid = ["score"]
 
 # Bebidas sin alcohol
@@ -236,7 +236,7 @@ name = "Bebidas gaseosas"
 emoji = "🥤"
 keywords = ["bebida", "gaseosa", "coca cola", "coca-cola", "sprite", "fanta", "pepsi", "bilz", "pap", "ginger ale", "agua tónica", "tónica", "seven up", "7up", "kem", "canada dry", "limón soda"]
 avoid = ["vegetal", "vegetales", "avena", "coco", "arroz", "almendra", "almendras", "soya", "achocolatada", "polvo", "protein", "proteina", "proteica"]
-query_keywords = ["coca", "cocacola"]  # «algo para tomar» es la ocasión «Bebestibles»
+query_keywords = ["coca", "cocacola"]  # "algo para tomar" es la ocasión "Bebestibles"
 
 [[concept]]
 id = "jugos"
@@ -285,7 +285,7 @@ emoji = "🧊"
 keywords = ["hielo", "cubos de hielo"]
 
 # Lo asiático por nombre (la despensa, los snacks y las bebidas) afina la categoría de comida que Rappi le da
-# («Pepero» viene en «Galletas»): concepts/assign.py, NAME_REFINES_CONCEPTS. En los menús no cuenta. Palabras sacadas
+# ("Pepero" viene en "Galletas"): concepts/assign.py, NAME_REFINES_CONCEPTS. En los menús no cuenta. Palabras sacadas
 # del catálogo real. El matcha a secas sigue en té (los matcha latte de las cafeterías); aquí, el té matcha en polvo.
 [[concept]]
 id = "bebidas-asiaticas"
@@ -328,14 +328,14 @@ name = "Barras de cereal"
 emoji = "🥣"
 keywords = ["barra de cereal", "barrita", "barra de proteína", "barra proteica", "granola bar", "costa barra"]
 
-# Con el ramen instantáneo, que deja «sopas»: es lo que se vende junto a Pepero y Pocky.
+# Con el ramen instantáneo, que deja "sopas": es lo que se vende junto a Pepero y Pocky.
 [[concept]]
 id = "snacks-asiaticos"
 parent = "snacks"
 name = "Snacks asiáticos"
 emoji = "🍘"
 keywords = ["ramen instantáneo", "ramen sopa instantánea", "maruchan", "nissin", "buldak", "samyang", "nongshim", "ottogi", "shin ramyun", "shin ramen", "jin ramen", "chapagetti", "kang shi fu", "cup noodles", "pepero", "pocky", "yan yan", "choco pie", "chocopie"]
-# Platos y postres que también sirve un restaurante coreano o japonés. «mochi» a secas no: es el nombre del agente.
+# Platos y postres que también sirve un restaurante coreano o japonés. "mochi" a secas no: es el nombre del agente.
 product_keywords = ["ramyeon", "ramyun", "mochi helado", "helado mochi", "kai mochi", "dorayaki", "topokki", "tteokbokki", "yopokki"]
 avoid = ["vape", "vaper", "puff", "pod", "shampoo", "peluche", "llavero", "polera", "squishy", "flash"]
 
@@ -376,8 +376,8 @@ parent = "dulces"
 name = "Tortas y pastelería"
 emoji = "🎂"
 prepared = true
-# Pies y tartas por su sabor dulce: «pie» suelto es también un pie de pollo y, en el catálogo y las consultas, un pie
-# («Plantilla Ortopédica Pie Plano», «crema para pies»). Sin «palmera»: en el catálogo son pijamas y prendedores.
+# Pies y tartas por su sabor dulce: "pie" suelto es también un pie de pollo y, en el catálogo y las consultas, un pie
+# ("Plantilla Ortopédica Pie Plano", "crema para pies"). Sin "palmera": en el catálogo son pijamas y prendedores.
 keywords = ["torta", "pastel", "kuchen", "queque", "cupcake", "muffin", "dona", "donut", "croissant", "medialuna", "berlín", "berlin", "pie de limón", "tarta dulce", "cinnamon roll", "rollo de canela", "macarons", "pastelito", "calzones rotos", "tartaleta", "churro", "milhoja", "mil hojas", "brazo de reina", "carrot cake", "pie de maracuyá", "pie de manzana", "pie de frambuesa", "pie de nuez", "pie de berries", "pie de frutos", "lemon pie", "key lime pie", "apple pie", "pumpkin pie"]
 
 [[concept]]
@@ -454,17 +454,17 @@ emoji = "🍜"
 keywords = ["sopa", "crema de", "caldo", "cubo de caldo", "sopa instantánea", "sopaipa", "consomé", "cazuela", "carbonada", "sopa de pollo"]
 avoid = ["manos", "corporal", "facial", "cuerpo", "pies", "labios", "peinar", "afeitar", "dental", "leche", "mani", "avellana", "chocolate", "maruchan", "nissin"]
 
-# La soya de la salsa de soya y del arroz para sushi: no la leche de soya ni el «Noris» de los lápices.
+# La soya de la salsa de soya y del arroz para sushi: no la leche de soya ni el "Noris" de los lápices.
 [[concept]]
 id = "despensa-asiatica"
 parent = "despensa"
 name = "Despensa asiática"
 emoji = "🥢"
 keywords = ["salsa de soya", "salsa de soja", "salsa soya", "salsa soja", "sillao", "kikkoman", "salsa hoisin", "salsa de ostras", "salsa de ostra", "lee kum kee", "alga nori", "aceite de sésamo", "aceite sésamo", "sesame oil", "mirin", "vinagre de arroz", "arroz para sushi", "papel de arroz", "gochujang", "pasta de miso", "jengibre para sushi", "gengibre para sushi", "palitos para sushi", "palillos chinos", "palitos chinos"]
-# Lo que también lleva un roll, un ramen o un salteado: en una consulta piden el plato («bowl base arroz de sushi»,
-# «arroz sushi con cerdo»). «arroz para sushi» sí es el producto.
+# Lo que también lleva un roll, un ramen o un salteado: en una consulta piden el plato ("bowl base arroz de sushi",
+# "arroz sushi con cerdo"). "arroz para sushi" sí es el producto.
 product_keywords = ["nori", "wakame", "wasabi", "miso", "kimchi", "shoyu", "hoisin", "panko", "salsa teriyaki", "fideos de arroz", "fideo de arroz", "tallarines de arroz", "jengibre encurtido", "arroz sushi", "arroz de sushi"]
-# Un plato preparado con soya, nori o panko (en la categoría «Sushi» o «Platos listos») no es despensa.
+# Un plato preparado con soya, nori o panko (en la categoría "Sushi" o "Platos listos") no es despensa.
 avoid = ["roll", "rolls", "piezas", "pzas", "ramen", "gyoza", "gyozas", "tempura", "ebi", "box", "combo", "gohan", "acevichado", "furai", "shampoo", "acondicionador", "lush", "noris", "staedtler", "acuarela", "lápiz", "lápices", "decoupage", "vape", "vaper", "puff", "pod"]
 
 # Frescos
@@ -672,7 +672,7 @@ emoji = "🧷"
 keywords = ["pañal", "pañales", "toallitas húmedas", "huggies", "pampers", "babysec", "pañal para adulto"]
 query_keywords = ["toallas humedas", "toallitas humedas", "toallitas"]
 # El nombre de bebé manda sobre la categoría (assign.py): toallitas de limpieza o íntimas no son de guagua, y sin tildes
-# ni ñ, «pañal» es «panal» («Carton Panal 10Mm», «Blusa Panal Estampada», «Molde Panal Abejas»).
+# ni ñ, "pañal" es "panal" ("Carton Panal 10Mm", "Blusa Panal Estampada", "Molde Panal Abejas").
 avoid = ["húmedas desinfectantes", "húmedas íntimas", "cartón panal", "blusa panal", "largo panal", "bola panal", "panal abejas", "panal de abejas"]
 
 [[concept]]
@@ -690,10 +690,10 @@ id = "articulos-bebe"
 parent = "bebe"
 name = "Artículos de bebé"
 emoji = "🧸"
-# Sin «ropa de bebé» ni «body de bebé»: esos productos son ropa por su categoría («Ropa bebés», «Bodies - Leotardos»).
+# Sin "ropa de bebé" ni "body de bebé": esos productos son ropa por su categoría ("Ropa bebés", "Bodies - Leotardos").
 keywords = ["mamadera", "chupete", "tetina", "mordedor", "babero", "coche de bebé", "silla de auto", "cuna", "extractor de leche", "pañalera", "bañera de bebé"]
-# El nombre de bebé manda sobre la categoría (assign.py): un chupete con sabor es un dulce («Bon Bon Bum Chupete Sabor a
-# Fresa») y sin tildes ni ñ, «cuña» es «cuna» («Cuña Niveladora Para Cerámicas», «Queso Cuña Pecorino»).
+# El nombre de bebé manda sobre la categoría (assign.py): un chupete con sabor es un dulce ("Bon Bon Bum Chupete Sabor a
+# Fresa") y sin tildes ni ñ, "cuña" es "cuna" ("Cuña Niveladora Para Cerámicas", "Queso Cuña Pecorino").
 avoid = ["chupete sabor", "chupetes sabor", "pin pop", "bon bon bum", "bom bom bum", "yogueta", "cuña niveladora", "cuña piñón", "queso cuña"]
 
 # Salud y cuidado personal
@@ -791,7 +791,7 @@ parent = "hogar"
 name = "Limpieza"
 emoji = "🧽"
 keywords = ["detergente", "lavaloza", "cloro", "limpiador", "desinfectante", "suavizante", "quitamanchas", "esponja", "lysol", "bolsas de basura", "insecticida", "limpiavidrios", "virutex", "cera para piso", "lavalozas", "cif", "omo", "ariel"]
-# «cosas para limpiar la casa» traía bombitas de defumación y un desinfectante de teléfono.
+# "cosas para limpiar la casa" traía bombitas de defumación y un desinfectante de teléfono.
 query_keywords = ["limpiar la casa", "para limpiar", "hacer aseo", "productos de aseo", "productos de limpieza"]
 
 [[concept]]
@@ -1063,7 +1063,7 @@ parent = "regalos"
 name = "Flores y regalos"
 emoji = "💐"
 keywords = ["flores", "ramo", "bouquet", "rosas", "arreglo floral", "caja de regalo", "gift card", "tarjeta de regalo", "desayuno sorpresa", "peluche de regalo"]
-# Las flores de Bach son un remedio («Bach Flores Rescue Gotas»).
+# Las flores de Bach son un remedio ("Bach Flores Rescue Gotas").
 avoid = ["bach"]
 
 # ─── Ocasiones: una necesidad que abarca varios conceptos ─────────────────────
@@ -1073,7 +1073,7 @@ name = "Asado"
 emoji = "🔥"
 keywords = ["asado", "parrilla", "parrillada", "quincho", "costillar al palo"]
 concepts = ["carnes", "carbon", "cerveza", "vino", "panaderia", "verduras", "salsas", "gaseosas"]
-# «asado de 6»: cuánto calcular por persona (Mochi lo dice con la cantidad de personas). La regla de la casa en Chile.
+# "asado de 6": cuánto calcular por persona (Mochi lo dice con la cantidad de personas). La regla de la casa en Chile.
 portion = { grams = 350, of = "carne" }
 
 [[occasion]]
@@ -1124,7 +1124,7 @@ concepts = ["panaderia", "fiambres", "quesos", "cafe", "te", "pasteleria", "unta
 id = "cumpleanos"
 name = "Cumpleaños"
 emoji = "🎂"
-# Sin alcohol: «cumpleaños de mi hijo» iba a Licores con ron y vodka (estaba en carrete).
+# Sin alcohol: "cumpleaños de mi hijo" iba a Licores con ron y vodka (estaba en carrete).
 keywords = ["cumpleaños", "cumple", "fiesta infantil", "cumpleaños infantil", "piñata", "torta de cumpleaños"]
 concepts = ["pasteleria", "decoracion", "golosinas", "juguetes-infantiles", "gaseosas"]
 vertical = "supermercado"  # por surtido ganaba el Mall (decoración y juguetes), sin torta ni bebidas; el súper tiene todo
@@ -1142,8 +1142,8 @@ vertical = "supermercado"
 id = "estudiar"
 name = "Noche de estudio"
 emoji = "📚"
-# «algo para estudiar toda la noche» traía toallas nocturnas. Como ocasión no le gana a lo que se nombra
-# («café pa estudiar» sigue siendo café). Express: abierto tarde y sin el aviso +18 de Licores.
+# "algo para estudiar toda la noche" traía toallas nocturnas. Como ocasión no le gana a lo que se nombra
+# ("café pa estudiar" sigue siendo café). Express: abierto tarde y sin el aviso +18 de Licores.
 keywords = ["para estudiar", "estudiar toda la noche", "noche de estudio", "para no dormir", "trasnochar"]
 concepts = ["energizantes", "cafe", "snacks-salados", "chocolates"]
 vertical = "conveniencia"
@@ -1182,7 +1182,7 @@ vertical = "chocolateria"  # por surtido ganaba Licores
 id = "regalo-nino"
 name = "Regalo para un niño"
 emoji = "🧸"
-# Antes caía en una búsqueda literal: «mi nieto viene… comprarle algo» traía pezoneras y pisco.
+# Antes caía en una búsqueda literal: "mi nieto viene… comprarle algo" traía pezoneras y pisco.
 keywords = ["mi nieto", "mi nieta", "mi sobrino", "mi sobrina", "regalo para un niño", "regalo para una niña", "regalo para niño", "regalo para niña", "para un niño", "para una niña", "cabros chicos", "chiquillos"]
 concepts = ["juguetes-infantiles", "juegos-mesa", "golosinas", "chocolates"]
 vertical = "mall"
@@ -1191,8 +1191,8 @@ vertical = "mall"
 id = "picnic"
 name = "Picnic"
 emoji = "🧺"
-# «qué compro para un picnic» traía una manta, un portacolación de bebé y chocolates «Picnic».
-# «picnic» suelto no: en el buscador son los chocolates Costa Picnic.
+# "qué compro para un picnic" traía una manta, un portacolación de bebé y chocolates "Picnic".
+# "picnic" suelto no: en el buscador son los chocolates Costa Picnic.
 keywords = ["un picnic", "de picnic", "al picnic", "dia de campo", "día de campo", "paseo al parque"]
 concepts = ["panaderia", "fiambres", "quesos", "frutas", "jugos", "snacks-salados", "galletas"]
 vertical = "supermercado"
@@ -1202,8 +1202,8 @@ plan = false  # no es (todavía) un plan de la Home; la búsqueda y Mochi sí la
 id = "bebestibles"
 name = "Bebestibles"
 emoji = "🥤"
-# Era una palabra de las bebidas gaseosas: «para tomar» calzaba la descripción de un ginger ale y salían solo tres.
-# Sin alcohol: Mochi no lo propone por su cuenta («cerveza para tomar» sigue siendo cerveza).
+# Era una palabra de las bebidas gaseosas: "para tomar" calzaba la descripción de un ginger ale y salían solo tres.
+# Sin alcohol: Mochi no lo propone por su cuenta ("cerveza para tomar" sigue siendo cerveza).
 keywords = ["para tomar", "algo para tomar", "de tomar", "algo de tomar", "para beber", "algo para beber", "bebestibles"]
 concepts = ["gaseosas", "jugos", "agua"]
 plan = false
@@ -1212,8 +1212,8 @@ plan = false
 id = "frio"
 name = "Para el frío"
 emoji = "🧣"
-# «algo calentito que hace frío» traía una compresa de frío y calor y ampolletas. Frases, no «calentito» suelto:
-# «algo calentito para la once» es la once.
+# "algo calentito que hace frío" traía una compresa de frío y calor y ampolletas. Frases, no "calentito" suelto:
+# "algo calentito para la once" es la once.
 keywords = ["hace frio", "hace frío", "para el frio", "para el frío", "dia de lluvia", "día de lluvia", "esta lloviendo", "está lloviendo"]
 concepts = ["sopas", "te", "cafe"]
 plan = false

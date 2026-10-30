@@ -1,5 +1,5 @@
 /*
- * Buscador con Mochi. Entra deslizándose desde la derecha, como el buscador de «Rappi hoy»; lo nuevo:
+ * Buscador con Mochi. Entra deslizándose desde la derecha, como el buscador de "Rappi hoy"; lo nuevo:
  * el borde con degradado de la barra de la Home da una vuelta en el campo, Mochi aparece saludando y los bloques
  * suben uno tras otro. Todo con transform y opacity: corre en la GPU, sin mover el layout.
  */
@@ -23,7 +23,7 @@
   transition-timing-function: cubic-bezier(0.4, 0, 0.8, 0.4);
 }
 
-/* ---------- Encabezado: el de «Rappi hoy», con el campo de Mochi ---------- */
+/* ---------- Encabezado: el de "Rappi hoy", con el campo de Mochi ---------- */
 .agent-search-header {
   position: relative;
   margin: 0;
@@ -80,7 +80,7 @@
   animation-delay: 390ms;
 }
 
-/* Hasta la primera respuesta solo se ven el encabezado de Mochi y su «escribiendo…»: lo demás no ocupa lugar (lo que
+/* Hasta la primera respuesta solo se ven el encabezado de Mochi y su "escribiendo…": lo demás no ocupa lugar (lo que
    llega mientras tanto no los mueve) y aparece con el saludo, con su animación de entrada */
 .assistant.is-waiting .agent-card > :not(.agent-card-head, .agent-msg-row),
 .assistant.is-waiting .taste-ladder,
@@ -204,7 +204,7 @@
   text-decoration: underline;
 }
 
-/* Área táctil de 44 px de alto para «Olvidar» */
+/* Área táctil de 44 px de alto para "Olvidar" */
 .assistant-learning button::before {
   content: '';
   position: absolute;
@@ -597,7 +597,7 @@
   font-weight: 800;
 }
 
-/* «Pídele a Mochi»: primera fila del buscador mientras se escribe (AskAgentRow) */
+/* "Pídele a Mochi": primera fila del buscador mientras se escribe (AskAgentRow) */
 .agent-ask-row {
   display: flex;
   align-items: center;
@@ -666,7 +666,7 @@
   color: var(--accent-ink);
 }
 
-/* ---------- Aviso de IA y memoria (bajo «Aprendiendo de ti») ---------- */
+/* ---------- Aviso de IA y memoria (bajo "Aprendiendo de ti") ---------- */
 .agent-ai-notice {
   margin: 6px var(--gutter) 0;
   font-size: 12px;
@@ -674,7 +674,7 @@
   color: var(--ink-3);
 }
 
-/* ---------- Mientras espera la respuesta: qué hace y «Cancelar» ---------- */
+/* ---------- Mientras espera la respuesta: qué hace y "Cancelar" ---------- */
 .agent-msg-thinking {
   display: flex;
   align-items: center;
@@ -788,7 +788,7 @@
   color: #c2410c;
 }
 
-/* ---------- «Mis preferencias» ---------- */
+/* ---------- "Mis preferencias" ---------- */
 .agent-prefs-title {
   margin: 14px 0 6px;
   font-size: 14px;
@@ -828,7 +828,7 @@
   color: #b42318;
 }
 
-/* ---------- «Pedir por mí»: lo de siempre y su ventana de deshacer ---------- */
+/* ---------- "Pedir por mí": lo de siempre y su ventana de deshacer ---------- */
 .agent-auto-window {
   margin-top: 10px;
   padding-top: 10px;
@@ -845,7 +845,7 @@
   font-weight: 700;
 }
 
-/* La misma barra que «Deshacer pedido» en el checkout (checkout.css: checkout-undo-bar). */
+/* La misma barra que "Deshacer pedido" en el checkout (checkout.css: checkout-undo-bar). */
 .agent-auto-bar {
   display: block;
   height: 6px;

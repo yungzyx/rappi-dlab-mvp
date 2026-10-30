@@ -72,7 +72,7 @@ def test_kpis_rhythm_risk_and_cart_abandonment_are_exact(db):
 
 def test_a_cart_split_in_two_verticals_is_one_purchase(db, monkeypatch):
     """Pizza más bebidas de Licores son dos pedidos de un mismo carro, pero una sola compra: quien no volvió en 50
-    días sigue «sin segunda compra», no «perdido». En la retención multi-vertical cuenta como 1 compra."""
+    días sigue "sin segunda compra", no "perdido". En la retención multi-vertical cuenta como 1 compra."""
     seed_taxonomy(db, load_taxonomy())
     _order(db, "u1", 0, "restaurantes", "pizza", cart="c-1")
     _order(db, "u1", 0, "licores", "cerveza", cart="c-1")
@@ -99,7 +99,7 @@ def test_a_cart_split_in_two_verticals_is_one_purchase(db, monkeypatch):
 
 
 def test_purged_searches_without_concept_do_not_become_a_null_opportunity(db):
-    """La purga de 90 días borra el texto: sin concepto ni consulta no hay nada que mostrar (antes, fila «null»)."""
+    """La purga de 90 días borra el texto: sin concepto ni consulta no hay nada que mostrar (antes, fila "null")."""
     seed_taxonomy(db, load_taxonomy())
     events.record(
         db,
@@ -115,7 +115,7 @@ def test_purged_searches_without_concept_do_not_become_a_null_opportunity(db):
 
 
 def test_where_it_exists_follows_the_rule_the_agent_uses(db):
-    """El panel no pide que Mochi ofrezca algo donde Mochi no lo haría: 3 «comidas peruanas» en farmacia (un
+    """El panel no pide que Mochi ofrezca algo donde Mochi no lo haría: 3 "comidas peruanas" en farmacia (un
     laxante mal etiquetado) no son oferta, y la cerveza no se busca en restaurantes porque no se pide hecha."""
     seed_taxonomy(db, load_taxonomy())
     db.execute("DROP MATERIALIZED VIEW concept_assortment")
@@ -307,7 +307,7 @@ def test_funnel_counts_orders_whose_search_was_in_another_vertical(db):
 
 
 def test_adding_from_a_list_without_searching_also_enters_the_funnel(db):
-    """El «+» de una lista (la pantalla de una vertical, Ofertas, «Para ti») solo manda cart_add: quien entra a
+    """El "+" de una lista (la pantalla de una vertical, Ofertas, "Para ti") solo manda cart_add: quien entra a
     Súper desde la Home, agrega una cerveza y paga sin buscar ni chatear también llega a la vertical."""
     seed_taxonomy(db, load_taxonomy())
     line = [{"entity_type": "catalog_item", "entity_id": "1", "concept_id": "cerveza", "unit_price": 1000}]
@@ -418,7 +418,7 @@ def test_funnel_is_monotonic_and_cohorts_are_percentages(simulated, monkeypatch)
 
 def test_some_synthetic_sessions_find_products_and_leave_without_adding(simulated):
     """Solo se iban sin agregar las búsquedas sin resultado: en las verticales sin demanda no satisfecha el embudo
-    marcaba exactamente 100 % de «buscan» a «agregan»."""
+    marcaba exactamente 100 % de "buscan" a "agregan"."""
     db, _ = simulated
     found, left = db.execute(
         """SELECT count(*), count(*) FILTER (WHERE NOT EXISTS (
@@ -509,7 +509,7 @@ def test_synthetic_sessions_also_use_the_services(simulated):
 
 
 def test_synthetic_carts_are_also_abandoned_after_starting_payment(simulated):
-    """El inicio de pago se emitía solo junto con el pedido, así que «pagan» era siempre igual a «piden». Ahora una
+    """El inicio de pago se emitía solo junto con el pedido, así que "pagan" era siempre igual a "piden". Ahora una
     parte de los carros abandonados alcanza a iniciar el pago, y el resto se va antes."""
     db, _ = simulated
     carts = dict(
@@ -522,7 +522,7 @@ def test_synthetic_carts_are_also_abandoned_after_starting_payment(simulated):
 
 
 def test_synthetic_suggestions_go_to_the_vertical_the_agent_would_choose(db):
-    """El generador sorteaba la vertical entre todas las que tienen 1 ítem del concepto: «Cerveza · Farmacia»
+    """El generador sorteaba la vertical entre todas las que tienen 1 ítem del concepto: "Cerveza · Farmacia"
     encabezaba la tabla de sugerencias. Ahora usa el orden de Mochi (`ranked_verticals`) y sus guardias de ofertas:
     la cerveza (el primer complemento de la pizza y de las papas) nunca se sugiere."""
     for store_id, vertical in [(2, "supermercado"), (3, "conveniencia"), (4, "farmacia"), (5, "mall"), (7, "licores")]:
@@ -651,9 +651,9 @@ def test_multi_vertical_retention_is_exact(db, monkeypatch):
             _retention_order(db, user, 70, "supermercado"),
         )
     _retention_order(db, "s1", 0, "supermercado"), _retention_order(db, "s1", 10, "supermercado")
-    _retention_order(db, "s1", 70, "licores")  # la segunda vertical llega tarde: sigue siendo «un vertical»
+    _retention_order(db, "s1", 70, "licores")  # la segunda vertical llega tarde: sigue siendo "un vertical"
     _retention_order(db, "s2", 0, "supermercado"), _retention_order(db, "s2", 10, "supermercado")  # no vuelve
-    for user in ("x1", "x2"):  # 6 compras: estrato «6+»
+    for user in ("x1", "x2"):  # 6 compras: estrato "6+"
         for day in range(0, 60, 10):
             _retention_order(db, user, day, "supermercado")
     _retention_order(db, "n1", 150, "supermercado")  # sin 120 días de historia: fuera

@@ -1,5 +1,5 @@
-"""«Sin resultado» cuando la consulta no nombra un concepto (`retrieval.hybrid._unmet`): con una ocasión decide el τ de
-la vertical; sin ocasión, el de la búsqueda agrupada (`UNNAMED_TAU`). En la base real, «sofá de tres cuerpos» en Turbo
+""" "Sin resultado" cuando la consulta no nombra un concepto (`retrieval.hybrid._unmet`): con una ocasión decide el τ de
+la vertical; sin ocasión, el de la búsqueda agrupada (`UNNAMED_TAU`). En la base real, "sofá de tres cuerpos" en Turbo
 (coseno 0,821) pasaba el τ de Turbo (0,79) y mostraba pisco Tres Erres."""
 
 import pytest
@@ -25,7 +25,7 @@ def test_without_concept_or_occasion_the_vertical_tau_is_not_enough():
 
 
 def test_with_an_occasion_the_vertical_tau_decides():
-    """«regalo para mi polola»: lo pedido son productos que su nombre no dice; ahí los vecinos vectoriales sirven."""
+    """ "regalo para mi polola": lo pedido son productos que su nombre no dice; ahí los vecinos vectoriales sirven."""
     assert unmet(0.78, names_occasion=True) == (True, "sin coincidencia léxica ni concepto; coseno máx 0.780 < τ 0.79")
     assert not unmet(0.80, names_occasion=True)[0]
 
@@ -34,7 +34,7 @@ def test_the_occasion_does_not_change_the_other_conditions():
     assert not unmet(0.5, strict=1)[0]  # algo calza todas las palabras
     assert not unmet(0.5, names_concept=True, concept_here=True)[0]
     assert unmet(0.95, names_concept=True)[0]  # el concepto nombrado no está en la vertical
-    assert not unmet(0.5, has_words=False)[0]  # «té»: sin palabras, el coseno solo no basta
+    assert not unmet(0.5, has_words=False)[0]  # "té": sin palabras, el coseno solo no basta
 
 
 @pytest.mark.parametrize(

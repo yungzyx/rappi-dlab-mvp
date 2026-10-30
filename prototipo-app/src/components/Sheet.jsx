@@ -7,8 +7,8 @@ const CLOSE_MS = 260
 
 /**
  * Hoja inferior dentro del teléfono (dirección, carrito). Se cierra tocando el fondo. `overPhone`: la hoja se dibuja
- * directo en el teléfono y no dentro de quien la abre (el buscador con Mochi tiene su propia capa, y la barra «Pedido en
- * curso» o la del carro quedaban encima de sus hojas).
+ * directo en el teléfono y no dentro de quien la abre (el buscador con Mochi tiene su propia capa, y la barra "Pedido en
+ * curso" o la del carro quedaban encima de sus hojas).
  */
 export default function Sheet({ open, onClose, title, children, overPhone = false }) {
   const [mounted, setMounted] = useState(open)

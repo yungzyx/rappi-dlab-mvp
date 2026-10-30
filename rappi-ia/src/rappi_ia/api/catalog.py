@@ -72,7 +72,7 @@ def store_for_you_tab(
     user_id: Annotated[str, Query(min_length=1, max_length=64)],
     conn: Connection = Depends(get_conn),
 ) -> dict:
-    """«Para ti» en la tienda: lo que tiene de los intereses de la persona, con las guardias de las ofertas (vacío si
+    """ "Para ti" en la tienda: lo que tiene de los intereses de la persona, con las guardias de las ofertas (vacío si
     nada calza). `request_id` va en los eventos de lo que se toque."""
     return {**store_for_you(conn, store_id, user_id), "request_id": served_request_id()}
 
@@ -85,8 +85,8 @@ def product_store_list(
     sustitutos: bool = False,
     conn: Connection = Depends(get_conn),
 ) -> dict:
-    """Dónde está un producto del catálogo: cada tienda con su precio, tiempo y envío, las marcas «Mejor precio» y «Más
-    rápido», la tienda `store_id` (`here`, con «Pocas unidades») y, si ahí está agotado, productos similares.
+    """Dónde está un producto del catálogo: cada tienda con su precio, tiempo y envío, las marcas "Mejor precio" y "Más
+    rápido", la tienda `store_id` (`here`, con "Pocas unidades") y, si ahí está agotado, productos similares.
     `sustitutos=true` los trae aunque esté disponible: los sustitutos del mismo concepto para los cambios en vivo."""
     reply = product_stores(conn, entity_id, store_id, sustitutos) if entity_type == "catalog_item" else None
     if reply is None:
@@ -119,7 +119,7 @@ def product(entity_type: str, entity_id: str, conn: Connection = Depends(get_con
 
 @router.post("/availability")
 def availability(body: AvailabilityIn, conn: Connection = Depends(get_conn)) -> dict:
-    """«Pídelo de nuevo»: cada línea de un pedido anterior con su precio vigente en la misma tienda (`v_latest_offers`,
+    """ "Pídelo de nuevo": cada línea de un pedido anterior con su precio vigente en la misma tienda (`v_latest_offers`,
     o el último precio del plato en `latest_menu_prices`), en el orden pedido. `available: false` (y `price: null`) si
     ya no está a la venta ahí. No dice si la tienda está abierta: el catálogo no lo sabe en vivo."""
     lines = [line.model_dump() for line in body.lines]
@@ -151,7 +151,7 @@ def restaurant_list(
 
 @router.get("/restaurants/{store_id}/menu")
 def restaurant_menu_page(store_id: int, conn: Connection = Depends(get_conn)) -> dict:
-    """El restaurante con su menú por secciones; los populares primero en «Lo más pedido»."""
+    """El restaurante con su menú por secciones; los populares primero en "Lo más pedido"."""
     reply = restaurant_menu(conn, store_id)
     if reply is None:
         raise HTTPException(404, RESTAURANT_NOT_FOUND)

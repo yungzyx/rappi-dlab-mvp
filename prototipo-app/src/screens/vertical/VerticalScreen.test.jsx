@@ -108,7 +108,7 @@ describe('catálogo real en la vertical', () => {
     expect(screen.queryByText('Bajaron de precio')).toBeNull()
   })
 
-  test('la categoría Cervezas y sidras busca «cerveza» en Licores (en «Rappi hoy», el buscador plano)', async () => {
+  test('la categoría Cervezas y sidras busca "cerveza" en Licores (en "Rappi hoy", el buscador plano)', async () => {
     stubVertical('liquor')
     localStorage.setItem('rappi-proto-demo-mode', 'actual')
     const push = renderVertical('liquor')
@@ -135,7 +135,7 @@ describe('catálogo real en la vertical', () => {
     ])
   })
 
-  test('en la Propuesta, la categoría abre el buscador con Mochi ya con «cerveza»', async () => {
+  test('en la Propuesta, la categoría abre el buscador con Mochi ya con "cerveza"', async () => {
     stubVertical('liquor')
     const push = renderVertical('liquor')
     fireEvent.click(screen.getByText('Cervezas y sidras'))
@@ -260,7 +260,7 @@ describe('sin la API', () => {
 })
 
 describe('entradas al embudo desde una vertical', () => {
-  test('el buscador se abre con la vertical de la pantalla (en «Rappi hoy», el plano)', () => {
+  test('el buscador se abre con la vertical de la pantalla (en "Rappi hoy", el plano)', () => {
     stubVertical('liquor')
     localStorage.setItem('rappi-proto-demo-mode', 'actual')
     const push = renderVertical('liquor')
@@ -277,7 +277,7 @@ describe('entradas al embudo desde una vertical', () => {
   })
 })
 
-describe('sin «Para ti, de otras tiendas»', () => {
+describe('sin "Para ti, de otras tiendas"', () => {
   test('en el prototipo final, entrar a una vertical no muestra sugerencias de otras tiendas', async () => {
     stubVertical('liquor')
     renderVertical('liquor')

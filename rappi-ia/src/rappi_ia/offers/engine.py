@@ -5,9 +5,9 @@ Momentos (`POST /agent/offer`): `plan` (el kit de una ocasión que la persona el
 otra tienda), `checkout`, `proximo_pedido`, `sin_resultado` (dónde sí está lo que buscó), `vertical_por_probar` (la
 vertical que más sube la retención esperada de su combinación, según el motor, o RappiFavor o RappiTravel si ya pide en
 todas las que se ofrecen; sin ese paso, la vertical donde la persona aún no ha pedido y más le gusta, y sin historia, la
-primera), `recompra` («¿Repetimos?»: lo que la
-persona pide con ritmo y está por tocarle, según la tabla `replenishment` del motor), `volver` («¿Volvemos a…?»: lo
-que pedía con ritmo y dejó de pedir, `offers/winback.py`), `ontop` («Turbo: suma esto antes de…» sobre un pedido en
+primera), `recompra` ("¿Repetimos?": lo que la
+persona pide con ritmo y está por tocarle, según la tabla `replenishment` del motor), `volver` ("¿Volvemos a…?": lo
+que pedía con ritmo y dejó de pedir, `offers/winback.py`), `ontop` ("Turbo: suma esto antes de…" sobre un pedido en
 curso de otra vertical, con su plazo: `OnTopOffer`) y `perfil` (la escalera de
 un perfil de gusto, `offers/profiles.py`, con su forma propia: `ProfileOffer`). Si no hay una buena oferta, no hay
 oferta (`None`: 204): el agente no dice nada.
@@ -16,31 +16,31 @@ Los textos son plantillas en español. Una oferta nunca nombra un concepto que e
 de un complemento puede ser cerveza o pañales, y el texto no lo repite).
 
 Cada oferta dice por qué (`Offer.reason`): las claves de siempre (`occasion`, `concept`, `from_concept`), el `text`
-(«Porque…») y la `basis`: las señales del contexto que la motivan (`kind` carrito, pedido, busqueda, ocasion,
-sin_pedidos o perfil, este último en el momento `perfil` sin persona; e `id`; `source` «contexto» y sin `score`, que es
+("Porque…") y la `basis`: las señales del contexto que la motivan (`kind` carrito, pedido, busqueda, ocasion,
+sin_pedidos o perfil, este último en el momento `perfil` sin persona; e `id`; `source` "contexto" y sin `score`, que es
 de las señales de una persona en `offers/personal.py`). Lo que el agente no propone no entra a la base. Cuando la oferta
 se ordena por lo que le gusta a la persona (`vertical_por_probar` y las ocasiones de la Home), la `basis` son sus
 señales (`kind` concepto, con `score` y `source`) de los conceptos que más aportan. Cuando `vertical_por_probar` sigue
-el paso del motor, la `basis` parte con `combinacion` («<actual>→<objetivo>», con las combinaciones finas; `source`
-«rappi»: la tabla de Rappi, con «+supuesto» si pesó el supuesto del rendimiento decreciente y «+poblacion:<fuente>» si
+el paso del motor, la `basis` parte con `combinacion` ("<actual>→<objetivo>", con las combinaciones finas; `source`
+"rappi": la tabla de Rappi, con "+supuesto" si pesó el supuesto del rendimiento decreciente y "+poblacion:<fuente>" si
 pesó la retención aprendida) y suma de dónde salen los productos: `compra_cruzada`
-(«<A>→<B>@<vertical>»; si A no se nombra, «<B>@<vertical>» junto a `lo_mas_pedido`) o `lo_mas_pedido`
-(«<vertical>»), con `source` «poblacion:<fuente>», y `vuelta` («<vertical>», `source` «pedidos») si la persona ya pidió
+("<A>→<B>@<vertical>"; si A no se nombra, "<B>@<vertical>" junto a `lo_mas_pedido`) o `lo_mas_pedido`
+("<vertical>"), con `source` "poblacion:<fuente>", y `vuelta` ("<vertical>", `source` "pedidos") si la persona ya pidió
 ahí hace más de un mes; el texto habla de la persona, nunca de cifras de retención ni de lo que hace la población. Si
 el paso es un servicio sin catálogo, la oferta no trae productos: lo presenta y su acción abre su pantalla. La
-`recompra` lleva su señal `recompra` («<concepto>», `source` «pedidos»: sale de los pedidos de la persona) y `volver`,
-la suya: `volver` («<concepto>») si dejó un concepto o `vuelta` («<vertical>») si dejó una vertical, las dos con
-`source` «pedidos». `ontop` lleva de dónde salen sus productos (`compra_cruzada`, `lo_mas_pedido` u `ofertas`) y la
-señal `ontop` («turbo@<plazo>min», `source` «rappi+supuesto»: el módulo es de la app de Rappi, pero el plazo y el envío
+`recompra` lleva su señal `recompra` ("<concepto>", `source` "pedidos": sale de los pedidos de la persona) y `volver`,
+la suya: `volver` ("<concepto>") si dejó un concepto o `vuelta` ("<vertical>") si dejó una vertical, las dos con
+`source` "pedidos". `ontop` lleva de dónde salen sus productos (`compra_cruzada`, `lo_mas_pedido` u `ofertas`) y la
+señal `ontop` ("turbo@<plazo>min", `source` "rappi+supuesto": el módulo es de la app de Rappi, pero el plazo y el envío
 sin costo extra son supuestos propios). Un
 complemento de una persona (`carrito`, `checkout`,
 `proximo_pedido`) suma `combinacion` si entre dos parecidos ganó el de la vertical que completa su combinación, y
 `compra_cruzada` si lo trajo una regla de la población (`agent.tools.suggest_complement`). Un complemento cuyo primer
 producto es de una marca que la persona compra lo dice en el `text` y suma esa señal (`marca`, con los pedidos como
-`score`). En el momento `perfil` de una persona, el porqué es el «por qué» de su perfil y la `basis`, la suya
+`score`). En el momento `perfil` de una persona, el porqué es el "por qué" de su perfil y la `basis`, la suya
 (`offers/profiles.py`):
-la evidencia de sus segmentos (`source` «segmento:<id>», el peso de su nivel como `score`) y lo que pidió y buscó
-(`source` «pedidos» o «busquedas», cuántas veces como `score`).
+la evidencia de sus segmentos (`source` "segmento:<id>", el peso de su nivel como `score`) y lo que pidió y buscó
+(`source` "pedidos" o "busquedas", cuántas veces como `score`).
 """
 
 from dataclasses import dataclass, field
@@ -95,7 +95,7 @@ from .profiles import (
 from .winback import BASIS_KINDS, NO_PAUSE, REPEAT_AHEAD_DAYS, Lapse, Paused, available, lapses, paused, repeat_due
 
 KIT_SIZE = 4  # productos del kit de una ocasión
-# El concepto ya está elegido: la búsqueda léxica de su nombre (miles de platos «pizza») costaba ~140 ms por búsqueda en
+# El concepto ya está elegido: la búsqueda léxica de su nombre (miles de platos "pizza") costaba ~140 ms por búsqueda en
 # restaurantes y la vectorial ~11 ms. Se prueba primero la vectorial y, si no trae nada (sin modelo, o documentos sin
 # embeddings), la de siempre.
 KIT_VERTICALS = 3  # verticales que se prueban por concepto del kit (las más típicas)
@@ -112,7 +112,7 @@ DEAL_POOL = 200
 FOOD_VERTICALS = ("supermercado", "conveniencia", "turbo")
 FOOD_GROUPS = ("bebidas", "snacks", "dulces", "despensa", "frescos", "comida")
 
-# El orden de la Home: lo que ya muestra hoy (la app tiene «Película» para panorama); después, el resto de la taxonomía.
+# El orden de la Home: lo que ya muestra hoy (la app tiene "Película" para panorama); después, el resto de la taxonomía.
 HOME_OCCASIONS = ("once", "carrete", "asado", "panorama", "regalo")
 
 # El orden en que se propone una vertical por probar cuando nada le gusta más a la persona (Viajes no tiene catálogo).
@@ -129,27 +129,27 @@ TO_TRY_ORDER = (
 
 # Plantillas. {origen} es el concepto de lo que ya lleva (solo si el agente puede proponerlo), {destino} el que se
 # ofrece.
-PLAN_TEXT = "Tu kit «{occasion}»: {concepts}, de {verticals}."  # el nombre de la ocasión va tal cual, sin gramática
+PLAN_TEXT = 'Tu kit "{occasion}": {concepts}, de {verticals}.'  # el nombre de la ocasión va tal cual, sin gramática
 PLAN_ACTION = "Más ideas"
 CART_TEXT = "Para acompañar {origen}: {destino}, en {vertical}."
 CART_TEXT_ANONYMOUS = "Para completar tu pedido: {destino}, en {vertical}."
 CHECKOUT_TEXT = "Para completar lo que llevas: {destino}, en {vertical}."
 NEXT_ORDER_TEXT = "Para tu próximo pedido: {destino}, en {vertical}."
-NO_RESULT_TEXT = "No encontré «{query}», pero {destino} sí hay en {vertical}."
+NO_RESULT_TEXT = 'No encontré "{query}", pero {destino} sí hay en {vertical}.'
 TO_TRY_TEXT = "Aún no pides en {vertical}: mira {what}."
 TO_TRY_DEALS = "estas ofertas"
 TO_TRY_DISHES = "lo que más piden"
 # Por qué se ofrece (`reason.text`). {emoji} {name} es el concepto de lo que ya hay en el carrito o en el pedido.
-REASON_PLAN = "Porque elegiste «{occasion}»."
+REASON_PLAN = 'Porque elegiste "{occasion}".'
 REASON_CART = "Porque llevas {emoji} {name}."
 REASON_CART_ANONYMOUS = "Para completar lo que llevas."
 REASON_NEXT = "Porque pediste {emoji} {name}."
 REASON_NEXT_ANONYMOUS = "Para acompañar lo que pediste."
-REASON_NO_RESULT = "Porque buscaste «{query}» y aquí sí hay."
+REASON_NO_RESULT = 'Porque buscaste "{query}" y aquí sí hay.'
 REASON_TO_TRY = "Porque aún no pides en {vertical}."
 # La vertical por probar del paso del motor: con compra cruzada, {origen} es el concepto de la persona que dispara la
 # regla y {destino} el que se ofrece; con lo más pedido de la población, la vertical. Los conceptos son singulares
-# («sushi»), plurales («frutas») o compuestos («sándwiches y completos»): las plantillas no llevan artículo ni verbo que
+# ("sushi"), plurales ("frutas") o compuestos ("sándwiches y completos"): las plantillas no llevan artículo ni verbo que
 # deba concordar con ellos. El porqué no afirma lo que hace la población (en la demo es simulada): la `basis` declara
 # la fuente. Una regla de un concepto a sí mismo en otra vertical (lácteos → lácteos en Turbo) tiene su propio texto.
 TO_TRY_CROSS_TEXT = "Para tu pedido de {origen}: {destino} en {vertical}."
@@ -158,7 +158,7 @@ TO_TRY_SAME_TEXT = "También hay {destino} en {vertical}."
 REASON_TO_TRY_SAME = "Porque pides {emoji} {name}; en {vertical} también hay."
 TO_TRY_TOP_TEXT = "Lo más pedido en {vertical}."
 REASON_TO_TRY_TOP = "Porque aún no pides en {vertical}: esto es lo que más se pide."
-# Una regla eligió los productos, pero lo que pide la persona no se nombra: no son «lo más pedido» de la población.
+# Una regla eligió los productos, pero lo que pide la persona no se nombra: no son "lo más pedido" de la población.
 TO_TRY_RULE_TEXT = "Para sumar en {vertical}."
 # Una vertical del paso que la persona ya probó (pidió ahí hace más de un mes: no está en su combinación de 30 días).
 BACK_TEXT = "Vuelve a {vertical}: mira {what}."
@@ -172,13 +172,13 @@ REASON_SERVICE = {
     "favor": "Porque ya pides en {n} verticales: {servicio} te ayuda con lo que no está en la app.",
     "travel": "Porque ya pides en {n} verticales: con {servicio} planeas el viaje.",
 }
-# La recompra: {destino} es el concepto, {cada} cada cuánto lo pide («cada día» o «cada N días», `_every`) y {hace}
-# «hoy», «ayer» o «hace N días».
+# La recompra: {destino} es el concepto, {cada} cada cuánto lo pide ("cada día" o "cada N días", `_every`) y {hace}
+# "hoy", "ayer" o "hace N días".
 REPEAT_TEXT = "¿Repetimos {destino}? Pides {cada}."
 REASON_REPEAT = "Porque pides {destino} {cada} y tu último pedido fue {hace}."
 REPEAT_ACTION = "Ver producto"  # abre su tienda con el producto destacado; la aceptación cuenta al agregarlo al carro
-# «¿Volvemos a…?»: {destino} es el concepto, {cada} cada cuánto lo pedía, {n} los días desde su último pedido y {veces}
-# los días con pedido en la vertical. Sin pronombre ni verbo que deba concordar con el concepto («galletas», «sushi»).
+# "¿Volvemos a…?": {destino} es el concepto, {cada} cada cuánto lo pedía, {n} los días desde su último pedido y {veces}
+# los días con pedido en la vertical. Sin pronombre ni verbo que deba concordar con el concepto ("galletas", "sushi").
 WINBACK_TEXT = "¿Volvemos a {destino}? La última vez que pediste {destino} fue hace {n} días."
 REASON_WINBACK = "Porque pedías {destino} {cada} y la última vez fue hace {n} días."
 WINBACK_VERTICAL_TEXT = "¿Volvemos a {vertical}? Tu último pedido ahí fue hace {n} días."
@@ -189,9 +189,9 @@ OPEN_ACTION = "Abrir {vertical}"
 REASON_LIKES_VERTICAL = "Por tu interés en {emoji} {name}: en {vertical} hay más."
 REASON_LIKES_OCCASION = "Por tu interés en {emoji} {name}."
 REASON_BRAND = " Es {brand}, la marca que compras."  # se suma al porqué de un complemento de su marca
-# El momento `perfil`: «Por tu gusto por» y el `gusto` del perfil (offers/perfiles.toml); sin él, el nombre del perfil.
+# El momento `perfil`: "Por tu gusto por" y el `gusto` del perfil (offers/perfiles.toml); sin él, el nombre del perfil.
 PROFILE_TEXT = "Por tu gusto por {likes}, mira esto en otras verticales."
-REASON_PROFILE = "Porque elegiste «{name}»."  # sin persona, o con un perfil que no es suyo
+REASON_PROFILE = 'Porque elegiste "{name}".'  # sin persona, o con un perfil que no es suyo
 TRIP_SERVICE = "rappitravel"  # el servicio de la taxonomía al que lleva el viaje (sin catálogo)
 TRIP_LABEL = "Idea para {service}"
 ONTOP_VERTICAL = "turbo"
@@ -208,7 +208,7 @@ BASIS_CONCEPTS = 3  # conceptos que más aportan, de los que la `basis` de una o
 
 class OfferError(ValueError):
     """La petición no tiene sentido (una ocasión o un perfil que no existe, o una ocasión que el agente no arma): un
-    422, no un «sin oferta»."""
+    422, no un "sin oferta"."""
 
 
 @dataclass
@@ -249,7 +249,7 @@ class ProfileOffer:
     RappiTravel)."""
 
     text: str
-    profile: dict  # id, nombre y emoji; con persona, además su nivel y su «por qué»
+    profile: dict  # id, nombre y emoji; con persona, además su nivel y su "por qué"
     steps: list[dict]  # `LadderStep.to_dict()`
     trip: dict | None
     reason: dict
@@ -270,7 +270,7 @@ class ProfileOffer:
 @dataclass
 class OnTopOffer(Offer):
     """La oferta del momento `ontop`: la de siempre, con el plazo para sumarla al pedido en curso (`plazo_min`, un
-    supuesto: la app arma «antes de las HH:MM» desde la hora del pedido)."""
+    supuesto: la app arma "antes de las HH:MM" desde la hora del pedido)."""
 
     window_min: int = ONTOP_WINDOW_MIN
 
@@ -297,7 +297,8 @@ def home_occasions(conn: Connection, interests: Interests) -> list[dict]:
 
 
 def _likes_reason(template: str, contributions: dict[str, float], interests: Interests, **format_args: str) -> dict:
-    """«Por tu interés en…»: el concepto que más aporta da el texto y la `basis`, las señales de los que más aportan."""
+    """ "Por tu interés en…": el concepto que más aporta da el texto y la `basis`, las señales de los que más
+    aportan."""
     top = sorted(contributions, key=lambda c: (-contributions[c], c))[:BASIS_CONCEPTS]
     concept = load_taxonomy().concepts[top[0]]
     text = template.format(emoji=concept.emoji, name=concept.name.lower(), **format_args)
@@ -342,7 +343,7 @@ def make_offer(
 # ── plan ─────────────────────────────────────────────────────────────────────
 def plan(conn: Connection, embedder: TextEmbedder | None, occasion_id: str, city: str | None = None) -> Offer | None:
     """El kit de una ocasión: un producto por concepto (hasta KIT_SIZE), de la vertical donde es típico y repartido
-    entre verticales, salvo que la ocasión tenga una fija (`vertical` en la taxonomía: «Hambre ya» es pedir comida
+    entre verticales, salvo que la ocasión tenga una fija (`vertical` en la taxonomía: "Hambre ya" es pedir comida
     lista): entonces sale de ahí. Es lo único que el agente arma con alcohol, con su marca +18, porque la persona eligió
     la ocasión; nunca con lo sensible, farmacia, bebé ni salud. Cada producto se puede destacar (`featured`: con foto y,
     los platos, sin relleno y de un local de `city`; sin ella, `config.PROFILE_CITY`).
@@ -353,7 +354,7 @@ def plan(conn: Connection, embedder: TextEmbedder | None, occasion_id: str, city
     taxonomy = load_taxonomy()
     occasion = taxonomy.occasions.get(occasion_id)
     if occasion is None or not plannable_occasion(occasion):
-        raise OfferError(f"{config.AGENT_NAME} no arma un kit de «{occasion_id}»")
+        raise OfferError(f'{config.AGENT_NAME} no arma un kit de "{occasion_id}"')
     concepts = [c for c in (taxonomy.concepts[i] for i in occasion.concepts) if is_plannable(c)]
     if embedder is not None:  # cada concepto se embebe una vez, en un solo lote, aunque se busque en varias verticales
         embedder = MemoizedQueryEmbedder(embedder)
@@ -403,7 +404,7 @@ def plan(conn: Connection, embedder: TextEmbedder | None, occasion_id: str, city
             verticals=_join([VERTICAL_LABELS.get(v, v) for v in verticals]),
         )
     )
-    # «Más ideas» busca lo que el agente busca para una ocasión: los nombres de sus primeros conceptos que arma
+    # "Más ideas" busca lo que el agente busca para una ocasión: los nombres de sus primeros conceptos que arma
     query = " ".join(c.name for c in concepts[:4])
     products = [p.to_dict() for _, p in kit]
     return PlanOffer(
@@ -504,7 +505,7 @@ def _kit_products(
 
 
 def _bare(product: Product, concept: Concept) -> bool:
-    """«POLLO», «Queso» o «el Pollo»: el nombre es una sola palabra (sin contar el artículo) o el del concepto mismo, y
+    """ "POLLO", "Queso" o "el Pollo": el nombre es una sola palabra (sin contar el artículo) o el del concepto mismo, y
     no dice qué producto es."""
     words = [w for w in tokens(product.name) if w not in ARTICLES]
     return len(words) <= 1 or normalize(product.name) == normalize(concept.name)
@@ -519,7 +520,7 @@ def complement(
     brands: dict[str, int] | None = None,
     user_id: str | None = None,
 ) -> Offer | None:
-    """Un complemento ofrecible (arista «complementa») de lo que hay en el carrito, el pedido o el producto, de otra
+    """Un complemento ofrecible (arista "complementa") de lo que hay en el carrito, el pedido o el producto, de otra
     vertical si la hay, y que no esté ya ahí. Lo que ya está puede ser cualquier cosa: solo se ofrece lo que el agente
     puede proponer. Con `brands` (las que la persona compra: brand_key → pedidos), si el primer producto es de una de
     ellas, el porqué la nombra. Con `user_id`, también sus compras cruzadas son candidatas y, entre dos complementos
@@ -594,7 +595,7 @@ def where_is_it(conn: Connection, embedder: TextEmbedder | None, query: str) -> 
 
 # ── vertical por probar ──────────────────────────────────────────────────────
 def tried_verticals(conn: Connection, user_id: str | None) -> set[str]:
-    """Las verticales donde la persona ya pidió (pedidos del modo `propuesta`; «Rappi hoy» no cuenta). Vacío sin
+    """Las verticales donde la persona ya pidió (pedidos del modo `propuesta`; "Rappi hoy" no cuenta). Vacío sin
     persona."""
     if user_id is None:
         return set()
@@ -626,7 +627,7 @@ def vertical_to_try(
 
 
 def _service_offer(conn: Connection, step: Step) -> Offer:
-    """«¿Conoces RappiFavor?»: el paso es un servicio sin catálogo, así que la oferta no trae productos; su acción abre
+    """ "¿Conoces RappiFavor?": el paso es un servicio sin catálogo, así que la oferta no trae productos; su acción abre
     su pantalla (y la app anota `service_opened`, con lo que la escalera sigue)."""
     service = load_taxonomy().services[load_combos().services[step.vertical]]
     pitch = service.pitch.strip().rstrip(".")
@@ -662,8 +663,8 @@ def _usual_offer(
     basis: tuple[dict, ...] = (),
     back: bool = False,
 ) -> Offer:
-    """La oferta de siempre de una vertical por probar: «Aún no pides en…» y, si algo de ahí le interesa, «Por tu
-    interés en…»; `basis` va antes de sus señales. Con `back` (una vertical del paso donde ya pidió), «Vuelve a…»."""
+    """La oferta de siempre de una vertical por probar: "Aún no pides en…" y, si algo de ahí le interesa, "Por tu
+    interés en…"; `basis` va antes de sus señales. Con `back` (una vertical del paso donde ya pidió), "Vuelve a…"."""
     label = VERTICAL_LABELS.get(vertical, vertical)
     what = TO_TRY_DISHES if vertical == "restaurantes" else TO_TRY_DEALS
     if back:
@@ -682,7 +683,7 @@ def _usual_offer(
 
 
 def _back_reason(vertical: str, basis: list[dict]) -> dict:
-    """«Porque hace más de un mes que no pides en…», con la señal `vuelta` (de sus pedidos) al final de `basis`."""
+    """ "Porque hace más de un mes que no pides en…", con la señal `vuelta` (de sus pedidos) al final de `basis`."""
     label = VERTICAL_LABELS.get(vertical, vertical)
     signal = {"kind": "vuelta", "id": vertical, "source": "pedidos"}
     return _reason(contract_articles(REASON_BACK.format(vertical=label)), [*basis, signal])
@@ -700,8 +701,8 @@ def _combo_offer(
     `next_verticals`), si tiene algo que mostrar: los productos de su mejor compra cruzada (`cross_picks`) si una regla
     la empujó, o los productos más pedidos ahí por la población (`trends`, `most_ordered`), o los del concepto más
     pedido ahí (la compra cruzada sin empuje), o sus ofertas o platos de siempre. La `basis` parte con el paso
-    (`combinacion`). Si ya pidió en esa vertical (hace más de un mes), lo más pedido y lo de siempre dicen «Vuelve
-    a…»; la compra cruzada sigue siendo cierta y no cambia."""
+    (`combinacion`). Si ya pidió en esa vertical (hace más de un mes), lo más pedido y lo de siempre dicen "Vuelve
+    a…"; la compra cruzada sigue siendo cierta y no cambia."""
     population = config.MOTOR_POBLACION
     combo = step_signal(conn, step, population)
     candidates = [step.vertical] if offerable_vertical(step.vertical) else []  # la guardia, aunque el paso ya la cumple
@@ -743,8 +744,8 @@ def _combo_offer(
 def _cross_offer(
     vertical: str, products: list[dict], pick: CrossPick, origin: Concept, combo: dict, population: str
 ) -> Offer:
-    """«Para tu pedido de…»: la compra cruzada que la regla de la población empujó desde lo que pide la persona; si la
-    regla va del concepto a sí mismo en otra vertical, «También hay… en…»."""
+    """ "Para tu pedido de…": la compra cruzada que la regla de la población empujó desde lo que pide la persona; si la
+    regla va del concepto a sí mismo en otra vertical, "También hay… en…"."""
     label = VERTICAL_LABELS.get(vertical, vertical)
     destino = load_taxonomy().concepts[pick.concept_id].name.lower()
     if pick.concept_id == origin.id:
@@ -765,9 +766,9 @@ def _cross_offer(
 def _top_offer(
     vertical: str, products: list[dict], combo: dict, population: str, back: bool = False, rule: dict | None = None
 ) -> Offer:
-    """«Lo más pedido en…»: lo que más pide la población en la vertical (o lo de un concepto que nadie empujó). Si lo
+    """ "Lo más pedido en…": lo que más pide la población en la vertical (o lo de un concepto que nadie empujó). Si lo
     eligió una regla de un concepto que no se nombra (su señal `compra_cruzada` es `rule`), no son lo más pedido:
-    «Para sumar en…». Con `back`, «Vuelve a…»."""
+    "Para sumar en…". Con `back`, "Vuelve a…"."""
     label = VERTICAL_LABELS.get(vertical, vertical)
     signal = {"kind": "lo_mas_pedido", "id": vertical, "source": f"poblacion:{population}"}
     basis = [combo, rule, signal] if rule else [combo, signal]
@@ -892,8 +893,8 @@ def _vertical_affinity(conn: Connection, interests: Interests) -> dict[str, dict
 def repeat_offer(
     conn: Connection, embedder: TextEmbedder | None, user_id: str | None, today: date | None = None
 ) -> Offer | None:
-    """«¿Repetimos?»: un concepto que la persona pide con ritmo (`replenishment`, que el motor recalcula después de
-    cada pedido suyo y de «Olvidar») y que le toca entre hace `interval_days` días y dentro de `REPEAT_AHEAD_DAYS`
+    """ "¿Repetimos?": un concepto que la persona pide con ritmo (`replenishment`, que el motor recalcula después de
+    cada pedido suyo y de "Olvidar") y que le toca entre hace `interval_days` días y dentro de `REPEAT_AHEAD_DAYS`
     (`today` es el día de Santiago). El más atrasado primero (empate: el concepto); solo conceptos y verticales que el
     agente propone por su cuenta. El producto es el último que compró del concepto, si sigue a la venta en esa
     vertical, o el primero que da la búsqueda del concepto ahí; un concepto sin producto se salta. Lo de un pedido mal
@@ -957,11 +958,11 @@ def _repeat_product(
 def winback_offer(
     conn: Connection, embedder: TextEmbedder | None, user_id: str | None, now: datetime | None = None
 ) -> Offer | None:
-    """«¿Volvemos a…?»: la primera invitación de la persona (`winback.lapses`, ya con las guardias) que se puede mostrar
-    ahora (`winback.available`: la pausa de 7 días es por persona y deja solo la ya mostrada) y tiene un producto: de un
-    concepto, el de la recompra (`_repeat_product`); de una vertical, lo último que compró ahí, con concepto, que siga
-    a la venta. Lo de un pedido mal calificado no se ofrece (`winback.paused`): ni su concepto ni sus tiendas. None
-    (204) sin persona o sin nada que le toque."""
+    """ "¿Volvemos a…?": la primera invitación de la persona (`winback.lapses`, ya con las guardias) que se puede
+    mostrar ahora (`winback.available`: la pausa de 7 días es por persona y deja solo la ya mostrada) y tiene un
+    producto: de un concepto, el de la recompra (`_repeat_product`); de una vertical, lo último que compró ahí, con
+    concepto, que siga a la venta. Lo de un pedido mal calificado no se ofrece (`winback.paused`): ni su concepto ni sus
+    tiendas. None (204) sin persona o sin nada que le toque."""
     if user_id is None:
         return None
     now = now or datetime.now(TZ)
@@ -1017,12 +1018,12 @@ def _last_bought_in(conn: Connection, user_id: str, vertical: str, hold: Paused 
 
 
 def _every(days: int) -> str:
-    """«cada día» o «cada N días»."""
+    """ "cada día" o "cada N días"."""
     return "cada día" if days == 1 else f"cada {days} días"
 
 
 def _days_ago(today: date, ts: datetime) -> str:
-    """«hoy», «ayer» o «hace N días», contando días de Santiago."""
+    """ "hoy", "ayer" o "hace N días", contando días de Santiago."""
     days = (today - ts.astimezone(TZ).date()).days
     return "hoy" if days <= 0 else "ayer" if days == 1 else f"hace {days} días"
 
@@ -1035,12 +1036,12 @@ def ontop_offer(
     entities: list[dict],
     user_id: str | None = None,
 ) -> OnTopOffer | None:
-    """«Turbo: suma esto antes de…» (el OnTop de la app de Rappi) sobre un pedido en curso de otra vertical (`vertical`,
-    la del pedido; uno de Turbo no tiene OnTop). Los productos son de Turbo, sin los del pedido (`entities`): los de su
-    mejor compra cruzada ahí (`motor/recommend.py:cross_picks`, que ya deja fuera lo que las guardias no ofrecen) o, si
-    ninguna tiene productos a la venta, lo más pedido en Turbo por la población (`most_ordered`) o sus ofertas. Todos
-    pasan las guardias (`_offerable_products`). El plazo y el envío sin costo extra son supuestos: van en la `basis`
-    con «+supuesto» y en el texto como «de ejemplo»."""
+    """ "Turbo: suma esto antes de…" (el OnTop de la app de Rappi) sobre un pedido en curso de otra vertical
+    (`vertical`, la del pedido; uno de Turbo no tiene OnTop). Los productos son de Turbo, sin los del pedido
+    (`entities`): los de su mejor compra cruzada ahí (`motor/recommend.py:cross_picks`, que ya deja fuera lo que las
+    guardias no ofrecen) o, si ninguna tiene productos a la venta, lo más pedido en Turbo por la población
+    (`most_ordered`) o sus ofertas. Todos pasan las guardias (`_offerable_products`). El plazo y el envío sin costo
+    extra son supuestos: van en la `basis` con "+supuesto" y en el texto como "de ejemplo"."""
     if vertical == ONTOP_VERTICAL or not offerable_vertical(ONTOP_VERTICAL):
         return None
     have = {(e["entity_type"], e["entity_id"]) for e in entities}
@@ -1094,13 +1095,13 @@ def profile_offer(
     spare: SpareConnector | None = None,
 ) -> ProfileOffer | None:
     """La escalera de un perfil de gusto. Sin `profile_id`, el primero de los perfiles de la persona (el principal y
-    después por puntaje); con él, ese perfil, y con su «por qué» solo si es uno de los suyos (si no, «Porque elegiste…»,
+    después por puntaje); con él, ese perfil, y con su "por qué" solo si es uno de los suyos (si no, "Porque elegiste…",
     como sin persona: lo que usan la demo y el contrato). El peldaño de restaurantes deja fuera los locales donde la
     persona ya pidió y muestra los de su ciudad (`person_city`). None (204) sin perfil o sin escalera; un perfil que
     no existe es un `OfferError` (422)."""
     profiles = load_profiles()
     if profile_id is not None and profile_id not in profiles:
-        raise OfferError(f"Perfil desconocido: «{profile_id}»")
+        raise OfferError(f'Perfil desconocido: "{profile_id}"')
     mine = {active.profile.id: active for active in active_profiles(conn, user_id)}  # en su orden
     if profile_id is None and not mine:
         return None
@@ -1137,7 +1138,7 @@ def profile_offer(
 
 
 def _profile_text(profile: Profile) -> str:
-    """«Por tu gusto por lo asiático…», con el `gusto` del perfil."""
+    """ "Por tu gusto por lo asiático…", con el `gusto` del perfil."""
     return PROFILE_TEXT.format(likes=profile.likes)
 
 
@@ -1278,5 +1279,5 @@ def _see_action(concept: Concept, vertical: str) -> dict:
 
 
 def _join(items: list[str]) -> str:
-    """«a, b y c»."""
+    """ "a, b y c"."""
     return items[0] if len(items) == 1 else ", ".join(items[:-1]) + " y " + items[-1]

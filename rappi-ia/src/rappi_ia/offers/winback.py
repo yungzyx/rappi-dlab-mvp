@@ -1,5 +1,5 @@
-"""«¿Volvemos a…?» (el momento `volver` de `POST /agent/offer`): a quién le toca una invitación a volver a pedir algo
-que pedía con ritmo y dejó de pedir. Complementa a la recompra («¿Repetimos?»), que solo ofrece lo que toca ahora: las
+""" "¿Volvemos a…?" (el momento `volver` de `POST /agent/offer`): a quién le toca una invitación a volver a pedir algo
+que pedía con ritmo y dejó de pedir. Complementa a la recompra ("¿Repetimos?"), que solo ofrece lo que toca ahora: las
 dos ventanas no se tocan.
 
 Quién califica (con el día `today` de Santiago):
@@ -16,10 +16,10 @@ respecto de su ritmo) y después las verticales (más días con pedido, después
 Para no insistir (`available`): la pausa es por persona. Si en los últimos `COOLDOWN_DAYS` días se le mostró una
 invitación, solo puede volver esa misma (si sigue calificando) y ninguna otra; una invitación descartada
 `MAX_DISMISSALS` veces después de su último pedido de eso no se ofrece más. Cuenta lo que registra la app con el origen
-`agent-volver` (`payload.kind` dice si es de un concepto o de una vertical); lo hecho en «Rappi hoy» no cuenta.
+`agent-volver` (`payload.kind` dice si es de un concepto o de una vertical); lo hecho en "Rappi hoy" no cuenta.
 
 Lo que salió mal no se vuelve a ofrecer (`paused`): un pedido `propuesta` calificado con 3 estrellas o menos
-(`app_orders.rating`, el evento `order_rated` de la app) pausa por `PAUSE_DAYS` días la recompra y el «volver» de los
+(`app_orders.rating`, el evento `order_rated` de la app) pausa por `PAUSE_DAYS` días la recompra y el "volver" de los
 conceptos de ese pedido, y ningún producto de sus tiendas se ofrece en ellas. Los 30 días son un supuesto propio, no una
 regla de Rappi.
 
@@ -65,7 +65,7 @@ class Lapse:
 
 @dataclass(frozen=True)
 class Paused:
-    """Lo que no se ofrece en la recompra ni en el «volver» por una calificación mala: conceptos y tiendas."""
+    """Lo que no se ofrece en la recompra ni en el "volver" por una calificación mala: conceptos y tiendas."""
 
     concepts: frozenset[str] = frozenset()
     stores: frozenset[int] = frozenset()
@@ -183,8 +183,8 @@ def lapses(
 
 
 def _same(lapse: Lapse, kind: str | None, concept: str | None, vertical: str | None) -> bool:
-    """Si un evento de la app es de esta invitación: la de un concepto lleva su concepto (y `payload.kind` «volver» o
-    nada); la de una vertical, `payload.kind` «vuelta» y su vertical. Así una invitación de concepto en el súper no
+    """Si un evento de la app es de esta invitación: la de un concepto lleva su concepto (y `payload.kind` "volver" o
+    nada); la de una vertical, `payload.kind` "vuelta" y su vertical. Así una invitación de concepto en el súper no
     cuenta como la del súper."""
     if lapse.kind == "concepto":
         return kind != BASIS_KINDS["vertical"] and concept == lapse.key
@@ -199,7 +199,7 @@ def available(conn: Connection, user_id: str, candidates: list[Lapse], now: date
     - la pausa es por persona: si en los últimos `COOLDOWN_DAYS` días se le mostró una, solo esa, si sigue calificando
       (y si no, ninguna).
     Cuentan los eventos con origen `agent-volver` (la columna `origin`, o `payload.origen` en los de antes de la
-    migración 043); los de «Rappi hoy» (`payload.mode = 'actual'`) no."""
+    migración 043); los de "Rappi hoy" (`payload.mode = 'actual'`) no."""
     if not candidates:
         return []
     now = now or datetime.now(UTC)
@@ -247,7 +247,7 @@ def reference_day(conn: Connection, source: str) -> date | None:
 
 
 def reach(conn: Connection, source: str) -> dict:
-    """A cuántas personas de la fuente les tocaría «¿Volvemos a…?» el día de referencia (`reference_day`), por el tipo
+    """A cuántas personas de la fuente les tocaría "¿Volvemos a…?" el día de referencia (`reference_day`), por el tipo
     de su primera invitación, y a cuántas la recompra, para comparar. Quien tiene recompra no cuenta como que califica
     (la Home le muestra la recompra). Sin productos ni lo ya mostrado: es quién califica, no a quién se le mostró."""
     today = reference_day(conn, source)
@@ -266,7 +266,7 @@ def reach(conn: Connection, source: str) -> dict:
         ):
             if repeat_due(due_on, interval, today) and _offerable_concept(concept_id, vertical):
                 repeat.add(user)
-    # A quien le toca la recompra, la Home le muestra «¿Repetimos?» y no esta invitación: no califica.
+    # A quien le toca la recompra, la Home le muestra "¿Repetimos?" y no esta invitación: no califica.
     first = [items[0].kind for user, items in found.items() if user not in repeat]
     return {
         "dia": today.isoformat() if today and source != "prototype" else None,

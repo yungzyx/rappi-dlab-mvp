@@ -225,7 +225,8 @@ def test_search_honours_mode_and_detects_query_concepts(client, monkeypatch):
 
 
 def test_search_corrects_typos_unless_asked_to_search_as_written(client):
-    """«cervezaaaa» no calza nada: /search corrige, vuelve a buscar y dice qué buscó; `correct=false` busca tal cual."""
+    """ "cervezaaaa" no calza nada: /search corrige, vuelve a buscar y dice qué buscó; `correct=false` busca tal
+    cual."""
     found = client.get("/search", params={"q": "cervezaaaa", "vertical": "licores"}).json()
     assert found["corrected_query"] == "cerveza" and found["products"] and not found["unmet"]
 
@@ -286,7 +287,7 @@ def test_beacon_rejects_huge_or_broken_bodies(client):
 
 def test_database_down_is_a_clear_503_not_a_500(monkeypatch):
     """Con Postgres caído la API responde claro, tras esperar una conexión del pool (API_POOL_TIMEOUT_S); la app muestra
-    «Sin conexión». Nadie tiene una conexión ocupada: no es «Hay mucha gente ahora»."""
+    "Sin conexión". Nadie tiene una conexión ocupada: no es "Hay mucha gente ahora"."""
     monkeypatch.setattr(config, "API_POOL_TIMEOUT_S", 0.2)
     pool = deps.make_pool("postgresql://127.0.0.1:1/rappi")  # nadie escucha en el puerto 1
     pool.open()

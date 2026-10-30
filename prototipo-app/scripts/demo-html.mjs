@@ -1,4 +1,4 @@
-// «Prototipo MVP.html» (npm run demo:html): la app en un solo archivo que abre con doble clic (file://), sin la API ni
+// "Prototipo MVP.html" (npm run demo:html): la app en un solo archivo que abre con doble clic (file://), sin la API ni
 // internet. Primero baja las miniaturas de las fotos de la muestra (scripts/demo-photos.mjs, con caché local); después
 // construye el modo demo (`vite build --mode demo`: la API simulada de src/api/offline/, la muestra del catálogo y sus
 // fotos) y mete el JS, el CSS (con fuentes e imágenes ya en base64) y el ícono dentro del HTML.
@@ -31,14 +31,14 @@ await build({ root: ROOT, mode: 'demo', logLevel: 'warn' })
 let html = readFileSync(`${DIST}index.html`, 'utf8')
 const read = (href) => readFileSync(`${DIST}${href.replace(/^\.\//, '')}`)
 
-// Dentro de un <script> o <style> en línea no puede aparecer su etiqueta de cierre (ni «<!--» en un script).
+// Dentro de un <script> o <style> en línea no puede aparecer su etiqueta de cierre (ni "<!--" en un script).
 function inlineText(text, tag) {
   if (text.includes(`</${tag}`) || (tag === 'script' && text.includes('<!--')))
-    throw new Error(`El ${tag} trae «</${tag}» o «<!--»: no se puede meter en línea tal cual`)
+    throw new Error(`El ${tag} trae "</${tag}" o "<!--": no se puede meter en línea tal cual`)
   return text
 }
 
-// Con una función como reemplazo, el código no pasa por los patrones «$&» o «$1» de String.replace.
+// Con una función como reemplazo, el código no pasa por los patrones "$&" o "$1" de String.replace.
 html = html
   .replace(/<script type="module" crossorigin src="([^"]+)"><\/script>/, (_, src) => {
     const code = inlineText(read(src).toString('utf8'), 'script')
@@ -58,7 +58,7 @@ html = html
   .replace(/<title>[^<]*<\/title>/, '<title>Prototipo MVP (demo sin conexión)</title>')
 
 for (const marker of ['src="./assets/', 'href="./assets/', 'rel="manifest"'])
-  if (html.includes(marker)) throw new Error(`El HTML todavía apunta a un archivo aparte («${marker}»)`)
+  if (html.includes(marker)) throw new Error(`El HTML todavía apunta a un archivo aparte ("${marker}")`)
 
 writeFileSync(OUT, html)
 const size = Buffer.byteLength(html)

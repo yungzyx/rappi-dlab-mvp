@@ -2,9 +2,9 @@
 
 Uso (con la API corriendo):  make probar-agente          # todas las rondas de src/rappi_ia/eval/frases_usuarios
                              make probar-agente FRASES=archivo.txt
-Las líneas que empiezan con # son comentarios; «frase|vertical» la manda desde esa vertical; «+ frase» sigue la
+Las líneas que empiezan con # son comentarios; "frase|vertical" la manda desde esa vertical; "+ frase" sigue la
 conversación (manda el `conversation` de la respuesta anterior, como el prototipo). No registra eventos (sin user_id).
-Leer la salida buscando: productos que no tienen que ver, verticales raras, avisos que sobran, «Lo anoté» para algo
+Leer la salida buscando: productos que no tienen que ver, verticales raras, avisos que sobran, "Lo anoté" para algo
 que sí existe. Ver docs/pruebas-de-usuario.md.
 """
 
@@ -44,7 +44,7 @@ def summary(text: str, r: dict, seconds: float) -> str:
         extra.append("botones: " + " / ".join(a["label"] for a in r["actions"][:3]))
     extra += [k for k in ("unmet", "age_notice") if r.get(k)]
     head = f"• {text!r} ({seconds:.1f}s) → {r.get('vertical') or '—'} {r.get('intent', {}).get('concepts', [])[:2]}"
-    return f"{head} | {names} | {' · '.join(extra)}\n    «{r.get('text', '')[:180]}»"
+    return f'{head} | {names} | {" · ".join(extra)}\n    "{r.get("text", "")[:180]}"'
 
 
 def main(paths: list[str]) -> None:

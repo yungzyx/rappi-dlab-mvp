@@ -39,7 +39,7 @@ partial=""
 echo "$(date '+%F %T') respaldo en $target"
 
 # Rotación: quedan los KEEP más nuevos por fecha de modificación (no por nombre: con otra zona horaria o un reloj
-# corregido, el nombre de uno nuevo puede quedar «antes» que los anteriores). El recién hecho nunca se borra.
+# corregido, el nombre de uno nuevo puede quedar "antes" que los anteriores). El recién hecho nunca se borra.
 for dump in "$BACKUPS"/nocturno_*.dump; do
   [ "$dump" != "$target" ] || continue
   newer=0

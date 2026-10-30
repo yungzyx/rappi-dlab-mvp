@@ -45,7 +45,7 @@ def test_model_loaded_with_pinned_revision(monkeypatch):
 
     assert e5._model.name == "intfloat/multilingual-e5-base"
     assert e5._model.revision == models.config.TEXT_EMBEDDING_REVISION
-    assert len(e5._model.revision) == 40 and int(e5._model.revision, 16) >= 0  # un commit, no «main»
+    assert len(e5._model.revision) == 40 and int(e5._model.revision, 16) >= 0  # un commit, no "main"
 
 
 class CountingCall:

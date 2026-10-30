@@ -6,7 +6,7 @@ import { loadStored, saveStored } from './storage'
 
 // Pedidos hechos en la demo, uno por tienda (como en la API: un carro con dos tiendas son dos pedidos, con el mismo
 // `cartId`). Se guardan en el navegador para que el seguimiento sobreviva a una recarga. Cada línea guarda su producto
-// (`product`, con su tienda y su vertical) para «Pídelo de nuevo», y el pedido su carro (`cartId`) y su tienda
+// (`product`, con su tienda y su vertical) para "Pídelo de nuevo", y el pedido su carro (`cartId`) y su tienda
 // (`storeId`), que es como la API encuentra el pedido que se califica o se cancela.
 const STORAGE_KEY = 'rappi-proto-orders'
 const MAX_ORDERS = 10
@@ -23,7 +23,7 @@ const isOrder = (order) =>
   Number.isFinite(order.total)
 
 /**
- * Al cargar, la pausa de «Cancelar pedido» se suelta: la hoja ya no está abierta (una recarga no la cierra) y el pedido
+ * Al cargar, la pausa de "Cancelar pedido" se suelta: la hoja ya no está abierta (una recarga no la cierra) y el pedido
  * quedaba detenido para siempre. La de un producto agotado (`heldBy: 'cambio'`) sigue: el pedido espera a la persona.
  */
 export const releaseStaleHolds = (orders, now = Date.now()) =>
@@ -33,7 +33,7 @@ export const releaseStaleHolds = (orders, now = Date.now()) =>
       : order,
   )
 
-/** El pedido que el «Panel de la demo» atrasa: el más reciente que va en curso (ni programado, ni entregado). */
+/** El pedido que el "Panel de la demo" atrasa: el más reciente que va en curso (ni programado, ni entregado). */
 const delayable = (orders, now) =>
   orders.find(
     (order) => !order.cancelled && !order.delay && !isAhead(order, now) && !isDelivered(secondsSince(order, now)),
@@ -92,7 +92,7 @@ export function OrdersProvider({ children }) {
   )
 
   // El reloj de un pedido se detiene mientras la persona decide algo que el pedido espera, y sigue donde quedó. `by`
-  // dice quién lo detuvo ('cancelar' o 'cambio'): cada uno suelta solo su pausa (cerrar «Cancelar pedido» no suelta la
+  // dice quién lo detuvo ('cancelar' o 'cambio'): cada uno suelta solo su pausa (cerrar "Cancelar pedido" no suelta la
   // de un producto agotado que sigue sin respuesta).
   const hold = useCallback(
     (id, by) => update(id, (order) => (order.heldAt ? {} : { heldAt: Date.now(), heldBy: by })),
@@ -108,7 +108,7 @@ export function OrdersProvider({ children }) {
     [update],
   )
 
-  // «Atrasar el pedido en curso» del «Panel de la demo» (solo en «Prototipo MVP.html»): en otros builds nadie lo manda.
+  // "Atrasar el pedido en curso" del "Panel de la demo" (solo en "Prototipo MVP.html"): en otros builds nadie lo manda.
   useEffect(() => {
     const onDelay = () => {
       const now = Date.now()
@@ -158,14 +158,14 @@ export function OrdersProvider({ children }) {
         addCredits(order.credits ?? 0)
         if (order.coupon) markCoupon(order.coupon.code, false)
       },
-      /** «Aún tiene solución»: cambiar la dirección o el medio de pago en vez de cancelar. */
+      /** "Aún tiene solución": cambiar la dirección o el medio de pago en vez de cancelar. */
       change: (id, change) => update(id, change),
       hold,
       release,
       /** El cambio en vivo ya resuelto (`liveChanges.js: resolveChange`). */
       resolveLiveChange: (id, liveChange) => update(id, { liveChange }),
       /**
-       * Una solicitud de «Ayuda con este pedido» (de demostración: no mueve dinero real). Un reembolso en créditos se
+       * Una solicitud de "Ayuda con este pedido" (de demostración: no mueve dinero real). Un reembolso en créditos se
        * suma al saldo de créditos de ejemplo.
        */
       addHelp: (id, request) => {

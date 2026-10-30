@@ -48,13 +48,13 @@ describe('lo que se dice por chat (offers/preferences.py: read_command)', () => 
     ['ya no como carne', 'agregar', ['vegetariano']],
     ['muéstrame mis preferencias', 'mostrar', []],
     ['olvida mis preferencias', 'olvidar', []],
-  ])('«%s»', (message, action, ids) => {
+  ])('"%s"', (message, action, ids) => {
     const command = readCommand(message)
     expect(command.action).toBe(action)
     expect(command.items.map((p) => p.valor)).toEqual(ids)
   })
 
-  test('un pedido con «sin» no es una alergia; una tienda y una cocina se leen aparte', () => {
+  test('un pedido con "sin" no es una alergia; una tienda y una cocina se leen aparte', () => {
     expect(readCommand('sushi sin maní')).toBeNull()
     expect(readCommand('mi tienda favorita es el Jumbo').store).toBe('jumbo')
     expect(readCommand('mi comida favorita es el sushi').cuisineText).toBe('el sushi')
@@ -102,7 +102,7 @@ describe('la API simulada', () => {
 
   beforeEach(() => localStorage.clear())
 
-  test('por chat se guardan, filtran lo que muestra Mochi y se olvidan; en «Rappi hoy» no', () => {
+  test('por chat se guardan, filtran lo que muestra Mochi y se olvidan; en "Rappi hoy" no', () => {
     expect(say('soy vegetariano', 'actual').text).toMatch(/Rappi hoy/)
     expect(readState().preferences).toEqual([])
 
@@ -120,7 +120,7 @@ describe('la API simulada', () => {
     expect(readState().preferences).toEqual([])
   })
 
-  test('el buscador con user_id filtra con la dieta y lo dice; si saca todo, no es «sin resultado»', () => {
+  test('el buscador con user_id filtra con la dieta y lo dice; si saca todo, no es "sin resultado"', () => {
     const search = (q) => {
       const [path, query] = q.split('?')
       return route(snapshot, { method: 'GET', path, query: new URLSearchParams(query), body: null }).body
@@ -151,12 +151,12 @@ describe('la API simulada', () => {
       ],
     }).body
     expect(put.preferencias.map((p) => p.valor)).toEqual(['mani', 'Tienda de prueba'])
-    call('DELETE', '/profile/p') // «Olvidar»: también las preferencias
+    call('DELETE', '/profile/p') // "Olvidar": también las preferencias
     expect(readState().preferences).toEqual([])
   })
 })
 
-test('el aviso dice primero la dieta y después las alergias, como la API, y al guardar une con «o»', () => {
+test('el aviso dice primero la dieta y después las alergias, como la API, y al guardar une con "o"', () => {
   const items = [
     { tipo: 'alergia', valor: 'mani' },
     { tipo: 'dieta', valor: 'vegetariano' },

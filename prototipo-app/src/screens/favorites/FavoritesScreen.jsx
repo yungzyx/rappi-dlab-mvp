@@ -15,8 +15,8 @@ const BEST_RESTAURANTS = 4
 const BEST_SUPERMARKETS = 2
 
 /**
- * Pestaña Favoritos. «Tus favoritos» son las tiendas marcadas con ♥ en la página de tienda (se guardan en el navegador);
- * «Los mejores» salen del catálogo: son un extra, y si no llegan (o falla la API) no se muestran. Cada fila lleva su
+ * Pestaña Favoritos. "Tus favoritos" son las tiendas marcadas con ♥ en la página de tienda (se guardan en el navegador);
+ * "Los mejores" salen del catálogo: son un extra, y si no llegan (o falla la API) no se muestran. Cada fila lleva su
  * lugar (pantalla `favorites`): abrir una tienda y verla lo dicen.
  */
 export default function FavoritesScreen({ push }) {

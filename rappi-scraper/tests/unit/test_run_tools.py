@@ -93,7 +93,7 @@ def test_refresh_command_exits_with_a_clear_message_on_a_block(monkeypatch, caps
     monkeypatch.setattr(cli, "refresh", blocked)
     with pytest.raises(SystemExit) as exit_info:
         cli.cmd_refresh(None, Namespace(no_backup=True, resume_only=False))
-    assert exit_info.value.code == 4  # refresh-semanal.sh lo anota como «posible bloqueo»
+    assert exit_info.value.code == 4  # refresh-semanal.sh lo anota como "posible bloqueo"
     assert "Descarga detenida: posible bloqueo" in capsys.readouterr().err
 
 
@@ -107,7 +107,7 @@ def test_refresh_command_ends_normally_when_everything_worked(monkeypatch, capsy
 
 
 def test_refresh_command_exits_with_its_own_code_when_only_the_backup_failed(monkeypatch, capsys):
-    """refresh-semanal.sh distingue el código 3: anota «respaldo fallido» y sigue con la capa de IA."""
+    """refresh-semanal.sh distingue el código 3: anota "respaldo fallido" y sigue con la capa de IA."""
     monkeypatch.setattr(cli, "refresh", lambda *args, **kwargs: ([{"kind": "stores", "status": "done"}], True))
     monkeypatch.setattr(cli, "render_markdown", lambda report: f"reporte de {report['kind']}")
 

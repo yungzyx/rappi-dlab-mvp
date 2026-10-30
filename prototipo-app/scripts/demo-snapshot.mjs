@@ -2,7 +2,7 @@
 // src/api/offline/snapshot.json, que la API simulada del navegador (src/api/offline/) responde sin red.
 //
 // La API debe correr sobre una COPIA de la base, nunca sobre `rappi`: el script crea personas de prueba, registra
-// pedidos (para grabar la vertical que el motor propone en cada paso de la escalera) y después las borra («Olvidar»).
+// pedidos (para grabar la vertical que el motor propone en cada paso de la escalera) y después las borra ("Olvidar").
 //   cd rappi-ia && DATABASE_URL=postgresql:///rappi_staging .venv/bin/python -m rappi_ia migrate
 //   DATABASE_URL=postgresql:///rappi_staging HF_HUB_OFFLINE=1 API_PREWARM=0 \
 //     .venv/bin/python -m uvicorn rappi_ia.api.app:app --host 127.0.0.1 --port 8020
@@ -43,7 +43,7 @@ const FREE_QUESTIONS = readFileSync(`${ROOT}../rappi-ia/src/rappi_ia/eval/frases
   .split('\n')
   .map((line) => line.trim())
   .filter((line) => line && !line.startsWith('#'))
-// Las conversaciones del set de rappi-ia: una pregunta y sus seguimientos («+ más barato»). Se graba cada seguimiento
+// Las conversaciones del set de rappi-ia: una pregunta y sus seguimientos ("+ más barato"). Se graba cada seguimiento
 // con el turno anterior que devolvió la API (src/api/offline/conversation.js: followKey).
 const CONVERSATIONS = readFileSync(`${ROOT}../rappi-ia/src/rappi_ia/eval/frases_usuarios/conversaciones.txt`, 'utf8')
   .split('\n')
@@ -173,7 +173,7 @@ async function catalog(token) {
     // Solo los pasillos grabados: las pestañas de la tienda no ofrecen uno que la demo no tiene.
     out.stores[id] = { store: first.store, aisles: first.aisles.filter((a) => pages[a.id]), pages }
   }
-  // Las listas de tiendas solo con las grabadas (abrir otra daría «no está en el catálogo»).
+  // Las listas de tiendas solo con las grabadas (abrir otra daría "no está en el catálogo").
   for (const reply of Object.values(out.verticalStores)) reply.stores = reply.stores.filter((s) => out.stores[s.id])
   out.home.nearby_stores = out.home.nearby_stores.filter((s) => out.stores[s.id])
   for (const key of Object.keys(out.restaurants))
@@ -223,7 +223,7 @@ async function agent(token, userId) {
   })
   // Sin pedidos, la vertical por probar de siempre (el súper, si tiene ofertas).
   const usual = await post('/agent/offer', { moment: 'vertical_por_probar', user_id: userId, context: {} })
-  // «Qué me recomiendas» de alguien sin intereses: los ejemplos de siempre (con intereses, la API simulada busca los
+  // "Qué me recomiendas" de alguien sin intereses: los ejemplos de siempre (con intereses, la API simulada busca los
   // suyos). Con una persona nueva: la de la muestra ya hizo preguntas (`_log_ask` las registra).
   const fresh = await session()
   let help

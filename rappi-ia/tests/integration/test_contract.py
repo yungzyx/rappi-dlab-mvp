@@ -71,12 +71,12 @@ CONTRACT: tuple[Example, ...] = (
     Example("catalog-store-page-2", "GET", "/catalog/stores/9101?page=2"),
     Example("catalog-product", "GET", "/catalog/products/catalog_item/91001"),
     Example("catalog-restaurants", "GET", "/catalog/restaurants"),
-    # Los chips de la lista: «Destacados» (regla propia) por más opiniones.
+    # Los chips de la lista: "Destacados" (regla propia) por más opiniones.
     Example("catalog-restaurants-filtros", "GET", "/catalog/restaurants?top=true&sort=recommended"),
     # El chocolate en cuatro tiendas (precio, tiempo y envío) y los tallarines agotados en el súper Centro (similares).
     Example("catalog-product-stores", "GET", "/catalog/products/catalog_item/92002/stores"),
     Example("catalog-product-stores-agotado", "GET", "/catalog/products/catalog_item/91101/stores?store_id=9101"),
-    # «Para ti» en la tienda express Centro para quien le gustan los chocolates (u-afin).
+    # "Para ti" en la tienda express Centro para quien le gustan los chocolates (u-afin).
     Example("catalog-store-para-ti", "GET", "/catalog/stores/9201/para-ti?user_id=u-afin"),
     Example("catalog-menu", "GET", "/catalog/restaurants/9801/menu"),
     Example("catalog-deals", "GET", "/catalog/deals"),
@@ -85,7 +85,7 @@ CONTRACT: tuple[Example, ...] = (
     Example("search-grouped", "GET", "/search?q=cerveza"),
     Example("search-grouped-unmet", "GET", "/search?q=xyzzy"),
     Example("search-grouped-corrected", "GET", "/search?q=cervezaaaa"),
-    # Una tienda que se llama así: sale en `places` y la búsqueda no queda «sin resultado».
+    # Una tienda que se llama así: sale en `places` y la búsqueda no queda "sin resultado".
     Example("search-grouped-places", "GET", "/search?q=chocolateria%20de%20prueba"),
     Example(
         "agent-ask",
@@ -105,9 +105,9 @@ CONTRACT: tuple[Example, ...] = (
         {"message": "soy vegetariano", "user_id": "u-contrato", "session_id": "s-contrato"},
     ),
     Example("profile-preferencias", "GET", "/profile/u-contrato/preferencias", after="agent-ask-preferencia"),
-    # El buscador con la dieta de quien dijo «soy vegetariano»: sin la pizza pepperoni y con el aviso.
+    # El buscador con la dieta de quien dijo "soy vegetariano": sin la pizza pepperoni y con el aviso.
     Example("search-grouped-preferencias", "GET", "/search?q=pizza&user_id=u-contrato", after="agent-ask-preferencia"),
-    # «Pide lo de siempre en…»: con «Pedir por mí» en el súper Centro, Mochi lo pide solo (u-autopedido); sin permiso,
+    # "Pide lo de siempre en…": con "Pedir por mí" en el súper Centro, Mochi lo pide solo (u-autopedido); sin permiso,
     # lo deja para revisar antes (u-revisar). Y el ajuste de quien lo encendió.
     Example(
         "agent-ask-autopedido",
@@ -198,7 +198,7 @@ CONTRACT: tuple[Example, ...] = (
         "/agent/offer",
         {"moment": "recompra", "user_id": "u-recompra", "context": {}},
     ),
-    # Pedía café en el súper cada 7 días y el último fue hace 20 (u-volver): «¿Volvemos a café?».
+    # Pedía café en el súper cada 7 días y el último fue hace 20 (u-volver): "¿Volvemos a café?".
     Example(
         "agent-offer-volver",
         "POST",
@@ -215,7 +215,7 @@ CONTRACT: tuple[Example, ...] = (
             "context": {"vertical": "restaurants", "items": [{"entity_type": "menu_item", "entity_id": "98001"}]},
         },
     ),
-    # «Pídelo de nuevo»: un producto que sigue a la venta en su tienda, uno que esa tienda no vende y un plato.
+    # "Pídelo de nuevo": un producto que sigue a la venta en su tienda, uno que esa tienda no vende y un plato.
     Example(
         "catalog-availability",
         "POST",
@@ -316,7 +316,7 @@ def client(db):
         ts = datetime.combine(today - timedelta(days=days), time(12), TZ)
         events.record_order(db, "u-volver", f"s-volver-{days}", f"c-volver-{days}", "supermercado", [coffee], ts=ts)
     refresh_user_conn(db, "u-volver")
-    # Lo más pedido en el súper por la población, para la fila «Lo más pedido en…» de `recommendations` (u-contrato
+    # Lo más pedido en el súper por la población, para la fila "Lo más pedido en…" de `recommendations` (u-contrato
     # tiene un solo interés: le queda una fila libre).
     for rank, product in enumerate(("91004", "91002", "91006"), start=1):
         db.execute(
@@ -329,7 +329,7 @@ def client(db):
     for vertical in ("restaurantes", "turbo", "supermercado", "conveniencia", "mall", "chocolateria"):
         line = {"entity_type": "catalog_item", "entity_id": "91001", "concept_id": None, "unit_price": 1990}
         events.record_order(db, "u-servicios", f"s-servicios-{vertical}", f"c-servicios-{vertical}", vertical, [line])
-    # Dos personas que pidieron café en el súper Centro, para «pide lo de siempre»: una con «Pedir por mí» ahí (tope de
+    # Dos personas que pidieron café en el súper Centro, para "pide lo de siempre": una con "Pedir por mí" ahí (tope de
     # $20.000) y otra sin permiso.
     for person in ("u-autopedido", "u-revisar"):
         events.record_order(db, person, f"s-{person}", f"c-{person}", "supermercado", [{**coffee, "store_id": 9101}])
@@ -396,7 +396,7 @@ def response(status: int, body: dict | None = None) -> SimpleNamespace:
 def test_contract_examples_are_up_to_date(client, example):
     if example.after:
         before = {e.name: e for e in CONTRACT}.get(example.after)
-        assert before, f"El Example {example.name} pide antes a «{example.after}», que no está en CONTRACT"
+        assert before, f'El Example {example.name} pide antes a "{example.after}", que no está en CONTRACT'
         assert client.request(before.method, before.path, json=before.body).status_code == before.status
     # El `request_id` de las respuestas que ordenan cosas es el X-Request-ID del pedido: fijo, el ejemplo no cambia.
     headers = {"X-Request-ID": f"contrato-{example.name}"}
@@ -449,7 +449,7 @@ def prototype_journey(client) -> None:
         {"type": "agent_visibility", "session_id": "s-panel", "origin": "menu-mochi", "payload": {"visible": False}},
     ]
     assert client.post("/events", json={"user_id": "u-panel", "events": sent}).json() == {"guardados": len(sent)}
-    # Y un pedido que Mochi hizo solo con permiso («Pedir por mí»): el panel lo cuenta aparte.
+    # Y un pedido que Mochi hizo solo con permiso ("Pedir por mí"): el panel lo cuenta aparte.
     usual = {"entity_type": "catalog_item", "entity_id": "91004", "store_id": 9101}
     auto = {"user_id": "u-autopedido", "session_id": "s-panel", "cart_id": "c-panel-auto", "vertical": "supermercado"}
     placed = client.post("/orders", json={**auto, "lines": [usual], "autopedido": {"request_id": "r-panel"}})
@@ -464,7 +464,7 @@ def test_panel_examples_are_up_to_date(client, db, name, source):
     else:
         generate(db, users=40, weeks=8, seed=11, until=date(2026, 10, 4))
     # Lo que muestran `motor` y `combos` sale de la corrida del motor, y `volver`, de su recompra. Las combinaciones del
-    # prototipo salen de pedidos fechados desde hoy (cambian con el mes): su ejemplo es el de «sin pedidos propios».
+    # prototipo salen de pedidos fechados desde hoy (cambian con el mes): su ejemplo es el de "sin pedidos propios".
     if name == "motor" or (name in ("combos", "volver") and source == "synthetic"):
         build_motor(db, source)
         db.execute("UPDATE layer_runs SET finished_at = '2026-10-04 12:00+00' WHERE layer = 'motor'")  # la fecha varía

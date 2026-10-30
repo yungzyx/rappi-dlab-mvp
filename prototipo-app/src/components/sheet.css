@@ -52,7 +52,7 @@
   font-weight: 600;
 }
 
-/* Confirmación dentro de una hoja (cerrar sesión, «Borrar mis datos»): texto y dos botones a lo ancho */
+/* Confirmación dentro de una hoja (cerrar sesión, "Borrar mis datos"): texto y dos botones a lo ancho */
 .sheet-confirm p {
   margin-bottom: 20px;
   font-size: 15.5px;

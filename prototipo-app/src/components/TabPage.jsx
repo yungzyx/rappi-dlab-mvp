@@ -9,7 +9,7 @@ const BACK_TO_TOP_Y = 141
 
 /**
  * Pestañas con título grande de color (Ofertas, Mis favoritos): al bajar, el título pasa a un
- * encabezado compacto translúcido; al volver a subir aparece «Volver arriba».
+ * encabezado compacto translúcido; al volver a subir aparece "Volver arriba".
  */
 export default function TabPage({ title, color, action, className = '', children }) {
   const ref = useRef(null)

@@ -1,5 +1,5 @@
 """Preguntas en texto libre a Mochi (24-10, eval/frases_usuarios/preguntas-libres.txt) contra `rappi_ia_test`: cantidad
-de personas, presupuesto con «con», consejo médico, fichas de platos y «con qué acompaño», con las guardias de
+de personas, presupuesto con "con", consejo médico, fichas de platos y "con qué acompaño", con las guardias de
 siempre."""
 
 import pytest
@@ -47,7 +47,7 @@ def agent(db):
 
 
 def test_medical_advice_is_not_given_and_no_remedies_are_shown(agent):
-    """«¿qué le doy?» pide que Mochi elija un remedio: no lo hace, dice a quién preguntarle y deja ir a Farmacia."""
+    """ "¿qué le doy?" pide que Mochi elija un remedio: no lo hace, dice a quién preguntarle y deja ir a Farmacia."""
     rappi, db = agent
     r = rappi.reply(db, "mi hijo tiene fiebre, ¿qué le doy?", Context())
     assert r["intent"]["kind"] == "consejo" and r["products"] == [] and not r["unmet"]
@@ -57,7 +57,7 @@ def test_medical_advice_is_not_given_and_no_remedies_are_shown(agent):
 
 
 def test_a_symptom_shows_only_remedies_that_name_it(agent):
-    """«tengo fiebre» muestra lo que se vende para la fiebre; «tengo tos», sin nada que la nombre, ya no trae
+    """ "tengo fiebre" muestra lo que se vende para la fiebre; "tengo tos", sin nada que la nombre, ya no trae
     analgésicos: lo dice y, si hay, algo para cuidarse que no es salud."""
     rappi, db = agent
     fever = rappi.reply(db, "tengo fiebre", Context())
@@ -116,7 +116,7 @@ def test_mochi_does_not_take_you_to_licores_unless_you_ask_for_alcohol(agent):
 
 
 def test_what_is_does_not_carry_the_previous_request(agent):
-    """«pañales» y después «¿qué es un poke?» mostraba pañales: la ficha no sigue el pedido anterior."""
+    """ "pañales" y después "¿qué es un poke?" mostraba pañales: la ficha no sigue el pedido anterior."""
     rappi, db = agent
     previous = {"query": "salmon", "concepts": ["pescados-mariscos"], "vertical": "supermercado", "product_ids": []}
     r = rappi.reply(db, "¿qué es un poke?", Context(previous=previous))
@@ -132,7 +132,7 @@ def test_an_occasion_said_without_naming_alcohol_brings_none(agent):
 
 
 def test_health_answers_say_so_for_the_app(agent):
-    """La app oculta sus ideas («Arma un carrete») bajo una respuesta de salud: el intent dice si habló de síntomas."""
+    """La app oculta sus ideas ("Arma un carrete") bajo una respuesta de salud: el intent dice si habló de síntomas."""
     rappi, db = agent
     assert rappi.reply(db, "tengo tos", Context())["intent"]["symptom"]
     assert rappi.reply(db, "mi hijo tiene fiebre, ¿qué le doy?", Context())["intent"]["symptom"]
@@ -157,7 +157,7 @@ def _add(db, products, embedder=None):
 
 
 def test_a_body_part_is_not_treated_with_any_painkiller(agent):
-    """«me duele la guata» y «tengo la garganta irritada» mostraban analgésicos: dicen «dolor» o nombran la garganta
+    """ "me duele la guata" y "tengo la garganta irritada" mostraban analgésicos: dicen "dolor" o nombran la garganta
     entre veinte usos de su ficha (25-10). Para una molestia localizada, el remedio la nombra en su nombre o categoría;
     si ninguno, Mochi no elige uno."""
     rappi, db = agent
@@ -186,7 +186,7 @@ def test_a_body_part_is_not_treated_with_any_painkiller(agent):
 
 
 def test_a_craving_without_a_concept_is_looked_for_in_restaurants(agent):
-    """«quiero algo picante» mostraba una mezcla del súper (salsa, ramen instantáneo, chicharrón)."""
+    """ "quiero algo picante" mostraba una mezcla del súper (salsa, ramen instantáneo, chicharrón)."""
     rappi, db = agent
     for pid, name in [(520, "Pollo picante con arroz"), (521, "Ramen picante de cerdo"), (522, "Alitas picantes x8")]:
         add_dish(db, pid, name, 3, "Platos", ["Platos"])
@@ -199,7 +199,7 @@ def test_a_craving_without_a_concept_is_looked_for_in_restaurants(agent):
 
 
 def test_a_dish_card_looks_for_the_dish_where_it_says(agent):
-    """«¿qué lleva una paella?» buscaba en el súper: salían una paila, pulpo y una hallulla."""
+    """ "¿qué lleva una paella?" buscaba en el súper: salían una paila, pulpo y una hallulla."""
     rappi, db = agent
     add_dish(db, 530, "Paella valenciana para dos", 3, "Platos de fondo", ["Platos de fondo"])
     db.execute("INSERT INTO menu_price_snapshots (run_id, item_id, price) VALUES (999, 530, 18990)")
@@ -210,7 +210,7 @@ def test_a_dish_card_looks_for_the_dish_where_it_says(agent):
 
 
 def test_nothing_is_recommended_to_make_a_baby_sleep(agent):
-    """«algo para que mi guagua duerma» mostraba pañales. Mochi no recomienda nada para dormir (su pediatra) y muestra
+    """ "algo para que mi guagua duerma" mostraba pañales. Mochi no recomienda nada para dormir (su pediatra) y muestra
     lo de la hora de dormir que no es salud, nunca de adulto ni un remedio."""
     rappi, db = agent
     _add(

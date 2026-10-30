@@ -22,7 +22,7 @@ const render = () =>
     </StrictMode>,
   )
 
-// Solo el build de la demo sin conexión («Prototipo MVP.html», `npm run demo:html`) responde la API en el navegador;
+// Solo el build de la demo sin conexión ("Prototipo MVP.html", `npm run demo:html`) responde la API en el navegador;
 // en los demás builds Vite pliega la condición y el código de src/api/offline/ no entra al bundle.
 if (import.meta.env.VITE_OFFLINE_DEMO === '1') {
   import('./api/offline/index.js').then(({ installOfflineApi }) => {

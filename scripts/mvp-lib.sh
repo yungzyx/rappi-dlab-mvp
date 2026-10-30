@@ -63,7 +63,7 @@ start() { # start <etiqueta> <comando>...: lo deja corriendo con su salida prefi
     prefix_lines "$tag"
   ) 2>&1 &
   LAST_PID=$!
-  disown "$LAST_PID" # bash 3.2 avisa «Terminated» de cada trabajo que muere por una señal; aquí lo detenemos a propósito
+  disown "$LAST_PID" # bash 3.2 avisa "Terminated" de cada trabajo que muere por una señal; aquí lo detenemos a propósito
   STARTED="$STARTED $tag:$LAST_PID"
 }
 
@@ -133,7 +133,7 @@ PROGRESS_EVERY=${PROGRESS_EVERY:-15} # segundos entre avisos de wait_for_url cua
 
 # wait_for_url <nombre> <url> <segundos> <etiqueta del proceso> [aviso]
 # Espera a que la URL responda y sale con 1 si el proceso se detiene o si pasan los segundos. Con 0 segundos no hay
-# límite: espera mientras el proceso siga vivo y cada 15 s avisa «[mvp] <nombre> sigue arrancando (<aviso>)…» (la API
+# límite: espera mientras el proceso siga vivo y cada 15 s avisa "[mvp] <nombre> sigue arrancando (<aviso>)…" (la API
 # tarda minutos la primera vez, cuando descarga los modelos).
 wait_for_url() {
   local name=$1 url=$2 limit=$3 tag=$4 hint=${5:-} seconds=0 entry pid=""

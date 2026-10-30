@@ -16,7 +16,7 @@ const TICK_MS = 30
 export const PROGRESS = ['Entendiendo tu pedido', 'Buscando opciones', 'Revisando disponibilidad', 'Casi listo']
 const PROGRESS_MS = 1400
 
-/** Mientras busca: lo que está haciendo y, si se puede, «Cancelar» la respuesta en curso. */
+/** Mientras busca: lo que está haciendo y, si se puede, "Cancelar" la respuesta en curso. */
 function Thinking({ progress, onCancel }) {
   const [step, setStep] = useState(0)
   useEffect(() => {
@@ -44,7 +44,7 @@ function Thinking({ progress, onCancel }) {
 }
 
 /**
- * Texto que aparece letra por letra (entero con «reducir movimiento»).
+ * Texto que aparece letra por letra (entero con "reducir movimiento").
  * Lo que falta va invisible detrás (`data-rest`, que pinta el CSS): el texto mide desde el principio lo que medirá al
  * terminar y las palabras no saltan de línea, así que lo de abajo no se mueve. No es texto de la página: el lector de
  * pantalla oye la respuesta entera en el anunciador del panel.
@@ -180,7 +180,7 @@ function AlsoIn({ alsoIn, onAction }) {
  * del carro antes de pagar; con `lastOrder`, el último pedido (`onTrack` abre su seguimiento); con `autoOrder`, lo de
  * siempre que Mochi pide solo o deja para revisar (`autoOrder` de las props: su estado y lo que hacen sus botones, que
  * lleva AssistantPanel). Mientras espera, si la respuesta se puede cortar (`cancellable`), dice qué está haciendo y
- * ofrece «Cancelar» (`onCancel`).
+ * ofrece "Cancelar" (`onCancel`).
  */
 export default function AgentMessage({
   message,

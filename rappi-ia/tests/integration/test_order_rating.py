@@ -1,5 +1,5 @@
-"""Después del pedido: la calificación (`order_rated`), que en `propuesta` pausa la recompra y el «volver» de lo que
-salió mal; la disponibilidad de «Pídelo de nuevo» (`POST /catalog/availability`) y el OnTop de Turbo (momento
+"""Después del pedido: la calificación (`order_rated`), que en `propuesta` pausa la recompra y el "volver" de lo que
+salió mal; la disponibilidad de "Pídelo de nuevo" (`POST /catalog/availability`) y el OnTop de Turbo (momento
 `ontop`). Sobre el catálogo de prueba (`seed_demo`)."""
 
 from datetime import UTC, datetime, time, timedelta
@@ -206,7 +206,7 @@ def test_paused_reads_concepts_and_stores_of_bad_orders_only(client, db):
     assert paused(db, None).concepts == frozenset()
 
 
-# ── «Pídelo de nuevo» ────────────────────────────────────────────────────────
+# ── "Pídelo de nuevo" ────────────────────────────────────────────────────────
 def test_availability_gives_the_current_price_in_the_same_store(client, db):
     lines = [
         {"entity_type": "catalog_item", "entity_id": "93001", "store_id": TURBO_CENTRO},

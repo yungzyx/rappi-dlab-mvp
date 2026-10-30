@@ -2,8 +2,8 @@ import { formatPrice } from '../state/CartContext'
 import './threshold-bar.css'
 
 /**
- * Barra «Agrega $X para…» hacia un monto del carro (`goal`, en pesos) con lo que ya suma (`total`). La usan el Turbo
- * (la tarifa de servicio) y la tienda con una promo que publica su mínimo («Envío gratis sobre $15.000»). `title` es lo
+ * Barra "Agrega $X para…" hacia un monto del carro (`goal`, en pesos) con lo que ya suma (`total`). La usan el Turbo
+ * (la tarifa de servicio) y la tienda con una promo que publica su mínimo ("Envío gratis sobre $15.000"). `title` es lo
  * que se gana; `pending` y `done`, las frases de antes y después de llegar (`pending` recibe el monto que falta ya con
  * formato). `icon`, una imagen decorativa opcional; `note`, una línea más (p. ej. que el umbral es el publicado).
  */

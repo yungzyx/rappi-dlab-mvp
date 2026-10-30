@@ -93,7 +93,7 @@ function sessionInfo(proposal) {
 }
 
 /**
- * Temas que el agente ya sugirió en la sesión (preguntas y «Para ti»): una sugerencia por tema por sesión. Viven con la
+ * Temas que el agente ya sugirió en la sesión (preguntas y "Para ti"): una sugerencia por tema por sesión. Viven con la
  * sesión, así que recargar la página no los olvida y una sesión nueva empieza sin ellos.
  */
 export function shownTopics(now = Date.now()) {
@@ -113,7 +113,7 @@ const EventsContext = createContext(null)
 export function EventsProvider({ children }) {
   const demo = useDemo()
   const queue = useRef([])
-  // Sube con «Olvidar» (clear): un lote que falla después no vuelve a una cola que ya se vació.
+  // Sube con "Olvidar" (clear): un lote que falla después no vuelve a una cola que ya se vació.
   const generation = useRef(0)
   const opened = useRef(false)
   // Lotes que ya salieron: "Olvidar" los espera para que no recreen en el servidor lo que se borra.
@@ -129,7 +129,7 @@ export function EventsProvider({ children }) {
       // Sin API (arrancando, o reiniciándose) el lote espera en la cola; la cola ya tiene su tope (MAX_QUEUE).
       if (!(await health())) return
       const batch = queue.current.splice(0, MAX_QUEUE)
-      if (batch.length === 0) return // «Olvidar» vació la cola mientras se revisaba la API
+      if (batch.length === 0) return // "Olvidar" vació la cola mientras se revisaba la API
       const sentIn = generation.current
       try {
         await sendEvents(userId(), batch, sessionInfo(proposal.current))
@@ -153,7 +153,7 @@ export function EventsProvider({ children }) {
       client_ts: new Date(now).toISOString(),
       ...fields,
     })
-    // En «Rappi hoy» el evento va sin concepto y marcado `payload.mode = 'actual'`: el motor y los segmentos lo saltan.
+    // En "Rappi hoy" el evento va sin concepto y marcado `payload.mode = 'actual'`: el motor y los segmentos lo saltan.
     if (!proposal.current) {
       delete event.concept_id
       // Los elementos de un `list_view` (api/impressions.js) también van sin concepto.

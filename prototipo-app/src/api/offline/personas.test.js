@@ -40,7 +40,7 @@ test('las personas de la escalera están donde dice su nombre, y la línea del p
   expect(ladderReadout(snapshot, stateOf('nueva'), NOW)).toMatch(/^Hoy: sin pedidos/)
 })
 
-test('«Usa mucho Farmacia» la sube primera en la Home y Mochi igual nunca la ofrece', () => {
+test('"Usa mucho Farmacia" la sube primera en la Home y Mochi igual nunca la ofrece', () => {
   const state = stateOf('farmacia')
   expect(homeVerticals(state, NOW, LABELS).order[0].id).toBe('farmacia')
   expect(targetStep(COMBOS, state, NOW).vertical).toBe('turbo')
@@ -76,7 +76,7 @@ test('una muestra grabada sin `gusto` ni `conceptos` los toma de meta, y sin `gu
   expect(tastesReply(withMeta, state).perfiles[0].gusto).toBe('lo asiático')
 })
 
-test('una persona de la escalera pide un concepto distinto en cada vertical (sin «¿Repetimos?» por accidente)', () => {
+test('una persona de la escalera pide un concepto distinto en cada vertical (sin "¿Repetimos?" por accidente)', () => {
   // El primer producto de Rappi Mall es del mismo concepto que el de Restaurantes: se elige el siguiente.
   const pool = VERTICALS.map((vertical, i) => product(i + 1, { vertical, concept: `c${i}` }))
   const clash = product(20, { vertical: 'mall', concept: 'c0' })
@@ -86,7 +86,7 @@ test('una persona de la escalera pide un concepto distinto en cada vertical (sin
   expect(concepts).toEqual(['c0', 'c1', 'c2', 'c3', 'c4', 'c5'])
 })
 
-test('«Dejó de pedir su plato de siempre» y «Dejó Turbo hace 40 días» reciben «¿Volvemos a…?» y no «¿Repetimos?»', () => {
+test('"Dejó de pedir su plato de siempre" y "Dejó Turbo hace 40 días" reciben "¿Volvemos a…?" y no "¿Repetimos?"', () => {
   const dishes = [
     product(30, { name: 'Roll de salmón', concept: 'sushi', vertical: 'restaurantes', entity_type: 'menu_item' }),
     product(31, { name: 'Pizza napolitana', concept: 'pizza', vertical: 'restaurantes', entity_type: 'menu_item' }),

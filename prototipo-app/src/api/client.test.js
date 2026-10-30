@@ -70,7 +70,7 @@ describe('de la API al prototipo', () => {
       vertical: 'otra',
       backendVertical: 'otra',
     })
-    // Un plato no trae presentación ni siempre foto: no queda «undefined» ni «null» a la vista.
+    // Un plato no trae presentación ni siempre foto: no queda "undefined" ni "null" a la vista.
     const dish = toPrototypeProduct(fixture('catalog-menu').sections[2].items[0])
     expect(dish.size).toBeUndefined()
     expect(dish.img).toBe(PLACEHOLDER_IMG)
@@ -115,7 +115,7 @@ describe('de la API al prototipo', () => {
     })
   })
 
-  test('«Ir a Farmacia» (una vertical sin pregunta) lleva a su pantalla', () => {
+  test('"Ir a Farmacia" (una vertical sin pregunta) lleva a su pantalla', () => {
     const message = toMessage({ text: 'No puedo…', actions: [{ label: 'Ir a Farmacia', vertical: 'farmacia' }] })
     expect(message.actions).toEqual([{ label: 'Ir a Farmacia', route: ['vertical', { id: 'pharmacy' }] }])
   })
@@ -193,7 +193,7 @@ describe('de la API al prototipo', () => {
 })
 
 describe('health', () => {
-  test('sin API responde null (la app muestra «Sin conexión») y lo cachea', async () => {
+  test('sin API responde null (la app muestra "Sin conexión") y lo cachea', async () => {
     const fetchMock = vi.fn().mockRejectedValue(new TypeError('Failed to fetch'))
     vi.stubGlobal('fetch', fetchMock)
     expect(await health()).toBeNull()
@@ -240,7 +240,7 @@ describe('ask', () => {
     expect(seen).toEqual([{ path: '/agent/ask', body: { message: 'cerveza' } }])
   })
 
-  test('se rinde a los 8 s con un error de tiempo agotado, para que el agente muestre «Sin conexión» con «Reintentar»', async () => {
+  test('se rinde a los 8 s con un error de tiempo agotado, para que el agente muestre "Sin conexión" con "Reintentar"', async () => {
     vi.useFakeTimers()
     try {
       vi.stubGlobal(

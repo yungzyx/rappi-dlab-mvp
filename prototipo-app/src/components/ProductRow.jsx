@@ -10,9 +10,9 @@ import './product-row.css'
 
 /**
  * Producto en formato lista (página de tienda y resultados del buscador). Tocarlo abre su hoja; el "+" va aparte.
- * Con `onOpenStore`, la hoja ofrece «Ver tienda». Con `impression`, la fila cuenta como vista en su lista cuando aparece
+ * Con `onOpenStore`, la hoja ofrece "Ver tienda". Con `impression`, la fila cuenta como vista en su lista cuando aparece
  * en pantalla (api/impressions.js). Con `checkStock` (los pasillos de una tienda), antes de agregar revisa si está
- * agotado ahí: agotado no se agrega, la fila dice «Agotado» y tocarla abre la ficha con los similares.
+ * agotado ahí: agotado no se agrega, la fila dice "Agotado" y tocarla abre la ficha con los similares.
  */
 export default function ProductRow({
   product,

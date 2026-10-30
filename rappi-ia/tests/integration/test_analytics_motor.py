@@ -155,7 +155,7 @@ def test_home_counts_people_and_taps_per_vertical_without_rappi_hoy(db):
             _tap("p1", "farmacia"),
             _tap("p2", "farmacia"),
             _tap("p1", "mall"),
-            _tap("p1", "licores", mode="actual"),  # «Rappi hoy» no enseña
+            _tap("p1", "licores", mode="actual"),  # "Rappi hoy" no enseña
             _tap("p3", "turbo", kind="app_open"),  # no es un toque de acceso
         ],
     )

@@ -51,9 +51,9 @@ Sin ese mapa de contenido no se puede:
 
 Detalle en [diseno-ia.md](diseno-ia.md#0-la-regla-que-ordena-todo).
 
-<img src="../prototipo-app/docs/screenshots/20-asistente.jpg" alt="Prototipo: el buscador con Mochi tras tocar «Arma un carrete» muestra cervezas y botillerías" width="280">
+<img src="../prototipo-app/docs/screenshots/20-asistente.jpg" alt="Prototipo: el buscador con Mochi tras tocar &quot;Arma un carrete&quot; muestra cervezas y botillerías" width="280">
 
-*Prototipo con el MVP corriendo: Mochi recomienda cuando se le pide. En el buscador con Mochi, «Arma un carrete» junta productos y tiendas para la ocasión; además suma en un bloque aparte un complemento de otra tienda, marcado y con su razón.*
+*Prototipo con el MVP corriendo: Mochi recomienda cuando se le pide. En el buscador con Mochi, "Arma un carrete" junta productos y tiendas para la ocasión; además suma en un bloque aparte un complemento de otra tienda, marcado y con su razón.*
 
 ## 3. Preguntas que la base debe poder responder
 
@@ -94,7 +94,7 @@ Estado al 16-10-2026:
 | Fase | Qué es | Estado |
 |---|---|---|
 | **1. Datos** | Scraper → Postgres: catálogo, menús, precios e historial por vertical (`rappi-scraper/`) | **Hecha.** Primera descarga completa del 24 al 27-09-2026, recuperación de fallidos el 28-09 y primera descarga semanal automática el 29 y 30-09 (`make schedule`). Cifras en [README → Resultados](../README.md#resultados) |
-| **Prototipo** | App navegable: la Home que aprende el orden, Mochi en la Home, buscador con Mochi y ofertas entre verticales (`prototipo-app/`) | **Listo para demo.** Necesita la API (`make mvp`) y usa el catálogo real; sin ella muestra «Sin conexión con Mochi». Ver [decisiones.md](decisiones.md#agente-mochi) |
+| **Prototipo** | App navegable: la Home que aprende el orden, Mochi en la Home, buscador con Mochi y ofertas entre verticales (`prototipo-app/`) | **Listo para demo.** Necesita la API (`make mvp`) y usa el catálogo real; sin ella muestra "Sin conexión con Mochi". Ver [decisiones.md](decisiones.md#agente-mochi) |
 | **2. RAG** | Conceptos (capa 2), embeddings de texto, búsqueda híbrida por vertical y evaluación (`rappi-ia/`) | **Construido.** Todos los documentos de búsqueda con embedding de texto. Evaluación en [README → Resultados](../README.md#resultados) |
 | **3. Agente** | Mochi en el backend y API: herramientas de búsqueda, reglas de conducta; LLM opcional | **Construido.** Responde solo por texto (`POST /agent/ask`) y hace ofertas (`/agent/offer`, `/agent/plans`) |
 | **4. Panel empresa** | Venta cruzada, retención, ofertas de Mochi y demanda no satisfecha, para la gerencia y RappiAds | **Construido** (`dashboard-empresa/`) y conectado a la API como parte del MVP; rediseñado el 22-10-2026 en 3 vistas alrededor de 4 preguntas. Usuarios simulados, salvo la tabla de Rappi (real) y lo hecho en la app con la fuente del prototipo (pocas personas: no es evidencia) |

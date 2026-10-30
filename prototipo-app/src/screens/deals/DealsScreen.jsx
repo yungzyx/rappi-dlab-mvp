@@ -17,7 +17,7 @@ const BEST_RATED_COUNT = 6
 
 /**
  * Las bajas de precio de cada vertical, en el orden de la pantalla: `[{ vertical, products }]`. Una vertical sin bajas, o
- * cuya llamada falla, no sale; solo si fallan todas se lanza el error (la pantalla dice «Sin conexión»).
+ * cuya llamada falla, no sale; solo si fallan todas se lanza el error (la pantalla dice "Sin conexión").
  */
 async function loadAllDeals() {
   const results = await Promise.allSettled(DEAL_VERTICALS.map((vertical) => loadDeals(vertical)))
@@ -73,7 +73,7 @@ export default function DealsScreen({ push }) {
   )
 }
 
-/** «Bajaron de precio» de una vertical: sus productos con el precio anterior y el descuento (lista `bajaron-<vertical>`). */
+/** "Bajaron de precio" de una vertical: sus productos con el precio anterior y el descuento (lista `bajaron-<vertical>`). */
 function DealsSection({ vertical, products, onOpenStore }) {
   const titleId = useId()
   const name = VERTICAL_NAMES[screenForBackend(vertical)] ?? vertical

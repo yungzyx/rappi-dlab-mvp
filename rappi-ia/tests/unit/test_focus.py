@@ -34,7 +34,7 @@ CUCHUFLIES = [
 
 
 def test_after_what_says_it_in_its_name_only_its_concept_or_a_very_close_neighbor():
-    """«cuchuflíes» en Turbo: 4 cuchuflíes y después esponjas, un cuchillo y traperos, vecinos vectoriales sin
+    """ "cuchuflíes" en Turbo: 4 cuchuflíes y después esponjas, un cuchillo y traperos, vecinos vectoriales sin
     relación. Ahora queda lo del concepto de los que lo dicen (galletas, chocolates) o lo que pasa el coseno de una
     consulta sin concepto ni ocasión (UNNAMED_TAU), en su orden."""
     shown = _focus(CUCHUFLIES, _result("cuchuflíes", [], CUCHUFLIES))
@@ -51,8 +51,8 @@ def test_the_tail_rule_follows_the_threshold(monkeypatch):
 
 
 def test_with_few_products_that_say_it_the_neighbors_stay():
-    """Con menos de TAIL_MIN_NAMED, la coincidencia puede ser casual («bombomes» calza con «Café Bombom» por el
-    stemming; un plato mal escrito, «Shawarna carne», no dice el concepto de los demás): queda lo encontrado."""
+    """Con menos de TAIL_MIN_NAMED, la coincidencia puede ser casual ("bombomes" calza con "Café Bombom" por el
+    stemming; un plato mal escrito, "Shawarna carne", no dice el concepto de los demás): queda lo encontrado."""
     hits = [CUCHUFLIES[0], *[h for h in CUCHUFLIES if "Cuchu" not in h.content]]
     assert sum("Cuchu" in h.content for h in hits) < TAIL_MIN_NAMED
 
@@ -66,7 +66,7 @@ def test_unmet_still_shows_nothing():
 @pytest.mark.parametrize(
     ("query", "names", "first"),
     [
-        # «sin» cuenta: «harina con polvos» no es lo pedido, aunque diga las otras palabras
+        # "sin" cuenta: "harina con polvos" no es lo pedido, aunque diga las otras palabras
         (
             "harina sin polvos de hornear",
             ["Harina con Polvos de Hornear 1 kg", "Harina Integral 1 kg", "Harina sin Polvos de Hornear 1 kg"],
@@ -87,8 +87,8 @@ def test_within_the_named_concept_what_says_it_in_its_name_goes_first(query, nam
 
 
 def test_without_a_concept_the_order_does_not_change():
-    """Sin concepto nombrado no se reordena: un plato con el error de tipeo en su nombre («Chorillana») no pasa
-    delante del que lo escribe bien («Chorrillana Mongoliana»)."""
+    """Sin concepto nombrado no se reordena: un plato con el error de tipeo en su nombre ("Chorillana") no pasa
+    delante del que lo escribe bien ("Chorrillana Mongoliana")."""
     hits = [_hit("1", "Chorrillana Mongoliana", "picoteo"), *[_hit(str(i), "Chorillana", "picoteo") for i in (2, 3, 4)]]
 
     assert _ids(_focus(hits, _result("chorillana", [], hits))) == ["1", "2", "3", "4"]

@@ -253,7 +253,7 @@ def test_grouped_search_without_a_concept_keeps_close_neighbours_over_the_all_ve
 
     result = search_grouped(db, "xyzzy", embedder, current=None, limit=6)
 
-    assert result.groups and result.unmet is False  # el corte es más estricto, no «siempre sin resultado»
+    assert result.groups and result.unmet is False  # el corte es más estricto, no "siempre sin resultado"
 
 
 def test_grouped_search_with_an_exact_word_in_one_vertical_shows_only_that_group(db):

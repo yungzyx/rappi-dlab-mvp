@@ -1,4 +1,4 @@
-"""Un kit no ofrece productos de nombre pelado («Café», «POLLO»): no dicen qué producto es. Se salta al siguiente
+"""Un kit no ofrece productos de nombre pelado ("Café", "POLLO"): no dicen qué producto es. Se salta al siguiente
 candidato del concepto."""
 
 import pytest

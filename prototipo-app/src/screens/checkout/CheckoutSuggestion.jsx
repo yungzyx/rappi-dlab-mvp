@@ -14,8 +14,8 @@ import { useEvents } from '../../state/EventsContext'
 import { useProfile } from '../../state/ProfileContext'
 
 /**
- * «¿Me falta algo?» en el checkout (prototipo final): solo si la persona lo pide, se consulta la oferta `checkout` de
- * El agente con lo que lleva el carro. Si hay oferta, sugiere UNA cosa (con su razón, «Agregar» y «Deshacer»); si no (204),
+ * "¿Me falta algo?" en el checkout (prototipo final): solo si la persona lo pide, se consulta la oferta `checkout` de
+ * El agente con lo que lleva el carro. Si hay oferta, sugiere UNA cosa (con su razón, "Agregar" y "Deshacer"); si no (204),
  * dice que el carro está completo; si la API no contesta, no dice nada. Nada aparece por su cuenta.
  */
 export default function CheckoutSuggestion() {

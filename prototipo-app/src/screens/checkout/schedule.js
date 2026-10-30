@@ -1,4 +1,4 @@
-// «Programa tu pedido»: franjas de una hora para hoy y mañana (la app de Rappi trae franjas de una hora, de 10:00 a
+// "Programa tu pedido": franjas de una hora para hoy y mañana (la app de Rappi trae franjas de una hora, de 10:00 a
 // 20:00, y con la tienda cerrada ofrece programar: docs/investigacion/app-rappi-2026-10-25.md).
 //
 // Un restaurante publica su horario (`/catalog/terms`: `spans` de hoy y mañana): las franjas caben en él. Una tienda no

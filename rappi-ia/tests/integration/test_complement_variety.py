@@ -39,7 +39,7 @@ def demo(db):
 
 @pytest.fixture(autouse=True)
 def without_alternation(monkeypatch):
-    """«No repetir» se mide con el orden de siempre: sin la alternancia entre los dos mejores complementos, que depende
+    """ "No repetir" se mide con el orden de siempre: sin la alternancia entre los dos mejores complementos, que depende
     del id de cada persona. Sus tests piden `people`, que la vuelve a encender."""
     monkeypatch.setattr(tools, "ROTATION_MARGIN", -1.0)
 
@@ -147,12 +147,12 @@ def test_a_complement_offered_eight_days_ago_is_not_skipped(demo):
 def test_rappi_hoy_does_not_count(demo):
     db, embedder = demo
     ordered(db, 1)
-    # En «Rappi hoy» el evento va sin concepto y marcado `payload.mode = 'actual'`; con concepto tampoco cuenta.
+    # En "Rappi hoy" el evento va sin concepto y marcado `payload.mode = 'actual'`; con concepto tampoco cuenta.
     offered(db, None, 3, payload={"mode": "actual"})
     offered(db, "bebidas-asiaticas", 3, payload={"mode": "actual"})
     assert first(db, embedder).concept == "bebidas-asiaticas"
 
-    # Un pedido de «Rappi hoy» no es «el último pedido» de Mochi: lo mostrado antes sigue siendo la compra en curso.
+    # Un pedido de "Rappi hoy" no es "el último pedido" de Mochi: lo mostrado antes sigue siendo la compra en curso.
     other = "u-actual"
     offered(db, "bebidas-asiaticas", 3, user=other)
     ordered(db, 1, user=other, mode="actual")

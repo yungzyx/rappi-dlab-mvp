@@ -38,7 +38,7 @@ export const tastesReply = (snapshot, state) => ({
   }),
 })
 
-/** El nombre y el emoji de lo que cuenta el «por qué» (`pedidos` y `busquedas` en la `basis`), como `conceptos`. */
+/** El nombre y el emoji de lo que cuenta el "por qué" (`pedidos` y `busquedas` en la `basis`), como `conceptos`. */
 function countedConcepts(concepts, basis = []) {
   const found = {}
   for (const { id, source } of basis) {

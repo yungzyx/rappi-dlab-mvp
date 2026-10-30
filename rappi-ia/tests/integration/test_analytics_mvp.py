@@ -51,7 +51,7 @@ def test_offers_group_old_and_new_origins_by_moment(concepts):
             _offer("u2", "chat"),  # la pregunta al agente, con su nombre viejo
             _offer("u2", "agent-ask"),
             _offer("u2", "para-ti"),
-            _offer("u2", "para-ti-local"),  # nombres viejos de «Para ti»
+            _offer("u2", "para-ti-local"),  # nombres viejos de "Para ti"
             _offer("u2", "vertical-para-ti"),
             # Los servicios tienen su propia vista y el aviso no es una oferta: no entran, ni su persona.
             _offer("u3", "rappitravel"),
@@ -74,7 +74,7 @@ def test_offers_group_old_and_new_origins_by_moment(concepts):
 
 
 def test_offers_of_the_taste_profile_have_their_own_moment(concepts):
-    """El momento `perfil` (perfiles de gusto) tiene su fila: sus ofertas no se pierden en «sin momento»."""
+    """El momento `perfil` (perfiles de gusto) tiene su fila: sus ofertas no se pierden en "sin momento"."""
     db = concepts
     events.record(
         db,

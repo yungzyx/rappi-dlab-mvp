@@ -46,7 +46,7 @@ async function runUntilIdle() {
   await advance(0) // promesas ya resueltas (sin temporizadores pendientes todavía)
   for (let i = 0; i < 100 && vi.getTimerCount() > 0; i++) await advance(250)
 }
-/** El catálogo de la API: la Home (tiendas populares) y la búsqueda agrupada («xyzzy» y «pizza hawaiana» no traen nada). */
+/** El catálogo de la API: la Home (tiendas populares) y la búsqueda agrupada ("xyzzy" y "pizza hawaiana" no traen nada). */
 function stubCatalog(routes = {}) {
   return stubApi({
     '/catalog/home': fixture('catalog-home'),
@@ -77,7 +77,7 @@ function say(text) {
   fireEvent.click(ask)
 }
 
-/** «Olvidar» y su confirmación: la misma hoja de Cuenta → «Borrar mis datos». */
+/** "Olvidar" y su confirmación: la misma hoja de Cuenta → "Borrar mis datos". */
 function clickForget() {
   fireEvent.click(screen.getByText('Olvidar'))
   fireEvent.click(screen.getByText('Sí, borrar'))
@@ -236,7 +236,7 @@ describe('sugerencia cruzada', () => {
             entity_id: '1',
             name: 'Bebida Pepsi 1,5 L',
             store: 'Botillería',
-            store_id: 7, // sin tienda conocida la hoja no ofrece «Ver tienda»
+            store_id: 7, // sin tienda conocida la hoja no ofrece "Ver tienda"
             vertical: 'licores',
           },
         ],
@@ -256,7 +256,7 @@ describe('sugerencia cruzada', () => {
     })
   })
 
-  test('el «Ver tienda» de un plato abre el menú de su restaurante por id', async () => {
+  test('el "Ver tienda" de un plato abre el menú de su restaurante por id', async () => {
     const push = vi.fn()
     api.ask.mockResolvedValueOnce({
       ...apiAnswer('Mira estas hamburguesas', 'hamburguesa'),
@@ -474,7 +474,7 @@ describe('lo aprendido y Olvidar', () => {
     expect(screen.getByText('Olvidar')).toBeTruthy()
   })
 
-  test('Olvidar pide la misma confirmación que «Borrar mis datos» y solo borra al confirmar', async () => {
+  test('Olvidar pide la misma confirmación que "Borrar mis datos" y solo borra al confirmar', async () => {
     api.profile.mockResolvedValue({ interests: [VINO] })
     stubCatalog({ '/recommendations': fixture('recommendations') })
     await renderPanel()
@@ -583,11 +583,11 @@ describe('sin escribir una pregunta', () => {
     fireEvent.click(screen.getByRole('button', { name: '🍻 Arma un carrete' }))
     await runUntilIdle()
     expect(api.ask.mock.calls[0][0].message).toBe('Arma un carrete')
-    expect(screen.getByText('Elegiste «Arma un carrete»')).toBeTruthy()
+    expect(screen.getByText('Elegiste "Arma un carrete"')).toBeTruthy()
     expect(bubbles()).toContain('Para el carrete')
   })
 
-  test('lo escrito en el buscador busca en el catálogo de la API (como en «Rappi hoy»), no le pregunta a Mochi', async () => {
+  test('lo escrito en el buscador busca en el catálogo de la API (como en "Rappi hoy"), no le pregunta a Mochi', async () => {
     await renderPanel()
     const field = screen.getByLabelText('Buscar en Rappi')
     expect(field.maxLength).toBe(500)
@@ -636,27 +636,27 @@ describe('sin escribir una pregunta', () => {
 describe('pedirle algo a Mochi desde el buscador', () => {
   const QUESTION = '¿qué llevo para un asado de 6?'
 
-  test('el campo invita a buscar o pedirle algo y lo escrito trae primero «Pídele a Mochi»', async () => {
+  test('el campo invita a buscar o pedirle algo y lo escrito trae primero "Pídele a Mochi"', async () => {
     await renderPanel()
     const field = screen.getByLabelText('Buscar en Rappi')
     expect(field.placeholder).toBe('Busca o pídele algo a Mochi')
     fireEvent.change(field, { target: { value: 'cerveza' } })
     await runUntilIdle()
-    const row = screen.getByRole('button', { name: 'Pídele a Mochi: «cerveza»' })
-    // Antes que los resultados de la búsqueda, y sin resaltar: «cerveza» es un producto.
+    const row = screen.getByRole('button', { name: 'Pídele a Mochi: "cerveza"' })
+    // Antes que los resultados de la búsqueda, y sin resaltar: "cerveza" es un producto.
     expect(row.compareDocumentPosition(screen.getByRole('heading', { name: 'Licores' }))).toBe(
       Node.DOCUMENT_POSITION_FOLLOWING,
     )
     expect(row.classList.contains('is-question')).toBe(false)
   })
 
-  test('con un error de tipeo corregido, conviven «Pídele a Mochi» y «Mostrando resultados para…»', async () => {
+  test('con un error de tipeo corregido, conviven "Pídele a Mochi" y "Mostrando resultados para…"', async () => {
     stubCatalog({ '/search': fixture('search-grouped-corrected') })
     await renderPanel()
     fireEvent.change(screen.getByLabelText('Buscar en Rappi'), { target: { value: 'cervezaaaa' } })
     await runUntilIdle()
-    const row = screen.getByRole('button', { name: 'Pídele a Mochi: «cervezaaaa»' })
-    const notice = screen.getByText(/^Mostrando resultados para «cerveza»/)
+    const row = screen.getByRole('button', { name: 'Pídele a Mochi: "cervezaaaa"' })
+    const notice = screen.getByText(/^Mostrando resultados para "cerveza"/)
     expect(row.compareDocumentPosition(notice)).toBe(Node.DOCUMENT_POSITION_FOLLOWING)
   })
 
@@ -666,13 +666,13 @@ describe('pedirle algo a Mochi desde el buscador', () => {
     const field = screen.getByLabelText('Buscar en Rappi')
     fireEvent.change(field, { target: { value: QUESTION } })
     await runUntilIdle()
-    expect(screen.getByRole('button', { name: `Pídele a Mochi: «${QUESTION}»` }).classList).toContain('is-question')
+    expect(screen.getByRole('button', { name: `Pídele a Mochi: "${QUESTION}"` }).classList).toContain('is-question')
 
     fireEvent.keyDown(field, { key: 'Enter' })
     await runUntilIdle()
     expect(api.ask.mock.calls[0][0].message).toBe(QUESTION)
     expect(field.value).toBe('')
-    expect(screen.getByText(`Pediste «${QUESTION}»`)).toBeTruthy()
+    expect(screen.getByText(`Pediste "${QUESTION}"`)).toBeTruthy()
     expect(bubbles()).toContain('Mira estas opciones de asado 🔥 en el súper.')
     expect(tracked('search')).toEqual([]) // es una pregunta a Mochi, no una búsqueda
   })
@@ -695,13 +695,13 @@ describe('pedirle algo a Mochi desde el buscador', () => {
     const field = screen.getByLabelText('Buscar en Rappi')
     fireEvent.change(field, { target: { value: QUESTION } })
     await runUntilIdle()
-    const row = screen.getByRole('button', { name: `Pídele a Mochi: «${QUESTION}»` })
+    const row = screen.getByRole('button', { name: `Pídele a Mochi: "${QUESTION}"` })
     fireEvent.blur(field, { relatedTarget: row })
     await runUntilIdle()
     expect(tracked('search')).toEqual([])
   })
 
-  test('bajo una respuesta de salud no salen las ideas de siempre («Arma un carrete»)', async () => {
+  test('bajo una respuesta de salud no salen las ideas de siempre ("Arma un carrete")', async () => {
     api.ask.mockResolvedValueOnce({ ...apiAnswer('No puedo decirte qué remedio tomar…'), intent: { symptom: true } })
     await renderPanel()
     const field = screen.getByLabelText('Buscar en Rappi')
@@ -713,16 +713,16 @@ describe('pedirle algo a Mochi desde el buscador', () => {
     expect(screen.queryByRole('button', { name: '🍻 Arma un carrete' })).toBeNull()
   })
 
-  test('tocar «Pídele a Mochi» se lo pide aunque lo escrito sea un producto', async () => {
+  test('tocar "Pídele a Mochi" se lo pide aunque lo escrito sea un producto', async () => {
     api.ask.mockResolvedValueOnce(apiAnswer('Mira estas cervezas'))
     await renderPanel()
     const field = screen.getByLabelText('Buscar en Rappi')
     fireEvent.change(field, { target: { value: 'cerveza' } })
     await runUntilIdle()
-    fireEvent.click(screen.getByRole('button', { name: 'Pídele a Mochi: «cerveza»' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Pídele a Mochi: "cerveza"' }))
     await runUntilIdle()
     expect(api.ask.mock.calls[0][0].message).toBe('cerveza')
-    expect(screen.getByText('Pediste «cerveza»')).toBeTruthy()
+    expect(screen.getByText('Pediste "cerveza"')).toBeTruthy()
     expect(tracked('search')).toEqual([])
   })
 })
@@ -738,7 +738,7 @@ describe('sin resultados', () => {
     const push = vi.fn()
     await renderPanel({ push })
     await type('pizza hawaiana')
-    expect(screen.getByText('No encontré «pizza hawaiana», pero pizza sí hay en restaurantes.')).toBeTruthy()
+    expect(screen.getByText('No encontré "pizza hawaiana", pero pizza sí hay en restaurantes.')).toBeTruthy()
     expect(document.querySelector('.search-agent .mascot')).toBeTruthy()
     fireEvent.click(screen.getByRole('button', { name: 'Ver en Restaurantes' }))
     expect(push.mock.calls[0][0]).toBe(routeForScreen('restaurants')[0])
@@ -748,7 +748,7 @@ describe('sin resultados', () => {
     stubCatalog({ 'POST /agent/offer': 204 })
     await renderPanel()
     await type('xyzzy')
-    expect(screen.getByText('No encontré «xyzzy». ¿Lo buscamos con otras palabras?')).toBeTruthy()
+    expect(screen.getByText('No encontré "xyzzy". ¿Lo buscamos con otras palabras?')).toBeTruthy()
     fireEvent.click(screen.getByRole('button', { name: 'Probar otra búsqueda' }))
     const field = screen.getByLabelText('Buscar en Rappi')
     expect(field.value).toBe('')
@@ -772,10 +772,10 @@ describe('Para ti y Descubre con Mochi', () => {
     expect(bubbles()[0]).toBe('¡Hola! Soy Mochi, tu asistente de compras 🧡 Toca una idea o busca lo que quieras.')
     expect(screen.getByText('Gaseosa cola 500 cc (prueba)')).toBeTruthy()
     expect(document.querySelector('.agent-msg-reason').textContent).toBe('Por tu interés en 🍕 pizza')
-    // Una sola petición sirve a «Para ti» y a «Descubre con Mochi».
+    // Una sola petición sirve a "Para ti" y a "Descubre con Mochi".
     expect(fetchMock.mock.calls.filter(([url]) => url.includes('/recommendations'))).toHaveLength(1)
     const shown = tracked('suggestion_shown').filter((fields) => fields.origin === 'para-ti')
-    // Con el sobre: el buscador con Mochi, «Para ti» y la respuesta de /recommendations.
+    // Con el sobre: el buscador con Mochi, "Para ti" y la respuesta de /recommendations.
     expect(shown).toEqual([
       {
         concept_id: 'jugos',
@@ -794,7 +794,7 @@ describe('Para ti y Descubre con Mochi', () => {
     expect(tracked('suggestion_shown').filter((fields) => fields.origin === 'para-ti')).toHaveLength(1)
   })
 
-  test('la fila «Lo más pedido» de Para ti se cuenta como mostrada con su tipo', async () => {
+  test('la fila "Lo más pedido" de Para ti se cuenta como mostrada con su tipo', async () => {
     const data = fixture('recommendations')
     data.rows = data.rows.filter((row) => row.kind === 'lo_mas_pedido')
     stubCatalog({ '/recommendations': data })
@@ -893,7 +893,7 @@ describe('¿Con qué acompaño…?', () => {
       moment: 'carrito',
       context: { product: { entity_type: 'catalog_item', entity_id: '94001' } },
     })
-    expect(screen.getByText(`Elegiste «${askAbout(BEER)}»`)).toBeTruthy()
+    expect(screen.getByText(`Elegiste "${askAbout(BEER)}"`)).toBeTruthy()
     expect(bubbles()).toContain('Para completar tu pedido: snacks salados, en Express.')
     fireEvent.click(screen.getByLabelText('Agregar Papas fritas clásicas 180 g (prueba)'))
     expect(tracked('suggestion_accepted')).toContainEqual(
@@ -931,7 +931,7 @@ describe('¿Con qué acompaño…?', () => {
   })
 })
 
-describe('«¿Qué puedo probar?» (una oferta pedida desde fuera)', () => {
+describe('"¿Qué puedo probar?" (una oferta pedida desde fuera)', () => {
   const askToTry = async () => {
     fireEvent.click(screen.getByText('qué puedo probar'))
     await runUntilIdle()
@@ -946,7 +946,7 @@ describe('«¿Qué puedo probar?» (una oferta pedida desde fuera)', () => {
     expect(api.ask).not.toHaveBeenCalled()
     const call = fetchMock.mock.calls.find(([url]) => url.includes('/agent/offer'))
     expect(JSON.parse(call[1].body)).toMatchObject({ moment: 'vertical_por_probar', context: {} })
-    expect(screen.getByText('Elegiste «Muéstrame algo nuevo para probar»')).toBeTruthy()
+    expect(screen.getByText('Elegiste "Muéstrame algo nuevo para probar"')).toBeTruthy()
     const made = fixture('agent-offer-vertical-por-probar')
     expect(bubbles()).toContain(made.text)
     fireEvent.click(screen.getByRole('button', { name: new RegExp('^' + made.actions[0].label) }))
@@ -1052,12 +1052,12 @@ describe('sugerencias mostradas', () => {
 })
 
 describe('aceptar una sugerencia de la API', () => {
-  test('la pregunta y el «+» cuentan la mostrada una sola vez, aunque la vertical llegue como código del backend y como id del prototipo', async () => {
+  test('la pregunta y el "+" cuentan la mostrada una sola vez, aunque la vertical llegue como código del backend y como id del prototipo', async () => {
     api.ask.mockResolvedValueOnce({
       text: 'Mira estas hamburguesas',
       products: [],
       suggestion: {
-        // Concepto propio de este test: lo mostrado se recuerda en la pestaña y otros tests ya usaron «gaseosas».
+        // Concepto propio de este test: lo mostrado se recuerda en la pestaña y otros tests ya usaron "gaseosas".
         concept: 'jugos',
         vertical: 'licores', // el código del backend, como lo deja toMessage en la sugerencia
         prototype_vertical: 'liquor',
@@ -1152,11 +1152,11 @@ describe('conversación', () => {
     await runUntilIdle()
     // El chip manda la frase que el seguimiento de la API ya entiende, con el turno anterior: no se escribe nada
     expect(api.ask.mock.calls[1][0]).toMatchObject({ message: 'más barato', previous: BEERS.conversation })
-    expect(screen.getByText('Elegiste «cerveza» · «más barato»')).toBeTruthy()
+    expect(screen.getByText('Elegiste "cerveza" · "más barato"')).toBeTruthy()
     expect(tracked('search')).toEqual([])
   })
 
-  test('en restaurantes, «Sin carne» refina con un toque; si ya no lleva carne, no se ofrece', async () => {
+  test('en restaurantes, "Sin carne" refina con un toque; si ya no lleva carne, no se ofrece', async () => {
     const pizza = { ...BEERS.conversation, query: 'pizza', concepts: ['pizza'], vertical: 'restaurantes' }
     api.ask.mockResolvedValueOnce({
       ...BEERS,
@@ -1179,7 +1179,7 @@ describe('conversación', () => {
     expect(screen.getByRole('button', { name: 'Otra opción' })).toBeTruthy()
   })
 
-  test('fuera de restaurantes no hay «Sin carne»', async () => {
+  test('fuera de restaurantes no hay "Sin carne"', async () => {
     api.ask.mockResolvedValueOnce(BEERS)
     await renderPanel()
     say('cerveza')
@@ -1187,7 +1187,7 @@ describe('conversación', () => {
     expect(screen.queryByRole('button', { name: 'Sin carne' })).toBeNull()
   })
 
-  test('ya ordenado por precio no ofrece «Más barato»; «Otra opción» sí', async () => {
+  test('ya ordenado por precio no ofrece "Más barato"; "Otra opción" sí', async () => {
     api.ask.mockResolvedValueOnce({ ...CHEAPER, conversation: { ...BEERS.conversation, order: 'barato' } })
     await renderPanel()
     say('cerveza barata')
@@ -1196,7 +1196,7 @@ describe('conversación', () => {
     expect(screen.getByRole('button', { name: 'Otra opción' })).toBeTruthy()
   })
 
-  test('con personas o una ocasión, «Para N personas» suma dos', async () => {
+  test('con personas o una ocasión, "Para N personas" suma dos', async () => {
     const asado = { ...BEERS.conversation, concepts: ['carnes'], occasion: 'asado', people: 6 }
     api.ask.mockResolvedValueOnce({ ...BEERS, text: 'Mira estas opciones de asado', conversation: asado })
     api.ask.mockResolvedValueOnce(CHEAPER)
@@ -1217,10 +1217,10 @@ describe('conversación', () => {
     await runUntilIdle()
     say('más barata')
     await runUntilIdle()
-    expect(screen.getByText('Elegiste «cerveza» · «más barata»')).toBeTruthy()
+    expect(screen.getByText('Elegiste "cerveza" · "más barata"')).toBeTruthy()
     say('pañales')
     await runUntilIdle()
-    expect(screen.getByText('Elegiste «pañales»')).toBeTruthy()
+    expect(screen.getByText('Elegiste "pañales"')).toBeTruthy()
   })
 
   test('bajo una respuesta de salud no hay chips para refinarla ni campo', async () => {
@@ -1250,7 +1250,7 @@ describe('volver a Mochi desde una tienda', () => {
     fireEvent.change(input, { target: { value: 'cerveza' } })
     await runUntilIdle()
     fireEvent.click(screen.getByText('Cerveza negra botella 330 cc (prueba)')) // la hoja del producto
-    fireEvent.click(document.querySelector('.product-sheet-store')) // «Ver tienda»
+    fireEvent.click(document.querySelector('.product-sheet-store')) // "Ver tienda"
     expect(push).toHaveBeenCalledWith(
       'store',
       expect.objectContaining({ store: expect.objectContaining({ id: 9401 }), item: expect.anything() }),
@@ -1279,10 +1279,10 @@ describe('barra del carrito dentro del panel', () => {
   })
 })
 
-// Lo de abajo del saludo no debe moverse mientras el panel carga (los «escribiendo…» miden menos que el saludo y su
-// «Para ti»): espera sin verse hasta el saludo y aparece con él, ya en su lugar.
+// Lo de abajo del saludo no debe moverse mientras el panel carga (los "escribiendo…" miden menos que el saludo y su
+// "Para ti"): espera sin verse hasta el saludo y aparece con él, ya en su lugar.
 describe('al abrir, nada se mueve', () => {
-  test('hasta el saludo, lo de abajo de «escribiendo…» espera sin verse y aparece con él', async () => {
+  test('hasta el saludo, lo de abajo de "escribiendo…" espera sin verse y aparece con él', async () => {
     stubCatalog({ '/recommendations': { slow: 1000, body: fixture('recommendations') } })
     await renderPanel({ settle: false })
     await advance(600)
@@ -1303,7 +1303,7 @@ describe('al abrir, nada se mueve', () => {
     expect(screen.getByRole('dialog').classList.contains('is-waiting')).toBe(false)
   })
 
-  test('el saludo espera también lo aprendido: «Aprendiendo de ti» aparece con él', async () => {
+  test('el saludo espera también lo aprendido: "Aprendiendo de ti" aparece con él', async () => {
     api.profile.mockReturnValue(
       new Promise((resolve) =>
         setTimeout(() => resolve({ interests: [{ concept: 'pizza', label: '🍕 Pizza' }] }), 1500),
@@ -1320,7 +1320,7 @@ describe('al abrir, nada se mueve', () => {
     expect(screen.getByRole('dialog').classList.contains('is-waiting')).toBe(false)
   })
 
-  test('si lo aprendido tarda más que el tope, el saludo sale igual con «Para ti» si ya llegó', async () => {
+  test('si lo aprendido tarda más que el tope, el saludo sale igual con "Para ti" si ya llegó', async () => {
     const data = fixture('recommendations')
     data.rows = data.rows.slice(0, 1)
     data.rows[0].concept = 'jugos-tope' // propio: lo mostrado se recuerda en la pestaña
@@ -1423,7 +1423,7 @@ describe('perfil de gusto', () => {
 
     const card = document.querySelector('.agent-card')
     expect(card.querySelector('.agent-card-head').textContent).toContain('Tu asistente Rappi')
-    // Un solo saludo, corto y sin «Para ti» debajo: la escalera va justo después.
+    // Un solo saludo, corto y sin "Para ti" debajo: la escalera va justo después.
     expect(bubbles()).toEqual([
       '¡Hola de nuevo! 🧡 Veo que te gusta lo asiático 🥢 Te armé ideas en otras verticales 👇',
     ])
@@ -1439,14 +1439,14 @@ describe('perfil de gusto', () => {
     expect(order.every(Boolean)).toBe(true)
     for (let i = 1; i < order.length; i++)
       expect(order[i - 1].compareDocumentPosition(order[i]) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
-    // El perfil ya dice lo aprendido; «Olvidar» va en su tarjeta, una sola vez.
+    // El perfil ya dice lo aprendido; "Olvidar" va en su tarjeta, una sola vez.
     expect(screen.queryByText('Aprendiendo de ti:')).toBeNull()
     expect(screen.queryByText('Puedo ayudarte a:')).toBeNull()
     expect(screen.getAllByRole('button', { name: 'Olvidar' })).toHaveLength(1)
     expect(card.querySelector('.taste-card .taste-forget')).toBeTruthy()
   })
 
-  test('«Olvidar» en la tarjeta del perfil pide la misma confirmación', async () => {
+  test('"Olvidar" en la tarjeta del perfil pide la misma confirmación', async () => {
     withTaste()
     await renderPanel()
     fireEvent.click(document.querySelector('.taste-forget'))
@@ -1455,7 +1455,7 @@ describe('perfil de gusto', () => {
     expect(api.forget).not.toHaveBeenCalled()
   })
 
-  test('«¿Por qué?» muestra lo que contó: pedidos y búsquedas por concepto, con su nombre', async () => {
+  test('"¿Por qué?" muestra lo que contó: pedidos y búsquedas por concepto, con su nombre', async () => {
     withTaste()
     await renderPanel()
     const toggle = screen.getByRole('button', { name: /¿Por qué\?/ })
@@ -1483,7 +1483,7 @@ describe('perfil de gusto', () => {
     expect(screen.getByRole('region', { name: 'Tu perfil' })).toBeTruthy()
   })
 
-  test('debajo de la escalera, una fila con los atajos, «Mis preferencias» y «Pedir por mí», que siguen andando', async () => {
+  test('debajo de la escalera, una fila con los atajos, "Mis preferencias" y "Pedir por mí", que siguen andando', async () => {
     const fetchMock = withTaste()
     await renderPanel()
     const row = document.querySelector('.agent-more')
@@ -1508,14 +1508,14 @@ describe('perfil de gusto', () => {
     expect(JSON.parse(offered.at(-1)[1].body).moment).toBe('recompra')
     // La respuesta reemplaza al saludo (una sola burbuja, arriba de la escalera), con lo elegido encima.
     expect(bubbles()).toHaveLength(1)
-    expect(document.querySelector('.agent-asked').textContent).toBe('Elegiste «Repite lo de siempre»')
+    expect(document.querySelector('.agent-asked').textContent).toBe('Elegiste "Repite lo de siempre"')
     expect(
       document.querySelector('.agent-msg-bubble').compareDocumentPosition(document.querySelector('.taste-ladder')) &
         Node.DOCUMENT_POSITION_FOLLOWING,
     ).toBeTruthy()
   })
 
-  test('«Olvidar» quita el perfil del panel', async () => {
+  test('"Olvidar" quita el perfil del panel', async () => {
     stubCatalog({
       'GET /profile/*': fixture('profile-gustos'),
       'POST /agent/offer': (req) => (req.body.moment === 'perfil' ? fixture('agent-offer-perfil') : 204),

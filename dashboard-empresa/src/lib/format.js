@@ -41,7 +41,7 @@ export function formatSignedPct(value, decimals = 0) {
   return `${sign}${formatNumber(value, decimals)}%`
 }
 
-/** Diferencia en puntos porcentuales, con la palabra («pp» no lo lee cualquiera): 10.9 → "+10,9 puntos". */
+/** Diferencia en puntos porcentuales, con la palabra ("pp" no lo lee cualquiera): 10.9 → "+10,9 puntos". */
 export function formatPoints(value, decimals = 1) {
   if (isMissing(value)) return EMPTY
   const sign = value > 0 ? '+' : ''

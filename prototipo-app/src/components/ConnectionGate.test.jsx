@@ -82,7 +82,7 @@ describe('ConnectionGate', () => {
     expect(screen.queryByText('La app')).toBeNull()
   })
 
-  test('sin API muestra «Sin conexión con Mochi» y no la app', async () => {
+  test('sin API muestra "Sin conexión con Mochi" y no la app', async () => {
     stubApi({ '/health': 'offline' })
     renderGate()
     expect(await screen.findByRole('heading', { name: 'Sin conexión con Mochi' })).toBeTruthy()
@@ -92,7 +92,7 @@ describe('ConnectionGate', () => {
     expect(help.parentElement.textContent).toBe(
       'Levanta el MVP con make mvp en la carpeta del proyecto y vuelve a intentar.',
     )
-    expect(wait.parentElement.textContent).toBe('Si acabas de correr make mvp, espera «MVP listo».')
+    expect(wait.parentElement.textContent).toBe('Si acabas de correr make mvp, espera "MVP listo".')
     expect(screen.getByRole('button', { name: 'Reintentar' })).toBeTruthy()
     expect(screen.queryByText('La app')).toBeNull()
   })
@@ -116,7 +116,7 @@ describe('ConnectionGate', () => {
     expect(screen.queryByRole('button', { name: 'Salir' })).toBeNull()
   })
 
-  test('una API lenta muestra «Conectando con Mochi…» y después entra', async () => {
+  test('una API lenta muestra "Conectando con Mochi…" y después entra', async () => {
     vi.useFakeTimers()
     stubApi({ '/health': 'slow:3000' })
     renderGate()
@@ -155,7 +155,7 @@ describe('ConnectionGate', () => {
     expect(offline).toHaveBeenCalledTimes(1)
     await act(() => vi.advanceTimersByTimeAsync(1))
     expect(offline).toHaveBeenCalledTimes(2)
-    // En silencio: sigue la misma pantalla y el mismo botón, sin pasar por «Conectando…».
+    // En silencio: sigue la misma pantalla y el mismo botón, sin pasar por "Conectando…".
     expect(screen.queryByText('Conectando con Mochi…')).toBeNull()
     expect(screen.getByRole('button', { name: 'Reintentar' })).toBe(retry)
 

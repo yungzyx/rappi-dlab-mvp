@@ -52,7 +52,7 @@ LOG_RETENTION_WEEKS = 8
 # correr junto al respaldo de `refresh` (se pisaban al rotar).
 LONG_COMMANDS = {"discover", "scrape-stores", "scrape-restaurants", "refresh", "backup"}
 # Códigos de salida de `refresh` que refresh-semanal.sh distingue:
-# 3: terminó todo menos el respaldo; se anota («respaldo fallido») y sigue con la capa de IA.
+# 3: terminó todo menos el respaldo; se anota ("respaldo fallido") y sigue con la capa de IA.
 BACKUP_FAILED_EXIT = 3
 # 4: posible bloqueo; la corrida quedó abierta y la tarea semanal se detiene ahí.
 POSSIBLE_BLOCK_EXIT = 4
@@ -74,7 +74,7 @@ FALLBACK_NOTE = "restaurantes_con_lista_anterior"
 
 def _run_id(conn, kind: str, args) -> int:
     """Reanuda la última corrida abierta de ese tipo, o crea una nueva con --new-run (y cierra la abierta como fallida:
-    si quedara «en curso», `rappi-ia embed` no correría nunca)."""
+    si quedara "en curso", `rappi-ia embed` no correría nunca)."""
     run_id = repository.open_run(conn, kind)
     if args.new_run and run_id is not None:
         repository.finish_run(conn, run_id, "failed")

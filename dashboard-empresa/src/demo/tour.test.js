@@ -36,7 +36,7 @@ const recorded = {
 }
 
 describe('Ver cómo funciona', () => {
-  test('the offer step adds a shown «Plan» offer, a person and an active user', () => {
+  test('the offer step adds a shown "Plan" offer, a person and an active user', () => {
     const after = responsesAfter(recorded, 1)
 
     expect(after['offers.prototype'].data.momentos[0]).toEqual({

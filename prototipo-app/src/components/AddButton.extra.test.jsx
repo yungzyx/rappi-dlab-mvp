@@ -48,7 +48,7 @@ describe('AddButton (extra)', () => {
     expect(session.lastAdded).toMatchObject({ id: heineken.id })
   })
 
-  test('si se quita lo último agregado (p. ej. «Deshacer»), Mochi no lo comenta al volver a la Home', () => {
+  test('si se quita lo último agregado (p. ej. "Deshacer"), Mochi no lo comenta al volver a la Home', () => {
     render(<AddButton product={heineken} />, { wrapper: Providers })
     add()
     expect(session.lastAdded).toMatchObject({ id: heineken.id })
@@ -66,7 +66,7 @@ describe('AddButton (extra)', () => {
     expect(heard.mock.calls[0][0].detail.product).toMatchObject({ id: heineken.id })
   })
 
-  test('en «Rappi hoy» agregar no avisa a Mochi', () => {
+  test('en "Rappi hoy" agregar no avisa a Mochi', () => {
     localStorage.setItem('rappi-proto-demo-mode', 'actual')
     const heard = vi.fn()
     window.addEventListener(AGENT_CART_EVENT, heard)
@@ -76,7 +76,7 @@ describe('AddButton (extra)', () => {
     expect(heard).not.toHaveBeenCalled()
   })
 
-  test('en «Rappi hoy» no hay memoria de Mochi', () => {
+  test('en "Rappi hoy" no hay memoria de Mochi', () => {
     localStorage.setItem('rappi-proto-demo-mode', 'actual')
     render(<AddButton product={heineken} />, { wrapper: Providers })
     add()

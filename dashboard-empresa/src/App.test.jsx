@@ -96,7 +96,7 @@ describe('App', () => {
     ).toBeTruthy()
   })
 
-  test('«Actualizar» brings what is new in the prototype without reloading the page', async () => {
+  test('"Actualizar" brings what is new in the prototype without reloading the page', async () => {
     window.history.replaceState(null, '', '/?vista=mochi&fuente=prototipo')
     serveFixtures()
     await renderWithData(<App />)

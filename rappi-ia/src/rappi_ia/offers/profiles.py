@@ -1,17 +1,17 @@
-"""Perfiles de gusto: lo que la persona pide seguido arma un perfil («Amante de lo asiático»), y cada perfil tiene una
-escalera de verticales que el agente ofrece de a un peldaño, más un viaje opcional («Idea para RappiTravel»).
+"""Perfiles de gusto: lo que la persona pide seguido arma un perfil ("Amante de lo asiático"), y cada perfil tiene una
+escalera de verticales que el agente ofrece de a un peldaño, más un viaje opcional ("Idea para RappiTravel").
 
 Todo vive en datos: `perfiles.toml` y `destinos.toml`, junto a este módulo. Se validan al cargar contra la taxonomía,
 los segmentos y las guardias de ofertas (`guards.py`): un peldaño nunca nombra lo que el agente no ofrece por su cuenta.
 
 El motor:
 - `active_profiles`: los perfiles de una persona del prototipo, desde sus segmentos no sensibles (como
-  `personal.py`), con su «por qué» contado en sus pedidos y búsquedas. «Olvidar» borra o recalcula sus segmentos, así
+  `personal.py`), con su "por qué" contado en sus pedidos y búsquedas. "Olvidar" borra o recalcula sus segmentos, así
   que el perfil se va con ellos.
 - `ladder`: la escalera de un perfil, con productos de verdad: una búsqueda de oferta por peldaño
   (`search_products(..., offer=True)`), así que pasan todas las guardias (nada +18, ni un nombre o una sección de menú
   que dice alcohol, ni tiendas Farmacia, Sex shop o Smoking shop). Además, una escalera no muestra tiendas que se
-  llaman «Licores» o «Botillería» (venden hielo y bebidas, pero el perfil no lleva ahí), y sus restaurantes son de la
+  llaman "Licores" o "Botillería" (venden hielo y bebidas, pero el perfil no lleva ahí), y sus restaurantes son de la
   ciudad de la persona (`person_city`).
 """
 
@@ -37,22 +37,22 @@ from .personal import LEVEL_WEIGHT, Signal, is_prototype_user
 DATA_DIR = Path(__file__).resolve().parent
 MIN_STEPS = 2  # con menos peldaños no hay escalera que ofrecer
 FACTS = 2  # hechos por destino: los que muestra la tarjeta del viaje
-STEP_PRODUCTS = 4  # lo más que muestra un peldaño; basta uno («Lindor Matcha» es el único matcha de chocolaterías)
+STEP_PRODUCTS = 4  # lo más que muestra un peldaño; basta uno ("Lindor Matcha" es el único matcha de chocolaterías)
 # Productos que se piden por peldaño, antes de quedarse con los de sus conceptos, con sus palabras y, en restaurantes,
 # uno por cadena que la persona no conoce. En restaurantes, más: los primeros platos suelen ser de un mismo local (en la
 # base real, 10 de 12).
 STEP_CANDIDATES = 12
 RESTAURANT_CANDIDATES = 40
 # Palabras clave de cada concepto en la consulta de un peldaño sin palabras, después del nombre del concepto. En
-# restaurantes, sin el nombre: sus palabras genéricas («comida», «tablas») contra 165 mil platos costaban 150 ms más por
+# restaurantes, sin el nombre: sus palabras genéricas ("comida", "tablas") contra 165 mil platos costaban 150 ms más por
 # peldaño en la base real, y los platos se llaman por sus palabras clave (sushi, roll, wok, chorrillana).
 STEP_QUERY_KEYWORDS = 2
-LIQUOR_STORE_WORDS = ("licor", "botiller")  # tiendas (nombre o marca) que una escalera no muestra: «Turbo Licores»
-# Las comunas de una ciudad del scraper (la de `stores.city` en las tiendas: «Santiago de Chile»). Un restaurante guarda
-# la comuna de su página («Ñuñoa», «Maipú»), no esa ciudad: los restaurantes salen del sitemap, no de un listado por
+LIQUOR_STORE_WORDS = ("licor", "botiller")  # tiendas (nombre o marca) que una escalera no muestra: "Turbo Licores"
+# Las comunas de una ciudad del scraper (la de `stores.city` en las tiendas: "Santiago de Chile"). Un restaurante guarda
+# la comuna de su página ("Ñuñoa", "Maipú"), no esa ciudad: los restaurantes salen del sitemap, no de un listado por
 # ciudad. Gran Santiago: las 32 comunas de la provincia de Santiago, Puente Alto, San Bernardo, Colina (Chicureo) y
-# Lampa; Melipilla y el resto de la región quedan fuera. Una ciudad que no está aquí es su propia comuna («Viña del
-# Mar»).
+# Lampa; Melipilla y el resto de la región quedan fuera. Una ciudad que no está aquí es su propia comuna ("Viña del
+# Mar").
 CITY_COMUNAS = {
     "Santiago de Chile": (
         *("Cerrillos", "Cerro Navia", "Conchalí", "El Bosque", "Estación Central", "Huechuraba", "Independencia"),
@@ -62,10 +62,10 @@ CITY_COMUNAS = {
         *("Santiago", "Vitacura", "Puente Alto", "San Bernardo", "Colina", "Lampa"),
     ),
 }
-REASON_CONCEPTS = 3  # conceptos que nombra el «por qué»
-QUERY_EVENTS = ("search", "chat", "ask")  # lo que cuenta como «buscaste»
-COUNTED_SOURCES = ("pedidos", "busquedas")  # lo que cuenta el «por qué» en la `basis`
-# El «por qué» sin nada que contar: un perfil que se armó con lo que el agente no nombra (los cócteles del carrete)
+REASON_CONCEPTS = 3  # conceptos que nombra el "por qué"
+QUERY_EVENTS = ("search", "chat", "ask")  # lo que cuenta como "buscaste"
+COUNTED_SOURCES = ("pedidos", "busquedas")  # lo que cuenta el "por qué" en la `basis`
+# El "por qué" sin nada que contar: un perfil que se armó con lo que el agente no nombra (los cócteles del carrete)
 # o con búsquedas sin concepto.
 REASON_NEUTRAL = "Por lo que has pedido y buscado últimamente."
 
@@ -81,7 +81,7 @@ class Fact:
 class Destination:
     id: str
     name: str
-    text: str  # la pregunta: «¿Y si un día vas a Japón?»
+    text: str  # la pregunta: "¿Y si un día vas a Japón?"
     facts: tuple[Fact, ...]
 
 
@@ -95,7 +95,7 @@ class Step:
 
     def fits(self, name: str) -> bool:
         """Si el nombre dice alguna de sus `words` (si tiene) y ninguna de `avoid`, cada una al comienzo de una palabra
-        del nombre normalizado: «vaso» calza «Vasos», no «Posavasos»; «tiramis» calza «Tiramisú»."""
+        del nombre normalizado: "vaso" calza "Vasos", no "Posavasos"; "tiramis" calza "Tiramisú"."""
         text = f" {normalize(name)}"
         says = [f" {word}" in text for word in self.words]
         return (not says or any(says)) and not any(f" {word}" in text for word in self.avoid)
@@ -110,7 +110,7 @@ class Profile:
     segments: tuple[str, ...]
     min_level: str
     ladder: tuple[Step, ...]
-    likes: str  # lo que sigue a «Por tu gusto por…» y a «Veo que te gusta…» («lo asiático»)
+    likes: str  # lo que sigue a "Por tu gusto por…" y a "Veo que te gusta…" ("lo asiático")
     trip: str | None = None  # id de un destino
 
 
@@ -151,18 +151,18 @@ def load_profiles(path: Path = DATA_DIR / "perfiles.toml") -> dict[str, Profile]
             where,
         )
         if not (isinstance(raw["gusto"], str) and raw["gusto"].strip()):
-            raise ValueError(f"{where}: «gusto» va como un texto no vacío")
+            raise ValueError(f'{where}: "gusto" va como un texto no vacío')
         if raw["id"] in profiles:
             raise ValueError(f"{where}: id repetido")
         for segment in raw["segmentos"]:
             if segment not in segments:
-                raise ValueError(f"{where}: segmento desconocido «{segment}»")
+                raise ValueError(f'{where}: segmento desconocido "{segment}"')
             if segments[segment].sensitive:
-                raise ValueError(f"{where}: el segmento «{segment}» es sensible y no arma perfiles")
+                raise ValueError(f'{where}: el segmento "{segment}" es sensible y no arma perfiles')
         if raw["nivel_minimo"] not in LEVELS:
-            raise ValueError(f"{where}: nivel_minimo «{raw['nivel_minimo']}» no es uno de {', '.join(LEVELS)}")
+            raise ValueError(f'{where}: nivel_minimo "{raw["nivel_minimo"]}" no es uno de {", ".join(LEVELS)}')
         if raw.get("viaje") is not None and raw["viaje"] not in destinations:
-            raise ValueError(f"{where}: viaje a un destino desconocido «{raw['viaje']}»")
+            raise ValueError(f'{where}: viaje a un destino desconocido "{raw["viaje"]}"')
         ladder = tuple(_step(entry, concepts, where) for entry in raw["escalera"])
         if len(ladder) < MIN_STEPS:
             raise ValueError(f"{where}: la escalera necesita al menos {MIN_STEPS} peldaños")
@@ -187,42 +187,42 @@ def _step(raw: dict, concepts: dict, where: str) -> Step:
     _check_keys(raw, {"vertical", "conceptos", "texto"}, {"palabras", "evitar"}, f"{where}, peldaño")
     vertical = raw["vertical"]
     if vertical not in VERTICALS:
-        raise ValueError(f"{where}: vertical desconocida «{vertical}»")
+        raise ValueError(f'{where}: vertical desconocida "{vertical}"')
     if not offerable_vertical(vertical):
-        raise ValueError(f"{where}: el agente no ofrece productos de «{vertical}» por su cuenta")
+        raise ValueError(f'{where}: el agente no ofrece productos de "{vertical}" por su cuenta')
     if not raw["conceptos"]:
-        raise ValueError(f"{where}: un peldaño en «{vertical}» sin conceptos")
+        raise ValueError(f'{where}: un peldaño en "{vertical}" sin conceptos')
     for concept in raw["conceptos"]:
         if concept not in concepts:
-            raise ValueError(f"{where}: concepto desconocido «{concept}»")
+            raise ValueError(f'{where}: concepto desconocido "{concept}"')
         if not is_offerable(concepts[concept]):
-            raise ValueError(f"{where}: el agente no ofrece «{concept}» por su cuenta (offers/guards.py)")
+            raise ValueError(f'{where}: el agente no ofrece "{concept}" por su cuenta (offers/guards.py)')
     words = _words(raw, "palabras", where)
     avoid = _words(raw, "evitar", where)
     return Step(vertical, tuple(raw["conceptos"]), raw["texto"], words, avoid)
 
 
 def _words(raw: dict, key: str, where: str) -> tuple[str, ...]:
-    """Las `palabras` o `evitar` de un peldaño, normalizadas como el nombre con que se comparan: «café» calza «Bombones
-    de Cafe» y «cotillón», «Cotillon». Un texto suelto (`palabras = "vaso"`) o una palabra vacía se notan al cargar: si
+    """Las `palabras` o `evitar` de un peldaño, normalizadas como el nombre con que se comparan: "café" calza "Bombones
+    de Cafe" y "cotillón", "Cotillon". Un texto suelto (`palabras = "vaso"`) o una palabra vacía se notan al cargar: si
     no, calzaría letra por letra o con todo."""
     found = raw.get(key, [])
     if not isinstance(found, list):
-        raise ValueError(f"{where}: «{key}» va como lista, no como texto")
+        raise ValueError(f'{where}: "{key}" va como lista, no como texto')
     words = tuple(normalize(word) if isinstance(word, str) else "" for word in found)
     if "" in words:
-        raise ValueError(f"{where}: «{key}» trae una palabra vacía o sin letras")
+        raise ValueError(f'{where}: "{key}" trae una palabra vacía o sin letras')
     return words
 
 
 def _check_keys(raw: dict, required: set[str], optional: set[str], where: str) -> None:
-    """Una clave mal escrita («concepto») o que falta se nota al cargar, no como un peldaño que nunca calza."""
+    """Una clave mal escrita ("concepto") o que falta se nota al cargar, no como un peldaño que nunca calza."""
     missing = sorted(required - raw.keys())
     if missing:
-        raise ValueError(f"{where}: falta {', '.join(f'«{k}»' for k in missing)}")
+        raise ValueError(f"{where}: falta {', '.join(f'"{k}"' for k in missing)}")
     unknown = sorted(raw.keys() - required - optional)
     if unknown:
-        raise ValueError(f"{where}: clave desconocida {', '.join(f'«{k}»' for k in unknown)}")
+        raise ValueError(f"{where}: clave desconocida {', '.join(f'"{k}"' for k in unknown)}")
 
 
 # ── qué perfiles tiene una persona ───────────────────────────────────────────
@@ -233,8 +233,8 @@ class ActiveProfile:
     profile: Profile
     level: str  # el mayor de sus segmentos
     score: float  # la suma de sus segmentos
-    reason: str  # «Pediste 🍣 sushi 2 veces, y buscaste 🥡 comida asiática 1 vez.»
-    basis: tuple[dict, ...]  # sus segmentos y lo que cuenta el «por qué», con la forma de `reason.basis` de una oferta
+    reason: str  # "Pediste 🍣 sushi 2 veces, y buscaste 🥡 comida asiática 1 vez."
+    basis: tuple[dict, ...]  # sus segmentos y lo que cuenta el "por qué", con la forma de `reason.basis` de una oferta
 
     def to_dict(self) -> dict:
         return {
@@ -250,8 +250,8 @@ class ActiveProfile:
         }
 
     def concepts(self) -> dict[str, dict[str, str]]:
-        """El nombre y el emoji de cada concepto que cuenta el «por qué» (`pedidos` o `busquedas` en la `basis`): la
-        app los lista en «¿Por qué?» sin tener la taxonomía."""
+        """El nombre y el emoji de cada concepto que cuenta el "por qué" (`pedidos` o `busquedas` en la `basis`): la
+        app los lista en "¿Por qué?" sin tener la taxonomía."""
         taxonomy = load_taxonomy().concepts
         counted = (s["id"] for s in self.basis if s["source"] in COUNTED_SOURCES)
         return {c: {"nombre": taxonomy[c].name, "emoji": taxonomy[c].emoji} for c in dict.fromkeys(counted)}
@@ -259,10 +259,10 @@ class ActiveProfile:
 
 def active_profiles(conn: Connection, user_id: str | None) -> list[ActiveProfile]:
     """Los perfiles de la persona: los que tienen alguno de sus segmentos (no sensibles) en `nivel_minimo` o más. El
-    nivel es el mayor de sus segmentos y el puntaje, la suma. El «por qué» cuenta sus pedidos y búsquedas en la ventana
+    nivel es el mayor de sus segmentos y el puntaje, la suma. El "por qué" cuenta sus pedidos y búsquedas en la ventana
     de esos segmentos (la mayor de los que tiene; hoy, 120 días). La `basis` tiene la forma de las señales de
     `personal.py`: la evidencia de sus segmentos (concepto, el peso de su nivel, `segmento:<id>`) y lo que cuenta el
-    «por qué» (concepto, cuántas veces, `pedidos` o `busquedas`), solo de conceptos que el agente puede nombrar. El
+    "por qué" (concepto, cuántas veces, `pedidos` o `busquedas`), solo de conceptos que el agente puede nombrar. El
     principal primero y después por puntaje (con empate, el orden del archivo). Vacío si no es del prototipo."""
     if not is_prototype_user(conn, user_id):
         return []
@@ -300,7 +300,7 @@ def active_profiles(conn: Connection, user_id: str | None) -> list[ActiveProfile
 
 
 def _nameable(concept_id: str) -> bool:
-    """Si el agente puede nombrar el concepto en un «por qué» (ni +18, ni sensible, ni bebé, ni salud)."""
+    """Si el agente puede nombrar el concepto en un "por qué" (ni +18, ni sensible, ni bebé, ni salud)."""
     concept = load_taxonomy().concepts.get(concept_id)
     return concept is not None and is_offerable(concept)
 
@@ -314,7 +314,7 @@ def _counted_concepts(profile: Profile, rules: dict) -> list[str]:
 
 def _counts(conn: Connection, user_id: str, concepts: list[str], days: int) -> dict[str, dict[str, int]]:
     """concepto → {"pedidos": pedidos distintos, "busquedas": búsquedas} de la persona en los últimos `days` días (la
-    ventana de sus segmentos), sin lo de «Rappi hoy» (ahí la app no aprende)."""
+    ventana de sus segmentos), sin lo de "Rappi hoy" (ahí la app no aprende)."""
     rows = conn.execute(
         """SELECT l.concept_id, 'pedidos', count(DISTINCT o.order_id)
            FROM app_orders o JOIN app_order_lines l USING (order_id)
@@ -337,7 +337,7 @@ def _counts(conn: Connection, user_id: str, concepts: list[str], days: int) -> d
 
 
 def _reason(concepts: list[str], counts: dict[str, dict[str, int]]) -> str:
-    """«Pediste 🍣 sushi 2 veces, y buscaste 🥡 comida asiática 1 vez.»: los `REASON_CONCEPTS` que más cuentan (los
+    """ "Pediste 🍣 sushi 2 veces, y buscaste 🥡 comida asiática 1 vez.": los `REASON_CONCEPTS` que más cuentan (los
     pedidos antes que las búsquedas); de un concepto pedido no se dicen sus búsquedas."""
     taxonomy = load_taxonomy().concepts
     ranked = sorted(
@@ -358,7 +358,7 @@ def _reason(concepts: list[str], counts: dict[str, dict[str, int]]) -> str:
 
 
 def _join(items: list[str]) -> str:
-    """«a, b y c»."""
+    """ "a, b y c"."""
     return items[0] if len(items) == 1 else ", ".join(items[:-1]) + " y " + items[-1]
 
 
@@ -376,8 +376,8 @@ def person_city(conn: Connection, user_id: str | None) -> str:
 
 def city_places(city: str) -> frozenset[str]:
     """Las comunas de una ciudad, normalizadas como se comparan (`text.normalize`): las de `CITY_COMUNAS` si se llama
-    así o si es una de ellas («Santiago», la ciudad de las personas simuladas, es Santiago de Chile); si no, la ciudad
-    misma («Concepcion», como la escribe el scraper, es la comuna de Concepción)."""
+    así o si es una de ellas ("Santiago", la ciudad de las personas simuladas, es Santiago de Chile); si no, la ciudad
+    misma ("Concepcion", como la escribe el scraper, es la comuna de Concepción)."""
     wanted = normalize(city)
     for name, comunas in CITY_COMUNAS.items():
         places = frozenset(normalize(comuna) for comuna in comunas)
@@ -387,7 +387,7 @@ def city_places(city: str) -> frozenset[str]:
 
 
 def ordered_restaurants(conn: Connection, user_id: str | None) -> set[int]:
-    """Los locales donde la persona ya pidió (sin «Rappi hoy»): el peldaño de restaurantes ofrece los que no conoce.
+    """Los locales donde la persona ya pidió (sin "Rappi hoy"): el peldaño de restaurantes ofrece los que no conoce.
     Vacío si no es del prototipo."""
     if not is_prototype_user(conn, user_id):
         return set()
@@ -463,7 +463,7 @@ def ladder(
 def _step_query(step: Step) -> str:
     """Lo que busca un peldaño: sus palabras, si tiene (es lo que el nombre debe decir); si no, por cada concepto su
     nombre (lo que mejor entiende la búsqueda vectorial) y sus primeras palabras clave que suman una palabra nueva (lo
-    que la léxica encuentra en los nombres: sin embeddings, «Despensa asiática» no calzaba ningún producto). En
+    que la léxica encuentra en los nombres: sin embeddings, "Despensa asiática" no calzaba ningún producto). En
     restaurantes, solo las palabras clave (`STEP_QUERY_KEYWORDS`)."""
     if step.words:
         return " ".join(step.words)
@@ -476,7 +476,7 @@ def _step_query(step: Step) -> str:
         chosen += [concept.name] if named else []
         kept = 0
         for keyword in concept.keywords:
-            words = {word.rstrip("s") for word in tokens(keyword)}  # «rolls» no suma nada a «roll»
+            words = {word.rstrip("s") for word in tokens(keyword)}  # "rolls" no suma nada a "roll"
             if words - seen:
                 chosen.append(keyword)
                 seen |= words

@@ -1,6 +1,6 @@
 """Preferencias explícitas de la persona con el agente: su dieta, sus alergias y sus cocinas y tiendas favoritas. Se
-eligen entre opciones en la hoja «Mis preferencias» del buscador con Mochi (sin escribir); si una frase como «soy
-vegetariano» o «mi tienda favorita es…» llega por el buscador, también se entiende. Tabla
+eligen entre opciones en la hoja "Mis preferencias" del buscador con Mochi (sin escribir); si una frase como "soy
+vegetariano" o "mi tienda favorita es…" llega por el buscador, también se entiende. Tabla
 `agent_preferences` (migración 045); las opciones de dieta y alergias, en offers/preferencias.toml.
 
 Reglas:
@@ -10,7 +10,7 @@ Reglas:
   dice cuando muestra comida (`notice`).
 - Las cocinas y tiendas favoritas solo ordenan lo que ya se iba a mostrar: no agregan productos ni eligen una vertical,
   así que Licores y Farmacia siguen subiendo solo por señales propias de la persona.
-- Solo en «Propuesta»: «Rappi hoy» no las guarda ni las usa.
+- Solo en "Propuesta": "Rappi hoy" no las guarda ni las usa.
 
 Mientras el agente responde un turno o arma una oferta, las de la persona quedan puestas (`applied`) y
 `agent.tools.search_products` filtra con ellas antes de cortar los resultados (`active().keep`). Lo que llega por otro
@@ -48,7 +48,7 @@ class Rule:
     id: str
     kind: str
     name: str
-    without: str  # lo que el agente dice que saca («carne»)
+    without: str  # lo que el agente dice que saca ("carne")
     phrases: tuple[str, ...]
     concepts: frozenset[str] = frozenset()
     words: re.Pattern | None = None
@@ -247,12 +247,12 @@ def clear(conn: Connection, user_id: str) -> int:
 
 
 def forget_concept(conn: Connection, user_id: str, concept_id: str) -> int:
-    """«Olvidar» un concepto también lo saca de sus cocinas favoritas."""
+    """ "Olvidar" un concepto también lo saca de sus cocinas favoritas."""
     return remove(conn, user_id, [("cocina", concept_id)])
 
 
 def find_store(conn: Connection, said: str) -> str | None:
-    """El nombre de la tienda o cadena del catálogo que nombró la persona («jumbo» → «Jumbo»), o None. Como en la
+    """El nombre de la tienda o cadena del catálogo que nombró la persona ("jumbo" → "Jumbo"), o None. Como en la
     tarjeta del producto: la marca de la tienda o, sin marca, su nombre."""
     wanted = normalize(said)
     if len(wanted) < 3:
@@ -291,7 +291,7 @@ MAX_STORE_OPTIONS = 8  # tiendas de sus pedidos que la hoja ofrece marcar
 
 
 def ordered_stores(conn: Connection, user_id: str) -> list[str]:
-    """Las tiendas donde la persona ya pidió en «Propuesta» (la más reciente primero, hasta MAX_STORE_OPTIONS), como las
+    """Las tiendas donde la persona ya pidió en "Propuesta" (la más reciente primero, hasta MAX_STORE_OPTIONS), como las
     nombra `find_store`: la marca de la tienda o, sin marca, su nombre. Son las que la hoja ofrece marcar como
     favoritas: así se eligen sin escribirlas."""
     rows = conn.execute(
@@ -346,12 +346,12 @@ FAVORITE_STORE = re.compile(
     r"(.+)$|^prefiero\s+(?:pedir|comprar)\s+en\s+(.+)$"
 )
 ARTICLE = re.compile(r"^(?:el|la|los|las)\s+")
-UNSAY = ("soy ", "tengo ", "alergi", "intolerante")  # «ya no soy vegetariano» quita; «ya no como carne» agrega
+UNSAY = ("soy ", "tengo ", "alergi", "intolerante")  # "ya no soy vegetariano" quita; "ya no como carne" agrega
 
 
 def read_command(text: str) -> Command | None:
     """La orden sobre las preferencias de un mensaje, o None si no es una. Las frases van al comienzo del mensaje
-    (después de «recuerda que», «yo»…): «sushi sin maní» es un pedido, no una alergia."""
+    (después de "recuerda que", "yo"…): "sushi sin maní" es un pedido, no una alergia."""
     said = normalize(text)
     if CLEAR.match(said):
         return Command("olvidar")
@@ -377,7 +377,7 @@ def read_command(text: str) -> Command | None:
 
 
 def _rules_said(body: str) -> list[Rule]:
-    """Las dietas y alergias dichas: la primera al comienzo («soy vegetariano y alérgico al maní» son dos)."""
+    """Las dietas y alergias dichas: la primera al comienzo ("soy vegetariano y alérgico al maní" son dos)."""
     rules = load_options().rules.values()
     if not any(body == p or body.startswith(f"{p} ") for rule in rules for p in rule.phrases):
         return []

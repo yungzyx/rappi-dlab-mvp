@@ -32,7 +32,7 @@ deploy-migrate:  ## Paso del despliegue: respalda si hay migraciones pendientes,
 dump-entrega:  ## Respaldo para entregar (data/entrega/): catálogo, capas, embeddings y simulados, sin el prototipo
 	$(PY) -m rappi_ia dump-entrega
 
-# Sin «##»: no sale en `make help` (la guardia de serve, serve-lan y make mvp; no se corre a mano). MIGRATE=1 la fuerza.
+# Sin "##": no sale en `make help` (la guardia de serve, serve-lan y make mvp; no se corre a mano). MIGRATE=1 la fuerza.
 check-migrations:
 	$(PY) -m rappi_ia check-migrations
 
@@ -80,7 +80,7 @@ analytics:  ## Resumen de métricas del panel
 
 # Con el peso ya descargado, la API no consulta huggingface.co al cargarlos (~20 peticiones por arranque).
 # Mira el modelo por defecto: con otro en .env que no está en caché, la API arranca sin esa capacidad (/health lo
-# dice en «faltantes»); `make serve HF_OFFLINE=` lo descarga la primera vez.
+# dice en "faltantes"); `make serve HF_OFFLINE=` lo descarga la primera vez.
 HF_CACHE := $(or $(HF_HUB_CACHE),$(HOME)/.cache/huggingface/hub)
 HF_MODELS := intfloat--multilingual-e5-base
 HF_OFFLINE := $(shell for m in $(HF_MODELS); do test -d "$(HF_CACHE)/models--$$m" || exit 0; done; echo HF_HUB_OFFLINE=1)
@@ -100,7 +100,7 @@ serve: $(SERVE_PREP)  ## API en http://localhost:8000, solo este equipo (docs en
 serve-lan: $(SERVE_PREP)  ## API en la red local (iPhone). Sin puerta de acceso (cada persona, su token firmado): solo red de confianza
 	$(HF_OFFLINE) API_ALLOW_LAN=1 $(PY) -m uvicorn rappi_ia.api.app:app --no-access-log --host 0.0.0.0 --port 8000
 
-# Las frases del guion (docs/demo.md) sin user_id: no se registran. Frío, «una hamburguesa» tarda 2 a 5 s; caliente, 0,3 s.
+# Las frases del guion (docs/demo.md) sin user_id: no se registran. Frío, "una hamburguesa" tarda 2 a 5 s; caliente, 0,3 s.
 API ?= http://localhost:8000
 DEMO_PHRASES := "sushi" "una hamburguesa" "vino tinto" "algo para el carrete" "tengo fiebre" \
 	"me voy de vacaciones a la playa" "se me quedaron las llaves en la oficina"
@@ -156,7 +156,7 @@ motor:  ## Motor multivertical: transiciones, combinaciones, compra cruzada, ten
 layer-report:  ## Reporte de calidad de las capas de perfiles (data/eval/capas.md)
 	$(PY) -m rappi_ia layer-report
 
-# Sin «##»: lo usa post-refresh en producción, donde migrar sin respaldo no corresponde (lo hace deploy-migrate).
+# Sin "##": lo usa post-refresh en producción, donde migrar sin respaldo no corresponde (lo hace deploy-migrate).
 verify-migrations:
 	$(PY) -m rappi_ia migrate --solo-revisar
 

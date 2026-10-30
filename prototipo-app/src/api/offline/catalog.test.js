@@ -44,7 +44,7 @@ test('la lista de restaurantes filtra como la API y deja los cerrados al final',
 
 beforeEach(() => localStorage.clear())
 
-test('las búsquedas recientes salen de los eventos de este navegador, sin «Lo más buscado»', () => {
+test('las búsquedas recientes salen de los eventos de este navegador, sin "Lo más buscado"', () => {
   const snapshot = { meta: META, catalog: { home: {}, restaurants: { rating: [] } } }
   const call = (method, path, body) => route(snapshot, { method, path, query: new URLSearchParams(), body })
   call('POST', '/events', {

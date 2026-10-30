@@ -5,7 +5,7 @@ export default function DemoDisclaimer() {
   return (
     <>
       <p className="demo-disclaimer">Demo no oficial · prototipo independiente, no afiliado a Rappi</p>
-      {/* Solo en «Prototipo MVP.html» (`npm run demo:html`): la API la responde el navegador. */}
+      {/* Solo en "Prototipo MVP.html" (`npm run demo:html`): la API la responde el navegador. */}
       {import.meta.env.VITE_OFFLINE_DEMO === '1' && <OfflineNote />}
     </>
   )

@@ -1,5 +1,5 @@
 # Conversaciones con Mochi (25-10): una pregunta y uno o dos seguimientos, como seguiría una persona común.
-# «+ frase» sigue la conversación: manda el turno anterior, como la app.
+# "+ frase" sigue la conversación: manda el turno anterior, como la app.
 # Ocasiones
 ¿qué llevo para un asado de 6?
 + ¿y algo más barato?

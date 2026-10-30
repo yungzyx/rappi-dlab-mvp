@@ -403,7 +403,7 @@ def test_pilot_writes_report_and_proposal(db, dirs, monkeypatch):
     report = (dirs.sheets / jev_pilot.REPORT_NAME).read_text(encoding="utf-8")
     assert "22 llamadas" in report and "22.000 tokens" in report
     assert "US$ 0,0011" in report  # 22.000 tokens × 0,05 US$ por millón
-    assert "T_auto = 0,75" in report and "variante «es»" in report
+    assert "T_auto = 0,75" in report and 'variante "es"' in report
     assert "Mochi" not in report and "chat" not in report.lower()
 
 
@@ -419,7 +419,7 @@ def test_the_proposal_once_renamed_is_what_map_categories_reads(db, dirs):
 
 def test_a_failing_pilot_proposes_nothing(db, dirs):
     write_sheets(dirs.sheets, dirs.ids)
-    flat = [(q, i, h, a, {"1": 1.0}) for q, i, h, a, _ in PAIRS]  # Jev siempre «a medias»: nunca dice «sirve»
+    flat = [(q, i, h, a, {"1": 1.0}) for q, i, h, a, _ in PAIRS]  # Jev siempre "a medias": nunca dice "sirve"
 
     result = run(db, dirs, pilot_responder(es=ENGLISH, en=ENGLISH, pairs=flat))
 

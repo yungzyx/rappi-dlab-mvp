@@ -613,7 +613,7 @@ def report(results: dict, source: str) -> str:
     lines += [
         "## Recompra (prueba)",
         "",
-        "Predicciones que vencen durante la prueba. «Compraron»: la parte en que la persona volvió a comprar el",
+        'Predicciones que vencen durante la prueba. "Compraron": la parte en que la persona volvió a comprar el',
         "concepto en la prueba; las demás cuentan como fallo en el acierto ±7 días. El error mediano es solo sobre las",
         "que compraron.",
         "",

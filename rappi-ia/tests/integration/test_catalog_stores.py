@@ -2,7 +2,7 @@
 
 Todo sobre el catálogo de `seed_demo`: las tiendas 9101 y 9102 son los dos súper de prueba; 9103 es una sucursal del
 mismo formato que 9101 que solo salió en una corrida anterior; 9104 está descubierta, sin productos. El pasillo
-«Despensa» de 9101 tiene exactamente 30 productos vigentes, y dos ofertas de 9101 no lo son: una de una corrida
+"Despensa" de 9101 tiene exactamente 30 productos vigentes, y dos ofertas de 9101 no lo son: una de una corrida
 anterior (atún) y una agotada (mermelada).
 """
 
@@ -138,7 +138,7 @@ def test_a_format_downloaded_in_two_branches_has_one_card_the_one_with_more_offe
 def test_store_page_lists_aisles_with_current_counts_biggest_first(seeded):
     page = store_page(seeded, CENTRO)
 
-    # Los subpasillos no son pasillos: sus productos cuentan en el pasillo. «Mermeladas» solo tiene una oferta
+    # Los subpasillos no son pasillos: sus productos cuentan en el pasillo. "Mermeladas" solo tiene una oferta
     # agotada, así que no aparece.
     assert [(a["name"], a["products"]) for a in page["aisles"]] == [
         ("Despensa", 30),
@@ -156,8 +156,8 @@ def test_store_page_lists_aisles_with_current_counts_biggest_first(seeded):
 
 def test_store_page_opens_on_the_aisle_with_most_offers_not_the_lowest_id(seeded):
     """Rappi no guarda la posición de los pasillos y su id no es un orden que sirva: en la base real Turbo abría en
-    «Autopartes» y Lider en «Cuidado del Bebé». Turbo Centro tiene «Snacks y Dulces» (id 200) con una oferta y
-    «Bebidas» (id 300) con cuatro."""
+    "Autopartes" y Lider en "Cuidado del Bebé". Turbo Centro tiene "Snacks y Dulces" (id 200) con una oferta y
+    "Bebidas" (id 300) con cuatro."""
     page = store_page(seeded, 9301)
 
     # Más ofertas primero; con las mismas, el id.
@@ -420,7 +420,7 @@ def assert_price_is_the_shown_stores(conn, product: dict, cache: dict | None = N
 
 
 def test_a_product_only_sold_in_a_store_that_cannot_be_opened_has_no_store_id(seeded):
-    """Su oferta es de una tienda sin pasillos (de un CSV antiguo): «Ver tienda» no tendría adónde ir."""
+    """Su oferta es de una tienda sin pasillos (de un CSV antiguo): "Ver tienda" no tendría adónde ir."""
     seeded.execute("INSERT INTO catalog_items (master_product_id, name) VALUES (91301, 'Yerba antigua (prueba)')")
     add_branch(seeded, 9105, "prueba_9105", with_aisle=False, product_id=91301, price=1500)
 
@@ -438,7 +438,7 @@ def test_a_product_only_sold_in_a_store_that_cannot_be_opened_has_no_store_id(se
 
 
 def test_the_store_name_of_a_searched_product_has_no_stray_spaces_like_the_catalog(seeded):
-    """La base real tiene tiendas como «Fenix Minimarket » y «A3D »: /catalog ya recorta el nombre, y la búsqueda (la
+    """La base real tiene tiendas como "Fenix Minimarket " y "A3D ": /catalog ya recorta el nombre, y la búsqueda (la
     ruta de /agent/ask y /search) tiene que mostrar el mismo."""
     seeded.execute("UPDATE stores SET name = ' Supermercado de prueba Centro  ' WHERE store_id = %s", (CENTRO,))
 

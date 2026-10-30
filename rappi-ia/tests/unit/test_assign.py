@@ -59,7 +59,7 @@ def test_a_doubtful_cuisine_gives_no_concept(matcher):
 
 
 def test_the_most_confident_cuisine_of_the_place_wins(matcher):
-    """Las cocinas llegan por orden alfabético: en un local «Asiática, Sushi», Asiática (0,85) ganaba a Sushi (0,97) y
+    """Las cocinas llegan por orden alfabético: en un local "Asiática, Sushi", Asiática (0,85) ganaba a Sushi (0,97) y
     13.605 platos de la base real (21-10-2026; 5.933 después del kNN), casi todos rolls y piezas, quedaban como comida
     asiática."""
     cuisines = {"asiática": MappedName("asiatica", "curado", 0.85), "sushi": MappedName("sushi", "llm", 0.97)}
@@ -68,7 +68,7 @@ def test_the_most_confident_cuisine_of_the_place_wins(matcher):
 
 
 def test_an_ingredient_in_a_dish_name_does_not_beat_the_section(matcher):
-    """«Mechada palta mayo» es un sándwich aunque diga palta; «Phad Kee Maoo Vacuno», un plato asiático."""
+    """ "Mechada palta mayo" es un sándwich aunque diga palta; "Phad Kee Maoo Vacuno", un plato asiático."""
     sections = {"sandwiches": MappedName("sandwiches", "llm", 0.9), "wok": MappedName("asiatica", "llm", 0.9)}
     assert (
         assign_menu_item("15", "Mechada Palta Mayo", "Sandwiches", [], sections, {}, matcher).concept_id == "sandwiches"
@@ -84,7 +84,7 @@ DISH_CUISINES = {"pescados y mariscos": MappedName("pescados-mariscos", "llm", 0
 
 
 def test_menu_item_section_wins_over_a_non_food_name_rule(matcher):
-    """En un menú, «Perro», «Aros» o «Proteína» sueltos no son comida de perro, joyas ni suplementos."""
+    """En un menú, "Perro", "Aros" o "Proteína" sueltos no son comida de perro, joyas ni suplementos."""
     by_section = assign_menu_item("20", "Perro Italiano XL", "Perros Calientes", [], DISH_SECTIONS, {}, matcher)
     assert (by_section.concept_id, by_section.source) == ("sandwiches", "seccion:Perros Calientes")
     seafood = ["Pescados y Mariscos"]
@@ -98,7 +98,7 @@ def test_menu_item_keeps_a_non_food_name_rule_without_a_confident_mapping(matche
 
 
 def test_menu_item_sensitive_name_rule_still_wins_over_the_section(matcher):
-    """Un local que vende cigarrillos en «Bebidas»: el nombre sensible manda (no se ofrecen como gaseosa)."""
+    """Un local que vende cigarrillos en "Bebidas": el nombre sensible manda (no se ofrecen como gaseosa)."""
     a = assign_menu_item("23", "Cigarrillos Marlboro Rojo", "Bebidas", [], DISH_SECTIONS, {}, matcher)
     assert (a.concept_id, a.method) == ("cigarrillos", "regla")
 
@@ -138,8 +138,8 @@ def test_hot_dog_sections_of_the_real_map_make_the_dish_a_sandwich(matcher, csv_
 
 
 def test_pastry_as_the_cuisine_of_the_place_does_not_label_its_dishes(matcher, csv_maps):
-    """Cafeterías, juguerías y heladerías también se rotulan «Pastelería y Postres»: como cocina del local, mandaba a
-    pastelería las milanesas de «Milas - El Golf» («Just Mila Xl»), té, papas fritas y batidos; en dos muestras de la
+    """Cafeterías, juguerías y heladerías también se rotulan "Pastelería y Postres": como cocina del local, mandaba a
+    pastelería las milanesas de "Milas - El Golf" ("Just Mila Xl"), té, papas fritas y batidos; en dos muestras de la
     base real (21-10-2026) acertaba unos 4 de cada 10. Sin otra pista el plato queda sin concepto (decide el kNN), y la
     sección, si nombra un plato, manda."""
     sections, cuisine_map = csv_maps["seccion_menu"], csv_maps["cocina"]
@@ -166,7 +166,7 @@ def test_pastry_as_the_cuisine_of_the_place_does_not_label_its_dishes(matcher, c
     ],
 )
 def test_pastries_named_by_their_kind_are_pastry_without_the_cuisine(matcher, csv_maps, name):
-    """Lo que la cocina «Pastelería y Postres» dejó de etiquetar y su nombre dice: en la muestra de la base real
+    """Lo que la cocina "Pastelería y Postres" dejó de etiquetar y su nombre dice: en la muestra de la base real
     (21-10-2026) quedaban sin concepto pies, tartaletas, churros y milhojas, y un brazo de reina pasaba a pizza."""
     sections, cuisine_map = csv_maps["seccion_menu"], csv_maps["cocina"]
     a = assign_menu_item("27", name, "Dulces", ["Pastelería y Postres", "Pizzas"], sections, cuisine_map, matcher)
@@ -174,7 +174,7 @@ def test_pastries_named_by_their_kind_are_pastry_without_the_cuisine(matcher, cs
 
 
 def test_a_savory_pie_or_a_foot_is_not_pastry(matcher):
-    """«pie» no es keyword suelta: también es el pie de pollo y, en el catálogo, plantillas y cremas para pies."""
+    """ "pie" no es keyword suelta: también es el pie de pollo y, en el catálogo, plantillas y cremas para pies."""
     dish = assign_menu_item("28", "Pie de Pollo", "Fondos", [], {}, {}, matcher)
     assert dish is None or dish.concept_id != "pasteleria"
     insole = assign_catalog_item("29", "Plantilla Ortopédica Pie Plano T. 40 Al 46", "Otros", CATEGORIES, matcher)
@@ -199,8 +199,8 @@ TOBACCO = {"cigarrillos": MappedName("cigarrillos", "llm", 0.8, "v1")}
     ],
 )
 def test_the_tobacconist_category_is_split_by_name(matcher, name, concept):
-    """Rappi Mall lista vapers, líquidos y papelillos en la categoría «Cigarrillos»: 738 «cigarrillos» que dejaban a
-    Licores fuera de competencia («cigarros» mostraba puritos del Mall)."""
+    """Rappi Mall lista vapers, líquidos y papelillos en la categoría "Cigarrillos": 738 "cigarrillos" que dejaban a
+    Licores fuera de competencia ("cigarros" mostraba puritos del Mall)."""
     assert assign_catalog_item("1", name, "Cigarrillos", TOBACCO, matcher).concept_id == concept
 
 
@@ -230,7 +230,7 @@ def test_a_dish_named_for_its_protein_keeps_it(matcher, name, concept):
     [("Combo pollo para 1", "pollo"), ("Combo Ceviche Mixto", "pescados-mariscos")],
 )
 def test_a_protein_in_the_dish_name_beats_a_generic_section(matcher, name, concept):
-    """La sección «Combos» estaba mapeada a sushi: «Combo pollo para 1» quedaba como sushi y no salía al pedir pollo."""
+    """La sección "Combos" estaba mapeada a sushi: "Combo pollo para 1" quedaba como sushi y no salía al pedir pollo."""
     combos = {"combos": MappedName("sushi", "llm", 0.85)}
     assert assign_menu_item("40", name, "Combos", [], combos, {}, matcher).concept_id == concept
 
@@ -284,7 +284,7 @@ ASIAN_CATEGORIES = {
     ],
 )
 def test_an_asian_name_refines_a_generic_food_category(matcher, name, category, concept):
-    """«Kikkoman Salsa de Soya» está en «Otras salsas» y «Pepero» en «Galletas»: sin esto, la despensa, los snacks y
+    """ "Kikkoman Salsa de Soya" está en "Otras salsas" y "Pepero" en "Galletas": sin esto, la despensa, los snacks y
     las bebidas asiáticas quedaban casi vacíos (la categoría manda sobre el nombre)."""
     a = assign_catalog_item("50", name, category, ASIAN_CATEGORIES, matcher)
     assert (a.concept_id, a.method) == (concept, "regla"), a
@@ -314,7 +314,7 @@ def test_only_a_name_that_refined_a_food_category_is_marked_for_the_neighbors(ma
 
 
 def test_a_mis_categorised_alcohol_with_an_asian_word_is_not_asian_and_is_never_offered(matcher):
-    """En la base real «Soju Uva Verde 13.0» está en «Frutas», sin marca de alcohol ni +18. Un soju con nombre asiático
+    """En la base real "Soju Uva Verde 13.0" está en "Frutas", sin marca de alcohol ni +18. Un soju con nombre asiático
     no pasa a bebidas asiáticas (`avoid`); queda en su categoría, y la guardia de ofertas lo bloquea por el nombre."""
     from rappi_ia.offers.guards import alcohol_in_name
 
@@ -333,7 +333,7 @@ def test_a_mis_categorised_alcohol_with_an_asian_word_is_not_asian_and_is_never_
     ],
 )
 def test_asian_specialty_concepts_do_not_count_in_menus(matcher, name, section, concept):
-    """Son productos de tienda (ninguno se pide hecho): en un menú, «panko», «nori» o «mochi» sacaban de sushi y de
+    """Son productos de tienda (ninguno se pide hecho): en un menú, "panko", "nori" o "mochi" sacaban de sushi y de
     postres a ~1.000 platos de la base real, que dejaban de salir en restaurantes."""
     sections = {
         "cuarto caliente": MappedName("sushi", "llm", 0.9),
@@ -382,7 +382,8 @@ STORE_CATEGORIES = {
     ],
 )
 def test_a_buldak_ramen_is_instant_ramen_not_a_sauce(matcher, name, category):
-    """«ramen» (comida asiática, de restaurante) calzaba antes que «buldak» y no afinaba: el ramen quedaba en salsas."""
+    """ "ramen" (comida asiática, de restaurante) calzaba antes que "buldak" y no afinaba: el ramen quedaba en
+    salsas."""
     a = assign_catalog_item("70", name, category, STORE_CATEGORIES, matcher)
     assert (a.concept_id, a.method, a.source) == ("snacks-asiaticos", "regla", "nombre:buldak"), a
     assert a.refines == STORE_CATEGORIES[category.lower()].concept_id
@@ -392,7 +393,7 @@ def test_a_buldak_ramen_is_instant_ramen_not_a_sauce(matcher, name, category):
     ("name", "concept"), [("Salsa Gochujang 500g", "despensa-asiatica"), ("Salsa Wasabi", "despensa-asiatica")]
 )
 def test_an_asian_word_refines_even_after_a_generic_one(matcher, name, concept):
-    """«Salsa» calza primero (salsas); «gochujang» o «wasabi» dicen qué salsa es."""
+    """ "Salsa" calza primero (salsas); "gochujang" o "wasabi" dicen qué salsa es."""
     assert assign_catalog_item("71", name, "Otras salsas", STORE_CATEGORIES, matcher).concept_id == concept
 
 
@@ -426,7 +427,7 @@ def test_a_sensitive_name_is_never_refined_into_an_asian_concept(matcher):
         ("Coc Vin Export Selecto Tropical 8°", "Té listo", "licores"),
         ("3R Pisco 35 + Coca-Cola Gaseosa + Hielo Líquidos", "Gaseosas", "pisco"),
         ("Promo Tres Erres Transparente 1l + Coca Normal 3l + Hielo 1kg", "Hielo", "pisco"),
-        ("Makgeolli Milkis Durazno 6°", "Gaseosas", "licores"),  # el alcohol antes que lo asiático («milkis»)
+        ("Makgeolli Milkis Durazno 6°", "Gaseosas", "licores"),  # el alcohol antes que lo asiático ("milkis")
     ],
 )
 def test_a_drink_with_alcohol_leaves_a_soft_drink_category_and_is_never_offered(matcher, name, category, concept):
@@ -466,7 +467,7 @@ def test_a_soft_drink_or_a_food_that_names_a_drink_keeps_its_category(matcher, n
     ],
 )
 def test_a_baby_name_wins_over_a_common_category(matcher, name, category, concept):
-    """Guardia simétrica, como la de los sensibles: una mamadera en «Frutos secos y semillas» se ofrecía como snack."""
+    """Guardia simétrica, como la de los sensibles: una mamadera en "Frutos secos y semillas" se ofrecía como snack."""
     from rappi_ia.offers.guards import is_offerable
 
     a = assign_catalog_item("75", name, category, STORE_CATEGORIES, matcher)
@@ -479,9 +480,9 @@ def test_a_baby_name_wins_over_a_common_category(matcher, name, category, concep
     [
         ("Bon Bon Bum Chupete Sabor a Fresa", "Gomitas y caramelos", "golosinas"),  # un chupete con sabor es un dulce
         ("Yogueta Chupete Surtida", "Gomitas y caramelos", "golosinas"),
-        ("Cuña Niveladora Para Cerámicas 100unds", "Herramientas", "ferreteria"),  # sin ñ, «cuña» es «cuna»
+        ("Cuña Niveladora Para Cerámicas 100unds", "Herramientas", "ferreteria"),  # sin ñ, "cuña" es "cuna"
         ("Ferrari Queso Cuña Pecorino Romano", "Quesos maduros", "quesos"),
-        ("Carton Panal 10Mm 77X110Cm", "Cartones", "utiles"),  # sin ñ, «pañal» es «panal»
+        ("Carton Panal 10Mm 77X110Cm", "Cartones", "utiles"),  # sin ñ, "pañal" es "panal"
         ("Virutex Toallitas Húmedas Desinfectantes Multiuso Aroma Limón", "Paños multiusos", "limpieza"),
         ("Dog It Pañal Desechable para Perro Talla M", "Pañales y forros para Mascotas", "accesorios-mascota"),
         ("Mordedor Para Bebe 2 Piezas", "Juguetes didácticos", "juguetes-infantiles"),  # juguetes: manda la categoría
@@ -497,7 +498,7 @@ def test_the_baby_guard_does_not_take_look_alikes(matcher, name, category, conce
         ("Compota Casera de Manzana", "postres"),
         ("Compota de Ciruelas", "postres"),
         ("Compota Para Adultos Sabor Pera", "postres"),
-        ("Chupete Avent Ultra Air 6-18m Surtido", "articulos-bebe"),  # «surtido» suelto no lo saca de bebé
+        ("Chupete Avent Ultra Air 6-18m Surtido", "articulos-bebe"),  # "surtido" suelto no lo saca de bebé
     ],
 )
 def test_an_adult_compote_is_dessert_and_a_real_baby_item_keeps_the_guard(matcher, name, concept):
@@ -539,19 +540,19 @@ def test_alcohol_strength_in_a_name(name, strength):
         "Propoleo Spray Miel Jengibre",
         "Minigummies Calm 30 Gomitas",
         "FNL Cetona De Frambuesa 300Mg 60 Capsulas",
-        "Carbon Activado 500mg 60 Cápsulas - Fnl",  # «activado»: no es carbón para la parrilla
+        "Carbon Activado 500mg 60 Cápsulas - Fnl",  # "activado": no es carbón para la parrilla
         "Bach Flores Rescue Gotas",
     ],
 )
 def test_a_supplement_named_for_a_food_stays_a_supplement(matcher, name):
-    """En «Productos naturales» (vitaminas, mapeo dudoso) la regla del nombre ganaba: orégano, pavo, miel o frambuesa
+    """En "Productos naturales" (vitaminas, mapeo dudoso) la regla del nombre ganaba: orégano, pavo, miel o frambuesa
     pasaban a condimentos, pollo, untables o frutas, conceptos que el agente ofrece."""
     a = assign_catalog_item("77", name, "Productos naturales", STORE_CATEGORIES, matcher)
     assert (a.concept_id, a.method) == ("vitaminas", "llm"), a
 
 
 def test_a_doubtful_supplement_category_still_gives_way_to_a_name_that_is_not_food(matcher):
-    """Las velas y los difusores de «Productos naturales» siguen siendo decoración."""
+    """Las velas y los difusores de "Productos naturales" siguen siendo decoración."""
     a = assign_catalog_item(
         "78", "Mood Vela Aromaterapia Bosque Nativo", "Productos naturales", STORE_CATEGORIES, matcher
     )
@@ -568,13 +569,13 @@ def test_a_doubtful_supplement_category_still_gives_way_to_a_name_that_is_not_fo
     ],
 )
 def test_the_real_map_keeps_yarn_and_rugs_out_of_food_and_baby(matcher, csv_maps, name, category, concept):
-    """«Hilos» tenía un mapeo dudoso (útiles, 0,55) y el color del ovillo («Mostaza», «Verde Pistacho») lo mandaba a
-    salsas o frutos secos; «Tapetes y Alfombras» (artículos de bebé) son sobre todo alfombras de baño."""
+    """ "Hilos" tenía un mapeo dudoso (útiles, 0,55) y el color del ovillo ("Mostaza", "Verde Pistacho") lo mandaba a
+    salsas o frutos secos; "Tapetes y Alfombras" (artículos de bebé) son sobre todo alfombras de baño."""
     assert assign_catalog_item("79", name, category, csv_maps["categoria"], matcher).concept_id == concept
 
 
-# Platos reales de secciones «Aperitivo» y «Cocktail» de la base `rappi` (22-10-2026). En un menú chileno «aperitivo»
-# es tanto la comida para picar como el trago de antes de comer, y «cóctel» en singular es comida de fiesta.
+# Platos reales de secciones "Aperitivo" y "Cocktail" de la base `rappi` (22-10-2026). En un menú chileno "aperitivo"
+# es tanto la comida para picar como el trago de antes de comer, y "cóctel" en singular es comida de fiesta.
 def _is_alcohol(a) -> bool:
     return a is not None and load_taxonomy().concepts[a.concept_id].parent == "alcohol"
 
@@ -592,7 +593,7 @@ def _is_alcohol(a) -> bool:
     ],
 )
 def test_food_in_an_aperitivo_section_is_not_alcohol(matcher, csv_maps, name, section, description):
-    """«aperitivo» es keyword de licores y «cóctel» de cócteles: quesos, sopaipillas y papas de esas secciones quedaban
+    """ "aperitivo" es keyword de licores y "cóctel" de cócteles: quesos, sopaipillas y papas de esas secciones quedaban
     como alcohol (38 platos en la base real del 21-10-2026)."""
     maps = csv_maps["seccion_menu"], csv_maps["cocina"]
     a = assign_menu_item("90", name, section, [], *maps, matcher, description=description)
@@ -633,7 +634,7 @@ def test_food_in_an_aperitivo_section_is_not_alcohol(matcher, csv_maps, name, se
 )
 def test_a_drink_or_an_unknown_dish_in_an_aperitivo_section_keeps_alcohol(matcher, csv_maps, name, description):
     """Las mismas secciones traen cócteles que solo el concepto de alcohol protege de las ofertas: la guardia de
-    secciones no ve «Aperitivos». Solo sale del alcohol lo que el nombre dice que es comida sólida."""
+    secciones no ve "Aperitivos". Solo sale del alcohol lo que el nombre dice que es comida sólida."""
     maps = csv_maps["seccion_menu"], csv_maps["cocina"]
     a = assign_menu_item("91", name, "Aperitivos", [], *maps, matcher, description=description)
     assert _is_alcohol(a), a
@@ -643,8 +644,8 @@ def test_a_drink_or_an_unknown_dish_in_an_aperitivo_section_keeps_alcohol(matche
     ("name", "section"),
     [
         ("Chorizo Ibérico Laminado", "APERITIVOS & TRAGOS"),  # la guardia la ve como sección de tragos
-        ("Papas Supremas", "Cervezas"),  # ni «aperitivo» ni «cóctel»: la sección decide
-        ("Queso Mantecoso", "Cocteles"),  # «cócteles» en plural son tragos
+        ("Papas Supremas", "Cervezas"),  # ni "aperitivo" ni "cóctel": la sección decide
+        ("Queso Mantecoso", "Cocteles"),  # "cócteles" en plural son tragos
         ("Queso Brie", "Aperitivos y Whisky"),  # otra palabra de la sección dice alcohol
         ("Queso Brie", "Aperitivo Spritz"),
         ("Queso Brie", "Aperitivos y Aperol"),
@@ -670,8 +671,8 @@ def test_a_section_that_is_clearly_about_drinks_still_decides(matcher, csv_maps,
     ],
 )
 def test_known_cocktails_are_alcohol_by_their_name(matcher, csv_maps, name, section, concept):
-    """En la base real del 22-10-2026, «Botella de Ramazzotti» y «Caipiroska» en «Bebidas» y «Daikiri Sabores» en
-    «Deliverys» quedaban como gaseosas o pizza, y nada en el nombre los bloqueaba en una oferta."""
+    """En la base real del 22-10-2026, "Botella de Ramazzotti" y "Caipiroska" en "Bebidas" y "Daikiri Sabores" en
+    "Deliverys" quedaban como gaseosas o pizza, y nada en el nombre los bloqueaba en una oferta."""
     a = assign_menu_item("93", name, section, [], csv_maps["seccion_menu"], csv_maps["cocina"], matcher)
     assert (a.concept_id, a.method) == (concept, "regla"), a
 
@@ -685,7 +686,7 @@ def test_a_dish_without_a_description_is_read_as_one_without_it(matcher):
     ("name", "section"), [("Hibistonic", "Cockteleria De Autor"), ("Vaina", "Cockteleria Clasica")]
 )
 def test_a_cocktail_bar_section_spelled_with_ck_is_a_drinks_section(matcher, csv_maps, name, section):
-    """Base real del 22-10-2026: «Hibistonic» y «Loica 75» (gin) quedaban sin concepto, y una «Vaina» de licor de
+    """Base real del 22-10-2026: "Hibistonic" y "Loica 75" (gin) quedaban sin concepto, y una "Vaina" de licor de
     café."""
     a = assign_menu_item("96", name, section, [], csv_maps["seccion_menu"], {}, matcher)
     assert (a.concept_id, a.source) == ("cocteles", f"seccion-nombre:{section}"), a
@@ -695,7 +696,7 @@ def test_a_cocktail_bar_section_spelled_with_ck_is_a_drinks_section(matcher, csv
     ("name", "section", "concept"),
     [
         ("Combo Eros Ramazzotti", "Combos", None),  # el cantante: un combo de paninos
-        ("Tres Leches Algarrobina", "Postres", "postres"),  # la torta, con «tres leches» antes que el trago
+        ("Tres Leches Algarrobina", "Postres", "postres"),  # la torta, con "tres leches" antes que el trago
         ("Edamame en vaina", "Entradas", None),
     ],
 )

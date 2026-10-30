@@ -3,7 +3,7 @@
 Una oferta es todo lo que el agente muestra sin que se lo hayan pedido: la sugerencia cruzada de /agent/ask y de
 /recommendations (`suggest_complement`), los ganchos de servicios y los momentos de /agent/offer. Nunca es:
 - alcohol (Licores y todo concepto +18), ni tabaco, vapeo o bienestar sexual;
-- salud o farmacia: el grupo «Farmacia y cuidado personal» entero (medicamentos, vitaminas, higiene, dermocosmética);
+- salud o farmacia: el grupo "Farmacia y cuidado personal" entero (medicamentos, vitaminas, higiene, dermocosmética);
 - bebé (también un producto del catálogo cuyo nombre lo dice, aunque su concepto sea corriente);
 - un concepto sensible;
 - un producto de las verticales Farmacia y Licores, ni de una tienda que Rappi rotula Farmacia, Sex shop o Smoking
@@ -28,9 +28,9 @@ ALCOHOL_VERTICALS = ("licores",)  # las bloqueadas de las que el alcohol de un k
 DRINK_GROUP = "bebidas"  # el grupo de taxonomy.toml cuyos conceptos no dicen si un trago lleva alcohol
 NOT_PLANNABLE_OCCASIONS = ("guagua", "enfermo")  # bebé y salud: ni siquiera como kit que la persona pide
 # Palabras de un nombre que dicen alcohol aunque la tienda no lo marque: las marcas de la tienda (`is_alcoholic`,
-# `age_restricted`) y la categoría pueden estar mal. En la base real del 14-10-2026, «Soju Uva Verde 13.0» venía en
-# «Frutas» sin ninguna marca, y una cerveza, un ron y un vino tinto quedaban en frutas, decoración y útiles. Palabra
-# entera, con su plural: «ron» no está en «ronda» ni «gin» en «ginger». Es la lista de los productos del catálogo; los
+# `age_restricted`) y la categoría pueden estar mal. En la base real del 14-10-2026, "Soju Uva Verde 13.0" venía en
+# "Frutas" sin ninguna marca, y una cerveza, un ron y un vino tinto quedaban en frutas, decoración y útiles. Palabra
+# entera, con su plural: "ron" no está en "ronda" ni "gin" en "ginger". Es la lista de los productos del catálogo; los
 # platos tienen la suya (abajo). Bloquea también lo que solo nombra el alcohol (vinagre de vino, copas de vino,
 # galletas Vino): de una oferta que nadie pidió, sobra; quien lo busca por su nombre lo sigue encontrando.
 ALCOHOL_NAME_WORDS = frozenset(
@@ -41,16 +41,16 @@ ALCOHOL_NAME_WORDS = frozenset(
 )
 _ALCOHOL_NAMES = KeywordMatcher(("alcohol", word) for word in ALCOHOL_NAME_WORDS)
 # Lo mismo en los platos de un menú, que no traen ninguna marca de alcohol: en la base real del 14-10-2026 cinco
-# «Soju …» venían con concepto `asiatica` y dos «Sangría» con `gaseosas`. Lista propia porque en un menú «sake» es
-# salmón («Sake Roll», más de 2.400 platos de sushi) y los tragos tienen otros nombres (schop, chela, piscola,
+# "Soju …" venían con concepto `asiatica` y dos "Sangría" con `gaseosas`. Lista propia porque en un menú "sake" es
+# salmón ("Sake Roll", más de 2.400 platos de sushi) y los tragos tienen otros nombres (schop, chela, piscola,
 # terremoto, sour, las cervezas por su marca y los vinos por su cepa). También bloquea platos que solo nombran el
-# alcohol («bife al vino», «pasas al ron», «Churrasco Kunstmann», un helado «Borgoña»): en una oferta, sobran; la
-# búsqueda y la pregunta no cambian. «austral» no está: es sobre todo merluza austral (47 platos), y la cerveza sale
-# por su sección. «mimosa» tampoco: en la base real del 14-10-2026 las dos que hay son sin alcohol (un jugo y una de
-# «Sin Alcohol»). Desde «tom collins», los cócteles que en la base real del 22-10-2026 se llamaban así sin otra palabra
-# de alcohol («Vaina», «Caipiroska» en «Bebidas», «Botella de Ramazzotti»): los vecinos del kNN pueden sacar un plato
-# del alcohol y aquí lo sigue bloqueando el nombre. Desde «absolut», los de la base real del 24-10-2026: «ABSOLUTE
-# PEAR» («Corto con pera y bebida con hielo») tenía concepto sandwiches, y «Jarra de Ramazzoti» venía mal escrita.
+# alcohol ("bife al vino", "pasas al ron", "Churrasco Kunstmann", un helado "Borgoña"): en una oferta, sobran; la
+# búsqueda y la pregunta no cambian. "austral" no está: es sobre todo merluza austral (47 platos), y la cerveza sale
+# por su sección. "mimosa" tampoco: en la base real del 14-10-2026 las dos que hay son sin alcohol (un jugo y una de
+# "Sin Alcohol"). Desde "tom collins", los cócteles que en la base real del 22-10-2026 se llamaban así sin otra palabra
+# de alcohol ("Vaina", "Caipiroska" en "Bebidas", "Botella de Ramazzotti"): los vecinos del kNN pueden sacar un plato
+# del alcohol y aquí lo sigue bloqueando el nombre. Desde "absolut", los de la base real del 24-10-2026: "ABSOLUTE
+# PEAR" ("Corto con pera y bebida con hielo") tenía concepto sandwiches, y "Jarra de Ramazzoti" venía mal escrita.
 MENU_ALCOHOL_NAME_WORDS = frozenset(
     {
         *("soju", "sangria", "michelada", "cerveza", "schop", "shop", "chela", "chelada", "vino", "pisco", "piscola"),
@@ -66,11 +66,11 @@ MENU_ALCOHOL_NAME_WORDS = frozenset(
     }
 )
 # Palabras de trago que también nombran comida: (lo que en el nombre dice que es comida, conceptos de plato que lo
-# dicen). «Pizza Margarita» y la «Margarita Familiar» de una pizzería (concepto pizza) son pizzas; «Sour Cream», «Sweet
-# and Sour Roll», la «Sopa Hot Sour» y un roll «Tako Sour» no son un pisco sour; «Hamburguesa la Corona» y las
-# quesadillas «Corona Sacra» no son la cerveza; Negroni es también un salame y «cristal», un latte. Una piña colada es
+# dicen). "Pizza Margarita" y la "Margarita Familiar" de una pizzería (concepto pizza) son pizzas; "Sour Cream", "Sweet
+# and Sour Roll", la "Sopa Hot Sour" y un roll "Tako Sour" no son un pisco sour; "Hamburguesa la Corona" y las
+# quesadillas "Corona Sacra" no son la cerveza; Negroni es también un salame y "cristal", un latte. Una piña colada es
 # también un jugo, un batido, un té de burbujas o un helado (10 de las 27 de la base real). La vaina es también la de
-# los porotos, la algarrobina un jarabe («Tres Leches Algarrobina») y «Combo Eros Ramazzotti», un combo de paninos: solo
+# los porotos, la algarrobina un jarabe ("Tres Leches Algarrobina") y "Combo Eros Ramazzotti", un combo de paninos: solo
 # los libra la frase, no el concepto (un trago de algarrobina que el kNN pone en postres sigue siendo un trago).
 _MENU_FOOD_SENSES: dict[str, tuple[tuple[str, ...], tuple[str, ...]]] = {
     "margarita": (("pizza", "pizzeta"), ("pizza",)),
@@ -91,11 +91,11 @@ _MENU_ALCOHOL_NAMES = KeywordMatcher(
     ((word if word in _MENU_FOOD_SENSES else "alcohol", word) for word in MENU_ALCOHOL_NAME_WORDS),
     avoid=[(word, phrase) for word, (phrases, _) in _MENU_FOOD_SENSES.items() for phrase in phrases],
 )
-# Secciones de un menú que son de tragos («Cervezas», «Vinos y Piscos», «Coctelería», «Bebidas Alcohólicas»): ningún
-# plato de ahí se ofrece, aunque su nombre no diga alcohol («Misiones de Rengo», «Sake Dry» en «Cervezas Japonesas y
-# Sake»). Una sección mezclada («Bebidas y Cervezas») se salta entera. «Cóctel» en singular es también comida para
-# picar en Chile («Cocktail», «Empanadas de Cóctel»): solo cuentan «cócteles», «cocktails» y «coctelería» (también
-# «cockteleria»). Nada de «chop» (19 «Chop Suey»). «Sin alcohol», «no alcohólicas» o «mocktails» la libran.
+# Secciones de un menú que son de tragos ("Cervezas", "Vinos y Piscos", "Coctelería", "Bebidas Alcohólicas"): ningún
+# plato de ahí se ofrece, aunque su nombre no diga alcohol ("Misiones de Rengo", "Sake Dry" en "Cervezas Japonesas y
+# Sake"). Una sección mezclada ("Bebidas y Cervezas") se salta entera. "Cóctel" en singular es también comida para
+# picar en Chile ("Cocktail", "Empanadas de Cóctel"): solo cuentan "cócteles", "cocktails" y "coctelería" (también
+# "cockteleria"). Nada de "chop" (19 "Chop Suey"). "Sin alcohol", "no alcohólicas" o "mocktails" la libran.
 MENU_ALCOHOL_SECTION_WORDS = frozenset(
     {
         *("alcohol", "alcoholica", "alcoholico", "licor", "vino", "cerveza", "trago", "cocteles", "cocktails"),
@@ -109,20 +109,20 @@ _SOBER_SECTION = (
 _MENU_ALCOHOL_SECTIONS = KeywordMatcher(
     (("alcohol", word) for word in MENU_ALCOHOL_SECTION_WORDS), avoid=[("alcohol", p) for p in _SOBER_SECTION]
 )
-# La descripción de un plato sin concepto o con uno de bebida: en la base real del 24-10-2026, 22 tragos («Electric
-# Lemonade Deli»: «Vodka ron gin blue curacao…», en «Barra Barbazul»; «HAVANA ESPECIAL»: «Corto + Bebida», en
-# «Combinados» junto a platos peruanos) y 22 combos o packs con su cerveza, su vino o su botella de pisco o fernet no
-# tenían concepto ni decían alcohol en el nombre ni en la sección, y 9 tragos tenían concepto de bebida («Gautama
-# Jack», gaseosas: «Ron havana dorado…»; un café irlandés). Sin concepto, la descripción es lo único que dice qué es el
+# La descripción de un plato sin concepto o con uno de bebida: en la base real del 24-10-2026, 22 tragos ("Electric
+# Lemonade Deli": "Vodka ron gin blue curacao…", en "Barra Barbazul"; "HAVANA ESPECIAL": "Corto + Bebida", en
+# "Combinados" junto a platos peruanos) y 22 combos o packs con su cerveza, su vino o su botella de pisco o fernet no
+# tenían concepto ni decían alcohol en el nombre ni en la sección, y 9 tragos tenían concepto de bebida ("Gautama
+# Jack", gaseosas: "Ron havana dorado…"; un café irlandés). Sin concepto, la descripción es lo único que dice qué es el
 # plato, y un concepto de bebida no dice si lleva alcohol: la que nombra alcohol no se ofrece, aunque sea comida
 # cocinada con vino o ron (risottos, canelés, cannoli al marsala) o algo sin alcohol (un café con jarabe de amaretto,
 # una piña colada sin alcohol). Con un concepto de comida no cuenta: unos 1.100 platos ofrecibles así la nombran, casi
 # todos comida. Las palabras: las de los nombres de platos sin la vaina ni la algarrobina (en una descripción son
 # porotos y un jarabe), más tragos, destilados, licores y sus marcas, el cóctel y el corto. Una descripción es larga:
-# solo se libra la palabra que queda dentro de una frase de comida («cóctel de camarones», «empanaditas cóctel», «sour
-# cream», «pizza margarita», «espresso corto», «chop suey»), no las demás («Empanadas cóctel x12 + 2 cócteles») ni por
-# una palabra de comida en otra parte («tabla de empanadas + 2 cócteles»). «Sin alcohol» tampoco la libra («Mojito con
-# o sin alcohol»), y «alcohol» solo no cuenta: casi siempre es «sin alcohol». Sin apóstrofes («Gordon's»).
+# solo se libra la palabra que queda dentro de una frase de comida ("cóctel de camarones", "empanaditas cóctel", "sour
+# cream", "pizza margarita", "espresso corto", "chop suey"), no las demás ("Empanadas cóctel x12 + 2 cócteles") ni por
+# una palabra de comida en otra parte ("tabla de empanadas + 2 cócteles"). "Sin alcohol" tampoco la libra ("Mojito con
+# o sin alcohol"), y "alcohol" solo no cuenta: casi siempre es "sin alcohol". Sin apóstrofes ("Gordon's").
 MENU_ALCOHOL_DESCRIPTION_WORDS = frozenset(
     {
         *(MENU_ALCOHOL_NAME_WORDS - {"vaina", "algarrobina"}),
@@ -160,10 +160,10 @@ _DESCRIPTION_FOOD_PHRASES = sorted(
 )
 
 
-# Sin concepto, también la sección del menú: en la base real del 24-10-2026, cervezas («Erdinger Dunkel», «Gulden
-# Draak») en «Botellas» y «Botellas 300 cc», y vinos con el nombre abreviado o mal escrito («Cab.Sauvig CASAS
-# PATRONALES», «Chardonay AROMO») en «Tinto» y «Blanco», sin nada más que diga alcohol. Con concepto estas secciones
-# no deciden: ahí también hay gaseosas («Botellas 1.5 Lts») y platos peruanos («Combinados»).
+# Sin concepto, también la sección del menú: en la base real del 24-10-2026, cervezas ("Erdinger Dunkel", "Gulden
+# Draak") en "Botellas" y "Botellas 300 cc", y vinos con el nombre abreviado o mal escrito ("Cab.Sauvig CASAS
+# PATRONALES", "Chardonay AROMO") en "Tinto" y "Blanco", sin nada más que diga alcohol. Con concepto estas secciones
+# no deciden: ahí también hay gaseosas ("Botellas 1.5 Lts") y platos peruanos ("Combinados").
 UNKNOWN_DISH_SECTION_WORDS = frozenset(
     {"botella", "tinto", "blanco", "gin", "destilados", "spritz", "combinados", "cock ta ils"}
 )
@@ -189,8 +189,8 @@ def _without_food_phrases(description: str) -> str:
 
 # Palabras de un nombre del catálogo que dicen bebé aunque el concepto no lo diga: en la base real del 14-10-2026 la
 # ropa, los juguetes, las colonias y el detergente de bebé venían como ropa, juguetes-infantiles, fragancias o limpieza,
-# y «vertical por probar» partía en Mall con un «Fisher-price Juguete Para Bebés». Palabra entera, con su plural.
-# «infantil» no está: es de niños (cascos, libros, medias de fútbol), no de bebé.
+# y "vertical por probar" partía en Mall con un "Fisher-price Juguete Para Bebés". Palabra entera, con su plural.
+# "infantil" no está: es de niños (cascos, libros, medias de fútbol), no de bebé.
 BABY_NAME_WORDS = frozenset({"bebe", "guagua"})
 _BABY_NAMES = KeywordMatcher(("bebe", word) for word in BABY_NAME_WORDS)
 
@@ -226,7 +226,7 @@ def plannable_occasion(occasion: Occasion) -> bool:
 
 def alcohol_in_name(entity_type: str, name: str, concept_id: str | None = None) -> bool:
     """Si el nombre de un producto del catálogo (`ALCOHOL_NAME_WORDS`) o de un plato (`MENU_ALCOHOL_NAME_WORDS`) dice
-    alcohol. `concept_id`: el del plato, si se sabe (una «Margarita» con concepto pizza es una pizza)."""
+    alcohol. `concept_id`: el del plato, si se sabe (una "Margarita" con concepto pizza es una pizza)."""
     if entity_type == "catalog_item":
         return _ALCOHOL_NAMES.best(name) is not None
     if entity_type != "menu_item":
@@ -273,8 +273,8 @@ def unofferable_subverticals() -> list[str]:
     return list(NOT_PUSHED_SUBVERTICALS)
 
 
-# «Lo que sea»: la búsqueda que no encontró nada ofrece pedirlo con RappiFavor, con lo escrito. Rappi rechaza un
-# encargo con palabras bloqueadas (en su app, el aviso `whimBlockedWordsError` nombra «droga» y «alcohol»); a esas se
+# "Lo que sea": la búsqueda que no encontró nada ofrece pedirlo con RappiFavor, con lo escrito. Rappi rechaza un
+# encargo con palabras bloqueadas (en su app, el aviso `whimBlockedWordsError` nombra "droga" y "alcohol"); a esas se
 # suman las de algo ilegal o peligroso. Palabra entera, con su plural.
 WHIM_BLOCKED_WORDS = frozenset(
     {
@@ -286,7 +286,7 @@ _WHIM_BLOCKED = KeywordMatcher(("bloqueada", word) for word in WHIM_BLOCKED_WORD
 
 
 def whim_allowed(text: str) -> bool:
-    """Si la app puede ofrecer «¿No lo encuentras? Te lo conseguimos» con este texto: es una oferta que la persona no
+    """Si la app puede ofrecer "¿No lo encuentras? Te lo conseguimos" con este texto: es una oferta que la persona no
     pidió, así que lleva las guardias de siempre (nada de alcohol, tabaco, salud, bebé ni un concepto que el agente no
     ofrece) además de las palabras bloqueadas del encargo."""
     # Import diferido: retrieval.hybrid importa agent.tools, y agent.tools importa este módulo.

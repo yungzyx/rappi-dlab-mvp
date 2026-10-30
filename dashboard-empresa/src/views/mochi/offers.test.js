@@ -18,7 +18,7 @@ describe('offers', () => {
     })
   })
 
-  test('the best and worst moment ignore «sin momento» and moments without a rate', () => {
+  test('the best and worst moment ignore "sin momento" and moments without a rate', () => {
     const moments = [
       moment('plan', 68, 0, 0),
       moment('carrito', 7, 0),

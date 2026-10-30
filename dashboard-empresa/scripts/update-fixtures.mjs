@@ -41,7 +41,7 @@ rmSync(OFFLINE, { recursive: true, force: true }) // una métrica que salió del
 mkdirSync(OFFLINE, { recursive: true })
 for (const name of PANEL_METRICS) {
   const body = respuestas[`${name}.synthetic`]
-  if (!body) throw new Error(`La foto no trae «${name}» con la fuente simulada: vuelve a correr npm run panel:snapshot`)
+  if (!body) throw new Error(`La foto no trae "${name}" con la fuente simulada: vuelve a correr npm run panel:snapshot`)
   write(`${OFFLINE}${name}.json`, body)
   if (!CONTRACT.has(name)) write(`${FIXTURES}${name}.synthetic.json`, body)
   console.log(`  ✓ ${name}`)

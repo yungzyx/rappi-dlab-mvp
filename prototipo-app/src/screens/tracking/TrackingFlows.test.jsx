@@ -1,5 +1,5 @@
 // Los flujos del seguimiento de la fase 8: cancelar con rescate, programado, cambios en vivo del Súper, el atraso del
-// «Panel de la demo», «Ayuda con este pedido» y la compra dividida en pedidos por tienda.
+// "Panel de la demo", "Ayuda con este pedido" y la compra dividida en pedidos por tienda.
 import { useState } from 'react'
 import { act, cleanup, fireEvent, render, screen, within } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest'
@@ -164,7 +164,7 @@ describe('cancelar con rescate', () => {
     expect(screen.getByText(/Costo de cancelación: \$3\.000 \(de ejemplo/)).toBeTruthy()
   })
 
-  test('«Aún tiene solución»: cambiar la dirección en vez de cancelar; mientras decide, el pedido espera', async () => {
+  test('"Aún tiene solución": cambiar la dirección en vez de cancelar; mientras decide, el pedido espera', async () => {
     renderTracking()
     await advance(1000)
     fireEvent.click(screen.getByRole('button', { name: 'Cancelar pedido' }))
@@ -179,7 +179,7 @@ describe('cancelar con rescate', () => {
     expect(screen.getByRole('button', { name: 'Cancelar pedido' })).toBeTruthy()
   })
 
-  test('«Continuar con la cancelación» después de la solución; en camino ya no se puede cancelar', async () => {
+  test('"Continuar con la cancelación" después de la solución; en camino ya no se puede cancelar', async () => {
     renderTracking()
     await advance(1000)
     fireEvent.click(screen.getByRole('button', { name: 'Cancelar pedido' }))
@@ -213,7 +213,7 @@ describe('programado', () => {
 })
 
 describe('cambios en vivo en el Súper', () => {
-  test('«Tus productos te necesitan»: el sustituto de la misma tienda y el ajuste en el total', async () => {
+  test('"Tus productos te necesitan": el sustituto de la misma tienda y el ajuste en el total', async () => {
     renderTracking([SUPER])
     await advance(4000) // en tienda
     const alert = screen.getByRole('region', { name: 'Tus productos te necesitan' })
@@ -238,7 +238,7 @@ describe('cambios en vivo en el Súper', () => {
     expect(screen.getByText('¡Disfruta tu pedido!')).toBeTruthy()
   })
 
-  test('«Prefiero el reembolso» descuenta el producto', async () => {
+  test('"Prefiero el reembolso" descuenta el producto', async () => {
     renderTracking([SUPER])
     await advance(4000)
     fireEvent.click(screen.getByRole('button', { name: /Prefiero el reembolso/ }))
@@ -253,7 +253,7 @@ describe('cambios en vivo en el Súper', () => {
   })
 })
 
-describe('atraso del «Panel de la demo»', () => {
+describe('atraso del "Panel de la demo"', () => {
   test('en Turbo: el tiempo sube, llega el mensaje y la garantía de ejemplo se paga en Créditos', async () => {
     renderTracking([TURBO])
     await advance(4000)
@@ -354,11 +354,11 @@ describe('créditos y cupón de un pedido cancelado', () => {
   })
 })
 
-describe('la pausa de «Cancelar pedido»', () => {
+describe('la pausa de "Cancelar pedido"', () => {
   test('si el paso cambia justo al abrir la hoja, el pedido no queda detenido', async () => {
     renderTracking()
     await advance(8_500) // el último tic del reloj fue a los 8 s: todavía se puede cancelar
-    vi.setSystemTime(Date.now() + 1_000) // el reloj real ya pasó a «En camino», sin tic todavía
+    vi.setSystemTime(Date.now() + 1_000) // el reloj real ya pasó a "En camino", sin tic todavía
     fireEvent.click(screen.getByRole('button', { name: 'Cancelar pedido' }))
     await advance(0)
     expect(saved()[0].heldAt).toBeUndefined()

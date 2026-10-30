@@ -21,10 +21,10 @@ export function useAddToCart() {
     cart.add(item)
     cartEvent('cart_add', item)
     // Aceptar una sugerencia es agregarla por primera vez: los "+" siguientes son solo cantidad, y quitarla y volver a
-    // agregarla tampoco es otra aceptación (salvo que entre medio se haya tocado «Olvidar»).
+    // agregarla tampoco es otra aceptación (salvo que entre medio se haya tocado "Olvidar").
     if (item.fromSuggestion)
       noteAccepted(events.track, [item], { origin: item.suggestionOrigin ?? 'agent-ask', generation: profile.resets })
-    // En el prototipo final no hay aviso del carro: el agente flotante lo confirma (con «Deshacer») y, si combina con
+    // En el prototipo final no hay aviso del carro: el agente flotante lo confirma (con "Deshacer") y, si combina con
     // algo de otra vertical, lo comenta al volver a la Home.
     if (demo.isFinal) {
       rememberAdded(item)
@@ -36,7 +36,7 @@ export function useAddToCart() {
     const lastUnit = cart.qtyOf(item) <= 1
     cart.remove(item)
     cartEvent('cart_remove', item)
-    // Lo que sale del carro (o se deshace) ya no es «lo último agregado»: el agente no lo comenta al volver a la Home.
+    // Lo que sale del carro (o se deshace) ya no es "lo último agregado": el agente no lo comenta al volver a la Home.
     if (lastUnit && session.lastAdded && lineKey(session.lastAdded) === lineKey(item)) session.lastAdded = null
   }
 

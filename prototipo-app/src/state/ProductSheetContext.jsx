@@ -7,9 +7,9 @@ import { useEvents } from './EventsContext'
 const ProductSheetContext = createContext({ open: () => {}, close: () => {}, current: null })
 
 /**
- * Producto abierto en la hoja inferior. `open(product, { onOpenStore })`: la hoja ofrece «Ver tienda» si viene y el
+ * Producto abierto en la hoja inferior. `open(product, { onOpenStore })`: la hoja ofrece "Ver tienda" si viene y el
  * producto sabe su tienda (`storeId`). Abrir un producto es verlo (`view_item`, con su lugar si venía de una lista);
- * si vino de una recomendación (Mochi, «Para ti»), es además su `recommendation_click`.
+ * si vino de una recomendación (Mochi, "Para ti"), es además su `recommendation_click`.
  */
 export function ProductSheetProvider({ children }) {
   const [current, setCurrent] = useState(null)

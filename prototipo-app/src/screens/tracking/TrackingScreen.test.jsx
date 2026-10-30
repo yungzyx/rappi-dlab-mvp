@@ -50,7 +50,7 @@ const byMoment =
 
 let api
 beforeEach(() => {
-  // A mediodía: «en silencio por hoy» guarda la fecha y `deliver()` adelanta el reloj 21 s; con la hora real, un test que
+  // A mediodía: "en silencio por hoy" guarda la fecha y `deliver()` adelanta el reloj 21 s; con la hora real, un test que
   // partía antes de la medianoche terminaba en otro día.
   vi.useFakeTimers({ now: new Date(2026, 9, 21, 12) })
   events.track.mockClear()
@@ -151,7 +151,7 @@ describe('TrackingScreen', () => {
     expect(screen.getByText(fixture('agent-offer-proximo-pedido').reason.text)).toBeTruthy()
   })
 
-  test('al entregar aparece «Volver al inicio», que reinicia la pila', async () => {
+  test('al entregar aparece "Volver al inicio", que reinicia la pila', async () => {
     const reset = vi.fn()
     renderTracking(reset)
     fireEvent.click(screen.getByText('pedir'))
@@ -200,7 +200,7 @@ describe('TrackingScreen', () => {
     expect(offerRequests()).toEqual([])
   })
 
-  test('en «Rappi hoy», al entregar no hay oferta de Mochi (ni se pide)', async () => {
+  test('en "Rappi hoy", al entregar no hay oferta de Mochi (ni se pide)', async () => {
     localStorage.setItem('rappi-proto-demo-mode', 'actual')
     renderTracking()
     await deliver()
@@ -208,7 +208,7 @@ describe('TrackingScreen', () => {
     expect(screen.queryByRole('button', { name: NEXT_CARD })).toBeNull()
   })
 
-  test('en «Rappi hoy» el mapa queda como antes: Mochi de frente y sin «¡Ya casi!»', async () => {
+  test('en "Rappi hoy" el mapa queda como antes: Mochi de frente y sin "¡Ya casi!"', async () => {
     localStorage.setItem('rappi-proto-demo-mode', 'actual')
     renderTracking()
     fireEvent.click(screen.getByText('pedir'))
@@ -233,7 +233,7 @@ describe('TrackingScreen', () => {
     expect(screen.queryByText(/Juega mientras llega tu pedido/)).toBeNull()
     expect(screen.queryByRole('button', { name: /Juega/ })).toBeNull()
   })
-  test('un restaurante pasa por «Buscando un Rappi» y, en camino, muestra el código de entrega', async () => {
+  test('un restaurante pasa por "Buscando un Rappi" y, en camino, muestra el código de entrega', async () => {
     renderTracking()
     fireEvent.click(screen.getByText('pedir'))
     expect(screen.getByText('Buscando un Rappi')).toBeTruthy()
@@ -264,7 +264,7 @@ describe('TrackingScreen', () => {
     expect(screen.queryByRole('region', { name: 'Turbo: suma a tu pedido' })).toBeNull()
   })
 
-  test('sin OnTop en «Rappi hoy», con Mochi en silencio ni en un pedido de Turbo', async () => {
+  test('sin OnTop en "Rappi hoy", con Mochi en silencio ni en un pedido de Turbo', async () => {
     localStorage.setItem('rappi-proto-demo-mode', 'actual')
     renderTracking()
     fireEvent.click(screen.getByText('pedir'))
@@ -329,7 +329,7 @@ describe('TrackingScreen', () => {
     expect(events.track).not.toHaveBeenCalledWith('order_rated', expect.anything())
   })
 
-  test('entregado: propina para el Rappi (no se cobra) y «Pídelo de nuevo»', async () => {
+  test('entregado: propina para el Rappi (no se cobra) y "Pídelo de nuevo"', async () => {
     renderTracking()
     await deliver()
     expect(screen.getByText(/El 100% es para tu Rappi/)).toBeTruthy()

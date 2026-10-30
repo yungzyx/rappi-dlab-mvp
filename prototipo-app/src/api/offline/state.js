@@ -1,5 +1,5 @@
 // Lo que la API simulada recuerda de la persona: sus eventos, pedidos y preferencias, en localStorage de este navegador. La clave
-// lleva el prefijo `rappi-proto-`, así «Borrar mis datos» la borra junto con lo demás del prototipo.
+// lleva el prefijo `rappi-proto-`, así "Borrar mis datos" la borra junto con lo demás del prototipo.
 
 const KEY = 'rappi-proto-offline-api'
 const MAX_EVENTS = 500
@@ -18,7 +18,7 @@ export function readState() {
   }
 }
 
-/** Se avisa cada vez que cambia lo guardado (un pedido, un lote de eventos, «Olvidar»): lo escucha el panel de la demo. */
+/** Se avisa cada vez que cambia lo guardado (un pedido, un lote de eventos, "Olvidar"): lo escucha el panel de la demo. */
 export const OFFLINE_STATE_EVENT = 'rappi-demo-state'
 
 export function writeState(state) {
@@ -69,7 +69,7 @@ export function addOrder(order) {
   return updateState((state) => ({ ...state, orders: [...state.orders, order] }))
 }
 
-/** «Olvidar»: lo que la API simulada sabe de la persona. */
+/** "Olvidar": lo que la API simulada sabe de la persona. */
 export function clearState() {
   const before = readState()
   writeState(empty())

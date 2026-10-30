@@ -1,5 +1,5 @@
 // Cliente de la API de rappi-ia (el agente: búsqueda híbrida, ofertas y eventos).
-// Sin la API la app muestra «Sin conexión» con el agente (ver ConnectionGate).
+// Sin la API la app muestra "Sin conexión" con el agente (ver ConnectionGate).
 
 import { VERTICAL_NAMES, routeForScreen, screenForBackend } from '../data/verticals'
 import { PLACEHOLDER_IMG } from '../components/Img'
@@ -9,7 +9,7 @@ import { saveSession, storedUserId, userToken } from './user'
 const DEFAULT_PORT = 8000
 const HEALTH_TTL_MS = 30_000
 const HEALTH_TIMEOUT_MS = 1500
-const DEFAULT_TIMEOUT_MS = 8_000 // más que esto, el público ya nota la espera: la pregunta al agente muestra «Sin conexión»
+const DEFAULT_TIMEOUT_MS = 8_000 // más que esto, el público ya nota la espera: la pregunta al agente muestra "Sin conexión"
 const CONNECTION_TIMEOUT_MS = 5_000
 
 /**
@@ -24,7 +24,7 @@ export function apiUrl(env, location) {
   return devApiUrl(location)
 }
 
-// Solo existe en desarrollo: el build de producción la descarta, y `dist/` no lleva rastros de «localhost» ni del puerto.
+// Solo existe en desarrollo: el build de producción la descarta, y `dist/` no lleva rastros de "localhost" ni del puerto.
 const devApiUrl = import.meta.env.DEV
   ? (location) => `http://${location?.hostname || 'localhost'}:${DEFAULT_PORT}`
   : undefined
@@ -244,7 +244,7 @@ export function toPrototypeProduct(p) {
     backendVertical: p.vertical,
     ageRestricted: Boolean(p.age_restricted),
     // Agotado en su tienda, si la respuesta lo dice (`available: false` o `stock: 0`, como el listado de los pasillos;
-    // lo que no lo trae, como «Para ti» de la tienda, lo revisa la fila al agregar: catalog.js, soldOutHere).
+    // lo que no lo trae, como "Para ti" de la tienda, lo revisa la fila al agregar: catalog.js, soldOutHere).
     ...(p.available === false || p.stock === 0 ? { soldOut: true } : {}),
   }
 }
@@ -255,11 +255,11 @@ function verticalView(vertical) {
   return screen ? { label: VERTICAL_NAMES[screen], route: routeForScreen(screen) } : { label: null, route: null }
 }
 
-// El origen de lo que Mochi pide solo («Pedir por mí», api/autonomy.js): su `order_placed` lo lleva.
+// El origen de lo que Mochi pide solo ("Pedir por mí", api/autonomy.js): su `order_placed` lo lleva.
 export const AUTO_ORDER_ORIGIN = 'agent-autopedido'
 
 /**
- * El plan de «pide lo de siempre» que trae `/agent/ask` (`autopedido`) → `{ mode, store, lines: [{ product, qty }],
+ * El plan de "pide lo de siempre" que trae `/agent/ask` (`autopedido`) → `{ mode, store, lines: [{ product, qty }],
  * subtotal, cap, code, reason, basis, requestId }`. Los productos llevan su lugar (`agent-autopedido`).
  */
 export function toAutoOrder(plan, requestId = null) {
@@ -334,17 +334,17 @@ export function toMessage(response) {
     reason: suggestion ? null : response.reason,
     suggestion,
     // Acciones de aclaración ("¿para pedir ya o para el súper?"): vuelven a preguntar con ese vertical. Una vertical
-    // sola («Ir a Farmacia», tras una pregunta de salud) lleva a su pantalla.
+    // sola ("Ir a Farmacia", tras una pregunta de salud) lleva a su pantalla.
     actions: (response.actions ?? []).map((a) => {
       if (a.query) return { label: a.label, ask: { text: a.query, vertical: a.vertical } }
-      // Lo que Mochi sabe hacer («Repite lo de siempre»: `recompra`, `plan`, `perfil`) y «Ver mis preferencias»: los
+      // Lo que Mochi sabe hacer ("Repite lo de siempre": `recompra`, `plan`, `perfil`) y "Ver mis preferencias": los
       // resuelve el panel.
       if (a.capability) return { label: a.label, capability: a.capability }
       if (a.panel) return { label: a.label, panel: a.panel }
       if (a.vertical && !a.route) return { label: a.label, route: verticalView(a.vertical).route }
       return a
     }),
-    // «Pide lo de siempre en…» (api/autonomy.js): el pedido que Mochi hace solo o deja para revisar antes.
+    // "Pide lo de siempre en…" (api/autonomy.js): el pedido que Mochi hace solo o deja para revisar antes.
     ...(response.autopedido ? { autoOrder: toAutoOrder(response.autopedido, requestId) } : {}),
     tags: response.tags ?? [],
     concepts: response.intent?.concepts ?? [],
@@ -352,7 +352,7 @@ export function toMessage(response) {
     ageNotice: Boolean(response.age_notice),
     health: Boolean(response.intent?.symptom), // síntomas o consejo médico: el panel no ofrece sus ideas debajo
     // El estado de la conversación que se devuelve como `previous` en el próximo mensaje (null: no se sigue) y si esta
-    // respuesta siguió a la anterior («más barato» tras «cerveza»).
+    // respuesta siguió a la anterior ("más barato" tras "cerveza").
     conversation: response.conversation ?? null,
     followUp: Boolean(response.intent?.follow_up),
     // Qué entendió (`resumen`: el panel arma el resumen con el carro; `pedido`: muestra el último pedido) y, en una

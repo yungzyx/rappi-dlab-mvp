@@ -1,4 +1,4 @@
-/* «Pídelo de nuevo»: botón, hoja con lo disponible y carrusel de la tienda. */
+/* "Pídelo de nuevo": botón, hoja con lo disponible y carrusel de la tienda. */
 .reorder-button {
   padding: 8px 14px;
   border-radius: 99px;
@@ -109,7 +109,7 @@
 
 .reorder-items {
   gap: 14px;
-  /* El «+» de la tarjeta asoma sobre la foto: con menos aire invadía la nota de arriba */
+  /* El "+" de la tarjeta asoma sobre la foto: con menos aire invadía la nota de arriba */
   padding: 20px 0 4px;
 }
 

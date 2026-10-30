@@ -1,5 +1,5 @@
 """Marcas canónicas: Rappi declara `trademark` en el 32 % de los productos y con muchas escrituras. Esta capa las junta,
-enrolla las líneas bajo su marca («Coca-Cola Zero» → coca-cola) y deduce la marca del inicio del nombre cuando falta."""
+enrolla las líneas bajo su marca ("Coca-Cola Zero" → coca-cola) y deduce la marca del inicio del nombre cuando falta."""
 
 import logging
 import re
@@ -20,7 +20,7 @@ MIN_PARENT_ITEMS = 10  # una marca con al menos tantos productos puede ser el pa
 MIN_PARENT_LENGTH = 4
 MIN_INDEX_ITEMS = 5  # marcas declaradas en al menos tantos productos se buscan en los nombres sin marca
 MIN_INDEX_SUPPORT = 0.5  # …y solo si la mitad de sus propios ítems la llevan en el nombre
-JUNK_ITEMS = 20  # una marca con tantos ítems y casi ninguno la nombra («AO», «Suave») es un valor de relleno
+JUNK_ITEMS = 20  # una marca con tantos ítems y casi ninguno la nombra ("AO", "Suave") es un valor de relleno
 JUNK_SUPPORT = 0.10
 MIN_GROUP_ITEMS = 2  # ítems declarados que hacen de un grupo de conceptos uno propio de la marca
 _CORPORATE_SUFFIX = re.compile(r"( s a| sa| ltda| spa| limitada| inc| llc| sac)$")
@@ -41,8 +41,8 @@ class BrandRules:
 
 @dataclass(frozen=True)
 class NormBrand:
-    spaced: str  # «coca cola»
-    compact: str  # «cocacola»: la clave para juntar escrituras
+    spaced: str  # "coca cola"
+    compact: str  # "cocacola": la clave para juntar escrituras
 
 
 def load_brand_rules(path: Path | None = None) -> tuple[str, BrandRules]:
@@ -74,7 +74,7 @@ def norm_brand(raw: str | None, rules: BrandRules) -> NormBrand | None:
 
 
 def chain_name(name: str) -> str:
-    """El nombre de una cadena sin el sufijo «Turbo» ni el ®: «Burger King Turbo» y «Burger King®» son la misma."""
+    """El nombre de una cadena sin el sufijo "Turbo" ni el ®: "Burger King Turbo" y "Burger King®" son la misma."""
     return _CHAIN_SUFFIX.sub("", name).replace("®", "").strip()
 
 
@@ -101,7 +101,7 @@ def trademark_fits(trademark: str, name: str, rules: BrandRules) -> bool:
 
 def inference_ok(declared_groups: dict[str, int], item_group: str | None) -> bool:
     """Una marca deducida del nombre solo vale si el producto es de un grupo de conceptos donde la marca ya tiene
-    productos declarados («Corona Graduado» no es de la cerveza Corona)."""
+    productos declarados ("Corona Graduado" no es de la cerveza Corona)."""
     if item_group is None:
         return True
     return declared_groups.get(item_group, 0) >= MIN_GROUP_ITEMS
@@ -111,7 +111,7 @@ def roll_up(
     counts: dict[str, int], families: frozenset[str] = frozenset(), blocked: frozenset[str] = frozenset()
 ) -> dict[str, str]:
     """{escritura: su marca padre}: el prefijo más largo (en palabras) que ya es una marca con ≥ MIN_PARENT_ITEMS
-    productos, o una familia curada. «coca cola zero» → «coca cola»; sin padre (o bloqueada), es su propia marca."""
+    productos, o una familia curada. "coca cola zero" → "coca cola"; sin padre (o bloqueada), es su propia marca."""
     parent = {}
     for spaced in counts:
         words = spaced.split()

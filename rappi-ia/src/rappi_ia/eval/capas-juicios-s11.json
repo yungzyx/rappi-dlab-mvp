@@ -3169,7 +3169,7 @@
   },
   "atributo|bebe|menu_item|257574": {
    "juicio": "no",
-   "nota": "«beb.» es bebida, no producto para bebés"
+   "nota": "\"beb.\" es bebida, no producto para bebés"
   },
   "atributo|bebida-incluida|menu_item|796890": {
    "juicio": "si"
@@ -3576,7 +3576,7 @@
   },
   "marca|tinto-c|catalog_item|279803": {
    "juicio": "no",
-   "nota": "la marca es TH, no «Tinto C»"
+   "nota": "la marca es TH, no \"Tinto C\""
   },
   "marca|virbac|catalog_item|159154": {
    "juicio": "si"

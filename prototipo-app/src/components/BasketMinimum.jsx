@@ -1,8 +1,8 @@
 import { formatPrice } from '../state/CartContext'
 
 /**
- * La compra mínima de una canasta (una tienda) con su barra: «Te faltan $X para hacer el pedido» mientras no llega, y
- * «¡Sin mínimo!» si la tienda no tiene. Un mínimo que no trae el catálogo es un supuesto: se rotula «de ejemplo».
+ * La compra mínima de una canasta (una tienda) con su barra: "Te faltan $X para hacer el pedido" mientras no llega, y
+ * "¡Sin mínimo!" si la tienda no tiene. Un mínimo que no trae el catálogo es un supuesto: se rotula "de ejemplo".
  * `basket` es una canasta con sus montos (screens/checkout/pricing.js: pricedBasket).
  */
 export default function BasketMinimum({ basket }) {

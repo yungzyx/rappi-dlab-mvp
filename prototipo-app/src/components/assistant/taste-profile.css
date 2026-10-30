@@ -1,4 +1,4 @@
-/* Perfil de gusto («Tu perfil») y la escalera de verticales que Mochi arma desde él (GET /profile/{id}/gustos y el
+/* Perfil de gusto ("Tu perfil") y la escalera de verticales que Mochi arma desde él (GET /profile/{id}/gustos y el
    momento `perfil` de /agent/offer). Viene del prototipo sushi (rama demo/prototipo-sushi). */
 
 /* ---------- Tu perfil ---------- */
@@ -90,7 +90,7 @@
   text-decoration: underline;
 }
 
-/* Área táctil de 44 px de alto para «Olvidar» */
+/* Área táctil de 44 px de alto para "Olvidar" */
 .taste-forget::before {
   content: '';
   position: absolute;
@@ -297,7 +297,7 @@
   color: var(--ink);
 }
 
-/* El «+» de siempre, en la fila (no sobre una foto) */
+/* El "+" de siempre, en la fila (no sobre una foto) */
 .add-button--taste {
   position: relative;
   top: auto;

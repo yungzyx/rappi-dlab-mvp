@@ -3,9 +3,9 @@ import './error-boundary.css'
 
 /**
  * Si una pantalla de la pila falla al renderizar, el teléfono muestra un aviso en vez de quedar en blanco.
- * «Volver al inicio» llama a `onReset` (el `reset` de la navegación) y descarta el error.
+ * "Volver al inicio" llama a `onReset` (el `reset` de la navegación) y descarta el error.
  * Con `variant="root"` (afuera de toda la app: proveedores, hoja de producto, agente…) no hay pila a la que volver:
- * ofrece «Recargar» (`onReload`, por defecto recarga la página).
+ * ofrece "Recargar" (`onReload`, por defecto recarga la página).
  */
 export default class ErrorBoundary extends Component {
   state = { error: null }

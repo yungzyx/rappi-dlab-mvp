@@ -171,7 +171,7 @@ export function applied(meta, saved = []) {
 
 /**
  * Lo que sacan la dieta y las alergias de `items`, la dieta primero como en la API (preferences.py: saved, por tipo):
- * «carne, maní o mariscos» (preferences.py: _join). `joined`: todo con « o », como al guardar (rappi_agent.py:
+ * "carne, maní o mariscos" (preferences.py: _join). `joined`: todo con " o ", como al guardar (rappi_agent.py:
  * _saved_text).
  */
 export function withoutOf(items, { joined = false } = {}) {
@@ -205,7 +205,7 @@ export const options = (meta, stores = []) =>
 const valid = (meta, { tipo, valor }) =>
   FILTERS.includes(tipo) ? BY_ID[valor]?.tipo === tipo : tipo === 'cocina' ? CUISINES.includes(valor) : false
 
-/** La tienda de la muestra que nombró la persona («jumbo» → «Jumbo»), o null. */
+/** La tienda de la muestra que nombró la persona ("jumbo" → "Jumbo"), o null. */
 export function findStore(snapshot, said) {
   const wanted = normalize(said)
   if (wanted.length < 3) return null

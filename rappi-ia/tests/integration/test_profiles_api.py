@@ -1,6 +1,6 @@
 """La API de los perfiles de gusto: `GET /profile/{user_id}/gustos` y el momento `perfil` de `POST /agent/offer`, sobre
 el catálogo de las pruebas del motor (test_profiles_engine.py), que suma lo que una escalera nunca debe mostrar (un soju
-en «Gaseosas» y globos de un sex shop). La persona se prepara como en la app: con `POST /events` y `POST /orders`."""
+en "Gaseosas" y globos de un sex shop). La persona se prepara como en la app: con `POST /events` y `POST /orders`."""
 
 from contextlib import contextmanager
 
@@ -129,12 +129,12 @@ def test_tastes_are_an_empty_list_without_profiles(client):
         reply = tastes(client, user)
         assert (reply.status_code, reply.json()) == (200, {"perfiles": []}), user
 
-    # «Olvidar» borra sus segmentos: el perfil se va con ellos
+    # "Olvidar" borra sus segmentos: el perfil se va con ellos
     assert client.delete(f"/profile/{SUSHI_LOVER}", headers=as_owner(SUSHI_LOVER)).status_code == 200
     assert tastes(client, SUSHI_LOVER).json() == {"perfiles": []}
 
 
-# ── POST /agent/offer, momento «perfil» ──────────────────────────────────────
+# ── POST /agent/offer, momento "perfil" ──────────────────────────────────────
 
 
 def test_the_profile_moment_for_a_person_is_their_first_profile_with_its_why(client):
@@ -161,9 +161,9 @@ def test_the_profile_moment_without_a_person_is_only_the_ladder(client):
 
     assert reply.status_code == 200, reply.text
     body = reply.json()
-    assert body["perfil"] == ASIAN  # sin nivel ni «por qué» personal
+    assert body["perfil"] == ASIAN  # sin nivel ni "por qué" personal
     assert body["reason"] == {
-        "text": "Porque elegiste «Amante de lo asiático».",
+        "text": 'Porque elegiste "Amante de lo asiático".',
         "basis": [{"kind": "perfil", "id": "asiatico", "source": "contexto"}],
     }
     assert [s["vertical"] for s in body["escalera"]] == ALL_ASIAN_STEPS
@@ -178,7 +178,7 @@ def test_a_person_who_picks_a_profile_gets_their_why_only_if_it_is_theirs(client
 
     other = offer(client, {"perfil": "carrete"}, SUSHI_LOVER).json()
     assert other["perfil"] == {"id": "carrete", "nombre": "Carrete", "emoji": "🎉"}
-    assert other["reason"]["text"] == "Porque elegiste «Carrete»."
+    assert other["reason"]["text"] == 'Porque elegiste "Carrete".'
     assert SUSHI_STORE not in {p["store_id"] for s in other["escalera"] for p in s["products"]}
 
 
@@ -212,7 +212,7 @@ def test_no_profile_or_no_ladder_is_204(client):
 def test_an_unknown_profile_is_422_in_spanish(client):
     reply = offer(client, {"perfil": "vegano"})
 
-    assert (reply.status_code, reply.json()) == (422, {"detail": "Perfil desconocido: «vegano»"})
+    assert (reply.status_code, reply.json()) == (422, {"detail": 'Perfil desconocido: "vegano"'})
     assert offer(client, {"perfil": "x" * 65}).status_code == 422
     assert offer(client, {"perfil": ""}).status_code == 422
     assert client.post("/agent/offer", json={"moment": "perfil"}).status_code == 422  # sin `context`

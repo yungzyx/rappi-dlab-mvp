@@ -43,7 +43,7 @@ export default function RestaurantsScreen({ back, push }) {
   const [bannerIndex, setBannerIndex] = useState(0)
   const [cuisine, setCuisine] = useState(null) // la cocina que filtra la lista, o ninguna
   const [sort, setSort] = useState(DEFAULT_SORT)
-  const [sorting, setSorting] = useState(false) // la hoja de «Ordenar»
+  const [sorting, setSorting] = useState(false) // la hoja de "Ordenar"
   const filters = [...activeFilters].sort().join(',')
   const list = useApi(
     () => loadRestaurants({ sort, cuisine, ...filterQuery(activeFilters) }),

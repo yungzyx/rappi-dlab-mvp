@@ -109,7 +109,7 @@ def test_beacon_accepts_its_own_origin_without_configuration(load_api):
     module = load_api(API_ENV="production")
 
     assert config.API_CORS_ORIGINS == []
-    assert beacon(module, "https://testserver") == 422  # el TestClient llama a «testserver»
+    assert beacon(module, "https://testserver") == 422  # el TestClient llama a "testserver"
     assert beacon(module, "http://testserver") == 422  # tras un proxy TLS la API ve http y el navegador manda https
 
 

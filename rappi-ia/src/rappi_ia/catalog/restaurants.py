@@ -26,7 +26,7 @@ POPULAR_SECTION = "Lo más pedido"
 
 Sort = Literal["recommended", "rating", "eta", "fee"]
 
-# «Destacados» es una regla propia de la demo, no la de Rappi (su «Súper» no se publica): nota desde 4,5 con al menos
+# "Destacados" es una regla propia de la demo, no la de Rappi (su "Súper" no se publica): nota desde 4,5 con al menos
 # TOP_MIN_REVIEWS opiniones. La app lo rotula así.
 TOP_MIN_RATING = 4.5
 TOP_MIN_REVIEWS = 100
@@ -46,7 +46,7 @@ class Filters:
         return f"{self.max_eta}:{self.min_rating}:{int(self.top)}:{int(self.promo)}"
 
 
-# Los minutos de entrega son el primer número del texto («35 min»); un texto vacío o sin número, o 0, es desconocido.
+# Los minutos de entrega son el primer número del texto ("35 min"); un texto vacío o sin número, o 0, es desconocido.
 _ETA_MINUTES = r"NULLIF(substring(d.eta from '\d+')::numeric, 0)"
 
 # Cada orden desempata por la nota y por el id: la lista es siempre la misma. Lo desconocido va al final (un local sin
@@ -59,7 +59,7 @@ _ORDER = {
     "fee": "d.delivery_cost ASC NULLS LAST, d.rating DESC NULLS LAST, s.store_id",
 }
 
-# Algún plato con precio rebajado (su último precio bajo el de lista): «Con promociones».
+# Algún plato con precio rebajado (su último precio bajo el de lista): "Con promociones".
 _DISCOUNTED_DISH = """EXISTS (SELECT 1 FROM menu_items mi JOIN latest_menu_prices p ON p.item_id = mi.item_id
                   WHERE mi.store_id = {alias}.store_id AND p.price >= %(min_price)s AND p.real_price > p.price)"""
 
@@ -107,8 +107,8 @@ LEFT JOIN LATERAL (
 ORDER BY r.pos"""
 
 # Los platos con precio de un restaurante, una fila por cada sección donde está el plato, por la posición de la sección
-# y, dentro de ella, por el id que les dio Rappi (que no guarda el orden de los platos). Rappi repite un plato en «Más
-# vendidos» y en la suya: `section_id` es la última y las demás van en `extra_section_ids` (migración 040). Es una
+# y, dentro de ella, por el id que les dio Rappi (que no guarda el orden de los platos). Rappi repite un plato en "Más
+# vendidos" y en la suya: `section_id` es la última y las demás van en `extra_section_ids` (migración 040). Es una
 # fila por par plato-sección aunque el arreglo traiga repetidos o la propia sección.
 _MENU = """
 SELECT ms.section_id, ms.name, mi.item_id::text, mi.name, p.price, p.real_price, NULLIF(mi.image_url, ''),
@@ -166,8 +166,8 @@ def with_hours(cards: list[dict], now=None) -> list[dict]:
 
 def restaurant_menu(conn: Connection, store_id: int, now=None) -> dict | None:
     """El restaurante con su menú: una sección por cada una de las suyas con platos con precio, en el orden de
-    `menu_sections.position`, y en cada una todos sus platos: uno que Rappi repite («Más vendidos» y la suya) sale en
-    las dos. Los platos populares abren el menú en la sección «Lo más pedido», una vez cada uno, y siguen en la suya.
+    `menu_sections.position`, y en cada una todos sus platos: uno que Rappi repite ("Más vendidos" y la suya) sale en
+    las dos. Los platos populares abren el menú en la sección "Lo más pedido", una vez cada uno, y siguen en la suya.
     La tarjeta trae su estado a la hora `now` (`hours`). `None` si no existe, no es un restaurante o no tiene platos
     con precio."""
     if not 0 <= store_id <= BIGINT_MAX:
@@ -259,7 +259,7 @@ def _card(
         "eta": (eta.strip() or None) if eta else None,
         "fee": clp(float(fee)) if fee is not None else None,
         "cuisines": cuisines,
-        # Algún plato rebajado: la marca «Con promociones» (no es una promo de la tienda, que Rappi no publica aquí).
+        # Algún plato rebajado: la marca "Con promociones" (no es una promo de la tienda, que Rappi no publica aquí).
         "promo": bool(promo),
         # El horario publicado el día de la descarga (`hours` lo compara con la hora local de cada request).
         "schedule": normalize_schedule(schedules),
@@ -267,7 +267,7 @@ def _card(
 
 
 def _split_name(full_name: str) -> tuple[str, str]:
-    """«Vapiano - Las Condes» es el local «Vapiano» del área «Las Condes»: separa en el último « - » y recorta los
+    """ "Vapiano - Las Condes" es el local "Vapiano" del área "Las Condes": separa en el último " - " y recorta los
     espacios; sin él, el nombre queda entero y no hay área."""
     before, separator, after = full_name.strip().rpartition(" - ")
     return (before.strip(), after.strip()) if separator else (after, "")

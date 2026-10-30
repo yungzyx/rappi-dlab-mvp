@@ -1,7 +1,7 @@
-"""«Pedir por mí» (offers/autonomy.py, migración 049) sobre el catálogo de prueba: por defecto Mochi deja revisar antes;
-con permiso pide solo «lo de siempre» en las tiendas elegidas, hasta el tope, sin alcohol, +18, farmacia ni bebé, ni en
-una tienda cerrada o bajo la compra mínima, y `POST /orders` lo vuelve a revisar todo. Se apaga en un toque y se va con
-«Olvidar» y la purga."""
+""" "Pedir por mí" (offers/autonomy.py, migración 049) sobre el catálogo de prueba: por defecto Mochi deja revisar
+antes; con permiso pide solo "lo de siempre" en las tiendas elegidas, hasta el tope, sin alcohol, +18, farmacia ni bebé,
+ni en una tienda cerrada o bajo la compra mínima, y `POST /orders` lo vuelve a revisar todo. Se apaga en un toque y se
+va con "Olvidar" y la purga."""
 
 from contextlib import contextmanager
 from datetime import datetime, time, timedelta
@@ -201,7 +201,7 @@ def test_never_in_a_closed_store(client, monkeypatch):
 
 
 def test_not_alone_after_a_bad_rating_of_that_store(client, db):
-    """Como la recompra y el «volver» (`winback.paused`): una tienda que calificó mal hace poco se revisa antes."""
+    """Como la recompra y el "volver" (`winback.paused`): una tienda que calificó mal hace poco se revisa antes."""
     order(client, CENTRO, "supermercado", COFFEE)
     allow(client, [CENTRO])
     rating = {"type": "order_rated", "session_id": "s-r", "cart_id": "c-1"}
@@ -225,7 +225,7 @@ def test_only_the_usual_and_undo_sends_nothing(client, db):
     # Otra cantidad u otro producto ya no es lo de siempre.
     rejected = order(client, CENTRO, "supermercado", {**COFFEE, "qty": 3}, cart="c-auto", autopedido={})
     assert rejected.status_code == 409 and rejected.json()["detail"]["codigo"] == "distinto"
-    # En «Rappi hoy» tampoco.
+    # En "Rappi hoy" tampoco.
     rejected = order(client, CENTRO, "supermercado", COFFEE, cart="c-auto", autopedido={}, mode="actual")
     assert rejected.status_code == 409
     assert orders_of(db) == 1
@@ -306,7 +306,7 @@ def test_the_repeat_offer_suggests_it_in_a_chosen_store(client, db):
 
 
 def test_the_stores_ordered_from_are_options_for_favorites(client, db):
-    """«Mis preferencias» ofrece marcar como favoritas las tiendas donde ya pidió (sin escribirlas), y marcarla la
+    """ "Mis preferencias" ofrece marcar como favoritas las tiendas donde ya pidió (sin escribirlas), y marcarla la
     guarda."""
     before = client.get(f"/profile/{USER}/preferencias").json()
     assert not any(o["tipo"] == "tienda" for o in before["opciones"])
@@ -320,7 +320,7 @@ def test_the_stores_ordered_from_are_options_for_favorites(client, db):
 
 
 def test_a_store_whose_only_order_was_cancelled_is_not_an_option(client):
-    """Ni «Mis preferencias» ni «Pedir por mí» ofrecen una tienda de la que solo hay un pedido cancelado."""
+    """Ni "Mis preferencias" ni "Pedir por mí" ofrecen una tienda de la que solo hay un pedido cancelado."""
     assert order(client, CENTRO, "supermercado", COFFEE).status_code == 200
     cancelled = {"type": "order_cancelled", "session_id": "s-c", "cart_id": "c-1"}
     cancelled["payload"] = {"reason": "ya_no", "stage": "antes_de_tienda"}

@@ -1,6 +1,6 @@
-"""«Qué me recomiendas» sin «No encontré» propio: si el interés más alto no trae nada, Mochi lo busca como se llaman sus
-productos, pasa al siguiente interés y, si nada sirve, muestra los ejemplos de siempre. Nunca recomienda desde Farmacia
-ni Licores (offers/guards.py). Contra `rappi_ia_test`."""
+""" "Qué me recomiendas" sin "No encontré" propio: si el interés más alto no trae nada, Mochi lo busca como se llaman
+sus productos, pasa al siguiente interés y, si nada sirve, muestra los ejemplos de siempre. Nunca recomienda desde
+Farmacia ni Licores (offers/guards.py). Contra `rappi_ia_test`."""
 
 import pytest
 from rappi_scraper.storage.search import build_search_documents
@@ -24,9 +24,9 @@ def catalog(db):
         (100, "Papas fritas Lays Clásicas 180 g", 1, "Snacks salados", 1990),
         (101, "Papas fritas Marco Polo 150 g", 2, "Snacks salados", 1890),
         (102, "Papas fritas Kryzpo 130 g", 3, "Snacks salados", 2190),
-        # Como en el Mall real: el nombre no dice «manualidades» ni «mercería».
+        # Como en el Mall real: el nombre no dice "manualidades" ni "mercería".
         (300, "Lana Supersoft Gris Perla 100 Gr", 4, "Hilos", 2490),
-        # Dice «guitarra» (la primera keyword de música) y es de cocina, como en el súper real.
+        # Dice "guitarra" (la primera keyword de música) y es de cocina, como en el súper real.
         (400, "Set Parrillero Con Forma De Guitarra", 1, "Otros Cocina", 15990),
     ]
     for pid, name, store, category, price in products:
@@ -58,7 +58,7 @@ def ask(agent, db, vertical, profile):
 
 
 def test_an_interest_whose_name_finds_nothing_is_searched_as_its_products_are_named(catalog):
-    """Sin vectores, «Manualidades y mercería» no calza ningún nombre; su primera keyword («lana») sí."""
+    """Sin vectores, "Manualidades y mercería" no calza ningún nombre; su primera keyword ("lana") sí."""
     db, _ = catalog
     agent = RappiAgent(None, TemplateComposer())
 
@@ -69,7 +69,7 @@ def test_an_interest_whose_name_finds_nothing_is_searched_as_its_products_are_na
 
 
 def test_what_only_says_the_keyword_is_not_a_recommendation_of_the_interest(catalog):
-    """«Por tu interés en 🎸 música…» con un set parrillero con forma de guitarra: el nombre dice la keyword, pero no
+    """ "Por tu interés en 🎸 música…" con un set parrillero con forma de guitarra: el nombre dice la keyword, pero no
     es del interés. Una recomendación muestra productos del interés o pasa al siguiente."""
     db, _ = catalog
     agent = RappiAgent(None, TemplateComposer())
@@ -116,7 +116,7 @@ def test_from_licores_pharmacy_or_home_the_recommendation_comes_from_a_vertical_
 
 
 def test_a_recommendation_never_moves_to_licores_or_pharmacy_where_the_screen_has_little(catalog, monkeypatch):
-    """«En chocolaterías casi no hay «bebidas gaseosas»; en Licores hay más»: en la base real (21-10-2026) 13 de 784
+    """ "En chocolaterías casi no hay 'bebidas gaseosas'; en Licores hay más": en la base real (21-10-2026) 13 de 784
     recomendaciones se iban así a Licores o Farmacia. En una oferta, la vertical con más del interés es una que Mochi
     propone."""
     db, embedder = catalog

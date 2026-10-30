@@ -114,7 +114,7 @@ def test_complement_never_lands_in_pharmacy(db):
 
 
 def test_complement_never_comes_from_a_sex_shop_or_a_smoking_shop_in_another_vertical(demo):
-    """En el mall de prueba el smoking shop vende «Chicles de menta» (golosinas, un concepto corriente) y Express vende
+    """En el mall de prueba el smoking shop vende "Chicles de menta" (golosinas, un concepto corriente) y Express vende
     gomitas: la oferta de golosinas sale de Express aunque el mall sea donde más calza."""
     db, embedder = demo
     assert db.execute(
@@ -173,12 +173,12 @@ def test_recommendations_respect_the_guards(demo_client):
 
     assert [row["concept"] for row in rows] == ["gaseosas"]
     assert not any(p["age_restricted"] for row in rows for p in row["products"])
-    # ui C1: el título de la tarjeta usa el nombre del concepto de la taxonomía, no su id («Bebidas gaseosas»).
+    # ui C1: el título de la tarjeta usa el nombre del concepto de la taxonomía, no su id ("Bebidas gaseosas").
     assert [row["concept_label"] for row in rows] == ["Bebidas gaseosas"]
 
 
 def test_recommendations_never_name_an_unofferable_interest(demo, demo_client):
-    """«Por tu interés en 🍺 cerveza» es Mochi nombrando alcohol (o salud) por su cuenta: esos intereses no son
+    """ "Por tu interés en 🍺 cerveza" es Mochi nombrando alcohol (o salud) por su cuenta: esos intereses no son
     fuente de una recomendación, como en `_top_interest`. Uno ofrecible, aunque pese menos, sí."""
     db, _ = demo
     db.execute(  # vitaminas → jugos (jugos se ofrece y el súper de prueba vende jugo): sin la regla, sería una fila
@@ -231,7 +231,7 @@ def test_a_service_hook_never_lands_in_pharmacy(db):
 
 
 def test_complement_never_lands_in_licores(db):
-    """«Ni Licores»: una gaseosa que solo vende una botillería no se propone desde Licores; si otra vertical la
+    """ "Ni Licores": una gaseosa que solo vende una botillería no se propone desde Licores; si otra vertical la
     vende, la oferta sale de ahí aunque Licores calce primero."""
     embedder = HashEmbedder()
     add_store(db, 3, "restaurantes", "Pizzería")
@@ -267,8 +267,9 @@ def test_a_soda_sold_only_by_a_licores_store_in_the_seed_is_not_suggested(demo):
 
 
 def test_an_offer_never_brings_a_catalog_item_whose_name_says_alcohol(db):
-    """«Soju Uva Verde 13.0» está en «Frutas» en la base real, sin marca de alcohol ni +18: quien lo busca lo encuentra,
-    pero el agente no lo ofrece. Un plato «Sake Roll» (salmón) sí se ofrece: los platos tienen su propia lista."""
+    """ "Soju Uva Verde 13.0" está en "Frutas" en la base real, sin marca de alcohol ni +18: quien lo busca lo
+    encuentra, pero el agente no lo ofrece. Un plato "Sake Roll" (salmón) sí se ofrece: los platos tienen su propia
+    lista."""
     embedder = HashEmbedder()
     add_store(db, 21, "supermercado", "Súper")
     add_store(db, 22, "restaurantes", "Sushi")
@@ -313,8 +314,8 @@ def test_an_offer_never_brings_a_catalog_item_whose_name_says_baby(db):
 
 
 def test_an_offer_never_brings_a_dish_whose_name_says_alcohol(db):
-    """En la base real, cinco platos «Soju …» tienen concepto `asiatica`: la búsqueda los encuentra, una oferta no.
-    En un menú «sake» es salmón y la «Margarita Familiar» de una pizzería es una pizza: los dos se ofrecen."""
+    """En la base real, cinco platos "Soju …" tienen concepto `asiatica`: la búsqueda los encuentra, una oferta no.
+    En un menú "sake" es salmón y la "Margarita Familiar" de una pizzería es una pizza: los dos se ofrecen."""
     embedder = HashEmbedder()
     add_store(db, 22, "restaurantes", "Sushi")
     add_store(db, 23, "restaurantes", "Pizzería")
@@ -330,7 +331,7 @@ def test_an_offer_never_brings_a_dish_whose_name_says_alcohol(db):
     stock(db, embedder, [])
     # Aquí el nombre la lleva a `cocteles`; en la base real 24 pizzas así quedaron con concepto pizza.
     db.execute("UPDATE item_concepts SET concept_id = 'pizza' WHERE entity_type = 'menu_item' AND entity_id = '943'")
-    # «soju» ya es palabra de licores (taxonomy.toml); aquí vuelve a sushi, como estaba en la base real, para probar la
+    # "soju" ya es palabra de licores (taxonomy.toml); aquí vuelve a sushi, como estaba en la base real, para probar la
     # guardia por el nombre.
     assert db.execute("SELECT concept_id FROM item_concepts WHERE entity_id = '942'").fetchone()[0] == "licores"
     db.execute("UPDATE item_concepts SET concept_id = 'sushi' WHERE entity_type = 'menu_item' AND entity_id = '942'")
@@ -348,7 +349,7 @@ def test_an_offer_never_brings_a_dish_whose_name_says_alcohol(db):
 
 
 def test_vertical_to_try_never_offers_a_popular_dish_whose_name_says_alcohol(demo):
-    """«Vertical por probar» muestra en restaurantes sus platos populares, que no pasan por la búsqueda de ofertas."""
+    """ "Vertical por probar" muestra en restaurantes sus platos populares, que no pasan por la búsqueda de ofertas."""
     from rappi_ia.offers.engine import _popular_dishes
 
     db, _ = demo
@@ -360,8 +361,8 @@ def test_vertical_to_try_never_offers_a_popular_dish_whose_name_says_alcohol(dem
 
 
 def test_an_offer_never_brings_a_dish_from_a_drinks_section(db):
-    """En la base real, «Sake Dry» y «Sake Nigori» (sección «Cervezas Japonesas y Sake») tienen concepto `asiatica` y un
-    nombre que no dice alcohol: la sección lo dice. Una sección «sin alcohol» sí se ofrece."""
+    """En la base real, "Sake Dry" y "Sake Nigori" (sección "Cervezas Japonesas y Sake") tienen concepto `asiatica` y un
+    nombre que no dice alcohol: la sección lo dice. Una sección "sin alcohol" sí se ofrece."""
     embedder = HashEmbedder()
     add_store(db, 22, "restaurantes", "Sushi")
     db.execute("INSERT INTO scrape_runs (run_id, kind, status) VALUES (999, 'restaurants', 'done')")
@@ -369,7 +370,7 @@ def test_an_offer_never_brings_a_dish_from_a_drinks_section(db):
         (951, "Sake Dry", "Cervezas Japonesas y Sake"),
         (952, "Misiones de Rengo 3/4 Lt", "Licores"),
         (953, "Limonada menta", "Bebidas sin Alcohol"),
-        (954, "Gyozas de cerdo", "Cocktail De Aperitivo"),  # «cóctel» en singular: comida para picar
+        (954, "Gyozas de cerdo", "Cocktail De Aperitivo"),  # "cóctel" en singular: comida para picar
     ):
         add_dish(db, item_id, name, 22, section)
         db.execute("INSERT INTO menu_price_snapshots (run_id, item_id, price) VALUES (999, %s, 4990)", (item_id,))
@@ -393,8 +394,8 @@ def test_an_offer_never_brings_a_dish_from_a_drinks_section(db):
 
 
 def test_an_offer_never_brings_a_dish_without_concept_whose_description_names_alcohol(db):
-    """En la base real, los cócteles de «Barra Barbazul» no tienen concepto ni dicen alcohol en el nombre ni en la
-    sección: solo la descripción. Un concepto de bebida tampoco lo dice («Gautama Jack», gaseosas); uno de comida sí
+    """En la base real, los cócteles de "Barra Barbazul" no tienen concepto ni dicen alcohol en el nombre ni en la
+    sección: solo la descripción. Un concepto de bebida tampoco lo dice ("Gautama Jack", gaseosas); uno de comida sí
     (un risotto al vino blanco se ofrece)."""
     embedder = HashEmbedder()
     add_store(db, 22, "restaurantes", "Barbazul")
@@ -430,7 +431,7 @@ def test_an_offer_never_brings_a_dish_without_concept_whose_description_names_al
 
 
 def test_the_most_ordered_dishes_skip_one_without_concept_whose_description_names_alcohol(db):
-    """«Lo más pedido» en restaurantes (`most_ordered`) no pasa por la búsqueda de ofertas."""
+    """ "Lo más pedido" en restaurantes (`most_ordered`) no pasa por la búsqueda de ofertas."""
     from rappi_ia.offers.engine import _priced_in_vertical
 
     add_store(db, 22, "restaurantes", "Barbazul")

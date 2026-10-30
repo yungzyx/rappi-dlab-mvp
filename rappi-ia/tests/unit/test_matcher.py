@@ -80,7 +80,7 @@ def test_avoid_words_block_a_keyword_in_the_same_name_but_not_elsewhere():
         ("California Roll 10 piezas", "sushi"),
         ("Almond Roll", "sushi"),
         ("Hand Roll Salmón", "sushi"),
-        ("New york roll", "sushi"),  # «ny» bloquea por palabra entera: «york» no lo contiene
+        ("New york roll", "sushi"),  # "ny" bloquea por palabra entera: "york" no lo contiene
         ("Roll De Canela", None),  # un pastel, no sushi (el 14-10-2026 salía en el Súper y en Chocolaterías)
         ("Sumkha Granol Gluten Free Cinna Roll", None),
         ("Cinnamon Rolls (2 unds)", None),
@@ -91,7 +91,7 @@ def test_avoid_words_block_a_keyword_in_the_same_name_but_not_elsewhere():
         ("Bolsa Para Agua Polar", None),
         ("Dispensador Para Agua", None),
         ("Agua Mineral Sin Gas 600 cc", "agua"),
-        ("Té Polvo Leche Real", None),  # antes caía en lácteos por «leche»
+        ("Té Polvo Leche Real", None),  # antes caía en lácteos por "leche"
         ("Nesquik Saborizante Para Leche", None),
         ("Leche Entera 1 L", "lacteos"),
         ("Vilay Bebida de Coco Natural", None),
@@ -148,7 +148,7 @@ def test_roll_in_a_query_is_sushi_only_when_it_is_sushi(query, expected):
     ["Maxi roll manjar", "NY Roll de Pistacho 9 cm", "Kathi Roll Chicken (1 Piece)", "Rolls de Pepperoni y Queso"],
 )
 def test_rolls_of_other_cuisines_and_pastry_are_not_sushi(matcher, text):
-    """«Roll» solo es sushi si el plato no es un pastel, un wrap ni un pan de pizzería (otro concepto puede calzar)."""
+    """ "Roll" solo es sushi si el plato no es un pastel, un wrap ni un pan de pizzería (otro concepto puede calzar)."""
     assert "sushi" not in [m.target for m in matcher.matches(text)]
 
 
@@ -171,7 +171,7 @@ ASIAN = {"despensa-asiatica", "snacks-asiaticos", "bebidas-asiaticas"}
         ("Chapagetti Fideo", "snacks-asiaticos"),
         ("Pepero Crunchy", "snacks-asiaticos"),
         ("Kai Mochi Helado Mochi Mango", "snacks-asiaticos"),
-        ("Maruchan Sopa Instantánea Sabor a Pollo", "snacks-asiaticos"),  # el ramen instantáneo ya no es «sopas»
+        ("Maruchan Sopa Instantánea Sabor a Pollo", "snacks-asiaticos"),  # el ramen instantáneo ya no es "sopas"
         ("Ramen Instantáneo Pollo Ajo Nissin 81 Gr", "snacks-asiaticos"),
         ("Brota té Matcha en Polvo", "bebidas-asiaticas"),
         ("Blendy té Verde Matcha Latte", "bebidas-asiaticas"),
@@ -198,12 +198,12 @@ def test_asian_pantry_snacks_and_drinks_by_name(matcher, text, expected):
         "Vape Matcha Ice 5000 Puffs",
         "Mochila de viaje 40 litros",
         "Margarina Sin Sal 250 g",
-        "Lindor Matcha",  # «matcha» a secas sigue siendo té (los matcha latte de las cafeterías)
+        "Lindor Matcha",  # "matcha" a secas sigue siendo té (los matcha latte de las cafeterías)
         "Smart Snack Bolitas Pistacho Matcha",
         "Manare Vinagre de Manzana Con Matcha y Limón Orgánico",
         "Leche de Soya Sin Azúcar 1 L",
         "Crema Corporal Aloe Vera Super Hidratante 240 g",
-        "Golden Bebida Aloe Vera Sabor Original",  # sin «okf» ni «bebida de aloe»: queda en su categoría
+        "Golden Bebida Aloe Vera Sabor Original",  # sin "okf" ni "bebida de aloe": queda en su categoría
         "Hubba Bubba Goma de Mascar Bubble Tape",
     ],
 )
@@ -258,15 +258,15 @@ DISH_QUERIES = [
     ("pollo en salsa teriyaki", ["pollo", "salsas", "asiatica"]),
     ("sopa miso", ["sopas"]),
     ("mochi helado", ["helados"]),
-    ("bowl base arroz de sushi", ["ensaladas-bowls", "arroz-legumbres", "sushi"]),  # «arroz de sushi»: un plato
+    ("bowl base arroz de sushi", ["ensaladas-bowls", "arroz-legumbres", "sushi"]),  # "arroz de sushi": un plato
     ("arroz sushi con cerdo", ["arroz-legumbres", "sushi", "carnes"]),
 ]
 
 
 @pytest.mark.parametrize(("query", "concepts"), DISH_QUERIES)
 def test_dish_words_label_products_but_do_not_read_queries(query, concepts):
-    """«panko», «miso» o «bubble tea» en una consulta piden un plato o una bebida de restaurante: siguen con el concepto
-    de antes. En un producto del catálogo sí lo nombran (`product_keywords`)."""
+    """ "panko", "miso" o "bubble tea" en una consulta piden un plato o una bebida de restaurante: siguen con el
+    concepto de antes. En un producto del catálogo sí lo nombran (`product_keywords`)."""
     found = concept_matcher(load_taxonomy(), for_queries=True).matches(query)
     assert [m.target for m in found] == concepts
 

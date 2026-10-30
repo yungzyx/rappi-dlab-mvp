@@ -49,7 +49,7 @@
 	encode zstd gzip
 
 	# Puerta de acceso: usuario y hash de `caddy hash-password` (BASIC_AUTH_HASH entre comillas simples en el archivo
-	# de entorno: el hash lleva «$»).
+	# de entorno: el hash lleva "$").
 	basic_auth {
 		{$BASIC_AUTH_USER} {$BASIC_AUTH_HASH}
 	}
@@ -62,7 +62,7 @@
 	import cabeceras
 
 	# El mapa multivertical del panel es la única página con script y estilos en línea: una página estática que genera
-	# este mismo proyecto (`rappi-ia multivertical`, que escapa «</» en los datos que mete en el script), servida detrás
+	# este mismo proyecto (`rappi-ia multivertical`, que escapa "</" en los datos que mete en el script), servida detrás
 	# de la puerta. Lleva su propia CSP, que permite eso y nada más (ni otros orígenes, ni fotos de afuera); todo lo
 	# demás va con la estricta. Son matchers excluyentes: una cabecera dentro de su ruta quedaría pisada por la general.
 	@mapa path /panel/presentacion/mapa-multivertical.html

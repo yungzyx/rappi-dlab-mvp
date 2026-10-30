@@ -49,7 +49,7 @@ def parse_restaurant(next_data: dict) -> dict:
                 "discount_pct": discount_pct(price, real_price),
                 "is_available": bool(p.get("isAvailable")),
             }
-            # Rappi repite el plato en «Más vendidos» y en su sección: queda uno, con los datos de la última aparición
+            # Rappi repite el plato en "Más vendidos" y en su sección: queda uno, con los datos de la última aparición
             # y las demás secciones en extra_section_ids (migración 040).
             if earlier := items.get(item["item_id"]):
                 seen = [*earlier["extra_section_ids"], earlier["section_id"]]

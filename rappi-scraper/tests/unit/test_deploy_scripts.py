@@ -122,7 +122,7 @@ def test_broken_dump_is_not_kept(tmp_path):
 
 
 def test_passfile_decodes_and_escapes_the_password(tmp_path):
-    """Una clave con «:» o «\\» llega en la URL como %3A y %5C; en el archivo de claves van escapadas."""
+    """Una clave con ":" o "\\" llega en la URL como %3A y %5C; en el archivo de claves van escapadas."""
     bin_dir = _fakes(tmp_path)
 
     result = _run(tmp_path, bin_dir, DATABASE_URL="postgresql://rappi_owner:a%3Ab%5Cc@db:5432/rappi")
@@ -173,7 +173,7 @@ def test_backup_and_purge_are_independent_units():
 
 
 def test_rotation_keeps_the_newest_by_date_not_by_name(tmp_path):
-    """Con otra zona horaria (o un reloj corregido) un respaldo nuevo puede tener un nombre «anterior» a los de antes:
+    """Con otra zona horaria (o un reloj corregido) un respaldo nuevo puede tener un nombre "anterior" a los de antes:
     la rotación va por fecha de modificación y el recién hecho nunca se borra."""
     backups = _backups(tmp_path)
     backups.mkdir(parents=True)

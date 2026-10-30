@@ -38,7 +38,7 @@ def test_each_store_has_what_the_catalog_knows(seeded):
     terms = {
         t["store_id"]: _prices(t) for t in store_terms(seeded, [SUPER_CENTRO, SUPER_NORTE, EXPRESS, TURBO, PIZZERIA])
     }
-    # «Sin mínimo» es un dato (mov_value 0); el envío es el delivery_price de la tienda.
+    # "Sin mínimo" es un dato (mov_value 0); el envío es el delivery_price de la tienda.
     assert terms[SUPER_CENTRO] == {"store_id": SUPER_CENTRO, "delivery_fee": 1990, "min_order": 0, "service_pct": None}
     assert terms[SUPER_NORTE] == {"store_id": SUPER_NORTE, "delivery_fee": 990, "min_order": 8490, "service_pct": 5}
     assert terms[EXPRESS]["delivery_fee"] == 1290  # el de `charges` manda sobre delivery_price

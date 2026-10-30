@@ -93,9 +93,9 @@ def save_sample(sample: list[dict], path: Path = SAMPLE_FILE) -> None:
 
 
 def sheet_report(pairs: list[dict], human: dict[str, int]) -> dict:
-    """Los juicios de las personas en la planilla de búsqueda (2 «sirve», 1 «a medias», 0 «no sirve», por id de par)
+    """Los juicios de las personas en la planilla de búsqueda (2 "sirve", 1 "a medias", 0 "no sirve", por id de par)
     contra el juez por concepto de esos mismos pares (`relevante_auto`, de `planilla-busqueda-ids.json`).
-    κ binario: «sirve» contra el resto, comparable con el juez por concepto, que también es binario. El ponderado
+    κ binario: "sirve" contra el resto, comparable con el juez por concepto, que también es binario. El ponderado
     pone al juez por concepto en 0 o 2 y deja a las personas en sus tres niveles."""
     from .sheets import cohen_kappa, weighted_kappa
 

@@ -1,6 +1,6 @@
 {
  "version": "2026-10-24",
- "nota": "Errores de tipeo para la corrección de la búsqueda (retrieval/spelling.py, 24-10). Cada caso tiene lo que la persona escribió (`query`), lo que quiso escribir (`quiso`) y el motivo. Se recupera si la búsqueda no queda «sin resultado» y muestra al menos 3 de los 5 primeros productos que muestra `quiso` (o todos, si muestra menos). Los errores son los que se ven al escribir rápido en el teléfono: letras repetidas, faltantes, cambiadas o traspuestas, marcas mal escritas, sin tildes, con muletillas y plurales raros. `rappi-ia eval-typos` los mide junto con las negativas de queries.json, que deben seguir sin resultado.",
+ "nota": "Errores de tipeo para la corrección de la búsqueda (retrieval/spelling.py, 24-10). Cada caso tiene lo que la persona escribió (`query`), lo que quiso escribir (`quiso`) y el motivo. Se recupera si la búsqueda no queda \"sin resultado\" y muestra al menos 3 de los 5 primeros productos que muestra `quiso` (o todos, si muestra menos). Los errores son los que se ven al escribir rápido en el teléfono: letras repetidas, faltantes, cambiadas o traspuestas, marcas mal escritas, sin tildes, con muletillas y plurales raros. `rappi-ia eval-typos` los mide junto con las negativas de queries.json, que deben seguir sin resultado.",
  "queries": [
   {
    "vertical": "supermercado",

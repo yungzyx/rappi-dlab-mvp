@@ -19,10 +19,10 @@ RULE_CONFIDENCE = 0.8
 FAMILIES = {"dieta", "alergenos", "publico", "formato", "precio", "origen", "sustentable", "ocasion", "platos"}
 _TRUE = {"true", "si", "sí", "yes", "1"}
 DERIVED_CONFIDENCE = 0.9
-# Las descripciones son largas y mencionan de todo («apta para vidrio», «con papas fritas»): solo son fiables en lo
+# Las descripciones son largas y mencionan de todo ("apta para vidrio", "con papas fritas"): solo son fiables en lo
 # que el producto declara ser (dieta, alérgenos, sustentabilidad). El resto sale del nombre y la categoría.
 DESCRIPTION_FAMILIES = {"dieta", "alergenos", "sustentable"}
-MIN_CONCEPT_ITEMS_FOR_PRICE = 8  # «económico» exige al menos tantos ítems del concepto en la vertical para comparar
+MIN_CONCEPT_ITEMS_FOR_PRICE = 8  # "económico" exige al menos tantos ítems del concepto en la vertical para comparar
 
 
 @dataclass(frozen=True)
@@ -78,7 +78,7 @@ def load_attribute_rules(path: Path | None = None) -> tuple[str, list[AttributeR
 
 
 def _stem(word: str) -> str:
-    """Raíz para comparar singular y plural («ninos» = «nino», «panales» = «panal», «mujeres» = «mujer»)."""
+    """Raíz para comparar singular y plural ("ninos" = "nino", "panales" = "panal", "mujeres" = "mujer")."""
     if len(word) > 4 and word.endswith("es") and word[-3] not in "aeiou":
         return word[:-2]
     if len(word) > 3 and word.endswith("s"):
@@ -92,7 +92,7 @@ def phrase_key(phrase: str) -> tuple[str, ...]:
 
 class _Detector:
     """Cada atributo se busca por separado: a diferencia de los conceptos, dos atributos pueden calzar las mismas
-    palabras («sin azúcar» y «zero»), y la negación de uno no debe tapar la frase de otro."""
+    palabras ("sin azúcar" y "zero"), y la negación de uno no debe tapar la frase de otro."""
 
     def __init__(self, rules: list[AttributeRule]):
         self.rules = [r for r in rules if not r.derived]
@@ -119,7 +119,7 @@ class _Detector:
                     if not catalog_only or entity_type == "catalog_item":
                         found.setdefault(attribute_id, phrase)
                 if self.negations.get(key) and not (start and words[start - 1] in ("no", "sin")):
-                    negated.update(self.negations[key])  # «no contiene azúcar» no es «contiene azúcar»
+                    negated.update(self.negations[key])  # "no contiene azúcar" no es "contiene azúcar"
         return found, negated
 
 
@@ -218,7 +218,7 @@ GROUP BY sp.master_product_id
 ON CONFLICT DO NOTHING
 """
 
-# «Económico» compara el precio por unidad (kg, l, und) dentro del concepto, la vertical y la unidad: un sobre de 15 g
+# "Económico" compara el precio por unidad (kg, l, und) dentro del concepto, la vertical y la unidad: un sobre de 15 g
 # es barato en la góndola y caro por gramo. Sin medida comparable, se compara el precio de góndola.
 _CHEAP = f"""
 WITH priced AS (

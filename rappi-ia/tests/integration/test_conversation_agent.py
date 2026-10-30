@@ -108,7 +108,8 @@ def test_every_answer_says_how_to_follow_it(talk):
 
 
 def test_another_option_keeps_the_cap_and_never_repeats(talk):
-    """«un vino hasta 10 mil» → «otra opción» volvía a mostrar vinos de $25.990; «otra» dos veces repetía la primera."""
+    """ "un vino hasta 10 mil" → "otra opción" volvía a mostrar vinos de $25.990; "otra" dos veces repetía la
+    primera."""
     first, other = talk("un vino hasta 10 mil", "otra opción", vertical="licores")
     assert first["products"] and all(p["price_value"] <= 10000 for p in other["products"])
     assert not set(_ids(first)) & set(_ids(other))
@@ -117,27 +118,27 @@ def test_another_option_keeps_the_cap_and_never_repeats(talk):
 
 
 def test_without_meat_shows_only_what_says_it_has_none(talk):
-    """pizza → «sin carne» mostraba una «Pizza Carnivori» y una de pepperoni: no dicen «carne»."""
+    """pizza → "sin carne" mostraba una "Pizza Carnivori" y una de pepperoni: no dicen "carne"."""
     pizza, veggie = talk("pizza", "sin carne", vertical="restaurantes")
     assert {p["name"] for p in veggie["products"]} == {"Pizza vegetariana familiar", "Pizza veggie mediana"}
     assert "sin carne" in veggie["text"] and veggie["conversation"]["query"] == "pizza sin carne"
 
 
 def test_a_diet_nothing_says_is_said_not_faked(talk):
-    """helado → «sin lactosa» mostraba helados de leche: si ningún nombre lo dice, Mochi lo dice."""
+    """helado → "sin lactosa" mostraba helados de leche: si ningún nombre lo dice, Mochi lo dice."""
     ice_cream, lactose_free = talk("helado", "sin lactosa", vertical="conveniencia")
     assert ice_cream["products"] and lactose_free["products"] == []
     assert lactose_free["text"].startswith("No encontré") and "sin lactosa" in lactose_free["text"]
 
 
 def test_without_alcohol_on_soft_drinks_changes_nothing(talk):
-    """«¿y para tomar?» → «sin alcohol» llevaba a Licores: las bebidas ya no tienen alcohol."""
+    """ "¿y para tomar?" → "sin alcohol" llevaba a Licores: las bebidas ya no tienen alcohol."""
     drinks, still = talk("algo para tomar", "sin alcohol", vertical="conveniencia")
     assert still["vertical"] == "conveniencia" and set(_ids(still)) == set(_ids(drinks))
 
 
 def test_an_occasion_follow_up_is_still_the_occasion(talk):
-    """«once para 4» → «sin lactosa»: lo de la once que dice «sin lactosa», para las mismas 4 personas."""
+    """ "once para 4" → "sin lactosa": lo de la once que dice "sin lactosa", para las mismas 4 personas."""
     once, without = talk("algo para una once para 4", "sin lactosa", vertical="supermercado")
     assert once["intent"]["occasion"] == "once" and once["conversation"]["occasion"] == "once"
     assert once["conversation"]["concepts"] == []  # una ocasión sin nombrar productos
@@ -146,7 +147,7 @@ def test_an_occasion_follow_up_is_still_the_occasion(talk):
 
 
 def test_a_cheaper_asado_is_still_an_asado(talk):
-    """«asado de 6» → «¿y algo más barato?» traía albóndigas: eran las carnes más baratas, no cortes para el asado."""
+    """ "asado de 6" → "¿y algo más barato?" traía albóndigas: eran las carnes más baratas, no cortes para el asado."""
     asado, cheaper = talk("¿qué llevo para un asado de 6?", "¿y algo más barato?")
     prices = [p["price_value"] for p in cheaper["products"]]
     assert cheaper["products"] and prices == sorted(prices) and "103" not in _ids(cheaper)
@@ -160,7 +161,7 @@ def test_more_people_replaces_the_count(talk):
 
 
 def test_a_vertical_without_it_is_said_and_not_noted_as_missing(talk):
-    """desayuno para dos → «en el súper mejor»: «No encontré… Lo anoté» y RappiFavor, aunque hay en restaurantes."""
+    """desayuno para dos → "en el súper mejor": "No encontré… Lo anoté" y RappiFavor, aunque hay en restaurantes."""
     breakfast, grocery = talk("desayuno para dos", "en el súper mejor")
     assert breakfast["vertical"] == "restaurantes" and grocery["vertical"] == "supermercado"
     assert grocery["products"] == [] and not grocery["unmet"] and "restaurantes" in grocery["text"]
@@ -168,8 +169,8 @@ def test_a_vertical_without_it_is_said_and_not_noted_as_missing(talk):
 
 
 def test_an_occasion_shows_a_bit_of_each_thing(talk, monkeypatch):
-    """«cumpleaños de mi hijo, somos 10» mostraba solo decoración: la búsqueda con todos los nombres de la ocasión
-    («Pastelería Decoración Golosinas…») traía eso en el catálogo real. Ahora el súper, repartido entre sus
+    """ "cumpleaños de mi hijo, somos 10" mostraba solo decoración: la búsqueda con todos los nombres de la ocasión
+    ("Pastelería Decoración Golosinas…") traía eso en el catálogo real. Ahora el súper, repartido entre sus
     conceptos."""
     from rappi_ia.agent import rappi_agent as module
 

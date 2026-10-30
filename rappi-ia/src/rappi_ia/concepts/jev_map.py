@@ -1,7 +1,7 @@
 """Rol A de Jev: propone el concepto de las categorías del catálogo que no tienen mapeo revisado.
 
 Una petición por categoría, con 4 preguntas sobre el mismo estado (vertical, nombre y 8 ejemplos): el concepto (una
-hoja de la taxonomía o «ninguno»), si los ejemplos mezclan tipos de producto, y dos guardias que se preguntan aparte
+hoja de la taxonomía o "ninguno"), si los ejemplos mezclan tipos de producto, y dos guardias que se preguntan aparte
 —salud sensible y solo para mayores de 18— para detectar cuando el concepto elegido contradice al producto. Jev solo
 entrega probabilidades: los umbrales y las guardias los decide `decide`.
 
@@ -23,12 +23,12 @@ from .report import CATEGORY_MAP_COLUMNS, jev_review_path
 from .store import NO_CONCEPT, categories_reviewed_without_concept
 from .taxonomy import Concept, Taxonomy
 
-MIX_MAX = 0.5  # desde esta probabilidad de «mezcla», un solo concepto no describe la categoría
+MIX_MAX = 0.5  # desde esta probabilidad de "mezcla", un solo concepto no describe la categoría
 GUARD = 0.5  # desde esta probabilidad, la guardia (salud sensible, solo adultos) se considera cierta
 REVIEW_MIN = 0.6  # bajo esta confianza no vale la pena ni revisarla
 
 # Categorías con productos que no tienen mapeo revisado (curado o LLM) ni están revisadas sin concepto (filas
-# «ninguno» del CSV). Con `only_new`, tampoco las que Jev ya mapeó.
+# "ninguno" del CSV). Con `only_new`, tampoco las que Jev ya mapeó.
 TARGETS = """
 SELECT lower(trim(c.name)), count(DISTINCT ci.master_product_id)
 FROM categories c JOIN catalog_items ci USING (category_id)
@@ -53,7 +53,7 @@ class Decision:
 INSTRUCTIONS = {
     "es": {
         "concepto": "¿Qué concepto describe los productos de `categoria`? Usa `ejemplos` como evidencia. "
-        "Si ninguno calza con la mayoría de los ejemplos, elige «ninguno».",
+        'Si ninguno calza con la mayoría de los ejemplos, elige "ninguno".',
         "mezcla": "¿`ejemplos` mezcla productos de tipos muy distintos, de modo que un solo concepto no describe la"
         " categoría?",
         "salud_sensible": "¿Los productos son medicamentos, anticonceptivos, pruebas de embarazo o productos de salud o"
@@ -63,7 +63,7 @@ INSTRUCTIONS = {
     },
     "en": {
         "concepto": "Which concept describes the products in `categoria`? Use `ejemplos` as evidence. "
-        "If none fits most of the examples, choose «ninguno».",
+        'If none fits most of the examples, choose "ninguno".',
         "mezcla": "Does `ejemplos` mix very different kinds of products, so that a single concept does not describe the"
         " category?",
         "salud_sensible": "Are the products medicines, contraceptives, pregnancy tests, or sexual health or wellness"
@@ -75,7 +75,7 @@ INSTRUCTIONS = {
 
 
 def build_questions(taxonomy: Taxonomy, variant: str = VARIANTS[0]) -> dict:
-    """Las 4 preguntas con las instrucciones en `variant` («es» o «en»)."""
+    """Las 4 preguntas con las instrucciones en `variant` ("es" o "en")."""
     text = INSTRUCTIONS[variant]
     options = {c.id: {"what": c.name, "examples": list(c.keywords[:5])} for c in taxonomy.concepts.values()}
     options[NO_CONCEPT] = "Ningún concepto describe la mayoría de los ejemplos"
@@ -95,7 +95,7 @@ def category_state(conn: Connection, category: str) -> dict | None:
 
 
 def decide(answer: dict, taxonomy: Taxonomy, t_auto: float) -> Decision:
-    """Tabla de decisión: «ninguno» o mezcla → nada; guardia en conflicto → revisar (nunca automático);
+    """Tabla de decisión: "ninguno" o mezcla → nada; guardia en conflicto → revisar (nunca automático);
     confianza ≥ T_auto → mapear; entre 0,6 y T_auto → revisar; menos → nada."""
     chosen = answer["concepto"]
     concept_id = chosen.choice
@@ -123,13 +123,13 @@ def _guard_conflict(answer: dict, concept: Concept) -> str | None:
     health = answer["salud_sensible"].noul >= GUARD
     adults = answer["solo_adultos"].noul >= GUARD
     if adults and not concept.age_restricted:
-        return f"guardia +18: parece solo para adultos y «{concept.name}» no lo es"
+        return f'guardia +18: parece solo para adultos y "{concept.name}" no lo es'
     if concept.age_restricted and not adults:
-        return f"guardia +18: «{concept.name}» es solo para adultos y la categoría no lo parece"
+        return f'guardia +18: "{concept.name}" es solo para adultos y la categoría no lo parece'
     if health and not concept.sensitive:
-        return f"guardia de salud: parece de salud sensible y «{concept.name}» no es un concepto sensible"
+        return f'guardia de salud: parece de salud sensible y "{concept.name}" no es un concepto sensible'
     if concept.sensitive and not (health or adults):
-        return f"guardia de salud: «{concept.name}» es sensible y la categoría no lo parece"
+        return f'guardia de salud: "{concept.name}" es sensible y la categoría no lo parece'
     return None
 
 
@@ -169,7 +169,7 @@ def map_categories(
                 "revisar",
                 decision.concept_id,
                 decision.confidence,
-                f"«{decision.concept_id}» aún no está en la base (falta correr `rappi-ia concepts`)",
+                f'"{decision.concept_id}" aún no está en la base (falta correr `rappi-ia concepts`)',
             )
         decisions[key] = (details[key]["nombre"], targets[key], decision)
     write_decisions(conn, decisions, client.model)
@@ -221,8 +221,8 @@ def export_path() -> Path:
 
 
 def export_for_review(conn: Connection, review_path: Path | None = None, out_path: Path | None = None) -> int:
-    """Los mapeos de Jev (revisión «aplicada») y su cola de revisión («pendiente») en el formato de
-    category_map.csv: se revisan, se cambia el método a «curado» y se copian al mapa versionado."""
+    """Los mapeos de Jev (revisión "aplicada") y su cola de revisión ("pendiente") en el formato de
+    category_map.csv: se revisan, se cambia el método a "curado" y se copian al mapa versionado."""
     rows = [
         {
             "tipo": "categoria",

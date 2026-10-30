@@ -24,7 +24,7 @@ afterEach(() => {
   localStorage.clear()
 })
 
-test('al pasar a «Rappi hoy» el buscador con Mochi se cierra, y volver atrás no lo reabre ahí', () => {
+test('al pasar a "Rappi hoy" el buscador con Mochi se cierra, y volver atrás no lo reabre ahí', () => {
   render(
     <DemoProvider>
       <AssistantProvider>

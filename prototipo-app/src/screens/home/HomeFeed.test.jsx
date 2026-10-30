@@ -50,7 +50,7 @@ const homeRoutes = (extra = {}) => ({
   ...extra,
 })
 
-describe('Home de «Rappi hoy»', () => {
+describe('Home de "Rappi hoy"', () => {
   const renderHome = (routes = {}) => {
     localStorage.setItem('rappi-proto-demo-mode', 'actual')
     const fetchMock = stubApi(routes)
@@ -60,7 +60,7 @@ describe('Home de «Rappi hoy»', () => {
   }
   const section = (name) => within(screen.getByRole('region', { name }))
 
-  test('es la app como es hoy: buscador plano, sin Mochi ni fila «Para ti»', () => {
+  test('es la app como es hoy: buscador plano, sin Mochi ni fila "Para ti"', () => {
     renderHome()
     expect(screen.queryByRole('button', { name: 'Abrir buscador con Mochi' })).toBeNull()
     expect(document.querySelector('.for-you')).toBeNull()
@@ -84,7 +84,7 @@ describe('Home de «Rappi hoy»', () => {
       origin: 'accesos',
       position: 1,
     })
-    // RappiTravel también se anota (en «Rappi hoy» el evento va marcado y el motor no aprende de él).
+    // RappiTravel también se anota (en "Rappi hoy" el evento va marcado y el motor no aprende de él).
     fireEvent.click(screen.getByText('RappiTravel'))
     expect(events.track.mock.calls.filter(([type]) => type === 'vertical_open')).toHaveLength(1)
     expect(events.track.mock.calls.filter(([type]) => type === 'service_opened')).toEqual([
@@ -122,11 +122,11 @@ describe('Home de «Rappi hoy»', () => {
     ])
       expect(nearby.getByText(name)).toBeTruthy()
     expect(nearby.getAllByText('30 min').length).toBeGreaterThan(0)
-    // Restaurantes rápidos y Mejor evaluados salen de la API; no hay «Envío más barato» (casi todos traen $0: falta el dato).
+    // Restaurantes rápidos y Mejor evaluados salen de la API; no hay "Envío más barato" (casi todos traen $0: falta el dato).
     expect(section('Restaurantes rápidos').getByText('Sándwiches de prueba - Providencia')).toBeTruthy()
     expect(section('Restaurantes rápidos').getByText('Pastelería de prueba - Vitacura')).toBeTruthy()
     await screen.findByRole('region', { name: 'Mejor evaluados' })
-    // Solo los que tienen nota: el de ejemplo sin nota no va en «Mejor evaluados».
+    // Solo los que tienen nota: el de ejemplo sin nota no va en "Mejor evaluados".
     expect(section('Mejor evaluados').getAllByRole('button')).toHaveLength(5)
     expect(screen.queryByText(/lower fees|Envío más barato|Stores near by you/)).toBeNull()
     const asked = fetchMock.mock.calls
@@ -169,7 +169,7 @@ describe('Home de «Rappi hoy»', () => {
     for (const name of ['Cerca de ti', 'Restaurantes rápidos', 'Mejor evaluados'])
       for (const button of section(name).getAllByRole('button')) if (button.textContent) fireEvent.click(button)
     const stores = push.mock.calls.filter(([screenName]) => screenName === 'store').map(([, params]) => params.store)
-    // 6 cercanas + 2 rápidas + 5 mejor evaluados con nota (el botón «Ver todas» de Cerca de ti solo avisa).
+    // 6 cercanas + 2 rápidas + 5 mejor evaluados con nota (el botón "Ver todas" de Cerca de ti solo avisa).
     expect(stores).toHaveLength(13)
     expect(stores.every((store) => Number.isInteger(store.id))).toBe(true)
     expect(stores.filter((store) => store.vertical === 'restaurants')).toHaveLength(7)

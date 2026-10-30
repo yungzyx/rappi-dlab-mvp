@@ -1,4 +1,4 @@
-"""La mezcla de «lo más pedido» con la compra cruzada (motor/recommend.py)."""
+"""La mezcla de "lo más pedido" con la compra cruzada (motor/recommend.py)."""
 
 import pytest
 

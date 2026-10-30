@@ -1,4 +1,4 @@
-"""El horario publicado (catalog/hours.py), las promos de la tienda (catalog/promos.py) y la guardia de «Lo que sea»."""
+"""El horario publicado (catalog/hours.py), las promos de la tienda (catalog/promos.py) y la guardia de "Lo que sea"."""
 
 from datetime import datetime
 

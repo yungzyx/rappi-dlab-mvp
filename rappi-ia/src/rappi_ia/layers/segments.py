@@ -288,7 +288,7 @@ def _lower_is_stronger(rule: SegmentRule) -> bool:
 
 
 def _level(rule: SegmentRule, score: float) -> str | None:
-    if _lower_is_stronger(rule):  # «nuevo», «activo», «gasto-bajo»: menos días o menos gasto es más fuerte
+    if _lower_is_stronger(rule):  # "nuevo", "activo", "gasto-bajo": menos días o menos gasto es más fuerte
         reached = [level for level in LEVELS if score <= rule.levels[level]]
     else:
         reached = [level for level in LEVELS if score >= rule.levels[level]]
@@ -350,7 +350,7 @@ def _sensitive_names() -> tuple[frozenset[str], frozenset[str]]:
 
 def _evidence(rule: SegmentRule, counted) -> dict:
     """Los 3 conceptos o atributos que más aportan al puntaje. La evidencia de un segmento común no nombra lo que mira
-    un segmento sensible: `capa.user_segments` oculta los sensibles, y «cazaofertas» listaba los pañales comprados."""
+    un segmento sensible: `capa.user_segments` oculta los sensibles, y "cazaofertas" listaba los pañales comprados."""
     hidden_concepts, hidden_attributes = ((), ()) if rule.sensitive else _sensitive_names()
     by_item: dict[tuple[str, str], float] = defaultdict(float)
     named = set(rule.signals.get("attributes", ()))
@@ -434,8 +434,8 @@ def _context_hit(signal: Signal, key: str, wanted) -> bool:
 
 _SIGNALS_SQL = """
 WITH raw AS (
-    -- Solo lo que dice un concepto: «Rappi hoy» le quita el concepto al evento (y marca payload.mode = 'actual') y
-    -- sus pedidos van con mode = 'actual', y «Olvidar» un concepto se lo quita a las líneas de pedido; sin concepto no
+    -- Solo lo que dice un concepto: "Rappi hoy" le quita el concepto al evento (y marca payload.mode = 'actual') y
+    -- sus pedidos van con mode = 'actual', y "Olvidar" un concepto se lo quita a las líneas de pedido; sin concepto no
     -- hay huella de gusto.
     SELECT e.user_id, 'e' || e.event_id AS event_key, e.session_id AS unit_key, e.ts, e.type, e.concept_id,
            e.vertical, e.query, e.modality, e.entity_type, e.entity_id,
@@ -477,7 +477,7 @@ LEFT JOIN ranked rk ON rk.vertical = r.vertical AND rk.entity_type = r.entity_ty
 def load_signals(conn: Connection, source: str, user_id: str | None = None) -> dict[str, list[Signal]]:
     """Los eventos de cada persona de esa fuente (nunca mezcla fuentes) como señales: búsquedas, consultas, vistas,
     carros, servicios y líneas de pedido, con el concepto, los atributos y la marca de su ítem y la posición de su
-    precio entre los ítems de su concepto. «Con descuento» es el descuento que el ítem tiene ahora."""
+    precio entre los ítems de su concepto. "Con descuento" es el descuento que el ítem tiene ahora."""
     rows = conn.execute(_SIGNALS_SQL, {"source": source, "user": user_id, "types": list(SIGNAL_EVENT_TYPES)})
     signals: dict[str, list[Signal]] = defaultdict(list)
     for row in rows:
@@ -706,7 +706,7 @@ def build_segments(
 
 def lock_user_segments(conn: Connection, user_id: str) -> None:
     """El candado por persona (advisory, hasta el fin de la transacción) que comparten el recálculo después de un
-    pedido y «Olvidar»: nunca recalculan sus segmentos a la vez."""
+    pedido y "Olvidar": nunca recalculan sus segmentos a la vez."""
     conn.execute("SELECT pg_advisory_xact_lock(hashtext('segments:' || %s))", (user_id,))
 
 

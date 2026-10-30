@@ -19,7 +19,7 @@ const call = (method, path, body) => {
 
 beforeEach(() => localStorage.clear())
 
-test('la sesión, los eventos y los pedidos ordenan la Home; «Rappi hoy» no; «Olvidar» lo borra', () => {
+test('la sesión, los eventos y los pedidos ordenan la Home; "Rappi hoy" no; "Olvidar" lo borra', () => {
   const { body: session } = call('POST', '/session', {})
   expect(session.user_id).toMatch(/^proto-/)
   const id = session.user_id
@@ -53,7 +53,7 @@ test('la sesión, los eventos y los pedidos ordenan la Home; «Rappi hoy» no; �
 
 test('una oferta sin nada que decir es un 204; una ruta desconocida, un 404', () => {
   expect(call('POST', '/agent/offer', { moment: 'recompra', context: {} })).toEqual({ status: 204, body: null })
-  // «¿Volvemos a…?» necesita semanas de pedidos (el panel de la demo siembra personas con ellas)
+  // "¿Volvemos a…?" necesita semanas de pedidos (el panel de la demo siembra personas con ellas)
   expect(call('POST', '/agent/offer', { moment: 'volver', context: {} })).toEqual({ status: 204, body: null })
   expect(call('GET', '/analytics/kpis').status).toBe(404)
   expect(call('GET', '/health').body).toMatchObject({ ok: true, documentos: 3 })
@@ -79,7 +79,7 @@ test('el origen de un evento se guarda de la columna nueva o del payload de ante
   expect(readState().events.map((e) => e.origin)).toEqual(['agent-volver', 'agent-recompra'])
 })
 
-test('«Pídelo de nuevo»: lo que la muestra tiene en esa tienda, con su precio; lo demás no está disponible', () => {
+test('"Pídelo de nuevo": lo que la muestra tiene en esa tienda, con su precio; lo demás no está disponible', () => {
   const coffee = product(1)
   snapshot.pool = [coffee]
   const lines = [

@@ -15,9 +15,9 @@ describe('relleno de lo que flota abajo', () => {
     expect(floatingInset(phone, [])).toBe(0)
   })
 
-  test('cuenta lo más alto: Mochi sobre el carro y «Pedido en curso»', () => {
-    const cart = at(874 - 28 - 52, 52) // «Ver carro», 28 px sobre el borde
-    const order = at(874 - 88 - 48, 48) // «Pedido en curso» sobre el carro
+  test('cuenta lo más alto: Mochi sobre el carro y "Pedido en curso"', () => {
+    const cart = at(874 - 28 - 52, 52) // "Ver carro", 28 px sobre el borde
+    const order = at(874 - 88 - 48, 48) // "Pedido en curso" sobre el carro
     const presence = at(874 - 92 - 68, 68) // el contenedor de Mochi sobre el carro
     const mochi = at(0, 68, presence) // Mochi dentro de su contenedor
     expect(floatingInset(phone, [cart, order, mochi])).toBe(92 + 68 + FLOATING_GAP)

@@ -6,21 +6,21 @@ import { useDemo } from '../../state/DemoContext'
 import { useEvents } from '../../state/EventsContext'
 
 // De dónde salió el texto buscado (`payload.fuente`): escrito, una sugerencia (una idea, una búsqueda reciente
-// —`reciente`— o «Lo más buscado» —`lo-mas-buscado`—) o el aviso de la corrección («buscar tal cual»). Equivale a
+// —`reciente`— o "Lo más buscado" —`lo-mas-buscado`—) o el aviso de la corrección ("buscar tal cual"). Equivale a
 // SEARCH_SOURCE de la app de Rappi.
 const TYPED = 'tipeada'
 const SUGGESTED = 'sugerencia'
 const CORRECTION = 'correccion'
 
 /**
- * Búsqueda en vivo en el catálogo de la API (todas las verticales, agrupada). La comparten el buscador de «Rappi hoy»
+ * Búsqueda en vivo en el catálogo de la API (todas las verticales, agrupada). La comparten el buscador de "Rappi hoy"
  * y el del agente (prototipo final). `vertical`: la de la pantalla desde la que se abrió (la API la suma a las que busca
- * y el embudo del panel se mide por vertical). Con `only`, busca solo en esa vertical («Ver todos en…» de un grupo).
+ * y el embudo del panel se mide por vertical). Con `only`, busca solo en esa vertical ("Ver todos en…" de un grupo).
  * Devuelve `{ query, setQuery, data, loading, error, retry, hasQuery, logSearch, pick, searchExact }`; `data`,
  * `loading` y `error` son los de `useSearchApi`. Si la API corrigió un error de tipeo (`data.correctedQuery`),
  * `searchExact(term)` vuelve a buscar `term` tal cual, hasta que llegue la respuesta de otro texto; esa búsqueda
  * también se registra. En el prototipo final la búsqueda va con la persona: su dieta y sus alergias (las que le dijo
- * a Mochi) filtran los resultados; en «Rappi hoy», no.
+ * a Mochi) filtran los resultados; en "Rappi hoy", no.
  */
 export function useSearch({ initial = '', vertical, only = false } = {}) {
   const [query, setQuery] = useState(initial)
@@ -69,7 +69,7 @@ export function useSearch({ initial = '', vertical, only = false } = {}) {
     if (ready && wanted.current === text) record(text, data)
   }, [ready, data, text, record])
 
-  // «Tal cual» vale para ese texto: cuando llega la respuesta de otro, la API vuelve a poder corregir (se ajusta al
+  // "Tal cual" vale para ese texto: cuando llega la respuesta de otro, la API vuelve a poder corregir (se ajusta al
   // renderizar, como un valor derivado: sin un render de más).
   if (ready && exactText !== null && data.query !== exactText) setExactText(null)
 

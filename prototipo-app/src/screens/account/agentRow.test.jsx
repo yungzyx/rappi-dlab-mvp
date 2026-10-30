@@ -44,8 +44,8 @@ function renderAccount() {
 
 const row = () => screen.getByRole('switch', { name: 'Mostrar a Mochi' })
 
-describe('«Mostrar a Mochi» en Cuenta', () => {
-  test('encendido por defecto; apagarlo pide confirmar, y «Cancelar» lo deja como estaba', () => {
+describe('"Mostrar a Mochi" en Cuenta', () => {
+  test('encendido por defecto; apagarlo pide confirmar, y "Cancelar" lo deja como estaba', () => {
     renderAccount()
     expect(row().getAttribute('aria-checked')).toBe('true')
     fireEvent.click(row())
@@ -55,7 +55,7 @@ describe('«Mostrar a Mochi» en Cuenta', () => {
     expect(localStorage.getItem(HIDDEN_KEY)).toBeNull()
   })
 
-  test('«Ocultar» lo apaga y lo recuerda; volver a tocarlo trae a Mochi sin preguntar', () => {
+  test('"Ocultar" lo apaga y lo recuerda; volver a tocarlo trae a Mochi sin preguntar', () => {
     renderAccount()
     fireEvent.click(row())
     fireEvent.click(screen.getByRole('button', { name: 'Ocultar' }))
@@ -73,7 +73,7 @@ describe('«Mostrar a Mochi» en Cuenta', () => {
     expect(events.track).toHaveBeenLastCalledWith('agent_visibility', { origin: 'cuenta', payload: { visible: true } })
   })
 
-  test('en «Rappi hoy» no está: ahí no hay Mochi', () => {
+  test('en "Rappi hoy" no está: ahí no hay Mochi', () => {
     localStorage.setItem('rappi-proto-demo-mode', 'actual')
     renderAccount()
     expect(screen.queryByRole('switch', { name: 'Mostrar a Mochi' })).toBeNull()

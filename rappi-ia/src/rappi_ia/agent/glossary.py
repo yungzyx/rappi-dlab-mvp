@@ -1,4 +1,4 @@
-"""Fichas de platos para «¿qué es un poke?» (glosario.toml, escritas a mano). Se validan al cargar: una ficha sin
+"""Fichas de platos para "¿qué es un poke?" (glosario.toml, escritas a mano). Se validan al cargar: una ficha sin
 texto o con un id repetido es un error de datos, no una respuesta vacía."""
 
 import tomllib

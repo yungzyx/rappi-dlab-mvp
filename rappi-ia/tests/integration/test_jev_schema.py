@@ -78,7 +78,7 @@ def test_category_map_accepts_jev(db):
 def test_load_category_map_keeps_jev_rows(db):
     build_concepts(db)  # una corrida de `concepts` ya recargó el CSV
     _insert_jev_mapping(db, "Novedades de temporada", "cerveza")
-    # «Cervezas» está en el CSV curado: si Jev también la mapeó, gana la persona.
+    # "Cervezas" está en el CSV curado: si Jev también la mapeó, gana la persona.
     db.execute("DELETE FROM category_map WHERE source_key = 'cervezas'")
     _insert_jev_mapping(db, "Cervezas", "snacks-salados")
     db.commit()

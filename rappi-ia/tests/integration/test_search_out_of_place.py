@@ -1,6 +1,6 @@
 """Búsqueda fuera de lugar: si la consulta nombra un concepto que el vertical no vende, ahí no se muestra nada (y la
 búsqueda agrupada lo muestra donde sí lo venden). Sobre el catálogo de prueba (`seed_demo`) más los casos que marcaba
-la revisión semanal (`make eval`: «La búsqueda las marca, pero se muestran productos»)."""
+la revisión semanal (`make eval`: "La búsqueda las marca, pero se muestran productos")."""
 
 import pytest
 from rappi_scraper.storage.search import build_search_documents
@@ -16,7 +16,7 @@ from rappi_ia.retrieval import hybrid
 
 EXPRESS, TURBO, LIQUOR, MALL, CHOCOLATE, PASTRY = 9201, 9301, 9401, 9601, 9701, 9806  # tiendas de `seed_demo`
 # τ de cada vertical bajo los cosenos del HashEmbedder, como en la base real el 0,79 de Turbo queda bajo el 0,821 de
-# «sofá de tres cuerpos»: con el τ de la vertical, esas consultas no eran «sin resultado».
+# "sofá de tres cuerpos": con el τ de la vertical, esas consultas no eran "sin resultado".
 LOW_TAUS = {"turbo": 0.05, "mall": 0.05, "chocolateria": 0.05}
 
 
@@ -33,7 +33,7 @@ def _price(db, store_id: int, product_id: int, price: int) -> None:
 def catalog(db):
     """El catálogo de prueba con los dos casos de la revisión semanal: un surtido testimonial del concepto pedido (un
     cable HDMI rotulado como televisores en Turbo, como en la base real) y una coincidencia del stemming en otro
-    concepto («pañales» calza con un «panal» de pastelería). Los televisores de verdad están en el mall. Y un sándwich
+    concepto ("pañales" calza con un "panal" de pastelería). Los televisores de verdad están en el mall. Y un sándwich
     con la etiqueta de otro concepto, como los de la base real en Express."""
     seed_demo(db)
     # Turbo con más de cien productos: el cable queda bajo el 1 % del vertical (tools.TESTIMONIAL_SHARE), como en la
@@ -50,7 +50,7 @@ def catalog(db):
     ]:
         add_product(db, pid, name, MALL, "Televisores")
         _price(db, MALL, pid, 299990)
-    # La categoría de Rappi «Sandwiches y empanadas» va al concepto empanadas: Express no tiene sándwiches rotulados.
+    # La categoría de Rappi "Sandwiches y empanadas" va al concepto empanadas: Express no tiene sándwiches rotulados.
     add_product(db, 99005, "Sándwich de jamón y queso (prueba)", EXPRESS, "Sandwiches y empanadas")
     _price(db, EXPRESS, 99005, 2490)
     # Contraejemplos donde el vertical no vende el concepto pero lo encontrado sí es lo pedido: un limón en el nombre
@@ -63,8 +63,8 @@ def catalog(db):
     _price(db, EXPRESS, 99008, 1290)
     for pid, description in [(99007, "Ideal para el asado"), (99008, "Ideal para el picoteo")]:
         db.execute("UPDATE catalog_items SET description = %s WHERE master_product_id = %s", (description, pid))
-    # «neumáticos aro 15» en Express, como en la base real: el vertical vende artículos para el auto, pero ninguno dice
-    # «neumáticos» ni «15», y lo que calza el «15» son jugos en polvo de 15 g, más que el corte de lo que se mira. Los
+    # "neumáticos aro 15" en Express, como en la base real: el vertical vende artículos para el auto, pero ninguno dice
+    # "neumáticos" ni "15", y lo que calza el "15" son jugos en polvo de 15 g, más que el corte de lo que se mira. Los
     # neumáticos están en el mall.
     for pid, name in [
         (99030, "Cubreauto talla M (prueba)"),
@@ -84,8 +84,8 @@ def catalog(db):
     ]:
         add_product(db, pid, name, MALL, "Accesorios para exterior")
         _price(db, MALL, pid, 49990)
-    # Consultas que no nombran concepto ni ocasión, como en la base real: en Turbo, lo que calza «tres» o «colchón»
-    # sin ser lo pedido (un pisco Tres Erres, un yogur «colchón de frutas», un ratchet «2»). De control, un nombre de
+    # Consultas que no nombran concepto ni ocasión, como en la base real: en Turbo, lo que calza "tres" o "colchón"
+    # sin ser lo pedido (un pisco Tres Erres, un yogur "colchón de frutas", un ratchet "2"). De control, un nombre de
     # producto y una marca sin concepto que sí se venden, y un regalo en una chocolatería.
     for pid, name, store, category in [
         (99050, "Tres Erres Pisco Especial 35° 1 L (prueba)", TURBO, "Piscos"),
@@ -111,7 +111,7 @@ def catalog(db):
 
 
 def test_testimonial_items_of_the_named_concept_are_not_shown(catalog):
-    """«televisor 55 pulgadas» en Turbo: «sin resultado» (un solo ítem del concepto, bajo MIN_CONCEPT_ITEMS), pero se
+    """ "televisor 55 pulgadas" en Turbo: "sin resultado" (un solo ítem del concepto, bajo MIN_CONCEPT_ITEMS), pero se
     mostraba el cable HDMI con la etiqueta del concepto."""
     db, embedder = catalog
 
@@ -122,8 +122,8 @@ def test_testimonial_items_of_the_named_concept_are_not_shown(catalog):
 
 
 def test_word_matches_of_another_concept_are_not_shown_where_the_concept_is_not_sold(catalog):
-    """«pañales» en restaurantes: el stemming junta «pañales» con «panal» y la coincidencia estricta impedía «sin
-    resultado»; como nada era del concepto pedido, se mostraba el postre."""
+    """ "pañales" en restaurantes: el stemming junta "pañales" con "panal" y la coincidencia estricta impedía "sin
+    resultado"; como nada era del concepto pedido, se mostraba el postre."""
     db, embedder = catalog
 
     outcome = search_products(db, "restaurantes", "pañales", None, embedder)
@@ -133,9 +133,10 @@ def test_word_matches_of_another_concept_are_not_shown_where_the_concept_is_not_
 
 
 def test_a_number_alone_does_not_show_another_concept_where_the_concept_is_sold(catalog):
-    """«neumáticos aro 15» en Express: el vertical vende el concepto (artículos para el auto), pero lo que calza el «15»
-    en la léxica y en la vectorial son jugos en polvo de 15 g, que en la fusión dejan fuera los productos del concepto.
-    Se mostraban los jugos; ahora, como donde no se vende el concepto, solo lo que dice lo pedido en su nombre."""
+    """ "neumáticos aro 15" en Express: el vertical vende el concepto (artículos para el auto), pero lo que calza el
+    "15" en la léxica y en la vectorial son jugos en polvo de 15 g, que en la fusión dejan fuera los productos del
+    concepto. Se mostraban los jugos; ahora, como donde no se vende el concepto, solo lo que dice lo pedido en su
+    nombre."""
     db, embedder = catalog
 
     outcome = search_products(db, "conveniencia", "neumáticos aro 15", None, embedder)
@@ -185,7 +186,7 @@ def test_what_says_it_in_its_name_is_shown_even_with_another_concept(catalog, qu
 
 
 def test_a_plural_query_finds_the_singular_name(catalog):
-    """«limones» en Licores (sin frutas): la tónica dice «limón» en el nombre."""
+    """ "limones" en Licores (sin frutas): la tónica dice "limón" en el nombre."""
     db, embedder = catalog
 
     outcome = search_products(db, "licores", "limones", None, embedder)
@@ -197,13 +198,13 @@ def test_a_plural_query_finds_the_singular_name(catalog):
 @pytest.mark.parametrize(
     ("query", "unrelated"),
     [
-        ("sofá de tres cuerpos", "99050"),  # el pisco Tres Erres calza «tres»
-        ("colchón 2 plazas", "99052"),  # el yogur «colchón de frutas» calza «colchón»
+        ("sofá de tres cuerpos", "99050"),  # el pisco Tres Erres calza "tres"
+        ("colchón 2 plazas", "99052"),  # el yogur "colchón de frutas" calza "colchón"
     ],
 )
 def test_without_concept_or_occasion_the_vertical_tau_is_not_enough(catalog, monkeypatch, query, unrelated):
-    """En la base real, «sofá de tres cuerpos» en Turbo traía pisco Tres Erres (coseno 0,821, τ de Turbo 0,79) y
-    «colchón 2 plazas» un ratchet y pilas «2 unidades» (0,824). Si la consulta no nombra concepto ni ocasión y nada
+    """En la base real, "sofá de tres cuerpos" en Turbo traía pisco Tres Erres (coseno 0,821, τ de Turbo 0,79) y
+    "colchón 2 plazas" un ratchet y pilas "2 unidades" (0,824). Si la consulta no nombra concepto ni ocasión y nada
     calza todas sus palabras, el τ es el de la búsqueda agrupada (0,85), no el de la vertical."""
     db, embedder = catalog
     monkeypatch.setattr(hybrid, "thresholds", lambda: LOW_TAUS)
@@ -235,7 +236,7 @@ def test_a_query_without_concept_still_finds_what_the_vertical_sells(catalog, mo
 
 
 def test_an_occasion_without_concept_is_searched_by_its_concepts(catalog):
-    """«regalo para mi polola» en una chocolatería: se busca por los conceptos del regalo (como en la búsqueda
+    """ "regalo para mi polola" en una chocolatería: se busca por los conceptos del regalo (como en la búsqueda
     agrupada), así que lo que muestra es de ellos y no decide el τ de la vertical."""
     db, embedder = catalog
 

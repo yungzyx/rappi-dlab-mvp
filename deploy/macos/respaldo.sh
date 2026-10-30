@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Respaldo de la base `rappi` (pg_dump -Fc) en TUNEL_DIR/respaldos. Lo corre launchd cada noche; actualizar.sh lo
-# llama con el prefijo «pre-migracion» antes de migrar. Guarda los RESPALDOS_A_GUARDAR más nuevos de cada prefijo.
+# llama con el prefijo "pre-migracion" antes de migrar. Guarda los RESPALDOS_A_GUARDAR más nuevos de cada prefijo.
 . "$(dirname "$0")/comun.sh"
 prefijo=${1:-nocturno}
 base=${RESPALDO_BASE:-rappi}

@@ -1,6 +1,6 @@
 """Descubrimiento sobre el catálogo de `seed_demo`: filtros y orden de restaurantes, abierto o cerrado según el horario
-publicado, tiendas y restaurantes en la búsqueda, «Lo que sea», comparar un producto entre tiendas, «Pocas unidades» y
-similares, promos de la tienda, «Para ti» en la tienda y lo que el buscador muestra antes de escribir.
+publicado, tiendas y restaurantes en la búsqueda, "Lo que sea", comparar un producto entre tiendas, "Pocas unidades" y
+similares, promos de la tienda, "Para ti" en la tienda y lo que el buscador muestra antes de escribir.
 
 La hora local de los tests es un jueves a las 13:00 (conftest.py: todos los restaurantes que publican horario están
 abiertos); los que prueban un cerrado pasan su propia hora.
@@ -103,7 +103,7 @@ def test_restaurant_list_endpoint_takes_the_filters(client):
     assert client.get("/catalog/restaurants", params={"max_eta": 0}).status_code == 422
 
 
-# ── Búsqueda: tiendas, restaurantes y «Lo que sea» ──────────────────────────
+# ── Búsqueda: tiendas, restaurantes y "Lo que sea" ──────────────────────────
 
 
 def test_search_finds_stores_by_name_one_per_format(seeded):
@@ -204,7 +204,7 @@ def test_store_cards_carry_their_published_promos_and_state(seeded):
     assert mall[MALL_CENTRO]["promos"] == []
 
 
-# ── «Para ti» en la tienda ──────────────────────────────────────────────────
+# ── "Para ti" en la tienda ──────────────────────────────────────────────────
 
 
 def test_store_for_you_follows_the_person_and_the_guards(seeded):
@@ -225,7 +225,7 @@ def test_store_for_you_follows_the_person_and_the_guards(seeded):
 
 
 def test_store_for_you_leaves_out_what_the_person_cannot_eat(seeded):
-    """Su dieta y sus alergias filtran «Para ti» de la tienda, como el de la Home: sin lactosa, nada «con leche»."""
+    """Su dieta y sus alergias filtran "Para ti" de la tienda, como el de la Home: sin lactosa, nada "con leche"."""
     chocolate = concept_of(seeded, CHOCOLATE)
     events.record(seeded, [events.Event("p-leche", "s1", "cart_add", concept_id=chocolate, entity_type="catalog_item")])
     assert [p["entity_id"] for p in store_for_you(seeded, EXPRESS_CENTRO, "p-leche")["products"]] == [CHOCOLATE]
@@ -275,7 +275,7 @@ def test_top_searches_use_one_population_with_enough_people(seeded):
 
 
 def test_a_top_search_has_to_find_something_in_the_catalog(seeded):
-    """`results` y `unmet` los manda la app: una búsqueda inventada con «5 resultados» no llega a «Lo más buscado»."""
+    """`results` y `unmet` los manda la app: una búsqueda inventada con "5 resultados" no llega a "Lo más buscado"."""
     for n in range(TOP_MIN_PEOPLE):
         events.record(seeded, searches(f"p-{n}", "helado", "compra aquí www", "pizzeria de prueba"))
     assert top_searches(seeded, "prototype") == ["helado", "pizzeria de prueba"]

@@ -98,7 +98,7 @@ def search_each[T, V](
     que hay. Sin ninguna, todo en serie con la conexión del
     request: no hace fila por una conexión (cada extra espera a lo más SPARE_WAIT_S y unas idas y vueltas) ni pasa el
     tope del pool. En paralelo, cada vertical cierra su transacción al terminar (si no, una conexión que ya terminó
-    queda «idle in transaction» hasta la vertical más lenta, y Postgres la corta a los 10 s) y corre con el contexto
+    queda "idle in transaction" hasta la vertical más lenta, y Postgres la corta a los 10 s) y corre con el contexto
     del request (su id en los registros). Un error de una vertical llega a quien llamó, después de que terminan las
     demás y se devuelven las conexiones."""
     if spare is None or len(verticals) < 2:
@@ -152,7 +152,7 @@ def search_grouped(
     correct: bool = True,
 ) -> GroupedResult:
     """Productos por vertical, con `limit` por grupo y solo los grupos que traen algo. Con un concepto detectado el
-    orden es el de sus verticales típicas. Una ocasión sin concepto nombrado («algo para el carrete») se busca como
+    orden es el de sus verticales típicas. Una ocasión sin concepto nombrado ("algo para el carrete") se busca como
     el agente: sus conceptos (sin los sensibles: una ocasión no los nombra), en sus verticales típicas. Sin ninguno de
     los dos, solo las verticales que calzan todas las palabras o, si ninguna, las muy cercanas (UNNAMED_TAU):
     primero las que calzan y luego por la cercanía vectorial. La pantalla actual (`current`), si trae productos, va

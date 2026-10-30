@@ -2,7 +2,7 @@ const MONTHS = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', '
 
 const startOfDay = (date) => new Date(date.getFullYear(), date.getMonth(), date.getDate()).getTime()
 
-/** Día de un pedido en relación a hoy: «Hoy», «Ayer» o «12 oct». */
+/** Día de un pedido en relación a hoy: "Hoy", "Ayer" o "12 oct". */
 export function relativeDay(timestamp, now = Date.now()) {
   const date = new Date(timestamp)
   const days = Math.round((startOfDay(new Date(now)) - startOfDay(date)) / 86_400_000)

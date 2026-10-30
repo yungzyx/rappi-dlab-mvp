@@ -1,4 +1,4 @@
-"""Cliente fino de Jev (TypeSafe «System One», docs.typesafe.ai): preguntas tipadas sobre un estado.
+"""Cliente fino de Jev (TypeSafe "System One", docs.typesafe.ai): preguntas tipadas sobre un estado.
 
 Una llamada lleva un `state` (texto, objeto o lista) y varias preguntas con nombre; la API devuelve una respuesta
 por pregunta. Hay tres tipos: `noul` (probabilidad 0..1 de que algo sea cierto), `choice` (una opción entre

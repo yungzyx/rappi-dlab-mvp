@@ -1,9 +1,9 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react'
 
 // "final" = el prototipo final: el agente de cuerpo entero vive en la Home y el buscador es el del agente.
-// "actual" = «Rappi hoy», solo de la demo: una réplica de la app como es hoy, para comparar en una presentación. Solo se
+// "actual" = "Rappi hoy", solo de la demo: una réplica de la app como es hoy, para comparar en una presentación. Solo se
 // puede elegir en desarrollo o en un build con VITE_DEMO=1 (interruptor, tecla D y la fila de Cuenta); en cualquier otro
-// build la app es siempre el prototipo final, aunque el navegador tenga guardado «Rappi hoy».
+// build la app es siempre el prototipo final, aunque el navegador tenga guardado "Rappi hoy".
 const STORAGE_KEY = 'rappi-proto-demo-mode'
 const MODES = ['final', 'actual']
 export const MODE_LABELS = { final: 'Prototipo final ✨', actual: 'Rappi hoy' }
@@ -47,7 +47,7 @@ export function DemoProvider({ children }) {
   }, [])
 
   // Tecla D para cambiar de modo en vivo durante una presentación (salvo mientras se escribe). Solo en desarrollo o en
-  // un build con VITE_DEMO=1: en el sitio desplegado, apretar «d» sobre un botón no debe cambiar la app de modo.
+  // un build con VITE_DEMO=1: en el sitio desplegado, apretar "d" sobre un botón no debe cambiar la app de modo.
   useEffect(() => {
     if (!isDemoBuild()) return undefined
     const onKey = (event) => {

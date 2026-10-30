@@ -107,7 +107,7 @@ def test_concurrent_misses_compute_once(clock):
 
     assert calls == [1]
     assert all(value is values[0] for value in values)
-    assert cache.cached("otra", conn, slow) == {"vez": 2}  # otro nombre no espera a «home»
+    assert cache.cached("otra", conn, slow) == {"vez": 2}  # otro nombre no espera a "home"
 
 
 def test_a_slow_load_does_not_keep_the_others_waiting_forever(clock, monkeypatch):
@@ -195,9 +195,9 @@ def test_many_is_bounded_and_forgets_the_least_recently_used(clock, monkeypatch)
     monkeypatch.setattr(cache, "MANY_MAX", 3)
     conn, (fetch, asked) = FakeConn(), _fetcher()
     cache.cached_many("df", conn, ["a", "b", "c"], fetch)
-    cache.cached_many("df", conn, ["a"], fetch)  # «a» pasa a ser la más reciente
+    cache.cached_many("df", conn, ["a"], fetch)  # "a" pasa a ser la más reciente
 
-    cache.cached_many("df", conn, ["d"], fetch)  # entra «d» y sale «b»
+    cache.cached_many("df", conn, ["d"], fetch)  # entra "d" y sale "b"
     cache.cached_many("df", conn, ["a", "c", "d"], fetch)
     cache.cached_many("df", conn, ["b"], fetch)
 

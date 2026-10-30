@@ -89,7 +89,7 @@ describe('preguntarle a Mochi por un producto', () => {
     localStorage.clear()
   })
 
-  test('mantener presionado muestra «Preguntarle a Mochi» y no abre la hoja', () => {
+  test('mantener presionado muestra "Preguntarle a Mochi" y no abre la hoja', () => {
     vi.useFakeTimers()
     renderCard()
     hold()
@@ -97,7 +97,7 @@ describe('preguntarle a Mochi por un producto', () => {
     expect(probe.sheet.isOpen).toBe(false)
   })
 
-  test('«Preguntarle a Mochi» abre el buscador con «¿Con qué acompaño …?»', () => {
+  test('"Preguntarle a Mochi" abre el buscador con "¿Con qué acompaño …?"', () => {
     vi.useFakeTimers()
     renderCard()
     hold()
@@ -122,7 +122,7 @@ describe('preguntarle a Mochi por un producto', () => {
     expect(probe.sheet.isOpen).toBe(true)
   })
 
-  test('en «Rappi hoy» mantener presionado no hace nada (y el toque abre la hoja como siempre)', () => {
+  test('en "Rappi hoy" mantener presionado no hace nada (y el toque abre la hoja como siempre)', () => {
     vi.useFakeTimers()
     renderCard('actual')
     hold()

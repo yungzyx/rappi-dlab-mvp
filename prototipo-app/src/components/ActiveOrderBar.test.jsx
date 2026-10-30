@@ -37,7 +37,7 @@ afterEach(() => {
   localStorage.clear()
 })
 
-test('«Pedido en curso» con el paso y lo que falta; abre el seguimiento y se va al entregar', () => {
+test('"Pedido en curso" con el paso y lo que falta; abre el seguimiento y se va al entregar', () => {
   const push = vi.fn()
   render(
     <OrdersProvider>

@@ -22,7 +22,7 @@ vi.mock('virtual:panel-snapshot', async () => {
 })
 
 const { loadAnalytics, SNAPSHOT_INFO } = await import('./api.js')
-vi.stubEnv('MODE', 'panel-html') // el armado del HTML suelto trae «Ver cómo funciona»; se lee al cargar App
+vi.stubEnv('MODE', 'panel-html') // el armado del HTML suelto trae "Ver cómo funciona"; se lee al cargar App
 const { default: App } = await import('../App.jsx')
 
 describe('panel en un solo HTML', () => {
@@ -42,7 +42,7 @@ describe('panel en un solo HTML', () => {
 
   test('a recorded answer from the other source is refused, and a missing one says so', async () => {
     await expect(loadAnalytics('trends', 'prototype')).rejects.toThrow('Se esperaba la fuente prototype')
-    await expect(loadAnalytics('assortment', 'prototype')).rejects.toThrow('Este archivo no trae «assortment»')
+    await expect(loadAnalytics('assortment', 'prototype')).rejects.toThrow('Este archivo no trae "assortment"')
   })
 
   test('the shell says it is a photo: date and copy of the base, no refresh and no presentation link', async () => {
@@ -104,12 +104,12 @@ describe('Ver cómo funciona', () => {
     const frequency = await screen.findByRole('article', { name: 'Frecuencia (30 días)' })
     expect(within(frequency).getByText(/4 pedidos de 7 personas/)).toBeTruthy() // lo grabado: 3 de 6
 
-    // Paso 4: una búsqueda sin resultado más en «Qué buscan y no encuentran».
+    // Paso 4: una búsqueda sin resultado más en "Qué buscan y no encuentran".
     await act(async () => fireEvent.click(within(tour).getByRole('button', { name: 'Siguiente' })))
     expect(window.location.search).toBe('?vista=mochi&fuente=prototipo')
     expect(await screen.findByText('2 de 2')).toBeTruthy() // lo grabado: 1 de 1
 
-    // Paso 5: oculta a Mochi; «Ocultaron a Mochi» suma una persona de las 11 activas. El botón ya dice «Terminar».
+    // Paso 5: oculta a Mochi; "Ocultaron a Mochi" suma una persona de las 11 activas. El botón ya dice "Terminar".
     await act(async () => fireEvent.click(within(tour).getByRole('button', { name: 'Siguiente' })))
     expect(within(tour).getByRole('button', { name: 'Terminar' })).toBe(advance)
     expect(await screen.findByText('18,2% de 11 personas activas; lo ocultaron 2 veces')).toBeTruthy() // lo grabado: 1 de 10

@@ -1,6 +1,6 @@
-// Cambios en vivo del Súper («Tus productos te necesitan»), de demostración: en «En tienda» un producto del pedido se
+// Cambios en vivo del Súper ("Tus productos te necesitan"), de demostración: en "En tienda" un producto del pedido se
 // agota (SIMULADO: no hay stock en vivo, y se rotula así) y la persona elige un sustituto del mismo concepto en la
-// misma tienda (esos sí salen del catálogo), «Si no contesto, elijan por mí» o el reembolso, con el «Ajuste en el total».
+// misma tienda (esos sí salen del catálogo), "Si no contesto, elijan por mí" o el reembolso, con el "Ajuste en el total".
 import { parsePrice } from '../../state/CartContext'
 
 /** Qué hacer si se agota: lo que se elige en el checkout de Súper y Turbo, por línea (rappi-ia: substitution). */
@@ -23,7 +23,7 @@ export const soldOutIndex = (order) =>
   )
 
 /**
- * El cambio resuelto: `{ index, choice, product, delta }`. `delta` es el «Ajuste en el total»: el sustituto menos el
+ * El cambio resuelto: `{ index, choice, product, delta }`. `delta` es el "Ajuste en el total": el sustituto menos el
  * agotado (por sus unidades) o, con el reembolso, menos el agotado.
  */
 export function resolveChange(item, index, choice, substitute) {
@@ -52,8 +52,8 @@ export function deliveredItems(order) {
   })
 }
 
-/** El total con el «Ajuste en el total» del cambio en vivo (el sustituto o el reembolso). */
+/** El total con el "Ajuste en el total" del cambio en vivo (el sustituto o el reembolso). */
 export const adjustedTotal = (order) => order.total + (order.liveChange?.delta ?? 0)
 
-/** Lo que se cobra de un pedido, el mismo en el seguimiento, «Mis pedidos» y Cuenta: cancelado, solo su costo. */
+/** Lo que se cobra de un pedido, el mismo en el seguimiento, "Mis pedidos" y Cuenta: cancelado, solo su costo. */
 export const orderTotal = (order) => (order.cancelled ? (order.cancelled.fee ?? 0) : adjustedTotal(order))

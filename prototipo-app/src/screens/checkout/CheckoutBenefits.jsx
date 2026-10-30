@@ -55,7 +55,7 @@ const formatMinutes = (minutes) => {
   return hours > 0 ? `${hours} h ${minutes % 60} min` : `${minutes} min`
 }
 
-/** «Ingresar cupón»: un cupón de ejemplo a la vez (otro reemplaza al anterior), con su motivo si no aplica. */
+/** "Ingresar cupón": un cupón de ejemplo a la vez (otro reemplaza al anterior), con su motivo si no aplica. */
 function CouponField({ coupon, result, onCoupon, usedCoupons }) {
   const [code, setCode] = useState('')
   const [error, setError] = useState(null)

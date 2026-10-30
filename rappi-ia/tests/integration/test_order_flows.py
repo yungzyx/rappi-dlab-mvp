@@ -158,7 +158,7 @@ def test_a_cancellation_by_beacon_also_recalculates_the_motor(client, db):
 
 
 def test_a_cancelled_order_is_not_the_usual_order_of_its_store(client, db):
-    """«Pedir por mí» repite el último pedido de la tienda: uno cancelado no es lo de siempre."""
+    """ "Pedir por mí" repite el último pedido de la tienda: uno cancelado no es lo de siempre."""
     bought(db, "supermercado", COFFEE, 3, SUPER_CENTRO, "c-viejo")
     bought(db, "supermercado", ("catalog_item", "91002"), 0, SUPER_CENTRO, "c-nuevo", concept="galletas")
     cancel(client, "c-nuevo")
@@ -223,7 +223,7 @@ def test_a_rating_with_its_store_rates_only_that_order(client, db):
 
 
 def test_a_cancelled_order_cannot_be_rated_nor_pause_the_repeat(client, db):
-    """Un pedido cancelado no llegó: su calificación no queda y no pausa la recompra ni el «volver» de su tienda."""
+    """Un pedido cancelado no llegó: su calificación no queda y no pausa la recompra ni el "volver" de su tienda."""
     bought(db, "supermercado", COFFEE, 0, SUPER_CENTRO, "c-no")
     cancel(client, "c-no")
     event = {"type": "order_rated", "session_id": "s-r", "cart_id": "c-no", "payload": {"stars": 1}}

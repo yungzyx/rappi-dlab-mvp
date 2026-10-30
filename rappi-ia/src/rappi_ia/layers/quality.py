@@ -176,7 +176,7 @@ def _summary(rows: list[tuple[dict, str, str | None]]) -> dict:
 
 
 def precision_report(sample: list[dict], judgments: dict[str, dict]) -> dict:
-    """Precisión por (tipo, clave, fuente) y por (tipo, fuente). Los «dudoso» no cuentan ni a favor ni en contra."""
+    """Precisión por (tipo, clave, fuente) y por (tipo, fuente). Los "dudoso" no cuentan ni a favor ni en contra."""
     by_group: dict[tuple, list] = {}
     by_kind: dict[tuple, list] = {}
     missing = 0
@@ -205,7 +205,7 @@ def render_precision(report: dict, judge: str) -> str:
     def pct(value):
         return "—" if value is None else f"{100 * value:.0f} %"
 
-    out = ["# Precisión de la capa de datos", "", f"Juicios: {judge}. Los «dudoso» no cuentan. «Mínimo» es el límite"]
+    out = ["# Precisión de la capa de datos", "", f'Juicios: {judge}. Los "dudoso" no cuentan. "Mínimo" es el límite']
     out += ["inferior del intervalo de Wilson al 95 %: con pocas muestras, lo que se puede asegurar.", ""]
     out += [
         "## Por tipo y fuente",
@@ -284,7 +284,7 @@ def render_after(result: dict) -> str:
 
     out = ["## Después de los cambios de reglas (sin volver a juzgar)", ""]
     out += ["Lo ya juzgado que la base sigue afirmando hoy: los errores eliminados y los aciertos perdidos miden el"]
-    out += ["cambio; la precisión «después» es la de lo que sigue afirmándose.", ""]
+    out += ['cambio; la precisión "después" es la de lo que sigue afirmándose.', ""]
     out += [
         "| Tipo | Fuente | Precisión antes | Después | Errores eliminados | Aciertos perdidos |",
         "|---|---|---|---|---|---|",

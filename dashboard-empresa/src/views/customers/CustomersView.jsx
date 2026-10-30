@@ -16,7 +16,7 @@ function Ladder() {
       <RetentionLadder rappi={rappi} />
       <p className="block-note">
         {rappi.nota} Retail agrupa todo el comercio que no es restaurante ni Turbo; Favor no tiene una combinación con
-        un grupo más en la tabla. {AGENT_NAME} ofrece el paso como «vertical por probar»; solo un grupo de control mide
+        un grupo más en la tabla. {AGENT_NAME} ofrece el paso como "vertical por probar"; solo un grupo de control mide
         si sumar la vertical hace volver.
       </p>
     </>

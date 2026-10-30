@@ -38,12 +38,12 @@ def test_reason_keeps_the_ids_the_app_reads():
     reason = complement_reason("carrito", concept("pizza"), concept("gaseosas"))
 
     assert reason["concept"] == "gaseosas" and reason["from_concept"] == "pizza"
-    assert engine.REASON_PLAN == "Porque elegiste «{occasion}»."
-    assert engine.REASON_NO_RESULT == "Porque buscaste «{query}» y aquí sí hay."
+    assert engine.REASON_PLAN == 'Porque elegiste "{occasion}".'
+    assert engine.REASON_NO_RESULT == 'Porque buscaste "{query}" y aquí sí hay.'
     assert engine.REASON_TO_TRY == "Porque aún no pides en {vertical}."
 
 
 def test_next_order_text_says_its_purpose_once():
-    """«Para tu próximo pedido: …, para acompañar lo que pediste» repetía el «para»."""
+    """ "Para tu próximo pedido: …, para acompañar lo que pediste" repetía el "para"."""
     text = engine.NEXT_ORDER_TEXT.format(destino="bebidas gaseosas", vertical="Express")
     assert text == "Para tu próximo pedido: bebidas gaseosas, en Express."

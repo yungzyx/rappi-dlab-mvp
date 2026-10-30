@@ -27,12 +27,12 @@ const SERVICE_COMBO = 'favor'
 // offers/guards.py: las verticales de las que el agente no propone por su cuenta.
 export const OFFER_BLOCKED_VERTICALS = ['farmacia', 'licores']
 
-/** «de el súper» → «del súper» y «a el súper» → «al súper» (text.py: contract_articles). */
+/** "de el súper" → "del súper" y "a el súper" → "al súper" (text.py: contract_articles). */
 export const contractArticles = (text) => text.replace(/\b(de|a) el\b/g, (_, word) => (word === 'de' ? 'del' : 'al'))
 
 // Un pedido cancelado no es una compra (motor/data.py: status = 'confirmado').
 const isProposal = (order) => order.mode === 'propuesta' && isConfirmed(order)
-const isTaught = (event) => event.payload?.mode !== 'actual' // lo hecho en «Rappi hoy» no enseña
+const isTaught = (event) => event.payload?.mode !== 'actual' // lo hecho en "Rappi hoy" no enseña
 
 /** Las señales de afinidad (motor/data.py: load_signals): sus pedidos `propuesta` y sus eventos con vertical. */
 export function signalsOf(state) {
@@ -87,7 +87,7 @@ const groupOf = (combos, vertical) => Object.keys(combos.groups).find((g) => com
 const isService = (combos, member) => combos.service_keys.includes(member)
 const membersOf = (fine) => (fine === NONE_COMBO ? [] : fine.split('+'))
 
-/** El nombre de una combinación fina: verticales y servicios en el orden de `fine_order`, unidos por «+». */
+/** El nombre de una combinación fina: verticales y servicios en el orden de `fine_order`, unidos por "+". */
 export function fineKey(combos, members) {
   const present = new Set(members)
   return combos.fine_order.filter((m) => present.has(m)).join('+') || NONE_COMBO
@@ -175,8 +175,8 @@ export function nextFineStep(combos, fine, candidates) {
 
 /**
  * La combinación fina de la persona (predict.py: current_fine): las verticales de sus pedidos `propuesta` de los
- * últimos 30 días (90 si no pidió en 30) y los servicios que abrió en ese tiempo (`service_opened`, salvo en «Rappi
- * hoy»). Sin pedidos, «ninguna».
+ * últimos 30 días (90 si no pidió en 30) y los servicios que abrió en ese tiempo (`service_opened`, salvo en "Rappi
+ * hoy"). Sin pedidos, "ninguna".
  */
 export function currentFine(combos, state, now) {
   const byPayload = Object.fromEntries(Object.entries(combos.services).map(([key, payload]) => [payload, key]))

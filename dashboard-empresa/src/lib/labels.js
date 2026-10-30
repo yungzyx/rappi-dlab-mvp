@@ -26,7 +26,7 @@ export const SOURCE_LABELS = { synthetic: 'Simulados', prototype: 'Prototipo' }
 /** Nombre de una demanda no satisfecha: el concepto (con emoji) o, si no hay concepto, la consulta literal. */
 export function demandLabel(row) {
   if (row.concept_id) return row.que
-  return row.que == null ? 'Consulta borrada (más de 90 días)' : `«${row.que}»`
+  return row.que == null ? 'Consulta borrada (más de 90 días)' : `"${row.que}"`
 }
 
 /** Nombre visible de cada consulta de /analytics (para el aviso de modo sin conexión). */

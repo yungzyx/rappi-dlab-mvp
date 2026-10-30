@@ -46,7 +46,7 @@ _PRODUCT_VERTICALS = f"""SELECT DISTINCT sp.master_product_id, sv.vertical FROM 
 
 
 def collect(conn: Connection) -> dict:
-    # Con todas las tiendas, como «Calidad del catálogo» en el panel.
+    # Con todas las tiendas, como "Calidad del catálogo" en el panel.
     products = dict(conn.execute("SELECT vertical, count(*) FROM v_item_verticals GROUP BY 1").fetchall())
     products["restaurantes"] = conn.execute("SELECT count(*) FROM menu_items").fetchone()[0]
     as_of = conn.execute(
@@ -95,7 +95,7 @@ def collect(conn: Connection) -> dict:
     complements = conn.execute(
         "SELECT from_concept, to_concept, weight FROM concept_edges WHERE method = 'curado' ORDER BY 1, 2"
     ).fetchall()
-    # Del grafo de conocimiento (relations.toml): sustitutos una vez por par y «nunca junto» de grupo a concepto,
+    # Del grafo de conocimiento (relations.toml): sustitutos una vez por par y "nunca junto" de grupo a concepto,
     # abierto a cada concepto del grupo (alcohol → cerveza, vino…) para dibujarlo entre puntos del mapa.
     substitutes = conn.execute(
         """SELECT from_id, to_id, weight FROM knowledge_edges
@@ -159,7 +159,7 @@ def collect(conn: Connection) -> dict:
 
 
 def render(data: dict) -> str:
-    # «</» escapado: un nombre del catálogo con «</script>» no puede cerrar el script (JSON lo lee igual).
+    # "</" escapado: un nombre del catálogo con "</script>" no puede cerrar el script (JSON lo lee igual).
     payload = json.dumps(data, ensure_ascii=False).replace("</", "<\\/")
     page = TEMPLATE.read_text(encoding="utf-8").replace("__FECHA__", data.get("as_of") or "sin fecha de descarga")
     return page.replace("/*__DATA__*/null", payload)

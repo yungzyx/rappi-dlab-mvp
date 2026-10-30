@@ -35,7 +35,7 @@ describe('FavorScreen', () => {
     expect(screen.getByText(/Un Rappitendero va en camino/)).toBeTruthy()
   })
 
-  test('desde «Lo que sea» abre las compras con lo buscado ya escrito', () => {
+  test('desde "Lo que sea" abre las compras con lo buscado ya escrito', () => {
     renderFavor(vi.fn(), { text: ' zapatillas de cuero ' })
     expect(screen.getByRole('button', { name: /Compras en cualquier tienda/ }).getAttribute('aria-pressed')).toBe(
       'true',

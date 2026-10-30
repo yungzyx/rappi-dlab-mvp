@@ -33,7 +33,7 @@ describe('orden de la Home (motor/home.py)', () => {
     expect(reply.order.every((entry) => entry.reason === null)).toBe(true)
   })
 
-  test('los toques a Farmacia la suben primera entre los accesos chicos, con «Porque entras seguido a…»', () => {
+  test('los toques a Farmacia la suben primera entre los accesos chicos, con "Porque entras seguido a…"', () => {
     const reply = home(state({ events: [open('farmacia'), open('farmacia'), open('mall')] }))
     expect(ids(reply)).toEqual(['farmacia', 'mall', 'supermercado', 'licores', 'conveniencia', 'chocolateria'])
     expect(reply.personalized).toBe(true)
@@ -44,7 +44,7 @@ describe('orden de la Home (motor/home.py)', () => {
     expect(reply.order[1].reason).toBeNull()
   })
 
-  test('los pedidos dicen «Porque pides seguido en…» y contraen el artículo', () => {
+  test('los pedidos dicen "Porque pides seguido en…" y contraen el artículo', () => {
     const reply = home(state({ orders: [order('supermercado')] }))
     expect(reply.order[0]).toMatchObject({ id: 'supermercado', reason: { text: 'Porque pides seguido en el súper.' } })
     const visits = home(state({ events: [open('supermercado')] }))
@@ -58,7 +58,7 @@ describe('orden de la Home (motor/home.py)', () => {
     expect(reply.personalized).toBe(false)
   })
 
-  test('los toques y pedidos de «Rappi hoy» no enseñan', () => {
+  test('los toques y pedidos de "Rappi hoy" no enseñan', () => {
     const reply = home(
       state({
         orders: [order('chocolateria', { mode: 'actual' })],
@@ -128,7 +128,7 @@ describe('la escalera fina (motor/combos.py, predict.py)', () => {
     expect(stepSignal(COMBOS, step(s)).id).toBe('restaurantes→restaurantes+turbo')
   })
 
-  test('sin pedidos no hay paso; los pedidos de «Rappi hoy» y los servicios abiertos ahí no cuentan', () => {
+  test('sin pedidos no hay paso; los pedidos de "Rappi hoy" y los servicios abiertos ahí no cuentan', () => {
     expect(step(state())).toBeNull()
     expect(step(state({ orders: [order('restaurantes', { mode: 'actual' })] }))).toBeNull()
     const all = ['restaurantes', 'turbo', 'supermercado', 'conveniencia', 'mall', 'chocolateria'].map((v) => order(v))

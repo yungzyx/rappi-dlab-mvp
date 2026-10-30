@@ -44,13 +44,14 @@ def test_sample_adds_random_pairs_from_every_mode_without_duplicates():
     sample = build_sample(RUNS, n_diff=2, n_random=10)
 
     keys = [(p["vertical"], p["consulta"], p["entity_type"], p["entity_id"]) for p in sample]
-    assert len(keys) == len(set(keys)) == 6  # p1, p2, v1, v2, v3 de «pisco» y r1 de «ron»
+    assert len(keys) == len(set(keys)) == 6  # p1, p2, v1, v2, v3 de "pisco" y r1 de "ron"
     assert {p["origen"] for p in sample} == {"diferencia", "al_azar"}
     assert all(p["id"] and p["texto"] for p in sample)
 
 
 def test_sample_ignores_the_products_shown_row():
-    """«mostrado» repite ítems del híbrido y trae otros del puesto 11 al 20: sumarlo cambiaría la muestra versionada."""
+    """ "mostrado" repite ítems del híbrido y trae otros del puesto 11 al 20: sumarlo cambiaría la muestra
+    versionada."""
     shown = _run("pisco", SHOWN, ["p1", "p9"])
 
     assert build_sample([*RUNS, shown], n_diff=2, n_random=10) == build_sample(RUNS, n_diff=2, n_random=10)
@@ -100,7 +101,7 @@ def _sheet_pair(pair_id, estrato, auto):
 
 
 def test_sheet_report_gives_kappa_of_people_against_the_concept_judge():
-    """Personas: sirve/sirve/no sirve/a medias. Juez por concepto: relevante/no/no/relevante. En binario («sirve»
+    """Personas: sirve/sirve/no sirve/a medias. Juez por concepto: relevante/no/no/relevante. En binario ("sirve"
     contra el resto): personas 1,1,0,0 y juez 1,0,0,1 → acuerdo 0,5, azar 0,5, κ = 0. Ponderado: personas 2,2,0,1 y
     juez 2,0,0,2."""
     pairs = [

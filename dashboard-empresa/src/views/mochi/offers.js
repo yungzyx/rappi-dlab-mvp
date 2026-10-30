@@ -23,7 +23,7 @@ const MOMENTS = {
 
 export const momentLabel = (moment) => MOMENTS[moment] ?? moment
 
-// Dónde se hace cada oferta, en una línea: es el «en qué momento» que necesita RappiAds.
+// Dónde se hace cada oferta, en una línea: es el "en qué momento" que necesita RappiAds.
 const MOMENT_HINTS = {
   plan: 'Un kit para una ocasión que la persona elige (carrete, asado)',
   carrito: 'Un complemento al agregar algo al carro',
@@ -31,12 +31,12 @@ const MOMENT_HINTS = {
   proximo_pedido: 'Para el próximo pedido, en el seguimiento',
   sin_resultado: 'Cuando una búsqueda no encontró nada',
   vertical_por_probar: 'Una vertical que la persona todavía no usa',
-  recompra: '«¿Repetimos?» cuando le toca según su ciclo',
-  volver: '«¿Volvemos a…?» a algo que dejó de pedir',
-  ontop: '«Turbo: suma esto antes de…» mientras llega otro pedido',
+  recompra: '"¿Repetimos?" cuando le toca según su ciclo',
+  volver: '"¿Volvemos a…?" a algo que dejó de pedir',
+  ontop: '"Turbo: suma esto antes de…" mientras llega otro pedido',
   perfil: 'Los peldaños de su perfil de gusto',
   pregunta: `Al preguntarle a ${AGENT_NAME}`,
-  para_ti: 'En «Para ti», al abrir el buscador',
+  para_ti: 'En "Para ti", al abrir el buscador',
   sin_momento: 'Sin registro de dónde se hizo',
 }
 
@@ -44,7 +44,7 @@ export const momentHint = (moment) => MOMENT_HINTS[moment] ?? null
 
 const sum = (rows, key) => rows.reduce((total, row) => total + (row[key] ?? 0), 0)
 
-// Una tasa necesita el mínimo en su denominador: con 4 aceptadas, «50% llega a pedido» no dice nada.
+// Una tasa necesita el mínimo en su denominador: con 4 aceptadas, "50% llega a pedido" no dice nada.
 const rate = (part, whole) => (whole >= MIN_SHOWN_FOR_RATE ? (part * 100) / whole : null)
 
 /** Totales de las ofertas: `{ shown, accepted, rate }` (`rate` null bajo el mínimo de mostradas). */
@@ -55,7 +55,7 @@ export function offerTotals(moments) {
 }
 
 /**
- * El momento que más acepta y el que menos, entre los que tienen tasa (10 o más mostradas). «Sin momento» no cuenta:
+ * El momento que más acepta y el que menos, entre los que tienen tasa (10 o más mostradas). "Sin momento" no cuenta:
  * no dice dónde se hizo la oferta. `{ best, worst }`, cada uno null si no hay; `worst` es null si es el mismo que `best`.
  */
 export function momentExtremes(moments) {

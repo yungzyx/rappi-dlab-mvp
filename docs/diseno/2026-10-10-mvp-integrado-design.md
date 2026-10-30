@@ -7,7 +7,7 @@
 
 Hoy el repo tiene un buen cerebro y una buena cara que casi no se hablan:
 
-- El **RAG** está en Postgres y en la API de rappi-ia. Incluye catálogo, conceptos, embeddings, grafo de complementos, «También en» y la capa de datos con atributos, marcas y segmentos.
+- El **RAG** está en Postgres y en la API de rappi-ia. Incluye catálogo, conceptos, embeddings, grafo de complementos, "También en" y la capa de datos con atributos, marcas y segmentos.
 - La **app** (Mochi, el buscador, las ofertas y el juego) funciona casi entera con reglas locales sobre un catálogo transcrito de capturas. Solo usan la API la respuesta de Mochi en `/chat`, el perfil y el registro de eventos. El HTML suelto del escritorio no llega a la API.
 
 El repo pasa a contener **un MVP funcional** donde todo está conectado:
@@ -23,7 +23,7 @@ El repo pasa a contener **un MVP funcional** donde todo está conectado:
 | Tema | Decisión |
 |---|---|
 | Productos en las pantallas | Catálogo real de la base (imagen y precio de Postgres) |
-| Sin API | API obligatoria: la app muestra «sin conexión»; se eliminan las reglas locales de Mochi |
+| Sin API | API obligatoria: la app muestra "sin conexión"; se eliminan las reglas locales de Mochi |
 | Alcance extra | Jev en el proceso semanal y el panel de negocio conectado. Voz y foto quedan fuera |
 | Arquitectura | Enfoque A: una sola API (rappi-ia) extendida; la app es solo cliente |
 
@@ -37,14 +37,14 @@ El repo pasa a contener **un MVP funcional** donde todo está conectado:
    3. agregar al carrito;
    4. pedir;
    5. jugar una ronda;
-   6. ver el uso en el panel (fuente «prototipo»).
+   6. ver el uso en el panel (fuente "prototipo").
 4. **Las guardias siguen igual.** Mochi nunca propone por su cuenta Farmacia, salud, bebé ni alcohol. Los segmentos sensibles nunca se usan para ofrecer. La búsqueda no se personaliza.
 5. **Cada etapa termina con tests verdes en CI**, revisión en el navegador y una revisión de código independiente.
 
 ## 2. Arquitectura
 
 ```
-rappi.cl ─(domingos, scraper)→ Postgres «rappi»  ←─ Jev (fuera de línea, etapa 7)
+rappi.cl ─(domingos, scraper)→ Postgres "rappi"  ←─ Jev (fuera de línea, etapa 7)
                                    │ catálogo · conceptos · embeddings · capa · conocimiento · juego · eventos
                                    ▼
                       API rappi-ia :8000  (RAG + agente Mochi + catálogo + ofertas + juego + perfil)
@@ -56,7 +56,7 @@ rappi.cl ─(domingos, scraper)→ Postgres «rappi»  ←─ Jev (fuera de lín
 - **Una API** (rappi-ia, FastAPI). Se agregan routers por dominio: `catalog`, `mochi` (ofertas), `game`, junto a los que ya existen (`chat`, `search`, `profile`, `events`, `orders`, `analytics`). La lógica vive en módulos de dominio (`rappi_ia/catalog/`, `rappi_ia/offers/`, `rappi_ia/game/`); los routers solo traducen HTTP.
 - **La app** (prototipo-app) es solo cliente. `src/api/` concentra todas las llamadas, con tiempo límite y errores tipados.
   - Las pantallas no llaman a `fetch` directo.
-  - «Rappi hoy» sigue existiendo, con el catálogo real y sin Mochi.
+  - "Rappi hoy" sigue existiendo, con el catálogo real y sin Mochi.
 - **El usuario seudónimo** que ya existe para los eventos une búsqueda, carrito, pedidos, juego y perfil. No hay cuentas.
 - **Se pierde el HTML suelto del escritorio como demo.** Para mostrar el MVP hay que correr `make mvp`. Las imágenes vienen del CDN público de Rappi, así que la demo necesita internet.
 
@@ -89,7 +89,7 @@ La ciudad queda fija en Santiago (Región Metropolitana) para la demo; el filtro
 
 ### Búsqueda
 
-`GET /search`, que ya existe, ahora agrupa por vertical y devuelve `sin_resultado` y `also_in`. La app consulta a los 250 ms de la última tecla. «Preguntar a Mochi» usa `POST /chat`, que ya existe.
+`GET /search`, que ya existe, ahora agrupa por vertical y devuelve `sin_resultado` y `also_in`. La app consulta a los 250 ms de la última tecla. "Preguntar a Mochi" usa `POST /chat`, que ya existe.
 
 ### Ofertas de Mochi
 
@@ -98,9 +98,9 @@ La ciudad queda fija en Santiago (Región Metropolitana) para la demo; el filtro
 | `moment` | Contexto | Qué decide el motor (`rappi_ia/offers/`) |
 |---|---|---|
 | `plan` | `occasion?` | El kit de una de las 15 ocasiones de `taxonomy.toml`: un producto por concepto, de la vertical donde es típico |
-| `carrito` | línea agregada | Un complemento en otra vertical (grafo «complementa»), o nada |
+| `carrito` | línea agregada | Un complemento en otra vertical (grafo "complementa"), o nada |
 | `checkout` | carrito | El mismo motor, **solo cuando la persona lo pide** |
-| `sin_resultado` | consulta | La vertical que sí lo tiene («También en») |
+| `sin_resultado` | consulta | La vertical que sí lo tiene ("También en") |
 | `proximo_pedido` | pedido entregado | Un complemento de lo pedido |
 | `vertical_por_probar` | — | La primera vertical sin sello; la etapa 5 la ordena por afinidad |
 
@@ -119,7 +119,7 @@ La ciudad queda fija en Santiago (Región Metropolitana) para la demo; el filtro
 
 ### Errores
 
-- Lo que bloquea la pantalla (catálogo, carrito, pedido, ronda) muestra «sin conexión» con un botón para reintentar.
+- Lo que bloquea la pantalla (catálogo, carrito, pedido, ronda) muestra "sin conexión" con un botón para reintentar.
 - Si falla una oferta, Mochi no dice nada.
 - Ninguna parte de la app tiene respaldo local.
 
@@ -134,10 +134,10 @@ Cada etapa se integra a `main` por separado, con sus tests.
   - aplica migraciones;
   - arranca la API (:8000), la app (:5174) y el panel (:5175).
 - `make mvp-check` levanta la API sobre `rappi_ia_test` con el catálogo de prueba, más la app, y recorre el flujo con Playwright. Crece con cada etapa.
-- El cliente de la API (`src/api/`) tiene tiempo límite, errores tipados y usuario compartido. Una pantalla «sin conexión» reemplaza el respaldo local.
+- El cliente de la API (`src/api/`) tiene tiempo límite, errores tipados y usuario compartido. Una pantalla "sin conexión" reemplaza el respaldo local.
 - **Catálogo de prueba inventado:** unas pocas tiendas y productos por vertical, con nombres de prueba, nunca copiados del catálogo descargado. Lo usan los tests de integración y `mvp-check`.
 - **Contrato:** los tests de integración del backend escriben respuestas de ejemplo en `prototipo-app/src/api/fixtures/`. Los tests de la app las usan, y el CI revisa que estén al día.
-- **Hecho cuando:** sin API, la app muestra «sin conexión», no reglas locales; `make mvp` y `make mvp-check` funcionan; README y `docs/instalacion.md` reemplazan «Sin base de datos (unos 2 minutos)» por `make mvp`.
+- **Hecho cuando:** sin API, la app muestra "sin conexión", no reglas locales; `make mvp` y `make mvp-check` funcionan; README y `docs/instalacion.md` reemplazan "Sin base de datos (unos 2 minutos)" por `make mvp`.
 
 ### Etapa 2: catálogo real
 
@@ -150,9 +150,9 @@ Cada etapa se integra a `main` por separado, con sus tests.
 
 ### Etapa 3: buscador y Mochi sobre el RAG
 
-- El buscador usa `/search`, agrupado y con «sin resultado».
+- El buscador usa `/search`, agrupado y con "sin resultado".
 - Mochi responde con `/chat`.
-- Todos los momentos de ofertas usan `/mochi/offer`: kits de la Home, comentario del carrito, «¿Me falta algo?», «sin resultados», «armar el próximo», la vertical por probar y Mochi flotante.
+- Todos los momentos de ofertas usan `/mochi/offer`: kits de la Home, comentario del carrito, "¿Me falta algo?", "sin resultados", "armar el próximo", la vertical por probar y Mochi flotante.
 - Se van `brain.js`, `tags.js`, `script.js`, `emptySearch.js`, `discover.js` y `CheckoutSuggestion` local.
 - **Hecho cuando:** cada oferta tiene un test del motor (incluidas las guardias) y otro de pantalla con las respuestas de ejemplo; los eventos de ofertas llegan a la base.
 
@@ -166,7 +166,7 @@ Cada etapa se integra a `main` por separado, con sus tests.
   La liga con conceptos se hace por reglas (palabras clave del concepto), con una revisión a mano registrada. La validación del contenido pasa a pytest.
 - **Desafíos en vivo:** se arman desde `concept_assortment`, `concept_edges` y `knowledge_edges` (lo típico, qué combina, qué nunca va junto). Se van `verticales.json` y `scripts/extraer-datos.mjs`.
 - **Progreso por usuario** en la base (`game_state`): sellos, tarjetas, XP, racha. Las reglas del juego (XP, niveles, misión, armar la ronda) siguen en la app, que ya tiene sus tests.
-- **«¿Sabías que…?» en Mochi:** `/chat` agrega `did_you_know` cuando el concepto buscado tiene una tarjeta no vista. Mostrarla cuenta como descubierta.
+- **"¿Sabías que…?" en Mochi:** `/chat` agrega `did_you_know` cuando el concepto buscado tiene una tarjeta no vista. Mostrarla cuenta como descubierta.
 - **Hecho cuando:**
   - un progreso guardado en el navegador se migra una vez al servidor;
   - la ronda funciona con datos de la base;
@@ -180,11 +180,11 @@ Cada etapa se integra a `main` por separado, con sus tests.
   - `plan` ordena las ocasiones por interés;
   - el complemento prefiere la marca que compras cuando existe.
   
-  Cada oferta trae `reason`, que la app muestra como «por qué».
+  Cada oferta trae `reason`, que la app muestra como "por qué".
 - **Guardias con test:**
   - los segmentos sensibles (salud, alergias, edad; columna `sensitive` en `segment_defs`) nunca se usan para ofrecer;
   - la búsqueda no se personaliza;
-  - «Olvidar» borra perfil, segmentos y estado del juego.
+  - "Olvidar" borra perfil, segmentos y estado del juego.
 - **Hecho cuando:** dos usuarios de prueba con historias distintas reciben ofertas distintas, y la razón de cada una se puede rastrear.
 
 ### Etapa 6: panel conectado
@@ -193,8 +193,8 @@ Cada etapa se integra a `main` por separado, con sus tests.
   - ofertas mostradas y aceptadas por momento;
   - rondas y tarjetas del juego;
   - búsquedas sin resultado.
-- El uso real se rotula «uso del MVP, pocas personas: no es evidencia». Nunca se mezcla con lo simulado.
-- **Hecho cuando:** el recorrido de `mvp-check` se ve en el panel con la fuente «prototipo».
+- El uso real se rotula "uso del MVP, pocas personas: no es evidencia". Nunca se mezcla con lo simulado.
+- **Hecho cuando:** el recorrido de `mvp-check` se ve en el panel con la fuente "prototipo".
 
 ### Etapa 7: Jev en el proceso semanal
 
@@ -252,4 +252,4 @@ Cada etapa se integra a `main` por separado, con sus tests.
 | Imágenes del CDN de Rappi no cargan sin internet | Imagen de reemplazo neutra; la demo se hace con internet |
 | Segmentos recalculados en cada pedido son lentos | Recalcular solo los del usuario, en segundo plano; medir |
 | Cambios grandes difíciles de revisar | Una etapa por vez, con commits separados por pieza |
-| Jev no pasa el piloto | Se reporta «lo medimos y no alcanzó»; todo sigue sin Jev |
+| Jev no pasa el piloto | Se reporta "lo medimos y no alcanzó"; todo sigue sin Jev |

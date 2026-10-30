@@ -1,4 +1,4 @@
-// «Ver cómo funciona» (solo en el panel en un solo HTML, `npm run panel:html`): un recorrido corto de una persona en la
+// "Ver cómo funciona" (solo en el panel en un solo HTML, `npm run panel:html`): un recorrido corto de una persona en la
 // app, aplicado como eventos de ejemplo sobre las respuestas grabadas de la fuente del prototipo. Es una demostración:
 // las cifras que cambian no son datos reales. Funciones puras: cada paso recibe las respuestas y devuelve otras nuevas.
 import { AGENT_NAME } from '../lib/agentName.js'
@@ -36,7 +36,7 @@ function kpis(responses, { activeUsers = 0, orders = 0 }) {
   })
 }
 
-/** «¿Mochi molesta?»: una persona activa más y, si lo oculta (`hides`), una persona oculta más y su % de nuevo. */
+/** "¿Mochi molesta?": una persona activa más y, si lo oculta (`hides`), una persona oculta más y su % de nuevo. */
 function presence(responses, { activeUsers = 0, hides = 0 }) {
   return edit(responses['presencia.prototype'], (data) => {
     data.personas_activas += activeUsers
@@ -68,7 +68,7 @@ function unmetSearch(responses, vertical) {
 export const TOUR = [
   {
     title: `${AGENT_NAME} le hace una oferta`,
-    text: `Una persona nueva abre la app y ${AGENT_NAME} le ofrece el kit «Carrete», el momento «Plan». En la tabla por momento, «Plan» suma una mostrada.`,
+    text: `Una persona nueva abre la app y ${AGENT_NAME} le ofrece el kit "Carrete", el momento "Plan". En la tabla por momento, "Plan" suma una mostrada.`,
     view: 'mochi',
     section: 'ofertas',
     apply: (responses) => ({
@@ -80,28 +80,28 @@ export const TOUR = [
   },
   {
     title: 'La acepta',
-    text: 'Agrega el kit al carro: para el panel, la oferta quedó aceptada. «Plan» suma una aceptada y, desde 10 mostradas, cambia su tasa.',
+    text: 'Agrega el kit al carro: para el panel, la oferta quedó aceptada. "Plan" suma una aceptada y, desde 10 mostradas, cambia su tasa.',
     view: 'mochi',
     section: 'ofertas',
     apply: (responses) => ({ ...responses, 'offers.prototype': offer(responses, 'plan', { accepted: 1 }) }),
   },
   {
     title: 'Paga el pedido',
-    text: 'Queda un pedido. En «Cómo va», la frecuencia de 30 días cuenta ese pedido y a la persona nueva.',
+    text: 'Queda un pedido. En "Cómo va", la frecuencia de 30 días cuenta ese pedido y a la persona nueva.',
     view: 'resumen',
     section: 'como-va',
     apply: (responses) => ({ ...responses, 'kpis.prototype': kpis(responses, { orders: 1 }) }),
   },
   {
     title: 'Busca algo que no hay',
-    text: 'Busca «sushi de chocolate» y no encuentra nada. «Qué buscan y no encuentran» suma una búsqueda sin resultado en Restaurantes, sin el texto que escribió.',
+    text: 'Busca "sushi de chocolate" y no encuentra nada. "Qué buscan y no encuentran" suma una búsqueda sin resultado en Restaurantes, sin el texto que escribió.',
     view: 'mochi',
     section: 'busquedas',
     apply: (responses) => ({ ...responses, 'unmet.prototype': unmetSearch(responses, 'restaurantes') }),
   },
   {
     title: `Oculta a ${AGENT_NAME}`,
-    text: `En el menú de ${AGENT_NAME} elige «Ocultar a ${AGENT_NAME}». En «¿${AGENT_NAME} molesta?», «Ocultaron a ${AGENT_NAME}» suma una persona y sube su %: si fueran muchas, habría que revisar cada cuánto habla.`,
+    text: `En el menú de ${AGENT_NAME} elige "Ocultar a ${AGENT_NAME}". En "¿${AGENT_NAME} molesta?", "Ocultaron a ${AGENT_NAME}" suma una persona y sube su %: si fueran muchas, habría que revisar cada cuánto habla.`,
     view: 'mochi',
     section: 'presencia',
     apply: (responses) => ({ ...responses, 'presencia.prototype': presence(responses, { hides: 1 }) }),

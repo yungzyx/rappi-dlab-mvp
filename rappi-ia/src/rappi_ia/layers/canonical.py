@@ -15,19 +15,19 @@ from .runs import finish_layer_run, rules_version, start_layer_run
 log = logging.getLogger(__name__)
 
 RULES_VERSION = "2026-10-06"
-# «6 x» de «6 x 350 ml» solo es un pack cuando una medida lo sigue; «20 x 30 cm», «X12» o «Talla 1 x 50» no se tocan.
+# "6 x" de "6 x 350 ml" solo es un pack cuando una medida lo sigue; "20 x 30 cm", "X12" o "Talla 1 x 50" no se tocan.
 _PACK_BEFORE_MEASURE = re.compile(
     r"\b\d{1,2}\s*x\s*(?=\d+(?:[.,]\d+)?\s*(?:ml|cc|lts?|l|gr?s?|kg|oz)\b)", re.IGNORECASE
 )
 _ARTICLES = {"de", "la", "el", "los", "las", "y"}
-# Palabras que describen sin distinguir: «Coca-Cola Bebida Gaseosa Original» es «Coca-Cola Original».
+# Palabras que describen sin distinguir: "Coca-Cola Bebida Gaseosa Original" es "Coca-Cola Original".
 _FILLER = {"bebida", "gaseosa", "sabor", "refresco", "botella", "en", "a"}
 
 
 def name_key(name: str, brand_words: set[str]) -> str:
-    """El nombre sin marca ni tamaño, con las palabras ordenadas: «Coca-Cola Original 1.5L» y «Coca Cola Original
-    1,5 L» dan la misma clave; «Zero» u «Original», «con» y «sin lactosa», «20W» y «35W», «12 Unidades» y «4 Unidades»,
-    o un pack y la unidad, no. Un combo («Alto 1lt + Coca 1.5lt») no tiene clave."""
+    """El nombre sin marca ni tamaño, con las palabras ordenadas: "Coca-Cola Original 1.5L" y "Coca Cola Original
+    1,5 L" dan la misma clave; "Zero" u "Original", "con" y "sin lactosa", "20W" y "35W", "12 Unidades" y "4 Unidades",
+    o un pack y la unidad, no. Un combo ("Alto 1lt + Coca 1.5lt") no tiene clave."""
     if "+" in name:
         return ""
     text = NAME_MEASURE.sub(" ", _PACK_BEFORE_MEASURE.sub(" ", name))
@@ -41,7 +41,7 @@ def build_canonical(conn: Connection) -> dict:
     sospechosa); los demás no se unen. Idempotente."""
     run = start_layer_run(conn, "canonical", rules_version(RULES_VERSION, Path(__file__)))
     brand_words = {
-        key: {*normalize(name).split(), normalize(name).replace(" ", "")}  # «coca cola» y «cocacola»
+        key: {*normalize(name).split(), normalize(name).replace(" ", "")}  # "coca cola" y "cocacola"
         for key, name in conn.execute("SELECT brand_key, name FROM product_brands")
     }
     rows = conn.execute(

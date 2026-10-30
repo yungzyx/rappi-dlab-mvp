@@ -1,17 +1,17 @@
-"""«Pedir por mí»: cuánta autonomía le da la persona a Mochi para pedir (`agent_autonomy`, migración 049) y qué puede
-pedir solo. Lo pidió el usuario el 25-10-2026, mirando el agente de la app de Rappi («Revisar antes de enviar» o el
+""" "Pedir por mí": cuánta autonomía le da la persona a Mochi para pedir (`agent_autonomy`, migración 049) y qué puede
+pedir solo. Lo pidió el usuario el 25-10-2026, mirando el agente de la app de Rappi ("Revisar antes de enviar" o el
 pedido automático en todas o algunas tiendas: docs/investigacion/app-rappi-2026-10-25.md), pero acotado
-(docs/diseno-ia.md, «Pedir por mí»):
+(docs/diseno-ia.md, "Pedir por mí"):
 
-- Por defecto, «Revisar antes de pedir»: Mochi arma el resumen y se paga en el checkout de siempre.
-- «Pedir por mí»: la persona elige tiendas de las que ya pidió (ninguna de Farmacia ni Licores) y un tope por pedido.
-- Mochi solo pide «lo de siempre» (`usual`): los mismos productos y cantidades de su último pedido en esa tienda (modo
+- Por defecto, "Revisar antes de pedir": Mochi arma el resumen y se paga en el checkout de siempre.
+- "Pedir por mí": la persona elige tiendas de las que ya pidió (ninguna de Farmacia ni Licores) y un tope por pedido.
+- Mochi solo pide "lo de siempre" (`usual`): los mismos productos y cantidades de su último pedido en esa tienda (modo
   propuesta), todos a la venta ahí con su precio vigente.
 - Nunca alcohol, +18, Farmacia, bebé ni salud (las guardias de las ofertas, `offers/guards.py`, más la marca +18 y la
   vertical de la tienda); nunca por encima del tope (los productos a precio del catálogo; la app suma envío y servicio);
   nunca en una tienda cerrada según lo publicado (`catalog/hours.py`) ni bajo la compra mínima del catálogo
   (`catalog/terms.py`; la supuesta de la app la revisa la app). Si algo falla, revisa antes y dice por qué (`decide`).
-- La app espera la ventana de «Deshacer pedido» antes de mandar el pedido, y `POST /orders` lo vuelve a revisar todo
+- La app espera la ventana de "Deshacer pedido" antes de mandar el pedido, y `POST /orders` lo vuelve a revisar todo
   (`check_order`): solo entra si sigue siendo lo de siempre y pasa cada límite.
 - Cada autopedido queda en su `order_placed` con origen `agent-autopedido` y una `basis` que dice que lo pidió el
   agente con permiso, con el tope y la regla (`basis`).
@@ -49,7 +49,7 @@ MAX_OPTIONS = 10  # tiendas de las que ya pidió que se ofrecen para elegir
 ASK_LABEL = "Pide lo de siempre por mí"
 ASK_TEXT = "Pide lo de siempre en {store}"
 
-# Por qué Mochi no pide solo y deja revisar antes: código → texto («Lo revisas tú: …»).
+# Por qué Mochi no pide solo y deja revisar antes: código → texto ("Lo revisas tú: …").
 REASONS = {
     "sin_permiso": "no me diste permiso para pedir por ti",
     "tienda_no_elegida": "no elegiste {store} para que pida por ti",
@@ -96,7 +96,7 @@ class Decision:
 
 # ── El ajuste ────────────────────────────────────────────────────────────────
 def load(conn: Connection, user_id: str | None) -> Autonomy | None:
-    """El permiso de la persona, o None («Revisar antes de pedir»)."""
+    """El permiso de la persona, o None ("Revisar antes de pedir")."""
     if not user_id:
         return None
     row = conn.execute("SELECT store_ids, max_total FROM agent_autonomy WHERE user_id = %s", (user_id,)).fetchone()
@@ -135,7 +135,7 @@ def ordered_stores(conn: Connection, user_id: str) -> list[dict]:
 
 
 def save(conn: Connection, user_id: str, store_ids: list[int], max_total: int) -> Autonomy:
-    """Enciende o cambia «Pedir por mí». Las tiendas tienen que ser de las que ya pidió (`ordered_stores`); la población
+    """Enciende o cambia "Pedir por mí". Las tiendas tienen que ser de las que ya pidió (`ordered_stores`); la población
     es la de la persona. No hace commit."""
     wanted = list(dict.fromkeys(store_ids))
     if not wanted or len(wanted) > MAX_STORES:
@@ -156,13 +156,13 @@ def save(conn: Connection, user_id: str, store_ids: list[int], max_total: int) -
 
 
 def turn_off(conn: Connection, user_id: str) -> bool:
-    """Vuelve a «Revisar antes de pedir» (borra el permiso). No hace commit."""
+    """Vuelve a "Revisar antes de pedir" (borra el permiso). No hace commit."""
     return conn.execute("DELETE FROM agent_autonomy WHERE user_id = %s", (user_id,)).rowcount > 0
 
 
 def describe(conn: Connection, user_id: str) -> dict:
     """Lo que muestra el ajuste: `{modo, tiendas, tope, opciones: {tiendas, tope_min, tope_max, tope_sugerido}}`. Una
-    tienda elegida que ya no se puede elegir (p. ej. tras «Olvidar» un concepto) sigue en `tiendas` y no en las
+    tienda elegida que ya no se puede elegir (p. ej. tras "Olvidar" un concepto) sigue en `tiendas` y no en las
     opciones: la app la muestra para quitarla."""
     mine = load(conn, user_id)
     return {
@@ -180,7 +180,7 @@ def describe(conn: Connection, user_id: str) -> dict:
 
 # ── Lo de siempre ────────────────────────────────────────────────────────────
 def find_ordered_store(conn: Connection, user_id: str, said: str | None) -> dict | None:
-    """La tienda de las que ya pidió que nombró la persona («en el súper Centro»): todas las palabras dichas están en su
+    """La tienda de las que ya pidió que nombró la persona ("en el súper Centro"): todas las palabras dichas están en su
     nombre. Sin nombre, la de su último pedido. La más reciente gana. Incluye las de Farmacia y Licores: así Mochi
     puede decir por qué ahí no pide solo."""
     rows = conn.execute(
@@ -218,7 +218,7 @@ def _valid(entity_id: str) -> bool:
 
 def usual(conn: Connection, user_id: str, store: dict) -> Usual | None:
     """Lo de siempre en `store` (`find_ordered_store`): las líneas de su último pedido ahí (modo propuesta), cada una
-    con su producto y el precio de hoy en esa tienda (`line_prices`, como «Pídelo de nuevo»). Lo que ya no está a la
+    con su producto y el precio de hoy en esa tienda (`line_prices`, como "Pídelo de nuevo"). Lo que ya no está a la
     venta queda en `missing`. None si nunca pidió ahí."""
     rows = conn.execute(
         """SELECT o.order_id, l.entity_type, l.entity_id, l.qty
@@ -253,7 +253,7 @@ def usual(conn: Connection, user_id: str, store: dict) -> Usual | None:
 
 
 def _details(conn: Connection, lines: list[dict]) -> dict[tuple[str, str], tuple]:
-    """(tipo, id) → (id, nombre, imagen, presentación, +18, concepto, alcohol). En un plato, «alcohol» es lo que las
+    """(tipo, id) → (id, nombre, imagen, presentación, +18, concepto, alcohol). En un plato, "alcohol" es lo que las
     guardias leen en su sección o su descripción (un plato no trae marca +18)."""
     out: dict[tuple[str, str], tuple] = {}
     catalog = [int(line["entity_id"]) for line in lines if line["entity_type"] == "catalog_item"]
@@ -328,7 +328,7 @@ def decide(
 ) -> Decision:
     """Si Mochi pide solo lo de siempre (`found`) o lo deja para revisar antes, con el primer límite que falla. Con
     `lines` (las de un pedido que llega a la API), además tiene que ser lo de siempre tal cual. Una tienda que la
-    persona calificó mal hace poco (`winback.paused`, la misma pausa de la recompra y el «volver») se revisa antes."""
+    persona calificó mal hace poco (`winback.paused`, la misma pausa de la recompra y el "volver") se revisa antes."""
     store = found.store
     if mine is None:
         return _review("sin_permiso")
@@ -379,8 +379,8 @@ def basis(mine: Autonomy, found: Usual) -> list[dict]:
 
 
 def plan(conn: Connection, user_id: str, said: str | None, now: datetime | None = None) -> dict | None:
-    """Lo que Mochi arma con «pide lo de siempre en X»: `{modo, tienda, lineas, subtotal, tope, motivo, codigo, basis}`
-    (`modo` «pedir» si lo pide solo, «revisar» si no). None si no encuentra la tienda o nunca pidió ahí."""
+    """Lo que Mochi arma con "pide lo de siempre en X": `{modo, tienda, lineas, subtotal, tope, motivo, codigo, basis}`
+    (`modo` "pedir" si lo pide solo, "revisar" si no). None si no encuentra la tienda o nunca pidió ahí."""
     store = find_ordered_store(conn, user_id, said)
     found = usual(conn, user_id, store) if store else None
     if found is None:

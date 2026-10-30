@@ -18,20 +18,20 @@ import StoreList from '../StoreList'
 // Las mismas ideas que rota el buscador de la Home (PlainSearchBar).
 const IDEAS = ['Plátano', 'Agua', 'Chocolate', 'Hamburguesa', 'Cerveza', 'Pizza']
 const POPULAR_COUNT = 6
-// Productos que se ven de cada vertical; «Ver más» muestra el resto de lo que trajo la API.
+// Productos que se ven de cada vertical; "Ver más" muestra el resto de lo que trajo la API.
 const GROUP_PREVIEW = 3
 const NO_RESULT_ORIGIN = 'agent-sin_resultado'
 const WHIM_ORIGIN = 'lo-que-sea'
-// Tiendas o restaurantes que se ven de cada bloque; «Ver todos» muestra el resto.
+// Tiendas o restaurantes que se ven de cada bloque; "Ver todos" muestra el resto.
 const PLACES_PREVIEW = 3
-// De qué población sale «Lo más buscado» (la API la declara; nunca se mezclan).
+// De qué población sale "Lo más buscado" (la API la declara; nunca se mezclan).
 const POPULATION_NOTE = {
   synthetic: 'Entre las personas simuladas de la demo.',
   prototype: 'Entre quienes usan el prototipo.',
 }
 
 /**
- * Antes de escribir: las búsquedas recientes de la persona y «Lo más buscado» de la población que declara la API, o las
+ * Antes de escribir: las búsquedas recientes de la persona y "Lo más buscado" de la población que declara la API, o las
  * ideas fijas si no hay ninguna de las dos (o la API no responde). `onPick(term, fuente)`: `reciente`, `lo-mas-buscado`
  * o `sugerencia`.
  */
@@ -95,15 +95,15 @@ export function PopularStores({ onOpen }) {
 
 /**
  * Resultados de una búsqueda escrita (`data` de `useSearch`): un grupo por vertical con su nombre, o el aviso de que no
- * hay, o «Sin conexión». Un producto se abre en su tienda (`onOpenProduct`). Mientras carga se ven los resultados
+ * hay, o "Sin conexión". Un producto se abre en su tienda (`onOpenProduct`). Mientras carga se ven los resultados
  * anteriores. Con `onOpenVertical` (solo el buscador con el agente), sin resultados el agente no deja un callejón sin salida:
  * ofrece la vertical que tiene lo buscado o invita a buscar con otras palabras (`onTryAnother`). Si la API corrigió un
  * error de tipeo, dice qué buscó y, con `onSearchExact`, ofrece buscar lo escrito tal cual. Si la dieta o las
  * alergias de la persona sacaron algo (`data.preferencesNotice`, solo en la propuesta), lo dice; si sacaron todo, no
- * es «sin resultado» (ni Mochi ni «Lo que sea» lo ofrecen).
- * Antes de los productos van las tiendas y los restaurantes que se llaman así (`onOpenStore`), cada bloque con «Ver
- * todos». Con `onSeeAll(vertical)`, «Ver todos» de un grupo de productos abre la búsqueda solo en esa vertical (si no,
- * muestra el resto ahí mismo). Sin resultados y con `onOpenFavor(texto)`, ofrece «Lo que sea»: pedirlo con RappiFavor,
+ * es "sin resultado" (ni Mochi ni "Lo que sea" lo ofrecen).
+ * Antes de los productos van las tiendas y los restaurantes que se llaman así (`onOpenStore`), cada bloque con "Ver
+ * todos". Con `onSeeAll(vertical)`, "Ver todos" de un grupo de productos abre la búsqueda solo en esa vertical (si no,
+ * muestra el resto ahí mismo). Sin resultados y con `onOpenFavor(texto)`, ofrece "Lo que sea": pedirlo con RappiFavor,
  * si las guardias de la API lo permiten (`data.whimAllowed`).
  */
 export function SearchResults({
@@ -140,11 +140,11 @@ export function SearchResults({
   // Sin nada que mostrar, el aviso espera a que llegue la respuesta de lo escrito (no se mezcla con lo de antes).
   if (data.groups.length === 0 && stores.length === 0 && restaurants.length === 0) {
     if (loading) return null
-    // Lo encontrado lo sacaron sus preferencias: el catálogo sí lo tiene, así que no es «sin resultado».
+    // Lo encontrado lo sacaron sus preferencias: el catálogo sí lo tiene, así que no es "sin resultado".
     if (filtered && !data.unmet)
       return (
         <>
-          <p className="search-empty">Nada de lo que encontré para «{text}» calza con tus preferencias.</p>
+          <p className="search-empty">Nada de lo que encontré para "{text}" calza con tus preferencias.</p>
           {filtered}
         </>
       )
@@ -158,7 +158,7 @@ export function SearchResults({
       </>
     ) : (
       <>
-        <p className="search-empty">Sin resultados para «{text}».</p>
+        <p className="search-empty">Sin resultados para "{text}".</p>
         {whim}
       </>
     )
@@ -169,10 +169,10 @@ export function SearchResults({
       {filtered}
       {data.correctedQuery && (
         <p className="search-corrected" role="status">
-          Mostrando resultados para «{data.correctedQuery}».
+          Mostrando resultados para "{data.correctedQuery}".
           {onSearchExact && (
             <button type="button" className="search-exact tap" onClick={() => onSearchExact(data.query)}>
-              Buscar «{data.query}» tal cual
+              Buscar "{data.query}" tal cual
             </button>
           )}
         </p>
@@ -195,7 +195,7 @@ export function SearchResults({
   )
 }
 
-/** Un bloque de tiendas o de restaurantes de la búsqueda (ya con su lugar): los primeros y «Ver todos». */
+/** Un bloque de tiendas o de restaurantes de la búsqueda (ya con su lugar): los primeros y "Ver todos". */
 function PlaceGroup({ title, places, onOpen }) {
   const titleId = useId()
   const [expanded, setExpanded] = useState(false)
@@ -254,7 +254,7 @@ function ResultGroup({ group, onOpenProduct, onSeeAll }) {
 }
 
 /**
- * «Lo que sea»: lo buscado no está en el catálogo y la app ofrece conseguirlo con RappiFavor, con el texto ya escrito.
+ * "Lo que sea": lo buscado no está en el catálogo y la app ofrece conseguirlo con RappiFavor, con el texto ya escrito.
  * Solo aparece si la API lo permite (las guardias y las palabras bloqueadas del encargo). Mostrarlo es un
  * `service_shown` y tocarlo un `service_opened` (`rappifavor`), los dos con su lugar (`lo-que-sea`) y la búsqueda.
  */
@@ -280,7 +280,7 @@ function WhimOffer({ query, requestId, onOpenFavor }) {
         Un Rappitendero lo busca y te lo lleva con RappiFavor.
       </p>
       <button type="button" className="search-whim-action tap" onClick={open}>
-        Pedir «{query}» con RappiFavor
+        Pedir "{query}" con RappiFavor
       </button>
     </div>
   )
@@ -288,7 +288,7 @@ function WhimOffer({ query, requestId, onOpenFavor }) {
 
 /**
  * La oferta `sin_resultado` del agente. Si no tiene nada (204) o falla, solo invita a buscar con otras palabras. Como las
- * demás ofertas, registra su mostrada; tocar «Ver en…» cuenta una aceptada (una, con el concepto de la oferta: no se
+ * demás ofertas, registra su mostrada; tocar "Ver en…" cuenta una aceptada (una, con el concepto de la oferta: no se
  * agregó ningún producto), que noteAccepted cuenta una sola vez.
  */
 function AgentEmpty({ query, onOpenVertical, onTryAnother }) {
@@ -318,7 +318,7 @@ function AgentEmpty({ query, onOpenVertical, onTryAnother }) {
     <div className="search-agent" role="status">
       <Mascot size={56} mood="listen" />
       <div>
-        <p>{verticalName ? found.text : `No encontré «${query}». ¿Lo buscamos con otras palabras?`}</p>
+        <p>{verticalName ? found.text : `No encontré "${query}". ¿Lo buscamos con otras palabras?`}</p>
         {verticalName && <OfferWhy reason={found.reason} />}
         <button type="button" className="search-agent-action tap" onClick={verticalName ? see : () => onTryAnother()}>
           {verticalName ? `Ver en ${verticalName}` : 'Probar otra búsqueda'}

@@ -44,8 +44,8 @@ afterEach(() => {
   localStorage.clear()
 })
 
-/** `/search` con el ejemplo agrupado, sin coincidencias si la consulta es «xyzzy» o se pide tal cual, y corregido si es
- * «cervezaaaa». */
+/** `/search` con el ejemplo agrupado, sin coincidencias si la consulta es "xyzzy" o se pide tal cual, y corregido si es
+ * "cervezaaaa". */
 const searchRoute = (req) => {
   if (req.query.get('q') === 'xyzzy' || req.query.get('correct') === 'false') return fixture('search-grouped-unmet')
   return req.query.get('q') === 'cervezaaaa' ? fixture('search-grouped-corrected') : fixture('search-grouped')
@@ -63,7 +63,7 @@ describe('SearchScreen', () => {
     await advance(250)
   }
 
-  test('escribir «cerveza» muestra los grupos de la API con Licores primero', async () => {
+  test('escribir "cerveza" muestra los grupos de la API con Licores primero', async () => {
     const { input } = setup()
     await type(input, 'cerveza')
 
@@ -77,7 +77,7 @@ describe('SearchScreen', () => {
     const { input, fetchMock } = setup()
     await type(input, 'cervezaaaa')
 
-    expect(screen.getByText(/Mostrando resultados para «cerveza»/)).toBeTruthy()
+    expect(screen.getByText(/Mostrando resultados para "cerveza"/)).toBeTruthy()
     expect(screen.getByRole('heading', { name: 'Licores' })).toBeTruthy()
 
     fireEvent.keyDown(input, { key: 'Enter' })
@@ -87,21 +87,21 @@ describe('SearchScreen', () => {
       payload: { fuente: 'tipeada', corregida: 'cerveza' },
     })
 
-    fireEvent.click(screen.getByRole('button', { name: 'Buscar «cervezaaaa» tal cual' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Buscar "cervezaaaa" tal cual' }))
     await advance(0)
     // La búsqueda tal cual también se registra, sin corrección y sin resultado; su fuente es el aviso de la corrección.
     expect(searches().at(-1)).toMatchObject({ query: 'cervezaaaa', unmet: true })
     expect(searches().at(-1).payload).toEqual({ alcance: 'global', fuente: 'correccion' })
     const last = new URL(fetchMock.mock.calls.at(-1)[0])
     expect(last.searchParams.get('correct')).toBe('false')
-    expect(screen.getByText('Sin resultados para «cervezaaaa».')).toBeTruthy()
+    expect(screen.getByText('Sin resultados para "cervezaaaa".')).toBeTruthy()
     expect(screen.queryByText(/Mostrando resultados/)).toBeNull()
 
     await type(input, 'cervezaaa') // con otro texto, la API vuelve a poder corregir
     expect(new URL(fetchMock.mock.calls.at(-1)[0]).searchParams.has('correct')).toBe(false)
   })
 
-  test('sin historial ni «Lo más buscado», el buscador muestra las ideas fijas', async () => {
+  test('sin historial ni "Lo más buscado", el buscador muestra las ideas fijas', async () => {
     setup()
     await advance(0)
     expect(screen.getByRole('heading', { name: 'Ideas para buscar' })).toBeTruthy()
@@ -129,7 +129,7 @@ describe('SearchScreen', () => {
     ])
   })
 
-  test('las tiendas y los restaurantes que se llaman así salen antes de los productos, con «Ver todos»', async () => {
+  test('las tiendas y los restaurantes que se llaman así salen antes de los productos, con "Ver todos"', async () => {
     const store = (id) => ({ ...fixture('catalog-vertical-stores').stores[0], id, name: `Tienda ${id}` })
     const withPlaces = (req) => ({
       ...searchRoute(req),
@@ -150,18 +150,18 @@ describe('SearchScreen', () => {
     )
   })
 
-  test('«Ver todos en…» de un grupo busca solo en esa vertical', async () => {
+  test('"Ver todos en…" de un grupo busca solo en esa vertical', async () => {
     const { input, push } = setup()
     await type(input, 'cerveza')
     fireEvent.click(screen.getByRole('button', { name: 'Ver todos en Licores' }))
     expect(push).toHaveBeenCalledWith('search', { query: 'cerveza', vertical: 'liquor', only: true })
   })
 
-  test('sin resultados y con permiso de la API, «Lo que sea» abre RappiFavor con lo escrito', async () => {
-    const { input, push } = setup() // «xyzzy» no tiene nada que las guardias bloqueen
+  test('sin resultados y con permiso de la API, "Lo que sea" abre RappiFavor con lo escrito', async () => {
+    const { input, push } = setup() // "xyzzy" no tiene nada que las guardias bloqueen
     await type(input, 'xyzzy')
     expect(screen.getByText('¿No lo encuentras? Te lo conseguimos')).toBeTruthy()
-    fireEvent.click(screen.getByRole('button', { name: 'Pedir «xyzzy» con RappiFavor' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Pedir "xyzzy" con RappiFavor' }))
     expect(push).toHaveBeenCalledWith('favor', { text: 'xyzzy' })
     const services = events.track.mock.calls.filter(([type]) => type.startsWith('service_'))
     expect(services.map(([type, fields]) => [type, fields.origin, fields.payload.servicio])).toEqual([
@@ -170,13 +170,13 @@ describe('SearchScreen', () => {
     ])
   })
 
-  test('sin el permiso de la API (las guardias), no ofrece «Lo que sea»', async () => {
+  test('sin el permiso de la API (las guardias), no ofrece "Lo que sea"', async () => {
     const { input } = setup({}, { '/search': (req) => ({ ...searchRoute(req), whim_allowed: false }) })
     await type(input, 'xyzzy')
     expect(screen.queryByText('¿No lo encuentras? Te lo conseguimos')).toBeNull()
   })
 
-  test('la búsqueda manda la vertical de la pantalla de origen como «current»', async () => {
+  test('la búsqueda manda la vertical de la pantalla de origen como "current"', async () => {
     const { input, fetchMock } = setup({ vertical: 'liquor' })
     await type(input, 'cerveza')
     const url = new URL(fetchMock.mock.calls.find(([u]) => u.includes('/search'))[0])
@@ -184,7 +184,7 @@ describe('SearchScreen', () => {
     expect(url.searchParams.get('current')).toBe('liquor')
   })
 
-  test('en el prototipo final la búsqueda va con la persona (su dieta filtra); en «Rappi hoy», no', async () => {
+  test('en el prototipo final la búsqueda va con la persona (su dieta filtra); en "Rappi hoy", no', async () => {
     const { input, fetchMock } = setup()
     await type(input, 'cerveza')
     const sent = () => new URL(fetchMock.mock.calls.filter(([u]) => u.includes('/search')).at(-1)[0]).searchParams
@@ -221,10 +221,10 @@ describe('SearchScreen', () => {
     )
   })
 
-  test('sin resultados del catálogo dice que no hay (sin Mochi en «Rappi hoy»)', async () => {
+  test('sin resultados del catálogo dice que no hay (sin Mochi en "Rappi hoy")', async () => {
     const { input } = setup()
     await type(input, 'xyzzy')
-    expect(screen.getByText('Sin resultados para «xyzzy».')).toBeTruthy()
+    expect(screen.getByText('Sin resultados para "xyzzy".')).toBeTruthy()
     expect(document.querySelector('.mascot')).toBeNull()
   })
 

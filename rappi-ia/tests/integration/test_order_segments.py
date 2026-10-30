@@ -310,7 +310,7 @@ def test_a_client_without_its_own_connector_never_opens_the_real_db(db, real_db_
 
 
 def test_a_concept_forget_waits_for_the_recalculation_in_flight(db, test_url):
-    """«Olvidar» toma el mismo candado por persona: no recalcula a la vez que un recálculo de un pedido."""
+    """ "Olvidar" toma el mismo candado por persona: no recalcula a la vez que un recálculo de un pedido."""
     seed_taxonomy(db, load_taxonomy())
     _order_direct(db, "u1", 3)
 

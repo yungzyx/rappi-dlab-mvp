@@ -73,7 +73,7 @@ const turboStores = () => {
 /** Un producto de ejemplo, como si lo vendiera la tienda Turbo. */
 const sold = (product) => ({ ...product, store: TURBO.name, store_id: TURBO.id, vertical: 'turbo' })
 
-/** La tienda Turbo: 30 productos en su primer pasillo (de a 24 por página) y uno en «Bebidas». */
+/** La tienda Turbo: 30 productos en su primer pasillo (de a 24 por página) y uno en "Bebidas". */
 function turboShop(req) {
   const aisle = req.query.get('aisle')
   const reply = fixture(req.query.get('page') === '2' ? 'catalog-store-page-2' : 'catalog-store')
@@ -211,7 +211,7 @@ describe('Turbo con el catálogo real', () => {
     expect(screen.getByRole('tab', { name: 'Despensa' }).getAttribute('aria-selected')).toBe('true')
   })
 
-  test('el «Ver tienda» de un producto abre la tienda Turbo por id', async () => {
+  test('el "Ver tienda" de un producto abre la tienda Turbo por id', async () => {
     stubTurbo()
     const push = renderTurbo()
     await waitFor(() => expect(names()).toHaveLength(24))

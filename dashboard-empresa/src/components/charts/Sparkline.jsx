@@ -6,7 +6,7 @@ const PAD = 5 // aire para el punto final (radio 4 y su anillo)
 
 /**
  * Tendencia de un indicador (línea de 2 px en el gris de contexto y el último punto marcado, con anillo
- * del color de la superficie; en tinta y no en el acento, que junto a «rojo si empeora» se leería como juicio).
+ * del color de la superficie; en tinta y no en el acento, que junto a "rojo si empeora" se leería como juicio).
  * Decorativa: la cifra, el cambio y la tabla dicen lo mismo; `label` lo resume para lectores de pantalla. `values`:
  * números en orden; un null corta la línea.
  */

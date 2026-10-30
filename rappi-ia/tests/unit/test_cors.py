@@ -55,7 +55,7 @@ def test_preflight_allows_delete_for_the_profile():
 
 
 def test_preflight_allows_put_for_preferences_and_autonomy():
-    """La app guarda «Mis preferencias» y «Pedir por mí» con PUT desde otro puerto (make mvp, LAN=1)."""
+    """La app guarda "Mis preferencias" y "Pedir por mí" con PUT desde otro puerto (make mvp, LAN=1)."""
     from fastapi.testclient import TestClient
 
     from rappi_ia.api.app import app

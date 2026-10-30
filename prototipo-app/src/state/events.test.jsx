@@ -220,7 +220,7 @@ describe('el sobre de cada evento', () => {
   const bodies = (fetchMock) =>
     fetchMock.mock.calls.filter(([url]) => String(url).endsWith('/events')).map(([, init]) => JSON.parse(init.body))
 
-  /** La API responde /health; /events responde `reply()` (un estado HTTP o lanza para «sin red»). */
+  /** La API responde /health; /events responde `reply()` (un estado HTTP o lanza para "sin red"). */
   const api = (reply) =>
     vi.fn(async (url) => {
       if (String(url).endsWith('/health')) return { ok: true, status: 200, json: async () => ({ capacidades: {} }) }
@@ -282,7 +282,7 @@ describe('el sobre de cada evento', () => {
     expect(bodies(fetchMock)[1].events.map((e) => e.type)).toEqual(['search'])
   })
 
-  test('tras «Olvidar», un lote que falla no vuelve a la cola', async () => {
+  test('tras "Olvidar", un lote que falla no vuelve a la cola', async () => {
     resetHealthCache()
     let release
     const fetchMock = vi.fn(async (url) => {

@@ -25,7 +25,7 @@ afterEach(() => {
 })
 
 describe('aviso de privacidad en la app', () => {
-  test('la primera visita lo muestra y «Ir a Cuenta» abre Cuenta con «Borrar mis datos»', async () => {
+  test('la primera visita lo muestra y "Ir a Cuenta" abre Cuenta con "Borrar mis datos"', async () => {
     localStorage.removeItem('rappi-proto-privacy-seen')
     stubApi({ '/search': fixture('search-grouped'), '/catalog/home': fixture('catalog-home') })
     window.history.replaceState(null, '', '/')

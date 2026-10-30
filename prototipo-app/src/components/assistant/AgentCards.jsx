@@ -64,9 +64,9 @@ function OrderSummary({ items }) {
 }
 
 /**
- * «Pide lo de siempre en…» (api/autonomy.js): lo de siempre en esa tienda con el precio de hoy, calculado como en el
- * checkout pero sin propina (se elige al recibirlo). Con «Pedir por mí» (`status` de AssistantPanel): ya enviado con la
- * ventana de «Deshacer pedido» (`waiting`; el pedido sale al cerrarse), enviándose, hecho o deshecho. Sin permiso, o si
+ * "Pide lo de siempre en…" (api/autonomy.js): lo de siempre en esa tienda con el precio de hoy, calculado como en el
+ * checkout pero sin propina (se elige al recibirlo). Con "Pedir por mí" (`status` de AssistantPanel): ya enviado con la
+ * ventana de "Deshacer pedido" (`waiting`; el pedido sale al cerrarse), enviándose, hecho o deshecho. Sin permiso, o si
  * algo no cumple sus límites, se revisa antes (`review`, con el motivo) y lleva al checkout de siempre. `onShown` abre la
  * ventana cuando la tarjeta ya se ve (`revealed`: terminó de escribirse el texto de arriba).
  */
@@ -154,10 +154,10 @@ export function AutoOrderCard({ order, status, revealed, onShown, onUndo, onRevi
           ? ' Solo pido lo de siempre, nunca alcohol, +18, farmacia, bebé ni salud.'
           : ''}
       </p>
-      {/* Apagarlo en un toque; «Cómo pido por ti» (el ajuste) va en las acciones de la respuesta. */}
+      {/* Apagarlo en un toque; "Cómo pido por ti" (el ajuste) va en las acciones de la respuesta. */}
       {order.mode === 'pedir' && state !== 'review' && (
         <button type="button" className="agent-auto-off" onClick={onTurnOff}>
-          Apagar «Pedir por mí»
+          Apagar "Pedir por mí"
         </button>
       )}
     </section>
@@ -173,11 +173,11 @@ function Row({ label, value, total = false }) {
   )
 }
 
-/** El pedido que muestra «Mi último pedido»: el más reciente en curso (no uno cancelado después) o, sin uno, el último. */
+/** El pedido que muestra "Mi último pedido": el más reciente en curso (no uno cancelado después) o, sin uno, el último. */
 export const shownOrder = (orders, now = Date.now()) => activeOrder(orders, now) ?? orders[0] ?? null
 
 /**
- * «¿Dónde está mi pedido?»: los pedidos de la última compra (uno por tienda), cada uno con su estado y cuánto falta (la
+ * "¿Dónde está mi pedido?": los pedidos de la última compra (uno por tienda), cada uno con su estado y cuánto falta (la
  * misma línea de tiempo del seguimiento: programado, atrasado o cancelado incluidos) y su seguimiento, donde se cancela
  * o se pide ayuda. Es una tarjeta con botones, no una conversación.
  */

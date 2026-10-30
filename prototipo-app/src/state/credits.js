@@ -2,7 +2,7 @@ import { useSyncExternalStore } from 'react'
 import { CREDITS } from '../screens/checkout/pricing'
 import { loadStored, saveStored } from './storage'
 
-// El saldo de créditos de ejemplo de la persona de la demo, en el navegador (como los pedidos y Pro; «Olvidar» lo
+// El saldo de créditos de ejemplo de la persona de la demo, en el navegador (como los pedidos y Pro; "Olvidar" lo
 // borra). Empieza con los créditos del banner de la Home (`welcome`, que vencen con su cuenta regresiva, una sola fecha
 // para los dos modos); el checkout los gasta, y la ayuda (reembolso en créditos), la garantía de Turbo y la cancelación
 // (lo que el pedido había usado) suman a `extra`, que no vence. Los cupones de ejemplo se usan una vez (`coupons`) y

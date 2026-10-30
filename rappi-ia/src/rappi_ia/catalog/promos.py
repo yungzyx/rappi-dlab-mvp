@@ -1,14 +1,14 @@
 """Las promos de cada tienda tal como Rappi las publicó el día de la descarga (`stores.raw.offers`: `type`, `title`,
 `value`). No se inventan mecánicas (lleva 3 paga 2, 2.ª unidad): solo se repite lo publicado.
 
-El umbral de una promo («Envío gratis sobre $15.000») sale de su propio texto, cuando lo dice; sin él, la promo no
-tiene barra de «Agrega $X».
+El umbral de una promo ("Envío gratis sobre $15.000") sale de su propio texto, cuando lo dice; sin él, la promo no
+tiene barra de "Agrega $X".
 """
 
 import re
 
 MAX_PROMOS = 3
-# Un monto que el texto presenta como mínimo: «sobre $15.000», «desde $9.990», «compras de $20.000», «mínimo $5.000».
+# Un monto que el texto presenta como mínimo: "sobre $15.000", "desde $9.990", "compras de $20.000", "mínimo $5.000".
 _THRESHOLD = re.compile(
     r"(?:sobre|desde|m[ií]nim[oa](?:\s+de)?|compras?\s+(?:de|sobre|desde)|pedidos?\s+(?:de|sobre|desde))"
     r"\s*\$\s*(\d{1,3}(?:\.\d{3})+|\d+)",

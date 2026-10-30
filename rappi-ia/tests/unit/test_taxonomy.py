@@ -42,7 +42,7 @@ def test_category_map_csv_uses_known_concepts():
 
 
 def test_category_map_csv_has_one_concept_per_key():
-    """La clave es el nombre en minúsculas: «Otros medicamentos» y «Otros Medicamentos» son la misma, y la última
+    """La clave es el nombre en minúsculas: "Otros medicamentos" y "Otros Medicamentos" son la misma, y la última
     fila pisaba en silencio la decisión del juez (productos de acuario quedaban como medicamentos)."""
     concepts = defaultdict(set)
     with CATEGORY_MAP_CSV.open(encoding="utf-8") as f:
@@ -65,7 +65,7 @@ def test_reading_a_category_map_with_conflicting_rows_fails(tmp_path):
 
 @pytest.mark.parametrize("method", ["jev", "sugerido"])
 def test_reading_a_category_map_rejects_unpromoted_proposals(tmp_path, method):
-    """Una propuesta de la máquina (jev, sugerido) no es una revisión: al promoverla, la persona la pasa a «curado»."""
+    """Una propuesta de la máquina (jev, sugerido) no es una revisión: al promoverla, la persona la pasa a "curado"."""
     path = tmp_path / "category_map.csv"
     path.write_text(
         "tipo,nombre,concept_id,confianza,metodo,revision,nota,productos\n"

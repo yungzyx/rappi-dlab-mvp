@@ -81,7 +81,7 @@
   right: -6px;
 }
 
-/* Agotado en esta tienda (sin «+»): la ficha ofrece los similares */
+/* Agotado en esta tienda (sin "+"): la ficha ofrece los similares */
 .product-row-soldout {
   color: var(--ink-2);
   font-weight: 600;

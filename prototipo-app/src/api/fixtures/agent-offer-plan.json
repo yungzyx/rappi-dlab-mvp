@@ -86,7 +86,7 @@
       }
     ],
     "occasion": "carrete",
-    "text": "Porque elegiste «Carrete»."
+    "text": "Porque elegiste \"Carrete\"."
   },
   "request_id": "contrato-agent-offer-plan",
   "stores": [
@@ -115,6 +115,6 @@
       "subtotal": 1490
     }
   ],
-  "text": "Tu kit «Carrete»: cerveza, bebidas gaseosas, hielo y pisco, de Licores, Express y Turbo.",
+  "text": "Tu kit \"Carrete\": cerveza, bebidas gaseosas, hielo y pisco, de Licores, Express y Turbo.",
   "vertical": "licores"
 }

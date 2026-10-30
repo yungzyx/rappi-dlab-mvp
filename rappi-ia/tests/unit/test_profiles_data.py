@@ -15,7 +15,7 @@ LADDERS = {
         ("turbo", ("despensa-asiatica",), ()),
         ("conveniencia", ("snacks-asiaticos", "bebidas-asiaticas"), ()),
         ("supermercado", ("despensa-asiatica", "bebidas-asiaticas"), ()),
-        ("chocolateria", ("chocolates", "te"), ("matcha",)),  # Lindor Matcha está en la categoría «Tés»
+        ("chocolateria", ("chocolates", "te"), ("matcha",)),  # Lindor Matcha está en la categoría "Tés"
     ],
     "cafe": [
         ("supermercado", ("cafe",), ()),
@@ -101,7 +101,7 @@ def test_the_party_profile_has_no_alcohol():
 
 
 # Nombres de la base real (14-10-2026) que calzan o no un peldaño con palabras: la palabra va al comienzo de una
-# palabra del nombre, y `evitar` saca lo que dice la palabra sin ser lo que promete el peldaño (un limpiador «en pasta»,
+# palabra del nombre, y `evitar` saca lo que dice la palabra sin ser lo que promete el peldaño (un limpiador "en pasta",
 # juguetes de cocina con concepto `cocina-menaje`).
 @pytest.mark.parametrize(
     ("profile", "vertical", "name", "fits"),
@@ -125,7 +125,7 @@ def test_the_party_profile_has_no_alcohol():
         ("carrete", "mall", 'Guirnalda Globo Foil "un Pene Forever" Rose Gold', False),  # despedida de soltera
         ("carrete", "mall", "Set Globo Metálico Soltera Corbatín", False),
         ("mascotas", "mall", "Buddy Pet Pelota Con Cuerda Para Perros", True),
-        ("mascotas", "mall", "Set Libros Para Colorear Casaideas", False),  # en «Otros accesorios mascotas»
+        ("mascotas", "mall", "Set Libros Para Colorear Casaideas", False),  # en "Otros accesorios mascotas"
         ("mascotas", "mall", "Puzzle Redondo 500 Piezas Perros Del Mundo", False),
         ("mascotas", "mall", "Rascador Para Gatos Con Pelota", False),  # el perfil es de perro
         ("mascotas", "mall", "Collar Para Gato Con Cascabel", False),
@@ -220,7 +220,7 @@ def test_a_valid_profile_file_loads(tmp_path):
 
 
 def test_each_profile_says_what_the_person_likes():
-    """La frase que sigue a «Por tu gusto por…» en el momento `perfil` y a «Veo que te gusta…» en el saludo."""
+    """La frase que sigue a "Por tu gusto por…" en el momento `perfil` y a "Veo que te gusta…" en el saludo."""
     assert {p.id: p.likes for p in load_profiles().values()} == {
         "asiatico": "lo asiático",
         "cafe": "el café",
@@ -329,14 +329,14 @@ def test_a_destination_has_exactly_two_facts(tmp_path, facts):
 
 
 def test_a_step_query_says_what_its_products_are_called():
-    """Sin embeddings la búsqueda es solo léxica: el nombre del concepto («Despensa asiática») no está en ningún
+    """Sin embeddings la búsqueda es solo léxica: el nombre del concepto ("Despensa asiática") no está en ningún
     producto, sus palabras clave sí. Un peldaño con palabras busca sus palabras."""
     from rappi_ia.offers.profiles import _step_query
 
     steps = {(p.id, s.vertical): s for p in load_profiles().values() for s in p.ladder}
     assert _step_query(steps["asiatico", "turbo"]) == "Despensa asiática salsa de soya salsa de soja"
-    assert _step_query(steps["cafe", "supermercado"]) == "Café espresso cappuccino"  # «cafe» es la misma palabra
-    # En restaurantes, sin el nombre del concepto; «rolls» no suma nada a «roll».
+    assert _step_query(steps["cafe", "supermercado"]) == "Café espresso cappuccino"  # "cafe" es la misma palabra
+    # En restaurantes, sin el nombre del concepto; "rolls" no suma nada a "roll".
     assert _step_query(steps["asiatico", "restaurantes"]) == "sushi roll wok chapsui"
     assert _step_query(steps["asiatico", "chocolateria"]) == "matcha"
     assert _step_query(steps["carrete", "mall"]) == "vaso guirnalda globo cotillon"
@@ -344,8 +344,8 @@ def test_a_step_query_says_what_its_products_are_called():
 
 def test_a_city_is_its_comunas():
     """Un restaurante guarda su comuna (`stores.city`), no la ciudad en que el scraper descubre tiendas. Santiago de
-    Chile (la de PROFILE_CITY) son sus comunas, y «Santiago», la ciudad de las personas simuladas, es la misma. Otra
-    ciudad es su propia comuna, sin tildes ni mayúsculas («Concepcion», como la escribe el descubrimiento)."""
+    Chile (la de PROFILE_CITY) son sus comunas, y "Santiago", la ciudad de las personas simuladas, es la misma. Otra
+    ciudad es su propia comuna, sin tildes ni mayúsculas ("Concepcion", como la escribe el descubrimiento)."""
     from rappi_ia.offers.profiles import city_places
 
     santiago = city_places("Santiago de Chile")

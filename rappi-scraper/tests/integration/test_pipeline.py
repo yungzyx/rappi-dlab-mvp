@@ -285,7 +285,7 @@ def test_possible_block_from_the_client_stops_the_store_job(db):
 
 
 def test_first_handler_runs_outside_transaction(db, monkeypatch):
-    """Leer la cola abría una transacción que quedaba «idle in transaction» durante todo el primer job (decenas de
+    """Leer la cola abría una transacción que quedaba "idle in transaction" durante todo el primer job (decenas de
     minutos): retenía vacuum y cualquier migración."""
     seen = []
 
@@ -478,7 +478,7 @@ def test_city_not_overwritten_by_listing(db, monkeypatch):
 
 
 def test_new_run_closes_previous(db):
-    """`discover --new-run` dejaba la corrida anterior «en curso» para siempre (y rappi-ia no embebía)."""
+    """`discover --new-run` dejaba la corrida anterior "en curso" para siempre (y rappi-ia no embebía)."""
     first = cli._run_id(db, "stores", Namespace(new_run=False))
     second = cli._run_id(db, "stores", Namespace(new_run=True))
 

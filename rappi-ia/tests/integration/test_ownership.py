@@ -197,7 +197,7 @@ def test_legacy_id_claimed_once(client, db):
 
 
 def test_new_users_per_ip_cap_is_429(client, monkeypatch):
-    # Un cliente que no es este equipo (el TestClient llega como «testclient»): el tope de la API, con 2 por día
+    # Un cliente que no es este equipo (el TestClient llega como "testclient"): el tope de la API, con 2 por día
     monkeypatch.setattr(api, "NEW_USERS", RateLimit(None, per_minute=2, writes_per_minute=0, window_s=86_400))
     session(client)
     session(client)

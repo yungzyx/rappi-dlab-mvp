@@ -455,7 +455,7 @@
   },
   "atributo|adolescentes|catalog_item|1364677": {
    "juicio": "dudoso",
-   "nota": "«Juvenil» puede ser talla, no necesariamente adolescentes"
+   "nota": "\"Juvenil\" puede ser talla, no necesariamente adolescentes"
   },
   "atributo|adulto-mayor|catalog_item|57331": {
    "juicio": "no",
@@ -466,7 +466,7 @@
   },
   "atributo|alto-fibra|catalog_item|1544091": {
    "juicio": "no",
-   "nota": "Wrap de cáñamo; «fibra vegetal» no es fibra dietaria"
+   "nota": "Wrap de cáñamo; \"fibra vegetal\" no es fibra dietaria"
   },
   "atributo|alto-proteina|catalog_item|1312861": {
    "juicio": "si"
@@ -1819,7 +1819,7 @@
   },
   "atributo|adolescentes|catalog_item|719674": {
    "juicio": "dudoso",
-   "nota": "«juvenil» talla 34-37: puede ser niño o adolescente"
+   "nota": "\"juvenil\" talla 34-37: puede ser niño o adolescente"
   },
   "atributo|adulto-mayor|catalog_item|129594": {
    "juicio": "no",
@@ -1935,7 +1935,7 @@
   },
   "atributo|hombre|catalog_item|1667412": {
    "juicio": "no",
-   "nota": "«men» viene de Aji-no-men, sopa instantánea"
+   "nota": "\"men\" viene de Aji-no-men, sopa instantánea"
   },
   "atributo|horno|menu_item|15224": {
    "juicio": "dudoso",
@@ -1991,7 +1991,7 @@
   },
   "atributo|organico|catalog_item|1178729": {
    "juicio": "dudoso",
-   "nota": "«Organic» es nombre de línea; solo extracto certificado"
+   "nota": "\"Organic\" es nombre de línea; solo extracto certificado"
   },
   "atributo|otras-mascotas|catalog_item|135099": {
    "juicio": "dudoso",
@@ -2046,7 +2046,7 @@
   },
   "atributo|san-valentin|menu_item|138491": {
    "juicio": "no",
-   "nota": "«Enamorado» es nombre del plato, no San Valentín"
+   "nota": "\"Enamorado\" es nombre del plato, no San Valentín"
   },
   "atributo|sin-alcohol|menu_item|1193625": {
    "juicio": "si"
@@ -2074,7 +2074,7 @@
   },
   "atributo|sin-parabenos|catalog_item|1416906": {
    "juicio": "dudoso",
-   "nota": "No se ve «sin parabenos» en el texto"
+   "nota": "No se ve \"sin parabenos\" en el texto"
   },
   "atributo|sin-soya|catalog_item|1304401": {
    "juicio": "si"

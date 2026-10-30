@@ -159,14 +159,14 @@ def _decide(
         return replace(current, confidence=round(max(current.confidence, share), 3))
     if current and keeps_sensitive(current.concept_id, best):  # los vecinos no sacan a nadie de un sensible
         return current
-    # Ni sacan un producto del alcohol o de bebé: en la base real del 14-10-2026 un «Espresso Martini» listo pasaba a
+    # Ni sacan un producto del alcohol o de bebé: en la base real del 14-10-2026 un "Espresso Martini" listo pasaba a
     # café y una fórmula Similac a lácteos, conceptos que el agente ofrece. En los platos sí: ahí el alcohol sale de
-    # palabras con otro sentido («Pizza Margarita», «Hamburguesa Cebolla al Vino Tinto») y las ofertas lo bloquean por
+    # palabras con otro sentido ("Pizza Margarita", "Hamburguesa Cebolla al Vino Tinto") y las ofertas lo bloquean por
     # el nombre y la sección (offers/guards.py).
     if current and item.entity_type == "catalog_item" and keeps_guarded(current.concept_id, best):
         return current
-    # Salvo un plato que la sección puso en alcohol: la guardia no ve las secciones «Aperitivos», y «Jengibre Sour»
-    # pasaba a salsas («sour» con salsas es la salsa agridulce para las guardias). La comida de esas secciones ya no
+    # Salvo un plato que la sección puso en alcohol: la guardia no ve las secciones "Aperitivos", y "Jengibre Sour"
+    # pasaba a salsas ("sour" con salsas es la salsa agridulce para las guardias). La comida de esas secciones ya no
     # llega a alcohol por la sección (`assign._solid_food`); lo que queda es un trago o algo que no se reconoce.
     if (
         current
@@ -175,7 +175,7 @@ def _decide(
         and keeps_guarded(current.concept_id, best)
     ):
         return current
-    # El nombre de un plato que nombra un plato o su proteína («Pollo asado + Bebida», «Pescado frito») manda: los
+    # El nombre de un plato que nombra un plato o su proteína ("Pollo asado + Bebida", "Pescado frito") manda: los
     # combos con bebida se parecen entre sí y los vecinos los mandaban a sushi o a platos listos.
     if (
         current
@@ -185,7 +185,7 @@ def _decide(
     ):
         return current
     # Un concepto de especialidad que el nombre reconoció sobre una categoría de comida (`refines`) no lo deshacen las
-    # vecinas que votan otra comida: son lo genérico de esa categoría («Kikkoman Salsa de Soya» entre las salsas). Si
+    # vecinas que votan otra comida: son lo genérico de esa categoría ("Kikkoman Salsa de Soya" entre las salsas). Si
     # votan alcohol, algo sensible o algo que no es comida, sigue la regla de siempre; sin categoría de comida, también.
     if current and current.refines and best in refinable_by_name():
         return current
@@ -202,7 +202,7 @@ def _decide(
     if current is None:
         return knn if share >= (FALLBACK_SHARE if best in sensitive else STRONG_SHARE) else None
     # Meter en un sensible lo que una regla dejó en un concepto común exige el mismo acuerdo que contradecir a la
-    # categoría: con mayoría simple, «Hand Rolls» o «Wrap» se parecían a papelillos y quedaban ocultos.
+    # categoría: con mayoría simple, "Hand Rolls" o "Wrap" se parecían a papelillos y quedaban ocultos.
     enters_sensitive = best in sensitive and current.concept_id not in sensitive
     if current.method == "regla" and not enters_sensitive:
         between_sensitive = best in sensitive and current.concept_id in sensitive

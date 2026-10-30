@@ -59,7 +59,7 @@ def _current_version(conn: Connection) -> int:
 
 def cached[T](name: str, conn: Connection, fn: Callable[[], T], ttl_s: float = DEFAULT_TTL_S) -> T:
     """`fn()` guardado por `name` mientras la versión del catálogo sea la misma y no pasen `ttl_s` segundos. `name`
-    lleva los parámetros que cambian el resultado («deals:licores:24»). Si falta, lo calcula uno solo: los demás que
+    lleva los parámetros que cambian el resultado ("deals:licores:24"). Si falta, lo calcula uno solo: los demás que
     lo piden a la vez esperan su resultado (en frío, seis personas abriendo la Home recorrían el catálogo seis
     veces). Si el cálculo falla, el siguiente que espera lo intenta. Se espera a lo más LOADING_WAIT_S: si el otro
     tarda más, lo calcula también quien esperaba (su transacción no queda quieta hasta que la API la corte)."""
@@ -107,7 +107,7 @@ def cached_many[T](
 ) -> dict[str, T]:
     """Como `cached`, de varias claves a la vez: `fetch(faltantes)` trae en una sola consulta las que no están, son de
     otra versión del catálogo o vencieron. Guarda a lo más MANY_MAX entradas (LRU). `prefix` lleva lo que comparten
-    («df:licores:2361»)."""
+    ("df:licores:2361")."""
     version = _current_version(conn)
     now = _now()
     found: dict[str, T] = {}

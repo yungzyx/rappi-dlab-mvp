@@ -8,7 +8,7 @@ const FIXTURES = import.meta.glob('../api/fixtures/*.json', { eager: true })
 /** JSON de `src/api/fixtures/<name>.json` (una copia: cada test puede modificar la suya). */
 export function fixture(name) {
   const module = FIXTURES[`../api/fixtures/${name}.json`]
-  if (!module) throw new Error(`No existe la respuesta de ejemplo «${name}» en src/api/fixtures/`)
+  if (!module) throw new Error(`No existe la respuesta de ejemplo "${name}" en src/api/fixtures/`)
   return structuredClone(module.default)
 }
 
@@ -69,7 +69,7 @@ const KEY = /^(?:(GET|POST|PUT|DELETE) )?(\/[^?#\s]*)$/
 function normalizeKey(key) {
   const match = KEY.exec(key)
   if (!match)
-    throw new Error(`stubApi: clave inválida «${key}» (usa 'GET /ruta', 'POST /ruta' o '/ruta', sin query string)`)
+    throw new Error(`stubApi: clave inválida "${key}" (usa 'GET /ruta', 'POST /ruta' o '/ruta', sin query string)`)
   const [, method = 'GET', path] = match
   return `${method} ${path}`
 }

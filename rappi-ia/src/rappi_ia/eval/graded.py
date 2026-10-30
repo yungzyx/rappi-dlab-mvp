@@ -3,14 +3,14 @@
 El juez por concepto de `search_eval` da por relevante todo lo del mismo concepto, aunque sea otro formato, un
 repuesto o una versión infantil: contra el juicio LLM del 25-10 coincide en el 70,5 % (κ 0,32;
 docs/resultados/juicio-llm-busqueda-2026-10-25.md). Este juez puntúa lo que ve la persona (la fila
-`hibrido_mostrado`, `search_products` como /search) con 2 «sirve», 1 «a medias» y 0 «no sirve».
+`hibrido_mostrado`, `search_products` como /search) con 2 "sirve", 1 "a medias" y 0 "no sirve".
 
 - Consultas: las positivas de queries.json con algún par juzgado. Son siempre las mismas: el antes y el después se
   comparan sobre las mismas consultas.
 - nDCG@10: ganancia 0, 1 o 2. Un producto sin juicio se salta (lista condensada) y el ideal sale de todos los pares
   juzgados de la consulta, también los que la búsqueda ya no muestra.
-- P@3: «sirve» entre los tres primeros, sobre 3 (un puesto vacío o sin juicio cuenta como que no sirve); útil@3, lo
-  mismo con «sirve» o «a medias».
+- P@3: "sirve" entre los tres primeros, sobre 3 (un puesto vacío o sin juicio cuenta como que no sirve); útil@3, lo
+  mismo con "sirve" o "a medias".
 - Cobertura: cuántos de los productos mostrados tienen juicio. Los que no, van a una planilla (`pendientes`, con
   textos del catálogo: fuera de git) para juzgarlos con el mismo criterio; sus juicios se suman a COMPLEMENT_FILE, por
   id de par y sin textos (`import_sheet`).
@@ -39,7 +39,7 @@ PENDING_COLUMNS = ["id", "consulta", "vertical", "entity_type", "entity_id", "no
 class Judged:
     vertical: str
     query: str
-    level: int  # 2 «sirve», 1 «a medias», 0 «no sirve»
+    level: int  # 2 "sirve", 1 "a medias", 0 "no sirve"
 
 
 def load_judgments(
@@ -228,11 +228,11 @@ def render_markdown(scores: dict, title: str = "Juez de tres niveles") -> str:
     lines = [
         f"## {title} (juicio LLM, no humano)",
         "",
-        "Lo que ve la persona (`hibrido_mostrado`) puntuado con el juicio LLM de pares: 2 «sirve», 1 «a medias», 0 «no"
-        " sirve». Solo las consultas con algún par juzgado; un producto sin juicio se salta en el nDCG y cuenta como"
+        'Lo que ve la persona (`hibrido_mostrado`) puntuado con el juicio LLM de pares: 2 "sirve", 1 "a medias", 0 "no'
+        ' sirve". Solo las consultas con algún par juzgado; un producto sin juicio se salta en el nDCG y cuenta como'
         " que no sirve en P@3 (ver eval/graded.py).",
         "",
-        "| | Consultas | nDCG@10 | P@3 «sirve» | Útil@3 | «No sirve» entre lo juzgado | Mostrados | Sin juicio |",
+        '| | Consultas | nDCG@10 | P@3 "sirve" | Útil@3 | "No sirve" entre lo juzgado | Mostrados | Sin juicio |',
         "|---|---|---|---|---|---|---|---|",
         _row("Total", total),
     ]

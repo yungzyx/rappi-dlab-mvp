@@ -60,7 +60,7 @@ def test_hot_dog_is_not_spicy_and_a_dog_food_is_for_dogs():
 
 
 def test_pet_words_only_count_inside_the_pets_group():
-    """«Gato Vino Cabernet» es un vino y «Audífonos Cat» no son para gatos; el campo de Rappi sí vale siempre."""
+    """ "Gato Vino Cabernet" es un vino y "Audífonos Cat" no son para gatos; el campo de Rappi sí vale siempre."""
     assert "gato" not in _detect(name="Gato Vino Cabernet Sauvignon 1 L", group="alcohol")
     assert "gato" not in _detect(name="Audífonos Bluetooth Cat P47m", group="tecnologia")
     assert "gato" in _detect(name="Collar", rappi={"type_of_pet": "Gato"}, group="tecnologia")
@@ -91,7 +91,7 @@ def test_every_attribute_has_family_and_unique_id():
 
 
 def test_only_declared_properties_are_read_from_a_product_description():
-    """«Olla… apta para vidrio y microondas, hecha en Chile» no es un envase de vidrio ni un producto chileno."""
+    """ "Olla… apta para vidrio y microondas, hecha en Chile" no es un envase de vidrio ni un producto chileno."""
     description = "Apta para vidrio y microondas. Producto chileno. Sin gluten certificado."
     found = _detect(name="Olla de cocción 7 L", description=description)
     assert "vidrio" not in found and "chileno" not in found
@@ -105,7 +105,7 @@ def test_baby_back_ribs_and_globe_bulbs_are_not_baby_or_birthday_items():
 
 
 def test_phrases_never_start_with_a_symbol():
-    """«+ papas» se normaliza a «papas»: todo plato con papas era «con acompañamiento»."""
+    """ "+ papas" se normaliza a "papas": todo plato con papas era "con acompañamiento"."""
     for rule in RULES:
         for phrase in (*rule.phrases, *rule.negations):
             assert phrase[0].isalnum(), (rule.attribute_id, phrase)
@@ -155,7 +155,7 @@ def test_plant_drinks_and_seitan_are_vegan(name):
     "name", ["Massaman Curry Pechuga de pollo en leche de coco", "Seitán Furay Queso Crema", "Cóctel con leche de coco"]
 )
 def test_plant_ingredient_phrases_do_not_make_a_dish_vegan(name):
-    """«Leche de coco» o «seitán» en un plato es un ingrediente, no una garantía: solo valen en productos."""
+    """ "Leche de coco" o "seitán" en un plato es un ingrediente, no una garantía: solo valen en productos."""
     assert "vegano" not in _detect(entity_type="menu_item", name=name, group="comida")
 
 
@@ -253,6 +253,6 @@ def test_alcohol_free_beer_with_a_soft_drink_concept_is_still_alcohol_free():
 
 
 def test_a_dish_without_a_concept_is_still_food_for_food_attributes():
-    """Unos 14 mil platos quedaron sin concepto: sin grupo, «saludable» o «integral» no calzaban nunca."""
+    """Unos 14 mil platos quedaron sin concepto: sin grupo, "saludable" o "integral" no calzaban nunca."""
     assert "saludable" in _detect(entity_type="menu_item", name="Bowl saludable de quinoa", group=None)
     assert "saludable" not in _detect(entity_type="catalog_item", name="Pulsera fitness", group=None)

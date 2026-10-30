@@ -61,7 +61,7 @@ afterEach(() => {
 })
 
 describe('reorderPlan', () => {
-  test('lo disponible lleva el precio de hoy (sin el «antes» de esa vez) y su lugar; lo demás queda aparte', () => {
+  test('lo disponible lleva el precio de hoy (sin el "antes" de esa vez) y su lugar; lo demás queda aparte', () => {
     const lines = [line(COFFEE, 2), line(ICE_CREAM)]
     const plan = reorderPlan(lines, fixture('catalog-availability').lines, { surface: 'orders' })
     expect(plan.available).toEqual([
@@ -104,8 +104,8 @@ describe('carrusel de la tienda', () => {
   })
 })
 
-describe('Home de «Rappi hoy»', () => {
-  test('los pedidos entregados traen «Pídelo de nuevo»; uno en curso todavía no', async () => {
+describe('Home de "Rappi hoy"', () => {
+  test('los pedidos entregados traen "Pídelo de nuevo"; uno en curso todavía no', async () => {
     renderWith(<ReorderHomeRow />)
     await act(async () => screen.getByText('pedir').click())
     expect(screen.queryByRole('region', { name: 'Pídelo de nuevo' })).toBeNull()

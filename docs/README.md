@@ -36,7 +36,7 @@ Las especificaciones con que se construyeron las piezas grandes. Cada una dice a
 | [MVP integrado](diseno/2026-10-10-mvp-integrado-design.md) | 10-10-2026 | La app conectada a la API: catálogo real, buscador y ofertas de Mochi sobre el RAG, panel y Jev, en 7 etapas |
 | [Perfiles de gusto](diseno/2026-10-14-perfiles-de-gusto-design.md) | 14-10-2026 | Escaleras de verticales por gusto (el sushi como narrativa), en datos |
 | [Motor multivertical y Home dinámica](diseno/2026-10-16-motor-multivertical-design.md) | 16-10-2026 | Afinidad, transiciones, combinaciones, compra cruzada, tendencias y recompra (migración 036), con la tabla de Rappi completa |
-| [Conversar con Mochi](diseno/2026-10-25-mochi-conversacion-design.md) | 25-10-2026 | Seguir la conversación («más barato», «sin carne», «para 10 personas»): el estado que viaja con la app y cómo se combina con lo nuevo. Desde el 26-10, con chips y sin campo para escribirle |
+| [Conversar con Mochi](diseno/2026-10-25-mochi-conversacion-design.md) | 25-10-2026 | Seguir la conversación ("más barato", "sin carne", "para 10 personas"): el estado que viaja con la app y cómo se combina con lo nuevo. Desde el 26-10, con chips y sin campo para escribirle |
 
 Las migraciones 022 a 026, 036 y 037 citan en su primera línea la carpeta anterior de estos diseños: los archivos son los mismos de [diseno/](diseno/), y lo de la escalera fina (037) está en [capa-de-datos.md](capa-de-datos.md#la-escalera-fina).
 
@@ -51,7 +51,7 @@ GitHub muestra las imágenes; las versiones interactivas (HTML) hay que descarga
 | Arquitectura de la IA | Catálogo y agente Mochi por carriles: datos offline, consulta online y entre verticales | [arquitectura-ia.png](diagramas/arquitectura-ia.png) | [arquitectura-ia.html](diagramas/arquitectura-ia.html) |
 | Scraper | Cómo `rappi refresh` descubre, descarga y guarda el catálogo | [scraper-flujo.png](diagramas/scraper-flujo.png) | [scraper-flujo.html](diagramas/scraper-flujo.html) |
 | Despliegue | El servidor: Caddy con la puerta, la API, Postgres, `migrate` y los trabajos con sus respaldos | [despliegue.png](diagramas/despliegue.png) | [despliegue.html](diagramas/despliegue.html) |
-| Mapa multivertical | Qué productos y conceptos comparten las verticales, con complementos, sustitutos y «nunca junto»; se regenera con `rappi-ia multivertical` | — | [mapa-multivertical.html](mapas/mapa-multivertical.html) |
+| Mapa multivertical | Qué productos y conceptos comparten las verticales, con complementos, sustitutos y "nunca junto"; se regenera con `rappi-ia multivertical` | — | [mapa-multivertical.html](mapas/mapa-multivertical.html) |
 | Mapa de conceptos | Cada concepto junto a la vertical donde es más típico (la regla de Mochi) | [mapa-conceptos.jpg](mapas/mapa-conceptos.jpg) | — |
 
 Las fuentes JSON de los diagramas están en [diagramas-fuente/](diagramas-fuente/). El HTML y el PNG se generaron a partir de ellas con Archify, una herramienta de diagramas que no es parte del repositorio.
@@ -61,7 +61,7 @@ Las fuentes JSON de los diagramas están en [diagramas-fuente/](diagramas-fuente
 | Si quieres… | Lee |
 |---|---|
 | Las cifras vigentes, con qué tipo de dato es cada una | [README.md#resultados](../README.md#resultados) |
-| La evaluación de la búsqueda vigente (set del 22-10-2026: nDCG@10 y «sin resultado») | [resultados/busqueda-2026-10-22.md](resultados/busqueda-2026-10-22.md) |
+| La evaluación de la búsqueda vigente (set del 22-10-2026: nDCG@10 y "sin resultado") | [resultados/busqueda-2026-10-22.md](resultados/busqueda-2026-10-22.md) |
 | La corrección de errores de tipeo (24-10-2026) | [resultados/busqueda-2026-10-24.md](resultados/busqueda-2026-10-24.md) |
 | La búsqueda con el juez de tres niveles y los cambios del 25-10-2026 | [resultados/busqueda-2026-10-25.md](resultados/busqueda-2026-10-25.md) |
 | El juicio LLM doble ciego de 200 pares (25-10-2026) | [resultados/juicio-llm-busqueda-2026-10-25.md](resultados/juicio-llm-busqueda-2026-10-25.md) |
@@ -77,7 +77,7 @@ Las fuentes JSON de los diagramas están en [diagramas-fuente/](diagramas-fuente
 | Si quieres… | Lee | Tiempo |
 |---|---|---|
 | Instalar el proyecto, cargar la base y dejarlo actualizándose cada semana | [instalacion.md](instalacion.md) | 10 min de lectura |
-| Levantar el MVP (`make mvp`), probarlo (`make mvp-check`) y qué hacer con «Sin conexión con Mochi» | [instalacion.md §5](instalacion.md#5-el-mvp) | 5 min |
+| Levantar el MVP (`make mvp`), probarlo (`make mvp-check`) y qué hacer con "Sin conexión con Mochi" | [instalacion.md §5](instalacion.md#5-el-mvp) | 5 min |
 | Desplegar el MVP en un servidor (Docker Compose, Caddy con TLS y puerta, respaldos con restic) | [despliegue.md](despliegue.md) | 20 min |
 | Consultar la base con SQL | [sql/README.md](sql/README.md) y [consultas.sql](sql/consultas.sql) | 5 min |
 | Probar a Mochi (API) como usuario y dejar cada fallo como test | [pruebas-de-usuario.md](pruebas-de-usuario.md) | 3 min |

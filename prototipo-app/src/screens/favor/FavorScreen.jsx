@@ -27,7 +27,7 @@ const USES = [
 
 /**
  * RappiFavor: un Rappitendero hace un favor de corta distancia. En Rappi hoy aparece no disponible; aquí, simulado.
- * `params.text`: lo que el buscador no encontró («Lo que sea»): abre «Compras en cualquier tienda» con el encargo ya
+ * `params.text`: lo que el buscador no encontró ("Lo que sea"): abre "Compras en cualquier tienda" con el encargo ya
  * escrito (el buscador solo lo ofrece si las guardias de la API lo permiten).
  */
 export default function FavorScreen({ back, params = {} }) {

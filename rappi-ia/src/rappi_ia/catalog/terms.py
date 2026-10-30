@@ -5,7 +5,7 @@ lectura). Lo que falta va en `None`: la app pone su supuesto rotulado por vertic
 
 De dónde sale cada dato:
 - Restaurantes: `restaurant_details.delivery_cost` (> 0; un $0 es un dato que falta, como en la tarjeta).
-- Tiendas: el `raw` que la descarga guarda de Rappi (`storeContext`). `mov_value` es la compra mínima (0 = «sin mínimo»,
+- Tiendas: el `raw` que la descarga guarda de Rappi (`storeContext`). `mov_value` es la compra mínima (0 = "sin mínimo",
   que también es un dato); el envío es `charges.delivery.delivery_fee_charge` si es positivo y, si no,
   `delivery_price`; `percentage_service_fee` es el porcentaje de la tarifa de servicio. La descarga va sin dirección
   (`zone_id` 0): el envío y la tarifa suelen venir en 0, y `delivery_price` trae valores como 30 que no son un envío en

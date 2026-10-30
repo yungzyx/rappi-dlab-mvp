@@ -5,7 +5,7 @@ Todo sobre el catálogo de `seed_demo`. Los ocho restaurantes (9801 a 9808), con
 | id   | nota | tiempo | envío  | notas del caso                                          |
 | 9801 | 4,6  | 25 min | $1.490 | sin área en el nombre; populares 98002 y 98004          |
 | 9802 | -    | 35 min | $0     | dos cocinas; sin populares; el primer plato no tiene foto |
-| 9803 | 4,2  | 15 min | $990   | «X - Área»; popular 98010                               |
+| 9803 | 4,2  | 15 min | $990   | "X - Área"; popular 98010                               |
 | 9804 | 4,8  | 40 min | $2.490 |                                                         |
 | 9805 | 3,9  | -      | $1.990 | tiempo desconocido; un plato sin precio                 |
 | 9806 | 4,6  | 20 min | $690   | misma nota que 9801 con menos opiniones                 |
@@ -14,7 +14,7 @@ Todo sobre el catálogo de `seed_demo`. Los ocho restaurantes (9801 a 9808), con
 
 Las bajas de precio salen de comparar la oferta vigente con la corrida anterior (ver `_PREVIOUS` en el seed).
 
-Tres tiendas con ofertas no se empujan (ni «Cerca de ti» ni las ofertas sin vertical): el sex shop 9611 y el smoking
+Tres tiendas con ofertas no se empujan (ni "Cerca de ti" ni las ofertas sin vertical): el sex shop 9611 y el smoking
 shop 9612 del mall, y la farmacia 9111 que Rappi lista entre los súper. Cada una vende un producto corriente y uno de
 concepto sensible, los dos con baja de precio (ver `_NOT_PUSHED_STORES` en el seed).
 """
@@ -105,7 +105,7 @@ def test_restaurant_cover_is_a_dish_photo_and_name_splits_area(seeded):
     sandwiches = cards[SANDWICHES]
     assert (sandwiches["name"], sandwiches["area"]) == ("Sándwiches de prueba", "Providencia")
     assert (cards[GRILL]["name"], cards[GRILL]["area"]) == ("Parrilla de prueba", "Ñuñoa")
-    # Sin « - » en el nombre no hay área.
+    # Sin " - " en el nombre no hay área.
     assert (cards[PIZZERIA]["name"], cards[PIZZERIA]["area"]) == ("Pizzería de prueba Centro", "")
     # La portada es la foto de un plato popular aunque otro plato anterior tenga foto (98001 la tiene)...
     assert cards[PIZZERIA]["cover"] == f"{DISH_PHOTOS}98002.png"
@@ -124,13 +124,13 @@ def test_restaurant_card_has_rating_eta_fee_and_cuisines(seeded):
     assert (cards[PIZZERIA]["eta"], cards[PIZZERIA]["fee"]) == ("25 min", "$1.490")
     assert cards[PIZZERIA]["cuisines"] == ["Pizzas"]
     assert cards[SUSHI]["cuisines"] == ["Hamburguesa", "Sushi"]  # en orden alfabético
-    # Sin nota, el campo queda vacío; con envío gratis, es «$0»; sin tiempo de entrega, tampoco hay.
+    # Sin nota, el campo queda vacío; con envío gratis, es "$0"; sin tiempo de entrega, tampoco hay.
     assert cards[SUSHI]["rating"] is None and cards[SUSHI]["fee"] == "$0"
     assert cards[CAFE]["eta"] is None and cards[CAFE]["fee"] == "$1.990"
 
 
 def test_the_shown_name_is_the_one_of_its_dishes_and_orders(seeded):
-    """ui C11: «Pastelería de prueba» en la lista y «Pastelería de prueba - Vitacura» en el carro y los pedidos. La
+    """ui C11: "Pastelería de prueba" en la lista y "Pastelería de prueba - Vitacura" en el carro y los pedidos. La
     tarjeta trae `display_name`, el mismo `store` de sus platos (el que llega al carro, al checkout y a sus pedidos)."""
     cards = {card["id"]: card for card in restaurants(seeded, limit=100)}
 
@@ -306,7 +306,7 @@ def test_menu_hides_dishes_without_a_price_and_the_sections_they_empty(seeded):
 
 
 def _add_best_sellers(conn, store_id: int, items: dict[int, list[int]]) -> None:
-    """Como guarda el scraper un menú con «Más vendidos» (migración 040): la sección va primera y cada plato repetido
+    """Como guarda el scraper un menú con "Más vendidos" (migración 040): la sección va primera y cada plato repetido
     queda una vez, con su sección propia en `section_id` y las demás en `extra_section_ids`."""
     conn.execute("UPDATE menu_sections SET position = position + 1 WHERE store_id = %s", (store_id,))
     conn.execute(
@@ -318,7 +318,7 @@ def _add_best_sellers(conn, store_id: int, items: dict[int, list[int]]) -> None:
 
 
 def test_menu_lists_a_repeated_dish_in_every_section_it_is_in(seeded):
-    # 98003 (bebida) y 98002 (pizza, popular) también están en «Más vendidos».
+    # 98003 (bebida) y 98002 (pizza, popular) también están en "Más vendidos".
     _add_best_sellers(seeded, PIZZERIA, {98003: [99], 98002: [99]})
 
     menu = restaurant_menu(seeded, PIZZERIA)
@@ -648,7 +648,7 @@ def test_home_nearby_is_sorted_by_distance_and_skips_pharmacy(seeded):
 
 def test_home_nearby_never_pushes_sex_shops_smoking_shops_or_pharmacies_listed_as_supermarkets(seeded):
     # Las tres tienen ofertas vigentes y están más cerca del punto fijo que cualquier otra tienda, pero el subvertical
-    # que Rappi les da (Sex shop, Smoking shop, Farmacia) las deja fuera de «Cerca de ti».
+    # que Rappi les da (Sex shop, Smoking shop, Farmacia) las deja fuera de "Cerca de ti".
     assert NOT_PUSHED_STORES.isdisjoint(ids(home(seeded)["nearby_stores"]))
     # Quien abre Retail o Súper a propósito sí las ve: esas listas no cambian.
     assert {SEX_SHOP, SMOKING_SHOP} <= set(ids(vertical_stores(seeded, "mall")))

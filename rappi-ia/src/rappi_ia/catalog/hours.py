@@ -1,7 +1,7 @@
 """Abierto o cerrado según lo que Rappi publicó el día de la descarga, nunca el estado en vivo.
 
 - Un restaurante trae su horario (`restaurant_details.schedules`: `[{day, open_time, close_time}]`, día en inglés y
-  horas «HH:MM:SS»). Se compara con la hora local de Santiago: abre si la hora cae en un tramo del día de hoy. Si el
+  horas "HH:MM:SS"). Se compara con la hora local de Santiago: abre si la hora cae en un tramo del día de hoy. Si el
   horario publicado es de un solo día (la página muestra el del día en que se bajó), ese tramo vale para todos los
   días; si trae varios días y hoy no está, hoy está cerrado. Un tramo que pasa la medianoche (de 19:00 a 02:00) cuenta
   las dos partes.
@@ -37,7 +37,7 @@ def _text(moment: time) -> str:
 
 
 def normalize_schedule(schedules) -> list[dict]:
-    """Los tramos válidos del horario publicado, `[{day, open, close}]` con horas «HH:MM», en el orden de la semana.
+    """Los tramos válidos del horario publicado, `[{day, open, close}]` con horas "HH:MM", en el orden de la semana.
     Lo que no tiene día conocido u horas legibles se descarta."""
     spans = []
     for entry in schedules if isinstance(schedules, list) else []:
@@ -94,8 +94,8 @@ def restaurant_hours(schedule: list[dict], now: datetime) -> dict:
 
 
 def day_spans(schedule: list[dict], now: datetime) -> dict:
-    """Los tramos publicados de hoy y de mañana (`{hoy, manana}`, cada uno `[[abre, cierra]]` en «HH:MM»), para
-    programar un pedido dentro del horario. Un tramo que pasa la medianoche cierra a las «24:00» de su día (lo de
+    """Los tramos publicados de hoy y de mañana (`{hoy, manana}`, cada uno `[[abre, cierra]]` en "HH:MM"), para
+    programar un pedido dentro del horario. Un tramo que pasa la medianoche cierra a las "24:00" de su día (lo de
     después es del día siguiente). Sin horario, las dos listas van vacías."""
 
     def spans(day: str) -> list[list[str]]:

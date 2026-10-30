@@ -1,4 +1,4 @@
-// Id seudónimo de este navegador, compartido por quienes hablan con la API (eventos, preguntas, pedidos, «Para ti»), y
+// Id seudónimo de este navegador, compartido por quienes hablan con la API (eventos, preguntas, pedidos, "Para ti"), y
 // el token que lo firma. Los ayudantes de almacenamiento también los usa la sesión de EventsContext.
 
 const USER_KEY = 'rappi-proto-user'
@@ -79,7 +79,7 @@ export function userId() {
   return id
 }
 
-/** El id guardado, sin crear uno (null si no hay): el «id viejo» que la primera sesión reclama. */
+/** El id guardado, sin crear uno (null si no hay): el "id viejo" que la primera sesión reclama. */
 export const storedUserId = () => load(USER_KEY)
 
 /** El token de la sesión (null sin sesión). */
@@ -91,7 +91,7 @@ export function saveSession({ user_id: id, token }) {
   save(TOKEN_KEY, token)
 }
 
-/** Olvida el id y el token (tras «Borrar mis datos»): la próxima sesión es de una persona nueva. */
+/** Olvida el id y el token (tras "Borrar mis datos"): la próxima sesión es de una persona nueva. */
 export function clearSession() {
   drop(USER_KEY)
   drop(TOKEN_KEY)

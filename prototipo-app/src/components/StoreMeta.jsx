@@ -29,7 +29,7 @@ function joinWithDots(parts) {
 
 /**
  * Línea "⚡ 12 min • FREE SHIPPING • 1.4 km" de tarjetas y página de tienda. Lo que falta (p. ej. el tiempo) no se muestra.
- * Una tienda cerrada según lo publicado en la descarga lo dice primero («Cerrado · Abre a las 11:00»).
+ * Una tienda cerrada según lo publicado en la descarga lo dice primero ("Cerrado · Abre a las 11:00").
  */
 export function StoreMeta({ store, className = '' }) {
   const iconKind = store.etaIcon ?? (store.turbo ? 'turbo' : 'bolt')
@@ -63,7 +63,7 @@ export function StoreMeta({ store, className = '' }) {
   return <span className={`featured-meta ${className}`}>{meta}</span>
 }
 
-/** La promo de la tarjeta (la que publicó la tienda, o «Con promociones» en un restaurante con platos rebajados). */
+/** La promo de la tarjeta (la que publicó la tienda, o "Con promociones" en un restaurante con platos rebajados). */
 export function PromoTag({ store, className = '' }) {
   const label = promoLabel(store)
   return label ? <span className={`store-promo ${className}`.trim()}>{label}</span> : null

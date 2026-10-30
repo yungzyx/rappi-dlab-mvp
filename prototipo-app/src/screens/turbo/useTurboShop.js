@@ -15,7 +15,7 @@ export function useTurboShop() {
   const shopId = stores.data?.stores[0]?.id ?? null
   const shop = useShopAisles(shopId)
 
-  // Un 404 (la tienda ya no está) es «no hay», no «sin conexión»; cualquier otro fallo, sí.
+  // Un 404 (la tienda ya no está) es "no hay", no "sin conexión"; cualquier otro fallo, sí.
   const unavailable = (error) => (error.status === 404 ? 'empty' : 'offline')
   let status = 'loading'
   if (stores.error) status = unavailable(stores.error)

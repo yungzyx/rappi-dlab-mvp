@@ -90,7 +90,7 @@ def test_two_stages_give_the_same_list_as_one_stage_on_the_test_catalog(catalog)
 
 
 def test_the_cut_keeps_the_ties_of_the_last_one_and_ranks_them_as_before(catalog, monkeypatch):
-    """Doce «papas fritas» y doce de una sola de las dos palabras: con un corte de 3, quedan todas las que tienen las
+    """Doce "papas fritas" y doce de una sola de las dos palabras: con un corte de 3, quedan todas las que tienen las
     dos palabras (empatan en IDF con la tercera, así que no se cortan al azar) y en el mismo orden que con una etapa;
     las de una palabra, que con una etapa venían después, quedan fuera."""
     store = catalog.execute(

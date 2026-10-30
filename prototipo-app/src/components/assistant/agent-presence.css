@@ -95,7 +95,7 @@
   text-align: left;
 }
 
-/* «Ocultar» en la confirmación de ocultar a Mochi */
+/* "Ocultar" en la confirmación de ocultar a Mochi */
 .agent-action.is-primary {
   background: var(--ink);
   color: var(--surface);

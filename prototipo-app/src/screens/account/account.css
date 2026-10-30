@@ -246,7 +246,7 @@
   color: var(--agent-orange);
 }
 
-/* «Borrar mis datos»: una entrada fija, con su explicación, antes de cerrar sesión */
+/* "Borrar mis datos": una entrada fija, con su explicación, antes de cerrar sesión */
 .account-forget {
   display: grid;
   gap: 4px;

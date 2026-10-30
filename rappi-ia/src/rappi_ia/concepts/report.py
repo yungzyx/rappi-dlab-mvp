@@ -15,7 +15,7 @@ CATEGORY_MAP_COLUMNS = ["tipo", "nombre", "concept_id", "confianza", "metodo", "
 
 # Categorías del catálogo sin mapeo (curado o LLM, los de category_map.csv, o propuesto por Jev, que se cuenta aparte
 # en `mapeos_jev`): sus productos quedan en manos de las reglas por nombre o del kNN. El concepto sugerido es el más
-# común entre los productos que ya lo tienen. Las revisadas sin concepto (filas «ninguno» del CSV, el parámetro)
+# común entre los productos que ya lo tienen. Las revisadas sin concepto (filas "ninguno" del CSV, el parámetro)
 # tampoco se listan.
 UNMAPPED_CATEGORIES = """
 WITH products AS (
@@ -146,8 +146,8 @@ def render_text(report: dict) -> str:
 
 
 def write_category_proposals(rows: list[dict], path: Path) -> None:
-    """CSV con el formato de category_map.csv (método «sugerido», revisión «pendiente»): se revisa, se cambia el
-    método a «curado» y se copia al mapa versionado."""
+    """CSV con el formato de category_map.csv (método "sugerido", revisión "pendiente"): se revisa, se cambia el
+    método a "curado" y se copia al mapa versionado."""
     path.parent.mkdir(parents=True, exist_ok=True)
     with path.open("w", encoding="utf-8", newline="") as f:
         writer = csv.DictWriter(f, fieldnames=CATEGORY_MAP_COLUMNS)

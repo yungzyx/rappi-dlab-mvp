@@ -55,7 +55,7 @@ const openStore = (params) =>
   render(<StoreScreen back={() => {}} push={() => {}} params={params} />, { wrapper: Providers })
 const tracked = (type) => events.track.mock.calls.filter(([name]) => name === type).map(([, fields]) => fields)
 const rows = () => [...document.querySelectorAll('.product-row strong')].map((node) => node.textContent)
-// Las peticiones hechas por la página de la tienda, como `{ path, query }`; «Para ti» (solo en la propuesta) va aparte y se prueba en su test.
+// Las peticiones hechas por la página de la tienda, como `{ path, query }`; "Para ti" (solo en la propuesta) va aparte y se prueba en su test.
 const requests = (fetchMock) =>
   fetchMock.mock.calls
     .map(([url]) => {
@@ -181,7 +181,7 @@ describe('restaurante', () => {
       'Bebidas',
       'Postres',
     ])
-    // Un plato puede estar en «Lo más pedido» y en su sección: sale en las dos, cada uno en su lista.
+    // Un plato puede estar en "Lo más pedido" y en su sección: sale en las dos, cada uno en su lista.
     expect(screen.getAllByText('Pizza margarita mediana (prueba)')).toHaveLength(2)
     expect(screen.getByRole('heading', { name: 'Pizzería de prueba Centro' })).toBeTruthy()
     expect(screen.getByText('★ 4.6')).toBeTruthy()
@@ -198,7 +198,7 @@ describe('restaurante', () => {
 })
 
 describe('tienda que no está en el catálogo', () => {
-  test('una tienda que no está en la base dice «Esta tienda no está en el catálogo»', async () => {
+  test('una tienda que no está en la base dice "Esta tienda no está en el catálogo"', async () => {
     stubCatalog() // 404 en /catalog/stores/424242, como en la API
     openStore({ store: { id: 424242, name: 'Tienda cerrada', vertical: 'grocery' } })
 
@@ -253,7 +253,7 @@ describe('sin la API', () => {
     expect(await screen.findByText('Sin conexión')).toBeTruthy()
   })
 
-  test('un error del servidor se puede reintentar: no es «no está en el catálogo»', async () => {
+  test('un error del servidor se puede reintentar: no es "no está en el catálogo"', async () => {
     stubCatalog({ '/catalog/stores/9101': 500 })
     openStore({ store: GROCERY })
     expect(await screen.findByText('Sin conexión')).toBeTruthy()
@@ -369,7 +369,7 @@ describe('visita a una tienda (embudo del panel)', () => {
     ])
     // La visita a la tienda dice de dónde se llegó: el producto tocado.
     expect(tracked('view_store')[0]).toMatchObject({ surface: 'agent', origin: 'para-ti', request_id: 'recs-1' })
-    // El producto no está en el primer pasillo: va arriba, en «Lo que elegiste», y después los 24 del pasillo.
+    // El producto no está en el primer pasillo: va arriba, en "Lo que elegiste", y después los 24 del pasillo.
     await waitFor(() => expect(rows()).toHaveLength(25))
     const second = document.querySelectorAll('.store-products .product-row')[2]
     fireEvent.click(within(second).getByLabelText(/^Agregar /))
@@ -412,7 +412,7 @@ describe('producto que llegó tocándolo', () => {
   })
 
   test('una sugerencia del agente que está en el pasillo cuenta su aceptación al agregarla, una vez', async () => {
-    // Como llega desde «¿Repetimos?» en la Home (api/agent.js): el café de la 9101, con su origen.
+    // Como llega desde "¿Repetimos?" en la Home (api/agent.js): el café de la 9101, con su origen.
     const offered = fixture('agent-offer-recompra').products[0]
     const item = { ...toPrototypeProduct(offered), fromSuggestion: true, suggestionOrigin: 'agent-recompra' }
     stubCatalog()
@@ -435,7 +435,7 @@ describe('producto que llegó tocándolo', () => {
 })
 
 describe('agotado en la tienda', () => {
-  test('desde el pasillo no se agrega: la fila dice «Agotado» y no lleva «+»', async () => {
+  test('desde el pasillo no se agrega: la fila dice "Agotado" y no lleva "+"', async () => {
     stubCatalog({ 'GET /catalog/products/catalog_item/*': fixture('catalog-product-stores-agotado') })
     openStore({ store: GROCERY })
     await waitFor(() => expect(rows()).toHaveLength(24))

@@ -190,7 +190,7 @@ describe('pedidos para el panel', () => {
   })
 
   test("buildOrders en modo actual lleva mode 'actual' y ningún concept_id", () => {
-    // En «Rappi hoy» la app no aprende: el pedido lo dice y no nombra conceptos (el backend tampoco lo lleva al perfil).
+    // En "Rappi hoy" la app no aprende: el pedido lo dice y no nombra conceptos (el backend tampoco lo lleva al perfil).
     const items = [
       { product: beer(), qty: 1 },
       { product: toPrototypeProduct(fixture('catalog-product')), qty: 2 },

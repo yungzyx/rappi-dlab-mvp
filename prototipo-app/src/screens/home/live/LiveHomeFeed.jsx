@@ -33,7 +33,7 @@ import { moveText, moveWhy, useShortcutMove } from './shortcutMoves'
 import { today } from '../../../utils/today'
 import './live.css'
 
-// Las secciones de la Home de hoy, más «¿Repetimos?» (la recompra) o, si no hay, «¿Volvemos a…?» (lo que dejó de pedir),
+// Las secciones de la Home de hoy, más "¿Repetimos?" (la recompra) o, si no hay, "¿Volvemos a…?" (lo que dejó de pedir),
 // que solo aparecen cuando la API los ofrece.
 const ORDER = ['essentials', 'recompra', 'promos', 'turbo', 'plan', 'nearby', 'lower']
 const WINBACK_ORIGIN = 'agent-volver'
@@ -47,14 +47,14 @@ const backVertical = () => {
 }
 const T = { enter: 900, greet: 3400, greetHold: 6000, notice: 500 }
 // Silenciado por hoy (desde el agente flotante) o callado porque lo ignoraron: no habla por su cuenta; si lo tocan, sí.
-// Oculto («Ocultar a Mochi»): no está, así que tampoco habla ni propone nada.
+// Oculto ("Ocultar a Mochi"): no está, así que tampoco habla ni propone nada.
 const silent = () => isQuiet(today()) || isHushed() || isAgentHidden()
-// El origen de los eventos de «Mochi movió tus accesos».
+// El origen de los eventos de "Mochi movió tus accesos".
 const MOVE_ORIGIN = 'agent-reorden'
 // Los accesos esperan a que Mochi llegue junto a ellos (su paso dura 680 ms en live.css) antes de deslizarse.
 const GLIDE_DELAY = 550
 
-// Guía de la primera vez, tras el saludo: el buscador y qué pasa al tocarlo. Se ve una vez («Repetir escena» la repite).
+// Guía de la primera vez, tras el saludo: el buscador y qué pasa al tocarlo. Se ve una vez ("Repetir escena" la repite).
 const TOUR = [
   {
     text: 'Arriba está mi buscador: búscame lo que quieras o toca una de sus ideas 🔎',
@@ -76,7 +76,7 @@ const buzz = () => navigator.vibrate?.(12)
 /**
  * Home del prototipo final: la barra abre el buscador con el agente. El agente de cuerpo entero vive en
  * la Home: saluda, acompaña el plan del día, al tocarlo invita a una vertical nueva y, cuando el motor cambia el orden
- * de los accesos, los mueve y dice por qué. Oculto («Ocultar a Mochi»), la Home queda sin él y con el buscador de siempre.
+ * de los accesos, los mueve y dice por qué. Oculto ("Ocultar a Mochi"), la Home queda sin él y con el buscador de siempre.
  */
 export default function LiveHomeFeed({ push, active = true }) {
   const toast = useToast()
@@ -91,7 +91,7 @@ export default function LiveHomeFeed({ push, active = true }) {
   // encima); ahí, si cambió, se mueve. Un cambio con el buscador abierto se ve al cerrarlo.
   const searching = useAssistant()?.isOpen === true
   const shortcuts = useShortcutMove(verticalOrder, { active: active && !searching, resets: profile.resets })
-  // Cambia con cada pedido y con cada calificación (una mala pausa lo de ese pedido): «¿Volvemos a…?» se vuelve a pedir.
+  // Cambia con cada pedido y con cada calificación (una mala pausa lo de ese pedido): "¿Volvemos a…?" se vuelve a pedir.
   const orders = useOrders().orders
   const lastOrder = `${orders[0]?.id ?? ''}|${orders.filter((order) => order.rating).length}`
   const reduceMotion = useReducedMotion()
@@ -107,7 +107,7 @@ export default function LiveHomeFeed({ push, active = true }) {
   const [say, setSay] = useState(null)
   const [target, setTarget] = useState(null) // id del bloque donde se para el agente
   const [present, setPresent] = useState(() => session.played) // aún no entra a escena
-  const [repeat, setRepeat] = useState(null) // «¿Repetimos?» (`recompra`) o, si no hay, «¿Volvemos a…?» (`volver`)
+  const [repeat, setRepeat] = useState(null) // "¿Repetimos?" (`recompra`) o, si no hay, "¿Volvemos a…?" (`volver`)
   const [entering, setEntering] = useState(false)
 
   const screenRef = useRef(null)
@@ -167,7 +167,7 @@ export default function LiveHomeFeed({ push, active = true }) {
     [armHide],
   )
 
-  /** Mientras se lee el «¿Por qué?» del globo no se va solo; al cerrarlo vuelve a contar desde cero. */
+  /** Mientras se lee el "¿Por qué?" del globo no se va solo; al cerrarlo vuelve a contar desde cero. */
   const onWhyToggle = useCallback(
     (open) => {
       clearTimeout(hideTimer.current)
@@ -184,7 +184,7 @@ export default function LiveHomeFeed({ push, active = true }) {
 
   const visit = useCallback((vertical, route) => push(...(route ?? routeForScreen(vertical))), [push])
 
-  // «Moví … más adelante»: el cambio de orden que Mochi aún no explica (llega mientras saluda o durante la guía).
+  // "Moví … más adelante": el cambio de orden que Mochi aún no explica (llega mientras saluda o durante la guía).
   const pendingMove = useRef(null)
   /** Mochi se para sobre el bloque de los accesos, los señala y dice cuál movió y por qué (cuenta como explicación vista). */
   const explainMove = () => {
@@ -217,8 +217,8 @@ export default function LiveHomeFeed({ push, active = true }) {
     })
   }
 
-  // La guía: cada paso espera a que la persona siga; «Saltar» o «Listo» la terminan para siempre (speak la marca
-  // vista) y entonces el agente muestra lo que quedó pendiente de «al volver».
+  // La guía: cada paso espera a que la persona siga; "Saltar" o "Listo" la terminan para siempre (speak la marca
+  // vista) y entonces el agente muestra lo que quedó pendiente de "al volver".
   const endTour = () => {
     speak(null)
     welcomeBack()
@@ -350,7 +350,7 @@ export default function LiveHomeFeed({ push, active = true }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [active])
 
-  // Cambió el orden con la Home arriba (el «Panel de la demo», o al volver de otra pantalla, o al abrir): la fila ya se
+  // Cambió el orden con la Home arriba (el "Panel de la demo", o al volver de otra pantalla, o al abrir): la fila ya se
   // desliza (Shortcuts), y Mochi lo explica si puede hablar; si está saludando o en la guía, después. Oculto o en
   // silencio, el orden cambia sin explicación.
   const moveKey = shortcuts.move?.key
@@ -368,12 +368,12 @@ export default function LiveHomeFeed({ push, active = true }) {
     generationNow.current = profile.resets
   }, [profile.resets])
 
-  // «¿Repetimos?» se pide cada vez que la Home vuelve a estar arriba (un pedido nuevo cambia lo que le toca). Si no hay
-  // (204), «¿Volvemos a…?», una vez por pestaña y por pedido: la API mantiene la misma invitación una semana, así que se
-  // guarda para que no cambie ni desaparezca al volver a la Home; un pedido nuevo (o «Olvidar») la vuelve a pedir, para
+  // "¿Repetimos?" se pide cada vez que la Home vuelve a estar arriba (un pedido nuevo cambia lo que le toca). Si no hay
+  // (204), "¿Volvemos a…?", una vez por pestaña y por pedido: la API mantiene la misma invitación una semana, así que se
+  // guarda para que no cambie ni desaparezca al volver a la Home; un pedido nuevo (o "Olvidar") la vuelve a pedir, para
   // no invitar a volver a lo que se acaba de comprar. La recompra siempre gana. Sin ninguna, sin red o con una API que no
-  // conoce el momento, no hay bloque; en silencio, o si ya dijeron «Después», no se pide.
-  // Tras «Olvidar» no pide (como useVerticalOrder): el buscador olvida antes de que el servidor borre, y pedir ahí traía
+  // conoce el momento, no hay bloque; en silencio, o si ya dijeron "Después", no se pide.
+  // Tras "Olvidar" no pide (como useVerticalOrder): el buscador olvida antes de que el servidor borre, y pedir ahí traía
   // la misma oferta y otra `suggestion_shown`; lo que venía en camino tampoco se muestra ni se cuenta. Si el borrado sale
   // bien la app se recarga; si falla, pide al volver a la Home.
   useEffect(() => {
@@ -411,7 +411,7 @@ export default function LiveHomeFeed({ push, active = true }) {
     }
   }, [active, events.track, lastOrder])
 
-  // «Después» deja el bloque para otra vez. En «¿Volvemos a…?» se registra el descarte (con su tipo, como la mostrada):
+  // "Después" deja el bloque para otra vez. En "¿Volvemos a…?" se registra el descarte (con su tipo, como la mostrada):
   // con dos, la API deja de ofrecer esa invitación.
   const repeatLater = () => {
     noteDismissed()
@@ -465,7 +465,7 @@ export default function LiveHomeFeed({ push, active = true }) {
     return () => observer.disconnect()
   }, [speak, hasPlans])
 
-  // «Repetir la escena» desde fuera del teléfono.
+  // "Repetir la escena" desde fuera del teléfono.
   useEffect(() => {
     const replay = () => {
       run.current += 1
@@ -516,7 +516,7 @@ export default function LiveHomeFeed({ push, active = true }) {
     speak({ text: `${chosen.emoji} ${made.text}`, mood: 'wave', gesture: 'hop' }, 'plan', 4500)
   }
 
-  // Igual que el «+» de cada producto: al carro, al perfil y a los eventos del panel (una aceptación por producto).
+  // Igual que el "+" de cada producto: al carro, al perfil y a los eventos del panel (una aceptación por producto).
   const addKit = () => {
     for (const product of kit) addToCart(product)
     setKitAdded(plan)
@@ -539,8 +539,8 @@ export default function LiveHomeFeed({ push, active = true }) {
     } finally {
       poking.current = false
     }
-    // Sin nada que proponer (204) el agente no dice nada. Tampoco repite con «Vuelve a…» la vertical a la que la Home ya
-    // invitó a volver en esta sesión («¿Volvemos a…?»): una sola invitación por vertical.
+    // Sin nada que proponer (204) el agente no dice nada. Tampoco repite con "Vuelve a…" la vertical a la que la Home ya
+    // invitó a volver en esta sesión ("¿Volvemos a…?"): una sola invitación por vertical.
     if (mine !== run.current || !made) return
     if (made.reason?.basis?.some((signal) => signal.kind === 'vuelta' && signal.id === backVertical())) return
     noteShown(events.track, made.products, { origin: `agent-${made.moment}`, generation: profile.resets })
@@ -549,7 +549,7 @@ export default function LiveHomeFeed({ push, active = true }) {
     // la escalera sigue.
     const offered = envelope({ surface: 'home', origin: `agent-${made.moment}`, requestId: made.requestId })
     if (open?.service) events.track('service_shown', { ...offered, payload: { servicio: open.service } })
-    // La burbuja no lleva productos: no promete «mira estas ofertas» (eso lo dice el texto de la API, que sí los muestra).
+    // La burbuja no lleva productos: no promete "mira estas ofertas" (eso lo dice el texto de la API, que sí los muestra).
     const name = VERTICAL_NAMES[screenForBackend(made.backendVertical)]
     speak(
       {
@@ -663,7 +663,7 @@ export default function LiveHomeFeed({ push, active = true }) {
               </span>
             </span>
           </button>
-          {/* Sin Mochi, el buscador de siempre (el de «Rappi hoy»). */}
+          {/* Sin Mochi, el buscador de siempre (el de "Rappi hoy"). */}
           {hidden ? <PlainSearchBar onClick={() => push('search')} /> : <SmartBar />}
           <CreditsBanner credits={CREDITS} onClick={() => push('vertical', { id: 'pharmacy' })} />
         </section>

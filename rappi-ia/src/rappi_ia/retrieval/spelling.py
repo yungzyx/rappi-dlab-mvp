@@ -3,37 +3,37 @@
 Solo se usa cuando nada de la vertical calza todas las palabras de la consulta (agent/tools.search_products, y
 agent/grouped_search si ninguna vertical calza): se corrige la consulta y se vuelve a buscar con las reglas de siempre,
 y lo corregido se muestra solo si algún documento calza todas sus palabras. Lo que hoy calza no cambia, y una
-negativa no deja de serlo por una palabra cambiada que lleva a otra cosa («pasaje … punta arenas» → «masaje … punta
-avenas» no calza). Palabra por palabra:
+negativa no deja de serlo por una palabra cambiada que lleva a otra cosa ("pasaje … punta arenas" → "masaje … punta
+avenas" no calza). Palabra por palabra:
 
-- se saltan las muletillas, «hola» y las palabras de pedido del inicio («eh», «quiero», «una») y la cortesía del final
-  («porfa», «gracias»), como las limpia el agente, si queda una consulta corta (hasta SHORT_QUERY palabras): «eh
-  quiero este una coca porfa» → «coca». En medio de la frase quedan («te quiero mochi»: sin ellas sería otra consulta),
-  una frase larga es una conversación, no una búsqueda («necesito que me compren algo en una ferretería»), y los
-  saludos de dos palabras también son palabras («tardes de lluvia», «buenos aires»). Lo que queda solo con palabras de
-  saludo o cortesía («ok gracias») no se busca;
-- una palabra que nombra un concepto queda como está: «cerveza» en una chocolatería es lo que no hay, no «cereza»;
-- una consulta que le habla al asistente («oye mochi, ¿me recomiendas algo?», «hola mochi»: su nombre junto a un
+- se saltan las muletillas, "hola" y las palabras de pedido del inicio ("eh", "quiero", "una") y la cortesía del final
+  ("porfa", "gracias"), como las limpia el agente, si queda una consulta corta (hasta SHORT_QUERY palabras): "eh
+  quiero este una coca porfa" → "coca". En medio de la frase quedan ("te quiero mochi": sin ellas sería otra consulta),
+  una frase larga es una conversación, no una búsqueda ("necesito que me compren algo en una ferretería"), y los
+  saludos de dos palabras también son palabras ("tardes de lluvia", "buenos aires"). Lo que queda solo con palabras de
+  saludo o cortesía ("ok gracias") no se busca;
+- una palabra que nombra un concepto queda como está: "cerveza" en una chocolatería es lo que no hay, no "cereza";
+- una consulta que le habla al asistente ("oye mochi, ¿me recomiendas algo?", "hola mochi": su nombre junto a un
   saludo, una muletilla o un pedido) no se corrige: es una conversación, no una búsqueda mal escrita;
-- una consulta que nombra una ocasión no se corrige: pide cosas que su nombre no dice («regalo para mi polola» no
-  calza todas sus palabras a propósito, y «polola» no es un error de «polla»);
+- una consulta que nombra una ocasión no se corrige: pide cosas que su nombre no dice ("regalo para mi polola" no
+  calza todas sus palabras a propósito, y "polola" no es un error de "polla");
 - una letra repetida tres o más veces se deja en una o en dos, y una letra doble en una, si la vertical tiene esa forma
-  DOCS_RATIO veces más («cervezaaaa» → «cerveza», «oreoo» → «oreo»);
+  DOCS_RATIO veces más ("cervezaaaa" → "cerveza", "oreoo" → "oreo");
 - una palabra de MIN_LENGTH letras o más que la vertical casi no tiene se cambia por la más parecida que sí tiene
-  DOCS_RATIO veces más (`choose`): «nutela» → «nutella», «cuchuflis» → «cuchuflies». No por una de la misma raíz
-  («cuerpos» → «cuerpo»), que la búsqueda léxica ya junta, ni por una stopword («estadio» → «estado»), que la
+  DOCS_RATIO veces más (`choose`): "nutela" → "nutella", "cuchuflis" → "cuchuflies". No por una de la misma raíz
+  ("cuerpos" → "cuerpo"), que la búsqueda léxica ya junta, ni por una stopword ("estadio" → "estado"), que la
   búsqueda bota y dejaría calzar todo lo demás;
 - una palabra que el catálogo entero tiene en KNOWN_DOCS documentos o más es una palabra real, no un error, aunque la
-  vertical no la tenga: «crema para las manos» en Licores no pasa a «crema para las anos», ni «comida china» a
-  «comida chica». Tampoco un número («3000» no es «30»).
+  vertical no la tenga: "crema para las manos" en Licores no pasa a "crema para las anos", ni "comida china" a
+  "comida chica". Tampoco un número ("3000" no es "30").
 
-La palabra corregida se muestra como la escribe el catálogo (`search_vocabulary.display`: «pañales», no «panales»).
+La palabra corregida se muestra como la escribe el catálogo (`search_vocabulary.display`: "pañales", no "panales").
 
-Sin diccionario, una palabra que el catálogo casi no tiene puede ser real («tengo resaca» → «tengo reseca»): la
+Sin diccionario, una palabra que el catálogo casi no tiene puede ser real ("tengo resaca" → "tengo reseca"): la
 respuesta dice qué se buscó y la app ofrece buscar lo escrito tal cual (docs/resultados/busqueda-2026-10-24.md).
 
-#129 midió por qué hace falta: los cosenos de e5 no separan un error de tipeo («cuchuflis» en Turbo, 0,843) de una
-negativa («sofá de tres cuerpos» en el súper, 0,839), y el τ de 0,85 dejó a los dos «sin resultado».
+#129 midió por qué hace falta: los cosenos de e5 no separan un error de tipeo ("cuchuflis" en Turbo, 0,843) de una
+negativa ("sofá de tres cuerpos" en el súper, 0,839), y el τ de 0,85 dejó a los dos "sin resultado".
 """
 
 import re
@@ -45,8 +45,8 @@ from ..catalog.cache import cached_many
 from ..text import FILLER_WORDS, MUTTER_WORDS, REQUEST_WORDS, assistant_words, normalize
 from .hybrid import detect_concepts, named_occasion
 
-MIN_LENGTH = 6  # bajo esto, una edición ya suele ser otra palabra («sofa» → «soft», «tonto» → «tinto»)
-LONG_WORD = 9  # desde aquí se aceptan dos ediciones («cancelar» → «canela» no)
+MIN_LENGTH = 6  # bajo esto, una edición ya suele ser otra palabra ("sofa" → "soft", "tonto" → "tinto")
+LONG_WORD = 9  # desde aquí se aceptan dos ediciones ("cancelar" → "canela" no)
 KNOWN_DOCS = 20  # en tantos documentos del catálogo (todas las verticales), la palabra es real: no se corrige
 DOCS_RATIO = 10  # la palabra corregida está en al menos 10 veces más documentos de la vertical que la escrita
 CANDIDATES = 50  # candidatas por trigramas (`%` de pg_trgm, similitud ≥ 0,3) que se miden con `edit_distance`
@@ -67,7 +67,7 @@ class QueryWord:
 def query_words(query: str) -> list[QueryWord]:
     """Las palabras de la consulta; `skip` en las muletillas y palabras de pedido del inicio y la cortesía del final."""
     pairs = [(s, w) for s in _WORD.findall(query.lower()) if (w := normalize(s).replace(" ", ""))]
-    forms = [{w, _REPEAT.sub(r"\1", w)} for _, w in pairs]  # «holaaaa» también es un saludo, y «mmm» una muletilla
+    forms = [{w, _REPEAT.sub(r"\1", w)} for _, w in pairs]  # "holaaaa" también es un saludo, y "mmm" una muletilla
     start = 0
     while start < len(pairs) and forms[start] & SKIP_WORDS:
         start += 1
@@ -81,12 +81,12 @@ def query_words(query: str) -> list[QueryWord]:
 
 def transpositions(word: str) -> list[str]:
     """`word` con cada par de letras vecinas distintas dado vuelta: los trigramas casi no ven una trasposición en una
-    palabra corta («olvia» y «oliva» comparten 2 de 10), así que estas se buscan tal cual."""
+    palabra corta ("olvia" y "oliva" comparten 2 de 10), así que estas se buscan tal cual."""
     return [word[:i] + word[i + 1] + word[i] + word[i + 2 :] for i in range(len(word) - 1) if word[i] != word[i + 1]]
 
 
 def edit_distance(a: str, b: str) -> int:
-    """Distancia de edición con trasposición de dos letras vecinas («jhonnie» → «johnnie» es una)."""
+    """Distancia de edición con trasposición de dos letras vecinas ("jhonnie" → "johnnie" es una)."""
     previous2, previous = None, list(range(len(b) + 1))
     for i in range(1, len(a) + 1):
         current = [i] + [0] * len(b)
@@ -100,7 +100,7 @@ def edit_distance(a: str, b: str) -> int:
 
 
 def single_forms(word: str) -> list[str]:
-    """`word` con cada letra doble dejada en una («oreoo» → «oreo», «pinno» → «pino»): el error más común de una
+    """`word` con cada letra doble dejada en una ("oreoo" → "oreo", "pinno" → "pino"): el error más común de una
     palabra corta, que la regla de `choose` no toca bajo MIN_LENGTH letras."""
     return [word[:i] + word[i + 1 :] for i in range(len(word) - 1) if word[i] == word[i + 1]]
 
@@ -118,7 +118,7 @@ def choose(
     """La palabra por la que se cambia `word` (en `own_docs` documentos de la vertical), entre `candidates` (palabra,
     documentos): a una edición (dos desde LONG_WORD letras), en al menos DOCS_RATIO veces más documentos, sin la misma
     raíz que `word` y sin ser stopword (`excluded`). Gana la más cercana y, entre ellas, la de más documentos
-    («bluetooth», no la errata «bluetooh» que también trae el catálogo). None si ninguna sirve."""
+    ("bluetooth", no la errata "bluetooh" que también trae el catálogo). None si ninguna sirve."""
     ranked = _ranked(word, own_docs, candidates)
     return next((candidate for candidate in ranked if candidate not in excluded), None)
 
@@ -169,7 +169,7 @@ def _fixes(conn: Connection, vertical: str | None, words: list[str]) -> dict[str
 
 def _fix(conn: Connection, vertical: str | None, word: str) -> str | None:
     """Cómo se muestra la palabra por la que se cambia `word`, o None."""
-    if any(ch.isdigit() for ch in word):  # «3000» no es «30», ni «500g» «50g»
+    if any(ch.isdigit() for ch in word):  # "3000" no es "30", ni "500g" "50g"
         return None
     known = _docs(conn, None, [word]).get(word, 0)  # en todo el catálogo
     if known >= KNOWN_DOCS:
@@ -201,8 +201,8 @@ def _fix(conn: Connection, vertical: str | None, word: str) -> str | None:
 
 def _excluded(conn: Connection, word: str, candidates: list[str]) -> frozenset[str]:
     """Las candidatas que no sirven: las que la búsqueda léxica ya junta con `word` (el mismo tsvector en español:
-    «cuerpos» y «cuerpo» → 'cuerp'; «cuchuflis» y «cuchuflies» no) y las stopwords, que la coincidencia estricta bota
-    («estado»: «entradas para el estado 2 personas» calzaría solo «entradas», «2» y «personas»)."""
+    "cuerpos" y "cuerpo" → 'cuerp'; "cuchuflis" y "cuchuflies" no) y las stopwords, que la coincidencia estricta bota
+    ("estado": "entradas para el estado 2 personas" calzaría solo "entradas", "2" y "personas")."""
     rows = conn.execute(
         "SELECT c, strip(to_tsvector('spanish', c))::text FROM unnest(%s::text[]) AS c", ([word, *candidates],)
     ).fetchall()

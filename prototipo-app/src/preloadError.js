@@ -15,7 +15,7 @@ export function reloadOnPreloadError({ reload = () => window.location.reload(), 
     }
   }
   const onError = (event) => {
-    if (wasReloaded()) return // la segunda vez el error llega a la pantalla, que ofrece «Volver al inicio»
+    if (wasReloaded()) return // la segunda vez el error llega a la pantalla, que ofrece "Volver al inicio"
     reloaded = true
     try {
       storage.setItem(KEY, '1')

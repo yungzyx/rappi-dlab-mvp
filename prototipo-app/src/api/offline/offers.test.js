@@ -94,7 +94,7 @@ describe('guardias (offers/guards.py)', () => {
     expect(offerableProduct({ ...coffee, name: 'Tom Collins' }, CONCEPTS)).toBe(false)
     expect(offerableProduct({ ...coffee, name: 'Clavo oxidado de la casa' }, CONCEPTS)).toBe(false)
     expect(offerableProduct({ ...coffee, name: 'Juguete para Bebés', concept: 'juguetes' }, CONCEPTS)).toBe(false)
-    // Palabra entera: «ron» no está en «ronda», ni «gin» en «ginger».
+    // Palabra entera: "ron" no está en "ronda", ni "gin" en "ginger".
     expect(offerableProduct({ ...coffee, name: 'Galletas Ronda ginger' }, CONCEPTS)).toBe(true)
   })
 
@@ -119,7 +119,7 @@ describe('guardias (offers/guards.py)', () => {
 })
 
 describe('vertical_por_probar', () => {
-  test('sin pedidos: la de siempre (el súper), con «Aún no pides en…» y su basis', () => {
+  test('sin pedidos: la de siempre (el súper), con "Aún no pides en…" y su basis', () => {
     const made = offer('vertical_por_probar', state())
     expect(made).toMatchObject({
       vertical: 'supermercado',
@@ -140,7 +140,7 @@ describe('vertical_por_probar', () => {
     ])
   })
 
-  test('con todo el catálogo: «¿Conoces RappiFavor?», sin productos y con una acción que lo abre', () => {
+  test('con todo el catálogo: "¿Conoces RappiFavor?", sin productos y con una acción que lo abre', () => {
     const made = offer('vertical_por_probar', state({ orders: ALL.map((v) => order(v)) }))
     expect(made).toMatchObject({
       text: '¿Conoces RappiFavor? Un Rappitendero lleva lo que necesites.',
@@ -155,7 +155,7 @@ describe('vertical_por_probar', () => {
 })
 
 describe('recompra', () => {
-  test('con ritmo (tres días de compra o más): «¿Repetimos…? Pides cada N días» cuando le toca', () => {
+  test('con ritmo (tres días de compra o más): "¿Repetimos…? Pides cada N días" cuando le toca', () => {
     const weekly = [21, 14, 7].map((days) => ago(days, order('supermercado', [line(coffee)])))
     expect(offer('recompra', state({ orders: weekly }))).toMatchObject({
       moment: 'recompra',
@@ -204,7 +204,7 @@ describe('recompra', () => {
     expect(offer('recompra', state({ orders: express })).products).toEqual([expressIce])
   })
 
-  test('un concepto en dos pedidos: «¿Repetimos…?» con el último producto comprado', () => {
+  test('un concepto en dos pedidos: "¿Repetimos…?" con el último producto comprado', () => {
     const s = state({ orders: [order('supermercado', [line(coffee)]), order('supermercado', [line(coffee)])] })
     const made = offer('recompra', s)
     expect(made).toMatchObject({
@@ -216,7 +216,7 @@ describe('recompra', () => {
     })
   })
 
-  test('un pedido no basta; el alcohol y los pedidos de «Rappi hoy» nunca se repiten', () => {
+  test('un pedido no basta; el alcohol y los pedidos de "Rappi hoy" nunca se repiten', () => {
     expect(offer('recompra', state({ orders: [order('supermercado', [line(coffee)])] }))).toBeNull()
     const beers = [order('licores', [line(beer)]), order('licores', [line(beer)])]
     expect(offer('recompra', state({ orders: beers }))).toBeNull()
@@ -245,7 +245,7 @@ describe('complementos', () => {
   })
 })
 
-describe('volver («¿Volvemos a…?»)', () => {
+describe('volver ("¿Volvemos a…?")', () => {
   const stoppedCoffee = [45, 38, 31, 24].map((days) => ago(days, order('supermercado', [line(coffee)])))
   // Tres conceptos distintos en Turbo: con uno solo, lo que dejó sería ese concepto (va antes que la vertical).
   const stoppedTurbo = [
@@ -305,7 +305,7 @@ describe('volver («¿Volvemos a…?»)', () => {
     expect(offer('volver', state({ orders: old }))).toBeNull()
   })
 
-  test('pausa de 7 días por persona: solo vuelve la misma; dos «Después» la dejan', () => {
+  test('pausa de 7 días por persona: solo vuelve la misma; dos "Después" la dejan', () => {
     const both = [...stoppedCoffee, ...stoppedTurbo.slice(0, 3), ago(2, order('restaurantes'))]
     expect(offer('volver', state({ orders: both })).reason.basis[0].kind).toBe('volver')
     // Mostrada la de Turbo hace 3 días, sigue esa aunque la del café va primero.
@@ -403,7 +403,7 @@ describe('calificación mala (winback.js: paused)', () => {
   const weekly = () =>
     [21, 14, 7].map((days, i) => ({ ...ago(days, order('supermercado', [line(coffee)])), cart_id: `c-${i}` }))
 
-  test('3 estrellas o menos pausan la recompra de sus conceptos; 4 no, ni en «Rappi hoy», ni pasado un mes', () => {
+  test('3 estrellas o menos pausan la recompra de sus conceptos; 4 no, ni en "Rappi hoy", ni pasado un mes', () => {
     const orders = weekly()
     expect(offer('recompra', state({ orders, events: [rated('c-2', 3)] }))).toBeNull()
     expect(offer('recompra', state({ orders, events: [rated('c-2', 4)] }))).not.toBeNull()
@@ -411,7 +411,7 @@ describe('calificación mala (winback.js: paused)', () => {
     expect(offer('recompra', state({ orders, events: [rated('c-2', 1, 31)] }))).not.toBeNull()
   })
 
-  test('también el «volver» de ese concepto, y ningún producto de su tienda', () => {
+  test('también el "volver" de ese concepto, y ningún producto de su tienda', () => {
     const stopped = [45, 38, 31, 24].map((days, i) => ({
       ...ago(days, order('supermercado', [line(coffee)])),
       cart_id: `s-${i}`,

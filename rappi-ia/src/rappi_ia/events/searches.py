@@ -1,6 +1,6 @@
-"""Lo que el buscador muestra antes de escribir: las búsquedas recientes de la persona y «Lo más buscado».
+"""Lo que el buscador muestra antes de escribir: las búsquedas recientes de la persona y "Lo más buscado".
 
-- Recientes: las últimas búsquedas de esa persona (sus eventos `search`), sin repetir. «Olvidar» las borra con sus
+- Recientes: las últimas búsquedas de esa persona (sus eventos `search`), sin repetir. "Olvidar" las borra con sus
   eventos y el texto de las consultas se borra a los QUERY_RETENTION_DAYS (events/store.py).
 - Lo más buscado: lo que más personas buscaron y encontraron en los últimos TOP_WINDOW_DAYS días, solo de la población
   que se declara (`config.MOTOR_POBLACION`): `synthetic` y `prototype` nunca se mezclan, y la respuesta dice cuál es.
@@ -22,7 +22,7 @@ TOP_MIN_PEOPLE = 3
 TOP_WINDOW_DAYS = 30
 _TOP_POOL = 40  # candidatas antes de las guardias
 
-# Un texto con un dato personal ya tapado al guardarlo («[correo]», «[dirección]») no se vuelve a mostrar.
+# Un texto con un dato personal ya tapado al guardarlo ("[correo]", "[dirección]") no se vuelve a mostrar.
 _REDACTED = "%[%]%"
 
 _RECENT = """
@@ -65,7 +65,7 @@ def recent_searches(conn: Connection, user_id: str, limit: int = RECENT_SEARCHES
 
 
 def top_searches(conn: Connection, population: str | None = None, limit: int = TOP_SEARCHES) -> list[str]:
-    """«Lo más buscado» de una población (la declarada si no se da), de la más buscada a la menos. Sale de la caché
+    """ "Lo más buscado" de una población (la declarada si no se da), de la más buscada a la menos. Sale de la caché
     (10 minutos): no cambia con cada búsqueda."""
     population = population or config.MOTOR_POBLACION
 
@@ -83,7 +83,7 @@ def top_searches(conn: Connection, population: str | None = None, limit: int = T
 
 
 def _showable(query: str) -> bool:
-    """Si «Lo más buscado» puede mostrar esta búsqueda: nada que el agente no ofrece por su cuenta."""
+    """Si "Lo más buscado" puede mostrar esta búsqueda: nada que el agente no ofrece por su cuenta."""
     from ..retrieval.hybrid import detect_concepts  # import diferido: retrieval importa agent.tools
 
     if alcohol_in_name("catalog_item", query) or baby_in_name("catalog_item", query):

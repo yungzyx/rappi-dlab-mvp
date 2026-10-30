@@ -2,7 +2,7 @@ import { useId, useState } from 'react'
 import './offer-why.css'
 
 /**
- * «¿Por qué?» de una oferta del agente: un botón que despliega la razón que trae la API (`reason.text`). Sin texto no
+ * "¿Por qué?" de una oferta del agente: un botón que despliega la razón que trae la API (`reason.text`). Sin texto no
  * pinta nada: una oferta sin razón se muestra como antes. `onToggle(abierto)` avisa a quien lo aloja cuando se abre o
  * se cierra (el globo de la Home no se va solo mientras se lee).
  */

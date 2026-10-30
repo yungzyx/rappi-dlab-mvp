@@ -56,7 +56,7 @@ def test_closer_neighbors_weigh_more():
 
 
 def test_a_rule_needs_strong_agreement_to_enter_a_sensitive_concept():
-    """«Wrap» con 60 % de vecinos papelillos quedaba como accesorio para fumar (y oculto en la búsqueda)."""
+    """ "Wrap" con 60 % de vecinos papelillos quedaba como accesorio para fumar (y oculto en la búsqueda)."""
     item = ItemText("catalog_item", "1", "Wrap Integral Pack 6")
     rule = Assignment("catalog_item", "1", "panaderia", "regla", 0.7, None, "nombre:wrap")
     majority = _neighbors(["accesorios-fumador"] * 9 + ["panaderia"] * 6)
@@ -69,7 +69,7 @@ def test_a_rule_needs_strong_agreement_to_enter_a_sensitive_concept():
 
 
 def test_an_unassigned_item_still_enters_a_sensitive_concept_with_majority():
-    """Medicamentos sin categoría («Panadol (160 mg)») los encuentra el kNN con mayoría: sin concepto, la búsqueda
+    """Medicamentos sin categoría ("Panadol (160 mg)") los encuentra el kNN con mayoría: sin concepto, la búsqueda
     no los filtraría como sensibles."""
     neighbors = _neighbors(["medicamentos"] * 9 + ["vitaminas"] * 6)
     assert _decide(None, ITEM, *neighbors, MODEL).concept_id == "medicamentos"
@@ -82,14 +82,14 @@ def test_a_sensitive_rule_moves_to_another_sensitive_concept_with_majority():
 
 
 def test_neighbors_never_replace_the_name_of_a_dish_that_names_a_dish():
-    """«Pollo Asado Entero + Bebida» quedaba como sushi: los combos con bebida se parecen entre sí."""
+    """ "Pollo Asado Entero + Bebida" quedaba como sushi: los combos con bebida se parecen entre sí."""
     dish = ItemText("menu_item", "1", "Pollo Asado Entero + Bebida 1.5 L")
     roast = Assignment("menu_item", "1", "pollo-preparado", "regla", 0.7, None, "nombre:pollo asado")
     assert _decide(roast, dish, *_neighbors(["sushi"] * 15), MODEL) == roast
 
 
 def test_neighbors_still_fix_a_flavour_word_and_keep_a_protein_word():
-    """«Pistacho» en una heladería es un helado (la palabra es un sabor); «Pescado frito - reineta» es pescado."""
+    """ "Pistacho" en una heladería es un helado (la palabra es un sabor); "Pescado frito - reineta" es pescado."""
     flavour = Assignment("menu_item", "1", "frutos-secos", "regla", 0.7, None, "nombre:pistacho")
     gelato = ItemText("menu_item", "1", "Pistacho")
     assert _decide(flavour, gelato, *_neighbors(["helados"] * 15), MODEL).concept_id == "helados"
@@ -114,7 +114,7 @@ REFINED = Assignment("catalog_item", "1", "despensa-asiatica", "regla", 0.7, Non
 
 
 def test_neighbors_do_not_undo_an_asian_name_that_refined_a_food_category():
-    """Las vecinas de «Kikkoman Salsa de Soya» son las salsas de su categoría: votarían salsas y deshacían la regla."""
+    """Las vecinas de "Kikkoman Salsa de Soya" son las salsas de su categoría: votarían salsas y deshacían la regla."""
     assert _decide(REFINED, SOY, *_neighbors(["salsas"] * 15), MODEL) == REFINED
 
 
@@ -124,7 +124,7 @@ def test_alcohol_sensitive_and_non_food_neighbors_still_win_over_a_refined_name(
 
 
 def test_an_asian_name_without_a_food_category_is_an_ordinary_rule():
-    """«Peluche Bubble Tea» sin categoría (o con una dudosa): sus vecinas lo corrigen como a cualquier regla."""
+    """ "Peluche Bubble Tea" sin categoría (o con una dudosa): sus vecinas lo corrigen como a cualquier regla."""
     item = ItemText("catalog_item", "1", "Peluche Bubble Tea")
     rule = Assignment("catalog_item", "1", "bebidas-asiaticas", "regla", 0.7, None, "nombre:bubble tea")
     assert _decide(rule, item, *_neighbors(["juguetes-infantiles"] * 15), MODEL).concept_id == "juguetes-infantiles"
@@ -133,7 +133,7 @@ def test_an_asian_name_without_a_food_category_is_an_ordinary_rule():
 
 @pytest.mark.parametrize(("current", "voted"), [("cocteles", "cafe"), ("alimentacion-bebe", "lacteos")])
 def test_neighbors_never_take_a_product_out_of_alcohol_or_baby(current, voted):
-    """En la base real del 14-10-2026 un «Espresso Martini» listo pasaba a café y una fórmula Similac a lácteos."""
+    """En la base real del 14-10-2026 un "Espresso Martini" listo pasaba a café y una fórmula Similac a lácteos."""
     category = _current(current, "llm", 0.9)
     assert _decide(category, ITEM, *_neighbors([voted] * 15), MODEL) == category
 
@@ -143,7 +143,7 @@ def test_neighbors_still_move_a_product_between_alcohol_concepts():
 
 
 def test_neighbors_still_fix_a_dish_that_only_names_a_drink():
-    """«Pizza Margarita» calza la regla de cócteles; en los platos los vecinos la devuelven a pizza (y las ofertas
+    """ "Pizza Margarita" calza la regla de cócteles; en los platos los vecinos la devuelven a pizza (y las ofertas
     bloquean el alcohol de un menú por el nombre y la sección)."""
     dish = ItemText("menu_item", "1", "Margarita Familiar")
     rule = Assignment("menu_item", "1", "cocteles", "regla", 0.7, None, "nombre:margarita")
@@ -151,7 +151,7 @@ def test_neighbors_still_fix_a_dish_that_only_names_a_drink():
 
 
 def test_neighbors_never_take_a_dish_out_of_the_alcohol_its_section_gave():
-    """«Jengibre Sour» de una sección «Aperitivos» (base real del 22-10-2026) pasaba de licores a salsas, y «sour» con
+    """ "Jengibre Sour" de una sección "Aperitivos" (base real del 22-10-2026) pasaba de licores a salsas, y "sour" con
     salsas es la salsa agridulce para las guardias: se podía ofrecer. Lo que la sección deja en alcohol ya pasó por la
     comida que la sección no decide (`assign._solid_food`)."""
     dish = ItemText("menu_item", "1", "Jengibre Sour. Bebida de jengibre con un toque ácido, ideal como aperitivo.")

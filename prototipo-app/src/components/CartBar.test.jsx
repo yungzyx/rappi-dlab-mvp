@@ -69,7 +69,7 @@ function renderCart(products) {
   fireEvent.click(screen.getByText('Ver carro'))
 }
 
-test('una canasta por tienda, con su compra mínima: «Tu compra será dividida en 2 pedidos»', async () => {
+test('una canasta por tienda, con su compra mínima: "Tu compra será dividida en 2 pedidos"', async () => {
   const oil = toPrototypeProduct(fixture('catalog-store').products[0]) // $3.190 en el súper 9101
   const beer = toPrototypeProduct(fixture('search-grouped').groups[0].products[0]) // $1.190 en la botillería 9402
   terms.byStore = { [oil.storeId]: { deliveryFee: null, minOrder: 8490, servicePct: null } }

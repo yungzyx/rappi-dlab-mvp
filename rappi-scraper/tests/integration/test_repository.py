@@ -172,7 +172,7 @@ def test_search_documents_rebuild_the_vocabulary_by_vertical(db):
         ((v, w), n) for v, w, n in db.execute("SELECT vertical, word, docs FROM search_vocabulary").fetchall()
     )
     assert vocabulary[("supermercado", "nutella")] == 2
-    assert vocabulary[("supermercado", "panales")] == 2  # «Pañales» en la categoría de los dos
+    assert vocabulary[("supermercado", "panales")] == 2  # "Pañales" en la categoría de los dos
     shown = db.execute("SELECT display FROM search_vocabulary WHERE vertical = 'supermercado' AND word = 'panales'")
     assert shown.fetchone()[0] == "pañales"  # la corrección la muestra como la escribe el catálogo
     assert ("farmacia", "nutella") not in vocabulary and vocabulary[("farmacia", "paracetamol")] == 1
@@ -294,7 +294,7 @@ def test_a_dish_the_restaurant_no_longer_offers_leaves_the_search(db, page):
     assert len(dishes) == 60 and str(parsed["items"][0]["item_id"]) not in dishes
 
 
-# Los platos de una sección, también los que están en otra (como lo leería «lo más pedido», #106).
+# Los platos de una sección, también los que están en otra (como lo leería "lo más pedido", #106).
 SECTION_DISHES = """
 SELECT mi.rappi_item_id FROM menu_items mi
 JOIN menu_sections ms ON ms.store_id = mi.store_id
@@ -303,7 +303,7 @@ WHERE ms.name = %s ORDER BY 1"""
 
 
 def test_a_dish_in_mas_vendidos_and_in_its_own_section_is_saved_in_both(db, page):
-    """Antes el plato quedaba solo en la última sección y «Más vendidos» quedaba vacía (24 de 66 en `rappi`, 21-10)."""
+    """Antes el plato quedaba solo en la última sección y "Más vendidos" quedaba vacía (24 de 66 en `rappi`, 21-10)."""
     data = page("restaurant")
     products = next(c for c in restaurant_block(data)["corridors"] if c["name"] == "Hamburguesas")["products"]
     burgers = [p["id"] for p in products]
@@ -315,7 +315,7 @@ def test_a_dish_in_mas_vendidos_and_in_its_own_section_is_saved_in_both(db, page
     assert [r[0] for r in db.execute(SECTION_DISHES, ("Más vendidos",))] == sorted(burgers[:2])
     assert [r[0] for r in db.execute(SECTION_DISHES, ("Hamburguesas",))] == sorted(burgers)
 
-    # La descarga siguiente ya no trae «Más vendidos»: el plato vuelve a estar solo en su sección.
+    # La descarga siguiente ya no trae "Más vendidos": el plato vuelve a estar solo en su sección.
     repository.save_restaurant(db, repository.start_run(db, "restaurants", {}), parse_restaurant(page("restaurant")))
     assert _count(db, "SELECT count(*) FROM menu_items WHERE extra_section_ids <> '{}'") == 0
     assert [r[0] for r in db.execute(SECTION_DISHES, ("Hamburguesas",))] == sorted(burgers)
@@ -353,7 +353,7 @@ def test_two_restaurants_sharing_a_rappi_dish_id_keep_their_own_dish_and_price(d
 
 
 def test_a_restaurant_that_no_longer_exists_leaves_the_search(db):
-    """chain:7386 («Kazoku Nh») quedó «ya no existe en Rappi» en la corrida 6 y sus 94 platos seguían buscables."""
+    """chain:7386 ("Kazoku Nh") quedó "ya no existe en Rappi" en la corrida 6 y sus 94 platos seguían buscables."""
     candidate = {"store_id": 384, "path": "/restaurantes/384-rincon-venezolano"}
     job = {
         "job_key": "chain:3607",
@@ -480,12 +480,12 @@ def test_clean_html_leaves_plain_text_untouched(db):
 
 
 def test_clean_html_knows_the_entities_found_after_the_first_run(db):
-    """Tras la primera limpieza (30-09) quedaban &ccedil; («Açaí») y &ordm; en el catálogo real."""
+    """Tras la primera limpieza (30-09) quedaban &ccedil; ("Açaí") y &ordm; en el catálogo real."""
     assert db.execute("SELECT clean_html('A&ccedil;aí 1&ordm; calidad')").fetchone()[0] == "Açaí 1º calidad"
 
 
 def test_product_names_are_cleaned_too(db):
-    """Un nombre real: «Basurero de Metal Con Pedal <ul> <li>tie» (el HTML también llega al nombre)."""
+    """Un nombre real: "Basurero de Metal Con Pedal <ul> <li>tie" (el HTML también llega al nombre)."""
     _store(db, 1, "lider", "supermercado")
     run = repository.start_run(db, "stores", {})
     repository.save_products(db, run, 1, [_product("a", 100, "Basurero de Metal Con Pedal <ul> <li>tie", 9990)])
@@ -497,7 +497,7 @@ def test_product_names_are_cleaned_too(db):
 
 
 def test_filler_menu_prices_are_unknown_in_search(db):
-    """Un plato cuyo precio depende de sus opciones viene a $0 o $1 («Completo Dinamico»): como precio pasaba
+    """Un plato cuyo precio depende de sus opciones viene a $0 o $1 ("Completo Dinamico"): como precio pasaba
     cualquier tope. En la búsqueda queda sin precio; uno real se conserva."""
     _store(db, 3, "restaurant", "restaurantes", brand=("Lo de Anita", 900))
     run = repository.start_run(db, "restaurants", {})

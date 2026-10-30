@@ -242,7 +242,7 @@ def test_graded_gains_in_the_metrics():
 def test_jev_means_use_graded_gain_and_binarize_only_the_mrr():
     runs = [run("cerveza", "hibrido", [(1, None), (2, None), (3, None)], relevance=[0, 1, 1])]
     judgments = {
-        pair_id("licores", "cerveza", "catalog_item", "1"): JevJudgment(0.4, {}),  # a medias bajo: no es «sirve»
+        pair_id("licores", "cerveza", "catalog_item", "1"): JevJudgment(0.4, {}),  # a medias bajo: no es "sirve"
         pair_id("licores", "cerveza", "catalog_item", "2"): JevJudgment(0.5, {}),
         # el 3 no tiene juicio (falló): cuenta 0 y se avisa
     }

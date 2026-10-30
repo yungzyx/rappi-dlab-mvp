@@ -1,8 +1,8 @@
-// «Cancelar pedido» con rescate (la pantalla de la app de Rappi: «Aún tiene solución» antes de «Continuar con la
-// cancelación»). Los motivos son los que acepta rappi-ia (events/store.py: CANCEL_REASONS) y las etapas, CANCEL_STAGES.
+// "Cancelar pedido" con rescate (la pantalla de la app de Rappi: "Aún tiene solución" antes de "Continuar con la
+// cancelación"). Los motivos son los que acepta rappi-ia (events/store.py: CANCEL_REASONS) y las etapas, CANCEL_STAGES.
 //
 // El costo de cancelar un pedido que la tienda ya empezó es un SUPUESTO de la demo (la app de Rappi lo calcula en su
-// servidor y no se sabe cómo): se rotula «de ejemplo» y nunca se presenta como política de Rappi.
+// servidor y no se sabe cómo): se rotula "de ejemplo" y nunca se presenta como política de Rappi.
 import { parsePrice } from '../../state/CartContext'
 import { flowFor, isAhead, secondsSince } from './progress'
 
@@ -18,7 +18,7 @@ export const CANCEL_REASONS = [
 // Supuesto: desde que la tienda empieza el pedido, cancelar cuesta el 30 % de los productos (al menos $990).
 export const CANCEL_FEE = { rate: 0.3, min: 990 }
 
-// Medios de pago de ejemplo para «cambiar el pago» (no se ingresan datos).
+// Medios de pago de ejemplo para "cambiar el pago" (no se ingresan datos).
 export const PAYMENTS = ['Visa •••• 4242', 'Efectivo al recibir']
 
 const round10 = (value) => Math.round(value / 10) * 10
