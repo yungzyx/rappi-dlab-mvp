@@ -170,6 +170,8 @@ En local la API no tiene puerta de acceso (los datos de cada persona sí piden s
 
 La app y el panel también se arman en un solo archivo HTML, con una API simulada o con respuestas guardadas, que abre sin internet ni base. Para armarlos hace falta una copia de la base con la API corriendo: ver [prototipo-app/README.md](prototipo-app/README.md#demo-sin-conexión-prototipo-mvphtml) y [dashboard-empresa/README.md](dashboard-empresa/README.md#panel-en-un-solo-html).
 
+Con los dos armados, `make presentacion` los junta en una presentación de un solo archivo (escritorio, y iPhone y iPad): la app al centro, sus personas y su vista a los lados, el panel de negocio encima y un recorrido automático por capítulos. Ver [presentacion/README.md](presentacion/README.md).
+
 ### En un servidor
 
 Una demo cerrada en un servidor Linux con Docker Compose: Caddy con TLS y una puerta de usuario y clave sobre todo el sitio, la API con identidad firmada y la base con roles separados, migraciones con respaldo y respaldos fuera del equipo. Paso a paso, en [docs/despliegue.md](docs/despliegue.md).
@@ -217,6 +219,7 @@ La misma carpeta trae una página de presentación de la propuesta (`http://loca
 ├── rappi-ia/               conceptos, embeddings, búsqueda, capa de datos, motor multivertical, Mochi y API (comando `rappi-ia`)
 ├── rappi-scraper/          descarga del catálogo público → Postgres + pgvector (comando `rappi`; migraciones de toda la base)
 ├── dashboard-empresa/      panel de negocio, parte del MVP (Vite + React; lee la API), y la página de presentación
+├── presentacion/           la presentación del MVP sin conexión (app, panel y recorrido automático en un solo HTML)
 ├── docs/                   propuesta, diseño, decisiones, demo, instalación, despliegue y resultados (índice en docs/README.md)
 │   ├── diseno/             especificaciones de las piezas grandes (capa de perfiles, MVP, perfiles de gusto, motor y la conversación con Mochi)
 │   ├── diagramas/          diagramas (PNG e interactivos) y sus fuentes en diagramas-fuente/

@@ -17,6 +17,9 @@ rappi-scraper/data/
 *.sql.gz
 *.backup
 
+# La presentación armada (make presentacion): lleva la muestra del catálogo y sus fotos, no se versiona
+presentacion/dist/
+
 # Evidencia que deja la verificación visual de los diagramas
 docs/diagramas/*.visual-check.*
 

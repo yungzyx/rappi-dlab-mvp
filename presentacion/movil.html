@@ -1,0 +1,279 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, viewport-fit=cover" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="default" />
+<meta name="apple-mobile-web-app-title" content="Mochi MVP" />
+<meta name="theme-color" content="#ffffff" />
+<title>Mochi MVP · iPhone y iPad</title>
+<style>
+  :root {
+    --bg: #e6e6ea;
+    --panel: #ffffff;
+    --ink: #161616;
+    --ink-2: #4b4b4b;
+    --ink-3: #8a8a90;
+    --line: #e2e2e6;
+    --accent: #ff441f;
+    --accent-soft: #fff1ea;
+    --accent-deep: #8f2c16;
+    --chapter-bg: #efe8fb;
+    --chapter-ink: #5a3596;
+    --radius: 18px;
+    --safe-top: env(safe-area-inset-top, 0px);
+    --safe-bottom: env(safe-area-inset-bottom, 0px);
+  }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
+  html, body { margin: 0; height: 100%; }
+  body {
+    background: var(--panel);
+    color: var(--ink);
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", system-ui, sans-serif;
+    display: grid;
+    grid-template-rows: minmax(0, 1fr) auto;
+    height: 100dvh;
+    padding-top: var(--safe-top);
+    overflow: hidden;
+    overscroll-behavior: none;
+  }
+  button { font: inherit; color: inherit; cursor: pointer; border: 0; background: none; touch-action: manipulation; }
+
+  /* El prototipo ocupa la pantalla, tal cual */
+  .stage { position: relative; min-height: 0; background: var(--bg); }
+  .stage iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; }
+
+  /* Barra de abajo: fuera de la app, para no tapar nada */
+  .bar {
+    display: flex; align-items: center; gap: 8px;
+    padding: 8px 10px calc(8px + var(--safe-bottom));
+    background: var(--panel); border-top: 1px solid var(--line);
+  }
+  .now { flex: 1; min-width: 0; display: flex; flex-direction: column; padding: 0 4px; line-height: 1.2; }
+  .now strong { font-size: 15px; }
+  .now span { font-size: 13px; color: var(--ink-3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .round, .bar .stop { flex: none; }
+  .round:active, .bar .stop:active { transform: scale(.96); }
+  .round {
+    width: 46px; height: 46px; border-radius: 14px;
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+    font-size: 15px; font-weight: 700;
+  }
+  .bar .play { background: var(--accent); color: #fff; }
+  .bar .play #play-label { display: none; }
+  .menu { background: var(--ink); color: #fff; }
+  .menu-lines { width: 18px; height: 12px; display: flex; flex-direction: column; justify-content: space-between; }
+  .menu-lines i { height: 2px; border-radius: 2px; background: currentColor; }
+
+  /* Mientras corre el recorrido: qué está haciendo y un Parar grande */
+  .status, .bar .stop { display: none; }
+  body.touring .now, body.touring .bar .play, body.touring .menu { display: none; }
+  body.touring .status {
+    display: block; flex: 1; min-width: 0; margin: 0;
+    font-size: 13px; line-height: 1.35; color: var(--ink-2);
+  }
+  .status strong { display: block; color: var(--ink); font-size: 14px; }
+  body.touring .bar .stop {
+    display: flex; align-items: center; gap: 8px; height: 46px; padding: 0 18px;
+    border-radius: 14px; background: var(--ink); color: #fff; font-size: 16px; font-weight: 700;
+  }
+  .icon { width: 14px; height: 14px; display: inline-block; flex: none; }
+  .icon-play { width: 0; height: 0; border-style: solid; border-width: 8px 0 8px 13px; border-color: transparent transparent transparent currentColor; }
+  .icon-stop { background: currentColor; border-radius: 3px; }
+
+  /* Hoja «Más opciones»: panel de negocio, vista, persona, simular y recorrido */
+  .sheet-backdrop {
+    position: fixed; inset: 0; z-index: 20; background: #16161659;
+    display: flex; align-items: flex-end; justify-content: center;
+  }
+  .sheet-backdrop[hidden] { display: none; }
+  .sheet {
+    width: 100%; max-width: 560px; max-height: 86dvh; overflow-y: auto; overscroll-behavior: contain;
+    background: var(--bg); border-radius: 22px 22px 0 0;
+    padding: 8px 16px calc(20px + var(--safe-bottom));
+    display: flex; flex-direction: column; gap: 10px;
+  }
+  .sheet-grip { width: 40px; height: 5px; border-radius: 3px; background: #c5c5cb; margin: 2px auto 4px; }
+  .sheet-head { display: flex; align-items: center; justify-content: space-between; }
+  .sheet-head strong { font-size: 19px; }
+  .sheet-close { padding: 9px 16px; border-radius: 99px; background: var(--ink); color: #fff; font-size: 15px; font-weight: 700; }
+  .sheet h2 { margin: 8px 4px 0; font-size: 13px; font-weight: 600; color: var(--ink-3); }
+
+  .biz {
+    display: flex; align-items: center; gap: 12px; width: 100%;
+    padding: 14px; border-radius: var(--radius); background: var(--ink); color: #fff; text-align: left;
+  }
+  .biz-icon {
+    flex: none; width: 44px; height: 44px; border-radius: 12px; background: var(--accent);
+    display: flex; align-items: flex-end; justify-content: center; gap: 4px; padding: 11px 10px;
+  }
+  .biz-icon i { width: 5px; border-radius: 2px; background: #fff; }
+  .biz-icon i:nth-child(1) { height: 40%; }
+  .biz-icon i:nth-child(2) { height: 100%; }
+  .biz-icon i:nth-child(3) { height: 65%; }
+  .biz strong { display: block; font-size: 17px; }
+  .biz small { display: block; margin-top: 2px; font-size: 13px; color: #ffffffb3; }
+
+  .controls { display: flex; flex-direction: column; gap: 8px; }
+  .controls[hidden], .replay[hidden], .readout[hidden] { display: none; }
+  .modes { display: flex; flex-wrap: wrap; gap: 6px; padding: 5px; border-radius: var(--radius); background: var(--panel); }
+  .mode { flex: 1 1 auto; padding: 11px 12px; border-radius: 99px; font-size: 15px; font-weight: 600; color: var(--ink-2); white-space: nowrap; }
+  .mode.is-active { background: var(--ink); color: #fff; }
+  .replay { padding: 12px 14px; border-radius: 99px; background: var(--accent-soft); color: var(--accent-deep); font-size: 15px; font-weight: 600; text-align: left; }
+  .readout {
+    margin: 0; padding: 8px 12px; border-radius: 12px; background: var(--accent-soft);
+    color: var(--accent-deep); font-size: 13px; font-weight: 600; line-height: 1.35; overflow-wrap: anywhere;
+  }
+  .personas, .tastes, .sims { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .persona, .sim {
+    padding: 10px 12px; border-radius: 14px; background: var(--panel); text-align: left;
+    font-size: 14px; font-weight: 600; line-height: 1.25; border: 2px solid transparent;
+  }
+  .persona.is-active { border-color: var(--accent); background: var(--accent-soft); }
+  .sim { font-weight: 500; }
+  .sim.is-danger { color: var(--accent-deep); }
+  .sim-box summary { margin: 8px 4px 0; font-size: 13px; font-weight: 600; color: var(--ink-3); cursor: pointer; }
+  .sim-box .sims { margin-top: 8px; }
+  .tour-picks { display: flex; flex-direction: column; gap: 6px; }
+  .tour-picks .play {
+    display: flex; align-items: center; justify-content: center; gap: 10px; padding: 15px; border-radius: var(--radius);
+    background: var(--accent); color: #fff; font-size: 16px; font-weight: 700;
+  }
+  .tour-one {
+    display: flex; align-items: center; gap: 10px; width: 100%; padding: 12px 16px; border-radius: 14px;
+    background: var(--chapter-bg); color: var(--chapter-ink); font-size: 15px; font-weight: 700; text-align: left;
+  }
+  .tour-one .icon-play { border-width: 6px 0 6px 10px; }
+
+  /* Panel de negocio a pantalla completa */
+  .biz-backdrop {
+    position: fixed; inset: 0; z-index: 30; background: #16161659;
+    display: flex; padding: calc(var(--safe-top) + 8px) 8px calc(var(--safe-bottom) + 8px);
+  }
+  .biz-backdrop[hidden] { display: none; }
+  .biz-sheet { flex: 1; display: flex; flex-direction: column; min-width: 0; border-radius: var(--radius); background: var(--panel); overflow: hidden; }
+  .biz-bar { display: flex; align-items: center; gap: 12px; padding: 10px 10px 10px 16px; border-bottom: 1px solid var(--line); }
+  .biz-bar strong { font-size: 16px; }
+  .biz-bar span { color: var(--ink-3); font-size: 13px; }
+  .biz-close { margin-left: auto; flex: none; padding: 9px 16px; border-radius: 99px; background: var(--ink); color: #fff; font-size: 14px; font-weight: 700; }
+  .biz-frame { flex: 1; position: relative; }
+  .biz-frame iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; }
+
+  /* El «dedo» del recorrido */
+  .cursor {
+    position: fixed; left: 0; top: 0; z-index: 40; pointer-events: none;
+    width: 40px; height: 40px; border-radius: 50%; opacity: 0;
+    background: #16161638; border: 3px solid #ffffffe6;
+    box-shadow: 0 2px 10px #16161659;
+    transform: translate(-100px, -100px); transition: opacity .3s;
+  }
+  .cursor.is-on { opacity: 1; }
+  .ripple {
+    position: fixed; z-index: 39; pointer-events: none; width: 56px; height: 56px;
+    margin: -28px 0 0 -28px; border-radius: 50%; border: 3px solid var(--accent);
+    animation: ripple .55s ease-out forwards;
+  }
+  @keyframes ripple { from { transform: scale(.3); opacity: 1; } to { transform: scale(1.4); opacity: 0; } }
+  @media (prefers-reduced-motion: reduce) { .ripple { animation-duration: .01s; } }
+
+  /* iPad: más espacio y el nombre del recorrido en su botón */
+  @media (min-width: 700px) {
+    .bar { gap: 10px; padding: 10px 16px calc(10px + var(--safe-bottom)); }
+    .now strong { font-size: 17px; }
+    .now span { font-size: 14px; }
+    .bar .play { width: auto; padding: 0 18px; }
+    .bar .play #play-label { display: inline; }
+    .round { height: 54px; width: 54px; }
+    .bar .play { height: 54px; }
+    body.touring .bar .stop { height: 54px; padding: 0 26px; font-size: 17px; }
+    body.touring .status { font-size: 15px; }
+    .status strong { font-size: 16px; }
+    .personas, .tastes, .sims { grid-template-columns: 1fr 1fr 1fr; }
+    .biz-backdrop { padding: calc(var(--safe-top) + 16px) 16px calc(var(--safe-bottom) + 16px); }
+  }
+</style>
+</head>
+<body data-touch="yes">
+  <main class="stage" id="stage"></main>
+
+  <nav class="bar">
+    <div class="now"><strong>MVP · Agente Mochi</strong><span id="persona-now">Elige una persona</span></div>
+    <button class="play round" id="play" aria-pressed="false" aria-label="Recorrido automático"><span class="icon icon-play"></span><span id="play-label">Recorrido automático</span></button>
+    <button class="menu round" id="menu-open" aria-label="Más opciones"><span class="menu-lines"><i></i><i></i><i></i></span></button>
+    <p class="status" id="status">Toca la app o deja que el recorrido la muestre.</p>
+    <button class="stop" id="stop" disabled><span class="icon icon-stop"></span>Parar</button>
+  </nav>
+
+  <div class="sheet-backdrop" id="sheet" hidden>
+    <div class="sheet" role="dialog" aria-label="Más opciones">
+      <div class="sheet-grip"></div>
+      <div class="sheet-head"><strong>MVP · Agente Mochi</strong><button class="sheet-close" id="sheet-close">Listo</button></div>
+
+      <button class="biz" id="biz-open">
+        <span class="biz-icon" aria-hidden="true"><i></i><i></i><i></i></span>
+        <span><strong>Panel de negocio</strong><small>Lo que ve Rappi del MVP</small></span>
+      </button>
+
+      <div class="controls" id="modes-box" hidden>
+        <h2>Vista</h2>
+        <div class="modes" id="modes"></div>
+        <button class="replay" id="replay" hidden>↺ Repetir escena</button>
+      </div>
+      <div class="controls" id="personas-box" hidden>
+        <h2>Persona</h2>
+        <p class="readout" id="readout" hidden></p>
+        <div class="personas" id="personas"></div>
+        <h2>Perfil de gusto</h2>
+        <div class="tastes" id="tastes"></div>
+      </div>
+      <details class="controls sim-box" id="sim-box" hidden>
+        <summary>Simular</summary>
+        <div class="sims" id="sim"></div>
+      </details>
+
+      <div class="tour-picks">
+        <h2>Recorrido automático</h2>
+        <button class="play-all play" id="play-all"><span class="icon icon-play"></span>Todo el recorrido</button>
+        <div class="tour-picks" id="chapters"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="biz-backdrop" id="biz" hidden>
+    <div class="biz-sheet" role="dialog" aria-label="Panel de negocio">
+      <div class="biz-bar">
+        <strong>Panel de negocio</strong><span>Lo que ve Rappi</span>
+        <button class="biz-close" id="biz-close">Cerrar ✕</button>
+      </div>
+      <div class="biz-frame" id="biz-frame"></div>
+    </div>
+  </div>
+
+  <div class="cursor" id="cursor" data-dx="20" data-dy="20" aria-hidden="true"></div>
+
+<script>const PROTOS = /*PROTOS*/null;</script>
+<script>/*RECORRIDO*/</script>
+<script>
+"use strict";
+/* Versión táctil: la hoja «Más opciones» y la barra mientras corre el recorrido */
+(function () {
+  const sheet = document.getElementById("sheet");
+  const openSheet = () => { sheet.hidden = false; };
+  const closeSheet = () => { sheet.hidden = true; };
+  document.getElementById("menu-open").addEventListener("click", openSheet);
+  document.getElementById("sheet-close").addEventListener("click", closeSheet);
+  sheet.addEventListener("click", (e) => {
+    if (e.target === sheet) return closeSheet();
+    /* elegir algo en la hoja la cierra, para ver el cambio en la app */
+    if (e.isTrusted && e.target.closest(".mode, .replay, .persona, .sim, .tour-one, .play-all, .biz")) closeSheet();
+  });
+  document.getElementById("play-all").addEventListener("click", () => { if (!tour) startTour(CHAPTERS.map((c) => c.id), true, playBtn); });
+  document.addEventListener("recorrido:inicio", () => { document.body.classList.add("touring"); closeSheet(); });
+  document.addEventListener("recorrido:fin", () => document.body.classList.remove("touring"));
+})();
+</script>
+</body>
+</html>
