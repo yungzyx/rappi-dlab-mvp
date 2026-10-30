@@ -121,7 +121,7 @@ def test_a_healthy_stack_passes(tmp_path):
     result = _smoke(tmp_path)
 
     assert result.returncode == 0, result.stdout + result.stderr
-    assert 'el aviso de demo está en la app' in result.stdout
+    assert "el aviso de demo está en la app" in result.stdout
     assert 'jobs sin "cambiar-esto"' in result.stdout
 
 
@@ -129,7 +129,7 @@ def test_a_build_without_the_demo_notice_fails(tmp_path):
     result = _smoke(tmp_path, entry_js='x("Hola")')
 
     assert result.returncode == 1
-    assert 'falta el aviso de demo' in result.stderr
+    assert "falta el aviso de demo" in result.stderr
 
 
 @pytest.mark.parametrize("service", ["api", "jobs"])
