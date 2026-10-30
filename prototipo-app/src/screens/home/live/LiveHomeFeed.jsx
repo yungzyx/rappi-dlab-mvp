@@ -14,6 +14,7 @@ import { VERTICAL_NAMES, routeForScreen, screenForBackend } from '../../../data/
 import { useReducedMotion } from '../../../hooks/useReducedMotion'
 import { useScrollState } from '../../../hooks/useScrollState'
 import { useAddress } from '../../../state/AddressContext'
+import { useAssistant } from '../../../state/AssistantContext'
 import { useAddToCart } from '../../../hooks/useAddToCart'
 import { useEvents } from '../../../state/EventsContext'
 import { useOrders } from '../../../state/OrdersContext'
@@ -86,8 +87,10 @@ export default function LiveHomeFeed({ push, active = true }) {
   const events = useEvents()
   const verticalOrder = useVerticalOrder(active)
   const hidden = useAgentHidden()
-  // La fila que se ve: el último orden que vio la persona hasta que la Home está arriba; ahí, si cambió, se mueve.
-  const shortcuts = useShortcutMove(verticalOrder, { active, resets: profile.resets })
+  // La fila que se ve: el último orden que vio la persona hasta que la Home está a la vista (arriba y sin el buscador
+  // encima); ahí, si cambió, se mueve. Un cambio con el buscador abierto se ve al cerrarlo.
+  const searching = useAssistant()?.isOpen === true
+  const shortcuts = useShortcutMove(verticalOrder, { active: active && !searching, resets: profile.resets })
   // Cambia con cada pedido y con cada calificación (una mala pausa lo de ese pedido): «¿Volvemos a…?» se vuelve a pedir.
   const orders = useOrders().orders
   const lastOrder = `${orders[0]?.id ?? ''}|${orders.filter((order) => order.rating).length}`

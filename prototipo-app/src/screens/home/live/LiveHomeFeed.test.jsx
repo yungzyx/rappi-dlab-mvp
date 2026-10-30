@@ -1270,6 +1270,42 @@ describe('Home del prototipo final', () => {
       expect(said(container)).toBe(LINE)
     })
 
+    test('con el buscador abierto encima, el cambio espera: al cerrarlo, Mochi mueve la fila y lo explica', async () => {
+      memory.session.played = true
+      let calls = 0
+      stubAgent({
+        'GET /profile/*': () => (++calls === 1 ? fixture('profile-verticales-nueva') : fixture('profile-verticales')),
+      })
+      let assistant
+      function Probe() {
+        assistant = useAssistant()
+        return null
+      }
+      const tree = (active) => (
+        <Providers>
+          <Probe />
+          <div className="phone">
+            <div className="screen-wrap">
+              <HomeScreen push={vi.fn()} tab="home" setTab={vi.fn()} active={active} />
+            </div>
+          </div>
+        </Providers>
+      )
+      const { container, rerender } = render(tree(true))
+      await advance(500)
+      act(() => assistant.open())
+      rerender(tree(false)) // otra pantalla y de vuelta: pide el orden otra vez, con el buscador todavía abierto
+      rerender(tree(true))
+      await advance(1500)
+      expect(calls).toBe(2)
+      expect(tiles(container)[0]).toBe('Súper')
+      expect(said(container)).toBe('')
+      act(() => assistant.close({ viaHistory: true }))
+      await advance(1500)
+      expect(tiles(container)[0]).toBe('Farmacia')
+      expect(said(container)).toBe(LINE)
+    })
+
     test('recién abierta, primero saluda y después explica el cambio', async () => {
       remember(FIXED)
       stubAgent({ 'GET /profile/*': fixture('profile-verticales') })
