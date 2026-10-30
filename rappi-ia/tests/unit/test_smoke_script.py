@@ -1,5 +1,5 @@
 """deploy/smoke.sh contra un sitio y un stack falsos (un `curl` y un `docker compose` de mentira): revisa el aviso de
-demo no oficial en la app y el entorno de cada servicio, también el de jobs (que no corre), y un `exec` que falla no
+demo en la app y el entorno de cada servicio, también el de jobs (que no corre), y un `exec` que falla no
 cuenta como bien."""
 
 import json
@@ -13,7 +13,7 @@ import pytest
 from rappi_ia.config import PROJECT_ROOT
 
 SMOKE = PROJECT_ROOT.parent / "deploy" / "smoke.sh"
-NOTICE = "Demo no oficial · prototipo independiente, no afiliado a Rappi"
+NOTICE = "Prototipo dLab con Rappi · demo, no es la app oficial"
 CSP = "default-src 'self'; img-src 'self' https://images.rappi.cl data:; connect-src 'self'; frame-ancestors 'none'"
 SITE_HEADERS = [
     "strict-transport-security: max-age=31536000",
@@ -84,7 +84,7 @@ def _fake(path: Path, body: str) -> Path:
 
 def _site(entry_js: str) -> dict:
     index = (
-        '<!doctype html><html><head><meta name="description" content="Demo no oficial: prototipo independiente.">'
+        '<!doctype html><html><head><meta name="description" content="Prototipo dLab con Rappi.">'
         '<script type="module" crossorigin src="/assets/index-abc.js"></script>'
         '<link rel="stylesheet" crossorigin href="/assets/index-abc.css"></head><body></body></html>'
     )
@@ -121,7 +121,7 @@ def test_a_healthy_stack_passes(tmp_path):
     result = _smoke(tmp_path)
 
     assert result.returncode == 0, result.stdout + result.stderr
-    assert 'el aviso "Demo no oficial" está en la app' in result.stdout
+    assert 'el aviso de demo está en la app' in result.stdout
     assert 'jobs sin "cambiar-esto"' in result.stdout
 
 
@@ -129,7 +129,7 @@ def test_a_build_without_the_demo_notice_fails(tmp_path):
     result = _smoke(tmp_path, entry_js='x("Hola")')
 
     assert result.returncode == 1
-    assert 'falta el aviso "Demo no oficial"' in result.stderr
+    assert 'falta el aviso de demo' in result.stderr
 
 
 @pytest.mark.parametrize("service", ["api", "jobs"])

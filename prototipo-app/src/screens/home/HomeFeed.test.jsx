@@ -100,9 +100,9 @@ describe('Home de "Rappi hoy"', () => {
     ])
   })
 
-  test('la Home muestra el aviso de demo no oficial', () => {
+  test('la Home muestra el aviso de demo', () => {
     renderHome()
-    expect(screen.getByText('Demo no oficial · prototipo independiente, no afiliado a Rappi')).toBeTruthy()
+    expect(screen.getByText('Prototipo dLab con Rappi · demo, no es la app oficial')).toBeTruthy()
   })
 
   test('RappiFavor sigue no disponible, como en la app', () => {

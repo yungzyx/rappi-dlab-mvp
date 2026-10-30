@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Prueba de humo del stack desplegado: deploy/smoke.sh https://el-dominio
 # Revisa la puerta de acceso, la API lista (con la búsqueda semántica), las cabeceras de seguridad, que lo servido no
-# apunte a :8000 ni cargue nada que la CSP bloquee, que la app lleve el aviso de demo no oficial, que rappi_api no pueda
+# apunte a :8000 ni cargue nada que la CSP bloquee, que la app lleve el aviso de demo, que rappi_api no pueda
 # borrar tablas, que ningún servicio (jobs incluido) tenga valores de ejemplo y que todo el stack esté sano.
 # Sale con 0 o dice qué falló.
 #
@@ -81,10 +81,10 @@ served="$index"
 for asset in $assets; do served+=$'\n'$(authed "$url$asset"); done
 if grep -qF ':8000' <<<"$served"; then fail "lo servido menciona :8000"; else pass "ningún :8000 en lo servido"; fi
 # El aviso fijo de la Home (DemoDisclaimer), con o sin VITE_DEMO: viaja en el JavaScript de la app.
-if grep -qF 'Demo no oficial · prototipo independiente, no afiliado a Rappi' <<<"$served"; then
-  pass "el aviso \"Demo no oficial\" está en la app"
+if grep -qF 'Prototipo dLab con Rappi · demo, no es la app oficial' <<<"$served"; then
+  pass "el aviso de demo está en la app"
 else
-  fail "falta el aviso \"Demo no oficial\" en la app servida"
+  fail "falta el aviso de demo en la app servida"
 fi
 # Lo que la CSP bloquearía en index.html: scripts en línea y scripts u hojas de estilo de otro origen.
 if grep -oE '<script[^>]*>' <<<"$index" | grep -qv 'src='; then

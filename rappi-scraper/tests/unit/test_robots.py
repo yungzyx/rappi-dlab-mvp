@@ -31,7 +31,7 @@ _REAL_REQUEST, _REAL_GET = requests.Session.request, requests.Session.get
 
 def test_user_agent_names_the_program_and_its_version_not_a_browser():
     ua = config.user_agent(AGENT, "")
-    assert ua == f"{AGENT}/{version('rappi-scraper')} (prototipo de investigacion dLab, no afiliado a Rappi)"
+    assert ua == f"{AGENT}/{version('rappi-scraper')} (prototipo de investigacion dLab con Rappi)"
     assert "Mozilla" not in ua and "Chrome" not in ua
     assert config.user_agent(AGENT, "mailto:equipo@example.cl").startswith(
         f"{AGENT}/{version('rappi-scraper')} (+mailto:equipo@example.cl; "

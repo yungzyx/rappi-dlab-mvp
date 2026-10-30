@@ -35,7 +35,7 @@ STORES_METADATA_URL = (
 
 def user_agent(project: str, contact: str) -> str:
     """El User-Agent: un programa con nombre y versión, no un navegador. Sin contacto, igual dice quién descarga."""
-    about = "prototipo de investigacion dLab, no afiliado a Rappi"  # sin tildes: va en una cabecera HTTP
+    about = "prototipo de investigacion dLab con Rappi"  # sin tildes: va en una cabecera HTTP
     contact_part = f"+{contact}; " if contact else ""
     return f"{project}/{version('rappi-scraper')} ({contact_part}{about})"
 

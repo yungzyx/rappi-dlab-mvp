@@ -247,7 +247,7 @@ read -rs BASIC_AUTH_PASSWORD && export BASIC_AUTH_PASSWORD   # la clave de la pu
 deploy/smoke.sh https://<dominio>                             # el valor de DOMAIN, p. ej. https://demo.ejemplo.cl
 ```
 
-[`deploy/smoke.sh`](../deploy/smoke.sh) usa `$COMPOSE` y revisa: la puerta (401 sin credenciales en `/`, `/api/health`, `/panel` y `/panel/`), `/api/health` 200 con la búsqueda semántica, las cabeceras de seguridad y de caché, que lo servido no apunte a `:8000` ni traiga scripts en línea o de otro origen, que la app lleve el aviso "Demo no oficial", que `rappi_api` no pueda borrar tablas ni crear objetos, que ningún servicio tenga un `cambiar-esto` (`jobs` también, en un contenedor desechable; si un entorno no se puede leer, falla) y que todo esté sano. Termina con "smoke: todo bien." (código 0) o lista lo que falló. Con `DOMAIN=localhost` acepta la CA interna de Caddy.
+[`deploy/smoke.sh`](../deploy/smoke.sh) usa `$COMPOSE` y revisa: la puerta (401 sin credenciales en `/`, `/api/health`, `/panel` y `/panel/`), `/api/health` 200 con la búsqueda semántica, las cabeceras de seguridad y de caché, que lo servido no apunte a `:8000` ni traiga scripts en línea o de otro origen, que la app lleve el aviso de demo ("Prototipo dLab con Rappi · demo, no es la app oficial"), que `rappi_api` no pueda borrar tablas ni crear objetos, que ningún servicio tenga un `cambiar-esto` (`jobs` también, en un contenedor desechable; si un entorno no se puede leer, falla) y que todo esté sano. Termina con "smoke: todo bien." (código 0) o lista lo que falló. Con `DOMAIN=localhost` acepta la CA interna de Caddy.
 
 ### 3.9 Respaldos y timers
 
