@@ -1,4 +1,4 @@
-.PHONY: help install test lint mvp mvp-check dump-entrega build
+.PHONY: help install test lint mvp mvp-check dump-entrega build presentacion
 
 .DEFAULT_GOAL := help
 
@@ -33,6 +33,11 @@ mvp:  ## Demo local con servidores de desarrollo (base real, API :8000, app :517
 
 mvp-check:  ## Recorre la app con Chrome contra un catálogo de prueba inventado (rappi_ia_test, :8010, :5184 y el panel en :5185)
 	@scripts/mvp-check.sh
+
+presentacion:  ## Arma la presentación del MVP en dos HTML (escritorio, iPhone y iPad) en presentacion/dist/; PRESENTACION_COPY=<carpeta> deja una copia (ver presentacion/README.md)
+	npm --prefix prototipo-app run demo:html
+	npm --prefix dashboard-empresa run panel:html
+	node presentacion/build.mjs
 
 dump-entrega:  ## Respaldo de la base para entregar, sin las personas del prototipo (ver rappi-ia/README.md)
 	$(MAKE) -C rappi-ia dump-entrega
