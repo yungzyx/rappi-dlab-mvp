@@ -13,6 +13,21 @@ Lo hizo Yung Chung con el equipo Rappitouille en el programa dLab, entre septiem
 
 *El prototipo final. El interruptor de arriba (tecla **D**) alterna con la app como es hoy.*
 
+## Cómo revisarlo
+
+Tres caminos, de lo más rápido a lo más completo:
+
+1. **La demo en línea:** [dlab-mvp.com](https://dlab-mvp.com) (la app) y [dlab-mvp.com/panel/](https://dlab-mvp.com/panel/) (el panel de negocio). Pide un usuario y una clave, que el equipo entrega aparte. Corre sobre el catálogo real con personas de prueba; lo que se haga ahí queda como uso del prototipo.
+2. **La presentación sin conexión:** «Mochi MVP - Presentación.html» (y su versión para iPhone y iPad), un solo archivo que el equipo entrega aparte. Trae la app, el panel de negocio, las personas de prueba y un recorrido automático por 9 capítulos, y abre sin internet. Cómo se arma: [presentacion/README.md](presentacion/README.md).
+3. **El código.** Lo central, en este orden:
+   - el motor multivertical: [`rappi-ia/src/rappi_ia/motor/`](rappi-ia/src/rappi_ia/motor/) (la tabla de combinaciones de Rappi, en [`combos.toml`](rappi-ia/src/rappi_ia/motor/combos.toml));
+   - las ofertas de Mochi, cada una con su razón y sus guardias: [`rappi-ia/src/rappi_ia/offers/`](rappi-ia/src/rappi_ia/offers/);
+   - la búsqueda híbrida: [`rappi-ia/src/rappi_ia/retrieval/`](rappi-ia/src/rappi_ia/retrieval/);
+   - Mochi en la app: [`prototipo-app/src/components/assistant/`](prototipo-app/src/components/assistant/); el panel: [`dashboard-empresa/src/`](dashboard-empresa/src/);
+   - por qué se decidió cada cosa: [docs/decisiones.md](docs/decisiones.md); qué se midió: [Resultados](#resultados).
+
+   Para correrlo en un equipo: [Probarlo](#probarlo).
+
 ## En cinco minutos
 
 - **Qué resuelve:** vista desde fuera, cada vertical de Rappi parece un silo, y la mayoría de las personas usa una sola; según la tabla de Rappi, quienes combinan verticales vuelven más. El proyecto conecta las verticales en la base y en la app para invitar a cada persona a la siguiente, con su razón visible.
