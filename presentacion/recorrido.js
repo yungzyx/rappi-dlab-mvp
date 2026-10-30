@@ -106,8 +106,24 @@ function proxy(className, text, onClick) {
   const b = document.createElement("button");
   b.className = className;
   b.textContent = text;
-  b.addEventListener("click", (e) => { if (e.isTrusted) stopTour(); onClick(); });
+  b.addEventListener("click", (e) => { if (e.isTrusted) stopTour(); onClick(e); });
   return b;
+}
+
+/* Un perfil de gusto se muestra como ficha: su emoji grande y el nombre corto («🥢 Amante de lo asiático» → «Asiático»).
+   El nombre completo queda en aria-label y title: el recorrido lo busca por ahí */
+function tasteTile(b, label) {
+  const emoji = label.match(EMOJI)[0];
+  const name = label.slice(emoji.length).trim().replace(/^Amante\s+(de\s+l[oa]s?|del|de)\s+/i, "");
+  const icon = document.createElement("span");
+  icon.className = "taste-emoji";
+  icon.textContent = emoji;
+  const text = document.createElement("span");
+  text.className = "taste-name";
+  text.textContent = name.charAt(0).toUpperCase() + name.slice(1);
+  b.replaceChildren(icon, text);
+  b.setAttribute("aria-label", label);
+  b.title = label;
 }
 
 function syncControls() {
@@ -123,8 +139,13 @@ function syncControls() {
     modesEl.replaceChildren(...modes.map((b, i) =>
       proxy("mode", modeLabel(b), () => { const m = appModes()[i]; if (m) m.click(); })));
     const personaProxy = (label) => {
-      const p = proxy(isTaste(label) ? "persona taste" : "persona", label, () => { personaPan = choosePersona(label); });
+      /* tocada a mano, cualquier persona termina en el buscador con Mochi; el recorrido decide paso a paso */
+      const p = proxy(isTaste(label) ? "persona taste" : "persona", label, (e) => {
+        personaPan = choosePersona(label, e.isTrusted);
+      });
       p.dataset.label = label;
+      if (isTaste(label)) tasteTile(p, label);
+      else p.title = label;
       return p;
     };
     personasEl.replaceChildren(...people.filter((l) => !isTaste(l)).map(personaProxy));
@@ -162,19 +183,20 @@ document.addEventListener("keydown", (e) => {
   if (other) { stopTour(); other.click(); }
 });
 
-/* Al elegir una persona: el «Panel de la demo» borra lo de ahora, siembra su historial y recarga la app en la Home. Con
-   un perfil de gusto, además abre el buscador con Mochi y pasea su escalera «Para ti en otras verticales» hacia la
-   derecha, tarjeta por tarjeta. Un clic o la rueda dentro de la app (o Parar) corta el paseo. */
+/* Al elegir una persona: el «Panel de la demo» borra lo de ahora, siembra su historial y recarga la app en la Home.
+   Elegida a mano (`byHand`), después abre el buscador con Mochi: lo que Mochi le muestra a esa persona. Con un perfil
+   de gusto, además pasea su escalera «Para ti en otras verticales» hacia la derecha, tarjeta por tarjeta. Un clic o la
+   rueda dentro de la app (o Parar) corta el paseo. */
 let panRun = 0;
 let personaPan = Promise.resolve();
 /* El recorrido elige algunas personas sin el paseo (lo muestra él, paso a paso) */
 let skipPan = false;
 const pause = (ms) => new Promise((r) => setTimeout(r, ms));
 
-async function choosePersona(label) {
+async function choosePersona(label, byHand = false) {
   const run = ++panRun;
   const live = () => run === panRun;
-  const pan = !skipPan;
+  const pan = !skipPan && isTaste(label);
   skipPan = false;
   const t = demoButtons("Persona").find((b) => b.textContent.trim() === label);
   if (!t) return;
@@ -188,12 +210,16 @@ async function choosePersona(label) {
     if (doc && doc.querySelector(".smart-bar, .home-tile")) break;
     await pause(150);
   }
-  if (!live() || !isTaste(label) || !pan) return;
+  if (!live() || !(byHand || pan)) return;
+  /* el aviso de privacidad de la primera visita taparía el buscador: se acepta, como en el recorrido */
+  const ok = appDoc() && appDoc().querySelector(".privacy-notice-ok");
+  if (ok) ok.click();
   await pause(700);
-  if (live()) await showTaste(live);
+  if (live()) await showSearch(live, pan);
 }
 
-async function showTaste(live) {
+/* Abre el buscador con Mochi desde la Home; con `pan`, espera la escalera y la pasea */
+async function showSearch(live, pan) {
   const doc = appDoc();
   if (!doc.querySelector(".agent-search")) {
     const bars = [...doc.querySelectorAll(".smart-bar")].filter(visible);
@@ -211,6 +237,7 @@ async function showTaste(live) {
     if (!bar) return;
     tap(bar);
   }
+  if (!pan) return;
   let rail = null;
   for (let i = 0; i < 30 && !rail; i++) {
     await pause(150);

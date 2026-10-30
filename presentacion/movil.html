@@ -127,12 +127,21 @@
     margin: 0; padding: 8px 12px; border-radius: 12px; background: var(--accent-soft);
     color: var(--accent-deep); font-size: 13px; font-weight: 600; line-height: 1.35; overflow-wrap: anywhere;
   }
-  .personas, .tastes, .sims { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .personas, .sims { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
   .persona, .sim {
     padding: 10px 12px; border-radius: 14px; background: var(--panel); text-align: left;
     font-size: 14px; font-weight: 600; line-height: 1.25; border: 2px solid transparent;
   }
   .persona.is-active { border-color: var(--accent); background: var(--accent-soft); }
+  /* Los perfiles de gusto, primero: fichas con su emoji */
+  .tastes { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+  .persona.taste {
+    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px;
+    min-height: 74px; padding: 8px 4px; text-align: center; box-shadow: 0 1px 0 #0000000a, 0 4px 14px #0000000d;
+  }
+  .taste-emoji { font-size: 26px; line-height: 1; }
+  .taste-name { font-size: 13.5px; font-weight: 700; }
+  .personas .persona { min-height: 44px; padding: 7px 10px; font-size: 13px; line-height: 1.2; }
   .sim { font-weight: 500; }
   .sim.is-danger { color: var(--accent-deep); }
   .sim-box summary { margin: 8px 4px 0; font-size: 13px; font-weight: 600; color: var(--ink-3); cursor: pointer; }
@@ -191,7 +200,8 @@
     body.touring .bar .stop { height: 54px; padding: 0 26px; font-size: 17px; }
     body.touring .status { font-size: 15px; }
     .status strong { font-size: 16px; }
-    .personas, .tastes, .sims { grid-template-columns: 1fr 1fr 1fr; }
+    .personas, .sims { grid-template-columns: 1fr 1fr 1fr; }
+    .tastes { grid-template-columns: repeat(5, 1fr); }
     .biz-backdrop { padding: calc(var(--safe-top) + 16px) 16px calc(var(--safe-bottom) + 16px); }
   }
 </style>
@@ -212,23 +222,24 @@
       <div class="sheet-grip"></div>
       <div class="sheet-head"><strong>MVP · Agente Mochi</strong><button class="sheet-close" id="sheet-close">Listo</button></div>
 
-      <button class="biz" id="biz-open">
-        <span class="biz-icon" aria-hidden="true"><i></i><i></i><i></i></span>
-        <span><strong>Panel de negocio</strong><small>Lo que ve Rappi del MVP</small></span>
-      </button>
+      <div class="controls" id="personas-box" hidden>
+        <h2>Perfil de gusto</h2>
+        <div class="tastes" id="tastes"></div>
+        <h2>Otras personas</h2>
+        <div class="personas" id="personas"></div>
+        <p class="readout" id="readout" hidden></p>
+      </div>
 
       <div class="controls" id="modes-box" hidden>
         <h2>Vista</h2>
         <div class="modes" id="modes"></div>
         <button class="replay" id="replay" hidden>↺ Repetir escena</button>
       </div>
-      <div class="controls" id="personas-box" hidden>
-        <h2>Persona</h2>
-        <p class="readout" id="readout" hidden></p>
-        <div class="personas" id="personas"></div>
-        <h2>Perfil de gusto</h2>
-        <div class="tastes" id="tastes"></div>
-      </div>
+
+      <button class="biz" id="biz-open">
+        <span class="biz-icon" aria-hidden="true"><i></i><i></i><i></i></span>
+        <span><strong>Panel de negocio</strong><small>Lo que ve Rappi del MVP</small></span>
+      </button>
       <details class="controls sim-box" id="sim-box" hidden>
         <summary>Simular</summary>
         <div class="sims" id="sim"></div>

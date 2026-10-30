@@ -2,10 +2,10 @@
 
 Dos HTML de un solo archivo para mostrar el MVP sin API ni internet, con los controles de la demo a mano y un recorrido automático por capítulos:
 
-- **«Mochi MVP - Presentación.html»**: para un notebook o un proyector. Al centro, «Prototipo MVP.html» tal cual; a la izquierda, la vista (MVP con Mochi o Rappi hoy, también con la tecla D), las personas y los perfiles de gusto del «Panel de la demo», la línea de la escalera («Hoy: … → siguiente: …») y, en «Simular», «+1 visita a…», «Borrar historial» y «Atrasar el pedido en curso»; a la derecha, el panel de negocio, el recorrido automático, sus capítulos y Parar.
+- **«Mochi MVP - Presentación.html»**: para un notebook o un proyector. Al centro, «Prototipo MVP.html» tal cual; a la izquierda, la vista (MVP con Mochi o Rappi hoy, también con la tecla D), primero los perfiles de gusto (fichas con su emoji) y después las otras personas del «Panel de la demo», la línea de la escalera («Hoy: … → siguiente: …») y, en «Simular», «+1 visita a…», «Borrar historial» y «Atrasar el pedido en curso»; a la derecha, el panel de negocio, el recorrido automático, sus capítulos y Parar.
 - **«Mochi MVP - iPhone y iPad.html»**: la app a pantalla completa, con una barra abajo (la persona elegida, el recorrido y un menú) y una hoja con las mismas opciones.
 
-Los botones de la presentación tocan los de la app: el interruptor de modo y el «Panel de la demo» quedan ocultos dentro del iframe y la presentación los muestra a los lados. Elegir un perfil de gusto abre el buscador con Mochi y pasea su escalera «Para ti en otras verticales». Un toque, una tecla o la rueda dentro de la app detiene el recorrido.
+Los botones de la presentación tocan los de la app: el interruptor de modo y el «Panel de la demo» quedan ocultos dentro del iframe y la presentación los muestra a los lados. Elegir una persona a mano abre el buscador con Mochi, lo que Mochi le muestra a esa persona; con un perfil de gusto, además pasea su escalera «Para ti en otras verticales». Un toque, una tecla o la rueda dentro de la app detiene el recorrido.
 
 ## Capítulos del recorrido
 
