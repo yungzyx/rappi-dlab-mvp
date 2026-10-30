@@ -7,6 +7,7 @@ import { useImpressions } from '../hooks/useImpressions'
 import { useLongPress } from '../hooks/useLongPress'
 import { useAssistant } from '../state/AssistantContext'
 import { useDemo } from '../state/DemoContext'
+import { useAgentHidden } from '../state/agentHidden'
 import AddButton from './AddButton'
 import Img from './Img'
 import { useProductSheet } from '../state/ProductSheetContext'
@@ -24,7 +25,9 @@ const canDrag = () => typeof window !== 'undefined' && window.matchMedia?.('(poi
 export function ProductCard({ product, onOpenStore, impression = false, showStore = true }) {
   const sheet = useProductSheet()
   const watch = useImpressions()
-  const final = useDemo()?.isFinal === true
+  const agentHidden = useAgentHidden()
+  // Preguntarle a Mochi por el producto: solo en el prototipo final y con Mochi a la vista.
+  const final = useDemo()?.isFinal === true && !agentHidden
   const assistant = useAssistant()
   const [asking, setAsking] = useState(false)
   const press = useLongPress(() => setAsking(true))

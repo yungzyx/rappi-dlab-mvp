@@ -51,9 +51,12 @@ export function useVerticalOrder(active = true) {
   const { data } = useApi(async () => ({ resets, reply: await homeVerticals(userId()) }), [returns], {
     keepPrevious: true,
   })
-  if (data?.resets !== resets || !data.reply?.order) return { order: null, personalized: false, requestId: null }
+  if (data?.resets !== resets || !data.reply?.order)
+    return { order: null, entries: null, personalized: false, requestId: null }
   return {
     order: data.reply.order.map((entry) => entry.id),
+    // Cada acceso con su `score` y su `reason` (la API solo explica el primero): Mochi lo dice al moverlos.
+    entries: data.reply.order,
     personalized: data.reply.personalized === true,
     // El id de la respuesta que ordenó los accesos: los toques a ellos lo repiten en su evento.
     requestId: data.reply.request_id ?? null,

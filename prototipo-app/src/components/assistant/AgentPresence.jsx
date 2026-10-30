@@ -5,6 +5,8 @@ import { useAddToCart } from '../../hooks/useAddToCart'
 import { useAssistant } from '../../state/AssistantContext'
 import { formatPrice, useCart } from '../../state/CartContext'
 import { useDemo } from '../../state/DemoContext'
+import { useEvents } from '../../state/EventsContext'
+import { setAgentHidden, useAgentHidden } from '../../state/agentHidden'
 import { AGENT_CART_EVENT, REPLAY_EVENT } from '../../state/liveMemory'
 import { isHushed, isQuiet, noteDismissed, noteEngaged, quietToday, wake } from '../../state/agentQuiet'
 import { today } from '../../utils/today'
@@ -46,6 +48,9 @@ export default function AgentPresence({ screen, homeTab, raised }) {
   const [small, setSmall] = useState(false)
   const [quiet, setQuiet] = useState(() => isQuiet(today()))
   const [dragging, setDragging] = useState(false) // se arrastra un producto: el agente lo espera
+  const [confirmHide, setConfirmHide] = useState(false) // «Ocultar a Mochi» pide confirmar en el mismo globo
+  const agentHidden = useAgentHidden()
+  const events = useEvents()
   const host = useRef(null)
   const body = useRef(null)
   const drag = useRef(null)
@@ -54,7 +59,11 @@ export default function AgentPresence({ screen, homeTab, raised }) {
   useFloatingInset(() => host.current?.querySelector('.agent-presence-body, .agent-quiet-tab'))
 
   const hidden =
-    !demo.isFinal || assistant.isOpen || AGENT_HIDDEN_SCREENS.has(screen) || (screen === 'home' && homeTab === 'home')
+    !demo.isFinal ||
+    agentHidden ||
+    assistant.isOpen ||
+    AGENT_HIDDEN_SCREENS.has(screen) ||
+    (screen === 'home' && homeTab === 'home')
 
   const later = (key, fn, ms) => {
     clearTimeout(timers.current[key])
@@ -116,15 +125,19 @@ export default function AgentPresence({ screen, homeTab, raised }) {
     }
   }, [hidden])
 
-  // Escape o tocar fuera cierran el menú; con Escape el foco vuelve al agente.
+  // Escape o tocar fuera cierran el menú (y su confirmación); con Escape el foco vuelve al agente.
   useEffect(() => {
     if (!menu) return undefined
+    const close = () => {
+      setMenu(false)
+      setConfirmHide(false)
+    }
     const onPointer = (event) => {
-      if (!host.current?.contains(event.target)) setMenu(false)
+      if (!host.current?.contains(event.target)) close()
     }
     const onKey = (event) => {
       if (event.key !== 'Escape') return
-      setMenu(false)
+      close()
       body.current?.focus()
     }
     document.addEventListener('pointerdown', onPointer)
@@ -153,8 +166,11 @@ export default function AgentPresence({ screen, homeTab, raised }) {
       : { id: 'try', label: '¿Qué puedo probar?' },
     { id: 'move', label: side === 'right' ? 'Mover a la izquierda' : 'Mover a la derecha' },
     { id: 'quiet', label: 'Silenciar por hoy' },
+    { id: 'hide', label: `Ocultar a ${AGENT_NAME}` },
   ]
   const run = (id) => {
+    // Ocultar para siempre se confirma antes, en el mismo globo.
+    if (id === 'hide') return setConfirmHide(true)
     setMenu(false)
     noteEngaged()
     if (id === 'search') assistant.open()
@@ -221,6 +237,7 @@ export default function AgentPresence({ screen, homeTab, raised }) {
       return
     }
     drag.current = null
+    setConfirmHide(false)
     setMenu((open) => !open)
   }
 
@@ -260,7 +277,33 @@ export default function AgentPresence({ screen, homeTab, raised }) {
           </button>
         </div>
       )}
-      {menu && (
+      {menu && confirmHide && (
+        <div className="agent-popover" role="group" aria-label={`Ocultar a ${AGENT_NAME}`}>
+          <p>{AGENT_NAME} no volverá a aparecer. Puedes traerlo de vuelta en Cuenta.</p>
+          <div className="agent-actions">
+            <button
+              type="button"
+              className="agent-action is-primary tap"
+              onClick={() => {
+                setMenu(false)
+                setConfirmHide(false)
+                events.track('agent_visibility', {
+                  surface: 'agent',
+                  origin: 'menu-mochi',
+                  payload: { visible: false },
+                })
+                setAgentHidden(true)
+              }}
+            >
+              Ocultar
+            </button>
+            <button type="button" className="agent-action tap" onClick={() => setConfirmHide(false)}>
+              Cancelar
+            </button>
+          </div>
+        </div>
+      )}
+      {menu && !confirmHide && (
         <div className="agent-popover" role="group" aria-label={`Opciones de ${AGENT_NAME}`}>
           <p>¿Qué hacemos juntos?</p>
           <div className="agent-actions">

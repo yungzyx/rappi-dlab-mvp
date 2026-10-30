@@ -1,9 +1,12 @@
 import { useState } from 'react'
+import { AGENT_NAME } from '../../agent/name'
 import ForgetConfirm, { FORGET_TITLE } from '../../components/ForgetConfirm'
 import Sheet from '../../components/Sheet'
 import { useToast } from '../../components/Toast'
 import { useForgetAll } from '../../state/forgetAll'
+import { useEvents } from '../../state/EventsContext'
 import { useProfile } from '../../state/ProfileContext'
+import { setAgentHidden } from '../../state/agentHidden'
 import { LANGUAGES, NOTIFICATION_CHANNELS } from './data'
 
 const TITLES = {
@@ -12,6 +15,7 @@ const TITLES = {
   logout: '¿Cerrar sesión?',
   'logout-all': '¿Cerrar todas las sesiones?',
   forget: FORGET_TITLE,
+  'hide-agent': `¿Ocultar a ${AGENT_NAME}?`,
 }
 
 /** Hojas de Cuenta: idioma, notificaciones y confirmación de cierre de sesión (simulados), y «Borrar mis datos» (real). */
@@ -19,6 +23,7 @@ export default function AccountSheets({ sheet, onClose }) {
   const toast = useToast()
   const forgetAll = useForgetAll()
   const profile = useProfile()
+  const events = useEvents()
   const [forgetting, setForgetting] = useState(false)
   const [forgetFailed, setForgetFailed] = useState(false)
   const [language, setLanguage] = useState(LANGUAGES[0])
@@ -92,6 +97,26 @@ export default function AccountSheets({ sheet, onClose }) {
           <p>Puedes volver a entrar cuando quieras con tu número de teléfono.</p>
           <button type="button" className="sheet-confirm-primary tap" onClick={confirmLogout}>
             Cerrar sesión
+          </button>
+          <button type="button" className="sheet-confirm-secondary tap" onClick={onClose}>
+            Cancelar
+          </button>
+        </div>
+      )}
+
+      {shown === 'hide-agent' && (
+        <div className="sheet-confirm">
+          <p>{AGENT_NAME} no volverá a aparecer. Puedes traerlo de vuelta en Cuenta.</p>
+          <button
+            type="button"
+            className="sheet-confirm-primary tap"
+            onClick={() => {
+              events.track('agent_visibility', { origin: 'cuenta', payload: { visible: false } })
+              setAgentHidden(true)
+              onClose()
+            }}
+          >
+            Ocultar
           </button>
           <button type="button" className="sheet-confirm-secondary tap" onClick={onClose}>
             Cancelar

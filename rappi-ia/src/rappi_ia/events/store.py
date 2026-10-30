@@ -40,6 +40,10 @@ EVENT_TYPES = {
     "order_cancelled",  # la persona canceló un pedido (`payload.reason` y `.stage`; el pedido, `cart_id` y su tienda)
     "list_view",  # lo que una lista dejó a la vista (sus elementos en `app_event_items`; `position`, la mayor vista)
     "offer_withheld",  # una oferta de Mochi retenida al grupo de control (lo que habría mostrado, en `app_event_items`)
+    # Mochi movió los accesos de la Home y dijo por qué (migración 052): el acceso que más subió en `vertical`, su lugar
+    # nuevo en `position` y el de antes en `payload.antes`. No enseña al motor (motor/data.py: EVENT_KINDS).
+    "vertical_reorder_shown",
+    "agent_visibility",  # la persona ocultó a Mochi o lo trajo de vuelta (`payload.visible`; migración 052)
 }
 # Lo que el cliente puede mandar a /events: `order_placed` nace solo en /orders, con un pedido guardado detrás, y
 # `offer_withheld`, solo en /agent/offer, que es quien decide retener la oferta.

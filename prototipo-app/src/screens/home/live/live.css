@@ -543,3 +543,45 @@
     animation: none !important;
   }
 }
+
+/* ---------- Mochi mueve los accesos ---------- */
+/* El acceso que subió brilla un momento y, al llegar a su lugar, salta (el deslizamiento lo hace HomeSections.jsx:
+   useGlide, con la misma propiedad transform: por eso el salto espera a que termine). */
+.home-shortcut.is-moved::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  box-shadow:
+    inset 0 0 0 2px var(--live-accent),
+    0 0 0 4px rgba(196, 61, 32, 0.18);
+  pointer-events: none;
+  animation: live-shortcut-moved 1.8s ease-out forwards;
+}
+
+.home-shortcut.is-moved {
+  z-index: 1; /* al cruzarse con los otros mientras se desliza, pasa por encima */
+  animation: live-shortcut-pop 500ms var(--live-spring) 620ms;
+}
+
+@keyframes live-shortcut-moved {
+  0%,
+  60% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+@keyframes live-shortcut-pop {
+  40% {
+    transform: scale(1.06);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .home-shortcut.is-moved {
+    animation: none;
+  }
+}

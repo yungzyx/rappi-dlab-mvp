@@ -8,6 +8,7 @@ import { stubApi } from '../../test/api'
 import { AGENT_DRAG_TYPE } from '../../assistant/agentAsk'
 import { AGENT_CART_EVENT, resetLive } from '../../state/liveMemory'
 import { QUIET_KEY, resetQuiet } from '../../state/agentQuiet'
+import { HIDDEN_KEY } from '../../state/agentHidden'
 import { ProfileProvider } from '../../state/ProfileContext'
 import { today } from '../../utils/today'
 import AgentPresence, { SIDE_KEY } from './AgentPresence'
@@ -129,13 +130,19 @@ describe('Mochi flotante', () => {
     expect(agentButton()).toBeNull()
   })
 
-  test('tocarlo salta y abre el menú con sus 4 opciones; Escape lo cierra', async () => {
+  test('tocarlo salta y abre el menú con sus 5 opciones; Escape lo cierra', async () => {
     const { container } = mountTree()
     fireEvent.pointerDown(agentButton())
     fireEvent.click(agentButton())
     expect(container.querySelector('.agent-presence .mascot').classList).toContain('mascot--jump')
     expect(agentButton().getAttribute('aria-expanded')).toBe('true')
-    for (const name of ['Buscar con Mochi', '¿Qué puedo probar?', 'Mover a la izquierda', 'Silenciar por hoy'])
+    for (const name of [
+      'Buscar con Mochi',
+      '¿Qué puedo probar?',
+      'Mover a la izquierda',
+      'Silenciar por hoy',
+      'Ocultar a Mochi',
+    ])
       expect(screen.getByRole('button', { name })).toBeTruthy()
     fireEvent.keyDown(document, { key: 'Escape' })
     expect(screen.queryByRole('group', { name: 'Opciones de Mochi' })).toBeNull()
@@ -190,6 +197,44 @@ describe('Mochi flotante', () => {
     fireEvent.click(tab)
     expect(container.querySelector('.agent-presence').classList).not.toContain('is-quiet')
     expect(agentButton()).toBeTruthy()
+  })
+
+  test('«Ocultar a Mochi» pide confirmar; «Cancelar» vuelve al menú y «Ocultar» lo saca para siempre', async () => {
+    const { container } = mountTree()
+    fireEvent.click(agentButton())
+    fireEvent.click(screen.getByRole('button', { name: 'Ocultar a Mochi' }))
+    const confirm = screen.getByRole('group', { name: 'Ocultar a Mochi' })
+    expect(confirm.textContent).toContain('Mochi no volverá a aparecer. Puedes traerlo de vuelta en Cuenta.')
+    expect(localStorage.getItem(HIDDEN_KEY)).toBeNull() // todavía no
+
+    fireEvent.click(screen.getByRole('button', { name: 'Cancelar' }))
+    expect(screen.getByRole('group', { name: 'Opciones de Mochi' })).toBeTruthy()
+
+    fireEvent.click(screen.getByRole('button', { name: 'Ocultar a Mochi' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Ocultar' }))
+    expect(container.querySelector('.agent-presence')).toBeNull()
+    expect(localStorage.getItem(HIDDEN_KEY)).toBe('1')
+    expect(events.track).toHaveBeenCalledWith('agent_visibility', {
+      surface: 'agent',
+      origin: 'menu-mochi',
+      payload: { visible: false },
+    })
+
+    // Recargar no lo trae: ni Mochi, ni su pestañita, ni sus globos al agregar al carro.
+    cleanup()
+    const again = mountTree()
+    added(BEER)
+    expect(again.container.querySelector('.agent-presence')).toBeNull()
+    expect(bubble()).toBeNull()
+  })
+
+  test('«Repetir escena» trae de vuelta a Mochi oculto, como a una persona nueva', async () => {
+    localStorage.setItem(HIDDEN_KEY, '1')
+    mountTree()
+    expect(agentButton()).toBeNull()
+    act(() => resetLive())
+    expect(agentButton()).toBeTruthy()
+    expect(localStorage.getItem(HIDDEN_KEY)).toBeNull()
   })
 
   test('soltar una tarjeta sobre Mochi pregunta por ese producto', async () => {
