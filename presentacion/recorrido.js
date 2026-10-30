@@ -166,12 +166,23 @@ function syncControls() {
     };
     personasEl.replaceChildren(...people.filter((l) => !isTaste(l)).map(personaProxy));
     tastesEl.replaceChildren(...people.filter(isTaste).map(personaProxy));
-    simEl.replaceChildren(...sims.map((label) => proxy(/^Borrar/.test(label) ? "sim is-danger" : "sim", label, () => {
-      const t = simButtons().find((b) => b.textContent.trim() === label);
-      /* ocultar o mostrar a Mochi también se ve en la Home: sin la mascota o de vuelta */
-      if (t && /^(\+1 visita|Ocultar a|Mostrar a)/.test(label)) showHome();
-      if (t) t.click();
-    })));
+    simEl.replaceChildren(...sims.map((label) => {
+      const kind = /^Borrar/.test(label) ? " is-danger" : /^(Ocultar|Mostrar) a/.test(label) ? " is-mochi" : "";
+      const b = proxy("sim" + kind, label, () => {
+        const t = simButtons().find((x) => x.textContent.trim() === label);
+        /* ocultar o mostrar a Mochi también se ve en la Home: sin la mascota o de vuelta */
+        if (t && /^(\+1 visita|Ocultar a|Mostrar a)/.test(label)) showHome();
+        if (t) t.click();
+      });
+      /* «+1 visita a Rappi Mall» se ve corto («+1 Rappi Mall»); el texto completo queda para el recorrido y el title */
+      const visit = /^\+1 visita a (.+)$/.exec(label);
+      if (visit) {
+        b.textContent = "+1 " + visit[1];
+        b.setAttribute("aria-label", label);
+      }
+      b.title = label;
+      return b;
+    }));
   }
   modesBox.hidden = modes.length === 0;
   replayBtn.hidden = !appButtons(".demo-toggle-replay")[0];
