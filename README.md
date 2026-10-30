@@ -2,9 +2,6 @@
 
 Prototipo para Rappi Chile: un **motor multivertical** en la base de datos que aprende, de cada persona y de la población, qué verticales usa, cuál conviene sumarle y qué le toca pedir de nuevo, y un **prototipo navegable de la app** que lo muestra. La Home ordena sus accesos según el uso de cada persona, y Mochi, la mochila de Rappi con bigote, propone la siguiente vertical siguiendo la escalera Restaurantes → Turbo → Retail (que parte de la tabla de combinaciones que compartió el equipo de Rappi), recuerda lo que toca repetir y responde lo que se le pide desde el buscador. Detrás hay datos reales: el catálogo público de rappi.cl en Postgres + pgvector, una búsqueda híbrida evaluada y una capa de datos que entiende qué es cada producto. Un panel de negocio le muestra a la gerencia y a RappiAds qué decidir con eso.
 
-> [!NOTE]
-> Proyecto independiente: no está afiliado a Rappi ni cuenta con su respaldo. Rappi y las demás marcas mencionadas pertenecen a sus respectivos dueños.
-
 Lo hizo Yung Chung con el equipo Rappitouille en el programa dLab, entre septiembre y octubre de 2026. Es un prototipo con una demo cerrada, no un sistema en producción: las personas, los pedidos y los pagos son simulados o de prueba.
 
 [![CI](https://github.com/yungzyx/rappi-dlab-mvp/actions/workflows/ci.yml/badge.svg)](https://github.com/yungzyx/rappi-dlab-mvp/actions/workflows/ci.yml)
