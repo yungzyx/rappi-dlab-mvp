@@ -1,9 +1,9 @@
-/* Se inyecta al inicio del MVP y del panel (build.mjs cambia __NS__ por «mvp:» o «panel:»). No cambia nada visible:
+/* Se inyecta al inicio del MVP y del panel (build.mjs cambia __NS__ por "mvp:" o "panel:"). No cambia nada visible:
    1) guarda localStorage y sessionStorage con un prefijo propio, para que la app y el panel (mismo origen que la página
       de la presentación) no compartan lo guardado y la presentación pueda borrarlo al volver a cargar uno; también
-      length, key() y Object.keys(), porque la app recorre sus claves al cambiar de persona o al «Olvidar»;
+      length, key() y Object.keys(), porque la app recorre sus claves al cambiar de persona o al "Olvidar";
    2) le da a la app un historial en memoria: en un iframe el historial del navegador es uno solo con la página, y el
-      «atrás» de la app movería la presentación. */
+      "atrás" de la app movería la presentación. */
 (function () {
   var NS = "__NS__";
   var S = Storage.prototype;

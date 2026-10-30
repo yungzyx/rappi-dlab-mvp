@@ -1,5 +1,5 @@
-# Fichas de platos para «¿qué es un poke?» o «¿qué lleva una paella?» (agent/glossary.py). Escritas a mano: qué es el
-# plato, de dónde viene y qué lleva, sin precios, sin marcas y sin nada de salud o nutrición («sano», «light»). Mochi
+# Fichas de platos para "¿qué es un poke?" o "¿qué lleva una paella?" (agent/glossary.py). Escritas a mano: qué es el
+# plato, de dónde viene y qué lleva, sin precios, sin marcas y sin nada de salud o nutrición ("sano", "light"). Mochi
 # dice la ficha y después busca el plato (`query`, por defecto el nombre) como cualquier pedido.
 #
 # - `keywords`: cómo se nombra en una pregunta (se normalizan: sin tildes ni ñ; una palabra suelta calza su plural).
@@ -17,7 +17,7 @@ text = "Un poke es un bowl hawaiano: arroz con pescado crudo marinado (casi siem
 id = "ceviche"
 name = "Ceviche"
 keywords = ["ceviche", "cebiche"]
-text = "El ceviche es pescado o marisco crudo que se «cocina» en jugo de limón, con cebolla morada, cilantro y ají. Es típico de Perú y de Chile."
+text = 'El ceviche es pescado o marisco crudo que se "cocina" en jugo de limón, con cebolla morada, cilantro y ají. Es típico de Perú y de Chile.'
 
 [[dish]]
 id = "paella"
@@ -109,7 +109,7 @@ id = "completo"
 name = "Completo"
 keywords = ["completo", "completos", "italiano"]
 query = "completo"
-text = "El completo es el hot dog chileno: vienesa en pan con tomate, palta y mayonesa (ese es el «italiano»)."
+text = 'El completo es el hot dog chileno: vienesa en pan con tomate, palta y mayonesa (ese es el "italiano").'
 
 [[dish]]
 id = "barros-luco"
@@ -139,7 +139,7 @@ text = "La empanada de pino es la chilena clásica, al horno: carne picada con c
 id = "sopaipilla"
 name = "Sopaipillas"
 keywords = ["sopaipilla", "sopaipillas"]
-text = "Las sopaipillas son masas fritas de zapallo, chilenas; se comen con pebre o «pasadas» en chancaca."
+text = 'Las sopaipillas son masas fritas de zapallo, chilenas; se comen con pebre o "pasadas" en chancaca.'
 
 [[dish]]
 id = "tiramisu"

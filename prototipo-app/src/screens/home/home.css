@@ -399,7 +399,7 @@
   line-height: 17px;
   font-weight: 500;
   hyphens: auto;
-  /* Hasta tres líneas: «Supermercado de prueba Norte» y «… Centro» se distinguen (en una, las dos eran «Supermerc…») */
+  /* Hasta tres líneas: "Supermercado de prueba Norte" y "… Centro" se distinguen (en una, las dos eran "Supermerc…") */
   display: -webkit-box;
   -webkit-line-clamp: 3;
   -webkit-box-orient: vertical;
@@ -433,7 +433,7 @@
   margin-top: 4px;
   font-size: 11px;
   border-radius: 10px;
-  /* La promo completa en hasta dos líneas («Envío gratis so…» no se entendía) */
+  /* La promo completa en hasta dos líneas ("Envío gratis so…" no se entendía) */
   white-space: normal;
   display: -webkit-box;
   -webkit-line-clamp: 2;

@@ -23,7 +23,7 @@ REVOKE ALL ON DATABASE :"db" FROM PUBLIC;
 -- Solo CONNECT: la API no crea tablas temporales (las usan los trabajos, como rappi_owner).
 GRANT CONNECT ON DATABASE :"db" TO rappi_api;
 
--- pgvector no es una extensión «trusted»: solo un superusuario la crea. Las migraciones y los dumps la piden con
+-- pgvector no es una extensión "trusted": solo un superusuario la crea. Las migraciones y los dumps la piden con
 -- IF NOT EXISTS, así que con esto rappi_owner migra y restaura sin ser superusuario. pg_prewarm (migración 034) es la
 -- precarga de los índices de la búsqueda al arrancar la API; sin ella la API funciona igual, en frío.
 CREATE EXTENSION IF NOT EXISTS vector;

@@ -56,7 +56,7 @@ for header in "strict-transport-security: max-age=31536000" \
   "content-security-policy: default-src 'self'; img-src 'self' https://images.rappi.cl data:; connect-src 'self'; frame-ancestors 'none'" \
   "x-content-type-options: nosniff" "referrer-policy: no-referrer" "x-robots-tag: noindex, nofollow" \
   "permissions-policy: camera=(), microphone=(), geolocation=()" "cache-control: no-cache"; do
-  if grep -qiF "$header" <<<"$headers"; then pass "${header%%:*}"; else fail "falta la cabecera «$header» en /"; fi
+  if grep -qiF "$header" <<<"$headers"; then pass "${header%%:*}"; else fail "falta la cabecera \"$header\" en /"; fi
 done
 if grep -qi '^server:' <<<"$headers"; then fail "/ dice su servidor (cabecera Server)"; else pass "sin cabecera Server"; fi
 api_headers=$(authed -o /dev/null -D - "$url/api/live")
@@ -82,9 +82,9 @@ for asset in $assets; do served+=$'\n'$(authed "$url$asset"); done
 if grep -qF ':8000' <<<"$served"; then fail "lo servido menciona :8000"; else pass "ningún :8000 en lo servido"; fi
 # El aviso fijo de la Home (DemoDisclaimer), con o sin VITE_DEMO: viaja en el JavaScript de la app.
 if grep -qF 'Demo no oficial · prototipo independiente, no afiliado a Rappi' <<<"$served"; then
-  pass "el aviso «Demo no oficial» está en la app"
+  pass "el aviso \"Demo no oficial\" está en la app"
 else
-  fail "falta el aviso «Demo no oficial» en la app servida"
+  fail "falta el aviso \"Demo no oficial\" en la app servida"
 fi
 # Lo que la CSP bloquearía en index.html: scripts en línea y scripts u hojas de estilo de otro origen.
 if grep -oE '<script[^>]*>' <<<"$index" | grep -qv 'src='; then
@@ -128,16 +128,16 @@ fi
 echo "Entorno"
 # Ningún servicio quedó con un valor de ejemplo (deploy/.env.example). Se muestran los nombres, nunca los valores. Los
 # que corren se leen por dentro (exec); jobs, que no corre, en un contenedor desechable sin dependencias. Si el entorno
-# no se puede leer, es un fallo (no un «sin cambiar-esto»).
+# no se puede leer, es un fallo (no un "sin cambiar-esto").
 check_env() {  # check_env <servicio> <comando de compose que corre un comando en ese servicio...>
   local service=$1 left
   shift
   if ! left=$("$@" sh -c 'env | grep -F cambiar-esto | cut -d= -f1' </dev/null 2>/dev/null); then
     fail "no se pudo leer el entorno de $service"
   elif [ -n "$left" ]; then
-    fail "$service tiene «cambiar-esto» en: $(tr '\n' ' ' <<<"$left")"
+    fail "$service tiene \"cambiar-esto\" en: $(tr '\n' ' ' <<<"$left")"
   else
-    pass "$service sin «cambiar-esto»"
+    pass "$service sin \"cambiar-esto\""
   fi
 }
 while read -r service; do

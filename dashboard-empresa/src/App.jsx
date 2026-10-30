@@ -21,7 +21,7 @@ export const VIEWS = [
 ]
 const VIEW_IDS = VIEWS.map((view) => view.id)
 
-// «Ver cómo funciona»: solo en el panel en un solo HTML (el modo panel-html de `npm run panel:html`); se decide por el
+// "Ver cómo funciona": solo en el panel en un solo HTML (el modo panel-html de `npm run panel:html`); se decide por el
 // modo del armado y no por una variable de entorno, que podría colarse en un build normal.
 const DemoTour = import.meta.env.MODE === 'panel-html' ? lazy(() => import('./demo/DemoTour.jsx')) : null
 

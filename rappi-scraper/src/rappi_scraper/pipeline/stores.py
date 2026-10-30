@@ -107,7 +107,7 @@ def process_store_jobs(
     jobs = repository.pending_jobs(conn, run_id, "store_group", vertical)[:limit]
     log.info("%d jobs de tiendas pendientes", len(jobs))
     done_types = repository.store_types_done(conn, run_id)
-    conn.commit()  # sin esto, la lectura queda «idle in transaction» durante todo el primer job
+    conn.commit()  # sin esto, la lectura queda "idle in transaction" durante todo el primer job
     process_with_retry(
         conn,
         run_id,

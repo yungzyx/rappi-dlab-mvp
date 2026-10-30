@@ -25,7 +25,7 @@ import './store.css'
 const MODES = ['Envío', 'Retiro']
 const SKELETON_ROWS = 5
 const FOR_YOU = 'Para ti'
-const FOR_YOU_TAB = 'para-ti' // la pestaña «Para ti» entre los pasillos de una tienda
+const FOR_YOU_TAB = 'para-ti' // la pestaña "Para ti" entre los pasillos de una tienda
 
 /** Las tiendas del catálogo se abren por su id numérico; las que el agente abre solo por nombre no están en la base. */
 const catalogId = (id) => (/^\d+$/.test(String(id ?? '')) ? Number(id) : null)
@@ -40,10 +40,10 @@ async function readMenu(id) {
  * Página de tienda (funcionalidad agregada: no está en los videos). Todo sale de la API (`/catalog`):
  * un restaurante (`params.store.vertical === 'restaurants'`) con su menú, y una tienda con sus pasillos, de a una página.
  * Muestra la foto, los datos de la tarjeta, si está cerrada según lo publicado en la descarga, sus promos (con la barra
- * «Agrega $X» si la promo dice su mínimo) y ♥ para favoritos. En la propuesta suma «Para ti»: lo de la tienda que calza
- * con los intereses de la persona (una pestaña más, o la primera sección del menú). «Lo más pedido» del menú es la señal
+ * "Agrega $X" si la promo dice su mínimo) y ♥ para favoritos. En la propuesta suma "Para ti": lo de la tienda que calza
+ * con los intereses de la persona (una pestaña más, o la primera sección del menú). "Lo más pedido" del menú es la señal
  * de Rappi (sus platos populares); una tienda no publica una, así que no tiene esa pestaña.
- * `params.item`: el producto que se tocó para llegar aquí (en el buscador con el agente, «Para ti» o una vertical), si lo hubo.
+ * `params.item`: el producto que se tocó para llegar aquí (en el buscador con el agente, "Para ti" o una vertical), si lo hubo.
  */
 export default function StoreScreen({ back, params }) {
   const given = params.store
@@ -87,11 +87,11 @@ export default function StoreScreen({ back, params }) {
       payload: { name: loaded.name },
     })
     // Llegar tocando un producto es verlo (el prototipo no tiene página de producto): mismos campos que el carro, con
-    // su sobre. Si venía de una recomendación (Mochi, «Para ti») es además su clic: una vez, aunque ya se abriera en la
+    // su sobre. Si venía de una recomendación (Mochi, "Para ti") es además su clic: una vez, aunque ya se abriera en la
     // hoja del producto.
     if (item) {
       const fields = { ...cartEventFields(item), vertical: item.vertical ?? loaded.vertical }
-      noteItemView(events.track, item, fields) // si ya se vio en la hoja («Ver tienda»), no se cuenta otra vez
+      noteItemView(events.track, item, fields) // si ya se vio en la hoja ("Ver tienda"), no se cuenta otra vez
       noteRecommendationClick(events.track, item, fields)
     }
   }, [loaded, item, given, events])
@@ -106,7 +106,7 @@ export default function StoreScreen({ back, params }) {
   const visible = data?.sections ? data.sections.flatMap((section) => section.items) : products
   const chosen = item && data && !visible.some(listed) ? item : null
   // Una sugerencia del agente que sí está en lo que se ve lleva su origen a esa fila: agregarla desde ahí cuenta la
-  // aceptación (useAddToCart), como desde «Lo que elegiste», y el carro dice que salió de la oferta (su lugar).
+  // aceptación (useAddToCart), como desde "Lo que elegiste", y el carro dice que salió de la oferta (su lugar).
   const withOrigin = (product) =>
     item?.fromSuggestion && listed(product)
       ? {
@@ -124,7 +124,7 @@ export default function StoreScreen({ back, params }) {
       sections: [...sections, { ...section, items: inStore(section.items, start) }],
       start: start + section.items.length,
     }),
-    // «Para ti» abre el menú con su propio lugar (`para-ti`, de su respuesta).
+    // "Para ti" abre el menú con su propio lugar (`para-ti`, de su respuesta).
     { sections: forYouProducts.length ? [{ name: FOR_YOU, items: forYouProducts }] : [], start: 0 },
   ).sections
   const showingForYou = forYouTab && forYouProducts.length > 0
@@ -204,7 +204,7 @@ export default function StoreScreen({ back, params }) {
               ))}
             </div>
 
-            {/* «Pídelo de nuevo»: lo que la persona ya compró en esta tienda y sigue a la venta. */}
+            {/* "Pídelo de nuevo": lo que la persona ya compró en esta tienda y sigue a la venta. */}
             <ReorderCarousel storeId={id} />
 
             {chosen && (
@@ -264,7 +264,7 @@ export default function StoreScreen({ back, params }) {
 
 /**
  * Los pasillos de una tienda: al tocar uno se piden sus productos (no hay scroll entre pasillos, como en el menú de un
- * restaurante). Con `forYou`, la primera pestaña es «Para ti» (`FOR_YOU_TAB`).
+ * restaurante). Con `forYou`, la primera pestaña es "Para ti" (`FOR_YOU_TAB`).
  */
 function AisleTabs({ aisles, active, forYou, onChoose }) {
   const tabs = forYou ? [{ id: FOR_YOU_TAB, name: FOR_YOU }, ...aisles] : aisles

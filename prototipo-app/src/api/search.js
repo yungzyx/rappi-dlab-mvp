@@ -24,7 +24,7 @@ const groupOf = (backendVertical, prototypeVertical, products) => ({
  * - Si nada calzaba, la API corrige los errores de tipeo y busca de nuevo: `correctedQuery` es lo que buscó (null si
  *   no corrigió). Con `exact`, busca `q` tal cual.
  * - Sin `vertical`, también las tiendas y los restaurantes que se llaman así o son de esa cocina (`places: { stores,
- *   restaurants }`, cada uno con su lugar); si no hubo nada, `whimAllowed` dice si se puede ofrecer «Lo que sea»
+ *   restaurants }`, cada uno con su lugar); si no hubo nada, `whimAllowed` dice si se puede ofrecer "Lo que sea"
  *   (RappiFavor) con lo escrito, según las guardias de la API.
  * - Con `userId` (solo en la propuesta), la dieta y las alergias que la persona le dijo a Mochi filtran los resultados
  *   (como en Mochi, sin ordenar por sus favoritas) y `preferencesNotice` lo dice (null si no filtró).
@@ -70,7 +70,7 @@ export async function searchAll(q, { vertical, current, limit, exact, userId } =
 
 /**
  * Lo que el buscador muestra antes de escribir: `{ recent, top, population, requestId }`. `recent`: las búsquedas
- * recientes de la persona; `top`: «Lo más buscado» de la población que declara la API (`population`: `synthetic` o
+ * recientes de la persona; `top`: "Lo más buscado" de la población que declara la API (`population`: `synthetic` o
  * `prototype`, nunca mezcladas).
  */
 export async function searchSuggestions(userId) {

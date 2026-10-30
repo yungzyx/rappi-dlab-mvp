@@ -9,8 +9,8 @@ import { chromium } from 'playwright-core'
 const ROOT = fileURLToPath(new URL('..', import.meta.url))
 const SPRITE = `data:image/webp;base64,${readFileSync(`${ROOT}src/assets/mochi-poses.webp`).toString('base64')}`
 
-// `fill`: cuánto del lado ocupa la pose. Los «any» y el del iPhone van como el ícono anterior (iOS redondea las
-// esquinas solo); el «maskable» deja la mascota dentro del círculo seguro (80 % del lado) que Android recorta.
+// `fill`: cuánto del lado ocupa la pose. Los "any" y el del iPhone van como el ícono anterior (iOS redondea las
+// esquinas solo); el "maskable" deja la mascota dentro del círculo seguro (80 % del lado) que Android recorta.
 // Los del manifiesto van en WebP: Chrome los baja al cargar la página para ofrecer instalarla, y en PNG el de 512
 // pesaba ~340 kB. El del iPhone tiene que ser PNG (lo baja solo al agregarla a la pantalla de inicio); la pestaña, PNG.
 const ICONS = [
@@ -53,7 +53,7 @@ try {
         }
       }
       erase(154, 200, 185, 202) // la palabra, bajo la franja gris de abajo
-      erase(186, 198, 181, 184) // el punto de la «i», sobre el borde de la franja de arriba
+      erase(186, 198, 181, 184) // el punto de la "i", sobre el borde de la franja de arriba
       ctx.putImageData(data, 0, 0)
 
       return icons.map(({ size, fill, type }) => {

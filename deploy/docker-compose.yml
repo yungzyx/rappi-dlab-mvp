@@ -53,7 +53,7 @@ services:
     image: pgvector/pgvector:0.8.7-pg17-trixie  # la misma en el CI y en `make db-docker`
     command: ["postgres", "-c", "shared_buffers=1GB", "-c", "max_connections=50"]
     # Memoria compartida (Docker da 64 MB): pgvector arma los índices HNSW en paralelo con maintenance_work_mem en ella
-    # (1 GB al restaurar el dump y en HNSW_MAINTENANCE_WORK_MEM); con menos, el índice falla («No space left on device»).
+    # (1 GB al restaurar el dump y en HNSW_MAINTENANCE_WORK_MEM); con menos, el índice falla ("No space left on device").
     shm_size: 2g
     volumes:
       - pgdata:/var/lib/postgresql/data

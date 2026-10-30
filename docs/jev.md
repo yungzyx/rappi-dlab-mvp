@@ -1,6 +1,6 @@
 # Jev en el proceso semanal
 
-Guía para activar a Jev, el modelo «System One» de [TypeSafe](https://typesafe.ai) que da juicios tipados con probabilidad. Está construido y **apagado**: nada cambia hasta que pongas una clave, juzgues dos planillas y confirmes un piloto. Decisiones y motivos: [decisiones.md](decisiones.md#búsqueda-e-ia) (fila del 11-10-2026).
+Guía para activar a Jev, el modelo "System One" de [TypeSafe](https://typesafe.ai) que da juicios tipados con probabilidad. Está construido y **apagado**: nada cambia hasta que pongas una clave, juzgues dos planillas y confirmes un piloto. Decisiones y motivos: [decisiones.md](decisiones.md#búsqueda-e-ia) (fila del 11-10-2026).
 
 ## Qué es y qué hace
 
@@ -8,7 +8,7 @@ Jev es **opcional y fuera de línea**. Solo trabaja dentro de `make post-refresh
 
 | Rol | Qué hace | Dónde se ve |
 |---|---|---|
-| **Etiquetar categorías** | Propone el concepto de las categorías nuevas del catálogo (las que ningún mapeo revisado cubre). Si está muy seguro lo aplica (`category_map` con método `jev`); si duda, la deja en una cola de revisión; si dice «ninguno» o la categoría mezcla cosas, no hace nada. Un concepto sensible o +18 nunca se asigna solo a una categoría cuyo resto dice lo contrario: va a revisión. | `make jev-categorias`, antes de `make concepts`; cola en `data/concepts/revision-jev.csv` |
+| **Etiquetar categorías** | Propone el concepto de las categorías nuevas del catálogo (las que ningún mapeo revisado cubre). Si está muy seguro lo aplica (`category_map` con método `jev`); si duda, la deja en una cola de revisión; si dice "ninguno" o la categoría mezcla cosas, no hace nada. Un concepto sensible o +18 nunca se asigna solo a una categoría cuyo resto dice lo contrario: va a revisión. | `make jev-categorias`, antes de `make concepts`; cola en `data/concepts/revision-jev.csv` |
 | **Juzgar la búsqueda** | Suma un tercer juez (junto al juez por concepto y las personas) en el reporte `make eval`: dice si cada resultado sirve para la consulta. Sus juicios se guardan en `eval_judgments` con la versión del modelo: la segunda corrida no vuelve a preguntar lo mismo. | `data/eval/busqueda.md` |
 
 ## Qué datos salen
@@ -40,7 +40,7 @@ Centavos de dólar por corrida. TypeSafe cobra por tokens de entrada (`JEV_PRICE
    .venv/bin/rappi-ia jev-planillas
    ```
 
-   Deja en `rappi-ia/data/eval/` dos CSV, `planilla-busqueda.csv` (200 pares consulta-producto: «sirve», «a medias» o «no sirve») y `planilla-categorias.csv` (100 categorías: el concepto correcto o «ninguno»), y un `LEEME-planillas.md` que explica cómo llenarlas. Se abren en Numbers o Excel, se llena una sola columna de cada una y se guardan como CSV UTF-8 con el mismo nombre. Se puede juzgar de a ratos. Los textos quedan fuera de git; solo los ids van versionados. Con `.venv/bin/rappi-ia eval-human` ves cuánto coincide el juez por concepto con tu juicio.
+   Deja en `rappi-ia/data/eval/` dos CSV, `planilla-busqueda.csv` (200 pares consulta-producto: "sirve", "a medias" o "no sirve") y `planilla-categorias.csv` (100 categorías: el concepto correcto o "ninguno"), y un `LEEME-planillas.md` que explica cómo llenarlas. Se abren en Numbers o Excel, se llena una sola columna de cada una y se guardan como CSV UTF-8 con el mismo nombre. Se puede juzgar de a ratos. Los textos quedan fuera de git; solo los ids van versionados. Con `.venv/bin/rappi-ia eval-human` ves cuánto coincide el juez por concepto con tu juicio.
 
 3. **Piloto.** Con las dos planillas juzgadas (basta con el 90 % de cada una):
 
@@ -52,7 +52,7 @@ Centavos de dólar por corrida. TypeSafe cobra por tokens de entrada (`JEV_PRICE
 
 4. **Adopción.** Si el piloto pasa, deja `rappi-ia/src/rappi_ia/eval/jev-adopcion.propuesta.json`. Para adoptar, renómbralo a `jev-adopcion.json` y haz commit. Es la única forma de activar a Jev: no se activa solo.
 
-5. **Desde entonces**, `make post-refresh` (y la tarea semanal) usa a Jev: `make jev-categorias` va antes de `make concepts` y `make eval` suma el juez. Para revisar lo que hizo, `.venv/bin/rappi-ia map-categories --jev --exportar` lista sus mapeos y la cola de revisión en un CSV; cada fila que quieras conservar se pasa a «curado» y se copia a `category_map.csv`.
+5. **Desde entonces**, `make post-refresh` (y la tarea semanal) usa a Jev: `make jev-categorias` va antes de `make concepts` y `make eval` suma el juez. Para revisar lo que hizo, `.venv/bin/rappi-ia map-categories --jev --exportar` lista sus mapeos y la cola de revisión en un CSV; cada fila que quieras conservar se pasa a "curado" y se copia a `category_map.csv`.
 
 ## Qué pasa si falta algo
 
@@ -70,4 +70,4 @@ Cualquiera de estas basta:
 - en `jev-adopcion.json`, poner `"categorias": false` y/o `"juez": false` (o borrar el archivo);
 - quitar `TYPESAFE_API_KEY` de `rappi-ia/.env`.
 
-Lo ya aplicado sigue en la base (los mapeos con método `jev` y los juicios en `eval_judgments`, con su versión de modelo). `make concepts` conserva los mapeos de Jev; para quitar alguno, corrige la categoría en `category_map.csv` como «curado» o «ninguno».
+Lo ya aplicado sigue en la base (los mapeos con método `jev` y los juicios en `eval_judgments`, con su versión de modelo). `make concepts` conserva los mapeos de Jev; para quitar alguno, corrige la categoría en `category_map.csv` como "curado" o "ninguno".

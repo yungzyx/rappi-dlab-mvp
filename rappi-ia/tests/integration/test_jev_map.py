@@ -97,7 +97,7 @@ def test_t_auto_comes_from_the_caller():
         (jev_says("gaseosas", conf=0.99, adultos=0.8), "revisar"),
         (jev_says("cerveza", conf=0.99, adultos=0.2), "revisar"),
         (jev_says("cerveza", conf=0.99, adultos=0.9), "mapear"),
-        # Tabaco: sensible y +18; basta con que la guardia de adultos lo vea, no es «salud».
+        # Tabaco: sensible y +18; basta con que la guardia de adultos lo vea, no es "salud".
         (jev_says("cigarrillos", conf=0.99, salud=0.05, adultos=0.95), "mapear"),
         (jev_says("cigarrillos", conf=0.99, salud=0.05, adultos=0.1), "revisar"),
         # La guardia manda antes que la confianza: un conflicto nunca se aplica ni se descarta solo.
@@ -186,7 +186,7 @@ def test_map_categories_applies_the_decision_table(catalog, tmp_path):
     summary = map_categories(catalog, fake, TAXONOMY, T_AUTO, review_path=review)
 
     asked = sorted(state["categoria"] for state, _ in fake.calls)
-    assert asked == sorted(DECISIONS)  # «Cervezas» ya tiene mapeo revisado
+    assert asked == sorted(DECISIONS)  # "Cervezas" ya tiene mapeo revisado
     assert jev_rows(catalog) == [("peluches y muñecas", "juguetes-infantiles", pytest.approx(0.95), fake.model)]
     rows = read_csv(review)
     assert list(rows[0]) == CATEGORY_MAP_COLUMNS
@@ -392,7 +392,7 @@ def test_coverage_report_counts_the_review_queue_and_names_the_export_command(cl
 
 
 def test_a_jev_mapping_rejected_in_review_goes_away_with_concepts(catalog):
-    """Al revisar, la persona puede decir «ninguno» (fila del CSV): esa respuesta también gana sobre la de Jev."""
+    """Al revisar, la persona puede decir "ninguno" (fila del CSV): esa respuesta también gana sobre la de Jev."""
     catalog.execute(
         """INSERT INTO category_map (source_kind, source_key, source_name, concept_id, method, confidence)
            VALUES ('categoria', 'accesorios', 'Accesorios', 'juguetes-infantiles', 'jev', 0.9)"""

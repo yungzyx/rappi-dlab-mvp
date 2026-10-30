@@ -108,7 +108,7 @@ def test_build_attributes_from_rappi_text_and_prices(db, monkeypatch):
     assert found[("20", "sin-gluten")] == "rappi"
     assert found[("21", "sin-lactosa")] == "regla"
     assert found[("20", "con-descuento")] == "derivado"
-    assert {i for (i, a) in found if a == "economico"} == {"21"}  # el 25 % más barato de «leche»
+    assert {i for (i, a) in found if a == "economico"} == {"21"}  # el 25 % más barato de "leche"
     assert db.execute("SELECT count(*) FROM attribute_defs").fetchone()[0] > 70
 
 
@@ -217,7 +217,7 @@ def test_unit_price_ratios_flag_a_mispriced_item(db):
 
 
 def test_economico_compares_the_price_per_unit_not_the_shelf_price(db, monkeypatch):
-    """Un sobre de 15 g es barato en la góndola y caro por gramo: «económico» es lo segundo."""
+    """Un sobre de 15 g es barato en la góndola y caro por gramo: "económico" es lo segundo."""
     monkeypatch.setattr(attributes_layer, "MIN_CONCEPT_ITEMS_FOR_PRICE", 4)
     add_store(db, 1, "supermercado")
     items = [(50, "Alimento perro 15 g", 500, 15), (51, "Alimento perro 1000 g", 4000, 1000),
@@ -312,8 +312,8 @@ def test_build_brands_joins_writings_infers_from_the_name_and_flags_store_brands
         == "Coca-Cola"
     )
     assert by_item["74"] == by_item["75"]  # Líder = Lider
-    assert by_item["76"] == by_item["73"] and sources["76"] == "regla"  # «Lays Papas…» sin marca declarada
-    assert "77" not in by_item  # «Nan» no es una marca
+    assert by_item["76"] == by_item["73"] and sources["76"] == "regla"  # "Lays Papas…" sin marca declarada
+    assert "77" not in by_item  # "Nan" no es una marca
     assert by_item["500"] and sources["500"] == "cadena"
     assert counts["marcas"] >= 4 and counts["deducidas_del_nombre"] == 1
     assert db.execute("SELECT is_store_brand FROM product_brands WHERE brand_key = %s", (by_item["74"],)).fetchone()[0]
@@ -420,7 +420,7 @@ def test_concept_edges_is_a_compatible_view_over_the_knowledge_graph(db):
 
 def test_removing_a_concept_removes_its_edges_from_the_graph(db):
     build_concepts(db)
-    full = load_taxonomy()  # cacheada: no se muta, se arma una copia sin «cerveza»
+    full = load_taxonomy()  # cacheada: no se muta, se arma una copia sin "cerveza"
     taxonomy = replace(full, concepts={k: v for k, v in full.concepts.items() if k != "cerveza"})
     db.execute(
         "INSERT INTO knowledge_edges (from_id, to_id, method, weight, data_source)"
@@ -827,7 +827,7 @@ def test_a_user_whose_events_name_no_concept_or_item_gets_no_taste_segments(db):
             " WHERE s.user_id = 'ghost'"
         )
     }
-    assert families <= {"relacion"}  # sí es «nuevo»; ningún gusto sale de eventos sin concepto ni ítem
+    assert families <= {"relacion"}  # sí es "nuevo"; ningún gusto sale de eventos sin concepto ni ítem
 
 
 def test_relationship_segments_come_from_metrics(db):
@@ -995,7 +995,7 @@ def test_layer_report_summarizes_segments_and_hides_small_sensitive_groups(db):
 
 
 def test_forgetting_a_concept_also_forgets_the_segments_its_items_gave(db):
-    """Las líneas de pedido conservan su ítem aunque «Olvidar» les quite el concepto: el ítem (y su atributo sin gluten)
+    """Las líneas de pedido conservan su ítem aunque "Olvidar" les quite el concepto: el ítem (y su atributo sin gluten)
     no puede devolverle a la persona el segmento que pidió borrar."""
     _gluten_catalog(db)
     for days in (1, 3, 5):
@@ -1010,7 +1010,7 @@ def test_forgetting_a_concept_also_forgets_the_segments_its_items_gave(db):
 
 
 def test_events_from_rappi_hoy_mode_never_become_signals(db):
-    """«Rappi hoy» no deja huella de gusto: el prototipo le quita el concepto al evento y deja el ítem y el texto."""
+    """ "Rappi hoy" no deja huella de gusto: el prototipo le quita el concepto al evento y deja el ítem y el texto."""
     _gluten_catalog(db)
     events_store.record(
         db,

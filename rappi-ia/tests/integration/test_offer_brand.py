@@ -102,7 +102,7 @@ def test_complement_without_bought_brand_is_unchanged(client, db):
     _orders(db, "u1", COLA, 2)  # su marca no está entre los snacks
     second = anonymous["products"][1]["entity_id"]
     _brand(db, "marca-b", "Marca Bé", second)
-    _orders(db, "u2", second, 1)  # un solo pedido: todavía no es «su marca»
+    _orders(db, "u2", second, 1)  # un solo pedido: todavía no es "su marca"
 
     assert cart_offer(client, "u1") == anonymous
     assert cart_offer(client, "u2") == anonymous

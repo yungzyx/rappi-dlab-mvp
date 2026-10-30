@@ -12,7 +12,7 @@ const SORTS = {
   recommended: (a, b) => (b.reviews ?? -1) - (a.reviews ?? -1),
 }
 const limitOf = (query, fallback) => Number(query.get('limit')) || fallback
-// catalog/restaurants.py: TOP_MIN_RATING y TOP_MIN_REVIEWS («Destacados», regla propia de la demo).
+// catalog/restaurants.py: TOP_MIN_RATING y TOP_MIN_REVIEWS ("Destacados", regla propia de la demo).
 const TOP_MIN_RATING = 4.5
 const TOP_MIN_REVIEWS = 100
 const DAYS = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'] // en el orden de Date.getDay
@@ -129,7 +129,7 @@ export function catalogRoute(snapshot, method, path, query, now = Date.now()) {
     if (!shop) return NOT_FOUND
     const page = Number(query.get('page')) || 1
     const chosen = shop.pages[query.get('aisle')] ?? shop.pages[shop.aisles[0]?.id]
-    // Solo la primera página de cada pasillo está en la muestra: «Ver más» no aparece.
+    // Solo la primera página de cada pasillo está en la muestra: "Ver más" no aparece.
     return {
       body: {
         store: shop.store,

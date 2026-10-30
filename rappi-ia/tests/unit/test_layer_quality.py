@@ -10,7 +10,7 @@ def test_wilson_lower_bound_is_conservative_for_small_samples():
     assert wilson_low(10, 10) < 0.8  # 10 de 10 no garantiza más del 80 %
     assert wilson_low(95, 100) > 0.88
     assert wilson_low(0, 0) is None
-    assert str(wilson_low(0, 5)) == "0.0"  # nunca «-0»
+    assert str(wilson_low(0, 5)) == "0.0"  # nunca "-0"
 
 
 def test_precision_report_groups_by_kind_key_and_source_and_ignores_doubts():

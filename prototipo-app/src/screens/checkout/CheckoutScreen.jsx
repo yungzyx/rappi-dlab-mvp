@@ -30,7 +30,7 @@ import './checkout.css'
 const MODES = ['Envío', 'Retiro']
 
 // El producto como se guarda en el pedido: sin de dónde salió esta vez (su lugar y si fue una sugerencia), que en
-// «Pídelo de nuevo» es otro.
+// "Pídelo de nuevo" es otro.
 const reorderable = ({ placement: _placement, fromSuggestion: _from, suggestionOrigin: _origin, ...product }) => product
 
 /**
@@ -51,7 +51,7 @@ export default function CheckoutScreen({ back, push }) {
   const [coupon, setCoupon] = useState(null)
   const [prescription, setPrescription] = useState(false)
   const [asking, setAsking] = useState(null) // la hoja de edad: 'ask' o 'refused'
-  const [placing, setPlacing] = useState(false) // la ventana de «Deshacer pedido»
+  const [placing, setPlacing] = useState(false) // la ventana de "Deshacer pedido"
   const [type, setType] = useState('basica') // el tipo de entrega (pricing.js: DELIVERY_TYPES, de ejemplo)
   const [when, setWhen] = useState('now') // 'now' o el inicio de la franja programada (ms)
   const pickup = mode === 'Retiro'
@@ -63,7 +63,7 @@ export default function CheckoutScreen({ back, push }) {
   const closed = anyClosed(storeHours)
   const [now] = useState(() => Date.now())
   const slots = slotsFor(storeHours, now)
-  // Con la tienda cerrada, «Ahora» no se puede: queda elegida la primera franja (se cambia por otra), en Envío y Retiro.
+  // Con la tienda cerrada, "Ahora" no se puede: queda elegida la primera franja (se cambia por otra), en Envío y Retiro.
   const slot =
     when !== 'now' && slots.some((s) => s.from === when) ? when : closed && slots.length ? slots[0].from : null
   const scheduled = slot !== null
@@ -97,9 +97,9 @@ export default function CheckoutScreen({ back, push }) {
     }
   }, [cart.id, verticals, events])
 
-  // Pasada la ventana de «Deshacer pedido»: recién ahí sale cada pedido (uno por tienda) y se guardan los de la demo.
+  // Pasada la ventana de "Deshacer pedido": recién ahí sale cada pedido (uno por tienda) y se guardan los de la demo.
   const commit = () => {
-    // En el Súper y Turbo cada línea va con qué hacer si se agota (sin elegir, «Si no contesto, elijan por mí»).
+    // En el Súper y Turbo cada línea va con qué hacer si se agota (sin elegir, "Si no contesto, elijan por mí").
     const substitutionOf = (line) =>
       SUBSTITUTION_VERTICALS.has(orderVertical(line.product)) ? (line.substitution ?? DEFAULT_SUBSTITUTION) : undefined
     const items = cart.items.map((line) => ({ ...line, substitution: substitutionOf(line) }))
@@ -114,7 +114,7 @@ export default function CheckoutScreen({ back, push }) {
     })
     // Registro para el panel (si la API está arriba). No bloquea el pedido de la demo. Antes salen los eventos en cola
     // (y se esperan los lotes en camino): el servidor les pone la hora al recibirlos, y checkout_start va primero.
-    // Todo el camino cuenta como pedido en vuelo: «Olvidar» lo espera antes de borrar el perfil.
+    // Todo el camino cuenta como pedido en vuelo: "Olvidar" lo espera antes de borrar el perfil.
     trackOrder(
       events
         .flush()
@@ -141,7 +141,7 @@ export default function CheckoutScreen({ back, push }) {
             // Con ellos el agente arma el próximo pedido al entregar (oferta `proximo_pedido`).
             entityType: product.entityType,
             entityId: product.entityId,
-            // Los pasos del seguimiento dependen de la vertical; «Pídelo de nuevo» vuelve a armar el carro con el producto.
+            // Los pasos del seguimiento dependen de la vertical; "Pídelo de nuevo" vuelve a armar el carro con el producto.
             vertical: product.vertical,
             product: reorderable(product),
             ...(substitution ? { substitution } : {}),
@@ -165,7 +165,7 @@ export default function CheckoutScreen({ back, push }) {
     push('tracking', { orderId: id }, { swap: true })
   }
 
-  // «Hacer pedido»: con un producto +18 pregunta la edad una vez por sesión; después abre la ventana de deshacer.
+  // "Hacer pedido": con un producto +18 pregunta la edad una vez por sesión; después abre la ventana de deshacer.
   const placeOrder = () => {
     if (blocked) return
     if (hasAgeRestricted(cart.items) && !ageConfirmed()) {
@@ -334,7 +334,7 @@ export default function CheckoutScreen({ back, push }) {
           <SummaryRow label="Total" value={formatPrice(totals.total)} total />
         </dl>
         <p className="checkout-note">
-          Lo marcado «de ejemplo» son supuestos de la demo (envíos, mínimos y tarifas que el catálogo no trae, tipos de
+          Lo marcado "de ejemplo" son supuestos de la demo (envíos, mínimos y tarifas que el catálogo no trae, tipos de
           entrega, créditos, cupones y el beneficio Pro), no tarifas ni políticas de Rappi.
         </p>
       </div>
@@ -377,7 +377,7 @@ export default function CheckoutScreen({ back, push }) {
   )
 }
 
-/** «¿Eres mayor de edad?»: una vez por sesión, sin documento. Si dice que no, puede quitar los productos +18. */
+/** "¿Eres mayor de edad?": una vez por sesión, sin documento. Si dice que no, puede quitar los productos +18. */
 function AgeSheet({ state, onYes, onNo, onRemove, onClose }) {
   return (
     <Sheet open={state !== null} onClose={onClose} title="¿Eres mayor de edad?">
@@ -410,7 +410,7 @@ function AgeSheet({ state, onYes, onNo, onRemove, onClose }) {
 }
 
 /**
- * «Pedido creado» con «Deshacer pedido» unos segundos (`UNDO_MS`). Al cerrarse la ventana sale el pedido (`onDone`);
+ * "Pedido creado" con "Deshacer pedido" unos segundos (`UNDO_MS`). Al cerrarse la ventana sale el pedido (`onDone`);
  * deshacer (o cerrar la hoja) lo anula antes de enviar nada y vuelve al checkout con el carro intacto.
  */
 function UndoSheet({ open, orders, scheduled, onDone, onUndo }) {

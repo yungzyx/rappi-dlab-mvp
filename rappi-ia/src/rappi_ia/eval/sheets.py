@@ -3,7 +3,7 @@
 Dos planillas CSV que se llenan en Numbers o Excel, una columna cada una:
 - `planilla-busqueda.csv`: pares (consulta, producto mostrado) estratificados por vertical, tipo de consulta y posición
   (top-3 / 4-10), con sobremuestreo donde el juez por concepto y la posición discrepan: ahí está el desacuerdo que más
-  informa. Se juzga «sirve», «a medias» o «no sirve».
+  informa. Se juzga "sirve", "a medias" o "no sirve".
 - `planilla-categorias.csv`: categorías del catálogo con su concepto propuesto hoy; la persona escribe el concepto
   correcto. Mezcla categorías sin mapear, decididas por el juez y de acuerdo (control).
 
@@ -41,7 +41,7 @@ DEFAULT_SEED = 7
 
 SEARCH_PAIRS = 200
 DISCREPANT_SHARE = 0.4  # de los 200 pares, los que se piden de los que el juez por concepto y la posición discrepan
-TOP = 3  # posiciones 1 a 3 = «top3»; 4 a 10 = «4-10»
+TOP = 3  # posiciones 1 a 3 = "top3"; 4 a 10 = "4-10"
 CATEGORY_SIZES = {"sin_mapear": 40, "juez": 30, "acuerdo": 30}
 EXAMPLES = 8
 
@@ -110,14 +110,14 @@ def _check_pairs(a: list, b: list) -> None:
 
 
 def read_search_sheet(path: Path, counts: Counter | None = None) -> dict[str, int]:
-    """{id de par: 2 («sirve»), 1 («a medias») o 0 («no sirve»)}. Las filas sin juicio (`vacias`) y las inválidas
+    """{id de par: 2 ("sirve"), 1 ("a medias") o 0 ("no sirve")}. Las filas sin juicio (`vacias`) y las inválidas
     (`invalidas`: un valor que no existe, sin id, o un id repetido con respuestas distintas) no entran y se cuentan en
     `counts`, junto con las `leidas`."""
     return _read_sheet(path, counts, "id", "juicio", lambda raw: VERDICTS.get(normalize(raw)))
 
 
 def read_category_sheet(path: Path, counts: Counter | None = None) -> dict[str, str]:
-    """{categoría en minúsculas y sin espacios sobrantes (la clave de category_map): id del concepto o «ninguno»}.
+    """{categoría en minúsculas y sin espacios sobrantes (la clave de category_map): id del concepto o "ninguno"}.
     Cuenta las filas como `read_search_sheet`; un concepto que no está en la taxonomía es inválido."""
     valid = {*load_taxonomy().concepts, NO_CONCEPT}
 
@@ -159,8 +159,8 @@ def _read_sheet(
 
 
 def _decode(raw: bytes) -> str:
-    """Nunca falla: UTF-16 por su BOM («Texto Unicode» de Excel), UTF-8, «CSV» a secas de Excel en Windows (cp1252) y,
-    si ni eso (bytes que cp1252 no define, como los de «CSV (Macintosh)»), latin-1, que acepta cualquier byte. El id y
+    """Nunca falla: UTF-16 por su BOM ("Texto Unicode" de Excel), UTF-8, "CSV" a secas de Excel en Windows (cp1252) y,
+    si ni eso (bytes que cp1252 no define, como los de "CSV (Macintosh)"), latin-1, que acepta cualquier byte. El id y
     el juicio son ASCII, así que sobreviven aunque un nombre salga con letras cambiadas."""
     if raw.startswith((codecs.BOM_UTF16_LE, codecs.BOM_UTF16_BE)):
         return raw.decode("utf-16")
@@ -486,7 +486,7 @@ Conceptos posibles:
 ## Después
 
 Con las planillas llenas, `rappi-ia eval-human` calcula cuánto coincide el juez por concepto con tu juicio (κ de
-Cohen contra «sirve» y κ ponderado con los tres valores). Si vuelves a correr `rappi-ia jev-planillas` con una
+Cohen contra "sirve" y κ ponderado con los tres valores). Si vuelves a correr `rappi-ia jev-planillas` con una
 planilla ya llena, se niega a pisarla (`--forzar` la reemplaza).
 """
 

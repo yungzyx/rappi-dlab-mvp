@@ -1,5 +1,5 @@
 // `POST /agent/offer` sin conexión (offers/engine.py simplificado): la vertical por probar con la escalera del motor,
-// «¿Repetimos?», «¿Volvemos a…?» (sin lo de un pedido mal calificado: winback.js, paused), los complementos del carro,
+// "¿Repetimos?", "¿Volvemos a…?" (sin lo de un pedido mal calificado: winback.js, paused), los complementos del carro,
 // del checkout y del próximo pedido, el OnTop de Turbo y las respuestas grabadas (kits de una ocasión, sin resultado). Todo lo que se ofrece pasa por `offerableProduct` (offers/guards.py).
 import { NONE_COMBO, OFFER_BLOCKED_VERTICALS, contractArticles, currentFine, stepSignal, targetStep } from './motor'
 import { entityKey } from './snapshot'
@@ -22,7 +22,7 @@ import {
 
 // offers/guards.py: palabras de un nombre que dicen alcohol o bebé aunque la tienda no lo marque (palabra entera, con
 // su plural). La lista de los platos es más larga en el backend; aquí basta con la del catálogo más los tragos que no
-// son también comida. Los que sí («vaina», «algarrobina», «margarita», «sour»…) el backend los libra por la frase o el
+// son también comida. Los que sí ("vaina", "algarrobina", "margarita", "sour"…) el backend los libra por la frase o el
 // concepto del plato; aquí los cubre el concepto (cócteles y licores no se ofrecen).
 const ALCOHOL_WORDS = [
   ...['soju', 'makgeolli', 'umeshu', 'cerveza', 'vino', 'whisky', 'pisco', 'ron', 'vodka', 'gin', 'tequila'],
@@ -31,7 +31,7 @@ const ALCOHOL_WORDS = [
   ...['tom collins', 'bloody mary', 'cuba libre', 'kir royal', 'ruso blanco', 'ruso negro', 'cosmopolitan'],
   ...['clavo oxidado'],
 ]
-const MENU_ALCOHOL_WORDS = ['absolut', 'absolute'] // solo en un menú: en el catálogo hay maquillaje «Absolute New York»
+const MENU_ALCOHOL_WORDS = ['absolut', 'absolute'] // solo en un menú: en el catálogo hay maquillaje "Absolute New York"
 const BABY_WORDS = ['bebe', 'guagua']
 const wordsIn = (list) => new RegExp(`\\b(?:${list.join('|')})(?:s|es)?\\b`)
 const ALCOHOL_NAME = wordsIn(ALCOHOL_WORDS)
@@ -57,7 +57,7 @@ export function offerableProduct(product, concepts) {
 }
 
 /**
- * Lo que «Pedir por mí» no pide solo (offers/autonomy.py: _guarded, línea por línea): +18, un concepto que el agente no
+ * Lo que "Pedir por mí" no pide solo (offers/autonomy.py: _guarded, línea por línea): +18, un concepto que el agente no
  * ofrece, un nombre que dice alcohol (del catálogo o de un plato) o bebé (solo del catálogo). A diferencia de
  * `offerableProduct`, un plato sin concepto o de bebidas sí se pide: es lo que la persona ya pidió. La muestra no trae
  * la sección ni la descripción de los platos (el backend también las lee): sin ellas, decide el nombre.
@@ -74,7 +74,7 @@ export function autoOrderBlocked(product, concepts) {
 /**
  * Si el producto se puede destacar como plato principal (offers/featured.py con `main`, y las reglas de
  * offers/destacado.toml que trae `meta.featured`): con foto y, si es un plato, desde el precio mínimo, de un concepto
- * que es plato y no de una sección de relleno (`section`, la del menú grabado: «Bebidas», «Agregados»). Desde el precio
+ * que es plato y no de una sección de relleno (`section`, la del menú grabado: "Bebidas", "Agregados"). Desde el precio
  * mínimo, la regla de los nombres de relleno del backend no saca nada: aquí no hace falta. La comuna del local no viene
  * en la muestra: los menús grabados son los que mostró la API.
  */
@@ -110,7 +110,7 @@ function guarded(offer, concepts) {
   return { ...offer, products }
 }
 
-/** «¿Conoces RappiFavor?»: el paso es un servicio, sin productos (engine.py: _service_offer). */
+/** "¿Conoces RappiFavor?": el paso es un servicio, sin productos (engine.py: _service_offer). */
 function serviceOffer(snapshot, step) {
   const { combos, services } = snapshot.meta
   const service = services[step.vertical]
@@ -230,7 +230,7 @@ const repeatReply = (snapshot, moment, { text, why, basis, concept, vertical, pr
 }
 
 /**
- * «¿Repetimos?» (engine.py: repeat_offer): un concepto que la persona pide con ritmo (tres días de compra o más) y le
+ * "¿Repetimos?" (engine.py: repeat_offer): un concepto que la persona pide con ritmo (tres días de compra o más) y le
  * toca entre hace un intervalo y dentro de dos días, el más atrasado primero. La demo no puede esperar días, así que un
  * concepto que todavía no tiene ritmo se repite con dos pedidos `propuesta` en las últimas dos semanas. El producto es
  * el último que compró del concepto.
@@ -302,7 +302,7 @@ const lastBoughtIn = (snapshot, state, vertical, hold) =>
     .find((product) => product?.concept && hold.allows(product))
 
 /**
- * «¿Volvemos a…?» (engine.py: winback_offer): la primera invitación que se puede mostrar (winback.js: lapses y
+ * "¿Volvemos a…?" (engine.py: winback_offer): la primera invitación que se puede mostrar (winback.js: lapses y
  * available) y tiene producto. De un concepto, el de la recompra; de una vertical, lo último que compró ahí.
  */
 export function winbackOffer(snapshot, state, now) {
@@ -411,7 +411,7 @@ const ONTOP_SAMPLE_TEXT = 'Suma algo de Turbo a tu pedido, sin costo de envío e
 const REASON_ONTOP = 'Turbo llega en minutos: lo puedes sumar mientras esperas tu pedido.'
 
 /**
- * «Turbo: suma esto antes de…» (engine.py: ontop_offer) sobre un pedido en curso que no es de Turbo: la oferta real
+ * "Turbo: suma esto antes de…" (engine.py: ontop_offer) sobre un pedido en curso que no es de Turbo: la oferta real
  * grabada en la muestra (`onTop`) sin lo que el pedido ya lleva; sin ella (una muestra de antes), productos de Turbo de
  * la muestra, uno por concepto, que pasen las guardias. Sin población que aprenda: no es la compra cruzada de la persona.
  */

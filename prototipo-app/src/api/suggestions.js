@@ -24,7 +24,7 @@ export function firstShowing(row) {
  * generación del perfil (`generation` = `profile.resets`). `track` es `useEvents().track`; `origin` es
  * `agent-<momento>`, `agent-ask`, etc. (la columna `origin` del evento). Si no se dan `concept` o `vertical`, salen del
  * primer producto, y `surface` y `requestId` (la pantalla y la respuesta de la API), de su lugar (`placement`). Con
- * `kind` (la fila «Lo más pedido» de «Para ti»: `lo_mas_pedido`), va en el payload. Devuelve si la registró (false si
+ * `kind` (la fila "Lo más pedido" de "Para ti": `lo_mas_pedido`), va en el payload. Devuelve si la registró (false si
  * ya estaba contada o no hay concepto).
  */
 export function noteShown(track, products, { origin, concept, vertical, generation = 0, kind, surface, requestId }) {
@@ -45,7 +45,7 @@ export function noteShown(track, products, { origin, concept, vertical, generati
 }
 
 // Sugerencias ya aceptadas (generación|concepto|vertical|origen): una vez por pestaña, como se cuenta la mostrada, así
-// las aceptadas nunca superan a las mostradas, ni con un carro nuevo tras un pedido. «Olvidar» sube la generación, y lo
+// las aceptadas nunca superan a las mostradas, ni con un carro nuevo tras un pedido. "Olvidar" sube la generación, y lo
 // que se acepte después vuelve a contar.
 const accepted = new Set()
 

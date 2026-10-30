@@ -50,7 +50,7 @@ Con [`prueba-carga.py`](prueba-carga.py) (personas simuladas, cada una con su IP
 | 120 | 62 | 0,2 s | 0,1 s | 0 |
 | 200 | 96 | 0,75 s | 0,17 s | 3,7 % de las búsquedas con 503 (el cupo de búsquedas a la vez) |
 
-Cada persona de la prueba crea una sesión del prototipo: después hay que olvidarlas (`events.store.forget`) para que no cuenten en «Uso del MVP».
+Cada persona de la prueba crea una sesión del prototipo: después hay que olvidarlas (`events.store.forget`) para que no cuenten en "Uso del MVP".
 
 ## Límites
 

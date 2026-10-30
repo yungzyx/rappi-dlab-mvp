@@ -72,8 +72,8 @@ log = logging.getLogger(__name__)
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    """Carga los modelos antes de «startup complete»: si no, los paga la primera petición (el /health del prototipo,
-    que se rinde a los 1,5 s y la app muestra «Sin conexión»). El pool de conexiones vive lo mismo que la app.
+    """Carga los modelos antes de "startup complete": si no, los paga la primera petición (el /health del prototipo,
+    que se rinde a los 1,5 s y la app muestra "Sin conexión"). El pool de conexiones vive lo mismo que la app.
     Nunca migra: en local lo hacen `make serve` y `make mvp` antes de arrancarla; en producción, `rappi-ia
     deploy-migrate` (con respaldo antes). Mientras falten migraciones, /health da 503 `migraciones_pendientes`."""
     configure_logging(config.LOG_LEVEL)
@@ -82,7 +82,7 @@ async def lifespan(app: FastAPI):
     try:
         start = time.perf_counter()
         await run_in_threadpool(services)
-        # uvicorn solo muestra sus propios loggers: así la duración queda junto a «Application startup complete»
+        # uvicorn solo muestra sus propios loggers: así la duración queda junto a "Application startup complete"
         logging.getLogger("uvicorn.error").info("Servicios cargados en %.1f s", time.perf_counter() - start)
         prewarm.start()  # en su hilo: ni el arranque ni /health la esperan
         yield
@@ -150,7 +150,7 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=config.API_CORS_ORIGINS,
     allow_origin_regex=CORS_ORIGIN_REGEX,
-    allow_methods=["GET", "POST", "PUT", "DELETE"],  # PUT: «Mis preferencias» y «Pedir por mí»
+    allow_methods=["GET", "POST", "PUT", "DELETE"],  # PUT: "Mis preferencias" y "Pedir por mí"
     allow_headers=["content-type", identity.TOKEN_HEADER.lower()],
 )
 app.add_middleware(AccessLog)  # el más externo: también los 413 y 429 llevan su id y su línea
@@ -163,8 +163,8 @@ def _is_health(request: Request) -> bool:
 
 @app.exception_handler(QueryCanceled)
 async def query_too_slow(request: Request, exc: QueryCanceled) -> JSONResponse:
-    """Una consulta que pasó el statement_timeout (es un OperationalError, pero la base sí responde): 504, no «Sin
-    conexión»."""
+    """Una consulta que pasó el statement_timeout (es un OperationalError, pero la base sí responde): 504, no "Sin
+    conexión"."""
     log.warning("Consulta cancelada por tiempo en %s (%s)", route_template(request), _db_error(exc))
     return JSONResponse(status_code=504, content={"detail": "La consulta tardó demasiado"})
 
@@ -183,7 +183,7 @@ async def no_free_connection(request: Request, exc: PoolTimeout) -> JSONResponse
 
 @app.exception_handler(OperationalError)
 async def database_unavailable(request: Request, exc: OperationalError) -> JSONResponse:
-    """Postgres caído o sin respuesta: un 503 claro y rápido (la app muestra «Sin conexión»), no un 500."""
+    """Postgres caído o sin respuesta: un 503 claro y rápido (la app muestra "Sin conexión"), no un 500."""
     log.error("Base de datos no disponible: %s", exc)
     content = {"ok": False, "motivos": ["base"]} if _is_health(request) else {"detail": "Base de datos no disponible"}
     return JSONResponse(status_code=503, content=content)
@@ -198,7 +198,7 @@ async def invalid_request(request: Request, exc: RequestValidationError) -> JSON
 
 def _db_error(exc: Error) -> str:
     """Un error de Postgres para el log: su clase y su sqlstate. El texto no, porque puede traer la fila que falló
-    («Failing row contains (…)») con lo que escribió la persona."""
+    ("Failing row contains (…)") con lo que escribió la persona."""
     return f"{type(exc).__name__} (sqlstate {exc.sqlstate})"
 
 
@@ -238,8 +238,8 @@ ShortPath = Annotated[str, Path(max_length=64)]
 # ── Modelos ──────────────────────────────────────────────────────────────────
 class PreviousTurnIn(Clean):
     """El turno anterior de la conversación: el `conversation` de la respuesta anterior, que la app devuelve tal cual
-    (docs/diseno/2026-10-25-mochi-conversacion-design.md). Un seguimiento («más barato», «sin carne», «para 10
-    personas») se lee sobre él. Lo que no existe (una ocasión o un concepto desconocido) se ignora."""
+    (docs/diseno/2026-10-25-mochi-conversacion-design.md). Un seguimiento ("más barato", "sin carne", "para 10
+    personas") se lee sobre él. Lo que no existe (una ocasión o un concepto desconocido) se ignora."""
 
     query: str = Field(default="", max_length=200)
     concepts: list[Annotated[str, Field(max_length=64)]] = Field(default_factory=list, max_length=10)
@@ -346,12 +346,12 @@ class OrderLineIn(Clean):
     # Se ignora: el precio de cada línea sale del catálogo. Queda para no romper a un cliente que lo manda.
     unit_price: float | None = Field(default=None, ge=0, le=100_000_000, allow_inf_nan=False)
     from_suggestion: bool = False
-    # Qué hacer si se agota (checkout de Súper y Turbo): sustituto, «Si no contesto, elijan por mí» o reembolso.
+    # Qué hacer si se agota (checkout de Súper y Turbo): sustituto, "Si no contesto, elijan por mí" o reembolso.
     substitution: Literal["sustituto", "elijan", "reembolso"] | None = None
 
 
 class AutoOrderIn(Clean):
-    """Un pedido que Mochi hizo solo («Pedir por mí», offers/autonomy.py): la respuesta de /agent/ask que lo armó."""
+    """Un pedido que Mochi hizo solo ("Pedir por mí", offers/autonomy.py): la respuesta de /agent/ask que lo armó."""
 
     request_id: str | None = Field(default=None, pattern=r"^[A-Za-z0-9._-]{1,64}$")
 
@@ -362,7 +362,7 @@ class OrderIn(Clean):
     cart_id: str = Field(max_length=64)
     vertical: str = Field(max_length=64)
     lines: list[OrderLineIn] = Field(min_length=1, max_length=100)
-    mode: Literal["propuesta", "actual"] = "propuesta"  # en «Rappi hoy» (actual) el pedido no entra al perfil
+    mode: Literal["propuesta", "actual"] = "propuesta"  # en "Rappi hoy" (actual) el pedido no entra al perfil
     pro: bool | None = None  # si la persona es Rappi Pro en la app (app_users.pro); sin él, no cambia
     autopedido: AutoOrderIn | None = None  # lo pidió Mochi solo: la API vuelve a revisar cada límite
     # Programar: el inicio de la franja de una hora (hoy o mañana). Un pedido de Mochi nunca se programa.
@@ -407,7 +407,7 @@ def _count_documents(conn: Connection) -> int:
 def health(conn: Connection = Depends(get_conn), svc: Services = Depends(get_services)):
     """Readiness: 200 si la API puede atender (`ok`, documentos y capacidades), o 503 con `motivos`, códigos de lo que
     falta (`base`, `saturada`, `sin_documentos`, `migraciones_pendientes`, `busqueda_semantica`): nunca texto de una
-    excepción ni rutas. La app lo cuenta como «sin conexión»."""
+    excepción ni rutas. La app lo cuenta como "sin conexión"."""
     documents = _count_documents(conn)
     reasons = []
     if pending_migrations(conn):
@@ -461,11 +461,11 @@ def search(
 ) -> dict:
     """Con `vertical`, busca solo ahí. Sin `vertical`, en las verticales que corresponden a la consulta (más la de la
     pantalla, `current`) y agrupa: `limit` es por grupo. Las verticales se buscan en paralelo con las conexiones del
-    pool que sobran (`spare`, sin tomar su reserva); sin ninguna, en serie. Si queda «sin resultado», corrige los
+    pool que sobran (`spare`, sin tomar su reserva); sin ninguna, en serie. Si queda "sin resultado", corrige los
     errores de tipeo y vuelve a buscar: `corrected_query` dice qué se buscó (null si nada); `correct=false` busca tal
     cual. Con `user_id` (la app lo manda solo en la propuesta), la dieta y las alergias que la persona le dijo a Mochi
     filtran los resultados igual que en el agente (offers/preferences.py), sin ordenar por sus favoritas;
-    `preferences_notice` lo dice (null si no filtró). Si sacaron todo lo encontrado, no cuenta como «sin resultado»:
+    `preferences_notice` lo dice (null si no filtró). Si sacaron todo lo encontrado, no cuenta como "sin resultado":
     el catálogo lo tiene."""
     if mode not in MODES:
         raise HTTPException(400, f"mode debe ser uno de {MODES}")
@@ -487,7 +487,7 @@ def search(
         shown = [p for g in grouped.groups for p in g.products]
         found["preferences_notice"] = mine.notice(shown, grouped.dropped)
         # Además de productos, las tiendas y los restaurantes que se llaman así (o de esa cocina): si los hay, la
-        # búsqueda sí encontró algo. Sin nada, `whim_allowed` dice si la app puede ofrecer «Lo que sea» (RappiFavor)
+        # búsqueda sí encontró algo. Sin nada, `whim_allowed` dice si la app puede ofrecer "Lo que sea" (RappiFavor)
         # con lo escrito, según las guardias.
         places = {"stores": search_stores(conn, q), "restaurants": search_restaurants(conn, q)}
         if places["stores"] or places["restaurants"]:
@@ -536,13 +536,13 @@ def recommendations(
 ) -> dict:
     """ "Para ti, de otras tiendas": intereses del usuario → complementos → productos de otro vertical. Si quedan filas
     libres, una más con lo más pedido de la vertical que mejor le calza (`_top_row`). Una fila con concepto trae su
-    nombre visible (`concept_label`, el de la taxonomía: «Café», no el id «cafe»)."""
+    nombre visible (`concept_label`, el de la taxonomía: "Café", no el id "cafe")."""
     interests = list(events.profile(conn, user_id))
     taxonomy = load_taxonomy()
     mine = preferences.load(
         conn, user_id
-    )  # «Para ti» es del agente: su dieta y alergias filtran, sus favoritas ordenan
-    # La razón nombra el interés («Por tu interés en…»): el agente no nombra por su cuenta alcohol, salud ni lo
+    )  # "Para ti" es del agente: su dieta y alergias filtran, sus favoritas ordenan
+    # La razón nombra el interés ("Por tu interés en…"): el agente no nombra por su cuenta alcohol, salud ni lo
     # sensible, así que esos intereses no son fuente de una fila (como en `RappiAgent._top_interest`). El perfil los
     # conserva.
     sources = [c for c in interests if c in taxonomy.concepts and is_offerable(taxonomy.concepts[c])]
@@ -580,10 +580,10 @@ TOP_REASON = "Lo más pedido estas semanas en {vertical}"
 
 
 def _top_row(conn: Connection, user_id: str, current: str | None, taken: set[str]) -> dict | None:
-    """«Lo más pedido en…»: la primera vertical, en el orden de la predicción para la persona (`next_verticals`), que el
-    agente puede proponer (nunca Farmacia ni Licores), que no es la de la pantalla ni la de otra fila y que tiene algo
-    que mostrar: hasta tres de los productos que más pide la población ahí (`trends`), con el precio de esa vertical,
-    las guardias de las ofertas y las reglas de lo destacado, con los platos de su ciudad
+    """ "Lo más pedido en…": la primera vertical, en el orden de la predicción para la persona (`next_verticals`), que
+    el agente puede proponer (nunca Farmacia ni Licores), que no es la de la pantalla ni la de otra fila y que tiene
+    algo que mostrar: hasta tres de los productos que más pide la población ahí (`trends`), con el precio de esa
+    vertical, las guardias de las ofertas y las reglas de lo destacado, con los platos de su ciudad
     (`offers.engine.most_ordered`). La fila no tiene concepto; su `basis` dice la fuente."""
     population = config.MOTOR_POBLACION
     city = person_city(conn, user_id)
@@ -644,8 +644,8 @@ def get_profile(user_id: ShortPath, conn: Connection = Depends(get_conn)) -> dic
 def tastes(user_id: ShortPath, conn: Connection = Depends(get_conn)) -> dict:
     """Los perfiles de gusto de la persona (`offers/profiles.py`): `{ perfiles: [{ id, nombre, emoji, gusto, nivel,
     principal, por_que, basis, conceptos }] }`, el principal primero; la lista va vacía sin perfiles. `gusto` completa
-    «Veo que te gusta…» («lo asiático») y `conceptos` da el nombre y el emoji de lo que cuenta el «por qué» (`pedidos` y
-    `busquedas` de la `basis`). «Olvidar» borra o recalcula sus segmentos, y el perfil se va con ellos."""
+    "Veo que te gusta…" ("lo asiático") y `conceptos` da el nombre y el emoji de lo que cuenta el "por qué" (`pedidos` y
+    `busquedas` de la `basis`). "Olvidar" borra o recalcula sus segmentos, y el perfil se va con ellos."""
     return {"perfiles": [profile.to_dict() for profile in active_profiles(conn, user_id)]}
 
 
@@ -778,7 +778,7 @@ def post_order(
     # Un pedido es de una tienda: un carro con dos restaurantes son dos pedidos (la app manda uno por tienda).
     if len({line.store_id for line in body.lines if line.store_id is not None}) > 1:
         raise HTTPException(400, "Un pedido es de una sola tienda")
-    if body.autopedido and body.scheduled_for is not None:  # «Pedir por mí» pide para ahora, nunca programa
+    if body.autopedido and body.scheduled_for is not None:  # "Pedir por mí" pide para ahora, nunca programa
         raise HTTPException(400, "Un pedido de Mochi no se programa")
     if body.scheduled_for is not None and not _schedulable(body.scheduled_for):
         raise HTTPException(400, "Solo se programa para hoy o mañana")
@@ -903,7 +903,7 @@ def _context(conn, vertical, user_id, profile, shown_topics, mode) -> Context:
     if profile is None and user_id and mode == "propuesta":
         profile = events.profile(conn, user_id)
     vertical = _searchable(conn, backend_vertical(vertical))
-    mine = preferences.load(conn, user_id) if mode == "propuesta" else None  # en «Rappi hoy», ninguna
+    mine = preferences.load(conn, user_id) if mode == "propuesta" else None  # en "Rappi hoy", ninguna
     return Context(vertical, profile or {}, list(shown_topics), mode, user_id=user_id, preferences=mine)
 
 
@@ -926,7 +926,7 @@ def _log_ask(conn, user_id, session_id, text, response, modality, mode) -> None:
     if not user_id or not session_id:
         return
     concepts = response.get("intent", {}).get("concepts") or []
-    # Lo que dice de sí misma («no como maní») no queda como consulta: una alergia es un dato de salud y no va a las
+    # Lo que dice de sí misma ("no como maní") no queda como consulta: una alergia es un dato de salud y no va a las
     # tendencias, la demanda ni el panel.
     private = response.get("intent", {}).get("kind") == "preferencia"
     event = events.Event(

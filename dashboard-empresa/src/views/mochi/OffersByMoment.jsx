@@ -7,8 +7,8 @@ import { MIN_SHOWN_FOR_RATE, momentHint, momentLabel } from './offers.js'
 
 /**
  * Ofertas de Mochi por momento (dónde se hizo la oferta). La tasa llega vacía (—) con menos mostradas que el mínimo:
- * ahí solo valen las cuentas. `make mvp-check` lee esta tabla: «Plan» y sus aceptadas en la tercera celda. Debajo, aparte,
- * los pedidos que Mochi hizo solo con permiso («Pedir por mí»): no son ofertas aceptadas.
+ * ahí solo valen las cuentas. `make mvp-check` lee esta tabla: "Plan" y sus aceptadas en la tercera celda. Debajo, aparte,
+ * los pedidos que Mochi hizo solo con permiso ("Pedir por mí"): no son ofertas aceptadas.
  */
 export function OffersByMoment({ data, source }) {
   const { momentos } = data
@@ -19,7 +19,7 @@ export function OffersByMoment({ data, source }) {
       </EmptyState>
     )
   }
-  // El simulador no guarda en qué momento se hizo cada oferta: todo cae en «sin momento».
+  // El simulador no guarda en qué momento se hizo cada oferta: todo cae en "sin momento".
   if (source === 'synthetic' && momentos.every((row) => row.momento === 'sin_momento')) {
     return (
       <EmptyState title="Los datos simulados no registran el momento de la oferta">
@@ -33,8 +33,8 @@ export function OffersByMoment({ data, source }) {
       header: 'Momento',
       primary: true,
       render: (row) => (
-        // El espacio separa el momento de su descripción en el nombre de la fila («Plan Un kit…»): `make mvp-check`
-        // busca la fila que empieza con «Plan ».
+        // El espacio separa el momento de su descripción en el nombre de la fila ("Plan Un kit…"): `make mvp-check`
+        // busca la fila que empieza con "Plan ".
         <span className="cell-stack">
           <strong>{momentLabel(row.momento)}</strong>{' '}
           {momentHint(row.momento) && <span className="cell-sub">{momentHint(row.momento)}</span>}
@@ -69,12 +69,12 @@ export function OffersByMoment({ data, source }) {
   )
 }
 
-/** Los pedidos que Mochi hizo solo, con el permiso de la persona («Pedir por mí»), contados aparte de las ofertas. */
+/** Los pedidos que Mochi hizo solo, con el permiso de la persona ("Pedir por mí"), contados aparte de las ofertas. */
 function AutoOrders({ counts }) {
   if (!counts) return null
   return (
     <p className="cell-sub" data-testid="autopedidos">
-      Pedidos que {AGENT_NAME} hizo solo, con permiso («Pedir por mí»): {formatNumber(counts.pedidos)}
+      Pedidos que {AGENT_NAME} hizo solo, con permiso ("Pedir por mí"): {formatNumber(counts.pedidos)}
       {counts.pedidos > 0 && ` de ${formatNumber(counts.personas)} ${counts.personas === 1 ? 'persona' : 'personas'}`}.
       No cuentan como ofertas aceptadas.
     </p>

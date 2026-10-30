@@ -2,7 +2,7 @@
 #
 # Cada regla combina piezas genéricas; el motor (layers/segments.py) no conoce segmentos por nombre.
 # Contenido (basta una): concepts, groups, attributes, brands, occasions, services, query_words. Ninguna regla usa
-# `occasions`: una ocasión agrupa conceptos cotidianos (chocolate, café, cerveza) y volvía «estudiante» o «regalador» a medio mundo.
+# `occasions`: una ocasión agrupa conceptos cotidianos (chocolate, café, cerveza) y volvía "estudiante" o "regalador" a medio mundo.
 # Contexto (todas): verticals, hours [desde, hasta] (puede cruzar medianoche), weekdays (1 = lunes), days_of_month,
 # price_percentile { gte | lte }, discount, basket_size { gte_items | lte_items | gte_amount }, modality,
 # from_suggestion, cities. `min_share` (0 a 1): parte mínima de la actividad de la persona, en los tipos de evento de la

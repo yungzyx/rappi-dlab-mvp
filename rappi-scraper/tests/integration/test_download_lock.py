@@ -51,7 +51,7 @@ def test_download_lock_without_database_keeps_the_file_lock(tmp_path, caplog):
 
 
 def test_download_lock_refused_by_the_database_stops(db, tmp_path):
-    """Una base que responde pero no deja entrar (clave o rol equivocados) no es «base caída»: no se descarga sin saber
+    """Una base que responde pero no deja entrar (clave o rol equivocados) no es "base caída": no se descarga sin saber
     si hay otra descarga."""
     url = make_conninfo(database_url("DATABASE_URL_TEST"), user="rol_que_no_existe")
     with (
@@ -64,7 +64,7 @@ def test_download_lock_refused_by_the_database_stops(db, tmp_path):
 
 
 def test_database_lock_warning_reaches_the_command_log(tmp_path, monkeypatch):
-    """El aviso de «base caída» sale después de configurar el log del comando: queda en su archivo."""
+    """El aviso de "base caída" sale después de configurar el log del comando: queda en su archivo."""
     monkeypatch.setattr(lock, "LOCK_FILE", tmp_path / "scraper.lock")
     monkeypatch.setattr(cli, "LOGS_DIR", tmp_path / "logs")
     monkeypatch.setattr(cli, "connect", lambda: nullcontext(None))

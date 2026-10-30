@@ -9,7 +9,7 @@ afterEach(() => {
   vi.unstubAllGlobals()
 })
 
-/** La tienda 9101: 30 productos en su primer pasillo (de a 24 por página) y uno en «Bebidas». */
+/** La tienda 9101: 30 productos en su primer pasillo (de a 24 por página) y uno en "Bebidas". */
 function shop(req) {
   if (req.query.get('aisle') === '300') {
     const reply = fixture('catalog-store')

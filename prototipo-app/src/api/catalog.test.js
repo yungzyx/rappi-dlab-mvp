@@ -191,7 +191,7 @@ describe('restaurantes', () => {
     const noCover = byName('Cevichería de prueba - Santiago')
     expect(noCover.img).toBe(PLACEHOLDER_IMG)
     expect(noCover.logo).toBe(false)
-    // El horario dice con null lo que no aplica (un abierto no tiene «abre a las»): el resto no inventa nada.
+    // El horario dice con null lo que no aplica (un abierto no tiene "abre a las"): el resto no inventa nada.
     expect(JSON.stringify(list.map(({ hours: _hours, ...card }) => card))).not.toMatch(/null|undefined/)
   })
 

@@ -47,7 +47,7 @@ export function isHushed() {
   return dismissedInARow >= HUSH_AFTER_DISMISSALS
 }
 
-/** «Repetir escena»: como una persona que llega por primera vez. */
+/** "Repetir escena": como una persona que llega por primera vez. */
 export function resetQuiet() {
   wake()
 }

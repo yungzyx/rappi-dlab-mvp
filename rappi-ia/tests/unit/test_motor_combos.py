@@ -62,7 +62,7 @@ def test_learned_retention_needs_enough_people_and_blends():
 
 
 def test_combo_of_verticals_accepts_a_generator():
-    """Recorre su argumento dos veces: con un generador devolvía siempre «ninguna»."""
+    """Recorre su argumento dos veces: con un generador devolvía siempre "ninguna"."""
     assert combo_of_verticals(v for v in ["restaurantes", "supermercado"]) == "rest+retail"
 
 
@@ -111,7 +111,7 @@ def test_churn_reduction_diminishes_within_a_group():
     assert fine_churn_factor("supermercado+conveniencia+mall+chocolateria") == pytest.approx(0.90 * 0.95 * 0.975)
     assert fine_churn_factor("restaurantes+favor") == pytest.approx(0.95)  # cada servicio usado: −5 %
     assert fine_churn_factor("restaurantes+favor+travel") == pytest.approx(0.95 * 0.95)
-    assert fine_churn_factor("favor") == 1  # solo Favor: es la base (la fila «favor» de Rappi), no reduce
+    assert fine_churn_factor("favor") == 1  # solo Favor: es la base (la fila "favor" de Rappi), no reduce
     assert fine_churn_factor("favor+travel") == pytest.approx(0.95)
 
 
@@ -131,7 +131,7 @@ def test_expected_fine_retention_of_services_only():
 
 def test_expected_fine_retention_never_reaches_one_and_grows_inside_the_groups():
     """Nunca llega a 1, y sumar un servicio o una vertical de un grupo que ya se usa siempre sube la retención (un
-    grupo nuevo cambia la base de Rappi, que no siempre sube: «favor» 0,44 contra «retail» 0,41)."""
+    grupo nuevo cambia la base de Rappi, que no siempre sube: "favor" 0,44 contra "retail" 0,41)."""
     group_of = load_combos().group_of
     for k in range(1, len(FINE_ORDER) + 1):
         for members in combinations(FINE_ORDER, k):

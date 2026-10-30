@@ -12,7 +12,7 @@ import { fixture, stubApi } from '../../test/api'
 import AssistantPanel from './AssistantPanel'
 
 // Lo que Mochi sabe hacer al abrir, el resumen antes de pagar, el último pedido, cancelar una respuesta en curso y
-// «Mis preferencias» (fase 5: la app de Rappi frente a Mochi).
+// "Mis preferencias" (fase 5: la app de Rappi frente a Mochi).
 const api = vi.hoisted(() => ({ health: vi.fn(), ask: vi.fn(), forget: vi.fn(), profile: vi.fn() }))
 vi.mock('../../api/client', async (importOriginal) => ({ ...(await importOriginal()), ...api }))
 const events = vi.hoisted(() => ({ track: vi.fn(), flush: vi.fn(), clear: vi.fn(), settled: vi.fn() }))
@@ -127,7 +127,7 @@ describe('lo que Mochi sabe hacer', () => {
     expect(document.querySelector('.agent-ai-notice').textContent).toContain(`${AGENT_NAME} usa IA`)
   })
 
-  test('«Repite lo de siempre» pide la recompra; sin nada que repetir, lo dice', async () => {
+  test('"Repite lo de siempre" pide la recompra; sin nada que repetir, lo dice', async () => {
     await renderPanel()
     fireEvent.click(screen.getByRole('button', { name: '🔁 Repite lo de siempre' }))
     await runUntilIdle()
@@ -136,7 +136,7 @@ describe('lo que Mochi sabe hacer', () => {
     expect(bubbles().at(-1)).toMatch(/Todavía no veo algo que pidas seguido/)
   })
 
-  test('«Arma un kit» deja elegir la ocasión y trae su kit', async () => {
+  test('"Arma un kit" deja elegir la ocasión y trae su kit', async () => {
     await renderPanel()
     fireEvent.click(screen.getByRole('button', { name: '🧺 Arma un kit' }))
     await runUntilIdle()
@@ -162,7 +162,7 @@ describe('lo que Mochi sabe hacer', () => {
 })
 
 describe('la conversación y lo que no es de ella', () => {
-  test('después de una oferta o un kit, «más barato» ya no refina la respuesta de antes', async () => {
+  test('después de una oferta o un kit, "más barato" ya no refina la respuesta de antes', async () => {
     const beers = { ...fixture('agent-ask'), conversation: { query: 'cerveza', concepts: ['cerveza'] } }
     api.ask.mockResolvedValue(beers)
     await renderPanel()
@@ -177,7 +177,7 @@ describe('la conversación y lo que no es de ella', () => {
 })
 
 describe('abrir una vertical desde Mochi', () => {
-  test('«También en» deja un vertical_open con su lugar y la respuesta', async () => {
+  test('"También en" deja un vertical_open con su lugar y la respuesta', async () => {
     const reply = fixture('agent-ask')
     reply.also_in = {
       label: '🍺 Cerveza',
@@ -228,12 +228,12 @@ describe('el resumen antes de pagar', () => {
     expect(screen.queryByRole('button', { name: 'Revisar y pagar →' })).toBeNull()
   })
 
-  test('el texto dice lo de hoy: con «Pedir por mí» Mochi sí pide; el pedido se cancela en su seguimiento', async () => {
+  test('el texto dice lo de hoy: con "Pedir por mí" Mochi sí pide; el pedido se cancela en su seguimiento', async () => {
     api.ask.mockResolvedValueOnce(fixture('agent-ask-resumen')).mockResolvedValueOnce(fixture('agent-ask-pedido'))
     await renderPanel()
     say('quiero pagar')
     await runUntilIdle()
-    expect(bubbles().at(-1)).toMatch(/si no me diste permiso con «Pedir por mí», el pedido lo haces tú/)
+    expect(bubbles().at(-1)).toMatch(/si no me diste permiso con "Pedir por mí", el pedido lo haces tú/)
     expect(bubbles().at(-1)).not.toMatch(/nunca hago el pedido/)
     say('¿dónde viene mi pedido?')
     await runUntilIdle()
@@ -270,7 +270,7 @@ describe('el último pedido, con un botón', () => {
     total: 9990,
   })
 
-  test('sin pedidos no hay botón; con uno, «Mi último pedido» lo muestra sin preguntarle a la API', async () => {
+  test('sin pedidos no hay botón; con uno, "Mi último pedido" lo muestra sin preguntarle a la API', async () => {
     await renderPanel()
     expect(screen.queryByRole('button', { name: '📦 Mi último pedido' })).toBeNull()
     cleanup()
@@ -303,7 +303,7 @@ describe('el último pedido, con un botón', () => {
     expect(bubbles().at(-1)).toBe('Tu último pedido se canceló.')
   })
 
-  test('en «Rappi hoy» el buscador con Mochi no se abre: es el buscador de siempre', async () => {
+  test('en "Rappi hoy" el buscador con Mochi no se abre: es el buscador de siempre', async () => {
     localStorage.setItem('rappi-proto-demo-mode', 'actual')
     localStorage.setItem('rappi-proto-orders', JSON.stringify([order()]))
     await renderPanel()
@@ -313,7 +313,7 @@ describe('el último pedido, con un botón', () => {
 })
 
 describe('mientras espera la respuesta', () => {
-  test('dice qué hace y «Cancelar» corta la respuesta en curso', async () => {
+  test('dice qué hace y "Cancelar" corta la respuesta en curso', async () => {
     let signal
     api.ask.mockImplementationOnce((_payload, options) => {
       signal = options.signal

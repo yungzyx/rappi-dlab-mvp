@@ -34,7 +34,7 @@ describe('churnDecision', () => {
     expect(decision.figure).toBe('280')
     expect(decision.context).toMatch(/Otras 564 pasaron el triple y se dan por perdidas/)
     expect(decision.action).toMatch(/hoy califican 137 personas que dejaron algo que pedían con ritmo/)
-    // Con datos simulados, la fecha del último pedido simulado y no «hoy».
+    // Con datos simulados, la fecha del último pedido simulado y no "hoy".
     expect(churnDecision({ en_riesgo: 1, perdidos: 0 }, { califican: 2, dia: '2026-10-17' }).action).toMatch(
       /al 17-10-2026 califican 2 personas/,
     )
@@ -69,9 +69,9 @@ describe('mochiDecision', () => {
 
     expect(decision.figure).toBe('2,0%') // 4 de 202
     expect(decision.context).toBe(
-      '4 aceptadas de 202 mostradas a 25 personas. Por momento: «Pregunta» acepta el 7,7% y «Plan», el 0,0%.',
+      '4 aceptadas de 202 mostradas a 25 personas. Por momento: "Pregunta" acepta el 7,7% y "Plan", el 0,0%.',
     )
-    expect(decision.action).toBe('Revisar «Plan»: 68 mostradas y ninguna aceptada.')
+    expect(decision.action).toBe('Revisar "Plan": 68 mostradas y ninguna aceptada.')
   })
 
   test('without moments (simulated), the conversion of cross suggestions and the one that works best', () => {

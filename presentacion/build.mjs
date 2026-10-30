@@ -1,5 +1,5 @@
 // La presentación del MVP (make presentacion o node presentacion/build.mjs): dos páginas de un solo archivo que muestran
-// «Prototipo MVP.html» y «Panel de negocio (demo).html» dentro de un marco con sus controles (persona, vista, panel de la
+// "Prototipo MVP.html" y "Panel de negocio (demo).html" dentro de un marco con sus controles (persona, vista, panel de la
 // demo) y un recorrido automático por capítulos. escritorio.html es para un notebook o un proyector; movil.html, para
 // un iPhone o un iPad.
 //
@@ -21,7 +21,7 @@ const OUTPUTS = {
   'movil.html': 'Mochi MVP - iPhone y iPad.html',
 }
 const DIST = `${HERE}dist/`
-// La barra de modos y el «Panel de la demo» de la app quedan ocultos: la presentación muestra sus botones a los lados.
+// La barra de modos y el "Panel de la demo" de la app quedan ocultos: la presentación muestra sus botones a los lados.
 const HIDE = { mvp: '.demo-toggle,.offline-demo{display:none!important}', panel: '' }
 const MARK = '/*PROTOS*/null'
 const TOUR_MARK = '/*RECORRIDO*/'
@@ -40,7 +40,7 @@ for (const [name, code] of [
   ['shim.js', shim],
   ['recorrido.js', tour],
 ])
-  if (code.includes('</script') || code.includes('<!--')) throw new Error(`${name} no puede traer «</script» ni «<!--»`)
+  if (code.includes('</script') || code.includes('<!--')) throw new Error(`${name} no puede traer "</script" ni "<!--"`)
 
 /** El HTML con el shim y el estilo que oculta los controles de la demo, al inicio de <head>. */
 function inject(id, html) {
@@ -54,7 +54,7 @@ function inject(id, html) {
 const protos = Object.fromEntries(
   Object.entries(SOURCES).map(([id, file]) => [id, inject(id, readFileSync(file, 'utf8'))]),
 )
-// Dentro de un <script> no puede aparecer «</script» ni «<!--»: todos los «<» van escapados.
+// Dentro de un <script> no puede aparecer "</script" ni "<!--": todos los "<" van escapados.
 const json = JSON.stringify(protos)
   .replace(/</g, '\\u003c')
   .replace(/\u2028/g, '\\u2028')
@@ -65,8 +65,8 @@ const mb = (bytes) => `${(bytes / 1e6).toFixed(1)} MB`
 for (const [template, name] of Object.entries(OUTPUTS)) {
   const page = readFileSync(`${HERE}${template}`, 'utf8')
   for (const mark of [MARK, TOUR_MARK])
-    if (page.split(mark).length !== 2) throw new Error(`${template} debe traer «${mark}» una vez`)
-  // Con una función como reemplazo, el código no pasa por los patrones «$&» o «$1» de String.replace.
+    if (page.split(mark).length !== 2) throw new Error(`${template} debe traer "${mark}" una vez`)
+  // Con una función como reemplazo, el código no pasa por los patrones "$&" o "$1" de String.replace.
   const html = page.replace(TOUR_MARK, () => tour).replace(MARK, () => json)
   const out = `${DIST}${name}`
   writeFileSync(out, html)

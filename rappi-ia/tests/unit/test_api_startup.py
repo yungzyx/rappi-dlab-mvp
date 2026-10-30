@@ -14,7 +14,7 @@ from rappi_ia.db import database_url
 
 
 def test_startup_loads_services_before_first_request(monkeypatch, caplog):
-    """uvicorn solo anuncia «startup complete» con los modelos cargados: la primera petición no paga la carga."""
+    """uvicorn solo anuncia "startup complete" con los modelos cargados: la primera petición no paga la carga."""
     monkeypatch.setenv("RAPPI_IA_LIGHT", "1")
     services._load_services.cache_clear()
     try:

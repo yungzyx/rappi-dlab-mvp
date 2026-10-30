@@ -45,7 +45,7 @@ export function biggestRise(before, after) {
 export const shortcutName = (vertical) => SHORTCUTS.find((item) => item.vertical === vertical)?.label ?? vertical
 
 /**
- * Lo que dice Mochi al mover un acceso. Con la razón de la API (`reason.text`, «Porque entras seguido a Rappi Mall.»)
+ * Lo que dice Mochi al mover un acceso. Con la razón de la API (`reason.text`, "Porque entras seguido a Rappi Mall.")
  * dice esa razón; sin ella (la API solo la da al primero), que el orden sigue lo que más usa.
  */
 export function moveText({ vertical, to, reason }) {
@@ -59,7 +59,7 @@ export function moveText({ vertical, to, reason }) {
     : `Moví ${shortcutName(vertical)} ${where}, según lo que más usas.`
 }
 
-/** «¿Por qué?» del globo: cómo se ordenan los accesos (motor/home.py), con la señal de la API. */
+/** "¿Por qué?" del globo: cómo se ordenan los accesos (motor/home.py), con la señal de la API. */
 export const moveWhy = (reason) => ({
   text: 'Ordeno estos accesos por lo que más usas: lo que pides y lo que abres. Restaurantes y Turbo no se mueven.',
   basis: reason?.basis ?? [],
@@ -68,7 +68,7 @@ export const moveWhy = (reason) => ({
 /**
  * El orden que muestra la fila (`order`) y el último cambio (`move`: `{ key, vertical, from, to, reason, requestId }`,
  * con una `key` nueva en cada cambio). Mientras la Home no está arriba (`active`), la fila queda como la vio la persona:
- * el cambio se ve al volver. Al abrir, la fila parte del último orden visto. Tras «Olvidar» (cambian las `resets`),
+ * el cambio se ve al volver. Al abrir, la fila parte del último orden visto. Tras "Olvidar" (cambian las `resets`),
  * el orden fijo.
  */
 export function useShortcutMove({ order, entries, requestId }, { active, resets }) {

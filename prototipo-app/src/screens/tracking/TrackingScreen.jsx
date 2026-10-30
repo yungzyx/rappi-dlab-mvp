@@ -47,9 +47,9 @@ import './tracking.css'
 const TICK_MS = 500
 const STARS = [1, 2, 3, 4, 5]
 // 3 estrellas o menos es una calificación mala (rappi-ia: events/store.py, LOW_RATING): pregunta qué pasó y, en el
-// prototipo final, pausa la recompra y el «volver» de lo de ese pedido.
+// prototipo final, pausa la recompra y el "volver" de lo de ese pedido.
 export const LOW_RATING = 3
-// «¿Qué problema tuvo el pedido?»: los códigos que acepta rappi-ia (events/store.py: RATING_REASONS).
+// "¿Qué problema tuvo el pedido?": los códigos que acepta rappi-ia (events/store.py: RATING_REASONS).
 export const RATING_REASONS = [
   { id: 'tarde', label: 'Llegó tarde' },
   { id: 'faltante', label: 'Faltó un producto' },
@@ -61,10 +61,10 @@ export const RATING_REASONS = [
 
 /**
  * Seguimiento de un pedido (una tienda; los otros de la misma compra se eligen arriba): los pasos de su vertical
- * avanzan solos y el agente recorre el mapa. Antes de «En camino» se puede cancelar (con rescate); en el Súper, en «En
- * tienda», un producto agotado de demostración pide qué hacer; un atraso del «Panel de la demo» trae su mensaje. En
- * camino muestra el código de entrega; entregado, la calificación, la propina, «Pídelo de nuevo» y «Ayuda con este
- * pedido». Programado, espera su franja. En el prototipo final, mientras llega, el OnTop de Turbo.
+ * avanzan solos y el agente recorre el mapa. Antes de "En camino" se puede cancelar (con rescate); en el Súper, en "En
+ * tienda", un producto agotado de demostración pide qué hacer; un atraso del "Panel de la demo" trae su mensaje. En
+ * camino muestra el código de entrega; entregado, la calificación, la propina, "Pídelo de nuevo" y "Ayuda con este
+ * pedido". Programado, espera su franja. En el prototipo final, mientras llega, el OnTop de Turbo.
  */
 export default function TrackingScreen({ back, reset, push, params }) {
   const orders = useOrders()
@@ -125,7 +125,7 @@ export default function TrackingScreen({ back, reset, push, params }) {
   return (
     <div className="screen tracking">
       <div className="tracking-map-wrap">
-        {/* La pose (tímido antes del viaje) y «¡Ya casi!» son del prototipo final; «Rappi hoy» queda como antes. */}
+        {/* La pose (tímido antes del viaje) y "¡Ya casi!" son del prototipo final; "Rappi hoy" queda como antes. */}
         <TrackingMap
           progress={ahead ? 0 : rideProgress(seconds)}
           delivered={delivered}
@@ -192,7 +192,7 @@ export default function TrackingScreen({ back, reset, push, params }) {
   )
 }
 
-/** Los pedidos de la misma compra (uno por tienda): «Pedido 1 de 2 · Tienda», para pasar de uno a otro. */
+/** Los pedidos de la misma compra (uno por tienda): "Pedido 1 de 2 · Tienda", para pasar de uno a otro. */
 function PurchaseOrders({ order, push }) {
   const siblings = useOrders().siblingsOf(order)
   if (siblings.length < 2) return null
@@ -236,7 +236,7 @@ function Cancelled({ order }) {
 }
 
 /**
- * El mensaje proactivo de un atraso (lo gatilla el «Panel de la demo»): el tiempo estimado subió y, en Turbo, la
+ * El mensaje proactivo de un atraso (lo gatilla el "Panel de la demo"): el tiempo estimado subió y, en Turbo, la
  * garantía de ejemplo se cumple con Créditos de ejemplo.
  */
 function DelayNotice({ order, flow, delivered }) {
@@ -262,7 +262,7 @@ function DelayNotice({ order, flow, delivered }) {
   )
 }
 
-/** El código que la persona le dice a su Rappi al recibir (el «handshake» de la app de Rappi). */
+/** El código que la persona le dice a su Rappi al recibir (el "handshake" de la app de Rappi). */
 function DeliveryCode({ orderId }) {
   return (
     <div className="tracking-code" role="note" aria-label="Código de entrega">
@@ -316,7 +316,7 @@ const entitiesOf = (order) =>
     .filter((item) => item.entityId != null)
     .map((item) => ({ entity_type: item.entityType, entity_id: item.entityId }))
 
-/** «HH:MM» de una hora (ms), en la hora del teléfono. */
+/** "HH:MM" de una hora (ms), en la hora del teléfono. */
 export const clock = (ts) =>
   new Date(ts).toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit', hourCycle: 'h23' })
 
@@ -326,9 +326,9 @@ export const clock = (ts) =>
 const agentMaySpeak = () => !isQuiet(today()) && !isHushed() && !isAgentHidden()
 
 /**
- * El OnTop de Turbo (prototipo final, mientras el pedido va en curso y no es de Turbo): «Turbo: suma esto antes de
- * HH:MM», con productos que elige el motor (`cross_picks`) y pasan las guardias (la oferta `ontop` de la API). El plazo
- * y el envío sin costo extra son supuestos: se rotulan «de ejemplo». Lo que se agrega va al carro como un pedido de
+ * El OnTop de Turbo (prototipo final, mientras el pedido va en curso y no es de Turbo): "Turbo: suma esto antes de
+ * HH:MM", con productos que elige el motor (`cross_picks`) y pasan las guardias (la oferta `ontop` de la API). El plazo
+ * y el envío sin costo extra son supuestos: se rotulan "de ejemplo". Lo que se agrega va al carro como un pedido de
  * Turbo aparte.
  */
 function OnTop({ order, flow, now, push }) {
@@ -454,7 +454,7 @@ function Delivered({ order, push }) {
 }
 
 /**
- * «¿Cómo estuvo tu pedido?»: las estrellas y, con 3 o menos, «¿Qué problema tuvo el pedido?» con sus opciones. Queda en
+ * "¿Cómo estuvo tu pedido?": las estrellas y, con 3 o menos, "¿Qué problema tuvo el pedido?" con sus opciones. Queda en
  * el pedido y como evento `order_rated` (estrellas y motivos; el pedido es su carro, `cart_id`).
  */
 function Rating({ order }) {

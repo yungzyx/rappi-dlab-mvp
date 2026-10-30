@@ -170,7 +170,7 @@ def test_ask_many_isolates_failures(monkeypatch):
 
 
 def test_ask_many_survives_a_malformed_body(monkeypatch):
-    script = Script(ok({}))  # falta la respuesta de «q»
+    script = Script(ok({}))  # falta la respuesta de "q"
     client = make_client(monkeypatch, script)
     assert client.ask_many([("a", QUESTIONS)]) == [None]
     assert client.stats.failures == 1

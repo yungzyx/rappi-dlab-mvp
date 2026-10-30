@@ -44,7 +44,7 @@ export function Presence({ data, source }) {
         {
           label: `${AGENT_NAME} explicó el orden de la Home`,
           value: times(data.explicaciones),
-          note: `a ${people(data.explicaciones_personas)}; la app no anota «¿Por qué?» ni «Entendido»`,
+          note: `a ${people(data.explicaciones_personas)}; la app no anota "¿Por qué?" ni "Entendido"`,
         },
       ]}
     />

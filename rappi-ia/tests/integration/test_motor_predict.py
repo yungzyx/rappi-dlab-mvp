@@ -85,7 +85,7 @@ def test_current_fine_counts_verticals_and_services_of_the_last_30_days(db):
     _order(db, "u1", "supermercado", 10)
     _order(db, "u1", "turbo", 45)  # fuera de la ventana
     _opened(db, "u1", "rappifavor", 5)
-    _opened(db, "u1", "rappitravel", 5, mode="actual")  # «Rappi hoy» no enseña
+    _opened(db, "u1", "rappitravel", 5, mode="actual")  # "Rappi hoy" no enseña
     _opened(db, "u1", "rappitravel", 40)  # fuera de la ventana
     db.commit()
 

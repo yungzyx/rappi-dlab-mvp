@@ -93,7 +93,7 @@ def test_each_negative_says_why_it_was_or_was_not_detected():
 
 
 def test_a_query_without_words_is_never_unmet_and_does_not_calibrate_tau():
-    """Misma regla que la búsqueda: «té» es stopword y no se marca por coseno. Si contara, una positiva así parecería
+    """Misma regla que la búsqueda: "té" es stopword y no se marca por coseno. Si contara, una positiva así parecería
     una falsa alarma y empujaría τ (aquí no habría propuesta)."""
     tea = QueryRun("licores", "té", "exacta", "hibrido", [1] * 10, 0, 0.75, False, has_words=False)
     runs = [tea, run("neumáticos", "negativa", 0.80)]
@@ -207,7 +207,7 @@ def test_ablation_runs_hybrid_without_the_concept_bonus(monkeypatch):
 
 def test_shown_row_judges_the_products_the_user_sees(monkeypatch):
     """`retrieve` traía 10 alfajores (galletas), pero _focus se quedaba con el único de golosinas, el concepto que
-    la consulta detectaba: la evaluación daba nDCG 1 y el usuario veía 1 producto. La fila «mostrado» lo mide."""
+    la consulta detectaba: la evaluación daba nDCG 1 y el usuario veía 1 producto. La fila "mostrado" lo mide."""
     hits = [_hit(str(i), "galletas") for i in range(9)] + [_hit("9", "golosinas")]
     calls = []
 
@@ -237,9 +237,9 @@ def test_shown_row_judges_the_products_the_user_sees(monkeypatch):
 
 
 def test_shown_unmet_follows_the_agent_rule(monkeypatch):
-    """Mochi registra «sin resultado» solo si no muestra productos: con la búsqueda marcándolo y productos a la
-    vista (las arenas para gato de «pasaje de avión»), no cuenta. Por síntomas tampoco: los medicamentos se ocultan
-    por la regla 6d, no por falta de surtido («tengo tos» era una falsa alarma que Mochi no anota)."""
+    """Mochi registra "sin resultado" solo si no muestra productos: con la búsqueda marcándolo y productos a la
+    vista (las arenas para gato de "pasaje de avión"), no cuenta. Por síntomas tampoco: los medicamentos se ocultan
+    por la regla 6d, no por falta de surtido ("tengo tos" era una falsa alarma que Mochi no anota)."""
     outcomes = {
         "pasaje de avión": SimpleNamespace(result=_result(unmet=True), products=[_product("1", "accesorios-mascota")]),
         "neumáticos": SimpleNamespace(result=_result(unmet=True), products=[]),
@@ -287,8 +287,8 @@ def test_report_measures_unmet_as_the_agent_records_it():
 
 
 def test_saving_tau_does_not_blame_the_shown_products_for_the_new_tau():
-    """Con --guardar-tau la calidad se mide con los τ guardados, pero «mostrado» se corrió con los vigentes: con 0,70
-    la búsqueda no marcaba «pasaje de avión» (coseno 0,81) y el reporte decía que la marcaba y se mostraban
+    """Con --guardar-tau la calidad se mide con los τ guardados, pero "mostrado" se corrió con los vigentes: con 0,70
+    la búsqueda no marcaba "pasaje de avión" (coseno 0,81) y el reporte decía que la marcaba y se mostraban
     productos, porque comparaba contra el 0,82 recién guardado."""
     hybrid = [run("pasaje de avión", "negativa", 0.81, vertical="mall"), run("regalo", "exacta", 0.9, vertical="mall")]
     shown = [
@@ -344,7 +344,7 @@ def test_report_shows_the_paired_comparison():
 
 
 def test_saving_keeps_the_current_tau_where_there_is_no_proposal():
-    """«Sin propuesta» es «sin evidencia para cambiarlo»: pasar al τ por defecto metió una falsa alarma en Mall."""
+    """ "Sin propuesta" es "sin evidencia para cambiarlo": pasar al τ por defecto metió una falsa alarma en Mall."""
     current = {"mall": 0.7, "licores": 0.7}
     assert thresholds_after_saving(current, {"licores": 0.82, "turbo": 0.79}) == {
         "mall": 0.7,

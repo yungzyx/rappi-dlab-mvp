@@ -214,7 +214,7 @@ def cmd_map_categories(conn, args) -> None:
     out = config.DATA_DIR / "concepts" / "categorias-sin-mapear.csv"
     write_category_proposals(rows, out)
     print(f"{len(rows)} categorías sin mapeo revisado en {out}")
-    print("Revisar cada fila, cambiar el método a «curado» y copiarla a src/rappi_ia/concepts/category_map.csv.")
+    print('Revisar cada fila, cambiar el método a "curado" y copiarla a src/rappi_ia/concepts/category_map.csv.')
 
 
 def _map_categories_with_jev(conn, args) -> None:
@@ -225,7 +225,7 @@ def _map_categories_with_jev(conn, args) -> None:
         out = jev_map.export_path()
         n = jev_map.export_for_review(conn, out_path=out)
         print(f"{n} categorías de Jev (aplicadas y pendientes) en {out}")
-        print("Revisar cada fila, cambiar el método a «curado» y copiarla a src/rappi_ia/concepts/category_map.csv.")
+        print('Revisar cada fila, cambiar el método a "curado" y copiarla a src/rappi_ia/concepts/category_map.csv.')
         return
     adoption = jev.load_adoption()
     if not adoption.categorias:
@@ -459,12 +459,12 @@ def cmd_eval_human(conn, args) -> None:
             print(
                 f"Planilla de búsqueda: {report['juzgados']} de {len(pairs)} pares juzgados"
                 f" ({report['sin_juicio']} sin juicio, {counts['invalidas']} inválidas, {counts['vacias']} vacías,"
-                f" {report['desconocidos']} desconocidos, {report['a_medias']} «a medias»)"
+                f' {report["desconocidos"]} desconocidos, {report["a_medias"]} "a medias")'
             )
             if report["juzgados"]:
                 print(
                     f"Personas vs juez por concepto: acuerdo {report['acuerdo']} · κ {report['kappa']}"
-                    f" («sirve» contra el resto) · κ ponderado {report['kappa_ponderado']} (tres valores)"
+                    f' ("sirve" contra el resto) · κ ponderado {report["kappa_ponderado"]} (tres valores)'
                 )
             else:
                 print(
@@ -481,7 +481,7 @@ def cmd_eval_human(conn, args) -> None:
     given = json.loads(judgments.JUDGMENTS_FILE.read_text(encoding="utf-8"))["juicios"]
     report = judgments.human_report(sample, given)
     auto, bonus = report["juez_auto"], report["refuerzo"]
-    print(f"Pares juzgados: {report['juzgados']} de {len(sample)} (más {report['no_se']} «no sé»)")
+    print(f'Pares juzgados: {report["juzgados"]} de {len(sample)} (más {report["no_se"]} "no sé")')
     print(
         f"Juez automático vs juicio a mano: precisión {auto['precision']} · recall {auto['recall']}"
         f" · acuerdo {auto['acuerdo']}"
@@ -528,7 +528,7 @@ def cmd_jev_piloto(conn, args) -> None:
     categories, judge, usage, proposal = result["categorias"], result["juez"], result["uso"], result["propuesta"]
     if categories["pasa"]:
         print(
-            f"Categorías: cumple con la variante «{categories['variante']}» y"
+            f'Categorías: cumple con la variante "{categories["variante"]}" y'
             f" T_auto {jev_pilot.fmt_num(categories['t_auto'])}"
         )
     else:

@@ -2,7 +2,7 @@
 //
 // Lo que sale del catálogo (GET /catalog/terms: el envío de los restaurantes y la compra mínima, el envío y la tarifa
 // que Rappi guarda en algunas tiendas) es un dato. Todo lo demás es un SUPUESTO de la demo, no un dato ni una política
-// de Rappi: cada monto dice de dónde salió (`basis`: 'catalogo' o 'supuesto') y la interfaz rotula «de ejemplo» los
+// de Rappi: cada monto dice de dónde salió (`basis`: 'catalogo' o 'supuesto') y la interfaz rotula "de ejemplo" los
 // supuestos. Los créditos y los cupones son de ejemplo.
 import { formatPrice } from '../../state/CartContext'
 
@@ -19,8 +19,8 @@ const SERVICE_RATE = 0.03
 const MIN_SERVICE_FEE = 490
 
 // Rappi Pro. Supuestos: el envío es $0 solo en un pedido sobre `freeDeliveryMin` (la app de Rappi exige un monto,
-// «Tu pedido debe superar…», pero no se sabe cuál en Chile) y la tarifa de servicio baja un 20 % (docs/ecosistema-rappi.md
-// dice «≥20 %»). El precio del plan sí es el público de Rappi (CLP 4.990 al mes, docs/ecosistema-rappi.md).
+// "Tu pedido debe superar…", pero no se sabe cuál en Chile) y la tarifa de servicio baja un 20 % (docs/ecosistema-rappi.md
+// dice "≥20 %"). El precio del plan sí es el público de Rappi (CLP 4.990 al mes, docs/ecosistema-rappi.md).
 export const PRO = { freeDeliveryMin: 10000, serviceDiscount: 0.2, monthlyPrice: 4990 }
 
 // Créditos de ejemplo: los $1.900 del banner de la Home, que vencen con su cuenta regresiva. El saldo (lo gastado y lo
@@ -28,7 +28,7 @@ export const PRO = { freeDeliveryMin: 10000, serviceDiscount: 0.2, monthlyPrice:
 export const CREDITS = { amount: 1900, rule: 'Solo en productos: no en envío, servicio ni propina' }
 
 // Cupones de ejemplo. Uno activo a la vez (otro reemplaza al anterior). SUPER20 es solo de tiendas de Supermercado:
-// en un carro sin ellas, «no aplica para esta tienda».
+// en un carro sin ellas, "no aplica para esta tienda".
 export const COUPONS = [
   {
     code: 'BIENVENIDA',
@@ -47,8 +47,8 @@ export const COUPONS = [
   },
 ]
 
-// Tipo de entrega. Supuestos de la demo (la app de Rappi muestra «Envío prioritario» con recargo y franjas con
-// descuento, pero los montos los manda su servidor): «Sin prisa» descuenta del envío y tarda más, «Prioritaria» suma y
+// Tipo de entrega. Supuestos de la demo (la app de Rappi muestra "Envío prioritario" con recargo y franjas con
+// descuento, pero los montos los manda su servidor): "Sin prisa" descuenta del envío y tarda más, "Prioritaria" suma y
 // llega antes. `etaShift`: minutos que suma o resta al tiempo estimado. Por pedido (cada tienda es un pedido).
 export const DELIVERY_TYPES = [
   { id: 'basica', label: 'Básica', eta: '25–35 min', fee: 0, etaShift: 0 },
@@ -106,7 +106,7 @@ export function pricedBasket(basket, catalog, { isPro = false, pickup = false, t
   const fullService = subtotal === 0 ? 0 : Math.max(terms.service.min, round10(subtotal * terms.service.rate))
   const proService = round10(fullService * (1 - PRO.serviceDiscount))
   const delivery = isPro && reachesPro ? 0 : fullDelivery
-  // «Sin prisa» no deja el envío bajo $0; con retiro en tienda no hay tipo de entrega.
+  // "Sin prisa" no deja el envío bajo $0; con retiro en tienda no hay tipo de entrega.
   const typeFee = pickup ? 0 : Math.max(-delivery, deliveryType(type).fee)
   return {
     ...basket,

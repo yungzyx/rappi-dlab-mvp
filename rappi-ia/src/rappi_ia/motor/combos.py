@@ -94,7 +94,7 @@ def _row(combo: str, data: dict) -> ComboRow:
         spend_per_user=float(data["gasto_por_usuario"]),
     )
     if not 0 <= row.retention_m1 <= 1:
-        raise ValueError(f"combos.toml: la retención de «{combo}» debe ser una fracción entre 0 y 1")
+        raise ValueError(f'combos.toml: la retención de "{combo}" debe ser una fracción entre 0 y 1')
     return row
 
 
@@ -108,7 +108,7 @@ def load_combos() -> Combos:
     for group, verticals in groups.items():
         for vertical in verticals:
             if vertical in group_of:
-                raise ValueError(f"combos.toml: el vertical «{vertical}» está en dos grupos")
+                raise ValueError(f'combos.toml: el vertical "{vertical}" está en dos grupos')
             group_of[vertical] = group
     missing = set(VERTICALS) - set(group_of)
     unknown = set(group_of) - set(VERTICALS)
@@ -121,7 +121,7 @@ def load_combos() -> Combos:
             all(p in GROUP_ORDER for p in parts) and combo == combo_key(parts) and len(set(parts)) == len(parts)
         )
         if not known:
-            raise ValueError(f"combos.toml: la combinación «{combo}» no es de grupos conocidos en orden")
+            raise ValueError(f'combos.toml: la combinación "{combo}" no es de grupos conocidos en orden')
         rappi[combo] = _row(combo, values)
     if set(FINE_ORDER) - set(SERVICES) != set(VERTICALS):
         raise ValueError("combos.py: FINE_ORDER debe tener todos los verticales del catálogo")
@@ -151,7 +151,7 @@ def load_combos() -> Combos:
 
 
 def combo_key(groups: Iterable[str]) -> str:
-    """El nombre canónico de un conjunto de grupos: en el orden rest, turbo, retail, unidos por «+»."""
+    """El nombre canónico de un conjunto de grupos: en el orden rest, turbo, retail, unidos por "+"."""
     present = set(groups)
     unknown = present - set(GROUP_ORDER)
     if unknown:
@@ -183,7 +183,7 @@ def expected_retention(combo: str, learned: dict[str, tuple[int, float]] | None 
 
 
 def fine_key(members: Iterable[str]) -> str:
-    """El nombre canónico de una combinación fina: verticales y servicios en el orden `FINE_ORDER`, unidos por «+»."""
+    """El nombre canónico de una combinación fina: verticales y servicios en el orden `FINE_ORDER`, unidos por "+"."""
     present = set(members)
     unknown = present - set(FINE_ORDER)
     if unknown:
@@ -206,7 +206,7 @@ def _members(fine: str) -> list[str]:
         return []
     parts = fine.split("+")
     if fine_key(parts) != fine or len(set(parts)) != len(parts):
-        raise ValueError(f"La combinación fina «{fine}» no está en el orden canónico")
+        raise ValueError(f'La combinación fina "{fine}" no está en el orden canónico')
     return parts
 
 
@@ -220,7 +220,7 @@ def group_counts(fine: str) -> dict[str, int]:
 def fine_churn_factor(fine: str) -> float:
     """Qué fracción de la parte que no vuelve queda con el supuesto propio: Π (1 − f). La j-ésima vertical de un grupo
     (j ≥ 2) tiene f = reduccion_base·decaimiento^(j−2) y cada servicio usado, f = `servicio`. Si la combinación es solo
-    de servicios con Favor, Favor es la base (la fila «favor» de Rappi) y no reduce nada. Siempre es mayor que 0: la
+    de servicios con Favor, Favor es la base (la fila "favor" de Rappi) y no reduce nada. Siempre es mayor que 0: la
     retención esperada nunca llega a 1."""
     dim = load_combos().diminishing
     members = _members(fine)
@@ -235,7 +235,7 @@ def fine_churn_factor(fine: str) -> float:
 
 
 def _group_of(fine: str) -> str:
-    """La combinación gruesa de los verticales del catálogo de una fina («ninguna» si solo hay servicios)."""
+    """La combinación gruesa de los verticales del catálogo de una fina ("ninguna" si solo hay servicios)."""
     return combo_of_verticals(m for m in _members(fine) if m not in SERVICES)
 
 
@@ -293,7 +293,7 @@ def expected_fine_retention(
     `expected_retention` de sus grupos (y `learned_coarse`). La fina aprendida `(personas, retención)` de `learned_fine`
     solo corrige la diferencia dentro del grupo (el nivel lo pone la gruesa), con al menos `LEARNED_RETENTION_MIN_USERS`
     personas en la fila fina y en la gruesa aprendida del grupo; sin gruesa aprendida, se mezcla tal cual. Solo
-    servicios: Favor parte de la fila «favor» de Rappi; solo Travel no tiene base (`None`, salvo que haya suficiente
+    servicios: Favor parte de la fila "favor" de Rappi; solo Travel no tiene base (`None`, salvo que haya suficiente
     aprendido)."""
     return _fine_expectation(fine, learned_coarse, learned_fine)[0]
 

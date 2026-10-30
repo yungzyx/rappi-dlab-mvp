@@ -44,7 +44,7 @@ import './assistant.css'
 const OPEN_MS = 380
 const CLOSE_MS = 280
 const MIN_TYPING_MS = 450
-const FOR_YOU_WAIT_MS = 3000 // lo que el saludo espera lo que se pide al abrir; después sale con lo que haya de «Para ti»
+const FOR_YOU_WAIT_MS = 3000 // lo que el saludo espera lo que se pide al abrir; después sale con lo que haya de "Para ti"
 
 const DISCOVER_ROWS = 3
 
@@ -66,9 +66,9 @@ const AUTO_NOT_SENT = 'no pude enviarlo ahora'
 const AUTO_SENT = (store) => `Listo, pedí lo de siempre en ${store}: está en Mis pedidos.`
 const AUTO_UNDONE_ON_CLOSE = (store) => `No pedí lo de siempre en ${store}: cerraste antes de que saliera.`
 const KIT_OPTIONS = 4
-// Lo que Mochi sabe hacer, al abrir (como el «Puedo ayudarte a:» de la app de Rappi): repetir lo de siempre (la
+// Lo que Mochi sabe hacer, al abrir (como el "Puedo ayudarte a:" de la app de Rappi): repetir lo de siempre (la
 // recompra), armar un kit (los planes) y algo para ti (el perfil de gusto o, sin él, lo que le recomienda). Nada de
-// salud. Solo en la propuesta: «Rappi hoy» no ofrece.
+// salud. Solo en la propuesta: "Rappi hoy" no ofrece.
 const CAPABILITIES = [
   { id: 'recompra', label: '🔁 Repite lo de siempre' },
   { id: 'plan', label: '🧺 Arma un kit' },
@@ -86,13 +86,13 @@ const lastOrderAnswer = (order) => ({
   lastOrder: true,
   actions: [{ label: 'Ver mis pedidos', route: ['orders'] }],
 })
-// Los textos fijos del resumen y del pedido los pone la app, que sabe lo que la demo hace hoy: con «Pedir por mí»
+// Los textos fijos del resumen y del pedido los pone la app, que sabe lo que la demo hace hoy: con "Pedir por mí"
 // Mochi sí pide, y el seguimiento cancela con rescate (los mismos de la copia sin conexión, api/offline/search.js).
 const SUMMARY_TEXT =
   'Este es el resumen de tu pedido antes de pagar 🧾. Revísalo y paga en el checkout: si no me diste permiso con ' +
-  '«Pedir por mí», el pedido lo haces tú.'
+  '"Pedir por mí", el pedido lo haces tú.'
 const ORDER_TEXT =
-  'Tu pedido lo sigues en «Mis pedidos» 🛵: ahí ves dónde viene, lo cancelas antes de que salga o pides ayuda si ' +
+  'Tu pedido lo sigues en "Mis pedidos" 🛵: ahí ves dónde viene, lo cancelas antes de que salga o pides ayuda si ' +
   'algo llegó mal.'
 const withoutEmoji = (label) => label.replace(/^\S+\s/, '')
 // Las ideas de siempre, como texto fijo: tocar una le pregunta eso al agente.
@@ -100,7 +100,7 @@ const CHIPS = ['🍔 ¿Qué almuerzo hoy?', '🍻 Arma un carrete', '🔥 Oferta
 
 let nextId = 1
 
-/** Los atajos de lo que Mochi sabe hacer («Repite lo de siempre», «Arma un kit»…), como chips. */
+/** Los atajos de lo que Mochi sabe hacer ("Repite lo de siempre", "Arma un kit"…), como chips. */
 function CapabilityChips({ capabilities, disabled, onPick }) {
   return capabilities.map((capability) => (
     <button
@@ -117,7 +117,7 @@ function CapabilityChips({ capabilities, disabled, onPick }) {
 
 /**
  * Lo pedido y sus refinamientos para la respuesta `index`: los mensajes de la persona desde el que la empezó (la
- * respuesta que no siguió a otra), en orden. «Pediste «asado de 6» · «más barato»».
+ * respuesta que no siguió a otra), en orden. "Pediste 'asado de 6' · 'más barato'".
  */
 function conversationTrail(messages, index) {
   const trail = []
@@ -143,13 +143,13 @@ const placementOf = (message) =>
     requestId: message?.requestId,
   })
 
-/** Lo que sale de «Para ti» es una sugerencia del agente: agregarlo se cuenta como aceptada y no enseña afinidad. */
+/** Lo que sale de "Para ti" es una sugerencia del agente: agregarlo se cuenta como aceptada y no enseña afinidad. */
 const asForYou = (product) => ({ ...product, fromSuggestion: true, suggestionOrigin: 'para-ti' })
 
 /**
  * Buscador con el agente: el buscador de siempre (la única entrada de texto), con lo que el agente sabe de la persona en
  * bloques que se tocan y una invitación a descubrir otras verticales. Mochi responde con tarjetas, no con un chat: se
- * ve su última respuesta, que se refina con chips, y las acciones (preferencias, «Pedir por mí», «Olvidar», atajos y
+ * ve su última respuesta, que se refina con chips, y las acciones (preferencias, "Pedir por mí", "Olvidar", atajos y
  * el último pedido) son botones. Siempre montado (para no perder lo que el agente respondió); se muestra al abrirlo.
  */
 export default function AssistantPanel({ push, vertical, depth = 1 }) {
@@ -184,11 +184,11 @@ export default function AssistantPanel({ push, vertical, depth = 1 }) {
   const [discoverRows, setDiscoverRows] = useState([])
   // El perfil de gusto de la persona y su escalera (`{ profile, ladder }`); sin perfil, null y el panel de siempre.
   const [taste, setTaste] = useState(null)
-  // «Mis preferencias»: la hoja y su editor (una clave nueva cada vez que se abre: vuelve a leer lo guardado).
+  // "Mis preferencias": la hoja y su editor (una clave nueva cada vez que se abre: vuelve a leer lo guardado).
   const [preferencesOpen, setPreferencesOpen] = useState(0)
   const [editing, setEditing] = useState(false)
-  // «Pedir por mí»: la hoja del ajuste, y el estado de cada «lo de siempre» que Mochi pide solo (clave → { state,
-  // reason, orderId }) con su ventana de «Deshacer pedido» (clave → temporizador). La ventana la lleva el panel, que
+  // "Pedir por mí": la hoja del ajuste, y el estado de cada "lo de siempre" que Mochi pide solo (clave → { state,
+  // reason, orderId }) con su ventana de "Deshacer pedido" (clave → temporizador). La ventana la lleva el panel, que
   // siempre está montado: sigue aunque la respuesta cambie.
   const [autonomyOpen, setAutonomyOpen] = useState(0)
   const [tuning, setTuning] = useState(false)
@@ -196,7 +196,7 @@ export default function AssistantPanel({ push, vertical, depth = 1 }) {
   const autoTimers = useRef(new Map())
   // La respuesta en pantalla: un autopedido que sale cuando ya no se ve avisa con un toast.
   const shownAnswer = useRef(null)
-  // La respuesta en curso, para «Cancelar» (su AbortController).
+  // La respuesta en curso, para "Cancelar" (su AbortController).
   const pending = useRef(null)
   const search = useSearch({ vertical })
 
@@ -253,7 +253,7 @@ export default function AssistantPanel({ push, vertical, depth = 1 }) {
     user_id: userId(),
     session_id: sessionId(),
     mode: demo.isFinal ? 'propuesta' : 'actual',
-    shown_topics: shownTopics(), // preguntas y «Para ti»: una sugerencia por tema en la sesión
+    shown_topics: shownTopics(), // preguntas y "Para ti": una sugerencia por tema en la sesión
     ...extra,
   })
 
@@ -289,7 +289,7 @@ export default function AssistantPanel({ push, vertical, depth = 1 }) {
     if (action.offer) return askOffer(action.offer, withoutEmoji(action.label), NOTHING_IN_KIT)
     if (action.panel === 'preferencias') return openPreferences()
     if (action.panel === 'autonomia') return openAutonomy()
-    // Abrir una vertical desde una respuesta («También en») deja su lugar, como un acceso de la Home.
+    // Abrir una vertical desde una respuesta ("También en") deja su lugar, como un acceso de la Home.
     if (action.opens) noteVerticalOpen({ ...action.opens, requestId: shownAnswer.current?.requestId })
     // Abrir un servicio cuenta con la respuesta de donde salió (la que está en pantalla, o el lugar que trae la acción).
     if (action.service)
@@ -302,7 +302,7 @@ export default function AssistantPanel({ push, vertical, depth = 1 }) {
 
   /**
    * Pone una respuesta en la fila: la siguiente sale cuando esta ya está en pantalla. `run(signal)` la pide; mientras
-   * espera, «Cancelar» corta la petición y Mochi dice que paró (lo que llegue después se descarta). El saludo no se
+   * espera, "Cancelar" corta la petición y Mochi dice que paró (lo que llegue después se descarta). El saludo no se
    * cancela (`cancellable: false`).
    */
   const ask = (run, { cancellable = true } = {}) => {
@@ -321,8 +321,8 @@ export default function AssistantPanel({ push, vertical, depth = 1 }) {
   const cancelAnswer = () => pending.current?.abort()
 
   /**
-   * Cuando la API no contesta: «Sin conexión» y un botón que vuelve a pedir lo mismo, una sola vez (dos toques no
-   * encolan dos respuestas; si vuelve a fallar, el nuevo «Sin conexión» trae su propio botón).
+   * Cuando la API no contesta: "Sin conexión" y un botón que vuelve a pedir lo mismo, una sola vez (dos toques no
+   * encolan dos respuestas; si vuelve a fallar, el nuevo "Sin conexión" trae su propio botón).
    */
   const offline = (run) => {
     let used = false
@@ -337,7 +337,7 @@ export default function AssistantPanel({ push, vertical, depth = 1 }) {
   }
 
   /**
-   * Respuesta de la API; si no contesta, «Sin conexión» con «Reintentar» (no hay respuesta local). Si se canceló, lo
+   * Respuesta de la API; si no contesta, "Sin conexión" con "Reintentar" (no hay respuesta local). Si se canceló, lo
    * que llegue no cuenta (ni para la conversación ni como sugerencia mostrada). El resumen del pedido y el último pedido
    * los arma el panel con el carro y los pedidos de la demo (`orderSummary`, `lastOrder`).
    */
@@ -352,7 +352,7 @@ export default function AssistantPanel({ push, vertical, depth = 1 }) {
         { signal },
       )
       if (signal?.aborted) return { text: STOPPED }
-      // Lo que queda para el próximo mensaje: «más barato» o «sin carne» se leen sobre él. Una respuesta que no se
+      // Lo que queda para el próximo mensaje: "más barato" o "sin carne" se leen sobre él. Una respuesta que no se
       // sigue (un saludo, un consejo médico) no lo borra.
       if (response.conversation) lastTurn.current = response.conversation
       const message = noteSuggestion(toMessage(response))
@@ -367,7 +367,7 @@ export default function AssistantPanel({ push, vertical, depth = 1 }) {
   }
 
   /**
-   * «Pide lo de siempre»: con «Pedir por mí», antes de abrir la ventana se suma lo que la API no sabe (el envío y la
+   * "Pide lo de siempre": con "Pedir por mí", antes de abrir la ventana se suma lo que la API no sabe (el envío y la
    * tarifa, de ejemplo si el catálogo no los trae, como en el checkout) y se compara con el tope y la compra mínima; si
    * no cumple, se revisa antes y Mochi dice por qué. Cada uno lleva su clave (`key`) para su estado y su ventana.
    */
@@ -386,7 +386,7 @@ export default function AssistantPanel({ push, vertical, depth = 1 }) {
 
   const setAuto = (key, status) => setAutoStatus((prev) => ({ ...prev, [key]: status }))
 
-  /** Abre la ventana de «Deshacer pedido» (una vez por pedido): al cerrarse, sale el pedido (`commitAuto`). */
+  /** Abre la ventana de "Deshacer pedido" (una vez por pedido): al cerrarse, sale el pedido (`commitAuto`). */
   const armAuto = (order) => {
     if (order.mode !== 'pedir' || autoTimers.current.has(order.key)) return
     setAuto(order.key, { state: 'waiting' })
@@ -410,8 +410,8 @@ export default function AssistantPanel({ push, vertical, depth = 1 }) {
   }
 
   /**
-   * Lo que Mochi iba a pedir solo y todavía está en su ventana: con el buscador cerrado ya no se ve su «Deshacer
-   * pedido», así que no sale (nada se pide sin que la ventana esté a la vista) y un toast lo dice.
+   * Lo que Mochi iba a pedir solo y todavía está en su ventana: con el buscador cerrado ya no se ve su "Deshacer
+   * pedido", así que no sale (nada se pide sin que la ventana esté a la vista) y un toast lo dice.
    */
   const undoWaitingOnClose = () => {
     const waiting = messages.filter((m) => m.autoOrder && autoStatus[m.autoOrder.key]?.state === 'waiting')
@@ -429,7 +429,7 @@ export default function AssistantPanel({ push, vertical, depth = 1 }) {
     const cartId = `c-auto-${Date.now().toString(36)}`
     const body = autoOrderBody(order, { sessionId: sessionId(), cartId, pro: isPro })
     try {
-      // Antes salen los eventos en cola (como en el checkout); todo el camino cuenta como pedido en vuelo para «Olvidar».
+      // Antes salen los eventos en cola (como en el checkout); todo el camino cuenta como pedido en vuelo para "Olvidar".
       await trackOrder(
         Promise.resolve(events.flush?.())
           .then(() => events.settled?.())
@@ -443,7 +443,7 @@ export default function AssistantPanel({ push, vertical, depth = 1 }) {
     }
   }
 
-  /** «Revisar y pagar»: lo de siempre al carro (con lo que ya tenía) y al checkout de siempre. */
+  /** "Revisar y pagar": lo de siempre al carro (con lo que ya tenía) y al checkout de siempre. */
   const reviewAuto = (order) => {
     for (const { product, qty } of order.lines) {
       for (let n = 0; n < qty; n += 1) cart.add(product)
@@ -452,7 +452,7 @@ export default function AssistantPanel({ push, vertical, depth = 1 }) {
     go('checkout')
   }
 
-  /** «Apagar «Pedir por mí»» en un toque: también deshace lo que esté en su ventana. */
+  /** "Apagar 'Pedir por mí'" en un toque: también deshace lo que esté en su ventana. */
   const turnOffAuto = () => {
     undoAllAuto()
     turnOffAutonomy().then(
@@ -468,7 +468,7 @@ export default function AssistantPanel({ push, vertical, depth = 1 }) {
 
   /** Una oferta del agente para un momento (`carrito`, `vertical_por_probar`…); `nothing` es lo que dice si no tiene nada. */
   const offered = async (moment, context, nothing, signal) => {
-    // Lo que se muestra ya no es esa conversación: «más barato» después no refina algo que no está en pantalla.
+    // Lo que se muestra ya no es esa conversación: "más barato" después no refina algo que no está en pantalla.
     lastTurn.current = null
     try {
       const made = await offer(moment, context, { userId: userId(), surface: 'agent' })
@@ -491,7 +491,7 @@ export default function AssistantPanel({ push, vertical, depth = 1 }) {
     }
   }
 
-  /** «¿Con qué acompaño…?»: la oferta del agente para ese producto (el momento `carrito`). */
+  /** "¿Con qué acompaño…?": la oferta del agente para ese producto (el momento `carrito`). */
   const pairing = (product, signal) =>
     offered(
       'carrito',
@@ -507,8 +507,8 @@ export default function AssistantPanel({ push, vertical, depth = 1 }) {
   }
 
   /**
-   * «¿Qué puedo probar?» y similares: la oferta que pidió quien abrió el buscador (`{ moment, context }`), o un kit
-   * elegido en «Arma un kit». `nothing` es lo que dice si no tiene nada.
+   * "¿Qué puedo probar?" y similares: la oferta que pidió quien abrió el buscador (`{ moment, context }`), o un kit
+   * elegido en "Arma un kit". `nothing` es lo que dice si no tiene nada.
    */
   const askOffer = ({ moment, context }, text, nothing = NOTHING_TO_TRY) => {
     if (forgetting) return
@@ -516,7 +516,7 @@ export default function AssistantPanel({ push, vertical, depth = 1 }) {
     ask((signal) => offered(moment, context, nothing, signal))
   }
 
-  /** «Arma un kit»: las ocasiones que sabe armar (las que le gustan primero), para elegir una. */
+  /** "Arma un kit": las ocasiones que sabe armar (las que le gustan primero), para elegir una. */
   const kitOptions = async (signal) => {
     lastTurn.current = null
     try {
@@ -534,7 +534,7 @@ export default function AssistantPanel({ push, vertical, depth = 1 }) {
     }
   }
 
-  /** «Algo para ti» con un perfil de gusto: su escalera (el momento `perfil`) en una sola fila de productos. */
+  /** "Algo para ti" con un perfil de gusto: su escalera (el momento `perfil`) en una sola fila de productos. */
   const forYou = async (found, signal) => {
     lastTurn.current = null
     try {
@@ -551,15 +551,15 @@ export default function AssistantPanel({ push, vertical, depth = 1 }) {
   }
 
   /**
-   * Un atajo de lo que Mochi sabe hacer: «Repite lo de siempre» (la recompra), «Arma un kit» (elegir una ocasión),
-   * «Algo para ti» (su perfil de gusto; sin perfil, lo que le recomienda, como «¿qué me recomiendas?») o «Mi último
-   * pedido» (su estado y su seguimiento, que arma el panel con los pedidos de la demo, sin pasar por la API).
+   * Un atajo de lo que Mochi sabe hacer: "Repite lo de siempre" (la recompra), "Arma un kit" (elegir una ocasión),
+   * "Algo para ti" (su perfil de gusto; sin perfil, lo que le recomienda, como "¿qué me recomiendas?") o "Mi último
+   * pedido" (su estado y su seguimiento, que arma el panel con los pedidos de la demo, sin pasar por la API).
    */
   const runCapability = (id, label) => {
     if (forgetting) return
     addMessage({ from: 'user', text: withoutEmoji(label) })
     if (id === 'pedido') {
-      lastTurn.current = null // otra tarjeta en pantalla: «más barato» ya no refina la respuesta de antes
+      lastTurn.current = null // otra tarjeta en pantalla: "más barato" ya no refina la respuesta de antes
       ask(() => lastOrderAnswer(shownOrder(orders?.orders ?? [])), { cancellable: false })
     } else if (id === 'recompra') ask((signal) => offered('recompra', {}, NOTHING_TO_REPEAT, signal))
     else if (id === 'plan') ask((signal) => kitOptions(signal))
@@ -573,8 +573,8 @@ export default function AssistantPanel({ push, vertical, depth = 1 }) {
   }
 
   /**
-   * El saludo, con «Para ti» de /recommendations (sin él si la API no contesta o no tiene nada que recomendar). Con un
-   * perfil de gusto (`taste`, en la propuesta) es «¡Hola de nuevo!» con lo que le gusta, sin «Para ti»: su escalera va
+   * El saludo, con "Para ti" de /recommendations (sin él si la API no contesta o no tiene nada que recomendar). Con un
+   * perfil de gusto (`taste`, en la propuesta) es "¡Hola de nuevo!" con lo que le gusta, sin "Para ti": su escalera va
    * justo debajo. Espera también lo demás que se pide al abrir (`others`: lo aprendido): el panel aparece con el saludo
    * (`waiting`), y lo que llegara después lo empujaría.
    */
@@ -638,7 +638,7 @@ export default function AssistantPanel({ push, vertical, depth = 1 }) {
 
   /**
    * Muestra el perfil y cuenta sus productos como sugerencias mostradas (una vez por pestaña, como las demás). Cuentan
-   * todos los peldaños: la escalera se pinta entera (una fila horizontal, como «Para ti»), aunque no quepa en pantalla.
+   * todos los peldaños: la escalera se pinta entera (una fila horizontal, como "Para ti"), aunque no quepa en pantalla.
    */
   const showTaste = (found) => {
     setTaste(found)
@@ -646,7 +646,7 @@ export default function AssistantPanel({ push, vertical, depth = 1 }) {
       noteShown(events.track, step.products, { origin: 'agent-perfil', generation: profile.resets })
   }
 
-  // Abrir, paso 1: el buscador se pinta fuera de la pantalla, a la derecha (como el de «Rappi hoy»).
+  // Abrir, paso 1: el buscador se pinta fuera de la pantalla, a la derecha (como el de "Rappi hoy").
   useLayoutEffect(() => {
     const session = assistant.session
     if (!session) return
@@ -665,12 +665,12 @@ export default function AssistantPanel({ push, vertical, depth = 1 }) {
     const learned = remoteProfile(userId())
       .then((data) => fresh() && setLearnedRemote(data.interests.slice(0, 3)))
       .catch(() => fresh() && setLearnedRemote(null))
-    // Una sola petición sirve a «Para ti» y a «Descubre con el agente».
+    // Una sola petición sirve a "Para ti" y a "Descubre con el agente".
     const rows = recommendations(userId())
       .then((data) => data.rows.filter((row) => row.products.length > 0))
       .catch(() => [])
     rows.then((list) => fresh() && setDiscoverRows(list.slice(0, DISCOVER_ROWS)))
-    // Solo si sigue siendo la misma persona («Olvidar» mientras llegaba): ni se muestra ni se cuenta.
+    // Solo si sigue siendo la misma persona ("Olvidar" mientras llegaba): ni se muestra ni se cuenta.
     const taste = loadTaste()
     taste.then((found) => fresh() && showTaste(found))
 
@@ -699,7 +699,7 @@ export default function AssistantPanel({ push, vertical, depth = 1 }) {
 
   const close = ({ viaHistory = false } = {}) => {
     undoWaitingOnClose()
-    // Lo que no es de una visita al panel no sigue en la próxima (horas después, «más barato» no refina nada).
+    // Lo que no es de una visita al panel no sigue en la próxima (horas después, "más barato" no refina nada).
     lastTurn.current = null
     setPhase('closing')
     clearTimeout(closing.current)
@@ -741,7 +741,7 @@ export default function AssistantPanel({ push, vertical, depth = 1 }) {
   useEffect(() => {
     closeRef.current = close
   })
-  // Si lo cierra otro (al pasar a «Rappi hoy», AssistantContext), el panel también se va, con su animación.
+  // Si lo cierra otro (al pasar a "Rappi hoy", AssistantContext), el panel también se va, con su animación.
   useEffect(() => {
     if (!assistant.isOpen && phase === 'open') closeRef.current({ viaHistory: true })
     // Solo cuando cambia si está abierto.
@@ -775,13 +775,13 @@ export default function AssistantPanel({ push, vertical, depth = 1 }) {
   const announcement = lastAnswer?.text ?? ''
 
   // Hasta la primera respuesta (el saludo, que espera lo que se pide al abrir), solo se ven el encabezado de Mochi y su
-  // «escribiendo…»: el saludo mide más, y lo aprendido, el perfil y «Para ti» llegan de a uno; cada cosa empujaba lo de
+  // "escribiendo…": el saludo mide más, y lo aprendido, el perfil y "Para ti" llegan de a uno; cada cosa empujaba lo de
   // abajo. El resto aparece con el saludo, ya en su lugar (a lo más tras FOR_YOU_WAIT_MS). Los resultados de una
   // búsqueda no esperan.
   const waiting = !search.hasQuery && !messages.some((m) => m.from === 'bot' && !m.typing)
   const style = { transitionDuration: `${phase === 'closing' ? CLOSE_MS : OPEN_MS}ms` }
   // Lo aprendido viene de rappi-ia (conceptos, sin sensibles); sin perfil del servidor no se muestra.
-  // En «Rappi hoy» Mochi no aprende: no muestra lo aprendido.
+  // En "Rappi hoy" Mochi no aprende: no muestra lo aprendido.
   const learned = demo.isFinal ? (learnedRemote ?? []) : []
   const forgetAll = async () => {
     setForgetting(true) // mientras tanto no se envía nada: una pregunta nueva recrearía lo borrado
@@ -814,7 +814,7 @@ export default function AssistantPanel({ push, vertical, depth = 1 }) {
 
   // Lo que el agente muestra es su última respuesta (no un historial), con lo dicho en esa conversación.
   const current = messages.findLast((m) => m.from === 'bot')
-  // Un autopedido en su ventana (o saliendo) queda fijo arriba aunque llegue otra respuesta: su «Deshacer pedido» no se
+  // Un autopedido en su ventana (o saliendo) queda fijo arriba aunque llegue otra respuesta: su "Deshacer pedido" no se
   // pierde con un chip, una idea u otra búsqueda.
   const pinnedAuto = messages.findLast(
     (m) => m.autoOrder && m !== current && ['waiting', 'sending'].includes(autoStatus[m.autoOrder.key]?.state),
@@ -834,7 +834,7 @@ export default function AssistantPanel({ push, vertical, depth = 1 }) {
     go('store', { store: storeOfProduct(product), item: product })
   }
   // Con perfil de gusto (en la propuesta), arriba van el perfil, el saludo y la escalera, como en el Comité 2; lo demás
-  // (el autopedido fijo, los atajos con «Mis preferencias» y «Pedir por mí», las ideas y el aviso de IA), debajo.
+  // (el autopedido fijo, los atajos con "Mis preferencias" y "Pedir por mí", las ideas y el aviso de IA), debajo.
   const withProfile = Boolean(taste && demo.isFinal)
   // Con perfil, la respuesta sale arriba de la escalera: tocar un chip de abajo sube a verla.
   const showAnswer = (event) => {
@@ -844,7 +844,7 @@ export default function AssistantPanel({ push, vertical, depth = 1 }) {
     <p className="agent-ai-notice">
       {demo.isFinal
         ? `${AGENT_NAME} usa IA: recuerda tus gustos por tema y las preferencias que marques, y los borras cuando quieras.`
-        : `${AGENT_NAME} usa IA. En «Rappi hoy» no aprende de lo que buscas.`}
+        : `${AGENT_NAME} usa IA. En "Rappi hoy" no aprende de lo que buscas.`}
     </p>
   )
   const pinnedCard = pinnedAuto && (
@@ -895,7 +895,7 @@ export default function AssistantPanel({ push, vertical, depth = 1 }) {
               else search.logSearch(search.query)
             }}
             aria-describedby={search.hasQuery && looksLikeQuestion(search.query) ? askHintId : undefined}
-            // Pasar con Tab a «Pídele a Mochi» no es terminar una búsqueda
+            // Pasar con Tab a "Pídele a Mochi" no es terminar una búsqueda
             onBlur={(e) => e.relatedTarget?.classList.contains('agent-ask-row') || search.logSearch(search.query)}
           />
           {search.hasQuery && (
@@ -948,7 +948,7 @@ export default function AssistantPanel({ push, vertical, depth = 1 }) {
               </header>
 
               {withProfile ? (
-                // Con perfil, «Olvidar» va en su tarjeta; lo aprendido lo dice su «por qué».
+                // Con perfil, "Olvidar" va en su tarjeta; lo aprendido lo dice su "por qué".
                 <ProfileCard
                   profile={taste.profile}
                   onForget={() => setConfirmingForget(true)}
@@ -956,7 +956,7 @@ export default function AssistantPanel({ push, vertical, depth = 1 }) {
                 />
               ) : (
                 <>
-                  {/* «Olvidar» siempre a mano: aunque no haya intereses que mostrar, hay búsquedas y eventos que borrar. */}
+                  {/* "Olvidar" siempre a mano: aunque no haya intereses que mostrar, hay búsquedas y eventos que borrar. */}
                   <div className="assistant-learning">
                     {learned.length > 0 && (
                       <>
@@ -987,7 +987,7 @@ export default function AssistantPanel({ push, vertical, depth = 1 }) {
 
               {showAsked && (
                 <p className="agent-asked">
-                  {trail[0].typed ? 'Pediste' : 'Elegiste'} {trail.map((m) => `«${m.text}»`).join(' · ')}
+                  {trail[0].typed ? 'Pediste' : 'Elegiste'} {trail.map((m) => `"${m.text}"`).join(' · ')}
                 </p>
               )}
               {current && (
@@ -1072,7 +1072,7 @@ export default function AssistantPanel({ push, vertical, depth = 1 }) {
                 )
               )}
 
-              {/* Bajo una respuesta de salud no van las ideas de siempre («Arma un carrete») */}
+              {/* Bajo una respuesta de salud no van las ideas de siempre ("Arma un carrete") */}
               {!current?.health && <p className="agent-picks-label">Toca y te armo algo 👇</p>}
               {/* Clave con prefijo: un número solo podría coincidir con la del mensaje de arriba (su id) y React lo duplicaría. */}
               {!current?.health && (
@@ -1133,7 +1133,7 @@ export default function AssistantPanel({ push, vertical, depth = 1 }) {
         <AutonomyEditor key={autonomyOpen} onSaved={() => setTuning(false)} onTurnedOff={undoAllAuto} />
       </Sheet>
 
-      {/* «Olvidar» borra lo mismo que Cuenta → «Borrar mis datos»: pide la misma confirmación. */}
+      {/* "Olvidar" borra lo mismo que Cuenta → "Borrar mis datos": pide la misma confirmación. */}
       <Sheet open={confirmingForget} onClose={closeForget} title={FORGET_TITLE} overPhone>
         <ForgetConfirm forgetting={forgetting} failed={forgetFailed} onConfirm={forgetAll} onCancel={closeForget} />
       </Sheet>

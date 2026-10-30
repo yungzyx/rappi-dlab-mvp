@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import './privacy-notice.css'
 
-// El aviso se muestra una vez por navegador; la clave se borra con «Borrar mis datos» (lleva el prefijo rappi-proto-).
+// El aviso se muestra una vez por navegador; la clave se borra con "Borrar mis datos" (lleva el prefijo rappi-proto-).
 const SEEN_KEY = 'rappi-proto-privacy-seen'
 
 /** Lo avisa al cerrarse: la Home espera para saludar y empezar la guía (si no, el aviso tapaba a Mochi). */
@@ -27,8 +27,8 @@ function markSeen() {
 }
 
 /**
- * Qué se guarda y cómo borrarlo, la primera vez que alguien abre la app. «Entendido» lo cierra; «Ir a Cuenta»
- * (`onOpenAccount`) también, y lleva a «Borrar mis datos».
+ * Qué se guarda y cómo borrarlo, la primera vez que alguien abre la app. "Entendido" lo cierra; "Ir a Cuenta"
+ * (`onOpenAccount`) también, y lleva a "Borrar mis datos".
  */
 export default function PrivacyNotice({ onOpenAccount }) {
   const [open, setOpen] = useState(() => !wasSeen())

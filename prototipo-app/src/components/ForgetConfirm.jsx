@@ -1,7 +1,7 @@
 export const FORGET_TITLE = 'Borrar mis datos'
 
 /**
- * La confirmación de «Borrar mis datos», dentro de una hoja: la misma en Cuenta y en «Olvidar» del buscador.
+ * La confirmación de "Borrar mis datos", dentro de una hoja: la misma en Cuenta y en "Olvidar" del buscador.
  * `failed` muestra el aviso de que no se borró nada (se puede reintentar); `forgetting` deja los botones quietos.
  */
 export default function ForgetConfirm({ forgetting, failed, onConfirm, onCancel }) {

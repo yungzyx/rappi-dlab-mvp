@@ -583,7 +583,7 @@ categoria,Otros Depilación y afeitado,higiene-personal,0.75,llm,acuerdo,Afeitad
 categoria,Libros Guía,libros,0.75,llm,acuerdo,Libros para colorear y guías,3
 categoria,Lámparas,decoracion,0.6,llm,juez,Lámparas decorativas/recargables; ampolletas LED alternativa ferretería,3
 categoria,Implementos de jardinería,jardin,0.6,llm,acuerdo,Herramientas de jardín,3
-categoria,Otros medicamentos,accesorios-mascota,0.8,llm,juez,"Productos para acuario/pecera y remedios veterinarios, no medicamentos humanos (une «Otros Medicamentos»)",12
+categoria,Otros medicamentos,accesorios-mascota,0.8,llm,juez,"Productos para acuario/pecera y remedios veterinarios, no medicamentos humanos (une ""Otros Medicamentos"")",12
 categoria,Otros Protección femenina,higiene-femenina,0.9,llm,acuerdo,"Protectores diarios, jabón íntimo",3
 categoria,Otros seguridad infantil,articulos-bebe,0.6,llm,acuerdo,Artículos para bebé y niños,3
 categoria,Otros Televisión y video,tv-video,0.45,llm,juez,Ejemplos incoherentes; se mapea por nombre según regla Otros X,3
@@ -745,7 +745,7 @@ categoria,Medicamentos para mascotas,accesorios-mascota,0.7,llm,acuerdo,Antipara
 categoria,Sistemas de monitoreo,computacion,0.6,llm,acuerdo,Cámaras IP de seguridad,1
 categoria,Otros Ropa Interior,ropa-interior,0.7,llm,juez,Otros X mapea a X; ejemplo aros mal asignado,1
 categoria,Otros remedios digestivos,medicamentos,0.85,llm,acuerdo,Remedios digestivos,1
-categoria,Hilos,manualidades,0.85,curado,curado 17-10 (colores como «Verde Pistacho» o «Mostaza» la llevaban a comida),"Lanas e hilos de tejer, como «Polos»",508
+categoria,Hilos,manualidades,0.85,curado,"curado 17-10 (colores como ""Verde Pistacho"" o ""Mostaza"" la llevaban a comida)","Lanas e hilos de tejer, como ""Polos""",508
 categoria,Otros Paseo con el bebé,articulos-bebe,0.8,llm,juez,Otros X mapea a X: artículos de paseo bebé,1
 categoria,Muebles de exterior,muebles,0.8,llm,juez,Muebles de terraza; ejemplo SuperGreens mal asignado,1
 categoria,Otros Pañales y toallitas,panales,0.95,llm,acuerdo,Toallitas húmedas,1
@@ -829,12 +829,12 @@ seccion_menu,Platos de la Temporada,pastas,0.5,llm,acuerdo,"Salsa Di Mare, proba
 seccion_menu,Promos,ninguno,0.65,llm,juez,Combo familiar genérico; faltaría concepto promociones/combos,1
 seccion_menu,Sopas,sopas,0.75,llm,juez,Caldillo de congrio: sopa,1
 seccion_menu,Tapas,picoteo,0.85,llm,acuerdo,Tabla para compartir,1
-seccion_menu,Completos,sandwiches,0.8,curado,curado,Completos y hot dogs: un «Completo» o «Italiano» sin la frase en el nombre,740
+seccion_menu,Completos,sandwiches,0.8,curado,curado,"Completos y hot dogs: un ""Completo"" o ""Italiano"" sin la frase en el nombre",740
 seccion_menu,Vienesas,sandwiches,0.8,curado,curado,Hot dogs y completos,360
-seccion_menu,Perros Calientes,sandwiches,0.8,curado,curado,Hot dogs: «Perro Italiano» no es alimento para perros,148
+seccion_menu,Perros Calientes,sandwiches,0.8,curado,curado,"Hot dogs: ""Perro Italiano"" no es alimento para perros",148
 seccion_menu,Hot Dogs,sandwiches,0.8,curado,curado,Hot dogs y completos,74
 seccion_menu,Completos y Perros Calientes,sandwiches,0.8,curado,curado,Hot dogs y completos,38
-seccion_menu,Perro Caliente,sandwiches,0.8,curado,curado,Hot dogs: «Perro Especial» no es alimento para perros,22
+seccion_menu,Perro Caliente,sandwiches,0.8,curado,curado,"Hot dogs: ""Perro Especial"" no es alimento para perros",22
 seccion_menu,Hot Dog,sandwiches,0.8,curado,curado,Hot dogs y completos,20
 seccion_menu,Perros,sandwiches,0.8,curado,curado,Hot dogs en un menú de restaurante,4
 seccion_menu,Completos Venezolanos,sandwiches,0.8,curado,curado,Perros calientes venezolanos,4
@@ -883,7 +883,7 @@ categoria,Guantes y Protección de boxeo,articulos-deportivos,0.85,curado,curado
 categoria,Barras y Discos,articulos-deportivos,0.85,curado,curado 05-10 (categorías nuevas del 04-10),Pesas,5
 categoria,Otros Suministros de oficina,utiles,0.85,curado,curado 05-10 (categorías nuevas del 04-10),Artículos de oficina,45
 categoria,Calculadoras,utiles,0.85,curado,curado 05-10 (categorías nuevas del 04-10),Calculadoras,8
-categoria,Otros ambientadores,limpieza,0.85,curado,curado 05-10 (categorías nuevas del 04-10),"Sahumerios y aromatizantes, como «Ambientadores»",42
+categoria,Otros ambientadores,limpieza,0.85,curado,curado 05-10 (categorías nuevas del 04-10),"Sahumerios y aromatizantes, como ""Ambientadores""",42
 categoria,Agujas,manualidades,0.85,curado,curado 05-10 (categorías nuevas del 04-10),"Agujas, palillos y crochet",38
 categoria,Polos,manualidades,0.85,curado,curado 05-10 (categorías nuevas del 04-10),Lanas e hilos (no poleras),18
 categoria,Control Remoto,tv-video,0.85,curado,curado 05-10 (categorías nuevas del 04-10),Controles remotos,27

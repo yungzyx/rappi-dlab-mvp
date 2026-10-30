@@ -19,7 +19,7 @@ export function openItem(product, push) {
   })
 }
 
-/** Lo que dice Mochi al agregar un kit: un pedido es de una tienda, así que uno de varias tiendas no «llega todo junto». */
+/** Lo que dice Mochi al agregar un kit: un pedido es de una tienda, así que uno de varias tiendas no "llega todo junto". */
 export function kitAddedText(kit) {
   const stores = storeCount(kit)
   return stores > 1
@@ -42,7 +42,7 @@ export function kitShortStores(kit, stores = []) {
   })
 }
 
-/** «En X te faltan $Y para la compra mínima (de ejemplo).», una tienda tras otra. */
+/** "En X te faltan $Y para la compra mínima (de ejemplo).", una tienda tras otra. */
 const shortText = (short) =>
   short
     .map(
@@ -51,7 +51,7 @@ const shortText = (short) =>
     )
     .join(' ')
 
-/** «¿Qué plan tienes hoy?»: las ocasiones salen de la API y el agente arma, también con la API, un kit de varias verticales. */
+/** "¿Qué plan tienes hoy?": las ocasiones salen de la API y el agente arma, también con la API, un kit de varias verticales. */
 export function PlanBlock({
   plans,
   plan,
@@ -120,11 +120,11 @@ export function PlanBlock({
 }
 
 /**
- * «¿Repetimos?»: lo que la persona pide con ritmo y ya le toca (la oferta `recompra` de la API), con el último producto
- * que compró de eso; o «¿Volvemos a…?» (la oferta `volver`): lo que pedía con ritmo y dejó de pedir. «Ver producto»
+ * "¿Repetimos?": lo que la persona pide con ritmo y ya le toca (la oferta `recompra` de la API), con el último producto
+ * que compró de eso; o "¿Volvemos a…?" (la oferta `volver`): lo que pedía con ritmo y dejó de pedir. "Ver producto"
  * abre su tienda con el producto destacado: la aceptación cuenta recién al agregarlo al carro (lleva su origen,
- * `agent-recompra` o `agent-volver`). «Después» lo deja para otra vez. En una tienda donde la persona deja que Mochi
- * pida solo («Pedir por mí»), la recompra trae «Pide lo de siempre por mí» (`ask`): abre a Mochi con ese pedido.
+ * `agent-recompra` o `agent-volver`). "Después" lo deja para otra vez. En una tienda donde la persona deja que Mochi
+ * pida solo ("Pedir por mí"), la recompra trae "Pide lo de siempre por mí" (`ask`): abre a Mochi con ese pedido.
  */
 export function RepeatBlock({ offer, onLater, onOpen }) {
   const assistant = useAssistant()

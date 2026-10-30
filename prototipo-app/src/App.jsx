@@ -23,7 +23,7 @@ import { OrdersProvider } from './state/OrdersContext'
 import { ProductSheetProvider } from './state/ProductSheetContext'
 import { ProfileProvider } from './state/ProfileContext'
 
-// «Panel de la demo»: solo en «Prototipo MVP.html» (build sin conexión); en los demás builds la condición se pliega y
+// "Panel de la demo": solo en "Prototipo MVP.html" (build sin conexión); en los demás builds la condición se pliega y
 // el panel no entra al bundle.
 const OfflineDemoPanel =
   import.meta.env.VITE_OFFLINE_DEMO === '1' ? lazy(() => import('./components/demo/OfflineDemoPanel')) : null
@@ -135,7 +135,7 @@ export default function App() {
                               {!SCREENS_WITHOUT_CART.has(current.name) && (
                                 <CartBar raised={SCREENS_WITH_NAV.has(current.name)} push={push} />
                               )}
-                              {/* «Pedido en curso»: fuera del seguimiento (y del checkout), como en la app de Rappi. */}
+                              {/* "Pedido en curso": fuera del seguimiento (y del checkout), como en la app de Rappi. */}
                               {!SCREENS_WITHOUT_CART.has(current.name) && (
                                 <ActiveOrderBar raised={SCREENS_WITH_NAV.has(current.name)} push={push} />
                               )}

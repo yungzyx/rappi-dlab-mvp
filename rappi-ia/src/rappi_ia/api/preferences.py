@@ -1,5 +1,5 @@
 """Las preferencias explícitas de la persona con el agente, para el panel del asistente (offers/preferences.py): verlas
-y cambiarlas (una lista vacía las borra), eligiendo entre opciones. Si «soy vegetariano» llega escrito por el buscador,
+y cambiarlas (una lista vacía las borra), eligiendo entre opciones. Si "soy vegetariano" llega escrito por el buscador,
 /agent/ask también lo entiende.
 
 `app.py` incluye este router; las dependencias viven en `deps.py`, así este módulo no importa `app`.

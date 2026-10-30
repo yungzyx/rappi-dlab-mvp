@@ -145,7 +145,7 @@ describe('CartContext', () => {
 })
 
 describe('ProfileContext', () => {
-  test('la generación empieza en 0 y sube con cada «Olvidar»', () => {
+  test('la generación empieza en 0 y sube con cada "Olvidar"', () => {
     const { result } = renderHook(() => useProfile(), { wrapper: ProfileProvider })
     expect(result.current.resets).toBe(0)
     act(() => result.current.reset())

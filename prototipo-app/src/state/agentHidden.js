@@ -1,9 +1,9 @@
 import { useSyncExternalStore } from 'react'
 
-// «Ocultar a Mochi» (prototipo final): a diferencia de «Silenciar por hoy» (agentQuiet.js), dura hasta que la persona lo
-// trae de vuelta en Cuenta («Mostrar a Mochi»). Oculto, no hay mascota en ninguna parte ni nada que Mochi proponga por
-// su cuenta, y el buscador es el de siempre (el de «Rappi hoy»). Se guarda en este navegador: sobrevive a recargar;
-// cambiar de persona en la demo, «Repetir escena» y «Borrar mis datos» (que borra todo lo `rappi-proto-*`) lo
+// "Ocultar a Mochi" (prototipo final): a diferencia de "Silenciar por hoy" (agentQuiet.js), dura hasta que la persona lo
+// trae de vuelta en Cuenta ("Mostrar a Mochi"). Oculto, no hay mascota en ninguna parte ni nada que Mochi proponga por
+// su cuenta, y el buscador es el de siempre (el de "Rappi hoy"). Se guarda en este navegador: sobrevive a recargar;
+// cambiar de persona en la demo, "Repetir escena" y "Borrar mis datos" (que borra todo lo `rappi-proto-*`) lo
 // devuelven, porque son otra persona o una que llega por primera vez.
 
 export const HIDDEN_KEY = 'rappi-proto-mochi-oculto'

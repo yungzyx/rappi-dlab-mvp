@@ -49,7 +49,7 @@ def test_a_favorite_store_is_read_without_its_article():
     ["sushi sin maní", "galletas de maní", "leche sin lactosa", "yogurt", "olvida todo", "me gusta el sushi"],
 )
 def test_orders_and_other_questions_are_not_preferences(text):
-    """Un pedido con «sin» no es una alergia, «olvida todo» es la memoria y «me gusta el sushi» se busca."""
+    """Un pedido con "sin" no es una alergia, "olvida todo" es la memoria y "me gusta el sushi" se busca."""
     assert U.understand(None, text, "supermercado").kind != "preferencia"
 
 
@@ -67,7 +67,7 @@ def test_a_diet_drops_what_names_it_unless_the_name_says_it_fits():
     assert mine.keeps(product("Pizza margarita mediana", "pizza", "menu_item"))
     assert not mine.keeps(product("Hamburguesa doble queso", "hamburguesa", "menu_item"))  # su concepto es carne
     assert mine.keeps(product("Hamburguesa vegetal", "hamburguesa", "menu_item"))
-    assert not mine.keeps(product("Pollo con vegetales", "pollo-preparado", "menu_item"))  # «vegetales» no basta
+    assert not mine.keeps(product("Pollo con vegetales", "pollo-preparado", "menu_item"))  # "vegetales" no basta
     assert not mine.keeps(product("Galletas de maní", "galletas"))
     assert mine.keeps(product("Galletas sin maní", "galletas"))
 
@@ -159,7 +159,7 @@ def test_the_agent_texts_do_not_ask_to_write_either():
 
 
 # Los textos de la app (prototipo-app y el panel): las cadenas y el texto de JSX, sin comentarios ni tests. Una frase
-# cuenta si empieza una palabra («dile» sí, «dimensiones» no).
+# cuenta si empieza una palabra ("dile" sí, "dimensiones" no).
 APPS = [Path(__file__).resolve().parents[3] / name / "src" for name in ("prototipo-app", "dashboard-empresa")]
 _STRINGS = re.compile(r"'(?:[^'\\\n]|\\.)*'|\"(?:[^\"\\\n]|\\.)*\"|`(?:[^`\\]|\\.)*`")
 _JSX_TEXT = re.compile(r"[>}]([^<>{}]*)[<{]")
@@ -178,7 +178,7 @@ def _app_texts():
 
 
 def test_the_app_texts_do_not_ask_to_write_either():
-    """Lo que ve la persona en la app tampoco pide que le escriba a Mochi («Dile a Mochi…»)."""
+    """Lo que ve la persona en la app tampoco pide que le escriba a Mochi ("Dile a Mochi…")."""
     phrases = [re.compile(rf"(?<![\wáéíóúüñ]){re.escape(p)}") for p in ASKS_TO_WRITE]
     found = [(path.name, text) for path, text in _app_texts() if any(p.search(text.lower()) for p in phrases)]
     assert all(root.is_dir() for root in APPS)
@@ -197,7 +197,8 @@ def test_no_preferences_yet_leads_to_the_sheet():
 
 
 def test_help_shows_capabilities_and_no_health_example():
-    """«¿Qué puedes hacer?» muestra lo que sabe hacer (repetir, armar un kit, algo para ti): ningún ejemplo de salud."""
+    """ "¿Qué puedes hacer?" muestra lo que sabe hacer (repetir, armar un kit, algo para ti): ningún ejemplo de
+    salud."""
     for actions in (HELP_ACTIONS, HELP_EXAMPLES):
         labels = " ".join(a["label"] + a.get("query", "") for a in actions).lower()
         assert "fiebre" not in labels and "remedio" not in labels
@@ -214,8 +215,8 @@ def test_the_summary_is_a_review_before_paying(text):
     reply = RappiAgent().reply(None, text, Context())
     assert reply["intent"]["kind"] == "resumen"
     assert reply["actions"] == [{"label": "Revisar y pagar", "route": ["checkout"]}]
-    assert "si no me diste permiso con «Pedir por mí», el pedido lo haces tú" in reply["text"]
-    assert "nunca hago el pedido" not in reply["text"]  # con «Pedir por mí» Mochi sí pide
+    assert 'si no me diste permiso con "Pedir por mí", el pedido lo haces tú' in reply["text"]
+    assert "nunca hago el pedido" not in reply["text"]  # con "Pedir por mí" Mochi sí pide
 
 
 def test_order_status_leads_to_my_orders():

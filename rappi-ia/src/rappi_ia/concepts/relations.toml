@@ -1,7 +1,7 @@
 # Relaciones del grafo de conocimiento (capa de perfiles, docs/diseno/2026-10-06-capa-perfiles-design.md §4.3).
 #
 # `relation` define el vocabulario; `edge` son las aristas curadas a mano (las demás se derivan de la taxonomía, el catálogo
-# y los eventos). Nodos como «tipo:id» (concept, group, attribute, segment, brand, vertical, occasion, service, canonical,
+# y los eventos). Nodos como "tipo:id" (concept, group, attribute, segment, brand, vertical, occasion, service, canonical,
 # term). `complementa` curadas viven en complements.toml.
 version = "2026-10-06"
 

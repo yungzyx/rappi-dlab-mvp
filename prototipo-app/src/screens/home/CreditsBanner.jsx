@@ -6,7 +6,7 @@ import { availableCredits, useWallet, welcomeLeft } from '../../state/credits'
 const MINUTE_MS = 60_000
 const TICK_MS = 1_000
 
-/** «1 h 56 min» (como en el checkout), o «56 min». */
+/** "1 h 56 min" (como en el checkout), o "56 min". */
 export function formatRemaining(ms) {
   const totalMinutes = Math.max(0, Math.ceil(ms / MINUTE_MS))
   const hours = Math.floor(totalMinutes / 60)

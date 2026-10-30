@@ -36,7 +36,7 @@ EVENT_TYPES = {
     "service_opened",  # se tocó el botón que abre ese servicio
     "vertical_open",  # se abrió un vertical desde la Home (en el campo `vertical`); alimenta la afinidad del motor
     "order_rated",  # la calificación de un pedido entregado (`payload.stars` y `payload.reasons`; el pedido, `cart_id`)
-    "reorder",  # «Pídelo de nuevo»: el carro con un pedido anterior (`payload.available` y `payload.unavailable`)
+    "reorder",  # "Pídelo de nuevo": el carro con un pedido anterior (`payload.available` y `payload.unavailable`)
     "order_cancelled",  # la persona canceló un pedido (`payload.reason` y `.stage`; el pedido, `cart_id` y su tienda)
     "list_view",  # lo que una lista dejó a la vista (sus elementos en `app_event_items`; `position`, la mayor vista)
     "offer_withheld",  # una oferta de Mochi retenida al grupo de control (lo que habría mostrado, en `app_event_items`)
@@ -54,10 +54,10 @@ ITEM_ENTITY_TYPES = frozenset({"catalog_item", "menu_item", "store", "vertical"}
 MAX_EVENT_ITEMS = 20
 QUERY_RETENTION_DAYS = 90
 IMPRESSION_RETENTION_DAYS = 90  # los elementos de las impresiones se borran como el texto de las consultas
-# «¿Qué problema tuvo el pedido?» (con 3 estrellas o menos): los motivos que la app puede mandar en `order_rated`.
+# "¿Qué problema tuvo el pedido?" (con 3 estrellas o menos): los motivos que la app puede mandar en `order_rated`.
 RATING_REASONS = frozenset({"tarde", "faltante", "mal_estado", "equivocado", "repartidor", "otro"})
-LOW_RATING = 3  # 3 estrellas o menos es una calificación mala: pausa la recompra y el «volver» (offers/winback.py)
-# «¿Por qué quieres cancelar?»: los motivos que la app puede mandar en `order_cancelled`.
+LOW_RATING = 3  # 3 estrellas o menos es una calificación mala: pausa la recompra y el "volver" (offers/winback.py)
+# "¿Por qué quieres cancelar?": los motivos que la app puede mandar en `order_cancelled`.
 CANCEL_REASONS = frozenset({"direccion", "pago", "demora", "productos", "ya_no", "otro"})
 # El momento del pedido en que se canceló: antes de que la tienda lo empiece (gratis), ya empezado (con un costo de
 # ejemplo en la app) o programado y sin empezar.
@@ -119,7 +119,7 @@ _ADDRESS_CONTEXT = re.compile(
     r"(?:n[°º]\.?\s*|#\s*)?\d{1,5}\b" + _TAIL,
     re.IGNORECASE,
 )
-# Un nombre propio tras «me llamo» o «mi nombre es» (con mayúscula: «me llamo la atención» no es un nombre).
+# Un nombre propio tras "me llamo" o "mi nombre es" (con mayúscula: "me llamo la atención" no es un nombre).
 _NAME = re.compile(r"(?P<intro>me llamo|mi nombre es)\s+[A-ZÁÉÍÓÚÑ][\wáéíóúñ]+(?:\s+[A-ZÁÉÍÓÚÑ][\wáéíóúñ]+){0,2}")
 _NOT_A_STREET = {"para", "de", "la", "el", "los", "las", "con", "sin", "y", "a", "en", "por", "que", "un", "una"}
 
@@ -349,7 +349,7 @@ def _check_items(e: Event) -> None:
 
 
 def _record_items(conn: Connection, saved: list[tuple[int, Event]], known: set[str]) -> None:
-    """Los elementos de cada `list_view` u `offer_withheld` que entró. En «Rappi hoy» (`payload.mode = 'actual'`) van
+    """Los elementos de cada `list_view` u `offer_withheld` que entró. En "Rappi hoy" (`payload.mode = 'actual'`) van
     sin concepto, como sus eventos: ese modo no enseña."""
     rows = [
         (
@@ -407,7 +407,7 @@ def _order_of_event(e: Event) -> dict:
 
 
 def _record_ratings(conn: Connection, ratings: list[tuple[Event, int, list[str], datetime]]) -> None:
-    """Cada calificación queda en el pedido de su carro y su tienda (`_ORDER_OF_EVENT`). Las de «Rappi hoy»
+    """Cada calificación queda en el pedido de su carro y su tienda (`_ORDER_OF_EVENT`). Las de "Rappi hoy"
     (`payload.mode = 'actual'`) no: ese modo no enseña, y la calificación pausa la recompra. Un pedido cancelado no se
     califica: no llegó."""
     rows = [
@@ -493,7 +493,7 @@ def record_order(
     delivery_type: str | None = None,
 ) -> str:
     """Pedido + líneas (producto o plato) + evento `order_placed`. Los precios de `lines` se guardan tal cual: la API
-    los pone antes con `catalog_prices`. Un pedido en modo `actual` («Rappi hoy») no entra al perfil. `pro`: si la
+    los pone antes con `catalog_prices`. Un pedido en modo `actual` ("Rappi hoy") no entra al perfil. `pro`: si la
     persona es Rappi Pro según la app (`app_users.pro`); `None` no lo cambia. `placed`: el sobre del `order_placed`
     (`surface`, `origin`, `request_id`) y lo que suma a su payload (`payload`), como en un pedido que Mochi hizo solo
     (offers/autonomy.py). `scheduled_for`: el inicio de la franja si se programó; `delivery_type`: basica, sin_prisa o
@@ -521,7 +521,7 @@ def record_order(
                     i,
                     line["entity_type"],
                     line["entity_id"],
-                    # En «Rappi hoy» no se aprende: la línea no guarda concepto, como los eventos de ese modo.
+                    # En "Rappi hoy" no se aprende: la línea no guarda concepto, como los eventos de ese modo.
                     line.get("concept_id") if mode == "propuesta" and line.get("concept_id") in known else None,
                     int(line.get("qty", 1)),
                     line.get("unit_price"),
@@ -587,7 +587,7 @@ def forget(conn: Connection, user_id: str, concept_id: str | None = None) -> int
     las consultas que lo nombran. Devuelve cuántos registros se borraron o anonimizaron."""
     if conn.execute(
         "SELECT 1 FROM app_users WHERE user_id = %s AND source <> 'prototype'", (user_id,)
-    ).fetchone():  # «Olvidar» es del prototipo: nunca borra usuarios simulados
+    ).fetchone():  # "Olvidar" es del prototipo: nunca borra usuarios simulados
         return 0
     from ..layers.segments import build_segments, lock_user_segments
 
@@ -621,7 +621,7 @@ def forget(conn: Connection, user_id: str, concept_id: str | None = None) -> int
         if mentions:
             deleted += conn.execute("UPDATE app_events SET query = NULL WHERE event_id = ANY(%s)", (mentions,)).rowcount
     # Sus segmentos se recalculan sin lo que olvidó.
-    # La historia semanal también dice «tenía este segmento»: tras olvidar un concepto no queda nada anterior.
+    # La historia semanal también dice "tenía este segmento": tras olvidar un concepto no queda nada anterior.
     conn.execute("DELETE FROM user_segment_history WHERE user_id = %s", (user_id,))
     build_segments(conn, "prototype", user_id, commit=False)
     return deleted

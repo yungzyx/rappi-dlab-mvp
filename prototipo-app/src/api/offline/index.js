@@ -1,4 +1,4 @@
-// API SIMULADA EN EL NAVEGADOR, SOLO PARA LA DEMO SIN CONEXIÓN («Prototipo MVP.html», `npm run demo:html`).
+// API SIMULADA EN EL NAVEGADOR, SOLO PARA LA DEMO SIN CONEXIÓN ("Prototipo MVP.html", `npm run demo:html`).
 //
 // Es una copia simplificada del backend de rappi-ia para que la app abra sin la API: solo entra en el build de la demo
 // (`vite build --mode demo`, con VITE_OFFLINE_DEMO=1; ver main.jsx) y nunca en el de desarrollo ni el de producción.
@@ -9,14 +9,14 @@
 // Lo que calcula aquí replica, en corto, estos archivos del backend (si cambian allá, revisar acá):
 // - rappi-ia/src/rappi_ia/motor/home.py ............ el orden de los accesos de la Home (motor.js: homeVerticals)
 // - rappi-ia/src/rappi_ia/motor/combos.py, combos.toml y predict.py ... la escalera fina (motor.js: targetStep)
-// - rappi-ia/src/rappi_ia/motor/model.py, data.py .. la afinidad propia, sin «Rappi hoy» (motor.js)
+// - rappi-ia/src/rappi_ia/motor/model.py, data.py .. la afinidad propia, sin "Rappi hoy" (motor.js)
 // - rappi-ia/src/rappi_ia/offers/engine.py ......... vertical por probar, recompra, volver, complementos (offers.js) y
 //   las tiendas de un kit recortado por la dieta (offers.js: kitStores; el kit mismo es el grabado)
 // - rappi-ia/src/rappi_ia/offers/winback.py y motor/model.py (replenishment) ... recompra y volver (winback.js), con la
 //   pausa por una calificación mala (winback.js: paused, de los eventos `order_rated`); un pedido cancelado
 //   (`order_cancelled`, state.js: cancelOrders e isConfirmed) no cuenta para la recompra, el motor ni los perfiles
 // - rappi-ia/src/rappi_ia/offers/engine.py (ontop_offer) ... el OnTop de Turbo en el seguimiento (offers.js: onTopOffer)
-// - rappi-ia/src/rappi_ia/catalog/stores.py (line_prices) y api/catalog.py (availability) ... «Pídelo de nuevo»
+// - rappi-ia/src/rappi_ia/catalog/stores.py (line_prices) y api/catalog.py (availability) ... "Pídelo de nuevo"
 //   (index.js: availability, con los precios de la muestra)
 // - rappi-ia/src/rappi_ia/offers/guards.py ......... lo que el agente nunca ofrece (offers.js: offerableProduct)
 // - rappi-ia/src/rappi_ia/offers/featured.py ....... lo que se puede destacar (offers.js: featuredProduct; sus reglas,
@@ -24,7 +24,7 @@
 //   panel (personas.js: sampleOf)
 // - rappi-ia/src/rappi_ia/agent/tools.py ........... el foco de la búsqueda (_focus, en search.js) y el complemento
 //   alternado (_takes_second, en offers.js: complementOf)
-// - rappi-ia/src/rappi_ia/agent/rappi_agent.py ..... «qué me recomiendas» (search.js: recommend) y el texto del consejo
+// - rappi-ia/src/rappi_ia/agent/rappi_agent.py ..... "qué me recomiendas" (search.js: recommend) y el texto del consejo
 //   médico (ADVICE_*, en search.js: unrecorded)
 // - rappi-ia/src/rappi_ia/agent/understand.py ...... síntomas y consejo médico (SYMPTOMS, MEDICINE_WORDS, ADVICE, en
 //   search.js) para las preguntas que la muestra no grabó; las grabadas (eval/frases_usuarios/preguntas-libres.txt) salen
@@ -35,23 +35,23 @@
 //   evento (index.js: storedEvent; el origen, en `origin` o, en los eventos de antes, `payload.origen`); las impresiones
 //   (`list_view`) no se guardan, y sin conexión no hay grupo de control de las ofertas (OFFERS_CONTROL_PCT)
 // - rappi-ia/src/rappi_ia/offers/profiles.py ....... los perfiles de gusto activos (tastes.js)
-// - rappi-ia/src/rappi_ia/catalog/hours.py y catalog/restaurants.py (filtros, «Destacados», with_hours) ... abierto o
+// - rappi-ia/src/rappi_ia/catalog/hours.py y catalog/restaurants.py (filtros, "Destacados", with_hours) ... abierto o
 //   cerrado según el horario publicado y los filtros de restaurantes (catalog.js); las búsquedas recientes de
-//   events/searches.py (index.js: searchesReply). Sin conexión no hay «Lo más buscado», tiendas en la búsqueda, «Lo que
-//   sea», comparar entre tiendas ni «Para ti» en la tienda: esas rutas responden 404 o vacío y la app no las muestra.
+//   events/searches.py (index.js: searchesReply). Sin conexión no hay "Lo más buscado", tiendas en la búsqueda, "Lo que
+//   sea", comparar entre tiendas ni "Para ti" en la tienda: esas rutas responden 404 o vacío y la app no las muestra.
 // - rappi-ia/src/rappi_ia/offers/preferences.py y preferencias.toml, api/preferences.py y rappi_agent.py
 //   (_preference) ... las preferencias explícitas: en la hoja del panel (con las tiendas de sus pedidos), lo que llega
 //   escrito por el buscador, el filtro y el orden de lo que Mochi muestra y ofrece, y el filtro del buscador con
 //   `user_id` (preferences.js; index.js: preferenceAnswer, withPreferences, searchedWithPreferences)
 // - rappi-ia/src/rappi_ia/agent/rappi_agent.py (_small_talk, HELP_ACTIONS, IDEA_KINDS), understand.py (APP_QUESTIONS,
-//   GREETING_WORDS, THANKS_WORDS, LAUGHTER) y compose.py ... el saludo, el «gracias», el fuera de tema y lo vacío, la
+//   GREETING_WORDS, THANKS_WORDS, LAUGHTER) y compose.py ... el saludo, el "gracias", el fuera de tema y lo vacío, la
 //   ayuda con los atajos de lo que Mochi sabe hacer, el resumen antes de pagar y el último pedido (search.js:
 //   smallTalk, appQuestion, helpReply). Los textos del resumen y del pedido son los de la app (AssistantPanel.jsx)
 // - rappi-ia/src/rappi_ia/catalog/terms.py ........ las condiciones de compra de las tiendas (catalog.js: storeTerms;
 //   la muestra solo sabe el envío de los restaurantes)
 // - rappi-ia/src/rappi_ia/offers/autonomy.py, api/autonomy.py, agent/understand.py (USUAL_ORDER), rappi_agent.py
-//   (_usual_order), api/agent.py (_with_auto_order) y api/app.py (_auto_order, post_order) ... «Pedir por mí»: el
-//   permiso, «pide lo de siempre en…», el botón de la recompra, la revisión del pedido que Mochi hace solo
+//   (_usual_order), api/agent.py (_with_auto_order) y api/app.py (_auto_order, post_order) ... "Pedir por mí": el
+//   permiso, "pide lo de siempre en…", el botón de la recompra, la revisión del pedido que Mochi hace solo
 //   (autonomy.js) y los 400 de un autopedido programado o una franja que no es de hoy ni de mañana. Las tiendas que
 //   Rappi rotula Farmacia, Sex shop o Smoking shop no se distinguen en la muestra (solo la vertical)
 // - rappi-ia/src/rappi_ia/api/app.py y api/catalog.py ... las rutas (index.js, catalog.js, search.js), con el
@@ -152,7 +152,7 @@ export function interests(snapshot, state, now) {
     .map(([concept, score]) => ({ concept, score: Math.round(score * 1000) / 1000 }))
 }
 
-/** «Para ti» (api/app.py: recommendations): el complemento de cada interés y, si falta, lo más pedido grabado. */
+/** "Para ti" (api/app.py: recommendations): el complemento de cada interés y, si falta, lo más pedido grabado. */
 function recommendations(snapshot, state, now, query) {
   const { concepts, vertical_labels: labels } = snapshot.meta
   const current = backendVertical(query.get('vertical'))
@@ -185,7 +185,7 @@ function recommendations(snapshot, state, now, query) {
 }
 
 /**
- * «Pídelo de nuevo» (api/catalog.py: availability): cada línea con su precio en la misma tienda, si la muestra tiene ese
+ * "Pídelo de nuevo" (api/catalog.py: availability): cada línea con su precio en la misma tienda, si la muestra tiene ese
  * producto ahí (un plato, en su restaurante); si no, no disponible. Es la muestra grabada, no el precio de hoy.
  */
 export function availability(snapshot, lines) {
@@ -205,7 +205,7 @@ export function availability(snapshot, lines) {
 
 /**
  * Antes de escribir (events/searches.py): las búsquedas recientes de este navegador, sin repetir. Sin conexión no hay
- * población de la que sacar «Lo más buscado»: va vacío y sin población declarada.
+ * población de la que sacar "Lo más buscado": va vacío y sin población declarada.
  */
 function searchesReply(state) {
   const seen = new Set()
@@ -221,7 +221,7 @@ function searchesReply(state) {
 }
 
 /**
- * Una respuesta con productos (de /agent/ask o una fila de «Para ti») con la dieta y las alergias de la persona
+ * Una respuesta con productos (de /agent/ask o una fila de "Para ti") con la dieta y las alergias de la persona
  * aplicadas, y sus favoritas primero; con `notice`, lo que dice al mostrar comida (rappi_agent.py: reply).
  */
 function withPreferences(snapshot, state, reply, { notice = false } = {}) {
@@ -241,7 +241,7 @@ function withPreferences(snapshot, state, reply, { notice = false } = {}) {
 
 /**
  * api/app.py (search): con `user_id`, la dieta y las alergias de la persona filtran lo buscado, sin ordenar por sus
- * favoritas, y `preferences_notice` lo dice. Si sacaron todo, no es «sin resultado»: la muestra sí lo tenía.
+ * favoritas, y `preferences_notice` lo dice. Si sacaron todo, no es "sin resultado": la muestra sí lo tenía.
  */
 function searchedWithPreferences(snapshot, state, found, query) {
   const mine = applied(snapshot.meta, query.get('user_id') ? (state.preferences ?? []) : [])
@@ -285,15 +285,15 @@ function offeredWithPreferences(snapshot, state, offer) {
 
 // rappi_agent.py: los textos de `_preference`.
 const PREFERENCES_TODAY =
-  'En «Rappi hoy» no guardo preferencias. En la propuesta recuerdo tu dieta, tus alergias y tus favoritas, y las ' +
+  'En "Rappi hoy" no guardo preferencias. En la propuesta recuerdo tu dieta, tus alergias y tus favoritas, y las ' +
   'borras cuando quieras 🔒.'
 const PREFERENCES_NONE =
-  'Todavía no tengo preferencias tuyas. Márcalas en «Mis preferencias»: tu dieta, tus alergias y tus cocinas y ' +
+  'Todavía no tengo preferencias tuyas. Márcalas en "Mis preferencias": tu dieta, tus alergias y tus cocinas y ' +
   'tiendas favoritas.'
 const joinNames = (names) => (names.length === 1 ? names[0] : `${names.slice(0, -1).join(', ')} y ${names.at(-1)}`)
 
 /**
- * «soy vegetariano», «no como maní», «mi tienda favorita es…», «muéstrame mis preferencias», «olvida mis preferencias»
+ * "soy vegetariano", "no como maní", "mi tienda favorita es…", "muéstrame mis preferencias", "olvida mis preferencias"
  * (rappi_agent.py: _preference): las guarda en el estado de la API simulada y dice cuáles quedaron. null si el mensaje
  * no habla de sus preferencias.
  */
@@ -330,7 +330,7 @@ function preferenceAnswer(snapshot, state, body) {
     const store = findStore(snapshot, command.store)
     if (!store)
       return reply(
-        `No encontré «${command.store}» entre las tiendas de Rappi. Elige tus favoritas en «Mis preferencias».`,
+        `No encontré "${command.store}" entre las tiendas de Rappi. Elige tus favoritas en "Mis preferencias".`,
         {
           actions: [{ label: 'Ver mis preferencias', panel: 'preferencias' }],
         },
@@ -354,7 +354,7 @@ function preferenceAnswer(snapshot, state, body) {
     }
     if (items.some((p) => p.tipo === 'cocina' || p.tipo === 'tienda'))
       parts.push('Cuando calce con lo que buscas, lo pongo primero.')
-    parts.push('Lo cambias cuando quieras en «Mis preferencias».')
+    parts.push('Lo cambias cuando quieras en "Mis preferencias".')
     text = parts.join(' ')
   } else if (command.action === 'quitar') {
     next = current.filter((p) => !items.some((item) => same(item)(p)))
@@ -373,7 +373,7 @@ function preferenceAnswer(snapshot, state, body) {
       ...(favorites.length ? [`Tus favoritas: ${favorites.join(', ')}.`] : []),
     ]
     text = listed.length
-      ? `Esto recuerdo de ti. ${parts.join(' ')} Las cambias o las olvidas en «Mis preferencias».`
+      ? `Esto recuerdo de ti. ${parts.join(' ')} Las cambias o las olvidas en "Mis preferencias".`
       : PREFERENCES_NONE
   }
   return reply(text, {
@@ -461,7 +461,7 @@ function answer(snapshot, { method, path, query, body }, now) {
     // Un pedido es de una tienda (api/app.py: post_order).
     if (new Set(body.lines.map((line) => line.store_id).filter((id) => id != null)).size > 1)
       return { status: 400, body: { detail: 'Un pedido es de una sola tienda' } }
-    // «Pedir por mí» pide para ahora, y una franja es de hoy o mañana (api/app.py: post_order y _schedulable).
+    // "Pedir por mí" pide para ahora, y una franja es de hoy o mañana (api/app.py: post_order y _schedulable).
     if (body.autopedido && body.scheduled_for != null)
       return { status: 400, body: { detail: 'Un pedido de Mochi no se programa' } }
     if (body.scheduled_for != null && !schedulable(body.scheduled_for, now))

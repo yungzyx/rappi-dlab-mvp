@@ -5,7 +5,7 @@ Es una etiqueta automática y ruidosa (depende de la precisión de la capa 2), p
 modos, así que la comparación es justa. Métricas: P@10, MRR y nDCG@10 (ganancia binaria).
 
 Además del ranking (`retrieve`), mide lo que ve el usuario: los productos de `search_products` (lo que muestran
-/search y el agente) y «sin resultado» con la regla con que el agente lo registra.
+/search y el agente) y "sin resultado" con la regla con que el agente lo registra.
 """
 
 import json
@@ -56,8 +56,8 @@ class QueryRun:
     concept_in_vertical: bool
     names_concept: bool = False
     items: list[dict] = field(default_factory=list)  # los resultados (tipo, id, texto, concepto, tienda si se muestra)
-    shown_unmet: bool | None = None  # solo en SHOWN: «sin resultado» como lo registra el agente (y nada a la vista)
-    has_words: bool = True  # le queda alguna palabra sin las stopwords («té» no): sin ellas no hay «sin resultado»
+    shown_unmet: bool | None = None  # solo en SHOWN: "sin resultado" como lo registra el agente (y nada a la vista)
+    has_words: bool = True  # le queda alguna palabra sin las stopwords ("té" no): sin ellas no hay "sin resultado"
     names_occasion: bool = False  # sin concepto, si nombra una ocasión: solo entonces decide el τ del vertical
 
 
@@ -76,7 +76,7 @@ def run_queries(
                 continue
             shown_unmet = None
             if mode == SHOWN:
-                # Como /search: los conceptos los detecta la consulta (y si queda «sin resultado», se corrigen los
+                # Como /search: los conceptos los detecta la consulta (y si queda "sin resultado", se corrigen los
                 # errores de tipeo y se vuelve a buscar: retrieval/spelling.py). El agente registra la demanda solo sin
                 # productos, y nunca por síntomas: ahí los medicamentos se ocultan por la regla 6d, no por falta de
                 # surtido.
@@ -219,15 +219,16 @@ def calibrate_tau(runs: list[QueryRun], candidates=None) -> dict[str, float]:
 
 
 def unmet_quality(runs: list[QueryRun], taus: dict[str, float], run_taus: dict[str, float] | None = None) -> dict:
-    """«Sin resultado» de la búsqueda (modo híbrido, con `taus`) y, si se corrió, el que registra el agente («mostrado»:
-    marcado y sin productos a la vista, con los τ vigentes al correr la evaluación, `run_taus`; por defecto `taus`)."""
+    """ "Sin resultado" de la búsqueda (modo híbrido, con `taus`) y, si se corrió, el que registra el agente
+    ("mostrado": marcado y sin productos a la vista, con los τ vigentes al correr la evaluación, `run_taus`; por defecto
+    `taus`)."""
     hybrid = [r for r in runs if r.mode == "hibrido"]
     quality = _detection(hybrid, [_is_unmet(r, taus.get(r.vertical, DEFAULT_TAU)) for r in hybrid])
     quality["negativas_detalle"] = negative_diagnosis(runs, taus)
     shown = [r for r in runs if r.mode == SHOWN]
     if shown:
         quality["mostrado"] = _detection(shown, [bool(r.shown_unmet) for r in shown])
-        # Marcadas por la búsqueda con los mismos τ con que se calculó «mostrado» (no con los recién guardados).
+        # Marcadas por la búsqueda con los mismos τ con que se calculó "mostrado" (no con los recién guardados).
         at_run = taus if run_taus is None else run_taus
         flagged = {(r.vertical, r.query) for r in hybrid if _is_unmet(r, at_run.get(r.vertical, DEFAULT_TAU))}
         quality["mostrado"]["marcadas_con_productos"] = [
@@ -261,7 +262,7 @@ def _detection(runs: list[QueryRun], predicted: list[bool]) -> dict:
 
 def thresholds_after_saving(current: dict[str, float], proposed: dict[str, float]) -> dict[str, float]:
     """Los propuestos reemplazan a los vigentes; un vertical sin propuesta no tiene evidencia para cambiar y conserva
-    el suyo (pasarlo al τ por defecto metía falsas alarmas, p. ej. «regalo para mi polola» en Mall)."""
+    el suyo (pasarlo al τ por defecto metía falsas alarmas, p. ej. "regalo para mi polola" en Mall)."""
     return {**current, **proposed}
 
 
@@ -381,7 +382,7 @@ def render_markdown(
         shown = unmet["mostrado"]
         lines += [
             "",
-            "Lo que registra el agente (`search_products`: la búsqueda marca «sin resultado» y no se muestra ningún"
+            'Lo que registra el agente (`search_products`: la búsqueda marca "sin resultado" y no se muestra ningún'
             " producto), con los τ vigentes al correr la evaluación:",
             "",
             _detection_line(shown),
@@ -415,8 +416,8 @@ def _jev_lines(jev: dict) -> list[str]:
         "",
         f"## Tres jueces: concepto, Jev ({jev['modelo']}) y personas",
         "",
-        "Cada resultado se juzga con el concepto (0 o 1), con Jev (ganancia esperada entre 0 y 1: «no sirve» 0,"
-        " «a medias» 0,5, «sirve» 1, ponderada por la probabilidad de cada nivel) y, donde hay planilla juzgada, con"
+        'Cada resultado se juzga con el concepto (0 o 1), con Jev (ganancia esperada entre 0 y 1: "no sirve" 0,'
+        ' "a medias" 0,5, "sirve" 1, ponderada por la probabilidad de cada nivel) y, donde hay planilla juzgada, con'
         " las personas. El juez por concepto es binario y Jev es graduado: P@10 y nDCG@10 de Jev usan la ganancia"
         " esperada tal cual, así que sus columnas P@10 no son directamente comparables con las del concepto. El MRR de"
         " Jev cuenta como relevante desde 0,5.",
@@ -460,7 +461,7 @@ def _detection_line(quality: dict) -> str:
 
 
 def negative_diagnosis(runs: list[QueryRun], taus: dict[str, float]) -> list[dict]:
-    """Por cada negativa (modo híbrido): si «sin resultado» la detecta y qué lo decidió, con la misma regla que
+    """Por cada negativa (modo híbrido): si "sin resultado" la detecta y qué lo decidió, con la misma regla que
     `_is_unmet`."""
     rows = []
     for r in (r for r in runs if r.mode == "hibrido" and r.tipo == "negativa"):

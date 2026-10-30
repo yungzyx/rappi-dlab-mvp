@@ -154,19 +154,19 @@ def test_price_parsing_ignores_units_and_small_numbers():
         ("completo por menos de 1000 pesos", 1000, ["completo"]),
         ("cerveza bajo 5 mil pesos", 5000, ["cerveza"]),
         ("pisco hasta $8.000 clp", 8000, ["pisco"]),
-        # «u» es la «o» antes de otra o, no «unidades»: el tope se perdía.
+        # "u" es la "o" antes de otra o, no "unidades": el tope se perdía.
         ("pisco bajo 5,5 lucas u otro trago", 5500, ["pisco", "u", "otro", "trago"]),
         ("vino bajo 2,5 lucas u otra cosa", 2500, ["vino", "u", "otra", "cosa"]),
         ("vino bajo $2.5 lucas u otra cosa", 2500, ["vino", "u", "otra", "cosa"]),
         ("vino bajo 10 mil u otra cosa", 10000, ["vino", "u", "otra", "cosa"]),
-        # Coma de miles: «$10,000» se leía como un tope de $10 y dejaba «,000» en la consulta.
+        # Coma de miles: "$10,000" se leía como un tope de $10 y dejaba ",000" en la consulta.
         ("vino hasta $10,000", 10000, ["vino"]),
         ("pisco bajo 12,990 pesos", 12990, ["pisco"]),
     ],
 )
 def test_price_parsing_accepts_decimal_thousands_and_drops_the_currency_word(text, value, rest):
-    """«1,5 lucas» no se entendía (el tope se ignoraba sin aviso y la consulta quedaba con «1 5 lucas») y «pesos»
-    quedaba en la consulta: «Mira estas opciones de «completo pesos»»."""
+    """ "1,5 lucas" no se entendía (el tope se ignoraba sin aviso y la consulta quedaba con "1 5 lucas") y "pesos"
+    quedaba en la consulta: "Mira estas opciones de 'completo pesos'"."""
     price, without = _price(text)
     assert price == value and without.split() == rest
 
@@ -186,8 +186,8 @@ def test_price_parsing_still_ignores_decimal_units():
     ],
 )
 def test_a_decimal_followed_by_a_unit_is_not_a_price_and_does_not_fail(text):
-    """Si a «mil/lucas/k» le sigue una unidad, la regex soltaba esa palabra y se quedaba con «5,5» a secas:
-    float('5,5') lanzaba ValueError (HTTP 400 en /agent/ask) y «$2.5» se leía como $25."""
+    """Si a "mil/lucas/k" le sigue una unidad, la regex soltaba esa palabra y se quedaba con "5,5" a secas:
+    float('5,5') lanzaba ValueError (HTTP 400 en /agent/ask) y "$2.5" se leía como $25."""
     assert _price(text)[0] is None
 
 
@@ -197,7 +197,7 @@ def test_clean_query_drops_greeting_and_request_words():
 
 
 def test_clean_query_drops_courtesy_at_the_end():
-    """«quiero té porfa» buscaba «te porfa»: sin concepto, la búsqueda vectorial traía pasteles y porotos."""
+    """ "quiero té porfa" buscaba "te porfa": sin concepto, la búsqueda vectorial traía pasteles y porotos."""
     assert _clean("quiero te porfa") == "te"
     assert _clean("te por favor") == "te"
     assert _clean("una pizza gracias mochi") == "pizza"
@@ -227,8 +227,8 @@ def test_symptoms_alone_do_not_name_medicines():
 
 
 def test_symptoms_starting_with_me_are_detected():
-    """«me» es palabra de pedido y se quitaba al inicio antes de buscar síntomas y ocasiones: «me siento mal» y
-    «me duele la cabeza» no contaban como síntoma y buscaban «duele la cabeza»."""
+    """ "me" es palabra de pedido y se quitaba al inicio antes de buscar síntomas y ocasiones: "me siento mal" y
+    "me duele la cabeza" no contaban como síntoma y buscaban "duele la cabeza"."""
     u = Understander()
     for text in ["me siento mal", "me duele la cabeza", "Me duele la guata"]:
         intent = u.understand(None, text, "supermercado")
@@ -237,9 +237,9 @@ def test_symptoms_starting_with_me_are_detected():
 
 
 def test_feeling_unwell_is_a_symptom_even_after_another_occasion():
-    """«malestar» y «cuidarme» son de la ocasión «Me siento mal», pero solo contaban como síntoma si esa ocasión era la
-    mejor, y a igual largo gana la que va primero: «un tecito para el malestar» (once) o «después del carrete tengo
-    malestar» permitían Licores, venta cruzada y «También en»."""
+    """ "malestar" y "cuidarme" son de la ocasión "Me siento mal", pero solo contaban como síntoma si esa ocasión era la
+    mejor, y a igual largo gana la que va primero: "un tecito para el malestar" (once) o "después del carrete tengo
+    malestar" permitían Licores, venta cruzada y "También en"."""
     u = Understander()
     for text in [
         "un tecito para el malestar",
@@ -292,7 +292,7 @@ def test_off_topic_results_are_not_labelled_as_the_requested_concept():
     no_cheapest = SimpleNamespace(cheapest_without_filter=None)
     draft = RappiAgent()._draft(intent, "supermercado", [pasta], no_cheapest, None, False)
     assert draft.concept_label is None
-    assert "«lomo saltado»" in TemplateComposer().compose(draft) and "peruana" not in TemplateComposer().compose(draft)
+    assert '"lomo saltado"' in TemplateComposer().compose(draft) and "peruana" not in TemplateComposer().compose(draft)
 
 
 def test_services_are_recognized_when_no_product_is_named():
@@ -307,7 +307,7 @@ def test_services_are_recognized_when_no_product_is_named():
     ]:
         intent = u.understand(None, text, None)
         assert (intent.kind, intent.service) == ("servicio", service), text
-    # Si nombra un producto, manda el producto: «paquete de pañales» no es un envío.
+    # Si nombra un producto, manda el producto: "paquete de pañales" no es un envío.
     assert u.understand(None, "un paquete de pañales", "supermercado").service is None
     assert u.understand(None, "bloqueador para el viaje", "farmacia").concepts[:1] == ["dermocosmetica"]
 
@@ -330,7 +330,7 @@ def test_help_and_empty_texts_give_sushi_as_the_example_not_the_party():
 
 
 def test_claude_puede_nombrar_a_mochi():
-    """«Mochi» es el nombre de la mascota, no un producto inventado: la verificación no descarta el texto por él."""
+    """ "Mochi" es el nombre de la mascota, no un producto inventado: la verificación no descarta el texto por él."""
     refs = {"p1": "Cerveza Escudo 470 cc"}
     text = verify_llm_text("¡Hola! Aquí Mochi: te recomiendo {p1}.", refs)
     assert text == "¡Hola! Aquí Mochi: te recomiendo Cerveza Escudo 470 cc."
@@ -349,7 +349,7 @@ def test_agent_name_comes_from_config(monkeypatch):
 
 
 def test_unmet_note_has_no_pronoun_that_must_agree_with_the_query():
-    """«sepa que lo buscas» no concuerda con «empanadas» ni «la leche»: la nota no lleva pronombre."""
+    """ "sepa que lo buscas" no concuerda con "empanadas" ni "la leche": la nota no lleva pronombre."""
     for query in ("empanadas", "la leche", "kebab"):
         text = TemplateComposer().compose(
             Draft(kind="sin_resultado", query=query, vertical_label="restaurantes", unmet=True)

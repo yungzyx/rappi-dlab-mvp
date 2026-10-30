@@ -135,7 +135,7 @@ def search_products(
     `words`: si a la consulta le queda alguna palabra (`retrieval.hybrid.has_words`), si quien llama ya lo sabe.
     Con `correct` (/search), si nada calza todas las palabras, corrige los errores de tipeo (`retrieval.spelling`) y
     vuelve a buscar: si así algo calza todas las palabras y hay productos, devuelve eso con `corrected_query`; si no, lo
-    de la consulta tal cual. Con `concepts=None`, una ocasión sin concepto nombrado («algo para la once») se busca por
+    de la consulta tal cual. Con `concepts=None`, una ocasión sin concepto nombrado ("algo para la once") se busca por
     sus conceptos, como en la búsqueda agrupada (`retrieval.hybrid.occasion_search`), y no se corrige."""
     occasion = occasion_search(query) if concepts is None else None
     if occasion:
@@ -183,7 +183,7 @@ def _search_products(
     if not products and capped:
         unfiltered = retrieve(conn, vertical, query, embedder, k=k * 2, mode=mode, concepts=concepts, words=words)
         allowed = [h for h in unfiltered.hits if _allowed(h.concept_id, concepts, strict)]
-        # «El más barato» es de lo pedido: el mismo foco que con tope.
+        # "El más barato" es de lo pedido: el mismo foco que con tope.
         candidates = _with_prices(conn, vertical, _focus(allowed, unfiltered, capped), offer, adult_ok)
         candidates = preferences.keep(candidates) if preferences else candidates
         priced = [p for p in candidates if p.price_value is not None]
@@ -192,10 +192,10 @@ def _search_products(
 
 
 CANDIDATE_REMEDIES = 30  # se filtran después: muchos calzan solo por las advertencias del prospecto
-MIN_REMEDIES = 2  # con menos, lo que calza el síntoma suele ser casualidad (un laxante para «me siento mal»)
+MIN_REMEDIES = 2  # con menos, lo que calza el síntoma suele ser casualidad (un laxante para "me siento mal")
 
 
-# La familia de remedios que trata cada síntoma: el paracetamol no dice «fiebre» en su ficha. Normalizado.
+# La familia de remedios que trata cada síntoma: el paracetamol no dice "fiebre" en su ficha. Normalizado.
 SYMPTOM_REMEDIES = {
     **dict.fromkeys(("fiebre", "cabeza", "dolor", "duele", "migrana"), "analgésico paracetamol ibuprofeno"),
     **dict.fromkeys(("resfrio", "resfriado", "gripe"), "antigripal resfrío"),
@@ -208,7 +208,7 @@ SYMPTOM_REMEDIES = {
 }
 
 
-# Una molestia de una parte del cuerpo («me duele la guata», «tengo la garganta irritada»): «dolor» no trae la familia
+# Una molestia de una parte del cuerpo ("me duele la guata", "tengo la garganta irritada"): "dolor" no trae la familia
 # de los analgésicos, y un remedio la trata solo si su nombre o su categoría la nombran (un analgésico nombra la
 # garganta entre veinte usos de su ficha). La cabeza no: el dolor de cabeza es de analgésicos.
 BODY_PARTS = {"guata", "estomago", "garganta", "muela", "muelas", "oido", "oidos", "espalda"}
@@ -297,7 +297,7 @@ def suggest_complement(
     vertical del paso (si no es la actual) y el primero no: ese va primero y busca antes ahí. La marca de la persona
     gana a ese desempate: si el primero trae un producto de una marca que compra (`prefer_brands`), queda el orden de
     siempre. La `basis` de la sugerencia dice `combinacion` si el desempate
-    la eligió y `compra_cruzada` («<A>→<B>@<vertical>» de la regla) si la trajo una compra cruzada. Una compra cruzada
+    la eligió y `compra_cruzada` ("<A>→<B>@<vertical>" de la regla) si la trajo una compra cruzada. Una compra cruzada
     se busca solo en la vertical de su regla; si ahí no hay productos, el mismo concepto se prueba por su arista curada
     (o aprendida) en las verticales de siempre, y la sugerencia sale sin esa `basis`.
 
@@ -468,9 +468,9 @@ def _takes_second(candidates: list[_Candidate], user_id: str) -> bool:
 
 def _recently_offered(conn: Connection, user_id: str) -> set[str]:
     """Los conceptos que Mochi le ofreció a la persona como complemento en los últimos `COMPLEMENT_REPEAT_DAYS` días
-    y antes de su último pedido en «Propuesta»: sus `suggestion_shown` de `COMPLEMENT_ORIGINS`. Lo mostrado después de
+    y antes de su último pedido en "Propuesta": sus `suggestion_shown` de `COMPLEMENT_ORIGINS`. Lo mostrado después de
     ese pedido es la sesión de compra en curso: no cuenta, así el complemento no cambia mientras se arma el mismo
-    pedido. «Rappi hoy» (`payload.mode = 'actual'`) no cuenta; sin pedidos, no se salta nada."""
+    pedido. "Rappi hoy" (`payload.mode = 'actual'`) no cuenta; sin pedidos, no se salta nada."""
     rows = conn.execute(
         """SELECT DISTINCT e.concept_id
            FROM app_events e
@@ -487,7 +487,7 @@ def _recently_offered(conn: Connection, user_id: str) -> set[str]:
 
 
 def _ordered_lately(conn: Connection, user_id: str, concepts: list[str]) -> bool:
-    """Si la persona pidió alguno de esos conceptos en «Propuesta» en los últimos `RECENT_DAYS` días: solo entonces sus
+    """Si la persona pidió alguno de esos conceptos en "Propuesta" en los últimos `RECENT_DAYS` días: solo entonces sus
     reglas de compra cruzada (`cross_picks`) pueden salir de ellos."""
     return conn.execute(
         """SELECT EXISTS (SELECT 1 FROM app_orders o JOIN app_order_lines l USING (order_id)
@@ -536,7 +536,7 @@ def _dedupe(products: list[Product]) -> list[Product]:
     return unique
 
 
-# Bajo esta participación en el vertical (y bajo el mínimo de «sin resultado», retrieval.hybrid.MIN_CONCEPT_ITEMS), lo
+# Bajo esta participación en el vertical (y bajo el mínimo de "sin resultado", retrieval.hybrid.MIN_CONCEPT_ITEMS), lo
 # rotulado con el concepto pedido no se muestra. En la práctica es un interruptor: en la base real todo surtido
 # testimonial queda bajo el 1 % (el vertical más chico tiene más de mil documentos), así que siempre se oculta; solo en
 # un catálogo chico (los de prueba, de decenas de productos) dos productos pasan el 1 % y se siguen mostrando.
@@ -547,28 +547,28 @@ def _focus(hits, result: RetrievalResult, capped: bool = False):
     """Si la consulta nombra conceptos (`result.query_concepts`), solo esos: pedir cigarrillos no debe traer cerveza.
 
     - "Sin resultado" no muestra nada, nombre o no un concepto: mostrar una pizza a quien pidió kebab, o los vecinos
-      de un coseno bajo τ (sin concepto ni ocasión, el de la búsqueda agrupada: «sofá de tres cuerpos» en Turbo traía
+      de un coseno bajo τ (sin concepto ni ocasión, el de la búsqueda agrupada: "sofá de tres cuerpos" en Turbo traía
       pisco Tres Erres), sería inventar una respuesta (y la demanda no se anotaría). Tampoco los pocos productos de
       un concepto que el vertical casi no tiene (bajo TESTIMONIAL_SHARE), que suelen ser otra cosa con su etiqueta: un
-      cable HDMI para «televisor 55 pulgadas» en Turbo, un pack de regalo para «cerveza en lata» en el Mall.
+      cable HDMI para "televisor 55 pulgadas" en Turbo, un pack de regalo para "cerveza en lata" en el Mall.
     - Con tope de precio (`capped`), si nada del concepto pedido cabe bajo el tope tampoco se muestra otra cosa:
       El agente dice cuánto cuesta lo más barato de lo pedido.
     - Si nada de lo encontrado es del concepto pedido, solo se muestra lo que lo dice en su nombre (`_names_query`):
-      «sándwiches» en Express trae los sándwiches rotulados como empanadas, pero «pañales» en restaurantes no trae el
-      postre con «panal» que el stemming juntaba. Rige también si el vertical vende el concepto: lo que calza solo un
+      "sándwiches" en Express trae los sándwiches rotulados como empanadas, pero "pañales" en restaurantes no trae el
+      postre con "panal" que el stemming juntaba. Rige también si el vertical vende el concepto: lo que calza solo un
       número o una palabra de la descripción puede dejar fuera de lo encontrado los productos del concepto, y
-      «neumáticos aro 15» en Express traía jugos en polvo de 15 g. El buscador agrupado muestra las verticales donde
-      sí hay del concepto; el agente, además, busca por el nombre del concepto y dice dónde más está («También en»).
-      No rige si la consulta nombra una ocasión («algo para el asado» en Licores) o un concepto
-      amplio (`broad` en taxonomy.toml: «picoteo»): ahí lo pedido son productos de varios tipos que su nombre no dice.
+      "neumáticos aro 15" en Express traía jugos en polvo de 15 g. El buscador agrupado muestra las verticales donde
+      sí hay del concepto; el agente, además, busca por el nombre del concepto y dice dónde más está ("También en").
+      No rige si la consulta nombra una ocasión ("algo para el asado" en Licores) o un concepto
+      amplio (`broad` en taxonomy.toml: "picoteo"): ahí lo pedido son productos de varios tipos que su nombre no dice.
     - El foco no cede ante productos de otro concepto que calzan las palabras: esa coincidencia mira todo el texto y
-      el stemming junta palabras («flores» calza con azúcar flor). Que el concepto de la consulta (keywords) y el de
+      el stemming junta palabras ("flores" calza con azúcar flor). Que el concepto de la consulta (keywords) y el de
       los productos (categoría) coincidan se asegura en la taxonomía.
     - En el concepto nombrado, lo que dice lo pedido en su nombre va primero (`_named_first`): en un concepto grueso
-      del Mall, «cargador tipo c» traía primero un cable y «sarten antiadherente» una sandwichera que lo dice en su
+      del Mall, "cargador tipo c" traía primero un cable y "sarten antiadherente" una sandwichera que lo dice en su
       descripción.
     - Sin concepto nombrado, si varios productos dicen lo pedido en su nombre, lo demás tiene que ser de su concepto o
-      muy cercano (`_after_named`): «cuchuflíes» en Turbo traía 4 cuchuflíes y después esponjas y un cuchillo.
+      muy cercano (`_after_named`): "cuchuflíes" en Turbo traía 4 cuchuflíes y después esponjas y un cuchillo.
     """
     concepts = result.query_concepts
     if not concepts:
@@ -588,23 +588,23 @@ def _focus(hits, result: RetrievalResult, capped: bool = False):
 def _named_first(hits, query: str):
     """Primero lo que dice todas las palabras de la consulta en su nombre (`_names_query`); el resto, en su orden. La
     fusión léxica y vectorial mira todo el documento: en un concepto grueso, lo que dice lo pedido solo en la
-    descripción (una sandwichera «antiadherente») o a medias (un cable «tipo C» para «cargador tipo c») le ganaba a
+    descripción (una sandwichera "antiadherente") o a medias (un cable "tipo C" para "cargador tipo c") le ganaba a
     lo que lo dice en su nombre."""
     named = [h for h in hits if _names_query(h.content, query)]
     return named + [h for h in hits if h not in named]
 
 
 # Desde cuántos productos que dicen lo pedido en su nombre la consulta sin concepto es el nombre de un producto, y lo
-# demás, vecinos (`_after_named`). Con menos, la coincidencia puede ser casual: el stemming junta «bombomes» (un error
-# de tipeo de «bombones») con «Café Bombom», y el nombre de un plato mal escrito («Shawarna carne») no dice el concepto
-# de los demás («Shawarma de pollo»).
+# demás, vecinos (`_after_named`). Con menos, la coincidencia puede ser casual: el stemming junta "bombomes" (un error
+# de tipeo de "bombones") con "Café Bombom", y el nombre de un plato mal escrito ("Shawarna carne") no dice el concepto
+# de los demás ("Shawarma de pollo").
 TAIL_MIN_NAMED = 3
 
 
 def _after_named(hits, query: str):
     """Sin concepto nombrado: si al menos TAIL_MIN_NAMED productos dicen lo pedido en su nombre, lo demás tiene que ser
     del concepto de alguno de ellos o tener un coseno de al menos UNNAMED_TAU (el de una consulta sin concepto ni
-    ocasión). El orden no cambia. Si no, queda lo encontrado: ya pasó la regla de «sin resultado»."""
+    ocasión). El orden no cambia. Si no, queda lo encontrado: ya pasó la regla de "sin resultado"."""
     named = [h for h in hits if _names_query(h.content, query)]
     if len(named) < TAIL_MIN_NAMED:
         return hits
@@ -613,23 +613,23 @@ def _after_named(hits, query: str):
 
 
 def _broad_request(query: str, concepts: list[str]) -> bool:
-    """¿Pide productos de varios tipos? Una ocasión («algo para el asado») o un concepto amplio («picoteo»)."""
+    """¿Pide productos de varios tipos? Una ocasión ("algo para el asado") o un concepto amplio ("picoteo")."""
     taxonomy = load_taxonomy()
     return named_occasion(query) is not None or any(
         c in taxonomy.concepts and taxonomy.concepts[c].broad for c in concepts
     )
 
 
-# Palabras que el nombre de un producto no necesita repetir: de enlace («detergente para ropa») y de relleno («algo
-# para…», «lo que…», «mi…»); además de las de saludo y pedido (text.FILLER_WORDS).
-# «sin» no: «harina con polvos de hornear» no dice «harina sin polvos de hornear».
+# Palabras que el nombre de un producto no necesita repetir: de enlace ("detergente para ropa") y de relleno ("algo
+# para…", "lo que…", "mi…"); además de las de saludo y pedido (text.FILLER_WORDS).
+# "sin" no: "harina con polvos de hornear" no dice "harina sin polvos de hornear".
 _NAME_SKIP = FILLER_WORDS | frozenset(
     {"a", "al", "algo", "con", "de", "del", "el", "en", "la", "las", "lo", "los", "mi", "para", "que", "y"}
 )
 
 
 def _name_words(text: str) -> list[str]:
-    """Las palabras sin tildes, como `text.tokens`, pero con la ñ: «pañal» no es «panal»."""
+    """Las palabras sin tildes, como `text.tokens`, pero con la ñ: "pañal" no es "panal"."""
     marked = unicodedata.normalize("NFC", text.lower()).replace("ñ", "\x00")
     return [w.replace("\x00", "ñ") for w in re.findall(r"[a-z0-9\x00]+", _without_marks(marked))]
 
@@ -639,7 +639,7 @@ def _without_marks(text: str) -> str:
 
 
 def _forms(word: str) -> set[str]:
-    """La palabra y sus singulares posibles: «limones» → limones, limone, limon; «sándwiches» → … sandwich."""
+    """La palabra y sus singulares posibles: "limones" → limones, limone, limon; "sándwiches" → … sandwich."""
     forms = {word}
     if word.endswith("s") and len(word) > 3:
         forms.add(word[:-1])
@@ -649,10 +649,10 @@ def _forms(word: str) -> set[str]:
 
 
 def _names_query(content: str, query: str) -> bool:
-    """¿El nombre dice todas las palabras de la consulta? El nombre es lo que va antes del primer «. » del documento
-    (search_documents lo arma así: nombre, marca, presentación, categoría…; un nombre con «. » adentro queda cortado
+    """¿El nombre dice todas las palabras de la consulta? El nombre es lo que va antes del primer ". " del documento
+    (search_documents lo arma así: nombre, marca, presentación, categoría…; un nombre con ". " adentro queda cortado
     ahí). Palabras enteras sin tildes y con la ñ, en singular o plural (s/es) de cualquiera de los dos lados:
-    «limones» dice Limón y «sándwiches», Sándwich; «pañales» no dice Panal."""
+    "limones" dice Limón y "sándwiches", Sándwich; "pañales" no dice Panal."""
     name = set().union(*(_forms(w) for w in _name_words(content.split(". ", 1)[0])))
     wanted = [w for w in _name_words(query) if normalize(w) not in _NAME_SKIP]
     return bool(wanted) and all(_forms(w) & name for w in wanted)

@@ -82,7 +82,7 @@ def _pg_tools(db) -> tuple[str, str, str] | None:
         pg_dump = find_pg_dump()
     except RuntimeError:
         return None
-    version = subprocess.run([pg_dump, "--version"], capture_output=True, text=True).stdout  # «pg_dump (…) 17.11 …»
+    version = subprocess.run([pg_dump, "--version"], capture_output=True, text=True).stdout  # "pg_dump (…) 17.11 …"
     major = int(re.search(r"\) (\d+)", version).group(1))
     pg_restore, psql = (str(Path(pg_dump).with_name(name)) for name in ("pg_restore", "psql"))
     if major < db.info.server_version // 10000 or not Path(psql).exists():

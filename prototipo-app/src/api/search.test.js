@@ -102,7 +102,7 @@ describe('tiendas, restaurantes y lo de antes de escribir', () => {
     expect(result.whimAllowed).toBe(false)
   })
 
-  test('sin resultados, la API dice si se puede ofrecer «Lo que sea»', async () => {
+  test('sin resultados, la API dice si se puede ofrecer "Lo que sea"', async () => {
     stubApi({ '/search': fixture('search-grouped-unmet') })
     expect((await searchAll('xyzzy')).whimAllowed).toBe(true)
   })

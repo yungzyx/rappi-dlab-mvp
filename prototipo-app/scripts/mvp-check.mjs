@@ -1,35 +1,35 @@
 // Revisa en un Chrome real que la app del MVP responda como debe (lo corre scripts/mvp-check.sh con `make mvp-check`).
 // Uso: node scripts/mvp-check.mjs --app http://localhost:5184 [--api http://localhost:8010] [--shop | --kit | --ask | --follow | --home | --combo | --expect-offline | --panel http://localhost:5185]
-//   sin banderas: la app abre en la Home conectada, con la barra «Busca o pídele ideas a <agente>» y el aviso de privacidad
-//     de la primera visita (que se cierra con «Entendido»);
+//   sin banderas: la app abre en la Home conectada, con la barra "Busca o pídele ideas a <agente>" y el aviso de privacidad
+//     de la primera visita (que se cierra con "Entendido");
 //   con --shop: Home → vertical Súper → primera tienda → agregar un producto → carrito → pagar, y la API recibe el
 //     pedido (que después verifica scripts/mvp-check.sh en la base de prueba). Al pagar (aquí y en --kit y --combo)
-//     completa la compra mínima de cada tienda, confirma la edad si hay algo +18 y espera la ventana de «Deshacer
-//     pedido» (payOrder);
-//   con --kit: busca «cerveza» en el buscador con Mochi (ve la búsqueda agrupada por vertical), vuelve a la Home, elige
-//     la ocasión «Carrete», agrega el kit que arma Mochi (`plan`) y paga; scripts/mvp-check.sh verifica después en la base
+//     completa la compra mínima de cada tienda, confirma la edad si hay algo +18 y espera la ventana de "Deshacer
+//     pedido" (payOrder);
+//   con --kit: busca "cerveza" en el buscador con Mochi (ve la búsqueda agrupada por vertical), vuelve a la Home, elige
+//     la ocasión "Carrete", agrega el kit que arma Mochi (`plan`) y paga; scripts/mvp-check.sh verifica después en la base
 //     de prueba que el pedido tiene líneas sembradas y al menos una aceptación `agent-plan`;
-//   con --ask: pedirle algo a Mochi en texto libre. En el buscador con Mochi escribe «¿qué es un completo?»: la primera
-//     fila es «Pídele a <agente>», resaltada; Enter se lo pide y la tarjeta de Mochi muestra «Pediste «…»», la
-//     ficha del plato y el completo del catálogo de prueba. Después «mi hijo tiene fiebre, ¿qué le doy?»: Mochi no da
-//     consejo médico, nombra al químico farmacéutico y ofrece «Ir a Farmacia», sin productos;
-//   con --follow: refinar la respuesta de Mochi con chips (sin chat). Pregunta «¿tienen pizza?» y toca «Más barato»
-//     debajo de la respuesta: la tarjeta dice «Pediste «¿tienen pizza?» · «más barato»», «Lo más barato de…» y la pizza
-//     más barata del catálogo de prueba va primero. Después toca «Otra opción»: ya vio las dos, y Mochi lo dice («No
-//     encontré otras opciones de…») en vez de repetirlas. No hay ningún campo para escribirle aparte del buscador;
+//   con --ask: pedirle algo a Mochi en texto libre. En el buscador con Mochi escribe "¿qué es un completo?": la primera
+//     fila es "Pídele a <agente>", resaltada; Enter se lo pide y la tarjeta de Mochi muestra "Pediste '…'", la
+//     ficha del plato y el completo del catálogo de prueba. Después "mi hijo tiene fiebre, ¿qué le doy?": Mochi no da
+//     consejo médico, nombra al químico farmacéutico y ofrece "Ir a Farmacia", sin productos;
+//   con --follow: refinar la respuesta de Mochi con chips (sin chat). Pregunta "¿tienen pizza?" y toca "Más barato"
+//     debajo de la respuesta: la tarjeta dice "Pediste '¿tienen pizza?' · 'más barato'", "Lo más barato de…" y la pizza
+//     más barata del catálogo de prueba va primero. Después toca "Otra opción": ya vio las dos, y Mochi lo dice ("No
+//     encontré otras opciones de…") en vez de repetirlas. No hay ningún campo para escribirle aparte del buscador;
 //   con --home: Home dinámica. Una persona nueva ve los 6 accesos en el orden fijo, con Lealtad y Beneficios Pro al final y
-//     sin el texto «Ordenadas según lo que más usas»; toca «Rappi Mall» tres veces, volviendo a la Home cada
+//     sin el texto "Ordenadas según lo que más usas"; toca "Rappi Mall" tres veces, volviendo a la Home cada
 //     vez, espera a que la API acepte los toques (`vertical_open`; al volver a la Home la app los manda y vuelve a pedir
 //     el orden) y, sin recargar, Rappi Mall queda primero y el texto aparece;
 //   con --combo: combinación de verticales. Una persona nueva pide en Restaurantes (Home → Restaurantes → primer
 //     restaurante → agregar un plato → pagar), vuelve a la Home y toca a Mochi: la oferta es de Turbo (el siguiente peldaño
-//     de la escalera desde Restaurantes, según la tabla de Rappi) y su «¿Por qué?» muestra la razón. Solo se mira la
+//     de la escalera desde Restaurantes, según la tabla de Rappi) y su "¿Por qué?" muestra la razón. Solo se mira la
 //     vertical y que haya una razón: el texto exacto depende de lo que haya aprendido el motor;
-//   con --expect-offline: la API está detenida y la app muestra «Sin conexión con <agente>»;
+//   con --expect-offline: la API está detenida y la app muestra "Sin conexión con <agente>";
 //   con --panel <url del panel> (sin --app): corre después de las demás, con la API en marcha. Espera a que la API ya
-//     cuente lo que dejó el kit (una oferta aceptada en «Plan»), abre el panel en «Mochi y búsquedas» con la fuente
-//     del prototipo y ve esa cifra en «Ofertas del agente por momento», con el rótulo «uso del MVP, pocas personas: no
-//     es evidencia» y sin el aviso de datos guardados (que taparía una API que no responde).
+//     cuente lo que dejó el kit (una oferta aceptada en "Plan"), abre el panel en "Mochi y búsquedas" con la fuente
+//     del prototipo y ve esa cifra en "Ofertas del agente por momento", con el rótulo "uso del MVP, pocas personas: no
+//     es evidencia" y sin el aviso de datos guardados (que taparía una API que no responde).
 // Con la API en marcha (sin --expect-offline) también falla ante un error de la página o de la consola, o una respuesta
 // 4xx/5xx, desde la primera carga; solo se ignoran las imágenes del catálogo de prueba, que no existen.
 // Sale con 0 si la revisión pasa y con 1 si no. Usa el Chrome instalado (playwright-core, sin descargar navegadores);
@@ -50,7 +50,7 @@ const TIMEOUT_MS = 20_000 // la barra rota tres frases cada 3,2 s: la de Mochi t
 /** Qué dice la página ahora: ayuda a entender por qué falló una espera. */
 async function pageSays(page) {
   const text = await page.evaluate(() => document.body.innerText.replace(/\s+/g, ' ').trim())
-  return text ? `la página dice «${text.slice(0, 120)}»` : 'la página está en blanco'
+  return text ? `la página dice "${text.slice(0, 120)}"` : 'la página está en blanco'
 }
 
 async function checkOnline(page) {
@@ -58,10 +58,10 @@ async function checkOnline(page) {
   try {
     await bar.waitFor({ timeout: TIMEOUT_MS })
   } catch {
-    throw new Error(`no apareció la barra «${HOME_HINT}»: ${await pageSays(page)}`)
+    throw new Error(`no apareció la barra "${HOME_HINT}": ${await pageSays(page)}`)
   }
   if ((await page.getByRole('heading', { name: OFFLINE_TITLE }).count()) > 0) {
-    throw new Error(`apareció «${OFFLINE_TITLE}» con la API en marcha`)
+    throw new Error(`apareció "${OFFLINE_TITLE}" con la API en marcha`)
   }
   // Una persona nueva ve el aviso de privacidad (qué se guarda y cómo borrarlo); se cierra para que no tape el resto.
   const notice = page.getByRole('region', { name: 'Privacidad' })
@@ -71,7 +71,7 @@ async function checkOnline(page) {
     throw new Error(`la primera visita no mostró el aviso de privacidad: ${await pageSays(page)}`)
   }
   await notice.getByRole('button', { name: 'Entendido' }).click()
-  return `la Home abre con la barra «${HOME_HINT}» y el aviso de privacidad`
+  return `la Home abre con la barra "${HOME_HINT}" y el aviso de privacidad`
 }
 
 /**
@@ -96,9 +96,9 @@ function watchProblems(page) {
 }
 
 /**
- * En el checkout: completa la compra mínima de cada tienda que no llega («Te faltan $X para hacer el pedido»: suma
- * unidades del primer producto de esa canasta), marca la receta si hay Farmacia, toca «Hacer pedido», responde
- * «¿Eres mayor de edad?» si hay algo +18 y espera a que, pasada la ventana de «Deshacer pedido», la API reciba los
+ * En el checkout: completa la compra mínima de cada tienda que no llega ("Te faltan $X para hacer el pedido": suma
+ * unidades del primer producto de esa canasta), marca la receta si hay Farmacia, toca "Hacer pedido", responde
+ * "¿Eres mayor de edad?" si hay algo +18 y espera a que, pasada la ventana de "Deshacer pedido", la API reciba los
  * pedidos (uno por tienda).
  */
 async function payOrder(page) {
@@ -119,7 +119,7 @@ async function payOrder(page) {
   const prescription = page.getByLabel(/Tengo la receta médica/)
   if (await prescription.count()) await step(page, 'marcar la receta', () => prescription.check())
   const posted = page.waitForResponse((r) => r.request().method() === 'POST' && new URL(r.url()).pathname === '/orders')
-  await step(page, 'tocar «Hacer pedido»', () => place.click())
+  await step(page, 'tocar "Hacer pedido"', () => place.click())
   // Con algo +18 aparece la pregunta de la edad (una vez por sesión); si no aparece, el pedido ya va en camino.
   const adult = page.getByRole('button', { name: 'Sí, soy mayor de edad' })
   if (
@@ -152,7 +152,7 @@ async function checkShop(page) {
     await heading.waitFor()
     return heading.innerText()
   })
-  // Solo los productos: el corazón de favoritos también empieza con «Agregar».
+  // Solo los productos: el corazón de favoritos también empieza con "Agregar".
   const product = page
     .getByRole('listitem')
     .getByRole('button', { name: /^Agregar / })
@@ -162,18 +162,18 @@ async function checkShop(page) {
   await step(page, 'abrir el carrito', () => page.getByRole('button', { name: /Ver carro/ }).click())
   await step(page, 'ir a pagar', () => page.getByRole('button', { name: 'Ir a pagar' }).click())
   await payOrder(page)
-  return `compró en «${store}» y la API aceptó el pedido`
+  return `compró en "${store}" y la API aceptó el pedido`
 }
 
 /**
- * Busca «cerveza» con Mochi (grupos por vertical), pide el kit de «Carrete» en la Home, lo agrega y paga. Los textos son
+ * Busca "cerveza" con Mochi (grupos por vertical), pide el kit de "Carrete" en la Home, lo agrega y paga. Los textos son
  * los de la app (Buscador con Mochi, Plan de hoy, Agregar el kit, Ir a pagar, Hacer pedido).
  */
 async function checkKit(page) {
   await checkOnline(page)
   await step(page, 'abrir el buscador con Mochi', () => page.locator('.smart-bar').first().click())
   const panel = page.getByRole('dialog', { name: SEARCH_DIALOG })
-  await step(page, 'escribir «cerveza»', () =>
+  await step(page, 'escribir "cerveza"', () =>
     panel.getByRole('searchbox', { name: 'Buscar en Rappi' }).fill('cerveza'),
   )
   const groups = panel.locator('section[aria-labelledby] > h2')
@@ -186,10 +186,10 @@ async function checkKit(page) {
       .waitFor()
     return groups.count()
   })
-  if (found < 2) throw new Error(`«cerveza» salió en ${found} grupo(s) y se esperaban al menos 2`)
+  if (found < 2) throw new Error(`"cerveza" salió en ${found} grupo(s) y se esperaban al menos 2`)
   await step(page, 'cerrar el buscador', () => panel.locator('.search-back').click())
   await step(page, 'ver que el buscador se cerró', () => panel.waitFor({ state: 'detached' }))
-  await step(page, 'elegir la ocasión «Carrete»', () => page.getByRole('radio', { name: /Carrete/ }).click())
+  await step(page, 'elegir la ocasión "Carrete"', () => page.getByRole('radio', { name: /Carrete/ }).click())
   await step(page, 'ver el kit de Mochi', () => page.locator('.live-kit-meta').waitFor())
   // Agregar el kit registra una aceptación por producto; la app las manda en lotes cada 5 s.
   const accepted = page.waitForResponse(
@@ -206,7 +206,7 @@ async function checkKit(page) {
   await accepted.catch(() => {
     throw new Error('la app no registró la aceptación del kit (POST /events con suggestion_accepted)')
   })
-  return `buscó «cerveza» (${found} grupos), pidió el kit «Carrete», lo agregó y la API aceptó el pedido`
+  return `buscó "cerveza" (${found} grupos), pidió el kit "Carrete", lo agregó y la API aceptó el pedido`
 }
 
 /**
@@ -219,11 +219,11 @@ async function checkAsk(page) {
   const panel = page.getByRole('dialog', { name: SEARCH_DIALOG })
   const field = panel.getByRole('searchbox', { name: 'Buscar en Rappi' })
   const ask = async (question) => {
-    await step(page, `escribir «${question}»`, () => field.fill(question))
-    const row = panel.getByRole('button', { name: `Pídele a ${AGENT_NAME}: «${question}»` })
-    await step(page, `ver «Pídele a ${AGENT_NAME}» resaltada`, () => row.and(panel.locator('.is-question')).waitFor())
+    await step(page, `escribir "${question}"`, () => field.fill(question))
+    const row = panel.getByRole('button', { name: `Pídele a ${AGENT_NAME}: "${question}"` })
+    await step(page, `ver "Pídele a ${AGENT_NAME}" resaltada`, () => row.and(panel.locator('.is-question')).waitFor())
     await step(page, 'pedírselo con Enter', () => field.press('Enter'))
-    await step(page, `ver «Pediste «${question}»»`, () => panel.getByText(`Pediste «${question}»`).waitFor())
+    await step(page, `ver "Pediste '${question}'"`, () => panel.getByText(`Pediste "${question}"`).waitFor())
   }
   await ask('¿qué es un completo?')
   await step(page, 'ver la ficha del completo', () =>
@@ -245,8 +245,8 @@ async function checkAsk(page) {
       .getByText(/químico farmacéutico/)
       .waitFor(),
   )
-  await step(page, 'ver «Ir a Farmacia»', () => panel.getByRole('button', { name: 'Ir a Farmacia' }).waitFor())
-  return 'preguntó «¿qué es un completo?» (ficha y producto) y una duda de salud (sin consejo médico, «Ir a Farmacia»)'
+  await step(page, 'ver "Ir a Farmacia"', () => panel.getByRole('button', { name: 'Ir a Farmacia' }).waitFor())
+  return 'preguntó "¿qué es un completo?" (ficha y producto) y una duda de salud (sin consejo médico, "Ir a Farmacia")'
 }
 
 async function checkFollow(page) {
@@ -255,37 +255,37 @@ async function checkFollow(page) {
   const panel = page.getByRole('dialog', { name: SEARCH_DIALOG })
   const field = panel.getByRole('searchbox', { name: 'Buscar en Rappi' })
   const bubble = (text) => panel.locator('.agent-msg-bubble').getByText(text).waitFor()
-  await step(page, 'escribir «¿tienen pizza?»', () => field.fill('¿tienen pizza?'))
+  await step(page, 'escribir "¿tienen pizza?"', () => field.fill('¿tienen pizza?'))
   await step(page, 'preguntar con Enter', () => field.press('Enter'))
   await step(page, 'ver la respuesta con pizzas', () => bubble(/pizza/i))
-  await step(page, 'tocar «Más barato»', () => panel.getByRole('button', { name: 'Más barato' }).click())
+  await step(page, 'tocar "Más barato"', () => panel.getByRole('button', { name: 'Más barato' }).click())
   await step(page, 'ver lo dicho en la conversación', () =>
-    panel.getByText('Pediste «¿tienen pizza?» · «más barato»').waitFor(),
+    panel.getByText('Pediste "¿tienen pizza?" · "más barato"').waitFor(),
   )
-  await step(page, 'ver «Lo más barato de…»', () => bubble(/^Lo más barato de .*pizza/))
+  await step(page, 'ver "Lo más barato de…"', () => bubble(/^Lo más barato de .*pizza/))
   await step(page, 'ver primero la pizza más barata', async () => {
     await panel
       .locator('.agent-msg-bubble')
       .getByText(/^Lo más barato/)
       .waitFor()
     const first = (await panel.locator('.agent-msg-product-name').first().textContent()) ?? ''
-    if (!first.startsWith('Pizza margarita mediana')) throw new Error(`la primera es «${first}»`)
+    if (!first.startsWith('Pizza margarita mediana')) throw new Error(`la primera es "${first}"`)
   })
   await step(page, 'ver que no hay otro campo para escribirle', async () => {
     const fields = await panel.locator('input, textarea, [contenteditable]').count()
     if (fields !== 1) throw new Error(`hay ${fields} campos de texto en el panel`)
   })
-  await step(page, 'tocar «Otra opción»', () => panel.getByRole('button', { name: 'Otra opción' }).click())
+  await step(page, 'tocar "Otra opción"', () => panel.getByRole('button', { name: 'Otra opción' }).click())
   await step(page, 'ver que no repite lo que ya mostró', () => bubble(/^No encontré otras opciones de .*pizza/))
-  return 'preguntó «¿tienen pizza?», tocó «Más barato» (la más barata primero) y «Otra opción» (sin repetir)'
+  return 'preguntó "¿tienen pizza?", tocó "Más barato" (la más barata primero) y "Otra opción" (sin repetir)'
 }
 
 /** Cuánto se espera a que Mochi termine de saludar y responda a un toque. */
 const COMBO_WAIT_MS = 25_000
 
 /**
- * Combinación de verticales: pide en Restaurantes y, al volver a la Home, Mochi propone Turbo con su «¿Por qué?».
- * Los textos son los de la app (Restaurantes, Ver carro, Hacer pedido, «¿Por qué?»). Tras pagar se recarga la app y se
+ * Combinación de verticales: pide en Restaurantes y, al volver a la Home, Mochi propone Turbo con su "¿Por qué?".
+ * Los textos son los de la app (Restaurantes, Ver carro, Hacer pedido, "¿Por qué?"). Tras pagar se recarga la app y se
  * vuelve al inicio: la Home se monta de nuevo con la misma persona (su identificador queda en el navegador) y Mochi
  * saluda; tocarlo antes de que termine no hace nada, así que se vuelve a tocar hasta que responda.
  */
@@ -313,7 +313,7 @@ async function checkCombo(page) {
   await payOrder(page)
 
   await page.reload({ timeout: TIMEOUT_MS })
-  // La app vuelve a donde estaba (el seguimiento del pedido): «Volver al inicio» o la flecha de atrás, las veces que haga falta, llevan a la Home.
+  // La app vuelve a donde estaba (el seguimiento del pedido): "Volver al inicio" o la flecha de atrás, las veces que haga falta, llevan a la Home.
   const home = page.locator('.home-shortcut').first()
   await step(page, 'volver a la Home desde el seguimiento', async () => {
     const leave = page.getByRole('button', { name: 'Volver al inicio' }).or(page.locator('[aria-label="Volver"]'))
@@ -334,19 +334,19 @@ async function checkCombo(page) {
     await mochi.click({ timeout: 2000 }).catch(() => {}) // aún entra a escena o saluda
     await page.waitForTimeout(1000)
   }
-  await step(page, 'ver la oferta de Mochi con su «¿Por qué?»', () => why.first().waitFor({ timeout: 2000 }))
+  await step(page, 'ver la oferta de Mochi con su "¿Por qué?"', () => why.first().waitFor({ timeout: 2000 }))
   const proposal = await step(page, 'leer la oferta de Mochi', () =>
     page.locator('.live-bubble p[aria-hidden="true"]').first().innerText(),
   )
-  if (!/Turbo/.test(proposal)) throw new Error(`pidió en Restaurantes y Mochi propuso «${proposal}», no Turbo`)
-  await step(page, 'abrir el «¿Por qué?»', () => why.first().click())
+  if (!/Turbo/.test(proposal)) throw new Error(`pidió en Restaurantes y Mochi propuso "${proposal}", no Turbo`)
+  await step(page, 'abrir el "¿Por qué?"', () => why.first().click())
   const reason = await step(page, 'leer la razón', async () => {
     const text = page.locator('.offer-why-text').first()
     await text.waitFor()
     return (await text.innerText()).trim()
   })
-  if (!reason) throw new Error('el «¿Por qué?» no muestra ninguna razón')
-  return `pidió en «${restaurant}» (Restaurantes) y Mochi propuso Turbo: «${proposal}»; razón: «${reason}»`
+  if (!reason) throw new Error('el "¿Por qué?" no muestra ninguna razón')
+  return `pidió en "${restaurant}" (Restaurantes) y Mochi propuso Turbo: "${proposal}"; razón: "${reason}"`
 }
 
 const ORDER_CAPTION = 'Ordenadas según lo que más usas'
@@ -372,7 +372,7 @@ async function checkHome(page) {
   if (before.slice(-2).join() !== TAIL_LABELS.join())
     throw new Error(`la fila debe terminar en ${TAIL_LABELS.join(' y ')} y termina en ${before.slice(-2).join(' y ')}`)
   if ((await page.getByText(ORDER_CAPTION).count()) > 0)
-    throw new Error(`una persona nueva ve «${ORDER_CAPTION}» sin historial`)
+    throw new Error(`una persona nueva ve "${ORDER_CAPTION}" sin historial`)
 
   let opens = 0
   page.on('response', (response) => {
@@ -381,7 +381,7 @@ async function checkHome(page) {
       opens += (request.postData() ?? '').split('"vertical_open"').length - 1
   })
   for (let tap = 1; tap <= 3; tap++) {
-    await step(page, `tocar «Rappi Mall» (${tap} de 3)`, () =>
+    await step(page, `tocar "Rappi Mall" (${tap} de 3)`, () =>
       page.locator('.home-shortcut', { hasText: 'Rappi Mall' }).first().click(),
     )
     await step(page, 'volver a la Home', () => page.locator('[aria-label="Volver"]').first().click())
@@ -391,12 +391,12 @@ async function checkHome(page) {
   while (opens < 3 && Date.now() < deadline) await new Promise((resolve) => setTimeout(resolve, 250))
   if (opens < 3) throw new Error(`la API aceptó ${opens} de 3 toques (POST /events con vertical_open) tras 30 s`)
 
-  await step(page, `ver el texto «${ORDER_CAPTION}»`, () => page.getByText(ORDER_CAPTION).waitFor())
+  await step(page, `ver el texto "${ORDER_CAPTION}"`, () => page.getByText(ORDER_CAPTION).waitFor())
   const after = await shortcutLabels(page)
-  if (after[0] !== 'Rappi Mall') throw new Error(`tras tocar Rappi Mall 3 veces el primero es «${after[0]}»`)
+  if (after[0] !== 'Rappi Mall') throw new Error(`tras tocar Rappi Mall 3 veces el primero es "${after[0]}"`)
   if (after.slice(-2).join() !== TAIL_LABELS.join())
     throw new Error(`con el orden personal, la fila debe terminar en ${TAIL_LABELS.join(' y ')}`)
-  return `orden fijo sin historial; tras 3 toques a Rappi Mall queda primero (${after.slice(0, 3).join(', ')}…) con el texto «${ORDER_CAPTION}»`
+  return `orden fijo sin historial; tras 3 toques a Rappi Mall queda primero (${after.slice(0, 3).join(', ')}…) con el texto "${ORDER_CAPTION}"`
 }
 
 /** Cuánto se espera a que la API cuente los eventos de las revisiones anteriores (la app los manda en lotes cada 5 s). */
@@ -427,31 +427,31 @@ async function waitForMetric(api, name, ready, missing) {
   )
 }
 
-/** Abre «Mochi y búsquedas» del panel con los datos del prototipo y ve lo que dejaron las revisiones anteriores. */
+/** Abre "Mochi y búsquedas" del panel con los datos del prototipo y ve lo que dejaron las revisiones anteriores. */
 async function checkPanel(page, panel, api) {
   const plan = await waitForMetric(
     api,
     'offers',
     (data) => data.momentos.some((row) => row.momento === 'plan' && row.aceptadas >= 1),
-    'una oferta aceptada del kit en «Plan»',
+    'una oferta aceptada del kit en "Plan"',
   )
   await page.goto(`${panel}/?vista=mochi&fuente=prototipo`, { timeout: TIMEOUT_MS })
   const offers = page.getByRole('table', { name: 'Ofertas del agente por momento' })
-  await step(page, 'ver la tabla «Ofertas del agente por momento»', () => offers.waitFor())
-  const accepted = await step(page, 'leer las ofertas aceptadas de «Plan»', async () => {
+  await step(page, 'ver la tabla "Ofertas del agente por momento"', () => offers.waitFor())
+  const accepted = await step(page, 'leer las ofertas aceptadas de "Plan"', async () => {
     const row = offers.getByRole('row', { name: /^Plan / })
     await row.waitFor()
     return Number((await row.getByRole('cell').nth(2).innerText()).replace(/\D/g, ''))
   })
-  if (!(accepted >= 1)) throw new Error(`«Plan» muestra ${accepted} aceptadas y se esperaba al menos 1`)
-  const notes = await step(page, `ver el rótulo «${NOT_EVIDENCE}»`, async () => {
+  if (!(accepted >= 1)) throw new Error(`"Plan" muestra ${accepted} aceptadas y se esperaba al menos 1`)
+  const notes = await step(page, `ver el rótulo "${NOT_EVIDENCE}"`, async () => {
     await page.getByText(NOT_EVIDENCE).first().waitFor()
     return page.getByText(NOT_EVIDENCE).count()
   })
   // Los datos guardados tienen la misma forma: si la API no contestó, el panel los muestra y este recorrido no probaría nada.
   if ((await page.getByText('Modo sin conexión (datos guardados):').count()) > 0)
     throw new Error('el panel mostró datos guardados en vez de los de la API')
-  return `el panel muestra «Plan» con ${accepted} aceptada(s) (la API: ${plan.momentos.length} momento(s)) y ${notes} rótulos «${NOT_EVIDENCE}»`
+  return `el panel muestra "Plan" con ${accepted} aceptada(s) (la API: ${plan.momentos.length} momento(s)) y ${notes} rótulos "${NOT_EVIDENCE}"`
 }
 
 /** Un paso del recorrido: si falla, dice cuál era y qué mostraba la página. */
@@ -467,10 +467,10 @@ async function checkOffline(page) {
   try {
     await page.getByRole('heading', { name: OFFLINE_TITLE }).waitFor({ timeout: TIMEOUT_MS })
   } catch {
-    throw new Error(`no apareció «${OFFLINE_TITLE}»: ${await pageSays(page)}`)
+    throw new Error(`no apareció "${OFFLINE_TITLE}": ${await pageSays(page)}`)
   }
   if ((await page.locator('.smart-bar').count()) > 0) throw new Error('la Home se montó sin API')
-  return `la app muestra «${OFFLINE_TITLE}»`
+  return `la app muestra "${OFFLINE_TITLE}"`
 }
 
 const { values } = parseArgs({

@@ -49,7 +49,7 @@ describe('storeHours', () => {
     expect(hoursLabel(null)).toBeNull()
   })
 
-  test('la promo de la tarjeta es la primera publicada, o «Con promociones» en un restaurante', () => {
+  test('la promo de la tarjeta es la primera publicada, o "Con promociones" en un restaurante', () => {
     expect(promoLabel({ promos: [{ title: '10% OFF' }, { title: 'otra' }] })).toBe('10% OFF')
     expect(promoLabel({ promos: [], promo: true })).toBe('Con promociones')
     expect(promoLabel({ promos: [] })).toBeNull()

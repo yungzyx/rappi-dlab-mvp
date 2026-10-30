@@ -370,7 +370,7 @@ def test_old_pid_lock_of_a_running_weekly_blocks(tmp_path, shell):
 
 
 def test_a_skipped_run_is_not_reported_as_a_success(tmp_path, shell):
-    # Otra descarga en curso, lanzada a mano: el script no debe correr ni anotar «exit=0» a secas.
+    # Otra descarga en curso, lanzada a mano: el script no debe correr ni anotar "exit=0" a secas.
     project = _project(tmp_path, "exit 0", other_download_running=True)
 
     result = _run(project, shell)
@@ -440,7 +440,7 @@ def test_a_failed_migration_stops_before_downloading(tmp_path, shell):
 @pytest.mark.parametrize(
     ("code", "exit_code", "ai_layer_runs", "note"),
     [
-        # Solo falló el respaldo: la capa de IA corre igual, pero no queda como «exit=0» a secas (quedan los respaldos
+        # Solo falló el respaldo: la capa de IA corre igual, pero no queda como "exit=0" a secas (quedan los respaldos
         # anteriores y nadie notaría que el más nuevo tiene semanas).
         (3, 0, True, " (respaldo fallido: se conservan los anteriores)"),
         # Posible bloqueo: no es un fallo cualquiera; la línea lo dice y no sigue con la IA.

@@ -35,8 +35,8 @@ REQUEST_WORDS = {
     "unos",
     "unas",
 }
-# Muletillas de quien escribe como habla («eh quiero este una coca»): solo las salta la corrección de errores de tipeo
-# (retrieval/spelling.py), que corre cuando la búsqueda queda «sin resultado». «este» y «pues» también son palabras.
+# Muletillas de quien escribe como habla ("eh quiero este una coca"): solo las salta la corrección de errores de tipeo
+# (retrieval/spelling.py), que corre cuando la búsqueda queda "sin resultado". "este" y "pues" también son palabras.
 MUTTER_WORDS = {"eh", "ehh", "ehm", "em", "emm", "mm", "mmm", "este", "oye", "po", "pos", "pues", "osea"}
 FILLER_WORDS = frozenset(GREETING_WORDS | THANKS_WORDS | REQUEST_WORDS)
 
@@ -52,13 +52,13 @@ def tokens(text: str) -> list[str]:
     return normalize(text).split()
 
 
-# Solo el artículo en minúscula y entero: «de El Bodegón» (un nombre propio) y «de elote» se quedan como están.
+# Solo el artículo en minúscula y entero: "de El Bodegón" (un nombre propio) y "de elote" se quedan como están.
 _CONTRACTION = re.compile(r"\b(de|a) el\b")
 
 
 def contract_articles(text: str) -> str:
-    """«de el súper» → «del súper» y «a el súper» → «al súper»: las plantillas interpolan etiquetas como «el súper»
-    después de «de» o «a»."""
+    """ "de el súper" → "del súper" y "a el súper" → "al súper": las plantillas interpolan etiquetas como "el súper"
+    después de "de" o "a"."""
     return _CONTRACTION.sub(lambda m: "del" if m.group(1) == "de" else "al", text)
 
 
@@ -68,8 +68,8 @@ def assistant_words() -> frozenset[str]:
     return frozenset({normalize(config.AGENT_NAME)})
 
 
-# Desde aquí el prospecto de un medicamento ya no dice para qué sirve: «consulte si presenta fiebre» no vuelve
-# antipirético a un laxante, ni «puede contener trazas de maní» a un producto «sin maní».
+# Desde aquí el prospecto de un medicamento ya no dice para qué sirve: "consulte si presenta fiebre" no vuelve
+# antipirético a un laxante, ni "puede contener trazas de maní" a un producto "sin maní".
 LEAFLET_WARNINGS = re.compile(
     r"\b(?:advertencias?|contraindicaciones|precauciones|efectos (?:adversos|secundarios)|reacciones adversas"
     r"|sobredosis|interacciones|como debo usar|posologia)\b"

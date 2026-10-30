@@ -105,7 +105,7 @@ _NOT_CANCELLED = """NOT (e.type = 'order_placed' AND EXISTS (
 
 # Embudo (ver funnel()): una fila por sesión y vertical; la entrada se mira en toda la sesión.
 _FUNNEL = f"""
-entry AS (  -- buscó, chateó, navegó, aceptó una sugerencia o agregó desde una lista (el «+» solo manda cart_add),
+entry AS (  -- buscó, chateó, navegó, aceptó una sugerencia o agregó desde una lista (el "+" solo manda cart_add),
             -- en cualquier vertical (o sin vertical)
     SELECT DISTINCT session_id FROM app_events
     WHERE source = %(source)s
@@ -475,8 +475,8 @@ def services(conn: Connection, source: str = "synthetic") -> list[dict]:
     ]
 
 
-# Momentos de las ofertas del agente, en el orden del panel. «pregunta» = lo que sugiere al preguntarle; «para_ti» =
-# la sección "Para ti"; «sin_momento» = sin origen o con uno desconocido (las sugerencias cruzadas simuladas no lo
+# Momentos de las ofertas del agente, en el orden del panel. "pregunta" = lo que sugiere al preguntarle; "para_ti" =
+# la sección "Para ti"; "sin_momento" = sin origen o con uno desconocido (las sugerencias cruzadas simuladas no lo
 # traen): se cuentan aparte en vez de perderse.
 OFFER_MOMENTS = (
     "plan",
@@ -500,7 +500,7 @@ def offers(conn: Connection, source: str = "synthetic") -> dict:
     `agent-<momento>` es el origen actual; `mochi-<momento>` y `chat` son nombres históricos que siguen en la base.
     Los servicios (RappiTravel, RappiFavor) tienen su propia vista y el aviso sobre el carro no es una oferta: no
     entran. El % de aceptación necesita 10 mostradas, como en `suggestions`. `autopedidos` cuenta aparte los pedidos
-    que Mochi hizo solo con permiso («Pedir por mí»): `{pedidos, personas}`.
+    que Mochi hizo solo con permiso ("Pedir por mí"): `{pedidos, personas}`.
     """
     _check(source)
     params = {
@@ -512,7 +512,7 @@ def offers(conn: Connection, source: str = "synthetic") -> dict:
     shown = """WITH e AS (
                    SELECT user_id, type,
                           CASE WHEN origen IN ('agent-ask', 'chat') THEN 'pregunta'  -- 'chat': nombre histórico
-                               -- 'para-ti-local' y 'vertical-para-ti': nombres históricos de «Para ti»
+                               -- 'para-ti-local' y 'vertical-para-ti': nombres históricos de "Para ti"
                                WHEN origen IN ('para-ti', 'para-ti-local', 'vertical-para-ti') THEN 'para_ti'
                                -- 'mochi-<momento>': nombre histórico de 'agent-<momento>'
                                WHEN left(origen, 6) IN ('agent-', 'mochi-') AND substr(origen, 7) = ANY(%(moments)s)
@@ -535,7 +535,7 @@ def offers(conn: Connection, source: str = "synthetic") -> dict:
         params,
     )
     row["momentos"].sort(key=lambda m: OFFER_ORDER.index(m["momento"]))
-    # Los pedidos que Mochi hizo solo, con permiso («Pedir por mí», offers/autonomy.py), aparte: no son ofertas
+    # Los pedidos que Mochi hizo solo, con permiso ("Pedir por mí", offers/autonomy.py), aparte: no son ofertas
     # aceptadas. Su `order_placed` lleva el origen `agent-autopedido`.
     [auto] = _rows(
         conn,
@@ -548,7 +548,7 @@ def offers(conn: Connection, source: str = "synthetic") -> dict:
 
 
 def winback(conn: Connection, source: str = "synthetic") -> dict:
-    """«¿Volvemos a…?»: a cuántas personas de la fuente les tocaría, por el tipo de su primera invitación (un concepto
+    """ "¿Volvemos a…?": a cuántas personas de la fuente les tocaría, por el tipo de su primera invitación (un concepto
     o una vertical que dejó), y a cuántas la recompra, el día de referencia (`offers.winback.reach`: el último pedido
     simulado, u hoy en el prototipo; `dia` solo en simulados). Es quién califica, no a quién se le mostró; con datos
     simulados no es evidencia."""
@@ -601,7 +601,7 @@ def _rappi_row(row) -> dict:
 
 
 def combos(conn: Connection, source: str = "synthetic") -> dict:
-    """La tabla de Rappi («verticales usados juntos», `motor/combos.toml`) junto a la misma tabla medida con los datos
+    """La tabla de Rappi ("verticales usados juntos", `motor/combos.toml`) junto a la misma tabla medida con los datos
     de la fuente (`combo_stats`, de la última corrida del motor). La de Rappi es un dato compartido por su equipo y no
     depende de la fuente; la propia sí, y lleva su rótulo en `nota`. La retención propia solo se entrega con
     `MIN_COMBO_RETENTION_N` meses que tengan el siguiente completo. Es una correlación, no un efecto.
@@ -685,7 +685,7 @@ def motor(conn: Connection, source: str = "synthetic") -> dict | None:
 
 
 def home(conn: Connection, source: str = "synthetic") -> dict:
-    """Toques de los accesos de la Home (`vertical_open`) por vertical: personas y toques. «Rappi hoy»
+    """Toques de los accesos de la Home (`vertical_open`) por vertical: personas y toques. "Rappi hoy"
     (`payload.mode = 'actual'`) no cuenta, como en todo lo que aprende el motor, ni los servicios sin catálogo."""
     _check(source)
     taps = """FROM app_events
@@ -706,8 +706,8 @@ def presence(conn: Connection, source: str = "synthetic") -> dict:
     personas activas (algún evento), cuántas lo tienen oculto (su último `agent_visibility`, de cuando sea, es
     `visible: false`) y qué % son; cuántas veces lo ocultaron y cuántas personas lo trajeron de vuelta (algún
     `visible: true`); y cuántas veces explicó por qué movió los accesos de la Home (`vertical_reorder_shown`), a cuántas
-    personas. La app no anota «¿Por qué?» ni «Entendido» del globo: no se cuentan. Cambiar de persona en la demo,
-    «Repetir escena» o «Borrar mis datos» lo devuelven sin evento: «oculto» es el último cambio que hizo la persona."""
+    personas. La app no anota "¿Por qué?" ni "Entendido" del globo: no se cuentan. Cambiar de persona en la demo,
+    "Repetir escena" o "Borrar mis datos" lo devuelven sin evento: "oculto" es el último cambio que hizo la persona."""
     _check(source)
     [row] = _rows(
         conn,

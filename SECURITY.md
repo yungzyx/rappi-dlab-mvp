@@ -25,7 +25,7 @@ Si encuentras una clave o un secreto en el repositorio o en su historial, avísa
 
 ## Datos
 
-- **Personas:** solo simuladas (`source = 'synthetic'`) o del prototipo (`'prototype'`, con id seudónimo del navegador y sin cuenta). Las consultas se guardan con los datos personales redactados (correo, RUT, tarjetas, teléfonos) y su texto se borra a los 90 días; la persona borra lo suyo con «Borrar mis datos».
+- **Personas:** solo simuladas (`source = 'synthetic'`) o del prototipo (`'prototype'`, con id seudónimo del navegador y sin cuenta). Las consultas se guardan con los datos personales redactados (correo, RUT, tarjetas, teléfonos) y su texto se borra a los 90 días; la persona borra lo suyo con "Borrar mis datos".
 - **Secretos:** solo se versionan los `.env.example`, y el CI revisa los archivos versionados con gitleaks. `API_SECRET`, las claves de la base, `ANTHROPIC_API_KEY`, `TYPESAFE_API_KEY` y las de restic viven en los `.env` locales o en `/etc/rappi/rappi.env` del servidor, nunca en git.
 - **Catálogo:** el contenido descargado de rappi.cl no se versiona; viaja en un respaldo de la base por un canal acordado.
 

@@ -66,7 +66,7 @@ export default defineConfig(({ mode }) => ({
   define: mode === 'demo' ? DEMO_ENV : {},
   // Sin imágenes embebidas en base64: los recortes pequeños inflaban el JS a ~500 kB.
   build: mode === 'demo' ? DEMO_BUILD : { assetsInlineLimit: 0 },
-  // Hora de Chile en las pruebas: «silenciar por hoy» usa la fecha local (CI corre en UTC).
+  // Hora de Chile en las pruebas: "silenciar por hoy" usa la fecha local (CI corre en UTC).
   test: {
     environment: 'jsdom',
     setupFiles: ['./src/test/setup.js'],

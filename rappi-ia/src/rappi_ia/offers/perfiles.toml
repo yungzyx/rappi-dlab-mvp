@@ -1,17 +1,17 @@
 # Perfiles de gusto: lo que la persona pide seguido (sus segmentos, concepts/segments.toml) arma un perfil, y cada
-# perfil tiene una escalera de verticales que el agente ofrece de a un peldaño, con su «¿Por qué?» y con «Olvidar».
+# perfil tiene una escalera de verticales que el agente ofrece de a un peldaño, con su "¿Por qué?" y con "Olvidar".
 # Agregar un perfil es escribir datos aquí, no código. offers/profiles.py los valida al cargar.
 #
 # - `principal = true`: va primero entre los perfiles de la persona (solo uno; hoy, el asiático).
 # - `segmentos`: ids de segments.toml que lo activan, en un nivel igual o mayor a `nivel_minimo`. Nunca sensibles.
 # - `escalera`: peldaños en orden, de lo más cercano a lo más lejano. Cada uno busca en su `vertical` los productos de
 #   sus `conceptos`; con `palabras`, solo los que tienen alguna en el nombre (se comparan sin tildes ni mayúsculas, al
-#   comienzo de una palabra: «tiramis» es tiramisú y «vaso» calza «Vasos», no «Posavasos»). Con `evitar`, ninguno que
-#   tenga una de esas (lo que dice la palabra sin ser lo que promete el peldaño: un limpiador «en pasta», un juguete
+#   comienzo de una palabra: "tiramis" es tiramisú y "vaso" calza "Vasos", no "Posavasos"). Con `evitar`, ninguno que
+#   tenga una de esas (lo que dice la palabra sin ser lo que promete el peldaño: un limpiador "en pasta", un juguete
 #   que la tienda puso en cocina). `texto` es lo que dice el agente al ofrecerlo.
-# - `viaje`: id de un destino de destinos.toml (el último peldaño, «Idea para RappiTravel»), o nada.
-# - `gusto` (obligatorio): lo que sigue a «Por tu gusto por…» cuando el agente ofrece la escalera y a «Veo que te
-#   gusta…» en el saludo del buscador con Mochi («lo asiático»).
+# - `viaje`: id de un destino de destinos.toml (el último peldaño, "Idea para RappiTravel"), o nada.
+# - `gusto` (obligatorio): lo que sigue a "Por tu gusto por…" cuando el agente ofrece la escalera y a "Veo que te
+#   gusta…" en el saludo del buscador con Mochi ("lo asiático").
 #
 # Las guardias de ofertas mandan (offers/guards.py): ningún peldaño nombra alcohol, farmacia, bebé, salud ni algo
 # sensible, ni las verticales Farmacia y Licores. Por eso el carrete va sin alcohol.
@@ -48,7 +48,7 @@ texto = "Tu despensa asiática"
 
 [[perfil.escalera]]
 vertical = "chocolateria"
-conceptos = ["chocolates", "te"]  # «Lindor Matcha» viene en la categoría «Tés»
+conceptos = ["chocolates", "te"]  # "Lindor Matcha" viene en la categoría "Tés"
 palabras = ["matcha"]
 texto = "El matcha, pero en chocolate"
 
@@ -79,9 +79,9 @@ texto = "Café para el día a día"
 [[perfil.escalera]]
 vertical = "mall"
 conceptos = ["electrohogar", "cocina-menaje"]
-# «molinillo» a secas traía 25 molinillos de sal y pimienta (Le Creuset); dos salían entre los cuatro primeros.
+# "molinillo" a secas traía 25 molinillos de sal y pimienta (Le Creuset); dos salían entre los cuatro primeros.
 palabras = ["cafetera", "molinillo de café", "molinillo eléctrico", "prensa francesa"]
-evitar = ["hape", "juguete"]  # «Cafetera + Accesorios Hape Juguetes De Madera», en electrohogar
+evitar = ["hape", "juguete"]  # "Cafetera + Accesorios Hape Juguetes De Madera", en electrohogar
 texto = "Para prepararlo como en la cafetería"
 
 [[perfil.escalera]]
@@ -121,8 +121,8 @@ texto = "Queso y pasta en minutos"
 vertical = "mall"
 conceptos = ["cocina-menaje"]
 palabras = ["pizza", "rallador", "pasta"]
-# En cocina-menaje: «Limpia Ollas En Pasta», «Juego De Pizza De Madera Melissa & Doug», «Set De Pastas Hape» y el
-# «Plato de Pizza Perruno» de Casaideas (un plato para perro).
+# En cocina-menaje: "Limpia Ollas En Pasta", "Juego De Pizza De Madera Melissa & Doug", "Set De Pastas Hape" y el
+# "Plato de Pizza Perruno" de Casaideas (un plato para perro).
 evitar = ["limpia", "melissa", "hape", "perruno"]
 texto = "Para tu noche de pizza en casa"
 
@@ -153,16 +153,16 @@ texto = "Su comida y snacks, en minutos"
 [[perfil.escalera]]
 vertical = "mall"
 conceptos = ["accesorios-mascota"]
-# Sin palabras, salían libros para colorear y frascos de Casaideas, que la tienda pone en «Otros accesorios mascotas».
+# Sin palabras, salían libros para colorear y frascos de Casaideas, que la tienda pone en "Otros accesorios mascotas".
 palabras = ["perro", "juguete", "pelota", "correa", "collar", "arnés"]
-# «Puzzle Redondo 500 Piezas Perros Del Mundo», también ahí; y lo de gato (36 accesorios calzaban las palabras).
-evitar = ["puzzle", "gato", "gatito"]  # «gato» calza también «gatos», no «gatito»
+# "Puzzle Redondo 500 Piezas Perros Del Mundo", también ahí; y lo de gato (36 accesorios calzaban las palabras).
+evitar = ["puzzle", "gato", "gatito"]  # "gato" calza también "gatos", no "gatito"
 texto = "Juguetes y paseo"
 
 [[perfil.escalera]]
 vertical = "supermercado"
 conceptos = ["alimento-perro"]  # sin `alimento-gato`: el perfil es de perro (la tabla aprobada lo traía)
-evitar = ["gato"]  # «Royal Canin Alimento para Gato Gastrointestinal» viene marcado alimento-perro
+evitar = ["gato"]  # "Royal Canin Alimento para Gato Gastrointestinal" viene marcado alimento-perro
 texto = "Su comida, en el súper"
 
 [[perfil]]
@@ -192,8 +192,8 @@ texto = "Maní, papas y salsas para picar"
 vertical = "mall"
 conceptos = ["decoracion"]
 palabras = ["vaso", "guirnalda", "globo", "cotillón"]
-# Lo de despedida de soltera: «Guirnalda Globo Foil "un Pene Forever"» salía entre los cuatro primeros. Y la corona
-# de «Feliz Navidad», que no es de fiesta.
+# Lo de despedida de soltera: "Guirnalda Globo Foil 'un Pene Forever'" salía entre los cuatro primeros. Y la corona
+# de "Feliz Navidad", que no es de fiesta.
 evitar = ["pene", "despedida", "soltera", "soltero", "sexy", "navidad"]
 texto = "Deco para la fiesta"
 

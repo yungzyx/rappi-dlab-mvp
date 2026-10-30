@@ -9,9 +9,9 @@ import { SUBSTITUTIONS, resolveChange, soldOutIndex } from './liveChanges'
 const MAX_SUBSTITUTES = 4
 
 /**
- * «Tus productos te necesitan» (Súper, en «En tienda»): un producto del pedido se agota (simulado, rotulado como
- * demostración) y la persona elige un sustituto del mismo concepto en la misma tienda (del catálogo), «Si no contesto,
- * elijan por mí» o el reembolso. Mientras decide, el reloj de la demo espera (el shopper espera su respuesta). Lo que
+ * "Tus productos te necesitan" (Súper, en "En tienda"): un producto del pedido se agota (simulado, rotulado como
+ * demostración) y la persona elige un sustituto del mismo concepto en la misma tienda (del catálogo), "Si no contesto,
+ * elijan por mí" o el reembolso. Mientras decide, el reloj de la demo espera (el shopper espera su respuesta). Lo que
  * eligió en el checkout va marcado.
  */
 export function LiveChangeAlert({ order }) {
@@ -36,7 +36,7 @@ export function LiveChangeAlert({ order }) {
     return () => {
       current = false
     }
-    // Una vez por pedido: el aviso aparece al entrar a «En tienda».
+    // Una vez por pedido: el aviso aparece al entrar a "En tienda".
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [order.id])
 
@@ -76,7 +76,7 @@ export function LiveChangeAlert({ order }) {
               onClick={() =>
                 option.id === 'sustituto'
                   ? setPicking(true)
-                  : // «Elijan por mí»: el shopper toma el sustituto más barato de la misma tienda; sin uno, reembolsa.
+                  : // "Elijan por mí": el shopper toma el sustituto más barato de la misma tienda; sin uno, reembolsa.
                     resolve(option.id, option.id === 'elijan' ? substitutes?.[0] : null)
               }
             >
@@ -123,7 +123,7 @@ function SubstitutePicker({ substitutes, onPick, onBack }) {
   )
 }
 
-/** Lo que cambió en vivo y el «Ajuste en el total». */
+/** Lo que cambió en vivo y el "Ajuste en el total". */
 export function LiveChangeResult({ order }) {
   const change = order.liveChange
   if (!change) return null

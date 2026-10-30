@@ -41,7 +41,7 @@
   cursor: pointer;
 }
 
-/* Área táctil de 40 × 40 para «−» y «+» sin agrandar lo visible */
+/* Área táctil de 40 × 40 para "−" y "+" sin agrandar lo visible */
 .add-button.is-open > span::before {
   content: '';
   position: absolute;

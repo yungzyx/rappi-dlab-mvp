@@ -172,7 +172,7 @@ def test_fallback_concepts_prefer_what_the_catalog_has():
 
 def test_cadence_follows_orders_per_user():
     """El ritmo da, entre los meses con algún pedido, los pedidos por persona de la tabla: λ / (1 − e^−λ) = 1,9 en
-    «rest». Quien abandona más carros necesita más sesiones para los mismos pedidos."""
+    "rest". Quien abandona más carros necesita más sesiones para los mismos pedidos."""
     familia = _persona("familia")
     assert synth.archetype_cadence("rest+turbo+retail", familia) < synth.archetype_cadence("rest+turbo", familia)
     assert synth.archetype_cadence("rest+turbo", familia) < synth.archetype_cadence("rest", familia)
@@ -211,7 +211,7 @@ def test_the_combination_of_the_last_30_days_sets_the_retention():
 
 
 def test_each_extra_vertical_inside_a_group_adds_retention_with_diminishing_returns():
-    """El supuesto propio de la escalera fina: dentro de «retail», Súper + Express rinde más que solo Súper, y el
+    """El supuesto propio de la escalera fina: dentro de "retail", Súper + Express rinde más que solo Súper, y el
     tercero menos; nunca llega a 1."""
     now = END - timedelta(days=1)
     recent = [now - timedelta(days=3)]

@@ -19,7 +19,7 @@ def people(db):
     )
     orders = [
         ("o1", "p1", "c1", T1, "turbo", 5000, "propuesta", "prototype"),
-        ("o2", "p1", "c2", T2, "supermercado", 8000, "actual", "prototype"),  # «Rappi hoy»: no enseña
+        ("o2", "p1", "c2", T2, "supermercado", 8000, "actual", "prototype"),  # "Rappi hoy": no enseña
         ("o3", "p1", None, T3, "farmacia", 3000, "propuesta", "prototype"),
         ("o4", "s1", None, T1, "mall", 9000, "propuesta", "synthetic"),
     ]
@@ -42,7 +42,7 @@ def people(db):
         )
     events = [
         ("p1", T1, "vertical_open", "restaurantes", "{}", "prototype"),
-        ("p1", T1, "view_store", "mall", '{"mode": "actual"}', "prototype"),  # en «Rappi hoy»: no cuenta
+        ("p1", T1, "view_store", "mall", '{"mode": "actual"}', "prototype"),  # en "Rappi hoy": no cuenta
         ("p1", T2, "search", None, "{}", "prototype"),  # sin vertical
         ("p1", T2, "app_open", "turbo", "{}", "prototype"),  # no es señal de afinidad
         ("p1", T3, "cart_add", "turbo", '{"mode": "propuesta"}', "prototype"),

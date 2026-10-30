@@ -88,7 +88,7 @@
   transform: scale(1.04);
 }
 
-/* «Para ti»: la ocasión viene de lo que a la persona le gusta (la razón trae el detalle) */
+/* "Para ti": la ocasión viene de lo que a la persona le gusta (la razón trae el detalle) */
 .live-plan-chip-tag {
   padding: 1px 7px;
   border-radius: 999px;
@@ -477,7 +477,7 @@
   visibility: hidden;
 }
 
-/* Hasta que termina de escribir, «¿Por qué?» y los botones ya ocupan su lugar, sin verse ni animarse */
+/* Hasta que termina de escribir, "¿Por qué?" y los botones ya ocupan su lugar, sin verse ni animarse */
 .live-bubble-more.is-pending {
   visibility: hidden;
 }

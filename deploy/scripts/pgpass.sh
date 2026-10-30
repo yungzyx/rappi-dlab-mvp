@@ -15,7 +15,7 @@ pgpass_from_database_url() {
     fi
   fi
   secret=$(printf '%b' "${secret//%/\\x}")  # la URL la trae con %xx
-  secret=${secret//\\/\\\\}  # en el archivo de claves, «\» y «:» van escapados
+  secret=${secret//\\/\\\\}  # en el archivo de claves, "\" y ":" van escapados
   secret=${secret//:/\\:}
   PGPASSFILE=$(umask 077 && mktemp)
   printf '*:*:*:*:%s\n' "$secret" > "$PGPASSFILE"

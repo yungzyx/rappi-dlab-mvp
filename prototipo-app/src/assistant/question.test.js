@@ -13,7 +13,7 @@ describe('looksLikeQuestion', () => {
     'qué es un poke',
     'con qué acompaño un salmón',
     'necesito cosas para limpiar la casa',
-  ])('«%s» es una pregunta', (text) => {
+  ])('"%s" es una pregunta', (text) => {
     expect(looksLikeQuestion(text)).toBe(true)
   })
 
@@ -30,7 +30,7 @@ describe('looksLikeQuestion', () => {
     'como agua para chocolate',
     '',
     '  ',
-  ])('«%s» es una búsqueda', (text) => {
+  ])('"%s" es una búsqueda', (text) => {
     expect(looksLikeQuestion(text)).toBe(false)
   })
 })

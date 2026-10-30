@@ -27,8 +27,8 @@ from .promos import store_promos
 
 BIGINT_MAX = 2**63 - 1
 
-# Farmacia no se empuja: no entra en «Cerca de ti» ni en las ofertas sin vertical. Restaurantes no vende productos del
-# catálogo (tiene menús), así que tampoco es una tienda de «Cerca de ti».
+# Farmacia no se empuja: no entra en "Cerca de ti" ni en las ofertas sin vertical. Restaurantes no vende productos del
+# catálogo (tiene menús), así que tampoco es una tienda de "Cerca de ti".
 # Lo que el agente no ofrece por su cuenta tiene su propia lista (offers/guards.py), que reutiliza
 # NOT_PUSHED_SUBVERTICALS.
 NOT_PUSHED_VERTICALS = ("farmacia", "restaurantes")
@@ -74,13 +74,13 @@ OWN_VERTICAL = """(
 # La página de una tienda en una sola consulta (`offers` se calcula una vez): su tarjeta, sus pasillos con ofertas
 # vigentes, el pasillo elegido y una página de sus productos.
 # - Un producto de un subpasillo trae también el id de su pasillo, así que los subpasillos no aparecen aparte. Rappi no
-#   guarda la posición de los pasillos y su id no es un orden (en la base real Turbo abría en «Autopartes», con un
+#   guarda la posición de los pasillos y su id no es un orden (en la base real Turbo abría en "Autopartes", con un
 #   puñado de productos): primero el de más ofertas vigentes, y con las mismas, el id.
 # - El pasillo elegido es el pedido (`%(aisle_id)s`, si la tienda lo tiene) o, sin pedir uno (`%(first)s`), el primero.
 # - Los productos van por nombre (y por id, que desempata nombres repetidos: sin eso, una página podría repetir o
 #   saltarse productos).
 # - Cada producto trae su stock del mismo snapshot de la oferta vigente (`price_snapshots` por su llave, como la ficha):
-#   la fila dice «Agotado» sin preguntar a la ficha.
+#   la fila dice "Agotado" sin preguntar a la ficha.
 _STORE_PAGE = f"""
 WITH {_STORE_OFFERS},
 aisle_list AS (
@@ -118,7 +118,7 @@ WHERE s.store_id = %(store_id)s"""
 
 # Las ofertas vigentes de la tienda `d` (una fila con `store_id`), por su último precio `ps` (v_latest_offers), con su
 # producto `sp` y su pasillo `a`. Es la regla de _STORE_OFFERS, _CATALOG_DETAIL y _with_prices dicha desde las tiendas:
-# la usan las tarjetas de una vertical, «Cerca de ti» y las ofertas (rappi_ia/catalog/). Va tras un SELECT que elige
+# la usan las tarjetas de una vertical, "Cerca de ti" y las ofertas (rappi_ia/catalog/). Va tras un SELECT que elige
 # columnas de `ps` y `sp`, dentro de un LATERAL o de un EXISTS.
 CURRENT_OFFERS = """
 FROM v_latest_offers ps
@@ -267,7 +267,7 @@ def line_prices(conn: Connection, lines: list[dict]) -> list[float | None]:
     """El precio vigente de cada línea (`entity_type`, `entity_id` y, si la trae, `store_id`) en su orden: el de su
     tienda (`offer_price`), o `None` si ya no está a la venta ahí. Los productos con tienda (lo normal) salen en una
     sola consulta; un plato o un producto sin tienda, uno por uno. Lo usan el pedido (`events.catalog_prices`) y
-    «Pídelo de nuevo» (`POST /catalog/availability`)."""
+    "Pídelo de nuevo" (`POST /catalog/availability`)."""
     in_store = [
         i for i, line in enumerate(lines) if line["entity_type"] == "catalog_item" and line.get("store_id") is not None
     ]
@@ -367,7 +367,7 @@ def product_detail(conn: Connection, entity_type: str, entity_id: str) -> dict |
     return product.to_dict() if product.price_value is not None else None
 
 
-# «Pocas unidades»: hasta LOW_STOCK unidades en la descarga (regla propia de la demo; Rappi no publica la suya).
+# "Pocas unidades": hasta LOW_STOCK unidades en la descarga (regla propia de la demo; Rappi no publica la suya).
 LOW_STOCK = 5
 SIMILAR_PRODUCTS = 6
 SEARCH_STORES = 10
@@ -394,8 +394,8 @@ LEFT JOIN brands b ON b.brand_id = s.brand_id
 LEFT JOIN price_snapshots ps ON ps.run_id = o.run_id AND ps.store_id = o.store_id AND ps.sku = o.sku
 ORDER BY o.price, o.store_id"""
 
-# Los productos del mismo concepto que la tienda tiene vigentes y no agotados, sin el producto mismo: «Productos
-# similares» de uno agotado. Uno por producto (su SKU más barato).
+# Los productos del mismo concepto que la tienda tiene vigentes y no agotados, sin el producto mismo: "Productos
+# similares" de uno agotado. Uno por producto (su SKU más barato).
 _SIMILAR = """
 SELECT DISTINCT ON (ci.master_product_id) ci.master_product_id::text, ci.name, l.price, l.real_price,
        NULLIF(ci.image_url, ''), ci.presentation, ci.is_alcoholic OR ci.age_restricted, ic.concept_id
@@ -486,7 +486,7 @@ def _offer_entry(store_id, name, image, eta, fee, vertical, price, real, in_stoc
         "before": clp(float(real)) if real is not None and real > price else None,
         "eta": f"{minutes} min" if minutes else None,
         "eta_minutes": minutes,
-        # El envío que la tienda publicó; $0 o sin dato es un dato que falta, no «envío gratis».
+        # El envío que la tienda publicó; $0 o sin dato es un dato que falta, no "envío gratis".
         "fee": clp(fee_value) if fee_value else None,
         "available": in_stock is not False and stock != 0,
         "low_stock": in_stock is not False and stock is not None and 0 < stock <= LOW_STOCK,
@@ -569,14 +569,14 @@ def normalized_sql(column: str) -> str:
 
 def like_pattern(q: str) -> str | None:
     """El patrón de LIKE de una consulta para comparar con un nombre normalizado (`normalized_sql`): una palabra del
-    nombre empieza con la consulta normalizada (que no deja `%` ni `_`), así «ron» no calza «Patrona». None con menos
-    de tres letras: dos («té») calzarían casi cualquier nombre."""
+    nombre empieza con la consulta normalizada (que no deja `%` ni `_`), así "ron" no calza "Patrona". None con menos
+    de tres letras: dos ("té") calzarían casi cualquier nombre."""
     text = normalize(q)
     return f"% {text}%" if len(text.replace(" ", "")) >= 3 else None
 
 
 def _eta_text(value: str | None) -> str | None:
-    """«25 min» a partir de los minutos que Rappi guarda en la tienda; sin minutos (o en 0), nada."""
+    """ "25 min" a partir de los minutos que Rappi guarda en la tienda; sin minutos (o en 0), nada."""
     minutes = _eta_minutes(value)
     return f"{minutes} min" if minutes else None
 

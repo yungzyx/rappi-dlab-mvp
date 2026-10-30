@@ -124,7 +124,7 @@ def test_refresh_stops_on_a_block_and_leaves_the_run_open(db, tmp_path):
 
 def test_a_failed_backup_does_not_stop_the_weekly_update(db, tmp_path, caplog):
     """Sin respaldo nuevo quedan los anteriores; la capa de IA (post-refresh) igual debe correr. Pero el fallo se
-    informa: si solo quedara en el log, la tarea semanal anotaría «exit=0» semana tras semana."""
+    informa: si solo quedara en el log, la tarea semanal anotaría "exit=0" semana tras semana."""
 
     def broken_backup():
         raise RuntimeError("pg_dump: disco lleno")
@@ -267,7 +267,7 @@ def test_refresh_retries_failed_listings_after_the_stores_and_scrapes_what_appea
     )
 
     assert order == [("retry", 0)]  # después de bajar las tiendas, no antes
-    # el job tardío se procesó en la misma corrida (aquí queda «omitido»: es la misma tienda del primero)
+    # el job tardío se procesó en la misma corrida (aquí queda "omitido": es la misma tienda del primero)
     assert reports[0]["jobs"] == {"done": 1, "skipped": 1} and reports[0]["status"] == "done"
 
 

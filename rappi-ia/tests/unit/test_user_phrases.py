@@ -11,7 +11,7 @@ U = Understander()
 @pytest.mark.parametrize(
     ("text", "concept"),
     [
-        ("un completo", "sandwiches"),  # el hot dog chileno, no un «Aliño Completo»
+        ("un completo", "sandwiches"),  # el hot dog chileno, no un "Aliño Completo"
         ("serbesa", "cerveza"),
         ("algo pa picar", "snacks-salados"),
         ("leche de formula", "alimentacion-bebe"),
@@ -36,7 +36,7 @@ def test_vague_requests_become_occasions(text, occasion):
 
 
 def test_the_help_examples_the_app_shows_are_understood():
-    """«Algo de sushi» va primero en la ayuda; «Arma un carrete» sigue más abajo y sigue siendo una ocasión."""
+    """ "Algo de sushi" va primero en la ayuda; "Arma un carrete" sigue más abajo y sigue siendo una ocasión."""
     assert U.understand(None, "sushi", "supermercado").concepts[:1] == ["sushi"]
     assert U.understand(None, "algo para el carrete", "supermercado").occasion == "carrete"
 
@@ -66,8 +66,8 @@ def test_cheap_asks_for_the_cheapest_first():
 @pytest.mark.parametrize(
     ("text", "concept"),
     [
-        ("juguete pal gato", "accesorios-mascota"),  # «pal» = «para el»
-        ("leche de almendras", "vegano"),  # «Alternativas vegetales»
+        ("juguete pal gato", "accesorios-mascota"),  # "pal" = "para el"
+        ("leche de almendras", "vegano"),  # "Alternativas vegetales"
     ],
 )
 def test_round_two_words(text, concept):
@@ -75,14 +75,14 @@ def test_round_two_words(text, concept):
 
 
 def test_without_is_not_asking_for_it():
-    """«algo sin azúcar» buscaba azúcar."""
+    """ "algo sin azúcar" buscaba azúcar."""
     assert "azucar" not in U.understand(None, "algo sin azúcar", "supermercado").concepts
 
 
 @pytest.mark.parametrize(
     ("text", "occasion"),
     [
-        ("algo barato pa comer", "hambre"),  # «pa» = «para»
+        ("algo barato pa comer", "hambre"),  # "pa" = "para"
         ("estoy triste", "animo"),
         ("mi nieto viene el domingo y quiero comprarle algo", "regalo-nino"),
     ],
@@ -208,7 +208,7 @@ def test_a_price_said_as_de_n_lucas_is_a_cap():
 
 
 def test_an_alternative_replaces_the_previous_refinement():
-    """helado → de chocolate → «y de vainilla?» buscaba «helado de chocolate y de vainilla»."""
+    """helado → de chocolate → "y de vainilla?" buscaba "helado de chocolate y de vainilla"."""
     previous = {"query": "helado de chocolate", "concepts": ["helados"], "vertical": "conveniencia"}
     intent = U.understand(None, "y de vainilla?", "conveniencia", previous=previous)
     assert intent.follow_up and "chocolate" not in intent.query and "vainilla" in intent.query
@@ -260,7 +260,7 @@ def test_national_holidays_are_an_occasion():
 
 
 def test_a_longer_follow_up_with_fillers_still_follows():
-    """sushi → «mejor no, algo más barato»: cinco palabras, pero solo «barato» dice algo."""
+    """sushi → "mejor no, algo más barato": cinco palabras, pero solo "barato" dice algo."""
     intent = _then("sushi", "mejor no, algo más barato")
     assert intent.follow_up and intent.concepts == ["sushi"] and intent.cheapest
 
@@ -283,7 +283,7 @@ def test_round_seven_words(text, concept):
 
 
 def test_people_are_not_searched():
-    """«para la presión de mi mamá» traía mamaderas; «para mi señora», lo que calzara con «señora»."""
+    """ "para la presión de mi mamá" traía mamaderas; "para mi señora", lo que calzara con "señora"."""
     assert "senora" not in U.understand(None, "vino y flores para mi señora", "licores").query
     assert "mama" not in U.understand(None, "algo para mi mamá", "supermercado").query
 
@@ -294,7 +294,7 @@ def test_chronic_conditions_need_a_prescription(text):
 
 
 def test_blood_pressure_is_a_monitor_not_baby_bottles():
-    """«algo para la presión de mi mamá» traía mamaderas: hay tensiómetros (y los remedios son con receta)."""
+    """ "algo para la presión de mi mamá" traía mamaderas: hay tensiómetros (y los remedios son con receta)."""
     assert U.understand(None, "necesito algo para la presión de mi mamá", "farmacia").concepts == ["primeros-auxilios"]
 
 
@@ -318,7 +318,7 @@ def test_round_eight_words(text, concept):
 
 @pytest.mark.parametrize("text", ["olvida lo que te dije", "qué sabes de mí", "no guardes lo que busco"])
 def test_memory_questions_are_answered_first(text):
-    """«olvida lo que te dije» traía joyas: «dije» es un colgante."""
+    """ "olvida lo que te dije" traía joyas: "dije" es un colgante."""
     assert U.understand(None, text, "supermercado").kind == "memoria"
 
 
@@ -348,7 +348,7 @@ def test_a_misspelled_vertical_is_still_a_vertical():
 
 
 def test_the_vertical_named_is_not_searched():
-    """«en el super algo para el desayuno» buscaba «super» y traía comida para gatos Super."""
+    """ "en el super algo para el desayuno" buscaba "super" y traía comida para gatos Super."""
     intent = U.understand(None, "en el super algo para el desayuno", None)
     assert intent.vertical == "supermercado" and "super" not in intent.query.split()
     assert "farmacia" not in U.understand(None, "en la farmacia algo bajo 5 lucas", None).query
@@ -461,7 +461,7 @@ def test_without_the_x_is_still_without():
 
 
 def test_and_another_kind_replaces_the_previous_refinement():
-    """vino tinto → «uno más caro» → «y blanco?» volvía a mostrar tintos."""
+    """vino tinto → "uno más caro" → "y blanco?" volvía a mostrar tintos."""
     previous = {"query": "vino tinto uno mas caro", "concepts": ["vino"], "vertical": "licores"}
     intent = U.understand(None, "y blanco?", "licores", previous=previous)
     assert "tinto" not in intent.query and "blanco" in intent.query

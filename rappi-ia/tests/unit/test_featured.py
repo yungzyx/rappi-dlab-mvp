@@ -59,8 +59,8 @@ def test_side_dishes(name, section, price):
     "name, section, price",
     [
         ("Tropical", "Pizzas", 11990),
-        ("Pizza con salsa pomodoro", "Pizzas", 9990),  # «salsa» no es la primera palabra
-        ("Promo pizza + bebida", "Pizzas y bebidas", 12990),  # la sección no empieza con «bebidas»
+        ("Pizza con salsa pomodoro", "Pizzas", 9990),  # "salsa" no es la primera palabra
+        ("Promo pizza + bebida", "Pizzas y bebidas", 12990),  # la sección no empieza con "bebidas"
         ("Extra Pepperoni Familiar", "Pizzas", 9500),  # una pizza de Little Caesars, no un agregado
         ("Ceviche mixto", "Entradas y ceviches", 8990),  # las entradas no son relleno
         ("Bigtime refrescante celeste", "Para llevar", 650),  # no es relleno, pero tampoco plato principal (precio)

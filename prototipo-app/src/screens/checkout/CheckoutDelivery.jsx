@@ -6,8 +6,8 @@ const MAX_SLOTS_PER_DAY = 12
 const DAY_LABELS = { hoy: 'Hoy', manana: 'Mañana' }
 
 /**
- * Cuándo llega (o cuándo se retira): «Ahora», con su tipo de entrega en un envío (Básica, Sin prisa o Prioritaria,
- * montos de ejemplo), o «Programar» en una franja de una hora de hoy o mañana, agrupadas por día. Con una tienda
+ * Cuándo llega (o cuándo se retira): "Ahora", con su tipo de entrega en un envío (Básica, Sin prisa o Prioritaria,
+ * montos de ejemplo), o "Programar" en una franja de una hora de hoy o mañana, agrupadas por día. Con una tienda
  * cerrada según lo publicado solo se puede programar. `when` es 'now' o el inicio de la franja (ms); `published`: si
  * todas las tiendas publicaron su horario (las franjas caben en él; si no, la ventana es de ejemplo).
  */
@@ -115,7 +115,7 @@ export default function CheckoutDelivery({
   )
 }
 
-/** «+$990 por pedido», «−$500 por pedido» o «Sin costo extra». */
+/** "+$990 por pedido", "−$500 por pedido" o "Sin costo extra". */
 function feeText(fee, baskets) {
   if (fee === 0) return 'Sin costo extra'
   const per = baskets > 1 ? ' por pedido' : ''

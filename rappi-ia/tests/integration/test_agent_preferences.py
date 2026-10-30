@@ -1,6 +1,6 @@
 """Preferencias explícitas con el agente (offers/preferences.py, migración 045) sobre el catálogo de prueba: se fijan
 por chat o en el panel, filtran (dieta, alergias) y ordenan (favoritas) lo que Mochi muestra y ofrece, nunca son la
-razón de una oferta ni quedan como consulta, y se borran con «olvida mis preferencias», «Olvidar» y la purga."""
+razón de una oferta ni quedan como consulta, y se borran con "olvida mis preferencias", "Olvidar" y la purga."""
 
 from datetime import datetime, time, timedelta
 
@@ -117,7 +117,7 @@ def test_the_search_does_not_order_by_favorites(client):
 
 
 def test_a_search_emptied_by_preferences_is_not_unmet(client):
-    """Si la dieta saca todo lo encontrado, el catálogo sí lo tenía: no es «sin resultado» ni ofrece «Lo que sea»."""
+    """Si la dieta saca todo lo encontrado, el catálogo sí lo tenía: no es "sin resultado" ni ofrece "Lo que sea"."""
     say(client, "no como carne")
     found = client.get(f"/search?q=parrillada&user_id={USER}").json()
     assert found["groups"] == []
@@ -205,7 +205,7 @@ def test_offers_are_filtered_too_and_an_empty_one_is_no_offer(client, db):
 def test_they_go_with_the_person(client, db):
     say(client, "mi comida favorita es el sushi")
     say(client, "soy vegano")
-    # «Olvidar» un concepto lo saca de sus cocinas; «Olvidar» todo se lleva a la persona y sus preferencias.
+    # "Olvidar" un concepto lo saca de sus cocinas; "Olvidar" todo se lleva a la persona y sus preferencias.
     assert client.delete(f"/profile/{USER}?concept=sushi").status_code == 200
     assert stored(db) == [("dieta", "vegano")]
     assert client.delete(f"/profile/{USER}").status_code == 200

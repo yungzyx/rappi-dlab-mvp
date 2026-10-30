@@ -267,8 +267,8 @@ def _with_preferences(found: Offer | ProfileOffer | None, mine: preferences.Pref
 
 
 def _with_auto_order(conn: Connection, found: Offer | None, user_id: str | None) -> Offer | None:
-    """La recompra de una tienda donde la persona deja que Mochi pida solo («Pedir por mí», offers/autonomy.py) suma
-    «Pídelo por mí»: le pide a Mochi lo de siempre ahí (`ask`), que vuelve a revisar cada límite antes de pedir."""
+    """La recompra de una tienda donde la persona deja que Mochi pida solo ("Pedir por mí", offers/autonomy.py) suma
+    "Pídelo por mí": le pide a Mochi lo de siempre ahí (`ask`), que vuelve a revisar cada límite antes de pedir."""
     mine = autonomy.load(conn, user_id)
     if found is None or mine is None or not found.products:
         return found

@@ -54,8 +54,8 @@ def test_every_rule_has_a_signal_or_a_metric_but_not_both_and_known_pieces_only(
 
 
 def test_no_rule_leans_on_occasions_or_on_species_attributes():
-    """Una ocasión agrupa conceptos cotidianos (chocolate, café, cerveza) y un producto «para perros y gatos» lleva los
-    dos atributos de especie: con ellos «estudiante» y «tiene-gato» alcanzaban a media población simulada."""
+    """Una ocasión agrupa conceptos cotidianos (chocolate, café, cerveza) y un producto "para perros y gatos" lleva los
+    dos atributos de especie: con ellos "estudiante" y "tiene-gato" alcanzaban a media población simulada."""
     for r in RULES:
         assert "occasions" not in r.signals, r.id
     for rule_id in ("tiene-perro", "tiene-gato"):
@@ -263,7 +263,7 @@ def test_query_words_are_normalized_once_per_text():
         assert segments._has_phrase("Pañales MUJERES talla G", "panal mujer")
         assert not segments._has_phrase("pañales", "panal mujer")
     info = segments._words.cache_info()
-    assert info.misses == 3 and info.hits == 9  # «pañales mujeres talla g», «panal mujer» y «pañales»
+    assert info.misses == 3 and info.hits == 9  # "pañales mujeres talla g", "panal mujer" y "pañales"
 
 
 def test_a_relationship_metric_decides_by_its_range():

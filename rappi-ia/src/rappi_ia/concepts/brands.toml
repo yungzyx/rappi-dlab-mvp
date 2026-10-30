@@ -1,32 +1,32 @@
 # Marcas (capa de perfiles, docs/diseno/2026-10-06-capa-perfiles-design.md §3.4).
 #
-# Rappi declara `trademark` en el 32 % de los productos y con muchas escrituras («Coca-Cola», «COCA COLA»,
-# «Coca-Cola Zero»). La capa las junta por escritura normalizada, enrolla las líneas bajo la marca padre
-# (si «coca cola» tiene ≥ 10 productos, «coca cola zero» es la misma marca) y deduce la marca del inicio del nombre
+# Rappi declara `trademark` en el 32 % de los productos y con muchas escrituras ("Coca-Cola", "COCA COLA",
+# "Coca-Cola Zero"). La capa las junta por escritura normalizada, enrolla las líneas bajo la marca padre
+# (si "coca cola" tiene ≥ 10 productos, "coca cola zero" es la misma marca) y deduce la marca del inicio del nombre
 # de los productos sin marca declarada. Aquí va lo que el dato no puede decir solo.
 version = "2026-10-06"
 
 # Valores de `trademark` que no son una marca.
 not_brands = ["nan", "null", "none", "n a", "na", "s m", "sin marca", "generico", "generica", "otros", "otro", "varios", "marca", "propia", "alcohol", "puzzle", "kuchen", "keratin", "hojas", "natural", "vida", "120", "edt", "omeprazol", "esomeprazol", "iphone", "hub", "suave"]
 
-# Familias: prefijos que son la marca aunque Rappi nunca declare la marca sola («Coca-Cola Original», «Coca-Cola Zero»,
-# pero ningún «Coca-Cola» a secas). Sus líneas se enrollan bajo ella.
+# Familias: prefijos que son la marca aunque Rappi nunca declare la marca sola ("Coca-Cola Original", "Coca-Cola Zero",
+# pero ningún "Coca-Cola" a secas). Sus líneas se enrollan bajo ella.
 families = ["coca cola"]
 
-# Marcas propias de una tienda o cadena (atributo «marca-propia»). Normalizadas.
+# Marcas propias de una tienda o cadena (atributo "marca-propia"). Normalizadas.
 store_brands = ["lider", "great value", "nuestra cocina", "acuenta", "cuisine co", "seleccion", "jumbo", "tottus", "unimarc", "mi mercado", "precio uno", "miniso", "casaideas", "equate", "parents choice", "mainstays", "merkat"]
 
 # Cadenas cuyo nombre aparece como `trademark` en productos de terceros (frutas, hielo): la marca solo vale si el nombre del
-# producto la lleva («Unimarc Arroz» sí; «Hielo Nórdico» con trademark Unimarc, no).
+# producto la lleva ("Unimarc Arroz" sí; "Hielo Nórdico" con trademark Unimarc, no).
 retailer_trademarks = ["unimarc", "jumbo", "tottus", "cuisine co"]
 
 # Marcas que se buscan al inicio de un nombre aunque Rappi casi nunca las declare.
 extra_index = ["casaideas"]
 
-# Líneas que NO se enrollan bajo la marca que las contiene («Austral Organics» no es la cerveza Austral).
+# Líneas que NO se enrollan bajo la marca que las contiene ("Austral Organics" no es la cerveza Austral).
 no_parent = ["austral organics", "natural one", "daily beef"]
 
-# Palabras comunes que NO se deducen como marca desde el inicio de un nombre («Pan Hallulla» no es de la marca Pan).
+# Palabras comunes que NO se deducen como marca desde el inicio de un nombre ("Pan Hallulla" no es de la marca Pan).
 name_stop = ["pan", "mas", "vida", "gato", "perro", "sal", "te", "leche", "queso", "agua", "fork", "trim", "costa", "torre", "gourmet", "caramel", "lounge", "natural", "classic", "original", "premium", "sin", "con", "mix", "pack", "set", "kit", "caja", "bolsa", "cafe", "arroz", "puzzle", "kuchen", "alcohol", "anis", "curcuma", "maqui", "aloe", "hub", "caluga", "hojas", "lechuga", "corona", "sea", "mac", "blue"]
 
 # Escrituras que el normalizador no une solo.

@@ -1,5 +1,5 @@
 // El panel de la demo sin conexión: personas listas (un historial de pedidos y toques que se siembra en la API
-// simulada), «+1 visita» para mover la Home y la lectura de la escalera. Solo existe en «Prototipo MVP.html».
+// simulada), "+1 visita" para mover la Home y la lectura de la escalera. Solo existe en "Prototipo MVP.html".
 import { currentFine, NONE_COMBO, targetStep } from './motor'
 import { featuredProduct, offerableProduct } from './offers'
 import { PRO_KEY } from '../../state/pro'
@@ -9,7 +9,7 @@ import { addEvents, readState, writeState } from './state'
 const DAY_MS = 86_400_000
 const ALL_CATALOG = ['restaurantes', 'turbo', 'supermercado', 'conveniencia', 'mall', 'chocolateria']
 
-// «¿Volvemos a…?» necesita semanas de historial: un plato pedido cada 7 días hasta hace 24 (y pedidos recientes en
+// "¿Volvemos a…?" necesita semanas de historial: un plato pedido cada 7 días hasta hace 24 (y pedidos recientes en
 // otras verticales), o Turbo en 3 días hasta hace 40 mientras sigue pidiendo en restaurantes (offers/winback.py).
 const HABIT_CONCEPTS = ['sushi', 'pizza', 'hamburguesa', 'empanadas']
 const STOPPED_DISH = [
@@ -65,7 +65,7 @@ export function personas(snapshot) {
   ]
 }
 
-/** Si la tienda o el restaurante del producto está en la muestra (su «Ver producto» abre algo). */
+/** Si la tienda o el restaurante del producto está en la muestra (su "Ver producto" abre algo). */
 const inSample = (snapshot, p) =>
   Boolean(
     p.entity_type === 'menu_item' ? snapshot.catalog?.menus?.[p.store_id] : snapshot.catalog?.stores?.[p.store_id],
@@ -76,7 +76,7 @@ const FOOD_VERTICALS = ['supermercado', 'conveniencia', 'turbo']
 const FOOD_GROUPS = ['bebidas', 'snacks', 'dulces', 'despensa', 'frescos', 'comida']
 const POPULAR_SECTION = 'Lo más pedido' // catalog/restaurants.py: la sección que el menú suma arriba
 
-/** La sección del menú grabado donde está el plato (la suya, no «Lo más pedido»), o null. */
+/** La sección del menú grabado donde está el plato (la suya, no "Lo más pedido"), o null. */
 function sectionOf(snapshot, dish) {
   const sections = snapshot.catalog?.menus?.[dish.store_id]?.sections ?? []
   const found = sections.find(
@@ -87,9 +87,9 @@ function sectionOf(snapshot, dish) {
 
 /**
  * Un producto de la muestra para un pedido de esa vertical: el primero con concepto que el agente puede ofrecer, de un
- * concepto que la persona no pidió ya (`used`): si no, dos pedidos del mismo concepto ya serían un «¿Repetimos?». Mejor
+ * concepto que la persona no pidió ya (`used`): si no, dos pedidos del mismo concepto ya serían un "¿Repetimos?". Mejor
  * de una tienda que la muestra tiene, y de los conceptos de `prefer` si hay. Primero lo que se puede destacar
- * (`featuredProduct`: lo pedido vuelve en «¿Repetimos?» y «¿Volvemos a…?») y, en las verticales de comida, la comida:
+ * (`featuredProduct`: lo pedido vuelve en "¿Repetimos?" y "¿Volvemos a…?") y, en las verticales de comida, la comida:
  * la persona no pide un vaso de cotillón ni un agregado de $1.300.
  */
 function sampleOf(snapshot, vertical, used, prefer = []) {
@@ -183,13 +183,13 @@ export function switchPersona(snapshot, persona) {
 /** El aviso con que la Home vuelve a pedir el orden de sus accesos (screens/home/useVerticalOrder.js). */
 export const DEMO_HISTORY_EVENT = 'rappi-demo-history'
 
-/** «+1 visita»: un toque al acceso de esa vertical en el prototipo (no en «Rappi hoy»), y la Home se reordena. */
+/** "+1 visita": un toque al acceso de esa vertical en el prototipo (no en "Rappi hoy"), y la Home se reordena. */
 export function addVisit(vertical) {
   addEvents([{ type: 'vertical_open', ts: Date.now(), vertical, payload: { desde: 'panel-demo' } }])
   window.dispatchEvent(new Event(DEMO_HISTORY_EVENT))
 }
 
-/** «Borrar historial»: sin pedidos ni toques (la sesión sigue), y la Home vuelve a su orden fijo. */
+/** "Borrar historial": sin pedidos ni toques (la sesión sigue), y la Home vuelve a su orden fijo. */
 export function clearHistory() {
   const { userId } = readState()
   writeState({ userId, events: [], orders: [] })
@@ -198,7 +198,7 @@ export function clearHistory() {
 
 const SERVICE_NAMES = { favor: 'RappiFavor', travel: 'RappiTravel' }
 
-/** «Hoy: restaurantes+turbo → siguiente: supermercado»: la combinación de la persona y el paso que Mochi propone. */
+/** "Hoy: restaurantes+turbo → siguiente: supermercado": la combinación de la persona y el paso que Mochi propone. */
 export function ladderReadout(snapshot, state = readState(), now = Date.now()) {
   const { combos } = snapshot.meta
   const fine = currentFine(combos, state, now)

@@ -136,7 +136,7 @@ def test_combo_stats_reproduce_shares_and_retention():
     assert stats["rest"]["pct_users"] == pytest.approx(100 * 2 / 6)
     assert stats["rest"]["pct_orders"] == pytest.approx(100 * 2 / 9)
     assert stats["rest"]["orders_per_user"] == pytest.approx(1.0)
-    assert stats["rest"]["retention_m1"] == pytest.approx(1.0)  # solo agosto de «a» cuenta: septiembre no tiene M+1
+    assert stats["rest"]["retention_m1"] == pytest.approx(1.0)  # solo agosto de "a" cuenta: septiembre no tiene M+1
     assert stats["rest"]["retention_n"] == 1
     assert stats["rest+turbo"]["retention_m1"] == pytest.approx(0.0)
     assert stats["rest+turbo"]["spend_per_user"] == pytest.approx(400.0)
@@ -152,7 +152,7 @@ def test_combo_stats_reproduce_shares_and_retention():
 
 
 def test_fine_combos_count_each_vertical_and_keep_the_coarse_retention():
-    """El nivel fino separa los verticales dentro de un grupo (supermercado y mall son «retail» en el grueso); la
+    """El nivel fino separa los verticales dentro de un grupo (supermercado y mall son "retail" en el grueso); la
     retención se mide igual."""
     orders = [
         order("a", at(2026, 8, 3), "supermercado"),
@@ -174,8 +174,8 @@ def test_fine_combos_count_each_vertical_and_keep_the_coarse_retention():
     }
     assert [(m.retained, m.orders) for m in coarse] == [(m.retained, m.orders) for m in fine]
     stats = combo_stats(fine)
-    assert stats["supermercado+mall"]["retention_m1"] == pytest.approx(1.0)  # «a» pidió en septiembre
-    assert stats["supermercado"]["retention_m1"] == pytest.approx(0.0)  # «b» no volvió
+    assert stats["supermercado+mall"]["retention_m1"] == pytest.approx(1.0)  # "a" pidió en septiembre
+    assert stats["supermercado"]["retention_m1"] == pytest.approx(0.0)  # "b" no volvió
     assert stats["supermercado"]["pct_users"] == pytest.approx(100 / 5)
     assert combo_steps(fine)[("supermercado+mall", "turbo")] == (1, 1.0)
     assert combo_steps(fine)[("supermercado", "ninguna")] == (1, 1.0)

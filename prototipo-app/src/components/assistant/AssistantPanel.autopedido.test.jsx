@@ -12,8 +12,8 @@ import { UNDO_MS } from '../../screens/checkout/undo'
 import { fixture, stubApi } from '../../test/api'
 import AssistantPanel from './AssistantPanel'
 
-// «Pedir por mí» (fase 7): con permiso, Mochi pide solo lo de siempre y el pedido sale recién al cerrarse la ventana de
-// «Deshacer pedido»; sin permiso, o si algo no calza, lo deja para revisar antes.
+// "Pedir por mí" (fase 7): con permiso, Mochi pide solo lo de siempre y el pedido sale recién al cerrarse la ventana de
+// "Deshacer pedido"; sin permiso, o si algo no calza, lo deja para revisar antes.
 const api = vi.hoisted(() => ({ health: vi.fn(), ask: vi.fn(), forget: vi.fn(), profile: vi.fn() }))
 vi.mock('../../api/client', async (importOriginal) => ({ ...(await importOriginal()), ...api }))
 const events = vi.hoisted(() => ({ track: vi.fn(), flush: vi.fn(), clear: vi.fn(), settled: vi.fn() }))
@@ -137,7 +137,7 @@ describe('pedir por mí', () => {
     })
   })
 
-  test('«Deshacer pedido» no manda nada', async () => {
+  test('"Deshacer pedido" no manda nada', async () => {
     api.ask.mockResolvedValue(fixture('agent-ask-autopedido'))
     await ask('pide lo de siempre')
     fireEvent.click(screen.getByRole('button', { name: 'Deshacer pedido' }))
@@ -192,7 +192,7 @@ describe('pedir por mí', () => {
   test('se apaga en un toque, y lo que estaba en su ventana no sale', async () => {
     api.ask.mockResolvedValue(fixture('agent-ask-autopedido'))
     await ask('pide lo de siempre')
-    fireEvent.click(screen.getByRole('button', { name: 'Apagar «Pedir por mí»' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Apagar "Pedir por mí"' }))
     await advance(UNDO_MS * 2)
     const deletes = fetchMock.mock.calls.filter(
       ([url, init]) => url.endsWith('/autonomia') && init?.method === 'DELETE',
@@ -201,7 +201,7 @@ describe('pedir por mí', () => {
     expect(orderCalls()).toHaveLength(0)
   })
 
-  test('otra respuesta no se lleva el «Deshacer pedido»: la tarjeta queda fija y se puede deshacer', async () => {
+  test('otra respuesta no se lleva el "Deshacer pedido": la tarjeta queda fija y se puede deshacer', async () => {
     api.ask.mockResolvedValueOnce(fixture('agent-ask-autopedido')).mockResolvedValue(fixture('agent-ask'))
     await ask('pide lo de siempre')
     fireEvent.click(screen.getByRole('button', { name: '🍫 Algo dulce' }))

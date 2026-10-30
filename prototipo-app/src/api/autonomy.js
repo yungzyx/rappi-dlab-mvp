@@ -1,8 +1,8 @@
-// «Pedir por mí» (rappi-ia offers/autonomy.py, migración 049): cuánta autonomía le da la persona a Mochi para pedir.
-// Por defecto, «Revisar antes de pedir». Con «Pedir por mí», en las tiendas que eligió (de las que ya pidió) y hasta su
-// tope, Mochi pide solo «lo de siempre» (su último pedido ahí, con el precio de hoy): nunca alcohol, +18, farmacia,
+// "Pedir por mí" (rappi-ia offers/autonomy.py, migración 049): cuánta autonomía le da la persona a Mochi para pedir.
+// Por defecto, "Revisar antes de pedir". Con "Pedir por mí", en las tiendas que eligió (de las que ya pidió) y hasta su
+// tope, Mochi pide solo "lo de siempre" (su último pedido ahí, con el precio de hoy): nunca alcohol, +18, farmacia,
 // bebé ni salud, ni en una tienda cerrada o bajo la compra mínima. La app suma lo que la API no sabe (el envío y la
-// tarifa de ejemplo) antes de abrir la ventana de «Deshacer pedido»; el pedido sale recién al cerrarse la ventana, y la
+// tarifa de ejemplo) antes de abrir la ventana de "Deshacer pedido"; el pedido sale recién al cerrarse la ventana, y la
 // API vuelve a revisar cada límite (un 409 con el motivo lo deja para revisar antes).
 import { request } from './client'
 import { basketsOf, buildOrders, orderVertical } from './orders'
@@ -31,14 +31,14 @@ export function toSetting(reply) {
   }
 }
 
-/** El ajuste de la persona: «revisar» (por defecto) o «pedir», con sus tiendas y su tope. */
+/** El ajuste de la persona: "revisar" (por defecto) o "pedir", con sus tiendas y su tope. */
 export const autonomy = () => request(path(), { timeout: TIMEOUT_MS }).then(toSetting)
 
-/** Enciende o cambia «Pedir por mí» (`stores`: ids de tiendas de las que ya pidió; `cap`: tope por pedido en pesos). */
+/** Enciende o cambia "Pedir por mí" (`stores`: ids de tiendas de las que ya pidió; `cap`: tope por pedido en pesos). */
 export const saveAutonomy = ({ stores, cap }) =>
   request(path(), { method: 'PUT', body: { tiendas: stores, tope: cap }, timeout: TIMEOUT_MS }).then(toSetting)
 
-/** Lo apaga en un toque: vuelve a «Revisar antes de pedir». */
+/** Lo apaga en un toque: vuelve a "Revisar antes de pedir". */
 export const turnOffAutonomy = () => request(path(), { method: 'DELETE', timeout: TIMEOUT_MS }).then(toSetting)
 
 /**

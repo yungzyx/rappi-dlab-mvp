@@ -21,7 +21,7 @@ def test_doctor_explains_unreachable_postgres():
 
 
 def test_doctor_explains_a_missing_database(test_url):
-    """Postgres arriba pero sin la base: el consejo no es «revisa que esté corriendo»."""
+    """Postgres arriba pero sin la base: el consejo no es "revisa que esté corriendo"."""
     missing = make_conninfo(test_url, dbname="rappi_no_existe_prueba")
 
     ready, message = check_database(missing)

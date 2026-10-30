@@ -88,7 +88,7 @@ describe('AddButton', () => {
     expect(count('suggestion_accepted')).toBe(1)
   })
 
-  test('tras «Olvidar» (el servidor borra sus eventos), volver a aceptarla en el mismo carro sí cuenta', () => {
+  test('tras "Olvidar" (el servidor borra sus eventos), volver a aceptarla en el mismo carro sí cuenta', () => {
     const suggested = {
       id: 'cat-2',
       name: 'Maní Salado',

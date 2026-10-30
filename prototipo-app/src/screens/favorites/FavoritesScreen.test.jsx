@@ -52,7 +52,7 @@ afterEach(() => {
 })
 
 describe('Favoritos con el catálogo real', () => {
-  test('«Tus favoritos» son las tiendas que se marcaron con ♥, y tocar una abre su página por id', async () => {
+  test('"Tus favoritos" son las tiendas que se marcaron con ♥, y tocar una abre su página por id', async () => {
     save(SAVED)
     stubFavorites()
     const push = renderFavorites()
@@ -103,7 +103,7 @@ describe('Favoritos con el catálogo real', () => {
     await screen.findByRole('region', { name: 'Los mejores restaurantes' })
   })
 
-  test('«Los mejores» salen de la API: cuatro restaurantes por nota y dos supermercados', async () => {
+  test('"Los mejores" salen de la API: cuatro restaurantes por nota y dos supermercados', async () => {
     const fetchMock = stubFavorites()
     renderFavorites()
 
@@ -146,7 +146,7 @@ describe('Favoritos con el catálogo real', () => {
     expect(stores.every((store) => Number.isInteger(store.id))).toBe(true)
   })
 
-  test('sin conexión «Tus favoritos» sigue y «Los mejores» no se muestran', async () => {
+  test('sin conexión "Tus favoritos" sigue y "Los mejores" no se muestran', async () => {
     save(SAVED)
     const fetchMock = stubFavorites({
       '/catalog/restaurants': 'offline',

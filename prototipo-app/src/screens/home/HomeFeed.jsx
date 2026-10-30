@@ -17,12 +17,12 @@ import './home.css'
 const COLLAPSE_AT_PX = 150
 const BACK_TO_TOP_FROM_PX = 600
 
-/** La Home de «Rappi hoy»: tal como es la app, sin el agente. La del prototipo final es LiveHomeFeed. */
+/** La Home de "Rappi hoy": tal como es la app, sin el agente. La del prototipo final es LiveHomeFeed. */
 export default function HomeFeed({ push }) {
   const address = useAddress()
   const catalog = useHomeCatalog()
   const events = useEvents()
-  // El sobre dice qué acceso de la Home se tocó y en qué lugar estaba (en «Rappi hoy» el orden es fijo).
+  // El sobre dice qué acceso de la Home se tocó y en qué lugar estaba (en "Rappi hoy" el orden es fijo).
   const openVertical = (vertical, where) =>
     events.track('vertical_open', { vertical, ...envelope({ surface: 'home', ...where }) })
   const openService = (servicio, where) =>

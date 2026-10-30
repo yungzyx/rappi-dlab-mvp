@@ -10,7 +10,7 @@ export const HOURS_SOURCE_NOTE = {
 
 export const isClosed = (hours) => hours?.open === false
 
-/** «Cerrado · Abre a las 11:00», «Abierto hasta las 23:00»… o null si no hay nada que decir (no se sabe). */
+/** "Cerrado · Abre a las 11:00", "Abierto hasta las 23:00"… o null si no hay nada que decir (no se sabe). */
 export function hoursLabel(hours) {
   if (!hours || hours.open == null) return null
   if (hours.open) return hours.closes_at ? `Abierto hasta las ${hours.closes_at}` : null
@@ -18,7 +18,7 @@ export function hoursLabel(hours) {
   return hours.source === 'horario' ? 'Cerrado hoy' : 'Cerrada'
 }
 
-/** La promo que se muestra en la tarjeta: la primera que publicó la tienda o, en un restaurante, «Con promociones». */
+/** La promo que se muestra en la tarjeta: la primera que publicó la tienda o, en un restaurante, "Con promociones". */
 export function promoLabel(store) {
   if (store?.promos?.length) return store.promos[0].title
   return store?.promo ? 'Con promociones' : null

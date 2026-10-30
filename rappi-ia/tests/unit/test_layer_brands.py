@@ -31,7 +31,7 @@ def test_roll_up_lines_under_a_big_enough_parent():
     }
     parent = roll_up(counts)
     assert parent["soprole next"] == "soprole" and parent["coca cola zero"] == "coca cola"
-    assert parent["san jose"] == "san jose"  # «san» tiene menos de 10 productos: no es un padre
+    assert parent["san jose"] == "san jose"  # "san" tiene menos de 10 productos: no es un padre
     assert parent["soprole"] == "soprole"
 
 

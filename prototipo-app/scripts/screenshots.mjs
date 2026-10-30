@@ -5,8 +5,8 @@
 // puerto (`VITE_API_URL`, la misma variable que lee la app). El recorrido paga una compra y deja eventos en la base de
 // la API: por eso no corre sin `SCREENSHOTS_ALLOW_WRITES=1`, y se corre sobre una copia
 // (`DATABASE_URL=postgresql:///rappi_staging make mvp`), nunca sobre `rappi`.
-// La conversación (45, 46 y 48) se pide en el buscador y se refina con los chips «Más barato» y «Sin carne».
-// «¿Repetimos?» necesita tres compras con ritmo: esa oferta sale del fixture del contrato, con un café real del catálogo.
+// La conversación (45, 46 y 48) se pide en el buscador y se refina con los chips "Más barato" y "Sin carne".
+// "¿Repetimos?" necesita tres compras con ritmo: esa oferta sale del fixture del contrato, con un café real del catálogo.
 import { mkdirSync, readFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { chromium } from 'playwright-core'
@@ -125,7 +125,7 @@ async function run(page) {
   await shot('20-asistente')
 
   // Seguir con Mochi sin chat: se le pide algo en el buscador y se refina con los chips de un toque.
-  // Se espera a que arriba diga lo pedido («Pediste «…» · «…»») y a que Mochi termine de escribir.
+  // Se espera a que arriba diga lo pedido ("Pediste '…' · '…'") y a que Mochi termine de escribir.
   const asked = async (text) => {
     await page.locator('.agent-asked', { hasText: text }).waitFor({ timeout: 20000 })
     await wait(3800)
@@ -139,11 +139,11 @@ async function run(page) {
   await askTyped('¿qué llevo para un asado de 6?')
   await shot('45-conversacion-asado')
   await tap('.agent-follow-chip', 'Más barato')
-  await asked('«más barato»')
+  await asked('"más barato"')
   await shot('46-conversacion-mas-barato')
   await askTyped('¿tienen pizza?')
   await tap('.agent-follow-chip', 'Sin carne')
-  await asked('«sin carne»')
+  await asked('"sin carne"')
   await shot('48-conversacion-sin-carne')
   await tap('[role="dialog"] .search-back')
   await wait(600)
@@ -161,7 +161,7 @@ async function run(page) {
   await tap('.cart-checkout')
   await wait(800)
   await shot('25-checkout')
-  // La compra mínima de la tienda: más unidades del producto hasta llegar («Te faltan $X para hacer el pedido»).
+  // La compra mínima de la tienda: más unidades del producto hasta llegar ("Te faltan $X para hacer el pedido").
   const short = page.locator('.checkout-basket:has(.basket-min.is-short)')
   for (let tries = 0; tries < 60 && (await short.count()) > 0; tries++) {
     await short
@@ -172,7 +172,7 @@ async function run(page) {
     await wait(100)
   }
   await tap('.checkout-place')
-  // Un producto +18 pregunta la edad una vez por sesión; después, la ventana de «Deshacer pedido» (5 s).
+  // Un producto +18 pregunta la edad una vez por sesión; después, la ventana de "Deshacer pedido" (5 s).
   const adult = page.getByRole('button', { name: 'Sí, soy mayor de edad' })
   if (
     await adult.waitFor({ timeout: 2000 }).then(
@@ -220,7 +220,7 @@ async function run(page) {
   await tap('.live-bubble .offer-why-toggle')
   await shot('22-vertical-por-probar')
 
-  // «¿Repetimos?»: la recompra del fixture del contrato, con un café molido real del catálogo.
+  // "¿Repetimos?": la recompra del fixture del contrato, con un café molido real del catálogo.
   const repeat = await repeatOffer()
   await page.route('**/agent/offer', async (route) => {
     if (route.request().postDataJSON()?.moment !== 'recompra') return route.continue()
@@ -251,7 +251,7 @@ async function repeatOffer() {
   const params = new URLSearchParams({ q: 'café molido', vertical: fixture.vertical, limit: '10' })
   const { products } = await (await fetch(`${API}/search?${params}`)).json()
   const product = products.find((p) => p.img && !p.age_restricted)
-  if (!product) throw new Error('No hay café molido en el catálogo para «¿Repetimos?»')
+  if (!product) throw new Error('No hay café molido en el catálogo para "¿Repetimos?"')
   return {
     ...fixture,
     products: [product],

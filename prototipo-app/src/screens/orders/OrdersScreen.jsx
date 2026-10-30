@@ -15,8 +15,8 @@ import './orders.css'
 const TICK_MS = 1000
 
 /**
- * El estado de un pedido en la lista: el paso en que va (los de su vertical, «· atrasado» si se atrasó), «Programado ·
- * hoy 15:00–16:00», «Cancelado», «Por calificar» si ya se entregó y falta su calificación, o «Entregado».
+ * El estado de un pedido en la lista: el paso en que va (los de su vertical, "· atrasado" si se atrasó), "Programado ·
+ * hoy 15:00–16:00", "Cancelado", "Por calificar" si ya se entregó y falta su calificación, o "Entregado".
  */
 export function orderStatus(order, now) {
   const status = statusOf(order, now)
@@ -26,8 +26,8 @@ export function orderStatus(order, now) {
 
 /**
  * Pedidos hechos en la demo (funcionalidad agregada), uno por tienda: una compra en dos tiendas son dos filas. Cada
- * fila abre su seguimiento, en curso, programado, cancelado o entregado; uno entregado trae «Pídelo de nuevo» y «Ayuda
- * con este pedido».
+ * fila abre su seguimiento, en curso, programado, cancelado o entregado; uno entregado trae "Pídelo de nuevo" y "Ayuda
+ * con este pedido".
  */
 export default function OrdersScreen({ back, push, reset }) {
   const { orders } = useOrders()
@@ -70,7 +70,7 @@ export default function OrdersScreen({ back, push, reset }) {
                     <strong>{order.stores.join(', ') || 'Tu pedido'}</strong>
                     <span>
                       {relativeDay(order.placedAt, now)} · {formatPrice(orderTotal(order))}
-                      {/* Lo pidió Mochi solo, con permiso («Pedir por mí»: api/autonomy.js). */}
+                      {/* Lo pidió Mochi solo, con permiso ("Pedir por mí": api/autonomy.js). */}
                       {order.byAgent && ` · Lo pidió ${AGENT_NAME} por ti`}
                     </span>
                     <span

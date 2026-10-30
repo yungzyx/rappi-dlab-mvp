@@ -35,7 +35,7 @@ Catálogo: el de `rappi_staging` en la noche del 17-10-2026, **mientras otro pro
 | rest+turbo+retail | 2,60 | 5,0 | 3,4 | 0,68 |
 | turbo+retail | 1,94 | 1,8 | 0,3 | 0,19 |
 
-Pocas altas «rest+retail» y «turbo+retail»: esas filas se llenan sobre todo con personas de otros arquetipos (de «rest» que aceptan una sugerencia del súper o Express; de «rest+turbo+retail» o «turbo» en un mes en que no usaron un grupo).
+Pocas altas "rest+retail" y "turbo+retail": esas filas se llenan sobre todo con personas de otros arquetipos (de "rest" que aceptan una sugerencia del súper o Express; de "rest+turbo+retail" o "turbo" en un mes en que no usaron un grupo).
 
 ## Tolerancia
 
@@ -60,7 +60,7 @@ Promedio de las semillas 7, 11, 23, 31 y 47, con el rango entre semillas.
 | **Distancia** (suma de diferencias, semillas 7 · 11 · 23 · 31 · 47) | | | 21,7 · 17,7 · 18,1 · 20,7 · 19,4 | **2,9 · 5,5 · 3,7 · 4,3 · 2,5** |
 | **Mayor diferencia de una fila** | | | 8,5 a 10,6 | **0,8 a 1,8** |
 
-«Antes» es el generador de `main` del 17-10 medido hoy con el mismo catálogo; por eso la distancia de la semilla 7 (21,7) no es la de 18,2 del 16-10 ([motor-2026-10-16.md](motor-2026-10-16.md#mejora-continua-etapa-5-datos-simulados)): entre medio cambiaron los complementos curados y las etiquetas del catálogo de la copia.
+"Antes" es el generador de `main` del 17-10 medido hoy con el mismo catálogo; por eso la distancia de la semilla 7 (21,7) no es la de 18,2 del 16-10 ([motor-2026-10-16.md](motor-2026-10-16.md#mejora-continua-etapa-5-datos-simulados)): entre medio cambiaron los complementos curados y las etiquetas del catálogo de la copia.
 
 **Cumple:** cada fila queda a menos de 2 puntos en las cinco semillas (la tolerancia era 3), Restaurantes es la mayor y turbo+retail la menor en todas. Las cinco filas del medio (5 a 7 %) están a menos de 1,3 puntos entre sí en la tabla y se ordenan distinto según la semilla: ese orden no se puede pedir con 3.000 personas.
 

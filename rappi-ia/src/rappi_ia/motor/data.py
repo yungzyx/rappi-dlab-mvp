@@ -1,7 +1,7 @@
 """Lo que el motor lee de la base: pedidos con sus líneas y señales de afinidad, siempre de una sola fuente.
 
 `synthetic` y `prototype` nunca se mezclan: cada función filtra la fuente de la persona, del pedido y del evento. Lo que
-pasa en «Rappi hoy» no enseña: solo entran pedidos `mode = 'propuesta'` y ningún evento con `payload.mode = 'actual'`.
+pasa en "Rappi hoy" no enseña: solo entran pedidos `mode = 'propuesta'` y ningún evento con `payload.mode = 'actual'`.
 Un pedido cancelado (`status = 'cancelado'`, migración 050) no entra: no es una compra.
 """
 
@@ -10,7 +10,7 @@ from datetime import datetime
 
 from psycopg import Connection
 
-# Tipo de evento → clase de señal (las claves de `model.AFFINITY_WEIGHTS`, salvo «order», que sale de los pedidos).
+# Tipo de evento → clase de señal (las claves de `model.AFFINITY_WEIGHTS`, salvo "order", que sale de los pedidos).
 EVENT_KINDS = ("cart_add", "vertical_open", "view_store", "search", "view_item")
 
 
@@ -102,7 +102,7 @@ def load_signals(
     orders: list[Order] | None = None,
 ) -> list[Signal]:
     """Las señales de afinidad de la fuente en orden de `ts`: cada pedido `propuesta` (`kind="order"`) y los eventos
-    con vertical de `EVENT_KINDS`, sin los hechos en «Rappi hoy». `orders`: lo que da `load_orders` con la misma fuente,
+    con vertical de `EVENT_KINDS`, sin los hechos en "Rappi hoy". `orders`: lo que da `load_orders` con la misma fuente,
     personas y `before`, si quien llama ya lo leyó (así no se lee dos veces)."""
     if orders is None:
         orders = load_orders(conn, source, user_id, before)

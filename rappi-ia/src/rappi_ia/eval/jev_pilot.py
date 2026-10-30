@@ -3,14 +3,14 @@
 - Rol A (categorías): Jev etiqueta las categorías de `planilla-categorias.csv` con las instrucciones en español y en
   inglés (mismas opciones). Para cada umbral T de `THRESHOLDS`, con la tabla de decisión de `jev_map.decide`:
   - precisión: de las categorías que Jev mapea (confianza ≥ T), las que coinciden con el concepto de la persona
-    (si la persona puso «ninguno», mapear es un error);
-  - cobertura: de las categorías del grupo «sin mapear», las que Jev mapea;
-  - acuerdo con el control: de las categorías del grupo «acuerdo» que Jev mapea, las que coinciden con el concepto en
+    (si la persona puso "ninguno", mapear es un error);
+  - cobertura: de las categorías del grupo "sin mapear", las que Jev mapea;
+  - acuerdo con el control: de las categorías del grupo "acuerdo" que Jev mapea, las que coinciden con el concepto en
     que ya coincidían los dos mapeadores;
   - sensibles: categorías que la persona dio por sensibles o +18 y Jev mapea solo a un concepto que no lo es.
   `T_auto` es el menor T que cumple los cuatro criterios; una variante pasa si tiene `T_auto`.
-- Rol B (juez): Jev juzga los pares de `planilla-busqueda.csv` (con caché en `eval_judgments`). κ binario «sirve»
-  contra el resto, como el juez por concepto: Jev dice «sirve» con ganancia esperada ≥ ¾ (`jev_level`). Se adopta si
+- Rol B (juez): Jev juzga los pares de `planilla-busqueda.csv` (con caché en `eval_judgments`). κ binario "sirve"
+  contra el resto, como el juez por concepto: Jev dice "sirve" con ganancia esperada ≥ ¾ (`jev_level`). Se adopta si
   κ(Jev, personas) ≥ 0,6 y supera a κ(juez por concepto, personas) en los mismos pares. El κ ponderado de tres
   niveles se informa, no decide.
 
@@ -173,7 +173,7 @@ def _share(hits: list[bool]) -> float | None:
 def _breach(taxonomy: Taxonomy, human: str, mapped: str) -> bool:
     """La persona dio la categoría por sensible o +18 y Jev la mapeó a un concepto que no lo es."""
     truth, given = taxonomy.concepts.get(human), taxonomy.concepts[mapped]
-    if truth is None:  # «ninguno»: no se sabe qué guardia aplicaría
+    if truth is None:  # "ninguno": no se sabe qué guardia aplicaría
         return False
     return (truth.sensitive and not given.sensitive) or (truth.age_restricted and not given.age_restricted)
 
@@ -217,9 +217,9 @@ def choose_variant(results: dict[str, dict]) -> str | None:
 
 
 def jev_level(gain: float) -> int:
-    """Nivel 0, 1 o 2 desde la ganancia esperada: el más cercano (½ y 1 son las ganancias de «a medias» y «sirve»).
-    Jev dice «sirve» (nivel 2) con ganancia ≥ ¾, el punto medio entre las dos. `RELEVANT_GAIN` (½) es otro corte: el
-    del MRR, que cuenta «a medias» como relevante; aquí el binario de las personas es «sirve» contra el resto."""
+    """Nivel 0, 1 o 2 desde la ganancia esperada: el más cercano (½ y 1 son las ganancias de "a medias" y "sirve").
+    Jev dice "sirve" (nivel 2) con ganancia ≥ ¾, el punto medio entre las dos. `RELEVANT_GAIN` (½) es otro corte: el
+    del MRR, que cuenta "a medias" como relevante; aquí el binario de las personas es "sirve" contra el resto."""
     return min(2, int(gain * 2 + 0.5))
 
 
@@ -354,7 +354,7 @@ def _unreliable(usage: dict, categories: dict, judged: int, asked: int) -> list[
     for variant, result in categories["variantes"].items():
         answered = total - result["sin_respuesta"]
         if total and answered < MIN_ANSWERED * total:
-            reasons.append(f"en la variante «{variant}», Jev respondió {answered} de {total} categorías")
+            reasons.append(f'en la variante "{variant}", Jev respondió {answered} de {total} categorías')
     if asked and judged < MIN_ANSWERED * asked:
         reasons.append(f"Jev respondió {judged} de {asked} pares de búsqueda")
     return reasons
@@ -422,7 +422,7 @@ def render_report(categories: dict, judge: dict, usage: dict, context: dict) -> 
         " azar, 0,6 = bueno, 1 = acuerdo total.",
         "- **T_auto**: la confianza mínima con que Jev etiqueta una categoría sola, sin que una persona la revise.",
         "- **Ganancia esperada**: el puntaje de Jev para un resultado de búsqueda, de 0 (no sirve) a 1 (sirve),"
-        " promediando sus probabilidades de «no sirve» (0), «a medias» (½) y «sirve» (1).",
+        ' promediando sus probabilidades de "no sirve" (0), "a medias" (½) y "sirve" (1).',
         "- **Guardias**: dos preguntas aparte (¿es de salud sensible?, ¿es solo para mayores de 18?) que mandan a"
         " revisión humana una categoría cuando contradicen el concepto que eligió Jev.",
     ]
@@ -440,7 +440,7 @@ def render_report(categories: dict, judge: dict, usage: dict, context: dict) -> 
     for variant, result in categories["variantes"].items():
         lines += [
             "",
-            f"### Instrucciones en {VARIANT_NAMES[variant]} (variante «{variant}»)",
+            f'### Instrucciones en {VARIANT_NAMES[variant]} (variante "{variant}")',
             "",
             "| T | Mapeadas | Precisión | Cobertura sin mapear | Acuerdo control | Sensibles mal mapeadas | Cumple |",
             "|---|---|---|---|---|---|---|",
@@ -464,7 +464,7 @@ def render_report(categories: dict, judge: dict, usage: dict, context: dict) -> 
     lines.append("")
     if categories["pasa"]:
         lines.append(
-            f"Cumple los criterios con la variante «{categories['variante']}» y T_auto ="
+            f'Cumple los criterios con la variante "{categories["variante"]}" y T_auto ='
             f" {fmt_num(categories['t_auto'])}."
         )
     else:
@@ -477,7 +477,7 @@ def render_report(categories: dict, judge: dict, usage: dict, context: dict) -> 
         "",
         f"{judge['n']} pares juzgados por la persona y por Jev"
         + (f" ({judge['sin_juicio_jev']} quedaron sin juicio de Jev)" if judge["sin_juicio_jev"] else "")
-        + ". Jev dice «sirve» con ganancia esperada ≥ 0,75; κ binario: «sirve» contra el resto.",
+        + '. Jev dice "sirve" con ganancia esperada ≥ 0,75; κ binario: "sirve" contra el resto.',
         "",
         "| Juez | κ binario | κ ponderado (3 niveles) |",
         "|---|---|---|",
@@ -513,7 +513,7 @@ def _category_criteria_table(categories: dict) -> list[str]:
             metrics, key=lambda m: (sum(category_criteria(m).values()), -m["t"])
         )
         shown[variant] = (best, category_criteria(best))
-    header = "| Criterio | Meta | " + " | ".join(f"«{v}» (T = {fmt_num(m['t'])})" for v, (m, _) in shown.items()) + " |"
+    header = "| Criterio | Meta | " + " | ".join(f'"{v}" (T = {fmt_num(m["t"])})' for v, (m, _) in shown.items()) + " |"
     rows = [header, "|---|---|" + "---|" * len(shown)]
     for name, label, goal, value in (
         ("precision", "Precisión", f"≥ {_pct(MIN_PRECISION)}", lambda m: _pct(m["precision"])),

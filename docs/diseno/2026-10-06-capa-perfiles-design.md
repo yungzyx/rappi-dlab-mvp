@@ -8,7 +8,7 @@
 Hoy la base sabe **qué es** cada ítem (capa 2: un concepto por producto o plato) y **qué le interesa** a cada usuario
 (perfil por concepto con decaimiento). No sabe **cómo es** un producto (sin gluten, familiar, premium), **cuánto trae**
 de forma comparable, **de qué marca** es de verdad, si es **el mismo** producto en otra vertical, cómo se **relacionan**
-las cosas más allá de «complementa», ni **qué tipo de cliente** es cada persona.
+las cosas más allá de "complementa", ni **qué tipo de cliente** es cada persona.
 
 Esta capa agrega esos datos como **cimiento reutilizable**: el chat, la búsqueda, un recomendador, el panel o una
 herramienta externa (BI, dbt, Neo4j) los leen sin reimplementar lógica. Cambiar cómo los usa el chat queda **fuera de
@@ -58,8 +58,8 @@ Fuentes, en orden de confianza (gana la primera que responde; las demás no se g
    `life_stage_human`, `dog_age`, `cat_age`, `pack_size`… (mapeo en el TOML). `confidence` 0,95. Un `false` explícito
    de Rappi **bloquea** la regla de texto para ese atributo.
 2. **Regla de texto** sobre nombre + categoría + descripción hasta las advertencias del prospecto (la misma frontera de
-   `tools._treats`): frases positivas («sin gluten», «libre de gluten», «gluten free») y **negaciones que anulan**
-   («contiene gluten», «puede contener trazas»). `confidence` 0,8.
+   `tools._treats`): frases positivas ("sin gluten", "libre de gluten", "gluten free") y **negaciones que anulan**
+   ("contiene gluten", "puede contener trazas"). `confidence` 0,8.
 3. **Derivada** (estadística): `economico` (precio ≤ percentil 25 de su concepto en su vertical), `con-descuento`
    (precio < precio real en la última foto). `confidence` 0,9. Se recalcula con cada descarga.
 
@@ -70,8 +70,8 @@ Fuentes, en orden de confianza (gana la primera que responde; las demás no se g
 | `item_measures` | `entity_type`, `entity_id`, `quantity` (por unidad), `unit` (`g`·`ml`·`und`·`cm`), `pack` (≥ 1), `total` (= quantity × pack, en la unidad base), `size_label` (`talla g`, `familiar`, `para 2`…), `source`, `evidence`, `run_id` |
 
 Base: `catalog_items.quantity`/`unit_type` (normalizados: `gr`→`g`, `kg`→`g`×1000, `cc`→`ml`, `l`→`ml`×1000), corregidos
-por el nombre cuando se contradicen («Coca-Cola 3 L» con `1 und`). `pack` sale de `pack_size` o del nombre («x6»,
-«six pack», «pack 4»). Platos: `size_label` y personas («para 2», «familiar», «XL») desde el nombre.
+por el nombre cuando se contradicen ("Coca-Cola 3 L" con `1 und`). `pack` sale de `pack_size` o del nombre ("x6",
+"six pack", "pack 4"). Platos: `size_label` y personas ("para 2", "familiar", "XL") desde el nombre.
 Vista `capa.item_unit_prices`: precio vigente ÷ `total` → `$/kg`, `$/L`, `$/und`.
 
 ### 3.4 Marcas
@@ -82,8 +82,8 @@ Vista `capa.item_unit_prices`: precio vigente ÷ `total` → `$/kg`, `$/L`, `$/u
 | `brand_aliases` | `alias` (normalizado, pk), `brand_key`, `source` (`rappi`·`curado`), `items` |
 | `item_brands` | `entity_type`, `entity_id`, `brand_key`, `source` (`rappi` `trademark` · `regla` sobre el nombre · `cadena` para platos), `run_id` |
 
-Agrupación: `normalize(trademark)` sin signos ni sufijos societarios («S.A.», «Ltda»); escrituras que solo difieren en
-espacios o guiones se unen («coca cola» = «cocacola» = «coca-cola»). Los alias curados mandan (TOML `brands.toml`).
+Agrupación: `normalize(trademark)` sin signos ni sufijos societarios ("S.A.", "Ltda"); escrituras que solo difieren en
+espacios o guiones se unen ("coca cola" = "cocacola" = "coca-cola"). Los alias curados mandan (TOML `brands.toml`).
 Los platos toman la cadena del local (`stores.brand_id`) como marca.
 
 ### 3.5 Producto canónico
@@ -95,7 +95,7 @@ Los platos toman la cadena del local (`stores.brand_id`) como marca.
 
 Clave: `(brand_key, name_key, total, unit)`. Une productos con distinto `master_product_id` que son el mismo (pasa
 entre cadenas); nunca une tamaños distintos ni marcas distintas. Ante la duda **no une** (unir mal es peor que no unir).
-De aquí sale «el mismo producto en N verticales» sin la inflación de las tiendas con doble etiqueta.
+De aquí sale "el mismo producto en N verticales" sin la inflación de las tiendas con doble etiqueta.
 
 ### 3.6 Grafo de conocimiento
 
@@ -190,7 +190,7 @@ window_days = 120
 half_life_days = 45
 min_signals = 3          # eventos distintos que calzan
 levels = { bajo = 2.0, medio = 5.0, alto = 10.0 }
-share_of = "all"         # opcional: puntaje relativo al total de actividad (para «una-vertical», «premium»)
+share_of = "all"         # opcional: puntaje relativo al total de actividad (para "una-vertical", "premium")
 ```
 
 Piezas disponibles: `concepts`, `groups`, `attributes`, `verticals`, `brands`, `occasions`, `services`,
@@ -226,17 +226,17 @@ fitness, oficinista, nocturno, cazaofertas, gamer…) para que el panel y los te
 
 ## 7. Privacidad y sensibles
 
-- `segment_defs.sensitive` y los nombres por comportamiento («compra sin gluten», nunca «celíaco»).
+- `segment_defs.sensitive` y los nombres por comportamiento ("compra sin gluten", nunca "celíaco").
 - Vistas `capa`: los agregados de segmentos sensibles solo muestran grupos con **≥ 5 usuarios**; las filas por usuario
   de segmentos sensibles no se exponen en `capa` (solo en la tabla interna, para el chat de esa persona).
 - `forget(user)` borra `user_segments` y `user_segment_history`; `forget(user, concept)` recalcula sus segmentos.
-- Nunca se calculan segmentos con eventos de modo «Rappi hoy» (ya no traen concepto) ni se mezclan fuentes
+- Nunca se calculan segmentos con eventos de modo "Rappi hoy" (ya no traen concepto) ni se mezclan fuentes
   (`synthetic`, `prototype`) en un mismo cálculo.
 - Conflictos (`relation = 'conflicto'`) siembran las prohibiciones que el chat ya respeta (sensibles, edad).
 
 ## 8. Calidad y pruebas
 
-- **Unitarias** por regla: frases positivas, negaciones («contiene gluten»), medidas («x6», «1,5 L», «3 L» con `1 und`),
+- **Unitarias** por regla: frases positivas, negaciones ("contiene gluten"), medidas ("x6", "1,5 L", "3 L" con `1 und`),
   alias de marca, clave canónica (no une tamaños distintos), motor de segmentos (umbrales, decaimiento, `min_signals`,
   `exclude`, métricas de relación).
 - **Integración** contra `rappi_ia_test`: cada comando idempotente, `layer_runs`, vista de compatibilidad

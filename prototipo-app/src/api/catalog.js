@@ -1,6 +1,6 @@
 // Lecturas del catálogo (/catalog de rappi-ia): tiendas, productos, restaurantes, ofertas y Home, ya en el formato del
-// prototipo. Las pantallas las llaman con `useApi`; si fallan lanzan un `ApiError` (`status` 404 = «no está en el catálogo»,
-// que cada pantalla cuenta a su manera; `offline` y `timeout` son «Sin conexión»).
+// prototipo. Las pantallas las llaman con `useApi`; si fallan lanzan un `ApiError` (`status` 404 = "no está en el catálogo",
+// que cada pantalla cuenta a su manera; `offline` y `timeout` son "Sin conexión").
 
 import { PLACEHOLDER_IMG } from '../components/Img'
 import { screenForBackend } from '../data/verticals'
@@ -30,13 +30,13 @@ const ratingText = (rating) => (Number(rating) > 0 ? Number(rating).toFixed(1) :
  * Tarjeta de tienda o de restaurante de la API → tarjeta del prototipo.
  * - Tienda (`logo`): `img` es su logo (`logo: true`) y `vertical` el id del prototipo.
  * - Restaurante (`cover`): la base no guarda logos, así que `img` es la foto de un plato (`logo: false`).
- * Lo que la API no sabe (tiempo, nota) queda `undefined`, y un envío de $0 también: es un dato que falta, no «envío gratis».
+ * Lo que la API no sabe (tiempo, nota) queda `undefined`, y un envío de $0 también: es un dato que falta, no "envío gratis".
  * - `hours`: abierto o cerrado según lo publicado el día de la descarga (`source`: `horario` de un restaurante comparado
  *   con la hora local, o `descarga` de una tienda), nunca el estado en vivo; `null` si no se sabe.
  * - `promos`: las promos que la tienda publicó (`{ type, title, value, threshold }`); `promo`: un restaurante con algún
  *   plato rebajado.
- * - `name`: en un restaurante, su `display_name` («Pastelería - Vitacura»), el mismo de sus platos, del carro y de sus
- *   pedidos; una respuesta grabada sin él usa `name` («Pastelería»).
+ * - `name`: en un restaurante, su `display_name` ("Pastelería - Vitacura"), el mismo de sus platos, del carro y de sus
+ *   pedidos; una respuesta grabada sin él usa `name` ("Pastelería").
  */
 export function toPrototypeStore(card) {
   const restaurant = 'cover' in card
@@ -127,8 +127,8 @@ const toOfferStore = (entry) => ({
 
 /**
  * Dónde está un producto del catálogo (`entityId`): `{ count, stores, here, similar }`. `stores`: cada tienda con su
- * precio, tiempo y envío publicados y las marcas «Mejor precio» y «Más rápido», con su lugar en la ficha
- * (`comparar-tiendas`); `here`: la tienda `storeId` (con «Pocas unidades»), o null; `similar`: si ahí está agotado, los
+ * precio, tiempo y envío publicados y las marcas "Mejor precio" y "Más rápido", con su lugar en la ficha
+ * (`comparar-tiendas`); `here`: la tienda `storeId` (con "Pocas unidades"), o null; `similar`: si ahí está agotado, los
  * del mismo concepto que esa tienda sí tiene (`similares`). Con `substitutes`, esos mismos aunque ahí esté disponible: los
  * sustitutos de los cambios en vivo del seguimiento.
  */
@@ -175,7 +175,7 @@ export function soldOutHere(product) {
 export const forgetStockChecks = () => stockChecks.clear()
 
 /**
- * «Para ti» en una tienda (solo la propuesta): `{ requestId, products, basis }`, los productos de la tienda que calzan
+ * "Para ti" en una tienda (solo la propuesta): `{ requestId, products, basis }`, los productos de la tienda que calzan
  * con los intereses de la persona, ya con las guardias de las ofertas y marcados con su lugar (`para-ti` en la tienda:
  * abrirlos es un `recommendation_click`).
  */

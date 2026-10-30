@@ -28,9 +28,9 @@ CONCEPT_BONUS = 0.5 / (RRF_K + 1)  # medio "primer lugar" extra si el ítem comp
 DEFAULT_TAU = 0.82  # coseno e5 mínimo para considerar que hay algo parecido; se calibra por vertical (eval)
 # El τ de una consulta que no nombra concepto ni ocasión, en una vertical o en todas (agent/grouped_search: si ninguna
 # vertical calza todas las palabras, solo entra una con este coseno). El τ de cada vertical (0,79 en Turbo, 0,70 en el
-# Mall y las chocolaterías) dejaba pasar vecinos sin relación: «sofá de tres cuerpos» en Turbo traía pisco Tres Erres
-# (0,821) y «xyzzy» un pastillero y libros. Calibrado con e5 en la base real: las negativas sin concepto ni ocasión de
-# eval/queries.json llegan a 0,847 («refrigerador 300 litros» en Licores). Con una ocasión («regalo para mi polola»)
+# Mall y las chocolaterías) dejaba pasar vecinos sin relación: "sofá de tres cuerpos" en Turbo traía pisco Tres Erres
+# (0,821) y "xyzzy" un pastillero y libros. Calibrado con e5 en la base real: las negativas sin concepto ni ocasión de
+# eval/queries.json llegan a 0,847 ("refrigerador 300 litros" en Licores). Con una ocasión ("regalo para mi polola")
 # sigue el τ de la vertical: lo pedido son productos que su nombre no dice, y ahí los vecinos vectoriales sirven.
 UNNAMED_TAU = 0.85
 MIN_CONCEPT_ITEMS = 3  # bajo esto (o bajo 0,05% del vertical) el concepto se considera ausente: surtido testimonial
@@ -69,7 +69,7 @@ class RetrievalResult:
     concept_in_vertical: bool
     unmet: bool
     unmet_reason: str | None
-    has_words: bool = True  # le queda alguna palabra sin las stopwords («té» no)
+    has_words: bool = True  # le queda alguna palabra sin las stopwords ("té" no)
     # Ítems del concepto nombrado con más surtido en el vertical sobre los documentos del vertical (None si la consulta
     # no nombra ninguno): agent/tools._focus no muestra lo rotulado con un concepto que el vertical casi no tiene.
     concept_share: float | None = None
@@ -147,7 +147,7 @@ def retrieve(
     hits = _hydrate(conn, vertical, top, scores, cosines, ranks)
 
     # Si ningún documento calza alguna palabra (sin tope de precio, el mismo universo), ninguno las calza todas: la
-    # búsqueda sin coincidencias («xyz») no pregunta lo que ya sabe en cada una de las 8 verticales.
+    # búsqueda sin coincidencias ("xyz") no pregunta lo que ya sabe en cada una de las 8 verticales.
     if mode != "vector" and filters.price_max is None and not lexical:
         strict = 0
     else:
@@ -202,7 +202,7 @@ _OCCASIONS = None
 
 
 def named_occasion(q: str) -> Occasion | None:
-    """La ocasión que nombra la consulta («algo para el carrete»), con las keywords de taxonomy.toml."""
+    """La ocasión que nombra la consulta ("algo para el carrete"), con las keywords de taxonomy.toml."""
     global _OCCASIONS
     taxonomy = load_taxonomy()
     if _OCCASIONS is None:
@@ -215,7 +215,7 @@ OCCASION_QUERY_CONCEPTS = 4  # los conceptos de la ocasión cuyos nombres arman 
 
 
 def occasion_search(q: str) -> tuple[str, list[str], Occasion] | None:
-    """Cómo se busca una ocasión que la consulta nombra sin nombrar un concepto («algo para la once»): por sus
+    """Cómo se busca una ocasión que la consulta nombra sin nombrar un concepto ("algo para la once"): por sus
     conceptos, sin los sensibles (una ocasión no los nombra), con una consulta hecha de los nombres de los primeros
     OCCASION_QUERY_CONCEPTS. Devuelve (consulta, conceptos, ocasión), o None si la consulta nombra un concepto (manda
     lo pedido) o ninguna ocasión. La usan la búsqueda agrupada y la de una vertical (agent/tools.search_products); el
@@ -258,7 +258,7 @@ def _lexical(
     y 'coca' no existe en el índice), así que las palabras con guion perdían su peso.
 
     El df de cada lexema sale de la caché del catálogo (`_document_frequencies`): contarlo en cada búsqueda costaba
-    tanto como puntuar con una palabra frecuente («sushi» en restaurantes, ~45 mil documentos).
+    tanto como puntuar con una palabra frecuente ("sushi" en restaurantes, ~45 mil documentos).
 
     El puntaje de cada documento es la suma de los IDF de las palabras que tiene más ts_rank_cd, en una subconsulta
     sobre las palabras en vez de un JOIN más GROUP BY (unas 3 veces más rápida con palabras frecuentes). Es la misma
@@ -271,14 +271,14 @@ def _lexical(
 
     Con más de una palabra, en dos etapas: primero ordena por la suma de IDF (barata) y se queda con los
     LEXICAL_RANK_POOL mejores más los que empatan con el último (`WITH TIES`: un empate no se corta al azar); recién
-    ahí suma ts_rank_cd, lo caro (~2 µs por documento: «sushi roll wok chapsui» calza 49 mil platos). La segunda etapa
+    ahí suma ts_rank_cd, lo caro (~2 µs por documento: "sushi roll wok chapsui" calza 49 mil platos). La segunda etapa
     vuelve a leer cada documento por su `ctid` y su partición (`tableoid`: un ctid solo es único dentro de una), la
     misma fila en la misma consulta: arrastrar el tsvector en el orden lo mandaba a disco. Como ts_rank_cd pesa poco
     (≈0,1 por aparición, contra un IDF de 1,5 o más), el orden es el mismo salvo que un documento con menos IDF lo
     supere por ts_rank_cd desde fuera de los primeros mil. Con una sola palabra todos tienen el mismo IDF: una etapa.
     """
     lexemes = _lexemes(conn, query)
-    if not lexemes:  # solo stopwords («té»): nada que calzar
+    if not lexemes:  # solo stopwords ("té"): nada que calzar
         return []
     params = {
         "lexemes": lexemes,
@@ -374,8 +374,8 @@ def _strict_lexical_count(conn: Connection, vertical: str, query: str, filters: 
 
 
 def has_words(conn: Connection, query: str) -> bool:
-    """¿Le queda alguna palabra a la consulta sin las stopwords? «té» es stopword: no hay nada que calzar. Tampoco
-    cuentan las de saludo, cortesía o pedido en cualquier lugar: el agente solo las limpia al inicio («té porfa»)."""
+    """¿Le queda alguna palabra a la consulta sin las stopwords? "té" es stopword: no hay nada que calzar. Tampoco
+    cuentan las de saludo, cortesía o pedido en cualquier lugar: el agente solo las limpia al inicio ("té porfa")."""
     words = " ".join(word for word in tokens(query) if word not in FILLER_WORDS)
     return conn.execute("SELECT length(to_tsvector('spanish', es_unaccent(%s))) > 0", (words,)).fetchone()[0]
 
@@ -510,8 +510,8 @@ def _unmet(
     Con e5 los cosenos se concentran (0,78–0,90), así que cuando la consulta nombra un concepto, su presencia
     en el vertical es mejor señal que el coseno ("pizza" en Rappi Mall: no hay; aunque el coseno sea 0,82).
     Sin concepto, τ es el del vertical si la consulta nombra una ocasión, y si no, UNNAMED_TAU: el del vertical no
-    separa («sofá de tres cuerpos» en Turbo, 0,821, contra «cuchuflis» con un error de tipeo, 0,843).
-    Sin palabras que buscar («té» es stopword), que nada calce no dice nada y el coseno solo no basta: no se marca.
+    separa ("sofá de tres cuerpos" en Turbo, 0,821, contra "cuchuflis" con un error de tipeo, 0,843).
+    Sin palabras que buscar ("té" es stopword), que nada calce no dice nada y el coseno solo no basta: no se marca.
     """
     if strict > 0:
         return False, None

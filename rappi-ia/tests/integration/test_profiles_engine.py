@@ -38,9 +38,9 @@ from rappi_ia.offers.profiles import (
 NOW = datetime.now(UTC)
 ROLL_CALIFORNIA, ROLL_SALMON, SUSHI_STORE = "98005", "98006", 9802  # los dos rolls del catálogo, del mismo local
 
-# Productos solo de estas pruebas, con un concepto que un peldaño ofrece: el soju (alcohol en «Gaseosas», como en la
+# Productos solo de estas pruebas, con un concepto que un peldaño ofrece: el soju (alcohol en "Gaseosas", como en la
 # base real), los globos de un sex shop y lo que solo calza una palabra a medias (posavasos) o calza la palabra sin ser
-# lo que promete el peldaño (un limpiador «en pasta», un juego de pizza de juguete).
+# lo que promete el peldaño (un limpiador "en pasta", un juego de pizza de juguete).
 SOJU, CUPS, COASTERS, PIZZA_CUTTER, POT_CLEANER, TOY_PIZZA, SHOP_BALLOONS = (
     93901,
     96901,
@@ -72,7 +72,7 @@ EXTRA_RESTAURANTS = [
         (["Sushi"], {"Rolls": [(98902, "Roll acevichado (prueba)", 8490)]}),
     ),
 ]
-# Una tienda de Turbo que se llama «Licores»: la única que vende este hielo.
+# Una tienda de Turbo que se llama "Licores": la única que vende este hielo.
 LIQUOR_ICE = "Hielo en bolsa 1 kg (prueba)"
 LIQUOR_STORE = (9311, "Turbo Licores de prueba", "turbo", None, [(93902, LIQUOR_ICE, "Hielo", 990, 990)])
 
@@ -95,7 +95,7 @@ def catalog(db, monkeypatch):
     db.execute("UPDATE stores SET brand_id = %s WHERE store_id IN (%s, %s)", (CHAIN, SUSHI_STORE, CHAIN_BRANCH))
     embedder = HashEmbedder()
     embed_search_documents(db, embedder)
-    # La capa de conceptos ya pasa el soju de «Gaseosas» a licores (assign.py); aquí vuelve a gaseosas, como estaba en
+    # La capa de conceptos ya pasa el soju de "Gaseosas" a licores (assign.py); aquí vuelve a gaseosas, como estaba en
     # la base real, para probar la segunda red: la guardia de ofertas por el nombre.
     soju = "SELECT concept_id FROM item_concepts WHERE entity_type = 'catalog_item' AND entity_id = %s"
     assert db.execute(soju, (str(SOJU),)).fetchone()[0] == "licores"
@@ -178,7 +178,7 @@ def test_a_sushi_lover_has_the_asian_profile_and_its_reason_counts_what_they_did
     assert found.reason == "Pediste 🍣 sushi 2 veces, y buscaste 🥡 comida asiática 1 vez."
     assert {"kind": "concepto", "id": "sushi", "score": 2, "source": "pedidos"} in found.basis
     assert {"kind": "concepto", "id": "asiatica", "score": 1, "source": "busquedas"} in found.basis
-    # La evidencia de sus segmentos, como en offers/personal.py: el concepto, el peso de su nivel y «segmento:<id>».
+    # La evidencia de sus segmentos, como en offers/personal.py: el concepto, el peso de su nivel y "segmento:<id>".
     assert {"kind": "concepto", "id": "sushi", "score": 2.0, "source": "segmento:asiatica"} in found.basis
     mine = set(levels) & set(found.profile.segments)
     assert {s["source"] for s in found.basis} == {"pedidos", "busquedas"} | {f"segmento:{seg}" for seg in mine}
@@ -192,7 +192,7 @@ def test_a_sushi_lover_has_the_asian_profile_and_its_reason_counts_what_they_did
         "principal": True,
         "por_que": found.reason,
         "basis": list(found.basis),
-        # Lo que cuenta el «por qué», con su nombre y su emoji para «¿Por qué?» en la app (los segmentos no se repiten).
+        # Lo que cuenta el "por qué", con su nombre y su emoji para "¿Por qué?" en la app (los segmentos no se repiten).
         "conceptos": {
             "sushi": {"nombre": "Sushi", "emoji": "🍣"},
             "asiatica": {"nombre": "Comida asiática", "emoji": "🥡"},
@@ -208,14 +208,14 @@ def test_the_reason_only_counts_the_profile_window(catalog, db):
 
 
 def test_the_reason_counts_proposal_orders_and_searches_only(catalog, db):
-    """Ni los pedidos de «Rappi hoy», ni lo que no es una búsqueda (agregar al carro), ni una búsqueda de «Rappi hoy»
+    """Ni los pedidos de "Rappi hoy", ni lo que no es una búsqueda (agregar al carro), ni una búsqueda de "Rappi hoy"
     o de hace 200 días."""
     user = _sushi_lover(db)
     events.record_order(
         db, user, "s4", "c-s4", "restaurantes",
         [{"entity_type": "menu_item", "entity_id": ROLL_CALIFORNIA, "unit_price": 6990}], mode="actual",
     )  # fmt: skip
-    db.execute(  # aunque la línea traiga concepto, un pedido de «Rappi hoy» no cuenta
+    db.execute(  # aunque la línea traiga concepto, un pedido de "Rappi hoy" no cuenta
         """UPDATE app_order_lines l SET concept_id = 'sushi' FROM app_orders o
            WHERE o.order_id = l.order_id AND o.user_id = %s AND o.mode = 'actual'""",
         (user,),
@@ -293,7 +293,7 @@ def test_the_main_profile_goes_first_then_by_score(catalog, db):
 
 
 def test_the_party_reason_never_names_alcohol(catalog, db):
-    """`fiestero` se activa con cócteles y espumante: el «por qué» del carrete cuenta solo lo que se puede ofrecer."""
+    """`fiestero` se activa con cócteles y espumante: el "por qué" del carrete cuenta solo lo que se puede ofrecer."""
     user = "u-fiesta"
     _order(db, user, "s1", "catalog_item", "94008", "espumante", "licores", days_ago=3)
     _order(db, user, "s2", "catalog_item", "94008", "espumante", "licores", days_ago=2)
@@ -446,7 +446,7 @@ def test_step_words_match_the_start_of_a_word_and_avoid_what_the_step_does_not_p
 
 
 def test_a_ladder_never_offers_from_a_liquor_store(catalog, db):
-    """«Turbo Licores» vende hielo, y una oferta común lo puede traer; una escalera de perfil no lo trae de ahí."""
+    """ "Turbo Licores" vende hielo, y una oferta común lo puede traer; una escalera de perfil no lo trae de ahí."""
     assert LIQUOR_ICE in {
         p.name for p in search_products(db, "turbo", "hielo", ["hielo"], catalog, offer=True).products
     }

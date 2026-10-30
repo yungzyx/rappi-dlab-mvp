@@ -1,5 +1,5 @@
 "use strict";
-/* La presentación del MVP: el prototipo («Prototipo MVP.html») en un iframe, el panel de negocio encima a pedido, los
+/* La presentación del MVP: el prototipo ("Prototipo MVP.html") en un iframe, el panel de negocio encima a pedido, los
    controles de la demo de la app a los lados y un recorrido automático por capítulos. build.mjs mete este archivo en
    escritorio.html y en movil.html, y los dos HTML en PROTOS (cada uno con shim.js, que guarda con prefijo propio). */
 const TITLE = "MVP · Agente Mochi";
@@ -19,7 +19,7 @@ function clearStorage(id) {
 }
 
 /* Cada carga parte de cero, con un iframe nuevo y sin lo guardado (carro, pedidos, persona, modo). Volver a cargar el
-   mismo iframe dejaría una entrada en el historial y el «atrás» del navegador lo dejaría en blanco. Se limpia con el
+   mismo iframe dejaría una entrada en el historial y el "atrás" del navegador lo dejaría en blanco. Se limpia con el
    iframe viejo ya fuera, para que no alcance a volver a guardar. Cambiar de persona recarga la app dentro del mismo
    iframe: onload vuelve a vigilar los toques de la persona en el documento nuevo. */
 function load() {
@@ -67,7 +67,7 @@ biz.addEventListener("click", (e) => { if (e.target === biz) { byUser(e); closeB
 document.addEventListener("keydown", (e) => { if (e.key === "Escape") { byUser(e); closeBiz(); } });
 
 /* ---------- los controles de la demo de la app, en la presentación ----------
-   El interruptor de modo y el «Panel de la demo» de la app quedarían encima del teléfono, así que se ocultan (ver
+   El interruptor de modo y el "Panel de la demo" de la app quedarían encima del teléfono, así que se ocultan (ver
    build.mjs) y sus mismos botones se muestran aquí: cada botón de la presentación hace clic en el original. El panel
    de la demo se abre solo (oculto): sus botones existen solo abierto. */
 const modesBox = document.getElementById("modes-box");
@@ -88,7 +88,7 @@ const isOn = (b) => b.getAttribute("aria-checked") === "true" || b.classList.con
 /* El prototipo final de la app es el MVP de esta presentación */
 const modeLabel = (b) => b.textContent.replace(/Prototipo final\s*✨?/, "MVP con Mochi").trim();
 
-/* Los botones de una sección del «Panel de la demo» (la que sigue al título `title`) */
+/* Los botones de una sección del "Panel de la demo" (la que sigue al título `title`) */
 function demoButtons(title) {
   const doc = appDoc();
   const panel = doc && doc.querySelector(".offline-demo-panel");
@@ -98,12 +98,12 @@ function demoButtons(title) {
   while (box && !box.classList.contains("offline-demo-buttons")) box = box.nextElementSibling;
   return box ? [...box.querySelectorAll("button")] : [];
 }
-/* Los perfiles de gusto empiezan con su emoji («🥢 Amante de lo asiático») */
+/* Los perfiles de gusto empiezan con su emoji ("🥢 Amante de lo asiático") */
 const EMOJI = /^\p{Extended_Pictographic}/u;
 const isTaste = (label) => EMOJI.test(label);
 
-/* Las secciones del «Panel de la demo» que van en «Simular». «Mochi» (solo en el MVP con Mochi) es un botón que dice lo
-   que hará: «Ocultar a Mochi» o «Mostrar a Mochi» */
+/* Las secciones del "Panel de la demo" que van en "Simular". "Mochi" (solo en el MVP con Mochi) es un botón que dice lo
+   que hará: "Ocultar a Mochi" o "Mostrar a Mochi" */
 const SIM_SECTIONS = ["Mover la Home", "Pedido en curso", "Mochi"];
 const simButtons = () => SIM_SECTIONS.flatMap(demoButtons);
 
@@ -115,7 +115,7 @@ function proxy(className, text, onClick) {
   return b;
 }
 
-/* «+1 visita» mueve los accesos de la Home y Mochi lo explica: para que se vea, cierra el buscador (una persona elegida
+/* "+1 visita" mueve los accesos de la Home y Mochi lo explica: para que se vea, cierra el buscador (una persona elegida
    a mano lo deja abierto) y termina la guía de la primera vez si está a la vista (si no, Mochi lo explica al terminarla) */
 function showHome() {
   const doc = appDoc();
@@ -126,7 +126,7 @@ function showHome() {
   if (guide) guide.click();
 }
 
-/* Un perfil de gusto se muestra como ficha: su emoji grande y el nombre corto («🥢 Amante de lo asiático» → «Asiático»).
+/* Un perfil de gusto se muestra como ficha: su emoji grande y el nombre corto ("🥢 Amante de lo asiático" → "Asiático").
    El nombre completo queda en aria-label y title: el recorrido lo busca por ahí */
 function tasteTile(b, label) {
   const emoji = label.match(EMOJI)[0];
@@ -174,7 +174,7 @@ function syncControls() {
         if (t && /^(\+1 visita|Ocultar a|Mostrar a)/.test(label)) showHome();
         if (t) t.click();
       });
-      /* «+1 visita a Rappi Mall» se ve corto («+1 Rappi Mall»); el texto completo queda para el recorrido y el title */
+      /* "+1 visita a Rappi Mall" se ve corto ("+1 Rappi Mall"); el texto completo queda para el recorrido y el title */
       const visit = /^\+1 visita a (.+)$/.exec(label);
       if (visit) {
         b.textContent = "+1 " + visit[1];
@@ -212,9 +212,9 @@ document.addEventListener("keydown", (e) => {
   if (other) { stopTour(); other.click(); }
 });
 
-/* Al elegir una persona: el «Panel de la demo» borra lo de ahora, siembra su historial y recarga la app en la Home.
+/* Al elegir una persona: el "Panel de la demo" borra lo de ahora, siembra su historial y recarga la app en la Home.
    Elegida a mano (`byHand`), después abre el buscador con Mochi: lo que Mochi le muestra a esa persona. Con un perfil
-   de gusto, además pasea su escalera «Para ti en otras verticales» hacia la derecha, tarjeta por tarjeta. Un clic o la
+   de gusto, además pasea su escalera "Para ti en otras verticales" hacia la derecha, tarjeta por tarjeta. Un clic o la
    rueda dentro de la app (o Parar) corta el paseo. */
 let panRun = 0;
 let personaPan = Promise.resolve();
@@ -336,7 +336,7 @@ function sleep(ms) {
   });
 }
 
-/* La punta del «mouse» (data-dx/dy en #cursor): la flecha en el escritorio, el centro del dedo en la versión táctil */
+/* La punta del "mouse" (data-dx/dy en #cursor): la flecha en el escritorio, el centro del dedo en la versión táctil */
 const TIP = { x: Number(cursor.dataset.dx || 5), y: Number(cursor.dataset.dy || 3) };
 
 function placeCursor(x, y, ms) {
@@ -682,10 +682,10 @@ const CHAPTERS = [
       ...simulate("Rappi Mall", "Simula visitas a Rappi Mall desde el panel de la demo."),
       { say: "Mochi mueve los accesos en vivo y dice por qué.", point: { sel: ".live-bubble" }, timeout: 5000, after: 3000 },
       { say: "La Home se reordena en vivo: Rappi Mall sube.", point: { sel: ".home-shortcut", text: "Rappi Mall" }, after: 1800 },
-      { say: "«Entendido».", click: { sel: "button.live-chip", text: "Entendido" }, timeout: 3000, after: 600 },
+      { say: '"Entendido".', click: { sel: "button.live-chip", text: "Entendido" }, timeout: 3000, after: 600 },
       { say: "Le pide a Mochi algo nuevo para probar.", click: { sel: ".live-agent-body" }, after: 2600 },
       { say: "Mochi propone la vertical que sigue en su escalera. ¿Por qué?", click: { sel: ".live-bubble .offer-why-toggle" }, timeout: 6000, after: 2600 },
-      { say: "Por ahora, «Después».", click: { sel: "button.live-chip", text: "Después" } },
+      { say: 'Por ahora, "Después".', click: { sel: "button.live-chip", text: "Después" } },
     ],
   },
   {
@@ -693,7 +693,7 @@ const CHAPTERS = [
     title: "2 · El buscador con Mochi",
     steps: [
       ...persona("asiático", "Ahora, alguien que pide sushi seguido.", false),
-      { say: "«¿Repetimos sushi?»: lo que pide con ritmo, a un toque.", point: { sel: ".live-card--repeat" }, timeout: 6000, after: 1600 },
+      { say: '"¿Repetimos sushi?": lo que pide con ritmo, a un toque.', point: { sel: ".live-card--repeat" }, timeout: 6000, after: 1600 },
       { say: "Cada oferta dice por qué.", click: { sel: ".live-card--repeat .offer-why-toggle" }, after: 2400 },
       { say: "El buscador con Mochi: su perfil de gusto y un saludo.", click: { sel: ".smart-bar" }, after: 2400 },
       { say: "¿Por qué este perfil? Lo que pidió.", click: { sel: "button.taste-why-toggle" }, timeout: 2500, after: 2600 },
@@ -708,23 +708,23 @@ const CHAPTERS = [
     title: "3 · Por necesidad o por plan",
     steps: [
       { say: "Le pide algo por necesidad, no por producto.", click: { sel: ".smart-bar" }, after: 1600 },
-      { say: "«¿Qué llevo para un asado de 6?»", type: { into: { sel: ".agent-search input" }, text: "¿Qué llevo para un asado de 6?", enter: true }, after: 2800 },
+      { say: '"¿Qué llevo para un asado de 6?"', type: { into: { sel: ".agent-search input" }, text: "¿Qué llevo para un asado de 6?", enter: true }, after: 2800 },
       { say: "Carne para 6 y lo que falta de otra tienda: carbón.", scroll: { in: { sel: ".agent-search-body .agent-msg-product-main" }, by: 260 } },
-      { say: "Lo refina con un toque: «Más barato».", click: { sel: ".agent-follow-chip", text: "Más barato" }, after: 2800 },
+      { say: 'Lo refina con un toque: "Más barato".', click: { sel: ".agent-follow-chip", text: "Más barato" }, after: 2800 },
       backHome(),
-      { say: "En la Home: «¿Qué plan tienes hoy?»", scroll: { to: { sel: ".live-plan-title" } } },
-      { say: "Elige «Carrete»: un kit de las tiendas que hagan falta.", click: { sel: ".live-plan-chip", text: "Carrete" }, after: 2800 },
+      { say: 'En la Home: "¿Qué plan tienes hoy?"', scroll: { to: { sel: ".live-plan-title" } } },
+      { say: 'Elige "Carrete": un kit de las tiendas que hagan falta.', click: { sel: ".live-plan-chip", text: "Carrete" }, after: 2800 },
       { say: "El kit, con lo que suma cada tienda.", point: { sel: ".live-kit-add" }, after: 2200 },
     ],
   },
   {
     id: "volver",
-    title: "4 · «¿Volvemos a…?» y Ofertas",
+    title: '4 · "¿Volvemos a…?" y Ofertas',
     steps: [
       ...persona("Dejó de pedir su plato", "Alguien que dejó de pedir su plato de siempre."),
-      { say: "«¿Volvemos a…?»: lo que pedía con ritmo y dejó de pedir.", point: { sel: ".live-card--repeat" }, timeout: 6000, after: 1800 },
+      { say: '"¿Volvemos a…?": lo que pedía con ritmo y dejó de pedir.', point: { sel: ".live-card--repeat" }, timeout: 6000, after: 1800 },
       { say: "Con su porqué.", click: { sel: ".live-card--repeat .offer-why-toggle" }, after: 2600 },
-      { say: "Si dice «Después», Mochi no insiste (con dos, lo deja).", click: { sel: ".live-repeat-later", text: "Después" } },
+      { say: 'Si dice "Después", Mochi no insiste (con dos, lo deja).', click: { sel: ".live-repeat-later", text: "Después" } },
       { say: "Ofertas: lo que bajó de precio, por vertical.", click: { sel: ".bottom-nav-item", text: "Ofertas" }, after: 2000 },
       { say: "Ofertas: lo que bajó de precio, por vertical.", scroll: { in: { sel: ".deals-vertical-title" }, by: 600 } },
       { say: "Vuelve a la Home.", click: { sel: ".bottom-nav-item", text: "Inicio" } },
@@ -735,14 +735,14 @@ const CHAPTERS = [
     title: "5 · Carro, pago y seguimiento",
     steps: [
       ...persona("Restaurantes + Turbo", "Una compra de punta a punta."),
-      { say: "Busca «sushi».", click: { sel: ".smart-bar" }, after: 1400 },
-      { say: "Busca «sushi».", type: { into: { sel: ".agent-search input" }, text: "sushi" }, after: 1800 },
+      { say: 'Busca "sushi".', click: { sel: ".smart-bar" }, after: 1400 },
+      { say: 'Busca "sushi".', type: { into: { sel: ".agent-search input" }, text: "sushi" }, after: 1800 },
       { say: "Abre un sushi de un restaurante.", click: [{ sel: ".product-row-main", text: "Sushi" }, { sel: ".product-row-main" }], after: 1500 },
       { say: "Lo agrega al carro.", click: { sel: ".product-sheet-confirm" }, timeout: 3000 },
       backHome(),
       { say: "Abre el carro.", click: { sel: ".cart-bar" }, timeout: 3000 },
       { say: "Ir a pagar.", click: { sel: ".cart-checkout" }, after: 2000 },
-      { say: "El checkout: envío, entrega, propina y «¿Me falta algo?».", scroll: { to: { sel: ".checkout-ask" } } },
+      { say: 'El checkout: envío, entrega, propina y "¿Me falta algo?".', scroll: { to: { sel: ".checkout-ask" } } },
       { say: "Hace el pedido.", click: { sel: ".checkout-place" }, after: 2500 },
       { say: "El seguimiento: cuánto falta y en qué va.", point: { sel: ".tracking-eta" }, timeout: 9000, after: 2400 },
       { say: "Y lo que Turbo suma antes de que llegue, con su porqué.", point: { sel: ".tracking-ontop" }, timeout: 2500, after: 2200 },
@@ -752,19 +752,19 @@ const CHAPTERS = [
   },
   {
     id: "autonomia",
-    title: "6 · Preferencias y «Pedir por mí»",
+    title: '6 · Preferencias y "Pedir por mí"',
     steps: [
       ...persona("asiático", "Lo que Mochi puede hacer por la persona.", false),
       { say: "Abre el buscador con Mochi.", click: { sel: ".smart-bar" }, after: 1600 },
-      { say: "«Mis preferencias»: dieta, alergias y favoritos.", click: { sel: ".agent-search-body button", text: "Mis preferencias" }, after: 1600 },
-      { say: "Marca «Sin lactosa»: solo saca lo que Mochi muestra.", click: { sel: ".agent-prefs-chip", text: "Sin lactosa" }, after: 900 },
+      { say: '"Mis preferencias": dieta, alergias y favoritos.', click: { sel: ".agent-search-body button", text: "Mis preferencias" }, after: 1600 },
+      { say: 'Marca "Sin lactosa": solo saca lo que Mochi muestra.', click: { sel: ".agent-prefs-chip", text: "Sin lactosa" }, after: 900 },
       { say: "Y su cocina favorita: sushi.", click: { sel: ".agent-prefs-chip", text: "🍣 Sushi" }, after: 900 },
       { say: "Guarda.", click: { sel: ".sheet-confirm-primary", text: "Guardar" }, after: 1600 },
-      { say: "«Pedir por mí»: por defecto, Mochi revisa antes de pedir.", click: { sel: ".agent-search-body button", text: "Pedir por mí" }, after: 1600 },
+      { say: '"Pedir por mí": por defecto, Mochi revisa antes de pedir.', click: { sel: ".agent-search-body button", text: "Pedir por mí" }, after: 1600 },
       { say: "Le da permiso en una tienda donde ya pidió.", click: { sel: ".agent-autonomy-mode", text: "Pedir por mí" }, after: 900 },
       { say: "Le da permiso en una tienda donde ya pidió.", click: { sel: ".agent-prefs-chip", text: "Akira" }, after: 900 },
       { say: "Guarda.", click: { sel: ".sheet-confirm-primary", text: "Guardar" }, after: 1600 },
-      { say: "«Repite lo de siempre».", click: { sel: ".agent-capability", text: "Repite lo de siempre" }, after: 2400 },
+      { say: '"Repite lo de siempre".', click: { sel: ".agent-capability", text: "Repite lo de siempre" }, after: 2400 },
       { say: "Mochi lo pide solo, con unos segundos para deshacer.", click: { sel: ".agent-msg-action", text: "Pide lo de siempre por mí" }, after: 3600 },
       backHome(),
     ],
@@ -811,7 +811,7 @@ const CHAPTERS = [
   },
 ];
 
-/* Un botón por capítulo en «O recorre una parte» */
+/* Un botón por capítulo en "O recorre una parte" */
 document.getElementById("chapters").replaceChildren(...CHAPTERS.map((c) => {
   const b = document.createElement("button");
   b.className = "tour-one";

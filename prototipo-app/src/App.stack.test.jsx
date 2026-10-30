@@ -42,7 +42,7 @@ describe('pila de pantallas montada', () => {
     const input = await screen.findByPlaceholderText('¿Qué quieres hoy?')
     fireEvent.change(input, { target: { value: 'cerveza' } })
     fireEvent.click(await screen.findByText('Cerveza negra botella 330 cc (prueba)')) // la hoja del producto
-    fireEvent.click(document.querySelector('.product-sheet-store')) // «Ver tienda»
+    fireEvent.click(document.querySelector('.product-sheet-store')) // "Ver tienda"
     expect(wraps()).toHaveLength(3)
     expect(wraps()[1].hasAttribute('inert')).toBe(true)
     await screen.findByRole('heading', { level: 1 }) // la tienda ya cargó

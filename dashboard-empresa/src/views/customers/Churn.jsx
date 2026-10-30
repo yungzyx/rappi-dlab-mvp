@@ -54,7 +54,7 @@ function Audiences({ rows }) {
 
 /**
  * ¿A quién estamos perdiendo y qué le ofrecemos? Las cifras de riesgo (de /analytics/kpis) junto a quién califica para
- * «¿Volvemos a…?» o «¿Repetimos?» (/analytics/volver), y lo que pedían las personas que entrega /analytics/at-risk.
+ * "¿Volvemos a…?" o "¿Repetimos?" (/analytics/volver), y lo que pedían las personas que entrega /analytics/at-risk.
  */
 export function Churn({ source }) {
   const [kpis, rows, winback] = useAnalyticsMany(['kpis', 'at-risk', 'volver'], source)
@@ -74,12 +74,12 @@ export function Churn({ source }) {
             note: 'Pasaron el triple de su ritmo sin pedir (mínimo 45 días).',
           },
           {
-            label: 'Califican para «¿Volvemos a…?»',
+            label: 'Califican para "¿Volvemos a…?"',
             value: formatNumber(winback.califican),
             note: `Dejaron algo que pedían con ritmo: ${formatNumber(winback.por_concepto)} un concepto y ${formatNumber(winback.por_vertical)} una vertical. Es otra regla que la del riesgo.`,
           },
           {
-            label: 'Les toca «¿Repetimos?»',
+            label: 'Les toca "¿Repetimos?"',
             value: formatNumber(winback.recompra),
             note: 'La recompra va primero: a ellas no se las invita a volver.',
           },

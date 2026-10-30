@@ -14,7 +14,7 @@ export default function AskAgentRow({ query, question = false, hintId, onAsk }) 
     <button
       type="button"
       className={`agent-ask-row tap${question ? ' is-question' : ''}`}
-      aria-label={`Pídele a ${AGENT_NAME}: «${query}»`}
+      aria-label={`Pídele a ${AGENT_NAME}: "${query}"`}
       onMouseDown={(e) => e.preventDefault()}
       onClick={onAsk}
     >
@@ -23,7 +23,7 @@ export default function AskAgentRow({ query, question = false, hintId, onAsk }) 
       </span>
       <span className="agent-ask-text">
         <strong>Pídele a {AGENT_NAME}</strong>
-        <span className="agent-ask-query">«{query}»</span>
+        <span className="agent-ask-query">"{query}"</span>
       </span>
       {question ? (
         <>

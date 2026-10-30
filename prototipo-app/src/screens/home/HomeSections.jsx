@@ -13,7 +13,7 @@ import { RestaurantCard, StoreTile } from './StoreCards'
 import { MAIN_TILES, PROMOS, PROMO_START_INDEX, SHORTCUTS, orderShortcuts } from '../../data/home'
 import './home.css'
 
-// Secciones de la Home que comparten «Rappi hoy» y el prototipo final.
+// Secciones de la Home que comparten "Rappi hoy" y el prototipo final.
 
 /**
  * Restaurantes y Turbo. `onOpen(vertical, where)` avisa cuál se tocó (código del backend) y dónde estaba (`where`:

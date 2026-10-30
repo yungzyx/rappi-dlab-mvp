@@ -55,9 +55,9 @@
       }
     ],
     "concept": "pizza",
-    "text": "Porque buscaste «pizza hawaiana» y aquí sí hay."
+    "text": "Porque buscaste \"pizza hawaiana\" y aquí sí hay."
   },
   "request_id": "contrato-agent-offer-sin-resultado",
-  "text": "No encontré «pizza hawaiana», pero pizza sí hay en restaurantes.",
+  "text": "No encontré \"pizza hawaiana\", pero pizza sí hay en restaurantes.",
   "vertical": "restaurantes"
 }

@@ -52,7 +52,7 @@ def test_build_concepts_is_idempotent_and_drops_stale_rules(db):
 
 
 def test_the_description_of_a_dish_reaches_the_aperitivo_rule(db):
-    """En una sección «Aperitivos», un plato con nombre de comida sale del alcohol solo si la descripción tampoco lo
+    """En una sección "Aperitivos", un plato con nombre de comida sale del alcohol solo si la descripción tampoco lo
     dice: la descripción tiene que llegar desde la base."""
     add_store(db, 3, "restaurantes", "Bar")
     add_dish(db, 600, "Queso Mantecoso Laminado", 3, "Aperitivos")
@@ -111,7 +111,7 @@ def test_categories_without_a_reviewed_mapping_are_reported_with_a_suggestion(db
 
 
 def test_a_weak_suggestion_is_not_proposed(tmp_path):
-    """1 de 67 productos con un concepto (p. ej. «Pesca deportiva» → carbón) es ruido, no una sugerencia."""
+    """1 de 67 productos con un concepto (p. ej. "Pesca deportiva" → carbón) es ruido, no una sugerencia."""
     path = tmp_path / "categorias-sin-mapear.csv"
     rows = [{"nombre": "Pesca Deportiva", "productos": 46, "sin_concepto": 45, "sugerido": "carbon", "con_sugerido": 1}]
     write_category_proposals(rows, path)
@@ -120,7 +120,7 @@ def test_a_weak_suggestion_is_not_proposed(tmp_path):
 
 
 def test_categories_reviewed_without_a_concept_are_not_reported_again(db):
-    """Una fila «ninguno» de category_map.csv es una revisión hecha: no vuelve como «sin mapeo revisado»."""
+    """Una fila "ninguno" de category_map.csv es una revisión hecha: no vuelve como "sin mapeo revisado"."""
     with CATEGORY_MAP_CSV.open(encoding="utf-8") as f:
         reviewed = next(
             r["nombre"] for r in csv.DictReader(f) if r["tipo"] == "categoria" and r["concept_id"] == "ninguno"

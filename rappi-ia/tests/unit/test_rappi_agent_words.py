@@ -9,7 +9,7 @@ from rappi_ia.agent.rappi_agent import _moved, _names, _stem
     ("name", "word", "says"),
     [
         ("Pizza Champiñón", "champinones", True),  # plural pedido, singular en el nombre
-        ("Roll Salmón Queso", "sal", False),  # «sin sal» no saca el salmón
+        ("Roll Salmón Queso", "sal", False),  # "sin sal" no saca el salmón
         ("Salsa de tomate", "sal", False),
         ("Papas con sal de mar", "sal", True),
         ("Pasta con tomates", "tomate", True),
@@ -26,8 +26,8 @@ def test_free_from_is_said_only_with_sin_libre_or_zero():
 
 
 def test_a_vertical_with_a_few_is_not_said_to_have_none():
-    assert _moved("farmacia", "conveniencia", "helados", 18).startswith("En farmacia casi no hay «helados»")
-    assert _moved("farmacia", "licores", "vino", 0).startswith("En farmacia no hay «vino»")
+    assert _moved("farmacia", "conveniencia", "helados", 18).startswith('En farmacia casi no hay "helados"')
+    assert _moved("farmacia", "licores", "vino", 0).startswith('En farmacia no hay "vino"')
 
 
 @pytest.fixture(scope="module")
@@ -40,10 +40,10 @@ def agent():
 @pytest.mark.parametrize(
     ("text", "vertical", "avoided"),
     [
-        ("sandwich sin palta", "restaurantes", ["palta"]),  # «palta» es palabra de los sándwiches y aun así se excluye
+        ("sandwich sin palta", "restaurantes", ["palta"]),  # "palta" es palabra de los sándwiches y aun así se excluye
         ("empanadas sin queso", "restaurantes", ["queso"]),
         ("pizza sin las aceitunas", "restaurantes", ["aceituna"]),
-        ("algo sin carne", "supermercado", []),  # «sin carne» nombra lo vegano
+        ("algo sin carne", "supermercado", []),  # "sin carne" nombra lo vegano
     ],
 )
 def test_what_is_asked_without(agent, text, vertical, avoided):
@@ -56,7 +56,7 @@ def test_without_x_is_a_free_from_detail(agent):
 
 
 # El nombre del agente sale de config.AGENT_NAME. Se quita solo como vocativo: al lado
-# de un saludo o un «gracias», o antes de un pedido; si es todo el pedido («quiero mochi»), se busca el postre.
+# de un saludo o un "gracias", o antes de un pedido; si es todo el pedido ("quiero mochi"), se busca el postre.
 @pytest.fixture(scope="module")
 def understander():
     from rappi_ia.agent.understand import Understander
@@ -91,7 +91,7 @@ def test_vocative_is_stripped_before_query(understander):
 
 
 def test_the_name_before_courtesy_or_an_article_is_the_dessert(understander):
-    """Solo antes de un saludo o de un verbo de pedido el nombre es vocativo: «porfa», «por» o un artículo después
+    """Solo antes de un saludo o de un verbo de pedido el nombre es vocativo: "porfa", "por" o un artículo después
     no lo vuelven un llamado."""
     name = _name().lower()
     for text in [f"quiero un {name} porfa", f"quiero {name} por favor", f"dame {name} un poco"]:
@@ -129,7 +129,7 @@ def test_follows_agent_name_env(understander, monkeypatch):
     ],
 )
 def test_the_agent_name_is_not_read_as_a_product(understander, monkeypatch, text, kind, occasion, concepts):
-    """Con «mochi» como palabra de los snacks asiáticos, estos mensajes al agente pedían snacks asiáticos (revisión
+    """Con "mochi" como palabra de los snacks asiáticos, estos mensajes al agente pedían snacks asiáticos (revisión
     del 14-10-2026). Dicen lo mismo que antes de los conceptos asiáticos."""
     from rappi_ia import config
 

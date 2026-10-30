@@ -104,7 +104,7 @@ function TurboOffers({ onOpenStore }) {
   )
 }
 
-/** Si la tienda Turbo no llegó: «Sin conexión» con Reintentar, o que no hay tienda en el catálogo. */
+/** Si la tienda Turbo no llegó: "Sin conexión" con Reintentar, o que no hay tienda en el catálogo. */
 function ShopStatus({ shop }) {
   if (shop.status === 'offline') return <OfflineNotice onRetry={shop.retry} />
   if (shop.status === 'empty')

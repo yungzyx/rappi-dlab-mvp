@@ -1,6 +1,6 @@
-"""Una ocasión sin concepto nombrado («algo para la once») se busca por sus conceptos también en una sola vertical, con
+"""Una ocasión sin concepto nombrado ("algo para la once") se busca por sus conceptos también en una sola vertical, con
 la misma reescritura que la búsqueda agrupada (`retrieval.hybrid.occasion_search`). Antes la búsqueda de una vertical
-la buscaba tal cual: en Turbo, «algo para la once» traía berenjenas y detergente (vecinos vectoriales de «once»)."""
+la buscaba tal cual: en Turbo, "algo para la once" traía berenjenas y detergente (vecinos vectoriales de "once")."""
 
 import pytest
 from fastapi.testclient import TestClient
@@ -75,7 +75,7 @@ def test_the_vertical_endpoint_shows_the_occasion_products(demo):
 
 
 def test_a_named_concept_wins_over_the_occasion(demo):
-    """«café para la once» pide café: la ocasión solo completa lo que no se nombró (como el agente)."""
+    """ "café para la once" pide café: la ocasión solo completa lo que no se nombró (como el agente)."""
     db, embedder = demo
 
     outcome = search_products(db, "supermercado", "café para la once", None, embedder)

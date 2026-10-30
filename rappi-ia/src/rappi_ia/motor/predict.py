@@ -102,8 +102,8 @@ def next_verticals(
 
 def current_fine(conn: Connection, user_id: str, now: datetime | None = None) -> str:
     """La combinación fina de la persona: las verticales de sus pedidos `propuesta` de los últimos 30 días y los
-    servicios que abrió en ese tiempo (`service_opened`, salvo en «Rappi hoy»). Sin pedidos en 30 días, los de 90
-    (`LAPSED_COMBO_DAYS`); sin pedidos en 90, «ninguna»: abrir un servicio sin pedir no arma una combinación."""
+    servicios que abrió en ese tiempo (`service_opened`, salvo en "Rappi hoy"). Sin pedidos en 30 días, los de 90
+    (`LAPSED_COMBO_DAYS`); sin pedidos en 90, "ninguna": abrir un servicio sin pedir no arma una combinación."""
     now = now or datetime.now(UTC)
     by_service = {payload: service for service, payload in load_combos().services.items()}
     for days in (CURRENT_COMBO_DAYS, LAPSED_COMBO_DAYS):
@@ -144,10 +144,10 @@ def target_step(conn: Connection, user_id: str, population: str | None = None) -
 
 
 def step_signal(conn: Connection, step: Step, population: str | None = None) -> dict:
-    """La señal `combinacion` de un paso (`target_step`) para la `basis` de una oferta: «<actual>→<objetivo>», con sus
+    """La señal `combinacion` de un paso (`target_step`) para la `basis` de una oferta: "<actual>→<objetivo>", con sus
     combinaciones finas sin Farmacia ni Licores (cuentan en el paso, pero la base no los nombra). Su fuente parte de la
-    tabla de Rappi («rappi»), suma «+supuesto» si pesó el supuesto propio del rendimiento decreciente y
-    «+poblacion:<fuente>» si pesó la retención aprendida de la población (gruesa o fina, con al menos
+    tabla de Rappi ("rappi"), suma "+supuesto" si pesó el supuesto propio del rendimiento decreciente y
+    "+poblacion:<fuente>" si pesó la retención aprendida de la población (gruesa o fina, con al menos
     `LEARNED_RETENTION_MIN_USERS` personas) en la combinación actual o en la objetivo."""
     population = population or config.MOTOR_POBLACION
     coarse = _learned_retention(conn, population)
@@ -171,7 +171,7 @@ def _nameable(fine: str) -> str:
 
 def _coarse_of(fine: str) -> str | None:
     """La combinación gruesa de la que parte la retención de una fina: la de sus verticales del catálogo; solo
-    servicios, «favor» si está RappiFavor (RappiTravel solo no tiene fila)."""
+    servicios, "favor" si está RappiFavor (RappiTravel solo no tiene fila)."""
     members = [] if fine == NONE_COMBO else fine.split("+")
     catalog = [m for m in members if m not in SERVICES]
     if catalog or not members:

@@ -9,7 +9,7 @@ SUPUESTOS (editables aquí):
   pide. Se sortea con la parte de cada combinación en la tabla de Rappi (motor/combos.toml, sin Favor) por un factor
   de calibración (ARCHETYPE_CALIBRATION, ajustado con scripts/calibrar_simulados.py): la tabla cuenta personas-mes, no
   altas, y quien combina grupos vive más meses, pasa algunos en un solo grupo y las sugerencias aceptadas llevan a
-  quien solo pide en Restaurantes a combinar. Por eso hay pocas altas «rest+retail» y «turbo+retail»: esas filas salen
+  quien solo pide en Restaurantes a combinar. Por eso hay pocas altas "rest+retail" y "turbo+retail": esas filas salen
   sobre todo de otros arquetipos. Su perfil (PERSONAS) dice qué conceptos, las horas, el abandono y el atributo que
   prefiere; solo cuentan sus verticales de los grupos del arquetipo. Si a un grupo no le queda ninguno, Turbo copia lo
   del súper y Express de la persona (sin alcohol, bebé, salud ni sensibles) y, si no hay, usa GENERIC_INTERESTS, como
@@ -25,11 +25,11 @@ SUPUESTOS (editables aquí):
   parte que no vuelve (10 %, 5 %, 2,5 %…), así que usar Súper y Express rinde más que solo Súper. Farmacia y Licores
   cuentan como cualquier otra vertical del grupo: son uso propio de la persona (Mochi igual nunca las propone). Los
   servicios (RappiFavor, RappiTravel) no suman: la persona simulada los abre de pasada, no con regularidad.
-  La M+1 de Rappi es «pide el mes siguiente», y quien sigue activa puede saltarse un mes: la supervivencia mensual es
+  La M+1 de Rappi es "pide el mes siguiente", y quien sigue activa puede saltarse un mes: la supervivencia mensual es
   esa retención dividida por la probabilidad de pedir en un mes con el ritmo de su arquetipo, 1 − e^−λ
   (month_order_probability), con tope MAX_SURVIVAL. En cada sesión sigue activa con probabilidad supervivencia^(días
-  desde la anterior / 30). Con el tope, a quien pide poco y llegó a una combinación que retiene mucho (de «rest» a
-  «rest+retail» por una sugerencia) no le alcanza para mostrar el rendimiento decreciente.
+  desde la anterior / 30). Con el tope, a quien pide poco y llegó a una combinación que retiene mucho (de "rest" a
+  "rest+retail" por una sugerencia) no le alcanza para mostrar el rendimiento decreciente.
 - Calibración, medida como el motor (personas-mes del nivel grueso) con el catálogo real (3.000 personas, semillas 7,
   11, 23, 31 y 47; 17-10-2026 en una copia, rappi_staging): cada combinación queda a menos de 2 puntos de su parte en
   la tabla sin Favor y la retención M+1 de las filas con 100 meses o más, a menos de 0,1 de la de Rappi;
@@ -43,13 +43,13 @@ SUPUESTOS (editables aquí):
   Farmacia o Licores, ni productos de tiendas Farmacia, Sex shop o Smoking shop o que dicen bebé) y muestra un
   complemento en una parte de los carros (SUGGESTION_SHOWN), en el primer vertical del orden del agente o, en la mitad
   de los casos (TURBO_SUGGESTION), en Turbo si Turbo lo vende. SUPUESTO PROPIO: el real sigue su orden; sin esto, lo
-  aceptado llevaba a casi todos de «rest» a «rest+retail» (11,3 % de los meses-persona contra 5,4 % en Rappi) y dejaba
-  corto «rest+turbo» (4,2 % contra 6,6 %). Con el catálogo real (3.000 personas, semilla 7; medido el 16-10-2026 en una
+  aceptado llevaba a casi todos de "rest" a "rest+retail" (11,3 % de los meses-persona contra 5,4 % en Rappi) y dejaba
+  corto "rest+turbo" (4,2 % contra 6,6 %). Con el catálogo real (3.000 personas, semilla 7; medido el 16-10-2026 en una
   copia, rappi_staging) quedan en 7,2 % y 8,0 %; la tabla reproducida está más cerca de la de Rappi en las semillas 7,
-  11 y 23 (docs/resultados/motor-2026-10-16.md, «Mejora continua»; antes de la calibración de las altas).
+  11 y 23 (docs/resultados/motor-2026-10-16.md, "Mejora continua"; antes de la calibración de las altas).
 - Personas pequeñas que ejercitan los segmentos de la capa de perfiles (sin gluten, vegana, mamá con bebé, perro, gato,
   fitness, nocturno, cazaofertas, gamer, cafetera, chocolatera, parrillera); algunas prefieren ítems con un atributo.
-  La oficinista ya existe como «oficina». Los pesos (`share`) se normalizan al sortear: no hace falta que sumen 1.
+  La oficinista ya existe como "oficina". Los pesos (`share`) se normalizan al sortear: no hace falta que sumen 1.
 - Una persona asiática (sushi, comida asiática y su despensa, snacks y bebidas en Restaurantes, Súper, Turbo y Express)
   alimenta el perfil de gusto principal; su peso sale del de la persona de carrete.
 - 26 semanas: la retención (días 61 a 120) necesita usuarios con 120 días de historia. Las altas llegan parejas en todo
@@ -205,7 +205,7 @@ PERSONAS = [
         },
         0.4,
     ),
-    # Compran en una sola vertical: sin ellas, «¿retiene más quien usa dos verticales?» no tenía contra qué comparar.
+    # Compran en una sola vertical: sin ellas, "¿retiene más quien usa dos verticales?" no tenía contra qué comparar.
     # El agente igual puede llevarlas a otra con una sugerencia aceptada.
     Persona(
         "rutina",
@@ -411,7 +411,7 @@ _TURBO_SOURCES = ("supermercado", "conveniencia")  # de dónde copia Turbo cuand
 DEFAULT_USERS = 3000
 TRIP = 0.03  # sesiones que hablan de un viaje (RappiTravel)
 TRAVEL_OPEN = 0.35  # de ellas, las que abren RappiTravel
-FAVOR_OFFER = 0.6  # búsquedas sin resultado donde el agente ofrece RappiFavor (en «Propuesta»)
+FAVOR_OFFER = 0.6  # búsquedas sin resultado donde el agente ofrece RappiFavor (en "Propuesta")
 FAVOR_OPEN = 0.2
 BROWSE_ONLY = 0.12  # encuentra productos y se va sin agregar nada al carro
 SUGGESTION_SHOWN = 0.3  # carros donde el agente muestra un complemento de otro vertical (no en todos)

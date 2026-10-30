@@ -18,7 +18,7 @@ body {
   background: #e6e6ea;
   -webkit-font-smoothing: antialiased;
   overflow: hidden;
-  /* Sin rebote ni «deslizar para recargar» del navegador: el scroll vive dentro de cada pantalla */
+  /* Sin rebote ni "deslizar para recargar" del navegador: el scroll vive dentro de cada pantalla */
   overscroll-behavior: none;
 }
 
@@ -132,7 +132,7 @@ img {
   overflow-x: hidden;
   overscroll-behavior-y: contain;
   scrollbar-width: none;
-  /* Lo que flota abajo (carro, «Pedido en curso», Mochi) no tapa el final: lo mide components/floatingInset.js */
+  /* Lo que flota abajo (carro, "Pedido en curso", Mochi) no tapa el final: lo mide components/floatingInset.js */
   padding-bottom: var(--floating-bottom, 0px);
 }
 

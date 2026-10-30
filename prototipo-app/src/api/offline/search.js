@@ -1,7 +1,7 @@
 // `GET /search` y `POST /agent/ask` sin conexión: primero la respuesta grabada de la API real (las ideas del buscador,
 // los chips de Mochi y búsquedas comunes); si no hay, una búsqueda simple por palabras sobre los productos de la
 // muestra, sin tildes ni ñ, con el foco de la búsqueda real en cada vertical (agent/tools.py: _focus; la búsqueda
-// híbrida de verdad la hacen agent/grouped_search.py y agent/rappi_agent.py). «Qué me recomiendas» responde con los
+// híbrida de verdad la hacen agent/grouped_search.py y agent/rappi_agent.py). "Qué me recomiendas" responde con los
 // intereses de la persona (rappi_agent.py: _recommend).
 import { AGENT_NAME } from '../../agent/name'
 import { looksLikeQuestion } from '../../assistant/question'
@@ -42,7 +42,7 @@ export function backendVertical(vertical) {
   return VERTICALS.includes(code) ? code : null
 }
 
-// Una palabra de la consulta calza con una del nombre si es su comienzo (o el de su singular: «panales» → «panal»).
+// Una palabra de la consulta calza con una del nombre si es su comienzo (o el de su singular: "panales" → "panal").
 const stem = (word) =>
   word.length > 4 && word.endsWith('es')
     ? word.slice(0, -2)
@@ -101,7 +101,7 @@ function indexOf(meta) {
   return index
 }
 
-/** Los ids que nombran `words`, el más largo primero y sin solapes («papas fritas» le gana a «papas»). */
+/** Los ids que nombran `words`, el más largo primero y sin solapes ("papas fritas" le gana a "papas"). */
 function keywordMatches(byFirst, words, avoid = {}) {
   const forms = new Set(words.flatMap(candidatesOf))
   const found = new Map()
@@ -132,7 +132,7 @@ const NOT_CONTENT = ['el', 'la', 'los', 'las', 'de', 'del', 'y', 'o', 'algo', 'a
 const NOT_CONTENT_TOO = ['vende', 'venden', 'barato', 'barata', 'baratos', 'baratas']
 
 /** Los conceptos que nombra la consulta (retrieval/hybrid.py: detect_concepts). Las palabras que solo sirven para pedir
- * un sensible («medicamentos») cuentan solo si son todo el pedido. */
+ * un sensible ("medicamentos") cuentan solo si son todo el pedido. */
 export function detectConcepts(meta, q) {
   const index = indexOf(meta)
   const words = normalize(q).split(' ').filter(Boolean)
@@ -142,15 +142,15 @@ export function detectConcepts(meta, q) {
   return keywordMatches(index.alone, content).slice(0, 1)
 }
 
-/** Si la consulta nombra una ocasión («algo para el carrete»: retrieval/hybrid.py, named_occasion). */
+/** Si la consulta nombra una ocasión ("algo para el carrete": retrieval/hybrid.py, named_occasion). */
 const namesOccasion = (meta, q) => keywordMatches(indexOf(meta).occasions, normalize(q).split(' ')).length > 0
 
-// Palabras que el nombre de un producto no necesita repetir (agent/tools.py: _NAME_SKIP). «sin» sí: «harina con polvos
-// de hornear» no dice «harina sin polvos de hornear».
+// Palabras que el nombre de un producto no necesita repetir (agent/tools.py: _NAME_SKIP). "sin" sí: "harina con polvos
+// de hornear" no dice "harina sin polvos de hornear".
 const NAME_SKIP = ['a', 'al', 'algo', 'con', 'de', 'del', 'el', 'en', 'la', 'las', 'lo', 'los', 'mi', 'para', 'que']
 const NAME_SKIP_TOO = ['y']
 
-/** Las palabras sin tildes pero con la ñ: «pañal» no es «panal» (agent/tools.py: _name_words). */
+/** Las palabras sin tildes pero con la ñ: "pañal" no es "panal" (agent/tools.py: _name_words). */
 const nameWords = (text) =>
   (text ?? '')
     .toLowerCase()
@@ -161,7 +161,7 @@ const nameWords = (text) =>
     .match(/[a-z0-9\0]+/g)
     ?.map((w) => w.replace(/\0/g, 'ñ')) ?? []
 
-/** La palabra y sus singulares posibles: «limones» → limones, limone, limon. */
+/** La palabra y sus singulares posibles: "limones" → limones, limone, limon. */
 const formsOf = (word) => [
   word,
   ...(word.endsWith('s') && word.length > 3 ? [word.slice(0, -1)] : []),
@@ -181,9 +181,9 @@ export function namesQuery(meta, name, q) {
 
 /**
  * El foco en cada vertical (agent/tools.py: _focus): si la consulta nombra conceptos, solo los productos de esos
- * conceptos; en una vertical sin ninguno, solo lo que dice lo pedido en su nombre («pañales» no trae el postre con
- * «panal», ni «neumáticos aro 15» unos jugos de 15 g), salvo si pide una ocasión o un concepto amplio («algo para el
- * asado», «picoteo»).
+ * conceptos; en una vertical sin ninguno, solo lo que dice lo pedido en su nombre ("pañales" no trae el postre con
+ * "panal", ni "neumáticos aro 15" unos jugos de 15 g), salvo si pide una ocasión o un concepto amplio ("algo para el
+ * asado", "picoteo").
  */
 function focus(meta, q, concepts, found) {
   if (!concepts.length) return found
@@ -292,7 +292,7 @@ function suggestionFor(snapshot, conceptId, userId) {
   }
 }
 
-/** La respuesta de Mochi con los productos de un grupo (o «No encontré…» sin grupo). */
+/** La respuesta de Mochi con los productos de un grupo (o "No encontré…" sin grupo). */
 function replyWith(snapshot, message, group, { mode, userId }) {
   const { vertical_labels: labels, screen_verticals: screens } = snapshot.meta
   const products = group?.products ?? []
@@ -300,8 +300,8 @@ function replyWith(snapshot, message, group, { mode, userId }) {
   const ageNotice = products.some((p) => p.age_restricted)
   const suggestion = concept && mode !== 'actual' ? suggestionFor(snapshot, concept, userId) : null
   const text = group
-    ? `Mira lo que encontré de «${message.trim()}» en ${labels[group.vertical] ?? group.vertical}.${ageNotice ? AGE_NOTICE : ''}`
-    : `No encontré «${message.trim()}» en la muestra de esta demo. Prueba con otras palabras.`
+    ? `Mira lo que encontré de "${message.trim()}" en ${labels[group.vertical] ?? group.vertical}.${ageNotice ? AGE_NOTICE : ''}`
+    : `No encontré "${message.trim()}" en la muestra de esta demo. Prueba con otras palabras.`
   return {
     text,
     products,
@@ -340,8 +340,8 @@ const RECOMMEND = [
 const RECOMMEND_INTERESTS = 3 // rappi_agent.py: los intereses que prueba antes de pasar a los ejemplos
 
 // agent/understand.py (APP_QUESTIONS) y rappi_agent.py (_small_talk, HELP_ACTIONS, HELP_EXAMPLES) y compose.py, en corto:
-// «¿qué puedes hacer?», el resumen antes de pagar (la app lo arma con su carro) y el último pedido (la app lo muestra).
-// El resumen va antes que el pedido: «hacer el pedido» no pregunta por uno en camino.
+// "¿qué puedes hacer?", el resumen antes de pagar (la app lo arma con su carro) y el último pedido (la app lo muestra).
+// El resumen va antes que el pedido: "hacer el pedido" no pregunta por uno en camino.
 const APP_QUESTIONS = [
   [
     'ayuda',
@@ -375,7 +375,7 @@ const APP_QUESTIONS = [
     ],
   ],
 ]
-// text.py: GREETING_WORDS y THANKS_WORDS; understand.py: LAUGHTER y LINK (un saludo, un «gracias», una risa o un link
+// text.py: GREETING_WORDS y THANKS_WORDS; understand.py: LAUGHTER y LINK (un saludo, un "gracias", una risa o un link
 // no piden nada).
 const GREETING_WORDS = new Set(['hola', 'holi', 'buenas', 'buenos', 'dias', 'tardes', 'noches', 'hey', 'wena', 'alo'])
 GREETING_WORDS.add('ola')
@@ -398,19 +398,19 @@ export const HELP_EXAMPLES = [
 ]
 const HELP_TEXT =
   `Soy ${AGENT_NAME} 🧡, tu asistente en Rappi. Puedo repetir lo de siempre, armarte un kit o mostrarte algo para ti. ` +
-  'Busca lo que necesites («pañales talla G», «algo de sushi», «una once para 4») y te muestro lo que hay, aunque ' +
-  'esté en otra vertical. Tu dieta y tus alergias las marcas en «Mis preferencias», y te llevo a RappiTravel o ' +
+  'Busca lo que necesites ("pañales talla G", "algo de sushi", "una once para 4") y te muestro lo que hay, aunque ' +
+  'esté en otra vertical. Tu dieta y tus alergias las marcas en "Mis preferencias", y te llevo a RappiTravel o ' +
   'RappiFavor.'
 const HELP_TODAY =
   `Soy ${AGENT_NAME} 🧡, tu asistente en Rappi. ` +
-  'Busca lo que necesites («pañales talla G», «algo de sushi», «una once para 4») y te muestro lo que hay, aunque ' +
+  'Busca lo que necesites ("pañales talla G", "algo de sushi", "una once para 4") y te muestro lo que hay, aunque ' +
   'esté en otra vertical.'
 // El resumen y el pedido: los mismos textos que pone la app (components/assistant/AssistantPanel.jsx).
 export const SUMMARY_TEXT =
   'Este es el resumen de tu pedido antes de pagar 🧾. Revísalo y paga en el checkout: si no me diste permiso con ' +
-  '«Pedir por mí», el pedido lo haces tú.'
+  '"Pedir por mí", el pedido lo haces tú.'
 export const ORDER_TEXT =
-  'Tu pedido lo sigues en «Mis pedidos» 🛵: ahí ves dónde viene, lo cancelas antes de que salga o pides ayuda si ' +
+  'Tu pedido lo sigues en "Mis pedidos" 🛵: ahí ves dónde viene, lo cancelas antes de que salga o pides ayuda si ' +
   'algo llegó mal.'
 // compose.py: saludo, gracias, fuera y vacio.
 const SMALL_TALK = {
@@ -422,15 +422,15 @@ const SMALL_TALK = {
     'No entendí qué buscas. Toca una idea o busca un antojo (sushi, café…), un producto o una ocasión (asado, once…).',
 }
 
-/** La ayuda: lo que Mochi sabe hacer (la app resuelve cada `capability`); en «Rappi hoy», solo ejemplos. */
+/** La ayuda: lo que Mochi sabe hacer (la app resuelve cada `capability`); en "Rappi hoy", solo ejemplos. */
 export const helpReply = (mode) =>
   textReply(mode === 'actual' ? HELP_TODAY : HELP_TEXT, 'ayuda', {
     actions: mode === 'actual' ? HELP_EXAMPLES : HELP_ACTIONS,
   })
 
 /**
- * Un saludo, un «gracias», una risa o un link (understand.py, al principio de `understand`; rappi_agent.py:
- * _small_talk): la respuesta, con las ideas para tocar salvo en el «gracias», o null si no es uno de esos.
+ * Un saludo, un "gracias", una risa o un link (understand.py, al principio de `understand`; rappi_agent.py:
+ * _small_talk): la respuesta, con las ideas para tocar salvo en el "gracias", o null si no es uno de esos.
  */
 function smallTalk(snapshot, message, mode, interests) {
   const normalized = normalize(message.replace(/([^\W\d_xw])\1{2,}/giu, '$1'))
@@ -456,9 +456,9 @@ const smallTalkReply = (kind, mode, interest = null) =>
   })
 
 /**
- * «¿qué puedes hacer?», «quiero pagar», «¿dónde viene mi pedido?», «¿cómo está el clima?»: la respuesta, o null si no
- * es una de esas. Como `KeywordMatcher.best`, gana la frase con más palabras («ayuda con mi pedido» es del pedido), y
- * una ocasión nombrada («ayuda para el asado») se busca, no se contesta.
+ * "¿qué puedes hacer?", "quiero pagar", "¿dónde viene mi pedido?", "¿cómo está el clima?": la respuesta, o null si no
+ * es una de esas. Como `KeywordMatcher.best`, gana la frase con más palabras ("ayuda con mi pedido" es del pedido), y
+ * una ocasión nombrada ("ayuda para el asado") se busca, no se contesta.
  */
 function appQuestion(snapshot, message, mode) {
   const said = ` ${normalize(message)} `
@@ -498,9 +498,9 @@ function typicalVertical(snapshot, concept) {
 }
 
 /**
- * «Qué me recomiendas» (rappi_agent.py: _recommend): por cada interés que Mochi puede proponer, de mayor a menor (hasta
+ * "Qué me recomiendas" (rappi_agent.py: _recommend): por cada interés que Mochi puede proponer, de mayor a menor (hasta
  * 3), busca su nombre en la pantalla actual si Mochi la propone; desde Farmacia, Licores o la Home, en la vertical más
- * típica del interés. Responde el primero que trae productos del interés; si ninguno, sin intereses o en «Rappi hoy»,
+ * típica del interés. Responde el primero que trae productos del interés; si ninguno, sin intereses o en "Rappi hoy",
  * los ejemplos de siempre (`snapshot.help`, grabado de la API real con una persona sin perfil). El backend prueba
  * además la primera keyword del interés; aquí no hace falta: el nombre ya trae todos los productos del concepto.
  */
@@ -519,10 +519,10 @@ function recommend(snapshot, body, { interests, userId }) {
     if (!products.some((p) => p.concept === interest)) continue
     const reply = replyWith(snapshot, concept.name, { vertical, products }, { mode, userId })
     const name = concept.name.toLowerCase()
-    reply.text = `Por tu interés en ${concept.emoji} ${name} 😉 Mira lo que encontré de «${name}» en ${labels[vertical] ?? vertical}.`
+    reply.text = `Por tu interés en ${concept.emoji} ${name} 😉 Mira lo que encontré de "${name}" en ${labels[vertical] ?? vertical}.`
     return reply
   }
-  // La ayuda grabada, con el texto y los atajos de hoy (una muestra de antes traía «Tengo fiebre» entre los ejemplos, y
+  // La ayuda grabada, con el texto y los atajos de hoy (una muestra de antes traía "Tengo fiebre" entre los ejemplos, y
   // otra invitaba a escribirle a Mochi).
   const help = helpReply(mode)
   return snapshot.help ? { ...snapshot.help, text: help.text, actions: help.actions } : help
@@ -583,7 +583,7 @@ function unrecorded(snapshot, message, body, userId) {
   const said = normalize(message)
   const symptom = SYMPTOM.test(said)
   const named = detectConcepts(snapshot.meta, message)
-  // Como agent/understand.py (_advice): no si nombra algo que Mochi propone («qué sopa le doy…»); un niño con un
+  // Como agent/understand.py (_advice): no si nombra algo que Mochi propone ("qué sopa le doy…"); un niño con un
   // síntoma, sin nombrar el remedio, también es consejo.
   const offerable = named.some((c) => snapshot.meta.concepts[c]?.offerable)
   const child = symptom && CHILD.test(said) && !NAMED_MEDICINE.test(said)
@@ -606,7 +606,7 @@ function unrecorded(snapshot, message, body, userId) {
 
 /**
  * `POST /agent/ask`: un seguimiento del turno anterior (`previous`: el grabado de la API real o, si no hay, el que arma
- * conversation.js sobre la muestra); «qué me recomiendas» (sin nombrar qué) con los intereses de la persona
+ * conversation.js sobre la muestra); "qué me recomiendas" (sin nombrar qué) con los intereses de la persona
  * (`interests`, sus conceptos de mayor a menor); lo demás, la respuesta grabada de esa pregunta o, si no hay, lo que calza
  * en la muestra. Cada respuesta trae `conversation`, lo que la app devuelve como `previous`.
  */
@@ -623,7 +623,7 @@ export function ask(snapshot, body, context = {}) {
 
 function answer(snapshot, body, { interests = [], userId = null } = {}) {
   const message = String(body?.message ?? '')
-  // Como en agent/understand.py, solo si no nombra algo: «¿me recomiendas un vino?» busca vino.
+  // Como en agent/understand.py, solo si no nombra algo: "¿me recomiendas un vino?" busca vino.
   const named = detectConcepts(snapshot.meta, message).length || namesOccasion(snapshot.meta, message)
   if (asksRecommendation(message) && !named) return recommend(snapshot, body, { interests, userId })
   const chatted = smallTalk(snapshot, message, body?.mode, interests)

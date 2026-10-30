@@ -71,7 +71,7 @@ describe('OverviewView', () => {
     ]) {
       expect(within(decision(name)).getByText(NOT_EVIDENCE)).toBeTruthy()
     }
-    // y una en «Cómo va»
+    // y una en "Cómo va"
     expect(screen.getAllByText(NOT_EVIDENCE)).toHaveLength(4)
     expect(
       within(decision('¿Funciona lo que ofrece Mochi?')).getByText('la tasa aparece desde 10 mostradas.', {

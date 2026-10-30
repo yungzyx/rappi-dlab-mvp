@@ -121,7 +121,7 @@ jobs:
       - name: Tests (unitarios + integración contra Postgres, una parte)
         run: python -m pytest
 
-  # El check «rappi-ia» que pide la protección de main: el lint y el resultado de las 3 partes. Corre aunque una parte
+  # El check "rappi-ia" que pide la protección de main: el lint y el resultado de las 3 partes. Corre aunque una parte
   # falle (`!cancelled()`): entonces falla él también, en vez de quedar saltado (un check saltado cuenta como aprobado).
   rappi-ia:
     runs-on: ubuntu-latest

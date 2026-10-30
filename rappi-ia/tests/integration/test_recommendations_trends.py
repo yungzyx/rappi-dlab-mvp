@@ -1,4 +1,4 @@
-"""«Para ti» (`/recommendations`) suma, si le quedan filas libres, «Lo más pedido en {vertical}»: la vertical que mejor
+""" "Para ti" (`/recommendations`) suma, si le quedan filas libres, "Lo más pedido en {vertical}": la vertical que mejor
 le calza a la persona según el motor, con lo que más pide la población ahí (`trends`). Nunca Farmacia ni Licores. Sobre
 el catálogo de prueba (`seed_demo`)."""
 
@@ -149,8 +149,8 @@ def new_dish(db, item_id, name, store_id, section, price, concept):
 
 def test_the_most_ordered_dishes_are_main_dishes_with_photo_from_the_city_one_per_concept(client, db):
     # El chicle de $650 de la caja de una pizzería (concepto pizza por la cocina del local), una pizza de otra ciudad,
-    # la bebida de la sección «Bebidas», el roll sin foto y el tiramisú (postres) no son «lo más pedido en
-    # restaurantes»; tres pizzas tampoco.
+    # la bebida de la sección "Bebidas", el roll sin foto y el tiramisú (postres) no son "lo más pedido en
+    # restaurantes"; tres pizzas tampoco.
     new_dish(db, 98101, "Chicle refrescante (prueba)", 9801, "Para llevar", 650, "pizza")
     db.execute("""INSERT INTO stores (store_id, name, store_type, city, path)
                   VALUES (9899, 'Pizzería de prueba - Rancagua', 'restaurant', 'Rancagua', '/tiendas/9899')""")

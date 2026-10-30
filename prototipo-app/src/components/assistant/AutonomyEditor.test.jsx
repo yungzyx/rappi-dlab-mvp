@@ -12,7 +12,7 @@ afterEach(() => {
   vi.unstubAllGlobals()
 })
 
-describe('«Pedir por mí» en su hoja', () => {
+describe('"Pedir por mí" en su hoja', () => {
   test('por defecto revisa antes; encenderlo guarda las tiendas elegidas y el tope', async () => {
     const fetchMock = stubApi({
       'GET /profile/*': off(),
@@ -37,7 +37,7 @@ describe('«Pedir por mí» en su hoja', () => {
     expect(screen.getByText(/nunca alcohol, \+18, farmacia/i)).toBeTruthy()
   })
 
-  test('volver a «Revisar antes de pedir» lo apaga en un toque', async () => {
+  test('volver a "Revisar antes de pedir" lo apaga en un toque', async () => {
     const fetchMock = stubApi({ 'GET /profile/*': fixture('profile-autonomia'), 'DELETE /profile/*': off() })
     const onTurnedOff = vi.fn()
     render(<AutonomyEditor onTurnedOff={onTurnedOff} />)

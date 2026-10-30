@@ -121,15 +121,15 @@ def test_a_healthy_stack_passes(tmp_path):
     result = _smoke(tmp_path)
 
     assert result.returncode == 0, result.stdout + result.stderr
-    assert "el aviso «Demo no oficial» está en la app" in result.stdout
-    assert "jobs sin «cambiar-esto»" in result.stdout
+    assert 'el aviso "Demo no oficial" está en la app' in result.stdout
+    assert 'jobs sin "cambiar-esto"' in result.stdout
 
 
 def test_a_build_without_the_demo_notice_fails(tmp_path):
     result = _smoke(tmp_path, entry_js='x("Hola")')
 
     assert result.returncode == 1
-    assert "falta el aviso «Demo no oficial»" in result.stderr
+    assert 'falta el aviso "Demo no oficial"' in result.stderr
 
 
 @pytest.mark.parametrize("service", ["api", "jobs"])
@@ -137,7 +137,7 @@ def test_an_example_value_left_in_a_service_fails(tmp_path, service):
     result = _smoke(tmp_path, left={service: "API_SECRET "})
 
     assert result.returncode == 1
-    assert f"{service} tiene «cambiar-esto» en: API_SECRET" in result.stderr
+    assert f'{service} tiene "cambiar-esto" en: API_SECRET' in result.stderr
 
 
 @pytest.mark.parametrize("service", ["api", "jobs"])

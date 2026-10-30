@@ -109,7 +109,7 @@ describe('Restaurantes con el catálogo real', () => {
     const push = renderRestaurants()
     await waitFor(() => expect(listed()).toHaveLength(7))
 
-    // Las tarjetas, los banners y «Volver a pedir» (que ya no está): todo lo tocable que no sea el filtro de cocina.
+    // Las tarjetas, los banners y "Volver a pedir" (que ya no está): todo lo tocable que no sea el filtro de cocina.
     for (const button of document.querySelectorAll('.rest-list button, .rest-banners button, .rest-again button'))
       fireEvent.click(button)
     const stores = push.mock.calls.filter(([name]) => name === 'store').map(([, params]) => params.store)
@@ -135,14 +135,14 @@ describe('Restaurantes con el catálogo real', () => {
 
     const card = (name) => screen.getByText(name).closest('.featured-card')
     const meta = (name) => card(name).querySelector('.featured-meta')
-    expect(meta('Café de prueba - Las Condes').textContent).toBe('$1.990') // sin tiempo: sin «•» al principio
+    expect(meta('Café de prueba - Las Condes').textContent).toBe('$1.990') // sin tiempo: sin "•" al principio
     expect(meta('Café de prueba - Las Condes').querySelector('.meta-sep')).toBeNull()
     expect(meta('Pizzería de prueba Centro').textContent).toBe('25 min•$1.490')
-    expect(meta('Cevichería de prueba - Santiago').textContent).toBe('30 min') // envío $0: dato que falta, no «envío gratis»
+    expect(meta('Cevichería de prueba - Santiago').textContent).toBe('30 min') // envío $0: dato que falta, no "envío gratis"
     expect(screen.queryByText(/free|gratis|\$0/i)).toBeNull()
   })
 
-  test('sin conexión la lista dice «Sin conexión» y Reintentar la trae; el resto de la pantalla sigue', async () => {
+  test('sin conexión la lista dice "Sin conexión" y Reintentar la trae; el resto de la pantalla sigue', async () => {
     let online = false
     stubApi({ '/catalog/restaurants': () => (online ? fixture('catalog-restaurants') : 'offline') })
     renderRestaurants()

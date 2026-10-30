@@ -3,7 +3,7 @@ import { useDemo } from '../state/DemoContext'
 import { useAgentHidden } from '../state/agentHidden'
 
 /**
- * Abre el buscador que corresponde al modo de demo: en el prototipo final, el del agente; en «Rappi hoy» (o con Mochi
+ * Abre el buscador que corresponde al modo de demo: en el prototipo final, el del agente; en "Rappi hoy" (o con Mochi
  * oculto), el plano.
  * `vertical`: la de la pantalla desde la que se abre el buscador plano (el panel del agente toma la de la pantalla actual).
  * `query`: texto con el que arranca el buscador (una categoría de la vertical).

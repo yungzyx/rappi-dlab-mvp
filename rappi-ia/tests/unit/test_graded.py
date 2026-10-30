@@ -24,7 +24,7 @@ def _list(query: str, ids: list[str], tipo: str = "exacta") -> dict:
 
 
 def test_ndcg_skips_what_has_no_judgment_and_takes_the_ideal_from_every_judged_pair():
-    """Lista condensada: «x» no tiene juicio y se salta; el ideal sale de los tres pares juzgados, aunque «c» ya no se
+    """Lista condensada: "x" no tiene juicio y se salta; el ideal sale de los tres pares juzgados, aunque "c" ya no se
     muestre."""
     judgments = _judged("té", {"a": 1, "b": 2, "c": 2})
 

@@ -22,7 +22,7 @@ import {
 export const PROFILE = { initials: 'CD', name: 'Cliente Demo' }
 
 export const PRO_PLAN = {
-  // Supuesto de la demo (no es una cifra de Rappi): se rotula «de ejemplo».
+  // Supuesto de la demo (no es una cifra de Rappi): se rotula "de ejemplo".
   savings: '$15.400',
   note: 'Ahorro de ejemplo al mes de un usuario Pro (no es una cifra de Rappi).',
   pitch: 'Envíos gratis sobre $10.000 y menos tarifa de servicio (montos de ejemplo).',
@@ -68,7 +68,7 @@ export const SECTIONS = [
         action: 'agent',
         finalOnly: true,
       },
-      // Solo en el prototipo final: en el celular no está el botón «Repetir escena» de la notebook.
+      // Solo en el prototipo final: en el celular no está el botón "Repetir escena" de la notebook.
       {
         id: 'replay',
         label: `Repetir escena de ${AGENT_NAME}`,

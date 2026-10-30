@@ -35,7 +35,7 @@ export const FLOWS = {
   },
   turbo: {
     id: 'turbo',
-    // La promesa de Turbo en la app de Rappi: «10 minutos». Aquí es lo que se muestra, no una garantía.
+    // La promesa de Turbo en la app de Rappi: "10 minutos". Aquí es lo que se muestra, no una garantía.
     promise: 'Turbo: tu pedido llega en minutos',
     rideMinutes: 8,
     waitMinutes: 2,
@@ -126,7 +126,7 @@ export const isAhead = (order, now) => Boolean(order?.scheduledFor) && now < ord
 /**
  * Segundos del pedido en su línea de tiempo (negativos si está programado y no empieza). El reloj de la demo se
  * detiene mientras la persona decide algo que el pedido espera (`heldAt`: cancelar o un producto agotado; lo esperado
- * suma en `pausedMs`), y un atraso (`delay`, desde el «Panel de la demo») deja el pedido en su paso `delay.seconds`
+ * suma en `pausedMs`), y un atraso (`delay`, desde el "Panel de la demo") deja el pedido en su paso `delay.seconds`
  * segundos a partir de `delay.from`.
  */
 export function secondsSince(order, now) {
@@ -142,8 +142,8 @@ export const deliveredAt = (order) =>
   startOf(order) + (order?.pausedMs ?? 0) + ((order?.delay?.seconds ?? 0) + DELIVERED.at) * 1000
 
 /**
- * Los minutos que muestra el seguimiento: los del flujo más lo que suma el tipo de entrega (`etaShift`: «Sin prisa»
- * más, «Prioritaria» menos) y un atraso (`delay.minutes`), que se van gastando con el viaje.
+ * Los minutos que muestra el seguimiento: los del flujo más lo que suma el tipo de entrega (`etaShift`: "Sin prisa"
+ * más, "Prioritaria" menos) y un atraso (`delay.minutes`), que se van gastando con el viaje.
  */
 export function etaMinutes(order, seconds, flow = flowFor(order)) {
   const base = minutesLeft(seconds, flow)
@@ -154,7 +154,7 @@ export function etaMinutes(order, seconds, flow = flowFor(order)) {
 }
 
 /**
- * El estado de un pedido para las listas y la barra «Pedido en curso»: `{ kind, label, short, done }`. `kind` es
+ * El estado de un pedido para las listas y la barra "Pedido en curso": `{ kind, label, short, done }`. `kind` es
  * `cancelled`, `scheduled` (programado y sin empezar), `active` o `delivered`.
  */
 export function statusOf(order, now) {
@@ -183,14 +183,14 @@ const hourOf = (ts) =>
   new Date(ts).toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit', hourCycle: 'h23' })
 const dayStart = (ts) => new Date(ts).setHours(0, 0, 0, 0)
 
-/** «hoy 15:00–16:00» o «mañana 10:00–11:00»: la franja de una hora que empieza en `from`. */
+/** "hoy 15:00–16:00" o "mañana 10:00–11:00": la franja de una hora que empieza en `from`. */
 export function slotLabel(from, now = Date.now()) {
   const day = dayStart(from) === dayStart(now) ? 'hoy' : 'mañana'
   return `${day} ${hourOf(from)}–${hourOf(from + SLOT_MS)}`
 }
 
 /**
- * Código de entrega de 4 dígitos (el «handshake» de la app de Rappi): sale del id del pedido, así es siempre el mismo
+ * Código de entrega de 4 dígitos (el "handshake" de la app de Rappi): sale del id del pedido, así es siempre el mismo
  * para ese pedido. Es de la demo: no lo valida nadie.
  */
 export function deliveryCode(orderId) {

@@ -1,4 +1,4 @@
-"""Las ofertas de «vertical por probar»: primero las de un concepto típico de la vertical, después las de cualquier otro
+"""Las ofertas de "vertical por probar": primero las de un concepto típico de la vertical, después las de cualquier otro
 concepto y al final las sin concepto; dentro de cada grupo, de mayor a menor descuento (el orden en que llegan)."""
 
 from rappi_ia.offers.engine import _typical_first

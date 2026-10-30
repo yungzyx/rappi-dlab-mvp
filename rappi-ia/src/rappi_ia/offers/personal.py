@@ -16,7 +16,7 @@ from ..events import store as events
 from .guards import is_offerable
 
 LEVEL_WEIGHT = {"bajo": 1.0, "medio": 2.0, "alto": 3.0}  # lo que suma un concepto de la evidencia de un segmento
-MIN_BRAND_ORDERS = 2  # pedidos distintos con una marca para que cuente como «su marca»
+MIN_BRAND_ORDERS = 2  # pedidos distintos con una marca para que cuente como "su marca"
 
 
 @dataclass(frozen=True)
@@ -24,7 +24,7 @@ class Signal:
     kind: str  # "concepto" o "marca"
     id: str
     # Un peso (los eventos con decaimiento; el nivel de un segmento, `LEVEL_WEIGHT`) o una cuenta (los pedidos con una
-    # marca; los pedidos o las búsquedas de un concepto en el «por qué» de un perfil, `offers/profiles.py`).
+    # marca; los pedidos o las búsquedas de un concepto en el "por qué" de un perfil, `offers/profiles.py`).
     score: float
     source: str  # "eventos", "segmento:<segment_id>", "pedidos" o "busquedas"
 
@@ -89,7 +89,7 @@ def bought_brands(conn: Connection, user_id: str | None) -> dict[str, int]:
 
 
 def _brand_orders(conn: Connection, user_id: str) -> dict[str, int]:
-    """Sin los pedidos de «Rappi hoy» (modo actual): ahí la app no aprende."""
+    """Sin los pedidos de "Rappi hoy" (modo actual): ahí la app no aprende."""
     rows = conn.execute(
         """SELECT b.brand_key, count(DISTINCT o.order_id) AS orders
            FROM app_orders o

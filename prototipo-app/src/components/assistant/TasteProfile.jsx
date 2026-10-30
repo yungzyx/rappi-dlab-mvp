@@ -13,7 +13,7 @@ import './taste-profile.css'
 // Las mismas ilustraciones de los accesos de la Home para cada vertical (RappiTravel tiene id propio en los accesos).
 const TILE_IMAGES = Object.fromEntries([...MAIN_TILES, ...SHORTCUTS].map((tile) => [tile.id, tile.img]))
 const LEVELS = { bajo: 1, medio: 2, alto: 3 }
-// Lo que cuenta el «por qué» en la `basis` de un perfil, y cómo se dice cuántas veces.
+// Lo que cuenta el "por qué" en la `basis` de un perfil, y cómo se dice cuántas veces.
 const COUNTED = {
   pedidos: (n) => `${n} ${n === 1 ? 'pedido' : 'pedidos'}`,
   busquedas: (n) => `${n} ${n === 1 ? 'búsqueda' : 'búsquedas'}`,
@@ -21,7 +21,7 @@ const COUNTED = {
 const STEP_GAP_PX = 12
 
 /**
- * Lo que cuenta el «por qué» (`pedidos` y `busquedas` de la `basis`), una línea por concepto: «🍣 Sushi · 2 pedidos».
+ * Lo que cuenta el "por qué" (`pedidos` y `busquedas` de la `basis`), una línea por concepto: "🍣 Sushi · 2 pedidos".
  * El nombre y el emoji vienen en `conceptos`; sin ellos, el id del concepto.
  */
 function evidenceOf(profile) {
@@ -36,9 +36,9 @@ function evidenceOf(profile) {
 }
 
 /**
- * «Tu perfil»: el perfil de gusto que la API armó con lo que la persona pide (`GET /profile/{id}/gustos`): su nombre,
- * su nivel, por qué (con «¿Por qué?», lo que contó) y «Olvidar». `profile` es el de la API (`{ id, nombre, emoji,
- * nivel, por_que, basis, conceptos }`); `onForget` abre la confirmación de «Olvidar».
+ * "Tu perfil": el perfil de gusto que la API armó con lo que la persona pide (`GET /profile/{id}/gustos`): su nombre,
+ * su nivel, por qué (con "¿Por qué?", lo que contó) y "Olvidar". `profile` es el de la API (`{ id, nombre, emoji,
+ * nivel, por_que, basis, conceptos }`); `onForget` abre la confirmación de "Olvidar".
  */
 export function ProfileCard({ profile, onForget, forgetting = false }) {
   const [open, setOpen] = useState(false)
@@ -146,7 +146,7 @@ function TripStep({ trip, onOpenTravel }) {
 }
 
 /**
- * «Para ti en otras verticales»: la escalera del perfil (el momento `perfil` de la API), un peldaño por vertical, de lo
+ * "Para ti en otras verticales": la escalera del perfil (el momento `perfil` de la API), un peldaño por vertical, de lo
  * más cercano a lo más lejano, y al final la idea para RappiTravel. `ladder` es el de `profileLadder`.
  */
 export function LadderRail({ ladder, onOpenVertical, onOpenTravel, onOpenProduct }) {

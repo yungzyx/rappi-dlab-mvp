@@ -3,8 +3,8 @@
 import { isAgentHidden as isAgentHiddenNow, setAgentHidden } from './agentHidden'
 import { resetQuiet } from './agentQuiet'
 
-// `repeatLater`: tocaron «Después» en «¿Repetimos?» o en «¿Volvemos a…?»; no vuelven en lo que dura la pestaña.
-// `winback`: la respuesta de «¿Volvemos a…?» (`{ generation, offer }`, offer null si no hubo), pedida una vez.
+// `repeatLater`: tocaron "Después" en "¿Repetimos?" o en "¿Volvemos a…?"; no vuelven en lo que dura la pestaña.
+// `winback`: la respuesta de "¿Volvemos a…?" (`{ generation, offer }`, offer null si no hubo), pedida una vez.
 export const session = {
   played: false,
   lastAdded: null,
@@ -41,11 +41,11 @@ export function markTourSeen() {
 /** Evento de ventana con que se avisa al agente flotante que algo se agregó al carro (detalle: `{ product }`). */
 export const AGENT_CART_EVENT = 'agent-carrito'
 
-/** Evento de ventana con que el botón «Repetir escena» (fuera del teléfono) avisa a la Home. */
+/** Evento de ventana con que el botón "Repetir escena" (fuera del teléfono) avisa a la Home. */
 export const REPLAY_EVENT = 'agent-vivo-repetir'
 
 /**
- * «Repetir la escena»: vuelve al estado de una persona que abre la Home por primera vez (el silencio también se reinicia,
+ * "Repetir la escena": vuelve al estado de una persona que abre la Home por primera vez (el silencio también se reinicia,
  * y si estaba oculto, Mochi vuelve).
  */
 export function resetLive() {

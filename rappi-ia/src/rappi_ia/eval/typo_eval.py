@@ -1,11 +1,11 @@
 """Evaluación de la corrección de errores de tipeo (eval/typos.json): cuántos se recuperan y que las negativas de
-eval/queries.json sigan «sin resultado».
+eval/queries.json sigan "sin resultado".
 
 Cada caso se busca como /search de una vertical (`search_products`) sin corregir (antes) y corrigiendo (después). Un
 producto es de lo pedido si su nombre tiene cada palabra de lo que se quiso escribir (`quiso`; sus primeras
-ROOT_LETTERS letras, para que «papas fritas» calce «Papas Fritas Individual» y «pañales» calce «Pañal»). Se recupera
-si no queda «sin resultado» y de lo que muestra, los primeros SHOWN_TOP traen al menos tantos de lo pedido como trae
-`quiso` (hasta RECOVERED_MIN). Una negativa sigue detectada si, corrigiendo, queda «sin resultado» y sin productos:
+ROOT_LETTERS letras, para que "papas fritas" calce "Papas Fritas Individual" y "pañales" calce "Pañal"). Se recupera
+si no queda "sin resultado" y de lo que muestra, los primeros SHOWN_TOP traen al menos tantos de lo pedido como trae
+`quiso` (hasta RECOVERED_MIN). Una negativa sigue detectada si, corrigiendo, queda "sin resultado" y sin productos:
 como la registra el agente.
 
 También se mide la búsqueda agrupada (`search_grouped`, la que usa la app): un caso se recupera ahí si algún grupo
@@ -55,8 +55,8 @@ class TypoRun:
 class NegativeRun:
     vertical: str
     query: str
-    before: bool  # «sin resultado» sin corregir
-    detected: bool  # «sin resultado» corrigiendo
+    before: bool  # "sin resultado" sin corregir
+    detected: bool  # "sin resultado" corrigiendo
     corrected_query: str | None
 
 
@@ -200,15 +200,15 @@ def render_markdown(
         )
     if missed:
         lines += ["", "## No se recuperan", ""]
-        lines += [f"- {r.vertical} «{r.query}» ({r.reason}): {r.corrected_query or 'sin corrección'}" for r in missed]
+        lines += [f'- {r.vertical} "{r.query}" ({r.reason}): {r.corrected_query or "sin corrección"}' for r in missed]
     grouped_missed = [r for r in grouped if not r.grouped_after]
     if grouped_missed:
         lines += ["", "## No se recuperan en la agrupada", ""]
-        lines += [f"- «{r.query}»: {r.grouped_corrected or 'sin corrección'}" for r in grouped_missed]
+        lines += [f'- "{r.query}": {r.grouped_corrected or "sin corrección"}' for r in grouped_missed]
     changed = [r for r in negatives if r.before and not r.detected]
     changed_grouped = [r for r in grouped_unmet if not r.detected]
     if changed or changed_grouped:
         lines += ["", "## Negativas que dejan de estar sin resultado", ""]
-        lines += [f"- {r.vertical} «{r.query}» → «{r.corrected_query}»" for r in changed]
-        lines += [f"- agrupada «{r.query}» → «{r.corrected_query}»" for r in changed_grouped]
+        lines += [f'- {r.vertical} "{r.query}" → "{r.corrected_query}"' for r in changed]
+        lines += [f'- agrupada "{r.query}" → "{r.corrected_query}"' for r in changed_grouped]
     return "\n".join(lines) + "\n"

@@ -34,7 +34,7 @@ function renderAccount() {
   )
 }
 
-describe('la fila «Modo demo» de Cuenta', () => {
+describe('la fila "Modo demo" de Cuenta', () => {
   test('en desarrollo está', () => {
     renderAccount()
     expect(screen.getByRole('button', { name: /Modo demo/ })).toBeTruthy()

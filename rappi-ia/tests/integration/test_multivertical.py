@@ -54,7 +54,7 @@ def test_collect_counts_products_shared_between_verticals(db):
 
 def test_a_store_listed_in_two_verticals_does_not_make_its_products_shared(db, monkeypatch):
     """Como el panel (v_cross_vertical_items_real): la doble etiqueta de Lider o Unimarc no cruza verticales,
-    pero sus productos y sucursales sí cuentan (como en «Calidad del catálogo»)."""
+    pero sus productos y sucursales sí cuentan (como en "Calidad del catálogo")."""
     _catalog(db)
     add_store(db, 8, "supermercado", "Lider")
     db.execute("INSERT INTO store_verticals (store_id, vertical) VALUES (8, 'conveniencia')")
@@ -71,7 +71,7 @@ def test_a_store_listed_in_two_verticals_does_not_make_its_products_shared(db, m
         ("conveniencia", "supermercado"): 1,
         ("licores", "supermercado"): 1,
     }
-    assert dict(data["spread"]) == {1: 4, 3: 1}  # el arroz no cuenta como «en 2 verticales»; el hielo, solo en Licores
+    assert dict(data["spread"]) == {1: 4, 3: 1}  # el arroz no cuenta como "en 2 verticales"; el hielo, solo en Licores
     assert data["products"]["supermercado"] == 4  # cerveza y papas de la tienda 1, arroz y hielo del Lider
     assert data["products"]["conveniencia"] == 4  # cerveza y agua de la tienda 3, arroz y hielo del Lider
     # La cerveza está en 4 sucursales (también el Lider); el hielo llega a 3 verticales solo por la doble etiqueta.
@@ -118,13 +118,13 @@ def test_render_embeds_the_data_in_a_self_contained_page(db):
     data = json.loads(re.search(r"const DATA = (\{.*?\});\n", page, re.S).group(1))
     assert data["catalogTotal"] == 4
     assert not re.search(r"""<(script|link)[^>]+(src|href)=["']https?://""", page)  # funciona sin internet
-    # El radio de cada concepto y la columna «Productos» usan su total de productos distintos, no la suma por vertical.
+    # El radio de cada concepto y la columna "Productos" usan su total de productos distintos, no la suma por vertical.
     assert "const total = (c) => c.total;" in page
     assert "Object.values(c.items).reduce" not in page
 
 
 def test_names_from_the_catalog_cannot_break_out_of_the_page(db, tmp_path):
-    """Los nombres vienen de rappi.cl: un «</script>» no puede cortar el script ni inyectar HTML."""
+    """Los nombres vienen de rappi.cl: un "</script>" no puede cortar el script ni inyectar HTML."""
     _catalog(db)
     for store_id, vertical in ((6, "supermercado"), (7, "licores")):  # cadena en 2 verticales: sale en el mapa
         add_store(db, store_id, vertical, "Botillería </script><img src=x onerror=alert(1)>")

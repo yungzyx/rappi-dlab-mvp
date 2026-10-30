@@ -50,7 +50,7 @@ def test_parse_restaurant_menu_and_details(page):
 
 
 def test_a_dish_in_mas_vendidos_and_in_its_own_section_keeps_both(page):
-    """Un plato en «Más vendidos» y en «Hamburguesas» es un solo ítem: queda en su sección (la última en el menú, como
+    """Un plato en "Más vendidos" y en "Hamburguesas" es un solo ítem: queda en su sección (la última en el menú, como
     antes) y recuerda las otras en `extra_section_ids`. Antes venía dos veces y al guardarse ganaba la última."""
     data = page("restaurant")
     burgers = next(c for c in restaurant_block(data)["corridors"] if c["name"] == "Hamburguesas")
@@ -76,7 +76,7 @@ def test_a_dish_marked_popular_in_any_section_is_popular(page):
 
     [dish] = [i for i in parse_restaurant(data)["items"] if i["item_id"] == burgers["products"][0]["id"]]
 
-    assert dish["is_popular"] is True  # la última aparición (en «Hamburguesas») no lo marca
+    assert dish["is_popular"] is True  # la última aparición (en "Hamburguesas") no lo marca
 
 
 def test_a_menu_without_repeated_dishes_does_not_change(page):

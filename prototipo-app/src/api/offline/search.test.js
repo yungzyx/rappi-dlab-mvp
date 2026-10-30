@@ -24,7 +24,7 @@ const beer = product(5, { name: 'Cerveza lata', concept: 'cerveza', vertical: 'l
 const pharmacyCookies = product(6, { name: 'Galletas sin azúcar', concept: 'galletas', vertical: 'farmacia' })
 const teddy = product(7, { name: 'Peluche oso', concept: 'juguetes', vertical: 'mall' })
 const pool = [coffee, coffeeCookies, expressCookies, honey, beer, pharmacyCookies, teddy]
-const HELP = { text: 'Puedo buscarte lo que quieras: prueba con «sushi» o «algo para la once».', products: [] }
+const HELP = { text: 'Puedo buscarte lo que quieras: prueba con "sushi" o "algo para la once".', products: [] }
 const snapshot = {
   meta: META,
   pool,
@@ -47,7 +47,7 @@ describe('los conceptos de una consulta (concepts/matcher.py)', () => {
     expect(detectConcepts(META, 'chela helada')).toEqual([])
   })
 
-  test('el nombre dice lo pedido con palabras enteras y la ñ: «pañales» no es «panal»', () => {
+  test('el nombre dice lo pedido con palabras enteras y la ñ: "pañales" no es "panal"', () => {
     expect(namesQuery(META, 'Galletas de café', 'galleta')).toBe(true)
     expect(namesQuery(META, 'Panal de miel', 'pañales')).toBe(false)
     expect(namesQuery(META, 'Harina con polvos de hornear', 'harina sin polvos de hornear')).toBe(false)
@@ -59,23 +59,23 @@ describe('el foco de la búsqueda (agent/tools.py: _focus)', () => {
   test('donde la vertical tiene el concepto, solo el concepto; donde no, lo que lo dice en el nombre', () => {
     const found = matchProducts(snapshot, 'café')
     expect(found).toContain(coffee)
-    expect(found).not.toContain(coffeeCookies) // el súper vende café: unas galletas «sabor café» no son café
-    expect(found).toContain(expressCookies) // Express no tiene café: muestra lo que dice «café»
+    expect(found).not.toContain(coffeeCookies) // el súper vende café: unas galletas "sabor café" no son café
+    expect(found).toContain(expressCookies) // Express no tiene café: muestra lo que dice "café"
   })
 
-  test('«pañales» no trae el postre con «panal»', () => {
+  test('"pañales" no trae el postre con "panal"', () => {
     expect(matchProducts(snapshot, 'pañales')).not.toContain(honey)
     expect(search(snapshot, new URLSearchParams('q=pañales')).groups).toEqual([])
   })
 })
 
-describe('«qué me recomiendas» (rappi_agent.py: _recommend)', () => {
+describe('"qué me recomiendas" (rappi_agent.py: _recommend)', () => {
   const recommend = (interests, body = {}) =>
     ask(snapshot, { message: '¿Qué me recomiendas?', mode: 'propuesta', ...body }, { interests, userId: 'proto-1' })
 
   test('busca su interés en la vertical más típica y lo dice', () => {
     const reply = recommend(['cafe'])
-    expect(reply.text).toBe('Por tu interés en ☕ café 😉 Mira lo que encontré de «café» en el súper.')
+    expect(reply.text).toBe('Por tu interés en ☕ café 😉 Mira lo que encontré de "café" en el súper.')
     expect(reply.products).toEqual([coffee])
     expect(reply.vertical).toBe('supermercado')
   })
@@ -86,7 +86,7 @@ describe('«qué me recomiendas» (rappi_agent.py: _recommend)', () => {
     expect(reply.products).not.toContain(pharmacyCookies)
   })
 
-  test('si nombra algo, busca eso: «¿me recomiendas un café?» no es «qué me recomiendas»', () => {
+  test('si nombra algo, busca eso: "¿me recomiendas un café?" no es "qué me recomiendas"', () => {
     const reply = recommend(['juguetes'], { message: '¿Me recomiendas un café?' })
     expect(reply.text).toBe(
       'Esta demo sin conexión no entiende preguntas nuevas, solo busca palabras: esto encontré en el súper.',
@@ -106,9 +106,9 @@ describe('«qué me recomiendas» (rappi_agent.py: _recommend)', () => {
 
   test('sin productos que Mochi pueda ofrecer de un interés prueba el siguiente; sin nada, los ejemplos', () => {
     expect(recommend(['cerveza', 'juguetes']).text).toBe(
-      'Por tu interés en 🧸 juguetes 😉 Mira lo que encontré de «juguetes» en Rappi Mall.',
+      'Por tu interés en 🧸 juguetes 😉 Mira lo que encontré de "juguetes" en Rappi Mall.',
     )
-    // La ayuda grabada, con el texto y los atajos de hoy: lo que Mochi sabe hacer y, en «Rappi hoy», solo ejemplos.
+    // La ayuda grabada, con el texto y los atajos de hoy: lo que Mochi sabe hacer y, en "Rappi hoy", solo ejemplos.
     const today = helpReply('actual').text
     expect(recommend(['cerveza'])).toEqual({ ...HELP, text: helpReply().text, actions: HELP_ACTIONS })
     expect(recommend([])).toEqual({ ...HELP, text: helpReply().text, actions: HELP_ACTIONS })
@@ -121,7 +121,7 @@ describe('«qué me recomiendas» (rappi_agent.py: _recommend)', () => {
 describe('la ayuda, el resumen y el último pedido (rappi_agent.py: _small_talk)', () => {
   const said = (message, mode = 'propuesta') => ask(snapshot, { message, mode })
 
-  test('«¿qué puedes hacer?» muestra lo que Mochi sabe hacer, sin ningún ejemplo de salud', () => {
+  test('"¿qué puedes hacer?" muestra lo que Mochi sabe hacer, sin ningún ejemplo de salud', () => {
     const help = said('¿qué puedes hacer?')
     expect(help.intent.kind).toBe('ayuda')
     expect(help.actions).toEqual(HELP_ACTIONS)
@@ -130,7 +130,7 @@ describe('la ayuda, el resumen y el último pedido (rappi_agent.py: _small_talk)
       expect(JSON.stringify(reply).toLowerCase()).not.toMatch(/fiebre|remedio/)
   })
 
-  test('«quiero pagar» es el resumen antes de pagar y lleva al checkout; «¿dónde viene mi pedido?», a Mis pedidos', () => {
+  test('"quiero pagar" es el resumen antes de pagar y lleva al checkout; "¿dónde viene mi pedido?", a Mis pedidos', () => {
     const summary = said('quiero pagar')
     expect(summary.intent.kind).toBe('resumen')
     expect(summary.actions).toEqual([{ label: 'Revisar y pagar', route: ['checkout'] }])
@@ -138,13 +138,13 @@ describe('la ayuda, el resumen y el último pedido (rappi_agent.py: _small_talk)
     const order = said('¿dónde viene mi pedido?')
     expect(order.intent.kind).toBe('pedido')
     expect(order.actions).toEqual([{ label: 'Ver mis pedidos', route: ['orders'] }])
-    // Los textos fijos de hoy: «Pedir por mí» sí pide, y el seguimiento cancela (ya no «el chat de soporte»).
-    expect(summary.text).toMatch(/si no me diste permiso con «Pedir por mí»/)
+    // Los textos fijos de hoy: "Pedir por mí" sí pide, y el seguimiento cancela (ya no "el chat de soporte").
+    expect(summary.text).toMatch(/si no me diste permiso con "Pedir por mí"/)
     expect(order.text).toMatch(/lo cancelas antes de que salga/)
     expect(order.text).not.toMatch(/chat/)
   })
 
-  test('el saludo, el «gracias», el fuera de tema y una risa tienen su respuesta, con ideas para tocar', () => {
+  test('el saludo, el "gracias", el fuera de tema y una risa tienen su respuesta, con ideas para tocar', () => {
     const hello = said('hola')
     expect(hello).toMatchObject({ intent: { kind: 'saludo' }, actions: HELP_ACTIONS })
     expect(hello.text).toMatch(/^¡Hola! Soy .+ Toca una idea/)
@@ -204,6 +204,6 @@ describe('preguntas que la muestra no grabó (agent/understand.py y rappi_agent.
   })
 
   test('un producto suelto se sigue buscando como siempre', () => {
-    expect(said('café').text).toBe('Mira lo que encontré de «café» en el súper.')
+    expect(said('café').text).toBe('Mira lo que encontré de "café" en el súper.')
   })
 })

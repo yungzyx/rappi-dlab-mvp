@@ -60,7 +60,7 @@ describe('el sobre de los eventos (attribution.js)', () => {
     expect(noteRecommendationClick(track, { id: 'x' }, fields)).toBe(false)
   })
 
-  test('ver un producto en la hoja y después en su tienda («Ver tienda») es una sola vista', () => {
+  test('ver un producto en la hoja y después en su tienda ("Ver tienda") es una sola vista', () => {
     const track = vi.fn()
     const fields = { entity_type: 'catalog_item', entity_id: '91001' }
     const [card] = placeList([{ id: 'p' }], { surface: 'deals', origin: 'bajaron-supermercado' })

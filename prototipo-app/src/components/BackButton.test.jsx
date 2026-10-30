@@ -4,7 +4,7 @@ import BackButton from './BackButton'
 
 afterEach(cleanup)
 
-test('se llama «Volver», conserva la clase de la pantalla y llama a onClick', () => {
+test('se llama "Volver", conserva la clase de la pantalla y llama a onClick', () => {
   const onClick = vi.fn()
   render(<BackButton className="store-round" onClick={onClick} />)
   const button = screen.getByRole('button', { name: 'Volver' })
@@ -14,7 +14,7 @@ test('se llama «Volver», conserva la clase de la pantalla y llama a onClick', 
   expect(onClick).toHaveBeenCalledTimes(1)
 })
 
-test('sin ícono (zona sobre una captura) sigue siendo un botón «Volver»', () => {
+test('sin ícono (zona sobre una captura) sigue siendo un botón "Volver"', () => {
   render(<BackButton className="travel-hit" icon={false} onClick={() => {}} />)
   expect(screen.getByRole('button', { name: 'Volver' }).querySelector('svg')).toBeNull()
 })

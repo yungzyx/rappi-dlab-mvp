@@ -1,10 +1,10 @@
-"""Lo destacado: lo que la app muestra sin que la persona lo pida («Lo más pedido», los kits, «lo que más piden» en
+"""Lo destacado: lo que la app muestra sin que la persona lo pida ("Lo más pedido", los kits, "lo que más piden" en
 restaurantes) se ve bien y calza con su título.
 
 Las reglas viven en datos (`destacado.toml`, junto a este módulo) y se validan al cargar:
 - `featured`: con foto, sin nombres repetidos y, en los platos, ni acompañamientos ni relleno (`side_dish`) y de un
   local de la ciudad de la persona (`profiles.city_places`); con `main`, además, platos principales (`main_dish`).
-- `one_per_concept`: un producto por concepto mientras alcancen («Lo más pedido» no son tres pizzas).
+- `one_per_concept`: un producto por concepto mientras alcancen ("Lo más pedido" no son tres pizzas).
 """
 
 import tomllib
@@ -35,17 +35,17 @@ def load_rules(path: Path = DATA_PATH) -> Rules:
     main, side = raw.get("plato_principal", {}), raw.get("relleno", {})
     price = main.get("precio_minimo")
     if not isinstance(price, int | float) or price <= 0:
-        raise ValueError("destacado.toml: «precio_minimo» va como un número mayor que cero")
+        raise ValueError('destacado.toml: "precio_minimo" va como un número mayor que cero')
     concepts = load_taxonomy().concepts
     for concept in main.get("conceptos_fuera", ()):
         if concept not in concepts:
-            raise ValueError(f"destacado.toml: concepto desconocido «{concept}»")
+            raise ValueError(f'destacado.toml: concepto desconocido "{concept}"')
     for key in ("secciones", "nombres"):
         words = side.get(key)
         if not words or not all(isinstance(w, str) and normalize(w) for w in words):
-            raise ValueError(f"destacado.toml: «{key}» va como una lista de textos no vacíos")
+            raise ValueError(f'destacado.toml: "{key}" va como una lista de textos no vacíos')
     if any(len(tokens(n)) > 1 for n in side["nombres"]):
-        raise ValueError("destacado.toml: cada uno de «nombres» es una sola palabra (se compara la primera del plato)")
+        raise ValueError('destacado.toml: cada uno de "nombres" es una sola palabra (se compara la primera del plato)')
     return Rules(
         float(price),
         frozenset(main.get("conceptos_fuera", ())),
@@ -55,8 +55,8 @@ def load_rules(path: Path = DATA_PATH) -> Rules:
 
 
 def side_dish(name: str, section: str | None, price: float | None) -> bool:
-    """Un acompañamiento o relleno: la sección del menú empieza con una de relleno («Agregados», «Bebidas y jugos») o el
-    nombre empieza con una palabra de relleno y cuesta menos que un plato principal («Salsa de ajo» de $600; sin precio
+    """Un acompañamiento o relleno: la sección del menú empieza con una de relleno ("Agregados", "Bebidas y jugos") o el
+    nombre empieza con una palabra de relleno y cuesta menos que un plato principal ("Salsa de ajo" de $600; sin precio
     también: no se sabe)."""
     rules = load_rules()
     words = tokens(name)

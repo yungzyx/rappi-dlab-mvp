@@ -75,7 +75,7 @@ def route_template(source) -> str:
 
 def rejected(exc: Exception, *private: str) -> HTTPException:
     """400 genérico para una entrada que la capa de datos rechazó (un `ValueError`). Su mensaje puede nombrar a la
-    persona («El usuario X es de otra fuente») y servir de sonda para ver qué ids existen: al cliente no le llega; al
+    persona ("El usuario X es de otra fuente") y servir de sonda para ver qué ids existen: al cliente no le llega; al
     log sí, con los valores de `private` (ids) cambiados por `<id>`."""
     detail = str(exc)
     for value in filter(None, private):

@@ -165,7 +165,7 @@ def test_the_query_is_embedded_once_even_from_several_threads():
 
 
 def test_each_vertical_in_parallel_ends_its_transaction():
-    """Una conexión extra no queda «idle in transaction» mientras termina la vertical más lenta (Postgres la corta a
+    """Una conexión extra no queda "idle in transaction" mientras termina la vertical más lenta (Postgres la corta a
     los 10 s): cada vertical confirma la suya al terminar."""
     request, spares = FakeConn("peticion"), Spares(available=10)
     used = []

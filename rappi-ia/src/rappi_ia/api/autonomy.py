@@ -1,5 +1,5 @@
-"""«Pedir por mí» (offers/autonomy.py): verlo, encenderlo o cambiarlo, y apagarlo en un toque. Por defecto, «Revisar
-antes de pedir». Solo las personas del prototipo lo cambian desde la app.
+""" "Pedir por mí" (offers/autonomy.py): verlo, encenderlo o cambiarlo, y apagarlo en un toque. Por defecto, "Revisar
+antes de pedir". Solo las personas del prototipo lo cambian desde la app.
 
 `app.py` incluye este router; las dependencias viven en `deps.py`, así este módulo no importa `app`.
 """
@@ -35,7 +35,7 @@ def get_autonomy(user_id: ShortPath, conn: Connection = Depends(get_conn)) -> di
 
 @router.put("/{user_id}/autonomia", dependencies=[Depends(owner_in_path)])
 def put_autonomy(user_id: ShortPath, body: AutonomyIn, conn: Connection = Depends(get_conn)) -> dict:
-    """Enciende o cambia «Pedir por mí» con las tiendas (de las que ya pidió) y el tope por pedido. Responde como el
+    """Enciende o cambia "Pedir por mí" con las tiendas (de las que ya pidió) y el tope por pedido. Responde como el
     GET; una tienda que no puede elegir es un 422."""
     try:
         ensure_user(conn, user_id)
@@ -51,7 +51,7 @@ def put_autonomy(user_id: ShortPath, body: AutonomyIn, conn: Connection = Depend
 
 @router.delete("/{user_id}/autonomia", dependencies=[Depends(owner_in_path)])
 def delete_autonomy(user_id: ShortPath, conn: Connection = Depends(get_conn)) -> dict:
-    """Apaga «Pedir por mí»: vuelve a «Revisar antes de pedir». Responde como el GET."""
+    """Apaga "Pedir por mí": vuelve a "Revisar antes de pedir". Responde como el GET."""
     autonomy.turn_off(conn, user_id)
     conn.commit()
     return autonomy.describe(conn, user_id)

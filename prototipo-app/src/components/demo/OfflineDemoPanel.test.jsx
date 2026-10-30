@@ -37,8 +37,8 @@ async function openPanel() {
   await act(async () => fireEvent.click(screen.getByRole('button', { name: '🎛️ Panel de la demo' })))
 }
 
-describe('«Panel de la demo»: Mochi', () => {
-  test('«Ocultar a Mochi» lo oculta sin confirmar y lo anota; el mismo botón, «Mostrar a Mochi», lo trae de vuelta', async () => {
+describe('"Panel de la demo": Mochi', () => {
+  test('"Ocultar a Mochi" lo oculta sin confirmar y lo anota; el mismo botón, "Mostrar a Mochi", lo trae de vuelta', async () => {
     await openPanel()
     expect(screen.getByRole('heading', { name: 'Mochi' })).toBeTruthy()
 
@@ -59,13 +59,13 @@ describe('«Panel de la demo»: Mochi', () => {
     expect(screen.getByRole('button', { name: 'Ocultar a Mochi' })).toBeTruthy()
   })
 
-  test('si se ocultó desde la app, el botón ya dice «Mostrar a Mochi»', async () => {
+  test('si se ocultó desde la app, el botón ya dice "Mostrar a Mochi"', async () => {
     localStorage.setItem(HIDDEN_KEY, '1')
     await openPanel()
     expect(screen.getByRole('button', { name: 'Mostrar a Mochi' })).toBeTruthy()
   })
 
-  test('en «Rappi hoy» no está: ahí no hay Mochi', async () => {
+  test('en "Rappi hoy" no está: ahí no hay Mochi', async () => {
     localStorage.setItem('rappi-proto-demo-mode', 'actual')
     await openPanel()
     expect(screen.queryByRole('heading', { name: 'Mochi' })).toBeNull()

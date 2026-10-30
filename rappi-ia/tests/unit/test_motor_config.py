@@ -1,4 +1,4 @@
-"""`MOTOR_POBLACION` (config): solo «synthetic» o «prototype»; otra cosa falla al cargar la configuración."""
+"""`MOTOR_POBLACION` (config): solo "synthetic" o "prototype"; otra cosa falla al cargar la configuración."""
 
 import importlib
 

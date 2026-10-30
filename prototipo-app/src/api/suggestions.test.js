@@ -54,7 +54,7 @@ describe('sugerencias de Mochi', () => {
       origin: 'agent-carrito',
     })
 
-    // Otro clic en lo mismo no es otra aceptación; tras «Olvidar» (otra generación) sí.
+    // Otro clic en lo mismo no es otra aceptación; tras "Olvidar" (otra generación) sí.
     track.mockClear()
     expect(noteAccepted(track, [PAPAS], options)).toBe(0)
     expect(track).not.toHaveBeenCalled()

@@ -10,7 +10,7 @@ const HEIGHT = SIZE * 1.2
 const EDGE = 14 // margen derecho
 const TOP_LIMIT = 118 // bajo la dirección: nunca tapa la barra de estado
 const BOTTOM_RESERVE = 104 // sobre la barra inferior (y la del carrito)
-const TYPE_MS = 16 // ms por letra al «hablar»
+const TYPE_MS = 16 // ms por letra al "hablar"
 // Mientras nadie le habla, el agente no se queda quieto: cada tanto mira, baila, saluda o se estira (en este orden).
 const FIDGETS = ['look', 'dance', 'wave', 'stretch', 'hop']
 const FIDGET_MS = 6000
@@ -166,7 +166,7 @@ const LiveAgent = forwardRef(function LiveAgent(
               {shown}
               {!done && <span className="live-bubble-rest" data-rest={say.text.slice(shown.length)} />}
             </p>
-            {/* «¿Por qué?» y los botones también ocupan su lugar desde el principio (el globo no crece al terminar),
+            {/* "¿Por qué?" y los botones también ocupan su lugar desde el principio (el globo no crece al terminar),
                 pero no se ven ni se tocan hasta que termina de escribir. */}
             {(say.why || say.actions?.length > 0) && (
               <div

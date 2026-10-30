@@ -4,7 +4,7 @@ import { route } from './index'
 import { readState } from './state'
 import { META, product } from '../../test/offlineMeta'
 
-// «Pedir por mí» sin conexión (offers/autonomy.py en corto): los mismos límites que la API.
+// "Pedir por mí" sin conexión (offers/autonomy.py en corto): los mismos límites que la API.
 const coffee = product(1, { name: 'Café molido', price_value: 3990, store: 'Súper Centro', store_id: 11 })
 const beer = product(2, { name: 'Cerveza lata', concept: 'cerveza', age_restricted: true, store_id: 11 })
 const cookies = product(3, {
@@ -118,7 +118,7 @@ describe('pedir por mí sin conexión', () => {
     expect(say('pide lo de siempre en sushi de prueba').autopedido).toMatchObject({ modo: 'pedir' })
   })
 
-  test('la recompra de una tienda con permiso trae «Pide lo de siempre por mí»', () => {
+  test('la recompra de una tienda con permiso trae "Pide lo de siempre por mí"', () => {
     order(line(coffee))
     const offer = { products: [{ store_id: 11 }], actions: [{ label: 'Agregar al carro' }] }
     expect(withAutoOrder(snapshot, readState(), offer).actions).toHaveLength(1)
@@ -130,7 +130,7 @@ describe('pedir por mí sin conexión', () => {
     expect(withAutoOrder(snapshot, readState(), { ...offer, products: [{ store_id: 12 }] }).actions).toHaveLength(1)
   })
 
-  test('se apaga en un toque, no corre en «Rappi hoy» y se va con «Olvidar»', () => {
+  test('se apaga en un toque, no corre en "Rappi hoy" y se va con "Olvidar"', () => {
     order(line(coffee))
     allow([11])
     expect(call('DELETE', '/profile/u/autonomia').body.modo).toBe('revisar')
@@ -142,7 +142,7 @@ describe('pedir por mí sin conexión', () => {
   })
 })
 
-describe('las tiendas de sus pedidos en «Mis preferencias» (offers/preferences.py: ordered_stores)', () => {
+describe('las tiendas de sus pedidos en "Mis preferencias" (offers/preferences.py: ordered_stores)', () => {
   test('se ofrecen para marcarlas como favoritas, sin escribirlas, y marcarlas las guarda', () => {
     const stores = () => call('GET', '/profile/u/preferencias').body.opciones.filter((o) => o.tipo === 'tienda')
     expect(stores()).toEqual([])

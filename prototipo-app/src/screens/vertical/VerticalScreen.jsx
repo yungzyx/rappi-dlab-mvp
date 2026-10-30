@@ -16,7 +16,7 @@ import { useAddress } from '../../state/AddressContext'
 import { VERTICALS } from './data'
 import './vertical.css'
 
-// Las tiendas que se ven en la pantalla; «Ver más» abre la lista con todas.
+// Las tiendas que se ven en la pantalla; "Ver más" abre la lista con todas.
 const VISIBLE_STORES = 4
 
 /**

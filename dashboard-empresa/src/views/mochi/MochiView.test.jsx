@@ -25,7 +25,7 @@ describe('MochiView', () => {
 
   afterEach(resetApi)
 
-  test('offers by moment: «Plan» with its accepted ones in the third cell, and a dash under the minimum', async () => {
+  test('offers by moment: "Plan" with its accepted ones in the third cell, and a dash under the minimum', async () => {
     serveFixtures()
     await renderWithData(<MochiView source="prototype" />)
 
@@ -34,7 +34,7 @@ describe('MochiView', () => {
     expect(momentName(plan)).toBe('Plan')
     expect(cells(plan).slice(1)).toEqual(['1', '1', '—'])
     expect(momentName(cart)).toBe('Carro')
-    // Lo que busca `make mvp-check`: la fila cuyo nombre empieza con «Plan ».
+    // Lo que busca `make mvp-check`: la fila cuyo nombre empieza con "Plan ".
     expect(within(offers).getByRole('row', { name: /^Plan / })).toBe(plan)
     expect(within(plan).getByText('Un kit para una ocasión que la persona elige (carrete, asado)')).toBeTruthy()
   })
@@ -44,7 +44,7 @@ describe('MochiView', () => {
     await renderWithData(<MochiView source="prototype" />)
 
     const line = await screen.findByTestId('autopedidos')
-    expect(line.textContent).toContain('con permiso («Pedir por mí»): 1 de 1 persona.')
+    expect(line.textContent).toContain('con permiso ("Pedir por mí"): 1 de 1 persona.')
     expect(line.textContent).toContain('No cuentan como ofertas aceptadas.')
   })
 
@@ -101,7 +101,7 @@ describe('MochiView', () => {
     expect(figure('Ocultaron a Mochi')).toBe('Ocultaron a Mochi225,0% de 8 personas activas; lo ocultaron 3 veces')
     expect(figure('Lo volvieron a mostrar')).toBe('Lo volvieron a mostrar1persona, desde Cuenta')
     expect(figure('Mochi explicó el orden de la Home')).toContain('5 vecesa 4 personas')
-    expect(within(section).getByText(/la app no anota «¿Por qué\?» ni «Entendido»/)).toBeTruthy()
+    expect(within(section).getByText(/la app no anota "¿Por qué\?" ni "Entendido"/)).toBeTruthy()
     expect(within(section).getByText(/Si muchas personas lo ocultan, Mochi molesta/)).toBeTruthy()
   })
 
@@ -286,7 +286,7 @@ describe('MochiView', () => {
 
   test('a response from the other source is discarded instead of shown', async () => {
     const synthetic = (await import('../../fixtures/offers.synthetic.json')).default
-    serveFixturesWith({ offers: synthetic }) // la API contesta «simulado» también a ?source=prototype
+    serveFixturesWith({ offers: synthetic }) // la API contesta "simulado" también a ?source=prototype
     await renderWithData(<MochiView source="prototype" />)
 
     expect(screen.getAllByText(OFFLINE).length).toBeGreaterThan(0)

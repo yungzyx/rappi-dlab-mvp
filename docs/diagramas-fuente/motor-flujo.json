@@ -157,7 +157,7 @@
       "id": "repetir",
       "type": "cloud",
       "label": "recompra",
-      "sublabel": "«¿Repetimos?»",
+      "sublabel": "\"¿Repetimos?\"",
       "stage": 3,
       "row": 1,
       "tag": "/agent/offer"
@@ -178,14 +178,14 @@
       "sublabel": "6 accesos ordenados",
       "stage": 4,
       "row": 0,
-      "tag": "«Ordenadas según lo que más usas»",
+      "tag": "\"Ordenadas según lo que más usas\"",
       "width": 132
     },
     {
       "id": "ofertas",
       "type": "frontend",
       "label": "Ofertas de Mochi",
-      "sublabel": "con su «Porque…»",
+      "sublabel": "con su \"Porque…\"",
       "stage": 4,
       "row": 1,
       "tag": "basis"

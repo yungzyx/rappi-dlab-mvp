@@ -47,14 +47,14 @@ describe('CustomersView', () => {
     const losing = section('A quién estamos perdiendo')
     expect(within(losing).getByText('280')).toBeTruthy()
     expect(within(losing).getByText('564')).toBeTruthy()
-    expect(within(losing).getByText('Califican para «¿Volvemos a…?»')).toBeTruthy()
+    expect(within(losing).getByText('Califican para "¿Volvemos a…?"')).toBeTruthy()
     expect(within(losing).getByText(/el último día de los pedidos simulados/)).toBeTruthy()
 
     const audiences = within(losing).getByRole('table', { name: 'Personas en riesgo o perdidas por lo que más pedían' })
     const [first] = within(audiences).getAllByRole('row').slice(1)
     expect(within(first).getAllByRole('cell')[0].textContent).toBe('🍕 Pizza')
     expect(within(first).getAllByRole('cell')[1].textContent).toBe('28')
-    // todas las de la lista están en riesgo: la columna «En riesgo» repetiría «Personas»
+    // todas las de la lista están en riesgo: la columna "En riesgo" repetiría "Personas"
     expect(within(audiences).queryByRole('columnheader', { name: 'En riesgo' })).toBeNull()
     expect(within(losing).getByText(/Muestra de 100 de las 844/)).toBeTruthy()
     expect(within(losing).queryByText(NOT_EVIDENCE)).toBeNull()

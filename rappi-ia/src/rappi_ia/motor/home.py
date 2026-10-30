@@ -17,8 +17,8 @@ def home_verticals(conn: Connection, user_id: str) -> dict:
     """`{fixed, order, personalized}`: `order` son los 6 de `HOME_ORDERABLE`. Primero los que la persona usa (afinidad
     > 0), de más a menos uso propio (afinidad; a igual afinidad, por puntaje de la predicción); después el resto, en el
     orden de `HOME_ORDERABLE`, para que la Home de quien no ha usado nada no cambie con la población. Solo el primero
-    lleva `reason`, y solo si la persona lo usa: «Porque pides seguido en…» si pidió ahí y, si solo entró (abrir,
-    buscar, ver, agregar al carro), «Porque entras seguido a…»."""
+    lleva `reason`, y solo si la persona lo usa: "Porque pides seguido en…" si pidió ahí y, si solo entró (abrir,
+    buscar, ver, agregar al carro), "Porque entras seguido a…"."""
     scores = {s.vertical: s for s in next_verticals(conn, user_id)}
     used = sorted(
         (v for v in scores if v in HOME_ORDERABLE and scores[v].affinity > 0),

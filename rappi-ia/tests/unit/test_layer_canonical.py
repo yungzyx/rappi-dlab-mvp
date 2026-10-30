@@ -35,7 +35,7 @@ def test_dimensions_and_model_numbers_survive_the_pack_noise_removal():
 
 
 def test_unit_counts_are_part_of_the_product():
-    """«12 Unidades» y «4 Unidades» (o un pack y la unidad) no son el mismo producto aunque ambos midan «1 und»."""
+    """ "12 Unidades" y "4 Unidades" (o un pack y la unidad) no son el mismo producto aunque ambos midan "1 und"."""
     assert name_key("Your Goal 12 Unidades", {"your", "goal"}) != name_key("Your Goal 4 Unidades", {"your", "goal"})
     assert name_key("Duracell Aa 1 Unidad", {"duracell"}) != name_key("Duracell Aa 2 Unidades", {"duracell"})
     assert name_key("Soprole Yoghurt Pack", {"soprole"}) != name_key("Soprole Yoghurt", {"soprole"})

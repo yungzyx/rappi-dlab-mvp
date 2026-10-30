@@ -1,4 +1,4 @@
-"""El texto del momento `perfil` (offers/engine.py): «Por tu gusto por {gusto}…», con el `gusto` de cada perfil
+"""El texto del momento `perfil` (offers/engine.py): "Por tu gusto por {gusto}…", con el `gusto` de cada perfil
 (offers/perfiles.toml), que es obligatorio."""
 
 import pytest

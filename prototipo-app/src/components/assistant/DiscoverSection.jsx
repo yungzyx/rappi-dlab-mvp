@@ -9,15 +9,15 @@ const TILE_IMAGES = Object.fromEntries([...MAIN_TILES, ...SHORTCUTS].map((tile) 
 
 const THUMBS = 3
 
-/** «snacks-salados» → «Snacks salados». */
+/** "snacks-salados" → "Snacks salados". */
 const conceptLabel = (concept) => {
   const words = concept.replace(/-/g, ' ')
   return words.charAt(0).toUpperCase() + words.slice(1)
 }
 
 /**
- * El título de una tarjeta: el complemento y su vertical, o «Lo más pedido en…» (fila sin concepto). El nombre del
- * concepto, si la API lo manda (`concept_label`, con tildes); si no, del id («cafe» → «Cafe»).
+ * El título de una tarjeta: el complemento y su vertical, o "Lo más pedido en…" (fila sin concepto). El nombre del
+ * concepto, si la API lo manda (`concept_label`, con tildes); si no, del id ("cafe" → "Cafe").
  */
 const cardTitle = (row) => {
   const vertical = VERTICAL_NAMES[row.prototype_vertical]
@@ -26,7 +26,7 @@ const cardTitle = (row) => {
 }
 
 /**
- * «Descubre con el agente»: tarjetas de /recommendations, cada una con un complemento de lo que le gusta a la persona en una
+ * "Descubre con el agente": tarjetas de /recommendations, cada una con un complemento de lo que le gusta a la persona en una
  * vertical que quizá aún no abre, o con lo más pedido en una vertical (`kind: 'lo_mas_pedido'`). `rows` son las filas de
  * la API (hasta 3); tocar una tarjeta abre su vertical (`onOpen(vertical, { row, position })`).
  */

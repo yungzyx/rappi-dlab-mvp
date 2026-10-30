@@ -11,13 +11,13 @@ import { useApi } from './useApi'
  * - `aisles`: los pasillos, que se siguen viendo mientras llegan los productos del que se acaba de elegir;
  * - `aisle` y `setAisle`: el id del pasillo que se ve (el primero mientras no se elija otro) y cómo cambiarlo;
  * - `products`: los de ese pasillo que lleva cargados (la primera página y las que sumó `loadMore`, sin repetir ids);
- * - `hasMore`, `loadMore` y `loadingMore`: «Ver más» pide la página siguiente; si falla, avisa con un toast y se queda lo que ya había.
+ * - `hasMore`, `loadMore` y `loadingMore`: "Ver más" pide la página siguiente; si falla, avisa con un toast y se queda lo que ya había.
  */
 export function useShopAisles(shopId) {
   const toast = useToast()
   const [chosen, setChosen] = useState(null) // el pasillo que se eligió; sin elegir, la API trae el primero
   const [aisles, setAisles] = useState([])
-  // Las páginas que se sumaron con «Ver más», de un pasillo: valen solo mientras sea el que se ve.
+  // Las páginas que se sumaron con "Ver más", de un pasillo: valen solo mientras sea el que se ve.
   const [more, setMore] = useState(null)
   const [loadingMore, setLoadingMore] = useState(false)
   const { data, error, retry } = useApi(

@@ -179,7 +179,7 @@ def combo_stats(months: list[ComboMonth]) -> dict[str, dict]:
 
 def combo_steps(months: list[ComboMonth]) -> dict[tuple[str, str], tuple[int, float]]:
     """`(combinación en M, combinación en M+1) → (personas-mes, probabilidad)`, sobre los meses con M+1 completo; quien
-    no vuelve pasa a «ninguna»."""
+    no vuelve pasa a "ninguna"."""
     combo_at = {(m.user_id, m.month): m.combo for m in months}
     counts: dict[str, Counter] = defaultdict(Counter)
     for m in months:

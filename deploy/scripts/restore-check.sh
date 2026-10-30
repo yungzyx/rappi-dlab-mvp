@@ -25,7 +25,7 @@ drop_check_db() {
 drop_check_db  # la de una prueba anterior que se cortó
 trap drop_check_db EXIT
 echo "CREATE DATABASE $CHECK_DB OWNER rappi_owner;" | superuser_sql postgres
-# pgvector, unaccent y pg_prewarm no son extensiones «trusted»: las crea el superusuario, como init-roles.sh en la base
+# pgvector, unaccent y pg_prewarm no son extensiones "trusted": las crea el superusuario, como init-roles.sh en la base
 # de la app (un dump que trae una que falta no se restaura como rappi_owner).
 echo "CREATE EXTENSION vector; CREATE EXTENSION unaccent; CREATE EXTENSION pg_prewarm;" | superuser_sql "$CHECK_DB"
 
@@ -41,7 +41,7 @@ pgpass_from_database_url
 # Antes de restaurar: la URL derivada tiene que llevar a la base de prueba y nunca a la de la app.
 current=$(psql --dbname="$PG_URL" --no-psqlrc -Atc 'SELECT current_database()')
 if [ "$current" != rappi_restore_check ]; then
-  echo "La conexión derivada de DATABASE_URL lleva a «$current», no a rappi_restore_check: no restauro." >&2
+  echo "La conexión derivada de DATABASE_URL lleva a \"$current\", no a rappi_restore_check: no restauro." >&2
   exit 1
 fi
 dump=$(ls -t "${RAPPI_DATA_DIR:-/data}"/backups/*.dump | head -n 1)

@@ -116,7 +116,7 @@ describe('Ofertas con el catálogo real', () => {
     expect(screen.queryByText('Sin conexión')).toBeNull()
   })
 
-  test('Mejor evaluados trae los seis de mejor nota; no hay «Envío más barato» ni envío gratis', async () => {
+  test('Mejor evaluados trae los seis de mejor nota; no hay "Envío más barato" ni envío gratis', async () => {
     const fetchMock = stubDeals()
     renderDeals()
 
@@ -132,7 +132,7 @@ describe('Ofertas con el catálogo real', () => {
     expect(screen.queryByText(/Crazy Deals|Top 10|Most Ordered|New in Rappi/)).toBeNull()
   })
 
-  test('cada fila es una lista con su lugar: las bajas de cada vertical y «Mejor evaluados»', async () => {
+  test('cada fila es una lista con su lugar: las bajas de cada vertical y "Mejor evaluados"', async () => {
     stubDeals()
     const push = renderDeals()
     const grocery = within(await screen.findByRole('region', { name: 'Bajaron de precio en Súper' }))
@@ -176,7 +176,7 @@ describe('Ofertas con el catálogo real', () => {
     expect(stores.every((store) => Number.isInteger(store.id))).toBe(true)
   })
 
-  test('sin conexión dice «Sin conexión» con Reintentar, y al reintentar llegan las bajas', async () => {
+  test('sin conexión dice "Sin conexión" con Reintentar, y al reintentar llegan las bajas', async () => {
     let online = false
     stubDeals({
       '/catalog/deals': (req) => (online ? dealsOf(req) : 'offline'),

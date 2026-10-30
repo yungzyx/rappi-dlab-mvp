@@ -1,4 +1,4 @@
-"""La recompra («¿Repetimos?»): lo que la persona pide con ritmo (`replenishment`, del motor) y está por tocarle, con el
+"""La recompra ("¿Repetimos?"): lo que la persona pide con ritmo (`replenishment`, del motor) y está por tocarle, con el
 último producto que compró si sigue a la venta en esa vertical. Sobre el catálogo de prueba (`seed_demo`)."""
 
 from datetime import date, datetime, time, timedelta

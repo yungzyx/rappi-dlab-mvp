@@ -95,7 +95,7 @@ describe('cambios en vivo', () => {
   test('el ajuste en el total: sustituto menos agotado por sus unidades, o el reembolso', () => {
     expect(resolveChange(pasta, 1, 'sustituto', { name: 'Fideos', price: '$1.490' }).delta).toBe(400)
     expect(resolveChange(pasta, 1, 'reembolso', null)).toMatchObject({ choice: 'reembolso', delta: -2580 })
-    // «Elijan por mí» sin un sustituto en la tienda termina en reembolso.
+    // "Elijan por mí" sin un sustituto en la tienda termina en reembolso.
     expect(resolveChange(pasta, 1, 'elijan', undefined).choice).toBe('reembolso')
   })
 })

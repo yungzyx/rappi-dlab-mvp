@@ -23,7 +23,7 @@ class Match:
 class KeywordMatcher:
     def __init__(self, entries: Iterable[tuple[str, str]], avoid: Iterable[tuple[str, str]] = ()):
         """`entries`: pares (id, palabra clave). `avoid`: pares (id, palabra o frase) que, si el texto las trae, impiden
-        que ese id calce («Bolsa para agua» no es agua)."""
+        que ese id calce ("Bolsa para agua" no es agua)."""
         self._avoid: dict[str, list[tuple[str, ...]]] = defaultdict(list)
         for target, phrase in avoid:
             if words := tuple(tokens(phrase)):

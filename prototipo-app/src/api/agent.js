@@ -9,7 +9,7 @@ const OFFER_TIMEOUT_MS = 5_000
 
 /**
  * La acción del servidor trae la vertical de la app (`route: ['express']`); aquí pasa a la ruta de su pantalla. Una que
- * le pide algo a Mochi (`ask`, como «Pide lo de siempre por mí» en la recompra) queda `{ ask: { text } }`, como las de
+ * le pide algo a Mochi (`ask`, como "Pide lo de siempre por mí" en la recompra) queda `{ ask: { text } }`, como las de
  * /agent/ask.
  */
 function toAction({ route, ask, ...action }) {
@@ -65,7 +65,7 @@ export async function offer(moment, context = {}, { userId, surface } = {}) {
 
 /**
  * Las ocasiones que el agente sabe armar para esta persona: `[{ id, name, emoji, reason? }]`. Las que su historia
- * pone primero traen `reason: { text, basis }` («Para ti»); sin historia, la lista de siempre y sin `reason`.
+ * pone primero traen `reason: { text, basis }` ("Para ti"); sin historia, la lista de siempre y sin `reason`.
  */
 export const plans = () =>
   request(`/agent/plans?user_id=${encodeURIComponent(userId())}`, { timeout: OFFER_TIMEOUT_MS })
@@ -95,7 +95,7 @@ export async function profileLadder(profileId) {
   const trip = response.viaje
   const requestId = response.request_id ?? null
   // Las posiciones siguen de corrido entre peldaños (como searchAll): los peldaños comparten origen y respuesta, y
-  // dos productos distintos no pueden quedar en el mismo lugar (las filas de «Algo para ti» los juntan).
+  // dos productos distintos no pueden quedar en el mismo lugar (las filas de "Algo para ti" los juntan).
   let start = 0
   return {
     requestId,

@@ -13,7 +13,7 @@ const ALMOST_AT = 0.8 // tramo final de la ruta: el agente avisa que ya casi lle
  */
 function poseFor({ step, progress, delivered }) {
   if (delivered) return { x: -1, y: 0, almost: false }
-  if (step === undefined) return { x: 0, y: 0, almost: false } // sin etapa («Rappi hoy»): de frente, como siempre
+  if (step === undefined) return { x: 0, y: 0, almost: false } // sin etapa ("Rappi hoy"): de frente, como siempre
   if (step <= 1) return { x: 0, y: -1, almost: false }
   if (progress >= ALMOST_AT) return { x: -1, y: 0, almost: true }
   return { x: 0, y: 0, almost: false }

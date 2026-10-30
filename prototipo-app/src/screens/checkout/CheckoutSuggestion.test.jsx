@@ -79,7 +79,7 @@ const offerRequests = () =>
     .map(([, init]) => JSON.parse(init.body))
     .map(({ session_id: _session, ...body }) => body) // la sesión la revisa api/agent.test.js
 
-describe('«¿Me falta algo?» en el checkout (solo si se pide)', () => {
+describe('"¿Me falta algo?" en el checkout (solo si se pide)', () => {
   // Primero: lo mostrado se recuerda lo que dura la pestaña (este archivo).
   test('pedirla registra suggestion_shown con origen agent-checkout, una sola vez', async () => {
     renderCheckout()
@@ -137,7 +137,7 @@ describe('«¿Me falta algo?» en el checkout (solo si se pide)', () => {
     expect(screen.getByText(fixture('agent-offer-checkout').reason.text)).toBeTruthy()
   })
 
-  test('agregarla la suma al carro como sugerencia aceptada, con «Deshacer» que la quita', async () => {
+  test('agregarla la suma al carro como sugerencia aceptada, con "Deshacer" que la quita', async () => {
     renderCheckout()
     await ask()
     fireEvent.click(screen.getByRole('button', { name: 'Agregar' }))
@@ -174,7 +174,7 @@ describe('«¿Me falta algo?» en el checkout (solo si se pide)', () => {
     expect(screen.queryByRole('button', { name: ASK })).toBeNull()
   })
 
-  test('en «Rappi hoy» no aparece', () => {
+  test('en "Rappi hoy" no aparece', () => {
     localStorage.setItem('rappi-proto-demo-mode', 'actual')
     renderCheckout()
     expect(screen.queryByRole('button', { name: ASK })).toBeNull()

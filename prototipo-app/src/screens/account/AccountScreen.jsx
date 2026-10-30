@@ -30,7 +30,7 @@ export default function AccountScreen({ onBack, push }) {
   const [sheet, setSheet] = useState(null)
   const agentHidden = useAgentHidden()
   const events = useEvents()
-  // «Modo demo» cambia toda la app de modo: como el interruptor de la presentación, solo en desarrollo o con VITE_DEMO=1.
+  // "Modo demo" cambia toda la app de modo: como el interruptor de la presentación, solo en desarrollo o con VITE_DEMO=1.
   const showDemoRow = import.meta.env.DEV || import.meta.env.VITE_DEMO === '1'
 
   const runRow = (row) => {
@@ -40,7 +40,7 @@ export default function AccountScreen({ onBack, push }) {
       demo.toggle()
       toast(`Modo demo: ${MODE_LABELS[nextMode(demo.mode)]}`)
     } else if (row.action === 'agent') {
-      // Ocultarlo se confirma (hoja «hide-agent»); traerlo de vuelta, no.
+      // Ocultarlo se confirma (hoja "hide-agent"); traerlo de vuelta, no.
       if (!agentHidden) return setSheet('hide-agent')
       events.track('agent_visibility', { origin: 'cuenta', payload: { visible: true } })
       setAgentHidden(false)

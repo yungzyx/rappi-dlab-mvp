@@ -1,6 +1,6 @@
 # Motor multivertical y Home dinámica: diseño
 
-Fecha: 16-10-2026. Diseño vigente del motor, construido en seis etapas entre el 16 y el 17-10-2026. Lo que cambió después (la escalera fina, el rendimiento decreciente, «¿Volvemos a…?») está en [capa-de-datos.md](../capa-de-datos.md#motor-multivertical) y en [decisiones.md](../decisiones.md).
+Fecha: 16-10-2026. Diseño vigente del motor, construido en seis etapas entre el 16 y el 17-10-2026. Lo que cambió después (la escalera fina, el rendimiento decreciente, "¿Volvemos a…?") está en [capa-de-datos.md](../capa-de-datos.md#motor-multivertical) y en [decisiones.md](../decisiones.md).
 
 ## 1. Para qué
 
@@ -17,12 +17,12 @@ La base de datos y los mecanismos de recomendación son la innovación central d
 | Tema | Decisión |
 |---|---|
 | Base real | Las migraciones nuevas se aplican a `rappi` con un `pg_dump -Fc` manual antes de cada una. |
-| Tabla de Rappi | Sus cifras pueden ir en el repositorio, rotuladas «dato compartido por Rappi». |
+| Tabla de Rappi | Sus cifras pueden ir en el repositorio, rotuladas "dato compartido por Rappi". |
 | Datos simulados | Se recalibran para parecerse a la mezcla de la tabla; siguen rotulados como simulados y nunca como evidencia. |
 
-## 3. Dato de partida: «Chile · verticals used together»
+## 3. Dato de partida: "Chile · verticals used together"
 
-Tabla compartida por el equipo de Rappi (cohortes de enero a junio de 2026, juntas). Una fila es el conjunto de verticales que una persona usó en el mes base (M0). La agrupación es gruesa, la misma de México («MX crosswalk»).
+Tabla compartida por el equipo de Rappi (cohortes de enero a junio de 2026, juntas). Una fila es el conjunto de verticales que una persona usó en el mes base (M0). La agrupación es gruesa, la misma de México ("MX crosswalk").
 
 | Combinación en M0 | Usuarios | % usuarios | % pedidos | Pedidos/usuario | Retención M+1 | GMV/usuario |
 |---|---|---|---|---|---|---|
@@ -38,7 +38,7 @@ Tabla compartida por el equipo de Rappi (cohortes de enero a junio de 2026, junt
 
 **Lectura honesta.** La tabla es una correlación: quien ya pide mucho usa más verticales y además vuelve más. No prueba que sumar un vertical cause retención; eso solo lo mide un experimento A/B con grupo de control. El motor la usa como **punto de partida** (qué combinación conviene buscar), no como promesa de efecto.
 
-**Agrupación gruesa del proyecto** (supuesto propio, en `combos.toml`): `rest` = restaurantes; `turbo` = turbo; `retail` = supermercado, conveniencia (Express), farmacia, licores, mall (Rappi Mall) y chocolatería. La tabla no tiene filas de Súper ni de Farmacia, y la suma de las filas mostradas (≈95 %) solo cierra si «Retail» agrupa todo el comercio que no es restaurante ni Turbo. Favor (RappiFavor) es un servicio sin catálogo y queda fuera del motor.
+**Agrupación gruesa del proyecto** (supuesto propio, en `combos.toml`): `rest` = restaurantes; `turbo` = turbo; `retail` = supermercado, conveniencia (Express), farmacia, licores, mall (Rappi Mall) y chocolatería. La tabla no tiene filas de Súper ni de Farmacia, y la suma de las filas mostradas (≈95 %) solo cierra si "Retail" agrupa todo el comercio que no es restaurante ni Turbo. Favor (RappiFavor) es un servicio sin catálogo y queda fuera del motor.
 
 ## 4. Etapas
 
@@ -49,22 +49,22 @@ Cada etapa dejó el MVP funcionando, con sus tests y el CI en verde.
 | 1 | Salida del pasaporte y del juego, y este diseño. |
 | 2 | La capa del motor en la base, los datos simulados recalibrados y la evaluación. |
 | 3 | La Home ordenada por el motor y el evento de tocar un acceso. |
-| 4 | Ofertas que buscan la combinación que retiene, recompra, «lo más pedido» y el panel. |
+| 4 | Ofertas que buscan la combinación que retiene, recompra, "lo más pedido" y el panel. |
 | 5 | QA sobre la base real, ciclo de mejora y ajustes. |
 | 6 | Revisión del repositorio de punta a punta. |
 
 ### Etapa 1: salida del pasaporte y del juego
 
-- **Se va todo el juego:** `rappi_ia/game/`, las rutas `/game/*`, el comando `rappi-ia knowledge`, `GAME_MIN_ITEMS`, «¿Sabías que…?» en `/agent/ask`, la métrica `game` del panel, las pantallas, el contexto y la lógica del juego en la app, el pasaporte de la Home, «Juega mientras llega tu pedido» y las revisiones del juego y del dato en `mvp-check`.
+- **Se va todo el juego:** `rappi_ia/game/`, las rutas `/game/*`, el comando `rappi-ia knowledge`, `GAME_MIN_ITEMS`, "¿Sabías que…?" en `/agent/ask`, la métrica `game` del panel, las pantallas, el contexto y la lógica del juego en la app, el pasaporte de la Home, "Juega mientras llega tu pedido" y las revisiones del juego y del dato en `mvp-check`.
 - **Migración 035** (`035_sin_juego.sql`): borra `game_state`, `knowledge_card_concepts` y `knowledge_cards`; borra los eventos `game_round_finished` y `game_card_discovered` (no hay en la base real) y deja el `CHECK` de `app_events.type` sin esos tipos. Las migraciones 028 y 029 no se editan: ya están aplicadas.
-- **`vertical_por_probar` deja de depender de los sellos.** El servidor deduce las verticales que la persona ya probó de sus pedidos (`mode = 'propuesta'`) y la app ya no manda `stamped`. La razón pasa a «Porque aún no pides en {vertical}». En la etapa 4 este momento pasa a buscar la combinación que falta.
+- **`vertical_por_probar` deja de depender de los sellos.** El servidor deduce las verticales que la persona ya probó de sus pedidos (`mode = 'propuesta'`) y la app ya no manda `stamped`. La razón pasa a "Porque aún no pides en {vertical}". En la etapa 4 este momento pasa a buscar la combinación que falta.
 - **Se conserva lo compartido:** `today()` sale de `src/game/progress.js` a un módulo propio de la app; `ConnectionNotice`, las guardias de ofertas y el grafo (`knowledge_edges`) no son del juego.
 
 ### Etapa 2: el motor multivertical en la base
 
 Código nuevo en `rappi-ia/src/rappi_ia/motor/`; reglas en `motor/combos.toml`; tablas en `public` y vistas estables en `capa` (con comentarios en español), igual que la capa de datos. Una migración (`036_motor.sql`).
 
-**Fuente de población.** Los patrones de población (transiciones, combinaciones, compras cruzadas, tendencias) se aprenden de una sola fuente, `MOTOR_POBLACION` (por defecto `synthetic`; con datos reales sería otra fuente). Lo personal (afinidad, recompra) sale siempre de los datos de la propia persona. Cada recomendación declara en su `reason.basis` qué fuente usó. Esto cambia una decisión anterior («el agente no usa lo aprendido de los simulados»): sin datos reales, el motor no tiene otra población de la que aprender, y lo deja dicho en cada oferta.
+**Fuente de población.** Los patrones de población (transiciones, combinaciones, compras cruzadas, tendencias) se aprenden de una sola fuente, `MOTOR_POBLACION` (por defecto `synthetic`; con datos reales sería otra fuente). Lo personal (afinidad, recompra) sale siempre de los datos de la propia persona. Cada recomendación declara en su `reason.basis` qué fuente usó. Esto cambia una decisión anterior ("el agente no usa lo aprendido de los simulados"): sin datos reales, el motor no tiene otra población de la que aprender, y lo deja dicho en cada oferta.
 
 **Tablas** (las de población llevan `run_id` de `layer_runs`, que suma la capa `motor`; las dos personales, `user_vertical_affinity` y `replenishment`, no tienen `run_id`: se refrescan por persona, también después de cada pedido):
 
@@ -82,9 +82,9 @@ Código nuevo en `rappi-ia/src/rappi_ia/motor/`; reglas en `motor/combos.toml`; 
 
 **Combinación objetivo** (`motor/combos.py`): para la combinación actual de la persona (últimos 30 días), el siguiente paso es el grupo que más sube la retención esperada. Esa retención es la de la tabla de Rappi, mezclada con la aprendida cuando hay ≥ 30 personas en esa combinación; la aprendida pesa n/(n+100). Escalera esperada: Rest → Rest + Turbo → Rest + Turbo + Retail.
 
-**Datos simulados recalibrados** (`events/synth.py`): cada persona simulada recibe un **arquetipo de combinación** sorteado con las proporciones de la tabla (sin Favor, renormalizado; un 5 % «otras» mezcla libre). El arquetipo dice en qué grupos pide; la persona (los 21 perfiles de hoy) dice qué conceptos. Si su perfil no tiene conceptos de un grupo del arquetipo, usa los del súper para Turbo, o los de un perfil vecino. La cadencia sale de pedidos/usuario de su combinación, y el abandono mensual de la retención M+1 de su combinación del mes. Aceptar una sugerencia que suma un grupo mueve a la persona de combinación: **supuesto explícito** de que la correlación de la tabla fuera efecto, rotulado en el código, en los documentos y en el panel.
+**Datos simulados recalibrados** (`events/synth.py`): cada persona simulada recibe un **arquetipo de combinación** sorteado con las proporciones de la tabla (sin Favor, renormalizado; un 5 % "otras" mezcla libre). El arquetipo dice en qué grupos pide; la persona (los 21 perfiles de hoy) dice qué conceptos. Si su perfil no tiene conceptos de un grupo del arquetipo, usa los del súper para Turbo, o los de un perfil vecino. La cadencia sale de pedidos/usuario de su combinación, y el abandono mensual de la retención M+1 de su combinación del mes. Aceptar una sugerencia que suma un grupo mueve a la persona de combinación: **supuesto explícito** de que la correlación de la tabla fuera efecto, rotulado en el código, en los documentos y en el panel.
 
-Al implementarlo (16-10) se dejaron fuera el 5 % «otras» y el «perfil vecino»: quedan los 7 arquetipos de la tabla renormalizados y, para un grupo sin verticales en el perfil, `GENERIC_INTERESTS` (Turbo copia antes lo ofrecible del súper y Express de la persona).
+Al implementarlo (16-10) se dejaron fuera el 5 % "otras" y el "perfil vecino": quedan los 7 arquetipos de la tabla renormalizados y, para un grupo sin verticales en el perfil, `GENERIC_INTERESTS` (Turbo copia antes lo ofrecible del súper y Express de la persona).
 
 **Evaluación** (dentro de `rappi-ia motor`; `--sin-evaluar` la salta): separación por fecha en tres tramos (entrenar, validar y probar, 28 días cada uno de los dos últimos). Métricas: próximo vertical (acierto@1, acierto@3, MRR, nDCG@8) contra el orden fijo de hoy, la popularidad, solo afinidad y solo transiciones; compra cruzada (precisión@3 contra lo más pedido del vertical, con su cobertura); recompra (`compraron`: la parte que volvió a comprar el concepto en la prueba; `error_mediano_dias`, solo sobre esas; `acierto_7_dias`, error de hasta 7 días sobre todas las predicciones que vencen). Los pesos del próximo vertical se eligen solos en validación y no se guardan pesos nuevos si no hay a quién validar. Informe por fuente en `rappi-ia/data/eval/motor-{fuente}.md` y resumen con fecha en `docs/resultados/`. El generador de datos simulados crea 3.000 personas por defecto (`DEFAULT_USERS`), con altas repartidas en todo el período para que la ventana de prueba tenga gente. **Sobre datos simulados la evaluación prueba la mecánica, no el efecto.**
 
@@ -95,17 +95,17 @@ Al implementarlo (16-10) se dejaron fuera el 5 % «otras» y el «perfil vecino�
 ### Etapa 3: Home dinámica
 
 - `GET /profile/{user_id}/verticales` devuelve `{"fixed": ["restaurantes", "turbo"], "order": [{"id", "score", "reason"}], "personalized": bool}` con los 6 verticales de los accesos chicos (supermercado, farmacia, mall, licores, conveniencia, chocolatería) en el orden de la predicción; exige el token de la persona, como `/profile/{id}`.
-- La app (modo Prototipo final) pinta los accesos en ese orden: primero los 6 verticales, después RappiTravel y RappiFavor, y al final **Lealtad y Beneficios Pro, siempre**. Sin historial o si la API falla, el orden de hoy. «Rappi hoy» no cambia.
-- Tocar un acceso manda `vertical_open` con su vertical (los servicios mandan el suyo en `payload.servicio`); en «Rappi hoy» no enseña, como el resto.
-- Una línea bajo la fila dice por qué, solo cuando el orden es personal («Ordenadas según lo que más pides»).
+- La app (modo Prototipo final) pinta los accesos en ese orden: primero los 6 verticales, después RappiTravel y RappiFavor, y al final **Lealtad y Beneficios Pro, siempre**. Sin historial o si la API falla, el orden de hoy. "Rappi hoy" no cambia.
+- Tocar un acceso manda `vertical_open` con su vertical (los servicios mandan el suyo en `payload.servicio`); en "Rappi hoy" no enseña, como el resto.
+- Una línea bajo la fila dice por qué, solo cuando el orden es personal ("Ordenadas según lo que más pides").
 
 ### Etapa 4: recomendaciones conectadas
 
-- **`vertical_por_probar` busca la combinación que falta.** Elige el grupo de la combinación objetivo y, dentro, el vertical con mejor predicción (nunca Farmacia ni Licores). Los productos salen de las compras cruzadas desde los conceptos de la persona; si no hay, de lo más pedido del vertical, y si no, de las ofertas como hoy. La razón habla de la persona («Porque pides sushi: en Turbo llega despensa asiática en minutos»), nunca de cifras de retención.
-- **Momento nuevo `recompra`:** «¿Repetimos?» cuando un concepto de la persona está por tocar según su propio ritmo; mismos guardias.
+- **`vertical_por_probar` busca la combinación que falta.** Elige el grupo de la combinación objetivo y, dentro, el vertical con mejor predicción (nunca Farmacia ni Licores). Los productos salen de las compras cruzadas desde los conceptos de la persona; si no hay, de lo más pedido del vertical, y si no, de las ofertas como hoy. La razón habla de la persona ("Porque pides sushi: en Turbo llega despensa asiática en minutos"), nunca de cifras de retención.
+- **Momento nuevo `recompra`:** "¿Repetimos?" cuando un concepto de la persona está por tocar según su propio ritmo; mismos guardias.
 - **Complementos (`carrito`, `checkout`, `proximo_pedido`, `/agent/ask`):** las compras cruzadas aprendidas entran como candidatas junto a las curadas; ante dos candidatos parecidos, gana el del vertical que completa la combinación.
-- **«Para ti»** suma «Lo más pedido en {vertical}» desde `trends`.
-- **Panel:** en «Entre verticales», «Combinaciones de verticales» muestra la tabla de Rappi (dato compartido) junto a la reproducida con datos simulados, y «Motor» muestra la evaluación; «Uso del MVP» cuenta los toques de accesos y el momento `recompra`.
+- **"Para ti"** suma "Lo más pedido en {vertical}" desde `trends`.
+- **Panel:** en "Entre verticales", "Combinaciones de verticales" muestra la tabla de Rappi (dato compartido) junto a la reproducida con datos simulados, y "Motor" muestra la evaluación; "Uso del MVP" cuenta los toques de accesos y el momento `recompra`.
 
 ### Etapa 5: QA y mejora continua
 
@@ -121,6 +121,6 @@ README, índice de documentos, convenciones, decisiones, diagramas, código muer
 
 - Guardias de ofertas: nunca alcohol, Licores, Farmacia, bebé, salud ni conceptos sensibles por iniciativa propia.
 - Datos de personas: solo `synthetic` o `prototype`; nunca se mezclan en una cifra; lo simulado nunca se presenta como evidencia.
-- «Rappi hoy» (`mode = 'actual'`) no enseña al motor.
-- «Olvidar» borra también lo que el motor sabe de la persona (afinidad y recompra caen con sus eventos y pedidos, por `ON DELETE CASCADE`).
+- "Rappi hoy" (`mode = 'actual'`) no enseña al motor.
+- "Olvidar" borra también lo que el motor sabe de la persona (afinidad y recompra caen con sus eventos y pedidos, por `ON DELETE CASCADE`).
 - Código en inglés; todo lo que ve una persona, en español.

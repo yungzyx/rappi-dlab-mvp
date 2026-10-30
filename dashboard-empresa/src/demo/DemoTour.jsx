@@ -14,12 +14,12 @@ const INTRO = {
 }
 const OUTRO = {
   title: 'Así funciona con la API',
-  text: 'La app manda cada evento, la API los cuenta y el panel los muestra al tocar «Actualizar». Al cerrar, las cifras vuelven a la foto grabada.',
+  text: 'La app manda cada evento, la API los cuenta y el panel los muestra al tocar "Actualizar". Al cerrar, las cifras vuelven a la foto grabada.',
 }
 const HIGHLIGHT_MS = 1800
 
 /**
- * «Ver cómo funciona» (solo en el panel en un solo HTML): un recorrido corto que aplica eventos de ejemplo a las
+ * "Ver cómo funciona" (solo en el panel en un solo HTML): un recorrido corto que aplica eventos de ejemplo a las
  * respuestas grabadas de la fuente del prototipo y lleva a la sección que cambia. La tarjeta dice siempre que es una
  * demostración; al cerrarla, el panel vuelve a la foto. `onShow(destino)` cambia de vista (o, sin destino, solo vuelve a
  * pintar los datos).
@@ -38,7 +38,7 @@ export default function DemoTour({ onShow }) {
     onShow(target ? { view: target.view, section: target.section } : null)
   }
 
-  // Al abrir, el foco va al botón que avanza (el que abrió desaparece); al cerrar, vuelve a «Ver cómo funciona».
+  // Al abrir, el foco va al botón que avanza (el que abrió desaparece); al cerrar, vuelve a "Ver cómo funciona".
   useEffect(() => {
     if (step === null) {
       if (open.current) launch.current?.focus()

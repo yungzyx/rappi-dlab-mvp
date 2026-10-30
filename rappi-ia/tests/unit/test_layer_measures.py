@@ -86,7 +86,7 @@ def test_measures_that_look_like_a_rappi_load_error_are_flagged(name, quantity, 
         ("Pila Audífono N°312 Pack 6 Und", 6, "und", "6Und", (6, "und", 1, 6, "rappi")),
         ("Cola Fría Madera, Doy Pack 500 Gr", 500, "gr", "500 g", (500, "g", 1, 500, "rappi")),
         ("Alfombrilla Piso 60 X 50 Unidades", 1, "und", "1Und", (1, "und", 1, 1, "rappi")),
-        ("Yerba Mate Suave 500g", 1, "gr", "1 g", (500, "g", 1, 500, "regla")),  # el «1 g» de Rappi es un relleno
+        ("Yerba Mate Suave 500g", 1, "gr", "1 g", (500, "g", 1, 500, "regla")),  # el "1 g" de Rappi es un relleno
         ("Aceite De Oliva Olivaz 500ml", 1, "ml", "1 mL", (500, "ml", 1, 500, "regla")),
         ("Gato Vino Blanco 1 L", 1000, "l", "1000 L", (1000, "ml", 1, 1000, "regla")),  # Rappi dice 1000 litros
         ("Morcilla Carupanera 400gr", 400, "gr", "1 X 400 g", (400, "g", 1, 400, "rappi")),

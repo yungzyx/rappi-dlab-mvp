@@ -1,5 +1,5 @@
 """`POST /orders` no confía en el cliente: el precio sale del catálogo, un producto que no existe es un 400, y un pedido
-en «Rappi hoy» (modo actual) no enseña nada al perfil de la persona."""
+en "Rappi hoy" (modo actual) no enseña nada al perfil de la persona."""
 
 from contextlib import contextmanager
 
@@ -80,7 +80,7 @@ def test_unknown_entity_is_400(client, db):
 
 
 def test_actual_mode_orders_do_not_feed_interests(client, db):
-    """En «Rappi hoy» no se aprende: la marca que repite y los conceptos de sus líneas no entran a su perfil, aunque
+    """En "Rappi hoy" no se aprende: la marca que repite y los conceptos de sus líneas no entran a su perfil, aunque
     un cliente mande el concepto. El mismo pedido en la propuesta sí entra (control)."""
     for n in (1, 2):
         assert _order(client, "u-hoy", f"hoy-{n}", mode="actual").status_code == 200
@@ -185,7 +185,7 @@ def test_lines_without_a_current_price_are_skipped(client, db, caplog):
 
 
 def test_actual_mode_lines_keep_no_concept(client, db):
-    """Aunque un cliente mande el concepto, un pedido de «Rappi hoy» no lo guarda (como los eventos de ese modo)."""
+    """Aunque un cliente mande el concepto, un pedido de "Rappi hoy" no lo guarda (como los eventos de ese modo)."""
     reply = _order(client, "u1", "c1", mode="actual")
     assert _lines(db, reply.json()["order_id"])[0][2] is None
     reply = _order(client, "u1", "c2")
@@ -193,7 +193,7 @@ def test_actual_mode_lines_keep_no_concept(client, db):
 
 
 def test_brand_concentration_ignores_actual_orders(client, db):
-    """La concentración de marca (un segmento) es un gusto: los pedidos de «Rappi hoy» no cuentan."""
+    """La concentración de marca (un segmento) es un gusto: los pedidos de "Rappi hoy" no cuentan."""
     for n in range(3):
         _order(client, "u-hoy", f"hoy-{n}", mode="actual", qty=2)
         _order(client, "u-propuesta", f"prop-{n}", qty=2)

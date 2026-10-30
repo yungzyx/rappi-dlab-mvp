@@ -8,7 +8,7 @@ import '../../components/search/search.css'
 
 /**
  * Buscador (funcionalidad agregada): busca en vivo en el catálogo de todas las verticales, agrupado por vertical, con las
- * tiendas y los restaurantes que se llaman así. Con `params.only`, busca solo en `params.vertical` («Ver todos en…»).
+ * tiendas y los restaurantes que se llaman así. Con `params.only`, busca solo en `params.vertical` ("Ver todos en…").
  */
 export default function SearchScreen({ back, push, params }) {
   const only = Boolean(params.only && params.vertical)
@@ -21,7 +21,7 @@ export default function SearchScreen({ back, push, params }) {
   // El producto tocado va con la tienda: la página registra que se vio.
   const openProduct = (product) => push('store', { store: storeOfProduct(product), item: product })
   const seeAll = (vertical) => push('search', { query: query.trim(), vertical, only: true })
-  // «Lo que sea»: RappiFavor con lo buscado ya escrito.
+  // "Lo que sea": RappiFavor con lo buscado ya escrito.
   const openFavor = (text) => push('favor', { text })
 
   return (

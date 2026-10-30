@@ -32,12 +32,12 @@ HNSW_MAINTENANCE_WORK_MEM = os.environ.get("HNSW_MAINTENANCE_WORK_MEM", "1GB")
 AGENT_NAME = os.environ.get("AGENT_NAME", "Mochi")
 
 # Ciudad de los restaurantes que ofrece la escalera de un perfil de gusto cuando la persona no tiene ciudad
-# (`app_users.city`; la app no la pide). Es una ciudad del scraper («Santiago de Chile», «Viña del Mar»): ver
+# (`app_users.city`; la app no la pide). Es una ciudad del scraper ("Santiago de Chile", "Viña del Mar"): ver
 # offers/profiles.py, CITY_COMUNAS.
 PROFILE_CITY = os.environ.get("PROFILE_CITY") or "Santiago de Chile"
 
-# De qué población aprende el motor multivertical (motor/): «synthetic» (personas simuladas, no son evidencia) o
-# «prototype» (las del prototipo). Nunca se mezclan: cada fila del motor lleva su `data_source`.
+# De qué población aprende el motor multivertical (motor/): "synthetic" (personas simuladas, no son evidencia) o
+# "prototype" (las del prototipo). Nunca se mezclan: cada fila del motor lleva su `data_source`.
 MOTOR_POBLACION = os.environ.get("MOTOR_POBLACION", "synthetic")
 if MOTOR_POBLACION not in ("synthetic", "prototype"):
     raise RuntimeError(f"MOTOR_POBLACION debe ser 'synthetic' o 'prototype' (vale {MOTOR_POBLACION!r})")
@@ -57,7 +57,7 @@ API_PRODUCTION = API_ENV == "production"
 
 
 def _flag(name: str, default: bool) -> bool:
-    """Un interruptor «1»/«0» de la API; sin la variable vale `default`."""
+    """Un interruptor "1"/"0" de la API; sin la variable vale `default`."""
     value = os.environ.get(name)
     return default if value is None or value == "" else value == "1"
 
@@ -94,12 +94,12 @@ API_CORS_ORIGINS = [
 ]
 
 # Tope por consulta de la API (statement_timeout), en milisegundos: lo que espera una pantalla de la app, y el panel,
-# cuyas métricas recorren todos los eventos. Una consulta que lo pasa responde 504 («La consulta tardó demasiado»).
+# cuyas métricas recorren todos los eventos. Una consulta que lo pasa responde 504 ("La consulta tardó demasiado").
 API_TIMEOUT_INTERACTIVE_MS = int(os.environ.get("API_TIMEOUT_INTERACTIVE_MS", "5000"))
 API_TIMEOUT_ANALYTICS_MS = int(os.environ.get("API_TIMEOUT_ANALYTICS_MS", "30000"))
 
 # Conexiones de la API a Postgres: un pool por proceso. Un request que no consigue una en API_POOL_TIMEOUT_S segundos
-# responde 503 («Hay mucha gente ahora…»).
+# responde 503 ("Hay mucha gente ahora…").
 API_POOL_MIN = int(os.environ.get("API_POOL_MIN", "2"))
 API_POOL_MAX = int(os.environ.get("API_POOL_MAX", "10"))
 API_POOL_TIMEOUT_S = float(os.environ.get("API_POOL_TIMEOUT_S", "3"))
@@ -144,11 +144,11 @@ if not 0 <= OFFERS_CONTROL_PCT <= 50:
 # `rappi-ia purge` borra a las personas del prototipo sin actividad (eventos ni pedidos) en estos días.
 PROTOTYPE_USER_RETENTION_DAYS = int(os.environ.get("PROTOTYPE_USER_RETENTION_DAYS", "180"))
 
-# Ciudad fija de la demo (Santiago): «Cerca de ti» mide la distancia a este punto de Providencia.
+# Ciudad fija de la demo (Santiago): "Cerca de ti" mide la distancia a este punto de Providencia.
 MVP_HOME_LAT = float(os.environ.get("MVP_HOME_LAT", "-33.4263"))
 MVP_HOME_LNG = float(os.environ.get("MVP_HOME_LNG", "-70.6106"))
 
-# Jev (TypeSafe «System One»): juez opcional del proceso semanal. Sin TYPESAFE_API_KEY no se llama a Jev.
+# Jev (TypeSafe "System One"): juez opcional del proceso semanal. Sin TYPESAFE_API_KEY no se llama a Jev.
 TYPESAFE_API_KEY = os.environ.get("TYPESAFE_API_KEY") or None
 JEV_MODEL = os.environ.get("JEV_MODEL", "jev-1.13.0")
 JEV_MAX_REQUESTS = int(os.environ.get("JEV_MAX_REQUESTS", "3000"))  # tope de llamadas por corrida (incluye reintentos)

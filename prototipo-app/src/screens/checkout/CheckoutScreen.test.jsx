@@ -24,7 +24,7 @@ vi.mock('../../api/catalog', async (importOriginal) => ({
   ...(await importOriginal()),
   storeTerms: async (ids) => new Map(ids.map((id) => [id, terms.byStore[id] ?? null])),
 }))
-// La ventana de «Deshacer pedido»: 0 en los tests (sale de inmediato), salvo en los que la prueban.
+// La ventana de "Deshacer pedido": 0 en los tests (sale de inmediato), salvo en los que la prueban.
 const undo = vi.hoisted(() => ({ UNDO_MS: 0 }))
 vi.mock('./undo', () => undo)
 const events = vi.hoisted(() => ({
@@ -93,7 +93,7 @@ function deferred() {
 const tick = () => new Promise((resolve) => setTimeout(resolve, 0))
 const placeButton = () => screen.getByRole('button', { name: /^Hacer pedido/ })
 
-/** «Hacer pedido» y, si pregunta la edad, «Sí». Con la ventana de deshacer en 0, el pedido sale solo. */
+/** "Hacer pedido" y, si pregunta la edad, "Sí". Con la ventana de deshacer en 0, el pedido sale solo. */
 async function pay() {
   await act(tick) // las condiciones de las tiendas (/catalog/terms)
   fireEvent.click(placeButton())
@@ -119,7 +119,7 @@ afterEach(() => {
 })
 
 describe('inicio de pago', () => {
-  test('abrir el checkout ya es iniciar el pago: uno por vertical del carro, antes de «Hacer pedido»', () => {
+  test('abrir el checkout ya es iniciar el pago: uno por vertical del carro, antes de "Hacer pedido"', () => {
     renderCheckout()
     const starts = checkoutStarts()
     expect(starts.map((fields) => fields.vertical).sort()).toEqual(['licores', 'supermercado'])
@@ -169,7 +169,7 @@ describe('inicio de pago', () => {
 })
 
 describe('un pedido por tienda', () => {
-  test('dos tiendas: «dividida en 2 pedidos», un POST por tienda y cada uno con sus líneas', async () => {
+  test('dos tiendas: "dividida en 2 pedidos", un POST por tienda y cada uno con sus líneas', async () => {
     const dish = toPrototypeProduct(fixture('catalog-menu').sections[0].items[0])
     const other = { ...dish, id: 'menu-otro', entityId: '98010', storeId: dish.storeId + 2, store: 'Otro local' }
     terms.byStore = { [dish.storeId]: NO_MINIMUM, [other.storeId]: NO_MINIMUM }
@@ -207,7 +207,7 @@ describe('si un producto se agota (Súper y Turbo)', () => {
     await act(tick)
     expect(screen.queryByLabelText(`Si se agota ${BEER.name}`)).toBeNull()
     const select = screen.getByLabelText(`Si se agota ${OIL.name}`)
-    expect(select.value).toBe('elijan') // por defecto, «Si no contesto, elijan por mí»
+    expect(select.value).toBe('elijan') // por defecto, "Si no contesto, elijan por mí"
     fireEvent.change(select, { target: { value: 'reembolso' } })
     await pay()
     await vi.waitFor(() => expect(api.sendOrder).toHaveBeenCalledTimes(2))
@@ -220,7 +220,7 @@ describe('si un producto se agota (Súper y Turbo)', () => {
 })
 
 describe('entrega: tipo y programar', () => {
-  test('«Prioritaria» suma su monto de ejemplo y va en el pedido', async () => {
+  test('"Prioritaria" suma su monto de ejemplo y va en el pedido', async () => {
     renderCheckout([OIL])
     await act(tick)
     const before = screen.getByText('Total').nextSibling.textContent
@@ -258,14 +258,14 @@ describe('entrega: tipo y programar', () => {
     expect(saved.scheduledFor).toBe(new Date(sent.scheduled_for).getTime())
   })
 
-  test('con la tienda cerrada solo se programa: «Ahora» no se puede y queda elegida la primera franja', async () => {
+  test('con la tienda cerrada solo se programa: "Ahora" no se puede y queda elegida la primera franja', async () => {
     terms.byStore[OIL.storeId] = { ...NO_MINIMUM, hours: { source: 'descarga', open: false }, spans: null }
     renderCheckout([OIL])
     await act(tick)
     expect(screen.getByText('La tienda está cerrada pero puedes programar tu pedido.')).toBeTruthy()
     expect(screen.getByRole('radio', { name: 'Ahora' }).disabled).toBe(true)
     expect(screen.getByRole('radio', { name: 'Programar' }).getAttribute('aria-checked')).toBe('true')
-    // Cerrada en la descarga y sin hora de apertura: las franjas son de mañana, y el encabezado no promete «Llega en».
+    // Cerrada en la descarga y sin hora de apertura: las franjas son de mañana, y el encabezado no promete "Llega en".
     const slots = screen.getAllByRole('radio', { name: /^(hoy|mañana)/ })
     expect(slots.every((slot) => /^mañana/.test(slot.textContent))).toBe(true)
     expect(slots[0].getAttribute('aria-checked')).toBe('true')
@@ -299,7 +299,7 @@ describe('entrega: tipo y programar', () => {
 })
 
 describe('compra mínima y envío por tienda', () => {
-  test('bajo la compra mínima no se puede pedir: «Te faltan $X para hacer el pedido»', async () => {
+  test('bajo la compra mínima no se puede pedir: "Te faltan $X para hacer el pedido"', async () => {
     terms.byStore[OIL.storeId] = { deliveryFee: null, minOrder: 8490, servicePct: null }
     renderCheckout()
     await act(tick)
@@ -330,7 +330,7 @@ describe('compra mínima y envío por tienda', () => {
 })
 
 describe('Rappi Pro', () => {
-  test('sin Pro: se cobra el envío y se ofrece «Ahorra $X con Pro»; el pedido dice que no es Pro', async () => {
+  test('sin Pro: se cobra el envío y se ofrece "Ahorra $X con Pro"; el pedido dice que no es Pro', async () => {
     renderCheckout([OIL, OIL, OIL, OIL])
     await act(tick)
     expect(screen.getByText(/^Ahorra \$.* con Pro$/)).toBeTruthy()
@@ -339,7 +339,7 @@ describe('Rappi Pro', () => {
     expect(api.sendOrder.mock.calls[0][0].pro).toBe(false)
   })
 
-  test('con Pro: envío gratis sobre el mínimo Pro; bajo él, «Te faltan $X para envío gratis con Pro»', async () => {
+  test('con Pro: envío gratis sobre el mínimo Pro; bajo él, "Te faltan $X para envío gratis con Pro"', async () => {
     setPro(true)
     renderCheckout([OIL, OIL, OIL, OIL, BEER]) // $12.760 en el súper y $1.190 en la botillería
     await act(tick)
@@ -363,7 +363,7 @@ describe('créditos y cupones de ejemplo', () => {
     expect(total()).not.toBe(withCredits)
   })
 
-  test('un cupón a la vez: el del súper aplica, otro lo reemplaza y uno de otra tienda «no aplica para esta tienda»', async () => {
+  test('un cupón a la vez: el del súper aplica, otro lo reemplaza y uno de otra tienda "no aplica para esta tienda"', async () => {
     renderCheckout([OIL, OIL, OIL, OIL])
     await act(tick)
     fireEvent.click(screen.getByRole('button', { name: 'SUPER20' }))
@@ -458,7 +458,7 @@ describe('restricciones al pagar', () => {
     expect(api.sendOrder).not.toHaveBeenCalled()
   })
 
-  test('con productos de Farmacia pide marcar «Tengo la receta médica» antes de pedir', async () => {
+  test('con productos de Farmacia pide marcar "Tengo la receta médica" antes de pedir', async () => {
     const pill = { ...OIL, id: 'cat-farma', entityId: '95001', storeId: 9501, store: 'Farmacia', vertical: 'pharmacy' }
     pill.backendVertical = 'farmacia'
     terms.byStore = { 9501: NO_MINIMUM }

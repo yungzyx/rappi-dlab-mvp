@@ -23,7 +23,7 @@ class Concept:
     sensitive: bool = False
     age_restricted: bool = False
     prepared: bool = False  # se pide hecho: también puede buscarse en restaurantes
-    broad: bool = False  # agrupa productos de varios tipos («picoteo»): su nombre no lo dice
+    broad: bool = False  # agrupa productos de varios tipos ("picoteo"): su nombre no lo dice
 
     @property
     def label(self) -> str:
@@ -38,7 +38,7 @@ class Occasion:
     keywords: tuple[str, ...]
     concepts: tuple[str, ...]
     vertical: str | None = None  # vertical fijo ("hambre ya" = pedir a un restaurante); si no, el del surtido
-    portion: tuple[int, str] | None = None  # gramos por persona y de qué («asado de 6»: 350 g de carne cada uno)
+    portion: tuple[int, str] | None = None  # gramos por persona y de qué ("asado de 6": 350 g de carne cada uno)
     plan: bool = True  # si es un plan de la Home (un kit); las que solo sirven para entender preguntas, no
 
 
@@ -47,7 +47,7 @@ class Hook:
     concept: str
     query: str
     question: str
-    when: tuple[str, ...] = ()  # contextos de la consulta en que aplica («playa»); vacío = siempre
+    when: tuple[str, ...] = ()  # contextos de la consulta en que aplica ("playa"); vacío = siempre
 
 
 @dataclass(frozen=True)
@@ -61,7 +61,7 @@ class Service:
     route: str
     keywords: tuple[str, ...]
     hooks: tuple[Hook, ...] = ()
-    reason: str | None = None  # «Porque…» de la sugerencia de un gancho
+    reason: str | None = None  # "Porque…" de la sugerencia de un gancho
 
     @property
     def label(self) -> str:
@@ -152,8 +152,8 @@ def keeps_sensitive(current: str | None, candidate: str) -> bool:
 @cache
 def guarded_concepts() -> frozenset[str]:
     """Lo sensible, lo +18 (el alcohol) y lo de bebé: lo que el agente nunca ofrece y una pista débil (los vecinos del
-    kNN) no saca de su concepto. Salud no está: sus categorías mezclan de todo (cinturones en «Productos naturales»,
-    anzuelos en «Equipos médicos») y ahí los vecinos corrigen bien."""
+    kNN) no saca de su concepto. Salud no está: sus categorías mezclan de todo (cinturones en "Productos naturales",
+    anzuelos en "Equipos médicos") y ahí los vecinos corrigen bien."""
     return frozenset(
         c.id for c in load_taxonomy().concepts.values() if c.sensitive or c.age_restricted or c.parent == "bebe"
     )

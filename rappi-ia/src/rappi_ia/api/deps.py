@@ -128,7 +128,7 @@ def _check_pool_soon(pool: ConnectionPool) -> None:
 
     try:
         threading.Thread(target=run, name="rappi-ia-pool-check", daemon=True).start()
-    except Exception as exc:  # sin hilos (RuntimeError «can't start new thread»): el pool sigue a su ritmo
+    except Exception as exc:  # sin hilos (RuntimeError "can't start new thread"): el pool sigue a su ritmo
         lock.release()
         log.warning("No se pudo lanzar la revisión del pool de conexiones: %s", exc)
 
@@ -178,7 +178,7 @@ def _no_turn(gate: ConcurrencyCap) -> PoolTimeout:
 
 
 async def get_conn() -> AsyncIterator[Connection]:
-    """Falla rápido si Postgres no responde (503, la app muestra «Sin conexión») o una consulta se atasca (504). Espera
+    """Falla rápido si Postgres no responde (503, la app muestra "Sin conexión") o una consulta se atasca (504). Espera
     su turno en el event loop y recién entonces toma un hilo para sacar la conexión del pool; la espera total (turno
     más pool) no pasa de API_POOL_TIMEOUT_S. Sin turno a tiempo, PoolTimeout (503, como un pool sin conexiones libres).
     Un request cancelado (el cliente se fue) devuelve igual su conexión y su turno."""

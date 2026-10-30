@@ -17,7 +17,7 @@ describe('describeFallbacks', () => {
     expect(describeFallbacks(fallbacks)).toBe('indicadores, tendencias y 3 más (no responde)')
   })
 
-  test('une dos consultas con «y» y junta motivos distintos', () => {
+  test('une dos consultas con "y" y junta motivos distintos', () => {
     const fallbacks = [
       { name: 'weekly', reason: 'no respondió en 30 s' },
       { name: 'kpis', reason: 'respondió 500' },
@@ -47,10 +47,10 @@ describe('etiquetas', () => {
 
   test('demandLabel cita la consulta cuando no hay concepto', () => {
     expect(demandLabel({ concept_id: 'peruana', que: '🇵🇪 Comida peruana' })).toBe('🇵🇪 Comida peruana')
-    expect(demandLabel({ concept_id: null, que: 'kombucha' })).toBe('«kombucha»')
+    expect(demandLabel({ concept_id: null, que: 'kombucha' })).toBe('"kombucha"')
   })
 
-  test('demandLabel no pinta «null» si la consulta se borró por retención', () => {
+  test('demandLabel no pinta "null" si la consulta se borró por retención', () => {
     expect(demandLabel({ concept_id: null, que: null })).toBe('Consulta borrada (más de 90 días)')
   })
 

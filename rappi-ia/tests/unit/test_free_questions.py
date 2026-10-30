@@ -38,7 +38,7 @@ def test_a_number_that_is_not_people(text):
 
 
 def test_people_stay_in_the_query():
-    """Los combos dicen para cuántos («Desayuno Para Dos»): la cantidad se busca igual."""
+    """Los combos dicen para cuántos ("Desayuno Para Dos"): la cantidad se busca igual."""
     assert understand("desayuno para dos").query == "desayuno para dos"
 
 
@@ -91,7 +91,7 @@ def test_words_people_use_for_a_concept(text, concept):
 
 
 def test_asking_for_a_drink_recommendation_is_a_search_not_help():
-    """«qué trago me recomiendas» nombra lo que quiere: se busca, como «¿me recomiendas un vino?»."""
+    """ "qué trago me recomiendas" nombra lo que quiere: se busca, como "¿me recomiendas un vino?"."""
     assert understand("qué trago me recomiendas").kind == "buscar"
 
 
@@ -146,7 +146,7 @@ def test_what_goes_with(text, concept):
 
 
 def test_a_named_drink_for_a_dish_is_a_search_for_the_drink():
-    """«¿qué vino va con pasta?» pide vino (alcohol pedido): se busca, no es «con qué acompaño»."""
+    """ "¿qué vino va con pasta?" pide vino (alcohol pedido): se busca, no es "con qué acompaño"."""
     intent = understand("¿qué vino va con pasta?")
     assert intent.kind == "buscar" and intent.concepts[:1] == ["vino"]
 
@@ -212,5 +212,5 @@ def test_what_goes_with_an_occasion_starts_from_what_mochi_can_offer():
 
 
 def test_picnic_alone_is_not_the_occasion():
-    """El buscador sigue buscando «picnic» (chocolates Costa Picnic); la ocasión es «para un picnic»."""
+    """El buscador sigue buscando "picnic" (chocolates Costa Picnic); la ocasión es "para un picnic"."""
     assert understand("picnic").occasion is None

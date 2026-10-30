@@ -1,11 +1,11 @@
 const MAX_PEOPLE = 40 // lo que entiende la API (agent/understand.py: MAX_PEOPLE)
-// Lo que ya dice que no lleva carne: «Sin carne» no se ofrece de nuevo.
+// Lo que ya dice que no lleva carne: "Sin carne" no se ofrece de nuevo.
 const MEATLESS = /\b(?:sin carne|vegetarian[oa]s?|vegan[oa]s?|veggies?)\b/
 
 /**
  * Los refinamientos de una respuesta de Mochi (`conversation`, el estado que devolvió la API), como chips de un toque:
- * «Más barato» (si no está ya ordenada así), «Otra opción», «Sin carne» en lo de restaurantes (si no lo dice ya) y, con
- * una ocasión o una cantidad de personas, «Para N personas» (dos más). Cada uno manda a la API la frase que su
+ * "Más barato" (si no está ya ordenada así), "Otra opción", "Sin carne" en lo de restaurantes (si no lo dice ya) y, con
+ * una ocasión o una cantidad de personas, "Para N personas" (dos más). Cada uno manda a la API la frase que su
  * seguimiento ya entiende (`agent/understand.py: _follow_up`) con el turno anterior: la persona no escribe nada.
  * Ninguno bajo una respuesta de salud ni sin productos: ahí Mochi no propone nada por su cuenta.
  */

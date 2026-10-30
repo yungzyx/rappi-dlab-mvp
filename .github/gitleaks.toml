@@ -1,10 +1,10 @@
-# gitleaks (job «secretos» del CI): las reglas de siempre más estas excepciones, cada una un falso positivo revisado.
+# gitleaks (job "secretos" del CI): las reglas de siempre más estas excepciones, cada una un falso positivo revisado.
 
 [extend]
 useDefault = true
 
 [[allowlists]]
-description = "Páginas de rappi.cl guardadas para los tests: «key» es una clave de traducción del sitio, no un secreto"
+description = 'Páginas de rappi.cl guardadas para los tests: "key" es una clave de traducción del sitio, no un secreto'
 paths = ['''^rappi-scraper/tests/fixtures/[^/]+\.html$''']
 
 [[allowlists]]

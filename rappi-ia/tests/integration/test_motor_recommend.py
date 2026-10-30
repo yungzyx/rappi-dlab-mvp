@@ -51,7 +51,7 @@ def population(db):
         )
     _order(db, "restaurantes", "sushi", 3)
     _order(db, "restaurantes", "pizza", 40)
-    _order(db, "supermercado", "snacks-salados", 2, mode="actual")  # «Rappi hoy» no cuenta como ya pedido
+    _order(db, "supermercado", "snacks-salados", 2, mode="actual")  # "Rappi hoy" no cuenta como ya pedido
     db.commit()
     return db
 

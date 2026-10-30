@@ -29,10 +29,10 @@ def test_no_keyword_belongs_to_two_concepts():
 
 
 def test_the_agent_name_never_reads_a_query_as_a_product():
-    """«Mochi» es el agente y también un postre: con «mochi» entre las palabras de una consulta, «Mochi, ¿qué me
-    recomiendas?» pedía snacks asiáticos. Ninguna palabra que lee consultas (nombres, keywords, query_keywords,
+    """ "Mochi" es el agente y también un postre: con "mochi" entre las palabras de una consulta, "Mochi, ¿qué me
+    recomiendas?" pedía snacks asiáticos. Ninguna palabra que lee consultas (nombres, keywords, query_keywords,
     ocasiones y servicios) puede tener el nombre del agente; en `product_keywords` sí, porque solo nombran productos
-    («Kai Mochi Helado»)."""
+    ("Kai Mochi Helado")."""
     names = assistant_words()
     taxonomy = load_taxonomy()
     words = [
@@ -46,8 +46,8 @@ def test_the_agent_name_never_reads_a_query_as_a_product():
 @pytest.mark.parametrize(
     ("name", "concept"),
     [
-        # «aceite» a secas mandaba 27 productos a condimentos (aceites esenciales, de difusor, suplementos). Otras
-        # palabras sueltas siguen siendo ambiguas («orégano» en cápsulas, «roll» en Roll-On): las corrigen la
+        # "aceite" a secas mandaba 27 productos a condimentos (aceites esenciales, de difusor, suplementos). Otras
+        # palabras sueltas siguen siendo ambiguas ("orégano" en cápsulas, "roll" en Roll-On): las corrigen la
         # categoría y el kNN, no una regla por nombre.
         ("Aceite Esencial de Lavanda 10 ml", None),
         ("Aceite Para Difusores Paz Calma", "decoracion"),
@@ -102,7 +102,7 @@ def test_sensitive_concepts_avoid_ambiguous_single_words():
     ],
 )
 def test_ambiguous_words_do_not_make_anything_sensitive(matcher, text):
-    """«aceite de coco puro» llevaba a Licores con papelillos y el aviso +18; «Puro Llano» desaparecía de la búsqueda.
+    """ "aceite de coco puro" llevaba a Licores con papelillos y el aviso +18; "Puro Llano" desaparecía de la búsqueda.
     Se revisan todas las coincidencias, no solo la mejor: la consulta usa todos los conceptos que nombra."""
     assert [m for m in matcher.matches(text) if m.target in sensitive_concepts()] == []
 
@@ -132,7 +132,7 @@ def test_sensitive_concepts_are_still_found_by_name(matcher, text, concept):
         ("quiero medicamentos porfa", "medicamentos"),
         ("lubricante", "bienestar-sexual"),
         ("tienen lubricante", "bienestar-sexual"),
-        # Artículos, «algún», «venden» o «barato» no nombran otra cosa: la palabra sigue siendo todo el pedido.
+        # Artículos, "algún", "venden" o "barato" no nombran otra cosa: la palabra sigue siendo todo el pedido.
         ("necesito los medicamentos", "medicamentos"),
         ("quiero algún medicamento", "medicamentos"),
         ("venden medicamentos", "medicamentos"),
@@ -143,9 +143,9 @@ def test_sensitive_concepts_are_still_found_by_name(matcher, text, concept):
     ],
 )
 def test_queries_ask_for_sensitive_concepts_with_words_that_do_not_assign_them(text, concept):
-    """«Medicamentos» y «lubricante» a secas no asignan productos (un dosificador o un lubricante para lentes no son
+    """ "Medicamentos" y "lubricante" a secas no asignan productos (un dosificador o un lubricante para lentes no son
     sensibles), pero en una consulta nombran el concepto: sin él, la búsqueda oculta los sensibles y
-    «necesito medicamentos» mostraba vaselina y agua bidestilada."""
+    "necesito medicamentos" mostraba vaselina y agua bidestilada."""
     assert Understander().understand(None, text, "farmacia").concepts[:1] == [concept]
     assert _query_concepts(text)[:1] == [concept]
 
@@ -164,15 +164,15 @@ def test_queries_ask_for_sensitive_concepts_with_words_that_do_not_assign_them(t
     ],
 )
 def test_words_that_only_ask_for_a_sensitive_concept_count_only_on_their_own(text):
-    """«medicamentos» y «lubricante» piden el concepto cuando son todo el pedido. Con otras palabras son un complemento,
-    y el foco en el sensible ocultaba lo pedido: «lubricante wd-40» mostraba lubricantes íntimos con el aviso +18 y
-    «pastillero para medicamentos», analgésicos."""
+    """ "medicamentos" y "lubricante" piden el concepto cuando son todo el pedido. Con otras palabras son un
+    complemento, y el foco en el sensible ocultaba lo pedido: "lubricante wd-40" mostraba lubricantes íntimos con el
+    aviso +18 y "pastillero para medicamentos", analgésicos."""
     assert not set(Understander().understand(None, text, "farmacia").concepts) & sensitive_concepts()
     assert not set(_query_concepts(text)) & sensitive_concepts()
 
 
 def test_a_doubtful_sensitive_category_is_not_replaced_by_a_rule(matcher):
-    """Conservar el concepto sensible salvo que el candidato también lo sea: un medicamento no pasa a «cerveza»."""
+    """Conservar el concepto sensible salvo que el candidato también lo sea: un medicamento no pasa a "cerveza"."""
     categories = {"farmacia varios": MappedName("medicamentos", "llm", 0.5, "v1")}
     a = assign_catalog_item("10", "Cerveza de Levadura en Cápsulas", "Farmacia varios", categories, matcher)
     assert (a.concept_id, a.method) == ("medicamentos", "llm")
@@ -198,14 +198,14 @@ def test_neighbors_never_take_an_item_out_of_a_sensitive_concept():
     ],
 )
 def test_dish_names_are_food_not_pets_or_clothes(matcher, text, concept):
-    """«perro», «calzones» y «aros» sueltos son mascotas, ropa interior y joyería; estos platos llevan su frase."""
+    """ "perro", "calzones" y "aros" sueltos son mascotas, ropa interior y joyería; estos platos llevan su frase."""
     assert matcher.best(text).target == concept
 
 
 @pytest.mark.parametrize(
     ("text", "concept"),
     [
-        ("pasta de dientes", "cuidado-oral"),  # «pasta» suelta es fideos
+        ("pasta de dientes", "cuidado-oral"),  # "pasta" suelta es fideos
         ("acondicionador", "cuidado-cabello"),
         ("shampoo", "cuidado-cabello"),
         ("alfajores", "galletas"),
@@ -214,13 +214,13 @@ def test_dish_names_are_food_not_pets_or_clothes(matcher, text, concept):
 )
 def test_query_words_name_the_concept_their_products_have(matcher, text, concept):
     """La consulta toma su concepto de las keywords y el producto de su categoría: tienen que coincidir. Medido en la
-    base: los productos con «acondicionador» están 94 % en cuidado del cabello y los alfajores, en galletas."""
+    base: los productos con "acondicionador" están 94 % en cuidado del cabello y los alfajores, en galletas."""
     assert matcher.best(text).target == concept
 
 
 @pytest.mark.parametrize("text", ["kfc", "pollo frito", "pollo asado", "nuggets", "alitas"])
 def test_fried_chicken_is_prepared_food(matcher, text):
-    """El pollo fresco no compite en restaurantes: «kfc» llevaba a pollo congelado del minimarket."""
+    """El pollo fresco no compite en restaurantes: "kfc" llevaba a pollo congelado del minimarket."""
     concept = load_taxonomy().concepts[matcher.best(text).target]
     assert concept.parent == "comida" and concept.prepared, concept
 
@@ -236,7 +236,7 @@ def test_fried_chicken_is_prepared_food(matcher, text):
 )
 def test_a_sensitive_name_wins_over_a_common_category(matcher, name, category, mapped):
     """Guardia simétrica: un producto con nombre sensible mal categorizado no entra a un concepto común (el
-    lubricante era el primer resultado de «agua con sabor frutilla»)."""
+    lubricante era el primer resultado de "agua con sabor frutilla")."""
     categories = {category.lower(): MappedName(mapped, "llm", 0.85, "v1")}
     a = assign_catalog_item("11", name, category, categories, matcher)
     assert a.concept_id in sensitive_concepts() and a.method == "regla", a
@@ -261,7 +261,7 @@ def test_a_sensitive_category_keeps_its_concept_over_another_sensitive_name(matc
     ],
 )
 def test_the_symmetric_guard_does_not_hide_common_products(matcher, name, category, mapped):
-    """Con la guardia simétrica, una keyword sensible ambigua («boquilla», «belmont», «encendedor») escondería un
+    """Con la guardia simétrica, una keyword sensible ambigua ("boquilla", "belmont", "encendedor") escondería un
     vaso de bebé, un aceite o un encendedor de parrilla: esas palabras no van en conceptos sensibles. En mascotas y
     juguetes la categoría manda aunque el nombre calce un sensible: un remedio veterinario no es un medicamento
     (category_map.csv lo decidió así) y un insecto vibrador de juguete no es +18."""
@@ -278,8 +278,8 @@ def test_the_symmetric_guard_does_not_hide_common_products(matcher, name, catego
 )
 def test_a_query_asks_for_the_concept_its_products_get_from_their_category(query, category):
     """Lo que se pide con una keyword tiene que ser el concepto que la categoría de Rappi les da a esos productos: si
-    no, el foco de la búsqueda (agent/tools._focus) los esconde. «ropa de bebé» pedía artículos de bebé y la ropa de
-    bebé del Mall (229 productos en «Ropa bebés», «Accesorios para bebés» y «Bodies - Leotardos») es ropa: traía
+    no, el foco de la búsqueda (agent/tools._focus) los esconde. "ropa de bebé" pedía artículos de bebé y la ropa de
+    bebé del Mall (229 productos en "Ropa bebés", "Accesorios para bebés" y "Bodies - Leotardos") es ropa: traía
     baberos y un quitamanchas."""
     mapped = {row["nombre"]: row["concept_id"] for row in read_category_map_csv() if row["tipo"] == "categoria"}
 

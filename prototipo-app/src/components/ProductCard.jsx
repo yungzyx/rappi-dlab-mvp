@@ -32,7 +32,7 @@ export function ProductCard({ product, onOpenStore, impression = false, showStor
   const [asking, setAsking] = useState(false)
   const press = useLongPress(() => setAsking(true))
 
-  // «Preguntarle al agente» se va solo, o al tocar fuera.
+  // "Preguntarle al agente" se va solo, o al tocar fuera.
   useEffect(() => {
     if (!asking) return undefined
     const timer = setTimeout(() => setAsking(false), ASK_VISIBLE_MS)

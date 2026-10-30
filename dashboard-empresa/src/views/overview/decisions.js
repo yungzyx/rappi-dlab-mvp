@@ -27,7 +27,7 @@ export function crossSellDecision(combos) {
     figure: formatPct(step.from.pct_usuarios),
     unit: `de los usuarios de Rappi (${formatNumber(step.from.usuarios)}) ${single ? 'solo pide' : 'pide'} en ${from}`,
     context: `Vuelven al mes siguiente el ${formatPct(step.fromPct, 0)}; quienes además piden en ${added}, el ${formatPct(step.toPct, 0)} (${formatPoints(step.gain, 0)}). Es una correlación, no un efecto.`,
-    action: `Que ${AGENT_NAME} ofrezca ${added} a quien ${single ? 'solo ' : ''}pide en ${from} («vertical por probar») y medirlo contra un grupo de control.`,
+    action: `Que ${AGENT_NAME} ofrezca ${added} a quien ${single ? 'solo ' : ''}pide en ${from} ("vertical por probar") y medirlo contra un grupo de control.`,
   }
 }
 
@@ -48,7 +48,7 @@ export function churnDecision(kpis, winback) {
     context: `Pasaron el doble de su ritmo sin pedir y todavía se pueden recuperar. Otras ${formatNumber(lost)} pasaron el triple y se dan por perdidas.`,
     action:
       winback.califican > 0
-        ? `Invitar a volver con «¿Volvemos a…?» de ${AGENT_NAME}: ${winback.dia ? `al ${formatDate(winback.dia)}` : 'hoy'} califican ${people(winback.califican)} que dejaron algo que pedían con ritmo. Fuera de la app, solo a quien aceptó avisos.`
+        ? `Invitar a volver con "¿Volvemos a…?" de ${AGENT_NAME}: ${winback.dia ? `al ${formatDate(winback.dia)}` : 'hoy'} califican ${people(winback.califican)} que dejaron algo que pedían con ritmo. Fuera de la app, solo a quien aceptó avisos.`
         : 'Recordarles su concepto top en su ritmo; fuera de la app, solo a quien aceptó avisos.',
   }
 }
@@ -75,7 +75,7 @@ export function mochiDecision(offers, suggestions) {
   const accepted = `${formatNumber(totals.accepted)} ${totals.accepted === 1 ? 'aceptada' : 'aceptadas'}`
   let context = `${accepted} de ${formatNumber(totals.shown)} mostradas a ${people(offers.personas)}.`
   if (best && worst) {
-    context += ` Por momento: «${momentLabel(best.momento)}» acepta el ${formatPct(best.aceptacion_pct)} y «${momentLabel(worst.momento)}», el ${formatPct(worst.aceptacion_pct)}.`
+    context += ` Por momento: "${momentLabel(best.momento)}" acepta el ${formatPct(best.aceptacion_pct)} y "${momentLabel(worst.momento)}", el ${formatPct(worst.aceptacion_pct)}.`
   } else if (cross.convertRate !== null) {
     context += ` De las sugerencias entre verticales aceptadas, el ${formatPct(cross.convertRate)} termina en pedido.`
   }
@@ -92,8 +92,8 @@ function mochiAction(moments, worst, best, suggestions) {
     .filter((row) => row.momento !== 'sin_momento' && row.mostradas >= MIN_SHOWN_FOR_RATE && row.aceptadas === 0)
     .sort((a, b) => b.mostradas - a.mostradas)[0]
   if (dead)
-    return `Revisar «${momentLabel(dead.momento)}»: ${formatNumber(dead.mostradas)} mostradas y ninguna aceptada.`
-  if (best && worst) return `Dar más espacio a «${momentLabel(best.momento)}», el momento que más acepta.`
+    return `Revisar "${momentLabel(dead.momento)}": ${formatNumber(dead.mostradas)} mostradas y ninguna aceptada.`
+  if (best && worst) return `Dar más espacio a "${momentLabel(best.momento)}", el momento que más acepta.`
   const top = topSuggestion(suggestions)
   if (top) {
     return `Empujar ${top.concepto} en ${verticalLabel(top.vertical)}: la sugerencia entre verticales que más se acepta (${formatNumber(top.aceptadas)} de ${formatNumber(top.mostradas)}, ${formatPct(top.aceptacion_pct)}).`
@@ -102,7 +102,7 @@ function mochiAction(moments, worst, best, suggestions) {
 }
 
 /**
- * La acción de la API para una demanda. «Sumar comercios» va después de descartar al buscador: que no aparezca puede ser
+ * La acción de la API para una demanda. "Sumar comercios" va después de descartar al buscador: que no aparezca puede ser
  * un sinónimo o una categoría que falta, no que no haya comercios.
  */
 function demandAction(apiAction) {

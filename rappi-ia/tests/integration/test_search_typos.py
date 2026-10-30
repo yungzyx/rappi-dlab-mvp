@@ -1,6 +1,6 @@
-"""Errores de tipeo: una búsqueda que queda «sin resultado» se corrige con el vocabulario del catálogo y se vuelve a
+"""Errores de tipeo: una búsqueda que queda "sin resultado" se corrige con el vocabulario del catálogo y se vuelve a
 buscar con las reglas de siempre (retrieval/spelling.py). Sobre el catálogo de prueba (`seed_demo`) más los casos
-que #129 dejó sin resultado en la base real: «nutela», «cuchuflis», «cervezaaaa» y «eh quiero este una coca»."""
+que #129 dejó sin resultado en la base real: "nutela", "cuchuflis", "cervezaaaa" y "eh quiero este una coca"."""
 
 import pytest
 from rappi_scraper.storage.search import build_search_documents
@@ -68,8 +68,8 @@ def test_a_typo_without_results_is_corrected_and_searched_again(catalog, vertica
 
 
 def test_a_concept_found_after_correcting_follows_the_usual_rules(catalog):
-    """«cervezaaaa» → «cerveza» nombra el concepto: en Licores se muestran solo cervezas, y en farmacia (que no las
-    vende) sigue «sin resultado»."""
+    """ "cervezaaaa" → "cerveza" nombra el concepto: en Licores se muestran solo cervezas, y en farmacia (que no las
+    vende) sigue "sin resultado"."""
     db, embedder = catalog
 
     liquor = search_products(db, "licores", "cervezaaaa", None, embedder, correct=True)
@@ -81,7 +81,7 @@ def test_a_concept_found_after_correcting_follows_the_usual_rules(catalog):
 
 
 def test_queries_without_typos_keep_their_result(catalog):
-    """Lo que no queda «sin resultado» no se corrige, y una negativa con palabras que el catálogo tiene sigue igual."""
+    """Lo que no queda "sin resultado" no se corrige, y una negativa con palabras que el catálogo tiene sigue igual."""
     db, embedder = catalog
 
     found = search_products(db, "turbo", "cuchuflíes", None, embedder, correct=True)
@@ -112,10 +112,10 @@ def test_the_correction_keeps_what_the_person_wrote_where_it_was_right(catalog):
     assert spelling.correct_query(db, "pañales talla m", "supermercado") is None  # nada que corregir
     assert spelling.correct_query(db, "nutella bajo 3000", "supermercado") is None  # un número no se corrige
     assert spelling.correct_query(db, "xyzzy", None) is None
-    # Quien le habla al asistente conversa: «recomiendas» no se corrige ni «mochi» se salta como un saludo.
+    # Quien le habla al asistente conversa: "recomiendas" no se corrige ni "mochi" se salta como un saludo.
     assert spelling.correct_query(db, "oye mochi me recomiendas algo", "turbo") is None
     assert spelling.correct_query(db, "ok gracias", None) is None  # solo cortesía: nada que buscar
-    # «pasajes» está en 20 documentos del catálogo (en el mall): es una palabra real, y en Turbo no pasa a «masajes».
+    # "pasajes" está en 20 documentos del catálogo (en el mall): es una palabra real, y en Turbo no pasa a "masajes".
     assert spelling.correct_query(db, "pasajes", "turbo") is None
-    # Una ocasión pide lo que su nombre no dice: «polola» no se cambia por la palabra más parecida del catálogo.
+    # Una ocasión pide lo que su nombre no dice: "polola" no se cambia por la palabra más parecida del catálogo.
     assert spelling.correct_query(db, "regalo para mi polola", "mall") is None

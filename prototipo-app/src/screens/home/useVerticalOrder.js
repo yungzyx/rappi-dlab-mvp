@@ -10,11 +10,11 @@ import { useProfile } from '../../state/ProfileContext'
  * Pide al montar y cada vez que la Home vuelve a estar arriba (`active`: queda montada bajo las pantallas que se abren
  * encima). Al volver, antes de pedir manda los eventos en cola (los toques a los accesos), para que el orden ya los
  * cuente. La respuesta de una petición anterior no pisa a la última, y mientras llega la nueva se mantiene el orden que
- * había. Tras «Olvidar» (cambian las `resets`) queda el orden fijo y no pide: el buscador olvida antes de que el
+ * había. Tras "Olvidar" (cambian las `resets`) queda el orden fijo y no pide: el buscador olvida antes de que el
  * servidor borre, y pedir ahí traía el orden de antes (la Home parpadeaba hasta recargarse). Si el borrado sale bien la
  * app se recarga; si falla, pide al volver de otra pantalla (cerrar el buscador no cuenta: se abre sobre la Home).
  * Sin API (o con error) `order` es null: la Home queda en el orden fijo y sin el texto. En la demo sin conexión pide
- * también cuando el «Panel de la demo» cambia el historial.
+ * también cuando el "Panel de la demo" cambia el historial.
  */
 export function useVerticalOrder(active = true) {
   const { resets } = useProfile()
@@ -37,7 +37,7 @@ export function useVerticalOrder(active = true) {
     }
   }, [active, events])
 
-  // Demo sin conexión («Prototipo MVP.html»): con «+1 visita» o «Borrar historial» el «Panel de la demo» cambia el
+  // Demo sin conexión ("Prototipo MVP.html"): con "+1 visita" o "Borrar historial" el "Panel de la demo" cambia el
   // historial sin que la Home deje de estar arriba, y avisa con `rappi-demo-history` (DEMO_HISTORY_EVENT de
   // src/api/offline/personas.js; no se importa para no traer ese código). En los demás builds Vite pliega la condición:
   // el efecto queda vacío y no escucha nada.

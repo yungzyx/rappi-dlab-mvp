@@ -19,7 +19,7 @@ export function activeOrder(orders, now) {
 }
 
 /**
- * Barra «Pedido en curso» fuera del seguimiento (la de la app de Rappi y su Live Activity): el paso en que va el pedido
+ * Barra "Pedido en curso" fuera del seguimiento (la de la app de Rappi y su Live Activity): el paso en que va el pedido
  * y cuánto falta (o su franja, si está programado). Con varios en curso (una compra en dos tiendas), cuántos son. Tocarla abre su seguimiento. Sobre la barra del carro si hay productos; a la izquierda de Mochi. Un
  * pedido recién hecho (todavía sin tic del reloj) cuenta como en curso: aún no pasa su hora.
  */

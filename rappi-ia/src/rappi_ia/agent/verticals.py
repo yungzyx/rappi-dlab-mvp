@@ -5,7 +5,7 @@ schop; por cantidad ganaría casi cualquier concepto. Por eso se compara la part
 catálogo de cada vertical (ítems del concepto / ítems del vertical), y restaurantes solo compite cuando el
 concepto se pide hecho (`prepared` en la taxonomía: comida preparada, postres, pastelería, helados, café).
 
-Por participación, una vertical chica ganaba con un puñado de productos («pan» iba a chocolaterías con 46, y el súper
+Por participación, una vertical chica ganaba con un puñado de productos ("pan" iba a chocolaterías con 46, y el súper
 tiene 431). Por eso compiten primero las que tienen masa mínima (`MIN_ITEMS_TO_COMPETE` y `MIN_OFFER_SHARE`).
 """
 

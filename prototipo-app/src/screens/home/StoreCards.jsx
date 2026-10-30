@@ -38,7 +38,7 @@ export function RestaurantCard({ store, onClick, impression = false }) {
   )
 }
 
-/** Logo de tienda + nombre + tiempo de entrega (si lo hay) o «Cerrada», y su promo, para la grilla «Cerca de ti». */
+/** Logo de tienda + nombre + tiempo de entrega (si lo hay) o "Cerrada", y su promo, para la grilla "Cerca de ti". */
 export function StoreTile({ store, onClick, impression = false }) {
   const watch = useImpressions()
   return (

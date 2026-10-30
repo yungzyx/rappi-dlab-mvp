@@ -21,7 +21,7 @@ def restaurant_block(data: dict) -> dict:
 
 
 def with_top_section(data: dict, products: list[dict], corridor_id: int = 99999) -> dict:
-    """La página del restaurante con un pasillo «Más vendidos» arriba que repite `products`, como lo manda Rappi: el
+    """La página del restaurante con un pasillo "Más vendidos" arriba que repite `products`, como lo manda Rappi: el
     mismo plato, con su id y el corridorId del pasillo popular."""
     copies = [{**p, "corridorId": corridor_id} for p in products]
     restaurant_block(data)["corridors"].insert(0, {"name": "Más vendidos", "products": copies})

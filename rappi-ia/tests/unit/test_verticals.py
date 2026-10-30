@@ -1,4 +1,4 @@
-"""«También en» con un catálogo de tamaño real (≥ 20 ítems), sin base: el resto de los tests baja
+""" "También en" con un catálogo de tamaño real (≥ 20 ítems), sin base: el resto de los tests baja
 MIN_ITEMS_ELSEWHERE a 1 y con eso ninguna vertical alcanza la masa mínima, así que nunca se ejercita el orden por
 participación."""
 

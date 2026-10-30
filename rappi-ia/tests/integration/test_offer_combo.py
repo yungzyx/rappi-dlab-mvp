@@ -62,7 +62,7 @@ def order(db, user, vertical, concept=None, days_ago=0, entity=("catalog_item", 
 
 
 def sushi_lover(db, user="u-sushi"):
-    """Solo pide sushi en restaurantes: su combinación es «rest»."""
+    """Solo pide sushi en restaurantes: su combinación es "rest"."""
     order(db, user, "restaurantes", "sushi", entity=("menu_item", SUSHI_ROLL))
 
 
@@ -172,7 +172,7 @@ def test_after_rappifavor_it_offers_rappitravel_and_then_the_usual(client, db):
     ]
     assert body["actions"] == [{"label": "Abrir RappiTravel", "route": ["travel"], "service": "rappitravel"}]
 
-    opened(db, "u1", "rappitravel", mode="actual")  # en «Rappi hoy» no cuenta
+    opened(db, "u1", "rappitravel", mode="actual")  # en "Rappi hoy" no cuenta
     assert to_try(client, "u1")["actions"][0]["service"] == "rappitravel"
 
     opened(db, "u1", "rappitravel")  # ya usa todo: sin paso, la de siempre (y ya pidió en todas las que se ofrecen)
@@ -270,7 +270,7 @@ def test_a_rule_from_a_concept_the_agent_does_not_offer_is_never_named(client, d
     body = to_try(client, "u-chela")
 
     assert body["vertical"] == "turbo"
-    assert body["text"] == "Para sumar en Turbo."  # la regla eligió los productos: no son «lo más pedido»
+    assert body["text"] == "Para sumar en Turbo."  # la regla eligió los productos: no son "lo más pedido"
     assert body["reason"]["text"] == "Porque aún no pides en Turbo."
     assert "cerveza" not in body["reason"]["text"] and "cerveza" not in str(body["reason"]["basis"])
     # La regla movió el orden: su fuente se declara, sin nombrar de dónde sale.
@@ -392,7 +392,7 @@ def test_the_most_ordered_has_the_price_of_the_vertical_even_if_it_is_cheaper_el
 
 def test_a_vertical_of_the_group_tried_long_ago_is_still_offered_as_a_comeback(client, db):
     sushi_lover(db)
-    order(db, "u-sushi", "turbo", days_ago=40)  # probó Turbo hace más de un mes: su combinación sigue siendo «rest»
+    order(db, "u-sushi", "turbo", days_ago=40)  # probó Turbo hace más de un mes: su combinación sigue siendo "rest"
     back = {"kind": "vuelta", "id": "turbo", "source": "pedidos"}
 
     body = to_try(client, "u-sushi")
@@ -447,7 +447,7 @@ def _assert_reads_well(texts, name):
         assert " de el " not in text and " a el " not in text, text
 
 
-# Singulares («sushi»), plurales («frutas»), compuestos con «y» («sándwiches y completos») y con comas.
+# Singulares ("sushi"), plurales ("frutas"), compuestos con "y" ("sándwiches y completos") y con comas.
 @pytest.mark.parametrize("origin_id", [c.id for c in OFFERABLE])
 def test_cross_texts_read_well_with_any_concept_as_origin_and_destination(origin_id):
     concepts = load_taxonomy().concepts

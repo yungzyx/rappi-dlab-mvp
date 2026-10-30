@@ -150,7 +150,7 @@ def test_a_block_right_after_a_streak_of_exhausted_jobs_still_stops_the_run(db):
 
 
 def test_failures_where_rappi_answered_do_not_stop_the_run(db):
-    """«Ninguna sucursal disponible» es una respuesta de rappi.cl, no una señal de bloqueo."""
+    """ "Ninguna sucursal disponible" es una respuesta de rappi.cl, no una señal de bloqueo."""
     path = "/tiendas/900025946-lider"
     run = repository.start_run(db, "stores", {})
     repository.add_jobs(db, run, [_job(f"type:{i:02}", path) for i in range(12)])
@@ -211,7 +211,7 @@ def _report_with_skips(db, previous_offers=None):
 
 
 def test_failed_jobs_are_counted_over_attempted_jobs_not_skipped_ones(db):
-    """Corrida 4: 8,4 % «ok» con los omitidos en el denominador; sobre los intentados era 11,5 % (> 10 %)."""
+    """Corrida 4: 8,4 % "ok" con los omitidos en el denominador; sobre los intentados era 11,5 % (> 10 %)."""
     checks = _report_with_skips(db)
     assert checks["Jobs fallidos (%)"]["value"] == 50.0
 
@@ -261,7 +261,7 @@ def test_restaurant_report_and_written_files(db, tmp_path):
 
 
 def test_store_report_warns_about_listings_that_failed_at_discovery(db):
-    """El 04-10 el listado de licores falló en 13 de 14 ciudades y el reporte decía «ok»: no había jobs fallidos,
+    """El 04-10 el listado de licores falló en 13 de 14 ciudades y el reporte decía "ok": no había jobs fallidos,
     simplemente nunca se crearon."""
     run = repository.start_run(db, "stores", {})
     repository.set_run_param(db, run, "listados_fallidos", [["Viña del Mar", "licores"], ["Temuco", "licores"]])

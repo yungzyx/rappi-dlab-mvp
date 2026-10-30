@@ -2,7 +2,7 @@ import './offline-notice.css'
 
 /**
  * Aviso dentro de una pantalla de catálogo cuando la API no contesta (`offline` o `timeout`): el resto de la app sigue
- * usable. Un 404 no es esto: cada pantalla dice lo suyo («Esta tienda no está en el catálogo»).
+ * usable. Un 404 no es esto: cada pantalla dice lo suyo ("Esta tienda no está en el catálogo").
  */
 export default function OfflineNotice({ onRetry }) {
   return (

@@ -204,7 +204,7 @@
   box-shadow: 0 10px 24px rgba(184, 48, 13, 0.3);
 }
 
-/* «¿Me falta algo?» (prototipo final): solo si se pide, Mochi sugiere una cosa de otra vertical */
+/* "¿Me falta algo?" (prototipo final): solo si se pide, Mochi sugiere una cosa de otra vertical */
 .checkout-ask {
   display: flex;
   align-items: center;
@@ -487,7 +487,7 @@
   box-shadow: none;
 }
 
-/* ---------- Hojas: edad y «Deshacer pedido» ---------- */
+/* ---------- Hojas: edad y "Deshacer pedido" ---------- */
 .checkout-sheet {
   display: flex;
   flex-direction: column;

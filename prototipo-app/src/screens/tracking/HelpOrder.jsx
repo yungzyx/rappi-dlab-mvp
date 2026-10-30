@@ -6,8 +6,8 @@ import { HELP_REASONS, HELP_WINDOW_HOURS, REFUND_METHODS, clockAndDay, helpDeadl
 import { deliveredItems } from './liveChanges'
 
 /**
- * «Ayuda con este pedido», de demostración y sin dinero real: «Problemas con productos» (cuáles y qué pasó), «¿Dónde
- * reembolsamos tu dinero?» (Créditos o el medio de pago, con su plazo) y el plazo para pedir ayuda. El plazo y los días
+ * "Ayuda con este pedido", de demostración y sin dinero real: "Problemas con productos" (cuáles y qué pasó), "¿Dónde
+ * reembolsamos tu dinero?" (Créditos o el medio de pago, con su plazo) y el plazo para pedir ayuda. El plazo y los días
  * del reembolso son de ejemplo. Queda en el pedido (`help`). `now`: la hora con que se compara el plazo.
  */
 export default function HelpOrder({ order, deliveredAt, now, className = 'tracking-help-button tap' }) {
@@ -23,7 +23,7 @@ export default function HelpOrder({ order, deliveredAt, now, className = 'tracki
   const items = deliveredItems(order)
   const amount = chosen.reduce((sum, i) => sum + parsePrice(items[i].price) * (items[i].qty ?? 1), 0)
 
-  // Al cambiar de paso, el foco va al primer control del paso nuevo (o al aviso de «Recibimos tu solicitud»).
+  // Al cambiar de paso, el foco va al primer control del paso nuevo (o al aviso de "Recibimos tu solicitud").
   const body = useRef(null)
   const shownStep = useRef(step)
   useEffect(() => {

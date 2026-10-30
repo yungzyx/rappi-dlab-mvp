@@ -7,13 +7,13 @@
 # revisar los ingredientes en la tienda.
 #
 # - `tipo`: dieta o alergia (las intolerancias van como alergia, como en la app de Rappi).
-# - `nombre`: cómo se muestra («Vegetariano»); `sin`: lo que el agente dice que saca («carne»).
-# - `frases`: cómo se dice por chat, sin tildes ni mayúsculas, al comienzo del mensaje («soy vegetariano»). Con «ya no»
+# - `nombre`: cómo se muestra ("Vegetariano"); `sin`: lo que el agente dice que saca ("carne").
+# - `frases`: cómo se dice por chat, sin tildes ni mayúsculas, al comienzo del mensaje ("soy vegetariano"). Con "ya no"
 #   delante, se quita.
 # - `conceptos`: lo de esos conceptos sale, salvo que el nombre diga `salvo`.
 # - `palabras`: lo que tiene una de esas palabras (o frases) en el nombre sale, salvo que el nombre diga `salvo`. Se
-#   comparan enteras y sin tildes ni ñ («mani» es «maní»).
-# - `salvo`: expresión regular sobre el nombre sin tildes ni ñ: lo que la calza queda («Pizza vegetariana»).
+#   comparan enteras y sin tildes ni ñ ("mani" es "maní").
+# - `salvo`: expresión regular sobre el nombre sin tildes ni ñ: lo que la calza queda ("Pizza vegetariana").
 #
 # No está la dieta kosher de la app de Rappi: ningún nombre del catálogo lo dice, así que filtrar sería no mostrar nada.
 

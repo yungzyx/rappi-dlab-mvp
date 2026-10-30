@@ -8,8 +8,8 @@ import { useOrders } from '../../state/OrdersContext'
 import { CANCEL_REASONS, PAYMENTS, cancelFee } from './cancel'
 
 /**
- * «Cancelar pedido» (antes de «En camino»): el motivo, y si tiene solución («Aún tiene solución»: cambiar la dirección o
- * el medio de pago) la ofrece antes de «Continuar con la cancelación». Desde que la tienda empezó el pedido, muestra el
+ * "Cancelar pedido" (antes de "En camino"): el motivo, y si tiene solución ("Aún tiene solución": cambiar la dirección o
+ * el medio de pago) la ofrece antes de "Continuar con la cancelación". Desde que la tienda empezó el pedido, muestra el
  * costo de cancelar (de ejemplo). Mientras la hoja está abierta, el reloj de la demo espera. Cancelar registra
  * `order_cancelled` (el pedido es su carro y su tienda).
  */
@@ -26,7 +26,7 @@ export default function CancelOrder({ order, stage }) {
   const fee = frozen ? cancelFee(order, frozen) : 0
   const rescue = CANCEL_REASONS.find((r) => r.id === reason)?.rescue
   // Si la hoja se va (la pantalla se cierra o el paso cambia en el mismo render en que se abrió), el pedido sigue su
-  // reloj: soltar sin pausa de «Cancelar» no hace nada, así que no depende de que el efecto haya visto la hoja abierta.
+  // reloj: soltar sin pausa de "Cancelar" no hace nada, así que no depende de que el efecto haya visto la hoja abierta.
   const release = useRef(orders.release)
   useEffect(() => {
     release.current = orders.release
@@ -41,7 +41,7 @@ export default function CancelOrder({ order, stage }) {
       firstStep.current = false
       return
     }
-    // En el paso de confirmar, el foco va a «Mantener mi pedido»: un Enter de más no cancela.
+    // En el paso de confirmar, el foco va a "Mantener mi pedido": un Enter de más no cancela.
     const target = body.current?.querySelector('[data-autofocus]') ?? body.current?.querySelector('button')
     target?.focus({ preventScroll: true })
   }, [reason, rescued])

@@ -51,7 +51,7 @@ def test_choose_prefers_the_closest_word_and_then_the_most_common():
 
 
 def test_choose_needs_a_word_the_vertical_has_ten_times_more():
-    # «nutela» aparece en 4 platos (con el error del restaurante): «nutella», en 964.
+    # "nutela" aparece en 4 platos (con el error del restaurante): "nutella", en 964.
     assert spelling.choose("nutela", 4, [("nutella", 964)]) == "nutella"
     assert spelling.choose("nutela", 4, [("nutella", 39)]) is None
 
@@ -68,7 +68,7 @@ def test_choose_leaves_short_words_and_far_words_alone():
 
 
 def test_choose_skips_a_word_with_the_same_root():
-    """La búsqueda léxica ya junta «cuerpos» con «cuerpo»: cambiarla no busca nada distinto y solo ensucia el aviso.
+    """La búsqueda léxica ya junta "cuerpos" con "cuerpo": cambiarla no busca nada distinto y solo ensucia el aviso.
     La raíz la da Postgres (`_excluded`, que también saca las stopwords)."""
     assert spelling.choose("cuerpos", 1, [("cuerpo", 30)], frozenset({"cuerpo"})) is None
     assert spelling.choose("trufass", 0, [("trufas", 30), ("trufa", 50)], frozenset()) == "trufas"
@@ -82,7 +82,7 @@ def test_words_to_skip_are_fillers_of_spoken_requests():
     assert [w.surface for w in spelling.query_words("te quiero mochi") if not w.skip] == ["te", "quiero", "mochi"]
     assert [w.surface for w in spelling.query_words("no guardes lo que busco") if w.skip] == []
     assert [w.surface for w in spelling.query_words("mmm una coca") if not w.skip] == ["coca"]
-    # Un saludo de dos palabras también es una búsqueda: «tardes de lluvia», «buenos aires».
+    # Un saludo de dos palabras también es una búsqueda: "tardes de lluvia", "buenos aires".
     assert not any(w.skip for w in spelling.query_words("tardes de lluvia"))
     assert not any(w.skip for w in spelling.query_words("buenos aires"))
     # Una frase larga es una conversación: se busca entera.
@@ -102,5 +102,5 @@ def test_a_typo_is_recovered_when_it_shows_as_much_of_what_was_meant():
     assert recovered(False, shown, "cerveza", 3)
     assert not recovered(False, shown[2:], "cerveza", 3)
     assert recovered(False, shown[2:], "cerveza", 1)  # lo que se quiso escribir trae uno solo: basta ese
-    assert not recovered(True, shown, "cerveza", 3)  # «sin resultado» nunca se recupera
+    assert not recovered(True, shown, "cerveza", 3)  # "sin resultado" nunca se recupera
     assert not recovered(False, shown, "cerveza", 0)  # sin nada que comparar, no mide

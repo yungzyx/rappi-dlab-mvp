@@ -16,7 +16,7 @@ export function apiUrl(env, location) {
   return devApiUrl(location)
 }
 
-// Solo existe en desarrollo: el build de producción la descarta, y `dist/` no lleva rastros de «localhost» ni del puerto.
+// Solo existe en desarrollo: el build de producción la descarta, y `dist/` no lleva rastros de "localhost" ni del puerto.
 const devApiUrl = import.meta.env.DEV ? (location) => `http://${location?.hostname || 'localhost'}:8000` : undefined
 
 export const API_URL = apiUrl(import.meta.env, typeof window !== 'undefined' ? window.location : undefined)
@@ -37,7 +37,7 @@ const savedResponses =
 /** De cuándo y de qué base son las respuestas grabadas (`{ fecha, base }`), o null con la API en vivo. */
 export const SNAPSHOT_INFO = snapshot?.grabado ?? null
 
-// «Ver cómo funciona» (src/demo/): respuestas de ejemplo que pisan a las grabadas mientras dura la demostración.
+// "Ver cómo funciona" (src/demo/): respuestas de ejemplo que pisan a las grabadas mientras dura la demostración.
 let demoResponses = {}
 
 /** Solo en el HTML suelto: pone las respuestas de la demostración (`{}` vuelve a la foto) y olvida lo cargado. */
@@ -98,7 +98,7 @@ const PROTOTYPE_OFFLINE_MESSAGE = 'La API no responde: el uso del MVP solo se ve
 /** Del panel en un solo HTML: la respuesta grabada, validada contra la fuente pedida igual que una en vivo. */
 async function loadFromSnapshot({ key, name, expected }) {
   const body = demoResponses[key] ?? snapshot.respuestas[key]
-  if (!body) throw new Error(`Este archivo no trae «${name}»: se grabó sin esa consulta.`)
+  if (!body) throw new Error(`Este archivo no trae "${name}": se grabó sin esa consulta.`)
   return { data: dataFrom(body, expected, name), offline: false, saved: null }
 }
 

@@ -2,7 +2,7 @@
 import { parsePrice } from '../state/CartContext'
 import { placementFields } from './attribution'
 
-// Los pedidos que van en camino al servidor (`POST /orders` y lo que lo precede): «Olvidar» los espera antes de borrar el
+// Los pedidos que van en camino al servidor (`POST /orders` y lo que lo precede): "Olvidar" los espera antes de borrar el
 // perfil, porque uno que llegue después lo recrearía.
 const inFlight = new Set()
 
@@ -103,7 +103,7 @@ export function basketsOf(items) {
 /**
  * Líneas del carrito → un pedido por tienda (`basketsOf`). Todo producto trae su `entityId` real de la API: una línea
  * sin él no existe (nunca se inventa un id) y se descarta con un aviso en desarrollo. Un producto sin vertical del
- * catálogo sigue en el carrito de la demo, pero no se envía: la API rechazaría el pedido completo. En «Rappi hoy»
+ * catálogo sigue en el carrito de la demo, pero no se envía: la API rechazaría el pedido completo. En "Rappi hoy"
  * (`mode: 'actual'`) la app no aprende: el pedido va marcado y sin conceptos, como los eventos de ese modo. `pro`: si la
  * persona es Rappi Pro en la app (el backend lo guarda en la persona); sin él, el pedido no lo dice. `scheduledFor` (ms):
  * el inicio de la franja si se programó; `deliveryType`: basica, sin_prisa o prioritaria (sin él, un retiro).

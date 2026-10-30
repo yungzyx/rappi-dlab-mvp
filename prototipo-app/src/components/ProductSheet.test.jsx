@@ -62,7 +62,7 @@ afterEach(() => {
 })
 
 describe('ProductSheet', () => {
-  test('tocar una tarjeta abre la hoja con precio, descuento y «Ver tienda»', () => {
+  test('tocar una tarjeta abre la hoja con precio, descuento y "Ver tienda"', () => {
     const onOpenStore = vi.fn()
     renderWith(<ProductCard product={beer} onOpenStore={onOpenStore} />)
     expect(screen.queryByRole('dialog')).toBeNull()
@@ -95,7 +95,7 @@ describe('ProductSheet', () => {
     expect(events.track.mock.calls.some(([type]) => type === 'recommendation_click')).toBe(false)
   })
 
-  test('sin tienda conocida (storeId) la hoja muestra su nombre pero no ofrece «Ver tienda»', () => {
+  test('sin tienda conocida (storeId) la hoja muestra su nombre pero no ofrece "Ver tienda"', () => {
     const onOpenStore = vi.fn()
     renderWith(<ProductCard product={{ ...beer, storeId: undefined }} onOpenStore={onOpenStore} />)
     fireEvent.click(screen.getByText(beer.name))
@@ -105,7 +105,7 @@ describe('ProductSheet', () => {
     expect(onOpenStore).not.toHaveBeenCalled()
   })
 
-  test('el contador y la nota van al carrito; al reabrir dice «Actualizar»', () => {
+  test('el contador y la nota van al carrito; al reabrir dice "Actualizar"', () => {
     renderWith(<ProductRow product={beer} />)
     fireEvent.click(screen.getByRole('button', { name: new RegExp(`^${beer.name}`) }))
     let dialog = within(screen.getByRole('dialog'))

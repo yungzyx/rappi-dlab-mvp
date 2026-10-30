@@ -23,11 +23,11 @@ TAXONOMY_FILE = Path(__file__).resolve().parents[1] / "concepts" / "taxonomy.tom
 KINDS = frozenset(
     {"concept", "group", "attribute", "segment", "brand", "vertical", "occasion", "service", "canonical", "term"}
 )
-MIN_ATTRIBUTE_SHARE = 0.05  # un concepto «tiene» un atributo si al menos el 5 % de sus ítems lo lleva…
+MIN_ATTRIBUTE_SHARE = 0.05  # un concepto "tiene" un atributo si al menos el 5 % de sus ítems lo lleva…
 MIN_ATTRIBUTE_ITEMS = 3  # …y son al menos tantos ítems
-MIN_BRAND_ITEMS = 5  # una marca «es de» un concepto si vende al menos tantos ítems ahí…
+MIN_BRAND_ITEMS = 5  # una marca "es de" un concepto si vende al menos tantos ítems ahí…
 MIN_BRAND_SHARE = 0.03  # …y son el 3 % de sus productos (una marca mal asignada no se cuela)
-MIN_VERTICAL_ITEMS = 3  # un concepto «se vende en» una vertical con al menos tantos ítems…
+MIN_VERTICAL_ITEMS = 3  # un concepto "se vende en" una vertical con al menos tantos ítems…
 MIN_VERTICAL_SHARE = 0.05  # …y el 5 % de lo que tiene en la vertical donde más vende
 MIN_SESSIONS = 30  # sesiones mínimas para aprender que dos conceptos se buscan juntos…
 MIN_USERS = 5  # …de al menos tantas personas distintas: una sola no hace una relación (y no se re-identifica)
@@ -54,7 +54,7 @@ class RelationDef:
 
 @dataclass(frozen=True)
 class CuratedEdge:
-    source: str  # «tipo:id»
+    source: str  # "tipo:id"
     relation: str
     target: str
     weight: float
@@ -225,7 +225,7 @@ def _segment_rows(run: int) -> list[tuple]:
 
 def _derive_from_catalog(conn: Connection, run: int) -> dict:
     # Los platos de restaurante y los productos de catálogo no se pueden comparar (un menú cuenta cada plato de cada
-    # local): el peso es relativo dentro del catálogo, y «restaurantes» es presencia (1.0) si hay platos suficientes.
+    # local): el peso es relativo dentro del catálogo, y "restaurantes" es presencia (1.0) si hay platos suficientes.
     sell = conn.execute(
         """WITH catalog AS (
                SELECT concept_id, vertical, items, max(items) OVER (PARTITION BY concept_id) AS top
@@ -242,7 +242,7 @@ def _derive_from_catalog(conn: Connection, run: int) -> dict:
            ON CONFLICT DO NOTHING""",
         {"run": run, "items": MIN_VERTICAL_ITEMS, "share": MIN_VERTICAL_SHARE},
     ).rowcount
-    # La parte se mide sobre el tipo de ítem al que el atributo aplica: «económico» solo existe en productos, y 40
+    # La parte se mide sobre el tipo de ítem al que el atributo aplica: "económico" solo existe en productos, y 40
     # platos no pueden bajar su parte en pizzas.
     has = conn.execute(
         """WITH per_type AS (SELECT concept_id, entity_type, count(*) AS n FROM item_concepts GROUP BY 1, 2),

@@ -1,6 +1,6 @@
 # Destinos curados para el último peldaño de un perfil de gusto (offers/perfiles.toml, campo `viaje`).
 #
-# Van rotulados «Idea para RappiTravel», sin precios ni fechas: RappiTravel no tiene catálogo en este prototipo.
+# Van rotulados "Idea para RappiTravel", sin precios ni fechas: RappiTravel no tiene catálogo en este prototipo.
 # Cada destino lleva la pregunta (`texto`) y hechos verificables con su fuente y su url (https). Son los de la demo
 # (prototipo-app/src/data/profiles.js y perfiles-demo.json, rama demo/prototipo-sushi), verificados el 13-10-2026.
 # offers/profiles.py los valida al cargar.

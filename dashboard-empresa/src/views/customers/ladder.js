@@ -1,4 +1,4 @@
-// La escalera de la tabla de Rappi («verticales usados juntos», /analytics/combos → rappi.filas): para cada
+// La escalera de la tabla de Rappi ("verticales usados juntos", /analytics/combos → rappi.filas): para cada
 // combinación de grupos (rest, turbo, retail), la combinación con un grupo más que más retiene al mes siguiente.
 // Es una correlación, no un efecto: quien pide mucho usa más verticales y además vuelve más.
 

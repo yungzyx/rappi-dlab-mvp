@@ -293,7 +293,7 @@ def test_after_a_postgres_restart_the_next_request_gets_a_healthy_connection(db,
     reply = live_client.get("/profile/u1")
 
     assert reply.status_code == 200
-    assert time.monotonic() - start < 1.5  # lo que la app espera a /health antes de decir «Sin conexión»
+    assert time.monotonic() - start < 1.5  # lo que la app espera a /health antes de decir "Sin conexión"
     assert live_client.get("/profile/u1").status_code == 200
 
 
@@ -331,7 +331,7 @@ def test_api_without_pool_refuses_to_connect(client):
 
 
 def test_ask_commits_before_composing_with_the_llm(db):
-    """Claude puede tardar segundos: la conexión no queda «idle in transaction» mientras redacta."""
+    """Claude puede tardar segundos: la conexión no queda "idle in transaction" mientras redacta."""
     _catalog(db)
     seen = []
 

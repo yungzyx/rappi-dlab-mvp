@@ -38,7 +38,7 @@ def demo(db):
     seed_demo(db)
     embedder = HashEmbedder()
     embed_search_documents(db, embedder)
-    # Solo pide sushi en restaurantes: su combinación es «rest» y el paso que más retiene le suma Turbo.
+    # Solo pide sushi en restaurantes: su combinación es "rest" y el paso que más retiene le suma Turbo.
     line = {"entity_type": "menu_item", "entity_id": SUSHI_ROLL, "concept_id": "sushi", "unit_price": 6990}
     events.record_order(db, "u-sushi", "s-1", "c-1", "restaurantes", [line], ts=NOW - timedelta(days=2))
     db.commit()
@@ -340,4 +340,4 @@ def test_the_agent_uses_the_person_only_in_the_final_prototype(demo):
     assert anonymous["suggestion"]["concept"] == "cafe" and anonymous["suggestion"]["basis"] == []
 
     today = agent.reply(db, "pizza", Context(vertical="restaurantes", mode="actual", user_id="u-sushi"))
-    assert "suggestion" not in today  # «Rappi hoy» no sugiere nada cruzado
+    assert "suggestion" not in today  # "Rappi hoy" no sugiere nada cruzado

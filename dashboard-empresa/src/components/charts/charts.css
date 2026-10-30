@@ -19,7 +19,7 @@
   stroke-linecap: round;
 }
 
-/* El último punto en tinta, con anillo del color de la página: el naranja se leería como «empeora» */
+/* El último punto en tinta, con anillo del color de la página: el naranja se leería como "empeora" */
 .sparkline-dot {
   fill: var(--ink-2);
   stroke: var(--page);

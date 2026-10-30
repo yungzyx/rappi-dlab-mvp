@@ -1,9 +1,9 @@
-// «Pedir por mí» sin conexión, en corto (rappi-ia offers/autonomy.py, api/autonomy.py, rappi_agent.py: _usual_order y
+// "Pedir por mí" sin conexión, en corto (rappi-ia offers/autonomy.py, api/autonomy.py, rappi_agent.py: _usual_order y
 // api/app.py: _auto_order). El permiso vive en el estado de la API simulada (state.js). Lo de siempre es el último
 // pedido de este navegador en esa tienda, con los precios de la muestra grabada (no los de hoy). Los límites son los
 // mismos: solo en las tiendas elegidas, nunca alcohol, +18, farmacia, bebé ni salud (autoOrderBlocked), nunca sobre el
 // tope ni en una tienda que la muestra trae cerrada. La compra mínima no está en la muestra: la de ejemplo la revisa
-// la app. «Olvidar» la borra con todo el estado.
+// la app. "Olvidar" la borra con todo el estado.
 import { restaurantHours } from './catalog'
 import { OFFER_BLOCKED_VERTICALS } from './motor'
 import { autoOrderBlocked } from './offers'
@@ -58,7 +58,7 @@ function storesOf(snapshot, state) {
   return [...seen.values()]
 }
 
-/** Las tiendas de sus pedidos que la hoja «Mis preferencias» ofrece marcar (offers/preferences.py: ordered_stores). */
+/** Las tiendas de sus pedidos que la hoja "Mis preferencias" ofrece marcar (offers/preferences.py: ordered_stores). */
 export const orderedStores = (snapshot, state) => [...new Set(storesOf(snapshot, state).map((s) => s.name))].slice(0, 8)
 
 /** Las que puede elegir: ninguna de Farmacia ni Licores. */
@@ -68,7 +68,7 @@ const choosable = (snapshot, state) =>
     .slice(0, LIMITS.stores)
 
 /**
- * La recompra de una tienda donde la persona deja que Mochi pida solo suma «Pide lo de siempre por mí» (api/agent.py:
+ * La recompra de una tienda donde la persona deja que Mochi pida solo suma "Pide lo de siempre por mí" (api/agent.py:
  * _with_auto_order): le pide a Mochi lo de siempre ahí, que vuelve a revisar cada límite antes de pedir.
  */
 export function withAutoOrder(snapshot, state, offer) {
@@ -108,7 +108,7 @@ export function saveAutonomy(snapshot, state, body) {
   return { body: autonomyReply(snapshot, next) }
 }
 
-/** `DELETE /profile/{id}/autonomia`: vuelve a «Revisar antes de pedir». */
+/** `DELETE /profile/{id}/autonomia`: vuelve a "Revisar antes de pedir". */
 export function turnOffAutonomy(snapshot) {
   const next = updateState(({ autonomy: _autonomy, ...s }) => s)
   return { body: autonomyReply(snapshot, next) }
@@ -182,7 +182,7 @@ const basis = (mine, store) => [
 ]
 
 /**
- * «Pide lo de siempre en…» (rappi_agent.py: _usual_order): la respuesta de `/agent/ask` con `autopedido`, o null si el
+ * "Pide lo de siempre en…" (rappi_agent.py: _usual_order): la respuesta de `/agent/ask` con `autopedido`, o null si el
  * mensaje no lo pide.
  */
 export function usualAnswer(snapshot, state, body, now) {
@@ -206,17 +206,17 @@ export function usualAnswer(snapshot, state, body, now) {
     actions: [{ label: 'Ver mis pedidos', route: ['orders'] }],
     ...extra,
   })
-  if (body?.mode === 'actual') return reply('En «Rappi hoy» no pido por ti: en «Mis pedidos» tienes «Pídelo de nuevo».')
+  if (body?.mode === 'actual') return reply('En "Rappi hoy" no pido por ti: en "Mis pedidos" tienes "Pídelo de nuevo".')
   const store = findStore(snapshot, state, said)
   const found = store && usual(snapshot, state, store)
   if (!found)
     return reply(
       said
-        ? `No encuentro un pedido tuyo en «${said}». En «Mis pedidos» están las tiendas donde pediste.`
+        ? `No encuentro un pedido tuyo en "${said}". En "Mis pedidos" están las tiendas donde pediste.`
         : 'Todavía no tienes un pedido que repetir. Cuando pidas algo, te lo repito cuando quieras 🔁.',
     )
   if (!found.lines.length)
-    return reply(`Lo de siempre en ${store.name} ya no está a la venta ahí. Mira en «Mis pedidos» otro que repetir.`)
+    return reply(`Lo de siempre en ${store.name} ya no está a la venta ahí. Mira en "Mis pedidos" otro que repetir.`)
   const mine = state.autonomy ?? null
   const failed = decide(snapshot, state, mine, found, now)
   const units = found.lines.reduce((sum, l) => sum + l.qty, 0)

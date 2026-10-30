@@ -1,6 +1,6 @@
-"""«¿Volvemos a…?» (momento `volver`): lo que la persona pedía con ritmo y dejó de pedir (un concepto atrasado más de un
-intervalo, o una vertical sin pedidos en más de un mes mientras pide en otra). La pausa es por persona: 7 días después
-de mostrar una, solo esa; y hasta que la descarte dos veces. Sobre el catálogo de prueba (`seed_demo`)."""
+""" "¿Volvemos a…?" (momento `volver`): lo que la persona pedía con ritmo y dejó de pedir (un concepto atrasado más de
+un intervalo, o una vertical sin pedidos en más de un mes mientras pide en otra). La pausa es por persona: 7 días
+después de mostrar una, solo esa; y hasta que la descarte dos veces. Sobre el catálogo de prueba (`seed_demo`)."""
 
 from datetime import UTC, datetime, time, timedelta
 
@@ -86,7 +86,7 @@ def still_ordering(db, user, days_ago=5):
 
 
 def event(db, kind, concept=None, vertical=None, days_ago=0, mode=None, user=USER, of="volver"):
-    """Un evento de la app con origen `agent-volver`; `of` es su `payload.kind` («volver» o «vuelta»)."""
+    """Un evento de la app con origen `agent-volver`; `of` es su `payload.kind` ("volver" o "vuelta")."""
     payload = {"origen": "agent-volver", "kind": of, **({"mode": mode} if mode else {})}
     events.ensure_user(db, user, "prototype")
     db.execute(
@@ -211,7 +211,7 @@ def test_shown_lately_and_no_longer_due_means_nothing_else_this_week(client, db)
 
 def test_a_concept_invitation_is_not_the_invitation_of_its_vertical(client, db):
     # Ayer se mostró una invitación de concepto (galletas) en el súper; la persona dejó el súper como vertical, pero esa
-    # es otra invitación: no es «la misma», así que durante la pausa no hay nada. Si se mostró la del súper, vuelve.
+    # es otra invitación: no es "la misma", así que durante la pausa no hay nada. Si se mostró la del súper, vuelve.
     left_vertical(db, USER, "supermercado", COOKIES, last_days_ago=40)
     bought(db, USER, "turbo", None, ICE_CREAM, 3)
     refresh_user_conn(db, USER)

@@ -7,9 +7,9 @@ export const PREFERENCES_TITLE = 'Mis preferencias'
 const same = (a) => (b) => a.tipo === b.tipo && a.valor === b.valor
 
 /**
- * «Mis preferencias», dentro de una hoja: la dieta, las alergias, las cocinas y las tiendas favoritas se eligen entre
+ * "Mis preferencias", dentro de una hoja: la dieta, las alergias, las cocinas y las tiendas favoritas se eligen entre
  * opciones, sin escribir nada (las tiendas son aquellas donde la persona ya pidió, más las que ya tenía marcadas). Se
- * monta al abrir la hoja (lee lo guardado) y guarda con «Guardar» (`PUT /profile/{id}/preferencias`). `onSaved` recibe
+ * monta al abrir la hoja (lee lo guardado) y guarda con "Guardar" (`PUT /profile/{id}/preferencias`). `onSaved` recibe
  * la lista que quedó.
  */
 export default function PreferencesEditor({ onSaved }) {

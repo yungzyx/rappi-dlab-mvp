@@ -48,7 +48,7 @@ export default function AgentPresence({ screen, homeTab, raised }) {
   const [small, setSmall] = useState(false)
   const [quiet, setQuiet] = useState(() => isQuiet(today()))
   const [dragging, setDragging] = useState(false) // se arrastra un producto: el agente lo espera
-  const [confirmHide, setConfirmHide] = useState(false) // «Ocultar a Mochi» pide confirmar en el mismo globo
+  const [confirmHide, setConfirmHide] = useState(false) // "Ocultar a Mochi" pide confirmar en el mismo globo
   const agentHidden = useAgentHidden()
   const events = useEvents()
   const host = useRef(null)
@@ -83,7 +83,7 @@ export default function AgentPresence({ screen, homeTab, raised }) {
     return () => phone.removeEventListener('scroll', onScroll, true)
   }, [hidden])
 
-  // Al agregar al carro, una confirmación corta con «Deshacer». No sugiere nada: eso queda para la Home al volver.
+  // Al agregar al carro, una confirmación corta con "Deshacer". No sugiere nada: eso queda para la Home al volver.
   // En silencio (por hoy o porque lo ignoraron) no dice nada.
   useEffect(() => {
     if (hidden) return undefined
@@ -99,7 +99,7 @@ export default function AgentPresence({ screen, homeTab, raised }) {
     return () => window.removeEventListener(AGENT_CART_EVENT, onAdded)
   }, [hidden])
 
-  // «Repetir escena»: como una persona que llega por primera vez (resetLive ya borró el silencio guardado).
+  // "Repetir escena": como una persona que llega por primera vez (resetLive ya borró el silencio guardado).
   useEffect(() => {
     const replay = () => {
       setQuiet(false)

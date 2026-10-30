@@ -1,4 +1,4 @@
-// «Panel de negocio (demo).html» (npm run panel:html): el panel en un solo archivo que abre con doble clic (file://), sin la API ni
+// "Panel de negocio (demo).html" (npm run panel:html): el panel en un solo archivo que abre con doble clic (file://), sin la API ni
 // internet. Construye el modo panel-html (`vite build --mode panel-html`: las respuestas de snapshot/panel.json en vez de
 // la API, ver vite.config.js) y mete el JS, el CSS (con las fuentes ya en base64), el tema y el ícono dentro del HTML.
 // Escribe dist-html/Panel de negocio (demo).html y, con PANEL_HTML_COPY=<ruta>, también una copia ahí.
@@ -21,14 +21,14 @@ await build({ root: ROOT, mode: 'panel-html', logLevel: 'warn' })
 let html = readFileSync(`${DIST}index.html`, 'utf8')
 const read = (href) => readFileSync(`${DIST}${href.replace(/^\.\//, '')}`)
 
-// Dentro de un <script> o <style> en línea no puede aparecer su etiqueta de cierre (ni «<!--» en un script).
+// Dentro de un <script> o <style> en línea no puede aparecer su etiqueta de cierre (ni "<!--" en un script).
 function inlineText(text, tag) {
   if (text.includes(`</${tag}`) || (tag === 'script' && text.includes('<!--')))
-    throw new Error(`El ${tag} trae «</${tag}» o «<!--»: no se puede meter en línea tal cual`)
+    throw new Error(`El ${tag} trae "</${tag}" o "<!--": no se puede meter en línea tal cual`)
   return text
 }
 
-// Con una función como reemplazo, el código no pasa por los patrones «$&» o «$1» de String.replace.
+// Con una función como reemplazo, el código no pasa por los patrones "$&" o "$1" de String.replace.
 html = html
   // Primero los comentarios del HTML de Vite (antes de meter el código: en el JS no se tocan).
   .replace(/\s*<!--[\s\S]*?-->/g, '')
@@ -52,7 +52,7 @@ html = html
   .replace(/<title>[^<]*<\/title>/, '<title>Panel de negocio (foto sin conexión)</title>')
 
 for (const marker of ['src="./', 'href="./', 'src="/', 'href="/', 'tema.js'])
-  if (html.includes(marker)) throw new Error(`El HTML todavía apunta a un archivo aparte («${marker}»)`)
+  if (html.includes(marker)) throw new Error(`El HTML todavía apunta a un archivo aparte ("${marker}")`)
 
 writeFileSync(OUT, html)
 const size = Buffer.byteLength(html)

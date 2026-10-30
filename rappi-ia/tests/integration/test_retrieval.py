@@ -128,8 +128,8 @@ def test_unmet_demand_rules(catalog):
 
 
 def test_unmet_does_not_depend_on_the_price_cap(catalog, monkeypatch):
-    """«Sin resultado» es «no existe», no «no cabe en el tope»: el coseno, igual que la coincidencia estricta, se
-    mide sin el filtro de precio. Antes, con tope, lo que el vertical sí tiene a otro precio quedaba «sin resultado»."""
+    """ "Sin resultado" es "no existe", no "no cabe en el tope": el coseno, igual que la coincidencia estricta, se
+    mide sin el filtro de precio. Antes, con tope, lo que el vertical sí tiene a otro precio quedaba "sin resultado"."""
     embedder = HashEmbedder()
     embed_search_documents(catalog, embedder)
     monkeypatch.setattr(hybrid, "UNNAMED_TAU", 0.2)
@@ -144,7 +144,7 @@ def test_unmet_does_not_depend_on_the_price_cap(catalog, monkeypatch):
 
 
 def test_a_query_without_words_to_search_is_not_unmet_by_cosine(catalog, monkeypatch):
-    """«té» es stopword: sin palabras que buscar, la primera condición de «sin resultado» (que nada calce todas las
+    """ "té" es stopword: sin palabras que buscar, la primera condición de "sin resultado" (que nada calce todas las
     palabras) no se puede evaluar, y el coseno solo no basta para marcarla."""
     embedder = HashEmbedder()
     embed_search_documents(catalog, embedder)
@@ -158,7 +158,7 @@ def test_a_query_without_words_to_search_is_not_unmet_by_cosine(catalog, monkeyp
 
 
 def test_hyphenated_words_keep_their_weight(db):
-    """`to_tsquery` volvía a separar el lexema «coca-col» en 'coca-col' <-> 'coca' <-> 'col' ('coca' no existe en el
+    """`to_tsquery` volvía a separar el lexema "coca-col" en 'coca-col' <-> 'coca' <-> 'col' ('coca' no existe en el
     índice): la palabra más rara y específica de la consulta no sumaba su IDF."""
     add_store(db, 5, "conveniencia", "Express")
     add_product(db, 300, "Coca-Cola Zero 1,5 L", 5, "Bebidas")

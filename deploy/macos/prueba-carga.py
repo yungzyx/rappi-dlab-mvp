@@ -3,7 +3,7 @@
 Cada persona tiene su propia IP (X-Forwarded-For, que la API acepta del proxy de 127.0.0.1) y su sesión, y recorre la
 app como alguien de verdad: abre la Home, busca en todas las verticales, le pregunta algo a Mochi y busca en una
 vertical, con pausas de 1 a 3 s. Mide la latencia por ruta y los errores. No escribe pedidos; sí deja eventos de
-búsqueda y preguntas de personas `prototype` nuevas (las borra la purga a los 180 días, o «Borrar mis datos»).
+búsqueda y preguntas de personas `prototype` nuevas (las borra la purga a los 180 días, o "Borrar mis datos").
 
 Uso: python3 deploy/macos/prueba-carga.py [personas=25] [segundos=60] [api=http://127.0.0.1:8100]
 """

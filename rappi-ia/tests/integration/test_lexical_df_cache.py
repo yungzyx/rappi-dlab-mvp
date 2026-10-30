@@ -151,7 +151,7 @@ def test_a_second_search_does_not_count_the_df_again(catalog):
     n = vertical_doc_count(catalog, "supermercado")
 
     first = hybrid._lexical(counting, "supermercado", "papas fritas", Filters(), n)
-    assert first and _df_counts(counting.statements)  # la primera cuenta el df de «papas» y «frit»
+    assert first and _df_counts(counting.statements)  # la primera cuenta el df de "papas" y "frit"
 
     counting.statements.clear()
     second = hybrid._lexical(counting, "supermercado", "papas fritas", Filters(price_max=2500), n)

@@ -6,7 +6,7 @@
 
 # Precisión de la capa de datos
 
-Juicios: un modelo de lenguaje (claude-opus-5-5) como juez, en 10 instancias independientes sobre la muestra fija (06-10-2026); acuerdo entre jueces en 80 filas juzgadas dos veces: 77 de 80. Los «dudoso» no cuentan. «Mínimo» es el límite
+Juicios: un modelo de lenguaje (claude-opus-5-5) como juez, en 10 instancias independientes sobre la muestra fija (06-10-2026); acuerdo entre jueces en 80 filas juzgadas dos veces: 77 de 80. Los "dudoso" no cuentan. "Mínimo" es el límite
 inferior del intervalo de Wilson al 95 %: con pocas muestras, lo que se puede asegurar.
 
 ## Por tipo y fuente
@@ -281,7 +281,7 @@ inferior del intervalo de Wilson al 95 %: con pocas muestras, lo que se puede as
 ## Después de los cambios de reglas (sin volver a juzgar)
 
 Lo ya juzgado que la base sigue afirmando hoy: los errores eliminados y los aciertos perdidos miden el
-cambio; la precisión «después» es la de lo que sigue afirmándose.
+cambio; la precisión "después" es la de lo que sigue afirmándose.
 
 | Tipo | Fuente | Precisión antes | Después | Errores eliminados | Aciertos perdidos |
 |---|---|---|---|---|---|

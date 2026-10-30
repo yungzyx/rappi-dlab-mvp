@@ -140,7 +140,7 @@ describe('loadAnalytics', () => {
     expect(getFallbacks()[0]).toMatchObject({ key: 'offers.synthetic', guardado: savedOffers.guardado })
   })
 
-  test('una petición vieja que falla tarde no deja «sin conexión» si ya hay otra en curso', async () => {
+  test('una petición vieja que falla tarde no deja "sin conexión" si ya hay otra en curso', async () => {
     let rejectOld
     const fetchMock = vi
       .fn()

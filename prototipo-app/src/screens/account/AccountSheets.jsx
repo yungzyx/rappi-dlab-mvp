@@ -18,7 +18,7 @@ const TITLES = {
   'hide-agent': `¿Ocultar a ${AGENT_NAME}?`,
 }
 
-/** Hojas de Cuenta: idioma, notificaciones y confirmación de cierre de sesión (simulados), y «Borrar mis datos» (real). */
+/** Hojas de Cuenta: idioma, notificaciones y confirmación de cierre de sesión (simulados), y "Borrar mis datos" (real). */
 export default function AccountSheets({ sheet, onClose }) {
   const toast = useToast()
   const forgetAll = useForgetAll()

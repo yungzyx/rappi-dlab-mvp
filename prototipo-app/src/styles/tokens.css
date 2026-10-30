@@ -22,9 +22,9 @@
   --accent-text: #b3461f;
   --accent-deep: #8f2c16;
   --price-yellow: #fadc24; /* precio y descuento de los productos */
-  --green-add: #34c859; /* botón «+» y «Go to checkout» del carro: texto --ink (8,2:1), no blanco (2,2:1) */
+  --green-add: #34c859; /* botón "+" y "Go to checkout" del carro: texto --ink (8,2:1), no blanco (2,2:1) */
   --green-deep: #1f8a3b; /* texto verde y contador del carro (4,9:1 con blanco) */
-  --green-status: #34c759; /* verde del sistema: batería, «en línea», pasos listos */
+  --green-status: #34c759; /* verde del sistema: batería, "en línea", pasos listos */
   --surface-soft: #f7f7f8; /* fondo de pantallas con tarjetas blancas */
   --ink-strike: #747474; /* precio tachado */
   --ink-muted: #626a75;
@@ -55,7 +55,7 @@
   --z-status: 40;
   --z-privacy: 45; /* aviso de la primera visita: sobre el buscador, el carrito y la barra de estado; bajo las hojas */
   --z-sheet: 60;
-  --z-toast: 70; /* sobre las hojas: el aviso de «+ Add new address» sale dentro de una */
+  --z-toast: 70; /* sobre las hojas: el aviso de "+ Add new address" sale dentro de una */
   --z-demo-toggle: 100;
 
   --gutter: 25px;

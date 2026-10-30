@@ -93,7 +93,7 @@ def test_plan_kit_spreads_across_verticals_and_includes_chosen_alcohol_with_age_
     assert all(p["age_restricted"] == (p["concept"] in ("cerveza", "pisco", "ron")) for p in products)
     assert all(p["vertical"] != "licores" for p in products if not p["age_restricted"])  # Licores solo para el alcohol
     assert body["vertical"] == products[0]["vertical"] and body["prototype_vertical"]
-    assert body["text"].startswith("Tu kit «Carrete»: cerveza, ") and body["actions"][0]["query"].startswith("Cerveza")
+    assert body["text"].startswith('Tu kit "Carrete": cerveza, ') and body["actions"][0]["query"].startswith("Cerveza")
 
 
 def test_a_kit_takes_each_vertical_from_one_store_when_it_can(client):
@@ -166,7 +166,7 @@ def test_every_plannable_occasion_stays_clear_of_sensitive_baby_health_and_block
 
 
 def test_every_plan_speaks_good_spanish_whatever_the_occasion_name(client):
-    """«Para tu un mimo…» y «fiestas patrias» en minúscula: el texto no depende de la gramática del nombre."""
+    """ "Para tu un mimo…" y "fiestas patrias" en minúscula: el texto no depende de la gramática del nombre."""
     concepts = load_taxonomy().concepts
     occasions = load_taxonomy().occasions
     answered = 0
@@ -176,7 +176,7 @@ def test_every_plan_speaks_good_spanish_whatever_the_occasion_name(client):
             continue
         answered += 1
         body = reply.json()
-        assert body["text"].startswith(f"Tu kit «{plan['name']}»: "), body["text"]  # con la mayúscula de la taxonomía
+        assert body["text"].startswith(f'Tu kit "{plan["name"]}": '), body["text"]  # con la mayúscula de la taxonomía
         assert "Para tu un" not in body["text"] and "Para tu" not in body["text"]
         [action] = body["actions"]
         assert action["label"] == "Más ideas" and action["query"].strip()
@@ -301,7 +301,7 @@ def test_vertical_to_try_skips_verticals_with_orders_and_pharmacy(client, db):
 
 
 def test_vertical_to_try_ignores_actual_mode_orders(client, db):
-    order(db, "u1", "supermercado", mode="actual")  # «Rappi hoy»: no cuenta como probado
+    order(db, "u1", "supermercado", mode="actual")  # "Rappi hoy": no cuenta como probado
 
     body = offer(client, "vertical_por_probar", {}, "u1").json()
 
@@ -383,7 +383,7 @@ def test_no_result_points_to_the_offerable_vertical_that_has_the_concept(client)
     assert reply.status_code == 200, reply.text
     body = reply.json()
     assert body["vertical"] == "restaurantes" and without_why(body["reason"]) == {"concept": "pizza"}
-    assert body["text"] == "No encontré «pizza hawaiana», pero pizza sí hay en restaurantes."
+    assert body["text"] == 'No encontré "pizza hawaiana", pero pizza sí hay en restaurantes.'
     assert {p["concept"] for p in body["products"]} == {"pizza"} and len(body["products"]) <= 3
     assert_offerable(body)
 
@@ -420,7 +420,7 @@ class RecordingEmbedder(HashEmbedder):
 
 
 def test_a_single_vertical_occasion_stays_in_its_vertical_and_embeds_each_concept_once(db):
-    """«Hambre ya» es comida lista: el kit sale de restaurantes, sin repartirse. Cada concepto se embebe una vez."""
+    """ "Hambre ya" es comida lista: el kit sale de restaurantes, sin repartirse. Cada concepto se embebe una vez."""
     seed_demo(db)
     embedder = RecordingEmbedder()
     embed_search_documents(db, embedder)
@@ -481,10 +481,10 @@ def test_every_moment_has_reason_text_and_basis(client):
         assert reason["text"].startswith(("Porque ", "Por tu ", "Para ")), moment
         assert isinstance(reason["basis"], list), moment
 
-    assert replies["plan"].json()["reason"]["text"] == "Porque elegiste «Carrete»."
+    assert replies["plan"].json()["reason"]["text"] == 'Porque elegiste "Carrete".'
     assert replies["plan"].json()["reason"]["basis"] == [{"kind": "ocasion", "id": "carrete", "source": "contexto"}]
     assert replies["carrito"].json()["reason"]["text"] == "Porque llevas 🥨 snacks salados."
-    assert replies["sin_resultado"].json()["reason"]["text"] == "Porque buscaste «pizza hawaiana» y aquí sí hay."
+    assert replies["sin_resultado"].json()["reason"]["text"] == 'Porque buscaste "pizza hawaiana" y aquí sí hay.'
     assert replies["sin_resultado"].json()["reason"]["basis"] == [
         {"kind": "busqueda", "id": "pizza hawaiana", "source": "contexto"}
     ]

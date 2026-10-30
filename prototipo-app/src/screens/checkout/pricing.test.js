@@ -29,7 +29,7 @@ describe('condiciones de cada tienda', () => {
     expect(terms.service.basis).toBe('supuesto')
     const store = basketTerms(basket(5000, 'supermercado'), { deliveryFee: null, minOrder: 0, servicePct: 5 })
     expect(store.delivery).toEqual({ value: DEFAULT_DELIVERY, basis: 'supuesto' })
-    expect(store.minOrder).toEqual({ value: 0, basis: 'catalogo' }) // «sin mínimo» también es un dato
+    expect(store.minOrder).toEqual({ value: 0, basis: 'catalogo' }) // "sin mínimo" también es un dato
     expect(store.service).toMatchObject({ rate: 0.05, basis: 'catalogo' })
     // Sin respuesta de la API: todo supuesto.
     expect(basketTerms(basket(5000, 'supermercado'), null).minOrder).toEqual({ value: 8000, basis: 'supuesto' })
@@ -66,7 +66,7 @@ describe('Rappi Pro', () => {
     expect(under.proSaving).toBe(100) // bajo el mínimo Pro solo ahorra en servicio (490 → 390)
   })
 
-  test('retiro en tienda: sin envío ni «te faltan» para Pro', () => {
+  test('retiro en tienda: sin envío ni "te faltan" para Pro', () => {
     const pickup = pricedBasket(basket(6000), RESTAURANT, { isPro: true, pickup: true })
     expect(pickup).toMatchObject({ delivery: 0, fullDelivery: 0, proMissing: 0 })
   })
@@ -82,7 +82,7 @@ describe('cupones y créditos de ejemplo', () => {
     expect(couponDiscount(coupon, [basket(7000)]).error).toBe('Te faltan $3.000 en un pedido para usar este cupón')
   })
 
-  test('SUPER20: solo en Supermercado (20 % con tope); en otra tienda «no aplica para esta tienda»', () => {
+  test('SUPER20: solo en Supermercado (20 % con tope); en otra tienda "no aplica para esta tienda"', () => {
     const coupon = findCoupon('SUPER20')
     expect(couponDiscount(coupon, [basket(12000)])).toEqual({ error: 'Este cupón no aplica para esta tienda' })
     expect(couponDiscount(coupon, [basket(12000, 'supermercado')]).amount).toBe(2400)
@@ -116,7 +116,7 @@ describe('cupones y créditos de ejemplo', () => {
 })
 
 describe('tipo de entrega y el total de cada pedido', () => {
-  test('«Sin prisa» descuenta del envío sin dejarlo bajo $0, «Prioritaria» suma, y el retiro no tiene tipo', () => {
+  test('"Sin prisa" descuenta del envío sin dejarlo bajo $0, "Prioritaria" suma, y el retiro no tiene tipo', () => {
     const terms = { deliveryFee: 300, minOrder: 0, servicePct: null }
     expect(pricedBasket(basket(5000), terms, { type: 'sin_prisa' }).typeFee).toBe(-300)
     expect(pricedBasket(basket(5000), null, { type: 'prioritaria' }).typeFee).toBe(990)

@@ -19,9 +19,9 @@ const NO_ORDERS = []
 const units = (lines) => lines.reduce((sum, { qty }) => sum + qty, 0)
 
 /**
- * «Pídelo de nuevo» de un pedido (Mis pedidos, el pedido entregado, la Home de «Rappi hoy»): revisa qué sigue a la venta
- * hoy en la misma tienda y lo muestra en una hoja, con lo que ya no está marcado «No disponible». Si el carro ya tiene
- * productos, pregunta si mantenerlos. Agregar registra `reorder` (con su lugar: `surface`, «pidelo-de-nuevo» y la
+ * "Pídelo de nuevo" de un pedido (Mis pedidos, el pedido entregado, la Home de "Rappi hoy"): revisa qué sigue a la venta
+ * hoy en la misma tienda y lo muestra en una hoja, con lo que ya no está marcado "No disponible". Si el carro ya tiene
+ * productos, pregunta si mantenerlos. Agregar registra `reorder` (con su lugar: `surface`, "pidelo-de-nuevo" y la
  * posición del pedido en su lista) y un `cart_add` por línea. `onDone` se llama después de agregar (el seguimiento no
  * muestra la barra del carro: ahí lleva al checkout).
  */
@@ -147,8 +147,8 @@ export function boughtAt(orders, storeId) {
 const MAX_CAROUSEL = 10
 
 /**
- * El carrusel «Pídelo de nuevo» de una tienda: lo que la persona ya compró ahí y sigue a la venta, con el precio de hoy.
- * Cada producto lleva su lugar (la tienda, «pidelo-de-nuevo» y su posición): agregarlo es un `cart_add` de ese bloque.
+ * El carrusel "Pídelo de nuevo" de una tienda: lo que la persona ya compró ahí y sigue a la venta, con el precio de hoy.
+ * Cada producto lleva su lugar (la tienda, "pidelo-de-nuevo" y su posición): agregarlo es un `cart_add` de ese bloque.
  * Sin compras ahí (o si nada sigue a la venta, o la API no contesta) no se muestra.
  */
 export function ReorderCarousel({ storeId, onOpenStore }) {
@@ -193,7 +193,7 @@ const HOME_ORDERS = 3
 const HOME_TICK_MS = 2000
 
 /**
- * «Pídelo de nuevo» en la Home de «Rappi hoy» (en el prototipo final la Home tiene «¿Repetimos?»): los últimos pedidos
+ * "Pídelo de nuevo" en la Home de "Rappi hoy" (en el prototipo final la Home tiene "¿Repetimos?"): los últimos pedidos
  * entregados que se pueden volver a pedir, cada uno con su botón. Sin ninguno, no se ve. La Home queda montada bajo el
  * seguimiento: mientras haya un pedido en curso, revisa cada 2 s si ya se entregó.
  */

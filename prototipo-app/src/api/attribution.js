@@ -53,7 +53,7 @@ export function placeList(items, { surface, origin, requestId, start = 0 }) {
 /** Los campos del sobre de un elemento marcado (vacío si no tiene lugar). */
 export const placementFields = (item) => envelope(item?.placement)
 
-/** ¿Salió de una recomendación del agente o de «Para ti»? Abrirla es un `recommendation_click`. */
+/** ¿Salió de una recomendación del agente o de "Para ti"? Abrirla es un `recommendation_click`. */
 export const isRecommendation = (placement) =>
   typeof placement?.origin === 'string' && (placement.origin === 'para-ti' || placement.origin.startsWith('agent-'))
 
@@ -74,7 +74,7 @@ export function noteRecommendationClick(track, item, fields) {
   return true
 }
 
-// Abrir un producto en la hoja y tocar «Ver tienda» es una sola vista: la tienda no repite su `view_item`.
+// Abrir un producto en la hoja y tocar "Ver tienda" es una sola vista: la tienda no repite su `view_item`.
 let sheetView = null
 const viewKey = (item, fields) =>
   `${item?.placement?.requestId ?? ''}|${item?.placement?.origin ?? ''}|${item?.placement?.position ?? ''}|${fields.entity_type}:${fields.entity_id}`

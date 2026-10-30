@@ -30,10 +30,10 @@ test('preparando, Mochi está tímido', () => {
   expect(pose({ progress: 0, step: 1, delivered: false })).toEqual({ x: '0', y: '-1', almost: false })
 })
 
-test('al final de la ruta, Mochi está feliz y dice «¡Ya casi!»', () => {
+test('al final de la ruta, Mochi está feliz y dice "¡Ya casi!"', () => {
   expect(pose({ progress: 0.9, step: 2, delivered: false })).toEqual({ x: '-1', y: '0', almost: true })
 })
 
-test('entregado, feliz y sin «¡Ya casi!»', () => {
+test('entregado, feliz y sin "¡Ya casi!"', () => {
   expect(pose({ progress: 1, step: 3, delivered: true })).toEqual({ x: '-1', y: '0', almost: false })
 })

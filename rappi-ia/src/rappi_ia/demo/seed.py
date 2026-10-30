@@ -1,6 +1,6 @@
 """Catálogo de prueba inventado: ocho verticales con tiendas, productos, platos y precios.
 
-Todo es inventado (nada sale del catálogo descargado de rappi.cl) y cada nombre lleva «prueba». Sirve para la
+Todo es inventado (nada sale del catálogo descargado de rappi.cl) y cada nombre lleva "prueba". Sirve para la
 verificación de punta a punta (`make mvp-check`) y para los tests de contrato de la API. Solo se carga en una base
 cuyo nombre termina en `_test`: `reset_test_database` la borra entera antes de sembrar.
 """
@@ -32,7 +32,7 @@ DEMO_VERTICALS = (
 CITY = "Santiago"
 
 # Dos tiendas por vertical: (store_id, nombre). Los precios de cada producto se dan en ese mismo orden.
-# Los restaurantes son ocho: los dos primeros sin área en el nombre; los demás, «Local - Área» como los de Rappi (el
+# Los restaurantes son ocho: los dos primeros sin área en el nombre; los demás, "Local - Área" como los de Rappi (el
 # último no tiene ningún plato con precio, así que no se lista).
 # fmt: off
 _STORES = {
@@ -62,7 +62,7 @@ _OLD_BRANCH = (9103, "Supermercado de prueba Sur (corrida anterior)")
 _DISCOVERED_BRANCH = (9104, "Supermercado de prueba Poniente (solo descubierta)")
 
 # Condiciones de compra que Rappi guarda en el `raw` de algunas tiendas (catalog/terms.py), además del `delivery_price`
-# de todas: la 9101 «sin mínimo»; la 9102 con compra mínima y tarifa de servicio; la express 9201 con el envío de
+# de todas: la 9101 "sin mínimo"; la 9102 con compra mínima y tarifa de servicio; la express 9201 con el envío de
 # `charges`, que manda sobre `delivery_price`. Las demás no traen mínimo ni tarifa: la app pone su supuesto.
 _STORE_TERMS = {
     9101: {"mov_value": 0},
@@ -75,7 +75,7 @@ _HOME = (config.MVP_HOME_LAT, config.MVP_HOME_LNG)
 
 # Tiendas que la Home no empuja aunque tengan ofertas, como en la base real: un sex shop y un smoking shop del mall, y
 # una farmacia que Rappi lista entre los súper. Su subvertical (store_verticals.subvertical) es la que las delata. Están
-# pegadas al punto fijo: sin la regla, serían las primeras de «Cerca de ti». Cada una vende un producto corriente y uno
+# pegadas al punto fijo: sin la regla, serían las primeras de "Cerca de ti". Cada una vende un producto corriente y uno
 # de concepto sensible, los dos con baja de precio.
 # (store_id, nombre, vertical, subvertical, [(master_product_id, nombre, categoría de Rappi, precio, precio antes)]).
 # fmt: off
@@ -153,7 +153,7 @@ _PRODUCTS = [
     (97005, "Brownie con nueces (prueba)", "Postres", False, {"chocolateria": (2490, 2490)}),
     (97006, "Helado de chocolate 500 cc (prueba)", "Helados", False, {"chocolateria": (3990, 3990)}),
     (97007, "Galletas con chips de chocolate 150 g (prueba)", "Galletas", False, {"chocolateria": (1990, 1990)}),
-    # Lo asiático, para la escalera del perfil «Amante de lo asiático» (offers/perfiles.toml): el nombre lleva cada uno
+    # Lo asiático, para la escalera del perfil "Amante de lo asiático" (offers/perfiles.toml): el nombre lleva cada uno
     # a su concepto (despensa, snacks o bebidas asiáticas) aunque la categoría diga salsas, sushi, sopas o té, como en
     # la base real. Los del súper y Turbo están solo en la segunda tienda.
     (93004, "Salsa de soya 150 ml (prueba)", "Otras salsas", False, {"turbo": (None, 1990)}),
@@ -166,7 +166,7 @@ _PRODUCTS = [
 ]
 # fmt: on
 
-# Más despensa para el súper de prueba: con el café y el arroz de arriba, el pasillo «Despensa» queda con 30 productos
+# Más despensa para el súper de prueba: con el café y el arroz de arriba, el pasillo "Despensa" queda con 30 productos
 # (una página de 24 y otra de 6). Las tres últimas no están en la segunda tienda. (nombre, categoría, precio)
 # fmt: off
 _PANTRY = [
@@ -199,8 +199,8 @@ _PRODUCTS += [
 ]
 
 # Ofertas del súper de prueba Centro (9101) que NO están vigentes, para probar la regla de vigencia:
-# (id, nombre, categoría, motivo, precio). «corrida anterior»: su último precio es de una corrida anterior a la que
-# bajó el formato de la tienda; «agotado»: su último precio dice in_stock = false. Aparecen en ningún pasillo.
+# (id, nombre, categoría, motivo, precio). "corrida anterior": su último precio es de una corrida anterior a la que
+# bajó el formato de la tienda; "agotado": su último precio dice in_stock = false. Aparecen en ningún pasillo.
 _NOT_CURRENT = [
     (91201, "Atún en lata 170 g (prueba)", "Otras conservas", "corrida anterior", 1890),
     (91202, "Mermelada de damasco 250 g (prueba)", "Mermeladas", "agotado", 1490),
@@ -262,7 +262,7 @@ _LIST_PRICE = {(92004, 9201): 1990}
 
 # Menús de los restaurantes, en el orden de _STORES["restaurantes"]:
 # (cocinas, {sección: [(item_id, plato, precio)]}).
-# Las secciones y cocinas son de category_map.csv (tipos «seccion_menu» y «cocina»); los platos que nombran su tipo
+# Las secciones y cocinas son de category_map.csv (tipos "seccion_menu" y "cocina"); los platos que nombran su tipo
 # (pizza, roll, hamburguesa) también calzan por regla.
 _MENUS = [
     (
@@ -365,7 +365,7 @@ _SCHEDULES = {
 }
 
 # Lo que publican algunas tiendas en su `raw`: promos (`offers`) y si estaba abierta al bajarla (`is_open`, con la hora
-# a la que abría). Todo inventado y rotulado «prueba».
+# a la que abría). Todo inventado y rotulado "prueba".
 _STORE_OFFERS = {
     9101: [
         {"type": "free_shipping", "title": "Envío gratis sobre $15.000 (prueba)", "value": 0},
@@ -375,7 +375,7 @@ _STORE_OFFERS = {
 }
 _CLOSED_AT_DOWNLOAD = {9601: {"open_time": "10:00:00"}}
 
-# Un plato rebajado (precio de lista en su snapshot): el local de Sándwiches sale en «Con promociones».
+# Un plato rebajado (precio de lista en su snapshot): el local de Sándwiches sale en "Con promociones".
 _DISH_LIST_PRICE = {98010: 6990}
 
 # Unidades que quedaban en la descarga (price_snapshots.stock): pocas del café y ningunos tallarines (agotados aunque
@@ -414,7 +414,7 @@ def _aisle_layout() -> tuple[dict[str, tuple[int, int | None]], dict[int, tuple[
 
 _AISLE_OF_CATEGORY, _AISLE_NAMES = _aisle_layout()
 
-# La presentación de Rappi («180 g», «1,5 L»); en este catálogo inventado sale del nombre, y si no lo dice, no hay.
+# La presentación de Rappi ("180 g", "1,5 L"); en este catálogo inventado sale del nombre, y si no lo dice, no hay.
 _SIZE = re.compile(r"\d[\d,.]*\s?(?:kg|mg|ml|cc|g|L)\b")
 
 
@@ -524,7 +524,7 @@ def _insert_store(
             **_STORE_TERMS.get(store_id, {}),
         }
     elif vertical == "restaurantes":
-        # Más cerca del punto fijo que cualquier tienda: «Cerca de ti» tiene que dejarlos fuera por ser restaurantes.
+        # Más cerca del punto fijo que cualquier tienda: "Cerca de ti" tiene que dejarlos fuera por ser restaurantes.
         lat, lng = _HOME[0] + (store_id - 9800) * 0.0004, _HOME[1]
     conn.execute(
         """INSERT INTO stores (store_id, name, store_type, city, path, lat, lng, raw)
@@ -638,7 +638,7 @@ def _insert_snapshot(
 
 def _insert_aisles(conn: Connection) -> None:
     """Los pasillos y subpasillos de cada tienda: los de los productos que tiene (la 9101 tiene uno sin ofertas
-    vigentes, «Mermeladas»)."""
+    vigentes, "Mermeladas")."""
     used = conn.execute(
         """SELECT store_id, aisle_id FROM store_products WHERE aisle_id IS NOT NULL
            UNION SELECT store_id, sub_aisle_id FROM store_products WHERE sub_aisle_id IS NOT NULL

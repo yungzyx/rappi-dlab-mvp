@@ -4,7 +4,7 @@ import zlib
 from datetime import datetime
 from zoneinfo import ZoneInfo
 
-# La suite hace miles de requests desde la misma IP («testclient»): sin tope por IP (se lee al importar la config).
+# La suite hace miles de requests desde la misma IP ("testclient"): sin tope por IP (se lee al importar la config).
 # test_api_env y test_limits prueban el límite con sus propios valores.
 os.environ["API_RATE_PER_MIN"] = "0"
 os.environ["API_RATE_WRITE_PER_MIN"] = "0"

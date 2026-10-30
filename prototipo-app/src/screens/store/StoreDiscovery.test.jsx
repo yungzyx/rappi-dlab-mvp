@@ -69,8 +69,8 @@ afterEach(() => {
   localStorage.clear()
 })
 
-describe('promos, horario y «Para ti» en la tienda', () => {
-  test('las promos publicadas se ven y la del mínimo trae la barra «Agrega $X»', async () => {
+describe('promos, horario y "Para ti" en la tienda', () => {
+  test('las promos publicadas se ven y la del mínimo trae la barra "Agrega $X"', async () => {
     stubApi({ '/catalog/stores/9101': withStore({ promos: PROMOS }), '/catalog/stores/9101/para-ti': forYou([]) })
     openStore(GROCERY)
     const promos = within(await screen.findByRole('list', { name: 'Promociones de la tienda' }))
@@ -88,7 +88,7 @@ describe('promos, horario y «Para ti» en la tienda', () => {
     expect(screen.getByText(/lo que Rappi publicó el día de la descarga, no el estado en vivo/)).toBeTruthy()
   })
 
-  test('en la propuesta, «Para ti» es la primera pestaña de la tienda y muestra lo suyo', async () => {
+  test('en la propuesta, "Para ti" es la primera pestaña de la tienda y muestra lo suyo', async () => {
     const [mine] = fixture('catalog-store').products
     stubApi({ '/catalog/stores/9101': fixture('catalog-store'), '/catalog/stores/9101/para-ti': forYou([mine]) })
     openStore(GROCERY)
@@ -100,7 +100,7 @@ describe('promos, horario y «Para ti» en la tienda', () => {
     expect(list.getByText(mine.name)).toBeTruthy()
   })
 
-  test('en un restaurante, «Para ti» abre el menú antes de «Lo más pedido»', async () => {
+  test('en un restaurante, "Para ti" abre el menú antes de "Lo más pedido"', async () => {
     const [dish] = fixture('catalog-menu').sections[0].items
     stubApi({
       '/catalog/restaurants/9801/menu': fixture('catalog-menu'),
@@ -112,7 +112,7 @@ describe('promos, horario y «Para ti» en la tienda', () => {
     expect(tabs.getAllByRole('button')[1].textContent).toBe('Lo más pedido')
   })
 
-  test('en «Rappi hoy» no hay «Para ti»: ni se pide', async () => {
+  test('en "Rappi hoy" no hay "Para ti": ni se pide', async () => {
     localStorage.setItem('rappi-proto-demo-mode', 'actual')
     const fetchMock = stubApi({ '/catalog/stores/9101': fixture('catalog-store') })
     openStore(GROCERY)
