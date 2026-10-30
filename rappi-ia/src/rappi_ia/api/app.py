@@ -642,9 +642,10 @@ def get_profile(user_id: ShortPath, conn: Connection = Depends(get_conn)) -> dic
 
 @app.get("/profile/{user_id}/gustos", dependencies=[Depends(owner_in_path)])
 def tastes(user_id: ShortPath, conn: Connection = Depends(get_conn)) -> dict:
-    """Los perfiles de gusto de la persona (`offers/profiles.py`): `{ perfiles: [{ id, nombre, emoji, nivel, principal,
-    por_que, basis }] }`, el principal primero; la lista va vacía sin perfiles. «Olvidar» borra o recalcula sus
-    segmentos, y el perfil se va con ellos."""
+    """Los perfiles de gusto de la persona (`offers/profiles.py`): `{ perfiles: [{ id, nombre, emoji, gusto, nivel,
+    principal, por_que, basis, conceptos }] }`, el principal primero; la lista va vacía sin perfiles. `gusto` completa
+    «Veo que te gusta…» («lo asiático») y `conceptos` da el nombre y el emoji de lo que cuenta el «por qué» (`pedidos` y
+    `busquedas` de la `basis`). «Olvidar» borra o recalcula sus segmentos, y el perfil se va con ellos."""
     return {"perfiles": [profile.to_dict() for profile in active_profiles(conn, user_id)]}
 
 

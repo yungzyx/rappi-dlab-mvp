@@ -217,13 +217,10 @@ def test_a_valid_profile_file_loads(tmp_path):
     assert (profile.main, profile.ladder[1].words, profile.trip) == (False, ("cola", "te verde"), "japon")
     assert (profile.ladder[0].avoid, profile.ladder[1].avoid) == ((), ("limpia",))
     assert profile.likes == "probar"
-    no_likes = VALID_PROFILE.replace('gusto = "probar"\n', "")
-    without = load_profiles(_write(tmp_path, no_likes, "sin-gusto.toml"))["prueba"]
-    assert without.likes is None  # `gusto` es opcional
 
 
 def test_each_profile_says_what_the_person_likes():
-    """La frase que sigue a «Por tu gusto por…» en el momento `perfil`."""
+    """La frase que sigue a «Por tu gusto por…» en el momento `perfil` y a «Veo que te gusta…» en el saludo."""
     assert {p.id: p.likes for p in load_profiles().values()} == {
         "asiatico": "lo asiático",
         "cafe": "el café",
@@ -252,6 +249,9 @@ def test_each_profile_says_what_the_person_likes():
         ('evitar = ["Limpiá"]', 'evitar = ["¿?"]', "prueba.*evitar.*vac"),  # sin letras, queda vacía
         ('evitar = ["Limpiá"]', 'evitar = "Limpiá"', "prueba.*evitar.*lista"),
         ('gusto = "probar"', 'gusto = ""', "prueba.*gusto"),
+        ('gusto = "probar"', 'gusto = "  "', "prueba.*gusto"),
+        ('gusto = "probar"', "gusto = 3", "prueba.*gusto"),
+        ('gusto = "probar"\n', "", "prueba.*falta.*gusto"),  # obligatorio: el saludo lo necesita
     ],
 )
 def test_a_bad_profile_names_its_id_and_the_bad_value(tmp_path, old, new, message):

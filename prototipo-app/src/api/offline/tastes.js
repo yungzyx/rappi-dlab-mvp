@@ -21,10 +21,32 @@ export function activeTastes(snapshot, state) {
   return found.sort((a, b) => b.main - a.main || b.orders - a.orders)
 }
 
-/** `GET /profile/{id}/gustos`: `{ perfiles }`, los grabados de sus perfiles activos. */
+/**
+ * `GET /profile/{id}/gustos`: `{ perfiles }`, los grabados de sus perfiles activos. Una muestra grabada antes de que la
+ * API dijera `gusto` y `conceptos` los toma de `meta` (si tampoco está ahí, la app saluda como siempre).
+ */
 export const tastesReply = (snapshot, state) => ({
-  perfiles: activeTastes(snapshot, state).map(({ id }, i) => ({ ...snapshot.tastes[id].gustos, principal: i === 0 })),
+  perfiles: activeTastes(snapshot, state).map(({ id }, i) => {
+    const recorded = snapshot.tastes[id].gustos
+    const gusto = recorded.gusto ?? snapshot.meta.profiles[id].gusto
+    return {
+      ...recorded,
+      ...(gusto ? { gusto } : {}),
+      conceptos: recorded.conceptos ?? countedConcepts(snapshot.meta.concepts, recorded.basis),
+      principal: i === 0,
+    }
+  }),
 })
+
+/** El nombre y el emoji de lo que cuenta el «por qué» (`pedidos` y `busquedas` en la `basis`), como `conceptos`. */
+function countedConcepts(concepts, basis = []) {
+  const found = {}
+  for (const { id, source } of basis) {
+    if ((source === 'pedidos' || source === 'busquedas') && concepts[id])
+      found[id] = { nombre: concepts[id].name, emoji: concepts[id].emoji }
+  }
+  return found
+}
 
 /** El momento `perfil`: la escalera grabada del perfil pedido o, sin él, del primero de la persona; null si no hay. */
 export function profileOffer(snapshot, state, profileId) {

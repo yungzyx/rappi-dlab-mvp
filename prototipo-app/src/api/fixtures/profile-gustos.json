@@ -39,7 +39,18 @@
           "source": "busquedas"
         }
       ],
+      "conceptos": {
+        "asiatica": {
+          "emoji": "🥡",
+          "nombre": "Comida asiática"
+        },
+        "sushi": {
+          "emoji": "🍣",
+          "nombre": "Sushi"
+        }
+      },
       "emoji": "🥢",
+      "gusto": "lo asiático",
       "id": "asiatico",
       "nivel": "medio",
       "nombre": "Amante de lo asiático",

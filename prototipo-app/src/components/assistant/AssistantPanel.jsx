@@ -49,6 +49,9 @@ const FOR_YOU_WAIT_MS = 3000 // lo que el saludo espera lo que se pide al abrir;
 const DISCOVER_ROWS = 3
 
 const GREETING = `¡Hola! Soy ${AGENT_NAME}, tu asistente de compras 🧡 Toca una idea o busca lo que quieras.`
+// Con un perfil de gusto, como en el Comité 2: lo que le gusta (`gusto` del perfil) y la escalera justo debajo.
+const PROFILE_GREETING = (profile) =>
+  `¡Hola de nuevo! 🧡 Veo que te gusta ${profile.gusto} ${profile.emoji} Te armé ideas en otras verticales 👇`
 const OFFLINE = 'Sin conexión'
 const NOTHING_TO_PAIR = 'No se me ocurre nada para acompañar eso'
 const NOTHING_TO_TRY = 'No se me ocurre nada nuevo para probar'
@@ -96,6 +99,21 @@ const withoutEmoji = (label) => label.replace(/^\S+\s/, '')
 const CHIPS = ['🍔 ¿Qué almuerzo hoy?', '🍻 Arma un carrete', '🔥 Ofertas de hoy', '🍫 Algo dulce', '🎁 Un regalo']
 
 let nextId = 1
+
+/** Los atajos de lo que Mochi sabe hacer («Repite lo de siempre», «Arma un kit»…), como chips. */
+function CapabilityChips({ capabilities, disabled, onPick }) {
+  return capabilities.map((capability) => (
+    <button
+      key={capability.id}
+      type="button"
+      className="assistant-chip agent-capability"
+      disabled={disabled}
+      onClick={(event) => onPick(capability, event)}
+    >
+      {capability.label}
+    </button>
+  ))
+}
 
 /**
  * Lo pedido y sus refinamientos para la respuesta `index`: los mensajes de la persona desde el que la empezó (la
@@ -555,19 +573,27 @@ export default function AssistantPanel({ push, vertical, depth = 1 }) {
   }
 
   /**
-   * El saludo, con «Para ti» de /recommendations (sin él si la API no contesta o no tiene nada que recomendar). Espera
-   * también lo demás que se pide al abrir (`others`: lo aprendido y el perfil de gusto): el panel aparece con el saludo
+   * El saludo, con «Para ti» de /recommendations (sin él si la API no contesta o no tiene nada que recomendar). Con un
+   * perfil de gusto (`taste`, en la propuesta) es «¡Hola de nuevo!» con lo que le gusta, sin «Para ti»: su escalera va
+   * justo debajo. Espera también lo demás que se pide al abrir (`others`: lo aprendido): el panel aparece con el saludo
    * (`waiting`), y lo que llegara después lo empujaría.
    */
-  const greet = (rows, others) => {
+  const greet = (rows, taste, others) => {
     ask(
       async () => {
-        // Al tope sale con «Para ti» si ya llegó, aunque lo demás siga en camino.
+        // Al tope sale con lo que ya llegó, aunque lo demás siga en camino.
         let arrived = []
+        let tasteArrived = null
         rows.then((list) => (arrived = list))
-        const waited = new Promise((resolve) => later(() => resolve(arrived), FOR_YOU_WAIT_MS))
-        const all = Promise.allSettled([rows, ...others]).then(([list]) => list.value ?? [])
-        const [row] = await Promise.race([all, waited])
+        taste.then((found) => (tasteArrived = found))
+        const waited = new Promise((resolve) => later(() => resolve([arrived, tasteArrived]), FOR_YOU_WAIT_MS))
+        const all = Promise.allSettled([rows, taste, ...others]).then(([list, found]) => [
+          list.value ?? [],
+          found.value ?? null,
+        ])
+        const [[row], found] = await Promise.race([all, waited])
+        // Una muestra sin conexión grabada antes de `gusto` no lo trae: entonces, el saludo de siempre.
+        if (demo.isFinal && found?.profile.gusto) return { text: PROFILE_GREETING(found.profile) }
         if (!row) return { text: GREETING }
         const shown = { origin: 'para-ti', concept: row.concept, generation: profile.resets, kind: row.kind }
         noteShown(events.track, row.products, shown)
@@ -648,7 +674,12 @@ export default function AssistantPanel({ push, vertical, depth = 1 }) {
     const taste = loadTaste()
     taste.then((found) => fresh() && showTaste(found))
 
-    if (messages.length === 0) greet(rows, [learned, taste])
+    if (messages.length === 0)
+      greet(
+        rows,
+        taste.then((found) => (fresh() ? found : null)),
+        [learned],
+      )
     if (session.product) later(() => askPairing(session.product), OPEN_MS)
     else if (session.offer) later(() => askOffer(session.offer, session.query), OPEN_MS)
     else if (session.query) later(() => send(session.query), OPEN_MS)
@@ -802,6 +833,36 @@ export default function AssistantPanel({ push, vertical, depth = 1 }) {
     if (product.storeId == null) return
     go('store', { store: storeOfProduct(product), item: product })
   }
+  // Con perfil de gusto (en la propuesta), arriba van el perfil, el saludo y la escalera, como en el Comité 2; lo demás
+  // (el autopedido fijo, los atajos con «Mis preferencias» y «Pedir por mí», las ideas y el aviso de IA), debajo.
+  const withProfile = Boolean(taste && demo.isFinal)
+  // Con perfil, la respuesta sale arriba de la escalera: tocar un chip de abajo sube a verla.
+  const showAnswer = (event) => {
+    if (withProfile) event.currentTarget.closest('.agent-search-body')?.scrollTo?.({ top: 0, behavior: 'smooth' })
+  }
+  const aiNotice = (
+    <p className="agent-ai-notice">
+      {demo.isFinal
+        ? `${AGENT_NAME} usa IA: recuerda tus gustos por tema y las preferencias que marques, y los borras cuando quieras.`
+        : `${AGENT_NAME} usa IA. En «Rappi hoy» no aprende de lo que buscas.`}
+    </p>
+  )
+  const pinnedCard = pinnedAuto && (
+    <AutoOrderCard
+      order={pinnedAuto.autoOrder}
+      status={autoStatus[pinnedAuto.autoOrder.key]}
+      revealed
+      onShown={armAuto}
+      onUndo={undoAuto}
+      onReview={reviewAuto}
+      onTurnOff={turnOffAuto}
+      onTrack={(orderId) => go('tracking', { orderId })}
+    />
+  )
+  const pickCapability = (capability, event) => {
+    runCapability(capability.id, capability.label)
+    showAnswer(event)
+  }
 
   return (
     <div
@@ -881,54 +942,47 @@ export default function AssistantPanel({ push, vertical, depth = 1 }) {
                 <span>
                   <strong>{AGENT_NAME}</strong>
                   <small>
-                    <i className="assistant-online" /> Tu asistente de compras
+                    <i className="assistant-online" /> Tu asistente Rappi
                   </small>
                 </span>
               </header>
 
-              {/* «Olvidar» siempre a mano: aunque no haya intereses que mostrar, hay búsquedas y eventos que borrar. */}
-              <div className="assistant-learning">
-                {learned.length > 0 && (
-                  <>
-                    <span>Aprendiendo de ti:</span>
-                    {learned.map((item) => (
-                      <b key={item.concept}>{item.label}</b>
-                    ))}
-                  </>
-                )}
-                {demo.isFinal && (
-                  <button type="button" onClick={openPreferences}>
-                    {PREFERENCES_TITLE}
-                  </button>
-                )}
-                {demo.isFinal && (
-                  <button type="button" onClick={openAutonomy}>
-                    {AUTONOMY_TITLE}
-                  </button>
-                )}
-                <button type="button" onClick={() => setConfirmingForget(true)}>
-                  Olvidar
-                </button>
-              </div>
-              <p className="agent-ai-notice">
-                {demo.isFinal
-                  ? `${AGENT_NAME} usa IA: recuerda tus gustos por tema y las preferencias que marques, y los borras cuando quieras.`
-                  : `${AGENT_NAME} usa IA. En «Rappi hoy» no aprende de lo que buscas.`}
-              </p>
-
-              {taste && demo.isFinal && <ProfileCard profile={taste.profile} />}
-
-              {pinnedAuto && (
-                <AutoOrderCard
-                  order={pinnedAuto.autoOrder}
-                  status={autoStatus[pinnedAuto.autoOrder.key]}
-                  revealed
-                  onShown={armAuto}
-                  onUndo={undoAuto}
-                  onReview={reviewAuto}
-                  onTurnOff={turnOffAuto}
-                  onTrack={(orderId) => go('tracking', { orderId })}
+              {withProfile ? (
+                // Con perfil, «Olvidar» va en su tarjeta; lo aprendido lo dice su «por qué».
+                <ProfileCard
+                  profile={taste.profile}
+                  onForget={() => setConfirmingForget(true)}
+                  forgetting={forgetting}
                 />
+              ) : (
+                <>
+                  {/* «Olvidar» siempre a mano: aunque no haya intereses que mostrar, hay búsquedas y eventos que borrar. */}
+                  <div className="assistant-learning">
+                    {learned.length > 0 && (
+                      <>
+                        <span>Aprendiendo de ti:</span>
+                        {learned.map((item) => (
+                          <b key={item.concept}>{item.label}</b>
+                        ))}
+                      </>
+                    )}
+                    {demo.isFinal && (
+                      <button type="button" onClick={openPreferences}>
+                        {PREFERENCES_TITLE}
+                      </button>
+                    )}
+                    {demo.isFinal && (
+                      <button type="button" onClick={openAutonomy}>
+                        {AUTONOMY_TITLE}
+                      </button>
+                    )}
+                    <button type="button" onClick={() => setConfirmingForget(true)}>
+                      Olvidar
+                    </button>
+                  </div>
+                  {aiNotice}
+                  {pinnedCard}
+                </>
               )}
 
               {showAsked && (
@@ -965,23 +1019,57 @@ export default function AssistantPanel({ push, vertical, depth = 1 }) {
                 />
               )}
 
-              {capabilities.length > 0 && !current?.health && (
+              {withProfile ? (
                 <>
-                  <p className="agent-picks-label">Puedo ayudarte a:</p>
-                  <div className="assistant-chips agent-capabilities">
-                    {capabilities.map((capability) => (
-                      <button
-                        key={capability.id}
-                        type="button"
-                        className="assistant-chip agent-capability"
-                        disabled={forgetting}
-                        onClick={() => runCapability(capability.id, capability.label)}
-                      >
-                        {capability.label}
-                      </button>
-                    ))}
+                  <LadderRail
+                    ladder={taste.ladder}
+                    onOpenVertical={(screen, where) => {
+                      noteVerticalOpen({ ...where, origin: 'agent-perfil', requestId: taste.ladder.requestId })
+                      go(...routeForScreen(screen))
+                    }}
+                    onOpenTravel={() =>
+                      onAction({
+                        route: taste.ladder.trip?.route ?? ['travel'],
+                        service: 'rappitravel',
+                        placement: { surface: 'agent', origin: 'agent-perfil', requestId: taste.ladder.requestId },
+                      })
+                    }
+                    onOpenProduct={openProduct}
+                  />
+                  {pinnedCard}
+                  {/* Lo demás que Mochi sabe hacer, en una sola fila: los atajos y sus ajustes. */}
+                  <div className="assistant-chips agent-capabilities agent-more">
+                    {!current?.health && (
+                      <CapabilityChips capabilities={capabilities} disabled={forgetting} onPick={pickCapability} />
+                    )}
+                    <button
+                      type="button"
+                      className="assistant-chip agent-capability"
+                      disabled={forgetting}
+                      onClick={openPreferences}
+                    >
+                      {PREFERENCES_TITLE}
+                    </button>
+                    <button
+                      type="button"
+                      className="assistant-chip agent-capability"
+                      disabled={forgetting}
+                      onClick={openAutonomy}
+                    >
+                      {AUTONOMY_TITLE}
+                    </button>
                   </div>
                 </>
+              ) : (
+                capabilities.length > 0 &&
+                !current?.health && (
+                  <>
+                    <p className="agent-picks-label">Puedo ayudarte a:</p>
+                    <div className="assistant-chips agent-capabilities">
+                      <CapabilityChips capabilities={capabilities} disabled={forgetting} onPick={pickCapability} />
+                    </div>
+                  </>
+                )
               )}
 
               {/* Bajo una respuesta de salud no van las ideas de siempre («Arma un carrete») */}
@@ -996,32 +1084,18 @@ export default function AssistantPanel({ push, vertical, depth = 1 }) {
                       className="assistant-chip"
                       disabled={forgetting}
                       style={{ animationDelay: `${120 + i * 55}ms` }}
-                      onClick={() => send(chip.replace(/^\S+\s/, ''))}
+                      onClick={(event) => {
+                        send(chip.replace(/^\S+\s/, ''))
+                        showAnswer(event)
+                      }}
                     >
                       {chip}
                     </button>
                   ))}
                 </div>
               )}
+              {withProfile && aiNotice}
             </section>
-
-            {taste && demo.isFinal && (
-              <LadderRail
-                ladder={taste.ladder}
-                onOpenVertical={(screen, where) => {
-                  noteVerticalOpen({ ...where, origin: 'agent-perfil', requestId: taste.ladder.requestId })
-                  go(...routeForScreen(screen))
-                }}
-                onOpenTravel={() =>
-                  onAction({
-                    route: taste.ladder.trip?.route ?? ['travel'],
-                    service: 'rappitravel',
-                    placement: { surface: 'agent', origin: 'agent-perfil', requestId: taste.ladder.requestId },
-                  })
-                }
-                onOpenProduct={openProduct}
-              />
-            )}
 
             <section className="agent-block">
               <SearchIdeas onPick={search.pick} />

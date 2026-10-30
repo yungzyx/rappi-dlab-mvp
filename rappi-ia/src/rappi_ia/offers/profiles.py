@@ -64,6 +64,7 @@ CITY_COMUNAS = {
 }
 REASON_CONCEPTS = 3  # conceptos que nombra el «por qué»
 QUERY_EVENTS = ("search", "chat", "ask")  # lo que cuenta como «buscaste»
+COUNTED_SOURCES = ("pedidos", "busquedas")  # lo que cuenta el «por qué» en la `basis`
 # El «por qué» sin nada que contar: un perfil que se armó con lo que el agente no nombra (los cócteles del carrete)
 # o con búsquedas sin concepto.
 REASON_NEUTRAL = "Por lo que has pedido y buscado últimamente."
@@ -109,8 +110,8 @@ class Profile:
     segments: tuple[str, ...]
     min_level: str
     ladder: tuple[Step, ...]
+    likes: str  # lo que sigue a «Por tu gusto por…» y a «Veo que te gusta…» («lo asiático»)
     trip: str | None = None  # id de un destino
-    likes: str | None = None  # lo que sigue a «Por tu gusto por…» en el momento `perfil` («lo asiático»)
 
 
 @cache
@@ -145,11 +146,11 @@ def load_profiles(path: Path = DATA_DIR / "perfiles.toml") -> dict[str, Profile]
         where = f"Perfil {raw.get('id', '?')}"
         _check_keys(
             raw,
-            {"id", "nombre", "emoji", "segmentos", "nivel_minimo", "escalera"},
-            {"principal", "viaje", "gusto"},
+            {"id", "nombre", "emoji", "segmentos", "nivel_minimo", "escalera", "gusto"},
+            {"principal", "viaje"},
             where,
         )
-        if "gusto" in raw and not (isinstance(raw["gusto"], str) and raw["gusto"].strip()):
+        if not (isinstance(raw["gusto"], str) and raw["gusto"].strip()):
             raise ValueError(f"{where}: «gusto» va como un texto no vacío")
         if raw["id"] in profiles:
             raise ValueError(f"{where}: id repetido")
@@ -173,8 +174,8 @@ def load_profiles(path: Path = DATA_DIR / "perfiles.toml") -> dict[str, Profile]
             segments=tuple(raw["segmentos"]),
             min_level=raw["nivel_minimo"],
             ladder=ladder,
+            likes=raw["gusto"],
             trip=raw.get("viaje"),
-            likes=raw.get("gusto"),
         )
     main = [p.id for p in profiles.values() if p.main]
     if len(main) > 1:
@@ -240,11 +241,20 @@ class ActiveProfile:
             "id": self.profile.id,
             "nombre": self.profile.name,
             "emoji": self.profile.emoji,
+            "gusto": self.profile.likes,
             "nivel": self.level,
             "principal": self.profile.main,
             "por_que": self.reason,
             "basis": list(self.basis),
+            "conceptos": self.concepts(),
         }
+
+    def concepts(self) -> dict[str, dict[str, str]]:
+        """El nombre y el emoji de cada concepto que cuenta el «por qué» (`pedidos` o `busquedas` en la `basis`): la
+        app los lista en «¿Por qué?» sin tener la taxonomía."""
+        taxonomy = load_taxonomy().concepts
+        counted = (s["id"] for s in self.basis if s["source"] in COUNTED_SOURCES)
+        return {c: {"nombre": taxonomy[c].name, "emoji": taxonomy[c].emoji} for c in dict.fromkeys(counted)}
 
 
 def active_profiles(conn: Connection, user_id: str | None) -> list[ActiveProfile]:

@@ -85,7 +85,13 @@ print(
                 "own_signals_only": sorted(OWN_SIGNALS_ONLY),
             },
             "profiles": {
-                p.id: {"name": p.name, "emoji": p.emoji, "main": p.main, "concepts": profile_concepts(p)}
+                p.id: {
+                    "name": p.name,
+                    "emoji": p.emoji,
+                    "main": p.main,
+                    "gusto": p.likes,
+                    "concepts": profile_concepts(p),
+                }
                 for p in load_profiles().values()
             },
             "featured": {
