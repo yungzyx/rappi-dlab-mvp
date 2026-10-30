@@ -2,14 +2,14 @@
 
 Dos HTML de un solo archivo para mostrar el MVP sin API ni internet, con los controles de la demo a mano y un recorrido automático por capítulos:
 
-- **«Mochi MVP - Presentación.html»**: para un notebook o un proyector. Al centro, «Prototipo MVP.html» tal cual; a la izquierda, la vista (MVP con Mochi o Rappi hoy, también con la tecla D), primero los perfiles de gusto (fichas con su emoji) y después las otras personas del «Panel de la demo», la línea de la escalera («Hoy: … → siguiente: …») y, en «Simular», «+1 visita a…», «Borrar historial» y «Atrasar el pedido en curso»; a la derecha, el panel de negocio, el recorrido automático, sus capítulos y Parar.
+- **«Mochi MVP - Presentación.html»**: para un notebook o un proyector. Al centro, «Prototipo MVP.html» tal cual; a la izquierda, la vista (MVP con Mochi o Rappi hoy, también con la tecla D), primero los perfiles de gusto (fichas con su emoji) y después las otras personas del «Panel de la demo», la línea de la escalera («Hoy: … → siguiente: …») y, en «Simular», «+1 visita a…» (cierra el buscador si estaba abierto, para que se vea a Mochi mover los accesos), «Borrar historial» y «Atrasar el pedido en curso»; a la derecha, el panel de negocio, el recorrido automático, sus capítulos y Parar.
 - **«Mochi MVP - iPhone y iPad.html»**: la app a pantalla completa, con una barra abajo (la persona elegida, el recorrido y un menú) y una hoja con las mismas opciones.
 
 Los botones de la presentación tocan los de la app: el interruptor de modo y el «Panel de la demo» quedan ocultos dentro del iframe y la presentación los muestra a los lados. Elegir una persona a mano abre el buscador con Mochi, lo que Mochi le muestra a esa persona; con un perfil de gusto, además pasea su escalera «Para ti en otras verticales». Un toque, una tecla o la rueda dentro de la app detiene el recorrido.
 
 ## Capítulos del recorrido
 
-1. La Home que aprende: Mochi se presenta, los accesos ordenados por uso (y «+1 visita» que los reordena), la vertical que Mochi propone con su «¿Por qué?».
+1. La Home que aprende: Mochi se presenta, los accesos ordenados por uso (y «+1 visita», con la que Mochi los mueve y dice por qué), la vertical que Mochi propone con su «¿Por qué?».
 2. El buscador con Mochi: «¿Repetimos?», el perfil de gusto con su «¿Por qué?» y su saludo, la escalera por verticales (hasta RappiTravel) y agregar una idea al carro.
 3. Por necesidad o por plan: «¿Qué llevo para un asado de 6?», el chip «Más barato» y el kit de «¿Qué plan tienes hoy?».
 4. «¿Volvemos a…?» y Ofertas.

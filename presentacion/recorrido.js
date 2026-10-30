@@ -110,6 +110,17 @@ function proxy(className, text, onClick) {
   return b;
 }
 
+/* «+1 visita» mueve los accesos de la Home y Mochi lo explica: para que se vea, cierra el buscador (una persona elegida
+   a mano lo deja abierto) y termina la guía de la primera vez si está a la vista (si no, Mochi lo explica al terminarla) */
+function showHome() {
+  const doc = appDoc();
+  if (!doc) return;
+  const back = doc.querySelector(".agent-search button.search-back");
+  if (back) back.click();
+  const guide = [...doc.querySelectorAll(".live-bubble button.live-chip")].find((b) => /^(Saltar|Listo)$/.test(b.textContent.trim()));
+  if (guide) guide.click();
+}
+
 /* Un perfil de gusto se muestra como ficha: su emoji grande y el nombre corto («🥢 Amante de lo asiático» → «Asiático»).
    El nombre completo queda en aria-label y title: el recorrido lo busca por ahí */
 function tasteTile(b, label) {
@@ -152,6 +163,7 @@ function syncControls() {
     tastesEl.replaceChildren(...people.filter(isTaste).map(personaProxy));
     simEl.replaceChildren(...sims.map((label) => proxy(/^Borrar/.test(label) ? "sim is-danger" : "sim", label, () => {
       const t = [...demoButtons("Mover la Home"), ...demoButtons("Pedido en curso")].find((b) => b.textContent.trim() === label);
+      if (t && /^\+1 visita/.test(label)) showHome();
       if (t) t.click();
     })));
   }
@@ -651,7 +663,9 @@ const CHAPTERS = [
       { say: "Los accesos se ordenan por lo que más usa: Súper va primero.", point: { sel: ".home-shortcut" }, after: 1800 },
       ...simulate("Rappi Mall", "Simula visitas a Rappi Mall desde el panel de la demo."),
       ...simulate("Rappi Mall", "Simula visitas a Rappi Mall desde el panel de la demo."),
-      { say: "La Home se reordena en vivo: Rappi Mall sube.", point: { sel: ".home-shortcut", text: "Rappi Mall" }, after: 2000 },
+      { say: "Mochi mueve los accesos en vivo y dice por qué.", point: { sel: ".live-bubble" }, timeout: 5000, after: 3000 },
+      { say: "La Home se reordena en vivo: Rappi Mall sube.", point: { sel: ".home-shortcut", text: "Rappi Mall" }, after: 1800 },
+      { say: "«Entendido».", click: { sel: "button.live-chip", text: "Entendido" }, timeout: 3000, after: 600 },
       { say: "Le pide a Mochi algo nuevo para probar.", click: { sel: ".live-agent-body" }, after: 2600 },
       { say: "Mochi propone la vertical que sigue en su escalera. ¿Por qué?", click: { sel: ".live-bubble .offer-why-toggle" }, timeout: 6000, after: 2600 },
       { say: "Por ahora, «Después».", click: { sel: "button.live-chip", text: "Después" } },
