@@ -102,6 +102,11 @@ function demoButtons(title) {
 const EMOJI = /^\p{Extended_Pictographic}/u;
 const isTaste = (label) => EMOJI.test(label);
 
+/* Las secciones del «Panel de la demo» que van en «Simular». «Mochi» (solo en el MVP con Mochi) es un botón que dice lo
+   que hará: «Ocultar a Mochi» o «Mostrar a Mochi» */
+const SIM_SECTIONS = ["Mover la Home", "Pedido en curso", "Mochi"];
+const simButtons = () => SIM_SECTIONS.flatMap(demoButtons);
+
 function proxy(className, text, onClick) {
   const b = document.createElement("button");
   b.className = className;
@@ -143,7 +148,7 @@ function syncControls() {
   if (toggle && toggle.getAttribute("aria-expanded") === "false") toggle.click();
   const modes = appModes();
   const people = demoButtons("Persona").map((b) => b.textContent.trim());
-  const sims = [...demoButtons("Mover la Home"), ...demoButtons("Pedido en curso")].map((b) => b.textContent.trim());
+  const sims = simButtons().map((b) => b.textContent.trim());
   const key = modes.map(modeLabel).join("/") + "|" + people.join("/") + "|" + sims.join("/");
   if (key !== shownKey) {
     shownKey = key;
@@ -162,8 +167,9 @@ function syncControls() {
     personasEl.replaceChildren(...people.filter((l) => !isTaste(l)).map(personaProxy));
     tastesEl.replaceChildren(...people.filter(isTaste).map(personaProxy));
     simEl.replaceChildren(...sims.map((label) => proxy(/^Borrar/.test(label) ? "sim is-danger" : "sim", label, () => {
-      const t = [...demoButtons("Mover la Home"), ...demoButtons("Pedido en curso")].find((b) => b.textContent.trim() === label);
-      if (t && /^\+1 visita/.test(label)) showHome();
+      const t = simButtons().find((b) => b.textContent.trim() === label);
+      /* ocultar o mostrar a Mochi también se ve en la Home: sin la mascota o de vuelta */
+      if (t && /^(\+1 visita|Ocultar a|Mostrar a)/.test(label)) showHome();
       if (t) t.click();
     })));
   }
@@ -785,6 +791,8 @@ const CHAPTERS = [
       { say: "Retención y venta cruzada: dónde está y a quién estamos perdiendo.", scroll: { to: { biz: "h2, h3", text: "A quién estamos perdiendo" } } },
       { say: "Retención y venta cruzada: dónde está y a quién estamos perdiendo.", wait: 1800 },
       { say: "Mochi y búsquedas: lo que ofrece Mochi y lo que no se encuentra.", click: { biz: "[role=tab]", text: "Mochi y búsquedas" }, after: 2400 },
+      { say: "¿Mochi molesta? Cuántas personas lo ocultaron y cuántas lo trajeron de vuelta.", scroll: { to: { biz: "h2, h3", text: "molesta" } } },
+      { say: "¿Mochi molesta? Cuántas personas lo ocultaron y cuántas lo trajeron de vuelta.", wait: 1800 },
       { say: "Mochi y búsquedas: lo que ofrece Mochi y lo que no se encuentra.", scroll: { to: { biz: "h2, h3", text: "Qué buscan y no encuentran" } } },
       { say: "Mochi y búsquedas: lo que ofrece Mochi y lo que no se encuentra.", wait: 1800 },
       { say: "Cierra el panel.", click: { panel: "#biz-close" } },

@@ -2,7 +2,7 @@
 
 Dos HTML de un solo archivo para mostrar el MVP sin API ni internet, con los controles de la demo a mano y un recorrido automático por capítulos:
 
-- **«Mochi MVP - Presentación.html»**: para un notebook o un proyector. Al centro, «Prototipo MVP.html» tal cual; a la izquierda, la vista (MVP con Mochi o Rappi hoy, también con la tecla D), primero los perfiles de gusto (fichas con su emoji) y después las otras personas del «Panel de la demo», la línea de la escalera («Hoy: … → siguiente: …») y, en «Simular», «+1 visita a…» (cierra el buscador si estaba abierto, para que se vea a Mochi mover los accesos), «Borrar historial» y «Atrasar el pedido en curso»; a la derecha, el panel de negocio, el recorrido automático, sus capítulos y Parar.
+- **«Mochi MVP - Presentación.html»**: para un notebook o un proyector. Al centro, «Prototipo MVP.html» tal cual; a la izquierda, la vista (MVP con Mochi o Rappi hoy, también con la tecla D), primero los perfiles de gusto (fichas con su emoji) y después las otras personas del «Panel de la demo», la línea de la escalera («Hoy: … → siguiente: …») y, en «Simular», «+1 visita a…» (cierra el buscador si estaba abierto, para que se vea a Mochi mover los accesos), «Borrar historial», «Atrasar el pedido en curso» y, en el MVP con Mochi, «Ocultar a Mochi» o «Mostrar a Mochi» (el mismo botón, sin confirmar: vuelve a la Home para que se vea); a la derecha, el panel de negocio, el recorrido automático, sus capítulos y Parar.
 - **«Mochi MVP - iPhone y iPad.html»**: la app a pantalla completa, con una barra abajo (la persona elegida, el recorrido y un menú) y una hoja con las mismas opciones.
 
 Los botones de la presentación tocan los de la app: el interruptor de modo y el «Panel de la demo» quedan ocultos dentro del iframe y la presentación los muestra a los lados. Elegir una persona a mano abre el buscador con Mochi, lo que Mochi le muestra a esa persona; con un perfil de gusto, además pasea su escalera «Para ti en otras verticales». Un toque, una tecla o la rueda dentro de la app detiene el recorrido.
@@ -17,7 +17,7 @@ Los botones de la presentación tocan los de la app: el interruptor de modo y el
 6. Preferencias y «Pedir por mí».
 7. Cambiar de persona: asiático, café y mascotero.
 8. Rappi hoy frente al MVP.
-9. El panel de negocio: Resumen, Retención y venta cruzada, Mochi y búsquedas.
+9. El panel de negocio: Resumen, Retención y venta cruzada, Mochi y búsquedas (con «¿Mochi molesta?»).
 
 Cada capítulo elige su persona (que borra lo de antes) o sigue con lo que dejó el anterior; si algo no aparece, el paso se salta y queda en la consola del navegador («Paso saltado»).
 

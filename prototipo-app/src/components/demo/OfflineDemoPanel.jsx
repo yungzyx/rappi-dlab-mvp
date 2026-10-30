@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { AGENT_NAME } from '../../agent/name'
 import {
   addVisit,
   clearHistory,
@@ -10,6 +11,9 @@ import {
 import { loadSnapshot } from '../../api/offline/snapshot'
 import { OFFLINE_STATE_EVENT } from '../../api/offline/state'
 import { DEMO_DELAY_EVENT } from '../../screens/tracking/delay'
+import { setAgentHidden, useAgentHidden } from '../../state/agentHidden'
+import { useDemo } from '../../state/DemoContext'
+import { useEvents } from '../../state/EventsContext'
 import './offline-demo-panel.css'
 
 // Los 6 accesos chicos que ordena la Home (motor/home.py), con su nombre en la fila de accesos.
@@ -24,13 +28,23 @@ const VISITS = [
 
 /**
  * «Panel de la demo» de «Prototipo MVP.html» (solo el build sin conexión): elegir una persona con su historial, sumar
- * visitas a los accesos para ver cómo se reordena la Home, leer en qué paso de la escalera está la persona y atrasar el
- * pedido en curso (el mensaje proactivo y, en Turbo, la garantía de ejemplo con Créditos).
+ * visitas a los accesos para ver cómo se reordena la Home, leer en qué paso de la escalera está la persona, atrasar el
+ * pedido en curso (el mensaje proactivo y, en Turbo, la garantía de ejemplo con Créditos) y, en el prototipo final,
+ * ocultar a Mochi o traerlo de vuelta (como su menú y Cuenta, pero sin confirmar).
  */
 export default function OfflineDemoPanel() {
   const [open, setOpen] = useState(false)
   const [snapshot, setSnapshot] = useState(null)
   const [readout, setReadout] = useState('')
+  const { isFinal } = useDemo()
+  const agentHidden = useAgentHidden()
+  const events = useEvents()
+
+  // El mismo cambio y el mismo evento que el menú de Mochi y Cuenta (`agent_visibility`), con su propio origen.
+  const toggleAgent = () => {
+    events.track('agent_visibility', { origin: 'panel-demo', payload: { visible: agentHidden } })
+    setAgentHidden(!agentHidden)
+  }
 
   useEffect(() => {
     loadSnapshot().then(setSnapshot)
@@ -98,6 +112,20 @@ export default function OfflineDemoPanel() {
               Atrasar el pedido en curso
             </button>
           </div>
+
+          {isFinal && (
+            <>
+              <h2>{AGENT_NAME}</h2>
+              <p className="offline-demo-help">
+                Lo oculta o lo trae de vuelta como su menú y Cuenta (aquí sin confirmar), y queda anotado igual.
+              </p>
+              <div className="offline-demo-buttons">
+                <button type="button" onClick={toggleAgent}>
+                  {agentHidden ? `Mostrar a ${AGENT_NAME}` : `Ocultar a ${AGENT_NAME}`}
+                </button>
+              </div>
+            </>
+          )}
         </section>
       )}
     </div>
