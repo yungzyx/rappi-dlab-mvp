@@ -9,7 +9,7 @@ Fecha: 14-10-2026. Construido en el backend el 14-10-2026; desde el 17-10-2026 e
 > - Dos ajustes de segmentos y conceptos: el peldaño de chocolaterías del asiático suma `te` («Lindor Matcha» viene en la categoría «Tés») y el italiano suma el segmento `pizzero`.
 > - La guardia de alcohol mira también el nombre del producto o del plato, porque la marca de la tienda puede estar mal («Soju Uva Verde 13» salía como fruta).
 > - `mochi` suelto no es palabra clave de producto, porque es el nombre del agente.
-> - El texto del momento dice «Como te gusta {gusto}…» con el campo opcional `gusto` de cada perfil (sin él, nombra al perfil). La `basis` de una oferta sin persona trae `{kind: "perfil", source: "contexto"}`; con persona, sus segmentos y lo que pidió y buscó, en la forma de `offers/personal.py`.
+> - El texto del momento dice «Por tu gusto por {gusto}…» con el campo `gusto` de cada perfil, obligatorio desde el 29-10: el buscador con Mochi saluda con él («¡Hola de nuevo! 🧡 Veo que te gusta {gusto}…»), y `GET /profile/{id}/gustos` lo devuelve junto con `conceptos` (nombre y emoji de lo que cuenta el «por qué», para «¿Por qué?»). La `basis` de una oferta sin persona trae `{kind: "perfil", source: "contexto"}`; con persona, sus segmentos y lo que pidió y buscó, en la forma de `offers/personal.py`.
 > - La consulta de un peldaño sin `palabras` son los nombres de sus conceptos y sus primeras palabras clave, para que la búsqueda por texto sirva aun sin embeddings. Una escalera no repite un nombre entre peldaños, no muestra tiendas cuyo nombre o marca dice «licor» o «botillería» («Turbo Licores») y en restaurantes pone un plato por cadena.
 
 ## Punto de partida (13-10)

@@ -1,4 +1,4 @@
-import { act, cleanup, fireEvent, render, screen } from '@testing-library/react'
+import { act, cleanup, fireEvent, render, screen, within } from '@testing-library/react'
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, test, vi } from 'vitest'
 import { AssistantProvider, useAssistant } from '../../state/AssistantContext'
 import { CartProvider } from '../../state/CartContext'
@@ -1333,7 +1333,7 @@ describe('al abrir, nada se mueve', () => {
     expect(screen.getByRole('dialog').classList.contains('is-waiting')).toBe(false)
   })
 
-  test('el saludo espera también el perfil de gusto: el perfil y su escalera aparecen con él', async () => {
+  test('el saludo espera también el perfil de gusto: el perfil, el saludo con su gusto y la escalera aparecen juntos', async () => {
     // Conceptos propios: lo mostrado se recuerda en la pestaña y los tests del perfil cuentan los de la fixture.
     const ladder = fixture('agent-offer-perfil')
     for (const step of ladder.escalera)
@@ -1348,7 +1348,7 @@ describe('al abrir, nada se mueve', () => {
     expect(screen.getByRole('dialog').classList.contains('is-waiting')).toBe(true)
 
     await runUntilIdle()
-    expect(bubbles()[0]).toMatch(/Soy Mochi/)
+    expect(bubbles()[0]).toMatch(/^¡Hola de nuevo! 🧡 Veo que te gusta lo asiático 🥢/)
     expect(screen.getByRole('region', { name: 'Tu perfil' })).toBeTruthy()
     expect(screen.getByRole('region', { name: 'Para ti en otras verticales' })).toBeTruthy()
     expect(screen.getByRole('dialog').classList.contains('is-waiting')).toBe(false)
@@ -1368,7 +1368,7 @@ describe('perfil de gusto', () => {
 
     const card = screen.getByRole('region', { name: 'Tu perfil' })
     expect(card.textContent).toContain('Amante de lo asiático')
-    expect(card.textContent).toContain('Nivel medio')
+    expect(card.textContent).toContain('nivel medio')
     expect(card.textContent).toContain('Pediste 🍣 sushi 2 veces')
     // Pide la escalera del perfil principal, como esta persona.
     const asked = fetchMock.mock.calls.find(
@@ -1401,6 +1401,118 @@ describe('perfil de gusto', () => {
     fireEvent.click(screen.getByText('Ver Súper ›'))
     await runUntilIdle()
     expect(push).toHaveBeenCalledWith(...routeForScreen('grocery'))
+  })
+
+  const withTaste = (routes = {}) =>
+    stubCatalog({
+      'GET /profile/*': (req) =>
+        req.path.endsWith('/gustos')
+          ? fixture('profile-gustos')
+          : req.path.endsWith('/preferencias')
+            ? fixture('profile-preferencias')
+            : req.path.endsWith('/autonomia')
+              ? fixture('profile-autonomia')
+              : undefined,
+      'POST /agent/offer': (req) => (req.body.moment === 'perfil' ? fixture('agent-offer-perfil') : 204),
+      ...routes,
+    })
+
+  test('como en el Comité 2: Mochi, el perfil, el saludo con su gusto y la escalera, todo en la tarjeta', async () => {
+    withTaste()
+    await renderPanel()
+
+    const card = document.querySelector('.agent-card')
+    expect(card.querySelector('.agent-card-head').textContent).toContain('Tu asistente Rappi')
+    // Un solo saludo, corto y sin «Para ti» debajo: la escalera va justo después.
+    expect(bubbles()).toEqual([
+      '¡Hola de nuevo! 🧡 Veo que te gusta lo asiático 🥢 Te armé ideas en otras verticales 👇',
+    ])
+    expect(card.querySelector('.agent-msg-products')).toBeNull()
+    const order = [
+      '.taste-card',
+      '.agent-msg-bubble',
+      '.taste-ladder',
+      '.agent-more',
+      '.agent-picks',
+      '.agent-ai-notice',
+    ].map((selector) => card.querySelector(selector))
+    expect(order.every(Boolean)).toBe(true)
+    for (let i = 1; i < order.length; i++)
+      expect(order[i - 1].compareDocumentPosition(order[i]) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+    // El perfil ya dice lo aprendido; «Olvidar» va en su tarjeta, una sola vez.
+    expect(screen.queryByText('Aprendiendo de ti:')).toBeNull()
+    expect(screen.queryByText('Puedo ayudarte a:')).toBeNull()
+    expect(screen.getAllByRole('button', { name: 'Olvidar' })).toHaveLength(1)
+    expect(card.querySelector('.taste-card .taste-forget')).toBeTruthy()
+  })
+
+  test('«Olvidar» en la tarjeta del perfil pide la misma confirmación', async () => {
+    withTaste()
+    await renderPanel()
+    fireEvent.click(document.querySelector('.taste-forget'))
+    const sheet = screen.getByRole('dialog', { name: 'Borrar mis datos' })
+    expect(within(sheet).getByText('Sí, borrar')).toBeTruthy()
+    expect(api.forget).not.toHaveBeenCalled()
+  })
+
+  test('«¿Por qué?» muestra lo que contó: pedidos y búsquedas por concepto, con su nombre', async () => {
+    withTaste()
+    await renderPanel()
+    const toggle = screen.getByRole('button', { name: /¿Por qué\?/ })
+    expect(toggle.getAttribute('aria-expanded')).toBe('false')
+    expect(document.querySelector('.taste-why')).toBeNull()
+
+    fireEvent.click(toggle)
+    expect(toggle.getAttribute('aria-expanded')).toBe('true')
+    const items = [...document.querySelectorAll('.taste-why li')].map((li) => li.textContent)
+    // Los segmentos de la basis no se listan, y cada concepto sale una vez.
+    expect(items).toEqual(['🍣 Sushi · 2 pedidos', '🥡 Comida asiática · 1 búsqueda'])
+
+    fireEvent.click(toggle)
+    expect(document.querySelector('.taste-why')).toBeNull()
+  })
+
+  test('sin `gusto` (una muestra grabada antes), saluda como siempre y el perfil sigue', async () => {
+    const { gusto, ...old } = fixture('profile-gustos').perfiles[0]
+    expect(gusto).toBe('lo asiático')
+    withTaste({
+      'GET /profile/*': (req) => (req.path.endsWith('/gustos') ? { perfiles: [old] } : undefined),
+    })
+    await renderPanel()
+    expect(bubbles()[0]).toMatch(/Soy Mochi/)
+    expect(screen.getByRole('region', { name: 'Tu perfil' })).toBeTruthy()
+  })
+
+  test('debajo de la escalera, una fila con los atajos, «Mis preferencias» y «Pedir por mí», que siguen andando', async () => {
+    const fetchMock = withTaste()
+    await renderPanel()
+    const row = document.querySelector('.agent-more')
+    expect([...row.querySelectorAll('button')].map((b) => b.textContent)).toEqual([
+      '🔁 Repite lo de siempre',
+      '🧺 Arma un kit',
+      '✨ Algo para ti',
+      'Mis preferencias',
+      'Pedir por mí',
+    ])
+
+    fireEvent.click(within(row).getByRole('button', { name: 'Mis preferencias' }))
+    await runUntilIdle()
+    expect(screen.getByRole('dialog', { name: 'Mis preferencias' })).toBeTruthy()
+    fireEvent.click(within(row).getByRole('button', { name: 'Pedir por mí' }))
+    await runUntilIdle()
+    expect(screen.getByRole('dialog', { name: 'Pedir por mí' })).toBeTruthy()
+
+    fireEvent.click(within(row).getByRole('button', { name: '🔁 Repite lo de siempre' }))
+    await runUntilIdle()
+    const offered = fetchMock.mock.calls.filter(([url]) => url.endsWith('/agent/offer'))
+    expect(JSON.parse(offered.at(-1)[1].body).moment).toBe('recompra')
+    // La respuesta reemplaza al saludo (una sola burbuja, arriba de la escalera), con lo elegido encima.
+    expect(bubbles()).toHaveLength(1)
+    expect(document.querySelector('.agent-asked').textContent).toBe('Elegiste «Repite lo de siempre»')
+    expect(
+      document.querySelector('.agent-msg-bubble').compareDocumentPosition(document.querySelector('.taste-ladder')) &
+        Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy()
   })
 
   test('«Olvidar» quita el perfil del panel', async () => {

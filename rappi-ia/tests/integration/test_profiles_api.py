@@ -104,7 +104,18 @@ def test_tastes_list_the_active_profiles(client):
 
     assert reply.status_code == 200, reply.text
     [asian] = reply.json()["perfiles"]
-    assert asian == {**ASIAN, "nivel": "medio", "principal": True, "por_que": WHY, "basis": asian["basis"]}
+    assert asian == {
+        **ASIAN,
+        "gusto": "lo asiático",
+        "nivel": "medio",
+        "principal": True,
+        "por_que": WHY,
+        "basis": asian["basis"],
+        "conceptos": {
+            "sushi": {"nombre": "Sushi", "emoji": "🍣"},
+            "asiatica": {"nombre": "Comida asiática", "emoji": "🥡"},
+        },
+    }
     assert {"kind": "concepto", "id": "sushi", "score": 2, "source": "pedidos"} in asian["basis"]
     assert {"kind": "concepto", "id": "asiatica", "score": 1, "source": "busquedas"} in asian["basis"]
     assert "segmento:asiatica" in {s["source"] for s in asian["basis"]}

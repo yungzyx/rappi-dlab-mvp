@@ -57,6 +57,25 @@ test('una persona de gusto activa su perfil (tres pedidos de sus conceptos) y re
   expect(profileOffer(snapshot, two)).toBeNull()
 })
 
+test('una muestra grabada sin `gusto` ni `conceptos` los toma de meta, y sin `gusto` en meta no lo inventa', () => {
+  const state = stateOf('gusto-asiatico')
+  const basis = [
+    { kind: 'concepto', id: 'sushi', score: 2, source: 'segmento:sushi' },
+    { kind: 'concepto', id: 'sushi', score: 3, source: 'pedidos' },
+  ]
+  const recorded = { ...snapshot, tastes: { asiatico: { ...snapshot.tastes.asiatico } } }
+  recorded.tastes.asiatico.gustos = { ...snapshot.tastes.asiatico.gustos, basis }
+  const [old] = tastesReply(recorded, state).perfiles
+  expect(old.gusto).toBeUndefined()
+  expect(old.conceptos).toEqual({ sushi: { nombre: 'Sushi', emoji: '🍣' } })
+
+  const withMeta = {
+    ...recorded,
+    meta: { ...recorded.meta, profiles: { asiatico: { ...recorded.meta.profiles.asiatico, gusto: 'lo asiático' } } },
+  }
+  expect(tastesReply(withMeta, state).perfiles[0].gusto).toBe('lo asiático')
+})
+
 test('una persona de la escalera pide un concepto distinto en cada vertical (sin «¿Repetimos?» por accidente)', () => {
   // El primer producto de Rappi Mall es del mismo concepto que el de Restaurantes: se elige el siguiente.
   const pool = VERTICALS.map((vertical, i) => product(i + 1, { vertical, concept: `c${i}` }))

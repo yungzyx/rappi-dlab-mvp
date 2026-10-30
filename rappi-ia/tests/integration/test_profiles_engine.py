@@ -187,10 +187,16 @@ def test_a_sushi_lover_has_the_asian_profile_and_its_reason_counts_what_they_did
         "id": "asiatico",
         "nombre": "Amante de lo asiático",
         "emoji": "🥢",
+        "gusto": "lo asiático",
         "nivel": "medio",
         "principal": True,
         "por_que": found.reason,
         "basis": list(found.basis),
+        # Lo que cuenta el «por qué», con su nombre y su emoji para «¿Por qué?» en la app (los segmentos no se repiten).
+        "conceptos": {
+            "sushi": {"nombre": "Sushi", "emoji": "🍣"},
+            "asiatica": {"nombre": "Comida asiática", "emoji": "🥡"},
+        },
     }
 
 
@@ -337,12 +343,12 @@ def test_a_ladder_skips_empty_steps_and_needs_two(catalog, db):
     sushi = Step("restaurantes", ("sushi",), "Sushi")
     nothing = Step("turbo", ("alimento-gato",), "Nada por aquí")  # el catálogo de prueba no vende comida de gato
     ice = Step("turbo", ("hielo",), "Hielo")
-    profile = Profile("prueba", "Prueba", "🧪", False, ("sushi",), "medio", (sushi, nothing, ice))
+    profile = Profile("prueba", "Prueba", "🧪", False, ("sushi",), "medio", (sushi, nothing, ice), "probar")
 
     steps = ladder(db, catalog, profile)
     assert [s.step for s in steps] == [sushi, ice]
 
-    lonely = Profile("prueba", "Prueba", "🧪", False, ("sushi",), "medio", (sushi, nothing))
+    lonely = Profile("prueba", "Prueba", "🧪", False, ("sushi",), "medio", (sushi, nothing), "probar")
     assert MIN_STEPS == 2
     assert ladder(db, catalog, lonely) == []  # con menos de dos peldaños no hay escalera
 

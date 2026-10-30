@@ -191,7 +191,6 @@ REASON_LIKES_OCCASION = "Por tu interés en {emoji} {name}."
 REASON_BRAND = " Es {brand}, la marca que compras."  # se suma al porqué de un complemento de su marca
 # El momento `perfil`: «Por tu gusto por» y el `gusto` del perfil (offers/perfiles.toml); sin él, el nombre del perfil.
 PROFILE_TEXT = "Por tu gusto por {likes}, mira esto en otras verticales."
-PROFILE_TEXT_NAMED = "Para tu perfil {emoji} {name}: mira esto en otras verticales."
 REASON_PROFILE = "Porque elegiste «{name}»."  # sin persona, o con un perfil que no es suyo
 TRIP_SERVICE = "rappitravel"  # el servicio de la taxonomía al que lleva el viaje (sin catálogo)
 TRIP_LABEL = "Idea para {service}"
@@ -1138,10 +1137,8 @@ def profile_offer(
 
 
 def _profile_text(profile: Profile) -> str:
-    """«Por tu gusto por lo asiático…», con el `gusto` del perfil; sin él, el nombre del perfil con su emoji."""
-    if profile.likes:
-        return PROFILE_TEXT.format(likes=profile.likes)
-    return PROFILE_TEXT_NAMED.format(emoji=profile.emoji, name=profile.name)
+    """«Por tu gusto por lo asiático…», con el `gusto` del perfil."""
+    return PROFILE_TEXT.format(likes=profile.likes)
 
 
 def _profile_reason(profile: Profile, active: ActiveProfile | None) -> dict:

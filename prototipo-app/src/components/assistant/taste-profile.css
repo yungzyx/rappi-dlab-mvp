@@ -11,6 +11,12 @@
   border: 1px solid #ffe2d6;
 }
 
+.taste-card-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
 .taste-card-kicker {
   font-size: 11.5px;
   font-weight: 700;
@@ -74,6 +80,49 @@
   font-size: 13.5px;
   line-height: 18px;
   color: var(--ink-2);
+}
+
+.taste-forget {
+  position: relative;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--accent-ink);
+  text-decoration: underline;
+}
+
+/* Área táctil de 44 px de alto para «Olvidar» */
+.taste-forget::before {
+  content: '';
+  position: absolute;
+  inset: -14px -6px;
+}
+
+.taste-why-toggle {
+  position: relative;
+  margin-top: 4px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--accent-ink);
+}
+
+.taste-why-toggle::before {
+  content: '';
+  position: absolute;
+  inset: -12px -8px;
+}
+
+.taste-why {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 8px;
+  padding: 8px 0 0;
+  list-style: none;
+  border-top: 1px solid var(--line-soft);
+  font-size: 13.5px;
+  line-height: 18px;
+  color: var(--ink-2);
+  animation: fade-up 300ms var(--ease-out) both;
 }
 
 /* ---------- Para ti en otras verticales ---------- */

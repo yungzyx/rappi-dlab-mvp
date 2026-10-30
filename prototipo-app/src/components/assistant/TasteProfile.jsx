@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useId, useState } from 'react'
 import { productItem } from '../../api/impressions'
 import { MAIN_TILES, SHORTCUTS } from '../../data/home'
 import { VERTICAL_NAMES } from '../../data/verticals'
@@ -13,17 +13,48 @@ import './taste-profile.css'
 // Las mismas ilustraciones de los accesos de la Home para cada vertical (RappiTravel tiene id propio en los accesos).
 const TILE_IMAGES = Object.fromEntries([...MAIN_TILES, ...SHORTCUTS].map((tile) => [tile.id, tile.img]))
 const LEVELS = { bajo: 1, medio: 2, alto: 3 }
+// Lo que cuenta el «por qué» en la `basis` de un perfil, y cómo se dice cuántas veces.
+const COUNTED = {
+  pedidos: (n) => `${n} ${n === 1 ? 'pedido' : 'pedidos'}`,
+  busquedas: (n) => `${n} ${n === 1 ? 'búsqueda' : 'búsquedas'}`,
+}
 const STEP_GAP_PX = 12
 
 /**
- * «Tu perfil»: el perfil de gusto que la API armó con lo que la persona pide (`GET /profile/{id}/gustos`): su nombre,
- * su nivel y por qué. `profile` es el de la API (`{ id, nombre, emoji, nivel, por_que }`).
+ * Lo que cuenta el «por qué» (`pedidos` y `busquedas` de la `basis`), una línea por concepto: «🍣 Sushi · 2 pedidos».
+ * El nombre y el emoji vienen en `conceptos`; sin ellos, el id del concepto.
  */
-export function ProfileCard({ profile }) {
+function evidenceOf(profile) {
+  const lines = new Map()
+  for (const { id, score, source } of profile.basis ?? []) {
+    if (!COUNTED[source]) continue
+    const concept = profile.conceptos?.[id]
+    const start = lines.get(id) ?? (concept ? `${concept.emoji} ${concept.nombre}` : id)
+    lines.set(id, `${start} · ${COUNTED[source](score)}`)
+  }
+  return [...lines].map(([id, text]) => ({ id, text }))
+}
+
+/**
+ * «Tu perfil»: el perfil de gusto que la API armó con lo que la persona pide (`GET /profile/{id}/gustos`): su nombre,
+ * su nivel, por qué (con «¿Por qué?», lo que contó) y «Olvidar». `profile` es el de la API (`{ id, nombre, emoji,
+ * nivel, por_que, basis, conceptos }`); `onForget` abre la confirmación de «Olvidar».
+ */
+export function ProfileCard({ profile, onForget, forgetting = false }) {
+  const [open, setOpen] = useState(false)
+  const whyId = useId()
   const level = LEVELS[profile.nivel] ?? 1
+  const evidence = evidenceOf(profile)
   return (
     <section className="taste-card" aria-label="Tu perfil">
-      <span className="taste-card-kicker">Tu perfil</span>
+      <div className="taste-card-top">
+        <span className="taste-card-kicker">Tu perfil</span>
+        {onForget && (
+          <button type="button" className="taste-forget" onClick={onForget} disabled={forgetting}>
+            Olvidar
+          </button>
+        )}
+      </div>
       <div className="taste-card-main">
         <span className="taste-emoji" aria-hidden="true">
           {profile.emoji}
@@ -37,12 +68,32 @@ export function ProfileCard({ profile }) {
                   <i key={n} className={n <= level ? 'is-on' : undefined} />
                 ))}
               </span>
-              Nivel {profile.nivel}
+              nivel {profile.nivel}
             </span>
           )}
         </span>
       </div>
       {profile.por_que && <p className="taste-reason">{profile.por_que}</p>}
+      {evidence.length > 0 && (
+        <>
+          <button
+            type="button"
+            className="taste-why-toggle"
+            aria-expanded={open}
+            aria-controls={whyId}
+            onClick={() => setOpen(!open)}
+          >
+            ¿Por qué? <span aria-hidden="true">{open ? '▴' : '▾'}</span>
+          </button>
+          {open && (
+            <ul id={whyId} className="taste-why">
+              {evidence.map((item) => (
+                <li key={item.id}>{item.text}</li>
+              ))}
+            </ul>
+          )}
+        </>
+      )}
     </section>
   )
 }

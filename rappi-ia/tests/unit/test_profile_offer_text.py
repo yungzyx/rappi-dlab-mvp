@@ -1,7 +1,5 @@
 """El texto del momento `perfil` (offers/engine.py): «Por tu gusto por {gusto}…», con el `gusto` de cada perfil
-(offers/perfiles.toml); sin él, el agente nombra el perfil."""
-
-from dataclasses import replace
+(offers/perfiles.toml), que es obligatorio."""
 
 import pytest
 
@@ -21,9 +19,3 @@ from rappi_ia.offers.profiles import load_profiles
 )
 def test_the_profile_text_says_what_the_person_likes(profile_id, text):
     assert _profile_text(load_profiles()[profile_id]) == text
-
-
-def test_a_profile_without_likes_is_named():
-    plain = replace(load_profiles()["mascotas"], likes=None)
-
-    assert _profile_text(plain) == "Para tu perfil 🐶 Mascotero: mira esto en otras verticales."
