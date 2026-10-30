@@ -1,0 +1,16 @@
+{
+  "data": {
+    "explicaciones": 1,
+    "explicaciones_personas": 1,
+    "ocultadas": 1,
+    "ocultos": 1,
+    "ocultos_pct": 10.0,
+    "personas_activas": 10,
+    "volvieron": 0
+  },
+  "guardado": {
+    "fecha": "2026-10-30",
+    "origen": "make contract · recorrido corto sobre el catálogo de prueba inventado"
+  },
+  "source": "prototype"
+}

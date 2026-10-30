@@ -17,4 +17,5 @@ export const PANEL_METRICS = [
   'ctr-posicion',
   'embudo-sesion',
   'pro',
+  'presencia',
 ]

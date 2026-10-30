@@ -82,6 +82,7 @@ Cómo funciona: el build de la demo (`vite build --mode demo`; sus variables est
 - **Mover la Home:** «+1 visita a Súper», Farmacia, Rappi Mall, Licores, Express o Chocolates registra un toque a ese acceso en el prototipo (no en «Rappi hoy») y la Home se reordena en vivo; «Borrar historial» la deja en su orden fijo.
 - Una línea con la combinación de la persona y el paso que Mochi propondría («Hoy: restaurantes+turbo → siguiente: supermercado»).
 - **Pedido en curso:** «Atrasar el pedido en curso» deja el pedido en su paso unos segundos y sube el tiempo estimado; el seguimiento muestra un mensaje de soporte y, en Turbo, la garantía de ejemplo (15 min o gratis) se paga en Créditos de ejemplo, que se suman al saldo de la demo. Es de demostración y no se guarda en la base.
+- **Mochi** (solo en el prototipo final): un botón que oculta a Mochi o lo trae de vuelta («Ocultar a Mochi» / «Mostrar a Mochi»), con el mismo estado que su menú y Cuenta, sin confirmar, y el mismo evento `agent_visibility` (`origin` `panel-demo`).
 
 La muestra son datos descargados del catálogo, así que no va a git (`.gitignore`). Para regenerarla y armar el HTML:
 

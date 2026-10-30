@@ -20,6 +20,18 @@ const recorded = {
     source: 'prototype',
     data: { personas: 26, busquedas: 59, sin_resultado: 0, por_vertical: [] },
   },
+  'presencia.prototype': {
+    source: 'prototype',
+    data: {
+      personas_activas: 45,
+      ocultos: 0,
+      ocultos_pct: 0,
+      ocultadas: 0,
+      volvieron: 0,
+      explicaciones: 3,
+      explicaciones_personas: 2,
+    },
+  },
   'combos.prototype': { source: 'prototype', data: { rappi: {} } },
 }
 
@@ -35,9 +47,10 @@ describe('Ver cómo funciona', () => {
     })
     expect(after['offers.prototype'].data.personas).toBe(26)
     expect(after['kpis.prototype'].data).toMatchObject({ usuarios_activos: 46, pedidos_30d: 18, frecuencia: 0.39 })
+    expect(after['presencia.prototype'].data).toMatchObject({ personas_activas: 46, ocultos: 0 })
   })
 
-  test('accepting, paying and searching build on each other', () => {
+  test('accepting, paying, searching and hiding Mochi build on each other', () => {
     const after = responsesAfter(recorded, TOUR.length)
 
     expect(after['offers.prototype'].data.momentos[0]).toMatchObject({
@@ -51,6 +64,15 @@ describe('Ver cómo funciona', () => {
       busquedas: 60,
       sin_resultado: 1,
       por_vertical: [{ vertical: 'restaurantes', concepto: null, sin_resultado: 1 }],
+    })
+    expect(after['presencia.prototype'].data).toEqual({
+      personas_activas: 46,
+      ocultos: 1,
+      ocultos_pct: 2.2,
+      ocultadas: 1,
+      volvieron: 0,
+      explicaciones: 3,
+      explicaciones_personas: 2,
     })
   })
 

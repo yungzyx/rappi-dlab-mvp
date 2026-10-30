@@ -13,6 +13,7 @@ import { thinAssortment } from './demand.js'
 import { CtrByPosition, SessionFunnel } from './ListsAndFunnel.jsx'
 import { MotorCheck } from './MotorCheck.jsx'
 import { OffersByMoment } from './OffersByMoment.jsx'
+import { Presence } from './Presence.jsx'
 import { offerTotals, suggestionTotals } from './offers.js'
 import { ServiceEngagement } from './ServiceEngagement.jsx'
 import { SuggestionRanking } from './SuggestionRanking.jsx'
@@ -95,6 +96,10 @@ function OffersAndSuggestions({ source }) {
 
 function Services({ source }) {
   return <ServiceEngagement rows={useAnalytics('services', source)} />
+}
+
+function AgentPresence({ source }) {
+  return <Presence data={useAnalytics('presencia', source)} source={source} />
 }
 
 function Motor({ source }) {
@@ -239,6 +244,25 @@ export function MochiView({ source }) {
               </Async>
             </div>
           </div>
+        </div>
+      </section>
+
+      <section className="section" aria-labelledby="presencia">
+        <div className="section-head">
+          <h2 id="presencia" tabIndex={-1}>
+            ¿{AGENT_NAME} molesta?
+          </h2>
+          <p>
+            Últimos 30 días. Oculto es quien lo ocultó y no lo trajo de vuelta en Cuenta. Si muchas personas lo ocultan,{' '}
+            {AGENT_NAME} molesta: hay que revisar cada cuánto habla y propone.
+          </p>
+          <ProvenanceBadge kind={source} />
+        </div>
+        <div className="block">
+          <SourceNote source={source} />
+          <Async>
+            <AgentPresence source={source} />
+          </Async>
         </div>
       </section>
 

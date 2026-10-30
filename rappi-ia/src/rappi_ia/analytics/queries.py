@@ -701,6 +701,49 @@ def home(conn: Connection, source: str = "synthetic") -> dict:
     return {**totals, "verticales": rows}
 
 
+def presence(conn: Connection, source: str = "synthetic") -> dict:
+    """Si Mochi molesta: en los últimos ACTIVE_DAYS días (hasta el último evento de la fuente, como `kpis`), de las
+    personas activas (algún evento), cuántas lo tienen oculto (su último `agent_visibility`, de cuando sea, es
+    `visible: false`) y qué % son; cuántas veces lo ocultaron y cuántas personas lo trajeron de vuelta (algún
+    `visible: true`); y cuántas veces explicó por qué movió los accesos de la Home (`vertical_reorder_shown`), a cuántas
+    personas. La app no anota «¿Por qué?» ni «Entendido» del globo: no se cuentan. Cambiar de persona en la demo,
+    «Repetir escena» o «Borrar mis datos» lo devuelven sin evento: «oculto» es el último cambio que hizo la persona."""
+    _check(source)
+    [row] = _rows(
+        conn,
+        f"""WITH active AS (
+                SELECT DISTINCT user_id FROM app_events
+                WHERE source = %(source)s AND ts > {_AS_OF} - interval '{ACTIVE_DAYS} days'
+            ),
+            visibility AS (
+                SELECT user_id, ts, (payload ->> 'visible')::boolean AS visible FROM app_events
+                WHERE source = %(source)s AND type = 'agent_visibility'
+                  AND jsonb_typeof(payload -> 'visible') = 'boolean'
+            ),
+            last_visibility AS (
+                SELECT DISTINCT ON (user_id) user_id, visible FROM visibility ORDER BY user_id, ts DESC
+            ),
+            recent AS (SELECT * FROM visibility WHERE ts > {_AS_OF} - interval '{ACTIVE_DAYS} days'),
+            explained AS (
+                SELECT user_id FROM app_events
+                WHERE source = %(source)s AND type = 'vertical_reorder_shown'
+                  AND ts > {_AS_OF} - interval '{ACTIVE_DAYS} days'
+            ),
+            hidden AS (
+                SELECT count(*) AS n FROM last_visibility WHERE NOT visible AND user_id IN (SELECT * FROM active)
+            )
+            SELECT (SELECT count(*) FROM active) AS personas_activas,
+                   (SELECT n FROM hidden) AS ocultos,
+                   round(100.0 * (SELECT n FROM hidden) / nullif((SELECT count(*) FROM active), 0), 1) AS ocultos_pct,
+                   (SELECT count(*) FROM recent WHERE NOT visible) AS ocultadas,
+                   (SELECT count(DISTINCT user_id) FROM recent WHERE visible) AS volvieron,
+                   (SELECT count(*) FROM explained) AS explicaciones,
+                   (SELECT count(DISTINCT user_id) FROM explained) AS explicaciones_personas""",
+        {"source": source},
+    )
+    return row
+
+
 CTR_POSITIONS = 10  # las primeras posiciones de cada lista que muestra el panel
 
 
