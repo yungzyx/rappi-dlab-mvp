@@ -9,6 +9,7 @@ import { useAddToCart } from '../../hooks/useAddToCart'
 import { VERTICAL_NAMES } from '../../data/verticals'
 import { useCart } from '../../state/CartContext'
 import { useDemo } from '../../state/DemoContext'
+import { useAgentHidden } from '../../state/agentHidden'
 import { useEvents } from '../../state/EventsContext'
 import { useProfile } from '../../state/ProfileContext'
 
@@ -27,8 +28,10 @@ export default function CheckoutSuggestion() {
   const [picked, setPicked] = useState(null) // la oferta pedida: { text, product }; queda fija aunque cambie el carro
   const [complete, setComplete] = useState(false) // la API no tiene nada que agregar
   const [added, setAdded] = useState(null)
+  const hidden = useAgentHidden()
 
-  if (!demo?.isFinal) return null
+  // Con Mochi oculto no hay a quién pedirle.
+  if (!demo?.isFinal || hidden) return null
   if (complete)
     return (
       <p className="checkout-ask" role="status">

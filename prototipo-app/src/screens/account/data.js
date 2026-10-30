@@ -60,6 +60,14 @@ export const SECTIONS = [
       { id: 'icon', label: 'Cambiar el ícono de Rappi', Icon: MustacheIcon },
       // Solo del prototipo: alterna entre Rappi hoy y el prototipo final (en notebook también con la tecla D).
       { id: 'demo', label: 'Modo demo', Icon: SparkleLineIcon, action: 'demo' },
+      // Solo en el prototipo final: mostrar u ocultar a Mochi (apagado, la app queda sin mascota ni propuestas suyas).
+      {
+        id: 'agent',
+        label: `Mostrar a ${AGENT_NAME}`,
+        Icon: SparkleLineIcon,
+        action: 'agent',
+        finalOnly: true,
+      },
       // Solo en el prototipo final: en el celular no está el botón «Repetir escena» de la notebook.
       {
         id: 'replay',

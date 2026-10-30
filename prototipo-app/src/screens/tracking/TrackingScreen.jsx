@@ -17,6 +17,7 @@ import { formatPrice, useCart } from '../../state/CartContext'
 import { useDemo } from '../../state/DemoContext'
 import { useEvents } from '../../state/EventsContext'
 import { isHushed, isQuiet } from '../../state/agentQuiet'
+import { isAgentHidden } from '../../state/agentHidden'
 import { useOrders } from '../../state/OrdersContext'
 import { useProfile } from '../../state/ProfileContext'
 import { today } from '../../utils/today'
@@ -319,8 +320,10 @@ const entitiesOf = (order) =>
 export const clock = (ts) =>
   new Date(ts).toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit', hourCycle: 'h23' })
 
-/** ¿El agente puede ofrecer algo ahora? En silencio (por hoy o porque lo ignoraron) no ofrece ni se le pide. */
-const agentMaySpeak = () => !isQuiet(today()) && !isHushed()
+/**
+ * ¿El agente puede ofrecer algo ahora? En silencio (por hoy o porque lo ignoraron) u oculto no ofrece ni se le pide.
+ */
+const agentMaySpeak = () => !isQuiet(today()) && !isHushed() && !isAgentHidden()
 
 /**
  * El OnTop de Turbo (prototipo final, mientras el pedido va en curso y no es de Turbo): «Turbo: suma esto antes de

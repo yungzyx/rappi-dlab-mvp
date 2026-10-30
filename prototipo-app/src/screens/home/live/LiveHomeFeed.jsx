@@ -5,6 +5,7 @@ import { conceptOf } from '../../../api/orders'
 import { noteShown } from '../../../api/suggestions'
 import { userId } from '../../../api/user'
 import DemoDisclaimer from '../../../components/DemoDisclaimer'
+import PlainSearchBar from '../../../components/PlainSearchBar'
 import { PRIVACY_CLOSED_EVENT, privacyPending } from '../../../components/PrivacyNotice'
 import SmartBar from '../../../components/assistant/SmartBar'
 import { useToast } from '../../../components/Toast'
@@ -26,6 +27,8 @@ import LiveAgent from './LiveAgent'
 import { PlanBlock, RepeatBlock, kitAddedText, openItem } from './LiveBlocks'
 import { REPLAY_EVENT, markTourSeen, session, tourSeen } from '../../../state/liveMemory'
 import { isHushed, isQuiet, noteDismissed } from '../../../state/agentQuiet'
+import { isAgentHidden, useAgentHidden } from '../../../state/agentHidden'
+import { moveText, moveWhy, useShortcutMove } from './shortcutMoves'
 import { today } from '../../../utils/today'
 import './live.css'
 
@@ -43,7 +46,12 @@ const backVertical = () => {
 }
 const T = { enter: 900, greet: 3400, greetHold: 6000, notice: 500 }
 // Silenciado por hoy (desde el agente flotante) o callado porque lo ignoraron: no habla por su cuenta; si lo tocan, sí.
-const silent = () => isQuiet(today()) || isHushed()
+// Oculto («Ocultar a Mochi»): no está, así que tampoco habla ni propone nada.
+const silent = () => isQuiet(today()) || isHushed() || isAgentHidden()
+// El origen de los eventos de «Mochi movió tus accesos».
+const MOVE_ORIGIN = 'agent-reorden'
+// Los accesos esperan a que Mochi llegue junto a ellos (su paso dura 680 ms en live.css) antes de deslizarse.
+const GLIDE_DELAY = 550
 
 // Guía de la primera vez, tras el saludo: el buscador y qué pasa al tocarlo. Se ve una vez («Repetir escena» la repite).
 const TOUR = [
@@ -66,7 +74,8 @@ const buzz = () => navigator.vibrate?.(12)
 
 /**
  * Home del prototipo final: la barra abre el buscador con el agente. El agente de cuerpo entero vive en
- * la Home sin reordenarla: saluda, acompaña el plan del día, y al tocarlo invita a una vertical nueva.
+ * la Home: saluda, acompaña el plan del día, al tocarlo invita a una vertical nueva y, cuando el motor cambia el orden
+ * de los accesos, los mueve y dice por qué. Oculto («Ocultar a Mochi»), la Home queda sin él y con el buscador de siempre.
  */
 export default function LiveHomeFeed({ push, active = true }) {
   const toast = useToast()
@@ -76,6 +85,9 @@ export default function LiveHomeFeed({ push, active = true }) {
   const profile = useProfile()
   const events = useEvents()
   const verticalOrder = useVerticalOrder(active)
+  const hidden = useAgentHidden()
+  // La fila que se ve: el último orden que vio la persona hasta que la Home está arriba; ahí, si cambió, se mueve.
+  const shortcuts = useShortcutMove(verticalOrder, { active, resets: profile.resets })
   // Cambia con cada pedido y con cada calificación (una mala pausa lo de ese pedido): «¿Volvemos a…?» se vuelve a pedir.
   const orders = useOrders().orders
   const lastOrder = `${orders[0]?.id ?? ''}|${orders.filter((order) => order.rating).length}`
@@ -169,6 +181,39 @@ export default function LiveHomeFeed({ push, active = true }) {
 
   const visit = useCallback((vertical, route) => push(...(route ?? routeForScreen(vertical))), [push])
 
+  // «Moví … más adelante»: el cambio de orden que Mochi aún no explica (llega mientras saluda o durante la guía).
+  const pendingMove = useRef(null)
+  /** Mochi se para sobre el bloque de los accesos, los señala y dice cuál movió y por qué (cuenta como explicación vista). */
+  const explainMove = () => {
+    const move = pendingMove.current
+    pendingMove.current = null
+    if (!move || silent()) return
+    const screenEl = screenRef.current
+    const row = blockRefs.current.get('essentials')
+    // Si la fila quedó arriba, fuera de la vista, vuelve a ella para que se vea el cambio.
+    if (screenEl && row && screenEl.scrollTop > row.offsetTop + row.offsetHeight - 160)
+      screenEl.scrollTo({ top: 0, behavior: reduceMotion ? 'auto' : 'smooth' })
+    speak(
+      {
+        reorder: true,
+        text: moveText(move),
+        why: moveWhy(move.reason),
+        mood: 'wave',
+        gesture: 'point',
+        actions: [{ label: 'Entendido', onClick: () => speak(null) }],
+      },
+      // Parado sobre el bloque de los accesos: el globo queda sobre Restaurantes y Turbo, y la fila que se movió, a la
+      // vista debajo.
+      'essentials',
+      ACTIONS_HOLD,
+    )
+    events.track('vertical_reorder_shown', {
+      vertical: move.vertical,
+      ...envelope({ surface: 'home', origin: MOVE_ORIGIN, position: move.to, requestId: move.requestId }),
+      payload: { antes: move.from },
+    })
+  }
+
   // La guía: cada paso espera a que la persona siga; «Saltar» o «Listo» la terminan para siempre (speak la marca
   // vista) y entonces el agente muestra lo que quedó pendiente de «al volver».
   const endTour = () => {
@@ -216,9 +261,11 @@ export default function LiveHomeFeed({ push, active = true }) {
       session.played = true
     })
     // Cuando el saludo termina, la primera vez: la guía (en silencio, no; ni encima de algo que la persona pidió).
+    // Si mientras saludaba cambió el orden de los accesos, lo explica después (o al terminar la guía).
     later((reduceMotion ? 0 : T.enter) + T.greetHold, () => {
       const free = !said.current || said.current.text === GREETING
       if (free && !silent() && !tourSeen()) showTour(0)
+      else if (free && pendingMove.current) explainMove()
     })
     return clearTimers
     // Solo al montar (o al repetir la escena, o al cerrarse el aviso de privacidad).
@@ -240,7 +287,8 @@ export default function LiveHomeFeed({ push, active = true }) {
       return
     }
     // Se fue de la Home, repitió la escena, lo silenciaron mientras tanto o ya empezó la guía: ya no es el momento.
-    if (!made || mine !== run.current || silent() || touring.current) return
+    // Tampoco tapa la explicación de los accesos que se acaban de mover.
+    if (!made || mine !== run.current || silent() || touring.current || said.current?.reorder) return
     noteShown(events.track, made.products, {
       origin: `agent-${made.moment}`,
       concept: made.reason?.concept,
@@ -272,6 +320,8 @@ export default function LiveHomeFeed({ push, active = true }) {
   // abren encima (`active` es si está arriba), así que corre cada vez que vuelve a estar arriba; durante la guía
   // espera, y corre al terminarla.
   function welcomeBack() {
+    // Primero, si quedó pendiente, por qué se movieron los accesos (lo del carro se comenta la próxima vez).
+    if (pendingMove.current && !silent()) return explainMove()
     // Lo pendiente se borra de la sesión recién cuando el agente habla: en desarrollo, StrictMode monta dos veces y la
     // primera vez se cancelan los timers.
     if (silent()) {
@@ -296,6 +346,18 @@ export default function LiveHomeFeed({ push, active = true }) {
     // Solo al volver a estar arriba (y al montar).
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [active])
+
+  // Cambió el orden con la Home arriba (el «Panel de la demo», o al volver de otra pantalla, o al abrir): la fila ya se
+  // desliza (Shortcuts), y Mochi lo explica si puede hablar; si está saludando o en la guía, después. Oculto o en
+  // silencio, el orden cambia sin explicación.
+  const moveKey = shortcuts.move?.key
+  useEffect(() => {
+    if (!moveKey || silent()) return
+    pendingMove.current = shortcuts.move
+    if (session.played && !touring.current) explainMove()
+    // Solo con cada cambio nuevo.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [moveKey])
 
   // La generación del perfil vigente, para lo que llega después de pedirlo.
   const generationNow = useRef(profile.resets)
@@ -546,7 +608,8 @@ export default function LiveHomeFeed({ push, active = true }) {
         <Shortcuts
           push={push}
           proposal
-          order={verticalOrder.order}
+          order={shortcuts.order}
+          glide={shortcuts.move && { ...shortcuts.move, highlight: !hidden, delay: hidden ? 0 : GLIDE_DELAY }}
           requestId={verticalOrder.requestId}
           caption={verticalOrder.personalized ? 'Ordenadas según lo que más usas' : null}
           onOpen={openVertical}
@@ -554,10 +617,11 @@ export default function LiveHomeFeed({ push, active = true }) {
         />
       </>
     ),
-    recompra: repeat && <RepeatBlock offer={repeat} onLater={repeatLater} onOpen={openFromBlock} />,
+    recompra: !hidden && repeat && <RepeatBlock offer={repeat} onLater={repeatLater} onOpen={openFromBlock} />,
     promos: <Promos push={push} />,
     turbo: <FastRestaurants stores={catalog.fastRestaurants} push={push} />,
-    plan: (
+    // El plan del día lo arma Mochi: oculto, no está.
+    plan: !hidden && (
       <PlanBlock
         plans={plans}
         plan={plan}
@@ -596,7 +660,8 @@ export default function LiveHomeFeed({ push, active = true }) {
               </span>
             </span>
           </button>
-          <SmartBar />
+          {/* Sin Mochi, el buscador de siempre (el de «Rappi hoy»). */}
+          {hidden ? <PlainSearchBar onClick={() => push('search')} /> : <SmartBar />}
           <CreditsBanner credits={CREDITS} onClick={() => push('vertical', { id: 'pharmacy' })} />
         </section>
         <DemoDisclaimer />
@@ -610,17 +675,19 @@ export default function LiveHomeFeed({ push, active = true }) {
         </div>
       </div>
 
-      <LiveAgent
-        ref={agentRef}
-        say={say}
-        target={target}
-        getBlock={getBlock}
-        entering={entering}
-        away={!present || !active}
-        reduceMotion={reduceMotion}
-        onPoke={poke}
-        onWhyToggle={onWhyToggle}
-      />
+      {!hidden && (
+        <LiveAgent
+          ref={agentRef}
+          say={say}
+          target={target}
+          getBlock={getBlock}
+          entering={entering}
+          away={!present || !active}
+          reduceMotion={reduceMotion}
+          onPoke={poke}
+          onWhyToggle={onWhyToggle}
+        />
+      )}
     </>
   )
 }

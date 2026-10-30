@@ -1,5 +1,6 @@
 // Memoria del agente en la Home del prototipo final mientras dura la sesión: lo que ya mostró y lo último que la persona
 // agregó al carro (el agente lo comenta al volver).
+import { isAgentHidden as isAgentHiddenNow, setAgentHidden } from './agentHidden'
 import { resetQuiet } from './agentQuiet'
 
 // `repeatLater`: tocaron «Después» en «¿Repetimos?» o en «¿Volvemos a…?»; no vuelven en lo que dura la pestaña.
@@ -43,7 +44,10 @@ export const AGENT_CART_EVENT = 'agent-carrito'
 /** Evento de ventana con que el botón «Repetir escena» (fuera del teléfono) avisa a la Home. */
 export const REPLAY_EVENT = 'agent-vivo-repetir'
 
-/** «Repetir la escena»: vuelve al estado de una persona que abre la Home por primera vez (el silencio también se reinicia). */
+/**
+ * «Repetir la escena»: vuelve al estado de una persona que abre la Home por primera vez (el silencio también se reinicia,
+ * y si estaba oculto, Mochi vuelve).
+ */
 export function resetLive() {
   Object.assign(session, {
     played: false,
@@ -54,6 +58,7 @@ export function resetLive() {
     winback: null,
   })
   resetQuiet()
+  if (isAgentHiddenNow()) setAgentHidden(false)
   try {
     localStorage.removeItem(TOUR_KEY)
   } catch {

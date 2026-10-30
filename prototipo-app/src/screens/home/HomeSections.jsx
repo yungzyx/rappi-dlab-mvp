@@ -1,4 +1,4 @@
-import { useId, useState } from 'react'
+import { useId, useLayoutEffect, useRef, useState } from 'react'
 import { place, placeList } from '../../api/attribution'
 import { verticalItem } from '../../api/impressions'
 import { home, restaurants } from '../../api/catalog'
@@ -7,6 +7,7 @@ import Carousel, { Dots } from '../../components/Carousel'
 import HScroll from '../../components/HScroll'
 import { useToast } from '../../components/Toast'
 import { useImpressions } from '../../hooks/useImpressions'
+import { useReducedMotion } from '../../hooks/useReducedMotion'
 import { ChevronRight } from '../../components/Icons'
 import { RestaurantCard, StoreTile } from './StoreCards'
 import { MAIN_TILES, PROMOS, PROMO_START_INDEX, SHORTCUTS, orderShortcuts } from '../../data/home'
@@ -44,6 +45,52 @@ export function MainTiles({ push, onOpen }) {
   )
 }
 
+const GLIDE_MS = 650
+const MOVED_MS = 1800
+
+/**
+ * Los accesos se deslizan a su lugar nuevo cuando cambia `glide.key` (FLIP: cada uno parte de donde estaba, medido en la
+ * fila, no en la pantalla, así que el scroll no lo engaña), y el que subió (`glide.vertical`) brilla un momento si
+ * `glide.highlight`. Con `glide.delay` (ms) esperan en su lugar de antes: Mochi llega primero y después los mueve. Con
+ * movimiento reducido no se deslizan: solo brilla.
+ */
+function useGlide(glide) {
+  const reduceMotion = useReducedMotion()
+  const tiles = useRef(new Map()) // id del acceso → su botón
+  const lefts = useRef(new Map()) // id del acceso → su lugar en la fila en el último render
+  const played = useRef(null)
+  useLayoutEffect(() => {
+    const now = new Map([...tiles.current].map(([id, element]) => [id, element.offsetLeft]))
+    if (glide && glide.key !== played.current) {
+      played.current = glide.key
+      const delay = reduceMotion ? 0 : (glide.delay ?? 0)
+      for (const [id, element] of tiles.current) {
+        const before = lefts.current.get(id)
+        const shift = before === undefined ? 0 : before - now.get(id)
+        if (shift && !reduceMotion)
+          element.animate?.([{ transform: `translateX(${shift}px)` }, { transform: 'none' }], {
+            duration: GLIDE_MS,
+            delay,
+            fill: 'backwards', // mientras espera, en su lugar de antes
+            easing: 'cubic-bezier(0.22, 1, 0.36, 1)',
+          })
+        if (glide.highlight && element.dataset.vertical === glide.vertical)
+          setTimeout(() => {
+            element.classList.remove('is-moved')
+            void element.offsetWidth // para que la animación vuelva a empezar si ya lo tenía
+            element.classList.add('is-moved')
+            setTimeout(() => element.classList.remove('is-moved'), MOVED_MS)
+          }, delay)
+      }
+    }
+    lefts.current = now
+  })
+  return (id) => (element) => {
+    if (element) tiles.current.set(id, element)
+    else tiles.current.delete(id)
+  }
+}
+
 /**
  * Fila de verticales. `proposal` es el prototipo final: RappiFavor (no disponible hoy) sí abre, y los 6 verticales siguen
  * `order` (códigos del backend; sin él, el orden fijo) con Lealtad y Beneficios Pro al final. `caption` va bajo la fila;
@@ -51,10 +98,21 @@ export function MainTiles({ push, onOpen }) {
  * `onOpen(vertical, where)` avisa qué vertical se tocó (código del backend) y dónde estaba (`where`: `{ origin:
  * 'accesos', position }`, su lugar en la fila tal como se ve); los accesos sin vertical no avisan. Cada acceso con
  * vertical cuenta como visto en la fila (api/impressions.js), con `requestId`, la respuesta que ordenó la fila.
+ * `glide` (prototipo final): el último cambio de orden, para que los accesos se deslicen (ver useGlide).
  */
-export function Shortcuts({ push, proposal = false, order = null, caption = null, onOpen, onService, requestId }) {
+export function Shortcuts({
+  push,
+  proposal = false,
+  order = null,
+  caption = null,
+  onOpen,
+  onService,
+  requestId,
+  glide = null,
+}) {
   const toast = useToast()
   const watch = useImpressions()
+  const tile = useGlide(glide)
   return (
     <>
       <HScroll className="home-shortcuts">
@@ -62,19 +120,27 @@ export function Shortcuts({ push, proposal = false, order = null, caption = null
           const enabled = proposal && item.proposalRoute
           const unavailable = item.unavailable && !enabled
           const route = enabled ? item.proposalRoute : item.route
+          const seen = item.vertical
+            ? watch(
+                place(item, { surface: 'home', origin: 'accesos', position, requestId }),
+                verticalItem(item.vertical),
+              )
+            : null
+          const mine = tile(item.id)
           return (
             <button
               key={item.id}
               type="button"
               className={unavailable ? 'home-shortcut is-unavailable tap' : 'home-shortcut tap'}
-              ref={
-                item.vertical
-                  ? watch(
-                      place(item, { surface: 'home', origin: 'accesos', position, requestId }),
-                      verticalItem(item.vertical),
-                    )
-                  : undefined
-              }
+              data-vertical={item.vertical}
+              ref={(element) => {
+                mine(element)
+                const unwatch = seen?.(element)
+                return () => {
+                  mine(null)
+                  unwatch?.()
+                }
+              }}
               aria-label={unavailable ? `${item.label} (no disponible)` : undefined}
               onClick={() => {
                 if (item.vertical) onOpen?.(item.vertical, { origin: 'accesos', position })

@@ -95,6 +95,12 @@
   text-align: left;
 }
 
+/* «Ocultar» en la confirmación de ocultar a Mochi */
+.agent-action.is-primary {
+  background: var(--ink);
+  color: var(--surface);
+}
+
 @media (prefers-reduced-motion: no-preference) {
   .agent-presence-body {
     transition: transform 200ms var(--ease-out);

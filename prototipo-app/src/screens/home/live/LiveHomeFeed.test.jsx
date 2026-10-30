@@ -1169,4 +1169,190 @@ describe('Home del prototipo final', () => {
       ])
     })
   })
+
+  describe('Mochi mueve los accesos', () => {
+    const USER = 'proto-mueve'
+    const FIXED = ['supermercado', 'farmacia', 'mall', 'licores', 'conveniencia', 'chocolateria']
+    const SEEN_KEY = 'rappi-proto-accesos-vistos'
+    const remember = (order) => localStorage.setItem(SEEN_KEY, JSON.stringify({ user: USER, order }))
+    const remembered = () => JSON.parse(localStorage.getItem(SEEN_KEY))
+    const tiles = (container) => [...container.querySelectorAll('.home-shortcut')].map((button) => button.textContent)
+    const tile = (container, name) =>
+      [...container.querySelectorAll('.home-shortcut')].find((button) => button.textContent === name)
+    // Lo que dice Mochi, entero (el globo lo escribe letra por letra; el lector de pantalla lo recibe de una vez).
+    const said = (container) => container.querySelector('.live-layer [role="status"]')?.textContent ?? ''
+    const LINE = 'Moví Farmacia al primer lugar: pides seguido en farmacia.'
+    const glides = (animate) =>
+      animate.mock.calls.filter(([frames]) => String(frames?.[0]?.transform).startsWith('translateX'))
+    let animate
+    // jsdom no tiene layout: cada acceso queda 103 px más allá del anterior, según su lugar en la fila.
+    const offsetLeft = Object.getOwnPropertyDescriptor(HTMLElement.prototype, 'offsetLeft')
+    beforeEach(() => {
+      localStorage.setItem('rappi-proto-user', USER)
+      animate = vi.fn(() => ({ cancel() {} }))
+      Element.prototype.animate = animate
+      Object.defineProperty(HTMLElement.prototype, 'offsetLeft', {
+        configurable: true,
+        get() {
+          return [...(this.parentNode?.children ?? [])].indexOf(this) * 103
+        },
+      })
+    })
+    afterEach(() => {
+      Element.prototype.animate = () => ({ cancel() {} })
+      Object.defineProperty(HTMLElement.prototype, 'offsetLeft', offsetLeft)
+    })
+
+    test('la primera vez (sin un orden visto) no se mueve ni explica nada, y recuerda lo que vio', async () => {
+      memory.session.played = true
+      stubAgent({ 'GET /profile/*': fixture('profile-verticales') })
+      const { container } = await renderHome()
+      await advance(1500)
+      expect(tiles(container)[0]).toBe('Farmacia')
+      expect(said(container)).toBe('')
+      expect(glides(animate)).toEqual([])
+      expect(tracked('vertical_reorder_shown', 'agent-reorden')).toEqual([])
+      expect(remembered()).toEqual({ user: USER, order: ['farmacia', ...FIXED.filter((v) => v !== 'farmacia')] })
+    })
+
+    test('con otro orden que el último visto: la fila se desliza, Farmacia brilla y Mochi dice por qué', async () => {
+      memory.session.played = true
+      remember(FIXED)
+      stubAgent({ 'GET /profile/*': fixture('profile-verticales') })
+      const { container } = await renderHome()
+      expect(tiles(container)[0]).toBe('Súper') // mientras llega la respuesta, el orden que vio
+      await advance(1500)
+      expect(tiles(container).slice(0, 2)).toEqual(['Farmacia', 'Súper'])
+      expect(glides(animate).length).toBeGreaterThan(0)
+      expect(tile(container, 'Farmacia').classList).toContain('is-moved')
+      expect(said(container)).toBe(LINE)
+      const bubble = container.querySelector('.live-bubble')
+      fireEvent.click(within(bubble).getByRole('button', { name: '¿Por qué?' }))
+      expect(within(bubble).getByText(/Ordeno estos accesos por lo que más usas/)).toBeTruthy()
+      expect(tracked('vertical_reorder_shown', 'agent-reorden').map(([, fields]) => fields)).toEqual([
+        {
+          vertical: 'farmacia',
+          surface: 'home',
+          origin: 'agent-reorden',
+          position: 0,
+          request_id: 'contrato-profile-verticales',
+          payload: { antes: 1 },
+        },
+      ])
+      expect(remembered().order[0]).toBe('farmacia')
+
+      fireEvent.click(within(bubble).getByRole('button', { name: 'Entendido' }))
+      expect(container.querySelector('.live-bubble')).toBeNull()
+
+      // Al recargar con el mismo orden ya no hay nada que explicar.
+      cleanup()
+      memory.session.played = true
+      const again = await renderHome()
+      await advance(1500)
+      expect(said(again.container)).toBe('')
+      expect(tracked('vertical_reorder_shown', 'agent-reorden')).toHaveLength(1)
+    })
+
+    test('al volver a la Home con otro orden, Mochi lo explica ahí', async () => {
+      memory.session.played = true
+      let calls = 0
+      stubAgent({
+        'GET /profile/*': () => (++calls === 1 ? fixture('profile-verticales-nueva') : fixture('profile-verticales')),
+      })
+      const { container, rerender } = await renderHome()
+      await advance(500)
+      expect(said(container)).toBe('') // la primera vez, nada
+      rerender(homeTree({ active: false }))
+      await advance(300)
+      rerender(homeTree({ active: true }))
+      await advance(1500)
+      expect(tiles(container)[0]).toBe('Farmacia')
+      expect(said(container)).toBe(LINE)
+    })
+
+    test('recién abierta, primero saluda y después explica el cambio', async () => {
+      remember(FIXED)
+      stubAgent({ 'GET /profile/*': fixture('profile-verticales') })
+      const { container } = await renderHome()
+      await advance(1500)
+      expect(tiles(container)[0]).toBe('Farmacia') // la fila ya se movió
+      expect(said(container)).toMatch(/^¡Hola!/)
+      await advance(6000)
+      expect(said(container)).toBe(LINE)
+    })
+
+    test('sin la razón de la API (no quedó primero), lo dice según lo que más usa', async () => {
+      memory.session.played = true
+      remember(['supermercado', 'farmacia', 'licores', 'mall', 'conveniencia', 'chocolateria'])
+      const reply = fixture('profile-verticales-nueva') // Súper, Farmacia, Rappi Mall…: Rappi Mall sube uno
+      stubAgent({ 'GET /profile/*': reply })
+      const { container } = await renderHome()
+      await advance(1500)
+      expect(said(container)).toBe('Moví Rappi Mall más adelante, según lo que más usas.')
+    })
+
+    test('con movimiento reducido no se desliza: solo la explicación', async () => {
+      vi.stubGlobal('matchMedia', (query) => ({
+        matches: query.includes('reduce'),
+        addEventListener() {},
+        removeEventListener() {},
+      }))
+      memory.session.played = true
+      remember(FIXED)
+      stubAgent({ 'GET /profile/*': fixture('profile-verticales') })
+      const { container } = await renderHome()
+      await advance(500)
+      expect(tiles(container)[0]).toBe('Farmacia')
+      expect(glides(animate)).toEqual([])
+      expect(said(container)).toBe(LINE)
+    })
+
+    test('en silencio por hoy la fila cambia, pero Mochi no dice nada', async () => {
+      localStorage.setItem('rappi-proto-mochi-silencio', today())
+      memory.session.played = true
+      remember(FIXED)
+      stubAgent({ 'GET /profile/*': fixture('profile-verticales') })
+      const { container } = await renderHome()
+      await advance(1500)
+      expect(tiles(container)[0]).toBe('Farmacia')
+      expect(said(container)).toBe('')
+      expect(tracked('vertical_reorder_shown', 'agent-reorden')).toEqual([])
+    })
+  })
+
+  describe('Mochi oculto', () => {
+    test('no hay mascota ni propuestas suyas, el buscador es el de siempre y la fila cambia sin explicación', async () => {
+      localStorage.setItem('rappi-proto-mochi-oculto', '1')
+      localStorage.setItem('rappi-proto-user', 'proto-oculto')
+      localStorage.setItem(
+        'rappi-proto-accesos-vistos',
+        JSON.stringify({
+          user: 'proto-oculto',
+          order: ['supermercado', 'farmacia', 'mall', 'licores', 'conveniencia', 'chocolateria'],
+        }),
+      )
+      memory.session.played = true
+      memory.session.lastAdded = LOOSE_CART
+      stubAgent({
+        'GET /profile/*': fixture('profile-verticales'),
+        'POST /agent/offer': (req) => (req.body.moment === 'recompra' ? fixture('agent-offer-recompra') : 204),
+      })
+      const push = vi.fn()
+      const { container } = await renderHome({ push })
+      await advance(5000)
+      expect(container.querySelector('.live-agent')).toBeNull()
+      expect(container.querySelector('.smart-bar')).toBeNull()
+      expect(container.querySelector('.live-block--plan')).toBeNull()
+      expect(container.querySelector('.live-block--recompra')).toBeNull()
+      expect(allOfferRequests()).toEqual([]) // ni la recompra ni el comentario del carro
+      expect(container.querySelector('.home-shortcut').textContent).toBe('Farmacia')
+      expect(container.querySelector('.home-shortcut.is-moved')).toBeNull()
+      expect(tracked('vertical_reorder_shown', 'agent-reorden')).toEqual([])
+
+      fireEvent.click(container.querySelector('.home-top .search-bar'))
+      expect(push).toHaveBeenLastCalledWith('search')
+      fireEvent.click(screen.getByRole('button', { name: 'Buscar' })) // el de la barra inferior
+      expect(push).toHaveBeenLastCalledWith('search', {})
+    })
+  })
 })

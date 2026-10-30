@@ -179,4 +179,11 @@ describe('«¿Me falta algo?» en el checkout (solo si se pide)', () => {
     renderCheckout()
     expect(screen.queryByRole('button', { name: ASK })).toBeNull()
   })
+
+  test('con Mochi oculto no está: no hay a quién pedirle', () => {
+    localStorage.setItem('rappi-proto-mochi-oculto', '1')
+    renderCheckout()
+    expect(screen.queryByRole('button', { name: ASK })).toBeNull()
+    localStorage.removeItem('rappi-proto-mochi-oculto')
+  })
 })

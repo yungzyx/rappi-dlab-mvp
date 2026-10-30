@@ -177,6 +177,39 @@ def test_actual_mode_events_do_not_reorder(client):
     assert body["personalized"] is False
 
 
+def test_mochi_explaining_a_move_or_being_hidden_is_saved_and_does_not_reorder(client, db):
+    """`vertical_reorder_shown` (Mochi dijo por qué movió un acceso) y `agent_visibility` (ocultarlo o traerlo de
+    vuelta) llegan por /events con su sobre (migración 052), pero no enseñan: el orden sigue siendo el fijo."""
+    who = person()
+    events = [
+        {
+            "type": "vertical_reorder_shown",
+            "session_id": "s-mueve",
+            "vertical": "mall",
+            "surface": "home",
+            "origin": "agent-reorden",
+            "position": 0,
+            "request_id": "abc123",
+            "payload": {"antes": 2},
+        },
+        {"type": "agent_visibility", "session_id": "s-mueve", "origin": "cuenta", "payload": {"visible": False}},
+    ]
+    reply = client.post("/events", json={"user_id": who[0], "events": events}, headers=who[1])
+    assert reply.status_code == 200, reply.text
+    rows = db.execute(
+        """SELECT type, vertical, position, payload FROM app_events
+           WHERE user_id = %s AND type IN ('vertical_reorder_shown', 'agent_visibility') ORDER BY type""",
+        (who[0],),
+    ).fetchall()
+    assert rows == [
+        ("agent_visibility", None, None, {"visible": False}),
+        ("vertical_reorder_shown", "mall", 0, {"antes": 2}),
+    ]
+    body = verticales(client, who)
+    assert [v["id"] for v in body["order"]] == FIXED_ORDER
+    assert body["personalized"] is False
+
+
 def test_other_person_is_403(client):
     alice, _ = person("u-alice")
     _, as_bob = person("u-bob")

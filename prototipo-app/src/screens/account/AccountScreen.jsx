@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { AGENT_NAME } from '../../agent/name'
 import BackButton from '../../components/BackButton'
 import { useToast } from '../../components/Toast'
 import Img from '../../components/Img'
@@ -6,6 +7,8 @@ import { ChevronRight } from '../../components/Icons'
 import { CardIcon, HeadsetIcon, LogoutIcon, OrdersIcon } from '../../components/LineIcons'
 import { useAddress } from '../../state/AddressContext'
 import { MODE_LABELS, nextMode, useDemo } from '../../state/DemoContext'
+import { useEvents } from '../../state/EventsContext'
+import { setAgentHidden, useAgentHidden } from '../../state/agentHidden'
 import { resetLive } from '../../state/liveMemory'
 import { useOrders } from '../../state/OrdersContext'
 import { setPro, usePro } from '../../state/pro'
@@ -25,6 +28,8 @@ export default function AccountScreen({ onBack, push }) {
   const { orders } = useOrders()
   const isPro = usePro()
   const [sheet, setSheet] = useState(null)
+  const agentHidden = useAgentHidden()
+  const events = useEvents()
   // «Modo demo» cambia toda la app de modo: como el interruptor de la presentación, solo en desarrollo o con VITE_DEMO=1.
   const showDemoRow = import.meta.env.DEV || import.meta.env.VITE_DEMO === '1'
 
@@ -34,6 +39,12 @@ export default function AccountScreen({ onBack, push }) {
     else if (row.action === 'demo') {
       demo.toggle()
       toast(`Modo demo: ${MODE_LABELS[nextMode(demo.mode)]}`)
+    } else if (row.action === 'agent') {
+      // Ocultarlo se confirma (hoja «hide-agent»); traerlo de vuelta, no.
+      if (!agentHidden) return setSheet('hide-agent')
+      events.track('agent_visibility', { origin: 'cuenta', payload: { visible: true } })
+      setAgentHidden(false)
+      toast(`${AGENT_NAME} está de vuelta`)
     } else if (row.action === 'replay') {
       resetLive()
       onBack()
@@ -140,12 +151,19 @@ export default function AccountScreen({ onBack, push }) {
                   .filter((row) => (!row.finalOnly || demo.isFinal) && (showDemoRow || row.action !== 'demo'))
                   .map((row) => (
                     <li key={row.id}>
-                      <button type="button" className="account-row" onClick={() => runRow(row)}>
+                      <button
+                        type="button"
+                        className="account-row"
+                        onClick={() => runRow(row)}
+                        {...(row.action === 'agent' ? { role: 'switch', 'aria-checked': !agentHidden } : {})}
+                      >
                         <span className="account-row-icon">
                           <row.Icon size={24} />
                         </span>
                         <span className="account-row-label">{row.label}</span>
-                        {row.action === 'demo' ? (
+                        {row.action === 'agent' ? (
+                          <span className={agentHidden ? 'sheet-switch' : 'sheet-switch is-on'} />
+                        ) : row.action === 'demo' ? (
                           <strong className="account-demo-value">{MODE_LABELS[demo.mode]}</strong>
                         ) : row.value ? (
                           <strong>{row.value}</strong>

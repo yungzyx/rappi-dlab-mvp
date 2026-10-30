@@ -119,6 +119,7 @@ En el **prototipo final** Mochi de cuerpo entero vive en la Home (`src/screens/h
 La Home del prototipo final se ordena según cada persona, con el [motor multivertical](../docs/capa-de-datos.md#motor-multivertical) de la API:
 
 - **Accesos ordenados por el uso propio:** los 6 accesos pequeños siguen lo que la persona más pide y abre (`GET /profile/{id}/verticales`; cada toque a una vertical es un evento `vertical_open`) y, cuando el orden es suyo, la fila dice «Ordenadas según lo que más usas». Restaurantes y Turbo no se mueven, Lealtad y Beneficios Pro van al final y, sin historial, queda el orden de siempre. En «Rappi hoy» no cambia nada.
+- **Mochi mueve los accesos:** si el orden cambia con la Home a la vista (por ejemplo, con «+1 visita» del «Panel de la demo») o al volver a ella (comparado con el último orden que vio la persona, guardado en el navegador), Mochi se para junto a la fila, los accesos se deslizan a su lugar nuevo y el que más subió brilla; en su globo dice cuál movió y por qué («Moví Rappi Mall al primer lugar: entras seguido a Rappi Mall.», con la razón de la API; sin ella, «según lo que más usas»), con «¿Por qué?» y «Entendido». La primera vez no explica nada; con «reducir movimiento» no hay deslizamiento; en silencio u oculto, la fila cambia sin explicación.
 - **«¿Repetimos …?»:** cuando la persona pide un concepto con ritmo y ya le toca, aparece un bloque con lo último que llevó («Pides cada 7 días»), «Ver producto» y «Después» (la oferta `recompra`). Cuenta como aceptada al agregar el producto al carro.
 - **Tocar a Mochi:** propone el siguiente paso de la escalera de combinaciones (Restaurantes → Turbo → Retail), por ejemplo «¿Y si pruebas algo de Súper?», con «¿Por qué?» para ver la razón.
 
@@ -174,11 +175,12 @@ En el prototipo final no hay filas de sugerencias al entrar a una vertical ni en
 
 En el prototipo final, Mochi flota a un costado en las demás pantallas (no en la Home, el buscador con Mochi, el checkout ni el seguimiento), sobre la barra inferior o la del carrito, y se achica al hacer scroll:
 
-- **Tocarlo:** salta y abre un menú: «Buscar con Mochi», «Revisar mi carrito · $total» (o «¿Qué puedo probar?» con el carro vacío), «Mover al otro lado» y «Silenciar por hoy». Escape o tocar fuera lo cierran.
+- **Tocarlo:** salta y abre un menú: «Buscar con Mochi», «Revisar mi carrito · $total» (o «¿Qué puedo probar?» con el carro vacío), «Mover al otro lado», «Silenciar por hoy» y «Ocultar a Mochi». Escape o tocar fuera lo cierran.
 - **Moverlo:** arrastrarlo lo deja en el lado más cercano; el lado se recuerda en el navegador.
 - **Al agregar al carro:** «¡Listo! … está en tu carrito» con «Deshacer», 4 s. No sugiere nada: eso queda para la Home al volver.
 - **Preguntarle por un producto:** mantener presionada una tarjeta muestra «Preguntarle a Mochi» (abre el buscador con «¿Con qué acompaño …?»). En escritorio también se puede arrastrar la tarjeta hasta Mochi.
 - **Silencio:** «Silenciar por hoy» lo deja como una pestañita en el borde hasta mañana (tocarla lo despierta). Si se cierran dos globos seguidos, no habla por su cuenta el resto de la sesión. «Repetir escena» lo despierta.
+- **Ocultarlo:** «Ocultar a Mochi» (con una confirmación: «Mochi no volverá a aparecer. Puedes traerlo de vuelta en Cuenta.») lo saca de toda la app hasta que se encienda «Mostrar a Mochi» en Cuenta (también se puede ocultar ahí). Oculto no hay mascota, globos ni lo que propone solo (recompra, «¿Volvemos a…?», el plan del día, el OnTop, «¿Me falta algo?»), y la barra de la Home y la lupa abren el buscador de siempre, como en «Rappi hoy». Sobrevive a recargar; cambiar de persona en la demo, «Repetir escena» y «Borrar mis datos» lo traen de vuelta.
 
 ### Compra completa
 
