@@ -89,10 +89,10 @@ describe('Ver cómo funciona', () => {
     expect(screen.queryByText(/con eventos de ejemplo de la demostración/)).toBeNull() // todavía es la foto
 
     await act(async () => fireEvent.click(within(tour).getByRole('button', { name: 'Empezar' })))
-    expect(within(tour).getByText('Paso 1 de 4')).toBeTruthy()
+    expect(within(tour).getByText('Paso 1 de 5')).toBeTruthy()
     expect(await planRow()).toEqual(['2', '1'])
     // Cada sección del prototipo dice que trae eventos de ejemplo, no solo la tarjeta.
-    expect(screen.getAllByText(/con eventos de ejemplo de la demostración: no son datos reales/)).toHaveLength(3)
+    expect(screen.getAllByText(/con eventos de ejemplo de la demostración: no son datos reales/)).toHaveLength(4)
 
     await act(async () => fireEvent.click(within(tour).getByRole('button', { name: 'Siguiente' })))
     expect(await planRow()).toEqual(['2', '2'])
@@ -104,11 +104,15 @@ describe('Ver cómo funciona', () => {
     const frequency = await screen.findByRole('article', { name: 'Frecuencia (30 días)' })
     expect(within(frequency).getByText(/4 pedidos de 7 personas/)).toBeTruthy() // lo grabado: 3 de 6
 
-    // Paso 4: una búsqueda sin resultado más en «Qué buscan y no encuentran»; el botón ya dice «Terminar».
+    // Paso 4: una búsqueda sin resultado más en «Qué buscan y no encuentran».
     await act(async () => fireEvent.click(within(tour).getByRole('button', { name: 'Siguiente' })))
-    expect(within(tour).getByRole('button', { name: 'Terminar' })).toBe(advance)
     expect(window.location.search).toBe('?vista=mochi&fuente=prototipo')
     expect(await screen.findByText('2 de 2')).toBeTruthy() // lo grabado: 1 de 1
+
+    // Paso 5: oculta a Mochi; «Ocultaron a Mochi» suma una persona de las 11 activas. El botón ya dice «Terminar».
+    await act(async () => fireEvent.click(within(tour).getByRole('button', { name: 'Siguiente' })))
+    expect(within(tour).getByRole('button', { name: 'Terminar' })).toBe(advance)
+    expect(await screen.findByText('18,2% de 11 personas activas; lo ocultaron 2 veces')).toBeTruthy() // lo grabado: 1 de 10
 
     await act(async () => fireEvent.keyDown(document.body, { key: 'Escape' })) // Escape cierra desde cualquier parte
     expect(screen.queryByRole('complementary', { name: 'Ver cómo funciona' })).toBeNull()

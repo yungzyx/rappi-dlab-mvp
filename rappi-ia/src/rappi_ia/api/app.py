@@ -854,6 +854,7 @@ ANALYTICS = {
     "combos": queries.combos,
     "motor": queries.motor,
     "home": queries.home,
+    "presencia": queries.presence,
     "ctr-posicion": queries.ctr_by_position,
     "embudo-sesion": queries.session_funnel,
 }

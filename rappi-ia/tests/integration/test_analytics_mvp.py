@@ -1,7 +1,7 @@
 """Métricas del uso del MVP en el panel: ofertas por momento y búsquedas sin resultado."""
 
 import json
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta
 
 import pytest
 from fastapi.testclient import TestClient
@@ -222,3 +222,86 @@ def test_unknown_metric_is_404(db):
             assert client.get(f"/analytics/{name}", params={"source": "real"}).status_code == 422
     finally:
         api.app.dependency_overrides.clear()
+
+
+def _visibility(user, visible, days_ago):
+    return events.Event(
+        user, "s1", "agent_visibility", ts=NOW - timedelta(days=days_ago), origin="cuenta", payload={"visible": visible}
+    )
+
+
+def _reorder_shown(user):
+    return events.Event(
+        user,
+        "s1",
+        "vertical_reorder_shown",
+        ts=NOW,
+        vertical="mall",
+        position=0,
+        origin="agent-reorden",
+        payload={"antes": 2},
+    )
+
+
+def test_presence_counts_who_has_the_agent_hidden_now_and_the_home_explanations(db):
+    events.record(
+        db,
+        [
+            _visibility("u1", False, 2),
+            _visibility("u1", True, 1),  # lo trajo de vuelta: no está oculto
+            _visibility("u2", False, 1),
+            _visibility("u3", False, 3),
+            _visibility("u3", True, 2),
+            _visibility("u3", False, 1),  # lo volvió a ocultar: cuenta su último cambio
+            events.Event("u4", "s1", "app_open", ts=NOW),  # activa, nunca lo ocultó
+            _visibility("u5", False, 60),  # sin actividad en los últimos 30 días: no entra en nada
+            _reorder_shown("u1"),
+            _reorder_shown("u1"),
+            _reorder_shown("u4"),
+        ],
+    )
+    events.record(db, [_visibility("s1", False, 0), _reorder_shown("s1")], source="synthetic")
+
+    assert queries.presence(db, "prototype") == {
+        "personas_activas": 4,
+        "ocultos": 2,
+        "ocultos_pct": 50.0,
+        "ocultadas": 4,
+        "volvieron": 2,
+        "explicaciones": 3,
+        "explicaciones_personas": 2,
+    }
+    assert queries.presence(db, "synthetic") == {
+        "personas_activas": 1,
+        "ocultos": 1,
+        "ocultos_pct": 100.0,
+        "ocultadas": 1,
+        "volvieron": 0,
+        "explicaciones": 1,
+        "explicaciones_personas": 1,
+    }
+
+
+def test_presence_without_events_is_all_zero_and_no_rate(db):
+    def conn_override():
+        yield db
+
+    api.app.dependency_overrides[api.get_conn] = conn_override
+    try:
+        reply = TestClient(api.app).get("/analytics/presencia", params={"source": "prototype"})
+    finally:
+        api.app.dependency_overrides.clear()
+
+    assert reply.status_code == 200
+    assert reply.json() == {
+        "source": "prototype",
+        "data": {
+            "personas_activas": 0,
+            "ocultos": 0,
+            "ocultos_pct": None,
+            "ocultadas": 0,
+            "volvieron": 0,
+            "explicaciones": 0,
+            "explicaciones_personas": 0,
+        },
+    }

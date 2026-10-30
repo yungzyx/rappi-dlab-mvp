@@ -38,7 +38,7 @@ from rappi_ia.offers import autonomy
 
 FIXTURES = Path(__file__).resolve().parents[3] / "prototipo-app" / "src" / "api" / "fixtures"
 PANEL_FIXTURES = Path(__file__).resolve().parents[3] / "dashboard-empresa" / "src" / "fixtures"
-PANEL_METRICS = ("offers", "unmet", "combos", "motor", "volver", "ctr-posicion", "embudo-sesion", "pro")
+PANEL_METRICS = ("offers", "unmet", "combos", "motor", "volver", "ctr-posicion", "embudo-sesion", "pro", "presencia")
 # Las métricas de /analytics que guarda `npm run fixtures` (dashboard-empresa/scripts/update-fixtures.mjs).
 PANEL_SHAPE = ("kpis", "weekly", "opportunities", "trends", "at-risk", "suggestions", "services", "assortment")
 PANEL_ORIGINS = {
@@ -405,7 +405,8 @@ def test_contract_examples_are_up_to_date(client, example):
 
 
 def prototype_journey(client) -> None:
-    """Lo que manda la app en un recorrido corto: acepta un plan, ve una oferta en el carro y busca algo que no hay."""
+    """Lo que manda la app en un recorrido corto: acepta un plan, ve una oferta en el carro, busca algo que no hay, ve a
+    Mochi explicar un cambio de la Home y lo oculta."""
     plan = client.post("/agent/offer", json={"moment": "plan", "context": {"occasion": "carrete"}}).json()
     cart = client.post(
         "/agent/offer",
@@ -436,6 +437,16 @@ def prototype_journey(client) -> None:
             "results": 0,
             "unmet": search["unmet"],
         },
+        # Mochi explica por qué movió un acceso de la Home, y después la persona lo oculta.
+        {
+            "type": "vertical_reorder_shown",
+            "session_id": "s-panel",
+            "vertical": "mall",
+            "position": 0,
+            "origin": "agent-reorden",
+            "payload": {"antes": 2},
+        },
+        {"type": "agent_visibility", "session_id": "s-panel", "origin": "menu-mochi", "payload": {"visible": False}},
     ]
     assert client.post("/events", json={"user_id": "u-panel", "events": sent}).json() == {"guardados": len(sent)}
     # Y un pedido que Mochi hizo solo con permiso («Pedir por mí»): el panel lo cuenta aparte.

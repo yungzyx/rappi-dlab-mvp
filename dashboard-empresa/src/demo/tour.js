@@ -36,6 +36,16 @@ function kpis(responses, { activeUsers = 0, orders = 0 }) {
   })
 }
 
+/** «¿Mochi molesta?»: una persona activa más y, si lo oculta (`hides`), una persona oculta más y su % de nuevo. */
+function presence(responses, { activeUsers = 0, hides = 0 }) {
+  return edit(responses['presencia.prototype'], (data) => {
+    data.personas_activas += activeUsers
+    data.ocultos += hides
+    data.ocultadas += hides
+    data.ocultos_pct = data.personas_activas ? round((data.ocultos * 100) / data.personas_activas, 1) : null
+  })
+}
+
 function unmetSearch(responses, vertical) {
   return edit(responses['unmet.prototype'], (data) => {
     data.personas += 1
@@ -65,6 +75,7 @@ export const TOUR = [
       ...responses,
       'offers.prototype': offer(responses, 'plan', { shown: 1, newPerson: true }),
       'kpis.prototype': kpis(responses, { activeUsers: 1 }),
+      'presencia.prototype': presence(responses, { activeUsers: 1 }),
     }),
   },
   {
@@ -87,6 +98,13 @@ export const TOUR = [
     view: 'mochi',
     section: 'busquedas',
     apply: (responses) => ({ ...responses, 'unmet.prototype': unmetSearch(responses, 'restaurantes') }),
+  },
+  {
+    title: `Oculta a ${AGENT_NAME}`,
+    text: `En el menú de ${AGENT_NAME} elige «Ocultar a ${AGENT_NAME}». En «¿${AGENT_NAME} molesta?», «Ocultaron a ${AGENT_NAME}» suma una persona y sube su %: si fueran muchas, habría que revisar cada cuánto habla.`,
+    view: 'mochi',
+    section: 'presencia',
+    apply: (responses) => ({ ...responses, 'presencia.prototype': presence(responses, { hides: 1 }) }),
   },
 ]
 
