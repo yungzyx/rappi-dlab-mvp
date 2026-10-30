@@ -73,6 +73,21 @@ describe('"Mostrar a Mochi" en Cuenta', () => {
     expect(events.track).toHaveBeenLastCalledWith('agent_visibility', { origin: 'cuenta', payload: { visible: true } })
   })
 
+  test('"Repetir escena" con Mochi oculto lo trae de vuelta y lo anota; sin ocultar, no anota nada', () => {
+    localStorage.setItem(HIDDEN_KEY, '1')
+    renderAccount()
+    fireEvent.click(screen.getByRole('button', { name: /Repetir escena/ }))
+    expect(localStorage.getItem(HIDDEN_KEY)).toBeNull()
+    expect(events.track).toHaveBeenLastCalledWith('agent_visibility', {
+      origin: 'repetir-escena',
+      payload: { visible: true },
+    })
+
+    events.track.mockClear()
+    fireEvent.click(screen.getByRole('button', { name: /Repetir escena/ }))
+    expect(events.track).not.toHaveBeenCalled()
+  })
+
   test('en "Rappi hoy" no está: ahí no hay Mochi', () => {
     localStorage.setItem('rappi-proto-demo-mode', 'actual')
     renderAccount()

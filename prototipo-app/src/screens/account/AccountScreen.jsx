@@ -46,7 +46,7 @@ export default function AccountScreen({ onBack, push }) {
       setAgentHidden(false)
       toast(`${AGENT_NAME} está de vuelta`)
     } else if (row.action === 'replay') {
-      resetLive()
+      if (resetLive()) events.track('agent_visibility', { origin: 'repetir-escena', payload: { visible: true } })
       onBack()
     } else if (row.action) setSheet(row.action)
     else toast()

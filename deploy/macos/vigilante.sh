@@ -25,6 +25,12 @@ caddy_vivo() { # sin la clave responde 401: está vivo y la puerta funciona
 tunel_listo() { curl -fsS -o /dev/null --max-time 10 "http://$TUNEL_METRICAS/ready"; }
 
 revisar api api_sana
+
+# Dos búsquedas chicas mantienen en memoria el modelo de texto de cada proceso de la API (son dos) y los índices: sin
+# uso, macOS los manda al disco y la primera búsqueda después de unas horas tardaba 7 a 14 s, o fallaba. Solo leen.
+for _ in 1 2; do
+  curl -fsS -o /dev/null --max-time 30 "http://127.0.0.1:$API_PORT/search?q=agua&limit=1" || true
+done
 revisar caddy caddy_vivo
 revisar tunel tunel_listo
 

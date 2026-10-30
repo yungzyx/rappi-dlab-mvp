@@ -1,10 +1,12 @@
 import { resetLive } from '../state/liveMemory'
 import { MODE_LABELS, useDemo } from '../state/DemoContext'
+import { useEvents } from '../state/EventsContext'
 import './demo-toggle.css'
 
 /** Interruptor de los dos modos fuera del marco del teléfono (solo en notebook). En el prototipo final, repetir la escena. */
 export default function DemoToggle() {
   const demo = useDemo()
+  const events = useEvents()
   // El interruptor es de la presentación: el sitio desplegado lo muestra solo con VITE_DEMO=1 en el build.
   if (!(import.meta.env.DEV || import.meta.env.VITE_DEMO === '1')) return null
 
@@ -25,7 +27,14 @@ export default function DemoToggle() {
         ))}
       </div>
       {demo.isFinal && (
-        <button type="button" className="demo-toggle-replay" onClick={resetLive}>
+        <button
+          type="button"
+          className="demo-toggle-replay"
+          onClick={() => {
+            // Si Mochi estaba oculto, vuelve: queda anotado como en Cuenta.
+            if (resetLive()) events.track('agent_visibility', { origin: 'repetir-escena', payload: { visible: true } })
+          }}
+        >
           ↺ Repetir escena
         </button>
       )}
