@@ -130,7 +130,7 @@ export default function App() {
               <a href={`${import.meta.env.BASE_URL}presentacion.html`}>Presentación de la propuesta</a>.
             </p>
           )}
-          <p>Demo no oficial · prototipo independiente, no afiliado a Rappi.</p>
+          <p>Prototipo dLab con Rappi · demo, no es un producto oficial de Rappi.</p>
           <p>
             Personas con id seudónimo; las listas por persona nunca muestran conceptos sensibles. Ninguna palanca se
             escala sin un grupo de control (A/B con holdout).

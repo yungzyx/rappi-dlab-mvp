@@ -109,7 +109,7 @@ Estado al 16-10-2026:
   - **Ritmo:** una descarga a la vez, con pausas de 1,5 a 3 s entre solicitudes, y actualización semanal.
   - **Sin datos personales.**
   - **Fines:** investigación y demostración. Las descripciones, imágenes y marcas pertenecen a Rappi y a los comercios; un uso comercial requeriría autorización.
-  - **Proyecto independiente:** no está afiliado a Rappi ni cuenta con su respaldo. Las marcas pertenecen a sus dueños.
+  - **Junto con Rappi:** proyecto del programa dLab desarrollado junto con Rappi Chile; es un prototipo, no un producto oficial de Rappi. Las marcas pertenecen a sus dueños.
 - **Métricas con salvedades:** la relevancia de la búsqueda se juzga automáticamente por concepto, y sin el refuerzo por concepto el híbrido no se distingue del vectorial (nDCG@10 0,842 frente a 0,835, con el set del 22-10-2026). Falta el juicio humano. La precisión de los conceptos es una estimación con jueces LLM sobre una muestra versionada del catálogo completo (06-10-2026). Detalle en [README → Resultados](../README.md#resultados).
 - **Datos simulados:** el motor (lo que aprende de la población), los segmentos y las métricas de negocio usan usuarios, eventos y pedidos simulados. Muestran la mecánica, no son evidencia.
 - **La tabla de Rappi es una correlación:** el motor la usa como punto de partida, no como promesa de efecto. La agrupación en `rest`, `turbo` y `retail` es un supuesto propio.

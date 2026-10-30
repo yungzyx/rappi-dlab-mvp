@@ -41,8 +41,8 @@ describe('App', () => {
     serveFixtures()
     await renderWithData(<App />)
 
-    expect(document.querySelector('.masthead').textContent).toContain('Prototipo independiente, no afiliado a Rappi')
-    expect(screen.getByText('Demo no oficial · prototipo independiente, no afiliado a Rappi.')).toBeTruthy()
+    expect(document.querySelector('.masthead').textContent).toContain('Prototipo dLab con Rappi, no oficial')
+    expect(screen.getByText('Prototipo dLab con Rappi · demo, no es un producto oficial de Rappi.')).toBeTruthy()
     expect(screen.getByRole('link', { name: 'Presentación de la propuesta' }).getAttribute('href')).toBe(
       `${import.meta.env.BASE_URL}presentacion.html`,
     )

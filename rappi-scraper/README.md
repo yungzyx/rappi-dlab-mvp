@@ -46,7 +46,7 @@ rappi migrate                           # aplica migraciones pendientes (lo mism
 - **Historial:** cada corrida agrega un snapshot de precios; el catálogo no se duplica.
 - **Una descarga a la vez:** dos en paralelo duplicarían la carga sobre rappi.cl.
 - **Ritmo:** pausa aleatoria de 1,5–3 s entre páginas. Se ajusta con `RAPPI_DELAY_MIN` / `RAPPI_DELAY_MAX` en `.env` (ver `.env.example`).
-- **Se identifica:** el User-Agent es `rappi-dlab-scraper/<versión> (+<contacto>; prototipo de investigacion dLab, no afiliado a Rappi)`, no el de un navegador. `RAPPI_UA_PROJECT` cambia el nombre (también el que se busca en robots.txt) y `RAPPI_UA_CONTACT` pone una URL o un correo para que Rappi sepa a quién escribir; sin contacto, el log lo avisa.
+- **Se identifica:** el User-Agent es `rappi-dlab-scraper/<versión> (+<contacto>; prototipo de investigacion dLab con Rappi)`, no el de un navegador. `RAPPI_UA_PROJECT` cambia el nombre (también el que se busca en robots.txt) y `RAPPI_UA_CONTACT` pone una URL o un correo para que Rappi sepa a quién escribir; sin contacto, el log lo avisa.
 - **Respeta robots.txt:** antes de cada página consulta el robots.txt del sitio (RFC 9309, con comodines; `scraping/robots.py`) y lo guarda 24 horas. Busca el grupo de su nombre y, si no hay, el de `*`. Un sitio sin robots.txt (cualquier 4xx, como el bucket S3 de los metadatos) no tiene reglas; uno que no responde (5xx o red, tras los reintentos) no permite nada, salvo que ya se hubiera leído: entonces se sigue con esa copia y se vuelve a pedir en una hora. Las redirecciones se siguen a mano, revisando robots.txt antes de pedir cada destino. Si robots.txt no permite una página (también el destino de una redirección), la descarga no se la salta: se detiene, la corrida queda abierta y `rappi refresh` sale con el código 7. El robots.txt de rappi.cl del 24-10-2026 está en `tests/fixtures/robots.txt`: permite todo lo que el scraper pide (prohíbe la cuenta, el carro, las APIs y las páginas de una farmacia, Farmacias San Pablo, que hoy no está en el catálogo).
 
 ## Descarga completa
@@ -231,6 +231,6 @@ make format       # aplica el formato
 - Una descarga a la vez, con pausas de 1,5–3 s entre páginas, y actualización semanal.
 - Sin datos personales: catálogo, precios y datos públicos de tiendas y restaurantes.
 - Fines de investigación y demostración. Un uso comercial requeriría autorización de Rappi. Los datos descargados no se suben al repositorio.
-- Proyecto independiente: no está afiliado a Rappi ni cuenta con su respaldo. Las marcas y el contenido pertenecen a Rappi y a los comercios.
+- Proyecto del programa dLab desarrollado junto con Rappi Chile; no es un producto oficial de Rappi. Las marcas y el contenido pertenecen a Rappi y a los comercios.
 
 Detalle en [README.md#qué-es-real-y-qué-es-simulado](../README.md#qué-es-real-y-qué-es-simulado).

@@ -14,7 +14,7 @@ const MANIFEST = {
   id: '/',
   name: `${AGENT_NAME} · demo`,
   short_name: `${AGENT_NAME} · demo`,
-  description: `Prototipo independiente con ${AGENT_NAME}, no afiliado a Rappi.`,
+  description: `Prototipo dLab con Rappi y ${AGENT_NAME}; no es la app oficial.`,
   lang: 'es',
   start_url: '/',
   scope: '/',

@@ -30,7 +30,7 @@ export function Header({ source, onSourceChange, onRefresh }) {
             <path className="brand-bar" d="M23 22v-8" />
           </svg>
           <div>
-            <p className="eyebrow">Prototipo independiente, no afiliado a Rappi</p>
+            <p className="eyebrow">Prototipo dLab con Rappi, no oficial</p>
             <h1>Panel de negocio</h1>
           </div>
         </div>

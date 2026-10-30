@@ -2,7 +2,7 @@
 
 Maqueta navegable de la app de Rappi Chile, hecha a partir de capturas y videos del iPhone, para **mostrar la propuesta del proyecto**. Desde fuera, lo que un usuario hace en un vertical no parece influir en lo que se le recomienda en los demás. Aquí el asistente **Mochi** aprende de lo que haces y recomienda **entre verticales** (cerveza → snacks, pizza → gaseosas, pan → fiambres).
 
-> Imágenes, logos y marcas pertenecen a Rappi y a sus dueños; se usan solo como maqueta de demostración. Proyecto independiente, no afiliado ni respaldado por Rappi. Los banners y promociones de terceros que traían las capturas (bancos, aerolíneas, hoteles, restaurantes) se reemplazaron por contenido genérico o de ejemplo.
+> Imágenes, logos y marcas pertenecen a Rappi y a sus dueños; se usan solo como maqueta de demostración. Proyecto del programa dLab desarrollado junto con Rappi Chile; no es la app oficial de Rappi. Los banners y promociones de terceros que traían las capturas (bancos, aerolíneas, hoteles, restaurantes) se reemplazaron por contenido genérico o de ejemplo.
 
 Hecho con Vite + React 19. **Necesita la API de [`rappi-ia`](../rappi-ia/)**: sin ella no abre y muestra "Sin conexión con Mochi" con un botón "Reintentar". Con la API, Mochi busca en el catálogo real. Las imágenes que no cargan muestran un respaldo neutro.
 

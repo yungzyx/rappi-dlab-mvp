@@ -2,7 +2,7 @@
 
 > **Parte del MVP.** `make mvp` lo levanta junto a la API y la app, y lee la API (`/analytics`). Con la fuente **Simulados** muestra la mecánica del panel; con la fuente **Prototipo**, lo que la gente hizo en la app (ofertas de Mochi por momento, búsquedas sin resultado, a quién invitar a volver), siempre rotulado "uso del MVP, pocas personas: no es evidencia".
 
-> Prototipo independiente del programa dLab: no está afiliado a Rappi ni cuenta con su respaldo, y el encabezado del panel lo dice. Las marcas pertenecen a sus dueños.
+> Prototipo del programa dLab desarrollado junto con Rappi Chile: no es un producto oficial de Rappi, y el encabezado del panel lo dice. Las marcas pertenecen a sus dueños.
 
 Panel para dos públicos de Rappi: la **gerencia general** (crecimiento, retención y venta cruzada entre verticales) y **RappiAds** (a quién ofrecer qué, en qué momento y con qué resultado). Se ordena en cuatro preguntas, cada una con su cifra, su comparación y una acción sugerida:
 
