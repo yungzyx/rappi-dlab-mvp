@@ -186,6 +186,8 @@ def _search_grouped(
         query, concepts, occasion = rewritten
         fixed = occasion.vertical
     memo = MemoizedQueryEmbedder(embedder) if embedder is not None else None
+    if memo is not None and mode != "lexico":
+        memo.embed_queries([query])  # antes de abrir la transacción: ver `retrieve`
     words = has_words(conn, query)  # una vez, no una por vertical
     verticals = _verticals_to_search(conn, concepts, current, fixed)
 

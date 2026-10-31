@@ -120,13 +120,15 @@ def retrieve(
         raise ValueError(f"Modo desconocido: {mode}")
     filters = filters or Filters()
     query_concepts = concepts if concepts is not None else _query_concepts(query)
+    # El vector de la consulta antes de tocar la base: con el modelo frío (o fuera de memoria) puede tardar segundos, y
+    # una transacción abierta esperándolo la corta Postgres a los 10 s (api/deps.py). En paralelo, las otras verticales
+    # esperan este mismo vector (MemoizedQueryEmbedder) sin haber abierto la suya.
+    query_vector = embedder.embed_queries([query])[0] if mode != "lexico" and embedder is not None else None
     doc_count = vertical_doc_count(conn, vertical)
 
     lexical = _lexical(conn, vertical, query, filters, doc_count) if mode != "vector" else []
     vector: list[tuple[tuple[str, str], float]] = []
-    query_vector = None
-    if mode != "lexico" and embedder is not None:
-        query_vector = embedder.embed_queries([query])[0]
+    if query_vector is not None:
         vector = _vector(conn, vertical, query_vector, embedder, filters)
 
     scores: dict[tuple[str, str], float] = {}

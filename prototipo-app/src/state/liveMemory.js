@@ -46,7 +46,8 @@ export const REPLAY_EVENT = 'agent-vivo-repetir'
 
 /**
  * "Repetir la escena": vuelve al estado de una persona que abre la Home por primera vez (el silencio también se reinicia,
- * y si estaba oculto, Mochi vuelve).
+ * y si estaba oculto, Mochi vuelve). Devuelve `true` si Mochi estaba oculto: quien la llama anota que volvió
+ * (`agent_visibility`), para que el panel no lo siga contando como oculto.
  */
 export function resetLive() {
   Object.assign(session, {
@@ -58,11 +59,13 @@ export function resetLive() {
     winback: null,
   })
   resetQuiet()
-  if (isAgentHiddenNow()) setAgentHidden(false)
+  const wasHidden = isAgentHiddenNow()
+  if (wasHidden) setAgentHidden(false)
   try {
     localStorage.removeItem(TOUR_KEY)
   } catch {
     // Nada guardado que borrar.
   }
   window.dispatchEvent(new Event(REPLAY_EVENT))
+  return wasHidden
 }

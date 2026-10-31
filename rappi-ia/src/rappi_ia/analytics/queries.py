@@ -706,8 +706,9 @@ def presence(conn: Connection, source: str = "synthetic") -> dict:
     personas activas (algún evento), cuántas lo tienen oculto (su último `agent_visibility`, de cuando sea, es
     `visible: false`) y qué % son; cuántas veces lo ocultaron y cuántas personas lo trajeron de vuelta (algún
     `visible: true`); y cuántas veces explicó por qué movió los accesos de la Home (`vertical_reorder_shown`), a cuántas
-    personas. La app no anota "¿Por qué?" ni "Entendido" del globo: no se cuentan. Cambiar de persona en la demo,
-    "Repetir escena" o "Borrar mis datos" lo devuelven sin evento: "oculto" es el último cambio que hizo la persona."""
+    personas. La app no anota "¿Por qué?" ni "Entendido" del globo: no se cuentan. "Repetir escena" lo devuelve y lo
+    anota (`visible: true`); cambiar de persona en la demo o "Borrar mis datos" lo devuelven sin evento, porque es otra
+    persona: "oculto" es el último cambio que hizo la persona."""
     _check(source)
     [row] = _rows(
         conn,
