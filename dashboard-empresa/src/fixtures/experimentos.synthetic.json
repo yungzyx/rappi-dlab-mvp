@@ -1,0 +1,64 @@
+{
+  "data": {
+    "experimentos": [
+      {
+        "al_azar": false,
+        "id": "modo_app",
+        "nota": "No es al azar: el modo lo elige quien presenta la demo. Comparar la propuesta con \"Rappi hoy\" describe, no mide efecto.",
+        "variantes": [
+          {
+            "con_pedido": 16,
+            "personas": 40,
+            "variante": "propuesta",
+            "verticales_por_persona": 1.5
+          },
+          {
+            "con_pedido": 0,
+            "personas": 0,
+            "variante": "actual",
+            "verticales_por_persona": null
+          }
+        ]
+      },
+      {
+        "al_azar": true,
+        "control_pct": 0,
+        "id": "ofertas_control",
+        "nota": "Al azar: un sorteo estable con el id de la persona. A control no se le muestran las ofertas que Mochi propone solo (quedan como retenidas). La diferencia entre los grupos mide el efecto de esas ofertas, si cada grupo tiene personas suficientes.",
+        "variantes": [
+          {
+            "con_pedido": 0,
+            "ofertas": {
+              "aceptadas": 0,
+              "mostradas": 0,
+              "pedidos_despues": 0,
+              "personas_con_oferta": 0,
+              "retenidas": 0
+            },
+            "personas": 0,
+            "variante": "tratamiento",
+            "verticales_por_persona": null
+          },
+          {
+            "con_pedido": 0,
+            "ofertas": {
+              "aceptadas": 0,
+              "mostradas": 0,
+              "pedidos_despues": 0,
+              "personas_con_oferta": 0,
+              "retenidas": 0
+            },
+            "personas": 0,
+            "variante": "control",
+            "verticales_por_persona": null
+          }
+        ]
+      }
+    ]
+  },
+  "guardado": {
+    "fecha": "2026-10-31",
+    "origen": "make contract · simulación chica con semilla fija (40 personas, 8 semanas)"
+  },
+  "source": "synthetic"
+}

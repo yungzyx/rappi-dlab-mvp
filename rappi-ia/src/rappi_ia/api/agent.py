@@ -15,6 +15,7 @@ from .. import config
 from ..agent.grouped_search import SpareConnector
 from ..events import experiments
 from ..events import store as events
+from ..events.experiments import HOLDOUT_MOMENTS
 from ..offers import autonomy, preferences
 from ..offers.engine import Offer, OfferError, PlanOffer, ProfileOffer, home_occasions, kit_stores, make_offer
 from ..offers.personal import user_interests
@@ -27,11 +28,6 @@ from .services import Services
 router = APIRouter(prefix="/agent", tags=["agent"])
 
 MAX_LINES = 100  # como un pedido (OrderIn)
-# Lo que Mochi propone solo: el grupo de control de las ofertas (`ofertas_control`) no lo ve. Un plan o un perfil de
-# gusto los pide la persona: esos se muestran siempre.
-HOLDOUT_MOMENTS = frozenset(
-    {"carrito", "checkout", "sin_resultado", "proximo_pedido", "vertical_por_probar", "recompra", "volver", "ontop"}
-)
 OFFER_CAP = concurrency_cap("offer", config.API_MAX_CONCURRENT_OFFER, wait_s=config.API_CAP_WAIT_S)
 
 

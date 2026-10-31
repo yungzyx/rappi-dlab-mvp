@@ -3,7 +3,7 @@
 contrafactual `offer_withheld`), `payload.catalogo` en las vistas y el carro, y las vistas de `capa` que los leen."""
 
 import uuid
-from datetime import date
+from datetime import UTC, date, datetime, timedelta
 
 import pytest
 from psycopg import errors
@@ -299,6 +299,115 @@ def test_ctr_by_position_counts_a_click_from_the_same_place(client, db):
     data = client.get("/analytics/ctr-posicion?source=prototype").json()["data"]
     assert [p["clics"] for p in data["posiciones"]] == [0, 1]
     assert data["listas"] == [{"pantalla": "search", "lista": "resultados", "impresiones": 2, "clics": 1, "ctr": 0.5}]
+
+
+# ── Panel: experimentos ──────────────────────────────────────────────────────
+def days_ago(days: int) -> datetime:
+    return datetime.now(UTC) - timedelta(days=days)
+
+
+def assigned(db, user_id, variants, source="prototype", days=10):
+    """La persona con estas variantes (`{experimento: variante}`), asignadas hace `days` días."""
+    events.ensure_user(db, user_id, source)
+    for experiment_id, variant in variants.items():
+        experiments.assign(db, user_id, experiment_id, variant)
+    db.execute("UPDATE experiment_assignments SET assigned_at = %s WHERE user_id = %s", (days_ago(days), user_id))
+
+
+def ordered(db, user_id, vertical, days, source="prototype"):
+    line = {"entity_type": "catalog_item", "entity_id": CHIPS, "unit_price": 1990}
+    events.record_order(db, user_id, "s-exp", f"c-{uuid.uuid4().hex[:8]}", vertical, [line], source, days_ago(days))
+
+
+def offer_event(db, user_id, kind, moment, days, source="prototype"):
+    event = events.Event(user_id, "s-exp", kind, ts=days_ago(days), surface="agent", origin=f"agent-{moment}")
+    events.record(db, [event], source=source)
+
+
+def experiments_of(client, source):
+    body = client.get(f"/analytics/experimentos?source={source}").json()
+    assert body["source"] == source  # la población declarada: la que se pidió
+    return {e["id"]: e for e in body["data"]["experimentos"]}
+
+
+def test_the_experiments_panel_counts_each_variant_within_one_population(client, db):
+    mode, offers = experiments.MODE, experiments.OFFERS_CONTROL
+    assigned(db, "p-ctl", {mode: "propuesta", offers: "control"})
+    assigned(db, "p-tra", {mode: "actual", offers: "tratamiento"})
+    assigned(db, "p-nada", {mode: "propuesta", offers: "tratamiento"})
+    assigned(db, "s-ctl", {mode: "propuesta", offers: "control"}, source="synthetic")
+    # Control: su oferta retenida y, después, dos pedidos en dos verticales. El de antes de asignarse no cuenta.
+    offer_event(db, "p-ctl", "offer_withheld", "carrito", days=8)
+    ordered(db, "p-ctl", "supermercado", days=5)
+    ordered(db, "p-ctl", "farmacia", days=4)
+    ordered(db, "p-ctl", "restaurantes", days=12)
+    # Tratamiento: una oferta del carro mostrada y aceptada; un plan (lo pide la persona) no es del experimento. Un
+    # pedido antes de la oferta y otro después.
+    offer_event(db, "p-tra", "suggestion_shown", "carrito", days=8)
+    offer_event(db, "p-tra", "suggestion_accepted", "carrito", days=8)
+    offer_event(db, "p-tra", "suggestion_shown", "plan", days=7)
+    ordered(db, "p-tra", "supermercado", days=9)
+    ordered(db, "p-tra", "supermercado", days=3)
+    # Lo simulado no entra en las cifras del prototipo.
+    offer_event(db, "s-ctl", "offer_withheld", "carrito", days=8, source="synthetic")
+    ordered(db, "s-ctl", "turbo", days=2, source="synthetic")
+
+    proto = experiments_of(client, "prototype")
+    assert list(proto) == ["modo_app", "ofertas_control"]
+    assert proto["modo_app"]["al_azar"] is False and "describe" in proto["modo_app"]["nota"]
+    assert proto["modo_app"]["variantes"] == [
+        {"variante": "propuesta", "personas": 2, "con_pedido": 1, "verticales_por_persona": 2},
+        {"variante": "actual", "personas": 1, "con_pedido": 1, "verticales_por_persona": 1},
+    ]
+    control = proto["ofertas_control"]
+    assert control["al_azar"] is True and control["control_pct"] == config.OFFERS_CONTROL_PCT == 0
+    assert control["variantes"] == [
+        {
+            "variante": "tratamiento",
+            "personas": 2,
+            "con_pedido": 1,
+            "verticales_por_persona": 1,
+            "ofertas": {"mostradas": 1, "retenidas": 0, "aceptadas": 1, "personas_con_oferta": 1, "pedidos_despues": 1},
+        },
+        {
+            "variante": "control",
+            "personas": 1,
+            "con_pedido": 1,
+            "verticales_por_persona": 2,
+            "ofertas": {"mostradas": 0, "retenidas": 1, "aceptadas": 0, "personas_con_oferta": 1, "pedidos_despues": 2},
+        },
+    ]
+
+    synthetic = experiments_of(client, "synthetic")
+    assert [(v["variante"], v["personas"], v["con_pedido"]) for v in synthetic["modo_app"]["variantes"]] == [
+        ("propuesta", 1, 1),
+        ("actual", 0, 0),
+    ]
+    assert [(v["variante"], v["personas"], v["ofertas"]) for v in synthetic["ofertas_control"]["variantes"]] == [
+        (
+            "tratamiento",
+            0,
+            {"mostradas": 0, "retenidas": 0, "aceptadas": 0, "personas_con_oferta": 0, "pedidos_despues": 0},
+        ),
+        (
+            "control",
+            1,
+            {"mostradas": 0, "retenidas": 1, "aceptadas": 0, "personas_con_oferta": 1, "pedidos_despues": 1},
+        ),
+    ]
+
+
+def test_an_experiment_without_assignments_lists_its_variants_empty(client, db, monkeypatch):
+    nobody = {"personas": 0, "con_pedido": 0, "verticales_por_persona": None}
+    none_offered = {"mostradas": 0, "retenidas": 0, "aceptadas": 0, "personas_con_oferta": 0, "pedidos_despues": 0}
+    data = experiments_of(client, "prototype")
+    assert data["modo_app"]["variantes"] == [{"variante": v, **nobody} for v in ("propuesta", "actual")]
+    assert data["ofertas_control"]["variantes"] == [
+        {"variante": v, **nobody, "ofertas": none_offered} for v in ("tratamiento", "control")
+    ]
+    assert data["ofertas_control"]["control_pct"] == 0  # apagado: nadie entra
+    monkeypatch.setattr(config, "OFFERS_CONTROL_PCT", 10)
+    assert experiments_of(client, "prototype")["ofertas_control"]["control_pct"] == 10
 
 
 def test_session_funnel_and_abandoned_carts(client, db):

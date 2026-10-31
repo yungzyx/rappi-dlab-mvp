@@ -38,7 +38,18 @@ from rappi_ia.offers import autonomy
 
 FIXTURES = Path(__file__).resolve().parents[3] / "prototipo-app" / "src" / "api" / "fixtures"
 PANEL_FIXTURES = Path(__file__).resolve().parents[3] / "dashboard-empresa" / "src" / "fixtures"
-PANEL_METRICS = ("offers", "unmet", "combos", "motor", "volver", "ctr-posicion", "embudo-sesion", "pro", "presencia")
+PANEL_METRICS = (
+    "offers",
+    "unmet",
+    "combos",
+    "motor",
+    "volver",
+    "ctr-posicion",
+    "embudo-sesion",
+    "pro",
+    "presencia",
+    "experimentos",
+)
 # Las métricas de /analytics que guarda `npm run fixtures` (dashboard-empresa/scripts/update-fixtures.mjs).
 PANEL_SHAPE = ("kpis", "weekly", "opportunities", "trends", "at-risk", "suggestions", "services", "assortment")
 PANEL_ORIGINS = {
