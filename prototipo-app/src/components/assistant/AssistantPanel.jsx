@@ -574,8 +574,8 @@ export default function AssistantPanel({ push, vertical, depth = 1 }) {
 
   /**
    * El saludo, con "Para ti" de /recommendations (sin él si la API no contesta o no tiene nada que recomendar). Con un
-   * perfil de gusto (`taste`, en la propuesta) es "¡Hola de nuevo!" con lo que le gusta, sin "Para ti": su escalera va
-   * justo debajo. Espera también lo demás que se pide al abrir (`others`: lo aprendido): el panel aparece con el saludo
+   * perfil de gusto (`taste`, en la propuesta) es "¡Hola de nuevo!" con lo que le gusta, sin "Para ti" (y sin esperarlo):
+   * su escalera va justo debajo. Espera también lo demás que se pide al abrir (`others`: lo aprendido): el panel aparece con el saludo
    * (`waiting`), y lo que llegara después lo empujaría.
    */
   const greet = (rows, taste, others) => {
@@ -587,13 +587,15 @@ export default function AssistantPanel({ push, vertical, depth = 1 }) {
         rows.then((list) => (arrived = list))
         taste.then((found) => (tasteArrived = found))
         const waited = new Promise((resolve) => later(() => resolve([arrived, tasteArrived]), FOR_YOU_WAIT_MS))
-        const all = Promise.allSettled([rows, taste, ...others]).then(([list, found]) => [
-          list.value ?? [],
-          found.value ?? null,
-        ])
+        // Una muestra sin conexión grabada antes de `gusto` no lo trae: entonces, el saludo de siempre. Con perfil no
+        // se espera "Para ti": no sale en su saludo.
+        const withGusto = (found) => demo.isFinal && Boolean(found?.profile.gusto)
+        const all = taste.then(async (found) => {
+          const [list] = await Promise.allSettled([withGusto(found) ? [] : rows, ...others])
+          return [list.value ?? [], found]
+        })
         const [[row], found] = await Promise.race([all, waited])
-        // Una muestra sin conexión grabada antes de `gusto` no lo trae: entonces, el saludo de siempre.
-        if (demo.isFinal && found?.profile.gusto) return { text: PROFILE_GREETING(found.profile) }
+        if (withGusto(found)) return { text: PROFILE_GREETING(found.profile) }
         if (!row) return { text: GREETING }
         const shown = { origin: 'para-ti', concept: row.concept, generation: profile.resets, kind: row.kind }
         noteShown(events.track, row.products, shown)
