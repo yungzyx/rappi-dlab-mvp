@@ -38,7 +38,7 @@ export function Tabs({ views, active, onSelect }) {
           onClick={() => onSelect(view.id)}
           aria-label={view.label}
         >
-          {/* En angosto, el nombre corto (las tres pestañas caben); el lector de pantalla lee siempre el largo. */}
+          {/* En angosto, el nombre corto (si no caben, la barra se desliza); el lector de pantalla lee siempre el largo. */}
           <span className="tab-long">{view.label}</span>
           <span className="tab-short">{view.short ?? view.label}</span>
         </button>

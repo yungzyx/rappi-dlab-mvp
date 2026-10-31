@@ -18,4 +18,5 @@ export const PANEL_METRICS = [
   'embudo-sesion',
   'pro',
   'presencia',
+  'experimentos',
 ]

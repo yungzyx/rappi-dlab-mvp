@@ -26,6 +26,7 @@ const CONTRACT = new Set([
   'embudo-sesion',
   'pro',
   'presencia',
+  'experimentos',
 ])
 
 if (!existsSync(SNAPSHOT)) {

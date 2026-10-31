@@ -11,7 +11,7 @@ describe('App', () => {
 
   afterEach(resetApi)
 
-  test('three views, the simulated notice is permanent and the tabs work with the keyboard', async () => {
+  test('four views, the simulated notice is permanent and the tabs work with the keyboard', async () => {
     serveFixtures()
     await renderWithData(<App />)
 
@@ -20,6 +20,7 @@ describe('App', () => {
       'Resumen',
       'Retención y venta cruzada',
       'Mochi y búsquedas',
+      'Experimentos',
     ])
     const summaryTab = screen.getByRole('tab', { name: 'Resumen' })
     expect(summaryTab.getAttribute('aria-selected')).toBe('true')
@@ -31,9 +32,13 @@ describe('App', () => {
     expect(screen.getByRole('tabpanel').id).toBe('panel-clientes')
     expect(window.location.search).toContain('vista=clientes')
 
-    await act(async () => fireEvent.keyDown(customersTab, { key: 'End' }))
+    await act(async () => fireEvent.keyDown(customersTab, { key: 'ArrowRight' }))
     expect(screen.getByRole('tab', { name: 'Mochi y búsquedas' }).getAttribute('aria-selected')).toBe('true')
     expect(await screen.findByRole('heading', { name: 'Lo que ofrece Mochi' })).toBeTruthy()
+
+    await act(async () => fireEvent.keyDown(screen.getByRole('tab', { name: 'Mochi y búsquedas' }), { key: 'End' }))
+    expect(screen.getByRole('tab', { name: 'Experimentos' }).getAttribute('aria-selected')).toBe('true')
+    expect(await screen.findByRole('heading', { name: 'Experimentos del MVP' })).toBeTruthy()
     expect(screen.getByText('Usuarios y eventos SIMULADOS:')).toBeTruthy()
   })
 

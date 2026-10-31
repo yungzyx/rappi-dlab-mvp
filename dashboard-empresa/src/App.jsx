@@ -9,15 +9,17 @@ import { formatDate } from './lib/format.js'
 import { useFallbacks } from './lib/useAnalytics.js'
 import { useUrlState } from './lib/useUrlState.js'
 import { CustomersView } from './views/customers/CustomersView.jsx'
+import { ExperimentsView } from './views/experiments/ExperimentsView.jsx'
 import { MochiView } from './views/mochi/MochiView.jsx'
 import { OverviewView } from './views/overview/OverviewView.jsx'
 
 // Tres vistas alrededor de 4 preguntas (el porqué, en docs/decisiones.md): el Resumen para la gerencia y RappiAds, y un
-// detalle para cada público.
+// detalle para cada público. Al final, los experimentos del MVP: cómo leer cada comparación antes de decidir con ella.
 export const VIEWS = [
   { id: 'resumen', label: 'Resumen', View: OverviewView },
   { id: 'clientes', label: 'Retención y venta cruzada', short: 'Clientes', View: CustomersView },
   { id: 'mochi', label: `${AGENT_NAME} y búsquedas`, short: AGENT_NAME, View: MochiView },
+  { id: 'experimentos', label: 'Experimentos', View: ExperimentsView },
 ]
 const VIEW_IDS = VIEWS.map((view) => view.id)
 
