@@ -81,7 +81,7 @@ Las fuentes JSON de los diagramas están en [diagramas-fuente/](diagramas-fuente
 | Desplegar el MVP en un servidor (Docker Compose, Caddy con TLS y puerta, respaldos con restic) | [despliegue.md](despliegue.md) | 20 min |
 | Consultar la base con SQL | [sql/README.md](sql/README.md) y [consultas.sql](sql/consultas.sql) | 5 min |
 | Probar a Mochi (API) como usuario y dejar cada fallo como test | [pruebas-de-usuario.md](pruebas-de-usuario.md) | 3 min |
-| Usar el panel de negocio (parte del MVP, para la gerencia y RappiAds: 3 vistas alrededor de 4 preguntas) | [dashboard-empresa/README.md](../dashboard-empresa/README.md) | 5 min |
+| Usar el panel de negocio (parte del MVP, para la gerencia y RappiAds: 3 vistas alrededor de 4 preguntas, más Experimentos) | [dashboard-empresa/README.md](../dashboard-empresa/README.md) | 5 min |
 | Contribuir: cómo correr los tests, convenciones y commits | [CONTRIBUTING.md](../CONTRIBUTING.md) y las convenciones del repositorio en [CLAUDE.md](../CLAUDE.md) | 10 min |
 
 ### Reportes generados (fuera de git)
