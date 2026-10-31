@@ -470,6 +470,7 @@ def search(
     if mode not in MODES:
         raise HTTPException(400, f"mode debe ser uno de {MODES}")
     mine = preferences.load(conn, user_id).only_filters()
+    conn.commit()  # esa lectura no queda abierta mientras se calcula el vector de la consulta: ver `retrieve`
     if vertical is None:
         with preferences.applied(mine):
             grouped = search_grouped(
