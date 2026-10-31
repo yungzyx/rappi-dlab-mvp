@@ -23,7 +23,7 @@ De paso, la búsqueda con errores de tipeo y si Mochi molesta (ocultarlo y traer
 
 Antes de empezar, el moderador lee esto y espera un sí:
 
-> Estamos probando un prototipo hecho en un programa de la universidad junto con Rappi Chile; no es la app oficial. Queremos ver si se entiende, no evaluarte a ti: si algo no funciona, es culpa del prototipo. Los pedidos son de mentira, nadie te cobra ni te llega nada. No necesitas dar tu nombre ni ningún dato tuyo; por favor no los escribas en la app. Guardamos lo que haces en la app con un número al azar, sin tu nombre, y lo borramos al terminar, después de anotar un resumen. No grabamos ni la pantalla ni tu voz. Puedes parar cuando quieras. ¿Te parece bien?
+> Estamos probando un prototipo del programa dLab, desarrollado junto con Rappi Chile; no es la app oficial. Queremos ver si se entiende, no evaluarte a ti: si algo no funciona, es culpa del prototipo. Los pedidos son de mentira, nadie te cobra ni te llega nada. No necesitas dar tu nombre ni ningún dato tuyo; por favor no los escribas en la app. Guardamos lo que haces en la app con un número al azar, sin tu nombre, y lo borramos al terminar, después de anotar un resumen. No grabamos ni la pantalla ni tu voz. Puedes parar cuando quieras. ¿Te parece bien?
 
 Si dice que no, no hay sesión. Si para en medio, se borran sus datos igual (sección 6).
 
