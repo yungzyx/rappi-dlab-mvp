@@ -43,6 +43,27 @@ describe('sugerencias de Mochi', () => {
     })
   })
 
+  test('noteShown suma de qué sale el "¿Por qué?" (los tipos de su basis), nunca su texto ni sus ids', () => {
+    const track = vi.fn()
+    const reason = {
+      text: 'Porque buscaste "pizza hawaiana" y aquí sí hay.',
+      concept: 'pizza',
+      basis: [
+        { id: 'pizza hawaiana', kind: 'busqueda', source: 'contexto' },
+        { id: 'otra', kind: 'busqueda', source: 'contexto' },
+        { id: 'pizza', kind: 'concepto', source: 'eventos' },
+      ],
+    }
+    noteShown(track, [], { origin: 'agent-sin_resultado', concept: 'pizza', vertical: 'restaurantes', reason })
+    noteShown(track, [], { origin: 'para-ti', concept: 'pizza', vertical: 'restaurantes', kind: 'lo_mas_pedido' })
+    noteShown(track, [], { origin: 'agent-carrito', concept: 'pizza', vertical: 'restaurantes', reason: { basis: [] } })
+    expect(track.mock.calls.map(([, fields]) => fields.payload)).toEqual([
+      { basis: ['busqueda', 'concepto'] },
+      { kind: 'lo_mas_pedido' },
+      undefined,
+    ])
+  })
+
   test('noteAccepted registra la mostrada que falte y luego suggestion_accepted, una vez por sugerencia', () => {
     const track = vi.fn()
     const options = { origin: 'agent-carrito', generation: 0 }

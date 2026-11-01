@@ -218,7 +218,7 @@ export default function AgentMessage({
             <AutoOrderCard order={message.autoOrder} revealed={revealed} onTrack={onTrack} {...autoOrder} />
           )}
           {message.products?.length > 0 && <ProductCards products={message.products} onOpenProduct={onOpenProduct} />}
-          {message.offerReason && <OfferWhy reason={message.offerReason} />}
+          {message.offerReason && <OfferWhy reason={message.offerReason} origin={message.offerOrigin} />}
           {followUp}
           {message.suggestion?.products?.length > 0 && (
             <div className="agent-msg-suggestion">

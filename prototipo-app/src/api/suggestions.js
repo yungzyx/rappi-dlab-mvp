@@ -24,10 +24,15 @@ export function firstShowing(row) {
  * generación del perfil (`generation` = `profile.resets`). `track` es `useEvents().track`; `origin` es
  * `agent-<momento>`, `agent-ask`, etc. (la columna `origin` del evento). Si no se dan `concept` o `vertical`, salen del
  * primer producto, y `surface` y `requestId` (la pantalla y la respuesta de la API), de su lugar (`placement`). Con
- * `kind` (la fila "Lo más pedido" de "Para ti": `lo_mas_pedido`), va en el payload. Devuelve si la registró (false si
- * ya estaba contada o no hay concepto).
+ * `kind` (la fila "Lo más pedido" de "Para ti": `lo_mas_pedido`), va en el payload, y con `reason` (la razón de la
+ * oferta), los tipos de su `basis` (`payload.basis`: ver `basisKinds`). Devuelve si la registró (false si ya estaba
+ * contada o no hay concepto).
  */
-export function noteShown(track, products, { origin, concept, vertical, generation = 0, kind, surface, requestId }) {
+export function noteShown(
+  track,
+  products,
+  { origin, concept, vertical, generation = 0, kind, reason, surface, requestId },
+) {
   const [first] = products ?? []
   const shownConcept = concept ?? (first && conceptOf(first))
   const shownVertical = vertical ?? first?.vertical
@@ -39,9 +44,25 @@ export function noteShown(track, products, { origin, concept, vertical, generati
     concept_id: shownConcept,
     vertical: shownVertical,
     ...envelope({ surface: surface ?? placed.surface, origin, requestId: requestId ?? placed.requestId }),
-    ...(kind ? { payload: { kind } } : {}),
+    ...withPayload({ kind: kind || undefined, basis: basisKinds(reason) }),
   })
   return true
+}
+
+/**
+ * De qué fuente sale el "¿Por qué?" de una oferta: los tipos de su `reason.basis` (`recompra`, `busqueda`, `perfil`…),
+ * sin repetir y como mucho 4. Solo los tipos: el texto y los ids pueden traer lo que la persona escribió (una búsqueda),
+ * y el payload de un evento no pasa por la redacción ni la purga de las consultas. Sin razón, undefined.
+ */
+export function basisKinds(reason) {
+  const kinds = [...new Set((reason?.basis ?? []).map((signal) => signal?.kind).filter(Boolean))].slice(0, 4)
+  return kinds.length ? kinds : undefined
+}
+
+// El payload solo con lo que trae valor (sin payload si no queda nada).
+function withPayload(fields) {
+  const payload = Object.fromEntries(Object.entries(fields).filter(([, value]) => value !== undefined))
+  return Object.keys(payload).length ? { payload } : {}
 }
 
 // Sugerencias ya aceptadas (generación|concepto|vertical|origen): una vez por pestaña, como se cuenta la mostrada, así

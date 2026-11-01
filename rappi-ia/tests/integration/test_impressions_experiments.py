@@ -392,10 +392,12 @@ def test_every_event_type_says_if_rappi_has_it(db):
         "order_cancelled",
         "vertical_reorder_shown",
         "agent_visibility",
+        "offer_why_open",
     }
     assert rows["order_cancelled"] == ("MVP_ORDER_CANCELLED", False)
     assert rows["vertical_reorder_shown"] == ("MVP_VERTICAL_REORDER_SHOWN", False)
     assert rows["agent_visibility"] == ("MVP_AGENT_VISIBILITY", False)
+    assert rows["offer_why_open"] == ("MVP_OFFER_WHY_OPEN", False)
 
 
 def test_the_synthetic_population_has_impressions_positions_and_its_mode(db):

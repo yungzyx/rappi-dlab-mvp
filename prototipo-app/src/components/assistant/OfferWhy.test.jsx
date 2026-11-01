@@ -2,7 +2,13 @@ import { cleanup, fireEvent, render, screen } from '@testing-library/react'
 import { afterEach, describe, expect, test, vi } from 'vitest'
 import OfferWhy from './OfferWhy'
 
-afterEach(cleanup)
+const events = { track: vi.fn() }
+vi.mock('../../state/EventsContext', () => ({ useEvents: () => events }))
+
+afterEach(() => {
+  cleanup()
+  events.track.mockClear()
+})
 
 describe('¿Por qué? de una oferta', () => {
   test('shows the reason on tap', () => {
@@ -26,6 +32,27 @@ describe('¿Por qué? de una oferta', () => {
     fireEvent.click(toggle)
     fireEvent.click(toggle)
     expect(onToggle.mock.calls).toEqual([[true], [false]])
+  })
+
+  test('with the origin of its offer, opening it is an offer_why_open with the sources of the reason, not its text', () => {
+    const reason = {
+      text: 'Porque pides café cada 7 días.',
+      concept: 'cafe',
+      basis: [{ id: 'cafe', kind: 'recompra', source: 'pedidos' }],
+    }
+    render(<OfferWhy reason={reason} origin="agent-recompra" />)
+    const toggle = screen.getByRole('button', { name: '¿Por qué?' })
+    fireEvent.click(toggle)
+    fireEvent.click(toggle) // cerrarlo no se anota
+    expect(events.track.mock.calls).toEqual([
+      ['offer_why_open', { origin: 'agent-recompra', concept_id: 'cafe', payload: { basis: ['recompra'] } }],
+    ])
+  })
+
+  test('without an origin (not an offer), opening it is not tracked', () => {
+    render(<OfferWhy reason={{ text: 'Porque pides seguido en farmacia.' }} />)
+    fireEvent.click(screen.getByRole('button', { name: '¿Por qué?' }))
+    expect(events.track).not.toHaveBeenCalled()
   })
 
   test('renders nothing without text', () => {

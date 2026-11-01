@@ -295,6 +295,7 @@ export default function LiveHomeFeed({ push, active = true }) {
     noteShown(events.track, made.products, {
       origin: `agent-${made.moment}`,
       concept: made.reason?.concept,
+      reason: made.reason,
       generation: profile.resets,
     })
     const see = made.actions.find((action) => action.route)
@@ -302,6 +303,7 @@ export default function LiveHomeFeed({ push, active = true }) {
       {
         text: made.text,
         why: made.reason,
+        whyOrigin: `agent-${made.moment}`,
         mood: 'wave',
         actions: [
           ...(see ? [{ label: see.label, onClick: () => visit(made.vertical, see.route) }] : []),
@@ -399,6 +401,7 @@ export default function LiveHomeFeed({ push, active = true }) {
             noteShown(events.track, shown.products, {
               origin: `agent-${shown.moment}`,
               concept: shown.reason?.concept,
+              reason: shown.reason,
               generation,
               ...(shown.moment === 'volver' ? { kind: winbackKind(shown) } : {}),
             })
@@ -508,7 +511,11 @@ export default function LiveHomeFeed({ push, active = true }) {
     }
     // Cada producto del kit es una sugerencia mostrada, con su propio concepto.
     for (const product of made.products)
-      noteShown(events.track, [product], { origin: `agent-${made.moment}`, generation: profile.resets })
+      noteShown(events.track, [product], {
+        origin: `agent-${made.moment}`,
+        reason: made.reason,
+        generation: profile.resets,
+      })
     session.plan = { id, kit: made.products, reason: made.reason, stores: made.stores } // la Home vuelve a montarse al cambiar de pestaña: el kit sigue ahí
     setKit(made.products)
     setKitReason(made.reason)
@@ -543,7 +550,11 @@ export default function LiveHomeFeed({ push, active = true }) {
     // invitó a volver en esta sesión ("¿Volvemos a…?"): una sola invitación por vertical.
     if (mine !== run.current || !made) return
     if (made.reason?.basis?.some((signal) => signal.kind === 'vuelta' && signal.id === backVertical())) return
-    noteShown(events.track, made.products, { origin: `agent-${made.moment}`, generation: profile.resets })
+    noteShown(events.track, made.products, {
+      origin: `agent-${made.moment}`,
+      reason: made.reason,
+      generation: profile.resets,
+    })
     const open = made.actions.find((action) => action.route)
     // Si el paso es un servicio sin catálogo (RappiFavor, RappiTravel), se anota ofrecido y, al abrirlo, abierto: así
     // la escalera sigue.
@@ -555,6 +566,7 @@ export default function LiveHomeFeed({ push, active = true }) {
       {
         text: name ? `¿Y si pruebas algo de ${name}?` : made.text,
         why: made.reason,
+        whyOrigin: `agent-${made.moment}`,
         mood: 'wave',
         gesture: 'hop',
         actions: [

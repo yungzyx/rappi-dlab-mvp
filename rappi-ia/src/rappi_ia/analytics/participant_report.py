@@ -1,9 +1,10 @@
 """Resumen por persona de una prueba con usuarios (`rappi-ia resumen-prueba`; guion en docs/prueba-usuarios.md).
 
-Solo lee, y solo personas del prototipo (`source = 'prototype'`): una simulada nunca entra, aunque se pida su id. Lo
-que la app no guarda no sale aquí y lo anota el moderador: el texto del "¿Por qué?" de cada oferta (los eventos traen
-el momento, el concepto y la vertical, no `reason.text`), si se abrió el "¿Por qué?" y el "Ahora no" del globo de la
-Home (solo el "Después" de "¿Volvemos a…?" deja `suggestion_dismissed`).
+Solo lee, y solo personas del prototipo (`source = 'prototype'`): una simulada nunca entra, aunque se pida su id. Del
+"¿Por qué?" de cada oferta los eventos traen de qué sale (los tipos de su `basis`, en `payload.basis`, desde la
+migración 053) y cuándo se abrió (`offer_why_open`), no su texto: puede traer lo que la persona escribió. Lo que la app
+no guarda no sale aquí y lo anota el moderador: el texto exacto del "¿Por qué?" y el "Ahora no" del globo de la Home
+(solo el "Después" de "¿Volvemos a…?" deja `suggestion_dismissed`).
 """
 
 import re
@@ -38,6 +39,26 @@ MOMENTS = {
     "ask": "respuesta a lo que le pidió",
     "para-ti": '"Para ti" en su tarjeta (sus intereses o lo más pedido)',
 }
+# De qué sale el "¿Por qué?": los tipos de `reason.basis` (`payload.basis`). Uno que no esté aquí sale tal cual.
+BASIS = {
+    "pedido": "un pedido suyo",
+    "pedidos": "sus pedidos",
+    "recompra": "su ritmo de recompra",
+    "volver": "algo que dejó de pedir",
+    "vuelta": "una vertical que dejó",
+    "busqueda": "lo que buscó",
+    "carrito": "lo que lleva en el carro",
+    "concepto": "sus intereses",
+    "perfil": "su perfil de gusto",
+    "ocasion": "el plan que eligió",
+    "sin_pedidos": "una vertical sin pedidos suyos",
+    "combinacion": "la tabla de combinaciones de Rappi",
+    "compra_cruzada": "lo que se compra junto",
+    "afinidad_vertical": "las verticales que más usa",
+    "ofertas": "las ofertas del catálogo",
+    "ontop": "sumar de Turbo al pedido en curso",
+    "lo_mas_pedido": "lo más pedido",
+}
 ACCEPTED, DISMISSED, NO_ANSWER, WITHHELD = (
     "aceptada",
     'rechazada ("Después")',
@@ -55,6 +76,7 @@ class Participant:
     searches: list[dict]
     offers: list[dict]
     accepted_products: int
+    why_opened: list[dict]
     opened: list[dict]
     services: list[dict]
     visibility: list[dict]
@@ -161,6 +183,7 @@ def load_participant(conn: Connection, user_id: str) -> Participant:
         searches=_events(conn, user_id, ("search", "ask")),
         offers=_offers(offer_events),
         accepted_products=sum(e["type"] == "suggestion_accepted" for e in offer_events),
+        why_opened=_events(conn, user_id, ("offer_why_open",)),
         opened=_events(conn, user_id, ("vertical_open",)),
         services=_events(conn, user_id, ("service_opened",)),
         visibility=_events(conn, user_id, ("agent_visibility",)),
@@ -285,6 +308,15 @@ def _searches(p: Participant) -> list[str]:
     return lines
 
 
+def _basis(payload: dict) -> str:
+    """De qué sale el "¿Por qué?" (`payload.basis`), o "—" si el evento no lo trae (anterior a la migración 053, o una
+    oferta sin razón)."""
+    kinds = payload.get("basis")
+    if not isinstance(kinds, list) or not kinds:
+        return "—"
+    return _cell(", ".join(BASIS.get(str(kind), str(kind)) for kind in kinds))
+
+
 def _offer_lines(p: Participant) -> list[str]:
     if not p.offers:
         return ["## Ofertas de Mochi", "", "Mochi no mostró ofertas."]
@@ -296,19 +328,38 @@ def _offer_lines(p: Participant) -> list[str]:
         f"{len(p.offers)} oferta(s): {', '.join(f'{n} {status}' for status, n in counts.items())}. Productos agregados"
         f" al carro desde una oferta: {p.accepted_products}.",
         "",
-        'El motivo es el del momento en que Mochi la ofreció: el texto exacto de su "¿Por qué?" no se guarda (lo anota'
-        " el moderador).",
+        'El motivo es el del momento en que Mochi la ofreció, y "De qué sale" son las fuentes de su "¿Por qué?": su'
+        " texto exacto no se guarda (lo anota el moderador).",
         "",
-        "| Hora | Momento | Motivo (según el momento) | Concepto | Vertical | Qué pasó |",
-        "|---|---|---|---|---|---|",
+        "| Hora | Momento | Motivo (según el momento) | De qué sale | Concepto | Vertical | Qué pasó |",
+        "|---|---|---|---|---|---|---|",
     ]
     for o in p.offers:
         kind = o["payload"].get("kind")
         moment = f"{o['moment']} ({kind})" if kind else o["moment"]
         lines.append(
-            f"| {_time(o['at'])} | {moment} | {MOMENTS.get(o['moment'], 'otro')} | {_concept(o['concept_id'])} "
+            f"| {_time(o['at'])} | {moment} | {MOMENTS.get(o['moment'], 'otro')} | {_basis(o['payload'])} "
+            f"| {_concept(o['concept_id'])} "
             f"| {_vertical(o['vertical'])} | {o['status']} |"
         )
+    return lines
+
+
+def _why_lines(p: Participant) -> list[str]:
+    title = ['## El "¿Por qué?" de las ofertas', ""]
+    if not p.why_opened:
+        return [*title, 'No abrió el "¿Por qué?" de ninguna oferta (sin eventos `offer_why_open`).']
+    lines = [
+        *title,
+        f'Abrió el "¿Por qué?" {len(p.why_opened)} {"vez" if len(p.why_opened) == 1 else "veces"}.',
+        "",
+        "| Hora | Momento | De qué sale | Concepto |",
+        "|---|---|---|---|",
+    ]
+    for e in p.why_opened:
+        moment = (e["origin"] or "sin origen").removeprefix("agent-")
+        concept = _concept(e["concept_id"]) if e["concept_id"] else "—"
+        lines.append(f"| {_time(e['at'])} | {moment} | {_basis(e['payload'])} | {concept} |")
     return lines
 
 
@@ -374,7 +425,7 @@ def render(p: Participant) -> str:
         "",
         f"Experimentos: {variants}.",
     ]
-    for section in (_sessions, _searches, _offer_lines, _verticals, _visibility, _orders):
+    for section in (_sessions, _searches, _offer_lines, _why_lines, _verticals, _visibility, _orders):
         lines += ["", *section(p)]
     return "\n".join(lines) + "\n"
 

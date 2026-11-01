@@ -94,7 +94,7 @@ export function PlanBlock({
             {stores > 1 && ` · ${stores} tiendas, un pedido por tienda`}
           </p>
           {short.length > 0 && <p className="live-kit-min">{shortText(short)}</p>}
-          <OfferWhy reason={kitReason} />
+          <OfferWhy reason={kitReason} origin="agent-plan" />
           <HScroll className="live-items">
             {kit.map((product, i) => (
               <div key={product.id} className="live-item" style={{ '--i': i }}>
@@ -137,7 +137,7 @@ export function RepeatBlock({ offer, onLater, onOpen }) {
       aria-label={offer.moment === 'volver' ? 'Volver a pedir' : 'Recompra'}
     >
       <h2 className="live-plan-title">{offer.text}</h2>
-      <OfferWhy reason={offer.reason} />
+      <OfferWhy reason={offer.reason} origin={`agent-${offer.moment}`} />
       <div className="live-items live-repeat-item">
         <ProductCard product={product} onOpenStore={() => onOpen(product)} impression />
       </div>

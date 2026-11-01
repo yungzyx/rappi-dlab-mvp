@@ -173,7 +173,7 @@ const LiveAgent = forwardRef(function LiveAgent(
                 className={done ? 'live-bubble-more' : 'live-bubble-more is-pending'}
                 aria-hidden={!done || undefined}
               >
-                {say.why && <OfferWhy reason={say.why} onToggle={onWhyToggle} />}
+                {say.why && <OfferWhy reason={say.why} origin={say.whyOrigin} onToggle={onWhyToggle} />}
                 {say.actions?.length > 0 && (
                   <div className="live-bubble-actions">
                     {say.actions.map((action, i) => (
