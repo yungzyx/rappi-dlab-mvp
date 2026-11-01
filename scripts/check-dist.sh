@@ -13,6 +13,8 @@
 #  Con VITE_DEMO=1 el grupo 2 se omite: ese build deja esos textos a propósito (la demo desplegada, ver docs/despliegue.md).
 #  3. Siempre: ningún <script> en línea (sin src) en los HTML. La CSP del servidor (deploy/Caddyfile) los bloquea. Se
 #     exceptúa presentacion/mapa-multivertical.html del panel, que Caddy sirve con su propia CSP.
+#  4. El panel pide sus archivos desde PANEL_BASE (por defecto /panel/, la ruta en que Caddy lo sirve con
+#     `handle_path`): si su index.html los pide desde la raíz, el panel abre en blanco en el servidor.
 set -euo pipefail
 cd "$(dirname "$0")/.."
 
@@ -47,7 +49,14 @@ for dir in prototipo-app/dist dashboard-empresa/dist; do
   done < <(find "$dir" -name '*.html' ! -path '*/presentacion/mapa-multivertical.html')
 done
 
+base="${PANEL_BASE:-/panel/}"
+if ! grep -qF -e "src=\"${base}assets/" dashboard-empresa/dist/index.html; then
+  echo "check-dist: dashboard-empresa/dist/index.html no pide sus archivos desde ${base}assets/ (PANEL_BASE=$base);" \
+    "construido así, el panel abre en blanco en el servidor." >&2
+  status=1
+fi
+
 if [ "$status" = 0 ]; then
-  echo "check-dist: prototipo-app/dist y dashboard-empresa/dist sin rastros de desarrollo ni scripts en línea."
+  echo "check-dist: prototipo-app/dist y dashboard-empresa/dist sin rastros de desarrollo ni scripts en línea, y el panel bajo $base."
 fi
 exit "$status"

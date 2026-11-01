@@ -44,8 +44,11 @@ dump-entrega:  ## Respaldo de la base para entregar, sin las personas del protot
 
 # Dónde buscan la API las dos apps construidas: por defecto el mismo origen bajo /api (un proxy inverso la sirve).
 VITE_API_URL ?= /api
+# Bajo qué ruta se sirve el panel (deploy/Caddyfile y deploy/macos/Caddyfile: `handle_path /panel/*`); sus archivos se
+# piden desde ahí. Con "/" se sirve en la raíz, como en `npm run dev`.
+PANEL_BASE ?= /panel/
 
 build:  ## Construye la app y el panel para un servidor (VITE_API_URL=/api; VITE_DEMO=1 deja el interruptor de la demo; PANEL_BASE=/panel/) y revisa que dist/ no tenga rastros de desarrollo
 	cd prototipo-app && npm ci && VITE_API_URL="$(VITE_API_URL)" npm run build
-	cd dashboard-empresa && npm ci && VITE_API_URL="$(VITE_API_URL)" npm run build
-	@scripts/check-dist.sh
+	cd dashboard-empresa && npm ci && VITE_API_URL="$(VITE_API_URL)" PANEL_BASE="$(PANEL_BASE)" npm run build
+	@PANEL_BASE="$(PANEL_BASE)" scripts/check-dist.sh
