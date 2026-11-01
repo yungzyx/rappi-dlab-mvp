@@ -57,7 +57,7 @@ La URL de la API se cambia con `VITE_API_URL`, por ejemplo `VITE_API_URL=http://
 | `npm run lint` | ESLint (reglas de React Hooks 7) |
 | `npm run format:check` | Revisa el formato con Prettier sin cambiar nada (lo que corre el CI); `npm run format` lo arregla |
 | `npm run build` | Build de producción en `dist/` |
-| `npm run fixtures` | Guarda en el repo las respuestas simuladas de la última foto de `npm run panel:snapshot`: las de `src/fixtures/sin-conexion/` (lo que se ve sin la API) y los ejemplos `*.synthetic.json` de los tests. Correrlo tras `make synth` o una actualización del catálogo, después de grabar la foto. El uso del prototipo no se guarda (lleva lo que hizo la gente). Los ejemplos de ofertas por momento, a quién invitar a volver, búsquedas sin resultado, combinaciones y motor de `src/fixtures/` no pasan por aquí: los escribe `make contract` en `rappi-ia/` (con su simulación chica) y el CI falla si quedan desactualizados |
+| `npm run fixtures` | Guarda en el repo las respuestas simuladas de la última foto de `npm run panel:snapshot`: las de `src/fixtures/sin-conexion/` (lo que se ve sin la API) y los ejemplos `*.synthetic.json` de los tests. Correrlo tras `make synth` o una actualización del catálogo, después de grabar la foto. El uso del prototipo no se guarda (lleva lo que hizo la gente). Los ejemplos de ofertas por momento, a quién invitar a volver, búsquedas sin resultado, combinaciones, motor y experimentos de `src/fixtures/` no pasan por aquí: los escribe `make contract` en `rappi-ia/` (con su simulación chica) y el CI falla si quedan desactualizados |
 | `npm run screenshots` | Regenera `docs/screenshots/` con el Chrome instalado y un Vite propio en el 5198 (con `VITE_API_URL`, contra otra API: las de este README se tomaron el 26-10-2026 contra una API sobre `rappi_staging`) |
 | `npm run panel:snapshot` | Graba las respuestas que lee el panel (solo GET) desde una API sobre una copia de la base, en `snapshot/panel.json` (ignorada en git). La usan `npm run fixtures` y el [panel en un solo HTML](#panel-en-un-solo-html) |
 | `npm run panel:html` | Arma `dist-html/Panel de negocio (demo).html`: el panel con esas respuestas adentro, que abre con doble clic sin la API ni internet |
@@ -111,6 +111,15 @@ Para RappiAds.
 
 *Datos simulados: muestran la mecánica, no evidencia.*
 
+### 4. Experimentos
+
+Desde el 31-10. Los experimentos del MVP (`/analytics/experimentos`, migración 047), con la fuente elegida: las poblaciones nunca se mezclan. Una tabla por experimento, con sus variantes: personas asignadas, cuántas tienen pedido (y su %) y las verticales por persona con pedido, todo desde que se asignó la variante. Cada experimento dice si es al azar y cómo leerlo:
+
+- **Modo de la app** (propuesta o "Rappi hoy"): lo elige quien presenta la demo, así que lleva el rótulo "describe, no mide efecto".
+- **Grupo de control de las ofertas de Mochi** (al azar, con `OFFERS_CONTROL_PCT`): además, las ofertas de los momentos que Mochi propone solo (mostradas al tratamiento, retenidas al control), las aceptadas y los pedidos después de la primera oferta. Arriba de la tabla, el tamaño de cada grupo y el aviso de que con pocas personas la diferencia no es concluyente. Con `OFFERS_CONTROL_PCT` en 0 (lo de siempre) nadie tiene variante: un estado vacío dice que está apagado y cómo encenderlo.
+
+El simulador pone a todas sus personas en la propuesta y no simula el grupo de control.
+
 Todas las vistas tienen versión móvil (sin scroll horizontal; las tablas pasan a tarjetas) y tema claro y oscuro: sigue al sistema y se puede fijar con el botón.
 
 <p>
@@ -122,7 +131,7 @@ Todas las vistas tienen versión móvil (sin scroll horizontal; las tablas pasan
 
 ## Panel en un solo HTML
 
-"Panel de negocio (demo).html" es el panel en un archivo que abre con doble clic, sin la API ni internet, y funciona como el de verdad: las tres vistas, las dos fuentes, los enlaces del Resumen, las tablas con "Ver tabla" y "Ver las N", y el tema claro u oscuro, todo con las respuestas de la API grabadas adentro (con las fuentes y los íconos). Se arma en dos pasos, desde una API propia sobre una **copia** de la base (`rappi_staging`), nunca sobre `rappi` ni en el puerto 8000:
+"Panel de negocio (demo).html" es el panel en un archivo que abre con doble clic, sin la API ni internet, y funciona como el de verdad: las cuatro vistas, las dos fuentes, los enlaces del Resumen, las tablas con "Ver tabla" y "Ver las N", y el tema claro u oscuro, todo con las respuestas de la API grabadas adentro (con las fuentes y los íconos). Se arma en dos pasos, desde una API propia sobre una **copia** de la base (`rappi_staging`), nunca sobre `rappi` ni en el puerto 8000:
 
 ```bash
 cd rappi-ia
@@ -137,7 +146,7 @@ PANEL_HTML_COPY="$HOME/Desktop/Panel de negocio (demo).html" npm run panel:html
 
 `panel:snapshot` solo pide (GET) las métricas de `src/lib/metrics.js` con las dos fuentes y se niega al puerto 8000 y a hosts de otro equipo. La API no dice sobre qué base corre: el nombre que muestra el archivo es el que declara `PANEL_SNAPSHOT_BASE` (por defecto, `rappi_staging`), y quien graba responde por él. `panel:html` construye el modo `panel-html` (las respuestas llegan por el módulo `virtual:panel-snapshot` de `vite.config.js`; en la app normal ese módulo vale `null`, así la foto nunca entra en `dist/`) y mete el JS, el CSS, el tema y el ícono en el HTML (~0,5 MB).
 
-Se ve todo lo del panel con las dos fuentes, los rótulos de procedencia de siempre y un aviso fijo "Foto sin conexión" con la fecha y la base de donde salió.
+Se ve todo lo del panel con las dos fuentes, los rótulos de procedencia de siempre y un aviso fijo "Foto sin conexión" con la fecha y la base de donde salió. Una foto grabada antes del 31-10 no trae los experimentos: la pestaña lo dice hasta la próxima `npm run panel:snapshot`.
 
 **"Ver cómo funciona".** Un botón abajo a la derecha abre un recorrido corto de una persona nueva en el prototipo: Mochi le ofrece el kit "Carrete" (momento "Plan"), lo acepta, paga el pedido, busca algo que no hay y oculta a Mochi. Cada paso suma ese evento a las respuestas grabadas de la fuente del prototipo, en memoria (`src/demo/tour.js`), y lleva a la sección que cambia: "Plan" suma una mostrada y después una aceptada, la frecuencia de 30 días cuenta el pedido, "Qué buscan y no encuentran" suma una búsqueda sin resultado y "¿Mochi molesta?" suma una persona que lo ocultó. La tarjeta dice siempre "Demostración: eventos de ejemplo sobre la foto grabada, no son datos reales", y al cerrarla todo vuelve a la foto. Mientras dura, cada sección del prototipo dice además "con eventos de ejemplo de la demostración: no son datos reales". Solo entra en este armado (se decide por el modo `panel-html`, como `VITE_OFFLINE_DEMO` en la app): el panel con la API no la trae. Escape la cierra.
 
@@ -148,7 +157,7 @@ No se puede: actualizar (no hay API; el botón no aparece), ver la presentación
 - **Cada número con su contexto.** Una comparación (la combinación siguiente, las perdidas, la regla simple), la tendencia de 4 semanas o lo que lo explica. Las tasas aparecen desde 10 casos en su denominador; antes, solo las cuentas. Rojo solo para lo que empeora y verde para lo que mejora, siempre con flecha y texto; la demanda que crece va en gris, porque no es un resultado bueno ni malo.
 - **Color con significado.** El naranja Rappi para magnitud y para lo que se propone; el gris para el contexto (en la escalera, la retención de hoy), con contraste de 3:1 con el fondo y separable del naranja con daltonismo; el ámbar rayado marca lo simulado.
 - **Todo valor se puede leer sin el gráfico.** La escalera tiene su tabla (*Ver tabla*) y su descripción para lectores de pantalla; la serie semanal, su tabla.
-- **Accesibilidad.** Pestañas accesibles (← → Inicio Fin; en el teléfono, con nombres cortos: Resumen, Clientes y Mochi); los enlaces del Resumen llevan el foco al título de la sección; bajo 900 px las tablas pasan a tarjetas; respeto de `prefers-reduced-motion`.
+- **Accesibilidad.** Pestañas accesibles (← → Inicio Fin; en el teléfono, con nombres cortos: Resumen, Clientes, Mochi y Experimentos); los enlaces del Resumen llevan el foco al título de la sección; bajo 900 px las tablas pasan a tarjetas; respeto de `prefers-reduced-motion`.
 
 ## Estructura
 
@@ -163,7 +172,8 @@ src/
 ├── views/
 │   ├── overview/           Resumen: las 4 decisiones (decisions.js) y cómo va (weekly.js)
 │   ├── customers/          Retención y venta cruzada: la escalera (ladder.js) y el rescate (audiences.js)
-│   └── mochi/              Mochi y búsquedas: ofertas (offers.js), motor (motor.js) y demanda (demand.js)
+│   ├── mochi/              Mochi y búsquedas: ofertas (offers.js), motor (motor.js) y demanda (demand.js)
+│   └── experiments/        Experimentos: una tabla por experimento (etiquetas en experiments.js)
 ├── demo/                   "Ver cómo funciona" (solo en el panel en un solo HTML): el recorrido (tour.js) y su tarjeta
 ├── fixtures/               respuestas de ejemplo de la API para los tests; sin-conexion/, las que se ven sin la API
 ├── styles/                 estilos
