@@ -7,6 +7,7 @@ from datetime import datetime, time, timedelta
 import psycopg
 import pytest
 from fastapi.testclient import TestClient
+from psycopg.pq import TransactionStatus
 
 from owner_client import OwnerClient
 from rappi_ia import delivery
@@ -105,6 +106,27 @@ def test_the_search_filters_with_diet_and_allergies_like_mochi(client):
         assert "Pizza pepperoni familiar (prueba)" not in search_names(mine)
         assert "Pizza margarita mediana (prueba)" in search_names(mine)
         assert "saqué lo que dice tener carne" in mine["preferences_notice"]
+
+
+def test_the_search_reads_preferences_without_leaving_the_transaction_open(client, db):
+    """Con `user_id`, la dieta se lee antes del vector de la consulta. Con el modelo frío ese vector tarda, y una
+    transacción abierta esperándolo la corta Postgres a los 10 s (api/deps.py): al calcularlo no queda ninguna."""
+    say(client, "no como carne")
+    seen = []
+
+    class Watching(HashEmbedder):
+        def embed_queries(self, texts):
+            seen.append(db.info.transaction_status)
+            return super().embed_queries(texts)
+
+    embedder = Watching()
+    api.app.dependency_overrides[api.get_services] = lambda: Services(
+        RappiAgent(embedder, TemplateComposer()), embedder
+    )
+    for path in ("/search?q=pizza", "/search?q=pizza&vertical=restaurants"):
+        seen.clear()
+        assert client.get(f"{path}&user_id={USER}").status_code == 200
+        assert seen and set(seen) == {TransactionStatus.IDLE}
 
 
 def test_the_search_does_not_order_by_favorites(client):

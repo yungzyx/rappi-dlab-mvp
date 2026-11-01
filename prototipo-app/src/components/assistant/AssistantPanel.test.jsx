@@ -1353,6 +1353,21 @@ describe('al abrir, nada se mueve', () => {
     expect(screen.getByRole('region', { name: 'Para ti en otras verticales' })).toBeTruthy()
     expect(screen.getByRole('dialog').classList.contains('is-waiting')).toBe(false)
   })
+
+  test('con perfil de gusto, el saludo no espera "Para ti": no lo muestra', async () => {
+    const ladder = fixture('agent-offer-perfil')
+    for (const step of ladder.escalera)
+      for (const product of step.products) product.concept = `${product.concept}-sin-para-ti`
+    stubCatalog({
+      'GET /profile/*': fixture('profile-gustos'),
+      'POST /agent/offer': (req) => (req.body.moment === 'perfil' ? ladder : 204),
+      '/recommendations': { slow: 2900, body: fixture('recommendations') }, // justo bajo el tope de 3 s
+    })
+    await renderPanel({ settle: false })
+    for (let ms = 0; ms < 1500; ms += 250) await advance(250) // "Para ti" sigue en camino
+    expect(bubbles()[0]).toMatch(/^¡Hola de nuevo! 🧡/)
+    expect(screen.getByRole('dialog').classList.contains('is-waiting')).toBe(false)
+  })
 })
 
 describe('perfil de gusto', () => {
