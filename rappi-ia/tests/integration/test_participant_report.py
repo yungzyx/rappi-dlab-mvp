@@ -24,8 +24,8 @@ def _at(minutes: float) -> datetime:
 
 def _participant(db, user="proto-aaaa"):
     """Una sesión de 12 minutos con las 6 tareas del guion: un error de tipeo corregido, una búsqueda sin resultado,
-    "algo para la once" a Mochi, tres ofertas (aceptada, "Después" y sin respuesta), ocultar y traer a Mochi, y dos
-    pedidos (uno cancelado)."""
+    "algo para la once" a Mochi, tres ofertas (aceptada, "Después" y sin respuesta; la aceptada con la fuente de su
+    "¿Por qué?", que la persona abrió), ocultar y traer a Mochi, y dos pedidos (uno cancelado)."""
     e = events.Event
     events.record(
         db,
@@ -62,6 +62,17 @@ def _participant(db, user="proto-aaaa"):
                 vertical="licores",
                 origin="agent-recompra",
                 surface="home",
+                payload={"basis": ["recompra"]},
+            ),
+            e(
+                user,
+                "s1",
+                "offer_why_open",
+                ts=_at(4.5),
+                concept_id="cerveza",
+                origin="agent-recompra",
+                surface="home",
+                payload={"basis": ["recompra"]},
             ),
             e(
                 user,
@@ -183,18 +194,22 @@ def test_summary_of_a_participant(seeded, tmp_path, capsys):
     assert "Experimentos: modo_app = propuesta." in text
     # Sesión: 12 minutos, del app_open a la cancelación, en modo propuesta.
     assert "1 sesión(es), 12 min 00 s en total" in text
-    assert "| 03-11-2026 15:00 | 12 min 00 s | propuesta | 17 |" in text
+    assert "| 03-11-2026 15:00 | 12 min 00 s | propuesta | 18 |" in text
     # Búsquedas: la corregida y la sin resultado, marcadas; la de Mochi también cuenta.
     assert "3 búsqueda(s): 1 sin resultado y 1 corregida(s)" in text
     assert '| 03-11 15:01 | buscador | "cervesa" | 5 | corregida a "cerveza" |' in text
     assert '| 03-11 15:02 | buscador | "zzzqqq" | 0 | sin resultado |' in text
     assert '| 03-11 15:03 | Mochi | "algo para la once" | 4 |  |' in text
-    # Ofertas: cada mostrada con lo que pasó y su motivo según el momento.
+    # Ofertas: cada mostrada con lo que pasó, su motivo según el momento y de qué sale su "¿Por qué?" (si lo trae).
     assert '3 oferta(s): 1 aceptada, 1 rechazada ("Después"), 1 sin respuesta registrada.' in text
     assert "Productos agregados al carro desde una oferta: 1." in text
-    assert "| recompra | lo que suele repetir" in text and "| Cerveza | Licores | aceptada |" in text
-    assert '| volver (volver) | algo que dejó ("¿Volvemos a…?") | Vino | Licores | rechazada ("Después") |' in text
-    assert "| vertical_por_probar | una vertical que todavía no prueba | Sushi | Restaurantes | sin respuesta" in text
+    repeat = '| recompra | lo que suele repetir ("¿Repetimos?") | su ritmo de recompra | Cerveza | Licores | aceptada |'
+    assert repeat in text
+    assert '| volver (volver) | algo que dejó ("¿Volvemos a…?") | — | Vino | Licores | rechazada ("Después") |' in text
+    assert "| vertical_por_probar | una vertical que todavía no prueba | — | Sushi | Restaurantes | sin resp" in text
+    # El "¿Por qué?" abierto: cuándo, de qué oferta y de qué sale (nunca su texto).
+    assert 'Abrió el "¿Por qué?" 1 vez.' in text
+    assert "| 03-11 15:04 | recompra | su ritmo de recompra | Cerveza |" in text
     assert "Pizza" not in text  # el "Para ti" de una tienda (cart_add) no es una oferta de Mochi
     # Verticales: las dos abiertas; con pedido solo Licores (el de Restaurantes se canceló).
     assert "- Abiertas (un acceso de la Home o un botón de Mochi): Licores, Restaurantes." in text

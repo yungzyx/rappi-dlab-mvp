@@ -61,7 +61,8 @@ describe('SearchResults sin resultados', () => {
       request_id: 'contrato-agent-offer-sin-resultado',
     }
 
-    expect(tracked('suggestion_shown')).toEqual([fields])
+    // La mostrada suma de qué sale su "¿Por qué?" (la búsqueda), sin la consulta.
+    expect(tracked('suggestion_shown')).toEqual([{ ...fields, payload: { basis: ['busqueda'] } }])
     expect(tracked('suggestion_accepted')).toEqual([])
 
     const see = screen.getByRole('button', { name: 'Ver en Restaurantes' })

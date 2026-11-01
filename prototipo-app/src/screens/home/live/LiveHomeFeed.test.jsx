@@ -517,8 +517,13 @@ describe('Home del prototipo final', () => {
             surface: 'home',
             origin: 'agent-recompra',
             request_id: 'contrato-agent-offer-recompra',
+            payload: { basis: ['recompra'] },
           },
         ],
+      ])
+      // Abrir su "¿Por qué?" queda anotado, con de qué sale y no su texto.
+      expect(tracked('offer_why_open', 'agent-recompra')).toEqual([
+        ['offer_why_open', { origin: 'agent-recompra', concept_id: 'cafe', payload: { basis: ['recompra'] } }],
       ])
 
       // Al volver a la Home se pide otra vez, pero la mostrada no se cuenta de nuevo.
@@ -646,7 +651,7 @@ describe('Home del prototipo final', () => {
             surface: 'home',
             origin: 'agent-volver',
             request_id: 'contrato-agent-offer-volver',
-            payload: { kind: 'volver' },
+            payload: { kind: 'volver', basis: ['volver'] },
           },
         ],
       ])
@@ -788,7 +793,7 @@ describe('Home del prototipo final', () => {
             surface: 'home',
             origin: 'agent-volver',
             request_id: 'contrato-agent-offer-volver',
-            payload: { kind: 'vuelta' },
+            payload: { kind: 'vuelta', basis: ['vuelta'] },
           },
         ],
       ])

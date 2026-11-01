@@ -44,6 +44,9 @@ EVENT_TYPES = {
     # nuevo en `position` y el de antes en `payload.antes`. No enseña al motor (motor/data.py: EVENT_KINDS).
     "vertical_reorder_shown",
     "agent_visibility",  # la persona ocultó a Mochi o lo trajo de vuelta (`payload.visible`; migración 052)
+    # Se abrió el "¿Por qué?" de una oferta (migración 053): su origen, el concepto de la razón en `concept_id` y los
+    # tipos de su `basis` en `payload.basis` (nunca el texto). No enseña al motor.
+    "offer_why_open",
 }
 # Lo que el cliente puede mandar a /events: `order_placed` nace solo en /orders, con un pedido guardado detrás, y
 # `offer_withheld`, solo en /agent/offer, que es quien decide retener la oferta.

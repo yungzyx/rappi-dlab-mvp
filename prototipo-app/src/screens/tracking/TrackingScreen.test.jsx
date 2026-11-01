@@ -126,6 +126,7 @@ describe('TrackingScreen', () => {
       surface: 'tracking',
       origin: 'agent-proximo_pedido',
       request_id: 'contrato-agent-offer-proximo-pedido',
+      payload: { basis: ['pedido'] }, // de qué sale su "¿Por qué?"
     })
     // Mientras llegaba se mostró el OnTop de Turbo (también una sugerencia de Mochi).
     expect(events.track).toHaveBeenCalledWith('suggestion_shown', {
@@ -134,6 +135,7 @@ describe('TrackingScreen', () => {
       surface: 'tracking',
       origin: 'agent-ontop',
       request_id: 'contrato-agent-offer-ontop',
+      payload: { basis: ['ofertas', 'ontop'] },
     })
 
     // Tocarla abre el buscador con esa misma oferta, para agregar lo que arma.

@@ -54,9 +54,10 @@ export default function CheckoutSuggestion() {
         noteShown(events.track, [product], {
           origin: `agent-${made.moment}`,
           concept: made.reason?.concept,
+          reason: made.reason,
           generation: profile.resets,
         })
-        setPicked({ text: made.text, product, reason: made.reason })
+        setPicked({ text: made.text, product, reason: made.reason, origin: `agent-${made.moment}` })
       } catch {
         // Sin respuesta, el agente no dice nada: el botón sigue ahí para volver a pedir.
       } finally {
@@ -71,13 +72,13 @@ export default function CheckoutSuggestion() {
     )
   }
 
-  const { text, product, reason } = picked
+  const { text, product, reason, origin } = picked
   return (
     <section className="checkout-suggestion" aria-label={`Sugerencia de ${AGENT_NAME}`}>
       <Mascot size={40} badge mood="wave" />
       <div className="checkout-suggestion-body">
         <p className="checkout-suggestion-reason">{text}</p>
-        <OfferWhy reason={reason} />
+        <OfferWhy reason={reason} origin={origin} />
         <p className="checkout-suggestion-product">
           {product.name} · {product.price} · {VERTICAL_NAMES[product.vertical] ?? product.vertical}
           {product.ageRestricted && (

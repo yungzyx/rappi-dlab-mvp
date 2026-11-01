@@ -477,6 +477,7 @@ export default function AssistantPanel({ push, vertical, depth = 1 }) {
       noteShown(events.track, made.products, {
         origin: `agent-${moment}`,
         concept: made.reason?.concept,
+        reason: made.reason,
         generation: profile.resets,
       })
       // Un servicio sin catálogo ofrecido (el paso de la escalera puede ser RappiFavor o RappiTravel, sin productos).
@@ -484,7 +485,14 @@ export default function AssistantPanel({ push, vertical, depth = 1 }) {
       for (const action of made.actions)
         if (action.service)
           events.track('service_shown', { ...placementOf(shown), payload: { servicio: action.service } })
-      return { text: made.text, products: made.products, actions: made.actions, offerReason: made.reason, ...shown }
+      return {
+        text: made.text,
+        products: made.products,
+        actions: made.actions,
+        offerReason: made.reason,
+        offerOrigin: `agent-${moment}`,
+        ...shown,
+      }
     } catch {
       if (signal?.aborted) return { text: STOPPED }
       return offline((retrySignal) => offered(moment, context, nothing, retrySignal))
@@ -542,8 +550,8 @@ export default function AssistantPanel({ push, vertical, depth = 1 }) {
       if (signal?.aborted) return { text: STOPPED }
       const products = (ladder?.steps ?? []).flatMap((step) => step.products).slice(0, 6)
       if (!products.length) return { text: NOTHING_FOR_YOU }
-      noteShown(events.track, products, { origin: 'agent-perfil', generation: profile.resets })
-      return { text: ladder.text, products, offerReason: ladder.reason }
+      noteShown(events.track, products, { origin: 'agent-perfil', reason: ladder.reason, generation: profile.resets })
+      return { text: ladder.text, products, offerReason: ladder.reason, offerOrigin: 'agent-perfil' }
     } catch {
       if (signal?.aborted) return { text: STOPPED }
       return offline((retrySignal) => forYou(found, retrySignal))
@@ -597,7 +605,13 @@ export default function AssistantPanel({ push, vertical, depth = 1 }) {
         const [[row], found] = await Promise.race([all, waited])
         if (withGusto(found)) return { text: PROFILE_GREETING(found.profile) }
         if (!row) return { text: GREETING }
-        const shown = { origin: 'para-ti', concept: row.concept, generation: profile.resets, kind: row.kind }
+        const shown = {
+          origin: 'para-ti',
+          concept: row.concept,
+          generation: profile.resets,
+          kind: row.kind,
+          reason: row.reason,
+        }
         noteShown(events.track, row.products, shown)
         return { text: GREETING, products: row.products.map(asForYou), reason: row.reason }
       },
@@ -645,7 +659,11 @@ export default function AssistantPanel({ push, vertical, depth = 1 }) {
   const showTaste = (found) => {
     setTaste(found)
     for (const step of found?.ladder.steps ?? [])
-      noteShown(events.track, step.products, { origin: 'agent-perfil', generation: profile.resets })
+      noteShown(events.track, step.products, {
+        origin: 'agent-perfil',
+        reason: found.ladder.reason,
+        generation: profile.resets,
+      })
   }
 
   // Abrir, paso 1: el buscador se pinta fuera de la pantalla, a la derecha (como el de "Rappi hoy").

@@ -301,7 +301,7 @@ function AgentEmpty({ query, onOpenVertical, onTryAnother }) {
   useEffect(() => {
     if (!found?.vertical) return
     const offered = { concept: found.reason?.concept, vertical: found.backendVertical }
-    noteShown(events.track, found.products, { origin: NO_RESULT_ORIGIN, ...offered, generation })
+    noteShown(events.track, found.products, { origin: NO_RESULT_ORIGIN, ...offered, reason: found.reason, generation })
   }, [found, events, generation])
   if (loading) return null
   const verticalName = found?.vertical ? VERTICAL_NAMES[found.vertical] : null
@@ -319,7 +319,7 @@ function AgentEmpty({ query, onOpenVertical, onTryAnother }) {
       <Mascot size={56} mood="listen" />
       <div>
         <p>{verticalName ? found.text : `No encontré "${query}". ¿Lo buscamos con otras palabras?`}</p>
-        {verticalName && <OfferWhy reason={found.reason} />}
+        {verticalName && <OfferWhy reason={found.reason} origin={NO_RESULT_ORIGIN} />}
         <button type="button" className="search-agent-action tap" onClick={verticalName ? see : () => onTryAnother()}>
           {verticalName ? `Ver en ${verticalName}` : 'Probar otra búsqueda'}
         </button>

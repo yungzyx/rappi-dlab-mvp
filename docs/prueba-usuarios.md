@@ -45,7 +45,7 @@ Se lee cada consigna tal cual. Si la persona se traba más de 2 minutos, el mode
 | 1 | "Busca unos Doritos. Escríbelo rápido, como te salga; si te sale bien, escribe 'doritoz'." | Si ve el aviso "Mostrando resultados para…" y si le parece bien que corrija. Otro error que el buscador corrige: "mantequlla" ([reporte del 24-10](resultados/busqueda-2026-10-24.md)) | La búsqueda con `corregida a "doritos"`, o "sin resultado" si no la corrigió |
 | 2 | "Ahora pídele a Mochi algo para la once." | Si entiende que el buscador también es Mochi, qué espera que pase y si las tarjetas y los chips le sirven | Lo escrito, como pedido a Mochi ("Mochi") y, si también buscó, en el buscador, con cuántos resultados |
 | 3 | "Agrega algo al carro y vuelve al inicio. Si Mochi te propone algo, decide si lo agregas o no, y cuéntanos por qué." | Si nota la oferta, si la acepta o la descarta y su motivo, dicho con sus palabras. Si Mochi no ofrece nada en la Home, sirve la sugerencia del checkout (tarea 6) | La oferta mostrada, con su momento, concepto, vertical y si se aceptó. El "Ahora no" del globo no deja evento: lo anota el observador |
-| 4 | "Antes de tocar nada: ¿por qué crees que Mochi te propuso eso? Ahora toca '¿Por qué?'." | Lo que la persona cree antes de leer, y si el texto coincide o le sorprende. El observador copia el texto del "¿Por qué?" | Nada: abrir el "¿Por qué?" no deja evento y el texto no se guarda |
+| 4 | "Antes de tocar nada: ¿por qué crees que Mochi te propuso eso? Ahora toca '¿Por qué?'." | Lo que la persona cree antes de leer, y si el texto coincide o le sorprende. El observador copia el texto del "¿Por qué?" | Que lo abrió (`offer_why_open`), de qué oferta y de qué sale; el texto no se guarda |
 | 5 | "Imagina que Mochi te molesta: escóndelo. Ahora tráelo de vuelta." | Si encuentra el menú de Mochi ("Ocultar"), y "Mostrar a Mochi" en Cuenta para traerlo | "Ocultó a Mochi: sí", con la hora y desde dónde (`menu-mochi`, `cuenta`) |
 | 6 | "Haz un pedido de algo que pedirías de verdad, de la tienda que quieras, hasta ver por dónde viene." | Dónde duda en el checkout, si mira la sugerencia de Mochi antes de pagar, si llega al seguimiento | El pedido (vertical, total, líneas que salieron de una oferta, estado) y su vertical en "Con pedido" |
 
@@ -94,12 +94,13 @@ Los resúmenes y las hojas se quedan fuera de git (`~/prueba-usuarios/`, no en e
 | Experimentos | `modo_app` y, si estaba encendido, `ofertas_control` | `experiment_assignments` |
 | Sesiones | cada sesión (30 minutos sin actividad la cierran) con su inicio, duración, modo y eventos; el total cuenta una vez las que se superponen | `app_sessions` y la hora de sus eventos |
 | Búsquedas | lo escrito en el buscador (`search`) y lo que se le pidió a Mochi (`ask`), con resultados; marca "sin resultado", "corregida a…" y "buscó tal cual" | `app_events` |
-| Ofertas de Mochi | cada oferta mostrada (origen `agent-<momento>` o el "Para ti" de su tarjeta) con su momento, concepto y vertical, y si se aceptó (se agregó algo al carro), se rechazó ("Después" de "¿Volvemos a…?") o quedó sin respuesta registrada | `suggestion_shown`, `suggestion_accepted`, `suggestion_dismissed` y `offer_withheld` |
+| Ofertas de Mochi | cada oferta mostrada (origen `agent-<momento>` o el "Para ti" de su tarjeta) con su momento, de qué sale su "¿Por qué?" (sus pedidos, lo que buscó, su perfil…), concepto y vertical, y si se aceptó (se agregó algo al carro), se rechazó ("Después" de "¿Volvemos a…?") o quedó sin respuesta registrada | `suggestion_shown` (con `payload.basis`), `suggestion_accepted`, `suggestion_dismissed` y `offer_withheld` |
+| El "¿Por qué?" de las ofertas | cada vez que abrió el "¿Por qué?" de una oferta: la hora, el momento, de qué sale y el concepto | `offer_why_open` (migración 053) |
 | Verticales | las abiertas desde un acceso o un botón de Mochi, los servicios abiertos y las verticales con pedido (sin los cancelados) | `vertical_open`, `service_opened` y `app_orders` |
 | Mochi a la vista | si lo ocultó y lo trajo de vuelta, cuándo y desde dónde | `agent_visibility` |
 | Pedidos | hora, vertical, total, líneas (cuántas de una oferta), modo, estado y si lo pidió la persona o Mochi ("Pedir por mí") | `app_orders` y `app_order_lines` |
 
-No trae, y lo anota el observador: el texto del "¿Por qué?" de cada oferta (los eventos guardan el momento, el concepto y la vertical, no `reason.text`; la columna "Motivo" del resumen es la del momento, no la frase que vio la persona), si abrió el "¿Por qué?", el "Ahora no" del globo de la Home y lo que la persona dijo.
+No trae, y lo anota el observador: el texto exacto del "¿Por qué?" de cada oferta (los eventos guardan de qué sale, no la frase: puede traer lo que la persona escribió), el "Ahora no" del globo de la Home y lo que la persona dijo. Una oferta mostrada antes de la migración 053 sale con "—" en "De qué sale".
 
 ## 7. Qué se puede concluir con 5 personas y qué no
 

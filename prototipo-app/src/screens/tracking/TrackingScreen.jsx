@@ -349,6 +349,7 @@ function OnTop({ order, flow, now, push }) {
         noteShown(events.track, reply.products, {
           origin: `agent-${reply.moment}`,
           concept: reply.reason?.concept,
+          reason: reply.reason,
           generation: profile.resets,
         })
         setMade(reply)
@@ -369,7 +370,7 @@ function OnTop({ order, flow, now, push }) {
     <section className="tracking-ontop" aria-label="Turbo: suma a tu pedido">
       <h2>Turbo: suma esto antes de las {clock(deadline)}</h2>
       <p>{made.text}</p>
-      <OfferWhy reason={made.reason} />
+      <OfferWhy reason={made.reason} origin={`agent-${made.moment}`} />
       <HScroll className="tracking-ontop-items">
         {made.products.map((product) => (
           <div key={product.id} className="tracking-ontop-item">
@@ -407,12 +408,14 @@ function Delivered({ order, push }) {
         noteShown(events.track, made.products, {
           origin: `agent-${made.moment}`,
           concept: made.reason?.concept,
+          reason: made.reason,
           generation: profile.resets,
         })
         setNext({
           context: { items },
           label: made.actions.find((action) => action.query)?.query ?? 'algo más',
           reason: made.reason,
+          origin: `agent-${made.moment}`,
         })
       },
       () => {},
@@ -446,7 +449,7 @@ function Delivered({ order, push }) {
             <span>✨ ¿Y ahora {next.label}?</span>
             <small>{AGENT_NAME} te arma el próximo pedido</small>
           </button>
-          <OfferWhy reason={next.reason} />
+          <OfferWhy reason={next.reason} origin={next.origin} />
         </>
       )}
     </>
