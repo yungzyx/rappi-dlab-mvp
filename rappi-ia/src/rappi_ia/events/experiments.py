@@ -21,6 +21,11 @@ MODE = "modo_app"
 OFFERS_CONTROL = "ofertas_control"
 CONTROL = "control"
 TREATMENT = "tratamiento"
+# Lo que Mochi propone solo: el grupo de control de las ofertas (`ofertas_control`) no lo ve. Un plan o un perfil de
+# gusto los pide la persona: esos se muestran siempre.
+HOLDOUT_MOMENTS = frozenset(
+    {"carrito", "checkout", "sin_resultado", "proximo_pedido", "vertical_por_probar", "recompra", "volver", "ontop"}
+)
 
 
 def bucket(user_id: str, experiment_id: str) -> int:

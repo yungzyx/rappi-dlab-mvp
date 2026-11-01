@@ -9,8 +9,10 @@ from datetime import UTC
 from psycopg import Connection
 from psycopg.rows import dict_row
 
+from .. import config
 from ..agent.verticals import MIN_ITEMS_ELSEWHERE, SHARES
 from ..concepts.taxonomy import load_taxonomy
+from ..events import experiments as exp
 from ..motor.combos import OWN_SIGNALS_ONLY, expected_fine_retention, load_combos
 from ..offers.autonomy import ORIGIN as AUTO_ORDER_ORIGIN
 from ..offers.winback import reach
@@ -787,6 +789,112 @@ def session_funnel(conn: Connection, source: str = "synthetic") -> list[dict]:
            GROUP BY modo ORDER BY modo = 'actual', modo""",
         {"source": source},
     )
+
+
+# Cómo leer cada experimento en el panel. Uno que no esté aquí se lee con su `description` (tabla `experiments`).
+EXPERIMENT_NOTES = {
+    exp.MODE: (
+        'No es al azar: el modo lo elige quien presenta la demo. Comparar la propuesta con "Rappi hoy" describe, '
+        "no mide efecto."
+    ),
+    exp.OFFERS_CONTROL: (
+        "Al azar: un sorteo estable con el id de la persona. A control no se le muestran las ofertas que "
+        f"{config.AGENT_NAME} propone solo (quedan como retenidas). La diferencia entre los grupos mide el efecto de "
+        "esas ofertas, si cada grupo tiene personas suficientes."
+    ),
+}
+
+
+def experiment_results(conn: Connection, source: str = "synthetic") -> dict:
+    """Los experimentos (migración 047) por variante, dentro de una sola población: personas asignadas, con pedido y
+    verticales por persona con pedido (distintas en sus pedidos confirmados, como el multi-vertical de `kpis`), todo
+    desde que se le asignó la variante. `al_azar` dice si comparar variantes mide un efecto (`azar`) o solo describe
+    (`elegida`). En `ofertas_control`, además, `control_pct` (OFFERS_CONTROL_PCT: en 0 nadie entra) y por variante las
+    ofertas de los momentos que Mochi propone solo (`exp.HOLDOUT_MOMENTS`): mostradas (`suggestion_shown`), retenidas
+    (`offer_withheld`), aceptadas, personas con alguna y los pedidos confirmados después de la primera."""
+    _check(source)
+    params = {"source": source, "offers": exp.OFFERS_CONTROL, "origins": [f"agent-{m}" for m in exp.HOLDOUT_MOMENTS]}
+    declared = _rows(
+        conn,
+        "SELECT experiment_id, description, variants, assignment FROM experiments ORDER BY started_at, experiment_id",
+        params,
+    )
+    groups = _rows(
+        conn,
+        """WITH per_person AS (
+               SELECT a.experiment_id, a.variant, a.user_id,
+                      count(o.order_id) AS pedidos, count(DISTINCT o.vertical) AS verticales
+               FROM experiment_assignments a
+               LEFT JOIN app_orders o ON o.user_id = a.user_id AND o.source = a.source AND o.status = 'confirmado'
+                    AND o.ts >= a.assigned_at
+               WHERE a.source = %(source)s
+               GROUP BY 1, 2, 3
+           )
+           SELECT experiment_id, variant, count(*) AS personas,
+                  count(*) FILTER (WHERE pedidos > 0) AS con_pedido,
+                  round(avg(verticales) FILTER (WHERE pedidos > 0), 2) AS verticales_por_persona
+           FROM per_person GROUP BY 1, 2""",
+        params,
+    )
+    offers = _rows(
+        conn,
+        """WITH assigned AS (
+               SELECT user_id, variant, assigned_at FROM experiment_assignments
+               WHERE source = %(source)s AND experiment_id = %(offers)s
+           ),
+           seen AS (
+               SELECT a.user_id, a.variant, e.type, e.ts FROM assigned a
+               JOIN app_events e ON e.user_id = a.user_id AND e.source = %(source)s AND e.ts >= a.assigned_at
+               WHERE e.type = 'offer_withheld'
+                  OR (e.type IN ('suggestion_shown', 'suggestion_accepted')
+                      AND coalesce(e.origin, e.payload ->> 'origen') = ANY(%(origins)s))
+           ),
+           first_offer AS (
+               SELECT user_id, variant, min(ts) AS ts FROM seen
+               WHERE type IN ('suggestion_shown', 'offer_withheld') GROUP BY 1, 2
+           ),
+           after AS (
+               SELECT f.variant, count(o.order_id) AS pedidos FROM first_offer f
+               JOIN app_orders o ON o.user_id = f.user_id AND o.source = %(source)s AND o.status = 'confirmado'
+                    AND o.ts > f.ts
+               GROUP BY 1
+           )
+           SELECT s.variant,
+                  count(*) FILTER (WHERE s.type = 'suggestion_shown') AS mostradas,
+                  count(*) FILTER (WHERE s.type = 'offer_withheld') AS retenidas,
+                  count(*) FILTER (WHERE s.type = 'suggestion_accepted') AS aceptadas,
+                  (SELECT count(*) FROM first_offer f WHERE f.variant = s.variant) AS personas_con_oferta,
+                  coalesce((SELECT pedidos FROM after WHERE after.variant = s.variant), 0) AS pedidos_despues
+           FROM seen s GROUP BY 1""",
+        params,
+    )
+    by_group = {(g["experiment_id"], g["variant"]): g for g in groups}
+    offers_by_variant = {o.pop("variant"): o for o in offers}
+    no_offers = {"mostradas": 0, "retenidas": 0, "aceptadas": 0, "personas_con_oferta": 0, "pedidos_despues": 0}
+    result = []
+    for e in declared:
+        variants = []
+        for variant in e["variants"]:
+            group = by_group.get((e["experiment_id"], variant), {})
+            row = {
+                "variante": variant,
+                "personas": group.get("personas", 0),
+                "con_pedido": group.get("con_pedido", 0),
+                "verticales_por_persona": group.get("verticales_por_persona"),
+            }
+            if e["experiment_id"] == exp.OFFERS_CONTROL:
+                row["ofertas"] = offers_by_variant.get(variant, no_offers)
+            variants.append(row)
+        item = {
+            "id": e["experiment_id"],
+            "al_azar": e["assignment"] == "azar",
+            "nota": EXPERIMENT_NOTES.get(e["experiment_id"], e["description"]),
+            "variantes": variants,
+        }
+        if e["experiment_id"] == exp.OFFERS_CONTROL:
+            item["control_pct"] = config.OFFERS_CONTROL_PCT
+        result.append(item)
+    return {"experimentos": result}
 
 
 def multi_vertical_retention(conn: Connection, source: str = "synthetic") -> list[dict]:

@@ -134,6 +134,7 @@ def test_analytics_off_is_404(load_api):
     client = TestClient(module.app)
     assert client.get("/analytics/kpis").status_code == 404
     assert client.get("/analytics/catalog").status_code == 404
+    assert client.get("/analytics/experimentos?source=prototype").status_code == 404
 
 
 def test_analytics_can_be_turned_on_in_production(load_api):
