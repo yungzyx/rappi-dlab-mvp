@@ -22,6 +22,7 @@ Flujo típico (después de cada `rappi refresh` del scraper):
     rappi-ia jev-piloto              # con clave y planillas juzgadas: mide a Jev y propone adoptarlo (o no)
     rappi-ia synth                   # usuarios y eventos SIMULADOS para el panel (reemplaza los anteriores)
     rappi-ia analytics               # resumen de métricas del panel (frecuencia, abandono, oportunidades…)
+    rappi-ia resumen-prueba proto-…  # prueba con usuarios: un Markdown por persona del prototipo (o --desde AAAA-MM-DD)
     rappi-ia purge                   # borra consultas e impresiones de más de 90 días y personas sin actividad
     rappi-ia multivertical           # mapa multivertical (docs/mapas/)
     rappi-ia seed-demo               # catálogo de prueba inventado, SOLO en la base DATABASE_URL_TEST (_test)
@@ -598,6 +599,27 @@ def cmd_analytics(conn, args) -> None:
     print(json.dumps(report, ensure_ascii=False, indent=2, default=str))
 
 
+def cmd_resumen_prueba(conn, args) -> None:
+    """Solo lectura: la conexión queda en modo `read_only`, así un error en una consulta nunca escribe en la base."""
+    from .analytics import participant_report as report
+
+    if bool(args.user_ids) == bool(args.desde):
+        raise SystemExit("Indica uno o más user_id, o --desde AAAA-MM-DD (no los dos)")
+    try:
+        since = report.parse_since(args.desde) if args.desde else None
+    except ValueError as exc:
+        raise SystemExit(str(exc)) from exc
+    conn.read_only = True
+    users = report.select_users(conn, args.user_ids or None, since)
+    for missing in [u for u in args.user_ids if u not in users]:
+        print(f"{missing}: no es una persona del prototipo (o no existe); se salta")
+    if not users:
+        raise SystemExit("No hay personas del prototipo que resumir")
+    out_dir = Path(args.salida) if args.salida else config.DATA_DIR / "prueba-usuarios"
+    for path in report.write_reports(conn, users, out_dir):
+        print(f"Resumen en {path}")
+
+
 def cmd_multivertical(conn, args) -> None:
     from .analytics import multivertical
 
@@ -761,6 +783,7 @@ COMMANDS = {
     "synth": cmd_synth,
     "purge": cmd_purge,
     "analytics": cmd_analytics,
+    "resumen-prueba": cmd_resumen_prueba,
     "migrate": cmd_migrate,
     "concepts": cmd_concepts,
     "map-categories": cmd_map_categories,
@@ -883,6 +906,14 @@ def build_parser() -> argparse.ArgumentParser:
     mv.add_argument("--salida", help="un solo archivo HTML (por defecto docs/mapas/ y el del panel)")
     analytics = sub.add_parser("analytics", help="resumen de métricas del panel")
     analytics.add_argument("--fuente", choices=("synthetic", "prototype"), default="synthetic")
+    rp = sub.add_parser(
+        "resumen-prueba",
+        help="prueba con usuarios: un Markdown por persona del prototipo (búsquedas, ofertas, verticales, pedidos); "
+        "solo lee la base",
+    )
+    rp.add_argument("user_ids", nargs="*", metavar="user_id", help="personas del prototipo (proto-…)")
+    rp.add_argument("--desde", help="en vez de ids: las personas del prototipo creadas desde AAAA-MM-DD[THH:MM]")
+    rp.add_argument("--salida", help="carpeta donde dejarlos (por defecto data/prueba-usuarios/)")
     sub.add_parser(
         "seed-demo", help="reconstruye DATABASE_URL_TEST (debe terminar en _test) con un catálogo de prueba inventado"
     )
