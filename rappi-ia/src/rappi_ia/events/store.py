@@ -568,13 +568,14 @@ def catalog_prices(conn: Connection, lines: list[dict]) -> tuple[list[dict], int
 
 
 def profile(conn: Connection, user_id: str, now: datetime | None = None) -> dict[str, float]:
-    """Interés por concepto con decaimiento exponencial (vida media 14 días). Sin conceptos sensibles."""
+    """Interés por concepto con decaimiento exponencial (vida media 14 días). Sin conceptos sensibles, y sin lo hecho
+    en "Rappi hoy" (`payload.mode = 'actual'`): ese modo no enseña, aunque el cliente mande el concepto."""
     sensitive = [c.id for c in load_taxonomy().concepts.values() if c.sensitive]
     rows = conn.execute(
         """SELECT concept_id, type, extract(epoch FROM (coalesce(%(now)s, now()) - ts)) / 86400.0 AS days
            FROM app_events
            WHERE user_id = %(user)s AND concept_id IS NOT NULL AND concept_id <> ALL(%(sensitive)s)
-             AND type = ANY(%(types)s)""",
+             AND type = ANY(%(types)s) AND coalesce(payload ->> 'mode', 'propuesta') <> 'actual'""",
         {"now": now, "user": user_id, "sensitive": sensitive, "types": list(WEIGHTS)},
     ).fetchall()
     scores: dict[str, float] = {}

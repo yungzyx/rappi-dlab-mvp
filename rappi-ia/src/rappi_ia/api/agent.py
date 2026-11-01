@@ -182,6 +182,7 @@ def offer(
     if body.moment == "ontop":
         context["vertical"] = backend_vertical(context["vertical"])
     mine = preferences.load(conn, body.user_id)  # su dieta y alergias filtran; sus favoritas ordenan
+    conn.commit()  # esa lectura no queda abierta mientras la oferta calcula sus vectores (como en `/search`)
     try:
         with preferences.applied(mine):
             found = make_offer(conn, svc.embedder, body.moment, context, body.user_id, spare)

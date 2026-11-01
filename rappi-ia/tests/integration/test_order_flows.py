@@ -14,6 +14,7 @@ from rappi_ia.api import app as api
 from rappi_ia.api import identity
 from rappi_ia.demo.seed import seed_demo
 from rappi_ia.events import store as events
+from rappi_ia.layers.segments import user_metrics
 from rappi_ia.motor.build import refresh_user_conn
 from rappi_ia.motor.data import load_orders
 from rappi_ia.motor.model import TZ
@@ -298,3 +299,25 @@ def test_an_order_by_mochi_is_never_scheduled(client, db):
 
     assert reply.status_code == 400 and "no se programa" in reply.json()["detail"]
     assert db.execute("SELECT count(*) FROM app_orders").fetchone()[0] == 0
+
+
+def test_a_cancelled_order_leaves_its_cart_without_order_in_abandonment(client, db):
+    """Un carro pagado y después cancelado vuelve a ser un carro sin pedido: a las 24 h cuenta como abandonado en el
+    panel (`abandono_carrito_pct`) y en la tasa de abandono de los segmentos, igual que uno que nunca se pagó."""
+    two_days_ago = datetime.now(UTC) - timedelta(days=2)
+    line = {"entity_type": COFFEE[0], "entity_id": COFFEE[1], "concept_id": "cafe", "unit_price": 1990}
+    for cart in ("c-ok", "c-no", "c-nunca"):  # MIN_CARTS_FOR_ABANDONMENT
+        steps = [
+            events.Event(
+                USER, cart, kind, ts=two_days_ago, vertical="supermercado", cart_id=cart, entity_type=COFFEE[0]
+            )
+            for kind in ("cart_add", "checkout_start")
+        ]
+        events.record(db, steps)
+    for cart in ("c-ok", "c-no"):
+        events.record_order(db, USER, cart, cart, "supermercado", [{**line, "store_id": SUPER_CENTRO}], ts=two_days_ago)
+
+    cancel(client, "c-no")  # ahora: la cancelación es el último evento de la fuente
+
+    assert queries.kpis(db, "prototype")["abandono_carrito_pct"] == pytest.approx(200 / 3, abs=0.1)
+    assert user_metrics(db, "prototype", USER)[USER]["tasa_abandono"] == pytest.approx(2 / 3)

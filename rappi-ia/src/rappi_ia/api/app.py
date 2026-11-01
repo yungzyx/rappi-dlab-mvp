@@ -236,6 +236,9 @@ ShortPath = Annotated[str, Path(max_length=64)]
 
 
 # ── Modelos ──────────────────────────────────────────────────────────────────
+MAX_PRICE = 100_000_000  # un precio o un tope de precio en pesos: lo que cabe en un pedido de la app
+
+
 class PreviousTurnIn(Clean):
     """El turno anterior de la conversación: el `conversation` de la respuesta anterior, que la app devuelve tal cual
     (docs/diseno/2026-10-25-mochi-conversacion-design.md). Un seguimiento ("más barato", "sin carne", "para 10
@@ -245,7 +248,7 @@ class PreviousTurnIn(Clean):
     concepts: list[Annotated[str, Field(max_length=64)]] = Field(default_factory=list, max_length=10)
     occasion: str | None = Field(default=None, max_length=64)
     vertical: str | None = Field(default=None, max_length=64)
-    price_max: float | None = Field(default=None, ge=0, le=100_000_000, allow_inf_nan=False)
+    price_max: float | None = Field(default=None, ge=0, le=MAX_PRICE, allow_inf_nan=False)
     people: int | None = Field(default=None, ge=2, le=40)
     order: Literal["barato", "caro"] | None = None
     symptom: bool = False
@@ -289,7 +292,7 @@ class EventIn(Clean):
     modality: Literal["texto"] | None = None
     results: int | None = Field(default=None, ge=0, le=1_000_000)
     unmet: bool | None = None
-    value: float | None = Field(default=None, le=MAX_EVENT_VALUE, allow_inf_nan=False)
+    value: float | None = Field(default=None, ge=0, le=MAX_EVENT_VALUE, allow_inf_nan=False)
     payload: dict = Field(default_factory=dict)
     # El sobre (migración 043; docs/capa-de-datos.md): id, hora y orden según la app; desde dónde; y el `request_id`
     # de la respuesta de la API de donde salió lo que se tocó (en una búsqueda, su propio id).
@@ -344,7 +347,7 @@ class OrderLineIn(Clean):
     store_id: int | None = Field(default=None, ge=0, le=2**63 - 1)  # la tienda de donde se agregó: su precio manda
     qty: int = Field(default=1, ge=1, le=99)
     # Se ignora: el precio de cada línea sale del catálogo. Queda para no romper a un cliente que lo manda.
-    unit_price: float | None = Field(default=None, ge=0, le=100_000_000, allow_inf_nan=False)
+    unit_price: float | None = Field(default=None, ge=0, le=MAX_PRICE, allow_inf_nan=False)
     from_suggestion: bool = False
     # Qué hacer si se agota (checkout de Súper y Turbo): sustituto, "Si no contesto, elijan por mí" o reembolso.
     substitution: Literal["sustituto", "elijan", "reembolso"] | None = None
@@ -450,7 +453,7 @@ def search(
     q: str = Query(min_length=1, max_length=200),
     vertical: ShortQuery | None = None,
     current: ShortQuery | None = None,
-    price_max: float | None = Query(None, ge=0, allow_inf_nan=False),
+    price_max: float | None = Query(None, ge=0, le=MAX_PRICE, allow_inf_nan=False),
     limit: int | None = Query(None, ge=1, le=50),
     mode: str = Query("hibrido"),
     correct: bool = True,
@@ -906,6 +909,8 @@ def _context(conn, vertical, user_id, profile, shown_topics, mode) -> Context:
         profile = events.profile(conn, user_id)
     vertical = _searchable(conn, backend_vertical(vertical))
     mine = preferences.load(conn, user_id) if mode == "propuesta" else None  # en "Rappi hoy", ninguna
+    # Estas lecturas no quedan abiertas mientras se calcula el vector del mensaje (como en `/search`: ver `retrieve`).
+    conn.commit()
     return Context(vertical, profile or {}, list(shown_topics), mode, user_id=user_id, preferences=mine)
 
 

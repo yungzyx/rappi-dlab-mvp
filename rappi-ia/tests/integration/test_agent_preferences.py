@@ -259,3 +259,28 @@ def test_it_is_a_person_table(db):
     assert delivery.unknown_person_tables(db) == []
     comment = db.execute("SELECT obj_description('agent_preferences'::regclass)").fetchone()[0]
     assert "PERSON_TABLES" in comment
+
+
+def test_ask_reads_without_leaving_the_transaction_open(client, db):
+    """`/agent/ask` lee el perfil y la dieta antes de calcular el vector del mensaje: esas lecturas se confirman, como
+    en `/search`, para que una transacción abierta no espere al modelo (api/deps.py: 10 s). (`/agent/offer` todavía lee
+    dentro de cada momento antes de embeber: pendiente.)"""
+    say(client, "no como carne")
+    seen = []
+
+    class Watching(HashEmbedder):
+        def embed_queries(self, texts):
+            seen.append(db.info.transaction_status)
+            return super().embed_queries(texts)
+
+        def embed_documents(self, texts):
+            seen.append(db.info.transaction_status)
+            return super().embed_documents(texts)
+
+    embedder = Watching()
+    api.app.dependency_overrides[api.get_services] = lambda: Services(
+        RappiAgent(embedder, TemplateComposer()), embedder
+    )
+    seen.clear()
+    say(client, "algo para la once")
+    assert seen and set(seen) == {TransactionStatus.IDLE}
