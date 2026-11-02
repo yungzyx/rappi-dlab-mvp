@@ -6,7 +6,7 @@ import { DemoProvider } from '../../state/DemoContext'
 import { ProductSheetProvider } from '../../state/ProductSheetContext'
 import ProductSheet from '../ProductSheet'
 import { ProfileProvider } from '../../state/ProfileContext'
-import AssistantPanel from './AssistantPanel'
+import AssistantPanel, { OPEN_CACHE_MS } from './AssistantPanel'
 import { routeForScreen } from '../../data/verticals'
 import { trackOrder } from '../../api/orders'
 import { fixture, stubApi } from '../../test/api'
@@ -813,6 +813,27 @@ describe('Para ti y Descubre con Mochi', () => {
     expect([api.profile.mock.calls.length, calls('/recommendations'), calls('/gustos')]).toEqual([1, 1, 1])
 
     await forget()
+    await reopen()
+    expect([api.profile.mock.calls.length, calls('/recommendations'), calls('/gustos')]).toEqual([2, 2, 2])
+  })
+
+  test('lo guardado al abrir dura un minuto: dentro de 60 s no lo repite; pasado el minuto, sí', async () => {
+    const fetchMock = stubCatalog({ '/recommendations': rows(), 'GET /profile/*': { perfiles: [] } })
+    const calls = (part) => fetchMock.mock.calls.filter(([url]) => url.includes(part)).length
+    const reopen = async () => {
+      fireEvent.click(screen.getByRole('button', { name: 'Volver' }))
+      await runUntilIdle()
+      fireEvent.click(screen.getByText('abrir'))
+      await runUntilIdle()
+    }
+    await renderPanel()
+    expect([api.profile.mock.calls.length, calls('/recommendations'), calls('/gustos')]).toEqual([1, 1, 1])
+
+    await advance(OPEN_CACHE_MS - 10_000)
+    await reopen()
+    expect([api.profile.mock.calls.length, calls('/recommendations'), calls('/gustos')]).toEqual([1, 1, 1])
+
+    await advance(10_000) // pasado el minuto: lo aprendido (una búsqueda nueva) se vuelve a pedir
     await reopen()
     expect([api.profile.mock.calls.length, calls('/recommendations'), calls('/gustos')]).toEqual([2, 2, 2])
   })

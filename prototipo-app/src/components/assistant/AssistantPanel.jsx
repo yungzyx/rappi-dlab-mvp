@@ -100,22 +100,24 @@ const CHIPS = ['🍔 ¿Qué almuerzo hoy?', '🍻 Arma un carrete', '🔥 Oferta
 
 let nextId = 1
 
-// Lo que se pide al abrir el buscador (lo aprendido, "Para ti" y "Descubre", el perfil de gusto con su escalera), una
-// vez por apertura de la misma clave durante la pestaña (`openKey`: la persona, la generación de su perfil y sus
-// pedidos): reabrirlo no lo vuelve a pedir. "Olvidar", un pedido (o una cancelación) o cambiar de persona en la demo
-// cambian la clave. Lo que falla no se guarda: la próxima apertura lo vuelve a pedir.
+// Lo que se pide al abrir el buscador (lo aprendido, "Para ti" y "Descubre", el perfil de gusto con su escalera) se
+// guarda OPEN_CACHE_MS por clave (`openKey`: la persona, la generación de su perfil y sus pedidos): abrir y cerrar el
+// buscador seguido no lo vuelve a pedir, y lo que la persona busca aparece en "Aprendiendo de ti" al minuto. "Olvidar",
+// un pedido (o una cancelación) o cambiar de persona en la demo cambian la clave. Lo que falla no se guarda: la próxima
+// apertura lo vuelve a pedir.
+export const OPEN_CACHE_MS = 60_000
 let opened = { key: null, requests: {} }
 function onOpen(key, name, load) {
   if (opened.key !== key) opened = { key, requests: {} }
   const { requests } = opened
-  if (!requests[name]) {
+  if (!requests[name] || Date.now() - requests[name].at >= OPEN_CACHE_MS) {
     const request = load()
-    requests[name] = request
+    requests[name] = { request, at: Date.now() }
     request.catch(() => {
-      if (requests[name] === request) delete requests[name]
+      if (requests[name]?.request === request) delete requests[name]
     })
   }
-  return requests[name]
+  return requests[name].request
 }
 
 /** Los atajos de lo que Mochi sabe hacer ("Repite lo de siempre", "Arma un kit"…), como chips. */
