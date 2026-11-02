@@ -1,7 +1,7 @@
 # Contexto y problema
 
 > Por qué existe este proyecto, qué queremos responder y qué decisiones salen de eso.
-> Última actualización: 24-10-2026. Ecosistema y modelo de datos: [ecosistema-rappi.md](ecosistema-rappi.md) · Diseño del RAG, el agente y el panel: [diseno-ia.md](diseno-ia.md) · Registro de decisiones: [decisiones.md](decisiones.md) · Resultados: [README → Resultados](../README.md#resultados).
+> Última actualización: 01-11-2026. Ecosistema y modelo de datos: [ecosistema-rappi.md](ecosistema-rappi.md) · Diseño del RAG, el agente y el panel: [diseno-ia.md](diseno-ia.md) · Registro de decisiones: [decisiones.md](decisiones.md) · Resultados: [README → Resultados](../README.md#resultados).
 
 ## 1. El problema
 
@@ -89,16 +89,17 @@ Registro completo, con fechas: [decisiones.md](decisiones.md).
 
 ## 6. Fases
 
-Estado al 16-10-2026:
+Estado al 01-11-2026:
 
 | Fase | Qué es | Estado |
 |---|---|---|
-| **1. Datos** | Scraper → Postgres: catálogo, menús, precios e historial por vertical (`rappi-scraper/`) | **Hecha.** Primera descarga completa del 24 al 27-09-2026, recuperación de fallidos el 28-09 y primera descarga semanal automática el 29 y 30-09 (`make schedule`). Cifras en [README → Resultados](../README.md#resultados) |
-| **Prototipo** | App navegable: la Home que aprende el orden, Mochi en la Home, buscador con Mochi y ofertas entre verticales (`prototipo-app/`) | **Listo para demo.** Necesita la API (`make mvp`) y usa el catálogo real; sin ella muestra "Sin conexión con Mochi". Ver [decisiones.md](decisiones.md#agente-mochi) |
+| **1. Datos** | Scraper → Postgres: catálogo, menús, precios e historial por vertical (`rappi-scraper/`) | **Hecha.** Primera descarga completa del 24 al 27-09-2026, recuperación de fallidos el 28-09 y primera descarga semanal automática el 29 y 30-09 (`make schedule`). Las cifras vigentes son de la descarga del 04-10-2026, contadas el 05-10: en [README → Resultados](../README.md#resultados) |
+| **Prototipo** | App navegable: la Home que aprende el orden, Mochi en la Home, buscador con Mochi y ofertas entre verticales (`prototipo-app/`) | **Listo para demo.** Necesita la API (`make mvp`) y usa el catálogo real; sin ella muestra "Sin conexión con Mochi". Desde el 30-10-2026 Mochi dice por qué movió los accesos de la Home y se puede ocultar, y hay una presentación sin conexión en un solo HTML ([presentacion/](../presentacion/README.md)). Ver [decisiones.md](decisiones.md#agente-mochi) |
 | **2. RAG** | Conceptos (capa 2), embeddings de texto, búsqueda híbrida por vertical y evaluación (`rappi-ia/`) | **Construido.** Todos los documentos de búsqueda con embedding de texto. Evaluación en [README → Resultados](../README.md#resultados) |
-| **3. Agente** | Mochi en el backend y API: herramientas de búsqueda, reglas de conducta; LLM opcional | **Construido.** Responde solo por texto (`POST /agent/ask`) y hace ofertas (`/agent/offer`, `/agent/plans`) |
+| **3. Agente** | Mochi en el backend y API: herramientas de búsqueda, reglas de conducta; LLM opcional | **Construido.** Responde solo por texto (`POST /agent/ask`), desde el buscador y sin chat: desde el 26-10-2026 la respuesta se refina con chips. Hace ofertas (`/agent/offer`, `/agent/plans`) |
 | **4. Panel empresa** | Venta cruzada, retención, ofertas de Mochi y demanda no satisfecha, para la gerencia y RappiAds | **Construido** (`dashboard-empresa/`) y conectado a la API como parte del MVP; rediseñado el 22-10-2026 en 3 vistas alrededor de 4 preguntas; el 31-10-2026 sumó Experimentos. Usuarios simulados, salvo la tabla de Rappi (real) y lo hecho en la app con la fuente del prototipo (pocas personas: no es evidencia) |
 | **5. Motor multivertical** | Afinidad, transiciones, combinaciones y retención, compra cruzada, tendencias y recompra en la base; la Home dinámica y las ofertas conectadas en la app; la tabla de Rappi como punto de partida ([especificación](diseno/2026-10-16-motor-multivertical-design.md)) | **Construido** (16-10-2026, en 6 etapas). Aprende la población de personas simuladas; evaluación en [resultados/motor-2026-10-16.md](resultados/motor-2026-10-16.md) y QA sobre el catálogo real en [resultados/qa-motor-2026-10-16.md](resultados/qa-motor-2026-10-16.md) |
+| **Prueba con usuarios** | La primera evidencia con personas: 6 tareas en dlab-mvp.com, consentimiento, cuestionario y un resumen por persona (`rappi-ia resumen-prueba`) | **Preparada** (01-11-2026): guion en [prueba-usuarios.md](prueba-usuarios.md) y la plantilla del reporte en [resultados/](resultados/prueba-usuarios-PLANTILLA.md). Hasta tener su reporte, toda la evidencia es simulada o de jueces LLM |
 | **Cierre** | CI, documentación y validación final (etapa 8 de [diseno-ia.md](diseno-ia.md#7-etapas)) | **Hecha.** CI en verde y corrida post-refresh sobre el catálogo completo (30-09-2026) |
 
 ## 7. Límites y riesgos

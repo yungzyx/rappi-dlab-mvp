@@ -134,10 +134,10 @@ warm: warm-catalog  ## Calienta la API antes de una demo (con la API ya corriend
 	@curl -s -o /dev/null $(API)/analytics/catalog && echo "Lista: API caliente."
 
 FRASES ?=
-probar-agente:  ## Prueba al agente con las frases de usuarios (con la API corriendo; ver docs/pruebas-de-usuario.md)
+probar-agente:  ## Prueba al agente con las frases de usuarios (con la API corriendo; ver docs/probar-agente.md)
 	@$(PY) scripts/probar_agente.py $(FRASES)
 
-purge:  ## Borra el texto de consultas con más de 90 días (docs/diseno-ia.md §2) y a las personas del prototipo sin actividad en 180
+purge:  ## Borra el texto de consultas y los elementos vistos (impresiones) con más de 90 días (docs/diseno-ia.md §2) y a las personas del prototipo sin actividad en 180
 	$(PY) -m rappi_ia purge
 
 layers:  ## Capa de datos: medidas, marcas, atributos, grafo, segmentos y motor

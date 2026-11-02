@@ -11,7 +11,7 @@
 | Ver el prototipo final: la Home que aprende, Mochi en la Home y el buscador con Mochi | [prototipo-app/README.md](../prototipo-app/README.md) | 5 min |
 | Mostrarlo a alguien del negocio (guion de unos 12 minutos) | [demo.md](demo.md) | 3 min |
 | Saber qué se decidió y por qué | [decisiones.md](decisiones.md) | 5 min |
-| Ver qué cambió el 25 y 26-10-2026 (las fases de la comparación con la app de Rappi y la revisión), con sus PR | [README principal](../README.md#cambios-del-25-y-26-10-2026) | 3 min |
+| Ver qué cambió desde el 25-10-2026 (las fases de la comparación con la app de Rappi, la revisión y lo que siguió hasta el 01-11), con sus PR | [README principal](../README.md#cambios-desde-el-25-10-2026) | 3 min |
 
 ## 2. Cómo funciona
 
@@ -38,7 +38,7 @@ Las especificaciones con que se construyeron las piezas grandes. Cada una dice a
 | [Motor multivertical y Home dinámica](diseno/2026-10-16-motor-multivertical-design.md) | 16-10-2026 | Afinidad, transiciones, combinaciones, compra cruzada, tendencias y recompra (migración 036), con la tabla de Rappi completa |
 | [Conversar con Mochi](diseno/2026-10-25-mochi-conversacion-design.md) | 25-10-2026 | Seguir la conversación ("más barato", "sin carne", "para 10 personas"): el estado que viaja con la app y cómo se combina con lo nuevo. Desde el 26-10, con chips y sin campo para escribirle |
 
-Las migraciones 022 a 026, 036 y 037 citan en su primera línea la carpeta anterior de estos diseños: los archivos son los mismos de [diseno/](diseno/), y lo de la escalera fina (037) está en [capa-de-datos.md](capa-de-datos.md#la-escalera-fina).
+Las migraciones 022 a 026, 036 y 037 citan en su primera línea rutas `docs/superpowers/...` que ya no existen en el repositorio (las migraciones aplicadas no se editan). Equivalen a esto: `docs/superpowers/specs/<fecha>-….md` es `docs/diseno/<fecha>-….md` (el mismo archivo, en [diseno/](diseno/)), y el plan de la escalera fina que cita la 037 (`docs/superpowers/plans/2026-10-16-etapa-7-escalera-fina.md`) quedó resumido en [capa-de-datos.md](capa-de-datos.md#la-escalera-fina).
 
 ### Diagramas y mapas
 
@@ -61,6 +61,7 @@ Las fuentes JSON de los diagramas están en [diagramas-fuente/](diagramas-fuente
 | Si quieres… | Lee |
 |---|---|
 | Las cifras vigentes, con qué tipo de dato es cada una | [README.md#resultados](../README.md#resultados) |
+| El detalle de cada cifra con su tipo de dato y su fuente, y el catálogo por vertical | [resultados/README.md](resultados/README.md) |
 | La evaluación de la búsqueda vigente (set del 22-10-2026: nDCG@10 y "sin resultado") | [resultados/busqueda-2026-10-22.md](resultados/busqueda-2026-10-22.md) |
 | La corrección de errores de tipeo (24-10-2026) | [resultados/busqueda-2026-10-24.md](resultados/busqueda-2026-10-24.md) |
 | La búsqueda con el juez de tres niveles y los cambios del 25-10-2026 | [resultados/busqueda-2026-10-25.md](resultados/busqueda-2026-10-25.md) |
@@ -79,8 +80,9 @@ Las fuentes JSON de los diagramas están en [diagramas-fuente/](diagramas-fuente
 | Instalar el proyecto, cargar la base y dejarlo actualizándose cada semana | [instalacion.md](instalacion.md) | 10 min de lectura |
 | Levantar el MVP (`make mvp`), probarlo (`make mvp-check`) y qué hacer con "Sin conexión con Mochi" | [instalacion.md §5](instalacion.md#5-el-mvp) | 5 min |
 | Desplegar el MVP en un servidor (Docker Compose, Caddy con TLS y puerta, respaldos con restic) | [despliegue.md](despliegue.md) | 20 min |
+| Publicar la demo desde un Mac, sin servidor: Cloudflare Tunnel y la misma puerta | [deploy/macos/README.md](../deploy/macos/README.md) | 10 min |
 | Consultar la base con SQL | [sql/README.md](sql/README.md) y [consultas.sql](sql/consultas.sql) | 5 min |
-| Probar a Mochi (API) como usuario y dejar cada fallo como test | [pruebas-de-usuario.md](pruebas-de-usuario.md) | 3 min |
+| Probar a Mochi (API) como usuario y dejar cada fallo como test | [probar-agente.md](probar-agente.md) | 3 min |
 | Hacer una prueba con personas en dlab-mvp.com: objetivo, consentimiento, las 6 tareas, el cuestionario, el resumen de cada una (`rappi-ia resumen-prueba`) y la plantilla del reporte | [prueba-usuarios.md](prueba-usuarios.md) | 10 min |
 | Usar el panel de negocio (parte del MVP, para la gerencia y RappiAds: 3 vistas alrededor de 4 preguntas, más Experimentos) | [dashboard-empresa/README.md](../dashboard-empresa/README.md) | 5 min |
 | Contribuir: cómo correr los tests, convenciones y commits | [CONTRIBUTING.md](../CONTRIBUTING.md) y las convenciones del repositorio en [CLAUDE.md](../CLAUDE.md) | 10 min |

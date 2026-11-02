@@ -1,6 +1,6 @@
 # Instalación y operación
 
-Cómo montar el proyecto completo en un Mac (Apple Silicon, macOS con [Homebrew](https://brew.sh)) y dejarlo actualizándose solo cada semana. Para un servidor Linux con Docker, ver [despliegue.md](despliegue.md).
+Cómo montar el proyecto completo en un Mac (Apple Silicon, macOS con [Homebrew](https://brew.sh)) o en Linux (sin Homebrew, con Docker para la base) y dejarlo actualizándose solo cada semana (`make schedule` es de macOS; en Linux, la tarea semanal es un timer de systemd del despliegue). Para un servidor Linux con Docker, ver [despliegue.md](despliegue.md).
 
 Después de clonar (paso 2), **todos los comandos parten de la raíz del repositorio**.
 
