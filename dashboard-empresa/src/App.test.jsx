@@ -42,7 +42,7 @@ describe('App', () => {
     expect(screen.getByText('Usuarios y eventos SIMULADOS:')).toBeTruthy()
   })
 
-  test('the header and the footer say it is an independent prototype, and the footer links the presentation', async () => {
+  test('the header and the footer say it is a dLab prototype with Rappi, not official, and the footer links the presentation', async () => {
     serveFixtures()
     await renderWithData(<App />)
 

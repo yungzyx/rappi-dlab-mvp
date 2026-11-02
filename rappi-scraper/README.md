@@ -98,7 +98,7 @@ make unschedule        # quitarla
 ```
 
 - **Equipo dormido o apagado:** si está dormido a esa hora, corre al despertar; si está apagado, esa semana se salta.
-- **Una sola a la vez:** los comandos que descargan (`discover`, `scrape-stores`, `scrape-restaurants`, `refresh`) y `backup` toman el mismo candado de archivo (`data/scraper.lock`, con `flock`: el sistema lo suelta aunque el proceso muera) y se niegan a empezar si otra descarga lo tiene. Además, un candado (`data/refresh-semanal.pid`) impide que corran dos actualizaciones semanales; se borra aunque la tarea se corte con Ctrl+C o una señal. Si hay otra descarga (`discover`, `scrape-*`, `refresh`) o un `make post-refresh` en curso, la tarea se omite y lo anota.
+- **Una sola a la vez:** los comandos que descargan (`discover`, `scrape-stores`, `scrape-restaurants`, `refresh`) y `backup` toman el mismo candado de archivo (`data/scraper.lock`, con `flock`: el sistema lo suelta aunque el proceso muera) y se niegan a empezar si otra descarga lo tiene. Con `DATABASE_URL` toman también un candado en la base (`pg_try_advisory_lock(72002)`, de sesión, en una conexión propia que dura lo que la descarga; `src/rappi_scraper/lock.py`): dos equipos o contenedores sobre la misma base, cada uno con su archivo, tampoco descargan a la vez. Si la base no responde, la descarga sigue solo con el candado de archivo y lo avisa; si responde y rechaza la conexión (clave, rol o base equivocados), no descarga. Además, un candado (`data/refresh-semanal.pid`) impide que corran dos actualizaciones semanales; se borra aunque la tarea se corte con Ctrl+C o una señal. Si hay otra descarga (`discover`, `scrape-*`, `refresh`) o un `make post-refresh` en curso, la tarea se omite y lo anota.
 - **Ubicación del proyecto:** debe estar fuera de Documentos, Escritorio y Descargas: macOS no deja que launchd lea esas carpetas (detalle en [docs/instalacion.md](../docs/instalacion.md)).
 - **Logs:** cada ejecución deja una línea en `data/logs/ultimo-estado.txt` (`exit=N`, "omitida", "interrumpida", "respaldo fallido", "restaurantes sin actualizar", "restaurantes con la lista de la corrida anterior", "detenida: posible bloqueo" o "detenida: robots.txt no permite una página o no respondió"), que muestra `make schedule-status` junto con el respaldo más nuevo; la salida de launchd queda en `data/logs/launchd.*.log`, y el log detallado y el reporte, como en cualquier corrida.
 - Programarla en **un solo** equipo.
@@ -166,7 +166,7 @@ rappi-scraper/
 │   │   ├── search.py               documentos y búsqueda por vertical
 │   │   ├── backup.py               respaldo con pg_dump, validación y rotación
 │   │   ├── export.py               catálogo por vertical a CSV (`rappi export-csv`)
-│   │   └── migrations/             esquema SQL versionado, un solo historial para toda la base (001–053; las de rappi-ia: 009–013, 016, 020, 022–031, 033–037 y 041–052)
+│   │   └── migrations/             esquema SQL versionado, un solo historial para toda la base (001–054; las de rappi-ia: 009–013, 016, 020, 022–031, 033–037 y 041–054)
 ├── tests/
 │   ├── unit/                     sin red ni base de datos
 │   ├── integration/              contra la base `rappi_test`

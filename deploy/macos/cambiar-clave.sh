@@ -2,6 +2,7 @@
 # Cambia la clave de la puerta de acceso de la demo: la pide dos veces sin mostrarla, guarda solo su hash
 # (caddy hash-password) en tunel.env y reinicia Caddy. La clave no queda en ningún archivo: guárdala en tu gestor de
 # contraseñas. Uso: deploy/macos/cambiar-clave.sh [usuario]   (sin usuario, deja el de tunel.env)
+# shellcheck source=deploy/macos/comun.sh
 . "$(dirname "$0")/comun.sh"
 
 read -r -s -p "Clave nueva (12 caracteres o más): " clave; echo

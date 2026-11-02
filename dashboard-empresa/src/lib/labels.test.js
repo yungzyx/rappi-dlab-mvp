@@ -1,5 +1,6 @@
 import { describe, expect, test } from 'vitest'
-import { demandLabel, describeFallbacks, describeOrigins, plural, verticalLabel } from './labels.js'
+import { demandLabel, describeFallbacks, describeOrigins, ENDPOINTS, plural, verticalLabel } from './labels.js'
+import { PANEL_METRICS } from './metrics.js'
 
 describe('describeFallbacks', () => {
   test('nombra la consulta y el motivo', () => {
@@ -35,6 +36,16 @@ describe('describeFallbacks de las consultas del MVP', () => {
     expect(describeFallbacks([{ name: 'services', reason: 'no responde' }])).toBe(
       'servicios sin catálogo (no responde)',
     )
+  })
+})
+
+describe('cada métrica del panel', () => {
+  test('tiene nombre en español para el aviso y una respuesta guardada para verse sin la API', () => {
+    const saved = Object.keys(import.meta.glob('../fixtures/sin-conexion/*.json')).map((file) =>
+      file.replace(/^.*\/(.+)\.json$/, '$1'),
+    )
+    expect(PANEL_METRICS.filter((name) => !ENDPOINTS[name])).toEqual([])
+    expect(PANEL_METRICS.filter((name) => !saved.includes(name))).toEqual([])
   })
 })
 

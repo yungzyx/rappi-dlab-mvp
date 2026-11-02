@@ -3,7 +3,14 @@
 # El directorio de trabajo (configuración con secretos, archivos servidos, registros y respaldos) vive fuera del repo:
 # TUNEL_DIR, por defecto ~/rappi-tunel. Su archivo `tunel.env` sale de deploy/macos/env.example.
 set -euo pipefail
-eval "$(/opt/homebrew/bin/brew shellenv)"
+# Homebrew (caddy, cloudflared, Postgres): launchd no carga el PATH del usuario. Apple Silicon o Intel.
+brew_bin=$(command -v brew || true)
+for candidate in /opt/homebrew/bin/brew /usr/local/bin/brew; do
+  [ -n "$brew_bin" ] || { [ -x "$candidate" ] && brew_bin=$candidate; }
+done
+[ -n "$brew_bin" ] || { echo "No encuentro Homebrew (brew) en el PATH, /opt/homebrew ni /usr/local" >&2; exit 1; }
+eval "$("$brew_bin" shellenv)"
+unset brew_bin candidate
 
 TUNEL_DIR=${TUNEL_DIR:-$HOME/rappi-tunel}
 [ -f "$TUNEL_DIR/tunel.env" ] || { echo "Falta $TUNEL_DIR/tunel.env (ver deploy/macos/env.example)" >&2; exit 1; }

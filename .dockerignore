@@ -38,3 +38,10 @@ rappi-ia/tests
 # El panel en un solo HTML: la foto de la API y su armado son locales (nunca entran a una imagen)
 dashboard-empresa/snapshot
 **/dist-html
+
+# La demo sin conexión de la app ("Prototipo MVP.html"): su muestra del catálogo, las fotos, su caché y su build son
+# locales; el build de producción (dist/) no los usa (solo entran con `vite build --mode demo`)
+prototipo-app/src/api/offline/snapshot.json
+prototipo-app/src/api/offline/photos.json
+prototipo-app/.demo-cache/
+prototipo-app/dist-demo/

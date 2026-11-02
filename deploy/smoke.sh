@@ -9,6 +9,8 @@
 # entrada estándar, nunca en la línea de comandos). El usuario sale de BASIC_AUTH_USER o del archivo de entorno.
 # Corre desde cualquier carpeta, en el servidor (usa `docker compose`). Con un host localhost acepta la CA interna de
 # Caddy (curl -k). COMPOSE cambia el comando de compose (por defecto, el de deploy/ con deploy/.env).
+# Con WITH_PANEL=1 (el panel construido y API_ENABLE_ANALYTICS=1) revisa además que /panel/, sus archivos y
+# /api/analytics/kpis respondan 200 con credenciales.
 set -uo pipefail
 
 url="${1:?Uso: deploy/smoke.sh https://el-dominio}"
@@ -96,6 +98,28 @@ if grep -qE '<(script|link)[^>]+(src|href)="(https?:)?//' <<<"$index"; then
   fail "index.html carga scripts u hojas de estilo de otro origen (la CSP los bloquea)"
 else
   pass "scripts y estilos del mismo origen"
+fi
+
+if [ "${WITH_PANEL:-0}" = 1 ]; then
+  echo "Panel"
+  panel=$(authed -w '\n%{http_code}' "$url/panel/")
+  code="${panel##*$'\n'}"
+  panel_index="${panel%$'\n'*}"
+  if [ "$code" = 200 ]; then pass "/panel/: 200"; else fail "/panel/ dio $code (se esperaba 200)"; fi
+  panel_asset=$(grep -oE '/panel/assets/[^"]+\.(js|css)' <<<"$panel_index" | head -n 1)
+  if [ -z "$panel_asset" ]; then
+    fail "el index.html del panel no carga ningún archivo de /panel/assets/"
+  else
+    code=$(authed -o /dev/null -w '%{http_code}' "$url$panel_asset")
+    if [ "$code" = 200 ]; then pass "$panel_asset: 200"; else fail "$panel_asset dio $code (se esperaba 200)"; fi
+  fi
+  kpis=$(authed -w '\n%{http_code}' "$url/api/analytics/kpis")
+  code="${kpis##*$'\n'}"
+  if [ "$code" = 200 ] && grep -q '"data"' <<<"${kpis%$'\n'*}"; then
+    pass "/api/analytics/kpis: 200"
+  else
+    fail "/api/analytics/kpis dio $code (se esperaba 200; ¿API_ENABLE_ANALYTICS=1?)"
+  fi
 fi
 
 echo "Base"

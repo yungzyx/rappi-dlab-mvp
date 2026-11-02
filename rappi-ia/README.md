@@ -275,5 +275,8 @@ rappi-ia/
 | `049_autonomia_agente.sql` | `agent_autonomy`: el permiso de "Pedir por mí", con sus tiendas y su tope (tabla de personas) |
 | `050_flujos_pedido.sql` | El estado del pedido (`confirmado` o `cancelado`), la franja y el tipo de entrega, la preferencia de sustitución de cada línea y el evento `order_cancelled` |
 | `051_capa_cancelados.sql` | Un pedido cancelado deja de contar en `capa.v_embudo_sesion`; `equivalente` de `v_eventos_amplitude` sale del prefijo `MVP_`; la población de `agent_preferences` se revisa con un trigger |
+| `052_eventos_mochi.sql` | Los eventos `vertical_reorder_shown` (Mochi movió los accesos de la Home y explicó por qué) y `agent_visibility` (ocultar a Mochi o traerlo de vuelta, `payload.visible`) |
+| `053_porque_abierto.sql` | El evento `offer_why_open` (abrir el "¿Por qué?" de una oferta de Mochi, con los tipos de su `basis`); la mostrada (`suggestion_shown`) suma los mismos tipos en `payload.basis` |
+| `054_motivo_cancelacion.sql` | `app_orders.cancel_reason` con un CHECK: solo los códigos de `CANCEL_REASONS` (`events/store.py`) o nula |
 
 `014`–`015` (limpieza del HTML de los documentos de búsqueda), `017`–`019` y `021` (formatos de tienda, Turbo, vigencia y platos por local) y `032` (`latest_prices` y `latest_menu_prices`, el último precio mantenido por triggers, y la vista `v_latest_offers`, la definición única de oferta vigente, que esta capa también lee) `038`–`039` (`store_last_snapshot`, el último snapshot de cada tienda con su formato y la última corrida del formato, que es `v_store_format_runs`) y `040` (las otras secciones del menú donde aparece un plato, `extra_section_ids`) son del scraper.

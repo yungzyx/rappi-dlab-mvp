@@ -4,6 +4,7 @@
 #                 `tunnel route dns`; la credencial queda en ~/.cloudflared): URL fija, la de PUBLIC_URL.
 #   TUNNEL_TOKEN  lo mismo, con el token de un túnel creado en el panel de Cloudflare.
 #   ninguno       un túnel rápido sin cuenta: la URL ….trycloudflare.com cambia en cada inicio y el vigilante la anota.
+# shellcheck source=deploy/macos/comun.sh
 . "$(dirname "$0")/comun.sh"
 if [ -n "${TUNNEL_TOKEN:-}" ]; then
   exec cloudflared tunnel --no-autoupdate --metrics "$TUNEL_METRICAS" run --token "$TUNNEL_TOKEN"

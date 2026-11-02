@@ -2,6 +2,7 @@
 # Pone la demo pública al día con origin/main sin cambiar la URL: trae los cambios, instala dependencias si cambiaron,
 # respalda la base si hay migraciones pendientes y migra, construye la app y el panel, cambia los archivos servidos de
 # una vez y reinicia solo la API (el túnel sigue igual). Uso: deploy/macos/actualizar.sh [--forzar]
+# shellcheck source=deploy/macos/comun.sh
 . "$(dirname "$0")/comun.sh"
 cd "$REPO_DIR" || exit 1
 [ -z "$(git status --porcelain --untracked-files=no)" ] || { log "La copia $REPO_DIR tiene cambios sin commit: no actualizo"; exit 1; }
@@ -38,4 +39,9 @@ rm -rf "$SRV_DIR.viejo"
 
 reiniciar api
 for _ in $(seq 1 60); do api_sana && break; sleep 3; done
-api_sana && avisar "Demo actualizada a $(git log -1 --format='%h')" || { avisar "La API no volvió después de actualizar"; exit 1; }
+if api_sana; then
+  avisar "Demo actualizada a $(git log -1 --format='%h')"
+else
+  avisar "La API no volvió después de actualizar"
+  exit 1
+fi

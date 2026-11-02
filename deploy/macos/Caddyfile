@@ -18,6 +18,14 @@
 	}
 }
 
+# La CSP estricta, para lo que diga el matcher del argumento: nada en línea, nada de otro origen salvo las fotos.
+(csp) {
+	header {args[0]} {
+		defer
+		Content-Security-Policy "default-src 'self'; img-src 'self' https://images.rappi.cl data:; connect-src 'self'; frame-ancestors 'none'"
+	}
+}
+
 (archivos) {
 	handle /assets/* {
 		@existe file
@@ -47,10 +55,7 @@ http://:{$CADDY_PORT} {
 	import cabeceras
 	@mapa path /panel/presentacion/mapa-multivertical.html
 	@no_mapa not path /panel/presentacion/mapa-multivertical.html
-	header @no_mapa {
-		defer
-		Content-Security-Policy "default-src 'self'; img-src 'self' https://images.rappi.cl data:; connect-src 'self'; frame-ancestors 'none'"
-	}
+	import csp @no_mapa
 	header @mapa {
 		defer
 		Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self'; frame-ancestors 'none'"
@@ -77,8 +82,10 @@ http://:{$CADDY_PORT} {
 		import archivos
 	}
 
+	# Errores (el 401 de la puerta, un 404): con las cabeceras de seguridad, la CSP y sin guardarse en ningún caché.
 	handle_errors {
 		import cabeceras
+		import csp *
 		header Cache-Control "no-store"
 		respond "{err.status_code} {err.status_text}"
 	}

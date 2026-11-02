@@ -3,6 +3,7 @@ fuera de la recompra, el motor y los segmentos; la calificación de un pedido po
 entrega y la preferencia de sustitución en `POST /orders`. Sobre el catálogo de prueba (`seed_demo`)."""
 
 import json
+import re
 from contextlib import contextmanager
 from datetime import UTC, datetime, time, timedelta
 
@@ -299,6 +300,27 @@ def test_an_order_by_mochi_is_never_scheduled(client, db):
 
     assert reply.status_code == 400 and "no se programa" in reply.json()["detail"]
     assert db.execute("SELECT count(*) FROM app_orders").fetchone()[0] == 0
+
+
+def test_the_database_accepts_exactly_the_cancel_reasons_of_the_api(db):
+    """El CHECK de `app_orders.cancel_reason` (migración 054) tiene los mismos códigos que CANCEL_REASONS: un motivo
+    nuevo en la API sin su migración falla aquí."""
+    from psycopg import errors
+
+    from rappi_ia.events.store import CANCEL_REASONS
+
+    definition = db.execute(
+        "SELECT pg_get_constraintdef(oid) FROM pg_constraint WHERE conname = 'app_orders_cancel_reason_check'"
+    ).fetchone()[0]
+    assert set(re.findall(r"'(\w+)'::text", definition)) == CANCEL_REASONS
+
+    db.execute("INSERT INTO app_users (user_id, source) VALUES ('proto-motivo', 'prototype')")
+    with pytest.raises(errors.CheckViolation), db.transaction():
+        db.execute(
+            "INSERT INTO app_orders (order_id, user_id, ts, vertical, total, source, cancel_reason)"
+            " VALUES ('o-motivo', 'proto-motivo', now(), 'turbo', 1000, 'prototype', 'porque_si')"
+        )
+    db.rollback()
 
 
 def test_a_cancelled_order_leaves_its_cart_without_order_in_abandonment(client, db):

@@ -17,6 +17,7 @@
     "screenshots": "node scripts/screenshots.mjs",
     "panel:snapshot": "node scripts/panel-snapshot.mjs",
     "panel:html": "node scripts/panel-html.mjs",
+    "panel:snapshot:fixtures": "node scripts/fixtures-snapshot.mjs",
     "format:check": "prettier --check src scripts"
   },
   "dependencies": {

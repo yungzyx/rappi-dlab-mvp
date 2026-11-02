@@ -370,12 +370,12 @@ def _setup_logging(command: str) -> None:
 def main(argv: list[str] | None = None) -> None:
     args = build_parser().parse_args(argv)
     try:
-        if args.command in LONG_COMMANDS:  # una a la vez (sin el candado de archivo, ni log)
+        if args.command in LONG_COMMANDS:  # una a la vez: el candado de archivo, su log y el candado de la base
             with file_lock():
                 _setup_logging(args.command)  # antes del candado de la base: su aviso queda en el log
                 with database_lock(), keep_awake(), connect() as conn:
                     COMMANDS[args.command](conn, args)
-        else:
+        else:  # los demás, sin candados ni archivo de log
             _setup_logging(args.command)
             _run_simple(args)
     except (DownloadInProgress, PendingMigrations) as exc:

@@ -15,23 +15,26 @@ GRANT SELECT ON ALL TABLES IN SCHEMA public, capa TO {api_role};
 -- Escribir: solo los datos de las personas del prototipo (sesión, eventos y sus elementos vistos, sesiones de la app,
 -- variantes de los experimentos, pedidos, preferencias y permiso para pedir con el agente, segmentos, afinidad por
 -- vertical y recompra) y las definiciones de segmentos, que el recálculo después de un pedido vuelve a sembrar si
--- cambiaron las reglas.
-GRANT INSERT, UPDATE, DELETE ON
-    app_users, app_events, app_event_items, app_sessions, experiment_assignments, app_orders, app_order_lines,
-    agent_preferences, agent_autonomy, user_segments, user_segment_history, segment_defs, user_vertical_affinity,
-    replenishment
-    TO {api_role};
-
--- Las secuencias de esas tablas (p. ej. app_events.event_id), para poder insertar.
+-- cambiaron las reglas. La lista está una sola vez: de ella salen el permiso de escribir y el de usar las secuencias
+-- de esas tablas (p. ej. app_events.event_id), para poder insertar. Al sumar una tabla que escribe la API, va aquí
+-- (el test de deploy-migrate lo revisa contra PERSON_TABLES de rappi_ia/delivery.py).
 DO $$
-DECLARE seq regclass;
+DECLARE
+    api_tables regclass[] := ARRAY[
+        'app_users', 'app_events', 'app_event_items', 'app_sessions', 'experiment_assignments', 'app_orders',
+        'app_order_lines', 'agent_preferences', 'agent_autonomy', 'user_segments', 'user_segment_history',
+        'segment_defs', 'user_vertical_affinity', 'replenishment'
+    ]::regclass[];
+    tbl regclass;
+    seq regclass;
 BEGIN
+    FOREACH tbl IN ARRAY api_tables LOOP
+        EXECUTE format('GRANT INSERT, UPDATE, DELETE ON %s TO {api_role}', tbl);
+    END LOOP;
     FOR seq IN
         SELECT d.objid::regclass FROM pg_depend d JOIN pg_class s ON s.oid = d.objid AND s.relkind = 'S'
         WHERE d.classid = 'pg_class'::regclass AND d.refclassid = 'pg_class'::regclass
-          AND d.refobjid = ANY (ARRAY['app_users', 'app_events', 'app_orders', 'app_order_lines',
-                                      'user_segments', 'user_segment_history', 'segment_defs',
-                                      'user_vertical_affinity', 'replenishment']::regclass[])
+          AND d.refobjid = ANY (api_tables)
     LOOP
         EXECUTE format('GRANT USAGE ON SEQUENCE %s TO {api_role}', seq);
     END LOOP;
