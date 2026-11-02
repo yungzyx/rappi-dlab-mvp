@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "rappi-scraper"
-version = "1.0.0"
+version = "1.1.0"
 description = "Contenido de Rappi Chile por vertical: scraping de páginas públicas → Postgres + pgvector"
 readme = "README.md"
 requires-python = ">=3.13"  # la del CI, Docker y los .venv
