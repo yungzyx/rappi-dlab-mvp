@@ -6,6 +6,7 @@ import { CartProvider, formatPrice, useCart } from '../../state/CartContext'
 import { DemoProvider } from '../../state/DemoContext'
 import { stubApi } from '../../test/api'
 import { AGENT_DRAG_TYPE } from '../../assistant/agentAsk'
+import { OPEN_CART_EVENT } from '../../state/cartSheet'
 import { AGENT_CART_EVENT, resetLive } from '../../state/liveMemory'
 import { QUIET_KEY, resetQuiet } from '../../state/agentQuiet'
 import { HIDDEN_KEY } from '../../state/agentHidden'
@@ -163,6 +164,18 @@ describe('Mochi flotante', () => {
     act(() => probe.cart.add(BEER))
     fireEvent.click(agentButton())
     expect(screen.getByRole('button', { name: `Revisar mi carrito · ${formatPrice(probe.cart.total)}` })).toBeTruthy()
+  })
+
+  test('"Revisar mi carrito" pide abrir la hoja del carro y cierra el menú', async () => {
+    const opened = vi.fn()
+    window.addEventListener(OPEN_CART_EVENT, opened)
+    mountTree()
+    act(() => probe.cart.add(BEER))
+    fireEvent.click(agentButton())
+    fireEvent.click(screen.getByRole('button', { name: /^Revisar mi carrito/ }))
+    window.removeEventListener(OPEN_CART_EVENT, opened)
+    expect(opened).toHaveBeenCalledTimes(1)
+    expect(screen.queryByRole('button', { name: /^Revisar mi carrito/ })).toBeNull()
   })
 
   test('"Mover a la izquierda" lo cambia de lado y lo recuerda', async () => {

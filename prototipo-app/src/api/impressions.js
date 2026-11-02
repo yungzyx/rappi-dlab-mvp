@@ -127,16 +127,24 @@ export function setImpressionSink(track) {
   sink = track
 }
 
+const refs = new Map() // clave → el ref de ese elemento
+
 /**
  * Un ref de React para el nodo de un elemento de lista: cuenta su impresión cuando se ve. `item` trae su lugar
  * (`placement`); `fields` dice qué es (`productItem`, `storeItem`, `verticalItem`). Sin lugar o sin id no observa
- * nada (devuelve undefined: el nodo queda sin ref).
+ * nada (devuelve undefined: el nodo queda sin ref). El mismo elemento en el mismo lugar recibe siempre el mismo ref: si
+ * no, cada render (un cambio del carro) lo soltaba y lo volvía a observar.
  */
 export function impressionRef(item, fields) {
   const placement = item?.placement
   const described = placement ? describe(placement, fields) : null
   if (!described) return undefined
   const key = itemKey(placement, described)
+  if (!refs.has(key)) refs.set(key, watchRef(key, placement, described))
+  return refs.get(key)
+}
+
+function watchRef(key, placement, described) {
   return (node) => {
     if (!node || reported.has(key) || !ensureObserver()) return undefined
     watched.set(node, { key, placement, item: described })
@@ -155,6 +163,7 @@ export function resetImpressions() {
   observer?.disconnect?.()
   observer = null
   watched.clear()
+  refs.clear()
   reported.clear()
   highest.clear()
   pending = new Map()

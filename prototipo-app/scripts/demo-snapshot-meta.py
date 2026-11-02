@@ -2,7 +2,8 @@
 sus guardias de ofertas y las palabras con que se los nombra en una consulta (con las de las ocasiones, sus conceptos y
 las de relleno), los servicios sin catálogo, la tabla de combinaciones de Rappi (motor/combos.toml), los
 nombres visibles de las verticales, los perfiles de gusto (offers/perfiles.toml) con los conceptos que los activan
-(concepts/segments.toml) y las reglas de lo destacado (offers/destacado.toml). Lo corre `scripts/demo-snapshot.mjs`
+(concepts/segments.toml), las reglas de lo destacado (offers/destacado.toml) y las palabras con que las guardias de
+ofertas reconocen alcohol o bebé en un nombre (offers/guards.py). Lo corre `scripts/demo-snapshot.mjs`
 con el Python de rappi-ia; escribe JSON en la salida estándar. No toca la base."""
 
 import json
@@ -14,7 +15,13 @@ from rappi_ia.concepts.taxonomy import load_taxonomy
 from rappi_ia.layers.segments import load_segment_rules
 from rappi_ia.motor.combos import FINE_ORDER, OWN_SIGNALS_ONLY, SERVICES, load_combos
 from rappi_ia.offers.featured import load_rules
-from rappi_ia.offers.guards import is_offerable
+from rappi_ia.offers.guards import (
+    _MENU_FOOD_SENSES,
+    ALCOHOL_NAME_WORDS,
+    BABY_NAME_WORDS,
+    MENU_ALCOHOL_NAME_WORDS,
+    is_offerable,
+)
 from rappi_ia.offers.profiles import load_profiles
 from rappi_ia.text import FILLER_WORDS, tokens
 
@@ -98,6 +105,15 @@ print(
                 "min_main_price": featured.min_main_price,
                 "not_main": sorted(featured.not_main),
                 "side_sections": [list(start) for start in featured.side_sections],
+            },
+            # Las palabras de offers/guards.py (src/api/offline/guards.js; sin ellas, su copia a mano).
+            "guards": {
+                "catalog_alcohol": sorted(ALCOHOL_NAME_WORDS),
+                "menu_alcohol": sorted(MENU_ALCOHOL_NAME_WORDS),
+                "menu_food_senses": {
+                    word: [list(phrases), list(concepts)] for word, (phrases, concepts) in _MENU_FOOD_SENSES.items()
+                },
+                "baby": sorted(BABY_NAME_WORDS),
             },
             "occasion_keywords": [phrase(k) for o in taxonomy.occasions.values() for k in o.keywords],
             # Para seguir una conversación sin conexión (src/api/offline/conversation.js): sus conceptos y la porción.

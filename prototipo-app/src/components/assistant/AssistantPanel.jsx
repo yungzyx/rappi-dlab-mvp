@@ -6,7 +6,7 @@ import { storeOfProduct, storeTerms } from '../../api/catalog'
 import { ask as askAgent, profile as remoteProfile, recommendations, sendOrder, toMessage } from '../../api/client'
 import { offer, plans, profileLadder, tasteProfiles } from '../../api/agent'
 import { cartEventFields, trackOrder } from '../../api/orders'
-import { firstShowing, noteShown } from '../../api/suggestions'
+import { noteShown } from '../../api/suggestions'
 import { userId } from '../../api/user'
 import { askAbout } from '../../assistant/agentAsk'
 import { looksLikeQuestion } from '../../assistant/question'
@@ -99,6 +99,24 @@ const withoutEmoji = (label) => label.replace(/^\S+\s/, '')
 const CHIPS = ['🍔 ¿Qué almuerzo hoy?', '🍻 Arma un carrete', '🔥 Ofertas de hoy', '🍫 Algo dulce', '🎁 Un regalo']
 
 let nextId = 1
+
+// Lo que se pide al abrir el buscador (lo aprendido, "Para ti" y "Descubre", el perfil de gusto con su escalera), una
+// vez por apertura de la misma clave durante la pestaña (`openKey`: la persona, la generación de su perfil y sus
+// pedidos): reabrirlo no lo vuelve a pedir. "Olvidar", un pedido (o una cancelación) o cambiar de persona en la demo
+// cambian la clave. Lo que falla no se guarda: la próxima apertura lo vuelve a pedir.
+let opened = { key: null, requests: {} }
+function onOpen(key, name, load) {
+  if (opened.key !== key) opened = { key, requests: {} }
+  const { requests } = opened
+  if (!requests[name]) {
+    const request = load()
+    requests[name] = request
+    request.catch(() => {
+      if (requests[name] === request) delete requests[name]
+    })
+  }
+  return requests[name]
+}
 
 /** Los atajos de lo que Mochi sabe hacer ("Repite lo de siempre", "Arma un kit"…), como chips. */
 function CapabilityChips({ capabilities, disabled, onPick }) {
@@ -259,7 +277,7 @@ export default function AssistantPanel({ push, vertical, depth = 1 }) {
 
   /**
    * Registra la sugerencia cruzada mostrada (para el panel) y no la repite en la sesión. Como las demás, una vez por
-   * pestaña (firstShowing): AddButton registra la mostrada que falte al aceptarla y no debe contarse dos veces.
+   * pestaña (noteShown): AddButton registra la mostrada que falte al aceptarla y no debe contarse dos veces.
    */
   const noteSuggestion = (message) => {
     // Un servicio sin catálogo (RappiTravel, RappiFavor) ofrecido: cada vez que el agente lo ofrece, con su respuesta.
@@ -268,12 +286,14 @@ export default function AssistantPanel({ push, vertical, depth = 1 }) {
     if (!message.suggestion) return message
     const { concept, vertical, origin = 'agent-ask' } = message.suggestion
     noteShownTopic(concept)
-    if (firstShowing({ concept, vertical, origin, generation: profile.resets }))
-      events.track('suggestion_shown', {
-        concept_id: concept,
-        vertical,
-        ...envelope({ surface: 'agent', origin, requestId: message.requestId }),
-      })
+    noteShown(events.track, null, {
+      origin,
+      concept,
+      vertical,
+      generation: profile.resets,
+      surface: 'agent',
+      requestId: message.requestId,
+    })
     return message
   }
 
@@ -628,6 +648,9 @@ export default function AssistantPanel({ push, vertical, depth = 1 }) {
     ask((signal) => answer(clean, askVertical, signal))
   }
 
+  // Mientras askTyped suelta el campo: ese blur no termina una búsqueda (el onBlur todavía ve el texto).
+  const askingTyped = useRef(false)
+
   /** Lo escrito en el buscador, como pedido a Mochi: el campo se vacía y vuelve su tarjeta, arriba, con la respuesta. */
   const askTyped = () => {
     const text = search.query.trim()
@@ -635,21 +658,19 @@ export default function AssistantPanel({ push, vertical, depth = 1 }) {
     search.setQuery('')
     send(text, undefined, { typed: true })
     bodyRef.current?.scrollTo({ top: 0 })
+    askingTyped.current = true
     inputRef.current?.blur() // en el celular el teclado tapaba la respuesta
+    askingTyped.current = false
   }
 
   /**
    * El perfil de gusto principal de la persona (`GET /profile/{id}/gustos`) con su escalera (el momento `perfil`), o
-   * null si no tiene, si no hay escalera o si la API no contesta: entonces el panel queda como siempre.
+   * null si no tiene o no hay escalera: entonces el panel queda como siempre (también si la API no contesta).
    */
   const loadTaste = async () => {
-    try {
-      const [main] = await tasteProfiles()
-      const ladder = main ? await profileLadder(main.id) : null
-      return ladder?.steps.length ? { profile: main, ladder } : null
-    } catch {
-      return null
-    }
+    const [main] = await tasteProfiles()
+    const ladder = main ? await profileLadder(main.id) : null
+    return ladder?.steps.length ? { profile: main, ladder } : null
   }
 
   /**
@@ -682,16 +703,19 @@ export default function AssistantPanel({ push, vertical, depth = 1 }) {
     // Si mientras tanto se tocó "Olvidar", la respuesta es de antes de borrar: se ignora.
     const generation = profileGeneration.current
     const fresh = () => generation === profileGeneration.current
-    const learned = remoteProfile(userId())
+    const person = userId()
+    const ordersKey = `${orders?.orders.length ?? 0}:${orders?.orders.filter((o) => o.cancelled).length ?? 0}`
+    const openKey = `${person}|${profile.resets}|${generation}|${ordersKey}`
+    const learned = onOpen(openKey, 'profile', () => remoteProfile(person))
       .then((data) => fresh() && setLearnedRemote(data.interests.slice(0, 3)))
       .catch(() => fresh() && setLearnedRemote(null))
     // Una sola petición sirve a "Para ti" y a "Descubre con el agente".
-    const rows = recommendations(userId())
-      .then((data) => data.rows.filter((row) => row.products.length > 0))
-      .catch(() => [])
+    const rows = onOpen(openKey, 'rows', () =>
+      recommendations(person).then((data) => data.rows.filter((row) => row.products.length > 0)),
+    ).catch(() => [])
     rows.then((list) => fresh() && setDiscoverRows(list.slice(0, DISCOVER_ROWS)))
     // Solo si sigue siendo la misma persona ("Olvidar" mientras llegaba): ni se muestra ni se cuenta.
-    const taste = loadTaste()
+    const taste = onOpen(openKey, 'taste', loadTaste).catch(() => null)
     taste.then((found) => fresh() && showTaste(found))
 
     if (messages.length === 0)
@@ -915,8 +939,12 @@ export default function AssistantPanel({ push, vertical, depth = 1 }) {
               else search.logSearch(search.query)
             }}
             aria-describedby={search.hasQuery && looksLikeQuestion(search.query) ? askHintId : undefined}
-            // Pasar con Tab a "Pídele a Mochi" no es terminar una búsqueda
-            onBlur={(e) => e.relatedTarget?.classList.contains('agent-ask-row') || search.logSearch(search.query)}
+            // Pasar con Tab a "Pídele a Mochi" o pedírsela con Enter no es terminar una búsqueda
+            onBlur={(e) =>
+              askingTyped.current ||
+              e.relatedTarget?.classList.contains('agent-ask-row') ||
+              search.logSearch(search.query)
+            }
           />
           {search.hasQuery && (
             <button type="button" className="search-clear" aria-label="Borrar" onClick={() => search.setQuery('')}>

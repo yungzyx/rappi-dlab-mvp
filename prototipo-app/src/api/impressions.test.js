@@ -93,6 +93,19 @@ describe('impresiones de listas', () => {
     expect(track.mock.calls[1][1]).toMatchObject({ position: 2, items: [{ position: 1 }] })
   })
 
+  it('el mismo elemento en el mismo lugar recibe el mismo ref en cada render (no se suelta ni se vuelve a observar)', () => {
+    const [item] = placeList(products(1), { surface: 'store', origin: 'pasillo' })
+    const ref = impressionRef(item, productItem(item))
+    expect(impressionRef({ ...item }, productItem(item))).toBe(ref) // otro render, la misma fila
+    const [moved] = placeList(products(1), { surface: 'store', origin: 'pasillo', start: 3 })
+    expect(impressionRef(moved, productItem(moved))).not.toBe(ref) // otro lugar, otro ref
+    const node = document.createElement('div')
+    ref(node)
+    show(node)
+    vi.advanceTimersByTime(FLUSH_MS)
+    expect(track).toHaveBeenCalledTimes(1)
+  })
+
   it('cuenta solo lo que se ve al menos a la mitad, una vez por pestaña', () => {
     const [node] = mount(placeList(products(1), { surface: 'turbo', origin: 'pasillo' }))
     show(node, 0.3)

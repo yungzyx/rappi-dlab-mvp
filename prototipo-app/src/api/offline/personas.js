@@ -93,13 +93,13 @@ function sectionOf(snapshot, dish) {
  * la persona no pide un vaso de cotillón ni un agregado de $1.300.
  */
 function sampleOf(snapshot, vertical, used, prefer = []) {
-  const { concepts, featured } = snapshot.meta
+  const { concepts, featured, guards } = snapshot.meta
   const ofVertical = snapshot.pool.filter((p) => p.vertical === vertical && p.concept && p.store_id)
   const fresh = ofVertical.filter((p) => !used.has(p.concept))
   const rank = (p) =>
     (featuredProduct(p, featured, p.entity_type === 'menu_item' ? sectionOf(snapshot, p) : null) ? 0 : 2) +
     (FOOD_VERTICALS.includes(vertical) && !FOOD_GROUPS.includes(concepts[p.concept]?.group) ? 1 : 0)
-  const good = fresh.filter((p) => offerableProduct(p, concepts)).sort((a, b) => rank(a) - rank(b))
+  const good = fresh.filter((p) => offerableProduct(p, concepts, guards)).sort((a, b) => rank(a) - rank(b))
   const shown = good.filter((p) => inSample(snapshot, p))
   const found =
     prefer.map((c) => shown.find((p) => p.concept === c)).find(Boolean) ??

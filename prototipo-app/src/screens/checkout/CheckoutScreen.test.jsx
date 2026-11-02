@@ -166,6 +166,13 @@ describe('inicio de pago', () => {
     inFlight.resolve()
     await vi.waitFor(() => expect(api.sendOrder).toHaveBeenCalledTimes(2))
   })
+
+  test('el pedido sale aunque /health no conteste a tiempo (red lenta)', async () => {
+    api.health.mockResolvedValue(null)
+    renderCheckout()
+    await pay()
+    await vi.waitFor(() => expect(api.sendOrder).toHaveBeenCalledTimes(2))
+  })
 })
 
 describe('un pedido por tienda', () => {

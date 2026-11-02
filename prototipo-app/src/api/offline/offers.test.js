@@ -91,8 +91,9 @@ describe('guardias (offers/guards.py)', () => {
     expect(offerableProduct({ ...coffee, name: 'Soju uva verde' }, CONCEPTS)).toBe(false)
     expect(offerableProduct({ ...coffee, name: 'Galletas de Vino' }, CONCEPTS)).toBe(false)
     // Los cócteles que un menú nombra sin decir alcohol (#130), aunque su concepto sea otro.
-    expect(offerableProduct({ ...coffee, name: 'Tom Collins' }, CONCEPTS)).toBe(false)
-    expect(offerableProduct({ ...coffee, name: 'Clavo oxidado de la casa' }, CONCEPTS)).toBe(false)
+    const dish = { ...coffee, entity_type: 'menu_item', vertical: 'restaurantes', concept: 'galletas' }
+    expect(offerableProduct({ ...dish, name: 'Tom Collins' }, CONCEPTS)).toBe(false)
+    expect(offerableProduct({ ...dish, name: 'Clavo oxidado de la casa' }, CONCEPTS)).toBe(false)
     expect(offerableProduct({ ...coffee, name: 'Juguete para Bebés', concept: 'juguetes' }, CONCEPTS)).toBe(false)
     // Palabra entera: "ron" no está en "ronda", ni "gin" en "ginger".
     expect(offerableProduct({ ...coffee, name: 'Galletas Ronda ginger' }, CONCEPTS)).toBe(true)
@@ -138,6 +139,24 @@ describe('vertical_por_probar', () => {
       { kind: 'combinacion', id: 'restaurantes→restaurantes+turbo', source: 'rappi' },
       { kind: 'lo_mas_pedido', id: 'turbo', source: 'poblacion:synthetic' },
     ])
+  })
+
+  test('con pedidos, si la muestra no grabó el paso, la de siempre (como engine.py: _usual_to_try)', () => {
+    const usualOnly = snapshotWith({ toTry: { usual: snapshotWith().toTry.usual } })
+    const made = offer('vertical_por_probar', state({ orders: [order('restaurantes')] }), {}, usualOnly)
+    expect(made).toMatchObject({
+      vertical: 'supermercado',
+      text: 'Aún no pides en el súper: mira estas ofertas.',
+      reason: { basis: [{ kind: 'sin_pedidos', id: 'supermercado', source: 'contexto' }] },
+    })
+    // El paso grabado sin nada que pase las guardias: también la de siempre.
+    const blocked = snapshotWith({ toTry: { ...snapshotWith().toTry, turbo: recordedStep('turbo', [beer]) } })
+    expect(offer('vertical_por_probar', state({ orders: [order('restaurantes')] }), {}, blocked).vertical).toBe(
+      'supermercado',
+    )
+    // Si ya pide en la de siempre, no hay otra grabada: nada (el backend buscaría otra vertical).
+    const both = state({ orders: [order('restaurantes'), order('supermercado')] })
+    expect(offer('vertical_por_probar', both, {}, usualOnly)).toBeNull()
   })
 
   test('con todo el catálogo: "¿Conoces RappiFavor?", sin productos y con una acción que lo abre', () => {
