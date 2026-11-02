@@ -96,7 +96,7 @@ class TemplateComposer:
                 "piden al comprar 💊."
             )
         # El pedido y el resumen dicen lo que la demo hace hoy: con "Pedir por mí" Mochi sí pide (con sus límites) y el
-        # seguimiento cancela antes de que salga. Son los mismos de la app (AssistantPanel.jsx) y de la copia sin
+        # seguimiento cancela antes de que salga. Son los mismos de la app (useAgentAnswers.js) y de la copia sin
         # conexión (api/offline/search.js: SUMMARY_TEXT y ORDER_TEXT).
         if d.kind == "pedido":
             return (

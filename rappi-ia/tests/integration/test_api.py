@@ -563,7 +563,7 @@ def test_demo_ask_suggestion_order_reaches_the_panel(client):
     assert sug["vertical"] == "supermercado" and sug["prototype_vertical"] == "grocery"
     product = sug["products"][0]
     concept, vertical = sug["concept"], sug["prototype_vertical"]
-    # Lo que manda el prototipo (AssistantPanel.noteSuggestion, AddButton, checkout).
+    # Lo que manda el prototipo (useAgentAnswers.noteSuggestion, AddButton, checkout).
     shown = {"concept_id": concept, "vertical": vertical, "payload": {"origen": "chat"}}
     sent = [
         {"type": "suggestion_shown", "session_id": "s1", **shown},

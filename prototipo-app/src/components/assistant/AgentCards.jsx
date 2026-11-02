@@ -65,7 +65,7 @@ function OrderSummary({ items }) {
 
 /**
  * "Pide lo de siempre en…" (api/autonomy.js): lo de siempre en esa tienda con el precio de hoy, calculado como en el
- * checkout pero sin propina (se elige al recibirlo). Con "Pedir por mí" (`status` de AssistantPanel): ya enviado con la
+ * checkout pero sin propina (se elige al recibirlo). Con "Pedir por mí" (`status` de useAutoOrders): ya enviado con la
  * ventana de "Deshacer pedido" (`waiting`; el pedido sale al cerrarse), enviándose, hecho o deshecho. Sin permiso, o si
  * algo no cumple sus límites, se revisa antes (`review`, con el motivo) y lleva al checkout de siempre. `onShown` abre la
  * ventana cuando la tarjeta ya se ve (`revealed`: terminó de escribirse el texto de arriba).
