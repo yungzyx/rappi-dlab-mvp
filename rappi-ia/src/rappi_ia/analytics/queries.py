@@ -69,7 +69,9 @@ cart_status AS (
     SELECT c.cart_id, c.last_cart_ts,
            o.cart_id IS NULL AND c.last_cart_ts < {_AS_OF} - interval '24 hours' AS is_abandoned
     FROM cart_events c
-    LEFT JOIN (SELECT DISTINCT cart_id FROM app_orders WHERE source = %(source)s) o ON o.cart_id = c.cart_id
+    -- un pedido cancelado no cuenta como pedido (migración 051): su carro vuelve a poder quedar abandonado
+    LEFT JOIN (SELECT DISTINCT cart_id FROM app_orders WHERE source = %(source)s AND status = 'confirmado') o
+           ON o.cart_id = c.cart_id
     WHERE c.units > 0 OR o.cart_id IS NOT NULL
 )"""
 
@@ -402,7 +404,8 @@ MIN_SUGGESTIONS_SHOWN = 10  # mostradas para calcular (y, con datos simulados, m
 
 
 def suggestions(conn: Connection, source: str = "synthetic") -> list[dict]:
-    """Rendimiento de las sugerencias cruzadas del agente por concepto sugerido (al preguntarle y en "Para ti").
+    """Rendimiento de las sugerencias del agente por concepto sugerido: todas (al preguntarle, en "Para ti" y en cada
+    momento de oferta), el mismo material que `offers()` corta por momento.
 
     Aceptada = el producto sugerido se agregó al carro; convertida = llegó a un pedido. El aviso sobre el carro no
     entra: ahí "aceptar" es abrir al agente, otra cosa. El % de aceptación necesita 10 mostradas; con la fuente

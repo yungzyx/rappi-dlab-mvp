@@ -194,3 +194,17 @@ def test_equal_scores_are_ordered_by_concept_id(db):
     _give_segment(db, "u1", "seg", "medio", [("concepto", "pizza"), ("concepto", "galletas"), ("concepto", "helados")])
 
     assert list(user_interests(db, "u1").concepts) == ["galletas", "helados", "pizza"]
+
+
+def test_rappi_hoy_does_not_teach_the_interest_profile(db):
+    """Un evento de "Rappi hoy" (`payload.mode = 'actual'`) con concepto no entra al perfil de intereses, aunque el
+    cliente lo mande: ese modo no enseña, y el servidor no depende de que la app quite el concepto."""
+    seed_taxonomy(db, load_taxonomy())
+    events.record(
+        db,
+        [events.Event("u1", "s1", "cart_add", ts=NOW, concept_id="pizza", cart_id="c1", payload={"mode": "actual"})],
+        source="prototype",
+    )
+    assert events.profile(db, "u1") == {}
+    _search(db, "u1", "sushi")
+    assert list(events.profile(db, "u1")) == ["sushi"]

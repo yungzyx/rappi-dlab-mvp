@@ -526,9 +526,10 @@ _METRIC_SQL = {
                         FROM (SELECT DISTINCT user_id, cart_id FROM app_events
                               WHERE source = %(source)s AND type = 'cart_add' AND cart_id IS NOT NULL
                                 AND ts >= %(now)s - interval '90 days'{only}) s
-                        -- un carro con dos tiendas son dos pedidos y sigue siendo un carro pagado
+                        -- un carro con dos tiendas son dos pedidos y sigue siendo un carro pagado; uno cancelado no
                         LEFT JOIN (SELECT DISTINCT user_id, cart_id FROM app_orders
-                                   WHERE source = %(source)s{only}) o ON o.user_id = s.user_id AND o.cart_id = s.cart_id
+                                   WHERE source = %(source)s AND status = 'confirmado'{only}) o
+                               ON o.user_id = s.user_id AND o.cart_id = s.cart_id
                         GROUP BY 1 HAVING count(*) >= %(min_carts)s""",
     "aceptacion_sugerencias": """SELECT user_id, count(*) FILTER (WHERE type = 'suggestion_accepted')::float
                                         / count(*) FILTER (WHERE type = 'suggestion_shown')

@@ -259,3 +259,28 @@ def test_it_is_a_person_table(db):
     assert delivery.unknown_person_tables(db) == []
     comment = db.execute("SELECT obj_description('agent_preferences'::regclass)").fetchone()[0]
     assert "PERSON_TABLES" in comment
+
+
+def test_ask_reads_without_leaving_the_transaction_open(client, db):
+    """`/agent/ask` lee el perfil, la dieta y el mensaje (qué pide) antes de calcular el primer vector: esas lecturas se
+    confirman, como en `/search`, para que una transacción abierta no espere al modelo frío (api/deps.py: 10 s)."""
+    say(client, "no como carne")
+    seen = []
+
+    class Watching(HashEmbedder):
+        def embed_queries(self, texts):
+            seen.append(db.info.transaction_status)
+            return super().embed_queries(texts)
+
+        def embed_documents(self, texts):
+            seen.append(db.info.transaction_status)
+            return super().embed_documents(texts)
+
+    embedder = Watching()
+    api.app.dependency_overrides[api.get_services] = lambda: Services(
+        RappiAgent(embedder, TemplateComposer()), embedder
+    )
+    seen.clear()
+    say(client, "algo para la once")
+    # El primero es el que puede tardar (el modelo frío); con el modelo cargado, los que siguen son instantáneos.
+    assert seen and seen[0] == TransactionStatus.IDLE

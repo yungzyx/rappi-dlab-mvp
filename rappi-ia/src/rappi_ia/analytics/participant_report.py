@@ -193,16 +193,23 @@ def load_participant(conn: Connection, user_id: str) -> Participant:
 
 def _offers(events: list[dict]) -> list[dict]:
     """Cada oferta mostrada (o retenida al grupo de control) con lo que pasó después: aceptada si se agregó algo de ella
-    al carro, "Después" si la descartó; si no, sin respuesta registrada. Se reconocen por su origen y su concepto, como
-    las cuenta la app (prototipo-app/src/api/suggestions.js)."""
+    al carro, "Después" si la descartó; si no, sin respuesta registrada. Se reconocen por su origen, su concepto y su
+    vertical, como las cuenta la app (prototipo-app/src/api/suggestions.js), y lo que pasó después llega hasta la
+    siguiente vez que se mostró la misma: una aceptación no vale por dos mostradas."""
     offers = []
     for i, e in enumerate(events):
         if e["type"] not in ("suggestion_shown", "offer_withheld"):
             continue
         status = WITHHELD if e["type"] == "offer_withheld" else NO_ANSWER
         if e["type"] == "suggestion_shown":
-            key = (e["origin"], e["concept_id"])
-            after = {x["type"] for x in events[i + 1 :] if (x["origin"], x["concept_id"]) == key}
+            key = (e["origin"], e["concept_id"], e["vertical"])
+            after = set()
+            for x in events[i + 1 :]:
+                if (x["origin"], x["concept_id"], x["vertical"]) != key:
+                    continue
+                if x["type"] == "suggestion_shown":
+                    break
+                after.add(x["type"])
             if "suggestion_accepted" in after:
                 status = ACCEPTED
             elif "suggestion_dismissed" in after:

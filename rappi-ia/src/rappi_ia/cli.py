@@ -152,7 +152,13 @@ def cmd_layer_precision(conn, args) -> None:
 
 
 def cmd_segments(conn, args) -> None:
-    print(build_segments(conn, args.source, args.user))
+    source = args.source
+    if args.user:  # la población es la de esa persona: con otra, no habría nada que recalcular y terminaría "bien"
+        row = conn.execute("SELECT source FROM app_users WHERE user_id = %s", (args.user,)).fetchone()
+        if row is None:
+            raise SystemExit(f"{args.user} no existe en app_users.")
+        source = row[0]
+    print(build_segments(conn, source, args.user))
 
 
 def cmd_motor(conn, args) -> None:
@@ -831,8 +837,10 @@ def build_parser() -> argparse.ArgumentParser:
     lp = sub.add_parser("layer-precision", help="capa de datos: precisión por regla según los juicios de la muestra")
     lp.add_argument("--seed", type=int, default=7, help="semilla de la muestra juzgada")
     sg = sub.add_parser("segments", help="capa de perfiles: segmentos de usuario por comportamiento (con historia)")
-    sg.add_argument("--source", choices=["synthetic", "prototype"], default="synthetic")
-    sg.add_argument("--user", help="recalcula solo a esta persona")
+    sg.add_argument(
+        "--source", choices=["synthetic", "prototype"], default="synthetic", help="población (con --user, la suya)"
+    )
+    sg.add_argument("--user", help="recalcula solo a esta persona (de la población en que está)")
     mt = sub.add_parser(
         "motor",
         help="motor multivertical: transiciones, combinaciones, compra cruzada, tendencias, afinidad y recompra",
