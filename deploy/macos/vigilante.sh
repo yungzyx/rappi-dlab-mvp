@@ -2,6 +2,7 @@
 # Cada 5 minutos (launchd): revisa la API, Caddy y el túnel, y reinicia lo que lleve dos revisiones seguidas caído.
 # Anota la URL pública vigente en url.txt (en un túnel rápido cambia en cada inicio) y avisa si cambió. Además rota
 # los registros que pasan de 20 MB, para que no llenen el disco.
+# shellcheck source=deploy/macos/comun.sh
 . "$(dirname "$0")/comun.sh"
 ESTADO="$TUNEL_DIR/.vigilante"
 mkdir -p "$ESTADO"

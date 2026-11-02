@@ -6,6 +6,7 @@
 #   respaldo             cada noche a las 03:30
 #   purga                cada día a las 04:15
 # Uso: deploy/macos/instalar.sh            (desinstalar: deploy/macos/instalar.sh --quitar)
+# shellcheck source=deploy/macos/comun.sh
 . "$(dirname "$0")/comun.sh"
 DIR=$(cd "$(dirname "$0")" && pwd)
 AGENTS="$HOME/Library/LaunchAgents"
@@ -40,6 +41,18 @@ plist() { # $1 servicio, $2 bloque de cuándo corre (KeepAlive o calendario)
 EOF
   plutil -lint -s "$AGENTS/$LABEL.$1.plist"
 }
+
+# El modelo de texto en la caché de Hugging Face, en el commit fijado en config.py: la API corre con HF_HUB_OFFLINE=1 y
+# API_REQUIRE_SEMANTIC=1 (api.sh), así que sin él /health da 503. Si falta, se descarga una vez, como lo deja
+# deploy/Dockerfile.api en la imagen. Antes de bajar los servicios: una reinstalación no deja la demo caída mientras baja.
+if [ "${1:-}" != "--quitar" ]; then
+  modelo='from rappi_ia import config; from sentence_transformers import SentenceTransformer; SentenceTransformer(config.TEXT_EMBEDDING_MODEL, revision=config.TEXT_EMBEDDING_REVISION, device="cpu")'
+  if ! HF_HUB_OFFLINE=1 "$REPO_DIR/rappi-ia/.venv/bin/python" -c "$modelo" > /dev/null 2>&1; then
+    log "Descargando el modelo de texto a la caché de Hugging Face"
+    HF_HUB_OFFLINE=0 "$REPO_DIR/rappi-ia/.venv/bin/python" -c "$modelo"
+  fi
+  log "Modelo de texto en la caché"
+fi
 
 quitar
 rm -rf "$TUNEL_DIR/.vigilante"  # los contadores de fallas de una instalación anterior no cuentan

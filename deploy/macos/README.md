@@ -15,7 +15,7 @@ Nada escucha hacia la red: Caddy y la API solo atienden en `127.0.0.1`, y se ent
 
 | Servicio | Cuándo | Qué hace |
 |---|---|---|
-| `api` | siempre (se reinicia si se cae) | `api.sh`: la API con `API_ENV=production`, `/analytics` encendido para el panel, 2 procesos |
+| `api` | siempre (se reinicia si se cae) | `api.sh`: la API con `API_ENV=production`, `/analytics` encendido para el panel, 2 procesos; el modelo de texto solo de la caché (`HF_HUB_OFFLINE=1`) y, sin él, no está lista (`API_REQUIRE_SEMANTIC=1`: `/health` da 503 y el vigilante avisa), como en el servidor |
 | `caddy` | siempre | `caddy.sh`: la puerta (`basic_auth`), las cabeceras y la CSP de `deploy/Caddyfile`, la API en `/api` |
 | `tunel` | siempre | `tunel.sh`: un túnel con nombre y URL fija (`TUNNEL_NAME` o `TUNNEL_TOKEN`) o, sin ellos, un túnel rápido (URL `….trycloudflare.com` que cambia en cada inicio) |
 | `vigilante` | cada 5 min | `vigilante.sh`: reinicia lo que lleve dos revisiones caído, hace dos búsquedas chicas para que el modelo de texto no salga de la memoria, anota la URL vigente en `url.txt` y avisa con una notificación, y rota los registros de más de 20 MB |
@@ -26,10 +26,10 @@ Nada escucha hacia la red: Caddy y la API solo atienden en `127.0.0.1`, y se ent
 ## Instalar
 
 1. Una copia de `main` solo para servir (no la de desarrollo): `git worktree add ~/rappi-prod origin/main`, con `make install`, `make -C rappi-ia install-ml` y los `.env` de `rappi-ia` y `rappi-scraper` apuntando a la base.
-2. Las herramientas: `brew install caddy cloudflared`.
+2. Las herramientas: `brew install caddy cloudflared` (los scripts encuentran Homebrew en el PATH, en `/opt/homebrew` o en `/usr/local`).
 3. La carpeta de trabajo, fuera del repo: `mkdir -m 700 ~/rappi-tunel` y `~/rappi-tunel/tunel.env` desde [`env.example`](env.example) (modo 600). El hash de la puerta sale de `caddy hash-password`; la clave se guarda aparte.
 4. Los archivos servidos la primera vez: `deploy/macos/actualizar.sh --forzar` (o copiar `prototipo-app/dist` y `dashboard-empresa/dist` a `~/rappi-tunel/srv/app` y `srv/panel`).
-5. `deploy/macos/instalar.sh` desde la copia de `~/rappi-prod`. La URL queda en `~/rappi-tunel/url.txt`.
+5. `deploy/macos/instalar.sh` desde la copia de `~/rappi-prod`. Si el modelo de texto no está en la caché de Hugging Face (en el commit fijado en `rappi-ia/src/rappi_ia/config.py`), primero lo descarga (una vez, ~1 GB); después instala y arranca los servicios. La URL queda en `~/rappi-tunel/url.txt`.
 
 Para cambiar la clave de la puerta: `deploy/macos/cambiar-clave.sh` (la pide dos veces sin mostrarla, guarda solo su hash y reinicia Caddy). Para quitar todo: `deploy/macos/instalar.sh --quitar`. Registros en `~/rappi-tunel/logs/`.
 
