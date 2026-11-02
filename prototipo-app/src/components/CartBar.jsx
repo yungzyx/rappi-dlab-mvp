@@ -1,7 +1,8 @@
-import { useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { basketsOf, cartEventFields } from '../api/orders'
 import { pricedBasket } from '../screens/checkout/pricing'
 import { useStoreTerms } from '../screens/checkout/useStoreTerms'
+import { OPEN_CART_EVENT } from '../state/cartSheet'
 import { formatPrice, lineKey, parsePrice, useCart } from '../state/CartContext'
 import { useEvents } from '../state/EventsContext'
 import AddButton from './AddButton'
@@ -18,6 +19,12 @@ export default function CartBar({ raised, push }) {
   const [open, setOpen] = useState(false)
   const bar = useRef(null)
   useFloatingInset(() => bar.current)
+  // "Revisar mi carrito" desde el menú de Mochi (openCartSheet) abre la misma hoja que "Ver carro".
+  useEffect(() => {
+    const onOpen = () => setOpen(true)
+    window.addEventListener(OPEN_CART_EVENT, onOpen)
+    return () => window.removeEventListener(OPEN_CART_EVENT, onOpen)
+  }, [])
 
   if (cart.count === 0 && !open) return null
 

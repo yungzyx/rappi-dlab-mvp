@@ -7,6 +7,7 @@ import { AssistantProvider } from '../state/AssistantContext'
 import { CartProvider, useCart } from '../state/CartContext'
 import { DemoProvider } from '../state/DemoContext'
 import { ProfileProvider } from '../state/ProfileContext'
+import { openCartSheet } from '../state/cartSheet'
 import CartBar from './CartBar'
 
 const events = vi.hoisted(() => ({ track: vi.fn(), flush: async () => {}, clear: () => {}, settled: async () => {} }))
@@ -26,6 +27,7 @@ function Seed({ products }) {
 
 afterEach(() => {
   cleanup()
+  vi.useRealTimers()
   events.track.mockClear()
   localStorage.clear()
 })
@@ -53,6 +55,26 @@ test('vaciar el carro lo registra (una salida por línea con sus unidades): si n
   expect(screen.queryByText('Ver carro')).toBeNull()
 })
 
+test('openCartSheet (el "Revisar mi carrito" de Mochi) abre la misma hoja que "Ver carro"', () => {
+  const oil = toPrototypeProduct(fixture('catalog-store').products[0])
+  render(
+    <DemoProvider>
+      <ProfileProvider>
+        <AssistantProvider>
+          <CartProvider>
+            <Seed products={[oil]} />
+            <CartBar push={() => {}} />
+          </CartProvider>
+        </AssistantProvider>
+      </ProfileProvider>
+    </DemoProvider>,
+  )
+  expect(screen.queryByText('Ir a pagar')).toBeNull()
+  act(() => openCartSheet())
+  expect(screen.getByText('Ir a pagar')).toBeTruthy()
+  expect(screen.getByRole('region', { name: oil.store })).toBeTruthy()
+})
+
 function renderCart(products) {
   render(
     <DemoProvider>
@@ -73,8 +95,9 @@ test('una canasta por tienda, con su compra mínima: "Tu compra será dividida e
   const oil = toPrototypeProduct(fixture('catalog-store').products[0]) // $3.190 en el súper 9101
   const beer = toPrototypeProduct(fixture('search-grouped').groups[0].products[0]) // $1.190 en la botillería 9402
   terms.byStore = { [oil.storeId]: { deliveryFee: null, minOrder: 8490, servicePct: null } }
+  vi.useFakeTimers()
   renderCart([oil, beer])
-  await act(() => new Promise((resolve) => setTimeout(resolve, 0)))
+  await act(() => vi.advanceTimersByTimeAsync(0)) // las condiciones de las tiendas (/catalog/terms)
   expect(screen.getByText('Tu compra será dividida en 2 pedidos, uno por tienda.')).toBeTruthy()
   expect(screen.getByRole('region', { name: oil.store })).toBeTruthy()
   expect(screen.getByRole('region', { name: beer.store })).toBeTruthy()

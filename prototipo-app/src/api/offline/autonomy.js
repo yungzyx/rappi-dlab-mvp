@@ -163,10 +163,10 @@ function decide(snapshot, state, mine, found, now, lines = null) {
   const usualLines = found.lines.map(({ product, qty }) => ({ ...product, qty }))
   if (lines && shape(lines) !== shape(usualLines)) return review('distinto')
   if (paused(state, now).stores.has(Number(store.id))) return review('calificacion', { store: store.name })
-  const concepts = snapshot.meta.concepts
+  const { concepts, guards } = snapshot.meta
   if (
     OFFER_BLOCKED_VERTICALS.includes(store.vertical) ||
-    found.lines.some(({ product }) => autoOrderBlocked(product, concepts))
+    found.lines.some(({ product }) => autoOrderBlocked(product, concepts, guards))
   )
     return review('guardia')
   if (closed(snapshot, store, now)) return review('cerrada', { store: store.name })

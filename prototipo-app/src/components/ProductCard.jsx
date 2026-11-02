@@ -15,8 +15,11 @@ import './product-card.css'
 
 const ASK_VISIBLE_MS = 3000
 
-// En escritorio (mouse) la tarjeta también se puede arrastrar hasta el agente; en el celular, arrastrar es scroll.
-const canDrag = () => typeof window !== 'undefined' && window.matchMedia?.('(pointer: fine)').matches === true
+// En escritorio (mouse) la tarjeta también se puede arrastrar hasta el agente; en el celular, arrastrar es scroll. Se
+// pregunta una sola vez, la primera vez que hace falta (no en cada render de cada tarjeta).
+let finePointer = null
+const canDrag = () =>
+  (finePointer ??= typeof window !== 'undefined' && window.matchMedia?.('(pointer: fine)').matches === true)
 
 /**
  * Producto de supermercado/farmacia/botillería (Meat & Seafood, beers, Baby care…). Tocarlo abre su hoja; el "+" va

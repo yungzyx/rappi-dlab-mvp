@@ -3,13 +3,14 @@ import { beforeEach, describe, expect, test, vi } from 'vitest'
 let firstShowing
 let noteShown
 let noteAccepted
+let noteOfferShown
 
 const PAPAS = { id: 'cat-1', name: 'Papas', concept: 'snacks-salados', vertical: 'express' }
 
 describe('sugerencias de Mochi', () => {
   beforeEach(async () => {
     vi.resetModules() // lo ya mostrado vive en el módulo (lo que dura la pestaña)
-    ;({ firstShowing, noteShown, noteAccepted } = await import('./suggestions'))
+    ;({ firstShowing, noteShown, noteAccepted, noteOfferShown } = await import('./suggestions'))
   })
 
   test('firstShowing cuenta igual la vertical del backend que la del prototipo', () => {
@@ -62,6 +63,24 @@ describe('sugerencias de Mochi', () => {
       { kind: 'lo_mas_pedido' },
       undefined,
     ])
+  })
+
+  test('noteOfferShown registra una oferta con el origen de su momento, el concepto de su razón y su basis', () => {
+    const track = vi.fn()
+    const made = {
+      moment: 'volver',
+      products: [PAPAS, { ...PAPAS, id: 'cat-2' }],
+      reason: { concept: 'snacks-salados', basis: [{ kind: 'vuelta', id: 'express', source: 'pedidos' }] },
+    }
+    expect(noteOfferShown(track, made, { generation: 2, kind: 'vuelta' })).toBe(true)
+    expect(noteOfferShown(track, made, { generation: 2, products: [PAPAS] })).toBe(false) // ya contada
+    expect(track).toHaveBeenCalledTimes(1)
+    expect(track).toHaveBeenCalledWith('suggestion_shown', {
+      concept_id: 'snacks-salados',
+      vertical: 'express',
+      origin: 'agent-volver',
+      payload: { kind: 'vuelta', basis: ['vuelta'] },
+    })
   })
 
   test('noteAccepted registra la mostrada que falte y luego suggestion_accepted, una vez por sugerencia', () => {

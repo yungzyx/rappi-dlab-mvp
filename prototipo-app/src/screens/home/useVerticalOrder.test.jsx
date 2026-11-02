@@ -1,13 +1,18 @@
 import { act, cleanup, render, renderHook, waitFor } from '@testing-library/react'
-import { afterEach, expect, test } from 'vitest'
+import { afterEach, expect, test, vi } from 'vitest'
 import { fixture, stubApi } from '../../test/api'
 import { ProfileProvider, useProfile } from '../../state/ProfileContext'
 import { useVerticalOrder } from './useVerticalOrder'
 
-afterEach(cleanup)
+afterEach(() => {
+  cleanup()
+  vi.useRealTimers()
+})
 
 const wrapper = ProfileProvider
 const requests = (api) => api.mock.calls.filter(([url]) => url.includes('/verticales')).length
+/** Con el reloj simulado: avanza `ms` y deja correr lo que haya llegado (las respuestas y sus renders). */
+const advance = (ms) => act(() => vi.advanceTimersByTimeAsync(ms))
 
 test('pide el orden al montar: los códigos del motor y si es personal', async () => {
   stubApi({ 'GET /profile/*': fixture('profile-verticales') })
@@ -34,6 +39,7 @@ test('con la API caída: sin orden y sin personalizar', async () => {
 })
 
 test('al olvidar (cambian las `resets`) queda el orden fijo sin pedir, y la respuesta de antes no lo pisa', async () => {
+  vi.useFakeTimers()
   let calls = 0
   const api = stubApi({
     'GET /profile/*': () => {
@@ -55,20 +61,23 @@ test('al olvidar (cambian las `resets`) queda el orden fijo sin pedir, y la resp
     </ProfileProvider>
   )
   const { rerender } = render(tree(true))
-  await waitFor(() => expect(requests(api)).toBe(1))
+  await advance(0)
+  expect(requests(api)).toBe(1)
   act(() => reset())
-  await new Promise((resolve) => setTimeout(resolve, 400)) // la primera ya contestó: es de antes de olvidar
+  await advance(400) // la primera ya contestó: es de antes de olvidar
   expect(requests(api)).toBe(1) // el servidor puede no haber borrado todavía: pedir traería el orden de antes
   expect(latest).toEqual({ order: null, entries: null, personalized: false, requestId: null })
   rerender(tree(false)) // si el borrado falló, la app no se recarga: al volver de otra pantalla pide otra vez
   rerender(tree(true))
-  await waitFor(() => expect(requests(api)).toBe(2))
-  await waitFor(() => expect(latest.order).not.toBeNull())
+  await advance(0)
+  expect(requests(api)).toBe(2)
+  expect(latest.order).not.toBeNull()
   expect(latest.personalized).toBe(false)
   expect(latest.order[0]).toBe('supermercado')
 })
 
 test('al volver a estar arriba pide otra vez; mientras llega deja el orden que había, sin parpadear', async () => {
+  vi.useFakeTimers()
   let calls = 0
   const api = stubApi({
     'GET /profile/*': () => {
@@ -80,15 +89,18 @@ test('al volver a estar arriba pide otra vez; mientras llega deja el orden que h
     wrapper,
     initialProps: { active: true },
   })
-  await waitFor(() => expect(result.current.order).not.toBeNull())
+  await advance(0)
+  expect(result.current.order).not.toBeNull()
   rerender({ active: true })
-  await new Promise((resolve) => setTimeout(resolve, 50))
+  await advance(50)
   expect(requests(api)).toBe(1) // seguir arriba no pide de nuevo
   rerender({ active: false })
   rerender({ active: true })
-  await waitFor(() => expect(requests(api)).toBe(2))
+  await advance(0)
+  expect(requests(api)).toBe(2)
   expect(result.current).toMatchObject({ personalized: false }) // la respuesta aún no llega: queda el orden de antes
   expect(result.current.order[0]).toBe('supermercado')
-  await waitFor(() => expect(result.current.personalized).toBe(true))
+  await advance(200)
+  expect(result.current.personalized).toBe(true)
   expect(result.current.order[0]).toBe('farmacia')
 })

@@ -7,6 +7,7 @@ import { formatPrice, useCart } from '../../state/CartContext'
 import { useDemo } from '../../state/DemoContext'
 import { useEvents } from '../../state/EventsContext'
 import { setAgentHidden, useAgentHidden } from '../../state/agentHidden'
+import { openCartSheet } from '../../state/cartSheet'
 import { AGENT_CART_EVENT, REPLAY_EVENT } from '../../state/liveMemory'
 import { isHushed, isQuiet, noteDismissed, noteEngaged, quietToday, wake } from '../../state/agentQuiet'
 import { today } from '../../utils/today'
@@ -180,7 +181,7 @@ export default function AgentPresence({ screen, homeTab, raised }) {
         query: 'Muéstrame algo nuevo para probar',
         offer: { moment: 'vertical_por_probar', context: {} },
       })
-    if (id === 'cart') host.current?.closest('.phone')?.querySelector('.cart-bar')?.click()
+    if (id === 'cart') openCartSheet()
     if (id === 'move') moveTo(side === 'right' ? 'left' : 'right')
     if (id === 'quiet') {
       quietToday(today())

@@ -50,6 +50,22 @@ export function noteShown(
 }
 
 /**
+ * Registra como mostrada una oferta del agente (`made`, la que devuelve `offer` de api/agent.js) con `noteShown`: su
+ * origen es `agent-<momento>` (el de la respuesta), su concepto el de su razón (sin él, el del primer producto) y su
+ * `basis` la de su razón. `products`: los que se muestran, si no son todos los de la oferta (el complemento del checkout
+ * muestra uno). `generation` y `kind` como en `noteShown`. Devuelve si la registró.
+ */
+export function noteOfferShown(track, made, { generation, kind, products = made.products } = {}) {
+  return noteShown(track, products, {
+    origin: `agent-${made.moment}`,
+    concept: made.reason?.concept,
+    reason: made.reason,
+    generation,
+    kind,
+  })
+}
+
+/**
  * De qué fuente sale el "¿Por qué?" de una oferta: los tipos de su `reason.basis` (`recompra`, `busqueda`, `perfil`…),
  * sin repetir y como mucho 4. Solo los tipos: el texto y los ids pueden traer lo que la persona escribió (una búsqueda),
  * y el payload de un evento no pasa por la redacción ni la purga de las consultas. Sin razón, undefined.

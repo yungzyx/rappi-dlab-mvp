@@ -1,7 +1,8 @@
 // `POST /agent/offer` sin conexión (offers/engine.py simplificado): la vertical por probar con la escalera del motor,
 // "¿Repetimos?", "¿Volvemos a…?" (sin lo de un pedido mal calificado: winback.js, paused), los complementos del carro,
 // del checkout y del próximo pedido, el OnTop de Turbo y las respuestas grabadas (kits de una ocasión, sin resultado). Todo lo que se ofrece pasa por `offerableProduct` (offers/guards.py).
-import { NONE_COMBO, OFFER_BLOCKED_VERTICALS, contractArticles, currentFine, stepSignal, targetStep } from './motor'
+import { OFFER_BLOCKED_VERTICALS, contractArticles, stepSignal, targetStep } from './motor'
+import { alcoholInName, babyInName } from './guards'
 import { entityKey } from './snapshot'
 import { isConfirmed } from './state'
 import { normalize } from './text'
@@ -20,40 +21,23 @@ import {
   roundHalfEven,
 } from './winback'
 
-// offers/guards.py: palabras de un nombre que dicen alcohol o bebé aunque la tienda no lo marque (palabra entera, con
-// su plural). La lista de los platos es más larga en el backend; aquí basta con la del catálogo más los tragos que no
-// son también comida. Los que sí ("vaina", "algarrobina", "margarita", "sour"…) el backend los libra por la frase o el
-// concepto del plato; aquí los cubre el concepto (cócteles y licores no se ofrecen).
-const ALCOHOL_WORDS = [
-  ...['soju', 'makgeolli', 'umeshu', 'cerveza', 'vino', 'whisky', 'pisco', 'ron', 'vodka', 'gin', 'tequila'],
-  ...['licor', 'aperitivo', 'espumante', 'champagne', 'sidra', 'sangria', 'michelada', 'schop', 'piscola'],
-  ...['mojito', 'terremoto', 'spritz', 'negroni', 'caipirinha', 'daiquiri', 'daikiri', 'caipiroska'],
-  ...['tom collins', 'bloody mary', 'cuba libre', 'kir royal', 'ruso blanco', 'ruso negro', 'cosmopolitan'],
-  ...['clavo oxidado'],
-]
-const MENU_ALCOHOL_WORDS = ['absolut', 'absolute'] // solo en un menú: en el catálogo hay maquillaje "Absolute New York"
-const BABY_WORDS = ['bebe', 'guagua']
-const wordsIn = (list) => new RegExp(`\\b(?:${list.join('|')})(?:s|es)?\\b`)
-const ALCOHOL_NAME = wordsIn(ALCOHOL_WORDS)
-const MENU_ALCOHOL_NAME = wordsIn(MENU_ALCOHOL_WORDS)
-const BABY_NAME = wordsIn(BABY_WORDS)
-
 /**
- * Si el agente puede proponer este producto por su cuenta: ni +18, ni de Farmacia o Licores, ni de un concepto que no
- * ofrece (alcohol, salud, bebé, sensibles: `meta.concepts[…].offerable`), ni con un nombre que dice alcohol o bebé.
- * Un plato sin concepto o con uno de bebida, tampoco: el backend lee si su descripción nombra alcohol
- * (`alcohol_in_description`) y la muestra no trae descripciones (la API no las da).
+ * Si el agente puede proponer este producto por su cuenta (offers/guards.py y engine.py: _offerable_products): ni +18,
+ * ni de Farmacia o Licores, ni de un concepto que no ofrece (alcohol, salud, bebé, sensibles:
+ * `meta.concepts[…].offerable`), ni con un nombre que dice alcohol o bebé (`guards`: `meta.guards`, las listas de
+ * guards.py; sin ellas, la copia de guards.js). Un plato sin concepto o con uno de bebida, tampoco: el backend lee si su
+ * descripción nombra alcohol (`alcohol_in_description`) y la muestra no trae descripciones (la API no las da). Las
+ * tiendas que Rappi rotula Farmacia, Sex shop o Smoking shop no se distinguen en la muestra (la API no da el
+ * subvertical): solo cuenta la vertical.
  */
-export function offerableProduct(product, concepts) {
+export function offerableProduct(product, concepts, guards) {
   if (!product || product.age_restricted) return false
   if (OFFER_BLOCKED_VERTICALS.includes(product.vertical)) return false
   if (product.concept && concepts[product.concept] && !concepts[product.concept].offerable) return false
+  const kind = product.entity_type ?? 'catalog_item'
   const group = product.concept && concepts[product.concept]?.group
-  if (product.entity_type === 'menu_item' && (!group || group === 'bebidas')) return false // sin concepto conocido
-  const name = normalize(product.name)
-  if (ALCOHOL_NAME.test(name)) return false
-  if (product.entity_type === 'menu_item') return !MENU_ALCOHOL_NAME.test(name)
-  return !BABY_NAME.test(name)
+  if (kind === 'menu_item' && (!group || group === 'bebidas')) return false // sin concepto conocido
+  return !alcoholInName(guards, kind, product.name, product.concept) && !babyInName(guards, kind, product.name)
 }
 
 /**
@@ -62,13 +46,12 @@ export function offerableProduct(product, concepts) {
  * `offerableProduct`, un plato sin concepto o de bebidas sí se pide: es lo que la persona ya pidió. La muestra no trae
  * la sección ni la descripción de los platos (el backend también las lee): sin ellas, decide el nombre.
  */
-export function autoOrderBlocked(product, concepts) {
+export function autoOrderBlocked(product, concepts, guards) {
   if (!product || product.age_restricted) return true
   const concept = product.concept ? concepts[product.concept] : null
   if (concept && !concept.offerable) return true
-  const name = normalize(product.name)
-  if (product.entity_type === 'menu_item') return MENU_ALCOHOL_NAME.test(name)
-  return ALCOHOL_NAME.test(name) || BABY_NAME.test(name)
+  const kind = product.entity_type ?? 'catalog_item'
+  return alcoholInName(guards, kind, product.name, product.concept) || babyInName(guards, kind, product.name)
 }
 
 /**
@@ -103,9 +86,9 @@ const fill = (template, values) => template.replace(/\{(\w+)\}/g, (_, key) => va
 const clone = (value) => structuredClone(value)
 
 /** La oferta con solo los productos que pasan las guardias; sin productos (y sin ser un servicio), null. */
-function guarded(offer, concepts) {
+function guarded(offer, { concepts, guards }) {
   if (!offer) return null
-  const products = offer.products.filter((p) => offerableProduct(p, concepts))
+  const products = offer.products.filter((p) => offerableProduct(p, concepts, guards))
   if (!products.length && !offer.actions?.some((a) => a.service)) return null
   return { ...offer, products }
 }
@@ -133,27 +116,40 @@ function serviceOffer(snapshot, step) {
 /**
  * La vertical por probar (engine.py: vertical_to_try): el paso de la escalera del motor. Si es un servicio, su oferta;
  * si es una vertical, la oferta real grabada para ese paso (`toTry[vertical]`) con la señal `combinacion` de esta
- * persona. Sin pedidos, la de siempre (el súper, `toTry.usual`).
+ * persona. Sin paso (sin pedidos en 90 días, o ya usa todo) o si la muestra no grabó nada que mostrar del paso, la de
+ * siempre (`usualToTry`), como el backend.
  */
 export function verticalToTry(snapshot, state, now) {
-  const { combos, vertical_labels: labels, concepts } = snapshot.meta
+  const { combos } = snapshot.meta
   const step = targetStep(combos, state, now)
   if (step && combos.service_keys.includes(step.vertical)) return serviceOffer(snapshot, step)
-  if (step && snapshot.toTry[step.vertical]) {
-    const offer = clone(snapshot.toTry[step.vertical])
+  const recorded = step && snapshot.toTry[step.vertical]
+  if (recorded) {
+    const offer = clone(recorded)
     offer.reason.basis = [stepSignal(combos, step), ...offer.reason.basis.filter((b) => b.kind !== 'combinacion')]
-    return guarded(offer, concepts)
+    const shown = guarded(offer, snapshot.meta)
+    if (shown) return shown
   }
-  if (currentFine(combos, state, now) !== NONE_COMBO) return null // ya usa todo lo que se ofrece
+  return usualToTry(snapshot, state)
+}
+
+/**
+ * La de siempre (engine.py: _usual_to_try) con lo grabado: la oferta que la API dio a una persona sin pedidos
+ * (`toTry.usual`, el súper), si esta persona todavía no pide en esa vertical (pedidos `propuesta` confirmados, en
+ * cualquier fecha). El backend elige, entre las verticales donde aún no pide, la que más le gusta; la muestra solo
+ * grabó esa: si ya pide ahí, no hay nada.
+ */
+function usualToTry(snapshot, state) {
   const usual = snapshot.toTry.usual && clone(snapshot.toTry.usual)
   if (!usual) return null
-  const label = labels[usual.vertical] ?? usual.vertical
+  if (state.orders.some((o) => o.mode === 'propuesta' && isConfirmed(o) && o.vertical === usual.vertical)) return null
+  const label = snapshot.meta.vertical_labels[usual.vertical] ?? usual.vertical
   usual.text = TO_TRY_TEXT.replace('{vertical}', label)
   usual.reason = {
     text: contractArticles(REASON_TO_TRY.replace('{vertical}', label)),
     basis: [{ kind: 'sin_pedidos', id: usual.vertical, source: 'contexto' }],
   }
-  return guarded(usual, concepts)
+  return guarded(usual, snapshot.meta)
 }
 
 const REPEAT_TEXT = '¿Repetimos {destino}? Pides {cada}.'
@@ -192,7 +188,7 @@ const offerableIn = (snapshot, vertical, entity) => {
       p.entity_type === entity.entity_type &&
       String(p.entity_id) === String(entity.entity_id),
   )
-  return product && offerableProduct(product, snapshot.meta.concepts) ? product : null
+  return product && offerableProduct(product, snapshot.meta.concepts, snapshot.meta.guards) ? product : null
 }
 
 const NO_STORES = new Set()
@@ -205,13 +201,13 @@ function repeatProduct(snapshot, state, concept, vertical, stores = NO_STORES) {
   const last = linesNewestFirst(state).find(({ line }) => line.concept_id === concept && line.entity_type === kind)
   const bought = last && offerableIn(snapshot, vertical, last.line)
   if (open(bought)) return bought
-  const { concepts } = snapshot.meta
+  const { concepts, guards } = snapshot.meta
   return snapshot.pool.find(
     (p) =>
       p.concept === concept &&
       p.vertical === vertical &&
       p.entity_type === kind &&
-      offerableProduct(p, concepts) &&
+      offerableProduct(p, concepts, guards) &&
       open(p),
   )
 }
@@ -380,7 +376,7 @@ export function complementOffer(snapshot, moment, entities, userId) {
         ...clone(recorded),
         products: recorded.products.filter((p) => !have.has(entityKey(p.entity_type, p.entity_id))),
       },
-      concepts,
+      snapshot.meta,
     )
     if (!offer) continue
     if (moment === 'carrito') return offer
@@ -417,9 +413,9 @@ const REASON_ONTOP = 'Turbo llega en minutos: lo puedes sumar mientras esperas t
  */
 export function onTopOffer(snapshot, context = {}) {
   if (context.vertical === 'turbo' || !context.items?.length) return null
-  const { concepts } = snapshot.meta
+  const { concepts, guards } = snapshot.meta
   const have = new Set(context.items.map((e) => entityKey(e.entity_type, e.entity_id)))
-  const fresh = (p) => !have.has(entityKey(p.entity_type, p.entity_id)) && offerableProduct(p, concepts)
+  const fresh = (p) => !have.has(entityKey(p.entity_type, p.entity_id)) && offerableProduct(p, concepts, guards)
   const recorded = snapshot.onTop
   if (recorded?.products?.some(fresh))
     return { ...clone(recorded), products: recorded.products.filter(fresh), plazo_min: recorded.plazo_min ?? 15 }

@@ -11,14 +11,20 @@
 // - rappi-ia/src/rappi_ia/motor/combos.py, combos.toml y predict.py ... la escalera fina (motor.js: targetStep)
 // - rappi-ia/src/rappi_ia/motor/model.py, data.py .. la afinidad propia, sin "Rappi hoy" (motor.js)
 // - rappi-ia/src/rappi_ia/offers/engine.py ......... vertical por probar, recompra, volver, complementos (offers.js) y
-//   las tiendas de un kit recortado por la dieta (offers.js: kitStores; el kit mismo es el grabado)
+//   las tiendas de un kit recortado por la dieta (offers.js: kitStores; el kit mismo es el grabado). Sin oferta grabada
+//   para el paso, la vertical por probar cae a la de siempre como el backend (_usual_to_try), pero solo a la grabada
+//   (`toTry.usual`, el súper, con "Aún no pides en…"): si la persona ya pide ahí, no ofrece nada, y no elige otra
+//   vertical por afinidad ni dice "Por tu interés en…" (offers.js: usualToTry)
 // - rappi-ia/src/rappi_ia/offers/winback.py y motor/model.py (replenishment) ... recompra y volver (winback.js), con la
 //   pausa por una calificación mala (winback.js: paused, de los eventos `order_rated`); un pedido cancelado
 //   (`order_cancelled`, state.js: cancelOrders e isConfirmed) no cuenta para la recompra, el motor ni los perfiles
 // - rappi-ia/src/rappi_ia/offers/engine.py (ontop_offer) ... el OnTop de Turbo en el seguimiento (offers.js: onTopOffer)
 // - rappi-ia/src/rappi_ia/catalog/stores.py (line_prices) y api/catalog.py (availability) ... "Pídelo de nuevo"
 //   (index.js: availability, con los precios de la muestra)
-// - rappi-ia/src/rappi_ia/offers/guards.py ......... lo que el agente nunca ofrece (offers.js: offerableProduct)
+// - rappi-ia/src/rappi_ia/offers/guards.py ......... lo que el agente nunca ofrece (offers.js: offerableProduct); las
+//   palabras de alcohol y bebé llegan en meta.guards (guards.js; sin ellas, su copia a mano, que guards.test.js compara
+//   con guards.py). Las tiendas que Rappi rotula Farmacia, Sex shop o Smoking shop no se distinguen en la muestra
+//   (engine.py: _offerable_products las lee de store_verticals, que la API no da): solo cuenta la vertical
 // - rappi-ia/src/rappi_ia/offers/featured.py ....... lo que se puede destacar (offers.js: featuredProduct; sus reglas,
 //   offers/destacado.toml, llegan en meta.featured) y, con engine.py (_typical_first), lo que piden las personas del
 //   panel (personas.js: sampleOf)

@@ -274,12 +274,12 @@ function topConcept(products) {
 /** La sugerencia cruzada de una respuesta (agent/tools.py: suggest_complement): el complemento grabado del concepto
  * para esta persona. */
 function suggestionFor(snapshot, conceptId, userId) {
-  const { concepts } = snapshot.meta
+  const { concepts, guards } = snapshot.meta
   const origin = concepts[conceptId]
   const recorded = complementOf(snapshot, conceptId, userId)
   if (!origin?.offerable || !recorded) return null
   const target = concepts[recorded.reason?.concept]
-  const products = recorded.products.filter((p) => offerableProduct(p, concepts)).slice(0, 3)
+  const products = recorded.products.filter((p) => offerableProduct(p, concepts, guards)).slice(0, 3)
   if (!target || !products.length) return null
   return {
     concept: recorded.reason.concept,
@@ -505,7 +505,7 @@ function typicalVertical(snapshot, concept) {
  * además la primera keyword del interés; aquí no hace falta: el nombre ya trae todos los productos del concepto.
  */
 function recommend(snapshot, body, { interests, userId }) {
-  const { concepts, vertical_labels: labels } = snapshot.meta
+  const { concepts, guards, vertical_labels: labels } = snapshot.meta
   const mode = body?.mode
   const mine = mode === 'actual' ? [] : interests.filter((c) => concepts[c]?.offerable).slice(0, RECOMMEND_INTERESTS)
   const here = backendVertical(body?.vertical)
@@ -514,7 +514,7 @@ function recommend(snapshot, body, { interests, userId }) {
     if (!vertical) continue
     const concept = concepts[interest]
     const products = matchProducts(snapshot, concept.name)
-      .filter((p) => p.vertical === vertical && offerableProduct(p, concepts))
+      .filter((p) => p.vertical === vertical && offerableProduct(p, concepts, guards))
       .slice(0, ASK_LIMIT)
     if (!products.some((p) => p.concept === interest)) continue
     const reply = replyWith(snapshot, concept.name, { vertical, products }, { mode, userId })

@@ -9,7 +9,7 @@ import { useToast } from '../../components/Toast'
 import { StarIcon } from '../../components/Icons'
 import { HeadsetIcon } from '../../components/LineIcons'
 import { offer } from '../../api/agent'
-import { noteShown } from '../../api/suggestions'
+import { noteOfferShown } from '../../api/suggestions'
 import { userId } from '../../api/user'
 import OfferWhy from '../../components/assistant/OfferWhy'
 import { useAssistant } from '../../state/AssistantContext'
@@ -346,12 +346,7 @@ function OnTop({ order, flow, now, push }) {
     offer('ontop', { vertical, items }, { userId: userId(), surface: 'tracking' }).then(
       (reply) => {
         if (!current || !reply?.products.length) return
-        noteShown(events.track, reply.products, {
-          origin: `agent-${reply.moment}`,
-          concept: reply.reason?.concept,
-          reason: reply.reason,
-          generation: profile.resets,
-        })
+        noteOfferShown(events.track, reply, { generation: profile.resets })
         setMade(reply)
       },
       () => {},
@@ -405,12 +400,7 @@ function Delivered({ order, push }) {
     offer('proximo_pedido', { items }, { userId: userId(), surface: 'tracking' }).then(
       (made) => {
         if (!current || !made) return
-        noteShown(events.track, made.products, {
-          origin: `agent-${made.moment}`,
-          concept: made.reason?.concept,
-          reason: made.reason,
-          generation: profile.resets,
-        })
+        noteOfferShown(events.track, made, { generation: profile.resets })
         setNext({
           context: { items },
           label: made.actions.find((action) => action.query)?.query ?? 'algo más',

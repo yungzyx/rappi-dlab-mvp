@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { AGENT_NAME } from '../../agent/name'
 import { offer } from '../../api/agent'
-import { noteShown } from '../../api/suggestions'
+import { noteOfferShown } from '../../api/suggestions'
 import { userId } from '../../api/user'
 import Mascot from '../../components/assistant/Mascot'
 import OfferWhy from '../../components/assistant/OfferWhy'
@@ -51,12 +51,7 @@ export default function CheckoutSuggestion() {
         const made = await offer('checkout', { cart: lines }, { userId: userId(), surface: 'checkout' })
         if (!made?.products.length) return setComplete(true)
         const [product] = made.products
-        noteShown(events.track, [product], {
-          origin: `agent-${made.moment}`,
-          concept: made.reason?.concept,
-          reason: made.reason,
-          generation: profile.resets,
-        })
+        noteOfferShown(events.track, made, { generation: profile.resets, products: [product] })
         setPicked({ text: made.text, product, reason: made.reason, origin: `agent-${made.moment}` })
       } catch {
         // Sin respuesta, el agente no dice nada: el botón sigue ahí para volver a pedir.

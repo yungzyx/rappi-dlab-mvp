@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import BackButton from '../../components/BackButton'
 import Sheet from '../../components/Sheet'
-import { health, sendOrder } from '../../api/client'
+import { sendOrder } from '../../api/client'
 import { basketsOf, buildOrders, cartEventFields, orderVertical, trackOrder } from '../../api/orders'
 import { userId } from '../../api/user'
 import { useToast } from '../../components/Toast'
@@ -112,15 +112,15 @@ export default function CheckoutScreen({ back, push }) {
       scheduledFor: slot,
       deliveryType: chosenType,
     })
-    // Registro para el panel (si la API está arriba). No bloquea el pedido de la demo. Antes salen los eventos en cola
-    // (y se esperan los lotes en camino): el servidor les pone la hora al recibirlos, y checkout_start va primero.
-    // Todo el camino cuenta como pedido en vuelo: "Olvidar" lo espera antes de borrar el perfil.
+    // Registro para el panel. No bloquea el pedido de la demo: siempre sale (sin preguntar antes por /health, que en una
+    // red lenta daba null y el pedido nunca llegaba), y si la API no contesta, ese pedido se pierde sin error. Antes
+    // salen los eventos en cola (y se esperan los lotes en camino): el servidor les pone la hora al recibirlos, y
+    // checkout_start va primero. Todo el camino cuenta como pedido en vuelo: "Olvidar" lo espera antes de borrar el perfil.
     trackOrder(
       events
         .flush()
         .then(() => events.settled())
-        .then(() => health())
-        .then((online) => online && Promise.all(pending.map((order) => sendOrder(order).catch(() => {})))),
+        .then(() => Promise.all(pending.map((order) => sendOrder(order).catch(() => {})))),
     )
     // Un pedido por tienda, como los que recibe la API: cada uno con su total (orderShares suma el del checkout) y lo
     // que usó de créditos y cupón, que vuelven si se cancela.

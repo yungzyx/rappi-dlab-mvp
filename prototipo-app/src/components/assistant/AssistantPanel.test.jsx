@@ -6,7 +6,7 @@ import { DemoProvider } from '../../state/DemoContext'
 import { ProductSheetProvider } from '../../state/ProductSheetContext'
 import ProductSheet from '../ProductSheet'
 import { ProfileProvider } from '../../state/ProfileContext'
-import AssistantPanel from './AssistantPanel'
+import AssistantPanel, { OPEN_CACHE_MS } from './AssistantPanel'
 import { routeForScreen } from '../../data/verticals'
 import { trackOrder } from '../../api/orders'
 import { fixture, stubApi } from '../../test/api'
@@ -668,6 +668,8 @@ describe('pedirle algo a Mochi desde el buscador', () => {
     await runUntilIdle()
     expect(screen.getByRole('button', { name: `Pídele a Mochi: "${QUESTION}"` }).classList).toContain('is-question')
 
+    // Como al escribir: el foco está en el campo, y al pedírsela a Mochi el campo lo suelta (blur)
+    field.focus()
     fireEvent.keyDown(field, { key: 'Enter' })
     await runUntilIdle()
     expect(api.ask.mock.calls[0][0].message).toBe(QUESTION)
@@ -792,6 +794,60 @@ describe('Para ti y Descubre con Mochi', () => {
     await renderPanel()
     expect(screen.getByText('Gaseosa cola 500 cc (prueba)')).toBeTruthy()
     expect(tracked('suggestion_shown').filter((fields) => fields.origin === 'para-ti')).toHaveLength(1)
+  })
+
+  test('abrirlo dos veces no repite lo que pide al abrir; tras "Olvidar" lo vuelve a pedir', async () => {
+    const fetchMock = stubCatalog({ '/recommendations': rows(), 'GET /profile/*': { perfiles: [] } })
+    const calls = (part) => fetchMock.mock.calls.filter(([url]) => url.includes(part)).length
+    const reopen = async () => {
+      fireEvent.click(screen.getByRole('button', { name: 'Volver' }))
+      await runUntilIdle()
+      fireEvent.click(screen.getByText('abrir'))
+      await runUntilIdle()
+    }
+    await renderPanel()
+    expect([api.profile.mock.calls.length, calls('/recommendations'), calls('/gustos')]).toEqual([1, 1, 1])
+
+    await reopen()
+    expect(screen.getByText('Gaseosa cola 500 cc (prueba)')).toBeTruthy() // "Para ti" sigue, sin pedirlo otra vez
+    expect([api.profile.mock.calls.length, calls('/recommendations'), calls('/gustos')]).toEqual([1, 1, 1])
+
+    await forget()
+    await reopen()
+    expect([api.profile.mock.calls.length, calls('/recommendations'), calls('/gustos')]).toEqual([2, 2, 2])
+  })
+
+  test('lo guardado al abrir dura un minuto: dentro de 60 s no lo repite; pasado el minuto, sí', async () => {
+    const fetchMock = stubCatalog({ '/recommendations': rows(), 'GET /profile/*': { perfiles: [] } })
+    const calls = (part) => fetchMock.mock.calls.filter(([url]) => url.includes(part)).length
+    const reopen = async () => {
+      fireEvent.click(screen.getByRole('button', { name: 'Volver' }))
+      await runUntilIdle()
+      fireEvent.click(screen.getByText('abrir'))
+      await runUntilIdle()
+    }
+    await renderPanel()
+    expect([api.profile.mock.calls.length, calls('/recommendations'), calls('/gustos')]).toEqual([1, 1, 1])
+
+    await advance(OPEN_CACHE_MS - 10_000)
+    await reopen()
+    expect([api.profile.mock.calls.length, calls('/recommendations'), calls('/gustos')]).toEqual([1, 1, 1])
+
+    await advance(10_000) // pasado el minuto: lo aprendido (una búsqueda nueva) se vuelve a pedir
+    await reopen()
+    expect([api.profile.mock.calls.length, calls('/recommendations'), calls('/gustos')]).toEqual([2, 2, 2])
+  })
+
+  test('lo que falló al abrir se vuelve a pedir en la próxima apertura', async () => {
+    const fetchMock = stubCatalog({ '/recommendations': 'offline' })
+    const calls = () => fetchMock.mock.calls.filter(([url]) => url.includes('/recommendations')).length
+    await renderPanel()
+    expect(calls()).toBe(1)
+    fireEvent.click(screen.getByRole('button', { name: 'Volver' }))
+    await runUntilIdle()
+    fireEvent.click(screen.getByText('abrir'))
+    await runUntilIdle()
+    expect(calls()).toBe(2)
   })
 
   test('la fila "Lo más pedido" de Para ti se cuenta como mostrada con su tipo', async () => {

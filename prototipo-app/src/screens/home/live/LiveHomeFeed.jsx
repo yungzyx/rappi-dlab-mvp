@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { offer, plans as fetchPlans } from '../../../api/agent'
 import { envelope } from '../../../api/attribution'
 import { conceptOf } from '../../../api/orders'
-import { noteShown } from '../../../api/suggestions'
+import { noteOfferShown, noteShown } from '../../../api/suggestions'
 import { userId } from '../../../api/user'
 import DemoDisclaimer from '../../../components/DemoDisclaimer'
 import PlainSearchBar from '../../../components/PlainSearchBar'
@@ -292,12 +292,7 @@ export default function LiveHomeFeed({ push, active = true }) {
     // Se fue de la Home, repitió la escena, lo silenciaron mientras tanto o ya empezó la guía: ya no es el momento.
     // Tampoco tapa la explicación de los accesos que se acaban de mover.
     if (!made || mine !== run.current || silent() || touring.current || said.current?.reorder) return
-    noteShown(events.track, made.products, {
-      origin: `agent-${made.moment}`,
-      concept: made.reason?.concept,
-      reason: made.reason,
-      generation: profile.resets,
-    })
+    noteOfferShown(events.track, made, { generation: profile.resets })
     const see = made.actions.find((action) => action.route)
     speak(
       {
@@ -398,12 +393,9 @@ export default function LiveHomeFeed({ push, active = true }) {
           if (!current || generation !== generationNow.current) return
           const shown = made?.products.length ? made : null
           if (shown)
-            noteShown(events.track, shown.products, {
-              origin: `agent-${shown.moment}`,
-              concept: shown.reason?.concept,
-              reason: shown.reason,
+            noteOfferShown(events.track, shown, {
               generation,
-              ...(shown.moment === 'volver' ? { kind: winbackKind(shown) } : {}),
+              kind: shown.moment === 'volver' ? winbackKind(shown) : undefined,
             })
           setRepeat(shown)
         },

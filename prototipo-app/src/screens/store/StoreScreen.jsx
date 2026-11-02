@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { noteItemView, noteRecommendationClick, placeList, placementFields } from '../../api/attribution'
 import { menu as loadMenu, storeForYou } from '../../api/catalog'
 import { cartEventFields } from '../../api/orders'
@@ -26,9 +26,13 @@ const MODES = ['Envío', 'Retiro']
 const SKELETON_ROWS = 5
 const FOR_YOU = 'Para ti'
 const FOR_YOU_TAB = 'para-ti' // la pestaña "Para ti" entre los pasillos de una tienda
+const NO_PRODUCTS = []
 
 /** Las tiendas del catálogo se abren por su id numérico; las que el agente abre solo por nombre no están en la base. */
 const catalogId = (id) => (/^\d+$/.test(String(id ?? '')) ? Number(id) : null)
+
+/** Si `candidate` es el producto que se tocó para llegar a la tienda (`item`). */
+const isItem = (item, candidate) => candidate.id === item?.id || candidate.name === item?.name
 
 /** El menú de un restaurante, con su tarjeta como `store`. */
 async function readMenu(id) {
@@ -62,7 +66,7 @@ export default function StoreScreen({ back, params }) {
   const { aisles, aisle, setAisle, products, hasMore, loadMore, loadingMore } = shop
   const final = useDemo()?.isFinal === true
   const forYou = useApi(() => (final && id !== null ? storeForYou(id, userId()).catch(() => null) : null), [final, id])
-  const forYouProducts = forYou.data?.products ?? []
+  const forYouProducts = forYou.data?.products ?? NO_PRODUCTS
   const [forYouTab, setForYouTab] = useState(false)
   const cart = useCart()
 
@@ -102,31 +106,40 @@ export default function StoreScreen({ back, params }) {
   }
 
   // Un producto que llegó por parámetro y no está en lo que se ve se muestra destacado arriba.
-  const listed = (candidate) => candidate.id === item?.id || candidate.name === item?.name
   const visible = data?.sections ? data.sections.flatMap((section) => section.items) : products
-  const chosen = item && data && !visible.some(listed) ? item : null
-  // Una sugerencia del agente que sí está en lo que se ve lleva su origen a esa fila: agregarla desde ahí cuenta la
+  const chosen = item && data && !visible.some((candidate) => isItem(item, candidate)) ? item : null
+  // Cada producto de la tienda con su lugar: el pasillo (o el menú, de corrido entre secciones) y su posición. Una
+  // sugerencia del agente que sí está en lo que se ve lleva su origen a esa fila: agregarla desde ahí cuenta la
   // aceptación (useAddToCart), como desde "Lo que elegiste", y el carro dice que salió de la oferta (su lugar).
-  const withOrigin = (product) =>
-    item?.fromSuggestion && listed(product)
-      ? {
-          ...product,
-          fromSuggestion: true,
-          suggestionOrigin: item.suggestionOrigin,
-          placement: item.placement ?? product.placement,
-        }
-      : product
-  // Cada producto de la tienda con su lugar: el pasillo (o el menú, de corrido entre secciones) y su posición.
-  const inStore = (list, start = 0) =>
-    placeList(list, { surface: 'store', origin: restaurant ? 'menu' : 'pasillo', start }).map(withOrigin)
-  const menuSections = data?.sections?.reduce(
-    ({ sections, start }, section) => ({
-      sections: [...sections, { ...section, items: inStore(section.items, start) }],
-      start: start + section.items.length,
-    }),
-    // "Para ti" abre el menú con su propio lugar (`para-ti`, de su respuesta).
-    { sections: forYouProducts.length ? [{ name: FOR_YOU, items: forYouProducts }] : [], start: 0 },
-  ).sections
+  // Memoizado (y las secciones y la lista de abajo): un cambio del carro no rearma las filas.
+  const inStore = useCallback(
+    (list, start = 0) =>
+      placeList(list, { surface: 'store', origin: restaurant ? 'menu' : 'pasillo', start }).map((product) =>
+        item?.fromSuggestion && isItem(item, product)
+          ? {
+              ...product,
+              fromSuggestion: true,
+              suggestionOrigin: item.suggestionOrigin,
+              placement: item.placement ?? product.placement,
+            }
+          : product,
+      ),
+    [item, restaurant],
+  )
+  const sections = data?.sections
+  const menuSections = useMemo(
+    () =>
+      sections?.reduce(
+        ({ sections: placed, start }, section) => ({
+          sections: [...placed, { ...section, items: inStore(section.items, start) }],
+          start: start + section.items.length,
+        }),
+        // "Para ti" abre el menú con su propio lugar (`para-ti`, de su respuesta).
+        { sections: forYouProducts.length ? [{ name: FOR_YOU, items: forYouProducts }] : [], start: 0 },
+      ).sections,
+    [sections, forYouProducts, inStore],
+  )
+  const shelf = useMemo(() => inStore(products), [inStore, products])
   const showingForYou = forYouTab && forYouProducts.length > 0
   // La promo con un mínimo publicado en su texto y lo que el carro ya suma en esta tienda.
   const thresholdPromo = store.promos?.find((promo) => promo.threshold > 0)
@@ -242,7 +255,7 @@ export default function StoreScreen({ back, params }) {
               (products.length > 0 ? (
                 <>
                   <ul className="store-products">
-                    {inStore(products).map((product) => (
+                    {shelf.map((product) => (
                       <ProductRow key={product.id} product={product} impression checkStock />
                     ))}
                   </ul>

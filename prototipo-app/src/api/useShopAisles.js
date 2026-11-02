@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { useToast } from '../components/Toast'
 import { store as loadShop } from './catalog'
 import { useApi } from './useApi'
@@ -28,7 +28,10 @@ export function useShopAisles(shopId) {
 
   const aisleKey = data?.products ? `${data.store.id}:${data.aisle?.id}` : null
   const added = more?.key === aisleKey ? more : null
-  const products = data?.products ? [...data.products, ...(added?.products ?? [])] : []
+  // La misma lista mientras no cambien sus páginas: la tienda la memoiza con su lugar (StoreScreen: inStore).
+  const firstPage = data?.products
+  const morePages = added?.products
+  const products = useMemo(() => (firstPage ? [...firstPage, ...(morePages ?? [])] : []), [firstPage, morePages])
   const hasMore = added ? added.hasMore : Boolean(data?.hasMore)
 
   const loadMore = async () => {
