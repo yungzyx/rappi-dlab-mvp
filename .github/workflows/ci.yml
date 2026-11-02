@@ -198,6 +198,11 @@ jobs:
       - run: npx prettier --check src scripts
       - run: npm test
       - run: npm run build
+      # El panel en un solo HTML (modo panel-html), con una foto armada desde los ejemplos de src/fixtures (sin API).
+      - name: Panel en un solo HTML (npm run panel:html)
+        run: |
+          npm run panel:snapshot:fixtures
+          npm run panel:html
 
   # Los builds que se despliegan (app en /api, panel bajo /panel/) no llevan rastros de desarrollo: ni localhost, ni :8000,
   # ni los textos de `make mvp` (scripts/check-dist.sh).
@@ -239,7 +244,10 @@ jobs:
 
       # shellcheck ya viene en las imágenes de ubuntu-latest.
       - name: shellcheck
-        run: shellcheck -x scripts/*.sh rappi-scraper/scripts/*.sh rappi-ia/scripts/*.sh deploy/*.sh deploy/db/*.sh deploy/scripts/*.sh
+        run: shellcheck -x scripts/*.sh rappi-scraper/scripts/*.sh rappi-ia/scripts/*.sh deploy/*.sh deploy/db/*.sh deploy/scripts/*.sh deploy/macos/*.sh
+
+      - name: Enlaces relativos de los .md (archivos y anclas)
+        run: python3 scripts/check-doc-links.py
 
   # Claves, tokens y contraseñas en los archivos versionados del commit (git archive: sin .git ni lo ignorado), con
   # gitleaks en una versión fija. Solo lee el repo. Las excepciones, revisadas una por una, en .github/gitleaks.toml.
@@ -266,10 +274,12 @@ jobs:
   # El stack de deploy/ de punta a punta, como en un servidor: construye las imágenes (la API sin hornear el modelo,
   # BAKE_MODEL=0: lo descarga al arrancar), levanta Postgres con sus roles, restaura como rappi_owner un dump del
   # catálogo de prueba (seed-demo, inventado), deja que migrate corra deploy-migrate y pasa deploy/smoke.sh contra Caddy
-  # con DOMAIN=localhost (su CA interna). Las claves son desechables, generadas aquí.
+  # con DOMAIN=localhost (su CA interna), primero sin el panel y después con él (WITH_PANEL=1 y API_ENABLE_ANALYTICS=1).
+  # Al final, los respaldos: `rappi backup`, el nocturno (con restic en un repositorio local) y la prueba de
+  # restauración. Las claves son desechables, generadas aquí.
   docker:
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 40
 
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -360,6 +370,28 @@ jobs:
           $COMPOSE exec -T -e HF_HUB_OFFLINE=1 api python -c \
             "from rappi_ia.embeddings.models import E5Embedder; print('modelo', E5Embedder().dim)"
 
+      # Segunda pasada, con el panel: la imagen web con WITH_PANEL=1 y la API con /analytics. Compose recrea la API (su
+      # entorno cambió) y migrate vuelve a correr (no hay nada pendiente: no respalda).
+      - name: Con el panel (WITH_PANEL=1 y API_ENABLE_ANALYTICS=1)
+        run: |
+          set -euo pipefail
+          sed -i -e 's/^WITH_PANEL=0$/WITH_PANEL=1/' -e 's/^API_ENABLE_ANALYTICS=0$/API_ENABLE_ANALYTICS=1/' "$RAPPI_ENV_FILE"
+          grep -qx 'WITH_PANEL=1' "$RAPPI_ENV_FILE" && grep -qx 'API_ENABLE_ANALYTICS=1' "$RAPPI_ENV_FILE"
+          $COMPOSE build web
+          $COMPOSE up -d
+          for _ in $(seq 1 90); do
+            status=$($COMPOSE ps --format '{{.Service}} {{.Status}}')
+            if grep -q '^api .*(healthy)' <<<"$status" && grep -q '^web .*(healthy)' <<<"$status"; then
+              break
+            fi
+            sleep 10
+          done
+          $COMPOSE ps -a
+          test "$($COMPOSE exec -T api printenv API_ENABLE_ANALYTICS)" = 1
+
+      - name: deploy/smoke.sh https://localhost (con el panel)
+        run: WITH_PANEL=1 deploy/smoke.sh https://localhost
+
       # El servicio jobs: pg_dump 17 con la base, el volumen de respaldos y el candado de descargas en la base.
       - name: Trabajos (rappi backup en el volumen de respaldos)
         run: |
@@ -367,6 +399,20 @@ jobs:
           $COMPOSE --profile jobs run --rm jobs sh -c 'pg_dump --version && restic version && make --version | head -n 1'
           $COMPOSE --profile jobs run --rm jobs rappi backup
           $COMPOSE --profile jobs run --rm jobs sh -c 'ls -l /data/backups/rappi_*.dump'
+
+      # El respaldo nocturno de rappi-backup.timer, con la copia "fuera del equipo" en un repositorio restic desechable
+      # dentro del mismo contenedor (sin almacenamiento externo en el CI), y la prueba de restauración del mes: restaura
+      # el más nuevo (el nocturno) en rappi_restore_check, corre `rappi-ia doctor` y borra esa base.
+      - name: Respaldo nocturno (backup-nightly.sh) y prueba de restauración (restore-check.sh)
+        run: |
+          set -euo pipefail
+          restic_password=$(openssl rand -hex 24)
+          echo "::add-mask::$restic_password"
+          $COMPOSE --profile jobs run --rm -e RESTIC_REPOSITORY=/tmp/restic-ci -e RESTIC_PASSWORD="$restic_password" \
+            jobs sh -c 'restic init -q && bash deploy/scripts/backup-nightly.sh && restic snapshots --tag nocturno'
+          $COMPOSE --profile jobs run --rm jobs sh -c 'ls -l /data/backups/nocturno_*.dump'
+          deploy/scripts/restore-check.sh
+          test -z "$($COMPOSE exec -T db psql -U postgres -Atc "SELECT 1 FROM pg_database WHERE datname = 'rappi_restore_check'")"
 
       - name: Registros del stack
         if: failure()
