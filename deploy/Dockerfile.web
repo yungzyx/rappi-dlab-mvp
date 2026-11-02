@@ -5,7 +5,7 @@
 # VITE_DEMO=1 deja el interruptor de la demo en la app; WITH_PANEL=1 construye el panel bajo /panel/ (sin él, /panel/
 # responde 404).
 
-FROM node:24.22.1-trixie AS build
+FROM node:24.22.2-trixie AS build
 
 WORKDIR /src
 COPY prototipo-app/package.json prototipo-app/package-lock.json prototipo-app/
