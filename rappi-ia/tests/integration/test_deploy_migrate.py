@@ -294,3 +294,54 @@ def test_grants_file_lets_the_api_role_write_only_its_tables(db):
         with pytest.raises(errors.InsufficientPrivilege), conn.transaction():
             conn.execute(forbidden)
     conn.rollback()
+
+
+# Tablas de personas que la API no escribe: las arman los trabajos de las capas y del motor (rappi_owner), y solo
+# viajan filtradas en el respaldo de entrega.
+NOT_WRITTEN_BY_API = {
+    "layer_runs",  # registro de las corridas de las capas y del motor
+    "vertical_transitions",  # motor (make motor)
+    "combo_stats",
+    "combo_steps",
+    "cross_sell_rules",
+    "trends",
+    "knowledge_edges",  # grafo (make layers)
+}
+
+
+def test_grants_file_covers_every_person_table_the_api_writes(db):
+    """Una tabla de personas nueva (en PERSON_TABLES) que la API escribe y que no está en grants.sql falla aquí, no en
+    producción: el rol de la API tiene INSERT sobre cada una y USAGE sobre su secuencia, si tiene."""
+    from psycopg import sql
+
+    from rappi_ia.delivery import PERSON_TABLES
+
+    assert PERSON_TABLES.keys() >= NOT_WRITTEN_BY_API
+    conn = db
+    role = "rappi_api_prueba"
+    for name in ("rappi_owner", role):
+        if conn.execute("SELECT 1 FROM pg_roles WHERE rolname = %s", (name,)).fetchone() is None:
+            conn.execute(sql.SQL("CREATE ROLE {}").format(sql.Identifier(name)))
+    conn.execute(sql.SQL(cli.GRANTS_FILE.read_text(encoding="utf-8")).format(api_role=sql.Identifier(role)))
+
+    written = sorted(PERSON_TABLES.keys() - NOT_WRITTEN_BY_API)
+    missing = [
+        table
+        for (table,) in conn.execute(
+            "SELECT t FROM unnest(%s::text[]) t WHERE NOT has_table_privilege(%s, 'public.' || t, 'INSERT')",
+            (written, role),
+        ).fetchall()
+    ]
+    sequences = conn.execute(
+        """SELECT d.refobjid::regclass::text, d.objid::regclass::text,
+                  has_sequence_privilege(%s, d.objid, 'USAGE')
+           FROM pg_depend d JOIN pg_class s ON s.oid = d.objid AND s.relkind = 'S'
+           WHERE d.classid = 'pg_class'::regclass AND d.refclassid = 'pg_class'::regclass
+             AND d.refobjid = ANY (SELECT to_regclass('public.' || t) FROM unnest(%s::text[]) t)""",
+        (role, written),
+    ).fetchall()
+    conn.rollback()
+
+    assert missing == [], f"sin INSERT para la API en deploy/db/grants.sql: {missing}"
+    assert ("app_events", "app_events_event_id_seq", True) in sequences  # la consulta encuentra las secuencias
+    assert [seq for _, seq, usable in sequences if not usable] == []
