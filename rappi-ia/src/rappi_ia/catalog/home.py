@@ -46,7 +46,7 @@ def home(conn: Connection) -> dict:
     menor costo de envío). Una lista sin datos queda vacía. Sale de la caché del catálogo (catalog/cache.py); el
     estado de cada restaurante según su horario publicado se compara con la hora de cada request, y los cerrados van
     al final."""
-    lists = cached("home", conn, lambda: _home(conn))
+    lists = cached("home", conn, lambda: _home(conn), refresh=_home)
     return {
         **lists,
         "fast_restaurants": with_hours(lists["fast_restaurants"]),

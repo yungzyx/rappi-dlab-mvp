@@ -6,6 +6,9 @@ deja en la caché del sistema operativo: los HNSW suman más que shared_buffers 
 el modo `prefetch` no existe en macOS. No bloquea el arranque ni /health, usa su propia conexión (no una del pool) y
 tiene un tope de tiempo. Si falta la extensión, el permiso o la base, anota un aviso y la API sigue igual, en frío.
 Se apaga con API_PREWARM=0 (los tests).
+
+El mismo hilo sigue después con la mantención de la caché del catálogo (catalog/cache.py: `keep_warm`): calcula la
+Home una vez, para que ni el primer request la pague, y cada minuto renueva lo registrado que esté por vencer.
 """
 
 import logging
@@ -88,10 +91,53 @@ def prewarm_search_indexes(url: str | None = None, budget_s: float = BUDGET_S) -
     return done
 
 
+def keep_catalog_warm(url: str | None = None, stop: threading.Event | None = None) -> None:
+    """La mantención de la caché del catálogo, hasta que `stop` se active: primero la Home (queda en la caché y
+    registrada), y después una pasada de `cache.keep_warm` cada WARM_EVERY_S. Cada pasada conecta y desconecta (no
+    retiene una conexión). Nunca lanza: una base caída deja un aviso y vuelve a intentar en la próxima pasada."""
+    from ..catalog import cache
+    from ..catalog.home import home
+
+    stop = stop or threading.Event()
+    first = True
+    while not stop.is_set():
+        try:
+            with psycopg.connect(
+                url or database_url(), connect_timeout=3, autocommit=True, application_name="rappi-ia-mantencion"
+            ) as conn:
+                conn.execute("SELECT set_config('statement_timeout', %s, false)", (f"{WARM_STATEMENT_TIMEOUT_MS}ms",))
+                if first:
+                    home(conn)
+                    first = False
+                renewed = cache.keep_warm(conn)
+            if renewed:
+                log.info("Caché del catálogo renovada: %s", ", ".join(renewed))
+        except (psycopg.Error, RuntimeError) as exc:
+            log.warning("No se pudo mantener caliente la caché del catálogo: %s", exc)
+        stop.wait(cache.WARM_EVERY_S)
+
+
+WARM_STATEMENT_TIMEOUT_MS = 30_000  # una consulta de la mantención que tarde más se corta: la próxima pasada reintenta
+
+
+_stop = threading.Event()
+
+
+def _run() -> None:
+    prewarm_search_indexes()
+    keep_catalog_warm(stop=_stop)
+
+
 def start() -> threading.Thread | None:
-    """Lanza la precarga en un hilo daemon (no retiene el cierre de la API). Con API_PREWARM=0, nada."""
+    """Lanza la precarga y la mantención en un hilo daemon (no retiene el cierre de la API). Con API_PREWARM=0, nada."""
     if not config.API_PREWARM:
         return None
-    thread = threading.Thread(target=prewarm_search_indexes, name="precarga-busqueda", daemon=True)
+    _stop.clear()
+    thread = threading.Thread(target=_run, name="precarga-busqueda", daemon=True)
     thread.start()
     return thread
+
+
+def stop() -> None:
+    """Termina la mantención (al cerrar la API, y los tests)."""
+    _stop.set()

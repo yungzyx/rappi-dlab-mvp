@@ -1220,7 +1220,7 @@ def _popular_dishes(conn: Connection) -> list[dict]:
     relleno (`side_dish`) y de un local de la ciudad de la demo (`config.PROFILE_CITY`: la lista es una sola para
     todos). Restaurantes no tiene ofertas ni otro dato de pedidos. Es dato del catálogo y no de la persona: sale de su
     caché (catalog/cache.py), porque buscarlos recorre todos los platos."""
-    return cached("popular_dishes", conn, lambda: _find_popular_dishes(conn))
+    return cached("popular_dishes", conn, lambda: _find_popular_dishes(conn), refresh=_find_popular_dishes)
 
 
 def _find_popular_dishes(conn: Connection) -> list[dict]:

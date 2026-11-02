@@ -104,7 +104,7 @@ Todas van en `/etc/rappi/rappi.env`, salvo las que fija `docker-compose.yml` o l
 | `API_RATE_PER_MIN` / `API_RATE_WRITE_PER_MIN` | api (por IP; 429; `0` = sin tope) | `120` / `60` | — | no |
 | `API_NEW_USERS_PER_IP_DAY` | api (`POST /session`; `0` = sin tope) | `20` | `200` para un evento | no |
 | `API_TIMEOUT_INTERACTIVE_MS` / `API_TIMEOUT_ANALYTICS_MS` | api (tope por consulta; 504) | `5000` / `30000` | — | no |
-| `API_PREWARM` | api (precarga en segundo plano de los índices de la búsqueda al arrancar; `0` = sin precarga) | `1` | — | no |
+| `API_PREWARM` | api (precarga en segundo plano de los índices de la búsqueda al arrancar y mantención de la caché del catálogo cada minuto; `0` = sin ninguna de las dos) | `1` | — | no |
 | `API_ALLOW_LAN` | api | se ignora en producción | — | no |
 | `LOG_LEVEL` | api | `INFO` | `DEBUG` | no |
 | `ANTHROPIC_API_KEY` | api | vacía: plantillas | `sk-…` | sí |
