@@ -179,7 +179,7 @@ function AlsoIn({ alsoIn, onAction }) {
  * tienda. Con `orderSummary`, el resumen
  * del carro antes de pagar; con `lastOrder`, el último pedido (`onTrack` abre su seguimiento); con `autoOrder`, lo de
  * siempre que Mochi pide solo o deja para revisar (`autoOrder` de las props: su estado y lo que hacen sus botones, que
- * lleva AssistantPanel). Mientras espera, si la respuesta se puede cortar (`cancellable`), dice qué está haciendo y
+ * lleva useAutoOrders). Mientras espera, si la respuesta se puede cortar (`cancellable`), dice qué está haciendo y
  * ofrece "Cancelar" (`onCancel`).
  */
 export default function AgentMessage({

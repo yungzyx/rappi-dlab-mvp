@@ -405,7 +405,7 @@ const HELP_TODAY =
   `Soy ${AGENT_NAME} 🧡, tu asistente en Rappi. ` +
   'Busca lo que necesites ("pañales talla G", "algo de sushi", "una once para 4") y te muestro lo que hay, aunque ' +
   'esté en otra vertical.'
-// El resumen y el pedido: los mismos textos que pone la app (components/assistant/AssistantPanel.jsx).
+// El resumen y el pedido: los mismos textos que pone la app (components/assistant/useAgentAnswers.js).
 export const SUMMARY_TEXT =
   'Este es el resumen de tu pedido antes de pagar 🧾. Revísalo y paga en el checkout: si no me diste permiso con ' +
   '"Pedir por mí", el pedido lo haces tú.'

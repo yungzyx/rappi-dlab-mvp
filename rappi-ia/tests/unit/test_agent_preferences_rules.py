@@ -237,5 +237,5 @@ def _js_constant(path: Path, name: str) -> str:
 def test_the_summary_and_order_texts_are_the_apps(kind, name):
     """El resumen y el pedido dicen lo mismo en la API, en la app y en la copia sin conexión."""
     text = TemplateComposer().compose(Draft(kind=kind))
-    for path in (APPS[0] / "components/assistant/AssistantPanel.jsx", APPS[0] / "api/offline/search.js"):
+    for path in (APPS[0] / "components/assistant/useAgentAnswers.js", APPS[0] / "api/offline/search.js"):
         assert _js_constant(path, name) == text, path.name

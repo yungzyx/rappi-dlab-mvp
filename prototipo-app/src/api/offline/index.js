@@ -52,7 +52,7 @@
 // - rappi-ia/src/rappi_ia/agent/rappi_agent.py (_small_talk, HELP_ACTIONS, IDEA_KINDS), understand.py (APP_QUESTIONS,
 //   GREETING_WORDS, THANKS_WORDS, LAUGHTER) y compose.py ... el saludo, el "gracias", el fuera de tema y lo vacío, la
 //   ayuda con los atajos de lo que Mochi sabe hacer, el resumen antes de pagar y el último pedido (search.js:
-//   smallTalk, appQuestion, helpReply). Los textos del resumen y del pedido son los de la app (AssistantPanel.jsx)
+//   smallTalk, appQuestion, helpReply). Los textos del resumen y del pedido son los de la app (useAgentAnswers.js)
 // - rappi-ia/src/rappi_ia/catalog/terms.py ........ las condiciones de compra de las tiendas (catalog.js: storeTerms;
 //   la muestra solo sabe el envío de los restaurantes)
 // - rappi-ia/src/rappi_ia/offers/autonomy.py, api/autonomy.py, agent/understand.py (USUAL_ORDER), rappi_agent.py
