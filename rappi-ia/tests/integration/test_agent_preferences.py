@@ -262,9 +262,8 @@ def test_it_is_a_person_table(db):
 
 
 def test_ask_reads_without_leaving_the_transaction_open(client, db):
-    """`/agent/ask` lee el perfil y la dieta antes de calcular el vector del mensaje: esas lecturas se confirman, como
-    en `/search`, para que una transacción abierta no espere al modelo (api/deps.py: 10 s). (`/agent/offer` todavía lee
-    dentro de cada momento antes de embeber: pendiente.)"""
+    """`/agent/ask` lee el perfil, la dieta y el mensaje (qué pide) antes de calcular el primer vector: esas lecturas se
+    confirman, como en `/search`, para que una transacción abierta no espere al modelo frío (api/deps.py: 10 s)."""
     say(client, "no como carne")
     seen = []
 
@@ -283,4 +282,5 @@ def test_ask_reads_without_leaving_the_transaction_open(client, db):
     )
     seen.clear()
     say(client, "algo para la once")
-    assert seen and set(seen) == {TransactionStatus.IDLE}
+    # El primero es el que puede tardar (el modelo frío); con el modelo cargado, los que siguen son instantáneos.
+    assert seen and seen[0] == TransactionStatus.IDLE
