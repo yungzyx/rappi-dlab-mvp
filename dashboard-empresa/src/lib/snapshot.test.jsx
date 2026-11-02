@@ -77,7 +77,8 @@ describe('Ver cómo funciona', () => {
     vi.stubGlobal('fetch', vi.fn())
     await renderWithData(<App />)
 
-    await act(async () => fireEvent.click(screen.getByRole('button', { name: 'Ver cómo funciona' })))
+    const open = await screen.findByRole('button', { name: 'Ver cómo funciona' }) // DemoTour llega con lazy()
+    await act(async () => fireEvent.click(open))
     const tour = screen.getByRole('complementary', { name: 'Ver cómo funciona' })
     expect(within(tour).getByText('Demostración')).toBeTruthy()
     expect(within(tour).getByText('Eventos de ejemplo sobre la foto grabada: no son datos reales.')).toBeTruthy()
