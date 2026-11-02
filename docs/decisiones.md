@@ -7,7 +7,7 @@ Bigotes es el nombre anterior de Mochi (hasta el 09-10-2026): las filas fechadas
 
 ## Lo vigente
 
-Resumen de lo que rige hoy (26-10-2026); el detalle y el porqué están en las filas. Una fila "Matizada" sigue vigente con el ajuste que indica.
+Resumen de lo que rige hoy (01-11-2026); el detalle y el porqué están en las filas. Una fila "Matizada" sigue vigente con el ajuste que indica.
 
 - **Alcance:** solo el contenido público de Rappi Chile, sin datos internos; proyecto del programa dLab desarrollado junto con Rappi Chile, para investigación y demostración ([alcance](#alcance-y-uso-responsable)).
 - **Buscar dentro de cada vertical, entender a través de las verticales:** la búsqueda nunca mezcla los índices de las verticales; los puentes son los conceptos y el motor multivertical ([modelo de datos](#modelo-de-datos), [búsqueda](#búsqueda-e-ia)).
@@ -278,7 +278,7 @@ Resumen de lo que rige hoy (26-10-2026); el detalle y el porqué están en las f
 | 28-09-2026 | **Reemplazada el 30-10-2026** (fila anterior). Proyecto independiente: no está afiliado ni respaldado por Rappi; las marcas pertenecen a sus dueños. | Transparencia al presentarlo como propuesta. |
 | 28-09-2026 | Las decisiones viven en este documento; `CLAUDE.md` solo tiene las convenciones del repositorio. | Un lugar para cada cosa. |
 | 28-09-2026 | Las métricas se publican con sus salvedades: relevancia juzgada automáticamente por concepto, ventaja del híbrido atribuible al refuerzo por concepto (ablación: sin refuerzo 0,860 frente a 0,846 del vectorial, IC 95 % −0,012 a 0,042; con el set renovado del 22-10, 0,842 frente a 0,835, IC 95 % −0,019 a 0,035). | No sobrestimar los resultados. Detalle en [README.md#resultados](../README.md#resultados). |
-| 24-10-2026 | **Matizada el 25-10-2026:** el repositorio de la entrega partió de un solo commit y después siguió con PR revisados (las fases 1 a 10 y la revisión del 26-10, PR #9 a #24; resumen en el [README](../README.md#cambios-del-25-y-26-10-2026)). **La entrega a Rappi es un repositorio nuevo con un solo commit**, sin el historial de desarrollo. | Un punto de partida limpio, sin ramas ni trabajo intermedio. |
+| 24-10-2026 | **Matizada el 25-10-2026:** el repositorio de la entrega partió de un solo commit y después siguió con PR revisados (las fases 1 a 10 y la revisión del 26-10, PR #9 a #24, y lo que siguió hasta el 01-11, PR #25 a #43; resumen en el [README](../README.md#cambios-desde-el-25-10-2026)). **La entrega a Rappi es un repositorio nuevo con un solo commit**, sin el historial de desarrollo. | Un punto de partida limpio, sin ramas ni trabajo intermedio. |
 | 24-10-2026 | **Licencia "Todos los derechos reservados"** ([`LICENSE`](../LICENSE)), con permiso de uso, copia y modificación internos para Rappi S.A.S. y sus filiales, sin redistribución a terceros. Queda sujeta a lo que diga el acuerdo de dLab, si existe. | El repositorio trae capturas, marcas y contenido de Rappi y de sus comercios: una licencia abierta no sirve. |
 | 24-10-2026 | **La app queda toda en español**, también lo que se copió de las capturas de la app iOS y seguía en inglés (fila del 09-10 sobre la "Propuesta" en el [historial](historial/decisiones-reemplazadas.md#agente-mochi)). | La app de Rappi Chile se usa en español, y mezclar idiomas en una pantalla confunde. |
 | 24-10-2026 | **Configuración de GitHub para la entrega:** `CODEOWNERS`, plantillas de PR e issues, `SECURITY.md` y `CONTRIBUTING.md`. | Que quien llegue sepa a quién avisar, cómo proponer un cambio y qué revisar antes de fusionarlo. |
