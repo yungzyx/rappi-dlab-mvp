@@ -50,7 +50,8 @@ for dir in prototipo-app/dist dashboard-empresa/dist; do
 done
 
 base="${PANEL_BASE:-/panel/}"
-if ! grep -qF -e "src=\"${base}assets/" dashboard-empresa/dist/index.html; then
+# Sin panel (deploy/Dockerfile.web con WITH_PANEL=0 deja su carpeta vacía) no hay nada que revisar.
+if [ -f dashboard-empresa/dist/index.html ] && ! grep -qF -e "src=\"${base}assets/" dashboard-empresa/dist/index.html; then
   echo "check-dist: dashboard-empresa/dist/index.html no pide sus archivos desde ${base}assets/ (PANEL_BASE=$base);" \
     "construido así, el panel abre en blanco en el servidor." >&2
   status=1
