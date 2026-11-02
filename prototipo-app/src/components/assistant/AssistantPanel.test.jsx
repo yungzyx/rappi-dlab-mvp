@@ -704,6 +704,18 @@ describe('pedirle algo a Mochi desde el buscador', () => {
     expect(tracked('search')).toEqual([])
   })
 
+  test('tocar la fila no le quita el foco al campo: bloquea el pointerdown (Safari de iOS) y el mousedown', async () => {
+    await renderPanel()
+    const field = screen.getByLabelText('Buscar en Rappi')
+    fireEvent.change(field, { target: { value: QUESTION } })
+    await runUntilIdle()
+    const row = screen.getByRole('button', { name: `Pídele a Mochi: "${QUESTION}"` })
+    // En el celular el toque llega como pointerdown, antes que el mousedown: si no se bloquea, el campo pierde el foco
+    // y el blur anota una búsqueda que la persona no hizo.
+    expect(fireEvent.pointerDown(row)).toBe(false)
+    expect(fireEvent.mouseDown(row)).toBe(false)
+  })
+
   test('bajo una respuesta de salud no salen las ideas de siempre ("Arma un carrete")', async () => {
     api.ask.mockResolvedValueOnce({ ...apiAnswer('No puedo decirte qué remedio tomar…'), intent: { symptom: true } })
     await renderPanel()
