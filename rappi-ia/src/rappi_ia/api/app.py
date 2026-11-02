@@ -87,6 +87,7 @@ async def lifespan(app: FastAPI):
         prewarm.start()  # en su hilo: ni el arranque ni /health la esperan
         yield
     finally:
+        prewarm.stop()
         await run_in_threadpool(deps.close_pool)
 
 

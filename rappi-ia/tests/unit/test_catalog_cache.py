@@ -1,5 +1,6 @@
 """La caché del catálogo: un valor se reutiliza mientras no haya una corrida nueva ni pase su TTL."""
 
+import logging
 import threading
 import time
 from concurrent.futures import ThreadPoolExecutor
@@ -212,3 +213,75 @@ def test_clear_also_forgets_many(clock):
     cache.cached_many("df", conn, ["a"], fetch)
 
     assert asked == [["a"], ["a"]]
+
+
+def _refresher():
+    calls = []
+
+    def refresh(conn):
+        calls.append(conn)
+        return {"renovado": len(calls)}
+
+    return refresh, calls
+
+
+def test_keep_warm_renews_what_is_about_to_expire_and_leaves_the_rest(clock):
+    """Lo registrado con `refresh` se recalcula antes de vencer (WARM_AHEAD_S), y lo que acaba de calcularse, no."""
+    conn = FakeConn()
+    compute, _ = _counter()
+    refresh, calls = _refresher()
+    cache.cached("home", conn, compute, ttl_s=600, refresh=refresh)
+    cache.cached("docs:licores", conn, compute, ttl_s=600)  # sin refresh: no se mantiene caliente
+    assert cache.keep_warm(conn) == []  # recién calculado
+
+    clock.now += 600 - cache.WARM_AHEAD_S
+    assert cache.keep_warm(conn) == ["home"]
+    assert calls == [conn]
+    assert cache.cached("home", conn, compute, ttl_s=600, refresh=refresh) == {"renovado": 1}  # ya renovado: no vence
+    clock.now += 10
+    assert cache.cached("docs:licores", conn, compute, ttl_s=600) == {"vez": 2}  # este sí venció y se recalculó
+
+
+def test_keep_warm_renews_everything_registered_after_a_new_run(clock):
+    conn = FakeConn(run_id=7)
+    compute, _ = _counter()
+    refresh, calls = _refresher()
+    cache.cached("home", conn, compute, refresh=refresh)
+    conn.run_id = 8
+    assert cache.keep_warm(conn) == ["home"]
+    clock.now += cache.VERSION_TTL_S  # el request vuelve a preguntar la versión y ve la corrida nueva
+    assert cache.cached("home", conn, compute, refresh=refresh) == {"renovado": 1}  # la versión nueva, sin recalcular
+    assert calls == [conn]
+
+
+def test_keep_warm_computes_what_was_registered_but_cleared(clock):
+    """Tras `clear` (o si nunca se pidió) lo registrado no está: la pasada lo calcula."""
+    conn = FakeConn()
+    refresh, calls = _refresher()
+    cache._warm["home"] = (refresh, 600)
+    assert cache.keep_warm(conn) == ["home"]
+    assert calls == [conn]
+
+
+def test_a_refresh_that_fails_keeps_the_old_value_and_the_others_go_on(clock, caplog):
+    conn = FakeConn()
+    compute, _ = _counter()
+    refresh, _ = _refresher()
+
+    def broken(_conn):
+        raise RuntimeError("la base no respondió")
+
+    cache.cached("home", conn, compute, refresh=broken)
+    cache.cached("deals:licores:24", conn, compute, refresh=refresh)
+    clock.now += 600
+    with caplog.at_level(logging.WARNING, logger="rappi_ia.catalog.cache"):
+        assert cache.keep_warm(conn) == ["deals:licores:24"]
+    assert "No se pudo renovar home" in caplog.text
+    assert cache._values["home"][2] == {"vez": 1}  # lo de antes sigue (vencido: el próximo request lo recalcula)
+
+
+def test_clear_also_forgets_what_was_registered(clock):
+    refresh, _ = _refresher()
+    cache.cached("home", FakeConn(), lambda: 1, refresh=refresh)
+    cache.clear()
+    assert cache._warm == {}

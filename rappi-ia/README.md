@@ -126,7 +126,7 @@ La tarea semanal del scraper (`make schedule` en `rappi-scraper/`) ya lo hace so
 | `API_CORS_ORIGINS` | `localhost` y `127.0.0.1` en los puertos 51xx | exactamente estos orígenes (el stack pone `https://<dominio>`) |
 | `API_ENABLE_ANALYTICS` / `API_DOCS` | `1` / `1` | `0` / `0` |
 | `API_POOL_MAX` · `API_POOL_TIMEOUT_S` | `10` · `3` | igual |
-| `API_PREWARM` | `1`: precarga los índices de la búsqueda al arrancar, sin esperarla | igual |
+| `API_PREWARM` | `1`: precarga los índices de la búsqueda al arrancar, sin esperarla, y mantiene caliente la caché del catálogo (la Home, las ofertas, las tiendas por vertical) renovándola antes de que venza | igual |
 | `API_RATE_PER_MIN` · `API_RATE_WRITE_PER_MIN` · `API_NEW_USERS_PER_IP_DAY` | `120` · `60` · `20` (este equipo sin tope) | igual, para todas las IP |
 | `API_REQUIRE_SEMANTIC` | `0` | `1` en el stack |
 | `LLM_DAILY_CALL_CAP` | `300` | igual |

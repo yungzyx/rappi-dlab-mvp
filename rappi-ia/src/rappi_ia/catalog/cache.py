@@ -7,6 +7,12 @@ vence a los `ttl_s` segundos: una corrida nueva lo invalida y lo que cambia sin 
 `make layers`) se ve a lo más 10 minutos después. La versión se vuelve a preguntar a lo más cada VERSION_TTL_S
 segundos: una búsqueda pide los conteos de 8 verticales y no hace 8 consultas para eso.
 
+Lo que se pide con `refresh` (una función que recalcula el valor con cualquier conexión) además se mantiene caliente:
+`keep_warm` (en el hilo de la precarga, api/prewarm.py) lo recalcula con su propia conexión antes de que venza o cuando
+hay corrida nueva, así nadie paga en su request los segundos que tarda recorrer el catálogo (la Home en frío tardaba
+4 s y vencía cada 10 minutos). Lo que no lleva `refresh` (lo que depende del request, como la cuenta de documentos
+de una búsqueda) sigue venciendo y recalculándose a pedido.
+
 Los valores son compartidos entre requests: quien los recibe no los modifica.
 Las claves no llevan la base: un proceso de la API sirve una sola base (los tests vacían la caché en cada uno).
 
@@ -15,6 +21,7 @@ cuántos documentos de cada vertical está cada uno, el df de la búsqueda léxi
 más MANY_MAX y olvida lo usado hace más tiempo (LRU).
 """
 
+import logging
 import threading
 import time
 from collections import OrderedDict
@@ -22,17 +29,22 @@ from collections.abc import Callable
 
 from psycopg import Connection
 
+log = logging.getLogger(__name__)
+
 DEFAULT_TTL_S = 600
 VERSION_TTL_S = 5
 MANY_MAX = 50_000  # entradas de `cached_many` (unos pocos MB)
 # Cuánto espera a quien ya está calculando el mismo valor. Quien espera tiene una transacción abierta y quieta, y la API
 # corta las que pasan 10 s así (`idle_in_transaction_session_timeout`, api/deps.py): pasado este tiempo lo calcula él.
 LOADING_WAIT_S = 8.0
+WARM_EVERY_S = 60  # cada cuánto revisa `keep_warm` lo registrado
+WARM_AHEAD_S = 120  # con cuánta anticipación al vencimiento lo recalcula
 
 _lock = threading.Lock()
 _values: dict[str, tuple[int, float, object]] = {}  # nombre → (versión, cuándo se guardó, valor)
 _many: OrderedDict[str, tuple[int, float, object]] = OrderedDict()  # lo mismo, de la usada hace más a la más reciente
 _version: tuple[float, int] | None = None  # (cuándo se preguntó, versión)
+_warm: dict[str, tuple[Callable[[Connection], object], float]] = {}  # nombre → (cómo recalcularlo, su ttl)
 
 
 def _now() -> float:
@@ -57,12 +69,23 @@ def _current_version(conn: Connection) -> int:
     return version
 
 
-def cached[T](name: str, conn: Connection, fn: Callable[[], T], ttl_s: float = DEFAULT_TTL_S) -> T:
+def cached[T](
+    name: str,
+    conn: Connection,
+    fn: Callable[[], T],
+    ttl_s: float = DEFAULT_TTL_S,
+    refresh: Callable[[Connection], T] | None = None,
+) -> T:
     """`fn()` guardado por `name` mientras la versión del catálogo sea la misma y no pasen `ttl_s` segundos. `name`
     lleva los parámetros que cambian el resultado ("deals:licores:24"). Si falta, lo calcula uno solo: los demás que
     lo piden a la vez esperan su resultado (en frío, seis personas abriendo la Home recorrían el catálogo seis
     veces). Si el cálculo falla, el siguiente que espera lo intenta. Se espera a lo más LOADING_WAIT_S: si el otro
-    tarda más, lo calcula también quien esperaba (su transacción no queda quieta hasta que la API la corte)."""
+    tarda más, lo calcula también quien esperaba (su transacción no queda quieta hasta que la API la corte).
+    Con `refresh` (lo mismo que `fn`, pero con la conexión que le pasen), el valor queda registrado para que
+    `keep_warm` lo renueve antes de que venza."""
+    if refresh is not None:
+        with _lock:
+            _warm[name] = (refresh, ttl_s)
     version = _current_version(conn)
     if (value := _fresh(name, version, ttl_s)) is not _MISSING:
         return value
@@ -132,10 +155,36 @@ def cached_many[T](
     return found
 
 
+def keep_warm(conn: Connection, now: float | None = None) -> list[str]:
+    """Una pasada de la mantención: recalcula con `conn` lo registrado con `refresh` que es de otra corrida o vence en
+    menos de WARM_AHEAD_S, y lo guarda. Devuelve los nombres renovados. Lo que falla queda como estaba (un aviso) y
+    el siguiente que lo pida lo recalcula, o la próxima pasada. La llama el hilo de la precarga cada WARM_EVERY_S."""
+    now = _now() if now is None else now
+    version = catalog_version(conn)
+    with _lock:
+        due = [
+            (name, refresh)
+            for name, (refresh, ttl_s) in _warm.items()
+            if (entry := _values.get(name)) is None or entry[0] != version or now - entry[1] >= ttl_s - WARM_AHEAD_S
+        ]
+    renewed = []
+    for name, refresh in due:
+        try:
+            value = refresh(conn)
+        except Exception as exc:  # noqa: BLE001 - una entrada que falla no frena la mantención de las demás
+            log.warning("No se pudo renovar %s en la caché del catálogo: %s", name, exc)
+            continue
+        with _lock:
+            _values[name] = (version, _now(), value)
+        renewed.append(name)
+    return renewed
+
+
 def clear() -> None:
     """Olvida todo (los tests: cada uno recrea la base)."""
     global _version
     with _lock:
         _values.clear()
         _many.clear()
+        _warm.clear()
         _version = None

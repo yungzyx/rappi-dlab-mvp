@@ -289,11 +289,11 @@ def vertical_stores(conn: Connection, vertical: str, limit: int = 30) -> list[di
     if vertical == "restaurantes":
         return []
 
-    def compute() -> list[dict]:
-        rows = conn.execute(_VERTICAL_STORES, {"vertical": vertical, "min_price": MIN_PRICE, "limit": limit})
+    def compute(c: Connection = conn) -> list[dict]:
+        rows = c.execute(_VERTICAL_STORES, {"vertical": vertical, "min_price": MIN_PRICE, "limit": limit})
         return closed_last([store_card(*row[:5], vertical, row[5]) for row in rows])
 
-    return cached(f"vertical_stores:{vertical}:{limit}", conn, compute)
+    return cached(f"vertical_stores:{vertical}:{limit}", conn, compute, refresh=compute)
 
 
 def store_page(

@@ -100,7 +100,12 @@ def deals(conn: Connection, vertical: str | None = None, limit: int = 24) -> lis
     catálogo (catalog/cache.py)."""
     if vertical == "restaurantes":
         return []
-    return cached(f"deals:{vertical}:{limit}", conn, lambda: _deals(conn, vertical, limit))
+    return cached(
+        f"deals:{vertical}:{limit}",
+        conn,
+        lambda: _deals(conn, vertical, limit),
+        refresh=lambda c: _deals(c, vertical, limit),
+    )
 
 
 def _deals(conn: Connection, vertical: str | None, limit: int) -> list[dict]:
