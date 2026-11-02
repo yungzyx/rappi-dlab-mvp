@@ -7,7 +7,8 @@ export const ENTER_HINT = `Enter se lo pide a ${AGENT_NAME}`
 /**
  * Primera fila del buscador con el agente mientras se escribe: le pide lo escrito a Mochi, que responde con su tarjeta
  * (no es un chat). Resaltada si parece un pedido para Mochi (`question`): entonces Enter también se lo pide y la fila lo
- * dice. No le quita el foco al campo (el blur registraría la búsqueda).
+ * dice. No le quita el foco al campo (el blur registraría la búsqueda): bloquea el `pointerdown` (en Safari de iOS el
+ * toque llega así y el campo perdía el foco antes del `mousedown`) y el `mousedown` (navegadores sin eventos de puntero).
  */
 export default function AskAgentRow({ query, question = false, hintId, onAsk }) {
   return (
@@ -15,6 +16,7 @@ export default function AskAgentRow({ query, question = false, hintId, onAsk }) 
       type="button"
       className={`agent-ask-row tap${question ? ' is-question' : ''}`}
       aria-label={`Pídele a ${AGENT_NAME}: "${query}"`}
+      onPointerDown={(e) => e.preventDefault()}
       onMouseDown={(e) => e.preventDefault()}
       onClick={onAsk}
     >
