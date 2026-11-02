@@ -33,7 +33,11 @@ unverified_pid=""
 weekly_running() {
   [ -n "$1" ] && [ "$1" != "$$" ] && kill -0 "$1" 2>/dev/null || return 1
   if command -v ps >/dev/null; then
-    ps -p "$1" -o command= 2>/dev/null | grep -q refresh-semanal
+    # Sin tubería a `grep -q`: con pipefail, si grep sale antes de que ps termine de escribir, ps muere por SIGPIPE y
+    # una ejecución viva parecía abandonada (otra borraba su candado).
+    local command
+    command=$(ps -p "$1" -o command= 2>/dev/null || true)
+    [[ $command == *refresh-semanal* ]]
   else
     unverified_pid=$1
   fi

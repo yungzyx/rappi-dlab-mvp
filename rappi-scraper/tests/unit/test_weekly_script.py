@@ -334,6 +334,33 @@ def test_live_foreign_pid_without_ps_is_skipped_and_noted(tmp_path, shell):
     assert finished.endswith("exit=0")
 
 
+def test_a_running_weekly_is_not_mistaken_for_dead_when_ps_is_cut_off(tmp_path, shell):
+    """Con pipefail, `ps … | grep -q` fallaba si grep salía antes de que ps terminara de escribir (SIGPIPE): una
+    ejecución viva parecía abandonada y otra borraba su candado. Un `ps` que sigue escribiendo después de la línea que
+    calza lo provoca siempre."""
+    project = _project(tmp_path, 'echo "$*" >> calls.txt')
+    _write_fake(
+        project / "bin" / "ps",
+        'echo "/bin/bash scripts/refresh-semanal.sh"; sleep 0.2; for _ in $(seq 2000); do echo "relleno"; done',
+    )
+    lock = project / "data" / "refresh-semanal.lock"
+    lock.mkdir(parents=True)
+    other = subprocess.Popen(["sleep", "30"])
+    try:
+        (lock / "pid").write_text(f"{other.pid}\n")
+        _age(lock, 600)
+
+        result = _run(project, shell)
+    finally:
+        other.kill()
+        other.wait()
+
+    assert result.returncode == 0, result.stderr
+    assert "ya hay una actualización semanal en curso; se omite" in result.stdout
+    assert not (project / "calls.txt").exists()
+    assert (lock / "pid").read_text() == f"{other.pid}\n"
+
+
 def test_old_pid_lock_of_a_dead_run_is_removed(tmp_path, shell):
     """El candado del script anterior (data/refresh-semanal.pid) de una ejecución muerta se anota y se borra."""
     project = _project(tmp_path, "exit 0")
