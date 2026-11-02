@@ -6,7 +6,7 @@
 # BAKE_MODEL=1 (por defecto) hornea el modelo de texto en la imagen (~1,1 GB): la API arranca sin internet. El CI
 # construye con BAKE_MODEL=0 y lo descarga al arrancar.
 
-FROM python:3.13.17-slim-trixie AS base
+FROM python:3.13.18-slim-trixie AS base
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \

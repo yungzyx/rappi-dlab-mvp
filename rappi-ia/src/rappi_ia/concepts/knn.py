@@ -57,7 +57,7 @@ def item_texts(conn: Connection) -> list[ItemText]:
     return [ItemText("catalog_item", i, t) for i, t in catalog] + [ItemText("menu_item", i, t) for i, t in menu]
 
 
-def embed_texts(conn: Connection, embedder: TextEmbedder, items: list[ItemText]) -> np.ndarray:
+def embed_texts(conn: Connection, embedder: TextEmbedder, items: list[ItemText], commit: bool = False) -> np.ndarray:
     """Vectores de los ítems, usando el caché `text_embeddings` (clave: hash del texto del nombre).
 
     Los del caché llegan en binario por bloques (cursor de servidor) y van directo a la matriz: pedidos como texto,
@@ -90,8 +90,20 @@ def embed_texts(conn: Connection, embedder: TextEmbedder, items: list[ItemText])
                 for h, v in zip(batch, vectors, strict=True):
                     copy.write_row((h, embedder.model_name, to_pgvector(v)))
                     out[rows_by_hash[h]] = v
-            conn.commit()
+            if commit:
+                conn.commit()
     return out
+
+
+def warm_embeddings(conn: Connection, embedder: TextEmbedder) -> int:
+    """Llena el caché de vectores de los nombres (`text_embeddings`) antes de que `build_concepts` escriba nada, y
+    confirma cada lote: si el embebido se corta, lo ya calculado queda y la taxonomía y las asignaciones siguen como
+    estaban. Después, `refine` encuentra todo en caché y no confirma a medias. Devuelve cuántos nombres hay."""
+    items = item_texts(conn)
+    if items:
+        embed_texts(conn, embedder, items, commit=True)
+    conn.commit()
+    return len(items)
 
 
 def refine(conn: Connection, embedder: TextEmbedder, assignments: list[Assignment]) -> list[Assignment]:

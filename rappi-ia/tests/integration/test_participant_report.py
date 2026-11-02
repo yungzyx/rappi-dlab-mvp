@@ -157,6 +157,43 @@ def _participant(db, user="proto-aaaa"):
     )
 
 
+def test_a_repeated_offer_is_accepted_once_and_a_withheld_one_is_marked(db, tmp_path, test_url, monkeypatch):
+    """La misma oferta mostrada dos veces y aceptada una sola vez sale una aceptada y una sin respuesta (lo que pasó
+    después de cada mostrada llega hasta la siguiente), y una retenida al grupo de control sale como tal."""
+    seed_taxonomy(db, load_taxonomy())
+    e = events.Event
+    user = "proto-dddd"
+    shown = dict(concept_id="cerveza", vertical="licores", origin="agent-recompra")
+    events.record(
+        db,
+        [
+            e(user, "s1", "suggestion_shown", ts=_at(1), **shown),
+            e(user, "s1", "suggestion_shown", ts=_at(2), **shown),
+            e(user, "s1", "suggestion_accepted", ts=_at(3), **shown),
+            e(
+                user,
+                "s1",
+                "offer_withheld",
+                ts=_at(4),
+                concept_id="sushi",
+                vertical="restaurantes",
+                origin="agent-volver",
+            ),
+        ],
+        session=ONCE,
+    )
+    db.commit()
+    monkeypatch.setenv("DATABASE_URL", test_url)
+
+    _run(tmp_path, user)
+
+    text = (tmp_path / f"{user}.md").read_text(encoding="utf-8")
+    assert "3 oferta(s): 1 sin respuesta registrada, 1 aceptada, 1 retenida (grupo de control)." in text
+    assert text.count("| Cerveza | Licores | aceptada |") == 1
+    assert text.count("| Cerveza | Licores | sin respuesta registrada |") == 1
+    assert "| Sushi | Restaurantes | retenida (grupo de control) |" in text
+
+
 def _synthetic(db, user="syn-0001"):
     """Una persona simulada con su propia búsqueda y pedido, creada hoy como las del prototipo."""
     events.ensure_user(db, user, "synthetic")

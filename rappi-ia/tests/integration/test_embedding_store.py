@@ -242,3 +242,26 @@ def test_prune_waits_for_the_scraper(db):
             text_store.prune_orphan_embeddings(db)
         scraper.rollback()
     assert text_store.prune_orphan_embeddings(db)["vectores_borrados"] == 1
+
+
+def test_embed_texts_only_commits_when_asked_and_warm_embeddings_commits_per_batch(db):
+    """`embed_texts` deja la transacción abierta (quien la llama decide); `warm_embeddings` confirma cada lote del caché
+    y termina sin transacción abierta, para que `build_concepts` escriba todo lo demás de una vez (o nada)."""
+    from psycopg.pq import TransactionStatus
+
+    from rappi_ia.concepts.knn import warm_embeddings
+
+    embedder = HashEmbedder()
+    items = [ItemText("catalog_item", str(i), name) for i, name in enumerate(NAMES[:3])]
+    embed_texts(db, embedder, items)
+    assert db.info.transaction_status == TransactionStatus.INTRANS
+    db.rollback()
+    assert db.execute("SELECT count(*) FROM text_embeddings").fetchone()[0] == 0
+
+    add_store(db, 1, "supermercado", "Súper")
+    for pid, name in enumerate(NAMES[:3], start=100):
+        add_product(db, pid, name, 1)
+    db.commit()
+    assert warm_embeddings(db, embedder) == 3
+    assert db.info.transaction_status == TransactionStatus.IDLE
+    assert db.execute("SELECT count(*) FROM text_embeddings").fetchone()[0] == 3

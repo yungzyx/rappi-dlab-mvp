@@ -1,6 +1,6 @@
 # Prueba con usuarios del MVP
 
-Guion para probar el MVP con personas en dlab-mvp.com: qué se quiere saber, cómo invitar y pedir el consentimiento, las 6 tareas, el cuestionario, cómo anotar a cada participante y qué se puede concluir. Hasta hoy toda la evidencia del proyecto es simulada o de jueces LLM ([README.md#resultados](../README.md#resultados)); esta prueba es la primera con personas. No es la de [pruebas-de-usuario.md](pruebas-de-usuario.md), que manda frases escritas por el equipo a la API.
+Guion para probar el MVP con personas en dlab-mvp.com: qué se quiere saber, cómo invitar y pedir el consentimiento, las 6 tareas, el cuestionario, cómo anotar a cada participante y qué se puede concluir. Hasta hoy toda la evidencia del proyecto es simulada o de jueces LLM ([README.md#resultados](../README.md#resultados)); esta prueba es la primera con personas. No es la de [probar-agente.md](probar-agente.md), que manda frases escritas por el equipo a la API.
 
 El resumen de cada persona lo arma `rappi-ia resumen-prueba` (solo lee la base), y el reporte final se escribe con la [plantilla](resultados/prueba-usuarios-PLANTILLA.md).
 
@@ -30,7 +30,7 @@ Si dice que no, no hay sesión. Si para en medio, se borran sus datos igual (sec
 ## 3. Antes de la primera sesión
 
 - **Equipo:** un teléfono del equipo con el navegador (o un notebook con la vista de teléfono), en dlab-mvp.com. La puerta de acceso (usuario y clave) la escribe el moderador, nunca la persona.
-- **Modo:** el sitio desplegado siempre abre en el prototipo con Mochi ("Propuesta"): no tiene el interruptor de la demo.
+- **Modo:** si el sitio se construyó sin `VITE_DEMO` (lo normal, ver [despliegue.md](despliegue.md)), siempre abre en el prototipo con Mochi ("Propuesta") y no tiene el interruptor de la demo. Si se construyó con `VITE_DEMO=1`, tiene el interruptor (tecla D y la fila de Cuenta) y el navegador recuerda el último modo: antes de cada sesión, dejarlo en "Prototipo final ✨", no en "Rappi hoy".
 - **Grupo de control apagado:** quien opera dlab-mvp.com confirma que `OFFERS_CONTROL_PCT` está en 0 (lo de siempre). Si no, a una persona le pueden retener las ofertas de Mochi y la tarea 3 no se puede hacer; el resumen lo diría en "Experimentos: … ofertas_control = control".
 - **Comando:** `rappi-ia resumen-prueba` corre en el equipo que sirve la demo, con el `.env` que apunta a su base (en el Mac de [deploy/macos](../deploy/macos/README.md), desde `rappi-ia/` de esa copia y con su `.venv`).
 - **Roles:** un moderador (lee las consignas, no ayuda) y un observador (anota). Pedirle a la persona que piense en voz alta.

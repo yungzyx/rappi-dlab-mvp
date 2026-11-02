@@ -123,7 +123,7 @@ Cada cifra dice qué tipo de dato es. El detalle, con los reportes de cada fecha
 
 | Qué | Cifra | Tipo de dato |
 |---|---|---|
-| Catálogo | 253.945 documentos de búsqueda (84.024 productos, 165.623 platos y 4.298 tiendas), todos con embedding | Real (catálogo público, descarga del 04-10-2026) |
+| Catálogo | 253.945 documentos de búsqueda (84.024 productos, 165.623 platos y 4.298 tiendas), todos con embedding | Real (catálogo público): contado el 05-10 sobre la descarga del 04-10-2026; las descargas posteriores no se recontaron |
 | Búsqueda | nDCG@10: híbrido 0,905 · sin refuerzo por concepto 0,842 · vectorial 0,835 · léxico 0,765 | Evaluación automática: 131 consultas en las 8 verticales ([22-10-2026](docs/resultados/busqueda-2026-10-22.md)) |
 | Búsqueda: juicio LLM | 95 % de los 3 primeros resultados sirven o sirven a medias (66 % "sirve"); el juez por concepto coincide en el 70 % (κ 0,32) | Juicio LLM doble ciego de 200 pares, no humano ([25-10-2026](docs/resultados/juicio-llm-busqueda-2026-10-25.md)) |
 | Búsqueda: juez de tres niveles | Lo que ve la persona, nDCG@10 0,906 → 0,952 y P@3 "sirve" 0,75 → 0,81; necesidades ("algo para la once") 0,80 → 0,91 y Rappi Mall 0,83 → 0,96 | Juicio LLM, no humano: 88 consultas con todo lo mostrado juzgado, antes y después de los cambios del 25-10 ([25-10-2026](docs/resultados/busqueda-2026-10-25.md)) |
@@ -133,7 +133,7 @@ Cada cifra dice qué tipo de dato es. El detalle, con los reportes de cada fecha
 | Guardias de ofertas | 0 casos de alcohol, Farmacia, bebé, salud o sensibles en 2.851 productos ofrecidos | QA sobre el catálogo real con personas simuladas ([16-10-2026](docs/resultados/qa-motor-2026-10-16.md)) |
 | Motor: próxima vertical | nDCG@8 0,978 frente a 0,918 del orden fijo | Simulado: prueba la mecánica, no el efecto ([17-10-2026](docs/resultados/simulados-2026-10-17.md)) |
 | Conceptos | 86 a 88 % de precisión en la asignación de conceptos | Estimación con jueces LLM ([06-10-2026](docs/resultados/capas-precision-2026-10-06-nueva-muestra.md)) |
-| Tests | rappi-ia 3.288 (y 2 omitidos) · scraper 280 · prototipo 942 · panel 122 | CI de main, `ee51c2e` (26-10-2026) |
+| Tests | rappi-ia 3.288 (y 2 omitidos) · scraper 280 · prototipo 942 · panel 122 | Al 26-10-2026: CI de main en `ee51c2e`; no se recontaron con los PR posteriores |
 
 > [!IMPORTANT]
 > **Qué no es evidencia**
@@ -248,11 +248,11 @@ La misma carpeta trae una página de presentación de la propuesta (`http://loca
 
 **Fuera del repositorio:** la base Postgres `rappi`, `rappi-scraper/data/` y `rappi-ia/data/`. Los datos descargados no se versionan.
 
-## Cambios del 25 y 26-10-2026
+## Cambios desde el 25-10-2026
 
-El repositorio de la entrega partió de un solo commit y siguió con PR revisados, uno por cambio. El 25 y el 26-10 el MVP se comparó con la app de Rappi para iPhone ([investigación](docs/investigacion/app-rappi-2026-10-25.md)) y de ahí salieron diez fases. Al final, una revisión de todo el repositorio dejó sus correcciones en cuatro PR más.
+El repositorio de la entrega partió de un solo commit y siguió con PR revisados, uno por cambio. El 25 y el 26-10 el MVP se comparó con la app de Rappi para iPhone ([investigación](docs/investigacion/app-rappi-2026-10-25.md)) y de ahí salieron diez fases. Al final, una revisión de todo el repositorio dejó sus correcciones en cuatro PR más. Del 26-10 al 01-11 siguieron la documentación al día, la presentación sin conexión, Mochi en la Home, la búsqueda en frío y lo que hace falta para probar con personas.
 
-| Fase | Qué cambió | PR | Migración |
+| Fase o cambio | Qué cambió | PR | Migración |
 |---|---|---|---|
 | 1. Sobre de eventos | Id, hora y orden del cliente sin duplicados; pantalla, origen, posición y `request_id` en cada evento; sesiones (`app_sessions`) | [#9](https://github.com/yungzyx/rappi-dlab-mvp/pull/9) | 043 |
 | 2. Recompra y después del pedido | "Pídelo de nuevo", calificación con motivos (una mala pausa la recompra), pasos por vertical, "Pedido en curso", propina después, código de entrega y el OnTop de Turbo | [#12](https://github.com/yungzyx/rappi-dlab-mvp/pull/12) | 044 |
@@ -265,6 +265,15 @@ El repositorio de la entrega partió de un solo commit y siguió con PR revisado
 | 9. Pendientes de las fases 1 a 7 | El buscador con la dieta y las alergias, Pro y sin Pro en el panel y el sobre en las pantallas que faltaban | [#19](https://github.com/yungzyx/rappi-dlab-mvp/pull/19) | — |
 | 10. Mochi sin chat | El buscador es la única entrada de texto; la respuesta se refina con chips y las acciones son botones | [#18](https://github.com/yungzyx/rappi-dlab-mvp/pull/18) | — |
 | Revisión del repositorio | Un pedido cancelado deja de contar también en el panel; correcciones de montos, créditos, estados y textos en la app; el kit con menos tiendas; dependencias | [#21](https://github.com/yungzyx/rappi-dlab-mvp/pull/21) · [#22](https://github.com/yungzyx/rappi-dlab-mvp/pull/22) · [#23](https://github.com/yungzyx/rappi-dlab-mvp/pull/23) · [#24](https://github.com/yungzyx/rappi-dlab-mvp/pull/24) | 051 |
+| Documentación y demos al día | La documentación describe el estado final de las fases; las capturas salen del script; la demo de un solo HTML, bajo 15 MB | [#25](https://github.com/yungzyx/rappi-dlab-mvp/pull/25) · [#26](https://github.com/yungzyx/rappi-dlab-mvp/pull/26) · [#27](https://github.com/yungzyx/rappi-dlab-mvp/pull/27) | — |
+| Buscador con Mochi como en el Comité 2 | Con un perfil de gusto: "Tu perfil" con "Olvidar" y "¿Por qué?", un solo saludo y la escalera dentro de la tarjeta | [#28](https://github.com/yungzyx/rappi-dlab-mvp/pull/28) | — |
+| Presentación del MVP en un solo HTML | Escritorio e iPhone/iPad, sin API ni internet, con recorrido automático por capítulos, perfiles de gusto primero y "Simular" ([presentacion/](presentacion/README.md)) | [#29](https://github.com/yungzyx/rappi-dlab-mvp/pull/29) · [#30](https://github.com/yungzyx/rappi-dlab-mvp/pull/30) · [#32](https://github.com/yungzyx/rappi-dlab-mvp/pull/32) · [#34](https://github.com/yungzyx/rappi-dlab-mvp/pull/34) | — |
+| Mochi mueve los accesos y "Ocultar a Mochi" | Mochi dice qué acceso de la Home movió y por qué (`vertical_reorder_shown`); "Ocultar a Mochi" en su menú y en Cuenta (`agent_visibility`); el panel cuenta quién lo ocultó ("¿Mochi molesta?", `GET /analytics/presencia`) | [#31](https://github.com/yungzyx/rappi-dlab-mvp/pull/31) · [#33](https://github.com/yungzyx/rappi-dlab-mvp/pull/33) | 052 |
+| Textos del repositorio | "Cómo revisarlo" al inicio del README, comillas rectas en lugar de angulares y el proyecto "desarrollado junto con Rappi Chile", no oficial | [#35](https://github.com/yungzyx/rappi-dlab-mvp/pull/35) · [#37](https://github.com/yungzyx/rappi-dlab-mvp/pull/37) · [#38](https://github.com/yungzyx/rappi-dlab-mvp/pull/38) | — |
+| Búsqueda en frío | Con el modelo fuera de memoria, `/search` tarda pero no responde 500 (el vector antes de abrir la transacción, también con `user_id`); búsquedas de mantención cada 5 minutos en la demo desde un Mac; el saludo con perfil no espera "Para ti" | [#39](https://github.com/yungzyx/rappi-dlab-mvp/pull/39) · [#40](https://github.com/yungzyx/rappi-dlab-mvp/pull/40) | — |
+| Prueba con usuarios | Guion de 6 tareas, consentimiento y cuestionario ([prueba-usuarios.md](docs/prueba-usuarios.md)), `rappi-ia resumen-prueba` por persona y la plantilla del reporte | [#41](https://github.com/yungzyx/rappi-dlab-mvp/pull/41) | — |
+| Experimentos en el panel | Pestaña "Experimentos" y `GET /analytics/experimentos`: por variante, personas asignadas, con pedido y verticales por persona | [#42](https://github.com/yungzyx/rappi-dlab-mvp/pull/42) | — |
+| El "¿Por qué?" en los eventos | La oferta mostrada dice de qué sale su razón (`payload.basis`) y abrir el "¿Por qué?" es un evento (`offer_why_open`) | [#43](https://github.com/yungzyx/rappi-dlab-mvp/pull/43) | 053 |
 
 Antes de las fases, el 25-10: la búsqueda de necesidades medida con un juez de tres niveles ([#6](https://github.com/yungzyx/rappi-dlab-mvp/pull/6)), los seguimientos de Mochi ([#7](https://github.com/yungzyx/rappi-dlab-mvp/pull/7); desde la fase 10, con chips), la app instalable en el teléfono ([#5](https://github.com/yungzyx/rappi-dlab-mvp/pull/5)), el juicio LLM de la búsqueda ([#2](https://github.com/yungzyx/rappi-dlab-mvp/pull/2)) y la demo desde un Mac ([#3](https://github.com/yungzyx/rappi-dlab-mvp/pull/3) · [#4](https://github.com/yungzyx/rappi-dlab-mvp/pull/4) · [#8](https://github.com/yungzyx/rappi-dlab-mvp/pull/8)). El porqué de cada cambio está en [docs/decisiones.md](docs/decisiones.md).
 

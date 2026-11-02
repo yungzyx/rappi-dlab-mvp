@@ -13,7 +13,14 @@ log = logging.getLogger(__name__)
 
 
 def build_concepts(conn: Connection, embedder: TextEmbedder | None = None) -> dict:
-    """Con `embedder`, refina con vecinos cercanos (kNN) sobre los nombres; sin él, solo categorías y reglas."""
+    """Con `embedder`, refina con vecinos cercanos (kNN) sobre los nombres; sin él, solo categorías y reglas.
+
+    Todo lo que escribe (taxonomía, complementos, mapeos, asignaciones y surtido) se confirma junto, al final: si algo
+    se corta a mitad, la base queda como estaba. Por eso los vectores de los nombres se calculan y confirman antes."""
+    if embedder is not None:
+        from .knn import warm_embeddings
+
+        warm_embeddings(conn, embedder)
     taxonomy = load_taxonomy()
     counts = {
         "conceptos": store.seed_taxonomy(conn, taxonomy),

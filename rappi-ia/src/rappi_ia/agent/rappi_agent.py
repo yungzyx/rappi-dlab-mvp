@@ -26,6 +26,7 @@ from dataclasses import dataclass, field, replace
 from itertools import zip_longest
 
 from psycopg import Connection
+from psycopg.pq import TransactionStatus
 
 from ..concepts.taxonomy import load_taxonomy
 from ..embeddings.base import MemoizedQueryEmbedder, TextEmbedder
@@ -210,6 +211,11 @@ class RappiAgent:
         turn = copy.copy(self)
         if self.embedder is not None:
             turn.embedder = MemoizedQueryEmbedder(self.embedder)
+            # Primero el vector del mensaje, antes de leer nada: con el modelo frío (o fuera de memoria) el primero
+            # tarda segundos, y una transacción abierta esperándolo la corta Postgres a los 10 s (api/deps.py). Con el
+            # modelo cargado, los vectores de cada búsqueda del turno son instantáneos aunque se calculen tras leer.
+            if conn.info.transaction_status == TransactionStatus.IDLE:
+                turn.embedder.embed_queries([message])
         ctx = ctx or Context()
         # Sus preferencias quedan puestas en el turno: `search_products` filtra y ordena con ellas, también en la
         # sugerencia cruzada.

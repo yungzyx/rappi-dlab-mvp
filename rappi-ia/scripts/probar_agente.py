@@ -5,7 +5,7 @@ Uso (con la API corriendo):  make probar-agente          # todas las rondas de s
 Las líneas que empiezan con # son comentarios; "frase|vertical" la manda desde esa vertical; "+ frase" sigue la
 conversación (manda el `conversation` de la respuesta anterior, como el prototipo). No registra eventos (sin user_id).
 Leer la salida buscando: productos que no tienen que ver, verticales raras, avisos que sobran, "Lo anoté" para algo
-que sí existe. Ver docs/pruebas-de-usuario.md.
+que sí existe. Ver docs/probar-agente.md.
 """
 
 import json
