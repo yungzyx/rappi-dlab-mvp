@@ -1,0 +1,64 @@
+{
+  "source": "synthetic",
+  "data": {
+    "experimentos": [
+      {
+        "id": "modo_app",
+        "al_azar": false,
+        "nota": "No es al azar: el modo lo elige quien presenta la demo. Comparar la propuesta con \"Rappi hoy\" describe, no mide efecto.",
+        "variantes": [
+          {
+            "variante": "propuesta",
+            "personas": 0,
+            "con_pedido": 0,
+            "verticales_por_persona": null
+          },
+          {
+            "variante": "actual",
+            "personas": 0,
+            "con_pedido": 0,
+            "verticales_por_persona": null
+          }
+        ]
+      },
+      {
+        "id": "ofertas_control",
+        "al_azar": true,
+        "nota": "Al azar: un sorteo estable con el id de la persona. A control no se le muestran las ofertas que Mochi propone solo (quedan como retenidas). La diferencia entre los grupos mide el efecto de esas ofertas, si cada grupo tiene personas suficientes.",
+        "variantes": [
+          {
+            "variante": "tratamiento",
+            "personas": 0,
+            "con_pedido": 0,
+            "verticales_por_persona": null,
+            "ofertas": {
+              "mostradas": 0,
+              "retenidas": 0,
+              "aceptadas": 0,
+              "personas_con_oferta": 0,
+              "pedidos_despues": 0
+            }
+          },
+          {
+            "variante": "control",
+            "personas": 0,
+            "con_pedido": 0,
+            "verticales_por_persona": null,
+            "ofertas": {
+              "mostradas": 0,
+              "retenidas": 0,
+              "aceptadas": 0,
+              "personas_con_oferta": 0,
+              "pedidos_despues": 0
+            }
+          }
+        ],
+        "control_pct": 0
+      }
+    ]
+  },
+  "guardado": {
+    "origen": "npm run panel:snapshot · usuarios simulados de rappi_staging",
+    "fecha": "2026-11-01"
+  }
+}

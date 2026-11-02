@@ -1,3 +1,5 @@
+import { AGENT_NAME } from './agentName.js'
+
 // Nombres visibles de los códigos que entrega el backend.
 const VERTICALS = {
   supermercado: 'Supermercado',
@@ -30,7 +32,7 @@ export function demandLabel(row) {
 }
 
 /** Nombre visible de cada consulta de /analytics (para el aviso de modo sin conexión). */
-const ENDPOINTS = {
+export const ENDPOINTS = {
   kpis: 'indicadores',
   weekly: 'serie semanal',
   opportunities: 'demanda no satisfecha',
@@ -44,6 +46,11 @@ const ENDPOINTS = {
   unmet: 'búsquedas sin resultado',
   combos: 'combinaciones de verticales',
   motor: 'motor',
+  pro: 'Pro y sin Pro',
+  presencia: `presencia de ${AGENT_NAME}`,
+  'ctr-posicion': 'CTR por posición',
+  'embudo-sesion': 'embudo por sesión',
+  experimentos: 'experimentos del MVP',
 }
 
 const MAX_LISTED = 3

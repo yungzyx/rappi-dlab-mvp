@@ -1,0 +1,12 @@
+{
+  "source": "synthetic",
+  "data": {
+    "grupos": [],
+    "sin_dato": 2291,
+    "minimo_personas": 20
+  },
+  "guardado": {
+    "origen": "npm run panel:snapshot · usuarios simulados de rappi_staging",
+    "fecha": "2026-11-01"
+  }
+}
