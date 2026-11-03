@@ -282,7 +282,9 @@ describe('MochiView', () => {
 
     expect(await screen.findByText('Abandono de búsqueda')).toBeTruthy()
     expect(screen.getByText('41,0%')).toBeTruthy()
-    expect(screen.getByText(/61 búsquedas que saben qué se tocó.*en 2 minutos \(1 se salvó al reformularla\)/)).toBeTruthy()
+    expect(
+      screen.getByText(/61 búsquedas que saben qué se tocó.*en 2 minutos \(1 se salvó al reformularla\)/),
+    ).toBeTruthy()
     unmount()
 
     const few = { ...abandono, busquedas: 3, con_clic: 1, rescatadas: 0, abandonadas: 2, abandono_pct: null }
