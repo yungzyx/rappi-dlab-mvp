@@ -8,7 +8,7 @@ Hecho con Vite + React 19. **Necesita la API de [`rappi-ia`](../rappi-ia/)**: si
 
 ![Modo demo: la misma app en el prototipo final y en "Rappi hoy"](docs/screenshots/00-modo-demo.jpg)
 
-*Las capturas de las pantallas se tomaron el 26-10-2026 con la API corriendo sobre una copia de la base (`rappi_staging`) y el catálogo real (`npm run screenshots`); solo la ficha de Mochi es anterior. "¿Repetimos?" sale de la respuesta de ejemplo del contrato con un café real del catálogo: es una ilustración, no un hábito medido. Como el recorrido paga una compra y deja un pedido y sus eventos (`source = 'prototype'`) en la base que use la API, `npm run screenshots` se niega a correr sin `SCREENSHOTS_ALLOW_WRITES=1`: se corre con la API sobre `rappi_staging`, nunca sobre `rappi`.*
+*Las capturas de las pantallas se tomaron el 03-11-2026 con la API corriendo sobre una copia de la base (`rappi_staging`) y el catálogo real (`npm run screenshots`); solo la ficha de Mochi es anterior. "¿Repetimos?" sale de la respuesta de ejemplo del contrato con un café real del catálogo: es una ilustración, no un hábito medido. Como el recorrido paga una compra y deja un pedido y sus eventos (`source = 'prototype'`) en la base que use la API, `npm run screenshots` se niega a correr sin `SCREENSHOTS_ALLOW_WRITES=1`: se corre con la API sobre `rappi_staging`, nunca sobre `rappi`.*
 
 ## Cómo correrlo
 

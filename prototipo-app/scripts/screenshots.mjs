@@ -214,9 +214,17 @@ async function run(page) {
   })
   await shot('03-home-dinamica')
 
-  // Tocar a Mochi en la Home: la API propone la vertical donde la persona aún no pide.
+  // Mochi explica qué acceso movió (03 lo muestra). "Entendido" lo cierra: si no, su "¿Por qué?" es el que se abre.
+  await page.getByRole('button', { name: 'Entendido' }).click()
+  await settle(400)
+  // Tocar a Mochi en la Home: la API propone la vertical donde la persona aún no pide. El globo escribe letra por
+  // letra: se espera la pregunta entera antes de abrir su "¿Por qué?".
   await tap('.live-agent-body')
-  await page.locator('.live-bubble .offer-why-toggle').waitFor({ timeout: 15000 })
+  await page.waitForFunction(
+    () => /¿Y si pruebas algo de [^?]+\?/.test(document.querySelector('.live-bubble')?.textContent ?? ''),
+    null,
+    { timeout: 15000 },
+  )
   await tap('.live-bubble .offer-why-toggle')
   await shot('22-vertical-por-probar')
 
