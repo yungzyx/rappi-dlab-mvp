@@ -1,5 +1,13 @@
 {
   "data": {
+    "abandono": {
+      "abandonadas": 26,
+      "abandono_pct": 42.6,
+      "busquedas": 61,
+      "con_clic": 35,
+      "plazo_minutos": 2,
+      "rescatadas": 0
+    },
     "busquedas": 94,
     "personas": 29,
     "por_vertical": [
@@ -97,7 +105,7 @@
     "sin_resultado": 39
   },
   "guardado": {
-    "fecha": "2026-10-17",
+    "fecha": "2026-11-03",
     "origen": "make contract · simulación chica con semilla fija (40 personas, 8 semanas)"
   },
   "source": "synthetic"

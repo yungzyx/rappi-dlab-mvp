@@ -1,5 +1,13 @@
 {
   "data": {
+    "abandono": {
+      "abandonadas": 0,
+      "abandono_pct": null,
+      "busquedas": 0,
+      "con_clic": 0,
+      "plazo_minutos": 2,
+      "rescatadas": 0
+    },
     "busquedas": 1,
     "personas": 1,
     "por_vertical": [
@@ -12,7 +20,7 @@
     "sin_resultado": 1
   },
   "guardado": {
-    "fecha": "2026-10-11",
+    "fecha": "2026-11-03",
     "origen": "make contract · recorrido corto sobre el catálogo de prueba inventado"
   },
   "source": "prototype"

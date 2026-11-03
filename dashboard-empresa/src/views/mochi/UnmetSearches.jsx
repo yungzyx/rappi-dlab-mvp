@@ -1,7 +1,7 @@
 import { AGENT_NAME } from '../../lib/agentName.js'
 import { DataTable } from '../../components/DataTable.jsx'
 import { EmptyState } from '../../components/States.jsx'
-import { formatNumber } from '../../lib/format.js'
+import { formatNumber, formatPct } from '../../lib/format.js'
 import { plural, verticalLabel } from '../../lib/labels.js'
 import { Stats } from '../../components/Stats.jsx'
 
@@ -17,11 +17,26 @@ const COLUMNS = [
 ]
 
 /**
- * Búsquedas que no encontraron nada: las cuentas y, con `table`, por vertical y concepto. Nunca el texto buscado (la API
- * no lo entrega).
+ * El abandono de búsqueda: las que no terminaron en ningún toque, ni en otra búsqueda con toque poco después. Con menos
+ * de 10 búsquedas la API no da el %, y se muestra la cuenta.
+ */
+function abandonmentStat({ busquedas, rescatadas, abandonadas, abandono_pct: pct, plazo_minutos: minutes }) {
+  return {
+    label: 'Abandono de búsqueda',
+    value: pct === null ? `${formatNumber(abandonadas)} de ${formatNumber(busquedas)}` : formatPct(pct),
+    note:
+      `${formatNumber(busquedas)} ${plural(busquedas, 'búsqueda')} que saben qué se tocó desde ellas; abandonada es la que no terminó ` +
+      `en ningún toque ni en otra búsqueda con toque en ${minutes} minutos ` +
+      `(${formatNumber(rescatadas)} se ${rescatadas === 1 ? 'salvó' : 'salvaron'} al reformularla).`,
+  }
+}
+
+/**
+ * Búsquedas que no encontraron nada: las cuentas, el abandono de búsqueda y, con `table`, las sin resultado por
+ * vertical y concepto. Nunca el texto buscado (la API no lo entrega).
  */
 export function UnmetSearches({ data, table = true }) {
-  const { personas, busquedas, sin_resultado: unmet, por_vertical: rows } = data
+  const { personas, busquedas, sin_resultado: unmet, por_vertical: rows, abandono: abandonment } = data
   if (!busquedas) {
     return <EmptyState title="Todavía no hay búsquedas">Aparecen cuando alguien busca en la app.</EmptyState>
   }
@@ -34,6 +49,8 @@ export function UnmetSearches({ data, table = true }) {
             value: `${formatNumber(unmet)} de ${formatNumber(busquedas)}`,
             note: `${plural(busquedas, 'búsqueda o pregunta', 'búsquedas y preguntas')} a ${AGENT_NAME} que saben si encontraron algo.`,
           },
+          // una respuesta guardada antes del 03-11-2026 no trae el abandono
+          ...(abandonment?.busquedas ? [abandonmentStat(abandonment)] : []),
           { label: 'Personas que buscaron', value: formatNumber(personas) },
         ]}
       />

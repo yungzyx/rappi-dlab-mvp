@@ -274,6 +274,25 @@ describe('MochiView', () => {
     expect(screen.getByText('2 de 2')).toBeTruthy()
   })
 
+  test('search abandonment: the % from 10 searches, before that the count, and the rescued ones', async () => {
+    const abandono = { busquedas: 61, con_clic: 35, rescatadas: 1, abandonadas: 25, abandono_pct: 41, plazo_minutos: 2 }
+    const data = { personas: 9, busquedas: 70, sin_resultado: 4, por_vertical: [], abandono }
+    serveFixturesWith({ unmet: { source: 'prototype', data } })
+    const { unmount } = await renderWithData(<MochiView source="prototype" />)
+
+    expect(await screen.findByText('Abandono de búsqueda')).toBeTruthy()
+    expect(screen.getByText('41,0%')).toBeTruthy()
+    expect(
+      screen.getByText(/61 búsquedas que saben qué se tocó.*en 2 minutos \(1 se salvó al reformularla\)/),
+    ).toBeTruthy()
+    unmount()
+
+    const few = { ...abandono, busquedas: 3, con_clic: 1, rescatadas: 0, abandonadas: 2, abandono_pct: null }
+    serveFixturesWith({ unmet: { source: 'prototype', data: { ...data, abandono: few } } })
+    await renderWithData(<MochiView source="prototype" />)
+    expect(await screen.findByText('2 de 3')).toBeTruthy()
+  })
+
   test('with the API down and the prototype source no saved figures appear', async () => {
     window.history.replaceState(null, '', '/?vista=mochi&fuente=prototipo')
     apiDown()
