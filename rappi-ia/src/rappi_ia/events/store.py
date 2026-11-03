@@ -12,6 +12,7 @@ from datetime import UTC, datetime, timedelta
 from psycopg import Connection
 from psycopg.types.json import Jsonb
 
+from ..catalog.hours import TZ
 from ..catalog.stores import line_prices
 from ..concepts.matcher import KeywordMatcher
 from ..concepts.taxonomy import load_taxonomy
@@ -583,6 +584,17 @@ def profile(conn: Connection, user_id: str, now: datetime | None = None) -> dict
         weight = WEIGHTS[event_type] * 0.5 ** (max(float(days), 0) / HALF_LIFE_DAYS)
         scores[concept_id] = scores.get(concept_id, 0.0) + weight
     return {c: round(s, 3) for c, s in sorted(scores.items(), key=lambda kv: -kv[1]) if s >= 0.05}
+
+
+def cross_suggestions_today(conn: Connection, user_id: str, now: datetime | None = None) -> int:
+    """Las sugerencias cruzadas que Mochi le mostró hoy (el día de Chile) en sus respuestas: `suggestion_shown` con
+    origen `agent-ask`, que la app anota una vez por pestaña y tema. Las cuenta el tope diario de la regla 3."""
+    start = (now or datetime.now(TZ)).astimezone(TZ).replace(hour=0, minute=0, second=0, microsecond=0)
+    return conn.execute(
+        """SELECT count(*) FROM app_events
+           WHERE user_id = %s AND type = 'suggestion_shown' AND origin = 'agent-ask' AND ts >= %s""",
+        (user_id, start),
+    ).fetchone()[0]
 
 
 def forget(conn: Connection, user_id: str, concept_id: str | None = None) -> int:

@@ -7,7 +7,7 @@ from rappi_scraper.storage.search import build_search_documents
 
 from conftest import add_dish, add_price, add_product, add_store
 from rappi_ia.agent import verticals
-from rappi_ia.agent.rappi_agent import Context, RappiAgent
+from rappi_ia.agent.rappi_agent import DAILY_CROSS_CAP, Context, RappiAgent
 from rappi_ia.agent.tools import search_products
 from rappi_ia.agent.verticals import ranked_verticals
 from rappi_ia.concepts.pipeline import build_concepts
@@ -60,6 +60,16 @@ def test_no_cross_suggestion_in_rappi_hoy_mode_or_when_topic_already_shown(rappi
     assert "suggestion" not in agent.reply(db, "cerveza", Context(vertical="licores", mode="actual"))
     shown = Context(vertical="licores", shown_topics=["snacks-salados"])
     assert "suggestion" not in agent.reply(db, "cerveza", shown)
+
+
+def test_no_cross_suggestion_once_the_daily_cap_is_reached(rappi_agent):
+    agent, db = rappi_agent
+    assert DAILY_CROSS_CAP == 5
+    below = agent.reply(db, "cerveza", Context(vertical="licores", cross_today=DAILY_CROSS_CAP - 1))
+    assert below["suggestion"]["concept"] == "snacks-salados"
+    capped = agent.reply(db, "cerveza", Context(vertical="licores", cross_today=DAILY_CROSS_CAP))
+    assert "suggestion" not in capped and capped["reason"] is None
+    assert {p["concept"] for p in capped["products"]} == {"cerveza"}  # la respuesta misma no cambia
 
 
 def test_tobacco_only_when_asked_by_name(rappi_agent):
@@ -531,8 +541,10 @@ def test_a_trip_opens_rappitravel_and_suggests_something_for_it(rappi_agent):
     # Una sola sugerencia por tema en la sesión: si ya se mostró, se pasa al siguiente gancho (o a ninguno).
     again = agent.reply(db, "me voy de vacaciones a la playa", Context(shown_topics=["ropa"]))
     assert again.get("suggestion", {}).get("concept") != "ropa"
-    # En "Rappi hoy" no hay ganchos.
+    # En "Rappi hoy" no hay ganchos, ni con el tope diario cumplido.
     assert "suggestion" not in agent.reply(db, "me voy de vacaciones", Context(mode="actual"))
+    capped = agent.reply(db, "me voy de vacaciones a la playa", Context(cross_today=DAILY_CROSS_CAP))
+    assert "suggestion" not in capped and capped["service"] == "rappitravel"
 
 
 def test_the_trip_hook_depends_on_where_you_go(rappi_agent):

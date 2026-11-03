@@ -910,9 +910,12 @@ def _context(conn, vertical, user_id, profile, shown_topics, mode) -> Context:
         profile = events.profile(conn, user_id)
     vertical = _searchable(conn, backend_vertical(vertical))
     mine = preferences.load(conn, user_id) if mode == "propuesta" else None  # en "Rappi hoy", ninguna
+    cross_today = events.cross_suggestions_today(conn, user_id) if user_id and mode == "propuesta" else 0
     # Estas lecturas no quedan abiertas mientras se calcula el vector del mensaje (como en `/search`: ver `retrieve`).
     conn.commit()
-    return Context(vertical, profile or {}, list(shown_topics), mode, user_id=user_id, preferences=mine)
+    return Context(
+        vertical, profile or {}, list(shown_topics), mode, user_id=user_id, preferences=mine, cross_today=cross_today
+    )
 
 
 def _searchable(conn: Connection, vertical: str | None) -> str | None:

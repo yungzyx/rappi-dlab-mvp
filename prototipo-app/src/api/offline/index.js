@@ -37,6 +37,8 @@
 //   tal cual de la API real
 // - rappi-ia/src/rappi_ia/agent/understand.py (_follow_up) y rappi_agent.py (_conversation, _without, _keeps, DIETS) ...
 //   seguir la conversación (conversation.js); los seguimientos de eval/frases_usuarios/conversaciones.txt salen grabados
+// - rappi-ia/src/rappi_ia/agent/rappi_agent.py (DAILY_CROSS_CAP) y events/store.py (cross_suggestions_today) ... el tope
+//   diario de sugerencias cruzadas en las respuestas de Mochi (index.js: crossCapped)
 // - rappi-ia/src/rappi_ia/events/store.py .......... el perfil de intereses (index.js: interests) y el sobre de cada
 //   evento (index.js: storedEvent; el origen, en `origin` o, en los eventos de antes, `payload.origen`); las impresiones
 //   (`list_view`) no se guardan, y sin conexión no hay grupo de control de las ofertas (OFFERS_CONTROL_PCT)
@@ -119,6 +121,16 @@ const storedEvent = (event, now) => ({
   origin: event.origin ?? event.payload?.origen ?? null,
   payload: event.payload ?? {},
 })
+
+// agent/rappi_agent.py: DAILY_CROSS_CAP. Cuenta las sugerencias de las respuestas (`agent-ask`) que vio hoy, en Santiago.
+const DAILY_CROSS_CAP = 5
+const santiagoDay = (ms) => new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Santiago' }).format(ms)
+const crossCapped = (state, now) =>
+  state.events.filter(
+    (e) => e.type === 'suggestion_shown' && e.origin === 'agent-ask' && santiagoDay(e.ts) === santiagoDay(now),
+  ).length >= DAILY_CROSS_CAP
+// Las respuestas grabadas traen su sugerencia: con el tope cumplido se responde sin ella (su texto no la nombra).
+const withoutSuggestion = ({ suggestion: _suggestion, ...reply }) => ({ ...reply, reason: null })
 
 /** Una respuesta que ordena cosas, con su `request_id` (api/logs.py: served_request_id), como la de la API. */
 const served = (body) => body && { ...body, request_id: `offline-${randomHex()}` }
@@ -433,7 +445,8 @@ function answer(snapshot, { method, path, query, body }, now) {
     const said = preferenceAnswer(snapshot, state, body ?? {}) ?? usualAnswer(snapshot, state, body ?? {}, now)
     if (said) return { body: said }
     const mine = interests(snapshot, state, now).map((i) => i.concept)
-    const reply = ask(snapshot, body, { interests: mine, userId: state.userId })
+    const asked = ask(snapshot, body, { interests: mine, userId: state.userId })
+    const reply = asked?.suggestion && crossCapped(state, now) ? withoutSuggestion(asked) : asked
     return { body: body?.mode === 'actual' ? reply : withPreferences(snapshot, state, reply, { notice: true }) }
   }
   if (key === 'GET /agent/plans') return { body: snapshot.plans }

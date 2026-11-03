@@ -4,7 +4,8 @@
 Reglas de conducta (docs/diseno-ia.md §4) que se aplican aquí, en código:
 1. Solo productos recuperados de la base, con precio vigente.        → tools.search_products
 2. La respuesta sale del vertical actual; lo cruzado va aparte.       → `suggestion`
-3. Máximo 1 sugerencia cruzada por respuesta y 1 por tema por sesión. → `shown_topics`
+3. Máximo 1 sugerencia cruzada por respuesta, 1 por tema por sesión y DAILY_CROSS_CAP al día.
+                                                                      → `shown_topics`, `cross_today`
 4. Si no encuentra, lo dice y lo marca como demanda no satisfecha.    → `unmet`
 5. Si es ambiguo entre verticales, da las opciones para elegir.      → intent "aclarar"
 6. Sensibles, alcohol, farmacia, bebé y salud: nunca por iniciativa propia ni como complemento
@@ -75,8 +76,12 @@ class Context:
     previous: dict | None = None  # el turno anterior: el `conversation` de la respuesta anterior (ver _conversation)
     user_id: str | None = None  # en "Propuesta", sus compras cruzadas y su combinación ordenan el complemento
     preferences: prefs.Preferences | None = None  # en "Propuesta", su dieta y alergias filtran y sus favoritas ordenan
+    cross_today: int = 0  # sugerencias cruzadas que ya vio hoy (events.cross_suggestions_today)
 
 
+# Tope diario de sugerencias cruzadas por persona (regla 3): supuesto propio, para que Mochi no insista. Lo que la
+# persona pide ("¿con qué acompaño…?", un plan, un perfil) no cuenta ni se corta.
+DAILY_CROSS_CAP = 5
 CHEAP_POOL = 24  # "barato": reordenar solo los 6 más relevantes no daba lo más barato
 MIN_SHOWN = 3  # menos productos se completan con la búsqueda por el nombre del concepto
 MIN_ELSEWHERE = 2  # productos con el detalle pedido para cambiar de vertical: con uno solo suele ser casualidad
@@ -395,7 +400,7 @@ class RappiAgent:
         suggestion = None
         # "Porque llevas X": X está en la respuesta (en una ocasión, no cualquiera de sus conceptos). Con síntomas no
         # hay venta cruzada, como tampoco "También en".
-        if ctx.mode == "propuesta" and products and not intent.symptom:
+        if _may_suggest(ctx) and products and not intent.symptom:
             if intent.concepts:
                 sources = [c for c in dict.fromkeys(p.concept for p in products) if c in intent.concepts]
             else:
@@ -597,7 +602,7 @@ class RappiAgent:
         response = _base(intent, f"Para eso está {service.label}: {service.pitch}.")
         action = {"label": f"Abrir {service.name}", "route": [service.route], "service": service.id}
         response.update(service=service.id, actions=[action])
-        if ctx.mode != "propuesta":
+        if not _may_suggest(ctx):
             return response
         said = f" {normalize(intent.text)} "
         # Primero los ganchos del contexto que se nombró ("playa", "nieve"); los demás solo si no tienen contexto.
@@ -1187,3 +1192,8 @@ def _moved(here: str, there: str, what: str, count: int = 0) -> str:
     if count:
         return f'En {here} casi no hay "{what}"; en {there} hay más. '
     return f'En {here} no hay "{what}", pero en {there} sí. '
+
+
+def _may_suggest(ctx: Context) -> bool:
+    """Si la respuesta puede sumar una sugerencia cruzada: en "Propuesta" (regla 7) y bajo el tope diario (regla 3)."""
+    return ctx.mode == "propuesta" and ctx.cross_today < DAILY_CROSS_CAP
