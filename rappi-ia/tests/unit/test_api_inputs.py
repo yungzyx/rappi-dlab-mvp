@@ -54,8 +54,10 @@ def conn():
 @pytest.fixture
 def client(conn, monkeypatch):
     agent = types.SimpleNamespace(reply=lambda *_: dict(ANSWER))
-    # Las preferencias de la persona se leen al armar el contexto: aquí no tiene (la conexión no responde nada).
+    # Las preferencias de la persona y sus sugerencias cruzadas de hoy se leen al armar el contexto: aquí no tiene (la
+    # conexión no responde nada).
     monkeypatch.setattr(api.preferences, "load", lambda *_: api.preferences.Preferences())
+    monkeypatch.setattr(api.events, "cross_suggestions_today", lambda *_: 0)
     api.app.dependency_overrides[api.get_conn] = lambda: conn
     api.app.dependency_overrides[api.get_services] = lambda: types.SimpleNamespace(agent=agent)
     yield OwnerClient(api.app)
