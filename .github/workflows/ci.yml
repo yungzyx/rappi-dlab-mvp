@@ -249,6 +249,19 @@ jobs:
       - name: Enlaces relativos de los .md (archivos y anclas) y tablas sin cortar
         run: python3 scripts/check-doc-links.py
 
+      # La demo desde un Mac (deploy/macos/Caddyfile) copia las cabeceras de seguridad y la CSP del servidor.
+      - name: Las mismas cabeceras de seguridad en los dos Caddyfile
+        run: |
+          headers='^[[:space:]]+(Strict-Transport-Security|X-Content-Type-Options|Referrer-Policy|X-Robots-Tag|Permissions-Policy|Content-Security-Policy|-Server)'
+          diff <(grep -E "$headers" deploy/Caddyfile) <(grep -E "$headers" deploy/macos/Caddyfile)
+
+      # La página de la propuesta del panel sirve copias de dos diagramas y del mapa de conceptos de docs/.
+      - name: Las copias de los diagramas en el panel, iguales a las de docs/
+        run: |
+          cmp docs/diagramas/motor-flujo.png dashboard-empresa/public/presentacion/motor-flujo.png
+          cmp docs/diagramas/rag-datos.png dashboard-empresa/public/presentacion/flujo-de-datos.png
+          cmp docs/mapas/mapa-conceptos.jpg dashboard-empresa/public/presentacion/mapa-conceptos.jpg
+
   # Claves, tokens y contraseñas en los archivos versionados del commit (git archive: sin .git ni lo ignorado), con
   # gitleaks en una versión fija. Solo lee el repo. Las excepciones, revisadas una por una, en .github/gitleaks.toml.
   secretos:

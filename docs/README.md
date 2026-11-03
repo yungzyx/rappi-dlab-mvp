@@ -21,7 +21,7 @@
 | Entender el diseño del RAG, del agente Mochi y del panel | [diseno-ia.md](diseno-ia.md) | 20 min |
 | Conocer el modelo de datos (capas 1 a 3) | [ecosistema-rappi.md §3](ecosistema-rappi.md#3-modelo-de-datos-del-ecosistema-propuesta) | 5 min |
 | Usar desde otra herramienta lo que la base le suma al catálogo (atributos, marcas, grafo, segmentos y el motor multivertical) | [capa-de-datos.md](capa-de-datos.md) | 8 min |
-| Comparar el MVP con la app de Rappi (cómo captura señales, qué hace por área y qué tenemos tras las fases), las equivalencias de eventos y el plan por fases | [investigacion/app-rappi-2026-10-25.md](investigacion/app-rappi-2026-10-25.md) | 10 min |
+| Comparar el MVP con la app de Rappi (cómo captura señales, qué hace por área y qué tenemos tras las fases), las equivalencias de eventos y el plan por fases (fechado: la tabla de eventos vigente, con los de las migraciones 052 y 053, está en [capa-de-datos.md](capa-de-datos.md)) | [investigacion/app-rappi-2026-10-25.md](investigacion/app-rappi-2026-10-25.md) | 10 min |
 | Conocer la capa de IA, su API y cómo se evalúa | [rappi-ia/README.md](../rappi-ia/README.md) | 10 min |
 | Usar o modificar el scraper | [rappi-scraper/README.md](../rappi-scraper/README.md) | 10 min |
 | Activar a Jev (opcional y apagado: etiqueta categorías y juzga la búsqueda) | [jev.md](jev.md) | 5 min |
@@ -54,7 +54,7 @@ GitHub muestra las imágenes; las versiones interactivas (HTML) hay que descarga
 | Mapa multivertical | Qué productos y conceptos comparten las verticales, con complementos, sustitutos y "nunca junto"; se regenera con `rappi-ia multivertical` | — | [mapa-multivertical.html](mapas/mapa-multivertical.html) |
 | Mapa de conceptos | Cada concepto junto a la vertical donde es más típico (la regla de Mochi) | [mapa-conceptos.jpg](mapas/mapa-conceptos.jpg) | — |
 
-Las fuentes JSON de los diagramas están en [diagramas-fuente/](diagramas-fuente/). El HTML y el PNG se generaron a partir de ellas con Archify, una herramienta de diagramas que no es parte del repositorio.
+La página de la propuesta del panel (`dashboard-empresa/presentacion.html`) sirve copias de `motor-flujo.png`, `rag-datos.png` (como `flujo-de-datos.png`) y `mapa-conceptos.jpg` en `dashboard-empresa/public/presentacion/`: al regenerar uno, se copia también ahí (el CI revisa que sean iguales). Las fuentes JSON de los diagramas están en [diagramas-fuente/](diagramas-fuente/). El HTML y el PNG se generaron a partir de ellas con Archify, una herramienta de diagramas que no es parte del repositorio.
 
 ## 3. Resultados
 

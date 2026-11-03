@@ -28,7 +28,6 @@ rappi-ia/data
 **/*.egg-info
 **/node_modules
 **/dist
-**/dist-desktop
 **/.DS_Store
 
 # Tests: no corren en la imagen

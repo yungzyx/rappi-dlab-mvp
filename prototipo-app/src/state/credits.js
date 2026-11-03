@@ -78,9 +78,6 @@ export function addCredits(amount) {
   write((wallet) => ({ extra: wallet.extra + amount }))
 }
 
-/** ¿Ya se usó este cupón de ejemplo? */
-export const couponUsed = (wallet, code) => wallet.coupons.includes(code)
-
 /** Marca el cupón como usado (`used = false`: vuelve, al cancelar el pedido donde se usó). */
 export function markCoupon(code, used = true) {
   if (!code) return

@@ -31,7 +31,7 @@ Corre lo que corresponde a lo que cambiaste; `make test` y `make lint` en la ra�
 
 ## Reglas que el CI no revisa
 
-- **Migraciones:** una migración nueva es un archivo nuevo con el número siguiente en `rappi-scraper/src/rappi_scraper/storage/migrations/` (un solo historial para toda la base). Una migración ya aplicada no se edita: se registra con el md5 de su archivo y `migrate` avisa si cambió. `make mvp` se niega a migrar la base `rappi` desde una rama sin fusionar; para probar, usa una copia (`createdb -T rappi rappi_staging`).
+- **Migraciones:** una migración nueva es un archivo nuevo con el número siguiente en `rappi-scraper/src/rappi_scraper/storage/migrations/` (un solo historial para toda la base). Una migración ya aplicada no se edita: se registra con el md5 de su archivo, y `make mvp`, `rappi refresh`, `rappi migrate --solo-revisar`, `rappi-ia deploy-migrate` y `rappi-ia doctor` avisan si cambió (`migrate` solo no lo revisa). `make mvp` se niega a migrar la base `rappi` desde una rama sin fusionar; para probar, usa una copia (`createdb -T rappi rappi_staging`).
 - **Datos:** las personas son solo simuladas (`source = 'synthetic'`) o del prototipo (`'prototype'`), nunca se mezclan en una cifra y lo simulado nunca se presenta como evidencia. Los datos descargados de rappi.cl y los respaldos de la base no van a git.
 - **Idioma:** código (funciones, módulos, variables) en inglés; lo que ve una persona (textos de la app, logs, CLI, documentación, columnas) en español.
 - **Ofertas:** todo lo que Mochi propone por su cuenta pasa por `rappi-ia/src/rappi_ia/offers/guards.py` (nunca alcohol, +18, Farmacia, bebé ni salud). Un cambio que lo afecte lleva su test.
@@ -44,7 +44,7 @@ Corre lo que corresponde a lo que cambiaste; `make test` y `make lint` en la ra�
   - ámbitos frecuentes: `scraper`, `búsqueda`, `conceptos`, `motor`, `ofertas`, `api`, `app`, `panel`, `demo`, `deploy`, `deps`;
   - por ejemplo: `fix(ofertas): un trago sin concepto no se ofrece` o `docs: el respaldo de entrega en la instalación`.
 - **Un PR por cambio**, contra `main`, con la plantilla: qué cambia y por qué, cómo se verificó (los comandos de arriba) y qué queda fuera. Si cambia una decisión de diseño, suma una fila a [docs/decisiones.md](docs/decisiones.md) con su motivo.
-- **Cifras:** si un cambio mueve una cifra publicada (búsqueda, motor, tests), actualiza el reporte en `docs/resultados/` y el resumen del [README](README.md#resultados), diciendo qué tipo de dato es.
+- **Cifras:** si un cambio mueve una cifra publicada (búsqueda, motor, tests), actualiza el reporte en `docs/resultados/`, el resumen del [README](README.md#resultados) y los "Resultados" de la página de la propuesta (`dashboard-empresa/presentacion.html`), diciendo qué tipo de dato es.
 
 ## Seguridad
 

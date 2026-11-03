@@ -179,7 +179,7 @@ src/
 ├── fixtures/               respuestas de ejemplo de la API para los tests; sin-conexion/, las que se ven sin la API
 ├── styles/                 estilos
 └── test/                   API falsa para los tests de render
-scripts/                    panel-snapshot.mjs (la foto de la API), update-fixtures.mjs, screenshots.mjs y panel-html.mjs (el HTML suelto)
+scripts/                    panel-snapshot.mjs (la foto de la API), fixtures-snapshot.mjs (la foto chica que usa el CI), update-fixtures.mjs, screenshots.mjs y panel-html.mjs (el HTML suelto)
 docs/screenshots/           capturas (en git solo las 5 que usa este README, comprimidas)
 ```
 
