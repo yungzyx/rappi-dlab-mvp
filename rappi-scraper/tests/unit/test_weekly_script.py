@@ -234,10 +234,13 @@ def test_simultaneous_starts_over_a_stale_lock_let_one_through(tmp_path, shell, 
                 run.wait(timeout=30)
 
         assert [run.returncode for run in runs] == [0] * len(runs), [run.stderr.read() for run in runs]
-        assert _calls(project) == ["migrate"]  # solo una llegó a descargar
         lines = _status_lines(project)
-        assert sum("interrumpida" in line for line in lines) == 1
-        assert sum("exit=" in line for line in lines) == 1
+        # Con las líneas de estado y la salida de cada ejecución: si falla (pasó una vez en el CI, 03-11-2026), que diga
+        # quién anotó qué.
+        outputs = [run.stdout.read().decode() for run in runs]
+        assert _calls(project) == ["migrate"], (lines, outputs)  # solo una llegó a descargar
+        assert sum("interrumpida" in line for line in lines) == 1, (lines, outputs)
+        assert sum("exit=" in line for line in lines) == 1, (lines, outputs)
         assert not lock.exists()
         assert not (project / "data" / "refresh-semanal.lock.recuperando").exists()
 

@@ -414,4 +414,4 @@ El 25-10 el MVP se comparó con la app de Rappi para iPhone ([investigación](in
 | 10. Mochi sin chat | El buscador y tarjetas con chips ([§4](#4-comportamiento-del-agente-mochi)) | — |
 | Revisión | Los cancelados fuera del panel y de `capa`, el kit con menos tiendas y correcciones de la app | 051 |
 
-Los PR de cada fase están en el [README](../README.md#cambios-desde-el-25-10-2026).
+Los PR de cada fase están en [cambios.md](cambios.md).

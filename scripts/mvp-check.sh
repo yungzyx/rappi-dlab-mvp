@@ -3,15 +3,16 @@
 # `rappi-ia seed-demo` solo siembra DATABASE_URL_TEST (rappi_ia_test), y la API de prueba corre en :8010, la app en :5184
 # y el panel en :5185.
 #   1. en línea: la app abre en la Home conectada;
-#   2. compra: Home → Grocery → primera tienda → agregar un producto → carrito → pagar, y en rappi_ia_test (solo lectura)
+#   2. compra: Home → Súper → primera tienda → agregar un producto → carrito → pagar, y en rappi_ia_test (solo lectura)
 #      queda un pedido `prototype` cuyas líneas son productos (o platos) sembrados;
 #   3. kit de Mochi: "cerveza" en el buscador con Mochi (grupos por vertical) → plan "Carrete" en la Home → agregar el
 #      kit → pagar, y en rappi_ia_test (solo lectura) el pedido tiene líneas sembradas y la persona dejó al menos una
 #      `suggestion_accepted` con origen `agent-plan`;
 #   4. preguntarle a Mochi: "¿qué es un completo?" en el buscador con Mochi (Enter le pregunta: ficha y producto) y
 #      "mi hijo tiene fiebre, ¿qué le doy?" (sin consejo médico, con "Ir a Farmacia");
-#   5. seguir la conversación: "¿tienen pizza?", "Más barato" debajo de la respuesta (la más barata primero, con lo dicho
-#      arriba) y "otra opción" escrita en el campo para seguir (Mochi dice que no hay otras, sin repetir);
+#   5. refinar sin chat: "¿tienen pizza?", el chip "Más barato" debajo de la respuesta (la más barata primero, con lo
+#      dicho arriba), que el buscador sea el único campo de texto del panel y el chip "Otra opción" (Mochi dice que no
+#      hay otras, sin repetir);
 #   6. home: la Home dinámica; una persona nueva ve el orden fijo y, tras tocar "Retail" (Rappi Mall) tres veces, Retail
 #      queda primero con el texto "Ordenadas según lo que más usas";
 #   7. combinación: una persona nueva pide en Restaurantes, vuelve a la Home y toca a Mochi: la oferta es de Turbo (el

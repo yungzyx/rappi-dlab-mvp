@@ -16,7 +16,7 @@ Nada escucha hacia la red: Caddy y la API solo atienden en `127.0.0.1`, y se ent
 | Servicio | Cuándo | Qué hace |
 |---|---|---|
 | `api` | siempre (se reinicia si se cae) | `api.sh`: la API con `API_ENV=production`, `/analytics` encendido para el panel, 2 procesos; el modelo de texto solo de la caché (`HF_HUB_OFFLINE=1`) y, sin él, no está lista (`API_REQUIRE_SEMANTIC=1`: `/health` da 503 y el vigilante avisa), como en el servidor |
-| `caddy` | siempre | `caddy.sh`: la puerta (`basic_auth`), las cabeceras y la CSP de `deploy/Caddyfile`, la API en `/api` |
+| `caddy` | siempre | `caddy.sh`: la puerta (`basic_auth`), las cabeceras y la CSP (las de `deploy/Caddyfile`, copiadas en `deploy/macos/Caddyfile`: el CI revisa que sean las mismas), la API en `/api` |
 | `tunel` | siempre | `tunel.sh`: un túnel con nombre y URL fija (`TUNNEL_NAME` o `TUNNEL_TOKEN`) o, sin ellos, un túnel rápido (URL `….trycloudflare.com` que cambia en cada inicio) |
 | `vigilante` | cada 5 min | `vigilante.sh`: reinicia lo que lleve dos revisiones caído, hace dos búsquedas chicas para que el modelo de texto no salga de la memoria, anota la URL vigente en `url.txt` y avisa con una notificación, y rota los registros de más de 20 MB |
 | `actualizar` | cada 15 min | `actualizar.sh`: si `origin/main` cambió, trae los cambios, instala dependencias si cambiaron, respalda y migra si hay migraciones, construye y reinicia solo la API (la URL no cambia) |
