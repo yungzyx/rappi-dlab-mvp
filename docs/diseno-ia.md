@@ -264,7 +264,7 @@ El motor responde por persona **qué vertical conviene sumarle** y **qué concep
 | Usuario activo | Al menos una sesión en los últimos 30 días |
 | Frecuencia | Pedidos / usuarios activos (30 días). Días entre pedidos: mediana por usuario y luego mediana entre usuarios |
 | Abandono de carrito | Carros (`cart_id`) con al menos un producto, cuyo último evento de carro fue hace más de 24 h y sin pedido, sobre todos los carros con productos. Se cuenta una vez por carro |
-| Abandono de búsqueda | **Pendiente:** todavía no está en `queries.py` ni en el panel. Se definiría como las búsquedas sin clic ni agregado al carro y sin otra búsqueda con clic en 2 minutos, sobre el total de búsquedas |
+| Abandono de búsqueda | Búsquedas que no terminaron en ningún toque (ficha, tienda, recomendación, carro o la sugerencia que las acompaña, con el `request_id` de esa búsqueda y en su sesión) ni en otra búsqueda con toque en los 2 minutos siguientes, sobre las búsquedas con `request_id`. Las que se salvan al reformularlas se cuentan aparte (`rescatadas`). Sin conceptos sensibles; el % pide 10 búsquedas. En `/analytics/unmet` (`abandono`) y en "Qué buscan y no encuentran" (desde el 03-11-2026) |
 | Ritmo del usuario | Mediana de los intervalos entre pedidos en 180 días. Con solo 2 pedidos, el único intervalo, acotado entre 7 y 30 días |
 | En riesgo / perdido | En riesgo: días desde el último pedido > máx(2 × ritmo, 21). Perdido: > máx(3 × ritmo, 45). Los usuarios con 1 compra van aparte ("sin segunda compra"): un carro dividido en dos tiendas son dos pedidos, pero una sola compra |
 | Retención | Hizo al menos un pedido entre los días 61 y 120 desde su primer pedido |
@@ -307,7 +307,7 @@ Salió del panel lo que no responde a una de las 4 preguntas, y la API lo sigue 
 | Segunda vertical | Usuario de un solo vertical | Sugerencia cruzada de mayor confianza. **Implementada** (16-10-2026): el momento `vertical_por_probar` sigue la escalera de combinaciones (`motor/predict.py`, `target_step`: desde el 16-10-2026, la vertical que más sube la retención esperada, con la tabla de Rappi, el supuesto del rendimiento decreciente y `combo_stats`; ver §4b). Dentro de la vertical ofrece una compra cruzada ("Para tu pedido de …: … en …", o "También hay … en …" si la regla va del concepto a sí mismo; sin artículos ni verbos que deban concordar con conceptos plurales o compuestos), lo más pedido ("Lo más pedido en …"; si una regla eligió los productos sin poder nombrar su origen, "Para sumar en …") o, si ya pidió ahí hace más de un mes, "Vuelve a …"; el complemento del carro (`suggest_complement`) usa el mismo paso para desempatar, pero la marca que la persona compra gana a la combinación. Todas dicen por qué. La corrección causal sigue pendiente: solo un grupo de control la mide | % multi-vertical y retención |
 | Ocasiones | Picos por día u hora (viernes: carrete; domingo: asado) | Campañas con horario | Frecuencia |
 | Demanda no satisfecha | Consultas sin resultado | Captar comercios o categorías; avisar a quien lo pidió (con consentimiento) | Conversión y oportunidades |
-| Búsquedas fallidas | Reformulaciones sin clic | Sinónimos y mapeo de conceptos | Abandono de búsqueda (pendiente) |
+| Búsquedas fallidas | Reformulaciones sin clic | Sinónimos y mapeo de conceptos | Abandono de búsqueda |
 | Bajas de precio | `price_snapshots` real, sobre productos que el usuario compra | Alerta de precio | Frecuencia |
 
 Ninguna palanca usa conceptos sensibles.

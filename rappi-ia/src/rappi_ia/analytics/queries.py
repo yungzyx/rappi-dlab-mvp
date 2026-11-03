@@ -26,6 +26,12 @@ MIN_GROUP_USERS = 20  # agregados con menos usuarios no se muestran (privacidad)
 # Meses con el siguiente completo que pide la retención de una combinación propia para mostrarse.
 MIN_COMBO_RETENTION_N = 30
 FINE_COMBO_ROWS = 15  # las combinaciones finas más frecuentes que muestra el panel
+# Abandono de búsqueda (en `unmet`): una búsqueda sin toque se salva si otra con toque la sigue dentro de este plazo.
+SEARCH_RESCUE_MINUTES = 2
+MIN_SEARCHES_FOR_RATE = 10  # búsquedas mínimas para mostrar el % de abandono
+# Los toques que salen de una lista de resultados (los mismos del CTR, `capa.v_ctr_posicion`, más aceptar la
+# sugerencia que acompaña los resultados).
+SEARCH_CLICKS = ("view_store", "view_item", "recommendation_click", "cart_add", "suggestion_accepted")
 COMBO_NOTES = {
     "synthetic": "Simulado: no es evidencia",
     "prototype": "uso del MVP, pocas personas: no es evidencia",
@@ -566,7 +572,12 @@ MAX_UNMET_ROWS = 20
 
 def unmet(conn: Connection, source: str = "synthetic") -> dict:
     """Búsquedas y preguntas al agente que saben si encontraron algo (`unmet` no nulo) y, de las sin resultado, cuántas
-    por vertical y concepto. Nunca el texto buscado (`concepto` es NULL si no se reconoció) ni conceptos sensibles."""
+    por vertical y concepto. Nunca el texto buscado (`concepto` es NULL si no se reconoció) ni conceptos sensibles.
+
+    `abandono`: de las búsquedas que saben qué se tocó desde ellas (con `request_id`), cuántas tuvieron un toque con
+    ese mismo `request_id` en su sesión (`con_clic`), cuántas no pero otra búsqueda con toque las siguió en
+    `SEARCH_RESCUE_MINUTES` (`rescatadas`: la reformulación funcionó) y cuántas quedaron en nada (`abandonadas`). El %
+    necesita `MIN_SEARCHES_FOR_RATE` búsquedas. Solo búsquedas: lo que se le pide a Mochi se refina con chips."""
     _check(source)
     params = {"source": source, "limit": MAX_UNMET_ROWS}
     # Los conceptos sensibles no entran en ninguna cifra, ni en los totales: no se deducen de la resta.
@@ -590,7 +601,46 @@ def unmet(conn: Connection, source: str = "synthetic") -> dict:
             LIMIT %(limit)s""",
         params,
     )
+    row["abandono"] = _search_abandonment(conn, source)
     return row
+
+
+def _search_abandonment(conn: Connection, source: str) -> dict:
+    [row] = _rows(
+        conn,
+        """WITH searched AS (
+               SELECT e.user_id, e.session_id, e.ts,
+                      EXISTS (SELECT 1 FROM app_events k
+                              WHERE k.request_id = e.request_id AND k.source = e.source AND k.user_id = e.user_id
+                                AND k.session_id = e.session_id AND k.type = ANY(%(clicks)s)) AS clic
+               FROM app_events e LEFT JOIN concepts c ON c.concept_id = e.concept_id
+               WHERE e.source = %(source)s AND e.type = 'search' AND e.request_id IS NOT NULL
+                 AND c.sensitive IS NOT TRUE
+           ),
+           followed AS (  -- la próxima búsqueda con toque de la misma sesión
+               SELECT clic, ts, min(ts) FILTER (WHERE clic) OVER (
+                          PARTITION BY user_id, session_id ORDER BY ts
+                          ROWS BETWEEN 1 FOLLOWING AND UNBOUNDED FOLLOWING) AS next_clicked
+               FROM searched
+           ),
+           counted AS (
+               SELECT count(*) AS busquedas, count(*) FILTER (WHERE clic) AS con_clic,
+                      count(*) FILTER (WHERE NOT clic AND next_clicked <= ts + make_interval(mins => %(minutes)s))
+                          AS rescatadas
+               FROM followed
+           )
+           SELECT busquedas, con_clic, rescatadas, busquedas - con_clic - rescatadas AS abandonadas,
+                  CASE WHEN busquedas >= %(min_rate)s
+                       THEN round(100.0 * (busquedas - con_clic - rescatadas) / busquedas, 1) END AS abandono_pct
+           FROM counted""",
+        {
+            "source": source,
+            "clicks": list(SEARCH_CLICKS),
+            "minutes": SEARCH_RESCUE_MINUTES,
+            "min_rate": MIN_SEARCHES_FOR_RATE,
+        },
+    )
+    return row | {"plazo_minutos": SEARCH_RESCUE_MINUTES}
 
 
 def _rappi_row(row) -> dict:

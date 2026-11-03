@@ -13,9 +13,17 @@ from rappi_ia.concepts.taxonomy import load_taxonomy
 from rappi_ia.events import store as events
 
 NOW = datetime(2026, 10, 11, 12, tzinfo=UTC)
+NO_ABANDONMENT = {
+    "busquedas": 0,
+    "con_clic": 0,
+    "rescatadas": 0,
+    "abandonadas": 0,
+    "abandono_pct": None,
+    "plazo_minutos": 2,
+}
 EMPTY = {
     "offers": {"personas": 0, "momentos": [], "autopedidos": {"pedidos": 0, "personas": 0}},
-    "unmet": {"personas": 0, "busquedas": 0, "sin_resultado": 0, "por_vertical": []},
+    "unmet": {"personas": 0, "busquedas": 0, "sin_resultado": 0, "por_vertical": [], "abandono": NO_ABANDONMENT},
 }
 
 
@@ -26,6 +34,41 @@ def _offer(user, origen=None, kind="suggestion_shown"):
 
 def _search(user, unmet, concept=None, vertical="restaurantes", query="algo", kind="search"):
     return events.Event(user, "s1", kind, ts=NOW, vertical=vertical, concept_id=concept, query=query, unmet=unmet)
+
+
+def _searched(user, request, seconds=0, session="s1", concept="pizza", vertical="restaurantes"):
+    """Una búsqueda de la app: lleva el request_id de su respuesta de /search."""
+    ts = NOW + timedelta(seconds=seconds)
+    return events.Event(
+        user,
+        session,
+        "search",
+        ts=ts,
+        vertical=vertical,
+        concept_id=concept,
+        query="algo",
+        unmet=False,
+        surface="search",
+        request_id=request,
+    )
+
+
+def _tapped(user, request, seconds=0, session="s1", kind="view_item"):
+    """Un toque en un resultado de esa búsqueda (mismo request_id)."""
+    ts = NOW + timedelta(seconds=seconds)
+    return events.Event(
+        user,
+        session,
+        kind,
+        ts=ts,
+        vertical="restaurantes",
+        entity_type="menu_item",
+        entity_id="m1",
+        surface="search",
+        origin="resultados",
+        position=1,
+        request_id=request,
+    )
 
 
 def _moments(data):
@@ -168,6 +211,7 @@ def test_unmet_never_returns_query_text_or_sensitive_concepts(concepts):
             {"vertical": "restaurantes", "concepto": "🍕 Pizza", "sin_resultado": 2},
             {"vertical": "restaurantes", "concepto": None, "sin_resultado": 1},
         ],
+        "abandono": NO_ABANDONMENT,  # ninguna trae request_id: no se sabe qué se tocó desde ellas
     }
     text = json.dumps(data, ensure_ascii=False)
     for secret in ("juan", "hawaiana", "kebab", "remedio", "farmacia", sensitive):
@@ -185,6 +229,45 @@ def test_unmet_shows_at_most_twenty_rows(concepts):
     assert len(data["por_vertical"]) == 20
 
 
+def test_search_abandonment_counts_taps_rescues_and_abandoned_searches(concepts):
+    db = concepts
+    sensitive = next(c.id for c in load_taxonomy().concepts.values() if c.sensitive)
+    events.record(
+        db,
+        [
+            _searched("u1", "r1"),  # con toque
+            _tapped("u1", "r1", seconds=20),
+            _searched("u1", "r2", seconds=60),  # sin toque, pero la reformula y toca al minuto: rescatada
+            _searched("u1", "r3", seconds=120),
+            _tapped("u1", "r3", seconds=130, kind="cart_add"),
+            _searched("u2", "r4"),  # sin toque y la siguiente con toque llega a los 3 minutos: abandonada
+            _searched("u2", "r5", seconds=180),
+            _tapped("u2", "r5", seconds=190, kind="recommendation_click"),
+            _searched("u3", "r6"),  # el toque con su request_id es de otra sesión: no cuenta
+            _tapped("u3", "r6", seconds=10, session="s2"),
+            _searched("u3", "r7", seconds=30),  # sin toque y sin otra búsqueda después: abandonada
+            # No cuentan: una búsqueda sin request_id (no se sabe qué se tocó desde ella) ni una de concepto sensible.
+            _search("u4", False, "pizza"),
+            _searched("u4", "r8", concept=sensitive, vertical="farmacia"),
+        ],
+    )
+
+    data = queries.unmet(db, "prototype")["abandono"]
+
+    assert data == {
+        "busquedas": 7,
+        "con_clic": 3,
+        "rescatadas": 1,
+        "abandonadas": 3,
+        "abandono_pct": None,  # menos de 10 búsquedas
+        "plazo_minutos": 2,
+    }
+
+    events.record(db, [_searched("u5", f"q{n}", seconds=n * 600) for n in range(3)])
+    assert queries.MIN_SEARCHES_FOR_RATE == 10
+    assert queries.unmet(db, "prototype")["abandono"]["abandono_pct"] == 60.0  # 6 de 10
+
+
 def test_every_new_metric_never_mixes_sources(concepts):
     db = concepts
     simulated = [
@@ -200,7 +283,13 @@ def test_every_new_metric_never_mixes_sources(concepts):
     events.record(db, [_offer("p1", "agent-carrito"), _search("p1", False)])
     assert _moments(queries.offers(db, "prototype")) == [("carrito", 1, 0, None)]
     assert _moments(queries.offers(db, "synthetic")) == [("plan", 1, 1, None), ("sin_momento", 1, 0, None)]
-    assert queries.unmet(db, "prototype") == {"personas": 1, "busquedas": 1, "sin_resultado": 0, "por_vertical": []}
+    assert queries.unmet(db, "prototype") == {
+        "personas": 1,
+        "busquedas": 1,
+        "sin_resultado": 0,
+        "por_vertical": [],
+        "abandono": NO_ABANDONMENT,
+    }
     assert queries.unmet(db, "synthetic")["sin_resultado"] == 1
     with pytest.raises(ValueError):
         queries.offers(db, "real")
