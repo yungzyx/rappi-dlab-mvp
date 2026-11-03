@@ -154,7 +154,7 @@ Mochi es el nombre que ve el usuario (antes, Bigotes). El código usa nombres ne
    - El verificador rechaza ids no recuperados y cifras, precios o atributos ("sin alcohol", "el más barato") que no salgan de esos campos.
    - Los botones (`actions`) los arma siempre el código.
 2. **Respeta el vertical en que estás.** La respuesta principal sale de ese vertical. Lo cruzado va aparte y marcado con su vertical ("De Licores"), con su razón visible ("porque llevas cerveza") y un botón para abrir esa vertical.
-3. **Máximo una sugerencia cruzada por respuesta** y una por tema por sesión (el tope diario queda pendiente). Nada de urgencias falsas.
+3. **Máximo una sugerencia cruzada por respuesta**, una por tema por sesión y **5 al día por persona** (desde el 03-11-2026: `DAILY_CROSS_CAP`, un supuesto propio; cuenta las de las respuestas que vio hoy, en hora de Chile, y no corta lo que la persona pide, como "¿con qué acompaño…?"). Nada de urgencias falsas.
 4. **Honestidad.** Si no encuentra (según la definición del §1), lo dice y registra **demanda no satisfecha** (consulta, vertical, conceptos y condición). Esa es la materia prima de las oportunidades de negocio.
 5. **Aclara, no adivina.** Si la intención es ambigua entre verticales, hace una sola pregunta con opciones.
 6. **Categorías sensibles y restringidas.**

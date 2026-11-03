@@ -3,6 +3,7 @@
 import json
 import math
 from contextlib import contextmanager
+from datetime import UTC, datetime, timedelta
 
 import pytest
 from rappi_scraper.storage.search import build_search_documents
@@ -11,7 +12,7 @@ from conftest import add_price, add_product, add_store
 from owner_client import OwnerClient
 from rappi_ia import config
 from rappi_ia.agent.compose import TemplateComposer
-from rappi_ia.agent.rappi_agent import RappiAgent
+from rappi_ia.agent.rappi_agent import DAILY_CROSS_CAP, RappiAgent
 from rappi_ia.api import app as api
 from rappi_ia.api import deps, identity
 from rappi_ia.api.services import Services
@@ -120,6 +121,31 @@ def test_old_chat_events_are_still_accepted_and_counted(client, db):
     kpis = client.get("/analytics/kpis", params={"source": "prototype"}).json()["data"]
     assert kpis["busquedas_sin_resultado_pct"] == round(100 * 2 / 3, 1)
     assert events_store.WEIGHTS["chat"] == events_store.WEIGHTS["ask"]  # y el perfil los pesa igual
+
+
+def test_ask_stops_cross_suggestions_after_the_daily_cap(client, db):
+    """El tope cuenta las sugerencias de las respuestas (`agent-ask`) que la persona vio hoy, en hora de Chile: no las
+    de ayer, ni las ofertas de otros momentos, ni las de otra persona."""
+    now = datetime.now(UTC)
+
+    def shown(user, origin="agent-ask", days_ago=0):
+        ts = now - timedelta(days=days_ago)
+        return events_store.Event(user, "s1", "suggestion_shown", ts=ts, concept_id="pizza", origin=origin)
+
+    cap = DAILY_CROSS_CAP
+    events_store.record(
+        db,
+        [shown("u-cap") for _ in range(cap - 1)]
+        + [shown("u-cap", days_ago=2), shown("u-cap", origin="agent-plan"), shown("u-otro")],
+    )
+    db.commit()
+    ask = {"message": "cerveza", "vertical": "liquor", "user_id": "u-cap", "session_id": "s1"}
+    assert events_store.cross_suggestions_today(db, "u-cap") == cap - 1
+    assert client.post("/agent/ask", json=ask).json()["suggestion"]["concept"] == "snacks-salados"
+
+    events_store.record(db, [shown("u-cap")])
+    db.commit()
+    assert "suggestion" not in client.post("/agent/ask", json=ask).json()
 
 
 def test_rappi_hoy_mode_has_no_suggestion_and_does_not_learn(client, db):

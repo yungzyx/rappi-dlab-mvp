@@ -183,3 +183,32 @@ test('un pedido no suma interés aparte de sus eventos, como en la API', () => {
   })
   expect(call('GET', `/profile/${id}`).body.interests).toEqual([])
 })
+
+test('el tope diario: con 5 sugerencias de las respuestas vistas hoy, Mochi responde sin la suya (rappi_agent.py)', () => {
+  const recorded = {
+    text: 'Mira lo que encontré de "cerveza" en Licores.',
+    products: [],
+    reason: 'Porque llevas 🍺 cerveza',
+    suggestion: { concept: 'snacks-salados', vertical: 'supermercado', products: [] },
+  }
+  const withAsk = { ...snapshot, ask: { cerveza: recorded } }
+  const at = (now) => (method, path, body) => route(withAsk, { method, path, query: new URLSearchParams(), body }, now)
+  const today = Date.parse('2026-11-03T15:00:00-03:00')
+  const id = at(today)('POST', '/session', {}).body.user_id
+  const shown = (origin) => ({ type: 'suggestion_shown', concept_id: 'pizza', origin })
+  const ask = { message: 'cerveza', user_id: id, mode: 'propuesta' }
+
+  // la de anoche (otro día en Santiago) y la oferta de un momento no cuentan
+  at(today - 16 * 3_600_000)('POST', '/events', { user_id: id, events: [shown('agent-ask')] })
+  at(today)('POST', '/events', {
+    user_id: id,
+    events: [...Array.from({ length: 4 }, () => shown('agent-ask')), shown('agent-plan')],
+  })
+  expect(at(today)('POST', '/agent/ask', ask).body.suggestion.concept).toBe('snacks-salados')
+
+  at(today)('POST', '/events', { user_id: id, events: [shown('agent-ask')] })
+  const capped = at(today)('POST', '/agent/ask', ask).body
+  expect(capped.suggestion).toBeUndefined()
+  expect(capped.reason).toBeNull()
+  expect(capped.text).toBe(recorded.text)
+})

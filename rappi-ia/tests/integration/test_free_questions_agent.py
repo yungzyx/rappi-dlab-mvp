@@ -97,6 +97,9 @@ def test_what_goes_with_a_dish_shows_its_complement_never_alcohol(agent):
     assert r["intent"]["kind"] == "acompanar"
     assert {p["concept"] for p in r["products"]} == {"verduras"}
     assert not r["age_notice"] and "verduras" in r["text"]
+    # Lo pidió: el tope diario de sugerencias cruzadas no lo corta.
+    capped = rappi.reply(db, "¿con qué acompaño un salmón?", Context(cross_today=99))
+    assert {p["concept"] for p in capped["products"]} == {"verduras"}
 
 
 def test_a_named_drink_is_searched_like_the_search_does(agent):
