@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
 """Revisa los enlaces relativos de los .md versionados: que el archivo exista y, si el enlace trae
-ancla (#…), que el destino tenga un título con esa ancla (como las arma GitHub).
+ancla (#…), que el destino tenga un título con esa ancla (como las arma GitHub). También revisa que
+ninguna tabla quede cortada: una fila que no sigue a otra fila tiene que ser un encabezado.
 
 Uso, desde la raíz del repositorio:  python3 scripts/check-doc-links.py
-Sale con 1 si encuentra un enlace roto. Solo usa la biblioteca estándar.
+Sale con 1 si encuentra un enlace roto o una tabla cortada. Solo usa la biblioteca estándar.
 """
 
 import re
@@ -19,6 +20,8 @@ HTML_REF = re.compile(r"""<(?:img|a)\b[^>]*?\b(?:src|href)=["']([^"']+)["']""", 
 HEADING = re.compile(r"^ {0,3}(#{1,6})\s+(.*?)\s*#*\s*$")
 HTML_ANCHOR = re.compile(r"""<a\s+[^>]*(?:name|id)=["']([^"']+)["']""", re.IGNORECASE)
 FENCE = re.compile(r"^ {0,3}(```|~~~)")
+TABLE_ROW = re.compile(r"^ {0,3}\|")
+TABLE_DELIMITER = re.compile(r"^ {0,3}\|?\s*:?-+:?\s*(\|\s*:?-+:?\s*)*\|?\s*$")
 
 
 def tracked_markdown() -> list[Path]:
@@ -71,8 +74,22 @@ def anchors(path: Path) -> set[str]:
     return _anchors[path]
 
 
-def check(md: Path) -> list[str]:
+def broken_tables(md: Path) -> list[str]:
+    """Filas sueltas: GitHub corta la tabla en una línea que no es fila (una en blanco, un párrafo)
+    y muestra lo que sigue como texto, salvo que empiece con encabezado y separador."""
+    numbered = list(prose_lines(md.read_text(encoding="utf-8")))
+    lines = [line for _, line in numbered]
     problems = []
+    for index, (number, line) in enumerate(numbered):
+        starts = TABLE_ROW.match(line) and not (index and TABLE_ROW.match(lines[index - 1]))
+        following = lines[index + 1] if index + 1 < len(lines) else ""
+        if starts and not TABLE_DELIMITER.match(following):
+            problems.append(f"{md.relative_to(ROOT)}:{number}: fila de tabla sin encabezado (¿tabla cortada?)")
+    return problems
+
+
+def check(md: Path) -> list[str]:
+    problems = broken_tables(md)
     for number, line in prose_lines(md.read_text(encoding="utf-8")):
         line = re.sub(r"`[^`]*`", "", line)  # lo que va entre comillas invertidas no es un enlace
         for target in LINK.findall(line) + HTML_REF.findall(line):
@@ -94,7 +111,7 @@ def main() -> int:
     problems = [problem for md in files if md.exists() for problem in check(md)]
     for problem in problems:
         print(problem)
-    print(f"Enlaces en {len(files)} archivos .md: {len(problems)} rotos.")
+    print(f"Enlaces y tablas en {len(files)} archivos .md: {len(problems)} problemas.")
     return 1 if problems else 0
 
 
