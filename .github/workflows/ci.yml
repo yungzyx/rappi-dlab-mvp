@@ -246,7 +246,7 @@ jobs:
       - name: shellcheck
         run: shellcheck -x scripts/*.sh rappi-scraper/scripts/*.sh rappi-ia/scripts/*.sh deploy/*.sh deploy/db/*.sh deploy/scripts/*.sh deploy/macos/*.sh
 
-      - name: Enlaces relativos de los .md (archivos y anclas)
+      - name: Enlaces relativos de los .md (archivos y anclas) y tablas sin cortar
         run: python3 scripts/check-doc-links.py
 
   # Claves, tokens y contraseñas en los archivos versionados del commit (git archive: sin .git ni lo ignorado), con

@@ -12,7 +12,7 @@
 - [ ] `npm test`, `npm run lint` y `npx prettier --check src scripts` en `prototipo-app/`
 - [ ] `npm test`, `npm run lint` y `npx prettier --check src scripts` en `dashboard-empresa/`
 - [ ] `make mvp-check` en la raíz
-- [ ] `python3 scripts/check-doc-links.py` (si cambió documentación)
+- [ ] `python3 scripts/check-doc-links.py` (si cambió documentación: enlaces, anclas y tablas)
 - [ ] Revisado en el navegador, a 375 px y en escritorio (si cambió la app o el panel)
 
 ## Antes de fusionar
