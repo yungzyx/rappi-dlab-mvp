@@ -22,6 +22,9 @@ ALTER DATABASE :"db" OWNER TO rappi_owner;
 REVOKE ALL ON DATABASE :"db" FROM PUBLIC;
 -- Solo CONNECT: la API no crea tablas temporales (las usan los trabajos, como rappi_owner).
 GRANT CONNECT ON DATABASE :"db" TO rappi_api;
+-- La hora de Chile también para psql y los trabajos: la imagen de Postgres queda en UTC, y los días y semanas del
+-- panel (date_trunc sobre timestamptz) siguen la zona de la sesión. rappi-ia la fija igual en cada conexión.
+ALTER DATABASE :"db" SET timezone TO 'America/Santiago';
 
 -- pgvector no es una extensión "trusted": solo un superusuario la crea. Las migraciones y los dumps la piden con
 -- IF NOT EXISTS, así que con esto rappi_owner migra y restaura sin ser superusuario. pg_prewarm (migración 034) es la

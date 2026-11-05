@@ -10,7 +10,7 @@ from fastapi.testclient import TestClient
 from rappi_ia import config
 from rappi_ia.api import app as api
 from rappi_ia.api import deps, prewarm, services
-from rappi_ia.db import database_url
+from rappi_ia.db import database_url, timezone_options
 
 
 def test_startup_loads_services_before_first_request(monkeypatch, caplog):
@@ -85,13 +85,34 @@ def test_each_api_module_imports_on_its_own(module):
     assert result.returncode == 0, result.stderr
 
 
+def test_the_chilean_time_zone_keeps_the_options_of_the_url(monkeypatch):
+    monkeypatch.delenv("PGOPTIONS", raising=False)
+    assert timezone_options("postgresql:///rappi") == "-c TimeZone=America/Santiago"
+    url = "postgresql:///rappi?options=-c%20random_page_cost%3D4"
+    assert timezone_options(url) == "-c random_page_cost=4 -c TimeZone=America/Santiago"
+    assert timezone_options("dbname=rappi options='-c TimeZone=UTC'") == "-c TimeZone=UTC"  # la URL manda
+
+
+def test_the_chilean_time_zone_keeps_pgoptions(monkeypatch):
+    """`PGOPTIONS` sigue valiendo en las conexiones de rappi-ia (libpq la ignora si se le pasan `options`), y la URL
+    la pisa, como en libpq."""
+    monkeypatch.setenv("PGOPTIONS", "-c maintenance_work_mem=1GB")
+    assert timezone_options("postgresql:///rappi") == "-c maintenance_work_mem=1GB -c TimeZone=America/Santiago"
+    url = "postgresql:///rappi?options=-c%20random_page_cost%3D4"
+    assert timezone_options(url) == "-c random_page_cost=4 -c TimeZone=America/Santiago"
+    monkeypatch.setenv("PGOPTIONS", "-c TimeZone=UTC")
+    assert timezone_options("postgresql:///rappi") == "-c TimeZone=UTC"  # quien fija la zona a mano, manda
+
+
 def test_api_connections_fail_fast(monkeypatch):
     """Postgres caído o una consulta atascada no dejan a la API (ni al presentador) esperando minutos. Las conexiones
-    salen del pool con su nombre y cortan una transacción olvidada abierta."""
+    salen del pool con su nombre, en la hora de Chile (aunque Postgres esté en UTC) y cortan una transacción olvidada
+    abierta."""
     try:
         url = database_url("DATABASE_URL_TEST")
     except RuntimeError:
         pytest.skip("DATABASE_URL_TEST no configurada")
+    monkeypatch.delenv("PGOPTIONS", raising=False)
     monkeypatch.setattr(config, "API_POOL_MIN", 1)
     monkeypatch.setattr(config, "API_POOL_MAX", 1)
     pool = deps.make_pool(url)
@@ -105,6 +126,7 @@ def test_api_connections_fail_fast(monkeypatch):
             assert conn.execute("SHOW statement_timeout").fetchone()[0] == "5s"  # lo que espera una pantalla
             assert "connect_timeout=3" in conn.info.dsn
             assert conn.execute("SHOW application_name").fetchone()[0] == "rappi-ia-api"
+            assert conn.execute("SHOW timezone").fetchone()[0] == "America/Santiago"
             assert conn.execute("SHOW idle_in_transaction_session_timeout").fetchone()[0] == "10s"
             conn.rollback()  # un endpoint que deshace a mitad no pierde el tope
             assert conn.execute("SHOW statement_timeout").fetchone()[0] == "5s"
