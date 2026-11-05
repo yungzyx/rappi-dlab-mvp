@@ -75,6 +75,10 @@ DISMISS_BUTTONS = {
 }
 # El camino por el que llegó a una vertical sale del origen del evento (`origin`), no de la pantalla.
 SEARCH_ORIGINS = ("resultados", "resultados-tiendas")
+# Los botones "Ver …" de las ofertas de Mochi llevan a la vertical sin dejar `vertical_open`: si llegó por "otro"
+# camino, se nombra la última oferta de Mochi de esa vertical mostrada hasta este tiempo antes, sin afirmar que llegó
+# por ella.
+OFFER_BEFORE = timedelta(minutes=30)
 # Lo que cuenta como tocar una vertical, con lo que hizo ("order" es un pedido de `app_orders`).
 TOUCHES = {
     "vertical_open": "abrió la vertical",
@@ -409,6 +413,28 @@ def _path(e: dict) -> str:
     return f"otro ({where})" if where else "sin dato"
 
 
+def _offer_before(p: Participant, e: dict) -> dict | None:
+    """La última oferta de Mochi (`agent-<momento>`) de la vertical de `e` mostrada en los `OFFER_BEFORE` anteriores."""
+    shown = [
+        o
+        for o in p.offers
+        if o["type"] == "suggestion_shown"
+        and o["origin"].startswith("agent-")
+        and o["vertical"] == e["vertical"]
+        and e["at"] - OFFER_BEFORE <= o["at"] <= e["at"]
+    ]
+    return max(shown, key=lambda o: o["at"], default=None)
+
+
+def _journey_path(p: Participant, e: dict) -> str:
+    """El camino de `_path`; si es "otro" o "sin dato", con la oferta de Mochi de esa vertical que vio justo antes."""
+    path = _path(e)
+    offer = _offer_before(p, e) if path.startswith(("otro", "sin dato")) else None
+    if offer is None:
+        return path
+    return f"{path}; antes, oferta de Mochi ({offer['moment']}) de esa vertical a las {_time(offer['at'])[-5:]}"
+
+
 def journey(p: Participant) -> list[dict]:
     """La primera vez que tocó cada vertical (la abrió, vio una tienda o un producto, agregó al carro o pidió), en
     orden: la primera es la vertical con que empezó y las demás, cada una nueva."""
@@ -435,14 +461,16 @@ def _journey(p: Participant) -> list[str]:
         f" {other}.",
         "",
         'La primera vez que tocó cada una, con la hora de Santiago y el camino, que sale del origen del evento: "acceso'
-        ' de la Home", "Mochi (momento)", "buscador" u "otro (pantalla, origen)"; "sin dato" si no trae ninguno.',
+        ' de la Home", "Mochi (momento)", "buscador" u "otro (pantalla, origen)"; "sin dato" si no trae ninguno. Los'
+        ' botones "Ver …" de una oferta de Mochi no dejan origen: si en los 30 minutos anteriores vio una oferta de'
+        ' Mochi de esa vertical, "otro" la nombra ("antes, oferta de Mochi…"), sin afirmar que llegó por ella.',
         "",
         "| Hora | Vertical | Qué hizo | Camino |",
         "|---|---|---|---|",
     ]
     for i, e in enumerate(steps):
         name = _vertical(e["vertical"]) + (" (la primera)" if i == 0 else "")
-        lines.append(f"| {_time(e['at'])} | {name} | {TOUCHES[e['type']]} | {_cell(_path(e))} |")
+        lines.append(f"| {_time(e['at'])} | {name} | {TOUCHES[e['type']]} | {_cell(_journey_path(p, e))} |")
     return lines
 
 

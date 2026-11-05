@@ -236,6 +236,46 @@ def test_the_journey_says_how_each_vertical_was_reached_without_vertical_open(db
     assert "- Abiertas (un acceso de la Home o un botón de Mochi): ninguna." in text
 
 
+def test_the_journey_names_the_mochi_offer_seen_before_reaching_a_vertical_by_another_path(
+    db, tmp_path, test_url, monkeypatch
+):
+    """El botón "Ver Súper" de una oferta de Mochi lleva a la vertical sin dejar `vertical_open`: lo primero que toca
+    allí sale de la pantalla de la vertical ("otro"). El recorrido nombra la oferta de Súper que vio justo antes, pero
+    no una de hace más de 30 minutos (Licores)."""
+    seed_taxonomy(db, load_taxonomy())
+    e = events.Event
+    user = "proto-ffff"
+    events.record(
+        db,
+        [
+            e(user, "s1", "suggestion_shown", ts=_at(0), concept_id="vino", vertical="licores", origin="agent-volver"),
+            e(
+                user,
+                "s1",
+                "suggestion_shown",
+                ts=_at(40),
+                concept_id="leche",
+                vertical="supermercado",
+                origin="agent-vertical_por_probar",
+            ),
+            e(user, "s1", "view_store", ts=_at(41), vertical="supermercado", origin="tiendas", surface="vertical"),
+            e(user, "s1", "view_store", ts=_at(42), vertical="licores", origin="tiendas", surface="vertical"),
+        ],
+        session=ONCE,
+    )
+    db.commit()
+    monkeypatch.setenv("DATABASE_URL", test_url)
+
+    _run(tmp_path, user)
+
+    text = (tmp_path / f"{user}.md").read_text(encoding="utf-8")
+    assert (
+        "| 03-11 15:41 | Súper (la primera) | vio una tienda | otro (vertical, tiendas); antes, oferta de Mochi"
+        " (vertical_por_probar) de esa vertical a las 15:40 |"
+    ) in text
+    assert "| 03-11 15:42 | Licores | vio una tienda | otro (vertical, tiendas) |" in text
+
+
 def test_the_journey_paths():
     """El camino sale del origen: una oferta de Mochi con su momento, el "Para ti" de su tarjeta (no el de una tienda),
     el buscador, un acceso de la Home, un botón del panel de Mochi, y lo demás tal cual."""
@@ -322,7 +362,11 @@ def test_summary_of_a_participant(seeded, tmp_path, capsys):
     assert "Pizza" not in text  # el "Para ti" de una tienda (cart_add) no es una oferta de Mochi
     # Recorrido: Restaurantes primero (el carro desde el "Para ti" de una tienda, no de Mochi) y Licores por su acceso.
     assert "Tocó 2 vertical(es); empezó por Restaurantes. Llegó a otra vertical: sí." in text
-    assert "| 03-11 15:07 | Restaurantes (la primera) | agregó al carro | otro (store, para-ti) |" in text
+    # Antes vio la oferta "vertical por probar" de Restaurantes: se nombra, sin afirmar que llegó por ella.
+    assert (
+        "| 03-11 15:07 | Restaurantes (la primera) | agregó al carro | otro (store, para-ti); antes, oferta de Mochi"
+        " (vertical_por_probar) de esa vertical a las 15:07 |"
+    ) in text
     assert "| 03-11 15:08 | Licores | abrió la vertical | acceso de la Home |" in text
     # Verticales: las dos abiertas; con pedido solo Licores (el de Restaurantes se canceló).
     assert "- Abiertas (un acceso de la Home o un botón de Mochi): Licores, Restaurantes." in text

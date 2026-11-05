@@ -34,7 +34,7 @@ Si dice que no, no hay sesión. Si para en medio, se borran sus datos igual (sec
 - **Grupo de control apagado:** quien opera dlab-mvp.com confirma que `OFFERS_CONTROL_PCT` está en 0 (lo de siempre). Si no, a una persona le pueden retener las ofertas de Mochi y la tarea 3 no se puede hacer; el resumen lo diría en "Experimentos: … ofertas_control = control".
 - **Comandos:** `rappi-ia resumen-prueba` y `rappi-ia olvidar` corren en el equipo que sirve la demo, con el `.env` que apunta a su base (en el Mac de [deploy/macos](../deploy/macos/README.md), desde `rappi-ia/` de esa copia y con su `.venv`).
 - **Roles:** un moderador (lee las consignas, no ayuda) y un observador (anota). Pedirle a la persona que piense en voz alta.
-- **Una corrida en seco** con alguien del equipo, en una pestaña privada como las de verdad (sección 6): su id se borra al final, con los demás.
+- **Una corrida en seco** con alguien del equipo, en una pestaña privada como las de verdad (sección 6). Al terminarla, con los mismos dos pasos del final de la sección 6: `resumen-prueba --desde <hora en que empezó la corrida>` da su id (anotarlo) y `olvidar` con ese id la borra. Así no queda en el servidor aunque las sesiones de verdad sean otro día.
 
 ## 4. Guion: 6 tareas (unos 25 minutos)
 
@@ -87,7 +87,7 @@ Al terminar las sesiones del día, en el equipo que sirve la demo (sección 3):
    ```
 
    Escribe un Markdown por persona del prototipo creada desde esa hora (`proto-….md`), con la hora en que se creó al comienzo. La de P*n* es la que coincide con la hora de su hoja y con lo que hizo; si sale alguna de más, alguien más entró a la demo en ese rato. Renombrar el archivo a `P1.md` y anotar su id en la hoja de P1.
-2. **Borrar**, con los ids que salieron de los resúmenes (los de P1 a P5 y el de la corrida en seco):
+2. **Borrar**, con los ids que salieron de los resúmenes (los de P1 a P5; la corrida en seco ya se borró al terminarla, sección 3):
 
    ```bash
    .venv/bin/python -m rappi_ia olvidar proto-… proto-…
@@ -106,7 +106,7 @@ Los resúmenes y las hojas se quedan fuera de git (`~/prueba-usuarios/`, no en e
 | Búsquedas | lo escrito en el buscador (`search`) y lo que se le pidió a Mochi (`ask`), con resultados; marca "sin resultado", "corregida a…" y "buscó tal cual" | `app_events` |
 | Ofertas de Mochi | cada oferta mostrada (origen `agent-<momento>` o el "Para ti" de su tarjeta) con su momento, de qué sale su "¿Por qué?" (sus pedidos, lo que buscó, su perfil…), concepto y vertical, y si se aceptó (se agregó algo al carro), se rechazó (con el botón de su momento, como "Después" de "¿Volvemos a…?") o quedó sin respuesta registrada | `suggestion_shown` (con `payload.basis`), `suggestion_accepted`, `suggestion_dismissed` y `offer_withheld` |
 | El "¿Por qué?" de las ofertas | cada vez que abrió el "¿Por qué?" de una oferta: la hora, el momento, de qué sale y el concepto | `offer_why_open` (migración 053) |
-| Recorrido por verticales | la primera vertical que tocó y cada una nueva, con la hora y el camino según el origen del evento: un acceso de la Home, Mochi (con el momento de la oferta), el buscador u otro | `vertical_open`, `view_store`, `view_item`, `cart_add` y `app_orders` |
+| Recorrido por verticales | la primera vertical que tocó y cada una nueva, con la hora y el camino según el origen del evento: un acceso de la Home, Mochi (con el momento de la oferta), el buscador u otro. Los botones "Ver …" de una oferta de Mochi no dejan origen: quien llega por ellos sale como "otro (vertical, …)", y si vio una oferta de Mochi de esa vertical en los 30 minutos anteriores, la nombra ("antes, oferta de Mochi…") sin afirmar que llegó por ella; el observador anota el botón que tocó | `vertical_open`, `view_store`, `view_item`, `cart_add` y `app_orders` |
 | Verticales | las abiertas desde un acceso o un botón de Mochi, los servicios abiertos y las verticales con pedido (sin los cancelados) | `vertical_open`, `service_opened` y `app_orders` |
 | Mochi a la vista | si lo ocultó y lo trajo de vuelta, cuándo y desde dónde | `agent_visibility` |
 | Pedidos | hora, vertical, total, líneas (cuántas de una oferta), modo, estado y si lo pidió la persona o Mochi ("Pedir por mí") | `app_orders` y `app_order_lines` |
