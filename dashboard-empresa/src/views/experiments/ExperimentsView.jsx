@@ -4,9 +4,9 @@ import { DataTable } from '../../components/DataTable.jsx'
 import { ProvenanceBadge } from '../../components/ProvenanceBadge.jsx'
 import { SourceNote } from '../../components/SourceNote.jsx'
 import { EmptyState } from '../../components/States.jsx'
-import { formatNumber, formatPct } from '../../lib/format.js'
+import { formatNumber, formatPct, formatPoints } from '../../lib/format.js'
 import { useAnalytics } from '../../lib/useAnalytics.js'
-import { assignedPeople, experimentLabel, orderedPct, variantLabel } from './experiments.js'
+import { assignedPeople, cohortPeople, experimentLabel, orderedPct, variantLabel } from './experiments.js'
 
 // Las columnas de todos los experimentos: personas, con pedido y verticales por persona, desde que se asignó la variante.
 const GROUP_COLUMNS = [
@@ -54,6 +54,53 @@ const OFFER_COLUMNS = [
   },
 ]
 
+// La retención del grupo de control (docs/plan-piloto.md): por variante y, al final, la diferencia; su IC de 95 % solo
+// llega cuando cada grupo alcanza el mínimo (antes, con pocas personas, se encogería y parecería un efecto).
+const DIFFERENCE = 'diferencia'
+
+function RetentionCell({ row, pct, difference }) {
+  if (row.variante !== DIFFERENCE) return formatPct(row[pct])
+  if (!difference) return formatPct(null)
+  if (!difference.ic95) return formatPoints(difference.puntos)
+  return (
+    <span className="cell-stack">
+      {formatPoints(difference.puntos)}
+      <span className="cell-sub">
+        IC 95 %: {formatNumber(difference.ic95[0], 1)} a {formatNumber(difference.ic95[1], 1)}
+      </span>
+    </span>
+  )
+}
+
+const retentionColumns = (diferencia) => [
+  {
+    key: 'variante',
+    header: 'Variante',
+    primary: true,
+    render: (row) => (
+      <strong>{row.variante === DIFFERENCE ? 'Diferencia (tratamiento − control)' : variantLabel(row.variante)}</strong>
+    ),
+  },
+  {
+    key: 'personas',
+    header: 'Personas con su mes siguiente completo',
+    numeric: true,
+    render: (row) => formatNumber(row.personas),
+  },
+  {
+    key: 'retencion',
+    header: 'Retención M+1',
+    numeric: true,
+    render: (row) => <RetentionCell row={row} pct="retencion_m1_pct" difference={diferencia?.retencion_m1} />,
+  },
+  {
+    key: 'suma',
+    header: 'Suma una vertical nueva en 28 días',
+    numeric: true,
+    render: (row) => <RetentionCell row={row} pct="suma_vertical_pct" difference={diferencia?.suma_vertical} />,
+  },
+]
+
 function Kind({ random }) {
   return random ? (
     <span className="chip">al azar</span>
@@ -80,12 +127,49 @@ function NobodyYet({ experiment }) {
   )
 }
 
-function GroupSizes({ variants }) {
+/** El tamaño de cada grupo y, si se sabe, el que pide el plan de piloto para medir +5 puntos de retención M+1. */
+function GroupSizes({ variants, retention }) {
   const sizes = variants.map((row) => `${formatNumber(row.personas)} en ${row.variante}`).join(' y ')
+  const minimum = retention?.minimo
+  const needed =
+    minimum && variants.map((row) => `${formatNumber(minimum[row.variante])} en ${row.variante}`).join(' y ')
   return (
     <p className="block-note" data-testid="tamano-grupos">
-      Grupos: {sizes}. Con pocas personas por grupo, la diferencia entre ellos no es concluyente.
+      Grupos: {sizes}.{' '}
+      {needed &&
+        `Para medir +${retention.efecto_minimo_puntos} puntos de retención M+1 harían falta ${needed} (plan de ` +
+          `piloto, sobre el ${formatPct(retention.base_pct, 0)} de "solo Restaurantes" en la tabla de Rappi, un ` +
+          'supuesto). '}
+      Con menos personas por grupo, la diferencia entre ellos no es concluyente.
     </p>
+  )
+}
+
+/** La retención M+1 y la parte que suma una vertical nueva, por variante, en la cohorte con su mes siguiente completo. */
+function Retention({ retention }) {
+  if (cohortPeople(retention) === 0) {
+    return (
+      <p className="block-note" data-testid="retencion-nota">
+        Nadie tiene todavía su mes siguiente completo: la retención M+1 cuenta a quienes recibieron la variante en un
+        mes que ya tuvo el siguiente entero.
+      </p>
+    )
+  }
+  const rows = [...retention.variantes, { variante: DIFFERENCE }]
+  return (
+    <>
+      <DataTable
+        caption="Retención M+1 por grupo"
+        columns={retentionColumns(retention.diferencia)}
+        rows={rows}
+        rowKey={(row) => row.variante}
+      />
+      <p className="block-note" data-testid="retencion-nota">
+        {retention.concluyente
+          ? 'Cada grupo llega al mínimo del plan de piloto: la diferencia se lee con su intervalo.'
+          : 'No es concluyente: los grupos no llegan al mínimo del plan de piloto.'}
+      </p>
+    </>
   )
 }
 
@@ -103,13 +187,14 @@ function Experiment({ experiment }) {
         <NobodyYet experiment={experiment} />
       ) : (
         <>
-          {offers && <GroupSizes variants={experiment.variantes} />}
+          {offers && <GroupSizes variants={experiment.variantes} retention={experiment.retencion} />}
           <DataTable
             caption={label}
             columns={offers ? [...GROUP_COLUMNS, ...OFFER_COLUMNS] : GROUP_COLUMNS}
             rows={experiment.variantes}
             rowKey={(row) => row.variante}
           />
+          {offers && experiment.retencion && <Retention retention={experiment.retencion} />}
         </>
       )}
     </div>

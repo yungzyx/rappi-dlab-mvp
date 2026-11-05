@@ -24,7 +24,7 @@
       {
         "id": "ofertas_control",
         "al_azar": true,
-        "nota": "Al azar: un sorteo estable con el id de la persona. A control no se le muestran las ofertas que Mochi propone solo (quedan como retenidas). La diferencia entre los grupos mide el efecto de esas ofertas, si cada grupo tiene personas suficientes.",
+        "nota": "Al azar: un sorteo estable con el id de la persona. A control no se le muestran las ofertas que Mochi propone solo (quedan como retenidas). La diferencia entre los grupos mide el efecto de esas ofertas cuando cada grupo llega al mínimo del plan de piloto (docs/plan-piloto.md); antes, no es concluyente.",
         "variantes": [
           {
             "variante": "tratamiento",
@@ -53,7 +53,28 @@
             }
           }
         ],
-        "control_pct": 0
+        "control_pct": 0,
+        "retencion": {
+          "variantes": [
+            {
+              "variante": "tratamiento",
+              "personas": 0,
+              "retencion_m1_pct": null,
+              "suma_vertical_pct": null
+            },
+            {
+              "variante": "control",
+              "personas": 0,
+              "retencion_m1_pct": null,
+              "suma_vertical_pct": null
+            }
+          ],
+          "diferencia": null,
+          "minimo": null,
+          "efecto_minimo_puntos": 5,
+          "base_pct": 47.0,
+          "concluyente": false
+        }
       }
     ]
   },

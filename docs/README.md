@@ -11,6 +11,7 @@
 | Ver el prototipo final: la Home que aprende, Mochi en la Home y el buscador con Mochi | [prototipo-app/README.md](../prototipo-app/README.md) | 5 min |
 | Mostrarlo a alguien del negocio (guion de unos 12 minutos) | [demo.md](demo.md) | 3 min |
 | Saber qué se decidió y por qué | [decisiones.md](decisiones.md) | 5 min |
+| Saber cómo se mediría con Rappi si las ofertas de Mochi retienen y cuántas personas hacen falta (plan de piloto) | [plan-piloto.md](plan-piloto.md) | 4 min |
 | Ver qué cambió desde el 25-10-2026 (las fases de la comparación con la app de Rappi, las revisiones y lo que siguió hasta el 05-11), PR por PR | [cambios.md](cambios.md) | 3 min |
 
 ## 2. Cómo funciona

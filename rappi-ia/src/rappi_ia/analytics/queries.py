@@ -15,6 +15,7 @@ from ..events import experiments as exp
 from ..motor.combos import OWN_SIGNALS_ONLY, expected_fine_retention, load_combos
 from ..offers.autonomy import ORIGIN as AUTO_ORDER_ORIGIN
 from ..offers.winback import reach
+from .power import PILOT_MIN_EFFECT, difference_ci, sample_size
 
 SOURCES = ("synthetic", "prototype")
 ACTIVE_DAYS = 30
@@ -857,7 +858,8 @@ EXPERIMENT_NOTES = {
     exp.OFFERS_CONTROL: (
         "Al azar: un sorteo estable con el id de la persona. A control no se le muestran las ofertas que "
         f"{config.AGENT_NAME} propone solo (quedan como retenidas). La diferencia entre los grupos mide el efecto de "
-        "esas ofertas, si cada grupo tiene personas suficientes."
+        "esas ofertas cuando cada grupo llega al mínimo del plan de piloto (docs/plan-piloto.md); antes, no es "
+        "concluyente."
     ),
 }
 
@@ -868,7 +870,8 @@ def experiment_results(conn: Connection, source: str = "synthetic") -> dict:
     desde que se le asignó la variante. `al_azar` dice si comparar variantes mide un efecto (`azar`) o solo describe
     (`elegida`). En `ofertas_control`, además, `control_pct` (OFFERS_CONTROL_PCT: en 0 nadie entra) y por variante las
     ofertas de los momentos que Mochi propone solo (`exp.HOLDOUT_MOMENTS`): mostradas (`suggestion_shown`), retenidas
-    (`offer_withheld`), aceptadas, personas con alguna y los pedidos confirmados después de la primera."""
+    (`offer_withheld`), aceptadas, personas con alguna y los pedidos confirmados después de la primera; y su
+    `retencion` (`_offers_retention`)."""
     _check(source)
     params = {"source": source, "offers": exp.OFFERS_CONTROL, "origins": [f"agent-{m}" for m in exp.HOLDOUT_MOMENTS]}
     declared = _rows(
@@ -950,8 +953,95 @@ def experiment_results(conn: Connection, source: str = "synthetic") -> dict:
         }
         if e["experiment_id"] == exp.OFFERS_CONTROL:
             item["control_pct"] = config.OFFERS_CONTROL_PCT
+            item["retencion"] = _offers_retention(conn, params, variants)
         result.append(item)
     return {"experimentos": result}
+
+
+def _offers_retention(conn: Connection, params: dict, variants: list[dict]) -> dict:
+    """La retención en `ofertas_control` (docs/plan-piloto.md), por variante, sobre la cohorte de asignación con su mes
+    siguiente completo (quien recibió la variante en el mes M, con M+1 ya terminado en los datos): `retencion_m1_pct`,
+    la parte con algún pedido confirmado en M+1 (como la M+1 de la tabla de Rappi), y `suma_vertical_pct`, la parte que
+    pide en los 28 días desde la asignación en una vertical en la que no había pedido antes (M+1 termina al menos 28
+    días después de cualquier día de M: la misma cohorte vale para las dos). `diferencia` es tratamiento − control en
+    puntos. `minimo` son las personas que pide cada grupo para un efecto de +5 puntos sobre la M+1 de "solo
+    Restaurantes" de la tabla de Rappi (un supuesto), con el reparto de quienes tienen variante; bajo ese mínimo,
+    `concluyente` es falso y la diferencia va sin su IC de 95 % (`ic95` nulo): con pocas personas, un grupo en 0 % o
+    100 % lo encoge y parecería un efecto."""
+    cohort = _rows(
+        conn,
+        f"""WITH cohort AS (
+               SELECT user_id, variant, assigned_at,
+                      date_trunc('month', assigned_at AT TIME ZONE %(tz)s) AS month
+               FROM experiment_assignments
+               WHERE source = %(source)s AND experiment_id = %(offers)s
+           ),
+           confirmed AS NOT MATERIALIZED (  -- en cada EXISTS, con el índice (user_id, ts) de la persona
+               SELECT user_id, vertical, ts FROM app_orders WHERE source = %(source)s AND status = 'confirmado'
+           )
+           SELECT c.variant, count(*) AS personas,
+                  count(*) FILTER (WHERE EXISTS (
+                      SELECT 1 FROM confirmed o WHERE o.user_id = c.user_id
+                         AND o.ts AT TIME ZONE %(tz)s >= c.month + interval '1 month'
+                         AND o.ts AT TIME ZONE %(tz)s < c.month + interval '2 months')) AS retenidas,
+                  count(*) FILTER (WHERE EXISTS (
+                      SELECT 1 FROM confirmed o WHERE o.user_id = c.user_id
+                         AND o.ts >= c.assigned_at AND o.ts < c.assigned_at + interval '28 days'
+                         AND NOT EXISTS (
+                             SELECT 1 FROM confirmed b WHERE b.user_id = c.user_id AND b.vertical = o.vertical
+                                AND b.ts < c.assigned_at))) AS suman_vertical
+           FROM cohort c
+           WHERE c.month + interval '2 months' <= {_AS_OF} AT TIME ZONE %(tz)s
+           GROUP BY 1""",
+        {**params, "tz": TZ.key},
+    )
+    by_variant = {row["variant"]: row for row in cohort}
+    groups = {}
+    for v in variants:
+        row = by_variant.get(v["variante"], {})
+        n = row.get("personas", 0)
+        groups[v["variante"]] = {
+            "variante": v["variante"],
+            "personas": n,
+            "retenidas": row.get("retenidas", 0),
+            "suman_vertical": row.get("suman_vertical", 0),
+        }
+
+    def pct(part: int, n: int) -> float | None:
+        return round(100 * part / n, 1) if n else None
+
+    assigned = {v["variante"]: v["personas"] for v in variants}
+    minimum = None
+    base = load_combos().rappi["rest"].retention_m1
+    if assigned[exp.TREATMENT] and assigned[exp.CONTROL]:
+        share = assigned[exp.CONTROL] / (assigned[exp.TREATMENT] + assigned[exp.CONTROL])
+        need_control, need_treated = sample_size(base, PILOT_MIN_EFFECT, share)
+        minimum = {exp.TREATMENT: need_treated, exp.CONTROL: need_control}
+    conclusive = minimum is not None and all(groups[variant]["personas"] >= need for variant, need in minimum.items())
+    treated, control = groups[exp.TREATMENT], groups[exp.CONTROL]
+    difference = None
+    if treated["personas"] and control["personas"]:
+        difference = {}
+        for key, metric in (("retenidas", "retencion_m1"), ("suman_vertical", "suma_vertical")):
+            diff, low, high = difference_ci((treated[key], treated["personas"]), (control[key], control["personas"]))
+            ci = [round(100 * low, 1), round(100 * high, 1)] if conclusive else None
+            difference[metric] = {"puntos": round(100 * diff, 1), "ic95": ci}
+    return {
+        "variantes": [
+            {
+                "variante": g["variante"],
+                "personas": g["personas"],
+                "retencion_m1_pct": pct(g["retenidas"], g["personas"]),
+                "suma_vertical_pct": pct(g["suman_vertical"], g["personas"]),
+            }
+            for g in groups.values()
+        ],
+        "diferencia": difference,
+        "minimo": minimum,
+        "efecto_minimo_puntos": round(100 * PILOT_MIN_EFFECT),
+        "base_pct": round(100 * base, 1),
+        "concluyente": conclusive,
+    }
 
 
 def multi_vertical_retention(conn: Connection, source: str = "synthetic") -> list[dict]:
