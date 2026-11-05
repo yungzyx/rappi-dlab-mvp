@@ -74,32 +74,35 @@ if [ -f "$OLD_LOCK" ]; then
   interrupted
   rm -f "$OLD_LOCK"
 fi
-# El candado es un directorio (mkdir es atómico) con el PID adentro. Si ese proceso ya no existe o es otro programa con
-# el mismo PID, quedó de una ejecución que murió: lo recupera una sola de las que partan a la vez, la que tome
-# RECOVERING (otro mkdir). Esa vuelve a revisar el candado antes de borrarlo, porque otra pudo recuperarlo recién. Solo
-# un RECOVERING que sigue ahí y tiene más de 2 minutos quedó de una ejecución que murió justo ahí y se borra; si
+# El candado es un directorio con el PID adentro (`take`). Si ese proceso ya no existe o es otro programa con el mismo
+# PID, quedó de una ejecución que murió: lo recupera una sola de las que partan a la vez, la que tome RECOVERING (otro
+# candado igual). Esa vuelve a revisar el candado antes de borrarlo, porque otra pudo recuperarlo recién. Solo un
+# RECOVERING que sigue ahí y tiene más de 2 minutos quedó de una ejecución que murió justo ahí y se borra; si
 # desaparece mientras se revisa, otra lo soltó (y otra pudo tomarlo ya): esta se omite. Soltarlo tolera que ya no esté.
 LOCK=$DATA/refresh-semanal.lock
 RECOVERING=$LOCK.recuperando
-if ! mkdir "$LOCK" 2>/dev/null; then
+# Toma el candado `$1`: crea el directorio y escribe su PID sin pisar otro (noclobber: el shell abre el archivo con
+# O_EXCL). El PID decide quién lo tiene, no el mkdir: el de uutils (el de Ubuntu 26.04) a veces les dice a dos
+# ejecuciones a la vez que creó el mismo directorio.
+take() { mkdir "$1" 2>/dev/null && (set -C; echo $$ > "$1/pid") 2>/dev/null; }
+if ! take "$LOCK"; then
   if lock_held; then already_running; fi
-  if ! mkdir "$RECOVERING" 2>/dev/null; then
+  if ! take "$RECOVERING"; then
     if ! old "$RECOVERING"; then already_running; fi
     rm -rf "$RECOVERING"
-    mkdir "$RECOVERING" 2>/dev/null || already_running
+    take "$RECOVERING" || already_running
   fi
   if lock_held; then
-    rmdir "$RECOVERING" 2>/dev/null || true
+    rm -rf "$RECOVERING"
     already_running
   fi
   if [ -d "$LOCK" ]; then
     interrupted
     rm -rf "$LOCK"
   fi
-  mkdir "$LOCK" 2>/dev/null || { rmdir "$RECOVERING" 2>/dev/null || true; already_running; }
-  rmdir "$RECOVERING" 2>/dev/null || true
+  take "$LOCK" || { rm -rf "$RECOVERING"; already_running; }
+  rm -rf "$RECOVERING"
 fi
-echo $$ > "$LOCK/pid"
 # Una línea por ejecución en ultimo-estado.txt (la muestra `make schedule-status`): un fallo del domingo no queda
 # escondido en launchd.err.log ni en el diario de systemd.
 nota=""
