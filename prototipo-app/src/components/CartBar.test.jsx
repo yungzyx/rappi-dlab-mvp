@@ -48,6 +48,7 @@ test('vaciar el carro lo registra (una salida por línea con sus unidades): si n
   )
   fireEvent.click(screen.getByText('Ver carro'))
   fireEvent.click(screen.getByText('Vaciar carro'))
+  fireEvent.click(screen.getByRole('button', { name: 'Vaciar' }))
 
   const removes = events.track.mock.calls.filter(([type]) => type === 'cart_remove').map(([, fields]) => fields)
   expect(removes.map((r) => r.payload.qty).sort()).toEqual([1, 2])
@@ -104,4 +105,31 @@ test('una canasta por tienda, con su compra mínima: "Tu compra será dividida e
   expect(screen.getByText('Te faltan $5.300 para hacer el pedido')).toBeTruthy()
   // La botillería no trae mínimo en el catálogo: el supuesto de Licores, rotulado.
   expect(screen.getByText(/Te faltan \$3\.810 para hacer el pedido/).textContent).toMatch(/mínimo de ejemplo/)
+})
+
+test('"Vaciar carro" pide confirmar: tocarlo no vacía ni registra nada, y "Cancelar" deja el carro igual', () => {
+  const [beer, other] = fixture('catalog-store').products.slice(0, 2).map(toPrototypeProduct)
+  renderCart([beer, beer, other])
+  fireEvent.click(screen.getByText('Vaciar carro'))
+
+  expect(screen.getByText('¿Vaciar el carro? Se quitan 3 productos.')).toBeTruthy()
+  expect(document.activeElement).toBe(screen.getByRole('button', { name: 'Cancelar' }))
+  expect(events.track.mock.calls.filter(([type]) => type === 'cart_remove')).toEqual([])
+
+  fireEvent.click(screen.getByRole('button', { name: 'Cancelar' }))
+  expect(screen.queryByText(/¿Vaciar el carro\?/)).toBeNull()
+  expect(screen.getByText('Ver carro')).toBeTruthy()
+  expect(screen.getByText('Ir a pagar')).toBeTruthy()
+  expect(events.track.mock.calls.filter(([type]) => type === 'cart_remove')).toEqual([])
+})
+
+test('confirmar "Vaciar" deja el carro vacío con un cart_remove por línea', () => {
+  const [beer, other] = fixture('catalog-store').products.slice(0, 2).map(toPrototypeProduct)
+  renderCart([beer, other])
+  fireEvent.click(screen.getByText('Vaciar carro'))
+  fireEvent.click(screen.getByRole('button', { name: 'Vaciar' }))
+
+  expect(events.track.mock.calls.filter(([type]) => type === 'cart_remove')).toHaveLength(2)
+  expect(screen.getByText('Tu carro está vacío.')).toBeTruthy()
+  expect(screen.queryByText('Ver carro')).toBeNull()
 })
