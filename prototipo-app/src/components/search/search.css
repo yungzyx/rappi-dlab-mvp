@@ -113,6 +113,14 @@
   color: var(--ink-2);
 }
 
+/* Solo en la demo sin conexión: por qué no encontró (busca en una muestra, sin corregir tipeo) */
+.search-offline {
+  margin: 14px 0 0;
+  font-size: 13px;
+  color: var(--ink-2);
+  text-align: center;
+}
+
 .search-preferences {
   margin: 14px 0 0;
   font-size: 13px;

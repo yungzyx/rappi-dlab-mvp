@@ -161,6 +161,34 @@ describe('SearchResults sin resultados', () => {
   })
 })
 
+describe('SearchResults en la demo sin conexión (VITE_OFFLINE_DEMO)', () => {
+  const NOTE = 'Demo sin conexión: busca solo en una muestra y no corrige faltas de tipeo; en dlab-mvp.com sí.'
+  const OFFLINE = { ...EMPTY, query: 'suchi', unmetReason: 'sin coincidencias en la muestra de la demo sin conexión' }
+
+  afterEach(() => vi.unstubAllEnvs())
+
+  test('sin resultado, dice por qué: busca en una muestra y no corrige el tipeo', async () => {
+    vi.stubEnv('VITE_OFFLINE_DEMO', '1')
+    stubApi({ 'POST /agent/offer': 204 })
+    render(<SearchResults query="suchi" data={OFFLINE} />)
+    expect(screen.getByText('Sin resultados para "suchi".')).toBeTruthy()
+    expect(screen.getByText(NOTE)).toBeTruthy()
+    cleanup()
+    render(<SearchResults query="suchi" data={OFFLINE} onOpenVertical={() => {}} />, { wrapper: Providers })
+    await flush()
+    expect(screen.getByText(NOTE)).toBeTruthy()
+  })
+
+  test('fuera de la demo, o sin la razón, no lo dice', () => {
+    render(<SearchResults query="suchi" data={OFFLINE} />)
+    expect(screen.queryByText(NOTE)).toBeNull()
+    cleanup()
+    vi.stubEnv('VITE_OFFLINE_DEMO', '1')
+    render(<SearchResults query="chela" data={EMPTY} />)
+    expect(screen.queryByText(NOTE)).toBeNull()
+  })
+})
+
 describe('SearchResults con preferencias', () => {
   const NOTICE = 'Por tus preferencias, saqué lo que dice tener carne; revisa los ingredientes en la tienda.'
 

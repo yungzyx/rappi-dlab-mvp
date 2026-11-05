@@ -38,6 +38,13 @@ const QUERIES = [
   ...['queso', 'galletas', 'yogurt', 'fruta', 'detergente', 'audífonos', 'cargador', 'alfajores', 'bombones'],
   ...['tacos', 'ramen', 'sándwich', 'comida de perro', 'pasta', 'arroz', 'cafe molido', 'jugo', 'torta'],
 ]
+// Errores de tipeo: los del set de rappi-ia y los de la presentación. Sin conexión no se corrige nada; grabados, la demo
+// muestra la corrección de la API ("Mostrando resultados para…"). Los de la presentación también se le piden a Mochi.
+const SPOKEN_TYPOS = ['cervesa', 'quiero cervesa', 'pizaa']
+const TYPOS = [
+  ...JSON.parse(readFileSync(`${ROOT}../rappi-ia/src/rappi_ia/eval/typos.json`, 'utf8')).queries.map((c) => c.query),
+  ...SPOKEN_TYPOS,
+]
 // Las preguntas en texto libre del set de rappi-ia (una por línea; # comenta): las que se le escriben a Mochi.
 const FREE_QUESTIONS = readFileSync(`${ROOT}../rappi-ia/src/rappi_ia/eval/frases_usuarios/preguntas-libres.txt`, 'utf8')
   .split('\n')
@@ -60,6 +67,7 @@ const ASKS = [
   ...['Quiero sushi', 'Algo para el desayuno', 'Tengo hambre', 'Algo para la once', 'Quiero café', 'Pizza'],
   ...['Un regalo para mi mamá', 'Algo para el asado', 'Necesito pañales', 'Comida para mi perro'],
   ...FREE_QUESTIONS,
+  ...SPOKEN_TYPOS,
 ]
 // Búsquedas sin resultado que la oferta `sin_resultado` sabe responder (se graban las que respondan).
 const NO_RESULT = ['sushi de chocolate', 'helado de palta', 'pizza vegana sin gluten', 'xyzzy']
@@ -186,7 +194,8 @@ async function catalog(token) {
 async function agent(token, userId) {
   const post = (path, body, allow) => call(path, { method: 'POST', body, token, allow })
   const search = {}
-  for (const q of QUERIES) search[normalize(q)] = await call(`/search?q=${encodeURIComponent(q)}`, { token })
+  for (const q of [...QUERIES, ...TYPOS])
+    search[normalize(q)] = await call(`/search?q=${encodeURIComponent(q)}`, { token })
   const ask = {}
   for (const message of ASKS)
     ask[normalize(message)] = await post('/agent/ask', { message, user_id: userId, mode: 'propuesta' })

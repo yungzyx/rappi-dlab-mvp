@@ -84,6 +84,31 @@ describe('el foco de la búsqueda (agent/tools.py: _focus)', () => {
   })
 })
 
+describe('un error de tipeo grabado (demo-snapshot.mjs: eval/typos.json)', () => {
+  const corrected = {
+    query: 'cervesa',
+    groups: [{ vertical: 'licores', prototype_vertical: 'liquor', products: [beer] }],
+    unmet: false,
+    unmet_reason: null,
+    corrected_query: 'cerveza',
+  }
+  const typed = { ...snapshot, search: { cervesa: corrected } }
+
+  test('sale tal cual lo corrigió la API, también en la vertical', () => {
+    expect(search(typed, new URLSearchParams('q=cervesa'))).toBe(corrected)
+    const inLiquor = search(typed, new URLSearchParams('q=cervesa&vertical=liquor'))
+    expect(inLiquor.products).toEqual([beer])
+    expect(inLiquor.corrected_query).toBe('cerveza')
+  })
+
+  test('"Buscar tal cual" (correct=false) no repite la corrección: busca lo escrito en la muestra', () => {
+    const exact = search(typed, new URLSearchParams('q=cervesa&correct=false'))
+    expect(exact.corrected_query).toBeNull()
+    expect(exact.unmet).toBe(true)
+    expect(exact.unmet_reason).toBe('sin coincidencias en la muestra de la demo sin conexión')
+  })
+})
+
 describe('"qué me recomiendas" (rappi_agent.py: _recommend)', () => {
   const recommend = (interests, body = {}) =>
     ask(snapshot, { message: '¿Qué me recomiendas?', mode: 'propuesta', ...body }, { interests, userId: 'proto-1' })

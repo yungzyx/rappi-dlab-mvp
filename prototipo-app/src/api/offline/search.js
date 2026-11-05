@@ -264,7 +264,9 @@ export function search(snapshot, query) {
   const vertical = backendVertical(query.get('vertical'))
   const current = backendVertical(query.get('current'))
   const limit = Number(query.get('limit')) || null
-  const recorded = snapshot.search[normalize(q)]
+  const saved = snapshot.search[normalize(q)]
+  // "Buscar … tal cual" (`correct=false`) no repite una respuesta grabada que corrigió: esa buscó otra cosa.
+  const recorded = query.get('correct') === 'false' && saved?.corrected_query ? undefined : saved
   if (query.get('vertical')) {
     const group = recorded?.groups.find((g) => g.vertical === vertical)
     const products = (group?.products ?? matchProducts(snapshot, q).filter((p) => p.vertical === vertical)).slice(
@@ -276,7 +278,7 @@ export function search(snapshot, query) {
       products,
       unmet: !products.length,
       unmet_reason: products.length ? null : UNMET_REASON,
-      corrected_query: null,
+      corrected_query: group ? recorded.corrected_query : null,
     }
   }
   if (recorded && !current) return recorded

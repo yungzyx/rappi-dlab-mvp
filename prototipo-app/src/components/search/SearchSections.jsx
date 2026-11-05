@@ -151,14 +151,23 @@ export function SearchResults({
     const whim = data.whimAllowed && onOpenFavor && (
       <WhimOffer key={`whim|${text}`} query={text} requestId={data.requestId} onOpenFavor={onOpenFavor} />
     )
+    // Solo en "Prototipo MVP.html" (`npm run demo:html`): la API simulada busca por palabras en una muestra y dice por
+    // qué no encontró (`unmetReason`); sin esto, una falta de tipeo parece la app rota.
+    const offline = import.meta.env.VITE_OFFLINE_DEMO === '1' && data.unmetReason && (
+      <p className="search-offline">
+        Demo sin conexión: busca solo en una muestra y no corrige faltas de tipeo; en dlab-mvp.com sí.
+      </p>
+    )
     return onOpenVertical ? (
       <>
         <AgentEmpty key={text} query={text} onOpenVertical={onOpenVertical} onTryAnother={onTryAnother} />
+        {offline}
         {whim}
       </>
     ) : (
       <>
         <p className="search-empty">Sin resultados para "{text}".</p>
+        {offline}
         {whim}
       </>
     )
