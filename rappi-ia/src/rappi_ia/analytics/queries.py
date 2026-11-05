@@ -4,13 +4,12 @@
 `as_of` = último evento de esa fuente (los datos simulados terminan en la fecha con que se generaron).
 """
 
-from datetime import UTC
-
 from psycopg import Connection
 from psycopg.rows import dict_row
 
 from .. import config
 from ..agent.verticals import MIN_ITEMS_ELSEWHERE, SHARES
+from ..catalog.hours import TZ
 from ..concepts.taxonomy import load_taxonomy
 from ..events import experiments as exp
 from ..motor.combos import OWN_SIGNALS_ONLY, expected_fine_retention, load_combos
@@ -735,7 +734,7 @@ def motor(conn: Connection, source: str = "synthetic") -> dict | None:
         "pesos": row["pesos"],
         "lambda_cruzada": row["lambda_cruzada"],
         "evaluacion": row["evaluacion"],
-        "fecha": row["finished_at"].astimezone(UTC).isoformat(),
+        "fecha": row["finished_at"].astimezone(TZ).isoformat(),
     }
 
 

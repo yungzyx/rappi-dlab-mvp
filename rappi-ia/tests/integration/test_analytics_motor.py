@@ -130,10 +130,18 @@ def test_motor_reads_the_latest_done_run_of_the_source(db):
         "pesos": new["pesos"],
         "lambda_cruzada": 2.0,
         "evaluacion": new["evaluacion"],
-        "fecha": "2026-10-11T12:00:00+00:00",
+        "fecha": "2026-10-11T09:00:00-03:00",  # en la hora de Chile
     }
     assert queries.motor(db, "prototype")["lambda_cruzada"] == 0.5
     assert queries.motor(db, "prototype")["evaluacion"] is None
+
+
+def test_motor_date_is_the_chilean_day_of_a_late_run(db):
+    """Una corrida del 04-11 a las 21:43 de Chile (00:43 del 05-11 en UTC) es del 04-11: el panel lee los 10 primeros
+    caracteres de la fecha."""
+    _run(db, "synthetic", {"pesos": {"afinidad": 1.0}}, finished_at="2026-11-05 00:43+00")
+
+    assert queries.motor(db, "synthetic")["fecha"].startswith("2026-11-04")
 
 
 def test_motor_keeps_the_stored_evaluation_untouched(db):

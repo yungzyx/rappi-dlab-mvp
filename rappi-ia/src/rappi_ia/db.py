@@ -5,24 +5,44 @@
 
 import psycopg
 from psycopg import sql
+from psycopg.conninfo import conninfo_to_dict
 from rappi_scraper.storage import db as scraper_db
 from rappi_scraper.storage.db import changed_migrations, database_url, migrate
 
 from . import config  # carga .env antes de leer DATABASE_URL
+from .catalog.hours import TZ
 
 __all__ = [
+    "TIMEZONE_OPTIONS",
     "changed_migrations",
     "connect",
     "database_url",
     "migrate",
     "pending_migrations",
     "set_index_build_memory",
+    "timezone_options",
 ]
+
+# La hora de Chile en cada conexión: `date_trunc('day'|'week', ts)` y `::date` sobre timestamptz (el panel) siguen la
+# zona de la sesión, y un Postgres en UTC (el de deploy/ o el del CI) cortaría la semana el domingo a las 21:00.
+TIMEZONE_OPTIONS = f"-c TimeZone={TZ.key}"
+
+
+def timezone_options(conninfo: str) -> str:
+    """Las `options` de libpq para `conninfo`: las que ya trae (p. ej. `?options=-c random_page_cost=4` en la URL) más
+    la hora de Chile, salvo que la URL ya fije una zona. Van como argumento de psycopg, que pisa las de la URL."""
+    current = conninfo_to_dict(conninfo).get("options") or ""
+    if "timezone" in current.lower():
+        return current
+    return f"{current} {TIMEZONE_OPTIONS}".strip()
 
 
 def connect(url: str | None = None, **options) -> psycopg.Connection:
-    """`options` van a psycopg.connect (p. ej. `connect_timeout`)."""
-    return psycopg.connect(url or database_url(), **options)
+    """`options` van a psycopg.connect (p. ej. `connect_timeout`). Sin `options` de libpq, la sesión va en la hora
+    de Chile (`timezone_options`)."""
+    url = url or database_url()
+    options.setdefault("options", timezone_options(url))
+    return psycopg.connect(url, **options)
 
 
 def pending_migrations(conn: psycopg.Connection) -> list[str]:

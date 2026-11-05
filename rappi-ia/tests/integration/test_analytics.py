@@ -2,6 +2,7 @@
 
 from datetime import UTC, date, datetime, timedelta
 
+import psycopg
 import pytest
 from rappi_scraper.storage.search import build_search_documents
 
@@ -9,9 +10,11 @@ from conftest import add_dish, add_price, add_product, add_store
 from rappi_ia.agent.tools import suggest_complement
 from rappi_ia.agent.verticals import ranked_verticals
 from rappi_ia.analytics import queries
+from rappi_ia.catalog.hours import TZ
 from rappi_ia.concepts.pipeline import build_concepts
 from rappi_ia.concepts.store import seed_taxonomy
 from rappi_ia.concepts.taxonomy import load_taxonomy
+from rappi_ia.db import connect
 from rappi_ia.demo.seed import seed_demo
 from rappi_ia.events import store as events
 from rappi_ia.events.synth import generate
@@ -354,6 +357,26 @@ def test_session_conversion_counts_each_session_once(db):
     assert (sum(r["piden"] for r in funnel), sum(r["buscan"] for r in funnel)) == (2, 3)  # 66,7 % por vertical
     assert queries.kpis(db, "prototype")["conversion_sesiones_pct"] == 50.0  # 1 de 2 sesiones
     assert queries.kpis(db, "synthetic")["conversion_sesiones_pct"] is None
+
+
+def test_days_and_weeks_are_chilean_even_on_a_utc_server(db, test_url, monkeypatch):
+    """Un pedido del domingo 01-11 a las 22:00 de Chile (lunes 01:00 en UTC) es de la semana de ese domingo, aunque
+    Postgres esté en UTC (el de deploy/ y el del CI): `db.connect` fija la zona de cada sesión."""
+    seed_taxonomy(db, load_taxonomy())
+    line = {"entity_type": "catalog_item", "entity_id": "1", "concept_id": "cerveza", "unit_price": 1000}
+    sunday_night = datetime(2026, 11, 1, 22, tzinfo=TZ)
+    events.record_order(db, "s1", "s-1", "c-1", "licores", [line], source="synthetic", ts=sunday_night)
+    db.commit()
+    monkeypatch.setenv("PGOPTIONS", "-c TimeZone=UTC")  # así se ve una sesión en un Postgres en UTC
+
+    with psycopg.connect(test_url) as utc:
+        assert utc.execute("SHOW timezone").fetchone()[0] == "UTC"
+        assert [w["semana"] for w in queries.weekly(utc, "synthetic")] == [date(2026, 11, 2)]  # sin la zona: lunes
+    with connect(test_url) as conn:
+        assert conn.execute("SHOW timezone").fetchone()[0] == "America/Santiago"
+        weeks = queries.weekly(conn, "synthetic")
+
+    assert [(w["semana"], w["pedidos"]) for w in weeks] == [(date(2026, 10, 26), 1)]
 
 
 def test_invalid_source_is_rejected(db):

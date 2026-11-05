@@ -22,7 +22,7 @@ from rappi_scraper.storage.search import VERTICALS
 from .. import config
 from ..agent.grouped_search import SpareConnector
 from ..agent.rappi_agent import PROTOTYPE_VERTICALS
-from ..db import database_url
+from ..db import database_url, timezone_options
 from .limits import ConcurrencyCap
 from .services import Services, services
 
@@ -70,13 +70,14 @@ def _configure(conn: Connection) -> None:
 
 def make_pool(conninfo: str) -> ConnectionPool:
     """El pool de la API, sin abrir. `connect_timeout`: Postgres caído no deja a un request esperando minutos. `check`:
-    una conexión que Postgres cortó (reinicio, idle timeout) se cambia antes de entregarla (`checked`)."""
+    una conexión que Postgres cortó (reinicio, idle timeout) se cambia antes de entregarla (`checked`). `options`: la
+    hora de Chile, aunque Postgres esté en UTC (ver `db.timezone_options`)."""
     pool = ConnectionPool(
         conninfo,
         min_size=config.API_POOL_MIN,
         max_size=config.API_POOL_MAX,
         timeout=config.API_POOL_TIMEOUT_S,
-        kwargs={"application_name": APPLICATION_NAME, "connect_timeout": 3},
+        kwargs={"application_name": APPLICATION_NAME, "connect_timeout": 3, "options": timezone_options(conninfo)},
         configure=_configure,
         check=lambda conn: checked(pool, conn),
         open=False,

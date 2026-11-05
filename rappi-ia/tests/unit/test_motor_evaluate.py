@@ -11,6 +11,7 @@ from rappi_ia.motor.evaluate import (
     GRID_C,
     GRID_LAMBDA,
     LAMBDA_MIN_GAIN_HITS,
+    _mcnemar_exact,
     evaluate,
     evaluate_cross_sell,
     evaluate_next_vertical,
@@ -273,6 +274,16 @@ def test_step_follows_the_ladder_and_beats_the_most_added():
     assert out["con_paso"] == 6
     assert out["escalera"] == 1.0
     assert out["mas_sumada"] == 0.0  # Mall: nadie de Restaurantes lo sumó
+    assert (out["solo_paso"], out["solo_base"]) == (6, 0)  # los 6 pares discordantes, todos a favor del paso
+    assert out["p_mcnemar"] == 2 / 2**6
+
+
+def test_mcnemar_exact_matches_known_values():
+    assert round(_mcnemar_exact(5, 9), 3) == 0.424  # la prueba de rappi_staging del 04-11: ruido
+    assert round(_mcnemar_exact(32, 15), 3) == 0.019
+    assert _mcnemar_exact(9, 5) == _mcnemar_exact(5, 9)  # bilateral
+    assert _mcnemar_exact(0, 0) == 1.0  # sin pares discordantes no hay diferencia
+    assert _mcnemar_exact(3, 3) == 1.0  # el tope: el doble de la cola pasa de 1
 
 
 def test_step_inside_retail_never_farmacia():
@@ -301,8 +312,13 @@ def test_evaluate_reports_the_step():
     results = evaluate(orders, signals_of(orders), frozenset())
 
     step = results["paso"]
-    assert set(step) == {"personas", "con_paso", "escalera", "mas_sumada"}
+    assert set(step) == {"personas", "con_paso", "escalera", "mas_sumada", "solo_paso", "solo_base", "p_mcnemar"}
     text = report(results, "synthetic")
     assert "## Paso de la escalera" in text
+    p_value = f"{step['p_mcnemar']:.2f}".replace(".", ",")
+    assert (
+        f"Solo acierta el paso: {step['solo_paso']}; solo la línea base: {step['solo_base']} "
+        f"(McNemar exacto p = {p_value}). Con p ≥ 0,05 la diferencia es ruido." in text
+    )
     assert "| Paso de la escalera |" in text and "| La vertical que más se suma |" in text
     assert "## Paso de la escalera" not in report({**results, "paso": None}, "synthetic")

@@ -466,23 +466,40 @@ def _step(history: _History, cut: datetime, end: datetime, weights: dict[str, fl
     added_before = Counter(v for _have, added in _additions(history, cut - (end - cut), cut).values() for v in added)
     most_added = sorted(DEFAULT_ORDER, key=lambda v: (-added_before[v], DEFAULT_ORDER.index(v)))
     cases = _additions(history, cut, end)
-    ladder_hits = baseline_hits = with_step = 0
+    ladder_hits = baseline_hits = with_step = only_ladder = only_base = 0
     for user, (have, added) in cases.items():
         last = history.user_orders(user, None, cut)[-1].vertical
         ranked = rank_verticals(aff.get(user, {}), last, trans, pop, weights)
         candidates = [v for v, _score in ranked if _proposable(v)]
         step = next_fine_step(fine_of(have), candidates, learned_coarse, learned_fine)
         with_step += step is not None
-        ladder_hits += step is not None and step.vertical in added
+        ladder_hit = step is not None and step.vertical in added
         baseline = next((v for v in most_added if v not in have and _proposable(v)), None)
-        baseline_hits += baseline in added
+        baseline_hit = baseline in added
+        ladder_hits += ladder_hit
+        baseline_hits += baseline_hit
+        only_ladder += ladder_hit and not baseline_hit
+        only_base += baseline_hit and not ladder_hit
     people = len(cases)
     return {
         "personas": people,
         "con_paso": with_step,
         "escalera": ladder_hits / people if people else 0.0,
         "mas_sumada": baseline_hits / people if people else 0.0,
+        "solo_paso": only_ladder,
+        "solo_base": only_base,
+        "p_mcnemar": _mcnemar_exact(only_ladder, only_base),
     }
+
+
+def _mcnemar_exact(b: int, c: int) -> float:
+    """p bilateral de McNemar exacto con los pares discordantes (`b`: solo acierta el paso; `c`: solo la línea base):
+    con n = b + c, la binomial(n, 1/2) del menor de los dos. Las personas en que los dos aciertan o fallan no dicen
+    cuál es mejor. 1.0 sin pares discordantes."""
+    n = b + c
+    if n == 0:
+        return 1.0
+    return min(1.0, 2 * sum(math.comb(n, i) for i in range(min(b, c) + 1)) / 2**n)
 
 
 # Todo junto
@@ -630,6 +647,7 @@ def report(results: dict, source: str) -> str:
     ]
     step = results.get("paso")  # las corridas anteriores a la escalera fina no lo tienen
     if step is not None:
+        p_value = f"{step['p_mcnemar']:.2f}".replace(".", ",")
         lines += [
             f"## Paso de la escalera (prueba, {step['personas']} personas)",
             "",
@@ -642,6 +660,9 @@ def report(results: dict, source: str) -> str:
             "| Método | Acierto@1 |",
             "|---|---:|",
             *(f"| {LABELS[key]} | {_fmt(step[key])} |" for key in ("escalera", "mas_sumada")),
+            "",
+            f"Solo acierta el paso: {step['solo_paso']}; solo la línea base: {step['solo_base']} (McNemar exacto p = "
+            f"{p_value}). Con p ≥ 0,05 la diferencia es ruido.",
             "",
         ]
     return "\n".join(lines)
