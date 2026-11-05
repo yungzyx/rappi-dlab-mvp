@@ -52,6 +52,7 @@ PANEL_METRICS = (
 )
 # Las métricas de /analytics que guarda `npm run fixtures` (dashboard-empresa/scripts/update-fixtures.mjs).
 PANEL_SHAPE = ("kpis", "weekly", "opportunities", "trends", "at-risk", "suggestions", "services", "assortment")
+CATALOG_DAY = datetime(2026, 10, 18, 12, tzinfo=TZ)  # el precio más nuevo de la semilla, en los ejemplos
 PANEL_ORIGINS = {
     "prototype": "make contract · recorrido corto sobre el catálogo de prueba inventado",
     "synthetic": "make contract · simulación chica con semilla fija (40 personas, 8 semanas)",
@@ -256,6 +257,13 @@ CONTRACT: tuple[Example, ...] = (
 @pytest.fixture
 def client(db):
     seed_demo(db)
+    # La Home dice de qué fecha son los precios (`catalogo`): la semilla los guarda con la hora de hoy, así que se
+    # corren (sin cambiar las distancias entre ellos) para que el más nuevo sea de un día fijo y el ejemplo no cambie.
+    for table in ("price_snapshots", "menu_price_snapshots"):
+        db.execute(
+            f"UPDATE {table} SET scraped_at = scraped_at + (%s - (SELECT max(scraped_at) FROM {table}))",
+            (CATALOG_DAY,),
+        )
     # /health estima los documentos con las estadísticas de Postgres: si el autovacuum analizara solo algunas
     # particiones, la cifra saldría parcial. Con pocas filas ANALYZE las lee todas y la estimación es exacta.
     db.execute("ANALYZE search_documents")

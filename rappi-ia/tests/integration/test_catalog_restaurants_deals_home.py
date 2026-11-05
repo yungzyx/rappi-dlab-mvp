@@ -685,7 +685,7 @@ def test_home_nearby_follows_the_configured_point(seeded, monkeypatch):
 def test_home_restaurant_lists_sort_by_eta_and_fee(seeded):
     reply = home(seeded)
 
-    assert set(reply) == {"nearby_stores", "fast_restaurants", "low_fee_restaurants"}
+    assert set(reply) == {"nearby_stores", "fast_restaurants", "low_fee_restaurants", "catalogo"}
     assert ids(reply["fast_restaurants"]) == [
         SANDWICHES,
         PASTRY,
@@ -726,7 +726,12 @@ def test_home_never_calls_a_restaurant_with_an_unknown_eta_fast(seeded):
 
 
 def test_home_of_an_empty_catalog_has_empty_lists(db):
-    assert home(db) == {"nearby_stores": [], "fast_restaurants": [], "low_fee_restaurants": []}
+    assert home(db) == {
+        "nearby_stores": [],
+        "fast_restaurants": [],
+        "low_fee_restaurants": [],
+        "catalogo": {"desde": None, "hasta": None, "verticales": {}},
+    }
 
 
 # --- Endpoints ------------------------------------------------------------------------------------------------------

@@ -1,11 +1,12 @@
-"""Las listas de la Home: tiendas cerca de ti, restaurantes rápidos y restaurantes con envío barato. Solo lectura,
-consultas parametrizadas."""
+"""Las listas de la Home: tiendas cerca de ti, restaurantes rápidos y restaurantes con envío barato, y de qué fecha son
+los precios del catálogo. Solo lectura, consultas parametrizadas."""
 
 from psycopg import Connection
 from rappi_scraper.storage.search import MIN_PRICE
 
 from .. import config
 from .cache import cached
+from .dates import catalog_dates
 from .hours import closed_last
 from .restaurants import restaurants, with_hours
 from .stores import CURRENT_OFFERS, OWN_VERTICAL, STORE_STATE, downloaded_cte, not_pushed_params, store_card
@@ -43,9 +44,9 @@ ORDER BY d.km, d.store_id"""
 def home(conn: Connection) -> dict:
     """Lo que la Home muestra del catálogo: `nearby_stores` (las tiendas más cercanas al punto fijo de la demo),
     `fast_restaurants` (los de menor tiempo de entrega; uno sin tiempo no es rápido) y `low_fee_restaurants` (los de
-    menor costo de envío). Una lista sin datos queda vacía. Sale de la caché del catálogo (catalog/cache.py); el
-    estado de cada restaurante según su horario publicado se compara con la hora de cada request, y los cerrados van
-    al final."""
+    menor costo de envío). Una lista sin datos queda vacía. `catalogo` dice de qué fecha son los precios, en todo el
+    catálogo y por vertical (catalog/dates.py). Sale de la caché del catálogo (catalog/cache.py); el estado de cada
+    restaurante según su horario publicado se compara con la hora de cada request, y los cerrados van al final."""
     lists = cached("home", conn, lambda: _home(conn), refresh=_home)
     return {
         **lists,
@@ -60,6 +61,7 @@ def _home(conn: Connection) -> dict:
         "nearby_stores": _nearby_stores(conn, config.MVP_HOME_LAT, config.MVP_HOME_LNG, NEARBY_STORES),
         "fast_restaurants": [card for card in fast if card["eta"]],
         "low_fee_restaurants": restaurants(conn, sort="fee", limit=LOW_FEE_RESTAURANTS),
+        "catalogo": catalog_dates(conn),
     }
 
 
