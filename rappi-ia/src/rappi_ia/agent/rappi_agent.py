@@ -29,6 +29,7 @@ from itertools import zip_longest
 from psycopg import Connection
 from psycopg.pq import TransactionStatus
 
+from ..concepts.matcher import KeywordMatcher
 from ..concepts.taxonomy import load_taxonomy
 from ..embeddings.base import MemoizedQueryEmbedder, TextEmbedder
 from ..events.store import ensure_user
@@ -204,9 +205,10 @@ class RappiAgent:
             c.id: {w for kw in (c.name, *c.keywords, *c.query_keywords) for w in tokens(kw)}
             for c in self.taxonomy.concepts.values()
         }
-        # Las de cada ocasión tampoco: "guagua" en "pañales para la guagua" dice para qué, no cómo es el pañal.
-        self._occasion_words = {
-            o.id: {w for kw in o.keywords for w in tokens(kw)} for o in self.taxonomy.occasions.values()
+        # Ni las de la ocasión que se dijo: "guagua" en "pañales para la guagua" dice para qué, no cómo es el pañal.
+        # Solo las de la frase dicha: "galletas dulces para el antojo" pide galletas dulces ("algo dulce" es antojo).
+        self._occasion_keywords = {
+            o.id: KeywordMatcher((kw, kw) for kw in o.keywords) for o in self.taxonomy.occasions.values()
         }
         # "sin carne" es una forma de nombrar lo vegano: ese "sin" no excluye nada
         self._concept_phrases = {
@@ -987,7 +989,10 @@ class RappiAgent:
         """(raíz, cómo decirlo, si se pide "sin") de la primera palabra del pedido que no es el concepto, la ocasión
         entendida ni relleno: "lúcuma" en "helado de lúcuma", "sin gluten" en "galletas para celíacos"."""
         concept_words = {w for c in intent.concepts for w in self._concept_words.get(c, ())}
-        concept_words |= self._occasion_words.get(intent.occasion, set())
+        if matcher := self._occasion_keywords.get(intent.occasion or ""):
+            said_words = tokens(intent.text)
+            for m in matcher.matches(intent.text):  # la palabra tal como se dijo ("guaguas") y la de la ocasión
+                concept_words |= {*tokens(m.keyword), *said_words[m.position : m.position + m.words]}
         phrases = {p for c in intent.concepts for p in self._concept_phrases.get(c, ())}
         said = {normalize(w): w.lower() for w in intent.text.split()}
         words = _query_words(intent.query)

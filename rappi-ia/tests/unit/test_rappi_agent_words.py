@@ -55,6 +55,18 @@ def test_without_x_is_a_free_from_detail(agent):
     assert agent._detail(intent) == ("alcohol", "sin alcohol", True)
 
 
+@pytest.mark.parametrize(
+    ("text", "detail"),
+    [
+        ("pañales para la guagua", None),  # la ocasión dice para qué, no cómo es el pañal
+        ("pañales para guaguas", None),
+        ("galletas dulces para el antojo", ("dulce", "dulces", False)),  # se dijo "antojo", no "algo dulce"
+    ],
+)
+def test_only_the_said_occasion_words_are_not_a_detail(agent, text, detail):
+    assert agent._detail(agent.understander.understand(None, text, "supermercado")) == detail
+
+
 # El nombre del agente sale de config.AGENT_NAME. Se quita solo como vocativo: al lado
 # de un saludo o un "gracias", o antes de un pedido; si es todo el pedido ("quiero mochi"), se busca el postre.
 @pytest.fixture(scope="module")
