@@ -39,6 +39,9 @@ MIN_DAYS = 3 * WINDOW_DAYS
 GRID_B = (0, 0.1, 0.3, 0.5, 1, 2)
 GRID_C = (0, 0.05, 0.1, 0.3, 0.5, 1)
 GRID_LAMBDA = (0, 0.5, 1, 2, 4)  # el empuje de las reglas sobre lo más pedido (`recommend.mix_scores`)
+# Un λ mayor solo gana si suma al menos 5 aciertos en validación: menos es ruido y cambiaría la variante de la oferta
+# cada semana.
+LAMBDA_MIN_GAIN_HITS = 5
 METHODS = ("orden_fijo", "popularidad", "afinidad", "transicion", "combinado")
 METRICS = ("hit1", "hit3", "mrr", "ndcg")
 CROSS_SELL_RECENT_DAYS = 30  # los conceptos de la persona que disparan reglas
@@ -355,17 +358,19 @@ def _tune_lambda(history: _History, sensitive: frozenset[str], split: Split) -> 
     window = _cross_sell_window(history, sensitive, split.train_end, split.valid_end)
     if not window.people:
         return None, None, 0
-    best: tuple[float, float] | None = None
-    for lam in GRID_LAMBDA:  # en orden creciente: ante un empate queda el menor
-        precision = round(_precision(_mixed_pred(window, lam), window.bought, len(window.people))["precision3"], 12)
-        if best is None or precision > best[0]:
-            best = (precision, float(lam))
-    return best[1], best[0], len(window.people)
+    best: tuple[int, float, float] | None = None  # (aciertos, λ, precisión@3)
+    for lam in GRID_LAMBDA:  # en orden creciente: si no suma LAMBDA_MIN_GAIN_HITS aciertos, queda el menor
+        pred = _mixed_pred(window, lam)
+        hits = sum(len(set(pairs) & window.bought[user]) for user, pairs in pred.items())
+        if best is None or hits >= best[0] + LAMBDA_MIN_GAIN_HITS:
+            best = (hits, float(lam), _precision(pred, window.bought, len(window.people))["precision3"])
+    return best[1], best[2], len(window.people)
 
 
 def tune_lambda(orders: list[Order], sensitive: frozenset[str], split: Split) -> float | None:
-    """El λ de la mezcla: el de `GRID_LAMBDA` con mejor precisión@3 en validación (reglas y popularidad con lo anterior
-    a `train_end`, aciertos en `[train_end, valid_end)`); ante un empate, el menor. `None` si nadie pidió antes y
+    """El λ de la mezcla: el de `GRID_LAMBDA` con más aciertos en validación (reglas y popularidad con lo anterior a
+    `train_end`, aciertos en `[train_end, valid_end)`); uno mayor reemplaza al elegido solo si lo supera en al menos
+    `LAMBDA_MIN_GAIN_HITS` aciertos, así que en un empate o casi empate queda el menor. `None` si nadie pidió antes y
     durante la validación."""
     return _tune_lambda(_History(orders, []), sensitive, split)[0]
 
@@ -586,7 +591,8 @@ def report(results: dict, source: str) -> str:
     chosen = (
         "el de la corrida anterior: nadie para validar"
         if "aviso" in v
-        else f"de {grid}, el de mejor precisión@3 en validación, {_fmt(v['precision3_mezcla'])}; a igualdad, el menor"
+        else f"de {grid}, el de más aciertos en validación (precisión@3 {_fmt(v['precision3_mezcla'])}); uno mayor "
+        f"gana solo con {LAMBDA_MIN_GAIN_HITS} aciertos más"
     )
     lines += [
         f"## Compra cruzada (prueba, {cs['personas']} personas)",
