@@ -488,7 +488,9 @@ function Rating({ order }) {
 
   const stars = saved?.stars ?? draft
   const asking = !saved && draft > 0 && draft <= LOW_RATING
-  // Con las flechas se marca sin enviar: una nota alta se manda al tocarla (Espacio o Enter), no al pasar por ella.
+  // Con las flechas se marca sin enviar: una nota alta se manda al tocarla (Espacio o Enter), no al pasar por ella, o
+  // con "Enviar calificación", que aparece mientras esté marcada sin enviar.
+  const pending = !saved && draft > LOW_RATING
   const starGroup = useRovingGroup(STARS.length, STARS.indexOf(stars), (i) => {
     setDraft(STARS[i])
     setReasons([])
@@ -536,6 +538,11 @@ function Rating({ order }) {
             Enviar calificación
           </button>
         </div>
+      )}
+      {pending && (
+        <button type="button" className="tracking-reason-send tap" onClick={() => send(draft, [])}>
+          Enviar calificación
+        </button>
       )}
     </div>
   )
