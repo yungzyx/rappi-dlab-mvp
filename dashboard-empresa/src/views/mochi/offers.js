@@ -91,15 +91,34 @@ export const MIN_SHOWN_FOR_TOP = 50
 // no pueden ser la sugerencia que el panel recomienda empujar.
 const NOT_PROPOSED = new Set(['licores', 'farmacia'])
 
+/** Una ganadora tiene que distinguirse de la siguiente con p menor que esto; si no, la diferencia es ruido. */
+export const MAX_P_FOR_TOP = 0.05
+
+// erfc(x) para x ≥ 0 (Abramowitz y Stegun 7.1.26, error menor que 1,5e-7): basta para comparar p con 0,05.
+function erfc(x) {
+  const t = 1 / (1 + 0.3275911 * x)
+  const poly = t * (0.254829592 + t * (-0.284496736 + t * (1.421413741 + t * (-1.453152027 + t * 1.061405429))))
+  return poly * Math.exp(-x * x)
+}
+
+/** p bilateral de la prueba z de dos proporciones: `a` aceptadas de `n` mostradas contra `b` de `m`. */
+export function twoProportionP(a, n, b, m) {
+  const pooled = (a + b) / (n + m)
+  const se = Math.sqrt(pooled * (1 - pooled) * (1 / n + 1 / m))
+  if (se === 0) return 1
+  return erfc(Math.abs(a / n - b / m) / se / Math.SQRT2)
+}
+
 /**
  * La sugerencia (concepto y vertical) que más se acepta entre las que tienen 50 o más mostradas, o null. Nunca una de
- * Licores ni de Farmacia: el panel no recomienda empujar lo que Mochi no ofrece por su cuenta.
+ * Licores ni de Farmacia: el panel no recomienda empujar lo que Mochi no ofrece por su cuenta. Solo gana si se
+ * distingue de la siguiente (prueba de dos proporciones, p < 0,05); sola o empatada con el azar, no hay ganadora.
  */
 export function topSuggestion(rows) {
-  return (
-    rows
-      .filter((row) => row.mostradas >= MIN_SHOWN_FOR_TOP && row.aceptacion_pct !== null)
-      .filter((row) => !NOT_PROPOSED.has(row.vertical))
-      .sort((a, b) => b.aceptacion_pct - a.aceptacion_pct || b.mostradas - a.mostradas)[0] ?? null
-  )
+  const [top, next] = rows
+    .filter((row) => row.mostradas >= MIN_SHOWN_FOR_TOP && row.aceptacion_pct !== null)
+    .filter((row) => !NOT_PROPOSED.has(row.vertical))
+    .sort((a, b) => b.aceptacion_pct - a.aceptacion_pct || b.mostradas - a.mostradas)
+  if (!top || !next) return null
+  return twoProportionP(top.aceptadas, top.mostradas, next.aceptadas, next.mostradas) < MAX_P_FOR_TOP ? top : null
 }

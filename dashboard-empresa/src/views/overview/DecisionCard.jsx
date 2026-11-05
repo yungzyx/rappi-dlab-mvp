@@ -13,16 +13,18 @@ const ACTION_LABELS = {
   prototype: 'Para revisar en el MVP',
 }
 
-/** Lo que dice una decisión (`decisions.js`): cifra, contexto, cambio y acción, rotulada según su fuente. */
+/** Lo que dice una decisión (`decisions.js`): cifra (si la hay), contexto, cambio y acción, rotulada según su fuente. */
 export function DecisionBody({ decision, source }) {
   if (!decision) return <p className="decision-context">Sin datos suficientes en esta fuente.</p>
   const { figure, unit, context, delta, action } = decision
   return (
     <>
-      <p className="decision-figure">
-        <strong>{figure}</strong>
-        <span>{unit}</span>
-      </p>
+      {figure && (
+        <p className="decision-figure">
+          <strong>{figure}</strong>
+          <span>{unit}</span>
+        </p>
+      )}
       {delta && <Delta value={delta.value} format={formatPoints} goodWhen={delta.goodWhen} suffix={delta.suffix} />}
       <p className="decision-context">{context}</p>
       {action && (

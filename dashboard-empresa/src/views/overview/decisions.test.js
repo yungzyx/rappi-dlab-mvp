@@ -74,7 +74,7 @@ describe('mochiDecision', () => {
     expect(decision.action).toBe('Revisar "Plan": 68 mostradas y ninguna aceptada.')
   })
 
-  test('without moments (simulated), the conversion of cross suggestions and the one that works best', () => {
+  test('with only "sin momento", the conversion of cross suggestions and the one that stands out', () => {
     const offers = { personas: 1601, momentos: [moment('sin_momento', 3578, 813, 22.7)] }
     const suggestions = [
       {
@@ -86,9 +86,17 @@ describe('mochiDecision', () => {
         aceptacion_pct: 30,
       },
       { concepto: '☕ Café', vertical: 'turbo', mostradas: 50, aceptadas: 20, convertidas: 10, aceptacion_pct: 40 },
+      {
+        concepto: '🥨 Snacks salados',
+        vertical: 'conveniencia',
+        mostradas: 100,
+        aceptadas: 10,
+        convertidas: 6,
+        aceptacion_pct: 10,
+      },
     ]
 
-    const decision = mochiDecision(offers, suggestions)
+    const decision = mochiDecision(offers, suggestions, 'prototype')
 
     expect(decision.figure).toBe('22,7%')
     expect(decision.context).toBe(
@@ -97,6 +105,29 @@ describe('mochiDecision', () => {
     expect(decision.action).toBe(
       'Empujar ☕ Café en Turbo: la sugerencia entre verticales que más se acepta (20 de 50, 40,0%).',
     )
+  })
+
+  test('no action when the best suggestion does not stand out from the next one', () => {
+    const offers = { personas: 1601, momentos: [moment('sin_momento', 3578, 813, 22.7)] }
+    const suggestions = [
+      { concepto: '☕ Café', vertical: 'supermercado', mostradas: 86, aceptadas: 24, aceptacion_pct: 27.9 },
+      { concepto: '🔥 Carbón y leña', vertical: 'conveniencia', mostradas: 52, aceptadas: 14, aceptacion_pct: 26.9 },
+    ]
+
+    expect(mochiDecision(offers, suggestions, 'prototype').action).toBeNull()
+  })
+
+  test('with simulated data, neither figure nor action: the acceptance is set by the generator', () => {
+    const offers = { personas: 1601, momentos: [moment('sin_momento', 3578, 813, 22.7)] }
+    const suggestions = [
+      { concepto: '☕ Café', vertical: 'turbo', mostradas: 50, aceptadas: 20, aceptacion_pct: 40 },
+      { concepto: '🥨 Snacks salados', vertical: 'conveniencia', mostradas: 100, aceptadas: 10, aceptacion_pct: 10 },
+    ]
+
+    expect(mochiDecision(offers, suggestions, 'synthetic')).toEqual({
+      context:
+        'En los simulados, la aceptación es un supuesto del generador: no dice si Mochi funciona. Eso se mide con personas y un grupo de control.',
+    })
   })
 
   test('under 10 shown only the counts', () => {

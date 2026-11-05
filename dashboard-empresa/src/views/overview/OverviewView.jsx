@@ -21,7 +21,7 @@ function Churn({ source }) {
 
 function Mochi({ source }) {
   const [offers, suggestions] = useAnalyticsMany(['offers', 'suggestions'], source)
-  return <DecisionBody decision={mochiDecision(offers, suggestions)} source={source} />
+  return <DecisionBody decision={mochiDecision(offers, suggestions, source)} source={source} />
 }
 
 function Demand({ source }) {

@@ -53,14 +53,22 @@ export function churnDecision(kpis, winback) {
   }
 }
 
-/** ¿Funciona Mochi? Aceptación de sus ofertas, con el momento que más y el que menos acepta (o el paso a pedido). */
-export function mochiDecision(offers, suggestions) {
+/**
+ * ¿Funciona Mochi? Aceptación de sus ofertas, con el momento que más y el que menos acepta (o el paso a pedido). Con
+ * los simulados no hay cifra ni acción: la aceptación la fija el generador (events/synth.py), no las personas.
+ */
+export function mochiDecision(offers, suggestions, source) {
   const totals = offerTotals(offers.momentos)
   if (!totals.shown) {
     return {
       figure: '0',
       unit: `ofertas de ${AGENT_NAME} mostradas`,
       context: `${AGENT_NAME} todavía no hizo ofertas en esta fuente.`,
+    }
+  }
+  if (source === 'synthetic') {
+    return {
+      context: `En los simulados, la aceptación es un supuesto del generador: no dice si ${AGENT_NAME} funciona. Eso se mide con personas y un grupo de control.`,
     }
   }
   if (totals.rate === null) {
