@@ -403,6 +403,50 @@
           propio. El efecto real de las recomendaciones solo se puede medir con datos de Rappi y un experimento con
           grupo de control.
         </p>
+        <h3>Qué haría falta para medirlo</h3>
+        <p>
+          Personas que pide un piloto con Rappi para detectar que la retención M+1 de quien usa una sola vertical sube
+          desde 47 %, la de "solo Restaurantes" en la tabla de Rappi (un supuesto). Prueba de dos proporciones, α 0,05 a
+          dos colas y potencia 0,8, por intención de tratar. El plan completo está en <code>docs/plan-piloto.md</code>.
+        </p>
+        <div class="sizes-wrap">
+          <table class="sizes">
+            <caption class="visually-hidden">Personas que hacen falta según el efecto mínimo y el grupo de control</caption>
+            <thead>
+              <tr>
+                <th scope="col">Efecto mínimo</th>
+                <th scope="col">10 % en control: total</th>
+                <th scope="col">en control</th>
+                <th scope="col">50/50: total</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <th scope="row">+1 punto</th>
+                <td>217.534</td>
+                <td>21.754</td>
+                <td>78.292</td>
+              </tr>
+              <tr>
+                <th scope="row">+2 puntos</th>
+                <td>54.432</td>
+                <td>5.444</td>
+                <td>19.590</td>
+              </tr>
+              <tr>
+                <th scope="row">+5 puntos</th>
+                <td>8.707</td>
+                <td>871</td>
+                <td>3.138</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <p>
+          El MVP ya tiene ese grupo de control (apagado), y la pestaña Experimentos del panel muestra la retención M+1
+          de cada grupo. Con el tráfico de la demo solo sirve para comprobar que la mecánica funciona: la diferencia
+          entre los grupos no es concluyente.
+        </p>
         <p class="prose-aside">
           Datos de uso responsable: solo páginas públicas, una descarga a la vez con pausas, frecuencia semanal, sin
           datos personales y sin datos descargados en el repositorio.
