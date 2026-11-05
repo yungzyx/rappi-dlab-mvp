@@ -84,6 +84,25 @@ def test_a_typo_is_corrected_and_understood_again(rappi_agent):
     assert r["conversation"]["query"] == "cerveza"  # "más barato" sigue sobre lo corregido
 
 
+def test_a_typo_is_understood_again_even_if_the_screen_vertical_finds_the_corrected_word(rappi_agent):
+    """Con el catálogo real el Súper también vende cerveza: su búsqueda corrige "cervesa" y encuentra, pero sin
+    entender el concepto (sin "cerveza" en el texto, sin sugerencia). Si la búsqueda corrigió y no entendió nada, se
+    vuelve a entender el mensaje corregido."""
+    agent, db = rappi_agent
+    add_product(db, 102, "Cerveza Cristal Lata 470 cc", 1, "Cervezas")
+    add_price(db, 1, 102, 990)
+    db.commit()
+    build_search_documents(db)
+    build_concepts(db)
+    embed_search_documents(db, agent.embedder)
+
+    r = agent.reply(db, "quiero cervesa", Context())
+
+    assert r["corrected_query"] == "cerveza" and r["intent"]["concepts"] == ["cerveza"]
+    assert r["text"].startswith('Busqué "cerveza". ') and r["text"].count("Busqué") == 1
+    assert "cervesa" not in r["text"]
+
+
 def test_a_misspelled_word_next_to_a_concept_is_corrected_in_the_search(rappi_agent):
     """ "cerveza escudp": entiende la cerveza, pero nada calza todas las palabras; como /search, corrige la marca y
     vuelve a buscar."""

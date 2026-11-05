@@ -232,8 +232,9 @@ class RappiAgent:
             response = turn._reply(conn, message, ctx, offer)
             if self.correct_typos and (fixed := turn._misspelled(conn, message, response)):
                 again = turn._reply(conn, fixed, ctx, offer)
-                if again["products"] and not again["unmet"]:
-                    response = {**again, "text": f'Busqué "{fixed}". {again["text"]}', "corrected_query": fixed}
+                if again["products"] and not again["unmet"]:  # si su búsqueda también corrigió, ya lo dice
+                    said = again if again.get("corrected_query") else {"text": f'Busqué "{fixed}". {again["text"]}'}
+                    response = {**again, **said, "corrected_query": again.get("corrected_query") or fixed}
         if mine and response["intent"]["kind"] != "preferencia":
             shown = [*response["products"], *((response.get("suggestion") or {}).get("products") or [])]
             if notice := mine.notice(shown):  # el código lo pone, nunca el LLM: no se pierde ni se reescribe
@@ -242,14 +243,14 @@ class RappiAgent:
         return response
 
     def _misspelled(self, conn: Connection, message: str, response: dict) -> str | None:
-        """Si no encontró nada y no entendió qué se pide (sin concepto, ocasión ni síntoma), el mensaje corregido con
-        el vocabulario de todo el catálogo (`retrieval.spelling`, como `/search`), o None. "cervesa" se vuelve a
-        entender como "cerveza": su concepto, su vertical y su sugerencia; recién si así tampoco hay, es demanda no
-        satisfecha."""
+        """Si no entendió qué se pide (sin concepto, ocasión ni síntoma) y la búsqueda tuvo que corregir o no encontró
+        nada, el mensaje corregido con el vocabulario de todo el catálogo (`retrieval.spelling`, como `/search`), o
+        None. "cervesa" se vuelve a entender como "cerveza": su concepto, su vertical y su sugerencia (aunque el Súper
+        también tenga cervezas con la palabra corregida); recién si así tampoco hay, es demanda no satisfecha."""
         intent = response["intent"]
-        if not response.get("unmet") or response.get("products") or intent["kind"] != "buscar":
+        if intent["kind"] != "buscar" or intent.get("concepts") or intent.get("occasion") or intent.get("symptom"):
             return None
-        if intent.get("concepts") or intent.get("occasion") or intent.get("symptom"):
+        if not response.get("corrected_query") and (not response.get("unmet") or response.get("products")):
             return None
         return correct_query(conn, message, None)
 
