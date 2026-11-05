@@ -35,6 +35,7 @@ from ..events.store import ensure_user
 from ..offers import autonomy
 from ..offers import preferences as prefs
 from ..offers.guards import is_offerable, offerable_vertical, unofferable_subverticals
+from ..retrieval.spelling import correct_query
 from ..text import normalize, tokens
 from .compose import Draft, TemplateComposer
 from .compose import _mid_sentence as _mid
@@ -190,9 +191,11 @@ IDEA_KINDS = ("ayuda", "saludo", "vacio", "fuera")
 
 
 class RappiAgent:
-    def __init__(self, embedder: TextEmbedder | None = None, composer=None):
+    def __init__(self, embedder: TextEmbedder | None = None, composer=None, correct_typos: bool = True):
         self.embedder = embedder
         self.composer = composer or TemplateComposer()
+        # Corrige errores de tipeo como /search (retrieval/spelling.py); la evaluación lo apaga para medir el antes.
+        self.correct_typos = correct_typos
         self.understander = Understander()
         self.taxonomy = load_taxonomy()
         # Las palabras con que se nombra cada concepto: no son un detalle del producto ("helado" en "helado de…").
@@ -227,12 +230,28 @@ class RappiAgent:
         mine = ctx.preferences if ctx.mode == "propuesta" else None
         with prefs.applied(mine):
             response = turn._reply(conn, message, ctx, offer)
+            if self.correct_typos and (fixed := turn._misspelled(conn, message, response)):
+                again = turn._reply(conn, fixed, ctx, offer)
+                if again["products"] and not again["unmet"]:
+                    response = {**again, "text": f'Busqué "{fixed}". {again["text"]}', "corrected_query": fixed}
         if mine and response["intent"]["kind"] != "preferencia":
             shown = [*response["products"], *((response.get("suggestion") or {}).get("products") or [])]
             if notice := mine.notice(shown):  # el código lo pone, nunca el LLM: no se pierde ni se reescribe
                 response["text"] = f"{response['text']} {notice}"
         response.setdefault("conversation", None)  # un saludo, el consejo médico o una aclaración no se siguen
         return response
+
+    def _misspelled(self, conn: Connection, message: str, response: dict) -> str | None:
+        """Si no encontró nada y no entendió qué se pide (sin concepto, ocasión ni síntoma), el mensaje corregido con
+        el vocabulario de todo el catálogo (`retrieval.spelling`, como `/search`), o None. "cervesa" se vuelve a
+        entender como "cerveza": su concepto, su vertical y su sugerencia; recién si así tampoco hay, es demanda no
+        satisfecha."""
+        intent = response["intent"]
+        if not response.get("unmet") or response.get("products") or intent["kind"] != "buscar":
+            return None
+        if intent.get("concepts") or intent.get("occasion") or intent.get("symptom"):
+            return None
+        return correct_query(conn, message, None)
 
     def _reply(self, conn: Connection, message: str, ctx: Context | None, offer: bool) -> dict:
         ctx = ctx or Context()
@@ -327,6 +346,8 @@ class RappiAgent:
         if spread:
             outcome, products = self._occasion_products(conn, intent, vertical, offer)
         else:
+            # Como /search: si nada calza todas las palabras, corrige las mal escritas ("galletas oreoo") y vuelve a
+            # buscar. Con síntomas no: lo que se busca ahí es el síntoma.
             outcome = outcome or search_products(
                 conn,
                 vertical,
@@ -337,6 +358,7 @@ class RappiAgent:
                 k=_pool(intent, ctx, bool(avoided)),
                 symptom=intent.symptom,
                 offer=offer,
+                correct=self.correct_typos and not intent.symptom,
             )
             products = outcome.products
         # "algo más sano" se entiende como ensaladas, pero esas palabras no están en los productos: si nada de lo
@@ -432,9 +454,13 @@ class RappiAgent:
         if no_remedy:  # nada nombra el síntoma: no aparentar que lo de cuidarse es un remedio
             care = f" Mientras, algo para cuidarte en {VERTICAL_LABELS.get(vertical, vertical)}." if products else ""
             text = NO_REMEDY + care
+        if outcome.corrected_query and products:
+            text = f'Busqué "{outcome.corrected_query}". {text}'
         response = self._response(
             intent, vertical, text, products, suggestion, unmet, outcome.result.unmet_reason, draft
         )
+        if outcome.corrected_query and products:
+            response["corrected_query"] = outcome.corrected_query
         if also_in:
             response["also_in"] = also_in
         if intent.occasion == "regalo" and ctx.mode == "propuesta":  # un regalo también se puede mandar

@@ -950,7 +950,12 @@ def _log_ask(conn, user_id, session_id, text, response, modality, mode) -> None:
         modality=modality,
         results=len(response.get("products", [])),
         unmet=bool(response.get("unmet")),
-        payload={"mode": mode, "intent": response.get("intent", {}).get("kind")},
+        # Como en la búsqueda, lo que se buscó si Mochi corrigió un error de tipeo.
+        payload={
+            "mode": mode,
+            "intent": response.get("intent", {}).get("kind"),
+            **({"corregida": response["corrected_query"]} if response.get("corrected_query") else {}),
+        },
         surface="agent",
         request_id=response.get("request_id"),
     )
