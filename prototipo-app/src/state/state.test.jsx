@@ -73,6 +73,8 @@ describe('CartContext', () => {
     expect(result.current.items.map((line) => line.product.id)).toEqual(['beer', 'chips'])
     expect(result.current.qtyOf(a)).toBe(2)
     act(() => result.current.remove(a))
+    expect(result.current.items.map((line) => line.product.id)).toEqual(['beer', 'chips'])
+    expect(result.current.qtyOf(a)).toBe(1)
     act(() => result.current.remove(a))
     expect(result.current.items.map((line) => line.product.id)).toEqual(['chips'])
   })
