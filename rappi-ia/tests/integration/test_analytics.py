@@ -367,9 +367,9 @@ def test_days_and_weeks_are_chilean_even_on_a_utc_server(db, test_url, monkeypat
     sunday_night = datetime(2026, 11, 1, 22, tzinfo=TZ)
     events.record_order(db, "s1", "s-1", "c-1", "licores", [line], source="synthetic", ts=sunday_night)
     db.commit()
-    monkeypatch.setenv("PGOPTIONS", "-c TimeZone=UTC")  # así se ve una sesión en un Postgres en UTC
+    monkeypatch.delenv("PGOPTIONS", raising=False)
 
-    with psycopg.connect(test_url) as utc:
+    with psycopg.connect(test_url, options="-c TimeZone=UTC") as utc:  # así se ve una sesión en un Postgres en UTC
         assert utc.execute("SHOW timezone").fetchone()[0] == "UTC"
         assert [w["semana"] for w in queries.weekly(utc, "synthetic")] == [date(2026, 11, 2)]  # sin la zona: lunes
     with connect(test_url) as conn:

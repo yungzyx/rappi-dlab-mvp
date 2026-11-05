@@ -3,6 +3,8 @@
 `migrate` toma un candado de Postgres: dos a la vez se ponen en fila. En producción (API_ENV=production) solo migra
 `rappi-ia deploy-migrate`, que respalda antes; ni la API ni `make serve` migran al arrancar."""
 
+import os
+
 import psycopg
 from psycopg import sql
 from psycopg.conninfo import conninfo_to_dict
@@ -29,9 +31,10 @@ TIMEZONE_OPTIONS = f"-c TimeZone={TZ.key}"
 
 
 def timezone_options(conninfo: str) -> str:
-    """Las `options` de libpq para `conninfo`: las que ya trae (p. ej. `?options=-c random_page_cost=4` en la URL) más
-    la hora de Chile, salvo que la URL ya fije una zona. Van como argumento de psycopg, que pisa las de la URL."""
-    current = conninfo_to_dict(conninfo).get("options") or ""
+    """Las `options` de libpq para `conninfo`: las que ya trae (p. ej. `?options=-c random_page_cost=4` en la URL) o,
+    si la URL no trae, las de `PGOPTIONS`, más la hora de Chile, salvo que ya fijen una zona. Van como argumento de
+    psycopg, que pisa las de la URL y `PGOPTIONS`: por eso se juntan aquí."""
+    current = conninfo_to_dict(conninfo).get("options") or os.environ.get("PGOPTIONS", "")
     if "timezone" in current.lower():
         return current
     return f"{current} {TIMEZONE_OPTIONS}".strip()
