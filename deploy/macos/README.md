@@ -22,6 +22,7 @@ Nada escucha hacia la red: Caddy y la API solo atienden en `127.0.0.1`, y se ent
 | `actualizar` | cada 15 min | `actualizar.sh`: si `origin/main` cambió, trae los cambios, instala dependencias si cambiaron, respalda y migra si hay migraciones, construye y reinicia solo la API (la URL no cambia) |
 | `respaldo` | 03:30 | `respaldo.sh`: `pg_dump -Fc` de la base, comprobado con `pg_restore --list`; guarda los 3 más nuevos y no respalda si falta espacio |
 | `purga` | 04:15 | `purga.sh`: la retención de datos de personas (`rappi-ia purge`) |
+| `resumen` | 08:00 | `resumen.sh`: el resumen de la API del día anterior (`rappi-ia resumen-api`: peticiones por ruta, promedio y máximo, las de más de 1 s, los errores 5xx con su `request_id` y las personas nuevas del prototipo). Lo deja en `RESUMEN_API_TXT` (por defecto `~/rappi-tunel/resumen-api.txt`) y avisa con una línea. Solo lee el registro y la base |
 
 ## Instalar
 
