@@ -18,7 +18,8 @@ vi.mock('virtual:panel-snapshot', async () => {
   respuestas['kpis.synthetic'] = { ...kpis, data: { ...kpis.data, usuarios_activos: 4242 } }
   respuestas['trends.prototype'] = { source: 'synthetic', data: [] } // de la otra fuente: no se muestra
   delete respuestas['assortment.prototype'] // una respuesta que falta en la foto
-  return { default: { grabado: { fecha: '2026-10-23', base: 'rappi_staging' }, respuestas } }
+  const catalogo = { desde: '2026-09-24', hasta: '2026-10-18', verticales: {} }
+  return { default: { grabado: { fecha: '2026-10-23', base: 'rappi_staging' }, catalogo, respuestas } }
 })
 
 const { loadAnalytics, SNAPSHOT_INFO } = await import('./api.js')
@@ -53,6 +54,10 @@ describe('panel en un solo HTML', () => {
 
     expect(screen.getByText('Foto sin conexión:')).toBeTruthy()
     expect(screen.getByText(/grabadas el 23-10-2026 desde una copia de la base \(rappi_staging\)/)).toBeTruthy()
+    // La fecha de los precios del catálogo también sale de la foto.
+    expect(document.querySelector('.masthead-catalog').textContent).toBe(
+      'Precios de Rappi Chile del 24-09-2026 al 18-10-2026',
+    )
     expect(screen.queryByRole('button', { name: 'Actualizar' })).toBeNull()
     expect(screen.queryByRole('link', { name: 'Presentación de la propuesta' })).toBeNull()
     expect(screen.getByText('Usuarios y eventos SIMULADOS:')).toBeTruthy()

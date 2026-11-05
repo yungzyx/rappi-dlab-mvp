@@ -167,9 +167,27 @@ export function getPrototypeOffline() {
   return prototypeOffline
 }
 
+let catalogDates = null // la promesa de las fechas del catálogo: una vez, hasta volver a intentar
+
+/**
+ * De qué fecha son los precios del catálogo de Rappi Chile: `{ desde, hasta, verticales }` (días 'AAAA-MM-DD' en hora de
+ * Chile, el `catalogo` de /catalog/home). En el panel en un solo HTML, el de su foto si se grabó con él; sin la API, o si
+ * no lo dice, null (el encabezado no lo muestra). No cae a los datos guardados: no son del catálogo.
+ */
+export function loadCatalogDates() {
+  catalogDates ??= snapshot
+    ? Promise.resolve(snapshot.catalogo ?? null)
+    : fetch(`${API_URL}/catalog/home`, { signal: AbortSignal.timeout(TIMEOUT_MS) })
+        .then((response) => (response.ok ? response.json() : null))
+        .then((body) => body?.catalogo ?? null)
+        .catch(() => null)
+  return catalogDates
+}
+
 /** Olvida lo cargado para volver a intentar con la API. */
 export function retryConnection() {
   cache.clear()
+  catalogDates = null
   fallbacks = []
   prototypeOffline = false
   notify()

@@ -96,6 +96,11 @@
   color: var(--ink);
 }
 
+/* De qué fecha son los precios del catálogo: una línea bajo la fecha de corte */
+.masthead-catalog {
+  display: block;
+}
+
 /* Selector de fuente (radios nativos con forma de segmentos) */
 .segmented {
   display: grid;

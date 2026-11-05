@@ -9,6 +9,7 @@ import BackButton from '../../components/BackButton'
 import ProductRow from '../../components/ProductRow'
 import Img from '../../components/Img'
 import OfflineNotice from '../../components/OfflineNotice'
+import PricesDate from '../../components/PricesDate'
 import { ReorderCarousel } from '../../components/reorder/Reorder'
 import ThresholdBar from '../../components/ThresholdBar'
 import { useToast } from '../../components/Toast'
@@ -193,7 +194,10 @@ export default function StoreScreen({ back, params }) {
                     <li key={promo.title}>{promo.title}</li>
                   ))}
                 </ul>
-                <small>Promos publicadas por la tienda en Rappi el día de la descarga.</small>
+                <small>
+                  Promos publicadas por la tienda en Rappi el día de la descarga
+                  <PricesDate verticals={store.vertical} />.
+                </small>
               </div>
             )}
             {thresholdPromo && (

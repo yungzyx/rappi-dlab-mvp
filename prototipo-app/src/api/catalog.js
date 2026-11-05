@@ -204,20 +204,56 @@ export async function deals(vertical) {
   return products.map(toPrototypeProduct)
 }
 
+let knownDates = null // la promesa de las fechas: una vez por carga de la app (o la última que trajo la Home)
+
 /**
- * Las listas de la Home: `{ requestId, nearbyStores, fastRestaurants, lowFeeRestaurants }`, cada tienda marcada con su lugar
- * (`placement`: su lista, su posición y el `request_id` de la respuesta) para los eventos de abrirla.
+ * Las listas de la Home: `{ requestId, nearbyStores, fastRestaurants, lowFeeRestaurants, dates }`, cada tienda marcada con
+ * su lugar (`placement`: su lista, su posición y el `request_id` de la respuesta) para los eventos de abrirla. `dates`:
+ * de qué fecha son los precios (ver `catalogDates`).
  */
 export async function home() {
   const reply = await read('/catalog/home')
   const requestId = reply.request_id ?? null
   const list = (stores, origin) => placeList(stores.map(toPrototypeStore), { surface: 'home', origin, requestId })
+  const dates = toCatalogDates(reply.catalogo)
+  knownDates = Promise.resolve(dates)
   return {
     requestId,
     nearbyStores: list(reply.nearby_stores, 'cerca-de-ti'),
     fastRestaurants: list(reply.fast_restaurants, 'restaurantes-rapidos'),
     lowFeeRestaurants: list(reply.low_fee_restaurants, 'envio-barato'),
+    dates,
   }
+}
+
+/** `catalogo` de /catalog/home → `{ from, to, byVertical }` (por id de pantalla), o null si no lo trae. */
+function toCatalogDates(catalogo) {
+  if (!catalogo?.desde || !catalogo?.hasta) return null
+  const byVertical = {}
+  for (const [code, range] of Object.entries(catalogo.verticales ?? {}))
+    byVertical[screenForBackend(code) ?? code] = { from: range.desde, to: range.hasta }
+  return { from: catalogo.desde, to: catalogo.hasta, byVertical }
+}
+
+/**
+ * De qué fecha son los precios del catálogo (el `catalogo` de /catalog/home): `{ from, to, byVertical }`, días
+ * 'AAAA-MM-DD' en hora de Chile, en todo el catálogo y por vertical (id de pantalla). Null si la API no la da (una muestra
+ * de la demo sin conexión grabada antes) o no responde: entonces se vuelve a preguntar la próxima vez.
+ */
+export function catalogDates() {
+  knownDates ??= read('/catalog/home').then(
+    (reply) => toCatalogDates(reply.catalogo),
+    () => {
+      knownDates = null
+      return null
+    },
+  )
+  return knownDates
+}
+
+/** Para los tests: olvida las fechas. */
+export const forgetCatalogDates = () => {
+  knownDates = null
 }
 
 // Las condiciones de compra ya pedidas, por tienda (null = la API no la conoce): el carro y el checkout las leen sin

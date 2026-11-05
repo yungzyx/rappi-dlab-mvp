@@ -42,6 +42,14 @@ test('la lista de restaurantes filtra como la API y deja los cerrados al final',
   expect(list('sort=recommended')).toEqual([3, 2, 1])
 })
 
+test('la Home de la demo dice la fecha de los precios de su muestra, y nada si la muestra no la grabó', () => {
+  const catalogo = { desde: '2026-09-24', hasta: '2026-10-18', verticales: {} }
+  const home = (recorded) =>
+    catalogRoute({ catalog: { home: recorded } }, 'GET', '/catalog/home', new URLSearchParams(), at(13)).body
+  expect(home({ nearby_stores: [], catalogo }).catalogo).toEqual(catalogo)
+  expect(home({ nearby_stores: [] })).not.toHaveProperty('catalogo')
+})
+
 beforeEach(() => localStorage.clear())
 
 test('las búsquedas recientes salen de los eventos de este navegador, sin "Lo más buscado"', () => {

@@ -1,5 +1,6 @@
 import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import { afterEach, describe, expect, test, vi } from 'vitest'
+import { forgetCatalogDates } from '../api/catalog'
 import { stubApi } from '../test/api'
 import { AssistantProvider } from '../state/AssistantContext'
 import { CartProvider } from '../state/CartContext'
@@ -74,6 +75,7 @@ function renderRow(product) {
 
 afterEach(() => {
   cleanup()
+  forgetCatalogDates()
   vi.unstubAllGlobals()
   localStorage.clear()
 })
@@ -92,6 +94,25 @@ describe('la ficha compara el producto entre tiendas', () => {
     // Elegir la otra tienda abre el producto con su precio y su tienda.
     fireEvent.click(block.getByText('Tienda express de prueba Centro'))
     await waitFor(() => expect(screen.getByRole('button', { name: /Agregar 1 · \$1\.490/ })).toBeTruthy())
+  })
+
+  test('la nota dice de qué fecha es el catálogo de las tiendas comparadas', async () => {
+    const catalogo = {
+      desde: '2026-09-24',
+      hasta: '2026-10-18',
+      verticales: { conveniencia: { desde: '2026-09-29', hasta: '2026-10-18' } },
+    }
+    stubApi({
+      '/catalog/products/catalog_item/92002/stores': compare,
+      '/catalog/home': { nearby_stores: [], fast_restaurants: [], low_fee_restaurants: [], catalogo },
+    })
+    renderRow(chocolate)
+    const block = within(await screen.findByRole('region', { name: 'Comparar tiendas' }))
+    expect(
+      await block.findByText(
+        'Precio, tiempo y envío publicados por cada tienda en Rappi el día de la descarga (catálogo del 29-09 al 18-10).',
+      ),
+    ).toBeTruthy()
   })
 
   test('agotado en su tienda: no se agrega y ofrece los similares de esa tienda', async () => {

@@ -148,6 +148,19 @@ describe('Home de "Rappi hoy"', () => {
     expect(document.querySelector('.search-bar')).not.toBeNull()
   })
 
+  test('dice de qué fecha son los precios del catálogo, y nada si la API no lo dice', async () => {
+    const dated = { ...fixture('catalog-home'), catalogo: { desde: '2026-09-24', hasta: '2026-10-18', verticales: {} } }
+    renderHome(homeRoutes({ '/catalog/home': dated }))
+    expect(await screen.findByText('Precios de Rappi Chile del 24-09 al 18-10')).toBeTruthy()
+    cleanup()
+
+    const undated = fixture('catalog-home')
+    delete undated.catalogo
+    renderHome(homeRoutes({ '/catalog/home': undated }))
+    await screen.findByRole('region', { name: 'Cerca de ti' })
+    expect(screen.queryByText(/^Precios de Rappi Chile/)).toBeNull()
+  })
+
   test('mientras llegan las listas la Home ya se ve entera', () => {
     renderHome(homeRoutes({ '/catalog/home': { slow: 5000, body: fixture('catalog-home') } }))
     expect(document.querySelector('.search-bar')).not.toBeNull()

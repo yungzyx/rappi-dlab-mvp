@@ -1,7 +1,9 @@
 import { afterEach, describe, expect, test, vi } from 'vitest'
 import { PLACEHOLDER_IMG } from '../components/Img'
 import {
+  catalogDates,
   deals,
+  forgetCatalogDates,
   home,
   menu,
   product,
@@ -262,6 +264,63 @@ describe('ofertas y Home', () => {
       fee: '$990',
     })
     expect(result.lowFeeRestaurants).toHaveLength(6)
+  })
+})
+
+describe('de qué fecha son los precios', () => {
+  const CATALOGO = {
+    desde: '2026-09-24',
+    hasta: '2026-10-18',
+    verticales: {
+      supermercado: { desde: '2026-10-11', hasta: '2026-10-18' },
+      turbo: { desde: '2026-09-28', hasta: '2026-09-28' },
+      restaurantes: { desde: '2026-09-24', hasta: '2026-10-05' },
+    },
+  }
+  const withDates = (catalogo) => ({ ...fixture('catalog-home'), catalogo })
+  afterEach(forgetCatalogDates)
+
+  test('la Home trae las fechas del catálogo, por vertical con el id de pantalla', async () => {
+    stubApi({ '/catalog/home': withDates(CATALOGO) })
+    const { dates } = await home()
+
+    expect(dates).toEqual({
+      from: '2026-09-24',
+      to: '2026-10-18',
+      byVertical: {
+        grocery: { from: '2026-10-11', to: '2026-10-18' },
+        turbo: { from: '2026-09-28', to: '2026-09-28' },
+        restaurants: { from: '2026-09-24', to: '2026-10-05' },
+      },
+    })
+  })
+
+  test('catalogDates las pide una sola vez, y no las vuelve a pedir si la Home ya las trajo', async () => {
+    const fetchMock = stubApi({ '/catalog/home': withDates(CATALOGO) })
+    expect((await catalogDates()).to).toBe('2026-10-18')
+    await catalogDates()
+    expect(fetchMock).toHaveBeenCalledTimes(1)
+
+    forgetCatalogDates()
+    await home()
+    await catalogDates()
+    expect(fetchMock).toHaveBeenCalledTimes(2)
+  })
+
+  test('si la API no responde no hay fechas, y se vuelven a pedir la próxima vez', async () => {
+    stubApi({ '/catalog/home': 'offline' })
+    expect(await catalogDates()).toBeNull()
+
+    stubApi({ '/catalog/home': withDates(CATALOGO) })
+    expect((await catalogDates()).from).toBe('2026-09-24')
+  })
+
+  test('una respuesta sin `catalogo` (una muestra de la demo grabada antes) no tiene fechas', async () => {
+    const reply = fixture('catalog-home')
+    delete reply.catalogo
+    stubApi({ '/catalog/home': reply })
+    expect((await home()).dates).toBeNull()
+    expect(await catalogDates()).toBeNull()
   })
 })
 

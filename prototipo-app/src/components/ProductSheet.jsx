@@ -4,6 +4,7 @@ import { useApi } from '../api/useApi'
 import { useAddToCart } from '../hooks/useAddToCart'
 import { formatPrice, lineKey, parsePrice, useCart } from '../state/CartContext'
 import { useProductSheet } from '../state/ProductSheetContext'
+import PricesDate from './PricesDate'
 import { StoreLogo } from './ProductCard'
 import Sheet from './Sheet'
 import Img from './Img'
@@ -187,7 +188,8 @@ function StoreCompare({ count, offers, current, onChoose }) {
         })}
       </ul>
       <p className="product-compare-note">
-        Precio, tiempo y envío publicados por cada tienda en Rappi el día de la descarga.
+        Precio, tiempo y envío publicados por cada tienda en Rappi el día de la descarga
+        <PricesDate verticals={available.map((offer) => offer.vertical)} />.
       </p>
     </section>
   )
