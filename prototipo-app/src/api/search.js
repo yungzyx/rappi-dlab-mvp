@@ -5,6 +5,7 @@ import { toPrototypeStore } from './catalog'
 import { request, toPrototypeProduct } from './client'
 
 const SEARCH_TIMEOUT_MS = 8_000
+const MAX_QUERY = 200 // el max_length de q en GET /search (rappi-ia api/app.py)
 
 const groupOf = (backendVertical, prototypeVertical, products) => ({
   // El id de la vertical en la app (el mismo de sus pantallas y del carrito); el código del backend va aparte.
@@ -31,7 +32,8 @@ const groupOf = (backendVertical, prototypeVertical, products) => ({
  * Un mismo producto puede salir en varios grupos con el mismo `id`: las llaves de la lista deben incluir la vertical.
  */
 export async function searchAll(q, { vertical, current, limit, exact, userId } = {}) {
-  const params = new URLSearchParams({ q })
+  // Se busca hasta el largo que acepta la API (el campo admite más para Mochi); `query` sigue siendo el texto entero.
+  const params = new URLSearchParams({ q: q.slice(0, MAX_QUERY) })
   if (vertical) params.set('vertical', vertical)
   else if (current) params.set('current', current)
   if (limit) params.set('limit', String(limit))
