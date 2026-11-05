@@ -272,6 +272,7 @@ describe('entrega: tipo y programar', () => {
     expect(screen.getByText('La tienda está cerrada pero puedes programar tu pedido.')).toBeTruthy()
     expect(screen.getByRole('radio', { name: 'Ahora' }).disabled).toBe(true)
     expect(screen.getByRole('radio', { name: 'Programar' }).getAttribute('aria-checked')).toBe('true')
+    expect(screen.getByRole('radio', { name: 'Programar' }).tabIndex).toBe(0) // la parada de Tab del grupo
     // Cerrada en la descarga y sin hora de apertura: las franjas son de mañana, y el encabezado no promete "Llega en".
     const slots = screen.getAllByRole('radio', { name: /^(hoy|mañana)/ })
     expect(slots.every((slot) => /^mañana/.test(slot.textContent))).toBe(true)
@@ -293,6 +294,20 @@ describe('entrega: tipo y programar', () => {
     await vi.waitFor(() => expect(api.sendOrder).toHaveBeenCalled())
     const [saved] = JSON.parse(localStorage.getItem('rappi-proto-orders'))
     expect(saved).toMatchObject({ pickup: true, scheduledFor: expect.any(Number) })
+  })
+
+  test('"Cómo lo recibes" se recorre con las flechas: ArrowRight elige y enfoca "Retiro"', async () => {
+    renderCheckout([OIL])
+    await act(tick)
+    const delivery = screen.getByRole('radio', { name: 'Envío' })
+    const pickup = screen.getByRole('radio', { name: 'Retiro' })
+    expect([delivery.tabIndex, pickup.tabIndex]).toEqual([0, -1])
+    delivery.focus()
+    fireEvent.keyDown(delivery, { key: 'ArrowRight' })
+    expect(document.activeElement).toBe(pickup)
+    expect(pickup.getAttribute('aria-checked')).toBe('true')
+    expect(delivery.getAttribute('aria-checked')).toBe('false')
+    expect([delivery.tabIndex, pickup.tabIndex]).toEqual([-1, 0])
   })
 
   test('una franja elegida en Envío sigue en Retiro y el encabezado lo dice', async () => {

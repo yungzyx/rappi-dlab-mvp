@@ -25,6 +25,7 @@ import { DEFAULT_SUBSTITUTION, SUBSTITUTION_VERTICALS } from '../tracking/liveCh
 import { slotLabel } from '../tracking/progress'
 import { UNDO_MS } from './undo'
 import { useStoreTerms } from './useStoreTerms'
+import { useRovingGroup } from '../../hooks/useRovingGroup'
 import './checkout.css'
 
 const MODES = ['Envío', 'Retiro']
@@ -46,6 +47,7 @@ export default function CheckoutScreen({ back, push }) {
   const demo = useDemo()
   const isPro = usePro()
   const [mode, setMode] = useState(MODES[0])
+  const modes = useRovingGroup(MODES.length, MODES.indexOf(mode), (i) => setMode(MODES[i]))
   const [tip, setTip] = useState(DEFAULT_TIP)
   const [useCredits, setUseCredits] = useState(true)
   const [coupon, setCoupon] = useState(null)
@@ -200,8 +202,8 @@ export default function CheckoutScreen({ back, push }) {
       <div className="screen checkout">
         <CheckoutHeader back={back} />
 
-        <div className="checkout-modes" role="radiogroup" aria-label="Cómo lo recibes">
-          {MODES.map((option) => (
+        <div className="checkout-modes" role="radiogroup" aria-label="Cómo lo recibes" onKeyDown={modes.onKeyDown}>
+          {MODES.map((option, i) => (
             <button
               key={option}
               type="button"
@@ -209,6 +211,7 @@ export default function CheckoutScreen({ back, push }) {
               aria-checked={option === mode}
               className={option === mode ? 'checkout-mode is-active' : 'checkout-mode'}
               onClick={() => setMode(option)}
+              {...modes.itemProps(i)}
             >
               {option}
             </button>

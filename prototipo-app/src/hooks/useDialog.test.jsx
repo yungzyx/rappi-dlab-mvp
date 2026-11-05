@@ -128,4 +128,37 @@ describe('useDialog con diálogos apilados', () => {
     expect(fireEvent.keyDown(second, { key: 'Tab' })).toBe(false) // si no, el navegador saltaría el inerte y saldría
     expect(document.activeElement).toBe(first)
   })
+
+  test('las opciones fuera del orden de Tab (tabindex -1 de un grupo con flechas) no son el primero ni el último', () => {
+    // Como el paso del reembolso sin método elegido: tres opciones, una sola parada de Tab, y el envío deshabilitado.
+    function Refund() {
+      const ref = useRef(null)
+      useDialog(ref, true, vi.fn())
+      return (
+        <div ref={ref} role="dialog" aria-label="reembolso" tabIndex={-1}>
+          <div role="radiogroup">
+            <button type="button" role="radio" aria-checked="false" tabIndex={-1}>
+              opción 1
+            </button>
+            <button type="button" role="radio" aria-checked="true" tabIndex={0}>
+              opción 2
+            </button>
+            <button type="button" role="radio" aria-checked="false" tabIndex={-1}>
+              opción 3
+            </button>
+          </div>
+          <button type="button" disabled>
+            enviar
+          </button>
+        </div>
+      )
+    }
+    render(<Refund />)
+    const chosen = screen.getByText('opción 2')
+    expect(document.activeElement).toBe(chosen) // el foco inicial va a la parada de Tab, no a la opción 1
+    expect(fireEvent.keyDown(chosen, { key: 'Tab' })).toBe(false) // es el último: vuelve a sí misma, no sale
+    expect(document.activeElement).toBe(chosen)
+    expect(fireEvent.keyDown(chosen, { key: 'Tab', shiftKey: true })).toBe(false) // y el primero
+    expect(document.activeElement).toBe(chosen)
+  })
 })

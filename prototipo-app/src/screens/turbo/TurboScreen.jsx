@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react'
+import { useId, useRef, useState } from 'react'
 import { placeList } from '../../api/attribution'
 import { deals as loadDeals, storeOfProduct } from '../../api/catalog'
 import { useApi } from '../../api/useApi'
@@ -11,6 +11,7 @@ import TabPage from '../../components/TabPage'
 import ThresholdBar from '../../components/ThresholdBar'
 import { useToast } from '../../components/Toast'
 import { useOpenSearch } from '../../hooks/useOpenSearch'
+import { useRovingGroup } from '../../hooks/useRovingGroup'
 import { useCart } from '../../state/CartContext'
 import FavoritesScreen from '../favorites/FavoritesScreen'
 import { BadgePercentIcon, GridIcon, HeartIcon, MoreIcon, SearchIcon, SpeedBoltIcon } from '../../components/Icons'
@@ -127,6 +128,12 @@ function TurboFeed({ back, toast, shop, onOpenStore, onSearch }) {
   const cart = useCart()
   const gridRef = useRef(null)
   const eta = shop.info?.eta
+  // Las pestañas de pasillos controlan la grilla de productos (su tabpanel).
+  const ids = useId()
+  const tabId = (aisle) => `${ids}-tab-${aisle}`
+  const panelId = `${ids}-panel`
+  const current = shop.aisles.findIndex((aisle) => aisle.id === shop.aisle)
+  const tabs = useRovingGroup(shop.aisles.length, current, (i) => shop.setAisle(shop.aisles[i].id))
 
   // El hero lleva a la grilla de productos.
   const goToProducts = () => gridRef.current?.scrollIntoView({ block: 'start', behavior: 'smooth' })
@@ -154,15 +161,18 @@ function TurboFeed({ back, toast, shop, onOpenStore, onSearch }) {
           Busca en Turbo
         </button>
 
-        <HScroll className="turbo-tabs" role="tablist">
-          {shop.aisles.map((aisle) => (
+        <HScroll className="turbo-tabs" role="tablist" onKeyDown={tabs.onKeyDown}>
+          {shop.aisles.map((aisle, i) => (
             <button
               key={aisle.id}
+              id={tabId(aisle.id)}
               type="button"
               role="tab"
               aria-selected={aisle.id === shop.aisle}
+              aria-controls={panelId}
               className={aisle.id === shop.aisle ? 'turbo-tab is-active' : 'turbo-tab'}
               onClick={() => shop.setAisle(aisle.id)}
+              {...tabs.itemProps(i)}
             >
               {aisle.name}
             </button>
@@ -197,7 +207,13 @@ function TurboFeed({ back, toast, shop, onOpenStore, onSearch }) {
         ))}
       </HScroll>
 
-      <section ref={gridRef} className="turbo-products" aria-label="Productos">
+      <section
+        ref={gridRef}
+        id={panelId}
+        className="turbo-products"
+        aria-label="Productos"
+        {...(current >= 0 && { role: 'tabpanel', 'aria-labelledby': tabId(shop.aisle) })}
+      >
         <ShopStatus shop={shop} />
         {shop.status === 'loading' && <div className="turbo-skeleton" aria-hidden="true" />}
         {shop.status === 'ready' && (

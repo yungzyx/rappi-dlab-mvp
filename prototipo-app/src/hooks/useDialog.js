@@ -22,6 +22,10 @@ const topDialog = () => stack.findLast(isLive)
 // salta, y desde el último que sí se alcanza el Tab saldría del diálogo.
 const reachable = (el) => !el.closest('[inert]') && el.checkVisibility?.({ visibilityProperty: true }) !== false
 
+// Las opciones de un grupo con flechas (useRovingGroup) que no son su parada de Tab quedan en tabindex -1: el Tab del
+// navegador no pasa por ellas, así que tampoco cuentan como el primero ni el último (ni para el foco inicial).
+const inTabOrder = (el) => el.tabIndex >= 0
+
 /**
  * Diálogo modal usable con teclado y VoiceOver (WCAG 2.1.2 y 2.4.3): al abrir, el foco entra (a `[data-autofocus]`
  * o al primer control); Escape cierra; Tab no sale del diálogo; al cerrar, el foco vuelve a quien lo abrió.
@@ -36,7 +40,8 @@ export function useDialog(ref, open, onClose) {
     if (!open) return undefined
     const opener = document.activeElement
     const root = ref.current
-    const target = root?.querySelector('[data-autofocus]') ?? root?.querySelector(FOCUSABLE) ?? root
+    const target =
+      root?.querySelector('[data-autofocus]') ?? [...(root?.querySelectorAll(FOCUSABLE) ?? [])].find(inTabOrder) ?? root
     target?.focus({ preventScroll: true })
 
     stack.push(root)
@@ -48,7 +53,7 @@ export function useDialog(ref, open, onClose) {
         return
       }
       if (event.key !== 'Tab' || !root) return
-      const items = [...root.querySelectorAll(FOCUSABLE)].filter(reachable)
+      const items = [...root.querySelectorAll(FOCUSABLE)].filter((el) => reachable(el) && inTabOrder(el))
       if (!items.length) return
       const first = items[0]
       const last = items[items.length - 1]
