@@ -44,6 +44,10 @@
 // - rappi-ia/src/rappi_ia/events/store.py .......... el perfil de intereses (index.js: interests) y el sobre de cada
 //   evento (index.js: storedEvent; el origen, en `origin` o, en los eventos de antes, `payload.origen`); las impresiones
 //   (`list_view`) no se guardan, y sin conexión no hay grupo de control de las ofertas (OFFERS_CONTROL_PCT)
+// - rappi-ia/src/rappi_ia/api/app.py (_search_concept y _log_ask) ... el concepto de una búsqueda lo deduce el servidor
+//   del texto, corregido si lo hay (index.js: searchConcept), y cada pregunta a Mochi guarda un `ask` con el suyo
+//   (index.js: askEvent). Los pesos, el tope diario, los límites de "Pedir por mí", la recompra y "volver" se comparan
+//   con el backend en parity.test.js
 // - rappi-ia/src/rappi_ia/offers/profiles.py ....... los perfiles de gusto activos (tastes.js)
 // - rappi-ia/src/rappi_ia/catalog/hours.py y catalog/restaurants.py (filtros, "Destacados", with_hours) ... abierto o
 //   cerrado según el horario publicado y los filtros de restaurantes (catalog.js); las búsquedas recientes de
@@ -88,7 +92,7 @@ import { profileOffer, tastesReply } from './tastes'
 
 const DAY_MS = 86_400_000
 // events/store.py: WEIGHTS y HALF_LIFE_DAYS del perfil de intereses.
-const INTEREST_WEIGHTS = {
+export const INTEREST_WEIGHTS = {
   order_placed: 5,
   cart_add: 3,
   suggestion_accepted: 3,
@@ -96,8 +100,9 @@ const INTEREST_WEIGHTS = {
   view_item: 1.5,
   view_store: 1,
   search: 1,
+  ask: 1,
 }
-const INTEREST_HALF_LIFE_DAYS = 14
+export const INTEREST_HALF_LIFE_DAYS = 14
 const TOP_REASON = 'Lo más pedido estas semanas en {vertical}'
 
 const json = (status, body) =>
@@ -109,13 +114,22 @@ const json = (status, body) =>
 const randomHex = () =>
   Array.from(crypto.getRandomValues(new Uint8Array(8)), (b) => b.toString(16).padStart(2, '0')).join('')
 
+/** El concepto de una búsqueda (api/app.py: _search_concept): no se le cree a la app, se deduce del texto corregido si
+ * lo hay. En "Rappi hoy" no se aprende. */
+const searchConcept = (snapshot, event) => {
+  if (event.payload?.mode === 'actual') return null
+  const corrected = event.payload?.corregida
+  const text = typeof corrected === 'string' && corrected ? corrected : event.query
+  return (text && detectConcepts(snapshot.meta, text)[0]) || null
+}
+
 /** Un evento como lo guarda el backend: la vertical como código del catálogo, la hora en ms y su origen (`origin`, o
  * `payload.origen` de un cliente de antes: events/store.py, _origin). */
-const storedEvent = (event, now) => ({
+const storedEvent = (snapshot, event, now) => ({
   type: event.type,
   ts: now,
   vertical: backendVertical(event.vertical),
-  concept_id: event.concept_id ?? null,
+  concept_id: event.type === 'search' ? searchConcept(snapshot, event) : (event.concept_id ?? null),
   entity_type: event.entity_type ?? null,
   entity_id: event.entity_id ?? null,
   cart_id: event.cart_id ?? null,
@@ -125,7 +139,7 @@ const storedEvent = (event, now) => ({
 })
 
 // agent/rappi_agent.py: DAILY_CROSS_CAP. Cuenta las sugerencias de las respuestas (`agent-ask`) que vio hoy, en Santiago.
-const DAILY_CROSS_CAP = 5
+export const DAILY_CROSS_CAP = 5
 const santiagoDay = (ms) => new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Santiago' }).format(ms)
 const crossCapped = (state, now) =>
   state.events.filter(
@@ -303,6 +317,17 @@ function offeredWithPreferences(snapshot, state, offer) {
   return offer.stores ? { ...offer, products, stores: kitStores(products, offer.stores) } : { ...offer, products }
 }
 
+/**
+ * El `ask` que deja cada pregunta a Mochi (api/app.py: _log_ask), con el primer concepto de lo que entendió: suma al
+ * perfil de intereses. En "Rappi hoy" o si habla de sus preferencias (una alergia es un dato de salud), sin concepto.
+ */
+function askEvent(snapshot, body, reply, now) {
+  const mode = body?.mode ?? 'propuesta'
+  const learns = mode !== 'actual' && reply?.intent?.kind !== 'preferencia'
+  const concept = learns ? (reply?.intent?.concepts?.[0] ?? null) : null
+  return storedEvent(snapshot, { type: 'ask', concept_id: concept, payload: { mode } }, now)
+}
+
 // rappi_agent.py: los textos de `_preference`.
 const PREFERENCES_TODAY =
   'En "Rappi hoy" no guardo preferencias. En la propuesta recuerdo tu dieta, tus alergias y tus favoritas, y las ' +
@@ -445,10 +470,14 @@ function answer(snapshot, { method, path, query, body }, now) {
   if (key === 'GET /search') return { body: searchedWithPreferences(snapshot, state, search(snapshot, query), query) }
   if (key === 'POST /agent/ask') {
     const said = preferenceAnswer(snapshot, state, body ?? {}) ?? usualAnswer(snapshot, state, body ?? {}, now)
-    if (said) return { body: said }
+    if (said) {
+      addEvents([askEvent(snapshot, body, said, now)])
+      return { body: said }
+    }
     const mine = interests(snapshot, state, now).map((i) => i.concept)
     const asked = ask(snapshot, body, { interests: mine, userId: state.userId })
     const reply = asked?.suggestion && crossCapped(state, now) ? withoutSuggestion(asked) : asked
+    addEvents([askEvent(snapshot, body, reply, now)])
     return { body: body?.mode === 'actual' ? reply : withPreferences(snapshot, state, reply, { notice: true }) }
   }
   if (key === 'GET /agent/plans') return { body: snapshot.plans }
@@ -470,7 +499,7 @@ function answer(snapshot, { method, path, query, body }, now) {
     // Las impresiones (`list_view`, api/impressions.js) no se guardan: sin conexión nada las lee, y llenarían el
     // almacenamiento del navegador. Cuentan como recibidas, como en la API.
     const sent = body?.events ?? []
-    const stored = sent.filter((e) => e.type !== 'list_view').map((e) => storedEvent(e, now))
+    const stored = sent.filter((e) => e.type !== 'list_view').map((e) => storedEvent(snapshot, e, now))
     addEvents(stored)
     cancelOrders(stored) // un pedido cancelado deja de contar (events/store.py: _record_cancellations)
     return key === 'POST /events' ? { body: { guardados: sent.length } } : { status: 204, body: null }
