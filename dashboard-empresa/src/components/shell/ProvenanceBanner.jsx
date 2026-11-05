@@ -1,4 +1,4 @@
-import { API_URL, SNAPSHOT_INFO } from '../../lib/api.js'
+import { API_URL, PROTOTYPE_OFFLINE_MESSAGE, SNAPSHOT_INFO } from '../../lib/api.js'
 import { formatDate } from '../../lib/format.js'
 import { describeFallbacks, describeOrigins } from '../../lib/labels.js'
 import { Icon } from '../Icon.jsx'
@@ -19,8 +19,11 @@ const MESSAGES = {
   ),
 }
 
-/** Aviso permanente de procedencia (nunca se oculta) y, si alguna consulta cayó a los datos guardados, cuál y por qué. */
-export function ProvenanceBanner({ source, fallbacks, onRetry }) {
+/**
+ * Aviso permanente de procedencia (nunca se oculta) y, si alguna consulta cayó a los datos guardados, cuál y por qué.
+ * Con el prototipo sin la API (`prototypeOffline`), el único aviso de error de la página, con su Reintentar.
+ */
+export function ProvenanceBanner({ source, fallbacks, prototypeOffline, onRetry }) {
   return (
     <div className="provenance" role="note" aria-label="Procedencia de los datos">
       <div className={`provenance-row provenance-row--${source}`}>
@@ -38,6 +41,19 @@ export function ProvenanceBanner({ source, fallbacks, onRetry }) {
               {formatDate(SNAPSHOT_INFO.fecha)} desde una copia de la base ({SNAPSHOT_INFO.base}). No se actualizan; la
               procedencia de cada bloque sigue valiendo.
             </p>
+          </div>
+        </div>
+      )}
+      {source === 'prototype' && prototypeOffline && (
+        <div className="provenance-row provenance-row--offline" role="alert">
+          <div className="container provenance-inner">
+            <Icon name="offline" />
+            <p>
+              <strong>Sin conexión con la API:</strong> {PROTOTYPE_OFFLINE_MESSAGE}
+            </p>
+            <button type="button" className="link-button" onClick={onRetry}>
+              Reintentar
+            </button>
           </div>
         </div>
       )}

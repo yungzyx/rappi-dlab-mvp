@@ -17,7 +17,7 @@ function AsOf({ source }) {
   )
 }
 
-export function Header({ source, onSourceChange, onRefresh }) {
+export function Header({ source, reloadKey, onSourceChange, onRefresh }) {
   return (
     <header className="masthead">
       <div className="container masthead-inner">
@@ -43,7 +43,12 @@ export function Header({ source, onSourceChange, onRefresh }) {
           {AGENT_NAME}.
         </p>
         <div className="masthead-meta">
-          <Async fallback={<span>Cargando fecha de corte…</span>}>
+          {/* Sin caja de error en el encabezado; la clave la vuelve a intentar al cambiar de fuente o al reintentar. */}
+          <Async
+            key={`${source}-${reloadKey}`}
+            fallback={<span>Cargando fecha de corte…</span>}
+            errorFallback={<span>fecha de corte: sin conexión</span>}
+          >
             <AsOf source={source} />
           </Async>
           {' · '}

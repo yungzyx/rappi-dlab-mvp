@@ -6,7 +6,7 @@ import { ProvenanceBanner } from './components/shell/ProvenanceBanner.jsx'
 import { Tabs } from './components/shell/Tabs.jsx'
 import { API_URL, refreshSource, retryConnection, SNAPSHOT_INFO } from './lib/api.js'
 import { formatDate } from './lib/format.js'
-import { useFallbacks } from './lib/useAnalytics.js'
+import { useFallbacks, usePrototypeOffline } from './lib/useAnalytics.js'
 import { useUrlState } from './lib/useUrlState.js'
 import { CustomersView } from './views/customers/CustomersView.jsx'
 import { ExperimentsView } from './views/experiments/ExperimentsView.jsx'
@@ -31,6 +31,7 @@ const DemoTour = import.meta.env.MODE === 'panel-html' ? lazy(() => import('./de
 export default function App() {
   const [{ view, source }, setUrlState] = useUrlState(VIEW_IDS)
   const fallbacks = useFallbacks()
+  const prototypeOffline = usePrototypeOffline()
   const [reloadKey, setReloadKey] = useState(0)
   const main = useRef(null)
   const tabbar = useRef(null)
@@ -88,10 +89,11 @@ export default function App() {
     <>
       <Header
         source={source}
+        reloadKey={reloadKey}
         onSourceChange={(next) => setUrlState((state) => ({ ...state, source: next }))}
         onRefresh={refresh}
       />
-      <ProvenanceBanner source={source} fallbacks={fallbacks} onRetry={retry} />
+      <ProvenanceBanner source={source} fallbacks={fallbacks} prototypeOffline={prototypeOffline} onRetry={retry} />
       <div className="tabbar" ref={tabbar}>
         <div className="container tabbar-inner">
           <Tabs views={VIEWS} active={view} onSelect={selectView} />

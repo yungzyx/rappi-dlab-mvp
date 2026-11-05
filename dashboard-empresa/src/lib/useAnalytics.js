@@ -1,5 +1,5 @@
 import { use, useSyncExternalStore } from 'react'
-import { getFallbacks, loadAnalytics, subscribeConnection } from './api.js'
+import { getFallbacks, getPrototypeOffline, loadAnalytics, subscribeConnection } from './api.js'
 
 /** Datos de una métrica. Suspende mientras carga: envolver en <Async>. */
 export function useAnalytics(name, source) {
@@ -17,4 +17,9 @@ export function useAnalyticsMany(names, source) {
 /** Consultas que cayeron a los datos guardados: [{ key, name, reason }]. */
 export function useFallbacks() {
   return useSyncExternalStore(subscribeConnection, getFallbacks)
+}
+
+/** Si la API no respondió a alguna consulta del prototipo (su aviso único, en el de procedencia). */
+export function usePrototypeOffline() {
+  return useSyncExternalStore(subscribeConnection, getPrototypeOffline)
 }

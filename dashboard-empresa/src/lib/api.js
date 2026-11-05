@@ -52,6 +52,7 @@ export const isDemoActive = () => Object.keys(demoResponses).length > 0
 const cache = new Map()
 const listeners = new Set()
 let fallbacks = [] // [{ key, name, reason }]; se reemplaza (nunca se muta) para useSyncExternalStore
+let prototypeOffline = false // alguna consulta del prototipo falló: se avisa una sola vez, en el aviso de procedencia
 
 function describeRequest(name, source) {
   if (!SOURCES.includes(source)) throw new Error(`Fuente desconocida: ${source}`)
@@ -93,7 +94,7 @@ function reasonFor(error) {
   return 'respuesta no válida'
 }
 
-const PROTOTYPE_OFFLINE_MESSAGE = 'La API no responde: el uso del MVP solo se ve con la base viva.'
+export const PROTOTYPE_OFFLINE_MESSAGE = 'La API no responde: el uso del MVP solo se ve con la base viva.'
 
 /** Del panel en un solo HTML: la respuesta grabada, validada contra la fuente pedida igual que una en vivo. */
 async function loadFromSnapshot({ key, name, expected }) {
@@ -107,7 +108,10 @@ async function loadWithFallback(request, isCurrent) {
   try {
     return { data: await fetchLive(request), offline: false, saved: null }
   } catch (error) {
-    if (request.expected === 'prototype') throw new Error(PROTOTYPE_OFFLINE_MESSAGE, { cause: error })
+    if (request.expected === 'prototype') {
+      if (isCurrent()) setPrototypeOffline(true)
+      throw new Error(PROTOTYPE_OFFLINE_MESSAGE, { cause: error })
+    }
     console.warn(`rappi-ia: ${request.path} falló (${error.message}); se usan los datos guardados.`)
     const { data, saved } = await fetchSaved(request)
     if (isCurrent()) addFallback({ key: request.key, name: request.name, reason: reasonFor(error), guardado: saved })
@@ -142,6 +146,12 @@ function addFallback(fallback) {
   notify()
 }
 
+function setPrototypeOffline(value) {
+  if (prototypeOffline === value) return
+  prototypeOffline = value
+  notify()
+}
+
 export function subscribeConnection(listener) {
   listeners.add(listener)
   return () => listeners.delete(listener)
@@ -152,10 +162,16 @@ export function getFallbacks() {
   return fallbacks
 }
 
+/** Si alguna consulta del prototipo falló (sin respaldo: sus bloques quedan vacíos y el aviso va arriba). */
+export function getPrototypeOffline() {
+  return prototypeOffline
+}
+
 /** Olvida lo cargado para volver a intentar con la API. */
 export function retryConnection() {
   cache.clear()
   fallbacks = []
+  prototypeOffline = false
   notify()
 }
 
@@ -167,5 +183,6 @@ export function refreshSource(source) {
   const suffix = `.${source}`
   for (const key of cache.keys()) if (key.endsWith(suffix)) cache.delete(key)
   fallbacks = fallbacks.filter((fallback) => !fallback.key.endsWith(suffix))
+  if (source === 'prototype') prototypeOffline = false
   notify()
 }
