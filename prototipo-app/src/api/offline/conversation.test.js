@@ -106,6 +106,18 @@ describe('el seguimiento sobre la muestra (agent/rappi_agent.py, en corto)', () 
     expect(reply.text).toMatch(/^Lo más barato de carrete 🎉 en Express/)
   })
 
+  test('el texto nombra lo que se muestra: el concepto que aparece y la ocasión solo si es de ella', () => {
+    const pizzaParty = { ...PIZZA, query: 'pizza para el carrete', occasion: 'carrete', product_ids: [] }
+    const pizzas = then('más barato', pizzaParty)
+    expect(pizzas.text).toMatch(/^Lo más barato de 🍕 pizza en restaurantes/)
+    const drinks = { ...pizzaParty, query: 'bebida con cerveza', concepts: ['cerveza', 'gaseosas'], occasion: null }
+    const cola = then('más barato', { ...drinks, vertical: 'conveniencia' })
+    expect(names(cola)).toEqual(['Bebida cola 1,5 L'])
+    expect(cola.text).toMatch(/^Lo más barato de 🥤 bebidas gaseosas en Express/)
+    const party = then('más barato', { ...drinks, occasion: 'carrete', vertical: 'conveniencia' })
+    expect(party.text).toMatch(/^Lo más barato de carrete 🎉 en Express/)
+  })
+
   test('los remedios no los busca: lo dice', () => {
     const cold = { ...PIZZA, query: 'algo para el resfrio', concepts: [], vertical: 'farmacia', symptom: true }
     const reply = then('más barato', cold)

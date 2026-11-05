@@ -144,10 +144,17 @@ function forPeople(people, occasion) {
 
 const money = (value) => `$${Math.round(value).toLocaleString('es-CL')}`
 
-/** Cómo se nombra lo pedido en el texto: la ocasión, el concepto o lo dicho. */
-function nameOf(meta, previous, occasion) {
-  if (occasion) return `${occasion.name.toLowerCase()} ${occasion.emoji}`
-  const concept = meta.concepts[previous.concepts?.[0]]
+/**
+ * Cómo se nombra lo pedido en el texto: la ocasión, el concepto o lo dicho. Nombra lo que se muestra (rappi_agent.py:
+ * _draft): el primer concepto pedido que se muestra, y la ocasión solo si lo mostrado es de ella ("algo dulce para el
+ * café" muestra cafés, no un "antojo dulce").
+ */
+function nameOf(meta, previous, occasion, products) {
+  const named = previous.concepts ?? []
+  const shown = new Set(products.map((p) => p.concept))
+  const foreign = named.length > 0 && products.length > 0 && !(occasion?.concepts ?? []).some((c) => shown.has(c))
+  if (occasion && !foreign) return `${occasion.name.toLowerCase()} ${occasion.emoji}`
+  const concept = meta.concepts[named.find((c) => shown.has(c)) ?? named[0]]
   return concept ? `${concept.emoji} ${concept.name.toLowerCase()}` : `"${previous.query}"`
 }
 
@@ -202,7 +209,7 @@ export function followUp(snapshot, body, refinement) {
 
   const label = meta.vertical_labels[vertical] ?? vertical
   const what =
-    nameOf(meta, previous, occasion) +
+    nameOf(meta, previous, occasion, products) +
     (without.length ? ` sin ${without.map((w) => ACCENTS[w] ?? w).join(' ni ')}` : '') +
     (priceMax != null ? ` bajo ${money(priceMax)}` : '')
   const ageNotice = products.some((p) => p.age_restricted)
