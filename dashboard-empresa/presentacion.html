@@ -178,12 +178,12 @@
           <li>
             <span class="step-number">1</span>
             <h3>La Home aprende el orden</h3>
-            <p>Los seis accesos pequeños se ordenan según lo que cada persona pide y abre. Restaurantes y Turbo no se mueven; Loyalty y Benefits Pro quedan al final.</p>
+            <p>Los seis accesos pequeños se ordenan según lo que cada persona pide y abre. Restaurantes y Turbo no se mueven; Lealtad y Beneficios Pro quedan al final.</p>
           </li>
           <li>
             <span class="step-number">2</span>
             <h3>Mochi propone el siguiente peldaño</h3>
-            <p>Restaurantes → Turbo → Retail, siempre con su porqué. Dentro de esa vertical ofrece lo más pedido ahí; cuando una regla aprendida lo justifica (hoy no, λ = 0), lo que suelen sumar quienes piden lo mismo.</p>
+            <p>Restaurantes → Turbo → Retail, siempre con su porqué. Dentro de esa vertical ofrece lo más pedido ahí; cuando una regla aprendida lo justifica (con los simulados del 04-11, no: <code>make motor</code> deja λ en 0), lo que suelen sumar quienes piden lo mismo.</p>
           </li>
           <li>
             <span class="step-number">3</span>
@@ -248,15 +248,16 @@
           <div>
             <dt>Tiempo de respuesta (p95)</dt>
             <dd>222 ms</dd>
-            <p>La ruta más lenta, las recomendaciones, con el modelo de texto y sobre el catálogo real.</p>
+            <p>La ruta más lenta, las recomendaciones, con el modelo de texto y sobre el catálogo real. QA del 16-10-2026.</p>
           </div>
         </dl>
         <p class="figures-note">
-          El motor se evaluó el 16 de octubre de 2026 con 3.000 personas simuladas y tramos por fecha (entrenar, validar,
-          probar). Prueba la mecánica, no el efecto: el simulador trata la tabla de Rappi como efecto. En la compra cruzada,
-          la mezcla con las reglas aprendidas acierta lo mismo que "lo más pedido" (precisión@3 0,128): en validación el
-          peso de las reglas quedó en 0, así que hoy se ofrece lo más pedido. Cuánto retiene de verdad solo lo dice un
-          experimento con grupo de control.
+          El motor se evaluó el 4 de noviembre de 2026 con 3.000 personas simuladas (semilla 7) y tramos por fecha
+          (entrenar, validar, probar). Prueba la mecánica, no el efecto: el simulador trata la tabla de Rappi como efecto.
+          En la compra cruzada, la mezcla con las reglas aprendidas acierta lo mismo que "lo más pedido" (precisión@3
+          0,129): las reglas llegan a 17 de 505 personas y, en validación, darles peso sumaba solo 2 aciertos de 1.509,
+          bajo el mínimo de 5. Por eso, con estos simulados, <code>make motor</code> deja el peso de las reglas (λ) en 0 y se ofrece lo más pedido. Cuánto retiene de
+          verdad solo lo dice un experimento con grupo de control.
         </p>
       </section>
 
