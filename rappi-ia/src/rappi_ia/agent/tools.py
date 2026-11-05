@@ -23,6 +23,7 @@ from ..offers.guards import (
     alcohol_section,
     baby_in_name,
     is_offerable,
+    is_plannable,
     offerable_vertical,
     unofferable_subverticals,
 )
@@ -576,6 +577,8 @@ def _focus(hits, result: RetrievalResult, capped: bool = False):
     if result.unmet and (result.concept_share or 0.0) < TESTIMONIAL_SHARE:
         return []
     matching = [h for h in hits if h.concept_id in concepts]
+    if "medicamentos" in concepts and (forms := _active_ingredient(result.query)):
+        matching = [h for h in matching if h.concept_id != "medicamentos" or _says_any(h.content, forms)]
     if matching:
         return _named_first(matching, result.query)
     if result.unmet or capped:
@@ -583,6 +586,29 @@ def _focus(hits, result: RetrievalResult, capped: bool = False):
     if _broad_request(result.query, concepts):
         return hits
     return [h for h in hits if _names_query(h.content, result.query)]
+
+
+# Un remedio nombrado: solo lo que lo nombra o nombra su principio activo, sin el resto de `medicamentos`. En la base
+# del 04-11-2026, "aspirina" en Farmacia mostraba Aspirina, un esomeprazol y una estatina (Rumada, con la categoría de
+# los analgésicos) y dejaba fuera el ácido acetilsalicílico. Solo el nombre: la ficha de un paracetamol (Tapsin) dice
+# que es para los alérgicos al ácido acetilsalicílico. Solo estos tres: un antialérgico o un antibiótico no dicen que
+# lo son.
+ACTIVE_INGREDIENTS = {
+    "aspirina": ("aspirina", "acetilsalicilico"),
+    "paracetamol": ("paracetamol",),
+    "ibuprofeno": ("ibuprofeno",),
+}
+
+
+def _active_ingredient(query: str) -> tuple[str, ...]:
+    """Las formas del remedio que nombra la consulta (`ACTIVE_INGREDIENTS`), o nada."""
+    return next((ACTIVE_INGREDIENTS[f] for w in tokens(query) for f in _forms(w) if f in ACTIVE_INGREDIENTS), ())
+
+
+def _says_any(content: str, forms: tuple[str, ...]) -> bool:
+    """¿El nombre (lo que va antes del primer ". ") dice alguna de las formas, en palabras enteras, en singular o
+    plural?"""
+    return bool(set().union(*(_forms(w) for w in _name_words(content.split(". ", 1)[0]))) & set(forms))
 
 
 def _named_first(hits, query: str):
@@ -749,6 +775,10 @@ def _with_prices(conn: Connection, vertical: str, hits, offer: bool = False, adu
         if offer and baby_in_name(hit.entity_type, name):  # de bebé aunque su concepto sea corriente: ni en un kit
             continue
         concept = taxonomy.concepts.get(hit.concept_id) if hit.concept_id else None
+        # En una oferta, tampoco un concepto que el agente no propone (+18 salvo en un kit elegido, salud, bebé, lo
+        # sensible), como engine._offerable_products: no depende de que quien llama filtre por concepto.
+        if offer and concept and ((concept.age_restricted and not adult_ok) or not is_plannable(concept)):
+            continue
         prefix = "cat" if hit.entity_type == "catalog_item" else "menu"
         products.append(
             Product(

@@ -1104,7 +1104,9 @@ id = "guagua"
 name = "Guagua en casa"
 emoji = "👶"
 keywords = ["guagua", "bebé", "bebe", "recién nacido", "lactancia", "mi hijo chico"]
-concepts = ["panales", "alimentacion-bebe", "articulos-bebe", "dermocosmetica"]
+# Sin dermocosmética (04-11-2026): traía un producto de adulto ("Rub Rub Rub Exfoliante Corporal"); las cremas de bebé
+# vienen de articulos-bebe ("Eucerin Crema Corporal para Bebé").
+concepts = ["panales", "alimentacion-bebe", "articulos-bebe"]
 
 [[occasion]]
 id = "enfermo"

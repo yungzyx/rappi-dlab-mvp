@@ -39,6 +39,10 @@ REQUEST_WORDS = {
 # (retrieval/spelling.py), que corre cuando la búsqueda queda "sin resultado". "este" y "pues" también son palabras.
 MUTTER_WORDS = {"eh", "ehh", "ehm", "em", "emm", "mm", "mmm", "este", "oye", "po", "pos", "pues", "osea"}
 FILLER_WORDS = frozenset(GREETING_WORDS | THANKS_WORDS | REQUEST_WORDS)
+# El orden por precio (agent/understand.py: _price_order): aquí para que la corrección de errores de tipeo
+# (retrieval/spelling.py) no los cambie ("sushi barato" → "sushi barto").
+CHEAP_WORDS = {"barato", "barata", "baratos", "baratas", "economico", "economica", "economicos", "economicas"}
+PRICEY_WORDS = {"caro", "caros", "premium"}  # "cara" solo tras "más": "crema para la cara" es la cara
 
 
 def normalize(text: str) -> str:

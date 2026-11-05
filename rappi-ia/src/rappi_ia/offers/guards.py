@@ -32,11 +32,16 @@ NOT_PLANNABLE_OCCASIONS = ("guagua", "enfermo")  # bebé y salud: ni siquiera co
 # "Frutas" sin ninguna marca, y una cerveza, un ron y un vino tinto quedaban en frutas, decoración y útiles. Palabra
 # entera, con su plural: "ron" no está en "ronda" ni "gin" en "ginger". Es la lista de los productos del catálogo; los
 # platos tienen la suya (abajo). Bloquea también lo que solo nombra el alcohol (vinagre de vino, copas de vino,
-# galletas Vino): de una oferta que nadie pidió, sobra; quien lo busca por su nombre lo sigue encontrando.
+# galletas Vino): de una oferta que nadie pidió, sobra; quien lo busca por su nombre lo sigue encontrando. Desde
+# "eristoff", las marcas de destilados que en la base del 04-11-2026 venían sin otra palabra de alcohol y sin marcas de
+# la tienda: "Eristoff 40 750cc + Bebida o Jugo 1.5lt" tenía concepto jugos y salía primero en las ofertas de jugos,
+# "Gran Malo 750 Cc" (un tequila), "Tres Erre Litro + Coca Cola", "Cóctel Capel Sour" y "Eristoff Petaca 190ml".
+# "bacardi", "absolut" y "mistral" no están: en el catálogo también son huevos, un shampoo y un secador de pelo.
 ALCOHOL_NAME_WORDS = frozenset(
     {
         *("soju", "makgeolli", "umeshu", "sake", "cerveza", "vino", "whisky", "pisco", "ron", "vodka", "gin"),
         *("tequila", "licor", "aperitivo", "espumante", "champagne", "sidra"),
+        *("eristoff", "smirnoff", "capel", "bauza", "tres erre", "gran malo", "petaca"),
     }
 )
 _ALCOHOL_NAMES = KeywordMatcher(("alcohol", word) for word in ALCOHOL_NAME_WORDS)

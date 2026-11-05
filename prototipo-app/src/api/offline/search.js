@@ -188,10 +188,36 @@ export function namesQuery(meta, name, q) {
 function focus(meta, q, concepts, found) {
   if (!concepts.length) return found
   const broad = namesOccasion(meta, q) || concepts.some((c) => meta.concepts[c]?.broad)
-  const withConcept = new Set(found.filter((p) => concepts.includes(p.concept)).map((p) => p.vertical))
+  const forms = concepts.includes('medicamentos') ? activeIngredient(q) : []
+  const named = (p) => !forms.length || p.concept !== 'medicamentos' || namesIngredient(p.name, forms)
+  const withConcept = new Set(found.filter((p) => concepts.includes(p.concept) && named(p)).map((p) => p.vertical))
   return found.filter((p) =>
-    withConcept.has(p.vertical) ? concepts.includes(p.concept) : broad || namesQuery(meta, p.name, q),
+    withConcept.has(p.vertical) ? concepts.includes(p.concept) && named(p) : broad || namesQuery(meta, p.name, q),
   )
+}
+
+/**
+ * Un remedio nombrado: solo lo que lo nombra o nombra su principio activo, sin el resto de `medicamentos`
+ * (agent/tools.py: ACTIVE_INGREDIENTS). "aspirina" mostraba un esomeprazol y una estatina. Solo el nombre, como el
+ * backend.
+ */
+const ACTIVE_INGREDIENTS = {
+  aspirina: ['aspirina', 'acetilsalicilico'],
+  paracetamol: ['paracetamol'],
+  ibuprofeno: ['ibuprofeno'],
+}
+
+/** Las formas del remedio que nombra la consulta, o ninguna (agent/tools.py: _active_ingredient). */
+const activeIngredient = (q) =>
+  normalize(q)
+    .split(' ')
+    .flatMap(formsOf)
+    .filter((f) => Object.hasOwn(ACTIVE_INGREDIENTS, f))
+    .map((f) => ACTIVE_INGREDIENTS[f])[0] ?? []
+
+const namesIngredient = (name, forms) => {
+  const inName = new Set(nameWords(name).flatMap(formsOf))
+  return forms.some((f) => inName.has(f))
 }
 
 /** Los productos de la muestra que calzan con `q`, del mejor al peor (cada uno una vez por vertical), con el foco. */
@@ -364,6 +390,8 @@ const APP_QUESTIONS = [
     [
       ...['mi pedido', 'el pedido', 'cancelar', 'reclamo', 'reclamar', 'devolucion', 'reembolso', 'donde viene'],
       ...['no llega', 'no ha llegado', 'llego mal'],
+      ...['hablar con una persona', 'hablar con alguien', 'hablar con soporte', 'soporte de rappi'],
+      ...['servicio al cliente'],
     ],
   ],
   // Fuera de tema: se contesta y se vuelve a lo que Mochi sabe hacer (no es demanda no atendida).
@@ -372,6 +400,8 @@ const APP_QUESTIONS = [
     [
       ...['clima', 'chiste', 'capital de', 'te quiero', 'te amo', 'eres tonto', 'tonto', 'idiota', 'como estas'],
       ...['quien gano', 'noticias'],
+      ...['contrasena', 'metodo de pago', 'pagar con tarjeta', 'mi cuenta', 'cambiar mi direccion', 'ser repartidor'],
+      ...['ser rappitendero', 'que hora es', 'eres un bot'],
     ],
   ],
 ]

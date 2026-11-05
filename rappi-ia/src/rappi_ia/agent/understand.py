@@ -22,7 +22,15 @@ from ..concepts.matcher import KeywordMatcher, Match
 from ..concepts.taxonomy import load_taxonomy
 from ..offers.guards import is_offerable
 from ..offers.preferences import Command, load_options, read_command
-from ..text import GREETING_WORDS, REQUEST_WORDS, THANKS_WORDS, assistant_words, normalize
+from ..text import (
+    CHEAP_WORDS,
+    GREETING_WORDS,
+    PRICEY_WORDS,
+    REQUEST_WORDS,
+    THANKS_WORDS,
+    assistant_words,
+    normalize,
+)
 from .glossary import load_glossary
 from .verticals import contending_verticals, ranked_verticals
 
@@ -159,7 +167,11 @@ APP_QUESTIONS = {
         "horario",
         "a que hora cierra",
     ],
-    "ofertas": ["ofertas", "tienen ofertas", "hay ofertas", "descuentos", "promociones", "promos"],
+    "ofertas": [
+        *("ofertas", "tienen ofertas", "hay ofertas", "descuentos", "promociones", "promos"),
+        # los cupones se ven en la pestaña Ofertas ("tienen cupones" se corregía a "chupones")
+        *("cupon", "cupones", "codigo de descuento", "codigo promocional"),
+    ],
     # Remedios de enfermedades crónicas: son con receta, no se buscan. "La presión" sí: hay tensiómetros.
     "receta": ["hipertension", "diabetes", "colesterol", "tiroides"],
     # El resumen del carro antes de pagar: la app lo arma y lleva al checkout (Mochi nunca hace el pedido solo).
@@ -211,6 +223,13 @@ APP_QUESTIONS = {
         "no llega",
         "no ha llegado",
         "llego mal",
+        # hablar con alguien de Rappi: la ayuda se pide desde "Mis pedidos". "soporte" solo no: "soporte para tv" es
+        # un producto.
+        "hablar con una persona",
+        "hablar con alguien",
+        "hablar con soporte",
+        "soporte de rappi",
+        "servicio al cliente",
     ],
     # Fuera de tema: se contesta con humor y se vuelve a lo que el agente sabe hacer; no es demanda no atendida.
     "fuera": [
@@ -225,6 +244,16 @@ APP_QUESTIONS = {
         "como estas",
         "quien gano",
         "noticias",
+        # la cuenta, el pago y ser repartidor se ven en la app, no se buscan: no son demanda no atendida
+        "contrasena",
+        "metodo de pago",
+        "pagar con tarjeta",
+        "mi cuenta",
+        "cambiar mi direccion",
+        "ser repartidor",
+        "ser rappitendero",
+        "que hora es",
+        "eres un bot",
     ],
     "recomendar": [
         "me recomiendas",
@@ -295,8 +324,6 @@ FOLLOW_UP_FILLER = {
     "uno",
     "una",
 }
-CHEAP_WORDS = {"barato", "barata", "baratos", "baratas", "economico", "economica", "economicos", "economicas"}
-PRICEY_WORDS = {"caro", "caros", "premium"}  # "cara" solo tras "más": "crema para la cara" es la cara
 ORDER_LEADS = {"mas", "menos", "no", "tan", "uno", "una", "lo"}  # "uno más caro", "no tan caro": van con el orden
 # "no quiero pizza", "menos sushi": el concepto que sigue se descarta y se saca de la consulta. "sin" también se
 # descarta, pero queda en la consulta ("yogurt sin azúcar" busca eso).
@@ -585,6 +612,9 @@ class Understander:
             symptom=symptom,
             **_price_order(said.split()),
         )
+        # El orden por precio ya está en la intención: no se busca ("sushi barato" se corregía a "sushi barto").
+        if common["cheapest"] or common["priciest"]:
+            common["query"] = " ".join(_without_order(common["query"].split())) or common["query"]
 
         common["people"] = people
         if mention:

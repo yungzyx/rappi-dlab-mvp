@@ -115,6 +115,35 @@ def test_a_misspelled_word_next_to_a_concept_is_corrected_in_the_search(rappi_ag
     assert "corrected_query" not in plain
 
 
+def test_a_typo_that_was_understood_as_another_concept_is_understood_again(rappi_agent):
+    """ "heladoo de chocolate" se entendía como chocolates (barras) y "papas fritass" como verduras (y se iba a
+    Express): la búsqueda corrige la consulta, y el texto corregido se entiende con otros conceptos."""
+    agent, db = rappi_agent
+    add_store(db, 4, "turbo", "Turbo")
+    add_product(db, 103, "Helado de chocolate 1 L", 4, "Helados")
+    add_price(db, 4, 103, 3990)
+    add_product(db, 105, "Helado de chocolate paleta", 4, "Helados")
+    add_price(db, 4, 105, 1690)
+    add_product(db, 104, "Barra de chocolate con leche 100 g", 4, "Chocolates")
+    add_price(db, 4, 104, 1490)
+    add_dish(db, 501, "Papas fritas grandes", 3, "Acompañamientos")
+    db.execute("INSERT INTO menu_price_snapshots (run_id, item_id, price) VALUES (999, 501, 2990)")
+    db.commit()
+    build_search_documents(db)
+    build_concepts(db)
+    embed_search_documents(db, agent.embedder)
+
+    ice_cream = agent.reply(db, "heladoo de chocolate", Context(vertical="turbo"))
+    assert "helados" in ice_cream["intent"]["concepts"]
+    assert any("helado" in p["name"].lower() for p in ice_cream["products"])
+    # Se corrige el mensaje entero, no la consulta de búsqueda: el tope de precio no se pierde.
+    capped = agent.reply(db, "heladoo de chocolate hasta 2000 pesos", Context(vertical="turbo"))
+    assert "helados" in capped["intent"]["concepts"] and capped["intent"]["price_max"] == 2000
+    assert capped["products"] and all(p["price_value"] <= 2000 for p in capped["products"])
+    fries = agent.reply(db, "papas fritass", Context(vertical="restaurantes"))
+    assert "verduras" not in fries["intent"]["concepts"] and "Express" not in fries["text"]
+
+
 def test_what_is_understood_or_has_no_fix_is_not_corrected(rappi_agent):
     agent, db = rappi_agent
     assert "corrected_query" not in agent.reply(db, "cerveza", Context(vertical="licores"))
@@ -1157,6 +1186,46 @@ def test_cheap_shows_the_cheapest_first(rappi_agent):
     assert prices == sorted(prices) and prices[0] == 1290
     pricey = [p["price_value"] for p in agent.reply(db, "cerveza cara", Context(vertical="licores"))["products"]]
     assert pricey == sorted(pricey, reverse=True) and pricey[0] == 9990
+
+
+def test_cheap_is_an_order_and_is_not_corrected(rappi_agent):
+    """ "sushi barato" respondía 'Busqué "sushi barto"': "barato" seguía en la consulta y la corrección lo cambiaba
+    por una palabra de un solo plato. El orden ya está en la intención: no se busca ni se corrige."""
+    agent, db = rappi_agent
+    add_dish(db, 502, "Roll acevichado sushi", 3, "Sushi", ["Sushi"])
+    add_dish(db, 503, "Roll Barto sushi", 3, "Sushi", ["Sushi"])
+    db.execute("INSERT INTO menu_price_snapshots (run_id, item_id, price) VALUES (999, 502, 6990), (999, 503, 7990)")
+    db.commit()
+    build_search_documents(db)
+    build_concepts(db)
+    embed_search_documents(db, agent.embedder)
+
+    r = agent.reply(db, "sushi barato", Context(vertical="restaurantes"))
+
+    assert r["conversation"]["order"] == "barato" and r["products"]
+    assert "barto" not in r["text"].lower() and "barto" not in (r.get("corrected_query") or "").lower()
+
+
+def test_the_baby_occasion_brings_no_adult_skin_care(rappi_agent):
+    """ "algo para la guagua" mostraba un exfoliante corporal de adulto: dermocosmética salió de la ocasión."""
+    agent, db = rappi_agent
+    add_store(db, 5, "farmacia", "Farmacia")
+    for pid, name, category, price in [
+        (105, "Rub Rub Rub Exfoliante Corporal 330g", "Humectantes corporales", 5990),
+        (106, "Pañales talla M x 40", "Pañales", 8990),
+        (107, "Mamadera anticólicos 250 ml", "Mamaderas y tetinas", 6990),
+    ]:
+        add_product(db, pid, name, 5, category)
+        add_price(db, 5, pid, price)
+    db.commit()
+    build_search_documents(db)
+    build_concepts(db)
+    embed_search_documents(db, agent.embedder)
+
+    r = agent.reply(db, "algo para la guagua", Context())
+
+    assert r["intent"]["occasion"] == "guagua" and r["products"]
+    assert "dermocosmetica" not in {p["concept"] for p in r["products"]}
 
 
 def test_a_recommendation_uses_what_the_user_likes(rappi_agent):

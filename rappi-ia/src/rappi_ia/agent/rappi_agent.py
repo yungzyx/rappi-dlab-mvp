@@ -45,6 +45,7 @@ from .tools import (
     VERTICAL_LABELS,
     Product,
     Suggestion,
+    _active_ingredient,
     _forms,
     clp,
     search_products,
@@ -246,10 +247,24 @@ class RappiAgent:
         """Si no entendió qué se pide (sin concepto, ocasión ni síntoma) y la búsqueda tuvo que corregir o no encontró
         nada, el mensaje corregido con el vocabulario de todo el catálogo (`retrieval.spelling`, como `/search`), o
         None. "cervesa" se vuelve a entender como "cerveza": su concepto, su vertical y su sugerencia (aunque el Súper
-        también tenga cervezas con la palabra corregida); recién si así tampoco hay, es demanda no satisfecha."""
+        también tenga cervezas con la palabra corregida); recién si así tampoco hay, es demanda no satisfecha.
+
+        Si entendió conceptos pero la búsqueda corrigió la consulta, el texto corregido cuando se entiende con otros
+        conceptos: "heladoo de chocolate" en Turbo se quedaba con chocolates (barras) y "papas fritass" en
+        Restaurantes con verduras; corregidos, son helados y papas fritas."""
         intent = response["intent"]
-        if intent["kind"] != "buscar" or intent.get("concepts") or intent.get("occasion") or intent.get("symptom"):
+        if intent["kind"] != "buscar" or intent.get("occasion") or intent.get("symptom"):
             return None
+        if intent.get("concepts"):
+            if not response.get("corrected_query"):
+                return None
+            # El mensaje entero, no la consulta de búsqueda: así no se pierden el tope de precio, "barato" ni las
+            # personas ("heladoo de chocolate hasta 2000 pesos").
+            fixed = correct_query(conn, message, None)
+            if not fixed:
+                return None
+            again = self.understander.understand(conn, fixed, intent.get("vertical"))
+            return fixed if set(again.concepts) != set(intent["concepts"]) else None
         if not response.get("corrected_query") and (not response.get("unmet") or response.get("products")):
             return None
         return correct_query(conn, message, None)
@@ -365,10 +380,12 @@ class RappiAgent:
         # "algo más sano" se entiende como ensaladas, pero esas palabras no están en los productos: si nada de lo
         # encontrado es del concepto nombrado, se busca por el nombre del concepto.
         # Con menos de MIN_SHOWN ("unos puchos" traía uno) se completa con esa búsqueda, salvo en un seguimiento
-        # ("talla xg") o si se nombró una cadena o vertical ("tienen kfc"): lo demás no es lo pedido.
+        # ("talla xg") o si se nombró una cadena o vertical ("tienen kfc"): lo demás no es lo pedido. Tampoco con un
+        # remedio nombrado (tools.ACTIVE_INGREDIENTS): "aspirina" se completaba con antiflatulentos y una estatina.
         on_topic = any(p.concept in intent.concepts for p in products)
         few = len(products) < MIN_SHOWN and not intent.follow_up and not intent.explicit_vertical
-        if intent.explicit_concepts and not intent.symptom and (few or not on_topic):
+        named_medicine = "medicamentos" in intent.concepts and _active_ingredient(intent.query or intent.text)
+        if intent.explicit_concepts and not intent.symptom and (few or not on_topic) and not named_medicine:
             concept = self.taxonomy.concepts.get(intent.concepts[0])
             retry = (
                 search_products(

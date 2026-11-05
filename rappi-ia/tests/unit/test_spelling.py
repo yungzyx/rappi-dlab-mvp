@@ -104,3 +104,17 @@ def test_a_typo_is_recovered_when_it_shows_as_much_of_what_was_meant():
     assert recovered(False, shown[2:], "cerveza", 1)  # lo que se quiso escribir trae uno solo: basta ese
     assert not recovered(True, shown, "cerveza", 3)  # "sin resultado" nunca se recupera
     assert not recovered(False, shown, "cerveza", 0)  # sin nada que comparar, no mide
+
+
+@pytest.mark.parametrize("query", ["sushi barato", "pizza barata", "cerveza economica", "vino caro", "whisky premium"])
+def test_price_words_are_never_corrected(query, monkeypatch):
+    """ "sushi barato" pasaba a "sushi barto" (una palabra de un solo plato): el orden por precio no es un error."""
+    asked = []
+
+    def fixes(_conn, _vertical, words):
+        asked.extend(words)
+        return {word: word[:-1] for word in words}  # cambiaría cualquier palabra que le pidan
+
+    monkeypatch.setattr(spelling, "_fixes", fixes)
+    assert spelling.correct_query(None, query, "restaurantes") is None
+    assert not set(asked) & spelling.PRICE_WORDS
