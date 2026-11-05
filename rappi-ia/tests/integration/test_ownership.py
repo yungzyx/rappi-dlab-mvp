@@ -171,6 +171,30 @@ def test_missing_token_is_401(client, caplog):
     assert alice not in logged and token not in logged
 
 
+@pytest.mark.parametrize(
+    ("method", "path", "body"),
+    [
+        ("GET", "/profile/{id}/autonomia", None),
+        ("PUT", "/profile/{id}/autonomia", {"tiendas": [1], "tope": 20000}),
+        ("DELETE", "/profile/{id}/autonomia", None),
+        ("GET", "/profile/{id}/preferencias", None),
+        ("PUT", "/profile/{id}/preferencias", {"preferencias": []}),
+        ("GET", "/profile/{id}/busquedas", None),
+        ("GET", "/catalog/stores/1/para-ti?user_id={id}", None),
+    ],
+)
+def test_personal_routes_need_the_owners_session(client, method, path, body):
+    """ "Pedir por mí", las preferencias, las búsquedas recientes y "Para ti" en la tienda: sin sesión, 401; con la
+    de otra persona, 403."""
+    alice, _ = session(client)
+    _, as_bob = session(client)
+    url = path.format(id=alice)
+    reply = client.request(method, url, json=body)
+    assert (reply.status_code, reply.json()) == (401, {"detail": "Falta la sesión"})
+    reply = client.request(method, url, json=body, headers=as_bob)
+    assert (reply.status_code, reply.json()) == (403, {"detail": "No autorizado"})
+
+
 def test_legacy_id_claimed_once(client, db):
     db.execute("INSERT INTO app_users (user_id, source) VALUES (%s, 'prototype')", (LEGACY,))
     db.execute("INSERT INTO app_users (user_id, source) VALUES ('proto-fedcba9876543210', 'synthetic')")
