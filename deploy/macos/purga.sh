@@ -4,4 +4,5 @@
 # shellcheck source=deploy/macos/comun.sh
 . "$(dirname "$0")/comun.sh"
 cd "$REPO_DIR/rappi-ia" || exit 1
-log "purga: $(.venv/bin/python -m rappi_ia purge 2>&1 | tail -1)"
+salida=$(.venv/bin/python -m rappi_ia purge 2>&1) || { log "$salida"; avisar "La purga falló"; exit 1; }
+while IFS= read -r linea; do log "purga: $linea"; done <<< "$salida"
