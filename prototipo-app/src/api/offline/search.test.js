@@ -101,6 +101,17 @@ describe('un error de tipeo grabado (demo-snapshot.mjs: eval/typos.json)', () =>
     expect(inLiquor.corrected_query).toBe('cerveza')
   })
 
+  test('desde una pantalla (`current`) sale la corrección, con la vertical de la pantalla primero', () => {
+    const fruit = product(8, { name: 'Cerveza de fruta', concept: 'cerveza', vertical: 'supermercado' })
+    const both = {
+      ...corrected,
+      groups: [...corrected.groups, { vertical: 'supermercado', prototype_vertical: 'grocery', products: [fruit] }],
+    }
+    const reply = search({ ...snapshot, search: { cervesa: both } }, new URLSearchParams('q=cervesa&current=grocery'))
+    expect(reply.corrected_query).toBe('cerveza')
+    expect(reply.groups.map((g) => g.vertical)).toEqual(['supermercado', 'licores'])
+  })
+
   test('"Buscar tal cual" (correct=false) no repite la corrección: busca lo escrito en la muestra', () => {
     const exact = search(typed, new URLSearchParams('q=cervesa&correct=false'))
     expect(exact.corrected_query).toBeNull()

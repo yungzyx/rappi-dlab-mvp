@@ -30,7 +30,7 @@ La app de la presentación responde con una API simulada en el navegador y una m
 | Corrige las faltas de tipeo del buscador y de Mochi | Solo las grabadas: las del set `rappi-ia/src/rappi_ia/eval/typos.json` en el buscador, y "cervesa", "quiero cervesa" y "pizaa" en el buscador y en Mochi. Lo demás se busca tal cual; si no encuentra nada, el buscador dice "Demo sin conexión: busca solo en una muestra y no corrige faltas de tipeo; en dlab-mvp.com sí." |
 | Búsqueda semántica en todo el catálogo | Por palabras en la muestra, salvo las búsquedas y preguntas grabadas, que salen tal cual las respondió la API |
 | "Lo que sea" (pedir con RappiFavor lo que no se encontró) | No aparece |
-| Tiendas y restaurantes que se llaman como lo buscado | Solo en las búsquedas grabadas, y la mayoría no está en la muestra: al abrirlos, no cargan |
+| Tiendas y restaurantes que se llaman como lo buscado | Solo en las búsquedas grabadas, y solo los que están en la muestra |
 | Comparar un producto entre tiendas ("Mejor precio", "Más rápido") | No aparece |
 | "Para ti" dentro de una tienda | No aparece |
 | Lo que aprende la población (compra cruzada, "Lo más buscado") | No se aprende: lo de la población llega como quedó en las respuestas grabadas, y "Lo más buscado" no aparece; lo de la persona sale de lo que hace en este navegador |

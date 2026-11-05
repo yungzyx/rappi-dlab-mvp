@@ -52,8 +52,9 @@
 // - rappi-ia/src/rappi_ia/offers/profiles.py ....... los perfiles de gusto activos (tastes.js)
 // - rappi-ia/src/rappi_ia/catalog/hours.py y catalog/restaurants.py (filtros, "Destacados", with_hours) ... abierto o
 //   cerrado según el horario publicado y los filtros de restaurantes (catalog.js); las búsquedas recientes de
-//   events/searches.py (index.js: searchesReply). Sin conexión no hay "Lo más buscado", tiendas en la búsqueda, "Lo que
-//   sea", comparar entre tiendas ni "Para ti" en la tienda: esas rutas responden 404 o vacío y la app no las muestra.
+//   events/searches.py (index.js: searchesReply). Sin conexión no hay "Lo más buscado", "Lo que sea", comparar entre
+//   tiendas ni "Para ti" en la tienda: esas rutas responden 404 o vacío y la app no las muestra. Las tiendas de la
+//   búsqueda solo llegan en las respuestas grabadas (`places`), y solo las de la muestra (scripts/demo-snapshot.mjs).
 // - rappi-ia/src/rappi_ia/offers/preferences.py y preferencias.toml, api/preferences.py y rappi_agent.py
 //   (_preference) ... las preferencias explícitas: en la hoja del panel (con las tiendas de sus pedidos), lo que llega
 //   escrito por el buscador, el filtro y el orden de lo que Mochi muestra y ofrece, y el filtro del buscador con

@@ -451,6 +451,13 @@ async function main() {
     snapshot.catalog = await catalog(token)
     console.log('  búsquedas, preguntas y ofertas…')
     Object.assign(snapshot, await agent(token, userId))
+    // Las tiendas y restaurantes de una búsqueda, solo los de la muestra: abrir otro daría 404, y sus logos y portadas
+    // pesan en el HTML (scripts/demo-html.mjs: MAX_BYTES).
+    for (const { places } of Object.values(snapshot.search))
+      if (places) {
+        places.stores = places.stores.filter((s) => snapshot.catalog.stores[s.id])
+        places.restaurants = places.restaurants.filter((r) => snapshot.catalog.menus[r.id])
+      }
     console.log('  complementos…')
     Object.assign(snapshot, await complements(productsIn(snapshot)))
     console.log('  escalera…')
