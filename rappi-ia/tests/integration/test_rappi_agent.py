@@ -122,6 +122,8 @@ def test_a_typo_that_was_understood_as_another_concept_is_understood_again(rappi
     add_store(db, 4, "turbo", "Turbo")
     add_product(db, 103, "Helado de chocolate 1 L", 4, "Helados")
     add_price(db, 4, 103, 3990)
+    add_product(db, 105, "Helado de chocolate paleta", 4, "Helados")
+    add_price(db, 4, 105, 1690)
     add_product(db, 104, "Barra de chocolate con leche 100 g", 4, "Chocolates")
     add_price(db, 4, 104, 1490)
     add_dish(db, 501, "Papas fritas grandes", 3, "Acompañamientos")
@@ -134,6 +136,10 @@ def test_a_typo_that_was_understood_as_another_concept_is_understood_again(rappi
     ice_cream = agent.reply(db, "heladoo de chocolate", Context(vertical="turbo"))
     assert "helados" in ice_cream["intent"]["concepts"]
     assert any("helado" in p["name"].lower() for p in ice_cream["products"])
+    # Se corrige el mensaje entero, no la consulta de búsqueda: el tope de precio no se pierde.
+    capped = agent.reply(db, "heladoo de chocolate hasta 2000 pesos", Context(vertical="turbo"))
+    assert "helados" in capped["intent"]["concepts"] and capped["intent"]["price_max"] == 2000
+    assert capped["products"] and all(p["price_value"] <= 2000 for p in capped["products"])
     fries = agent.reply(db, "papas fritass", Context(vertical="restaurantes"))
     assert "verduras" not in fries["intent"]["concepts"] and "Express" not in fries["text"]
 

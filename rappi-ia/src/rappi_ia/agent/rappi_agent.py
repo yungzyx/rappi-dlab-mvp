@@ -256,11 +256,15 @@ class RappiAgent:
         if intent["kind"] != "buscar" or intent.get("occasion") or intent.get("symptom"):
             return None
         if intent.get("concepts"):
-            corrected = response.get("corrected_query")
-            if not corrected:
+            if not response.get("corrected_query"):
                 return None
-            again = self.understander.understand(conn, corrected, intent.get("vertical"))
-            return corrected if set(again.concepts) != set(intent["concepts"]) else None
+            # El mensaje entero, no la consulta de búsqueda: así no se pierden el tope de precio, "barato" ni las
+            # personas ("heladoo de chocolate hasta 2000 pesos").
+            fixed = correct_query(conn, message, None)
+            if not fixed:
+                return None
+            again = self.understander.understand(conn, fixed, intent.get("vertical"))
+            return fixed if set(again.concepts) != set(intent["concepts"]) else None
         if not response.get("corrected_query") and (not response.get("unmet") or response.get("products")):
             return None
         return correct_query(conn, message, None)

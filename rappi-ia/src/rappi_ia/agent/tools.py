@@ -578,7 +578,7 @@ def _focus(hits, result: RetrievalResult, capped: bool = False):
         return []
     matching = [h for h in hits if h.concept_id in concepts]
     if "medicamentos" in concepts and (forms := _active_ingredient(result.query)):
-        matching = [h for h in matching if _says_any(h.content, forms)]
+        matching = [h for h in matching if h.concept_id != "medicamentos" or _says_any(h.content, forms)]
     if matching:
         return _named_first(matching, result.query)
     if result.unmet or capped:

@@ -121,6 +121,13 @@ def test_a_named_medicine_shows_only_what_names_it_or_its_active_ingredient():
     assert _ids(_focus(MEDICINES, _result("paracetamol", ["medicamentos"], MEDICINES))) == ["5"]
 
 
+def test_a_named_medicine_leaves_the_other_named_concepts_alone():
+    """ "vitamina c y aspirina" mostraba solo la Aspirina: el filtro del principio activo se llevaba las vitaminas."""
+    hits = [*MEDICINES, _hit("7", "Vitamina C 1000 mg", "vitaminas")]
+    shown = _ids(_focus(hits, _result("vitamina c y aspirina", ["vitaminas", "medicamentos"], hits)))
+    assert "7" in shown and "2" not in shown and "3" not in shown
+
+
 def test_without_a_named_medicine_the_concept_stays_whole():
     assert _ids(_focus(MEDICINES, _result("remedios", ["medicamentos"], MEDICINES))) == _ids(MEDICINES)
 
