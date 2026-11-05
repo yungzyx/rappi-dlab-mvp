@@ -23,6 +23,7 @@ Flujo típico (después de cada `rappi refresh` del scraper):
     rappi-ia synth                   # usuarios y eventos SIMULADOS para el panel (reemplaza los anteriores)
     rappi-ia analytics               # resumen de métricas del panel (frecuencia, abandono, oportunidades…)
     rappi-ia resumen-prueba proto-…  # prueba con usuarios: un Markdown por persona del prototipo (o --desde AAAA-MM-DD)
+    rappi-ia olvidar proto-…         # borra personas del prototipo por id, como "Borrar mis datos" (pide confirmación)
     rappi-ia resumen-api --log …     # la API de ayer: peticiones por ruta, lentas, errores 5xx y personas nuevas
     rappi-ia purge                   # borra consultas e impresiones de más de 90 días y personas sin actividad
     rappi-ia multivertical           # mapa multivertical (docs/mapas/)
@@ -642,6 +643,50 @@ def cmd_resumen_prueba(conn, args) -> None:
         print(f"Resumen en {path}")
 
 
+def cmd_olvidar(conn, args) -> None:
+    """Lo mismo que "Borrar mis datos" de la app (DELETE /profile/{id}), por id: para borrar al final de una prueba a
+    las personas que salen del resumen. Solo personas del prototipo: si una no lo es (o no existe), no borra a
+    ninguna."""
+    from .events.store import forget
+    from .motor.build import refresh_user_conn
+
+    users = list(dict.fromkeys(args.user_ids))
+    counts = {
+        row[0]: row[1:]
+        for row in conn.execute(
+            """SELECT u.user_id,
+                      (SELECT count(*) FROM app_events e WHERE e.user_id = u.user_id),
+                      (SELECT count(*) FROM app_orders o WHERE o.user_id = u.user_id),
+                      (SELECT count(*) FROM app_sessions s WHERE s.user_id = u.user_id)
+               FROM app_users u WHERE u.source = 'prototype' AND u.user_id = ANY(%s)""",
+            (users,),
+        )
+    }
+    missing = [u for u in users if u not in counts]
+    if missing:
+        raise SystemExit(f"No son personas del prototipo (o no existen): {', '.join(missing)}. No se borró a nadie.")
+    for user in users:
+        n_events, n_orders, n_sessions = counts[user]
+        print(f"{user}: {n_events} evento(s), {n_orders} pedido(s) y {n_sessions} sesión(es)")
+    if not args.si:
+        try:
+            answer = input(f"¿Borrar a {'esta persona' if len(users) == 1 else f'estas {len(users)} personas'}? [s/N] ")
+        except EOFError:
+            answer = ""
+        if answer.strip().lower() not in ("s", "si", "sí"):
+            raise SystemExit("No se borró a nadie.")
+    for user in users:
+        forget(conn, user)
+        refresh_user_conn(conn, user)  # su afinidad y su recompra del motor, como DELETE /profile
+    conn.commit()
+    for user in users:
+        n_events, n_orders, n_sessions = counts[user]
+        print(
+            f"{user}: borrada con {n_events} evento(s), {n_orders} pedido(s) y {n_sessions} sesión(es) (y en cascada"
+            " sus preferencias, segmentos, afinidad y recompra)"
+        )
+
+
 def cmd_multivertical(conn, args) -> None:
     from .analytics import multivertical
 
@@ -806,6 +851,7 @@ COMMANDS = {
     "purge": cmd_purge,
     "analytics": cmd_analytics,
     "resumen-prueba": cmd_resumen_prueba,
+    "olvidar": cmd_olvidar,
     "resumen-api": cmd_resumen_api,
     "migrate": cmd_migrate,
     "concepts": cmd_concepts,
@@ -939,6 +985,13 @@ def build_parser() -> argparse.ArgumentParser:
     rp.add_argument("user_ids", nargs="*", metavar="user_id", help="personas del prototipo (proto-…)")
     rp.add_argument("--desde", help="en vez de ids: las personas del prototipo creadas desde AAAA-MM-DD[THH:MM]")
     rp.add_argument("--salida", help="carpeta donde dejarlos (por defecto data/prueba-usuarios/)")
+    fg = sub.add_parser(
+        "olvidar",
+        help='borra a personas del prototipo por id, como "Borrar mis datos" de la app (DELETE /profile); se niega con '
+        "una simulada o que no existe",
+    )
+    fg.add_argument("user_ids", nargs="+", metavar="user_id", help="personas del prototipo (proto-…)")
+    fg.add_argument("--si", action="store_true", help="no pide confirmación")
     ra = sub.add_parser(
         "resumen-api",
         help="la API de un día: peticiones por ruta, lentas, errores 5xx y personas nuevas; solo lee el registro y "

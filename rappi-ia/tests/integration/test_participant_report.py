@@ -114,7 +114,16 @@ def _participant(db, user="proto-aaaa"):
                 origin="agent-vertical_por_probar",
             ),
             # Un "Para ti" de una tienda no es de Mochi si no viene de su tarjeta: este, de la lista de la tienda, no.
-            e(user, "s1", "cart_add", ts=_at(7.5), concept_id="pizza", vertical="restaurantes", origin="para-ti"),
+            e(
+                user,
+                "s1",
+                "cart_add",
+                ts=_at(7.5),
+                concept_id="pizza",
+                vertical="restaurantes",
+                origin="para-ti",
+                surface="store",
+            ),
             e(user, "s1", "vertical_open", ts=_at(8), vertical="licores", origin="accesos", surface="home"),
             e(user, "s1", "vertical_open", ts=_at(8.5), vertical="restaurantes", origin="accesos", surface="home"),
             e(
@@ -194,6 +203,69 @@ def test_a_repeated_offer_is_accepted_once_and_a_withheld_one_is_marked(db, tmp_
     assert "| Sushi | Restaurantes | retenida (grupo de control) |" in text
 
 
+def test_the_journey_says_how_each_vertical_was_reached_without_vertical_open(db, tmp_path, test_url, monkeypatch):
+    """Sin ningún `vertical_open` (lo de casi todas las personas): vio un producto de Express desde el buscador y, desde
+    el "Para ti" de Mochi, vio y agregó al carro un plato de Restaurantes. El recorrido dice las dos y sus caminos,
+    aunque "Abiertas" diga ninguna."""
+    seed_taxonomy(db, load_taxonomy())
+    e = events.Event
+    user = "proto-eeee"
+    from_search = dict(vertical="conveniencia", origin="resultados", surface="search")
+    from_mochi = dict(concept_id="sushi", vertical="restaurantes", origin="para-ti", surface="agent")
+    events.record(
+        db,
+        [
+            e(user, "s1", "search", ts=_at(0), query="doritoz", results=8),
+            e(user, "s1", "view_item", ts=_at(1), entity_type="catalog_item", entity_id="1", **from_search),
+            e(user, "s1", "view_item", ts=_at(2), entity_type="menu_item", entity_id="9", **from_mochi),
+            e(user, "s1", "cart_add", ts=_at(3), entity_type="menu_item", entity_id="9", **from_mochi),
+            e(user, "s1", "view_store", ts=_at(4), vertical="conveniencia", origin="agent-carrito", surface="home"),
+        ],
+        session=ONCE,
+    )
+    db.commit()
+    monkeypatch.setenv("DATABASE_URL", test_url)
+
+    _run(tmp_path, user)
+
+    text = (tmp_path / f"{user}.md").read_text(encoding="utf-8")
+    assert "Tocó 2 vertical(es); empezó por Express. Llegó a otra vertical: sí." in text
+    assert "| 03-11 15:01 | Express (la primera) | vio un producto | buscador |" in text
+    assert "| 03-11 15:02 | Restaurantes | vio un producto | Mochi (para-ti) |" in text
+    assert text.count("| Express") == 1  # volver a Express (por Mochi) no es una vertical nueva
+    assert "- Abiertas (un acceso de la Home o un botón de Mochi): ninguna." in text
+
+
+def test_the_journey_paths():
+    """El camino sale del origen: una oferta de Mochi con su momento, el "Para ti" de su tarjeta (no el de una tienda),
+    el buscador, un acceso de la Home, un botón del panel de Mochi, y lo demás tal cual."""
+    path = report._path
+    assert path({"type": "cart_add", "origin": "agent-vertical_por_probar", "surface": "home"}) == (
+        "Mochi (vertical_por_probar)"
+    )
+    assert path({"type": "order", "origin": "agent-autopedido"}) == "Mochi (autopedido)"
+    assert path({"type": "view_item", "origin": "para-ti", "surface": "agent"}) == "Mochi (para-ti)"
+    assert path({"type": "view_item", "origin": "para-ti", "surface": "store"}) == "otro (store, para-ti)"
+    assert path({"type": "view_store", "origin": "resultados-tiendas", "surface": "search"}) == "buscador"
+    assert path({"type": "vertical_open", "origin": "accesos-grandes", "surface": "home"}) == "acceso de la Home"
+    assert path({"type": "vertical_open", "origin": "tambien-en", "surface": "agent"}) == "Mochi (tambien-en)"
+    assert path({"type": "view_store", "origin": "cerca-de-ti", "surface": "home"}) == "otro (home, cerca-de-ti)"
+    assert path({"type": "order", "origin": None}) == "sin dato"
+
+
+def test_a_dismissed_offer_says_the_button_of_its_moment():
+    """Un rechazo (`suggestion_dismissed`) sale con el botón de su momento: "Ahora no" en el carrito, "Después" en la
+    recompra, y "rechazada" a secas en un momento sin botón conocido."""
+
+    def dismissed(origin):
+        shown = {"origin": origin, "concept_id": "cerveza", "vertical": "licores", "payload": {}}
+        return report._offers([{**shown, "type": "suggestion_shown"}, {**shown, "type": "suggestion_dismissed"}])[0]
+
+    assert dismissed("agent-carrito")["status"] == 'rechazada ("Ahora no")'
+    assert dismissed("agent-recompra")["status"] == 'rechazada ("Después")'
+    assert dismissed("agent-plan")["status"] == "rechazada"
+
+
 def _synthetic(db, user="syn-0001"):
     """Una persona simulada con su propia búsqueda y pedido, creada hoy como las del prototipo."""
     events.ensure_user(db, user, "synthetic")
@@ -248,6 +320,10 @@ def test_summary_of_a_participant(seeded, tmp_path, capsys):
     assert 'Abrió el "¿Por qué?" 1 vez.' in text
     assert "| 03-11 15:04 | recompra | su ritmo de recompra | Cerveza |" in text
     assert "Pizza" not in text  # el "Para ti" de una tienda (cart_add) no es una oferta de Mochi
+    # Recorrido: Restaurantes primero (el carro desde el "Para ti" de una tienda, no de Mochi) y Licores por su acceso.
+    assert "Tocó 2 vertical(es); empezó por Restaurantes. Llegó a otra vertical: sí." in text
+    assert "| 03-11 15:07 | Restaurantes (la primera) | agregó al carro | otro (store, para-ti) |" in text
+    assert "| 03-11 15:08 | Licores | abrió la vertical | acceso de la Home |" in text
     # Verticales: las dos abiertas; con pedido solo Licores (el de Restaurantes se canceló).
     assert "- Abiertas (un acceso de la Home o un botón de Mochi): Licores, Restaurantes." in text
     assert "- Con pedido (sin los cancelados): Licores." in text
