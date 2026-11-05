@@ -12,6 +12,7 @@ export const GUARDS = {
   catalog_alcohol: [
     ...['soju', 'makgeolli', 'umeshu', 'sake', 'cerveza', 'vino', 'whisky', 'pisco', 'ron', 'vodka', 'gin'],
     ...['tequila', 'licor', 'aperitivo', 'espumante', 'champagne', 'sidra'],
+    ...['eristoff', 'smirnoff', 'capel', 'bauza', 'tres erre', 'gran malo', 'petaca'],
   ],
   menu_alcohol: [
     ...['soju', 'sangria', 'michelada', 'cerveza', 'schop', 'shop', 'chela', 'chelada', 'vino', 'pisco', 'piscola'],

@@ -56,6 +56,38 @@ def test_questions_about_the_app_are_not_product_searches(text, kind):
     assert U.understand(None, text, "supermercado").kind == kind
 
 
+@pytest.mark.parametrize(
+    ("text", "kind"),
+    [
+        ("tengo un cupon", "ofertas"),
+        ("tienen cupones", "ofertas"),  # se corregía a "chupones" y traía un limpiador de biberones
+        ("codigo de descuento", "ofertas"),
+        ("codigo promocional", "ofertas"),
+        ("hablar con una persona", "pedido"),
+        ("quiero hablar con alguien", "pedido"),
+        ("servicio al cliente", "pedido"),
+        ("olvidé mi contraseña", "fuera"),  # antes que el servicio: "olvide" es de RappiFavor
+        ("metodo de pago", "fuera"),
+        ("pagar con tarjeta", "fuera"),
+        ("mi cuenta", "fuera"),
+        ("cambiar mi dirección", "fuera"),
+        ("quiero ser repartidor", "fuera"),
+        ("quiero ser rappitendero", "fuera"),
+        ("qué hora es", "fuera"),
+        ("eres un bot?", "fuera"),
+    ],
+)
+def test_questions_about_the_account_or_payment_are_not_unmet_demand(text, kind):
+    """Se anotaban como demanda no satisfecha ("pagar con tarjeta") o mostraban cualquier cosa ("eres un bot?", botas
+    de niña)."""
+    assert U.understand(None, text, "supermercado").kind == kind
+
+
+def test_forgetting_something_is_still_rappifavor():
+    assert U.understand(None, "se me olvidaron las llaves", "supermercado").kind == "servicio"
+    assert U.understand(None, "soporte para tv", "mall").kind == "buscar"  # "soporte" solo es un producto
+
+
 def test_cheap_asks_for_the_cheapest_first():
     assert U.understand(None, "pizza barata", "restaurantes").cheapest
     assert U.understand(None, "cerveza mas barata", "licores").cheapest

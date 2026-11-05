@@ -92,3 +92,39 @@ def test_without_a_concept_the_order_does_not_change():
     hits = [_hit("1", "Chorrillana Mongoliana", "picoteo"), *[_hit(str(i), "Chorillana", "picoteo") for i in (2, 3, 4)]]
 
     assert _ids(_focus(hits, _result("chorillana", [], hits))) == ["1", "2", "3", "4"]
+
+
+MEDICINES = [
+    _hit("1", "Aspirina 100mg 42 Comprimidos", "medicamentos"),
+    _hit("2", "Esomeprazol 40 Mg X 30 Cápsulas", "medicamentos"),
+    _hit("3", "Rumada (10/10 mg)", "medicamentos"),  # una estatina con la categoría de los analgésicos
+    _hit("4", "Acido Acetilsalicílico (100 Mg)", "medicamentos"),
+    _hit("5", "Paracetamol 500 mg 16 Comprimidos", "medicamentos"),
+    # un paracetamol cuya ficha nombra la aspirina: cuenta solo el nombre
+    Hit(
+        "turbo",
+        "catalog_item",
+        "6",
+        "Tapsin Infantil 16 Comprimidos. Para los alérgicos al ácido acetilsalicílico",
+        {},
+        0.0,
+        "medicamentos",
+        0.8,
+    ),
+]
+
+
+def test_a_named_medicine_shows_only_what_names_it_or_its_active_ingredient():
+    """ "aspirina" en Farmacia mostraba Aspirina, un esomeprazol y una estatina, y dejaba fuera el ácido
+    acetilsalicílico: ahora solo lo que dice aspirina o su principio activo, sin el resto de `medicamentos`."""
+    assert _ids(_focus(MEDICINES, _result("aspirina", ["medicamentos"], MEDICINES))) == ["1", "4"]
+    assert _ids(_focus(MEDICINES, _result("paracetamol", ["medicamentos"], MEDICINES))) == ["5"]
+
+
+def test_without_a_named_medicine_the_concept_stays_whole():
+    assert _ids(_focus(MEDICINES, _result("remedios", ["medicamentos"], MEDICINES))) == _ids(MEDICINES)
+
+
+def test_a_named_medicine_with_nothing_that_names_it_shows_nothing():
+    others = MEDICINES[1:3]
+    assert _focus(others, _result("ibuprofeno", ["medicamentos"], others)) == []

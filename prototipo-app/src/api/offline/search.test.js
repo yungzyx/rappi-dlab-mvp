@@ -63,6 +63,21 @@ describe('el foco de la búsqueda (agent/tools.py: _focus)', () => {
     expect(found).toContain(expressCookies) // Express no tiene café: muestra lo que dice "café"
   })
 
+  test('un remedio nombrado: solo lo que lo nombra o nombra su principio activo', () => {
+    const medicine = (id, name) => product(id, { name, concept: 'medicamentos', vertical: 'farmacia' })
+    const aspirin = medicine(11, 'Aspirina 100mg 42 Comprimidos')
+    const statin = medicine(12, 'Rumada (10/10 mg)')
+    const acid = medicine(13, 'Acido Acetilsalicílico (100 Mg)')
+    const medicines = [aspirin, statin, acid]
+    const meta = {
+      ...META,
+      concepts: { ...META.concepts, medicamentos: { name: 'Medicamentos', keywords: ['aspirina', 'remedios'] } },
+    }
+    const pharmacy = { ...snapshot, meta, pool: medicines }
+    expect(matchProducts(pharmacy, 'aspirina')).toEqual([aspirin, acid])
+    expect(matchProducts(pharmacy, 'remedios')).toEqual(medicines)
+  })
+
   test('"pañales" no trae el postre con "panal"', () => {
     expect(matchProducts(snapshot, 'pañales')).not.toContain(honey)
     expect(search(snapshot, new URLSearchParams('q=pañales')).groups).toEqual([])
@@ -155,6 +170,13 @@ describe('la ayuda, el resumen y el último pedido (rappi_agent.py: _small_talk)
     const laugh = said('jajaja')
     expect(laugh).toMatchObject({ intent: { kind: 'vacio' }, actions: HELP_ACTIONS })
     expect(laugh.unmet).toBeFalsy()
+  })
+
+  test('la cuenta, el pago o hablar con alguien no son una búsqueda (understand.py: APP_QUESTIONS)', () => {
+    for (const message of ['hablar con una persona', 'servicio al cliente'])
+      expect(said(message).intent.kind).toBe('pedido')
+    for (const message of ['pagar con tarjeta', 'olvidé mi contraseña', 'quiero ser repartidor', 'eres un bot?'])
+      expect(said(message).intent.kind).toBe('fuera')
   })
 
   test('gana la frase con más palabras, y una ocasión se busca', () => {

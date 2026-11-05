@@ -13,6 +13,7 @@ avenas" no calza). Palabra por palabra:
   saludos de dos palabras también son palabras ("tardes de lluvia", "buenos aires"). Lo que queda solo con palabras de
   saludo o cortesía ("ok gracias") no se busca;
 - una palabra que nombra un concepto queda como está: "cerveza" en una chocolatería es lo que no hay, no "cereza";
+  tampoco cambia el orden por precio (`PRICE_WORDS`: "sushi barato" no es "sushi barto");
 - una consulta que le habla al asistente ("oye mochi, ¿me recomiendas algo?", "hola mochi": su nombre junto a un
   saludo, una muletilla o un pedido) no se corrige: es una conversación, no una búsqueda mal escrita;
 - una consulta que nombra una ocasión no se corrige: pide cosas que su nombre no dice ("regalo para mi polola" no
@@ -42,7 +43,7 @@ from dataclasses import dataclass
 from psycopg import Connection
 
 from ..catalog.cache import cached_many
-from ..text import FILLER_WORDS, MUTTER_WORDS, REQUEST_WORDS, assistant_words, normalize
+from ..text import CHEAP_WORDS, FILLER_WORDS, MUTTER_WORDS, PRICEY_WORDS, REQUEST_WORDS, assistant_words, normalize
 from .hybrid import detect_concepts, named_occasion
 
 MIN_LENGTH = 6  # bajo esto, una edición ya suele ser otra palabra ("sofa" → "soft", "tonto" → "tinto")
@@ -53,6 +54,8 @@ CANDIDATES = 50  # candidatas por trigramas (`%` de pg_trgm, similitud ≥ 0,3) 
 SKIP_WORDS = frozenset(REQUEST_WORDS | MUTTER_WORDS | {"hola", "holi", "hey", "wena", "alo", "ola"})
 TRAILING_WORDS = frozenset({"porfa", "por", "favor", "plis", "gracias"})
 SHORT_QUERY = 4
+# El orden por precio no es un error de tipeo, aunque el catálogo casi no lo tenga: "barato" pasaba a "barto".
+PRICE_WORDS = frozenset(CHEAP_WORDS | PRICEY_WORDS)
 _REPEAT = re.compile(r"(.)\1{2,}")
 _WORD = re.compile(r"[^\W_]+")
 
@@ -150,7 +153,7 @@ def correct_query(conn: Connection, query: str, vertical: str | None) -> str | N
     kept = [w for w in words if not w.skip]
     if all(w.word in FILLER_WORDS for w in kept):
         return None
-    fixes = _fixes(conn, vertical, [w.word for w in kept if not detect_concepts(w.word)])
+    fixes = _fixes(conn, vertical, [w.word for w in kept if not detect_concepts(w.word) and w.word not in PRICE_WORDS])
     corrected = [fixes.get(w.word) or w.surface for w in kept]
     if len(kept) == len(words) and not any(w.word in fixes for w in kept):
         return None

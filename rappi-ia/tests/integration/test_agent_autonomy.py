@@ -156,6 +156,22 @@ def test_never_alcohol_or_baby(client, line):
     assert rejected.status_code == 409
 
 
+def test_never_a_spirits_pack_labelled_as_juice(client, db):
+    """En la base del 04-11-2026, "Eristoff 40 750cc + Bebida o Jugo 1.5lt" tenía concepto jugos y ninguna marca +18:
+    el nombre lo dice (offers/guards.py, ALCOHOL_NAME_WORDS)."""
+    juice = {"entity_type": "catalog_item", "entity_id": "91005", "qty": 1}
+    db.execute(
+        "UPDATE catalog_items SET name = 'Eristoff 40 750cc + Bebida o Jugo 1.5lt', is_alcoholic = false,"
+        " age_restricted = false WHERE master_product_id = 91005"
+    )
+    order(client, CENTRO, "supermercado", COFFEE, juice)
+    allow(client, [CENTRO])
+    plan = say(client, "pide lo de siempre en el supermercado de prueba centro")["autopedido"]
+    assert plan["modo"] == "revisar" and plan["codigo"] == "guardia"
+    rejected = order(client, CENTRO, "supermercado", COFFEE, juice, cart="c-auto", autopedido={})
+    assert rejected.status_code == 409
+
+
 def test_a_pharmacy_cannot_be_chosen(client):
     paracetamol = {"entity_type": "catalog_item", "entity_id": "95001", "qty": 1}
     order(client, 9501, "farmacia", paracetamol)

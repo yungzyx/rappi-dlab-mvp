@@ -111,6 +111,11 @@ def test_a_kit_never_comes_from_pharmacy_and_only_alcohol_comes_from_licores():
         "Sake Gekkeikan 750 ml",
         "Pack Cervezas Kunstmann",  # el plural también
         "Licores Mistral Surtidos",
+        # Marcas de destilados sin otra palabra de alcohol (base del 04-11-2026): el Eristoff tenía concepto jugos.
+        "Eristoff 40 750cc + Bebida o Jugo 1.5lt",
+        "Tres Erre Litro + Coca Cola 1.500cc + Hielo Kilo",
+        "Gran Malo 750 Cc",
+        "Eristoff Petaca 190ml",
     ],
 )
 def test_a_catalog_name_that_says_alcohol_is_never_offered(name):
@@ -132,6 +137,10 @@ def test_a_catalog_name_that_says_alcohol_is_never_offered(name):
         ("menu_item", "Ginger roll"),
         ("menu_item", "Ronda de empanadas"),
         ("store", "Cervecería del Centro"),  # solo productos y platos
+        # Marcas de alcohol que en el catálogo también son otra cosa: huevos, un secador; "capel" es palabra entera.
+        ("catalog_item", "Bacardi Huevo Extra Blanco"),
+        ("catalog_item", "Gama Secador de Pelo Mistral"),
+        ("catalog_item", "Capelletitos Pollo Espinaca"),
         # Nombres reales que dicen una palabra de trago sin serlo.
         ("menu_item", "Sour Cream"),
         ("menu_item", "Papas fritas sour cream"),
