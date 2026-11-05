@@ -9,19 +9,23 @@
         "aceptacion_pct": null,
         "aceptadas": 1,
         "momento": "plan",
-        "mostradas": 1
+        "mostradas": 1,
+        "por_que_abiertos": 0,
+        "rechazadas": 0
       },
       {
         "aceptacion_pct": null,
         "aceptadas": 0,
         "momento": "carrito",
-        "mostradas": 1
+        "mostradas": 1,
+        "por_que_abiertos": 0,
+        "rechazadas": 0
       }
     ],
     "personas": 1
   },
   "guardado": {
-    "fecha": "2026-10-25",
+    "fecha": "2026-11-05",
     "origen": "make contract · recorrido corto sobre el catálogo de prueba inventado"
   },
   "source": "prototype"

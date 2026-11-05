@@ -148,9 +148,50 @@ def test_offers_unknown_origin_is_sin_momento(concepts):
 
     assert data == {
         "personas": 1,
-        "momentos": [{"momento": "sin_momento", "mostradas": 4, "aceptadas": 0, "aceptacion_pct": None}],
+        "momentos": [
+            {
+                "momento": "sin_momento",
+                "mostradas": 4,
+                "aceptadas": 0,
+                "rechazadas": 0,
+                "por_que_abiertos": 0,
+                "aceptacion_pct": None,
+            }
+        ],
         "autopedidos": {"pedidos": 0, "personas": 0},  # los que Mochi pidió solo van aparte
     }
+
+
+def test_offers_count_rejections_and_opened_whys_by_moment(concepts):
+    """ "Ahora no" o "Después" (`suggestion_dismissed`) y el "¿Por qué?" abierto (`offer_why_open`) se cuentan en el
+    momento de su origen, aparte de las mostradas y aceptadas: la tasa sigue siendo de aceptación."""
+    db = concepts
+    events.record(
+        db,
+        [
+            _offer("u1", "agent-carrito"),
+            _offer("u1", "agent-carrito", "suggestion_dismissed"),
+            _offer("u1", "agent-carrito", "offer_why_open"),
+            _offer("u1", "agent-carrito", "offer_why_open"),
+            _offer("u1", "agent-recompra"),
+            _offer("u1", "agent-recompra", "suggestion_dismissed"),
+            _offer("u2", "agent-vertical_por_probar"),
+            _offer("u2", "agent-vertical_por_probar", "suggestion_accepted"),
+            _offer("u2", "agent-vertical_por_probar", "offer_why_open"),
+            _offer("u3", "aviso", "suggestion_dismissed"),  # el aviso sobre el carro no es una oferta
+        ],
+    )
+
+    data = queries.offers(db, "prototype")
+
+    assert data["personas"] == 2
+    assert [
+        (m["momento"], m["mostradas"], m["aceptadas"], m["rechazadas"], m["por_que_abiertos"]) for m in data["momentos"]
+    ] == [
+        ("carrito", 1, 0, 1, 2),
+        ("vertical_por_probar", 1, 1, 0, 1),
+        ("recompra", 1, 0, 1, 0),
+    ]
 
 
 def test_offers_rate_only_from_ten_shown(concepts):

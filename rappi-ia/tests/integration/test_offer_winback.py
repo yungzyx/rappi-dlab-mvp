@@ -251,6 +251,19 @@ def test_dismissals_of_another_kind_do_not_count(client, db):
     assert offer(client).json()["reason"]["basis"][0]["kind"] == "vuelta"
 
 
+def test_dismissals_of_other_offers_do_not_count(client, db):
+    """La app también anota el "Ahora no" o el "Después" de la recompra, el carrito y la vertical por probar: un
+    `suggestion_dismissed` con el origen de su momento y sin `payload.kind`. No son descartes de "¿Volvemos a…?"."""
+    rhythm(db, USER, "supermercado", "cafe", COFFEE, last_days_ago=20)
+    dismissed = [
+        {"type": "suggestion_dismissed", "session_id": "s-ev", "concept_id": "cafe", "vertical": "grocery", "origin": o}
+        for o in ("agent-recompra", "agent-carrito", "agent-vertical_por_probar")
+    ]
+    assert client.post("/events", json={"user_id": USER, "events": dismissed}).json() == {"guardados": 3}
+
+    assert offer(client).json()["reason"]["concept"] == "cafe"
+
+
 def test_dismissals_before_the_last_order_do_not_count(client, db):
     event(db, "suggestion_dismissed", concept="cafe", vertical="supermercado", days_ago=40)
     event(db, "suggestion_dismissed", concept="cafe", vertical="supermercado", days_ago=39)

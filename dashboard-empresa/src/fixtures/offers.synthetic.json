@@ -9,13 +9,15 @@
         "aceptacion_pct": 43.8,
         "aceptadas": 7,
         "momento": "sin_momento",
-        "mostradas": 16
+        "mostradas": 16,
+        "por_que_abiertos": 0,
+        "rechazadas": 9
       }
     ],
     "personas": 12
   },
   "guardado": {
-    "fecha": "2026-10-25",
+    "fecha": "2026-11-05",
     "origen": "make contract · simulación chica con semilla fija (40 personas, 8 semanas)"
   },
   "source": "synthetic"

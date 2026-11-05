@@ -65,6 +65,42 @@ export function noteOfferShown(track, made, { generation, kind, products = made.
   })
 }
 
+// Sugerencias ya rechazadas (generación|concepto|vertical|origen): una vez por pestaña, como la mostrada, así las
+// rechazadas tampoco superan a las mostradas (el comentario del carrito vuelve con cada producto agregado).
+const dismissed = new Set()
+
+/**
+ * Registra la sugerencia del agente rechazada (`suggestion_dismissed`, "Ahora no" o "Después"): con el concepto, la
+ * vertical, el origen y el lugar con que `noteShown` registró la mostrada, una vez por pestaña. Sin concepto no
+ * registra nada, como la mostrada. El "Después" de "¿Volvemos a…?" no pasa por aquí: lleva su `payload.kind` y cada uno
+ * cuenta para la API (LiveHomeFeed: repeatLater). Devuelve si la registró.
+ */
+export function noteDismissal(track, products, { origin, concept, generation = 0 }) {
+  const [first] = products ?? []
+  const dismissedConcept = concept ?? (first && conceptOf(first))
+  const dismissedVertical = first?.vertical
+  if (!dismissedConcept) return false
+  const key = `${generation}|${dismissedConcept}|${screenForBackend(dismissedVertical) ?? dismissedVertical}|${origin}`
+  if (dismissed.has(key)) return false
+  dismissed.add(key)
+  const placed = first?.placement ?? {}
+  track('suggestion_dismissed', {
+    concept_id: dismissedConcept,
+    vertical: dismissedVertical,
+    ...envelope({ surface: placed.surface, origin, requestId: placed.requestId }),
+  })
+  return true
+}
+
+/** `noteDismissal` de una oferta del agente (`made`), con el mismo concepto y origen que `noteOfferShown`. */
+export function noteOfferDismissal(track, made, { generation } = {}) {
+  return noteDismissal(track, made.products, {
+    origin: `agent-${made.moment}`,
+    concept: made.reason?.concept,
+    generation,
+  })
+}
+
 /**
  * De qué fuente sale el "¿Por qué?" de una oferta: los tipos de su `reason.basis` (`recompra`, `busqueda`, `perfil`…),
  * sin repetir y como mucho 4. Solo los tipos: el texto y los ids pueden traer lo que la persona escribió (una búsqueda),

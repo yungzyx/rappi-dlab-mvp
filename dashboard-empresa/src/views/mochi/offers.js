@@ -42,6 +42,10 @@ const MOMENT_HINTS = {
 
 export const momentHint = (moment) => MOMENT_HINTS[moment] ?? null
 
+// Los momentos con botón para rechazar la oferta ("Ahora no" en el carro, "Después" en los otros tres). En los demás el
+// rechazo no se mide: un 0 se leería como "nadie la rechazó".
+export const REJECTABLE_MOMENTS = new Set(['carrito', 'vertical_por_probar', 'recompra', 'volver'])
+
 const sum = (rows, key) => rows.reduce((total, row) => total + (row[key] ?? 0), 0)
 
 // Una tasa necesita el mínimo en su denominador: con 4 aceptadas, "50% llega a pedido" no dice nada.

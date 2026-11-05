@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { offer, plans as fetchPlans } from '../../../api/agent'
 import { envelope } from '../../../api/attribution'
 import { conceptOf } from '../../../api/orders'
-import { noteOfferShown, noteShown } from '../../../api/suggestions'
+import { noteDismissal, noteOfferDismissal, noteOfferShown, noteShown } from '../../../api/suggestions'
 import { userId } from '../../../api/user'
 import DemoDisclaimer from '../../../components/DemoDisclaimer'
 import PlainSearchBar from '../../../components/PlainSearchBar'
@@ -306,6 +306,7 @@ export default function LiveHomeFeed({ push, active = true }) {
             label: 'Ahora no',
             onClick: () => {
               noteDismissed()
+              noteOfferDismissal(events.track, made, { generation: profile.resets })
               speak(null)
             },
           },
@@ -406,8 +407,8 @@ export default function LiveHomeFeed({ push, active = true }) {
     }
   }, [active, events.track, lastOrder])
 
-  // "Después" deja el bloque para otra vez. En "¿Volvemos a…?" se registra el descarte (con su tipo, como la mostrada):
-  // con dos, la API deja de ofrecer esa invitación.
+  // "Después" deja el bloque para otra vez y registra el descarte. En "¿Volvemos a…?" lleva su tipo, como la mostrada:
+  // con dos, la API deja de ofrecer esa invitación. El de la recompra lleva su propio origen y no cuenta ahí.
   const repeatLater = () => {
     noteDismissed()
     if (repeat?.moment === 'volver') {
@@ -418,7 +419,7 @@ export default function LiveHomeFeed({ push, active = true }) {
         ...envelope({ surface: 'home', origin: WINBACK_ORIGIN, requestId: repeat.requestId }),
         payload: { kind: winbackKind(repeat) },
       })
-    }
+    } else if (repeat) noteOfferDismissal(events.track, repeat, { generation: generationNow.current })
     session.repeatLater = true
     setRepeat(null)
   }
@@ -578,6 +579,7 @@ export default function LiveHomeFeed({ push, active = true }) {
             label: 'Después',
             onClick: () => {
               noteDismissed()
+              noteDismissal(events.track, made.products, { origin: `agent-${made.moment}`, generation: profile.resets })
               speak(null)
             },
           },

@@ -504,8 +504,10 @@ OFFER_ORDER = (*OFFER_MOMENTS, "pregunta", "para_ti", "sin_momento")
 
 
 def offers(conn: Connection, source: str = "synthetic") -> dict:
-    """Ofertas del agente mostradas y aceptadas por momento, según el origen de la sugerencia (la columna `origin`, o
-    `payload.origen` en los eventos de antes de la migración 043).
+    """Ofertas del agente mostradas, aceptadas y rechazadas por momento, y cuántas veces se abrió su "¿Por qué?"
+    (`offer_why_open`), según el origen de la sugerencia (la columna `origin`, o `payload.origen` en los eventos de
+    antes de la migración 043). Rechazada = "Ahora no" o "Después" (`suggestion_dismissed`); lo que no se toca no deja
+    evento.
 
     `agent-<momento>` es el origen actual; `mochi-<momento>` y `chat` son nombres históricos que siguen en la base.
     Los servicios (RappiTravel, RappiFavor) tienen su propia vista y el aviso sobre el carro no es una oferta: no
@@ -518,6 +520,7 @@ def offers(conn: Connection, source: str = "synthetic") -> dict:
         "excluded": [*load_taxonomy().services, "aviso"],
         "moments": list(OFFER_MOMENTS),
         "min_rate": MIN_SUGGESTIONS_SHOWN,
+        "types": ["suggestion_shown", "suggestion_accepted", "suggestion_dismissed", "offer_why_open"],
     }
     shown = """WITH e AS (
                    SELECT user_id, type,
@@ -529,18 +532,20 @@ def offers(conn: Connection, source: str = "synthetic") -> dict:
                                     THEN substr(origen, 7)
                                ELSE 'sin_momento' END AS momento
                    FROM (SELECT user_id, type, coalesce(origin, payload ->> 'origen') AS origen FROM app_events
-                         WHERE source = %(source)s AND type IN ('suggestion_shown', 'suggestion_accepted')) o
+                         WHERE source = %(source)s AND type = ANY(%(types)s)) o
                    WHERE coalesce(origen, '') <> ALL(%(excluded)s)
                )"""
     [row] = _rows(conn, f"{shown} SELECT count(DISTINCT user_id) AS personas FROM e", params)
     row["momentos"] = _rows(
         conn,
         f"""{shown}
-            SELECT momento, mostradas, aceptadas,
+            SELECT momento, mostradas, aceptadas, rechazadas, por_que_abiertos,
                    CASE WHEN mostradas >= %(min_rate)s THEN round(100.0 * aceptadas / mostradas, 1) END
                        AS aceptacion_pct
             FROM (SELECT momento, count(*) FILTER (WHERE type = 'suggestion_shown') AS mostradas,
-                         count(*) FILTER (WHERE type = 'suggestion_accepted') AS aceptadas
+                         count(*) FILTER (WHERE type = 'suggestion_accepted') AS aceptadas,
+                         count(*) FILTER (WHERE type = 'suggestion_dismissed') AS rechazadas,
+                         count(*) FILTER (WHERE type = 'offer_why_open') AS por_que_abiertos
                   FROM e GROUP BY 1) g""",
         params,
     )
