@@ -162,6 +162,13 @@ def redact(text: str | None) -> str | None:
     return _ADDRESS_CONTEXT.sub(lambda m: f"{m.group('intro')} [dirección]", text)
 
 
+def _redacted_payload(payload: dict) -> dict:
+    """El payload con `corregida` (el texto de la búsqueda corregida) redactada como la consulta: una copia, sin tocar
+    la del llamador."""
+    corrected = payload.get("corregida")
+    return {**payload, "corregida": redact(corrected)} if isinstance(corrected, str) else payload
+
+
 @dataclass
 class Event:
     user_id: str
@@ -285,7 +292,7 @@ def record(conn: Connection, events: list[Event], source: str = "prototype", ses
                 e.results,
                 e.unmet,
                 e.value,
-                Jsonb(e.payload),
+                Jsonb(_redacted_payload(e.payload)),
                 source,
                 e.client_event_id,
                 client_ts,
@@ -600,7 +607,7 @@ def cross_suggestions_today(conn: Connection, user_id: str, now: datetime | None
 def forget(conn: Connection, user_id: str, concept_id: str | None = None) -> int:
     """'Olvidar' (docs/diseno-ia.md §2). Sin concepto: borra al usuario entero (eventos, pedidos y líneas en
     cascada). Con concepto: borra sus eventos de ese concepto, lo quita de sus líneas de pedido y borra el texto de
-    las consultas que lo nombran. Devuelve cuántos registros se borraron o anonimizaron."""
+    las consultas que lo nombran (también el texto corregido). Devuelve cuántos registros se borraron o anonimizaron."""
     if conn.execute(
         "SELECT 1 FROM app_users WHERE user_id = %s AND source <> 'prototype'", (user_id,)
     ).fetchone():  # "Olvidar" es del prototipo: nunca borra usuarios simulados
@@ -631,11 +638,17 @@ def forget(conn: Connection, user_id: str, concept_id: str | None = None) -> int
     if concept is not None:
         matcher = KeywordMatcher((concept.id, kw) for kw in (concept.name, *concept.keywords, *concept.query_keywords))
         rows = conn.execute(
-            "SELECT event_id, query FROM app_events WHERE user_id = %s AND query IS NOT NULL", (user_id,)
+            """SELECT event_id, query, payload->>'corregida' FROM app_events
+               WHERE user_id = %s AND (query IS NOT NULL OR payload ? 'corregida')""",
+            (user_id,),
         ).fetchall()
-        mentions = [event_id for event_id, query in rows if matcher.best(query)]
+        # El texto corregido también nombra el concepto: "test de embaraso" no calza, "test de embarazo" sí.
+        mentions = [event_id for event_id, *texts in rows if any(t and matcher.best(t) for t in texts)]
         if mentions:
-            deleted += conn.execute("UPDATE app_events SET query = NULL WHERE event_id = ANY(%s)", (mentions,)).rowcount
+            deleted += conn.execute(
+                "UPDATE app_events SET query = NULL, payload = payload - 'corregida' WHERE event_id = ANY(%s)",
+                (mentions,),
+            ).rowcount
     # Sus segmentos se recalculan sin lo que olvidó.
     # La historia semanal también dice "tenía este segmento": tras olvidar un concepto no queda nada anterior.
     conn.execute("DELETE FROM user_segment_history WHERE user_id = %s", (user_id,))
@@ -658,9 +671,11 @@ def purge_inactive_users(conn: Connection, days: int) -> int:
 
 
 def purge_old_queries(conn: Connection, days: int = QUERY_RETENTION_DAYS) -> int:
-    """Borra el texto de consultas más antiguas que `days` (quedan los agregados por concepto)."""
+    """Borra el texto de consultas más antiguas que `days`, también el corregido (`payload.corregida`); quedan los
+    agregados por concepto. Devuelve cuántos eventos tocó."""
     return conn.execute(
-        "UPDATE app_events SET query = NULL WHERE query IS NOT NULL AND ts < now() - make_interval(days => %s)",
+        """UPDATE app_events SET query = NULL, payload = payload - 'corregida'
+           WHERE (query IS NOT NULL OR payload ? 'corregida') AND ts < now() - make_interval(days => %s)""",
         (days,),
     ).rowcount
 

@@ -103,6 +103,77 @@ def test_old_query_text_is_purged_after_retention(db):
     assert db.execute("SELECT count(*) FROM app_events WHERE concept_id = 'pizza'").fetchone()[0] == 2
 
 
+def test_the_corrected_text_is_redacted_like_the_query(db):
+    """`corregida` deja tal cual lo que no corrige (un teléfono): se redacta al guardar, sin tocar el del llamador."""
+    seed_taxonomy(db, load_taxonomy())
+    payload = {"corregida": "llamar 912345678 paracetamol"}
+    events.record(
+        db, [events.Event("u6", "s1", "search", ts=NOW, query="llamar 912345678 paracetamool", payload=payload)]
+    )
+    saved = db.execute("SELECT query, payload->>'corregida' FROM app_events").fetchone()
+    assert saved == ("llamar [teléfono] paracetamool", "llamar [teléfono] paracetamol")
+    assert payload == {"corregida": "llamar 912345678 paracetamol"}
+
+
+def test_old_corrected_text_is_purged_with_the_query(db):
+    seed_taxonomy(db, load_taxonomy())
+    old = datetime.now(UTC) - timedelta(days=100)
+    events.record(
+        db,
+        [
+            events.Event("u7", "s1", "search", ts=old, query="cervesa", payload={"corregida": "cerveza", "mode": "x"}),
+            events.Event("u7", "s2", "ask", ts=old, payload={"corregida": "cerveza"}),  # sin texto: solo la corregida
+            events.Event("u7", "s3", "search", query="cervesa", payload={"corregida": "cerveza"}),
+        ],
+    )
+    assert events.purge_old_queries(db) == 2
+    rows = db.execute("SELECT query, payload FROM app_events ORDER BY ts, session_id").fetchall()
+    assert rows == [(None, {"mode": "x"}), (None, {}), ("cervesa", {"corregida": "cerveza"})]
+
+
+def test_forget_a_concept_erases_its_corrected_text_too(db):
+    """ "test de embaraso" no nombra el concepto, su corrección sí: olvidar salud-sexual borra los dos textos."""
+    seed_taxonomy(db, load_taxonomy())
+    events.record(
+        db,
+        [
+            events.Event(
+                "u8", "s1", "search", ts=NOW, query="test de embaraso", payload={"corregida": "test de embarazo"}
+            ),
+            events.Event("u8", "s1", "search", ts=NOW, query="pizzza", payload={"corregida": "pizza"}),
+        ],
+    )
+    events.forget(db, "u8", "salud-sexual")
+    rows = db.execute("SELECT query, payload FROM app_events ORDER BY query NULLS FIRST").fetchall()
+    assert rows == [(None, {}), ("pizzza", {"corregida": "pizza"})]
+
+
+def test_every_person_table_goes_away_with_forget(db):
+    """ "Olvidar" (y la purga de inactivos) borra solo a la persona y deja el resto a las cascadas: toda FK hacia sus
+    tablas tiene ON DELETE CASCADE y toda tabla con `user_id` cuelga de `app_users`."""
+    fks = db.execute(
+        """SELECT conrelid::regclass::text, confrelid::regclass::text, confdeltype FROM pg_constraint
+           WHERE contype = 'f' AND confrelid IN ('app_users'::regclass, 'app_events'::regclass,
+                                                 'app_orders'::regclass, 'app_sessions'::regclass)"""
+    ).fetchall()
+    assert fks
+    for table, target, action in fks:
+        assert action == "c", f"{table} apunta a {target} sin ON DELETE CASCADE: Olvidar la dejaría con datos"
+    with_user = [
+        r[0]
+        for r in db.execute(
+            """SELECT c.table_name FROM information_schema.columns c
+               JOIN information_schema.tables t USING (table_schema, table_name)
+               WHERE c.table_schema = 'public' AND c.column_name = 'user_id' AND t.table_type = 'BASE TABLE'
+                 AND c.table_name <> 'app_users'"""
+        )
+    ]
+    assert with_user
+    pointing_at_users = {table for table, target, _ in fks if target == "app_users"}
+    for table in with_user:
+        assert table in pointing_at_users, f"{table} tiene user_id sin FK a app_users: Olvidar la dejaría con datos"
+
+
 def test_opportunities_never_list_sensitive_concepts(db):
     seed_taxonomy(db, load_taxonomy())
     rows = []
