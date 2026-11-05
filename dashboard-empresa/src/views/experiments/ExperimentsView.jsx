@@ -54,12 +54,14 @@ const OFFER_COLUMNS = [
   },
 ]
 
-// La retención del grupo de control (docs/plan-piloto.md): por variante y, al final, la diferencia con su IC de 95 %.
+// La retención del grupo de control (docs/plan-piloto.md): por variante y, al final, la diferencia; su IC de 95 % solo
+// llega cuando cada grupo alcanza el mínimo (antes, con pocas personas, se encogería y parecería un efecto).
 const DIFFERENCE = 'diferencia'
 
 function RetentionCell({ row, pct, difference }) {
   if (row.variante !== DIFFERENCE) return formatPct(row[pct])
   if (!difference) return formatPct(null)
+  if (!difference.ic95) return formatPoints(difference.puntos)
   return (
     <span className="cell-stack">
       {formatPoints(difference.puntos)}

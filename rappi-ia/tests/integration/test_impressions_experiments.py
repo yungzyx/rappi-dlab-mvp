@@ -461,9 +461,10 @@ def test_the_control_group_reads_m1_retention_and_a_new_vertical_within_the_coho
             {"variante": "tratamiento", "personas": 3, "retencion_m1_pct": 33.3, "suma_vertical_pct": 66.7},
             {"variante": "control", "personas": 1, "retencion_m1_pct": 100.0, "suma_vertical_pct": 0.0},
         ],
+        # Bajo el mínimo, sin intervalo: con 1 persona en control (100 % y 0 %), el de Wald se encoge y excluiría el 0.
         "diferencia": {
-            "retencion_m1": {"puntos": -66.7, "ic95": [-100.0, -13.3]},
-            "suma_vertical": {"puntos": 66.7, "ic95": [13.3, 100.0]},
+            "retencion_m1": {"puntos": -66.7, "ic95": None},
+            "suma_vertical": {"puntos": 66.7, "ic95": None},
         },
         # +5 puntos sobre el 47 % de "solo Restaurantes", con el reparto de quienes tienen variante (2 de 5 en control).
         "minimo": {"tratamiento": 1961, "control": 1308},
@@ -489,10 +490,12 @@ def test_the_retention_is_conclusive_once_each_group_reaches_the_minimum(client,
     at = local_month(2) + timedelta(days=4)
     for user_id, variant in (("t1", "tratamiento"), ("t2", "tratamiento"), ("c1", "control")):
         assigned_on(db, user_id, variant, at)
-    ordered_on(db, "t1", "turbo", datetime.now(TZ))
+    ordered_on(db, "t1", "turbo", at + timedelta(days=1))
+    ordered_on(db, "t1", "turbo", datetime.now(TZ))  # los datos llegan hasta hoy: M+1 ya terminó
     retention = experiments_of(client, "prototype")["ofertas_control"]["retencion"]
     assert retention["minimo"] == {"tratamiento": 2, "control": 1}
     assert retention["concluyente"] is True
+    assert retention["diferencia"]["suma_vertical"] == {"puntos": 50.0, "ic95": [-19.3, 100.0]}  # ya con su intervalo
 
 
 def test_session_funnel_and_abandoned_carts(client, db):

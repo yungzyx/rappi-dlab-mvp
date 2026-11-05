@@ -964,9 +964,10 @@ def _offers_retention(conn: Connection, params: dict, variants: list[dict]) -> d
     la parte con algún pedido confirmado en M+1 (como la M+1 de la tabla de Rappi), y `suma_vertical_pct`, la parte que
     pide en los 28 días desde la asignación en una vertical en la que no había pedido antes (M+1 termina al menos 28
     días después de cualquier día de M: la misma cohorte vale para las dos). `diferencia` es tratamiento − control en
-    puntos con su IC de 95 %. `minimo` son las personas que pide cada grupo para un efecto de +5 puntos sobre la M+1 de
-    "solo Restaurantes" de la tabla de Rappi (un supuesto), con el reparto de quienes tienen variante; bajo ese mínimo,
-    `concluyente` es falso."""
+    puntos. `minimo` son las personas que pide cada grupo para un efecto de +5 puntos sobre la M+1 de "solo
+    Restaurantes" de la tabla de Rappi (un supuesto), con el reparto de quienes tienen variante; bajo ese mínimo,
+    `concluyente` es falso y la diferencia va sin su IC de 95 % (`ic95` nulo): con pocas personas, un grupo en 0 % o
+    100 % lo encoge y parecería un efecto."""
     cohort = _rows(
         conn,
         f"""WITH cohort AS (
@@ -975,7 +976,7 @@ def _offers_retention(conn: Connection, params: dict, variants: list[dict]) -> d
                FROM experiment_assignments
                WHERE source = %(source)s AND experiment_id = %(offers)s
            ),
-           confirmed AS (
+           confirmed AS NOT MATERIALIZED (  -- en cada EXISTS, con el índice (user_id, ts) de la persona
                SELECT user_id, vertical, ts FROM app_orders WHERE source = %(source)s AND status = 'confirmado'
            )
            SELECT c.variant, count(*) AS personas,
@@ -1009,13 +1010,6 @@ def _offers_retention(conn: Connection, params: dict, variants: list[dict]) -> d
     def pct(part: int, n: int) -> float | None:
         return round(100 * part / n, 1) if n else None
 
-    treated, control = groups[exp.TREATMENT], groups[exp.CONTROL]
-    difference = None
-    if treated["personas"] and control["personas"]:
-        difference = {}
-        for key, metric in (("retenidas", "retencion_m1"), ("suman_vertical", "suma_vertical")):
-            diff, low, high = difference_ci((treated[key], treated["personas"]), (control[key], control["personas"]))
-            difference[metric] = {"puntos": round(100 * diff, 1), "ic95": [round(100 * low, 1), round(100 * high, 1)]}
     assigned = {v["variante"]: v["personas"] for v in variants}
     minimum = None
     base = load_combos().rappi["rest"].retention_m1
@@ -1023,6 +1017,15 @@ def _offers_retention(conn: Connection, params: dict, variants: list[dict]) -> d
         share = assigned[exp.CONTROL] / (assigned[exp.TREATMENT] + assigned[exp.CONTROL])
         need_control, need_treated = sample_size(base, PILOT_MIN_EFFECT, share)
         minimum = {exp.TREATMENT: need_treated, exp.CONTROL: need_control}
+    conclusive = minimum is not None and all(groups[variant]["personas"] >= need for variant, need in minimum.items())
+    treated, control = groups[exp.TREATMENT], groups[exp.CONTROL]
+    difference = None
+    if treated["personas"] and control["personas"]:
+        difference = {}
+        for key, metric in (("retenidas", "retencion_m1"), ("suman_vertical", "suma_vertical")):
+            diff, low, high = difference_ci((treated[key], treated["personas"]), (control[key], control["personas"]))
+            ci = [round(100 * low, 1), round(100 * high, 1)] if conclusive else None
+            difference[metric] = {"puntos": round(100 * diff, 1), "ic95": ci}
     return {
         "variantes": [
             {
@@ -1037,8 +1040,7 @@ def _offers_retention(conn: Connection, params: dict, variants: list[dict]) -> d
         "minimo": minimum,
         "efecto_minimo_puntos": round(100 * PILOT_MIN_EFFECT),
         "base_pct": round(100 * base, 1),
-        "concluyente": minimum is not None
-        and all(groups[variant]["personas"] >= need for variant, need in minimum.items()),
+        "concluyente": conclusive,
     }
 
 

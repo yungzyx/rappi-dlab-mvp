@@ -25,8 +25,8 @@ const retention = (overrides = {}) => ({
     { variante: 'control', personas: 1, retencion_m1_pct: 100, suma_vertical_pct: 0 },
   ],
   diferencia: {
-    retencion_m1: { puntos: -66.7, ic95: [-100, -13.3] },
-    suma_vertical: { puntos: 66.7, ic95: [13.3, 100] },
+    retencion_m1: { puntos: -66.7, ic95: null },
+    suma_vertical: { puntos: 66.7, ic95: null },
   },
   minimo: { tratamiento: 7836, control: 871 },
   efecto_minimo_puntos: 5,
@@ -133,24 +133,29 @@ describe('ExperimentsView', () => {
     const [treated, control, difference] = bodyRows(table)
     expect(cells(treated)).toEqual(['Tratamiento (ve las ofertas)', '3', '33,3%', '66,7%'])
     expect(cells(control)).toEqual(['Control (no las ve)', '1', '100,0%', '0,0%'])
-    expect(cells(difference)).toEqual([
-      'Diferencia (tratamiento − control)',
-      '—',
-      '−66,7 puntosIC 95 %: −100,0 a −13,3',
-      '+66,7 puntosIC 95 %: 13,3 a 100,0',
-    ])
+    expect(cells(difference)).toEqual(['Diferencia (tratamiento − control)', '—', '−66,7 puntos', '+66,7 puntos'])
+    expect(within(table).queryByText(/IC 95 %/)).toBeNull() // bajo el mínimo, sin intervalo
     expect(screen.getByTestId('retencion-nota').textContent).toBe(
       'No es concluyente: los grupos no llegan al mínimo del plan de piloto.',
     )
   })
 
   test('once each group reaches the minimum, the difference reads with its interval', async () => {
-    serveFixturesWith(withControl({ retencion: retention({ concluyente: true }) }))
+    const diferencia = {
+      retencion_m1: { puntos: -66.7, ic95: [-100, -13.3] },
+      suma_vertical: { puntos: 66.7, ic95: [13.3, 100] },
+    }
+    serveFixturesWith(withControl({ retencion: retention({ concluyente: true, diferencia }) }))
     await renderWithData(<ExperimentsView source="prototype" />)
 
     expect((await screen.findByTestId('retencion-nota')).textContent).toBe(
       'Cada grupo llega al mínimo del plan de piloto: la diferencia se lee con su intervalo.',
     )
+    const table = screen.getByRole('table', { name: 'Retención M+1 por grupo' })
+    expect(cells(bodyRows(table)[2]).slice(2)).toEqual([
+      '−66,7 puntosIC 95 %: −100,0 a −13,3',
+      '+66,7 puntosIC 95 %: 13,3 a 100,0',
+    ])
   })
 
   test('without anyone with their next month complete, it says so instead of the retention table', async () => {
