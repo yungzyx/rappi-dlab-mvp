@@ -46,7 +46,7 @@ from ..offers import autonomy, preferences
 from ..offers.engine import most_ordered
 from ..offers.guards import is_offerable, offerable_vertical, whim_allowed
 from ..offers.profiles import active_profiles, person_city
-from ..retrieval.hybrid import MODES
+from ..retrieval.hybrid import MODES, detect_concepts
 from ..text import contract_articles
 from . import deps, identity, prewarm
 from .agent import router as agent_router
@@ -310,7 +310,8 @@ class EventIn(Clean):
     @field_validator("payload")
     @classmethod
     def small_payload(cls, payload: dict) -> dict:
-        """El payload no pasa por la redacción ni la purga: solo datos chicos (origen, servicio, cantidad…)."""
+        """Solo datos chicos (origen, servicio, cantidad…): del payload solo `corregida` (el texto de la búsqueda
+        corregida) pasa por la redacción y la purga, como la consulta."""
         if len(payload) > MAX_PAYLOAD_KEYS or len(json.dumps(payload, allow_nan=False)) > MAX_PAYLOAD_BYTES:
             raise ValueError("payload demasiado grande")
         return payload
@@ -731,6 +732,17 @@ async def post_events_beacon(request: Request, background: BackgroundTasks, conn
     _recalc_if_cancelled(background, connector, body)
 
 
+def _search_concept(e: EventIn) -> str | None:
+    """El concepto de una búsqueda lo deduce el servidor (no se le cree al cliente), del texto corregido si lo hay:
+    "paracetamool" no nombra nada, "paracetamol" sí. En "Rappi hoy" (`payload.mode` 'actual') no se aprende."""
+    if e.payload.get("mode") == "actual":
+        return None
+    corrected = e.payload.get("corregida")
+    text = corrected if isinstance(corrected, str) and corrected else e.query
+    concepts = detect_concepts(text) if text else []
+    return concepts[0] if concepts else None
+
+
 def _save_events(connect, body: EventsIn) -> int:
     """`connect()` da la conexión (la del request, o una del pool para el beacon): se pide después de revisar los
     tipos."""
@@ -746,6 +758,7 @@ def _save_events(connect, body: EventsIn) -> int:
                         **{
                             **e.model_dump(),
                             "vertical": backend_vertical(e.vertical),
+                            **({"concept_id": _search_concept(e)} if e.type == "search" else {}),
                             "items": [
                                 {**item.model_dump(), "vertical": backend_vertical(item.vertical)} for item in e.items
                             ],

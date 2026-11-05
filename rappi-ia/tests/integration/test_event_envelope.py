@@ -12,6 +12,7 @@ from conftest import add_price, add_product, add_store
 from owner_client import OwnerClient
 from rappi_ia.agent.compose import TemplateComposer
 from rappi_ia.agent.rappi_agent import RappiAgent
+from rappi_ia.analytics import queries
 from rappi_ia.api import app as api
 from rappi_ia.api.services import Services
 from rappi_ia.concepts.pipeline import build_concepts
@@ -210,3 +211,35 @@ def test_record_counts_only_what_went_in(db):
     event_id = uuid.uuid4()
     one = events.Event("u-cuenta", "s", "search", client_event_id=event_id)
     assert events.record(db, [one, one]) == 1
+
+
+def _search(client, db, user_id, **extra):
+    """Manda una búsqueda por `POST /events` y devuelve el concepto con que quedó guardada."""
+    event = {"type": "search", "session_id": "s-busca", "vertical": "grocery", "results": 0, **extra}
+    assert client.post("/events", json={"user_id": user_id, "events": [event]}).json() == {"guardados": 1}
+    return db.execute("SELECT concept_id FROM app_events WHERE user_id = %s", (user_id,)).fetchone()[0]
+
+
+def test_the_server_deduces_the_concept_of_a_search_from_the_corrected_text(client, db):
+    corrected = {"corregida": "paracetamol"}
+    assert _search(client, db, "u-busca-1", query="paracetamool", payload=corrected) == "medicamentos"
+    assert _search(client, db, "u-busca-2", query="paracetamol") == "medicamentos"
+
+
+def test_rappi_hoy_searches_do_not_learn_a_concept(client, db):
+    payload = {"corregida": "paracetamol", "mode": "actual"}
+    assert _search(client, db, "u-busca-3", query="paracetamool", payload=payload) is None
+
+
+def test_a_concept_sent_by_the_client_in_a_search_is_replaced(client, db):
+    assert _search(client, db, "u-busca-4", query="paracetamol", concept_id="cerveza") == "medicamentos"
+    assert _search(client, db, "u-busca-5", query="algo raro", concept_id="cerveza") is None
+
+
+def test_a_sensitive_search_without_results_stays_out_of_the_panel(client, db):
+    """Con su concepto (sensible) deducido, ni las cifras de demanda ni las oportunidades la ven, aunque la hagan 5."""
+    for i in range(5):
+        assert _search(client, db, f"u-sensible-{i}", query="test de embarazo", unmet=True) == "salud-sexual"
+    summary = queries.unmet(db, "prototype")
+    assert (summary["busquedas"], summary["sin_resultado"], summary["por_vertical"]) == (0, 0, [])
+    assert queries.opportunities(db, "prototype") == []
