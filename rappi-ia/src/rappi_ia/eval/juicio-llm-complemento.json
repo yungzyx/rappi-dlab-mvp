@@ -1,5 +1,5 @@
 {
- "nota": "Juicio LLM (no humano) de los pares sin juicio en juicio-llm-2026-10-25.json que mostró la búsqueda el 25-10-2026, antes y después de los cambios de docs/resultados/busqueda-2026-10-25.md: un juez, a ciegas (solo la consulta, la vertical, el nombre, la categoría y la tienda; sin el juez por concepto, la posición ni qué búsqueda lo mostró), con el criterio del 25-10. Con 60 pares del juicio del 25-10 mezclados como control coincidió en 56 (κ 0,90). Sin textos del catálogo: solo ids.",
+ "nota": "Juicio LLM (no humano) de los pares sin juicio en juicio-llm-2026-10-25.json que mostró la búsqueda el 25-10-2026, antes y después de los cambios de docs/resultados/busqueda-2026-10-25.md: un juez, a ciegas (solo la consulta, la vertical, el nombre, la categoría y la tienda; sin el juez por concepto, la posición ni qué búsqueda lo mostró), con el criterio del 25-10. Con 60 pares del juicio del 25-10 mezclados como control coincidió en 56 (κ 0,90). Sin textos del catálogo: solo ids. El 05-11-2026 se sumaron 43 pares, con el mismo juez y criterio (juicio LLM, no humano): los 5 que mostraba la búsqueda sin juicio y 38 que mostraba Mochi en las necesidades (`rappi-ia eval-mochi`), con 40 pares ya juzgados mezclados como control: coincidió en 37 (κ 0,85). Ver docs/resultados/mochi-2026-11-05.md.",
  "pares": [
   {
    "id": "P001e2a6815",
@@ -95,6 +95,14 @@
    "consulta": "aros de plata",
    "entity_type": "catalog_item",
    "entity_id": "1654036",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P03cc2dd6fb",
+   "vertical": "conveniencia",
+   "consulta": "algo para ver una película",
+   "entity_type": "catalog_item",
+   "entity_id": "349240",
    "juicio": "sirve"
   },
   {
@@ -738,6 +746,14 @@
    "juicio": "sirve"
   },
   {
+   "id": "P2001484b24",
+   "vertical": "mall",
+   "consulta": "regalo para mi polola",
+   "entity_type": "catalog_item",
+   "entity_id": "835344",
+   "juicio": "no sirve"
+  },
+  {
    "id": "P20093cf105",
    "vertical": "mall",
    "consulta": "aros de plata",
@@ -970,6 +986,14 @@
    "juicio": "sirve"
   },
   {
+   "id": "P2aee1013f2",
+   "vertical": "restaurantes",
+   "consulta": "algo rico para almorzar",
+   "entity_type": "menu_item",
+   "entity_id": "1287130",
+   "juicio": "sirve"
+  },
+  {
    "id": "P2b29fa4ee9",
    "vertical": "turbo",
    "consulta": "vino tinto cabernet",
@@ -999,6 +1023,14 @@
    "consulta": "vitamina c efervescente",
    "entity_type": "catalog_item",
    "entity_id": "108742",
+   "juicio": "a medias"
+  },
+  {
+   "id": "P2bdb9aff39",
+   "vertical": "mall",
+   "consulta": "regalo para mi polola",
+   "entity_type": "catalog_item",
+   "entity_id": "1350484",
    "juicio": "a medias"
   },
   {
@@ -1042,6 +1074,14 @@
    "juicio": "sirve"
   },
   {
+   "id": "P2cb51af8f5",
+   "vertical": "farmacia",
+   "consulta": "cosas para el bebé recién nacido",
+   "entity_type": "catalog_item",
+   "entity_id": "71934",
+   "juicio": "no sirve"
+  },
+  {
    "id": "P2cef13a74e",
    "vertical": "restaurantes",
    "consulta": "algo rico para almorzar",
@@ -1064,6 +1104,14 @@
    "entity_type": "catalog_item",
    "entity_id": "955616",
    "juicio": "a medias"
+  },
+  {
+   "id": "P2e272ecc95",
+   "vertical": "restaurantes",
+   "consulta": "algo rico para almorzar",
+   "entity_type": "menu_item",
+   "entity_id": "1659939",
+   "juicio": "sirve"
   },
   {
    "id": "P2e86faafde",
@@ -1127,6 +1175,14 @@
    "consulta": "vino tinto cabernet sauvignon",
    "entity_type": "catalog_item",
    "entity_id": "67973",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P30b99243cf",
+   "vertical": "supermercado",
+   "consulta": "algo calentito para la once",
+   "entity_type": "catalog_item",
+   "entity_id": "1445822",
    "juicio": "sirve"
   },
   {
@@ -1226,6 +1282,14 @@
    "juicio": "a medias"
   },
   {
+   "id": "P335588b63b",
+   "vertical": "chocolateria",
+   "consulta": "algo dulce para un cumpleaños",
+   "entity_type": "catalog_item",
+   "entity_id": "501624",
+   "juicio": "sirve"
+  },
+  {
    "id": "P3360da9c7b",
    "vertical": "farmacia",
    "consulta": "acondicionador para pelo tenido",
@@ -1279,6 +1343,14 @@
    "consulta": "vino tinto cabernet",
    "entity_type": "catalog_item",
    "entity_id": "145722",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P36896460dc",
+   "vertical": "chocolateria",
+   "consulta": "algo dulce para un cumpleaños",
+   "entity_type": "catalog_item",
+   "entity_id": "1395358",
    "juicio": "sirve"
   },
   {
@@ -1351,6 +1423,14 @@
    "consulta": "cafe molido",
    "entity_type": "catalog_item",
    "entity_id": "68071",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P389b7aa0e4",
+   "vertical": "supermercado",
+   "consulta": "panales para guagua",
+   "entity_type": "catalog_item",
+   "entity_id": "68649",
    "juicio": "sirve"
   },
   {
@@ -1576,6 +1656,14 @@
    "entity_type": "catalog_item",
    "entity_id": "11208",
    "juicio": "no sirve"
+  },
+  {
+   "id": "P40f7abe054",
+   "vertical": "mall",
+   "consulta": "regalo para mi polola",
+   "entity_type": "catalog_item",
+   "entity_id": "521107",
+   "juicio": "sirve"
   },
   {
    "id": "P413e0a65f4",
@@ -1850,6 +1938,14 @@
    "juicio": "sirve"
   },
   {
+   "id": "P4ea2300ff9",
+   "vertical": "restaurantes",
+   "consulta": "algo rico para almorzar",
+   "entity_type": "menu_item",
+   "entity_id": "1940615",
+   "juicio": "sirve"
+  },
+  {
    "id": "P4fb849992b",
    "vertical": "supermercado",
    "consulta": "queso gouda laminado",
@@ -1978,6 +2074,14 @@
    "juicio": "sirve"
   },
   {
+   "id": "P552187e087",
+   "vertical": "supermercado",
+   "consulta": "algo calentito para la once",
+   "entity_type": "catalog_item",
+   "entity_id": "115277",
+   "juicio": "sirve"
+  },
+  {
    "id": "P555824e512",
    "vertical": "restaurantes",
    "consulta": "hamburguesa con papas",
@@ -2042,6 +2146,14 @@
    "juicio": "sirve"
   },
   {
+   "id": "P57d7606203",
+   "vertical": "supermercado",
+   "consulta": "algo calentito para la once",
+   "entity_type": "catalog_item",
+   "entity_id": "1411871",
+   "juicio": "sirve"
+  },
+  {
    "id": "P57e83ae3f2",
    "vertical": "farmacia",
    "consulta": "algo para la piel seca",
@@ -2055,6 +2167,14 @@
    "consulta": "algo rico para almorzar",
    "entity_type": "menu_item",
    "entity_id": "2391183",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P57ffa8ff66",
+   "vertical": "licores",
+   "consulta": "algo para el carrete",
+   "entity_type": "catalog_item",
+   "entity_id": "67151",
    "juicio": "sirve"
   },
   {
@@ -2242,6 +2362,14 @@
    "juicio": "sirve"
   },
   {
+   "id": "P5e0fd7c0f5",
+   "vertical": "restaurantes",
+   "consulta": "algo rico para almorzar",
+   "entity_type": "menu_item",
+   "entity_id": "2434956",
+   "juicio": "a medias"
+  },
+  {
    "id": "P5e53b72ef9",
    "vertical": "farmacia",
    "consulta": "cosas para el bebé recién nacido",
@@ -2319,6 +2447,14 @@
    "consulta": "alfajores",
    "entity_type": "catalog_item",
    "entity_id": "1408427",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P60026a3600",
+   "vertical": "conveniencia",
+   "consulta": "algo para ver una película",
+   "entity_type": "catalog_item",
+   "entity_id": "1395358",
    "juicio": "sirve"
   },
   {
@@ -2842,6 +2978,14 @@
    "juicio": "sirve"
   },
   {
+   "id": "P71cf685ce7",
+   "vertical": "farmacia",
+   "consulta": "cosas para el bebé recién nacido",
+   "entity_type": "catalog_item",
+   "entity_id": "102869",
+   "juicio": "a medias"
+  },
+  {
    "id": "P71ebb6306a",
    "vertical": "licores",
    "consulta": "whisky etiqueta negra",
@@ -2935,6 +3079,14 @@
    "consulta": "audífonos bluetooth",
    "entity_type": "catalog_item",
    "entity_id": "1304383",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P74a158aaf1",
+   "vertical": "conveniencia",
+   "consulta": "algo para ver una película",
+   "entity_type": "catalog_item",
+   "entity_id": "67151",
    "juicio": "sirve"
   },
   {
@@ -3047,6 +3199,14 @@
    "consulta": "pizza pepperoni",
    "entity_type": "menu_item",
    "entity_id": "78610",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P782aa74689",
+   "vertical": "mall",
+   "consulta": "regalo para mi polola",
+   "entity_type": "catalog_item",
+   "entity_id": "1504912",
    "juicio": "sirve"
   },
   {
@@ -3354,6 +3514,14 @@
    "juicio": "sirve"
   },
   {
+   "id": "P8582b58f03",
+   "vertical": "chocolateria",
+   "consulta": "algo dulce para un cumpleaños",
+   "entity_type": "catalog_item",
+   "entity_id": "1328646",
+   "juicio": "sirve"
+  },
+  {
    "id": "P85b45bfa0b",
    "vertical": "restaurantes",
    "consulta": "pasta a la bolognesa",
@@ -3386,6 +3554,14 @@
    "juicio": "a medias"
   },
   {
+   "id": "P87db5e220a",
+   "vertical": "restaurantes",
+   "consulta": "algo rico para almorzar",
+   "entity_type": "menu_item",
+   "entity_id": "1080602",
+   "juicio": "sirve"
+  },
+  {
    "id": "P87dd007d29",
    "vertical": "restaurantes",
    "consulta": "gelato de pistacho",
@@ -3408,6 +3584,14 @@
    "entity_type": "menu_item",
    "entity_id": "2002914",
    "juicio": "sirve"
+  },
+  {
+   "id": "P88abeb0f37",
+   "vertical": "farmacia",
+   "consulta": "cosas para el bebé recién nacido",
+   "entity_type": "catalog_item",
+   "entity_id": "1446011",
+   "juicio": "a medias"
   },
   {
    "id": "P88e43ce4c8",
@@ -3458,6 +3642,14 @@
    "juicio": "sirve"
   },
   {
+   "id": "P8a3ebc894b",
+   "vertical": "licores",
+   "consulta": "algo para el carrete",
+   "entity_type": "catalog_item",
+   "entity_id": "127970",
+   "juicio": "sirve"
+  },
+  {
    "id": "P8a546f700c",
    "vertical": "turbo",
    "consulta": "coca cola 3 litros",
@@ -3504,6 +3696,14 @@
    "entity_type": "catalog_item",
    "entity_id": "87453",
    "juicio": "sirve"
+  },
+  {
+   "id": "P8d9aee338f",
+   "vertical": "farmacia",
+   "consulta": "cosas para el bebé recién nacido",
+   "entity_type": "catalog_item",
+   "entity_id": "119363",
+   "juicio": "a medias"
   },
   {
    "id": "P8db12b9c57",
@@ -3730,6 +3930,14 @@
    "juicio": "sirve"
   },
   {
+   "id": "P95c60a3bb1",
+   "vertical": "conveniencia",
+   "consulta": "algo para ver una película",
+   "entity_type": "catalog_item",
+   "entity_id": "127573",
+   "juicio": "sirve"
+  },
+  {
    "id": "P95db9bc92e",
    "vertical": "mall",
    "consulta": "peluche",
@@ -3807,6 +4015,14 @@
    "consulta": "pasta dental blanqueadora",
    "entity_type": "catalog_item",
    "entity_id": "774128",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P97b999fce0",
+   "vertical": "farmacia",
+   "consulta": "cosas para el bebé recién nacido",
+   "entity_type": "catalog_item",
+   "entity_id": "30137",
    "juicio": "sirve"
   },
   {
@@ -4266,6 +4482,14 @@
    "juicio": "a medias"
   },
   {
+   "id": "Pa97cc383eb",
+   "vertical": "farmacia",
+   "consulta": "cosas para el bebé recién nacido",
+   "entity_type": "catalog_item",
+   "entity_id": "200321",
+   "juicio": "a medias"
+  },
+  {
    "id": "Pa99b272df1",
    "vertical": "chocolateria",
    "consulta": "postre individual",
@@ -4343,6 +4567,14 @@
    "consulta": "gelato de pistacho",
    "entity_type": "menu_item",
    "entity_id": "2092502148",
+   "juicio": "sirve"
+  },
+  {
+   "id": "Padf024ce3d",
+   "vertical": "chocolateria",
+   "consulta": "algo dulce para un cumpleaños",
+   "entity_type": "catalog_item",
+   "entity_id": "1300900",
    "juicio": "sirve"
   },
   {
@@ -4498,6 +4730,14 @@
    "juicio": "sirve"
   },
   {
+   "id": "Pb372cfb646",
+   "vertical": "farmacia",
+   "consulta": "cosas para el bebé recién nacido",
+   "entity_type": "catalog_item",
+   "entity_id": "107276",
+   "juicio": "sirve"
+  },
+  {
    "id": "Pb3e3a6e76a",
    "vertical": "turbo",
    "consulta": "queso gauda laminado",
@@ -4650,6 +4890,14 @@
    "juicio": "sirve"
   },
   {
+   "id": "Pb9a7ca71fd",
+   "vertical": "licores",
+   "consulta": "algo para el carrete",
+   "entity_type": "catalog_item",
+   "entity_id": "349240",
+   "juicio": "sirve"
+  },
+  {
    "id": "Pb9f0370896",
    "vertical": "farmacia",
    "consulta": "pañales etapa 3",
@@ -4663,6 +4911,14 @@
    "consulta": "helado",
    "entity_type": "catalog_item",
    "entity_id": "25946",
+   "juicio": "sirve"
+  },
+  {
+   "id": "Pba35619016",
+   "vertical": "mall",
+   "consulta": "regalo para mi polola",
+   "entity_type": "catalog_item",
+   "entity_id": "321714",
    "juicio": "sirve"
   },
   {
@@ -4680,6 +4936,14 @@
    "entity_type": "catalog_item",
    "entity_id": "1668123",
    "juicio": "a medias"
+  },
+  {
+   "id": "Pbac0c5ad3b",
+   "vertical": "restaurantes",
+   "consulta": "algo rico para almorzar",
+   "entity_type": "menu_item",
+   "entity_id": "1039165",
+   "juicio": "sirve"
   },
   {
    "id": "Pbb0b9ffef1",
@@ -5346,6 +5610,14 @@
    "juicio": "sirve"
   },
   {
+   "id": "Pd0fd1386cf",
+   "vertical": "licores",
+   "consulta": "algo para el carrete",
+   "entity_type": "catalog_item",
+   "entity_id": "1035593",
+   "juicio": "sirve"
+  },
+  {
    "id": "Pd1417205df",
    "vertical": "mall",
    "consulta": "regalo para mi polola",
@@ -5384,6 +5656,14 @@
    "entity_type": "catalog_item",
    "entity_id": "1657784",
    "juicio": "no sirve"
+  },
+  {
+   "id": "Pd2f159441b",
+   "vertical": "conveniencia",
+   "consulta": "algo para ver una película",
+   "entity_type": "catalog_item",
+   "entity_id": "127970",
+   "juicio": "sirve"
   },
   {
    "id": "Pd2f415fade",
@@ -5546,6 +5826,14 @@
    "juicio": "no sirve"
   },
   {
+   "id": "Pd8267e9979",
+   "vertical": "chocolateria",
+   "consulta": "algo dulce para un cumpleaños",
+   "entity_type": "catalog_item",
+   "entity_id": "596579",
+   "juicio": "sirve"
+  },
+  {
    "id": "Pd8a83ec27c",
    "vertical": "supermercado",
    "consulta": "snack saludable para la oficina",
@@ -5634,6 +5922,14 @@
    "juicio": "sirve"
   },
   {
+   "id": "Pdb5a4c87c4",
+   "vertical": "chocolateria",
+   "consulta": "algo dulce para un cumpleaños",
+   "entity_type": "catalog_item",
+   "entity_id": "1374811",
+   "juicio": "sirve"
+  },
+  {
    "id": "Pdc52f8730f",
    "vertical": "conveniencia",
    "consulta": "algo para ver una película",
@@ -5663,6 +5959,14 @@
    "consulta": "papas fritas para picar",
    "entity_type": "catalog_item",
    "entity_id": "196688",
+   "juicio": "sirve"
+  },
+  {
+   "id": "Pddce0dfe38",
+   "vertical": "licores",
+   "consulta": "algo para el carrete",
+   "entity_type": "catalog_item",
+   "entity_id": "1462690",
    "juicio": "sirve"
   },
   {
@@ -5802,6 +6106,14 @@
    "juicio": "a medias"
   },
   {
+   "id": "Pe4023d895e",
+   "vertical": "mall",
+   "consulta": "regalo para mi polola",
+   "entity_type": "catalog_item",
+   "entity_id": "1026788",
+   "juicio": "sirve"
+  },
+  {
    "id": "Pe53e7dbff8",
    "vertical": "mall",
    "consulta": "set de maquillaje",
@@ -5882,6 +6194,14 @@
    "juicio": "a medias"
   },
   {
+   "id": "Pe84b2c9b6b",
+   "vertical": "supermercado",
+   "consulta": "algo calentito para la once",
+   "entity_type": "catalog_item",
+   "entity_id": "1187359",
+   "juicio": "sirve"
+  },
+  {
    "id": "Pe8f601bfcd",
    "vertical": "licores",
    "consulta": "regalo para un amante del whisky",
@@ -5920,6 +6240,14 @@
    "entity_type": "catalog_item",
    "entity_id": "45811",
    "juicio": "a medias"
+  },
+  {
+   "id": "Peb295b3b27",
+   "vertical": "licores",
+   "consulta": "algo para el carrete",
+   "entity_type": "catalog_item",
+   "entity_id": "105548",
+   "juicio": "sirve"
   },
   {
    "id": "Pebe74c4c35",
@@ -6056,6 +6384,14 @@
    "entity_type": "menu_item",
    "entity_id": "2325070",
    "juicio": "sirve"
+  },
+  {
+   "id": "Pf3074da840",
+   "vertical": "farmacia",
+   "consulta": "cosas para el bebé recién nacido",
+   "entity_type": "catalog_item",
+   "entity_id": "89891",
+   "juicio": "a medias"
   },
   {
    "id": "Pf34e32edbb",
@@ -6216,6 +6552,14 @@
    "entity_type": "catalog_item",
    "entity_id": "1639865",
    "juicio": "sirve"
+  },
+  {
+   "id": "Pf9ef995757",
+   "vertical": "supermercado",
+   "consulta": "algo calentito para la once",
+   "entity_type": "catalog_item",
+   "entity_id": "1342224",
+   "juicio": "a medias"
   },
   {
    "id": "Pfb0eacd14f",
