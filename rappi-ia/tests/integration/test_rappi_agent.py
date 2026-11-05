@@ -72,6 +72,37 @@ def test_no_cross_suggestion_once_the_daily_cap_is_reached(rappi_agent):
     assert {p["concept"] for p in capped["products"]} == {"cerveza"}  # la respuesta misma no cambia
 
 
+def test_a_typo_is_corrected_and_understood_again(rappi_agent):
+    """Como /search: si no encontró nada y no entendió qué se pide, corrige con el vocabulario del catálogo y lo
+    vuelve a entender (concepto, vertical y sugerencia). La respuesta lo dice; no queda como demanda no satisfecha."""
+    agent, db = rappi_agent
+    r = agent.reply(db, "quiero cervesa", Context())
+
+    assert r["corrected_query"] == "cerveza" and r["text"].startswith('Busqué "cerveza". ')
+    assert r["intent"]["concepts"] == ["cerveza"] and r["vertical"] == "licores"
+    assert {p["concept"] for p in r["products"]} == {"cerveza"} and not r["unmet"]
+    assert r["conversation"]["query"] == "cerveza"  # "más barato" sigue sobre lo corregido
+
+
+def test_a_misspelled_word_next_to_a_concept_is_corrected_in_the_search(rappi_agent):
+    """ "cerveza escudp": entiende la cerveza, pero nada calza todas las palabras; como /search, corrige la marca y
+    vuelve a buscar."""
+    agent, db = rappi_agent
+    r = agent.reply(db, "cerveza escudp", Context(vertical="licores"))
+
+    assert r["corrected_query"] == "cerveza escudo" and r["text"].startswith('Busqué "cerveza escudo". ')
+    assert r["products"][0]["name"] == "Cerveza Escudo Lata 470 cc"
+    plain = RappiAgent(agent.embedder, correct_typos=False).reply(db, "cerveza escudp", Context(vertical="licores"))
+    assert "corrected_query" not in plain
+
+
+def test_what_is_understood_or_has_no_fix_is_not_corrected(rappi_agent):
+    agent, db = rappi_agent
+    assert "corrected_query" not in agent.reply(db, "cerveza", Context(vertical="licores"))
+    nothing = agent.reply(db, "xqzwvk", Context())
+    assert nothing["unmet"] and "corrected_query" not in nothing
+
+
 def test_tobacco_only_when_asked_by_name(rappi_agent):
     agent, db = rappi_agent
     carrete = agent.reply(db, "algo para el carrete", Context(vertical="licores"))

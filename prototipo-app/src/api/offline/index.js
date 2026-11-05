@@ -39,6 +39,8 @@
 //   seguir la conversación (conversation.js); los seguimientos de eval/frases_usuarios/conversaciones.txt salen grabados
 // - rappi-ia/src/rappi_ia/agent/rappi_agent.py (DAILY_CROSS_CAP) y events/store.py (cross_suggestions_today) ... el tope
 //   diario de sugerencias cruzadas en las respuestas de Mochi (index.js: crossCapped)
+// No se replica la corrección de errores de tipeo (retrieval/spelling.py, también en rappi_agent.py: _misspelled): sin
+// conexión, lo mal escrito se responde como lo escrito.
 // - rappi-ia/src/rappi_ia/events/store.py .......... el perfil de intereses (index.js: interests) y el sobre de cada
 //   evento (index.js: storedEvent; el origen, en `origin` o, en los eventos de antes, `payload.origen`); las impresiones
 //   (`list_view`) no se guardan, y sin conexión no hay grupo de control de las ofertas (OFFERS_CONTROL_PCT)

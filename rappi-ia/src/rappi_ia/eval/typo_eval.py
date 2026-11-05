@@ -11,6 +11,12 @@ como la registra el agente.
 También se mide la búsqueda agrupada (`search_grouped`, la que usa la app): un caso se recupera ahí si algún grupo
 trae en sus primeros SHOWN_TOP tanto de lo pedido como el mejor grupo de `quiso`, y de las negativas (cada consulta una
 vez) se cuenta cuántas de las que la agrupada deja sin resultado siguen así corrigiendo.
+
+Y a Mochi (`/agent/ask`, en la vertical del caso): antes es su respuesta con la corrección apagada
+(`RappiAgent(correct_typos=False)`) y después la de siempre, que corrige y, si no entendió nada, vuelve a entender el
+mensaje; se recupera como /search. De las
+negativas se cuentan las que Mochi deja sin resultado y sin productos, antes y después: no son negativas para Mochi
+(lo que la vertical del caso no tiene, lo busca en otra), así que lo que importa es que la corrección no las cambie.
 """
 
 import json
@@ -21,6 +27,7 @@ from pathlib import Path
 from psycopg import Connection
 
 from ..agent.grouped_search import search_grouped
+from ..agent.rappi_agent import Context, RappiAgent
 from ..agent.tools import search_products
 from ..embeddings.base import TextEmbedder
 from ..text import tokens
@@ -49,6 +56,9 @@ class TypoRun:
     grouped_before: bool = False
     grouped_after: bool = False
     grouped_corrected: str | None = None
+    mochi_before: bool = False  # Mochi lo recuperaba sin corregir
+    mochi_after: bool = False  # y corrigiendo
+    mochi_corrected: str | None = None
 
 
 @dataclass
@@ -58,6 +68,8 @@ class NegativeRun:
     before: bool  # "sin resultado" sin corregir
     detected: bool  # "sin resultado" corrigiendo
     corrected_query: str | None
+    mochi_before: bool = True  # Mochi la deja sin resultado y sin productos, sin corregir
+    mochi_detected: bool = True  # y corrigiendo
 
 
 @dataclass
@@ -96,7 +108,21 @@ def _grouped_meant(conn: Connection, embedder: TextEmbedder | None, query: str, 
     return found.unmet, best, found.corrected_query
 
 
+def _mochi(conn: Connection, agents: dict[bool, RappiAgent], query: str, vertical: str, correct: bool) -> dict:
+    """La respuesta de Mochi en la vertical del caso, corrigiendo o no."""
+    return agents[correct].reply(conn, query, Context(vertical=vertical))
+
+
+def _agents(embedder: TextEmbedder | None) -> dict[bool, RappiAgent]:
+    return {correct: RappiAgent(embedder, correct_typos=correct) for correct in (False, True)}
+
+
+def _mochi_recovered(response: dict, meant: str, needed: int) -> bool:
+    return recovered(response["unmet"], [p["name"] for p in response["products"]], meant, needed)
+
+
 def run_typos(conn: Connection, embedder: TextEmbedder | None, cases: list[dict]) -> list[TypoRun]:
+    agents = _agents(embedder)
     runs = []
     for case in cases:
         vertical = case["vertical"]
@@ -110,6 +136,8 @@ def run_typos(conn: Connection, embedder: TextEmbedder | None, cases: list[dict]
         grouped_needed = min(RECOVERED_MIN, _grouped_meant(conn, embedder, meant, meant, False)[1])
         unmet_before, best_before, _ = _grouped_meant(conn, embedder, case["query"], meant, False)
         unmet_after, best_after, grouped_corrected = _grouped_meant(conn, embedder, case["query"], meant, True)
+        mochi_before = _mochi(conn, agents, case["query"], vertical, False)
+        mochi_after = _mochi(conn, agents, case["query"], vertical, True)
         runs.append(
             TypoRun(
                 vertical,
@@ -126,6 +154,9 @@ def run_typos(conn: Connection, embedder: TextEmbedder | None, cases: list[dict]
                 not unmet_before and grouped_needed > 0 and best_before >= grouped_needed,
                 not unmet_after and grouped_needed > 0 and best_after >= grouped_needed,
                 grouped_corrected,
+                _mochi_recovered(mochi_before, meant, needed),
+                _mochi_recovered(mochi_after, meant, needed),
+                mochi_after.get("corrected_query"),
             )
         )
         conn.rollback()
@@ -133,12 +164,15 @@ def run_typos(conn: Connection, embedder: TextEmbedder | None, cases: list[dict]
 
 
 def run_negatives(conn: Connection, embedder: TextEmbedder | None) -> list[NegativeRun]:
+    agents = _agents(embedder)
     runs = []
     for q in load_queries():
         if q["tipo"] != "negativa":
             continue
         plain = search_products(conn, q["vertical"], q["query"], None, embedder, k=K)
         outcome = search_products(conn, q["vertical"], q["query"], None, embedder, k=K, correct=True)
+        mochi_before = _mochi(conn, agents, q["query"], q["vertical"], False)
+        mochi = _mochi(conn, agents, q["query"], q["vertical"], True)
         runs.append(
             NegativeRun(
                 q["vertical"],
@@ -146,6 +180,8 @@ def run_negatives(conn: Connection, embedder: TextEmbedder | None) -> list[Negat
                 plain.result.unmet and not plain.products,
                 outcome.result.unmet and not outcome.products,
                 outcome.corrected_query,
+                mochi_before["unmet"] and not mochi_before["products"],
+                mochi["unmet"] and not mochi["products"],
             )
         )
         conn.rollback()
@@ -183,20 +219,27 @@ def render_markdown(
         f" sin corregir y {sum(r.grouped_after for r in grouped)} corrigiendo; de las {len(grouped_negatives)}"
         f" negativas distintas, la agrupada deja {len(grouped_unmet)} sin resultado y corrigiendo siguen"
         f" {sum(r.detected for r in grouped_unmet)}",
+        f"- Mochi (en la vertical del caso): recuperados {sum(r.mochi_before for r in measured)} de {len(measured)}"
+        f" sin corregir y {sum(r.mochi_after for r in measured)} corrigiendo; de las negativas deja sin resultado"
+        f" {sum(r.mochi_before for r in negatives)} de {len(negatives)} sin corregir y"
+        f" {sum(r.mochi_detected for r in negatives)} corrigiendo (las demás las busca en otra vertical)",
         "",
         "| Vertical | Escrito | Quiso | Antes | Después | Corregida | Agrupada antes | Agrupada después | Corregida"
-        " (agrupada) | Se muestra | ms |",
-        "|---|---|---|---|---|---|---|---|---|---|---|",
+        " (agrupada) | Mochi antes | Mochi después | Corregida (Mochi) | Se muestra | ms |",
+        "|---|---|---|---|---|---|---|---|---|---|---|---|---|---|",
     ]
     for r in typos:
         before = "—" if not r.intended_shown else ("sí" if r.before else "no")
         after = "—" if not r.intended_shown else ("sí" if r.after else "no")
         g_before = "—" if not r.grouped_needed else ("sí" if r.grouped_before else "no")
         g_after = "—" if not r.grouped_needed else ("sí" if r.grouped_after else "no")
+        m_before = "—" if not r.intended_shown else ("sí" if r.mochi_before else "no")
+        m_after = "—" if not r.intended_shown else ("sí" if r.mochi_after else "no")
         shown = "; ".join(name[:40] for name in r.shown)
         lines.append(
             f"| {r.vertical} | {r.query} | {r.intended} | {before} | {after} | {r.corrected_query or ''} | {g_before} "
-            f"| {g_after} | {r.grouped_corrected or ''} | {shown} | {r.ms} |"
+            f"| {g_after} | {r.grouped_corrected or ''} | {m_before} | {m_after} | {r.mochi_corrected or ''} "
+            f"| {shown} | {r.ms} |"
         )
     if missed:
         lines += ["", "## No se recuperan", ""]
@@ -205,6 +248,14 @@ def render_markdown(
     if grouped_missed:
         lines += ["", "## No se recuperan en la agrupada", ""]
         lines += [f'- "{r.query}": {r.grouped_corrected or "sin corrección"}' for r in grouped_missed]
+    mochi_missed = [r for r in measured if not r.mochi_after]
+    if mochi_missed:
+        lines += ["", "## Mochi no los recupera", ""]
+        lines += [f'- {r.vertical} "{r.query}": {r.mochi_corrected or "sin corrección"}' for r in mochi_missed]
+    mochi_changed = [r for r in negatives if r.mochi_before and not r.mochi_detected]
+    if mochi_changed:
+        lines += ["", "## Negativas a las que Mochi muestra algo al corregir", ""]
+        lines += [f'- {r.vertical} "{r.query}"' for r in mochi_changed]
     changed = [r for r in negatives if r.before and not r.detected]
     changed_grouped = [r for r in grouped_unmet if not r.detected]
     if changed or changed_grouped:
