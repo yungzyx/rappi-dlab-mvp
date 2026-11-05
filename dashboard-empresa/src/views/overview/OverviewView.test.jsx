@@ -27,8 +27,11 @@ describe('OverviewView', () => {
     expect(within(churn).getByText(/Otras 564 pasaron el triple/)).toBeTruthy()
     expect(within(churn).getByText('Simulado')).toBeTruthy()
 
+    // Con los simulados, la aceptación la fija el generador: sin cifra ni acción.
     const mochi = decision('¿Funciona lo que ofrece Mochi?')
-    expect(within(mochi).getByText('43,8%')).toBeTruthy()
+    expect(within(mochi).getByText(/^En los simulados, la aceptación es un supuesto del generador/)).toBeTruthy()
+    expect(within(mochi).queryByText('43,8%')).toBeNull()
+    expect(within(mochi).queryByText('Ejemplo de acción (datos simulados)')).toBeNull()
 
     const demand = decision('¿Qué buscan y no encuentran?')
     expect(within(demand).getByText('21,5%')).toBeTruthy() // la última semana completa al corte
@@ -42,7 +45,7 @@ describe('OverviewView', () => {
 
     // Solo la del dato de Rappi es una sugerencia; con datos simulados, un ejemplo de la mecánica.
     expect(within(decision('¿Dónde está la venta cruzada?')).getByText('Acción sugerida')).toBeTruthy()
-    expect(screen.getAllByText('Ejemplo de acción (datos simulados)')).toHaveLength(3)
+    expect(screen.getAllByText('Ejemplo de acción (datos simulados)')).toHaveLength(2)
     expect(screen.queryByText(NOT_EVIDENCE)).toBeNull()
   })
 

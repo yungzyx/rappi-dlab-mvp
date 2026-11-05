@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'vitest'
-import { momentExtremes, momentLabel, offerTotals, suggestionTotals, topSuggestion } from './offers.js'
+import { momentExtremes, momentLabel, offerTotals, suggestionTotals, topSuggestion, twoProportionP } from './offers.js'
 
 const moment = (momento, mostradas, aceptadas, aceptacion_pct = null) => ({
   momento,
@@ -63,9 +63,9 @@ describe('offers', () => {
 
   test('the top suggestion needs 50 shown: a small one wins by chance', () => {
     const rows = [
-      { concepto: 'A', mostradas: 11, aceptacion_pct: 63.6 },
-      { concepto: 'B', mostradas: 400, aceptacion_pct: 30 },
-      { concepto: 'C', mostradas: 86, aceptacion_pct: 35 },
+      { concepto: 'A', mostradas: 11, aceptadas: 7, aceptacion_pct: 63.6 },
+      { concepto: 'B', mostradas: 400, aceptadas: 120, aceptacion_pct: 30 },
+      { concepto: 'C', mostradas: 86, aceptadas: 43, aceptacion_pct: 50 },
     ]
 
     expect(topSuggestion(rows).concepto).toBe('C')
@@ -74,11 +74,29 @@ describe('offers', () => {
 
   test('the top suggestion is never from Licores or Farmacia, even with the best rate', () => {
     const rows = [
-      { concepto: '🍺 Cerveza', vertical: 'licores', mostradas: 900, aceptacion_pct: 40 },
-      { concepto: '🧷 Pañales', vertical: 'farmacia', mostradas: 300, aceptacion_pct: 38 },
-      { concepto: '🥨 Snacks salados', vertical: 'conveniencia', mostradas: 200, aceptacion_pct: 32.6 },
+      { concepto: '🍺 Cerveza', vertical: 'licores', mostradas: 900, aceptadas: 360, aceptacion_pct: 40 },
+      { concepto: '🧷 Pañales', vertical: 'farmacia', mostradas: 300, aceptadas: 114, aceptacion_pct: 38 },
+      { concepto: '🥨 Snacks salados', vertical: 'conveniencia', mostradas: 200, aceptadas: 65, aceptacion_pct: 32.5 },
+      { concepto: '🧻 Papeles', vertical: 'conveniencia', mostradas: 200, aceptadas: 30, aceptacion_pct: 15 },
     ]
 
     expect(topSuggestion(rows).concepto).toBe('🥨 Snacks salados')
+  })
+
+  test('the top suggestion must stand out from the next one: a 1-point gap is noise, and alone it does not win', () => {
+    // La foto simulada del 05-11: 24 de 86 contra 14 de 52 (p ≈ 0,9).
+    const rows = [
+      { concepto: '☕ Café', vertical: 'supermercado', mostradas: 86, aceptadas: 24, aceptacion_pct: 27.9 },
+      { concepto: '🔥 Carbón y leña', vertical: 'conveniencia', mostradas: 52, aceptadas: 14, aceptacion_pct: 26.9 },
+    ]
+
+    expect(topSuggestion(rows)).toBeNull()
+    expect(topSuggestion(rows.slice(0, 1))).toBeNull()
+  })
+
+  test('the two-proportion test gives the two-sided p', () => {
+    expect(twoProportionP(50, 100, 30, 100)).toBeCloseTo(0.0039, 4) // z ≈ 2,89
+    expect(twoProportionP(24, 86, 14, 52)).toBeGreaterThan(0.8)
+    expect(twoProportionP(0, 60, 0, 60)).toBe(1)
   })
 })

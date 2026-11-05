@@ -21,7 +21,7 @@ function Churn({ source }) {
 
 function Mochi({ source }) {
   const [offers, suggestions] = useAnalyticsMany(['offers', 'suggestions'], source)
-  return <DecisionBody decision={mochiDecision(offers, suggestions)} source={source} />
+  return <DecisionBody decision={mochiDecision(offers, suggestions, source)} source={source} />
 }
 
 function Demand({ source }) {
@@ -38,7 +38,10 @@ export function OverviewView({ source, onNavigate }) {
       <section className="section" aria-labelledby="que-decidir">
         <div className="section-head">
           <h2 id="que-decidir">Qué decidir</h2>
-          <p>Cada pregunta con su cifra, su comparación y una acción. Ninguna se escala sin un grupo de control.</p>
+          <p>
+            Cada pregunta con su cifra, su comparación y una acción, cuando los datos la sostienen. Ninguna se escala
+            sin un grupo de control.
+          </p>
         </div>
         <div className="decisions">
           <DecisionCard

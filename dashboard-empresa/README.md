@@ -4,7 +4,7 @@
 
 > Prototipo del programa dLab desarrollado junto con Rappi Chile: no es un producto oficial de Rappi, y el encabezado del panel lo dice. Las marcas pertenecen a sus dueños.
 
-Panel para dos públicos de Rappi: la **gerencia general** (crecimiento, retención y venta cruzada entre verticales) y **RappiAds** (a quién ofrecer qué, en qué momento y con qué resultado). Se ordena en cuatro preguntas, cada una con su cifra, su comparación y una acción sugerida:
+Panel para dos públicos de Rappi: la **gerencia general** (crecimiento, retención y venta cruzada entre verticales) y **RappiAds** (a quién ofrecer qué, en qué momento y con qué resultado). Se ordena en cuatro preguntas, cada una con su cifra, su comparación y una acción sugerida cuando los datos la sostienen (con los simulados, la de Mochi no da cifra ni acción):
 
 1. **¿Dónde está la venta cruzada?** La tabla de combinaciones que compartió Rappi: cuántos usuarios están en cada combinación de verticales y cuánto más vuelve la combinación con un grupo más.
 2. **¿A quién estamos perdiendo?** Personas en riesgo y perdidas según su propio ritmo, a cuántas invitar a volver y qué pedían.
@@ -75,7 +75,7 @@ Arriba se elige la fuente de usuarios y eventos: **Simulados** o **Prototipo** (
 
 - **Venta cruzada** (dato de Rappi): la combinación donde están más usuarios (hoy, solo Restaurantes) y cuánto más vuelve quien suma el grupo siguiente. Acción: que Mochi lo ofrezca como "vertical por probar" y medirlo contra un grupo de control.
 - **A quién estamos perdiendo:** las personas en riesgo según su propio ritmo, con las perdidas como comparación. Acción: "¿Volvemos a…?" a quienes califican; fuera de la app, solo con consentimiento.
-- **Mochi:** la aceptación de sus ofertas, con sus cuentas y el momento que más y el que menos acepta (o, en simulados, cuánto de lo aceptado llega a pedido). Acción: revisar el momento que no convierte, dar espacio al que más acepta o empujar la sugerencia que más se acepta (solo entre las de 50 o más mostradas: con menos gana el azar).
+- **Mochi:** la aceptación de sus ofertas, con sus cuentas y el momento que más y el que menos acepta (o, sin momentos, cuánto de lo aceptado llega a pedido). Acción: revisar el momento que no convierte, dar espacio al que más acepta o empujar la sugerencia que más se acepta (solo entre las de 50 o más mostradas y si se distingue de la siguiente con una prueba de dos proporciones, p < 0,05: si no, es ruido y no hay acción). Con los simulados, ni cifra ni acción: la aceptación es un supuesto del generador y no dice si Mochi funciona.
 - Con la fuente del prototipo la acción se llama "Para revisar en el MVP": esos datos no son evidencia.
 - **Búsquedas:** el % sin resultado de la última semana contra 4 semanas antes y lo que más falta. Acción: la que da la API para esa demanda; si es "sumar comercios", primero revisar el buscador (un sinónimo o una categoría que falta).
 
