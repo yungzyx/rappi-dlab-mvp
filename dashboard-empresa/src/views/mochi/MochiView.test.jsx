@@ -32,7 +32,7 @@ describe('MochiView', () => {
     const offers = await screen.findByRole('table', { name: 'Ofertas del agente por momento' })
     const [plan, cart] = bodyRows(offers)
     expect(momentName(plan)).toBe('Plan')
-    expect(cells(plan).slice(1)).toEqual(['1', '1', '—', '0', '0'])
+    expect(cells(plan).slice(1)).toEqual(['1', '1', '—', '—', '0'])
     expect(momentName(cart)).toBe('Carro')
     // Lo que busca `make mvp-check`: la fila cuyo nombre empieza con "Plan ".
     expect(within(offers).getByRole('row', { name: /^Plan / })).toBe(plan)
@@ -76,6 +76,16 @@ describe('MochiView', () => {
       offersWith([
         { momento: 'carrito', mostradas: 4, aceptadas: 1, rechazadas: 2, por_que_abiertos: 3, aceptacion_pct: null },
         { momento: 'recompra', mostradas: 2, aceptadas: 1, aceptacion_pct: null }, // sin las cuentas nuevas
+        { momento: 'plan', mostradas: 3, aceptadas: 0, rechazadas: 0, por_que_abiertos: 1, aceptacion_pct: null },
+        { momento: 'volver', mostradas: 1, aceptadas: 0, rechazadas: 0, por_que_abiertos: 0, aceptacion_pct: null },
+        {
+          momento: 'sin_momento',
+          mostradas: 3,
+          aceptadas: 0,
+          rechazadas: 2,
+          por_que_abiertos: 0,
+          aceptacion_pct: null,
+        },
       ]),
     )
     await renderWithData(<MochiView source="prototype" />)
@@ -86,9 +96,15 @@ describe('MochiView', () => {
         .getAllByRole('columnheader')
         .map((th) => th.textContent),
     ).toEqual(['Momento', 'Mostradas', 'Aceptadas', 'Tasa de aceptación', 'Rechazadas', '"¿Por qué?" abiertos'])
-    const [cart, repeat] = bodyRows(offers)
-    expect(cells(cart).slice(1)).toEqual(['4', '1', '—', '2', '3'])
-    expect(cells(repeat).slice(4)).toEqual(['—', '—'])
+    const rows = Object.fromEntries(bodyRows(offers).map((row) => [momentName(row), row]))
+    expect(cells(rows.Carro).slice(1)).toEqual(['4', '1', '—', '2', '3'])
+    expect(cells(rows.Recompra).slice(4)).toEqual(['—', '—'])
+    // El plan no tiene botón para rechazar: "—", no un 0 que diría que nadie lo rechazó. Volver sí lo tiene.
+    expect(cells(rows.Plan).slice(4)).toEqual(['—', '1'])
+    expect(cells(rows['Volver a pedir']).slice(4)).toEqual(['0', '0'])
+    // Sin momento (un origen desconocido) muestra los rechazos que haya; sin ninguno, "—".
+    expect(cells(rows['Sin momento']).slice(4)).toEqual(['2', '0'])
+    expect(screen.getByText(/los otros momentos no tienen ese botón/)).toBeTruthy()
   })
 
   test('prototype sections carry the not-evidence label', async () => {
