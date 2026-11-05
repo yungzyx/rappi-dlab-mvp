@@ -212,3 +212,40 @@ test('el tope diario: con 5 sugerencias de las respuestas vistas hoy, Mochi resp
   expect(capped.reason).toBeNull()
   expect(capped.text).toBe(recorded.text)
 })
+
+test('preguntarle a Mochi suma al interés como en la API (un `ask` con su concepto); en "Rappi hoy", no', () => {
+  // La respuesta grabada de la API real a esa pregunta, con lo que entendió.
+  const recorded = {
+    text: 'Mira lo que encontré de "café".',
+    products: [],
+    intent: { kind: 'buscar', concepts: ['cafe'] },
+  }
+  const withAsk = { ...snapshot, ask: { 'quiero un cafe': recorded } }
+  const asks = (body) => route(withAsk, { method: 'POST', path: '/agent/ask', query: null, body })
+  const id = call('POST', '/session', {}).body.user_id
+  asks({ message: 'quiero un café', user_id: id, mode: 'actual' })
+  expect(call('GET', `/profile/${id}`).body.interests).toEqual([])
+  asks({ message: 'quiero un café', user_id: id, mode: 'propuesta' })
+  expect(
+    readState()
+      .events.filter((e) => e.type === 'ask')
+      .map((e) => [e.concept_id, e.payload.mode]),
+  ).toEqual([
+    [null, 'actual'],
+    ['cafe', 'propuesta'],
+  ])
+  expect(call('GET', `/profile/${id}`).body.interests.map((i) => i.concept)).toEqual(['cafe'])
+})
+
+test('el concepto de una búsqueda sale del texto (el corregido si lo hay), no del que manda la app', () => {
+  const id = call('POST', '/session', {}).body.user_id
+  call('POST', '/events', {
+    user_id: id,
+    events: [
+      { type: 'search', query: 'cafe', concept_id: 'galletas' },
+      { type: 'search', query: 'galeta', payload: { corregida: 'galleta' } },
+      { type: 'search', query: 'cerveza', payload: { mode: 'actual' } },
+    ],
+  })
+  expect(readState().events.map((e) => e.concept_id)).toEqual(['cafe', 'galletas', null])
+})

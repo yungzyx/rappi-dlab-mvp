@@ -29,7 +29,9 @@ export function useSearch({ initial = '', vertical, only = false } = {}) {
   const hasQuery = text.length > 0
   const person = useDemo()?.isFinal ? userId() : undefined
   const scope =
-    only && vertical ? { vertical, userId: person } : { current: vertical, exactQuery: exactText, userId: person }
+    only && vertical
+      ? { vertical, exactQuery: exactText, userId: person }
+      : { current: vertical, exactQuery: exactText, userId: person }
   const { data, loading, error, retry } = useSearchApi(query, scope)
   const events = useEvents()
   const logged = useRef(null)

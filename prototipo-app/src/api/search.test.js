@@ -29,6 +29,14 @@ describe('searchAll', () => {
     expect(Object.fromEntries(url.searchParams)).toEqual({ q: 'cerveza', current: 'grocery', limit: '4' })
   })
 
+  test('una consulta más larga que el límite de la API (200) se busca cortada, y `query` sigue siendo el texto entero', async () => {
+    const calls = stubApi({ '/search': fixture('search-grouped') })
+    const long = 'a'.repeat(300)
+    const result = await searchAll(long)
+    expect(new URL(calls.mock.calls[0][0]).searchParams.get('q')).toHaveLength(200)
+    expect(result.query).toBe(long)
+  })
+
   test('con la persona, manda su id y trae el aviso de lo que sacaron su dieta y sus alergias', async () => {
     const calls = stubApi({ '/search': fixture('search-grouped-preferencias') })
     const result = await searchAll('pizza', { userId: 'u-contrato' })

@@ -176,6 +176,16 @@ jobs:
       - run: npx prettier --check src scripts
       - run: npm test
       - run: npm run build
+      # La demo sin conexión ("Prototipo MVP.html"): la API simulada (src/api/offline/) y el "Panel de la demo" solo
+      # entran en este modo, así que un import roto ahí solo se ve aquí. Construye sin snapshot.json (import.meta.glob).
+      - name: Demo sin conexión (vite build --mode demo)
+        run: npx vite build --mode demo
+      - name: La demo sin conexión no apunta a la API local
+        run: |
+          if grep -rlE 'localhost:|:8000' dist-demo; then
+            echo "dist-demo apunta a la API local (localhost: o :8000), como revisa scripts/check-dist.sh." >&2
+            exit 1
+          fi
 
   dashboard-empresa:
     runs-on: ubuntu-latest

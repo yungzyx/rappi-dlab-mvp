@@ -157,6 +157,26 @@ describe('SearchScreen', () => {
     expect(push).toHaveBeenCalledWith('search', { query: 'cerveza', vertical: 'liquor', only: true })
   })
 
+  test('en "Ver todos en…" (una sola vertical), "Buscar … tal cual" vuelve a buscar sin corregir en esa vertical', async () => {
+    const licores = fixture('search-grouped').groups[0]
+    const oneVertical = (req) =>
+      req.query.get('correct') === 'false'
+        ? { vertical: licores.vertical, products: [], unmet: true }
+        : { vertical: licores.vertical, products: licores.products, corrected_query: 'cerveza' }
+    const fetchMock = stubApi({ '/search': oneVertical, '/catalog/home': fixture('catalog-home') })
+    const params = { query: 'cervesa', vertical: 'liquor', only: true }
+    render(<SearchScreen back={() => {}} push={() => {}} params={params} />, { wrapper: Providers })
+    await advance(0)
+    expect(screen.getByText(/Mostrando resultados para "cerveza"/)).toBeTruthy()
+
+    fireEvent.click(screen.getByRole('button', { name: 'Buscar "cervesa" tal cual' }))
+    await advance(0)
+    const last = new URL(fetchMock.mock.calls.at(-1)[0])
+    expect(last.pathname).toBe('/search')
+    expect(Object.fromEntries(last.searchParams)).toMatchObject({ q: 'cervesa', vertical: 'liquor', correct: 'false' })
+    expect(screen.queryByText(/Mostrando resultados/)).toBeNull()
+  })
+
   test('sin resultados y con permiso de la API, "Lo que sea" abre RappiFavor con lo escrito', async () => {
     const { input, push } = setup() // "xyzzy" no tiene nada que las guardias bloqueen
     await type(input, 'xyzzy')

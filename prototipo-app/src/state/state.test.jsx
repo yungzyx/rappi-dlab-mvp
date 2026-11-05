@@ -63,6 +63,22 @@ describe('CartContext', () => {
   const OFFER_A = { id: 'cat-200', name: 'Cerveza Escudo', price: '$1.290', vertical: 'licores', store: 'Botillería' }
   const OFFER_B = { ...OFFER_A, price: '$1.390', vertical: 'supermercado', store: 'Unimarc' }
 
+  test('"+" y "−" no reordenan el carro: la tienda y el pedido que se lleva la propina se quedan donde estaban', () => {
+    const a = { ...BEER, storeId: 1, store: 'Botillería' }
+    const b = { ...CHIPS, storeId: 2, store: 'Súper' }
+    const { result } = setup()
+    act(() => result.current.add(a))
+    act(() => result.current.add(b))
+    act(() => result.current.add(a))
+    expect(result.current.items.map((line) => line.product.id)).toEqual(['beer', 'chips'])
+    expect(result.current.qtyOf(a)).toBe(2)
+    act(() => result.current.remove(a))
+    expect(result.current.items.map((line) => line.product.id)).toEqual(['beer', 'chips'])
+    expect(result.current.qtyOf(a)).toBe(1)
+    act(() => result.current.remove(a))
+    expect(result.current.items.map((line) => line.product.id)).toEqual(['chips'])
+  })
+
   test('cada oferta es su propia línea (mismo producto en otra tienda o vertical)', () => {
     const { result } = setup()
     act(() => result.current.add(OFFER_A))

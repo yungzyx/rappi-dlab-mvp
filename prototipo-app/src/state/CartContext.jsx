@@ -76,12 +76,16 @@ export function CartProvider({ children }) {
     const key = lineKey(product)
     setLines((prev) => {
       const qty = (prev[key]?.qty ?? 0) + delta
-      const { [key]: _removed, ...rest } = prev
+      if (qty <= 0) {
+        const { [key]: _removed, ...rest } = prev
+        return rest
+      }
       // Si alguna unidad vino de una sugerencia, la línea lo recuerda (no la pisa un "+" desde otra tarjeta).
       const fromSuggestion = Boolean(prev[key]?.fromSuggestion || product.fromSuggestion)
       const note = prev[key]?.note
       const substitution = prev[key]?.substitution
-      return qty > 0 ? { ...rest, [key]: { product, qty, fromSuggestion, note, substitution } } : rest
+      // La línea se actualiza en su lugar (una nueva va al final): las tiendas y la propina no cambian con cada toque.
+      return { ...prev, [key]: { product, qty, fromSuggestion, note, substitution } }
     })
   }, [])
 

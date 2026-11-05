@@ -17,7 +17,10 @@ export default function CartBar({ raised, push }) {
   const cart = useCart()
   const events = useEvents()
   const [open, setOpen] = useState(false)
+  // "Vaciar carro" pide confirmación: un toque de más perdía el carro entero (y contaba como salidas en el panel).
+  const [confirming, setConfirming] = useState(false)
   const bar = useRef(null)
+  const cancel = useRef(null)
   useFloatingInset(() => bar.current)
   // "Revisar mi carrito" desde el menú de Mochi (openCartSheet) abre la misma hoja que "Ver carro".
   useEffect(() => {
@@ -25,6 +28,9 @@ export default function CartBar({ raised, push }) {
     window.addEventListener(OPEN_CART_EVENT, onOpen)
     return () => window.removeEventListener(OPEN_CART_EVENT, onOpen)
   }, [])
+  useEffect(() => {
+    if (confirming) cancel.current?.focus()
+  }, [confirming])
 
   if (cart.count === 0 && !open) return null
 
@@ -32,10 +38,16 @@ export default function CartBar({ raised, push }) {
   const emptyCart = () => {
     cart.items.forEach(({ product, qty }) => events.track('cart_remove', cartEventFields(product, cart.id, { qty })))
     cart.clear()
+    setConfirming(false)
+  }
+
+  const close = () => {
+    setOpen(false)
+    setConfirming(false)
   }
 
   const checkout = () => {
-    setOpen(false)
+    close()
     push('checkout')
   }
 
@@ -54,7 +66,7 @@ export default function CartBar({ raised, push }) {
         </button>
       )}
 
-      <Sheet open={open} onClose={() => setOpen(false)} title="Tu carro">
+      <Sheet open={open} onClose={close} title="Tu carro">
         {cart.items.length === 0 ? (
           <p className="cart-empty">Tu carro está vacío.</p>
         ) : (
@@ -67,9 +79,28 @@ export default function CartBar({ raised, push }) {
             <button type="button" className="cart-checkout tap" onClick={checkout}>
               Ir a pagar
             </button>
-            <button type="button" className="cart-clear" onClick={emptyCart}>
-              Vaciar carro
-            </button>
+            {confirming ? (
+              <div className="sheet-confirm">
+                <p>
+                  ¿Vaciar el carro? {cart.count === 1 ? 'Se quita 1 producto.' : `Se quitan ${cart.count} productos.`}
+                </p>
+                <button type="button" className="sheet-confirm-primary tap" onClick={emptyCart}>
+                  Vaciar
+                </button>
+                <button
+                  ref={cancel}
+                  type="button"
+                  className="sheet-confirm-secondary tap"
+                  onClick={() => setConfirming(false)}
+                >
+                  Cancelar
+                </button>
+              </div>
+            ) : (
+              <button type="button" className="cart-clear" onClick={() => setConfirming(true)}>
+                Vaciar carro
+              </button>
+            )}
           </>
         )}
       </Sheet>
