@@ -82,7 +82,7 @@ Cada cifra dice qué tipo de dato es. El detalle, con los reportes de cada fecha
 | Errores de tipeo | 53 de 53 recuperados en la búsqueda de la app (37 sin corregir) y 52 por vertical | Evaluación automática ([25-10-2026](docs/resultados/busqueda-2026-10-25.md)) |
 | Seguimientos de Mochi (chips) | 25 conversaciones de 2 o 3 turnos: 21 bien, 4 a medias, 0 mal (antes 7, 8 y 10); las 40 preguntas libres, bien | Juicio propio sobre una copia de la base, no humano externo, medido el 25-10 con el campo de seguimiento; desde el 26-10 los mismos seguimientos van por chips, con la misma API ([25-10-2026](docs/resultados/mochi-conversacion-2026-10-25.md)) |
 | Guardias de ofertas | 0 casos de alcohol, Farmacia, bebé, salud o sensibles en 2.851 productos ofrecidos | QA sobre el catálogo real con personas simuladas ([16-10-2026](docs/resultados/qa-motor-2026-10-16.md)) |
-| Motor: próxima vertical | nDCG@8 0,978 frente a 0,918 del orden fijo | Simulado: prueba la mecánica, no el efecto ([17-10-2026](docs/resultados/simulados-2026-10-17.md)) |
+| Motor: próxima vertical | nDCG@8 0,980 frente a 0,918 del orden fijo | Simulado: prueba la mecánica, no el efecto ([04-11-2026](docs/resultados/simulados-2026-11-04.md)) |
 | Conceptos | 86 a 88 % de precisión en la asignación de conceptos | Estimación con jueces LLM ([06-10-2026](docs/resultados/capas-precision-2026-10-06-nueva-muestra.md)) |
 | Tests | rappi-ia 3.315 (y 2 omitidos) · scraper 281 · prototipo 996 · panel 130 | Al 02-11-2026: CI de main en `1752318`; no se recontaron con los PR posteriores |
 
@@ -124,7 +124,7 @@ make mvp                                        # con el catálogo real: API (:8
 
 ## Límites
 
-- **El motor aprende de una población simulada** (`MOTOR_POBLACION`; con datos de Rappi se cambia la fuente, no el mecanismo). Como λ quedó en 0, Mochi ofrece lo más pedido, no reglas aprendidas.
+- **El motor aprende de una población simulada** (`MOTOR_POBLACION`; con datos de Rappi se cambia la fuente, no el mecanismo). λ quedó en 1, pero las reglas aprendidas llegan a pocas personas (17 de 505) y en la prueba la mezcla acierta lo mismo que lo más pedido: en la práctica, Mochi ofrece lo más pedido.
 - **La escalera parte de una correlación**, y la agrupación en `rest`, `turbo` y `retail` y el rendimiento decreciente de la escalera fina son supuestos propios. El efecto solo se mide con datos de Rappi y un grupo de control.
 - **Cobertura parcial en tiendas:** hasta 24 productos por sub-pasillo y una sucursal por marca o formato; sin Mascotas. Las opciones obligatorias de un plato ("Elige 1 salsa") no están. Turbo tiene precios del 27-09-2026.
 - **Mochi no ofrece por su cuenta alcohol, farmacia, bebé ni salud:** menos complementos ("playa" no sugiere protector solar). Entiende los pedidos con reglas, no con un LLM; no es un chat y la API no guarda historial.

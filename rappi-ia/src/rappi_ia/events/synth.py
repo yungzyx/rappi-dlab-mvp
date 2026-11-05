@@ -74,6 +74,13 @@ SUPUESTOS (editables aquí):
   se toca sigue un sesgo de posición (POSITION_DECAY: cada lugar más abajo se toca 0,75 veces lo del anterior), así que
   el CTR por posición de los simulados es el que se puso, no evidencia. Los lugares y el relleno de la lista salen de un
   sorteo aparte por sesión (semilla, persona y sesión): no tocan el de la conducta, y lo calibrado sigue igual.
+- Reformulaciones (REFORMULATE): parte de las búsquedas con resultados viene después de otra búsqueda en la misma
+  vertical, de 20 a 90 segundos antes (REFORMULATE_GAP_S), escrita con una letra de menos (_misspelled), que mostró
+  poco (1 a 3 resultados) y donde no tocó nada. SUPUESTO PROPIO, no un dato de Rappi: alimenta el abandono de búsqueda
+  del panel (las rescatadas, que dan con lo que buscaban al reformular). Esa primera búsqueda no tiene concepto ni
+  queda sin resultado: no cambia la demanda no satisfecha, el surtido por concepto ni "Lo más buscado" (que solo
+  cuenta lo que calza con el catálogo). Sale de un sorteo aparte por sesión (semilla, persona y sesión): no toca el de
+  la conducta, y lo calibrado sigue igual.
 - Experimentos: toda persona simulada está en `modo_app = propuesta` (sus sesiones son de ese modo). El grupo de control
   de las ofertas no se simula: su efecto saldría de un supuesto puesto aquí, y retener sugerencias movería lo calibrado.
 """
@@ -421,6 +428,8 @@ TURBO_SUGGESTION = 0.5
 SUGGESTION_CADENCE_BOOST = 0.93  # aceptar una sugerencia acorta el ritmo 7%
 RESULTS_VISIBLE = (4, 8)  # cuántos resultados de una búsqueda quedan a la vista (supuesto propio)
 POSITION_DECAY = 0.75  # sesgo de posición: cada lugar más abajo se toca esta fracción de lo del anterior (supuesto)
+REFORMULATE = 0.08  # búsquedas con resultados que vienen de otra mal escrita en la misma vertical, sin toque (supuesto)
+REFORMULATE_GAP_S = (20, 90)  # cuántos segundos antes fue esa otra búsqueda
 MODALITIES = (("texto", 1.0),)  # solo texto; se sigue sorteando para conservar la misma secuencia aleatoria
 PREFERRED_ATTRIBUTES = ("sin-gluten", "vegano", "alto-proteina", "con-descuento")
 PREFER_SHARE = 0.85  # con qué frecuencia elige un ítem con su atributo cuando el concepto tiene alguno
@@ -788,6 +797,23 @@ def _session(rng, catalog: Catalog, s: UserState, ts: datetime, start: datetime,
     kind = "ask" if rng.random() < 0.3 else "search"
     modality = _modality(rng)  # antes que los resultados: el mismo orden de sorteo de siempre
     results = 0 if item is None else rng.randint(4, 20)
+    other = None
+    if kind == "search" and item is not None:
+        other = _reformulated_from(random.Random(f"ref-{seed}-{s.user_id}-{session_id}"))
+    if other:  # antes, la misma búsqueda mal escrita: mostró poco y no tocó nada
+        shown, seconds = other
+        emit(
+            "search",
+            clock,
+            vertical=vertical,
+            query=_misspelled(catalog.names.get(concept, concept).lower()),
+            modality=modality,
+            results=shown,
+            unmet=False,
+            surface="search",
+            request=f"syn-{_event_uuid(s.user_id, session_id, seq).hex[:16]}",
+        )
+        clock += timedelta(seconds=seconds)
     # La búsqueda tiene su id (el request_id de /search); la pregunta a Mochi, el de /agent/ask.
     request = f"syn-{_event_uuid(s.user_id, session_id, seq).hex[:16]}"
     emit(
@@ -994,6 +1020,23 @@ def _copy_items(conn: Connection, buffer: io.StringIO) -> None:
            LEFT JOIN concepts c ON c.concept_id = t.concept_id
            ON CONFLICT DO NOTHING"""
     )
+
+
+def _reformulated_from(ref: random.Random) -> tuple[int, int] | None:
+    """Si esta búsqueda (con resultados) reformula otra (REFORMULATE): cuántos resultados mostró la anterior y cuántos
+    segundos antes fue. El sorteo es aparte (`ref`)."""
+    if ref.random() >= REFORMULATE:
+        return None
+    return ref.randint(1, 3), ref.randint(*REFORMULATE_GAP_S)
+
+
+def _misspelled(text: str) -> str:
+    """La búsqueda con una letra de menos: la segunda de su palabra más larga ("sushi" → "sshi")."""
+    words = text.split()
+    longest = max(range(len(words)), key=lambda i: len(words[i]))
+    word = words[longest]
+    words[longest] = word[0] + word[2:] if len(word) > 2 else word
+    return " ".join(words)
 
 
 def _stay_probability(s: UserState, now: datetime, gap: float) -> float:

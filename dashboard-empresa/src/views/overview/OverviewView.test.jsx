@@ -31,8 +31,8 @@ describe('OverviewView', () => {
     expect(within(mochi).getByText('43,8%')).toBeTruthy()
 
     const demand = decision('¿Qué buscan y no encuentran?')
-    expect(within(demand).getByText('23,5%')).toBeTruthy() // la última semana completa al corte
-    expect(within(demand).getByText('+4,0 puntos')).toBeTruthy()
+    expect(within(demand).getByText('21,5%')).toBeTruthy() // la última semana completa al corte
+    expect(within(demand).getByText('+1,9 puntos')).toBeTruthy()
     expect(
       within(demand).getByText(
         /🇵🇪 Comida peruana en Restaurantes, 708 personas en total \(\+31% en las últimas 4 semanas\)/,
@@ -51,8 +51,8 @@ describe('OverviewView', () => {
     await renderWithData(<OverviewView source="synthetic" onNavigate={() => {}} />)
 
     const active = screen.getByRole('article', { name: 'Personas activas' })
-    expect(within(active).getByText('558')).toBeTruthy()
-    expect(within(active).getByText('−1%')).toBeTruthy()
+    expect(within(active).getByText('561')).toBeTruthy()
+    expect(within(active).getByText('−3%')).toBeTruthy()
     expect(within(active).getByRole('img', { name: 'Personas activas, últimas 12 semanas completas' })).toBeTruthy()
     expect(within(screen.getByRole('article', { name: 'Frecuencia (30 días)' })).getByText('1,50')).toBeTruthy()
     expect(screen.getByRole('table', { name: 'Serie semanal' })).toBeTruthy()

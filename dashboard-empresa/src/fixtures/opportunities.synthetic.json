@@ -77,8 +77,8 @@
       "vertical": "supermercado",
       "concept_id": null,
       "que": "kombucha",
-      "busquedas": 162,
-      "usuarios": 150,
+      "busquedas": 173,
+      "usuarios": 158,
       "ciudades": [
         "Antofagasta",
         "Concepción",
@@ -111,6 +111,6 @@
   ],
   "guardado": {
     "origen": "npm run panel:snapshot · usuarios simulados de rappi_staging",
-    "fecha": "2026-11-01"
+    "fecha": "2026-11-04"
   }
 }

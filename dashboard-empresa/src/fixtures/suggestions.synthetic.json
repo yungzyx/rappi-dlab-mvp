@@ -128,15 +128,6 @@
       "aceptacion_pct": 25.5
     },
     {
-      "concepto": "🧃 Jugos y néctares",
-      "vertical": "conveniencia",
-      "mostradas": 52,
-      "aceptadas": 12,
-      "ignoradas": 40,
-      "convertidas": 8,
-      "aceptacion_pct": 23.1
-    },
-    {
       "concepto": "🔥 Carbón y leña",
       "vertical": "conveniencia",
       "mostradas": 52,
@@ -144,6 +135,15 @@
       "ignoradas": 38,
       "convertidas": 11,
       "aceptacion_pct": 26.9
+    },
+    {
+      "concepto": "🧃 Jugos y néctares",
+      "vertical": "conveniencia",
+      "mostradas": 52,
+      "aceptadas": 12,
+      "ignoradas": 40,
+      "convertidas": 8,
+      "aceptacion_pct": 23.1
     },
     {
       "concepto": "🥫 Salsas y aderezos",
@@ -182,15 +182,6 @@
       "aceptacion_pct": 33.3
     },
     {
-      "concepto": "🍘 Snacks asiáticos",
-      "vertical": "conveniencia",
-      "mostradas": 21,
-      "aceptadas": 3,
-      "ignoradas": 18,
-      "convertidas": 2,
-      "aceptacion_pct": 14.3
-    },
-    {
       "concepto": "🔥 Carbón y leña",
       "vertical": "turbo",
       "mostradas": 21,
@@ -198,6 +189,15 @@
       "ignoradas": 14,
       "convertidas": 4,
       "aceptacion_pct": 33.3
+    },
+    {
+      "concepto": "🍘 Snacks asiáticos",
+      "vertical": "conveniencia",
+      "mostradas": 21,
+      "aceptadas": 3,
+      "ignoradas": 18,
+      "convertidas": 2,
+      "aceptacion_pct": 14.3
     },
     {
       "concepto": "🥣 Cereales y avena",
@@ -254,15 +254,6 @@
       "aceptacion_pct": 45.5
     },
     {
-      "concepto": "🦴 Accesorios para mascotas",
-      "vertical": "turbo",
-      "mostradas": 11,
-      "aceptadas": 1,
-      "ignoradas": 10,
-      "convertidas": 1,
-      "aceptacion_pct": 9.1
-    },
-    {
       "concepto": "🧻 Papeles y desechables",
       "vertical": "turbo",
       "mostradas": 11,
@@ -270,10 +261,19 @@
       "ignoradas": 4,
       "convertidas": 4,
       "aceptacion_pct": 63.6
+    },
+    {
+      "concepto": "🦴 Accesorios para mascotas",
+      "vertical": "turbo",
+      "mostradas": 11,
+      "aceptadas": 1,
+      "ignoradas": 10,
+      "convertidas": 1,
+      "aceptacion_pct": 9.1
     }
   ],
   "guardado": {
     "origen": "npm run panel:snapshot · usuarios simulados de rappi_staging",
-    "fecha": "2026-11-01"
+    "fecha": "2026-11-04"
   }
 }

@@ -4,15 +4,15 @@ El resumen de las cifras está en el [README principal](../../README.md#resultad
 
 ## Motor multivertical (datos simulados: prueban la mecánica, no el efecto)
 
-Corrida del 17-10-2026 (`rappi-ia motor`, semilla 7) sobre una copia del catálogo real y **3.000 personas simuladas**, con el generador recalibrado a la mezcla de la tabla de Rappi y tramos por fecha: entrenar, validar y probar (28 días cada uno de los dos últimos). Cambiar el generador mueve todas las cifras simuladas; no son mejoras del motor. Antes y después, tolerancias y semillas: [simulados-2026-10-17.md](simulados-2026-10-17.md). La historia de la etapa de QA (intentos descartados y ruido entre semillas) y de la escalera fina: [motor-2026-10-16.md](motor-2026-10-16.md).
+Corrida del 04-11-2026 (`rappi-ia motor`, semilla 7; [simulados-2026-11-04.md](simulados-2026-11-04.md)) sobre una copia del catálogo real y **3.000 personas simuladas**, con el generador recalibrado a la mezcla de la tabla de Rappi (17-10) y tramos por fecha: entrenar, validar y probar (28 días cada uno de los dos últimos). Cambiar el generador mueve todas las cifras simuladas; no son mejoras del motor. Antes y después, tolerancias y semillas: [simulados-2026-10-17.md](simulados-2026-10-17.md). La historia de la etapa de QA (intentos descartados y ruido entre semillas) y de la escalera fina: [motor-2026-10-16.md](motor-2026-10-16.md).
 
 | Qué | Métrica (tramo de prueba) | Valor | Tipo de dato |
 |---|---|---|---|
-| Próxima vertical | nDCG@8 | combinado 0,978 · solo afinidad 0,976 · popularidad 0,924 · orden fijo 0,918 (477 personas) | Simulado |
-| Compra cruzada | precisión@3 | mezcla 0,129 · lo más pedido 0,129. En validación λ quedó en 0, así que hoy las reglas no cambian lo que se ofrece; las reglas solas, 0,030 en 134 personas | Simulado |
-| Recompra | acierto ±7 días | 0,191 (de 110 predicciones), error mediano de 6 días | Simulado |
+| Próxima vertical | nDCG@8 | combinado 0,980 · solo afinidad 0,978 · popularidad 0,924 · orden fijo 0,918 (505 personas) | Simulado |
+| Compra cruzada | precisión@3 | mezcla 0,129 · lo más pedido 0,129. En validación λ quedó en 1, pero las reglas solas llegan a 17 personas (0,118): en la prueba la mezcla no cambia lo que acierta | Simulado |
+| Recompra | acierto ±7 días | 0,214 (de 103 predicciones), error mediano de 6,5 días | Simulado |
 | Generador simulado | parecido a la tabla de Rappi (personas-mes) | distancia 23,3 → 18,2 (16-10, Turbo en las sugerencias) → 2,9 (17-10, recalibrado; 2,5 a 5,5 en 5 semillas, cada fila a menos de 2 puntos). Retención M+1 de Restaurantes 0,452 (Rappi 0,47); rest+turbo+retail, la más alta (0,916; Rappi 0,93) | Simulado, comparado con el dato compartido por Rappi |
-| Paso de la escalera fina | acierto@1 entre quienes suman una vertical | paso 0,620 · la vertical que más se suma 0,479 (71 personas). El paso busca retención, no adivinar qué se suma solo; con el generador del 16-10 perdía (0,466 contra 0,638): con 71 personas de una semilla, ninguna de las dos es evidencia | Simulado: no es evidencia |
+| Paso de la escalera fina | acierto@1 entre quienes suman una vertical | paso 0,540 · la vertical que más se suma 0,595 (74 personas). El paso busca retención, no adivinar qué se suma solo; el 17-10 ganaba (0,620 contra 0,479, 71 personas): con menos de 100 personas de una semilla, ninguna de las dos es evidencia | Simulado: no es evidencia |
 
 Cómo leerlo: la ventaja del combinado viene casi entera de la afinidad de cada persona, y el generador hace que cada persona repita sus verticales, así que en parte acierta por construcción; con el generador recalibrado hay más personas que solo piden en Restaurantes, y eso facilita adivinar la próxima vertical a todos los métodos, incluido el orden fijo. El generador se calibró con la tabla de Rappi y la trata como efecto, así que sus cifras no prueban que sumar verticales retenga. La agrupación de verticales en `rest`, `turbo` y `retail` es un supuesto propio. Detalle: [capa-de-datos.md](../capa-de-datos.md#motor-multivertical).
 

@@ -9,9 +9,9 @@
         "variantes": [
           {
             "variante": "propuesta",
-            "personas": 0,
-            "con_pedido": 0,
-            "verticales_por_persona": null
+            "personas": 3000,
+            "con_pedido": 2291,
+            "verticales_por_persona": 1.34
           },
           {
             "variante": "actual",
@@ -59,6 +59,6 @@
   },
   "guardado": {
     "origen": "npm run panel:snapshot · usuarios simulados de rappi_staging",
-    "fecha": "2026-11-01"
+    "fecha": "2026-11-04"
   }
 }

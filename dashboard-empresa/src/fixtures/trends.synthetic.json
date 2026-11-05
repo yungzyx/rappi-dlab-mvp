@@ -79,15 +79,15 @@
       "crecimiento_pct": -26
     },
     {
-      "concept_id": "snacks-asiaticos",
-      "concepto": "🍘 Snacks asiáticos",
-      "recientes": 60,
-      "anteriores": 48,
+      "concept_id": "arabe",
+      "concepto": "🥙 Comida árabe",
+      "recientes": 65,
+      "anteriores": 52,
       "crecimiento_pct": 25
     }
   ],
   "guardado": {
     "origen": "npm run panel:snapshot · usuarios simulados de rappi_staging",
-    "fecha": "2026-11-01"
+    "fecha": "2026-11-04"
   }
 }

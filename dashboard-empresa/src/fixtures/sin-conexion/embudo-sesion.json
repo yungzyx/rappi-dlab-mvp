@@ -4,14 +4,14 @@
     {
       "modo": "propuesta",
       "sesiones": 16256,
-      "vieron": 10541,
-      "tocaron": 9433,
-      "agregaron": 9433,
-      "pidieron": 6801
+      "vieron": 13581,
+      "tocaron": 11949,
+      "agregaron": 11949,
+      "pidieron": 8639
     }
   ],
   "guardado": {
     "origen": "npm run panel:snapshot · usuarios simulados de rappi_staging",
-    "fecha": "2026-11-01"
+    "fecha": "2026-11-04"
   }
 }
