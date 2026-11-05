@@ -5,7 +5,8 @@ const pct = (fraction) => (fraction === null || fraction === undefined ? null : 
 /**
  * Lo que decide el motor contra una regla simple, en el tramo de prueba de su evaluación por fechas: el próximo
  * vertical (acierto en el primero), la compra cruzada (precisión en 3, la mezcla que usa Mochi contra lo más pedido) y
- * el paso de la escalera (las corridas anteriores a la escalera fina no lo traen).
+ * el paso de la escalera (las corridas anteriores a la escalera fina no lo traen). Cada fila dice con cuántas personas
+ * se mide (`n`) y si su diferencia es ruido (`noise`), para no pintarla de rojo ni de verde.
  */
 export function motorRows(evaluation) {
   const next = evaluation.proximo_vertical
@@ -19,6 +20,8 @@ export function motorRows(evaluation) {
       motor: pct(next.combinado.hit1),
       base: pct(next.orden_fijo.hit1),
       baseLabel: 'Orden fijo',
+      n: next.combinado.personas,
+      noise: false,
     },
     {
       key: 'cruzada',
@@ -27,9 +30,12 @@ export function motorRows(evaluation) {
       motor: pct(cross.mezcla.precision3),
       base: pct(cross.lo_mas_pedido.precision3),
       baseLabel: 'Lo más pedido',
+      n: cross.mezcla.personas_con_prediccion ?? cross.personas,
+      noise: false,
     },
   ]
   if (evaluation.paso) {
+    const { personas, p_mcnemar: p } = evaluation.paso
     rows.push({
       key: 'paso',
       decides: 'Qué vertical sumar a su combinación',
@@ -37,6 +43,10 @@ export function motorRows(evaluation) {
       motor: pct(evaluation.paso.escalera),
       base: pct(evaluation.paso.mas_sumada),
       baseLabel: 'La que más se suma',
+      n: personas,
+      p,
+      // Ruido: McNemar no rechaza (p ≥ 0,05); las corridas sin ese campo (y la foto sin conexión) caen en n < 100.
+      noise: p === undefined || p === null ? personas < 100 : p >= 0.05,
     })
   }
   // La diferencia sale de las cifras redondeadas que se muestran: 96,6 − 84,0 = 12,6, no 12,7.

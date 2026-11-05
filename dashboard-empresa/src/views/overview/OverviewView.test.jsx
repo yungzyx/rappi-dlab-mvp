@@ -86,8 +86,7 @@ describe('OverviewView', () => {
     await renderWithData(<OverviewView source="prototype" onNavigate={() => {}} />)
 
     expect(within(decision('¿Dónde está la venta cruzada?')).getByText('62,6%')).toBeTruthy()
-    expect(
-      within(decision('¿Funciona lo que ofrece Mochi?')).getByText('No se pudieron cargar estos datos'),
-    ).toBeTruthy()
+    // Del prototipo no hay respaldo: el bloque queda vacío y el aviso (con su Reintentar) va una sola vez arriba.
+    expect(within(decision('¿Funciona lo que ofrece Mochi?')).getByText('Sin conexión con la API')).toBeTruthy()
   })
 })

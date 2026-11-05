@@ -13,6 +13,8 @@ export function Delta({ value, format, goodWhen = 'up', suffix }) {
     <span className={`status status--${tone} delta`}>
       {direction && <Icon name={direction} />}
       <span className="num">{format(value)}</span>
+      {/* El juicio también en texto: el color no llega al lector de pantalla ni a quien no distingue rojo de verde. */}
+      {tone !== 'muted' && <span className="visually-hidden">{tone === 'good' ? ' (mejora)' : ' (empeora)'}</span>}
       {suffix && <span className="delta-suffix">{suffix}</span>}
     </span>
   )

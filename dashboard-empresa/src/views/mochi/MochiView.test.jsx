@@ -233,13 +233,42 @@ describe('MochiView', () => {
 
     const motor = screen.getByRole('table', { name: 'El motor contra una regla simple' })
     const [next] = bodyRows(motor)
-    expect(cells(next).slice(1)).toEqual(['96,6%', '84,0%Orden fijo', '+12,6 puntos'])
+    expect(cells(next).slice(1)).toEqual(['96,6%', '84,0%Orden fijo', '+12,6 puntos (mejora)'])
+    expect(within(next).getByText(/\(505 personas\)$/)).toBeTruthy()
     expect(screen.getByText(/prueba la mecánica del motor, no su efecto/)).toBeTruthy()
     resetApi()
 
     serveFixtures() // los guardados: el motor corrió sin 84 días de pedidos
     await renderWithData(<MochiView source="synthetic" />)
     expect(screen.getByText('Sin evaluación todavía')).toBeTruthy()
+  })
+
+  test('each motor row says how many people it is measured on, and the step gap of 74 people is not painted', async () => {
+    const saved = (await import('../../fixtures/sin-conexion/motor.json')).default
+    serveFixturesWith({ motor: { source: saved.source, data: saved.data } })
+    await renderWithData(<MochiView source="synthetic" />)
+
+    const motor = screen.getByRole('table', { name: 'El motor contra una regla simple' })
+    const step = within(motor).getByRole('row', { name: /^Qué vertical sumar a su combinación/ })
+    expect(within(step).getByText(/\(74 personas\)$/)).toBeTruthy()
+    expect(within(step).getByText('no es concluyente')).toBeTruthy()
+    const gap = within(step).getByText('−5,4 puntos').closest('.delta')
+    expect(gap.classList.contains('status--bad')).toBe(false)
+    expect(gap.textContent).not.toMatch(/mejora|empeora/)
+    // Delta no es hijo directo de la grilla: ahí dejaría de ser inline-flex y no se alinearía a la derecha.
+    for (const delta of motor.querySelectorAll('.delta')) {
+      expect(delta.parentElement.classList.contains('cell-stack')).toBe(false)
+    }
+    // La nota bajo la tabla ya no le atribuye a toda la tabla las personas de la primera fila.
+    const note = screen.getByText(/^Se mide con pedidos posteriores a los que usó para aprender\. Corrida del/)
+    expect(note.textContent).not.toContain('505 personas')
+    resetApi()
+
+    // Con la prueba de McNemar de la API, la diferencia dice su p.
+    const evaluacion = { ...saved.data.evaluacion, paso: { ...saved.data.evaluacion.paso, p_mcnemar: 0.4237 } }
+    serveFixturesWith({ motor: { source: saved.source, data: { ...saved.data, evaluacion } } })
+    await renderWithData(<MochiView source="synthetic" />)
+    expect(screen.getByText('no es concluyente (p = 0,42)')).toBeTruthy()
   })
 
   test('what they search and do not find: grouped demand with its action, what rises and thin assortment', async () => {
@@ -298,7 +327,8 @@ describe('MochiView', () => {
     apiDown()
     await renderWithData(<App />)
 
-    expect((await screen.findAllByText(OFFLINE)).length).toBeGreaterThan(1)
+    expect(within(await screen.findByRole('alert')).getByText(OFFLINE, { exact: false })).toBeTruthy()
+    expect(screen.getAllByText('Sin conexión con la API').length).toBeGreaterThan(1)
     expect(screen.queryByRole('table', { name: 'Ofertas del agente por momento' })).toBeNull()
     expect(screen.queryByText('Modo sin conexión (datos guardados):')).toBeNull() // no hay nada guardado que avisar
   })
@@ -308,7 +338,7 @@ describe('MochiView', () => {
     serveFixturesWith({ offers: synthetic }) // la API contesta "simulado" también a ?source=prototype
     await renderWithData(<MochiView source="prototype" />)
 
-    expect(screen.getAllByText(OFFLINE).length).toBeGreaterThan(0)
+    expect(screen.getAllByText('Sin conexión con la API').length).toBeGreaterThan(0)
     expect(screen.queryByRole('table', { name: 'Ofertas del agente por momento' })).toBeNull()
   })
 

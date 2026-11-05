@@ -1,5 +1,13 @@
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest'
-import { apiUrl, getFallbacks, loadAnalytics, refreshSource, retryConnection, subscribeConnection } from './api.js'
+import {
+  apiUrl,
+  getFallbacks,
+  getPrototypeOffline,
+  loadAnalytics,
+  refreshSource,
+  retryConnection,
+  subscribeConnection,
+} from './api.js'
 import savedKpis from '../fixtures/sin-conexion/kpis.json'
 import savedWeekly from '../fixtures/sin-conexion/weekly.json'
 import savedSuggestions from '../fixtures/sin-conexion/suggestions.json'
@@ -116,6 +124,15 @@ describe('loadAnalytics', () => {
       'La API no responde: el uso del MVP solo se ve con la base viva.',
     )
     expect(getFallbacks()).toEqual([])
+    // Queda anotado para avisarlo una sola vez; reintentar o actualizar el prototipo lo olvida.
+    expect(getPrototypeOffline()).toBe(true)
+    retryConnection()
+    expect(getPrototypeOffline()).toBe(false)
+    await loadAnalytics('offers', 'prototype').catch(() => {})
+    refreshSource('synthetic')
+    expect(getPrototypeOffline()).toBe(true)
+    refreshSource('prototype')
+    expect(getPrototypeOffline()).toBe(false)
   })
 
   test('una respuesta de otra fuente tampoco cae a datos guardados en el prototipo', async () => {

@@ -1,6 +1,6 @@
 import { Component, Suspense } from 'react'
-import { retryConnection } from '../lib/api.js'
-import { ErrorState, LoadingState } from './States.jsx'
+import { PROTOTYPE_OFFLINE_MESSAGE, retryConnection } from '../lib/api.js'
+import { EmptyState, ErrorState, LoadingState } from './States.jsx'
 
 class ErrorBoundary extends Component {
   state = { error: null }
@@ -19,15 +19,19 @@ class ErrorBoundary extends Component {
   }
 
   render() {
-    if (this.state.error) return <ErrorState message={this.state.error.message} onRetry={this.retry} />
-    return this.props.children
+    const { error } = this.state
+    if (!error) return this.props.children
+    if (this.props.errorFallback) return this.props.errorFallback
+    // Sin la API, el prototipo se avisa una sola vez (con su Reintentar) en el aviso de procedencia, no en cada bloque.
+    if (error.message === PROTOTYPE_OFFLINE_MESSAGE) return <EmptyState title="Sin conexión con la API" />
+    return <ErrorState message={error.message} onRetry={this.retry} />
   }
 }
 
-/** Frontera de carga y error para un bloque que lee datos con useAnalytics. */
-export function Async({ children, fallback = <LoadingState /> }) {
+/** Frontera de carga y error para un bloque que lee datos con useAnalytics; `errorFallback` reemplaza al aviso de error. */
+export function Async({ children, fallback = <LoadingState />, errorFallback }) {
   return (
-    <ErrorBoundary>
+    <ErrorBoundary errorFallback={errorFallback}>
       <Suspense fallback={fallback}>{children}</Suspense>
     </ErrorBoundary>
   )

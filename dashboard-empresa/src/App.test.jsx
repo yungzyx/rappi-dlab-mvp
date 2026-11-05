@@ -1,4 +1,4 @@
-import { act, fireEvent, screen } from '@testing-library/react'
+import { act, fireEvent, screen, within } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest'
 import App from './App.jsx'
 import { apiDown, renderWithData, resetApi, serveFixtures } from './test/fixtureApi.js'
@@ -143,6 +143,27 @@ describe('App', () => {
       '.state',
     )
     expect(empty.getAttribute('role')).toBeNull()
+  })
+
+  test('with the prototype source and the API down there is a single alert, and the header gets no error box', async () => {
+    window.history.replaceState(null, '', '/?vista=mochi&fuente=prototipo')
+    vi.spyOn(console, 'error').mockImplementation(() => {}) // el límite de error de cada bloque lo registra
+    apiDown()
+    await renderWithData(<App />)
+
+    const [alert, ...others] = await screen.findAllByRole('alert')
+    expect(others).toHaveLength(0)
+    expect(within(alert).getByRole('button', { name: 'Reintentar' })).toBeTruthy()
+    expect(screen.getAllByRole('button', { name: 'Reintentar' })).toHaveLength(1)
+    const header = document.querySelector('.masthead')
+    expect(header.textContent).not.toContain('No se pudieron cargar')
+    expect(header.textContent).toContain('fecha de corte: sin conexión')
+
+    // Reintentar con la API de vuelta: el aviso se va y el encabezado vuelve a decir la fecha.
+    serveFixtures()
+    await act(async () => fireEvent.click(within(alert).getByRole('button', { name: 'Reintentar' })))
+    expect(screen.queryByRole('alert')).toBeNull()
+    expect(header.textContent).toContain('Datos al')
   })
 
   test('with the API down it uses the saved data and says so', async () => {
