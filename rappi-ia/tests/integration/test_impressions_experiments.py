@@ -20,7 +20,7 @@ from rappi_ia.delivery import PERSON_TABLES, unknown_person_tables
 from rappi_ia.demo.seed import seed_demo
 from rappi_ia.embeddings.base import HashEmbedder
 from rappi_ia.embeddings.text_store import embed_search_documents
-from rappi_ia.events import catalog_context, experiments
+from rappi_ia.events import catalog_context, experiments, synth
 from rappi_ia.events import store as events
 from rappi_ia.events.synth import generate
 
@@ -531,3 +531,33 @@ def test_the_synthetic_population_has_impressions_positions_and_its_mode(db):
         ("propuesta",)
     ]
     assert db.execute("SELECT count(*) FROM capa.v_ctr_posicion WHERE source = 'synthetic'").fetchone()[0] > 0
+
+
+def test_synthetic_reformulations_feed_the_search_abandonment(db, monkeypatch):
+    """Una búsqueda que reformula otra viene después de la misma mal escrita en su vertical, sin toque y poco antes: el
+    abandono de búsqueda del panel la cuenta como rescatada. Esa primera no tiene concepto ni queda sin resultado."""
+    from rappi_ia.analytics import queries
+
+    seed_demo(db)
+    monkeypatch.setattr(synth, "REFORMULATE", 1.0)
+    generate(db, users=12, weeks=4, seed=11, until=date(2026, 10, 4))
+    pairs = db.execute(
+        """SELECT count(*) FILTER (WHERE a.vertical = b.vertical AND a.concept_id IS NULL AND NOT a.unmet
+                                   AND a.query <> b.query
+                                   AND b.ts - a.ts BETWEEN interval '20 seconds' AND interval '90 seconds'),
+                  count(*)
+           FROM app_events a
+           JOIN LATERAL (SELECT * FROM app_events n WHERE n.session_id = a.session_id AND n.user_id = a.user_id
+                           AND n.type = 'search' AND n.seq > a.seq ORDER BY n.seq LIMIT 1) b ON true
+           WHERE a.source = 'synthetic' AND a.type = 'search' AND a.results BETWEEN 1 AND 3"""
+    ).fetchone()
+    assert pairs[1] > 0 and pairs[0] == pairs[1]
+    abandonment = queries.unmet(db, "synthetic")["abandono"]
+    # Se rescata si la búsqueda que la sigue tuvo un toque (quien solo mira, BROWSE_ONLY, no la rescata).
+    assert 0 < abandonment["rescatadas"] <= pairs[1] and abandonment["con_clic"] > 0
+
+
+def test_a_misspelled_search_drops_the_second_letter_of_its_longest_word():
+    assert synth._misspelled("sushi") == "sshi"
+    assert synth._misspelled("carnes y parrilla") == "carnes y prrilla"
+    assert synth._misspelled("té") == "té"

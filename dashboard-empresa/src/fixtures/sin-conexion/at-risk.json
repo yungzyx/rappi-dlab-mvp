@@ -452,22 +452,22 @@
       "accion": "Recordatorio en su ritmo con su concepto top + complemento"
     },
     {
-      "usuario": "u-85228739",
-      "persona": "familia",
-      "estado": "en_riesgo",
-      "ritmo_dias": 6,
-      "dias_sin_pedir": 39,
-      "concepto_top": "🍕 Pizza",
-      "consiente_avisos": false,
-      "accion": "Sin consentimiento: solo en la app (el agente)"
-    },
-    {
       "usuario": "u-1717bc9d",
       "persona": "foodie",
       "estado": "en_riesgo",
       "ritmo_dias": 5,
       "dias_sin_pedir": 32,
       "concepto_top": "🥩 Carnes y parrilla",
+      "consiente_avisos": false,
+      "accion": "Sin consentimiento: solo en la app (el agente)"
+    },
+    {
+      "usuario": "u-85228739",
+      "persona": "familia",
+      "estado": "en_riesgo",
+      "ritmo_dias": 6,
+      "dias_sin_pedir": 39,
+      "concepto_top": "🍕 Pizza",
       "consiente_avisos": false,
       "accion": "Sin consentimiento: solo en la app (el agente)"
     },
@@ -652,22 +652,22 @@
       "accion": "Sin consentimiento: solo en la app (el agente)"
     },
     {
-      "usuario": "u-d868fec3",
-      "persona": "carrete",
-      "estado": "en_riesgo",
-      "ritmo_dias": 6.5,
-      "dias_sin_pedir": 35,
-      "concepto_top": "🍺 Cerveza",
-      "consiente_avisos": false,
-      "accion": "Sin consentimiento: solo en la app (el agente)"
-    },
-    {
       "usuario": "u-4a727377",
       "persona": "hogar",
       "estado": "en_riesgo",
       "ritmo_dias": 4.5,
       "dias_sin_pedir": 24,
       "concepto_top": "🍕 Pizza",
+      "consiente_avisos": false,
+      "accion": "Sin consentimiento: solo en la app (el agente)"
+    },
+    {
+      "usuario": "u-d868fec3",
+      "persona": "carrete",
+      "estado": "en_riesgo",
+      "ritmo_dias": 6.5,
+      "dias_sin_pedir": 35,
+      "concepto_top": "🍺 Cerveza",
       "consiente_avisos": false,
       "accion": "Sin consentimiento: solo en la app (el agente)"
     },
@@ -992,18 +992,18 @@
       "accion": "Sin consentimiento: solo en la app (el agente)"
     },
     {
-      "usuario": "u-b9eda8cc",
-      "persona": "cazaofertas",
+      "usuario": "u-494d0183",
+      "persona": "mama-bebe",
       "estado": "en_riesgo",
-      "ritmo_dias": 7,
-      "dias_sin_pedir": 29,
+      "ritmo_dias": 8,
+      "dias_sin_pedir": 33,
       "concepto_top": "🍔 Hamburguesa",
-      "consiente_avisos": false,
-      "accion": "Sin consentimiento: solo en la app (el agente)"
+      "consiente_avisos": true,
+      "accion": "Recordatorio en su ritmo con su concepto top + complemento"
     }
   ],
   "guardado": {
     "origen": "npm run panel:snapshot · usuarios simulados de rappi_staging",
-    "fecha": "2026-11-01"
+    "fecha": "2026-11-04"
   }
 }

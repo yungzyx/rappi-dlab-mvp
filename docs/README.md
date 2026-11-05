@@ -70,6 +70,7 @@ La página de la propuesta del panel (`dashboard-empresa/presentacion.html`) sir
 | Los reportes anteriores de la búsqueda, uno por fecha (con otros sets: no se comparan con los de arriba) | [resultados/](resultados/) (`busqueda-2026-09-30.md` a `busqueda-2026-10-06.md`) |
 | La evaluación del motor multivertical sobre datos simulados (16-10-2026) | [resultados/motor-2026-10-16.md](resultados/motor-2026-10-16.md) |
 | Los datos simulados recalibrados a la mezcla de la tabla de Rappi: antes y después (17-10-2026) | [resultados/simulados-2026-10-17.md](resultados/simulados-2026-10-17.md) |
+| Los datos simulados al día, con el sobre de eventos y las reformulaciones: el panel y el motor (04-11-2026) | [resultados/simulados-2026-11-04.md](resultados/simulados-2026-11-04.md) |
 | La revisión (QA) de las ofertas del motor sobre el catálogo real, en solo lectura (16-10-2026) | [resultados/qa-motor-2026-10-16.md](resultados/qa-motor-2026-10-16.md) |
 | La precisión medida de conceptos, atributos y marcas | [resultados/capas-precision-2026-10-06.md](resultados/capas-precision-2026-10-06.md) y [la muestra nueva](resultados/capas-precision-2026-10-06-nueva-muestra.md) |
 

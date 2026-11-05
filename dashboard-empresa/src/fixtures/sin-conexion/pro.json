@@ -1,12 +1,33 @@
 {
   "source": "synthetic",
   "data": {
-    "grupos": [],
-    "sin_dato": 2291,
+    "grupos": [
+      {
+        "grupo": "pro",
+        "personas": 887,
+        "pedidos_30d": 938,
+        "pedidos_por_persona_30d": 1.06,
+        "recompra_pct": 69.1,
+        "multi_vertical_pct": 27.7,
+        "retencion_n": 264,
+        "retencion_pct": 37.1
+      },
+      {
+        "grupo": "sin_pro",
+        "personas": 1404,
+        "pedidos_30d": 1057,
+        "pedidos_por_persona_30d": 0.75,
+        "recompra_pct": 65.5,
+        "multi_vertical_pct": 17.8,
+        "retencion_n": 384,
+        "retencion_pct": 32
+      }
+    ],
+    "sin_dato": 0,
     "minimo_personas": 20
   },
   "guardado": {
     "origen": "npm run panel:snapshot · usuarios simulados de rappi_staging",
-    "fecha": "2026-11-01"
+    "fecha": "2026-11-04"
   }
 }

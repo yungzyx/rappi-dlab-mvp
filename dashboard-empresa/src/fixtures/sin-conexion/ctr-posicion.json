@@ -1,11 +1,75 @@
 {
   "source": "synthetic",
   "data": {
-    "posiciones": [],
-    "listas": []
+    "posiciones": [
+      {
+        "posicion": 0,
+        "impresiones": 8742,
+        "clics": 3768,
+        "ctr": 0.431
+      },
+      {
+        "posicion": 1,
+        "impresiones": 8742,
+        "clics": 3083,
+        "ctr": 0.3527
+      },
+      {
+        "posicion": 2,
+        "impresiones": 8742,
+        "clics": 2370,
+        "ctr": 0.2711
+      },
+      {
+        "posicion": 3,
+        "impresiones": 8742,
+        "clics": 1897,
+        "ctr": 0.217
+      },
+      {
+        "posicion": 4,
+        "impresiones": 6547,
+        "clics": 1014,
+        "ctr": 0.1549
+      },
+      {
+        "posicion": 5,
+        "impresiones": 4548,
+        "clics": 486,
+        "ctr": 0.1069
+      },
+      {
+        "posicion": 6,
+        "impresiones": 2820,
+        "clics": 209,
+        "ctr": 0.0741
+      },
+      {
+        "posicion": 7,
+        "impresiones": 1310,
+        "clics": 75,
+        "ctr": 0.0573
+      }
+    ],
+    "listas": [
+      {
+        "pantalla": "search",
+        "lista": "resultados",
+        "impresiones": 35385,
+        "clics": 9174,
+        "ctr": 0.2593
+      },
+      {
+        "pantalla": "agent",
+        "lista": "agent-ask",
+        "impresiones": 14808,
+        "clics": 3728,
+        "ctr": 0.2518
+      }
+    ]
   },
   "guardado": {
     "origen": "npm run panel:snapshot · usuarios simulados de rappi_staging",
-    "fecha": "2026-11-01"
+    "fecha": "2026-11-04"
   }
 }

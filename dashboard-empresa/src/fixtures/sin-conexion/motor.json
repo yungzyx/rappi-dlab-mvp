@@ -10,7 +10,7 @@
     "evaluacion": {
       "paso": {
         "con_paso": 74,
-        "escalera": 0.5811,
+        "escalera": 0.5405,
         "personas": 74,
         "mas_sumada": 0.5946
       },
@@ -20,9 +20,9 @@
         "popularidad": 0.05
       },
       "tramos": {
-        "probar_hasta": "2026-10-17T23:41:02.056859-03:00",
-        "validar_hasta": "2026-09-19T23:41:02.056859-03:00",
-        "entrenar_hasta": "2026-08-22T23:41:02.056859-04:00"
+        "probar_hasta": "2026-11-03T23:41:02.056859-03:00",
+        "validar_hasta": "2026-10-06T23:41:02.056859-03:00",
+        "entrenar_hasta": "2026-09-08T23:41:02.056859-03:00"
       },
       "recompra": {
         "n": 103,
@@ -95,10 +95,10 @@
         }
       }
     },
-    "fecha": "2026-10-25T16:23:27.230555+00:00"
+    "fecha": "2026-11-05T00:43:50.885993+00:00"
   },
   "guardado": {
     "origen": "npm run panel:snapshot · usuarios simulados de rappi_staging",
-    "fecha": "2026-11-01"
+    "fecha": "2026-11-04"
   }
 }
