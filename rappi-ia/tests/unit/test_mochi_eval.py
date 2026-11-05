@@ -142,14 +142,35 @@ def test_report_lists_what_fails_and_says_the_judged_part_is_an_llm_judgment():
     runs = [_run("necesidades", 6, share=0.0), _run("libres", 2, absent='1 de "dulce" en turbo')]
     scores = {"n": 1, "ndcg": 0.9, "p@3": 0.667, "util@3": 1.0, "mostrados": 6, "sin_juicio": 2, "no_sirve": 0.0}
 
+    mochi_rows = [{"vertical": "turbo", "consulta": "algo para picar", "ndcg": 0.9, "p@3": 0.667}]
+    search_rows = [{"vertical": "turbo", "consulta": "algo para picar", "ndcg": 0.8, "p@3": 0.667}]
+
     report = mochi_eval.render_markdown(
-        runs, {"total": scores, "completas": scores}, {"total": scores, "completas": scores}
+        runs,
+        {"total": scores, "completas": scores, "consultas": mochi_rows},
+        {"total": scores, "completas": scores, "consultas": search_rows},
     )
 
     assert "## Revisiones que fallan" in report and 'la búsqueda trae 1 de "dulce" en turbo' in report
     assert "## Respuestas con menos de 4 productos" in report
     assert "juicio LLM, no humano" in report and "nDCG@6" in report
     assert "2 productos de Mochi y 2 de `/search` sin juicio" in report
+    assert "Diferencia Mochi − `/search` consulta por consulta (1 consultas" in report
+    assert "| nDCG@6 | 1 | 0 | 0 | 0.1 | 0.1 a 0.1 |" in report
+
+
+def test_paired_difference_pairs_by_query_and_gives_a_reproducible_bootstrap_interval():
+    a = [{"vertical": "turbo", "consulta": f"q{i}", "ndcg": 0.5 + i / 20} for i in range(10)]
+    b = [{"vertical": "turbo", "consulta": f"q{i}", "ndcg": 0.5} for i in range(10)]
+    b.append({"vertical": "turbo", "consulta": "solo en b", "ndcg": 1.0})  # sin pareja: no cuenta
+
+    d = mochi_eval.paired_difference(a, b, "ndcg")
+
+    assert (d["n"], d["sube"], d["empata"], d["baja"], d["diferencia"]) == (10, 9, 1, 0, 0.225)
+    low, high = d["ic95"]
+    assert low < 0.225 < high and low > 0
+    assert mochi_eval.paired_difference(a, b, "ndcg") == d  # semilla fija
+    assert mochi_eval.paired_difference([], b, "ndcg")["ic95"] is None
 
 
 def test_cases_take_needs_free_questions_first_turns_and_the_held_out_set(tmp_path):

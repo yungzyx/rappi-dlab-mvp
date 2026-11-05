@@ -17,10 +17,12 @@ Revisiones (en las respuestas con productos):
 - (d) Cuántos productos muestra: el promedio y las respuestas con menos de FEW.
 
 Con los juicios de tres niveles (juicio LLM, no humano) de las necesidades: nDCG@6 (Mochi muestra hasta 6), P@3
-"sirve" y útil@3 de Mochi y de `/search` en las mismas consultas, con cuántos de los productos mostrados tienen juicio.
+"sirve" y útil@3 de Mochi y de `/search` en las mismas consultas, con cuántos de los productos mostrados tienen
+juicio, y la diferencia consulta por consulta con su IC 95 % por bootstrap (semilla fija: el reporte es reproducible).
 """
 
 import json
+import random
 import re
 import time
 from collections.abc import Callable
@@ -338,7 +340,44 @@ def _graded_part(mochi: dict, search: dict) -> list[str]:
         graded._row("Mochi: juzgadas completas", mochi["completas"]),
         graded._row("/search: juzgadas completas", search["completas"]),
     ]
+    diffs = [paired_difference(mochi["consultas"], search["consultas"], metric) for metric in ("ndcg", "p@3")]
+    if diffs[0]["n"]:
+        lines += [
+            "",
+            f"Diferencia Mochi − `/search` consulta por consulta ({diffs[0]['n']} consultas; IC 95 % por bootstrap de"
+            f" {search_eval.BOOTSTRAP_RESAMPLES} remuestreos, semilla 7):",
+            "",
+            "| Métrica | Sube | Empata | Baja | Diferencia media | IC 95 % |",
+            "|---|---|---|---|---|---|",
+        ]
+        for label, d in zip((f"nDCG@{SHOWN_MAX}", 'P@3 "sirve"'), diffs, strict=True):
+            low, high = d["ic95"]
+            counts = f"{d['sube']} | {d['empata']} | {d['baja']}"
+            lines.append(f"| {label} | {counts} | {d['diferencia']} | {low} a {high} |")
+        lines += ["", "Si el intervalo incluye el 0, la diferencia no es concluyente con estas consultas."]
     return lines
+
+
+def paired_difference(a: list[dict], b: list[dict], metric: str, seed: int = 7) -> dict:
+    """`metric` de `a` menos la de `b` en las consultas que están en las dos (filas de graded.score()["consultas"]):
+    cuántas suben, empatan y bajan, y la diferencia media con su IC 95 % por bootstrap, como
+    search_eval.paired_comparison."""
+    by_query = [{(r["vertical"], r["consulta"]): r[metric] for r in rows} for rows in (a, b)]
+    keys = sorted(by_query[0].keys() & by_query[1].keys())
+    diffs = [by_query[0][key] - by_query[1][key] for key in keys]
+    rng = random.Random(seed)
+    resamples = search_eval.BOOTSTRAP_RESAMPLES if diffs else 0
+    means = sorted(sum(rng.choices(diffs, k=len(diffs))) / len(diffs) for _ in range(resamples))
+    return {
+        "n": len(diffs),
+        "sube": sum(d > 1e-9 for d in diffs),
+        "empata": sum(abs(d) <= 1e-9 for d in diffs),
+        "baja": sum(d < -1e-9 for d in diffs),
+        "diferencia": round(sum(diffs) / len(diffs), 3) if diffs else None,
+        "ic95": (round(means[int(0.025 * len(means))], 3), round(means[int(0.975 * len(means)) - 1], 3))
+        if means
+        else None,
+    }
 
 
 def _flag_row(r: MochiRun) -> str:
