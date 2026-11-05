@@ -255,6 +255,10 @@ describe('MochiView', () => {
     const gap = within(step).getByText('−5,4 puntos').closest('.delta')
     expect(gap.classList.contains('status--bad')).toBe(false)
     expect(gap.textContent).not.toMatch(/mejora|empeora/)
+    // Delta no es hijo directo de la grilla: ahí dejaría de ser inline-flex y no se alinearía a la derecha.
+    for (const delta of motor.querySelectorAll('.delta')) {
+      expect(delta.parentElement.classList.contains('cell-stack')).toBe(false)
+    }
     // La nota bajo la tabla ya no le atribuye a toda la tabla las personas de la primera fila.
     const note = screen.getByText(/^Se mide con pedidos posteriores a los que usó para aprender\. Corrida del/)
     expect(note.textContent).not.toContain('505 personas')

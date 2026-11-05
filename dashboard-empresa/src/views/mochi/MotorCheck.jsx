@@ -39,7 +39,10 @@ const COLUMNS = [
         '—'
       ) : (
         <span className="cell-stack">
-          <Delta value={row.gap} format={formatPoints} goodWhen={row.noise ? null : 'up'} />
+          {/* Un span de bloque alrededor: Delta es inline-flex y, suelto en la grilla, se estira y pierde el text-align de la celda. */}
+          <span>
+            <Delta value={row.gap} format={formatPoints} goodWhen={row.noise ? null : 'up'} />
+          </span>
           {row.noise && (
             <span className="cell-sub">
               no es concluyente{row.p === undefined || row.p === null ? '' : ` (p = ${formatNumber(row.p, 2)})`}
