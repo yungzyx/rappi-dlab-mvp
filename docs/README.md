@@ -11,7 +11,7 @@
 | Ver el prototipo final: la Home que aprende, Mochi en la Home y el buscador con Mochi | [prototipo-app/README.md](../prototipo-app/README.md) | 5 min |
 | Mostrarlo a alguien del negocio (guion de unos 12 minutos) | [demo.md](demo.md) | 3 min |
 | Saber qué se decidió y por qué | [decisiones.md](decisiones.md) | 5 min |
-| Ver qué cambió desde el 25-10-2026 (las fases de la comparación con la app de Rappi, las revisiones y lo que siguió hasta el 02-11), PR por PR | [cambios.md](cambios.md) | 3 min |
+| Ver qué cambió desde el 25-10-2026 (las fases de la comparación con la app de Rappi, las revisiones y lo que siguió hasta el 05-11), PR por PR | [cambios.md](cambios.md) | 3 min |
 
 ## 2. Cómo funciona
 
@@ -64,6 +64,7 @@ La página de la propuesta del panel (`dashboard-empresa/presentacion.html`) sir
 | El detalle de cada cifra con su tipo de dato y su fuente, y el catálogo por vertical | [resultados/README.md](resultados/README.md) |
 | La evaluación de la búsqueda vigente (set del 22-10-2026: nDCG@10 y "sin resultado") | [resultados/busqueda-2026-10-22.md](resultados/busqueda-2026-10-22.md) |
 | La corrección de errores de tipeo (24-10-2026) | [resultados/busqueda-2026-10-24.md](resultados/busqueda-2026-10-24.md) |
+| Los errores de tipeo en la búsqueda y en Mochi (04-11-2026) | [resultados/tipeo-2026-11-04.md](resultados/tipeo-2026-11-04.md) |
 | La búsqueda con el juez de tres niveles y los cambios del 25-10-2026 | [resultados/busqueda-2026-10-25.md](resultados/busqueda-2026-10-25.md) |
 | El juicio LLM doble ciego de 200 pares (25-10-2026) | [resultados/juicio-llm-busqueda-2026-10-25.md](resultados/juicio-llm-busqueda-2026-10-25.md) |
 | Las conversaciones con Mochi, antes y después (25-10-2026) | [resultados/mochi-conversacion-2026-10-25.md](resultados/mochi-conversacion-2026-10-25.md) |

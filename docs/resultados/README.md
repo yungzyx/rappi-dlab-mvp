@@ -9,10 +9,10 @@ Corrida del 04-11-2026 (`rappi-ia motor`, semilla 7; [simulados-2026-11-04.md](s
 | Qué | Métrica (tramo de prueba) | Valor | Tipo de dato |
 |---|---|---|---|
 | Próxima vertical | nDCG@8 | combinado 0,980 · solo afinidad 0,978 · popularidad 0,924 · orden fijo 0,918 (505 personas) | Simulado |
-| Compra cruzada | precisión@3 | mezcla 0,129 · lo más pedido 0,129. En validación λ quedó en 1, pero las reglas solas llegan a 17 personas (0,118): en la prueba la mezcla no cambia lo que acierta | Simulado |
+| Compra cruzada | precisión@3 | mezcla 0,129 · lo más pedido 0,129. En la corrida del 04-11 λ quedó en 1 por 2 aciertos de 1.509 en validación; desde el 05-11 un λ mayor tiene que ganar al menos 5, y con estos simulados queda en 0. Las reglas solas llegan a 17 personas (0,118): en la prueba la mezcla no cambia lo que acierta | Simulado |
 | Recompra | acierto ±7 días | 0,214 (de 103 predicciones), error mediano de 6,5 días | Simulado |
 | Generador simulado | parecido a la tabla de Rappi (personas-mes) | distancia 23,3 → 18,2 (16-10, Turbo en las sugerencias) → 2,9 (17-10, recalibrado; 2,5 a 5,5 en 5 semillas, cada fila a menos de 2 puntos). Retención M+1 de Restaurantes 0,452 (Rappi 0,47); rest+turbo+retail, la más alta (0,916; Rappi 0,93) | Simulado, comparado con el dato compartido por Rappi |
-| Paso de la escalera fina | acierto@1 entre quienes suman una vertical | paso 0,540 · la vertical que más se suma 0,595 (74 personas). El paso busca retención, no adivinar qué se suma solo; el 17-10 ganaba (0,620 contra 0,479, 71 personas): con menos de 100 personas de una semilla, ninguna de las dos es evidencia | Simulado: no es evidencia |
+| Paso de la escalera fina | acierto@1 entre quienes suman una vertical | paso 0,540 · la vertical que más se suma 0,595 (74 personas). El paso busca retención, no adivinar qué se suma solo; el 17-10 ganaba (0,620 contra 0,479, 71 personas): con menos de 100 personas de una semilla, ninguna de las dos es evidencia: 55 de 74 reciben la misma vertical y la diferencia la deciden 14 personas (5 contra 9, McNemar p = 0,42) | Simulado: no es evidencia |
 
 Cómo leerlo: la ventaja del combinado viene casi entera de la afinidad de cada persona, y el generador hace que cada persona repita sus verticales, así que en parte acierta por construcción; con el generador recalibrado hay más personas que solo piden en Restaurantes, y eso facilita adivinar la próxima vertical a todos los métodos, incluido el orden fijo. El generador se calibró con la tabla de Rappi y la trata como efecto, así que sus cifras no prueban que sumar verticales retenga. La agrupación de verticales en `rest`, `turbo` y `retail` es un supuesto propio. Detalle: [capa-de-datos.md](../capa-de-datos.md#motor-multivertical).
 
@@ -40,8 +40,8 @@ Respuestas reales de la API sobre `rappi_staging` (copia del 22-10), juzgadas a 
 | Búsqueda | Juicio LLM (no humano) | 200 pares de la planilla, dos jueces ciegos: 95 % de los 3 primeros útiles (66 % "sirve"); juez por concepto contra el juicio LLM: acuerdo 70,5 %, κ 0,32 | [juicio-llm-busqueda-2026-10-25.md](juicio-llm-busqueda-2026-10-25.md) |
 | Búsqueda | Juez de tres niveles: lo que ve la persona | nDCG@10 0,906 → 0,952 · P@3 "sirve" 0,750 → 0,811 · útil@3 0,943 → 0,981 · lo mostrado que no sirve 7,3 % → 4,0 %. Necesidades 0,798 → 0,910; Rappi Mall 0,831 → 0,957. Juez por concepto, lo que ve la persona: 0,917 → 0,941 | Juicio LLM, no humano: 88 consultas, los 200 pares del 25-10 más 794 juzgados a ciegas (56 de 60 controles iguales, κ 0,90) | [busqueda-2026-10-25.md](busqueda-2026-10-25.md) |
 | Búsqueda | "Sin resultado" | precisión 1,00 (0 falsas alarmas en 131 positivas) · recall 0,93 (54 de 58). Con el mismo set y la regla anterior, 36 de 58 (0,62) | Evaluación automática | [reporte del 22-10](busqueda-2026-10-22.md) |
-| Búsqueda | Errores de tipeo | 53 casos en las 8 verticales: en la búsqueda agrupada (la de la app) se recuperan 53 corrigiendo la consulta (37 sin corregir), por vertical 52 (30) y Mochi 49 (31); "sin resultado" igual al de arriba | Evaluación automática | [reporte del 24-10](busqueda-2026-10-24.md) · [25-10](busqueda-2026-10-25.md) · [04-11](tipeo-2026-11-04.md) |
-| Calidad | Tests al 26-10-2026 | rappi-ia 3.288 (y 2 omitidos) · scraper 280 · prototipo 942 · panel 122 (commit `ee51c2e`; no se recontaron con los PR posteriores) | CI de main al 26-10-2026 | `make test` · `npm test` |
+| Búsqueda | Errores de tipeo | 53 casos en las 8 verticales: en la búsqueda agrupada (la de la app) se recuperan 53 corrigiendo la consulta (37 sin corregir), por vertical 52 (30) y Mochi 51 (31); "sin resultado" igual al de arriba | Evaluación automática | [reporte del 24-10](busqueda-2026-10-24.md) · [25-10](busqueda-2026-10-25.md) · [04-11](tipeo-2026-11-04.md) |
+| Calidad | Tests | Los conteos vigentes están en una sola fuente: [README.md#resultados](../../README.md#resultados) | CI de main | `make test` · `npm test` |
 
 La búsqueda se evaluó con 131 consultas positivas en las 8 verticales y 58 negativas, con relevancia juzgada automáticamente por concepto ([`queries.json`](../../rappi-ia/src/rappi_ia/eval/queries.json), renovado el 22-10 contra el catálogo). Por tipo de consulta, el híbrido logra 0,970 en las exactas, 0,972 sin tildes y 0,709 en necesidades en lenguaje natural ("algo para el carrete"), frente a 0,565 del léxico.
 
@@ -68,6 +68,10 @@ Documentos contados el 05-10 sobre la descarga del 04-10-2026 (segunda descarga 
 
 | Reporte | Qué mide |
 |---|---|
+| [simulados-2026-11-04.md](simulados-2026-11-04.md) | Los simulados regenerados con el sobre de eventos y las reformulaciones: el panel y el motor |
+| [tipeo-2026-11-04.md](tipeo-2026-11-04.md) | Los errores de tipeo en la búsqueda y en Mochi: la medida vigente |
+| [mochi-conversacion-2026-10-25.md](mochi-conversacion-2026-10-25.md) | Las conversaciones con Mochi y las 40 preguntas libres, antes y después |
+| [prueba-usuarios-PLANTILLA.md](prueba-usuarios-PLANTILLA.md) | La plantilla del reporte de la prueba con usuarios (todavía sin reporte) |
 | [busqueda-2026-10-25.md](busqueda-2026-10-25.md) | Necesidades, Rappi Mall y la cola de la búsqueda, medidos con el juez de tres niveles (juicio LLM, no humano) |
 | [juicio-llm-busqueda-2026-10-25.md](juicio-llm-busqueda-2026-10-25.md) | El juicio LLM de los 200 pares de la planilla contra el juez por concepto |
 | [busqueda-2026-10-24.md](busqueda-2026-10-24.md) | La corrección de errores de tipeo: set de 53 casos, lo que no cambia y la latencia |
