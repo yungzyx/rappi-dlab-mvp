@@ -13,6 +13,7 @@ from owner_client import OwnerClient
 from rappi_ia import config
 from rappi_ia.agent.compose import TemplateComposer
 from rappi_ia.agent.rappi_agent import RappiAgent
+from rappi_ia.analytics import queries
 from rappi_ia.api import app as api
 from rappi_ia.api.services import Services
 from rappi_ia.catalog.stores import product_detail
@@ -23,6 +24,7 @@ from rappi_ia.embeddings.text_store import embed_search_documents
 from rappi_ia.events import catalog_context, experiments, synth
 from rappi_ia.events import store as events
 from rappi_ia.events.synth import generate
+from rappi_ia.motor.model import TZ
 
 CHIPS = "91001"  # papas fritas del súper Centro (9101) del catálogo de prueba
 SUPER = 9101
@@ -408,6 +410,89 @@ def test_an_experiment_without_assignments_lists_its_variants_empty(client, db, 
     assert data["ofertas_control"]["control_pct"] == 0  # apagado: nadie entra
     monkeypatch.setattr(config, "OFFERS_CONTROL_PCT", 10)
     assert experiments_of(client, "prototype")["ofertas_control"]["control_pct"] == 10
+
+
+def local_month(months_back: int) -> datetime:
+    """El primer instante del mes local de hace `months_back` meses."""
+    now = datetime.now(TZ)
+    year, month = divmod(now.month - 1 - months_back, 12)
+    return datetime(now.year + year, month + 1, 1, tzinfo=TZ)
+
+
+def assigned_on(db, user_id, variant, at, source="prototype"):
+    events.ensure_user(db, user_id, source)
+    experiments.assign(db, user_id, experiments.OFFERS_CONTROL, variant)
+    db.execute("UPDATE experiment_assignments SET assigned_at = %s WHERE user_id = %s", (at, user_id))
+
+
+def ordered_on(db, user_id, vertical, at, source="prototype"):
+    line = {"entity_type": "catalog_item", "entity_id": CHIPS, "unit_price": 1990}
+    events.record_order(db, user_id, "s-exp", f"c-{uuid.uuid4().hex[:8]}", vertical, [line], source, at)
+
+
+def test_the_control_group_reads_m1_retention_and_a_new_vertical_within_the_cohort_with_its_next_month(client, db):
+    month = local_month(2)  # M: su M+1 (el mes pasado) ya terminó
+    at = month + timedelta(days=4, hours=12)
+    following = local_month(1)
+    # Tratamiento: t1 pedía Restaurantes y suma Supermercado, y pide en M+1; t2 no pedía y prueba Restaurantes (es
+    # nueva para ella), sin M+1; t3 no pide.
+    assigned_on(db, "t1", "tratamiento", at)
+    ordered_on(db, "t1", "restaurantes", at - timedelta(days=3))
+    ordered_on(db, "t1", "supermercado", at + timedelta(days=10))
+    ordered_on(db, "t1", "restaurantes", following + timedelta(days=3))
+    assigned_on(db, "t2", "tratamiento", at)
+    ordered_on(db, "t2", "restaurantes", at + timedelta(days=2))
+    assigned_on(db, "t3", "tratamiento", at)
+    # Control: c1 repite Restaurantes (no es nueva) y pide en M+1 una vertical nueva, pero pasados los 28 días. c2 entró
+    # este mes: su M+1 no terminó y no cuenta.
+    assigned_on(db, "c1", "control", at)
+    ordered_on(db, "c1", "restaurantes", at - timedelta(days=3))
+    ordered_on(db, "c1", "restaurantes", at + timedelta(days=5))
+    ordered_on(db, "c1", "farmacia", following + timedelta(days=10))
+    assigned_on(db, "c2", "control", datetime.now(TZ) - timedelta(minutes=5))
+    ordered_on(db, "c2", "turbo", datetime.now(TZ))
+    # Lo simulado no entra en las cifras del prototipo.
+    assigned_on(db, "s1", "control", at, source="synthetic")
+    ordered_on(db, "s1", "turbo", following + timedelta(days=1), source="synthetic")
+
+    retention = experiments_of(client, "prototype")["ofertas_control"]["retencion"]
+    assert retention == {
+        "variantes": [
+            {"variante": "tratamiento", "personas": 3, "retencion_m1_pct": 33.3, "suma_vertical_pct": 66.7},
+            {"variante": "control", "personas": 1, "retencion_m1_pct": 100.0, "suma_vertical_pct": 0.0},
+        ],
+        "diferencia": {
+            "retencion_m1": {"puntos": -66.7, "ic95": [-100.0, -13.3]},
+            "suma_vertical": {"puntos": 66.7, "ic95": [13.3, 100.0]},
+        },
+        # +5 puntos sobre el 47 % de "solo Restaurantes", con el reparto de quienes tienen variante (2 de 5 en control).
+        "minimo": {"tratamiento": 1961, "control": 1308},
+        "efecto_minimo_puntos": 5,
+        "base_pct": 47.0,
+        "concluyente": False,
+    }
+
+
+def test_without_a_finished_cohort_the_retention_is_empty_and_not_conclusive(client, db):
+    assigned(db, "p-ctl", {experiments.OFFERS_CONTROL: "control"})
+    ordered(db, "p-ctl", "turbo", days=1)
+    retention = experiments_of(client, "prototype")["ofertas_control"]["retencion"]
+    assert retention["variantes"] == [
+        {"variante": v, "personas": 0, "retencion_m1_pct": None, "suma_vertical_pct": None}
+        for v in ("tratamiento", "control")
+    ]
+    assert retention["diferencia"] is None and retention["minimo"] is None and retention["concluyente"] is False
+
+
+def test_the_retention_is_conclusive_once_each_group_reaches_the_minimum(client, db, monkeypatch):
+    monkeypatch.setattr(queries, "sample_size", lambda base, effect, share: (1, 2))
+    at = local_month(2) + timedelta(days=4)
+    for user_id, variant in (("t1", "tratamiento"), ("t2", "tratamiento"), ("c1", "control")):
+        assigned_on(db, user_id, variant, at)
+    ordered_on(db, "t1", "turbo", datetime.now(TZ))
+    retention = experiments_of(client, "prototype")["ofertas_control"]["retencion"]
+    assert retention["minimo"] == {"tratamiento": 2, "control": 1}
+    assert retention["concluyente"] is True
 
 
 def test_session_funnel_and_abandoned_carts(client, db):

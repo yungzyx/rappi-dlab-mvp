@@ -24,7 +24,28 @@
         "al_azar": true,
         "control_pct": 0,
         "id": "ofertas_control",
-        "nota": "Al azar: un sorteo estable con el id de la persona. A control no se le muestran las ofertas que Mochi propone solo (quedan como retenidas). La diferencia entre los grupos mide el efecto de esas ofertas, si cada grupo tiene personas suficientes.",
+        "nota": "Al azar: un sorteo estable con el id de la persona. A control no se le muestran las ofertas que Mochi propone solo (quedan como retenidas). La diferencia entre los grupos mide el efecto de esas ofertas cuando cada grupo llega al mínimo del plan de piloto (docs/plan-piloto.md); antes, no es concluyente.",
+        "retencion": {
+          "base_pct": 47.0,
+          "concluyente": false,
+          "diferencia": null,
+          "efecto_minimo_puntos": 5,
+          "minimo": null,
+          "variantes": [
+            {
+              "personas": 0,
+              "retencion_m1_pct": null,
+              "suma_vertical_pct": null,
+              "variante": "tratamiento"
+            },
+            {
+              "personas": 0,
+              "retencion_m1_pct": null,
+              "suma_vertical_pct": null,
+              "variante": "control"
+            }
+          ]
+        },
         "variantes": [
           {
             "con_pedido": 0,
@@ -57,7 +78,7 @@
     ]
   },
   "guardado": {
-    "fecha": "2026-10-31",
+    "fecha": "2026-11-05",
     "origen": "make contract · simulación chica con semilla fija (40 personas, 8 semanas)"
   },
   "source": "synthetic"

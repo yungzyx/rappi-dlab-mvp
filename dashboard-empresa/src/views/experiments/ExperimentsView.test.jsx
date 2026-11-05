@@ -18,6 +18,23 @@ const offers = (mostradas, retenidas, aceptadas, pedidos) => ({
   pedidos_despues: pedidos,
 })
 
+// La retención del grupo de control: la cohorte con su mes siguiente completo, bajo el mínimo del plan de piloto.
+const retention = (overrides = {}) => ({
+  variantes: [
+    { variante: 'tratamiento', personas: 3, retencion_m1_pct: 33.3, suma_vertical_pct: 66.7 },
+    { variante: 'control', personas: 1, retencion_m1_pct: 100, suma_vertical_pct: 0 },
+  ],
+  diferencia: {
+    retencion_m1: { puntos: -66.7, ic95: [-100, -13.3] },
+    suma_vertical: { puntos: 66.7, ic95: [13.3, 100] },
+  },
+  minimo: { tratamiento: 7836, control: 871 },
+  efecto_minimo_puntos: 5,
+  base_pct: 47,
+  concluyente: false,
+  ...overrides,
+})
+
 // La respuesta de la API con el grupo de control encendido (10%) y personas en las dos variantes.
 const withControl = (overrides = {}) => ({
   experimentos: {
@@ -54,6 +71,7 @@ const withControl = (overrides = {}) => ({
               ofertas: offers(0, 2, 0, 0),
             },
           ],
+          retencion: retention(),
           ...overrides,
         },
       ],
@@ -97,12 +115,68 @@ describe('ExperimentsView', () => {
     const table = await screen.findByRole('table', { name: 'Grupo de control de las ofertas de Mochi' })
     expect(screen.getByRole('heading', { name: /Grupo de control/ }).textContent).toContain('al azar')
     expect(screen.getByTestId('tamano-grupos').textContent).toBe(
-      'Grupos: 5 en tratamiento y 1 en control. Con pocas personas por grupo, la diferencia entre ellos no es concluyente.',
+      'Grupos: 5 en tratamiento y 1 en control. Para medir +5 puntos de retención M+1 harían falta 7.836 en ' +
+        'tratamiento y 871 en control (plan de piloto, sobre el 47% de "solo Restaurantes" en la tabla de Rappi, un ' +
+        'supuesto). Con menos personas por grupo, la diferencia entre ellos no es concluyente.',
     )
     const [treated, control] = bodyRows(table)
     expect(cells(treated)).toEqual(['Tratamiento (ve las ofertas)', '5', '480,0%', '1,5', '9', '0', '3', '6'])
     expect(cells(control)).toEqual(['Control (no las ve)', '1', '00,0%', '—', '0', '2', '0', '0'])
     expect(screen.getByText(NOT_EVIDENCE)).toBeTruthy() // la población rotulada
+  })
+
+  test('the control group shows M+1 retention by group and the difference, neutral under the minimum', async () => {
+    serveFixturesWith(withControl())
+    await renderWithData(<ExperimentsView source="prototype" />)
+
+    const table = await screen.findByRole('table', { name: 'Retención M+1 por grupo' })
+    const [treated, control, difference] = bodyRows(table)
+    expect(cells(treated)).toEqual(['Tratamiento (ve las ofertas)', '3', '33,3%', '66,7%'])
+    expect(cells(control)).toEqual(['Control (no las ve)', '1', '100,0%', '0,0%'])
+    expect(cells(difference)).toEqual([
+      'Diferencia (tratamiento − control)',
+      '—',
+      '−66,7 puntosIC 95 %: −100,0 a −13,3',
+      '+66,7 puntosIC 95 %: 13,3 a 100,0',
+    ])
+    expect(screen.getByTestId('retencion-nota').textContent).toBe(
+      'No es concluyente: los grupos no llegan al mínimo del plan de piloto.',
+    )
+  })
+
+  test('once each group reaches the minimum, the difference reads with its interval', async () => {
+    serveFixturesWith(withControl({ retencion: retention({ concluyente: true }) }))
+    await renderWithData(<ExperimentsView source="prototype" />)
+
+    expect((await screen.findByTestId('retencion-nota')).textContent).toBe(
+      'Cada grupo llega al mínimo del plan de piloto: la diferencia se lee con su intervalo.',
+    )
+  })
+
+  test('without anyone with their next month complete, it says so instead of the retention table', async () => {
+    const empty = retention({
+      variantes: ['tratamiento', 'control'].map((variante) => ({
+        variante,
+        personas: 0,
+        retencion_m1_pct: null,
+        suma_vertical_pct: null,
+      })),
+      diferencia: null,
+    })
+    serveFixturesWith(withControl({ retencion: empty }))
+    await renderWithData(<ExperimentsView source="prototype" />)
+
+    expect((await screen.findByTestId('retencion-nota')).textContent).toMatch(/^Nadie tiene todavía su mes siguiente/)
+    expect(screen.queryByRole('table', { name: 'Retención M+1 por grupo' })).toBeNull()
+  })
+
+  test('without a minimum (a group still empty), the sizes keep the plain warning', async () => {
+    serveFixturesWith(withControl({ retencion: retention({ minimo: null }) }))
+    await renderWithData(<ExperimentsView source="prototype" />)
+
+    expect((await screen.findByTestId('tamano-grupos')).textContent).toBe(
+      'Grupos: 5 en tratamiento y 1 en control. Con menos personas por grupo, la diferencia entre ellos no es concluyente.',
+    )
   })
 
   test('with the control group on but nobody assigned yet, it says how people get a variant', async () => {
