@@ -340,6 +340,18 @@ describe('volver ("¿Volvemos a…?")', () => {
     const later = dismissed.map((e) => ({ ...e, ts: e.ts - 8 * DAY_MS }))
     expect(offer('volver', state({ orders: both, events: later })).reason.concept).toBe('cafe')
   })
+
+  test('los rechazos de otras ofertas (la recompra, el carrito) no cuentan como "Después" de volver', () => {
+    const both = [...stoppedCoffee, ...stoppedTurbo.slice(0, 3), ago(2, order('restaurantes'))]
+    const others = ['agent-recompra', 'agent-carrito'].map((origin) => ({
+      type: 'suggestion_dismissed',
+      ts: NOW - DAY_MS,
+      vertical: 'supermercado',
+      concept_id: 'cafe',
+      origin,
+    }))
+    expect(offer('volver', state({ orders: both, events: others })).reason.concept).toBe('cafe')
+  })
 })
 
 describe('complemento alternado (agent/tools.py: _takes_second)', () => {

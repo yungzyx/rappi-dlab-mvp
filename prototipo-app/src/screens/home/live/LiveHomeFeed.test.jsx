@@ -420,6 +420,57 @@ describe('Home del prototipo final', () => {
       expect(memory.session.lastAdded).toBeNull()
     })
 
+    test('"Ahora no" en el comentario del carrito registra el rechazo con el origen de la oferta, una vez', async () => {
+      memory.session.played = true
+      memory.session.lastAdded = LOOSE_CART
+      const { container } = await renderHome()
+      await advance(4000)
+      fireEvent.click(screen.getByRole('button', { name: 'Ahora no' }))
+      expect(status(container)).toBe('')
+      const [[, shown]] = tracked('suggestion_shown', 'agent-carrito')
+      expect(tracked('suggestion_dismissed', 'agent-carrito')).toEqual([
+        [
+          'suggestion_dismissed',
+          {
+            concept_id: shown.concept_id,
+            vertical: shown.vertical,
+            surface: 'home',
+            origin: 'agent-carrito',
+            request_id: 'contrato-agent-offer-carrito',
+          },
+        ],
+      ])
+
+      // El mismo comentario otra vez en la pestaña: el rechazo no se cuenta de nuevo, como la mostrada.
+      cleanup()
+      memory.session.lastAdded = LOOSE_CART
+      await renderHome()
+      await advance(4000)
+      fireEvent.click(screen.getByRole('button', { name: 'Ahora no' }))
+      expect(tracked('suggestion_dismissed', 'agent-carrito')).toHaveLength(1)
+    })
+
+    test('"Después" en la vertical por probar registra el rechazo con el concepto de la mostrada', async () => {
+      const { container } = await renderHome()
+      await advance(900 + 3400)
+      fireEvent.click(screen.getByRole('button', { name: /^Mochi:/ }))
+      await advance(3000)
+      fireEvent.click(within(container.querySelector('.live-bubble')).getByRole('button', { name: 'Después' }))
+      const [[, shown]] = tracked('suggestion_shown', 'agent-vertical_por_probar')
+      expect(tracked('suggestion_dismissed', 'agent-vertical_por_probar')).toEqual([
+        [
+          'suggestion_dismissed',
+          {
+            concept_id: shown.concept_id,
+            vertical: shown.vertical,
+            surface: 'home',
+            origin: 'agent-vertical_por_probar',
+            request_id: 'contrato-agent-offer-vertical-por-probar',
+          },
+        ],
+      ])
+    })
+
     test('tocar a Mochi propone la vertical por probar que dice la API, sin contexto', async () => {
       const push = vi.fn()
       const made = fixture('agent-offer-vertical-por-probar')
@@ -799,12 +850,24 @@ describe('Home del prototipo final', () => {
       ])
     })
 
-    test('"Después" en la recompra no registra un descarte de "¿Volvemos a…?"', async () => {
+    test('"Después" en la recompra registra su rechazo, no un descarte de "¿Volvemos a…?"', async () => {
       api = stubRepeat()
       const { container } = await renderHome()
       await advance(100)
       fireEvent.click(within(slotBlock(container)).getByRole('button', { name: 'Después' }))
       expect(tracked('suggestion_dismissed', 'agent-volver')).toEqual([])
+      expect(tracked('suggestion_dismissed', 'agent-recompra')).toEqual([
+        [
+          'suggestion_dismissed',
+          {
+            concept_id: 'cafe',
+            vertical: 'grocery',
+            surface: 'home',
+            origin: 'agent-recompra',
+            request_id: 'contrato-agent-offer-recompra',
+          },
+        ],
+      ])
     })
   })
 

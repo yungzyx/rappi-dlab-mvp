@@ -4,13 +4,16 @@ let firstShowing
 let noteShown
 let noteAccepted
 let noteOfferShown
+let noteDismissal
+let noteOfferDismissal
 
 const PAPAS = { id: 'cat-1', name: 'Papas', concept: 'snacks-salados', vertical: 'express' }
 
 describe('sugerencias de Mochi', () => {
   beforeEach(async () => {
     vi.resetModules() // lo ya mostrado vive en el módulo (lo que dura la pestaña)
-    ;({ firstShowing, noteShown, noteAccepted, noteOfferShown } = await import('./suggestions'))
+    ;({ firstShowing, noteShown, noteAccepted, noteOfferShown, noteDismissal, noteOfferDismissal } =
+      await import('./suggestions'))
   })
 
   test('firstShowing cuenta igual la vertical del backend que la del prototipo', () => {
@@ -122,5 +125,32 @@ describe('sugerencias de Mochi', () => {
       origin: 'agent-carrito',
     })
     expect(noteAccepted(track, [loose], { origin: 'agent-carrito' })).toBe(0)
+  })
+
+  test('noteOfferDismissal registra el rechazo con el concepto y el origen de la mostrada, una vez por pestaña', () => {
+    const track = vi.fn()
+    const made = { moment: 'recompra', products: [PAPAS], reason: { concept: 'snacks-salados' } }
+    expect(noteOfferDismissal(track, made, { generation: 0 })).toBe(true)
+    expect(noteOfferDismissal(track, made, { generation: 0 })).toBe(false)
+    expect(noteOfferDismissal(track, made, { generation: 1 })).toBe(true) // tras "Olvidar" vuelve a contar
+    expect(track).toHaveBeenCalledTimes(2)
+    expect(track).toHaveBeenCalledWith('suggestion_dismissed', {
+      concept_id: 'snacks-salados',
+      vertical: 'express',
+      origin: 'agent-recompra',
+    })
+  })
+
+  test('noteDismissal toma el concepto del primer producto y sin concepto no registra nada', () => {
+    const track = vi.fn()
+    noteDismissal(track, [PAPAS], { origin: 'agent-vertical_por_probar' })
+    expect(track).toHaveBeenCalledWith('suggestion_dismissed', {
+      concept_id: 'snacks-salados',
+      vertical: 'express',
+      origin: 'agent-vertical_por_probar',
+    })
+    track.mockClear()
+    expect(noteDismissal(track, [], { origin: 'agent-vertical_por_probar' })).toBe(false)
+    expect(track).not.toHaveBeenCalled()
   })
 })
