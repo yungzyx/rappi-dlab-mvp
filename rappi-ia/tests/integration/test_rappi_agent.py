@@ -1228,6 +1228,69 @@ def test_the_baby_occasion_brings_no_adult_skin_care(rappi_agent):
     assert "dermocosmetica" not in {p["concept"] for p in r["products"]}
 
 
+def test_the_occasion_is_not_a_detail_of_the_product(rappi_agent):
+    """ "pañales para la guagua" tomaba "guagua" como un detalle del pañal (como "lúcuma" en "helado de lúcuma"): como
+    ningún pañal del súper lo dice, se iba al Mall, cuyos pañales de tela sí lo dicen, y decía 'En el súper no hay
+    "guagua"'. La palabra de la ocasión entendida dice para qué es, no cómo es."""
+    agent, db = rappi_agent
+    for store, vertical in ((5, "farmacia"), (6, "turbo"), (7, "mall")):
+        add_store(db, store, vertical, vertical.title())
+    pid = 600
+    for store in (1, 5, 6):
+        for name in ("Pañales Pampers talla G x 40", "Pañales Huggies talla M x 50", "Pañales Babysec talla XG x 30"):
+            add_product(db, pid, name, store, "Pañales")
+            add_price(db, store, pid, 9990)
+            pid += 1
+    for name in ("Tuto Pañal de algodón para bebés guagua set 3", "Pañal de tela guagua ecológico"):
+        add_product(db, pid, name, 7, "Pañales")
+        add_price(db, 7, pid, 12990)
+        pid += 1
+    db.commit()
+    build_search_documents(db)
+    build_concepts(db)
+    embed_search_documents(db, agent.embedder)
+
+    for vertical in ("supermercado", "farmacia", "turbo"):
+        r = agent.reply(db, "pañales para la guagua", Context(vertical=vertical))
+
+        assert r["intent"]["occasion"] == "guagua" and r["vertical"] == vertical, vertical
+        assert r["products"] and {p["concept"] for p in r["products"]} == {"panales"}, vertical
+        assert not any("guagua" in p["name"] for p in r["products"]), vertical
+        assert "no hay" not in r["text"], r["text"]
+
+
+def test_the_text_names_what_is_shown(rappi_agent):
+    """El texto nombra lo que se muestra. "bebida para mezclar con pisco" (gaseosas y pisco) mostraba solo piscos como
+    "bebidas gaseosas"; "algo dulce para el café de la tarde" (antojo dulce y café), cafés como "antojo dulce". La
+    ocasión sigue rotulando lo que es de ella ("cerveza para el asado")."""
+    agent, db = rappi_agent
+    for pid, name, store, category in [
+        (700, "Pisco Mistral 35° 750 cc", 2, "Pisco"),
+        (701, "Pisco Capel Especial 40° 750 cc", 2, "Pisco"),
+        (702, "Café Nescafé Tradición 170 g", 1, "Café"),
+        (703, "Café Dolca Instantáneo 170 g", 1, "Café"),
+    ]:
+        add_product(db, pid, name, store, category)
+        add_price(db, store, pid, 5990)
+    db.commit()
+    build_search_documents(db)
+    build_concepts(db)
+    embed_search_documents(db, agent.embedder)
+
+    pisco = agent.reply(db, "bebida para mezclar con pisco", Context(vertical="licores"))
+    assert pisco["intent"]["concepts"][:1] == ["gaseosas"] and "pisco" in pisco["intent"]["concepts"]
+    assert {p["concept"] for p in pisco["products"]} == {"pisco"}
+    assert "pisco" in pisco["text"] and "gaseosas" not in pisco["text"]
+
+    coffee = agent.reply(db, "algo dulce para el café de la tarde", Context(vertical="supermercado"))
+    assert coffee["intent"]["occasion"] == "antojo" and coffee["intent"]["concepts"] == ["cafe"]
+    assert coffee["vertical"] == "supermercado" and {p["concept"] for p in coffee["products"]} == {"cafe"}
+    assert "café" in coffee["text"] and "antojo" not in coffee["text"] and "no hay" not in coffee["text"]
+
+    beer = agent.reply(db, "cerveza para el asado", Context(vertical="licores"))
+    assert {p["concept"] for p in beer["products"]} == {"cerveza"} and "asado 🔥" in beer["text"]
+
+
 def test_a_recommendation_uses_what_the_user_likes(rappi_agent):
     agent, db = rappi_agent
     liked = agent.reply(db, "qué me recomiendas", Context(profile={"snacks-salados": 3.0}))

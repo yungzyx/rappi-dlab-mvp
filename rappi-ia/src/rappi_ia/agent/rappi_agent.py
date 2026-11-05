@@ -204,6 +204,10 @@ class RappiAgent:
             c.id: {w for kw in (c.name, *c.keywords, *c.query_keywords) for w in tokens(kw)}
             for c in self.taxonomy.concepts.values()
         }
+        # Las de cada ocasión tampoco: "guagua" en "pañales para la guagua" dice para qué, no cómo es el pañal.
+        self._occasion_words = {
+            o.id: {w for kw in o.keywords for w in tokens(kw)} for o in self.taxonomy.occasions.values()
+        }
         # "sin carne" es una forma de nombrar lo vegano: ese "sin" no excluye nada
         self._concept_phrases = {
             c.id: {normalize(kw) for kw in (*c.keywords, *c.query_keywords)} for c in self.taxonomy.concepts.values()
@@ -783,8 +787,14 @@ class RappiAgent:
         return response
 
     def _draft(self, intent, vertical, products, outcome, suggestion: Suggestion | None, unmet: bool) -> Draft:
-        concept = self.taxonomy.concepts.get(intent.concepts[0]) if intent.concepts else None
+        # El texto nombra lo que se muestra: "bebida para mezclar con pisco" (gaseosas y pisco) mostraba solo piscos
+        # como "bebidas gaseosas", y "algo dulce para el café de la tarde" (antojo dulce y café), cafés como "antojo
+        # dulce". El concepto es el primero de lo pedido que se muestra; la ocasión rotula si lo mostrado es de ella.
+        shown = {p.concept for p in products}
+        named = next((c for c in intent.concepts if c in shown), intent.concepts[0]) if intent.concepts else None
+        concept = self.taxonomy.concepts.get(named) if named else None
         occasion = self.taxonomy.occasions.get(intent.occasion) if intent.occasion else None
+        foreign = occasion and intent.explicit_concepts and products and not shown & set(occasion.concepts)
         if products:
             kind = "resultados"
         elif intent.price_max is not None and outcome.cheapest_without_filter is not None:
@@ -797,7 +807,7 @@ class RappiAgent:
         return Draft(
             kind=kind,
             query=intent.query or intent.text,
-            concept_label=None if off_topic else _label(occasion, concept),
+            concept_label=None if off_topic else _label(None if foreign else occasion, concept),
             vertical_label=VERTICAL_LABELS.get(vertical, vertical),
             product_names=[p.name for p in products],
             price_max=clp(intent.price_max),
@@ -974,9 +984,10 @@ class RappiAgent:
         }
 
     def _detail(self, intent: Intent) -> tuple[str, str, bool] | None:
-        """(raíz, cómo decirlo, si se pide "sin") de la primera palabra del pedido que no es el concepto ni relleno:
-        "lúcuma" en "helado de lúcuma", "sin gluten" en "galletas para celíacos"."""
+        """(raíz, cómo decirlo, si se pide "sin") de la primera palabra del pedido que no es el concepto, la ocasión
+        entendida ni relleno: "lúcuma" en "helado de lúcuma", "sin gluten" en "galletas para celíacos"."""
         concept_words = {w for c in intent.concepts for w in self._concept_words.get(c, ())}
+        concept_words |= self._occasion_words.get(intent.occasion, set())
         phrases = {p for c in intent.concepts for p in self._concept_phrases.get(c, ())}
         said = {normalize(w): w.lower() for w in intent.text.split()}
         words = _query_words(intent.query)
