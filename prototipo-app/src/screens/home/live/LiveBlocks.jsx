@@ -1,6 +1,7 @@
 import OfferWhy from '../../../components/assistant/OfferWhy'
 import HScroll from '../../../components/HScroll'
 import { ProductCard } from '../../../components/ProductCard'
+import { useRovingGroup } from '../../../hooks/useRovingGroup'
 import { storeOfProduct } from '../../../api/catalog'
 import { basketsOf, storeCount } from '../../../api/orders'
 import { pricedBasket } from '../../checkout/pricing'
@@ -68,11 +69,16 @@ export function PlanBlock({
   const verticals = [...new Set((kit ?? []).map((product) => VERTICAL_NAMES[product.vertical] ?? product.vertical))]
   const stores = storeCount(kit ?? [])
   const short = kitShortStores(kit ?? [], kitStores)
+  const chips = useRovingGroup(
+    plans.length,
+    plans.findIndex((option) => option.id === plan),
+    (i) => onPick(plans[i].id),
+  )
   return (
     <section className="live-card live-card--plan">
       <h2 className="live-plan-title">¿Qué plan tienes hoy?</h2>
-      <div className="live-plan-chips" role="radiogroup" aria-label="Plan de hoy">
-        {plans.map((option) => (
+      <div className="live-plan-chips" role="radiogroup" aria-label="Plan de hoy" onKeyDown={chips.onKeyDown}>
+        {plans.map((option, i) => (
           <button
             key={option.id}
             type="button"
@@ -80,6 +86,7 @@ export function PlanBlock({
             aria-checked={plan === option.id}
             className={plan === option.id ? 'live-plan-chip is-active tap' : 'live-plan-chip tap'}
             onClick={() => onPick(option.id)}
+            {...chips.itemProps(i)}
           >
             <span aria-hidden="true">{option.emoji}</span>
             {option.name}

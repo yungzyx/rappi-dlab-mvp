@@ -323,6 +323,22 @@ describe('TrackingScreen', () => {
     expect(screen.queryByRole('button', { name: NEXT_CARD })).toBeNull()
   })
 
+  test('con las flechas las estrellas se marcan sin enviar: una nota alta sale al tocarla', async () => {
+    renderTracking()
+    await deliver()
+    const star = (n) => screen.getByRole('radio', { name: `${n} estrellas` })
+    star(1).focus()
+    fireEvent.keyDown(star(1), { key: 'End' })
+    expect(document.activeElement).toBe(star(5))
+    expect(star(5).getAttribute('aria-checked')).toBe('true')
+    expect(events.track).not.toHaveBeenCalledWith('order_rated', expect.anything())
+    fireEvent.click(star(5))
+    expect(events.track).toHaveBeenCalledWith(
+      'order_rated',
+      expect.objectContaining({ payload: { stars: 5, reasons: [] } }),
+    )
+  })
+
   test('un pedido guardado sin su carro se califica en el teléfono, sin evento', async () => {
     renderTracking(vi.fn(), { ...ORDER, cartId: undefined })
     await deliver()

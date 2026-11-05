@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { AGENT_NAME } from '../../agent/name'
 import { autonomy, saveAutonomy, turnOffAutonomy } from '../../api/autonomy'
+import { useRovingGroup } from '../../hooks/useRovingGroup'
 import { formatPrice } from '../../state/CartContext'
 
 const CAP_STEP = 1000
@@ -61,30 +62,13 @@ export default function AutonomyEditor({ onSaved, onTurnedOff }) {
 
   return (
     <div className="agent-prefs agent-autonomy">
-      <div className="agent-autonomy-modes" role="radiogroup" aria-label="Cómo pide por ti">
-        <button
-          type="button"
-          role="radio"
-          aria-checked={mode === 'revisar'}
-          className={`agent-autonomy-mode tap${mode === 'revisar' ? ' is-on' : ''}`}
-          disabled={busy}
-          onClick={review}
-        >
-          <strong>Revisar antes de pedir</strong>
-          <small>Te muestro el resumen y pagas en el checkout de siempre.</small>
-        </button>
-        <button
-          type="button"
-          role="radio"
-          aria-checked={mode === 'pedir'}
-          className={`agent-autonomy-mode tap${mode === 'pedir' ? ' is-on' : ''}`}
-          disabled={busy || options.stores.length === 0}
-          onClick={() => setMode('pedir')}
-        >
-          <strong>Pedir por mí</strong>
-          <small>En las tiendas que elijas, pido lo de siempre sin preguntarte, hasta tu tope.</small>
-        </button>
-      </div>
+      <AutonomyModes
+        mode={mode}
+        busy={busy}
+        noStores={options.stores.length === 0}
+        onReview={review}
+        onAsk={() => setMode('pedir')}
+      />
 
       {options.stores.length === 0 && (
         <p className="agent-prefs-note">Cuando pidas en una tienda, podrás elegirla aquí para que pida por ti.</p>
@@ -148,6 +132,45 @@ export default function AutonomyEditor({ onSaved, onTurnedOff }) {
           Guardar
         </button>
       )}
+    </div>
+  )
+}
+
+/** "Revisar antes de pedir" o "Pedir por mí": un grupo que se recorre con las flechas. */
+function AutonomyModes({ mode, busy, noStores, onReview, onAsk }) {
+  const choose = [onReview, onAsk]
+  const roving = useRovingGroup(
+    2,
+    mode === 'pedir' ? 1 : 0,
+    (i) => choose[i](),
+    (i) => busy || (i === 1 && noStores),
+  )
+  return (
+    <div className="agent-autonomy-modes" role="radiogroup" aria-label="Cómo pide por ti" onKeyDown={roving.onKeyDown}>
+      <button
+        type="button"
+        role="radio"
+        aria-checked={mode === 'revisar'}
+        className={`agent-autonomy-mode tap${mode === 'revisar' ? ' is-on' : ''}`}
+        disabled={busy}
+        onClick={onReview}
+        {...roving.itemProps(0)}
+      >
+        <strong>Revisar antes de pedir</strong>
+        <small>Te muestro el resumen y pagas en el checkout de siempre.</small>
+      </button>
+      <button
+        type="button"
+        role="radio"
+        aria-checked={mode === 'pedir'}
+        className={`agent-autonomy-mode tap${mode === 'pedir' ? ' is-on' : ''}`}
+        disabled={busy || noStores}
+        onClick={onAsk}
+        {...roving.itemProps(1)}
+      >
+        <strong>Pedir por mí</strong>
+        <small>En las tiendas que elijas, pido lo de siempre sin preguntarte, hasta tu tope.</small>
+      </button>
     </div>
   )
 }

@@ -6,6 +6,7 @@ import { ProductCard } from '../../components/ProductCard'
 import { ReorderButton } from '../../components/reorder/Reorder'
 import Sheet from '../../components/Sheet'
 import { useToast } from '../../components/Toast'
+import { useRovingGroup } from '../../hooks/useRovingGroup'
 import { StarIcon } from '../../components/Icons'
 import { HeadsetIcon } from '../../components/LineIcons'
 import { offer } from '../../api/agent'
@@ -487,11 +488,16 @@ function Rating({ order }) {
 
   const stars = saved?.stars ?? draft
   const asking = !saved && draft > 0 && draft <= LOW_RATING
+  // Con las flechas se marca sin enviar: una nota alta se manda al tocarla (Espacio o Enter), no al pasar por ella.
+  const starGroup = useRovingGroup(STARS.length, STARS.indexOf(stars), (i) => {
+    setDraft(STARS[i])
+    setReasons([])
+  })
   return (
     <div className="tracking-rate">
       <p>{saved ? 'Tu calificación' : '¿Cómo estuvo tu pedido?'}</p>
-      <div className="tracking-stars" role="radiogroup" aria-label="Calificación">
-        {STARS.map((value) => (
+      <div className="tracking-stars" role="radiogroup" aria-label="Calificación" onKeyDown={starGroup.onKeyDown}>
+        {STARS.map((value, i) => (
           <button
             key={value}
             type="button"
@@ -501,6 +507,7 @@ function Rating({ order }) {
             className={value <= stars ? 'is-on' : undefined}
             disabled={Boolean(saved)}
             onClick={() => choose(value)}
+            {...starGroup.itemProps(i)}
           >
             <StarIcon filled size={30} />
           </button>
@@ -539,6 +546,12 @@ function TipAfter({ order }) {
   const orders = useOrders()
   const toast = useToast()
   const chosen = order.tipAfter ?? 0
+  const amounts = TIPS.filter((amount) => amount > 0)
+  const give = (amount) => {
+    orders.tipAfter(order.id, amount)
+    toast('Tu Rappi recibe el 100% de la propina')
+  }
+  const chips = useRovingGroup(amounts.length, amounts.indexOf(chosen), (i) => give(amounts[i]))
   return (
     <div className="tracking-tip">
       <p>
@@ -552,18 +565,16 @@ function TipAfter({ order }) {
           </>
         )}
       </p>
-      <div className="tracking-tip-chips" role="radiogroup" aria-label="Propina">
-        {TIPS.filter((amount) => amount > 0).map((amount) => (
+      <div className="tracking-tip-chips" role="radiogroup" aria-label="Propina" onKeyDown={chips.onKeyDown}>
+        {amounts.map((amount, i) => (
           <button
             key={amount}
             type="button"
             role="radio"
             aria-checked={chosen === amount}
             className={chosen === amount ? 'tracking-tip-chip is-on tap' : 'tracking-tip-chip tap'}
-            onClick={() => {
-              orders.tipAfter(order.id, amount)
-              toast('Tu Rappi recibe el 100% de la propina')
-            }}
+            onClick={() => give(amount)}
+            {...chips.itemProps(i)}
           >
             {formatPrice(amount)}
           </button>

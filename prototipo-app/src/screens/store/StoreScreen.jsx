@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useId, useMemo, useRef, useState } from 'react'
 import { noteItemView, noteRecommendationClick, placeList, placementFields } from '../../api/attribution'
 import { menu as loadMenu, storeForYou } from '../../api/catalog'
 import { cartEventFields } from '../../api/orders'
@@ -12,6 +12,7 @@ import OfflineNotice from '../../components/OfflineNotice'
 import { ReorderCarousel } from '../../components/reorder/Reorder'
 import ThresholdBar from '../../components/ThresholdBar'
 import { useToast } from '../../components/Toast'
+import { useRovingGroup } from '../../hooks/useRovingGroup'
 import { HeartIcon } from '../../components/Icons'
 import { HOURS_SOURCE_NOTE, hoursLabel } from '../../components/storeHours'
 import { parsePrice, useCart } from '../../state/CartContext'
@@ -58,6 +59,11 @@ export default function StoreScreen({ back, params }) {
   const favorites = useFavorites()
   const events = useEvents()
   const [mode, setMode] = useState(MODES[0])
+  // "Envío" y "Retiro" son pestañas de lo que sigue (su tabpanel): la tienda se ve igual en los dos modos.
+  const modes = useRovingGroup(MODES.length, MODES.indexOf(mode), (i) => setMode(MODES[i]))
+  const ids = useId()
+  const tabId = (i) => `${ids}-tab-${i}`
+  const panelId = `${ids}-panel`
   const scrollRef = useRef(null)
   // Un restaurante trae su menú; una tienda, sus pasillos de a una página (cada uno pide solo lo suyo).
   const menu = useApi(() => (id === null || !restaurant ? null : readMenu(id)), [id, restaurant])
@@ -202,72 +208,77 @@ export default function StoreScreen({ back, params }) {
               />
             )}
 
-            <div className="store-modes" role="tablist">
-              {MODES.map((option) => (
+            <div className="store-modes" role="tablist" onKeyDown={modes.onKeyDown}>
+              {MODES.map((option, i) => (
                 <button
                   key={option}
+                  id={tabId(i)}
                   type="button"
                   role="tab"
                   aria-selected={option === mode}
+                  aria-controls={panelId}
                   className={option === mode ? 'store-mode is-active' : 'store-mode'}
                   onClick={() => setMode(option)}
+                  {...modes.itemProps(i)}
                 >
                   {option}
                 </button>
               ))}
             </div>
 
-            {/* "Pídelo de nuevo": lo que la persona ya compró en esta tienda y sigue a la venta. */}
-            <ReorderCarousel storeId={id} />
+            <div id={panelId} role="tabpanel" aria-labelledby={tabId(MODES.indexOf(mode))}>
+              {/* "Pídelo de nuevo": lo que la persona ya compró en esta tienda y sigue a la venta. */}
+              <ReorderCarousel storeId={id} />
 
-            {chosen && (
-              <>
-                <h2 className="section-title store-title">Lo que elegiste</h2>
-                <ul className="store-products">
-                  <ProductRow product={chosen} />
-                </ul>
-              </>
-            )}
-
-            {aisles.length > 0 && (
-              <AisleTabs
-                aisles={aisles}
-                active={showingForYou ? FOR_YOU_TAB : aisle}
-                forYou={forYouProducts.length > 0}
-                onChoose={(chosenAisle) => {
-                  setForYouTab(chosenAisle === FOR_YOU_TAB)
-                  if (chosenAisle !== FOR_YOU_TAB) setAisle(chosenAisle)
-                }}
-              />
-            )}
-            {error && <OfflineNotice onRetry={retry} />}
-            {!data && !error && <MenuSkeleton tabs={aisles.length === 0} />}
-            {data?.sections && <RealMenu sections={menuSections} scrollRef={scrollRef} />}
-            {showingForYou && !restaurant && (
-              <ul className="store-products" aria-label={FOR_YOU}>
-                {forYouProducts.map((product) => (
-                  <ProductRow key={product.id} product={product} impression checkStock />
-                ))}
-              </ul>
-            )}
-            {data?.products &&
-              !showingForYou &&
-              (products.length > 0 ? (
+              {chosen && (
                 <>
+                  <h2 className="section-title store-title">Lo que elegiste</h2>
                   <ul className="store-products">
-                    {shelf.map((product) => (
-                      <ProductRow key={product.id} product={product} impression checkStock />
-                    ))}
+                    <ProductRow product={chosen} />
                   </ul>
-                  {hasMore && (
-                    <button type="button" className="store-more tap" disabled={loadingMore} onClick={loadMore}>
-                      Ver más
-                    </button>
-                  )}
                 </>
-              ) : (
-                <p className="store-empty">No hay productos para mostrar.</p>
-              ))}
+              )}
+
+              {aisles.length > 0 && (
+                <AisleTabs
+                  aisles={aisles}
+                  active={showingForYou ? FOR_YOU_TAB : aisle}
+                  forYou={forYouProducts.length > 0}
+                  onChoose={(chosenAisle) => {
+                    setForYouTab(chosenAisle === FOR_YOU_TAB)
+                    if (chosenAisle !== FOR_YOU_TAB) setAisle(chosenAisle)
+                  }}
+                />
+              )}
+              {error && <OfflineNotice onRetry={retry} />}
+              {!data && !error && <MenuSkeleton tabs={aisles.length === 0} />}
+              {data?.sections && <RealMenu sections={menuSections} scrollRef={scrollRef} />}
+              {showingForYou && !restaurant && (
+                <ul className="store-products" aria-label={FOR_YOU}>
+                  {forYouProducts.map((product) => (
+                    <ProductRow key={product.id} product={product} impression checkStock />
+                  ))}
+                </ul>
+              )}
+              {data?.products &&
+                !showingForYou &&
+                (products.length > 0 ? (
+                  <>
+                    <ul className="store-products">
+                      {shelf.map((product) => (
+                        <ProductRow key={product.id} product={product} impression checkStock />
+                      ))}
+                    </ul>
+                    {hasMore && (
+                      <button type="button" className="store-more tap" disabled={loadingMore} onClick={loadMore}>
+                        Ver más
+                      </button>
+                    )}
+                  </>
+                ) : (
+                  <p className="store-empty">No hay productos para mostrar.</p>
+                ))}
+            </div>
           </>
         )}
       </section>

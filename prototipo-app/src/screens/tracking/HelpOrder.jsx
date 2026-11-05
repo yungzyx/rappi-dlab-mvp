@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import Sheet from '../../components/Sheet'
+import { useRovingGroup } from '../../hooks/useRovingGroup'
 import { formatPrice, parsePrice } from '../../state/CartContext'
 import { useOrders } from '../../state/OrdersContext'
 import { HELP_REASONS, HELP_WINDOW_HOURS, REFUND_METHODS, clockAndDay, helpDeadline } from './help'
@@ -17,6 +18,11 @@ export default function HelpOrder({ order, deliveredAt, now, className = 'tracki
   const [chosen, setChosen] = useState([])
   const [reason, setReason] = useState(null)
   const [method, setMethod] = useState(null)
+  const methods = useRovingGroup(
+    REFUND_METHODS.length,
+    REFUND_METHODS.findIndex((option) => option.id === method),
+    (i) => setMethod(REFUND_METHODS[i].id),
+  )
   const deadline = helpDeadline(deliveredAt)
   const late = now != null && now > deadline
   // Lo que llegó (con el sustituto en vez del agotado, sin lo reembolsado): se reembolsa lo que se cobró.
@@ -107,8 +113,13 @@ export default function HelpOrder({ order, deliveredAt, now, className = 'tracki
               <p>
                 <strong>¿Dónde reembolsamos tu dinero?</strong> · {formatPrice(amount)}
               </p>
-              <div className="tracking-options" role="radiogroup" aria-label="Dónde va el reembolso">
-                {REFUND_METHODS.map((option) => (
+              <div
+                className="tracking-options"
+                role="radiogroup"
+                aria-label="Dónde va el reembolso"
+                onKeyDown={methods.onKeyDown}
+              >
+                {REFUND_METHODS.map((option, i) => (
                   <button
                     key={option.id}
                     type="button"
@@ -116,6 +127,7 @@ export default function HelpOrder({ order, deliveredAt, now, className = 'tracki
                     aria-checked={method === option.id}
                     className={method === option.id ? 'tracking-option is-on tap' : 'tracking-option tap'}
                     onClick={() => setMethod(option.id)}
+                    {...methods.itemProps(i)}
                   >
                     <strong>{option.label}</strong>
                     <small>{option.when} (plazo de ejemplo)</small>
