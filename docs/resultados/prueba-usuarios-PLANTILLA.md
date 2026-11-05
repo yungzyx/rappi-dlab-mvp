@@ -49,11 +49,11 @@ Copiado del resumen de cada persona (`rappi-ia resumen-prueba`). La duración es
 | Duración | | | | | |
 | Búsquedas (sin resultado / corregidas) | | | | | |
 | Ofertas de Mochi mostradas | | | | | |
-| … aceptadas / rechazadas ("Después") / sin respuesta | | | | | |
+| … aceptadas / rechazadas / sin respuesta | | | | | |
 | Productos agregados desde una oferta | | | | | |
 | Verticales abiertas | | | | | |
 | Verticales con pedido | | | | | |
-| ¿Abrió o pidió en otra vertical que la primera? ¿Por qué camino? (acceso de la Home, oferta de Mochi, buscador) | | | | | |
+| ¿Abrió o pidió en otra vertical que la primera? ¿Por qué camino? (acceso de la Home, oferta de Mochi, buscador; del "Recorrido por verticales") | | | | | |
 | Ocultó a Mochi (y lo trajo de vuelta) | | | | | |
 | Pedidos (cancelados) | | | | | |
 

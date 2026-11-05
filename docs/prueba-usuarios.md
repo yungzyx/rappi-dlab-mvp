@@ -18,7 +18,7 @@ De paso, la búsqueda con errores de tipeo y si Mochi molesta (ocultarlo y traer
 
 - **Cuántas:** 5 personas para la primera ronda, que hayan pedido por una app de delivery en el último mes. Que no sean del equipo ni hayan visto la demo. Mejor si son distintas entre sí: una que solo pide comida, otra que hace el súper por app, alguien que casi no usa apps.
 - **Sin datos personales:** la app no pide cuenta, nombre, correo ni teléfono; la dirección y la tarjeta del checkout son de ejemplo (no se escribe ninguna) y ningún pedido se cobra ni se entrega. Cada participante es un id seudónimo (`proto-…`) que da la API, y todo lo que hace queda con `source = 'prototype'`, que nunca se mezcla con la población simulada (`synthetic`). En las notas, cada persona es P1 a P5: su nombre no se escribe en ninguna parte, ni junto al id.
-- **Lo que escriba en el buscador se guarda** (sin correos, RUT, teléfonos, tarjetas ni direcciones, que se redactan antes) hasta que se borra al final de su sesión (sección 6). Se le pide que no escriba datos suyos.
+- **Lo que escriba en el buscador se guarda** (sin correos, RUT, teléfonos, tarjetas ni direcciones, que se redactan antes) hasta que se borra al terminar las sesiones del día (sección 6). Se le pide que no escriba datos suyos.
 - **Sin grabación:** no se graba pantalla ni voz. El observador anota lo que la persona dice.
 
 Antes de empezar, el moderador lee esto y espera un sí:
@@ -32,9 +32,9 @@ Si dice que no, no hay sesión. Si para en medio, se borran sus datos igual (sec
 - **Equipo:** un teléfono del equipo con el navegador (o un notebook con la vista de teléfono), en dlab-mvp.com. La puerta de acceso (usuario y clave) la escribe el moderador, nunca la persona.
 - **Modo:** si el sitio se construyó sin `VITE_DEMO` (lo normal, ver [despliegue.md](despliegue.md)), siempre abre en el prototipo con Mochi ("Propuesta") y no tiene el interruptor de la demo. Si se construyó con `VITE_DEMO=1`, tiene el interruptor (tecla D y la fila de Cuenta) y el navegador recuerda el último modo: antes de cada sesión, dejarlo en "Prototipo final ✨", no en "Rappi hoy".
 - **Grupo de control apagado:** quien opera dlab-mvp.com confirma que `OFFERS_CONTROL_PCT` está en 0 (lo de siempre). Si no, a una persona le pueden retener las ofertas de Mochi y la tarea 3 no se puede hacer; el resumen lo diría en "Experimentos: … ofertas_control = control".
-- **Comando:** `rappi-ia resumen-prueba` corre en el equipo que sirve la demo, con el `.env` que apunta a su base (en el Mac de [deploy/macos](../deploy/macos/README.md), desde `rappi-ia/` de esa copia y con su `.venv`).
+- **Comandos:** `rappi-ia resumen-prueba` y `rappi-ia olvidar` corren en el equipo que sirve la demo, con el `.env` que apunta a su base (en el Mac de [deploy/macos](../deploy/macos/README.md), desde `rappi-ia/` de esa copia y con su `.venv`).
 - **Roles:** un moderador (lee las consignas, no ayuda) y un observador (anota). Pedirle a la persona que piense en voz alta.
-- **Una corrida en seco** con alguien del equipo, terminada con "Borrar mis datos".
+- **Una corrida en seco** con alguien del equipo, en una pestaña privada como las de verdad (sección 6). Al terminarla, con los mismos dos pasos del final de la sección 6: `resumen-prueba --desde <hora en que empezó la corrida>` da su id (anotarlo) y `olvidar` con ese id la borra. Así no queda en el servidor aunque las sesiones de verdad sean otro día.
 
 ## 4. Guion: 6 tareas (unos 25 minutos)
 
@@ -69,21 +69,31 @@ Tres preguntas abiertas:
 
 ## 6. Cómo anotar a cada participante
 
-Una persona nueva por participante. La app no muestra el id, así que el resumen se pide por la hora de inicio. **"Borrar mis datos" borra en el servidor**: la persona entera (eventos, búsquedas, pedidos, sesiones, preferencias, y su afinidad y su recompra del motor, en cascada), lo que guardó el navegador, y pide una persona nueva; la app vuelve a la Home, con el carro vacío y Mochi a la vista. Después de borrar ya no queda nada que resumir: el resumen va antes.
+Una persona nueva por participante: **una pestaña privada (de incógnito) nueva para cada una**. Empieza sin nada guardado en el navegador, y la API le da un id nuevo. La app no muestra el id y en un teléfono no se puede leer, así que los resúmenes y el borrado se hacen al final, en el equipo que sirve la demo, con los ids que salen del resumen por hora. Así no hay que ir a la terminal entre una persona y otra.
 
 Para cada participante:
 
-1. **Persona nueva.** En el teléfono: Cuenta → "Borrar mis datos" → confirmar (también antes de la primera, para borrar la corrida en seco). Anotar la hora (HH:MM) en la hoja de P*n*.
-2. **Consentimiento, tareas y cuestionario** (secciones 2, 4 y 5). Que la persona no toque "Borrar mis datos" ni "Olvidar" de Mochi en medio: borran lo hecho hasta ahí.
-3. **El resumen, antes de borrar.** En el equipo que sirve la demo, con la hora del paso 1:
+1. **Pestaña privada nueva.** En el teléfono, cerrar todas las pestañas privadas (en Chrome comparten lo guardado mientras quede una abierta) y abrir una nueva en dlab-mvp.com; la puerta de acceso la escribe el moderador. Anotar la hora (HH:MM) en la hoja de P*n*.
+2. **Consentimiento, tareas y cuestionario** (secciones 2, 4 y 5). Que la persona no toque "Borrar mis datos" ni "Olvidar" de Mochi en medio: borran lo hecho hasta ahí. Si pide que se borre en ese momento, "Borrar mis datos" (Cuenta) lo hace en el servidor, y esa persona queda sin resumen.
+3. **Cerrar la pestaña privada.**
+
+Al terminar las sesiones del día, en el equipo que sirve la demo (sección 3):
+
+1. **Los resúmenes**, desde la hora del primer participante:
 
    ```bash
    cd rappi-ia
    .venv/bin/python -m rappi_ia resumen-prueba --desde 2026-11-03T15:00 --salida ~/prueba-usuarios/2026-11-03
    ```
 
-   Escribe un Markdown por persona del prototipo creada desde esa hora (`proto-….md`). Debería ser una sola: si sale más de una, alguien más entró a la demo en ese rato, y la de P*n* es la que coincide con la hora y lo que hizo. Renombrar el archivo a `P1.md` (o anotar su id en la hoja de P1). Con el id a mano (`rappi-proto-user` en el almacenamiento del navegador), `rappi-ia resumen-prueba proto-…` resume solo a esa persona.
-4. **Borrar.** Cuenta → "Borrar mis datos" → confirmar: es el paso 1 del siguiente participante y cumple lo dicho en el consentimiento.
+   Escribe un Markdown por persona del prototipo creada desde esa hora (`proto-….md`), con la hora en que se creó al comienzo. La de P*n* es la que coincide con la hora de su hoja y con lo que hizo; si sale alguna de más, alguien más entró a la demo en ese rato. Renombrar el archivo a `P1.md` y anotar su id en la hoja de P1.
+2. **Borrar**, con los ids que salieron de los resúmenes (los de P1 a P5; la corrida en seco ya se borró al terminarla, sección 3):
+
+   ```bash
+   .venv/bin/python -m rappi_ia olvidar proto-… proto-…
+   ```
+
+   Dice cuántos eventos, pedidos y sesiones tiene cada una y pide confirmación ("s"). Borra lo mismo que "Borrar mis datos" de la app (DELETE /profile): la persona entera, con sus eventos, búsquedas, pedidos, sesiones y preferencias, y su afinidad y su recompra del motor, en cascada. Solo acepta personas del prototipo: si un id es de una simulada o no existe, no borra a ninguna. Con esto se cumple lo dicho en el consentimiento: se borra al terminar, después de anotar el resumen.
 
 Los resúmenes y las hojas se quedan fuera de git (`~/prueba-usuarios/`, no en el repositorio). Al reporte en `docs/resultados/` solo van las cifras por participante, las respuestas y citas cortas sin nada que identifique a nadie.
 
@@ -94,8 +104,9 @@ Los resúmenes y las hojas se quedan fuera de git (`~/prueba-usuarios/`, no en e
 | Experimentos | `modo_app` y, si estaba encendido, `ofertas_control` | `experiment_assignments` |
 | Sesiones | cada sesión (30 minutos sin actividad la cierran) con su inicio, duración, modo y eventos; el total cuenta una vez las que se superponen | `app_sessions` y la hora de sus eventos |
 | Búsquedas | lo escrito en el buscador (`search`) y lo que se le pidió a Mochi (`ask`), con resultados; marca "sin resultado", "corregida a…" y "buscó tal cual" | `app_events` |
-| Ofertas de Mochi | cada oferta mostrada (origen `agent-<momento>` o el "Para ti" de su tarjeta) con su momento, de qué sale su "¿Por qué?" (sus pedidos, lo que buscó, su perfil…), concepto y vertical, y si se aceptó (se agregó algo al carro), se rechazó ("Después" de "¿Volvemos a…?") o quedó sin respuesta registrada | `suggestion_shown` (con `payload.basis`), `suggestion_accepted`, `suggestion_dismissed` y `offer_withheld` |
+| Ofertas de Mochi | cada oferta mostrada (origen `agent-<momento>` o el "Para ti" de su tarjeta) con su momento, de qué sale su "¿Por qué?" (sus pedidos, lo que buscó, su perfil…), concepto y vertical, y si se aceptó (se agregó algo al carro), se rechazó (con el botón de su momento, como "Después" de "¿Volvemos a…?") o quedó sin respuesta registrada | `suggestion_shown` (con `payload.basis`), `suggestion_accepted`, `suggestion_dismissed` y `offer_withheld` |
 | El "¿Por qué?" de las ofertas | cada vez que abrió el "¿Por qué?" de una oferta: la hora, el momento, de qué sale y el concepto | `offer_why_open` (migración 053) |
+| Recorrido por verticales | la primera vertical que tocó y cada una nueva, con la hora y el camino según el origen del evento: un acceso de la Home, Mochi (con el momento de la oferta), el buscador u otro. Los botones "Ver …" de una oferta de Mochi no dejan origen: quien llega por ellos sale como "otro (vertical, …)", y si vio una oferta de Mochi de esa vertical en los 30 minutos anteriores, la nombra ("antes, oferta de Mochi…") sin afirmar que llegó por ella; el observador anota el botón que tocó | `vertical_open`, `view_store`, `view_item`, `cart_add` y `app_orders` |
 | Verticales | las abiertas desde un acceso o un botón de Mochi, los servicios abiertos y las verticales con pedido (sin los cancelados) | `vertical_open`, `service_opened` y `app_orders` |
 | Mochi a la vista | si lo ocultó y lo trajo de vuelta, cuándo y desde dónde | `agent_visibility` |
 | Pedidos | hora, vertical, total, líneas (cuántas de una oferta), modo, estado y si lo pidió la persona o Mochi ("Pedir por mí") | `app_orders` y `app_order_lines` |

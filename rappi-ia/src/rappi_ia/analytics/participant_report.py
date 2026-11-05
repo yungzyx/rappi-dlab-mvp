@@ -3,8 +3,8 @@
 Solo lee, y solo personas del prototipo (`source = 'prototype'`): una simulada nunca entra, aunque se pida su id. Del
 "¿Por qué?" de cada oferta los eventos traen de qué sale (los tipos de su `basis`, en `payload.basis`, desde la
 migración 053) y cuándo se abrió (`offer_why_open`), no su texto: puede traer lo que la persona escribió. Lo que la app
-no guarda no sale aquí y lo anota el moderador: el texto exacto del "¿Por qué?" y el "Ahora no" del globo de la Home
-(solo el "Después" de "¿Volvemos a…?" deja `suggestion_dismissed`).
+no guarda no sale aquí y lo anota el moderador: el texto exacto del "¿Por qué?" y los rechazos que no dejan
+`suggestion_dismissed`.
 """
 
 import re
@@ -61,10 +61,32 @@ BASIS = {
 }
 ACCEPTED, DISMISSED, NO_ANSWER, WITHHELD = (
     "aceptada",
-    'rechazada ("Después")',
+    "rechazada",
     "sin respuesta registrada",
     "retenida (grupo de control)",
 )
+# El botón con que se rechaza cada oferta en la app (`suggestion_dismissed`, con el origen `agent-<momento>`): sale
+# junto a "rechazada". Un momento que no esté aquí sale "rechazada" a secas.
+DISMISS_BUTTONS = {
+    "carrito": "Ahora no",
+    "vertical_por_probar": "Después",
+    "recompra": "Después",
+    "volver": "Después",
+}
+# El camino por el que llegó a una vertical sale del origen del evento (`origin`), no de la pantalla.
+SEARCH_ORIGINS = ("resultados", "resultados-tiendas")
+# Los botones "Ver …" de las ofertas de Mochi llevan a la vertical sin dejar `vertical_open`: si llegó por "otro"
+# camino, se nombra la última oferta de Mochi de esa vertical mostrada hasta este tiempo antes, sin afirmar que llegó
+# por ella.
+OFFER_BEFORE = timedelta(minutes=30)
+# Lo que cuenta como tocar una vertical, con lo que hizo ("order" es un pedido de `app_orders`).
+TOUCHES = {
+    "vertical_open": "abrió la vertical",
+    "view_store": "vio una tienda",
+    "view_item": "vio un producto",
+    "cart_add": "agregó al carro",
+    "order": "pidió",
+}
 
 
 @dataclass
@@ -78,6 +100,7 @@ class Participant:
     accepted_products: int
     why_opened: list[dict]
     opened: list[dict]
+    touches: list[dict]
     services: list[dict]
     visibility: list[dict]
     orders: list[dict]
@@ -123,7 +146,7 @@ def _rows(conn: Connection, query: str, user_id: str) -> list[dict]:
 
 # Todas las consultas filtran `source = 'prototype'` además de la persona: nunca se mezcla con lo simulado.
 _EVENTS = f"""SELECT coalesce(client_ts, ts) AS at, type, vertical, concept_id, query, results, unmet, payload,
-                     {_ORIGIN} AS origin
+                     {_ORIGIN} AS origin, surface
               FROM app_events WHERE user_id = %(user)s AND source = 'prototype'"""
 _ORDER = " ORDER BY coalesce(client_ts, ts), seq NULLS LAST, event_id"
 
@@ -185,6 +208,7 @@ def load_participant(conn: Connection, user_id: str) -> Participant:
         accepted_products=sum(e["type"] == "suggestion_accepted" for e in offer_events),
         why_opened=_events(conn, user_id, ("offer_why_open",)),
         opened=_events(conn, user_id, ("vertical_open",)),
+        touches=_events(conn, user_id, ("view_store", "view_item", "cart_add"), " AND vertical IS NOT NULL"),
         services=_events(conn, user_id, ("service_opened",)),
         visibility=_events(conn, user_id, ("agent_visibility",)),
         orders=orders,
@@ -193,9 +217,9 @@ def load_participant(conn: Connection, user_id: str) -> Participant:
 
 def _offers(events: list[dict]) -> list[dict]:
     """Cada oferta mostrada (o retenida al grupo de control) con lo que pasó después: aceptada si se agregó algo de ella
-    al carro, "Después" si la descartó; si no, sin respuesta registrada. Se reconocen por su origen, su concepto y su
-    vertical, como las cuenta la app (prototipo-app/src/api/suggestions.js), y lo que pasó después llega hasta la
-    siguiente vez que se mostró la misma: una aceptación no vale por dos mostradas."""
+    al carro, rechazada (con el botón de su momento) si la descartó; si no, sin respuesta registrada. Se reconocen por
+    su origen, su concepto y su vertical, como las cuenta la app (prototipo-app/src/api/suggestions.js), y lo que pasó
+    después llega hasta la siguiente vez que se mostró la misma: una aceptación no vale por dos mostradas."""
     offers = []
     for i, e in enumerate(events):
         if e["type"] not in ("suggestion_shown", "offer_withheld"):
@@ -213,7 +237,8 @@ def _offers(events: list[dict]) -> list[dict]:
             if "suggestion_accepted" in after:
                 status = ACCEPTED
             elif "suggestion_dismissed" in after:
-                status = DISMISSED
+                button = DISMISS_BUTTONS.get(e["origin"].removeprefix("agent-"))
+                status = f'{DISMISSED} ("{button}")' if button else DISMISSED
         offers.append({**e, "moment": e["origin"].removeprefix("agent-"), "status": status})
     return offers
 
@@ -370,6 +395,85 @@ def _why_lines(p: Participant) -> list[str]:
     return lines
 
 
+def _path(e: dict) -> str:
+    """Por qué camino llegó, según el origen del evento: Mochi (una oferta `agent-<momento>` o el "Para ti" de su
+    tarjeta, no el de una tienda), el buscador, un acceso de la Home u otro (pantalla y origen tal cual)."""
+    origin, surface = e.get("origin"), e.get("surface")
+    if origin and origin.startswith("agent-"):
+        return f"Mochi ({origin.removeprefix('agent-')})"
+    if origin == "para-ti" and surface != "store":
+        return "Mochi (para-ti)"
+    if origin in SEARCH_ORIGINS:
+        return "buscador"
+    if e["type"] == "vertical_open" and surface == "home":
+        return "acceso de la Home"
+    if surface == "agent":
+        return f"Mochi ({origin or 'sin origen'})"
+    where = ", ".join(x for x in (surface, origin) if x)
+    return f"otro ({where})" if where else "sin dato"
+
+
+def _offer_before(p: Participant, e: dict) -> dict | None:
+    """La última oferta de Mochi (`agent-<momento>`) de la vertical de `e` mostrada en los `OFFER_BEFORE` anteriores."""
+    shown = [
+        o
+        for o in p.offers
+        if o["type"] == "suggestion_shown"
+        and o["origin"].startswith("agent-")
+        and o["vertical"] == e["vertical"]
+        and e["at"] - OFFER_BEFORE <= o["at"] <= e["at"]
+    ]
+    return max(shown, key=lambda o: o["at"], default=None)
+
+
+def _journey_path(p: Participant, e: dict) -> str:
+    """El camino de `_path`; si es "otro" o "sin dato", con la oferta de Mochi de esa vertical que vio justo antes."""
+    path = _path(e)
+    offer = _offer_before(p, e) if path.startswith(("otro", "sin dato")) else None
+    if offer is None:
+        return path
+    return f"{path}; antes, oferta de Mochi ({offer['moment']}) de esa vertical a las {_time(offer['at'])[-5:]}"
+
+
+def journey(p: Participant) -> list[dict]:
+    """La primera vez que tocó cada vertical (la abrió, vio una tienda o un producto, agregó al carro o pidió), en
+    orden: la primera es la vertical con que empezó y las demás, cada una nueva."""
+    orders = [{**o, "type": "order"} for o in p.orders]
+    seen: dict[str, dict] = {}
+    for e in sorted((*p.opened, *p.touches, *orders), key=lambda e: e["at"]):
+        if e["vertical"] and e["vertical"] not in seen:
+            seen[e["vertical"]] = e
+    return list(seen.values())
+
+
+def _journey(p: Participant) -> list[str]:
+    title = ["## Recorrido por verticales", ""]
+    steps = journey(p)
+    if not steps:
+        return [
+            *title,
+            "No tocó ninguna vertical (sin `vertical_open`, `view_store`, `view_item`, `cart_add` ni pedidos).",
+        ]
+    other = "sí" if len(steps) > 1 else "no"
+    lines = [
+        *title,
+        f"Tocó {len(steps)} vertical(es); empezó por {_vertical(steps[0]['vertical'])}. Llegó a otra vertical:"
+        f" {other}.",
+        "",
+        'La primera vez que tocó cada una, con la hora de Santiago y el camino, que sale del origen del evento: "acceso'
+        ' de la Home", "Mochi (momento)", "buscador" u "otro (pantalla, origen)"; "sin dato" si no trae ninguno. Los'
+        ' botones "Ver …" de una oferta de Mochi no dejan origen: si en los 30 minutos anteriores vio una oferta de'
+        ' Mochi de esa vertical, "otro" la nombra ("antes, oferta de Mochi…"), sin afirmar que llegó por ella.',
+        "",
+        "| Hora | Vertical | Qué hizo | Camino |",
+        "|---|---|---|---|",
+    ]
+    for i, e in enumerate(steps):
+        name = _vertical(e["vertical"]) + (" (la primera)" if i == 0 else "")
+        lines.append(f"| {_time(e['at'])} | {name} | {TOUCHES[e['type']]} | {_cell(_journey_path(p, e))} |")
+    return lines
+
+
 def _verticals(p: Participant) -> list[str]:
     opened = list(dict.fromkeys(_vertical(e["vertical"]) for e in p.opened if e["vertical"]))
     others = sum(e["vertical"] is None for e in p.opened)
@@ -432,7 +536,7 @@ def render(p: Participant) -> str:
         "",
         f"Experimentos: {variants}.",
     ]
-    for section in (_sessions, _searches, _offer_lines, _why_lines, _verticals, _visibility, _orders):
+    for section in (_sessions, _searches, _offer_lines, _why_lines, _journey, _verticals, _visibility, _orders):
         lines += ["", *section(p)]
     return "\n".join(lines) + "\n"
 
