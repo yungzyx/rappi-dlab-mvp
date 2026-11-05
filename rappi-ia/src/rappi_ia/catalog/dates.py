@@ -2,9 +2,9 @@
 lectura.
 
 Sale de las ofertas vigentes (`v_latest_offers`, la única definición de oferta vigente) y, en restaurantes, del último
-precio de cada plato (`latest_menu_prices`). Solo cuentan los precios de corridas terminadas (`scrape_runs.status =
-'done'`): una corrida que falló o que sigue abierta no fecha el catálogo, aunque haya alcanzado a guardar precios. Las
-fechas son días en hora de Chile.
+precio de cada plato (`latest_menu_prices`): los mismos precios que muestra la app, cada uno con el día en que se bajó,
+sea cual sea el estado de su corrida (una que sigue abierta también deja precios vigentes). Las fechas son días en
+hora de Chile.
 """
 
 from psycopg import Connection
@@ -13,13 +13,11 @@ _DATES = """
 WITH prices AS (
     SELECT v.vertical, o.scraped_at
     FROM v_latest_offers o
-    JOIN scrape_runs r ON r.run_id = o.run_id AND r.status = 'done'
     JOIN v_store_verticals v ON v.store_id = o.store_id
     WHERE o.current
     UNION ALL
     SELECT 'restaurantes', p.scraped_at
     FROM latest_menu_prices p
-    JOIN scrape_runs r ON r.run_id = p.run_id AND r.status = 'done'
 )
 SELECT vertical,
        (min(scraped_at) AT TIME ZONE 'America/Santiago')::date,

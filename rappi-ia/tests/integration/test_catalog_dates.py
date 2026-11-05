@@ -75,11 +75,12 @@ def test_an_offer_no_longer_current_does_not_date_the_catalog(seeded):
     assert catalog_dates(seeded)["desde"] == DAY
 
 
-@pytest.mark.parametrize("status", ["failed", "running"])
-def test_prices_of_a_run_that_failed_or_is_still_running_never_date_the_catalog(seeded, status):
+@pytest.mark.parametrize("status", ["done", "failed", "running"])
+def test_a_current_price_dates_its_vertical_whatever_the_status_of_its_run(seeded, status):
+    # La app muestra el precio vigente aunque su corrida haya fallado o siga abierta: la fecha dice lo mismo que la
+    # app. Una corrida de tiendas que alcanzó a bajar un precio del súper Centro (queda vigente: es la última corrida
+    # de su formato) y una de restaurantes que bajó un plato.
     later = NEWEST + timedelta(days=1)
-    # Una corrida de tiendas que alcanzó a bajar un precio del súper Centro: ese precio queda vigente (es la última
-    # corrida de su formato), y una de restaurantes que bajó un plato.
     stores_run = new_run(seeded, "stores", status)
     seeded.execute(
         "INSERT INTO price_snapshots (run_id, store_id, sku, price, in_stock, scraped_at)"
@@ -96,15 +97,6 @@ def test_prices_of_a_run_that_failed_or_is_still_running_never_date_the_catalog(
         "SELECT run_id FROM v_latest_offers WHERE store_id = 9101 AND sku = 'sku-91001' AND current"
     ).fetchone()
     assert current == (stores_run,)
-
-    dates = catalog_dates(seeded)
-
-    assert dates["verticales"]["supermercado"] == one_day(DAY)
-    assert dates["verticales"]["restaurantes"] == one_day(DAY)
-    assert dates["hasta"] == DAY
-
-    # La misma corrida, ya terminada, sí cuenta.
-    seeded.execute("UPDATE scrape_runs SET status = 'done' WHERE run_id IN (%s, %s)", (stores_run, dishes_run))
 
     dates = catalog_dates(seeded)
 
