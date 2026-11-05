@@ -81,6 +81,7 @@ Cada cifra dice qué tipo de dato es. El detalle, con los reportes de cada fecha
 | "Sin resultado" | precisión 1,00 (0 falsas alarmas) · recall 0,93 (54 de 58 negativas) | Evaluación automática ([22-10-2026](docs/resultados/busqueda-2026-10-22.md)) |
 | Errores de tipeo | 53 de 53 recuperados en la búsqueda de la app (37 sin corregir), 52 por vertical y 51 por Mochi (31 sin corregir) | Evaluación automática ([25-10-2026](docs/resultados/busqueda-2026-10-25.md), [04-11-2026](docs/resultados/tipeo-2026-11-04.md)) |
 | Seguimientos de Mochi (chips) | 25 conversaciones de 2 o 3 turnos: 21 bien, 4 a medias, 0 mal (antes 7, 8 y 10); las 40 preguntas libres, bien | Juicio propio sobre una copia de la base, no humano externo, medido el 25-10 con el campo de seguimiento; desde el 26-10 los mismos seguimientos van por chips, con la misma API ([25-10-2026](docs/resultados/mochi-conversacion-2026-10-25.md)) |
+| Mochi: primer turno | 140 frases (con un set apartado de 42 que no se usa para ajustar): ningún texto contradice lo que muestra (0 de 127 que anuncian un concepto u ocasión); en 25 necesidades, nDCG@6 0,846 frente a 0,838 de `/search` en sus 6 primeros: no se distinguen | Evaluación automática y juicio LLM de tres niveles, no humano, sobre una copia de la base ([05-11-2026](docs/resultados/mochi-2026-11-05.md)) |
 | Guardias de ofertas | 0 casos de alcohol, Farmacia, bebé, salud o sensibles en 2.851 productos ofrecidos | QA sobre el catálogo real con personas simuladas ([16-10-2026](docs/resultados/qa-motor-2026-10-16.md)) |
 | Motor: próxima vertical | nDCG@8 0,980 frente a 0,918 del orden fijo | Simulado: prueba la mecánica, no el efecto ([04-11-2026](docs/resultados/simulados-2026-11-04.md)) |
 | Conceptos | 86 a 88 % de precisión en la asignación de conceptos | Estimación con jueces LLM ([06-10-2026](docs/resultados/capas-precision-2026-10-06-nueva-muestra.md)) |
@@ -135,7 +136,7 @@ Detalle y porqués en [docs/decisiones.md](docs/decisiones.md).
 
 ## Panel de negocio
 
-[`dashboard-empresa/`](dashboard-empresa/) lee las métricas de la API (`/analytics`) y `make mvp` lo levanta junto a la app, en `http://localhost:5175/`. Para la gerencia y RappiAds, en cuatro vistas, cada una con su cifra, su comparación y una acción sugerida: **Resumen** (venta cruzada, a quién estamos perdiendo, si funciona lo que ofrece Mochi, qué buscan y no encuentran), **Retención y venta cruzada** (la escalera de Rappi, a quién invitar a volver, Pro y sin Pro), **Mochi y búsquedas** (ofertas por momento, el motor contra una regla simple, qué se ve y qué se toca, demanda no satisfecha, "¿Mochi molesta?") y **Experimentos** (cada experimento por variante, y cuál mide un efecto y cuál solo describe). Ningún pedido cancelado cuenta. La fuente se elige y nunca se mezcla: **Simulados** (por defecto; muestran la mecánica) o **Prototipo** (uso de pocas personas, rotulado "no es evidencia"; personas contadas, nunca nombradas).
+[`dashboard-empresa/`](dashboard-empresa/) lee las métricas de la API (`/analytics`) y `make mvp` lo levanta junto a la app, en `http://localhost:5175/`. Para la gerencia y RappiAds, en cuatro vistas, cada una con su cifra, su comparación y una acción sugerida cuando los datos la sostienen (con los simulados, "¿Funciona lo que ofrece Mochi?" no da cifra ni acción): **Resumen** (venta cruzada, a quién estamos perdiendo, si funciona lo que ofrece Mochi, qué buscan y no encuentran), **Retención y venta cruzada** (la escalera de Rappi, a quién invitar a volver, Pro y sin Pro), **Mochi y búsquedas** (ofertas por momento, el motor contra una regla simple, qué se ve y qué se toca, demanda no satisfecha, "¿Mochi molesta?") y **Experimentos** (cada experimento por variante, y cuál mide un efecto y cuál solo describe; la retención M+1 por grupo, con intervalo solo cuando cada grupo llega al mínimo del [plan de piloto](docs/plan-piloto.md)). Ningún pedido cancelado cuenta. La fuente se elige y nunca se mezcla: **Simulados** (por defecto; muestran la mecánica) o **Prototipo** (uso de pocas personas, rotulado "no es evidencia"; personas contadas, nunca nombradas).
 
 ## Dónde está cada cosa
 
@@ -157,7 +158,7 @@ Detalle y porqués en [docs/decisiones.md](docs/decisiones.md).
 
 ## Cambios desde el 25-10-2026
 
-El repositorio de la entrega partió de un solo commit y siguió con PR revisados, uno por cambio: diez fases salidas de comparar el MVP con la app de Rappi, dos revisiones integrales, la presentación sin conexión, Mochi en la Home, la búsqueda en frío y la prueba con usuarios. La tabla completa, PR por PR y con sus migraciones: [docs/cambios.md](docs/cambios.md).
+El repositorio de la entrega partió de un solo commit y siguió con PR revisados, uno por cambio: diez fases salidas de comparar el MVP con la app de Rappi, dos revisiones integrales, la presentación sin conexión, Mochi en la Home, la búsqueda en frío, la prueba con usuarios, el plan de piloto y la medida de Mochi. La tabla completa, PR por PR y con sus migraciones: [docs/cambios.md](docs/cambios.md).
 
 ## Documentación
 

@@ -69,6 +69,7 @@ La página de la propuesta del panel (`dashboard-empresa/presentacion.html`) sir
 | La búsqueda con el juez de tres niveles y los cambios del 25-10-2026 | [resultados/busqueda-2026-10-25.md](resultados/busqueda-2026-10-25.md) |
 | El juicio LLM doble ciego de 200 pares (25-10-2026) | [resultados/juicio-llm-busqueda-2026-10-25.md](resultados/juicio-llm-busqueda-2026-10-25.md) |
 | Las conversaciones con Mochi, antes y después (25-10-2026) | [resultados/mochi-conversacion-2026-10-25.md](resultados/mochi-conversacion-2026-10-25.md) |
+| Mochi medido en su primer turno (revisiones automáticas, un set apartado y el juez de tres niveles contra `/search`) y la búsqueda con los juicios nuevos (05-11-2026) | [resultados/mochi-2026-11-05.md](resultados/mochi-2026-11-05.md) |
 | Los reportes anteriores de la búsqueda, uno por fecha (con otros sets: no se comparan con los de arriba) | [resultados/](resultados/) (`busqueda-2026-09-30.md` a `busqueda-2026-10-06.md`) |
 | La evaluación del motor multivertical sobre datos simulados (16-10-2026) | [resultados/motor-2026-10-16.md](resultados/motor-2026-10-16.md) |
 | Los datos simulados recalibrados a la mezcla de la tabla de Rappi: antes y después (17-10-2026) | [resultados/simulados-2026-10-17.md](resultados/simulados-2026-10-17.md) |
@@ -86,7 +87,7 @@ La página de la propuesta del panel (`dashboard-empresa/presentacion.html`) sir
 | Publicar la demo desde un Mac, sin servidor: Cloudflare Tunnel y la misma puerta | [deploy/macos/README.md](../deploy/macos/README.md) | 10 min |
 | Consultar la base con SQL | [sql/README.md](sql/README.md) y [consultas.sql](sql/consultas.sql) | 5 min |
 | Probar a Mochi (API) como usuario y dejar cada fallo como test | [probar-agente.md](probar-agente.md) | 3 min |
-| Hacer una prueba con personas en dlab-mvp.com: objetivo, consentimiento, las 6 tareas, el cuestionario, el resumen de cada una (`rappi-ia resumen-prueba`) y la plantilla del reporte | [prueba-usuarios.md](prueba-usuarios.md) | 10 min |
+| Hacer una prueba con personas en dlab-mvp.com: objetivo, consentimiento, las 6 tareas, el cuestionario, el resumen de cada una (`rappi-ia resumen-prueba`), cómo borrarla al final (`rappi-ia olvidar`) y la plantilla del reporte | [prueba-usuarios.md](prueba-usuarios.md) | 10 min |
 | Usar el panel de negocio (parte del MVP, para la gerencia y RappiAds: 3 vistas alrededor de 4 preguntas, más Experimentos) | [dashboard-empresa/README.md](../dashboard-empresa/README.md) | 5 min |
 | Contribuir: cómo correr los tests, convenciones y commits | [CONTRIBUTING.md](../CONTRIBUTING.md) y las convenciones del repositorio en [CLAUDE.md](../CLAUDE.md) | 10 min |
 
@@ -96,6 +97,7 @@ La página de la propuesta del panel (`dashboard-empresa/presentacion.html`) sir
 |---|---|---|
 | Evaluación del motor multivertical (uno por fuente) | `rappi-ia/data/eval/motor-{fuente}.md` | `make motor` en `rappi-ia/`. La copia versionada está en [resultados/](resultados/) |
 | Evaluación de la búsqueda | `rappi-ia/data/eval/busqueda.md` | `make eval` en `rappi-ia/` (propone τ en el reporte; `make eval GUARDAR_TAU=1` lo guarda en `eval/thresholds.json`). La copia versionada está en [resultados/](resultados/) |
+| Evaluación de Mochi (primer turno) | `rappi-ia/data/eval/mochi.md`, con los pares sin juicio en `pendientes-mochi.csv` | `rappi-ia eval-mochi` en `rappi-ia/` (solo lee la base). El reporte del 05-11 está en [resultados/](resultados/mochi-2026-11-05.md) |
 | Piloto de Jev (si se corrió) | `rappi-ia/data/eval/jev-piloto.md` | `rappi-ia jev-piloto`, con la clave y las planillas juzgadas (ver [jev.md](jev.md)) |
 | Calidad de cada corrida del scraper | `rappi-scraper/data/reports/` | Al terminar cada corrida, o con `rappi report` |
 | Logs de las corridas | `rappi-scraper/data/logs/` y `rappi-ia/data/logs/` | Automático |
