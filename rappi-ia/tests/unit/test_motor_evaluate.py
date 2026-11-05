@@ -10,6 +10,7 @@ from rappi_ia.motor.evaluate import (
     GRID_B,
     GRID_C,
     GRID_LAMBDA,
+    LAMBDA_MIN_GAIN_HITS,
     evaluate,
     evaluate_cross_sell,
     evaluate_next_vertical,
@@ -120,17 +121,18 @@ def test_evaluate_cross_sell_precision_and_coverage():
     assert baseline["cobertura"] == pytest.approx(1.0)
 
 
-def _mixable():
+def _mixable(validated=5):
     """Una regla sushi en Restaurantes → salsas en Turbo (lift ≈ 2,17) que aprenden 12 personas al principio, cuatro
     pares de Supermercado que son lo más pedido antes de la validación (4 pedidos cada uno) y salsas en Turbo detrás
-    (2). Cinco personas piden sushi justo antes de la validación y salsas en Turbo durante ella: lo más pedido solo no
-    las acierta; la mezcla, sí, desde λ = 1 (con 0,5 la regla no alcanza a subir salsas sobre los cuatro)."""
+    (2). Cinco personas (`validated`) piden sushi justo antes de la validación y salsas en Turbo durante ella: lo más
+    pedido solo no las acierta; la mezcla, sí, desde λ = 1 (con 0,5 la regla no alcanza a subir salsas sobre los
+    cuatro)."""
     orders = [order(f"d{i}", 5, "mall", "ropa") for i in range(20)]
     for i in range(12):
         orders += [order(f"a{i}", 10 + i, "restaurantes", "sushi"), order(f"a{i}", 12 + i, "turbo", "salsas")]
     orders += [order(f"b{i}", 60 + i, "supermercado", "pan", "leche", "huevos", "cafe") for i in range(4)]
     orders += [order(f"c{i}", 70, "turbo", "salsas") for i in range(2)]
-    for i in range(5):
+    for i in range(validated):
         orders += [order(f"v{i}", 75, "restaurantes", "sushi"), order(f"v{i}", 90, "turbo", "salsas")]
     orders.append(order("z", 140, "mall", "ropa"))  # el final de los datos: la validación es [84, 112)
     return sorted(orders, key=lambda o: o.ts)
@@ -161,6 +163,14 @@ def test_tune_lambda_picks_the_best_precision_and_the_smallest_on_ties():
 
     nobody = sorted((order(f"u{i}", d, "turbo", "pan") for i in range(5) for d in (0, 2, 88, 90)), key=lambda o: o.ts)
     assert tune_lambda(nobody, frozenset(), make_split(nobody)) is None
+
+
+@pytest.mark.parametrize(("validated", "expected"), [(1, 0), (6, 1)])
+def test_tune_lambda_needs_five_more_hits_to_leave_zero(validated, expected):
+    # Cada persona en validación es un acierto que solo la mezcla con λ ≥ 1 consigue: 1 es ruido, 6 ya gana.
+    orders = _mixable(validated)
+    assert LAMBDA_MIN_GAIN_HITS == 5
+    assert tune_lambda(orders, frozenset(), make_split(orders)) == expected
 
 
 def test_evaluate_stores_the_lambda_and_reports_the_mix():
