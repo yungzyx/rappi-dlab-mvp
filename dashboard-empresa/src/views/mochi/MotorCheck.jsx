@@ -12,7 +12,9 @@ const COLUMNS = [
     render: (row) => (
       <span className="cell-stack">
         <strong>{row.decides}</strong>
-        <span className="cell-sub">Acierto: {row.metric}</span>
+        <span className="cell-sub">
+          Acierto: {row.metric} ({formatNumber(row.n)} personas)
+        </span>
       </span>
     ),
   },
@@ -32,7 +34,19 @@ const COLUMNS = [
     key: 'gap',
     header: 'Diferencia',
     numeric: true,
-    render: (row) => (row.gap === null ? '—' : <Delta value={row.gap} format={formatPoints} goodWhen="up" />),
+    render: (row) =>
+      row.gap === null ? (
+        '—'
+      ) : (
+        <span className="cell-stack">
+          <Delta value={row.gap} format={formatPoints} goodWhen={row.noise ? null : 'up'} />
+          {row.noise && (
+            <span className="cell-sub">
+              no es concluyente{row.p === undefined || row.p === null ? '' : ` (p = ${formatNumber(row.p, 2)})`}
+            </span>
+          )}
+        </span>
+      ),
   },
 ]
 
@@ -51,7 +65,6 @@ export function MotorCheck({ data, source }) {
       </EmptyState>
     )
   }
-  const people = data.evaluacion.proximo_vertical.combinado.personas
   return (
     <>
       <DataTable
@@ -61,8 +74,7 @@ export function MotorCheck({ data, source }) {
         rowKey={(row) => row.key}
       />
       <p className="cell-sub">
-        Se mide con pedidos posteriores a los que usó para aprender: {formatNumber(people)} personas. Corrida del{' '}
-        {formatDate(data.fecha)}.
+        Se mide con pedidos posteriores a los que usó para aprender. Corrida del {formatDate(data.fecha)}.
         {source === 'synthetic' && ' Sobre datos simulados prueba la mecánica del motor, no su efecto.'}
       </p>
     </>
