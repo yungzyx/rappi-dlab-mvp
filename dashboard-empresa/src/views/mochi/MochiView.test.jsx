@@ -32,7 +32,7 @@ describe('MochiView', () => {
     const offers = await screen.findByRole('table', { name: 'Ofertas del agente por momento' })
     const [plan, cart] = bodyRows(offers)
     expect(momentName(plan)).toBe('Plan')
-    expect(cells(plan).slice(1)).toEqual(['1', '1', '—'])
+    expect(cells(plan).slice(1)).toEqual(['1', '1', '—', '0', '0'])
     expect(momentName(cart)).toBe('Carro')
     // Lo que busca `make mvp-check`: la fila cuyo nombre empieza con "Plan ".
     expect(within(offers).getByRole('row', { name: /^Plan / })).toBe(plan)
@@ -69,6 +69,26 @@ describe('MochiView', () => {
       'Sin momento',
     ])
     expect(within(offers).getByText('25,0%')).toBeTruthy()
+  })
+
+  test('rejected offers and opened "¿Por qué?" go after the rate; an older saved response shows a dash', async () => {
+    serveFixturesWith(
+      offersWith([
+        { momento: 'carrito', mostradas: 4, aceptadas: 1, rechazadas: 2, por_que_abiertos: 3, aceptacion_pct: null },
+        { momento: 'recompra', mostradas: 2, aceptadas: 1, aceptacion_pct: null }, // sin las cuentas nuevas
+      ]),
+    )
+    await renderWithData(<MochiView source="prototype" />)
+
+    const offers = await screen.findByRole('table', { name: 'Ofertas del agente por momento' })
+    expect(
+      within(offers)
+        .getAllByRole('columnheader')
+        .map((th) => th.textContent),
+    ).toEqual(['Momento', 'Mostradas', 'Aceptadas', 'Tasa de aceptación', 'Rechazadas', '"¿Por qué?" abiertos'])
+    const [cart, repeat] = bodyRows(offers)
+    expect(cells(cart).slice(1)).toEqual(['4', '1', '—', '2', '3'])
+    expect(cells(repeat).slice(4)).toEqual(['—', '—'])
   })
 
   test('prototype sections carry the not-evidence label', async () => {

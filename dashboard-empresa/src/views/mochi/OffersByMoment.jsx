@@ -7,8 +7,10 @@ import { MIN_SHOWN_FOR_RATE, momentHint, momentLabel } from './offers.js'
 
 /**
  * Ofertas de Mochi por momento (dónde se hizo la oferta). La tasa llega vacía (—) con menos mostradas que el mínimo:
- * ahí solo valen las cuentas. `make mvp-check` lee esta tabla: "Plan" y sus aceptadas en la tercera celda. Debajo, aparte,
- * los pedidos que Mochi hizo solo con permiso ("Pedir por mí"): no son ofertas aceptadas.
+ * ahí solo valen las cuentas. Después de la tasa, las rechazadas ("Ahora no" o "Después") y los "¿Por qué?" abiertos;
+ * una respuesta guardada antes de que la API los contara no los trae y muestra "—". `make mvp-check` lee esta tabla:
+ * "Plan" y sus aceptadas en la tercera celda. Debajo, aparte, los pedidos que Mochi hizo solo con permiso ("Pedir por
+ * mí"): no son ofertas aceptadas.
  */
 export function OffersByMoment({ data, source }) {
   const { momentos } = data
@@ -54,6 +56,13 @@ export function OffersByMoment({ data, source }) {
         </span>
       ),
     },
+    { key: 'rechazadas', header: 'Rechazadas', numeric: true, render: (row) => formatNumber(row.rechazadas) },
+    {
+      key: 'por_que_abiertos',
+      header: '"¿Por qué?" abiertos',
+      numeric: true,
+      render: (row) => formatNumber(row.por_que_abiertos),
+    },
   ]
   return (
     <>
@@ -63,7 +72,10 @@ export function OffersByMoment({ data, source }) {
         rows={momentos}
         rowKey={(row) => row.momento}
       />
-      <p className="cell-sub">La tasa aparece desde {MIN_SHOWN_FOR_RATE} mostradas; antes, solo las cuentas.</p>
+      <p className="cell-sub">
+        La tasa aparece desde {MIN_SHOWN_FOR_RATE} mostradas; antes, solo las cuentas. Rechazada es tocar "Ahora no" o
+        "Después"; una oferta que no se toca no deja evento.
+      </p>
       <AutoOrders counts={data.autopedidos} />
     </>
   )
