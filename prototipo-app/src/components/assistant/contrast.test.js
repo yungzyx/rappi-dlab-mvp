@@ -2,10 +2,21 @@
 import { readFileSync } from 'node:fs'
 import { describe, expect, test } from 'vitest'
 
-// La hoja real (en los tests, Vite no procesa el CSS importado) y sus tokens.
-const css = readFileSync(new URL('./assistant.css', import.meta.url), 'utf8')
+// Las hojas reales (en los tests, Vite no procesa el CSS importado) y sus tokens.
 const tokens = readFileSync(new URL('../../styles/tokens.css', import.meta.url), 'utf8')
 const token = (name) => tokens.match(new RegExp(`${name}: (#[0-9a-f]{6})`, 'i'))[1]
+
+/** La regla `selector` de la hoja `sheet` (ruta relativa a este archivo): el valor final de cada propiedad, en hex. */
+function rule(sheet, selector) {
+  const css = readFileSync(new URL(sheet, import.meta.url), 'utf8')
+  const escaped = selector.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+  const body = css.match(new RegExp(`(?:^|\\n)${escaped} \\{([^}]*)\\}`))[1]
+  // Un hex directo o el token de tokens.css.
+  return (property) => {
+    const raw = body.match(new RegExp(`\\s${property}:\\s*([^;]+)`, 'i'))[1]
+    return raw.match(/#[0-9a-f]{6}/i)?.[0] ?? token(raw.match(/var\((--[\w-]+)/)[1])
+  }
+}
 
 // Contraste WCAG entre dos colores #rrggbb.
 const luminance = (hex) => {
@@ -20,17 +31,24 @@ const contrast = (a, b) => {
 
 describe('contraste', () => {
   test('la etiqueta "De otra tienda" (11 px) cumple AA: 4,5:1 sobre su fondo', () => {
-    const rule = css.match(/\.agent-msg-suggestion-tag \{([^}]*)\}/)[1]
-    // Valor final de la propiedad: un hex directo o el token de tokens.css.
-    const value = (property) => {
-      const raw = rule.match(new RegExp(`\\s${property}:\\s*([^;]+)`, 'i'))[1]
-      return raw.match(/#[0-9a-f]{6}/i)?.[0] ?? token(raw.match(/var\((--[\w-]+)/)[1])
-    }
+    const value = rule('./assistant.css', '.agent-msg-suggestion-tag')
     expect(contrast(value('color'), value('background'))).toBeGreaterThanOrEqual(4.5)
   })
 
   test('"Pídele a Mochi" resaltada se lee (AA, 4,5:1): el título y lo escrito sobre el naranja claro', () => {
     for (const ink of ['--accent-ink', '--ink-2'])
       expect(contrast(token(ink), token('--accent-soft'))).toBeGreaterThanOrEqual(4.5)
+  })
+
+  // Texto chico (bajo 18,7 px en negrita): AA pide 4,5:1. La × de borrar es un control: 3:1.
+  test.each([
+    ['la cuenta regresiva de los créditos', '../../screens/home/home.css', '.credits-timer', 4.5],
+    ['"Explorar" en Descubre', './discover.css', '.discover-card-foot em', 4.5],
+    ['la insignia de lealtad', '../../screens/loyalty/loyalty.css', '.loyalty-badge', 4.5],
+    ['Pro en el pago, ya socio', '../../screens/checkout/checkout.css', '.checkout-pro.is-member', 4.5],
+    ['la × de borrar la búsqueda', '../search/search.css', '.search-clear', 3],
+  ])('%s cumple AA sobre su fondo', (_label, sheet, selector, min) => {
+    const value = rule(sheet, selector)
+    expect(contrast(value('color'), value('background'))).toBeGreaterThanOrEqual(min)
   })
 })

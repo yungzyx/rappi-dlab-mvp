@@ -24,12 +24,13 @@
   --price-yellow: #fadc24; /* precio y descuento de los productos */
   --green-add: #34c859; /* botón "+" y "Go to checkout" del carro: texto --ink (8,2:1), no blanco (2,2:1) */
   --green-deep: #1f8a3b; /* texto verde y contador del carro (4,9:1 con blanco) */
+  --green-ink: #176b2e; /* texto verde sobre verde claro: 5,9:1 sobre #e7f7ea (AA) */
   --green-status: #34c759; /* verde del sistema: batería, "en línea", pasos listos */
   --surface-soft: #f7f7f8; /* fondo de pantallas con tarjetas blancas */
   --ink-strike: #747474; /* precio tachado */
   --ink-muted: #626a75;
   --line-soft: #ebedf0;
-  --control-border: #c9cdd3; /* borde de radios y botón de borrar */
+  --control-border: #c9cdd3; /* borde de radios */
 
   --tile-restaurants: #fdf7f2;
   --tile-turbo: #ecf9e3;

@@ -89,7 +89,7 @@
   padding: 1px 8px;
   border-radius: 99px;
   background: #fcf9e1;
-  color: #ff9000;
+  color: var(--fee-ink); /* 4,7:1 (AA); el naranja #ff9000 daba 2,1:1 */
   font-size: 13.5px;
   font-weight: 500;
   font-variant-numeric: tabular-nums;

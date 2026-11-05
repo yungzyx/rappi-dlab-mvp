@@ -87,7 +87,7 @@
   padding: 5px 12px;
   border-radius: 99px;
   background: #fff1eb;
-  color: var(--agent-orange);
+  color: var(--accent-ink); /* 5,5:1 (AA); --agent-orange daba 3,2:1 */
   font-size: 13px;
   font-style: normal;
   font-weight: 600;
