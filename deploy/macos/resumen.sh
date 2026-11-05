@@ -6,6 +6,9 @@
 . "$(dirname "$0")/comun.sh"
 cd "$REPO_DIR/rappi-ia" || exit 1
 destino=${RESUMEN_API_TXT:-$TUNEL_DIR/resumen-api.txt}
-.venv/bin/python -m rappi_ia resumen-api --log "$LOG_DIR/api.log" --log "$LOG_DIR/api.log.1" > "$destino.tmp"
+# La copia rotada solo si es de estos días: una vieja no trae nada de ayer y puede pesar cientos de MB.
+extra=()
+[ -z "$(find "$LOG_DIR/api.log.1" -mtime -2 2>/dev/null)" ] || extra=(--log "$LOG_DIR/api.log.1")
+.venv/bin/python -m rappi_ia resumen-api --log "$LOG_DIR/api.log" ${extra[@]+"${extra[@]}"} > "$destino.tmp"
 mv "$destino.tmp" "$destino"
 avisar "API de ayer: $(sed -n 2p "$destino")"

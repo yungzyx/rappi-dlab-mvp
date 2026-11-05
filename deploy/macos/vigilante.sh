@@ -7,9 +7,11 @@
 ESTADO="$TUNEL_DIR/.vigilante"
 mkdir -p "$ESTADO"
 
+todo_bien=1  # pasa a 0 si algo no respondió en esta vuelta
 revisar() { # $1 servicio, $2… comando que responde 0 si está bien
   local servicio=$1; shift
   if "$@"; then rm -f "$ESTADO/$servicio"; return; fi
+  todo_bien=0
   local fallas=$(( $(cat "$ESTADO/$servicio" 2>/dev/null || echo 0) + 1 ))
   echo "$fallas" > "$ESTADO/$servicio"
   log "$servicio no responde ($fallas)"
@@ -29,8 +31,10 @@ revisar api api_sana
 
 # Dos búsquedas chicas mantienen en memoria el modelo de texto de cada proceso de la API (son dos) y los índices: sin
 # uso, macOS los manda al disco y la primera búsqueda después de unas horas tardaba 7 a 14 s, o fallaba. Solo leen.
-for _ in 1 2; do
-  curl -fsS -o /dev/null --max-time 30 "http://127.0.0.1:$API_PORT/search?q=agua&limit=1" || true
+# Llevan el id "vigilante-…" (X-Request-ID) para que el resumen diario (resumen.sh) no las cuente como visitas.
+for i in 1 2; do
+  curl -fsS -o /dev/null --max-time 30 -H "X-Request-ID: vigilante-$(date +%s)-$i" \
+    "http://127.0.0.1:$API_PORT/search?q=agua&limit=1" || true
 done
 revisar caddy caddy_vivo
 revisar tunel tunel_listo
@@ -50,3 +54,9 @@ for f in "$LOG_DIR"/*.log; do
     cp "$f" "$f.1" && : > "$f"  # copiar y vaciar: launchd mantiene el archivo abierto
   fi
 done
+
+# Latido para un monitor externo (opcional, HEARTBEAT_URL en tunel.env): solo si la API, Caddy y el túnel respondieron.
+# Si el Mac se apaga o pierde la red, el latido no llega y el monitor avisa desde afuera. No manda datos de nadie.
+if [ "$todo_bien" = 1 ] && [ -n "${HEARTBEAT_URL:-}" ]; then
+  curl -fsS -o /dev/null --max-time 10 "$HEARTBEAT_URL" || true
+fi

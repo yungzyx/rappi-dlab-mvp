@@ -6,6 +6,7 @@
 prefijo=${1:-nocturno}
 base=${RESPALDO_BASE:-rappi}
 destino="$RESPALDOS_DIR/${prefijo}_${base}_$(date +%Y%m%d-%H%M%S).dump"
+trap 'rm -f "$destino.tmp"' EXIT  # si pg_dump o la revisión fallan, no deja un .tmp de ~2 GB
 
 # Hace falta el doble de lo que pesa el último respaldo libre en disco: si no, avisa y no respalda.
 # shellcheck disable=SC2012 # los nombres los arma este script (sin espacios ni saltos de línea)

@@ -5,6 +5,12 @@ Mac; solo lee el registro y la base.
 Del registro cuenta las líneas de request (`MÉTODO /plantilla ESTADO N ms`): por ruta, cuántas, el promedio y el
 máximo, y cuántas pasaron de SLOW_MS; y los errores 5xx con su `request_id`, para buscarlos en el registro. Las horas
 son las del registro (las del equipo). `/live` y `/health` solo se registran cuando fallan, así que no inflan nada.
+
+Las búsquedas de calentamiento de `deploy/macos/vigilante.sh` llevan un `request_id` que empieza con UPKEEP_PREFIX: se
+cuentan aparte (cuántas y cuántas pasaron de SLOW_MS) y no entran a las rutas, los lentos ni los promedios; un 5xx
+suyo sí va a los errores. Las personas nuevas salen de dos lados: los `POST /session 200` del registro (cada uno, una
+persona nueva o un id viejo de la app que se reclama) y las filas de `app_users` de ese día que siguen en la base, que
+pueden ser menos porque "Borrar mis datos" borra la fila.
 """
 
 import re
@@ -17,6 +23,7 @@ from psycopg import Connection
 from ..catalog.hours import TZ
 
 SLOW_MS = 1000
+UPKEEP_PREFIX = "vigilante-"  # el X-Request-ID de las búsquedas de calentamiento de deploy/macos/vigilante.sh
 LINE = re.compile(
     r"^(?P<day>\d{4}-\d\d-\d\d) (?P<time>\d\d:\d\d:\d\d),\d+ \w+ rappi_ia\.api\.logs \[(?P<request>[^\]]+)\] "
     r"(?P<method>[A-Z]+) (?P<route>.+) (?P<status>\d{3}) (?P<ms>\d+) ms$"
@@ -37,6 +44,9 @@ class Summary:
     routes: dict[str, Route] = field(default_factory=dict)
     errors: list[str] = field(default_factory=list)  # "HH:MM:SS MÉTODO /ruta ESTADO (request_id …)"
     new_people: int | None = None
+    upkeep: int = 0  # búsquedas del vigilante (no cuentan en `routes`)
+    upkeep_slow: int = 0
+    new_sessions: int = 0  # POST /session 200
 
     @property
     def requests(self) -> int:
@@ -57,13 +67,18 @@ def read_log(lines, day: date) -> Summary:
             continue
         key = f"{match['method']} {match['route']}"
         ms, status = int(match["ms"]), int(match["status"])
+        if status >= 500:
+            summary.errors.append(f"{match['time']} {key} {status} (request_id {match['request']})")
+        if match["request"].startswith(UPKEEP_PREFIX):
+            summary.upkeep += 1
+            summary.upkeep_slow += ms > SLOW_MS
+            continue
+        summary.new_sessions += key == "POST /session" and status == 200
         route = summary.routes.setdefault(key, Route())
         route.count += 1
         route.total_ms += ms
         route.max_ms = max(route.max_ms, ms)
         route.slow += ms > SLOW_MS
-        if status >= 500:
-            summary.errors.append(f"{match['time']} {key} {status} (request_id {match['request']})")
     return summary
 
 
@@ -82,6 +97,9 @@ def read_logs(paths: list[Path], day: date) -> Summary:
             total.max_ms = max(total.max_ms, route.max_ms)
             total.slow += route.slow
         summary.errors += part.errors
+        summary.upkeep += part.upkeep
+        summary.upkeep_slow += part.upkeep_slow
+        summary.new_sessions += part.new_sessions
     summary.errors.sort()
     return summary
 
@@ -104,8 +122,14 @@ def render(summary: Summary) -> str:
     lines = [
         f"Resumen de la API · {summary.day.strftime('%d-%m-%Y')}",
         f"{_number(summary.requests)} peticiones · {len(summary.errors)} errores 5xx · {summary.slow} sobre 1 s"
-        + ("" if summary.new_people is None else f" · {summary.new_people} personas nuevas"),
+        f" · {summary.new_sessions} personas nuevas"
+        + ("" if summary.new_people is None else f" ({summary.new_people} siguen en la base)"),
     ]
+    if summary.upkeep:
+        lines.append(
+            f"Mantención del vigilante (no cuenta arriba): {_number(summary.upkeep)} búsquedas"
+            f" · {summary.upkeep_slow} sobre 1 s"
+        )
     if summary.routes:
         lines += ["", "Por ruta (peticiones · promedio · máximo · sobre 1 s):"]
         ranked = sorted(summary.routes.items(), key=lambda kv: (-kv[1].count, kv[0]))

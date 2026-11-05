@@ -42,11 +42,67 @@ def test_the_second_line_says_what_matters_and_routes_go_by_count():
     text = log_summary.render(summary).splitlines()
 
     assert text[0] == "Resumen de la API · 03-11-2026"
-    assert text[1] == "4 peticiones · 1 errores 5xx · 2 sobre 1 s · 2 personas nuevas"
+    assert text[1] == "4 peticiones · 1 errores 5xx · 2 sobre 1 s · 0 personas nuevas (2 siguen en la base)"
     assert text[4] == "  GET /search: 2 · 1.300 ms · 2.500 ms · 1"
     assert text[-1] == "  10:00:00 POST /agent/ask 500 (request_id ddd444)"
 
 
 def test_an_empty_day_says_so_without_tables():
     text = log_summary.render(log_summary.Summary(date(2026, 11, 3), new_people=0))
-    assert text == "Resumen de la API · 03-11-2026\n0 peticiones · 0 errores 5xx · 0 sobre 1 s · 0 personas nuevas\n"
+    assert text == (
+        "Resumen de la API · 03-11-2026\n"
+        "0 peticiones · 0 errores 5xx · 0 sobre 1 s · 0 personas nuevas (0 siguen en la base)\n"
+    )
+
+
+UPKEEP = """\
+2026-11-03 00:02:27,100 INFO rappi_ia.api.logs [vigilante-1793000000-1] GET /search 200 2504 ms
+2026-11-03 00:02:27,200 INFO rappi_ia.api.logs [vigilante-1793000000-2] GET /search 200 40 ms
+2026-11-03 09:15:00,250 INFO rappi_ia.api.logs [abc123] GET /search 200 50 ms
+"""
+
+
+def test_the_watchdog_searches_go_apart_from_the_visits():
+    """Las dos búsquedas de calentamiento de deploy/macos/vigilante.sh (cada 5 minutos) no son visitas: el 03-11 fueron
+    las 574 peticiones del día. Van en su propia línea y no entran a las rutas, los lentos ni los promedios."""
+    summary = log_summary.read_log(UPKEEP.splitlines(), date(2026, 11, 3))
+
+    assert (summary.requests, summary.slow, summary.upkeep, summary.upkeep_slow) == (1, 0, 2, 1)
+    assert summary.routes["GET /search"].max_ms == 50
+    text = log_summary.render(summary).splitlines()
+    assert text[1] == "1 peticiones · 0 errores 5xx · 0 sobre 1 s · 0 personas nuevas"
+    assert text[2] == "Mantención del vigilante (no cuenta arriba): 2 búsquedas · 1 sobre 1 s"
+
+
+def test_a_watchdog_5xx_is_still_an_error():
+    line = "2026-11-03 00:07:27,000 ERROR rappi_ia.api.logs [vigilante-1793000300-1] GET /search 503 12 ms"
+
+    summary = log_summary.read_log([line], date(2026, 11, 3))
+
+    assert summary.errors == ["00:07:27 GET /search 503 (request_id vigilante-1793000300-1)"]
+    assert (summary.requests, summary.upkeep) == (0, 1)
+
+
+def test_new_people_count_the_sessions_even_after_forget_my_data():
+    """ "Borrar mis datos" borra la fila de app_users: el registro todavía dice cuántas sesiones nuevas hubo."""
+    lines = [
+        "2026-11-03 10:00:00,000 INFO rappi_ia.api.logs [aaa111] POST /session 200 15 ms",
+        "2026-11-03 10:30:00,000 INFO rappi_ia.api.logs [bbb222] POST /session 200 12 ms",
+        "2026-11-03 10:31:00,000 WARNING rappi_ia.api.logs [ccc333] POST /session 429 2 ms",
+    ]
+
+    summary = log_summary.read_log(lines, date(2026, 11, 3))
+    summary.new_people = 0
+
+    assert summary.new_sessions == 2
+    assert "2 personas nuevas (0 siguen en la base)" in log_summary.render(summary).splitlines()[1]
+
+
+def test_the_rotated_copy_adds_up_the_watchdog_and_the_sessions(tmp_path):
+    session = "2026-11-03 10:00:00,000 INFO rappi_ia.api.logs [aaa111] POST /session 200 15 ms\n"
+    (tmp_path / "api.log").write_text(UPKEEP + session, encoding="utf-8")
+    (tmp_path / "api.log.1").write_text(UPKEEP.splitlines()[0] + "\n" + session, encoding="utf-8")
+
+    summary = log_summary.read_logs([tmp_path / "api.log", tmp_path / "api.log.1"], date(2026, 11, 3))
+
+    assert (summary.upkeep, summary.upkeep_slow, summary.new_sessions) == (3, 2, 2)
