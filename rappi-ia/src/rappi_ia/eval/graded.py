@@ -13,11 +13,15 @@ docs/resultados/juicio-llm-busqueda-2026-10-25.md). Este juez puntúa lo que ve 
   mismo con "sirve" o "a medias".
 - Cobertura: cuántos de los productos mostrados tienen juicio. Los que no, van a una planilla (`pendientes`, con
   textos del catálogo: fuera de git) para juzgarlos con el mismo criterio; sus juicios se suman a COMPLEMENT_FILE, por
-  id de par y sin textos (`import_sheet`).
+  id de par y sin textos (`import_sheet`). Con productos sin juicio el total no se compara con el de otra fecha: el
+  reporte lo avisa y da aparte las consultas juzgadas completas.
+- Regresiones (`regressions`, `make eval-check`): lo que muestra hoy contra las últimas listas guardadas
+  (`latest_lists`): una consulta que pierde un "sirve" de sus tres primeros o muestra menos productos.
 """
 
 import json
 import math
+import re
 from collections import defaultdict
 from dataclasses import dataclass
 from pathlib import Path
@@ -32,6 +36,7 @@ LLM_FILE = EVAL_DIR / "juicio-llm-2026-10-25.json"  # los 200 pares de planilla-
 COMPLEMENT_FILE = EVAL_DIR / "juicio-llm-complemento.json"  # pares que la búsqueda mostró después, con su clave
 K = 10
 TOP = 3
+LISTS_GLOB = "tres-niveles-listas-*.json"  # lo que mostró la búsqueda en una fecha (`--guardar-listas`), en EVAL_DIR
 PENDING_COLUMNS = ["id", "consulta", "vertical", "entity_type", "entity_id", "nombre", "categoria", "tienda", "juicio"]
 
 
@@ -80,8 +85,9 @@ def shown_lists(runs: list[QueryRun]) -> list[dict]:
     ]
 
 
-def score(lists: list[dict], judgments: dict[str, Judged]) -> dict:
-    """Las métricas de las consultas con algún par juzgado: en total, por tipo de consulta y por vertical."""
+def score(lists: list[dict], judgments: dict[str, Judged], k: int = K) -> dict:
+    """Las métricas de las consultas con algún par juzgado: en total, solo las juzgadas completas (todo lo mostrado
+    con juicio), por tipo de consulta y por vertical. `k`: cuántos puestos cuenta el nDCG (Mochi muestra 6)."""
     pool: dict[tuple[str, str], list[int]] = defaultdict(list)
     for judged in judgments.values():
         pool[(judged.vertical, judged.query)].append(judged.level)
@@ -92,11 +98,14 @@ def score(lists: list[dict], judgments: dict[str, Judged]) -> dict:
             continue
         gains = [
             judged.level if (judged := judgments.get(pair_id(shown["vertical"], shown["consulta"], t, i))) else None
-            for t, i in shown["productos"][:K]
+            for t, i in shown["productos"][:k]
         ]
-        rows.append({**{key: shown[key] for key in ("vertical", "consulta", "tipo")}, **_query_scores(gains, levels)})
+        rows.append(
+            {**{key: shown[key] for key in ("vertical", "consulta", "tipo")}, **_query_scores(gains, levels, k)}
+        )
     return {
         "total": _means(rows),
+        "completas": _means([r for r in rows if r["juzgados"] == r["mostrados"]]),
         "por_tipo": {t: _means([r for r in rows if r["tipo"] == t]) for t in sorted({r["tipo"] for r in rows})},
         "por_vertical": {
             v: _means([r for r in rows if r["vertical"] == v]) for v in sorted({r["vertical"] for r in rows})
@@ -105,14 +114,14 @@ def score(lists: list[dict], judgments: dict[str, Judged]) -> dict:
     }
 
 
-def _query_scores(gains: list[int | None], levels: list[int]) -> dict:
+def _query_scores(gains: list[int | None], levels: list[int], k: int = K) -> dict:
     judged = [g for g in gains if g is not None]
-    ideal = sorted(levels, reverse=True)[:K]
+    ideal = sorted(levels, reverse=True)[:k]
     return {
         "mostrados": len(gains),
         "juzgados": len(judged),
         "no_sirve": sum(g == 0 for g in judged),
-        "ndcg@10": _dcg(judged[:K]) / _dcg(ideal) if _dcg(ideal) else 0.0,
+        "ndcg": _dcg(judged[:k]) / _dcg(ideal) if _dcg(ideal) else 0.0,
         "p@3": sum(g == 2 for g in gains[:TOP]) / TOP,
         "util@3": sum(g is not None and g >= 1 for g in gains[:TOP]) / TOP,
     }
@@ -128,7 +137,7 @@ def _means(rows: list[dict]) -> dict:
     judged = sum(r["juzgados"] for r in rows)
     return {
         "n": n,
-        "ndcg@10": round(sum(r["ndcg@10"] for r in rows) / n, 3) if n else None,
+        "ndcg": round(sum(r["ndcg"] for r in rows) / n, 3) if n else None,
         "p@3": round(sum(r["p@3"] for r in rows) / n, 3) if n else None,
         "util@3": round(sum(r["util@3"] for r in rows) / n, 3) if n else None,
         "mostrados": shown,
@@ -225,9 +234,15 @@ def import_sheet(sheet: Path, complement_file: Path = COMPLEMENT_FILE) -> int:
 
 def render_markdown(scores: dict, title: str = "Juez de tres niveles") -> str:
     total = scores["total"]
-    lines = [
-        f"## {title} (juicio LLM, no humano)",
-        "",
+    lines = [f"## {title} (juicio LLM, no humano)", ""]
+    if total["sin_juicio"]:
+        lines += [
+            f"> **{total['sin_juicio']} productos sin juicio: la cifra total no es comparable.** Se compara la fila"
+            f' "Solo consultas juzgadas completas" ({scores["completas"]["n"]} de {total["n"]}), o se juzgan los que'
+            " faltan.",
+            "",
+        ]
+    lines += [
         'Lo que ve la persona (`hibrido_mostrado`) puntuado con el juicio LLM de pares: 2 "sirve", 1 "a medias", 0 "no'
         ' sirve". Solo las consultas con algún par juzgado; un producto sin juicio se salta en el nDCG y cuenta como'
         " que no sirve en P@3 (ver eval/graded.py).",
@@ -235,6 +250,7 @@ def render_markdown(scores: dict, title: str = "Juez de tres niveles") -> str:
         '| | Consultas | nDCG@10 | P@3 "sirve" | Útil@3 | "No sirve" entre lo juzgado | Mostrados | Sin juicio |',
         "|---|---|---|---|---|---|---|---|",
         _row("Total", total),
+        _row("Solo consultas juzgadas completas", scores["completas"]),
     ]
     lines += [_row(f"Tipo: {tipo}", data) for tipo, data in scores["por_tipo"].items()]
     lines += [_row(f"Vertical: {vertical}", data) for vertical, data in scores["por_vertical"].items()]
@@ -249,6 +265,45 @@ def render_markdown(scores: dict, title: str = "Juez de tres niveles") -> str:
 
 def _row(label: str, data: dict) -> str:
     return (
-        f"| {label} | {data['n']} | {data['ndcg@10']} | {data['p@3']} | {data['util@3']} | {data['no_sirve']}"
+        f"| {label} | {data['n']} | {data['ndcg']} | {data['p@3']} | {data['util@3']} | {data['no_sirve']}"
         f" | {data['mostrados']} | {data['sin_juicio']} |"
+    )
+
+
+def latest_lists(directory: Path = EVAL_DIR) -> Path:
+    """Las últimas listas guardadas (por la fecha AAAA-MM-DD del nombre; el mismo día, "despues" va después de
+    "antes")."""
+    found = sorted(directory.glob(LISTS_GLOB), key=lambda p: (re.findall(r"\d{4}-\d{2}-\d{2}", p.name), p.name))
+    if not found:
+        raise FileNotFoundError(f"No hay listas guardadas ({LISTS_GLOB}) en {directory}")
+    return found[-1]
+
+
+def regressions(before: list[dict], now: list[dict], judgments: dict[str, Judged]) -> list[str]:
+    """Las consultas que, contra `before`, pierden un "sirve" de sus TOP primeros (uno sin juicio cuenta como que no
+    sirve: hay que juzgarlo) o muestran menos productos. Solo las que están en las dos listas."""
+    previous = {(b["vertical"], b["consulta"]): b for b in before}
+    found = []
+    for shown in now:
+        old = previous.get((shown["vertical"], shown["consulta"]))
+        if old is None:
+            continue
+        where = f'{shown["vertical"]} "{shown["consulta"]}"'
+        serving = [_serving(shown["vertical"], shown["consulta"], x["productos"], judgments) for x in (old, shown)]
+        if serving[1] < serving[0]:
+            unjudged = sum(
+                pair_id(shown["vertical"], shown["consulta"], t, i) not in judgments
+                for t, i in shown["productos"][:TOP]
+            )
+            note = f" ({unjudged} sin juicio: júzgalos con `rappi-ia eval-graded`)" if unjudged else ""
+            found.append(f'{where}: "sirve" entre los {TOP} primeros {serving[0]} → {serving[1]}{note}')
+        if len(shown["productos"]) < len(old["productos"]):
+            found.append(f"{where}: muestra {len(shown['productos'])} productos (antes {len(old['productos'])})")
+    return found
+
+
+def _serving(vertical: str, query: str, products: list, judgments: dict[str, Judged]) -> int:
+    return sum(
+        (judged := judgments.get(pair_id(vertical, query, t, i))) is not None and judged.level == 2
+        for t, i in products[:TOP]
     )

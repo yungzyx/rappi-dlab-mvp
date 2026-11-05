@@ -27,6 +27,8 @@ Respuestas reales de la API sobre `rappi_staging` (copia del 22-10), juzgadas a 
 | 25 conversaciones de 2 o 3 turnos (`conversaciones.txt`) | 7 bien, 8 a medias, 10 mal | 21 bien, 4 a medias, 0 mal | [25-10-2026](mochi-conversacion-2026-10-25.md) |
 | 40 preguntas en texto libre (`preguntas-libres.txt`) | 34 bien, 6 a medias (24-10) | 40 bien | [25-10-2026](mochi-conversacion-2026-10-25.md#las-40-preguntas-libres-preguntas-librestxt) |
 
+**Desde el 05-11-2026, una medida que se repite** (`rappi-ia eval-mochi`, [reporte](mochi-2026-11-05.md)): el primer turno de 140 frases (las 33 necesidades de `queries.json`, las 40 preguntas libres, las 25 conversaciones y un set apartado de 42 frases que no se usa para ajustar), sobre `rappi_staging` en solo lectura. **Evaluación automática:** ningún texto contradice lo que muestra (0 de 127 que anuncian un concepto u ocasión), ninguno dice "En X no hay…", ningún producto repetido, 5,8 productos en promedio y 3 respuestas con menos de 4 (las tres a propósito). **Juicio LLM, no humano** (25 necesidades): nDCG@6 0,846 y P@3 "sirve" 0,720 en Mochi contra 0,838 y 0,693 en los 6 primeros de `/search`: no se distinguen (IC 95 % de la diferencia en nDCG, −0,032 a 0,052, bootstrap pareado del mismo comando).
+
 ## Catálogo, conceptos y búsqueda
 
 | Ámbito | Métrica | Valor | Tipo de dato | Fuente |
@@ -68,6 +70,7 @@ Documentos contados el 05-10 sobre la descarga del 04-10-2026 (segunda descarga 
 
 | Reporte | Qué mide |
 |---|---|
+| [mochi-2026-11-05.md](mochi-2026-11-05.md) | Mochi con revisiones automáticas (sin juez) y el juez de tres niveles (juicio LLM, no humano), con un set apartado; la búsqueda repuntuada con los juicios nuevos y las listas del 05-11 para `make eval-check` |
 | [simulados-2026-11-04.md](simulados-2026-11-04.md) | Los simulados regenerados con el sobre de eventos y las reformulaciones: el panel y el motor |
 | [tipeo-2026-11-04.md](tipeo-2026-11-04.md) | Los errores de tipeo en la búsqueda y en Mochi: la medida vigente |
 | [mochi-conversacion-2026-10-25.md](mochi-conversacion-2026-10-25.md) | Las conversaciones con Mochi y las 40 preguntas libres, antes y después |

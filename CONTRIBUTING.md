@@ -22,6 +22,7 @@ Corre lo que corresponde a lo que cambiaste; `make test` y `make lint` en la ra�
 |---|---|
 | `rappi-scraper/` | `make test` y `make lint` en `rappi-scraper/` (integración contra `rappi_test`) |
 | `rappi-ia/` | `make test` y `make lint` en `rappi-ia/` (integración contra `rappi_ia_test`) |
+| La búsqueda o Mochi (`rappi-ia/src/rappi_ia/retrieval/` o `agent/`) | además, `DATABASE_URL=postgresql:///rappi_staging make eval-check` en `rappi-ia/` antes de fusionar: falla si una consulta pierde un "sirve" de sus 3 primeros o muestra menos productos que en las últimas listas guardadas (juicio LLM de tres niveles; solo lee la base). El CI no lo corre: no tiene el catálogo real ([rappi-ia/README.md](rappi-ia/README.md#correr)) |
 | Una respuesta de la API | además, `make contract` en `rappi-ia/`: reescribe las respuestas de ejemplo de `prototipo-app/src/api/fixtures/`, y el CI falla si quedan desactualizadas |
 | `prototipo-app/` o `dashboard-empresa/` | `npm test`, `npm run lint` y `npx prettier --check src scripts` en esa carpeta |
 | El recorrido de la app con la API | `make mvp-check` en la raíz: recorre el MVP con Chrome contra un catálogo inventado (9 revisiones) |

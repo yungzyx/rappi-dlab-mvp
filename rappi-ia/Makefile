@@ -1,4 +1,4 @@
-.PHONY: help install install-ml db-test migrate check-migrations verify-migrations deploy-migrate dump-entrega test lint format jev-categorias concepts embed eval synth analytics serve serve-lan warm warm-catalog probar-agente purge post-refresh prune-embeddings layers layer-report motor contract
+.PHONY: help install install-ml db-test migrate check-migrations verify-migrations deploy-migrate dump-entrega test lint format jev-categorias concepts embed eval eval-check synth analytics serve serve-lan warm warm-catalog probar-agente purge post-refresh prune-embeddings layers layer-report motor contract
 
 PY := .venv/bin/python
 # Python ≥ 3.13 para crear el .venv. En un macOS nuevo `python3` es el 3.9 del sistema: se prefiere python3.13
@@ -71,6 +71,13 @@ EVAL_ARGS ?=
 # --jev-auto suma a Jev como tercer juez solo con clave y adopción (docs/jev.md); si no, evalúa igual que siempre
 eval:  ## Evalúa la búsqueda (léxico vs vectorial vs híbrido) y propone τ; GUARDAR_TAU=1 lo guarda en eval/thresholds.json
 	$(PY) -m rappi_ia eval-search $(if $(filter 1,$(GUARDAR_TAU)),--guardar-tau) $(EVAL_ARGS) --jev-auto
+
+# Lo que ve la persona contra las últimas listas guardadas (eval/tres-niveles-listas-*.json), con el juicio LLM de tres
+# niveles: falla si una consulta pierde un "sirve" de sus 3 primeros o muestra menos productos. El CI no tiene el
+# catálogo real: se corre a mano, sobre la misma copia con que se guardaron las listas (rappi_staging), antes de
+# fusionar cambios en retrieval/ o agent/. Solo lee la base.
+eval-check:  ## Antes de fusionar cambios en retrieval/ o agent/: falla si la búsqueda empeora contra las últimas listas guardadas
+	$(HF_OFFLINE) $(PY) -m rappi_ia eval-graded --revisar
 
 synth:  ## Usuarios y eventos SIMULADOS para el panel y el motor (reemplaza los anteriores)
 	$(PY) -m rappi_ia synth
