@@ -5,6 +5,7 @@
 #   actualizar           cada 15 minutos: si main cambió, la demo se actualiza sola (despliegue continuo)
 #   respaldo             cada noche a las 03:30
 #   purga                cada día a las 04:15
+#   resumen              cada mañana a las 08:00: el resumen de la API del día anterior
 # Uso: deploy/macos/instalar.sh            (desinstalar: deploy/macos/instalar.sh --quitar)
 # shellcheck source=deploy/macos/comun.sh
 . "$(dirname "$0")/comun.sh"
@@ -13,7 +14,7 @@ AGENTS="$HOME/Library/LaunchAgents"
 UID_GUI="gui/$(id -u)"
 mkdir -p "$AGENTS"
 
-servicios=(api caddy tunel vigilante actualizar respaldo purga)
+servicios=(api caddy tunel vigilante actualizar respaldo purga resumen)
 
 quitar() {
   for s in "${servicios[@]}"; do
@@ -67,6 +68,7 @@ plist vigilante '<key>StartInterval</key><integer>300</integer>'
 plist actualizar '<key>StartInterval</key><integer>900</integer>'
 plist respaldo '<key>StartCalendarInterval</key><dict><key>Hour</key><integer>3</integer><key>Minute</key><integer>30</integer></dict>'
 plist purga '<key>StartCalendarInterval</key><dict><key>Hour</key><integer>4</integer><key>Minute</key><integer>15</integer></dict>'
+plist resumen '<key>StartCalendarInterval</key><dict><key>Hour</key><integer>8</integer><key>Minute</key><integer>0</integer></dict>'
 
 for s in "${servicios[@]}"; do
   launchctl bootstrap "$UID_GUI" "$AGENTS/$LABEL.$s.plist"

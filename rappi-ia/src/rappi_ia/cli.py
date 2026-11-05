@@ -23,6 +23,7 @@ Flujo típico (después de cada `rappi refresh` del scraper):
     rappi-ia synth                   # usuarios y eventos SIMULADOS para el panel (reemplaza los anteriores)
     rappi-ia analytics               # resumen de métricas del panel (frecuencia, abandono, oportunidades…)
     rappi-ia resumen-prueba proto-…  # prueba con usuarios: un Markdown por persona del prototipo (o --desde AAAA-MM-DD)
+    rappi-ia resumen-api --log …     # la API de ayer: peticiones por ruta, lentas, errores 5xx y personas nuevas
     rappi-ia purge                   # borra consultas e impresiones de más de 90 días y personas sin actividad
     rappi-ia multivertical           # mapa multivertical (docs/mapas/)
     rappi-ia seed-demo               # catálogo de prueba inventado, SOLO en la base DATABASE_URL_TEST (_test)
@@ -605,6 +606,21 @@ def cmd_analytics(conn, args) -> None:
     print(json.dumps(report, ensure_ascii=False, indent=2, default=str))
 
 
+def cmd_resumen_api(conn, args) -> None:
+    """Solo lectura, como `resumen-prueba`."""
+    from datetime import date, datetime, timedelta
+    from pathlib import Path
+
+    from .api import log_summary
+    from .catalog.hours import TZ
+
+    day = date.fromisoformat(args.dia) if args.dia else datetime.now(TZ).date() - timedelta(days=1)
+    conn.read_only = True
+    summary = log_summary.read_logs([Path(p) for p in args.log], day)
+    summary.new_people = log_summary.new_people(conn, day)
+    print(log_summary.render(summary), end="")
+
+
 def cmd_resumen_prueba(conn, args) -> None:
     """Solo lectura: la conexión queda en modo `read_only`, así un error en una consulta nunca escribe en la base."""
     from .analytics import participant_report as report
@@ -790,6 +806,7 @@ COMMANDS = {
     "purge": cmd_purge,
     "analytics": cmd_analytics,
     "resumen-prueba": cmd_resumen_prueba,
+    "resumen-api": cmd_resumen_api,
     "migrate": cmd_migrate,
     "concepts": cmd_concepts,
     "map-categories": cmd_map_categories,
@@ -922,6 +939,13 @@ def build_parser() -> argparse.ArgumentParser:
     rp.add_argument("user_ids", nargs="*", metavar="user_id", help="personas del prototipo (proto-…)")
     rp.add_argument("--desde", help="en vez de ids: las personas del prototipo creadas desde AAAA-MM-DD[THH:MM]")
     rp.add_argument("--salida", help="carpeta donde dejarlos (por defecto data/prueba-usuarios/)")
+    ra = sub.add_parser(
+        "resumen-api",
+        help="la API de un día: peticiones por ruta, lentas, errores 5xx y personas nuevas; solo lee el registro y "
+        "la base",
+    )
+    ra.add_argument("--log", action="append", required=True, help="el registro de la API (puede ir más de una vez)")
+    ra.add_argument("--dia", help="AAAA-MM-DD (por defecto, ayer en Chile)")
     sub.add_parser(
         "seed-demo", help="reconstruye DATABASE_URL_TEST (debe terminar en _test) con un catálogo de prueba inventado"
     )
