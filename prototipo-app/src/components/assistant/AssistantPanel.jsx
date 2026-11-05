@@ -335,6 +335,24 @@ export default function AssistantPanel({ push, vertical, depth = 1 }) {
   // Teclado y VoiceOver: foco adentro al abrir, Escape cierra, Tab no sale, el foco vuelve al cerrar.
   useDialog(rootRef, assistant.isOpen, () => closeRef.current())
 
+  // Las ideas son los mismos botones en cada ronda (rearmadas, la que se tocó se llevaría el foco a <body>): su entrada
+  // se repite reiniciando la animación.
+  const picksRef = useRef(null)
+  useLayoutEffect(() => {
+    const chips = [...(picksRef.current?.children ?? [])]
+    for (const chip of chips) chip.style.animationName = 'none'
+    void picksRef.current?.offsetWidth // el navegador registra el corte antes de volver a animar
+    for (const chip of chips) chip.style.animationName = ''
+  }, [conversation.chipRound])
+
+  // Cada respuesta reemplaza entera a la anterior: si el foco estaba en ella (un chip para refinarla, "Cancelar"),
+  // pasa al texto de la nueva cuando termina de escribirse. Solo si se perdió: si está en otra parte, no se mueve.
+  const focusInAnswer = useRef(false)
+  const answerShown = (text) => {
+    const lost = !document.activeElement || document.activeElement === document.body
+    if (focusInAnswer.current && lost) text?.focus({ preventScroll: true })
+  }
+
   if (phase === 'closed' && !assistant.isOpen) return null
 
   // Cada respuesta se anuncia completa y una vez: la burbuja la escribe letra por letra, el lector de pantalla no.
@@ -477,7 +495,13 @@ export default function AssistantPanel({ push, vertical, depth = 1 }) {
           </div>
         ) : (
           <>
-            <section className="agent-card" aria-label={`Recomendaciones de ${AGENT_NAME}`}>
+            <section
+              className="agent-card"
+              aria-label={`Recomendaciones de ${AGENT_NAME}`}
+              onFocus={(e) => (focusInAnswer.current = Boolean(e.target.closest('.agent-msg-row')))}
+              // Sin `relatedTarget` el foco no fue a otro control (se quitó el que lo tenía): se recuerda dónde estaba.
+              onBlur={(e) => e.relatedTarget && (focusInAnswer.current = false)}
+            >
               <header className="agent-card-head">
                 <span className="agent-card-mascot">
                   <Mascot size={44} badge mood={conversation.mood} />
@@ -534,7 +558,10 @@ export default function AssistantPanel({ push, vertical, depth = 1 }) {
                   key={current.id}
                   // Sin carro no hay nada que pagar: el resumen dice que está vacío y no lleva al checkout.
                   message={current.orderSummary && cart.count === 0 ? { ...current, actions: [] } : current}
-                  onStreamDone={() => conversation.markStreamed(current.id)}
+                  onStreamDone={(text) => {
+                    conversation.markStreamed(current.id)
+                    answerShown(text)
+                  }}
                   onOpenProduct={openProduct}
                   onAction={onAction}
                   onCancel={conversation.cancelAnswer}
@@ -613,9 +640,8 @@ export default function AssistantPanel({ push, vertical, depth = 1 }) {
 
               {/* Bajo una respuesta de salud no van las ideas de siempre ("Arma un carrete") */}
               {!current?.health && <p className="agent-picks-label">Toca y te armo algo 👇</p>}
-              {/* Clave con prefijo: un número solo podría coincidir con la del mensaje de arriba (su id) y React lo duplicaría. */}
               {!current?.health && (
-                <div key={`chips-${conversation.chipRound}`} className="assistant-chips agent-picks">
+                <div ref={picksRef} className="assistant-chips agent-picks">
                   {CHIPS.map((chip, i) => (
                     <button
                       key={chip}

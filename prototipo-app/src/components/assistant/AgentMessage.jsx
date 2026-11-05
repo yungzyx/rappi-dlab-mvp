@@ -194,18 +194,19 @@ export default function AgentMessage({
   followUp,
 }) {
   const [revealed, setRevealed] = useState(!message.animate)
+  const textRef = useRef(null)
 
   if (message.typing) return <Thinking progress={message.cancellable} onCancel={message.cancellable && onCancel} />
 
   const done = () => {
     setRevealed(true)
-    onStreamDone?.()
+    onStreamDone?.(textRef.current) // el texto, por si el foco tiene que pasar a la respuesta nueva
   }
 
   return (
     <div className="agent-msg-row">
       <div className="agent-msg-bot">
-        <div className="agent-msg-bubble">
+        <div ref={textRef} className="agent-msg-bubble" tabIndex={-1}>
           <StreamText text={message.text} animate={message.animate} onDone={done} />
         </div>
         {/* Lo de abajo ocupa su lugar desde el principio (al aparecer no empuja el panel), pero no se ve ni se toca

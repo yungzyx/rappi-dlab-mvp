@@ -59,7 +59,7 @@
   width: 22px;
   height: 22px;
   border-radius: 50%;
-  background: var(--control-border);
+  background: #8a9099; /* la × blanca a 3,2:1, lo que pide un control (AA) */
   color: var(--surface);
   font-size: 17px;
   line-height: 1;
