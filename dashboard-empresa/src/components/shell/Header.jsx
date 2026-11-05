@@ -1,5 +1,6 @@
+import { use } from 'react'
 import { AGENT_NAME } from '../../lib/agentName.js'
-import { SNAPSHOT_INFO } from '../../lib/api.js'
+import { loadCatalogDates, SNAPSHOT_INFO } from '../../lib/api.js'
 import { formatDate } from '../../lib/format.js'
 import { useAnalytics } from '../../lib/useAnalytics.js'
 import { Async } from '../Async.jsx'
@@ -14,6 +15,23 @@ function AsOf({ source }) {
     <>
       Datos al <strong className="num">{formatDate(kpis.as_of)}</strong> · {AS_OF_LABELS[source]}
     </>
+  )
+}
+
+/** De qué fecha son los precios del catálogo; sin fecha (la API no la da o no responde), nada. */
+function CatalogDates() {
+  const dates = use(loadCatalogDates())
+  if (!dates?.desde || !dates?.hasta) return null
+  return (
+    <span className="masthead-catalog">
+      Precios de Rappi Chile{' '}
+      {dates.desde !== dates.hasta && (
+        <>
+          del <strong className="num">{formatDate(dates.desde)}</strong>{' '}
+        </>
+      )}
+      al <strong className="num">{formatDate(dates.hasta)}</strong>
+    </span>
   )
 }
 
@@ -62,6 +80,9 @@ export function Header({ source, reloadKey, onSourceChange, onRefresh }) {
               Actualizar
             </button>
           )}
+          <Async key={`catalogo-${reloadKey}`} fallback={null}>
+            <CatalogDates />
+          </Async>
         </div>
       </div>
     </header>

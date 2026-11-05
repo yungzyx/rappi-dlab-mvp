@@ -673,7 +673,7 @@ export default function LiveHomeFeed({ push, active = true }) {
           {hidden ? <PlainSearchBar onClick={() => push('search')} /> : <SmartBar />}
           <CreditsBanner credits={CREDITS} onClick={() => push('vertical', { id: 'pharmacy' })} />
         </section>
-        <DemoDisclaimer />
+        <DemoDisclaimer dates={catalog.dates} />
 
         <div className="live-blocks">
           {ORDER.filter((id) => blocks[id]).map((id) => (

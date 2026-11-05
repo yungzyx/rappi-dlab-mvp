@@ -2,7 +2,7 @@ import { StrictMode } from 'react'
 import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import { afterAll, afterEach, beforeAll, describe, expect, test, vi } from 'vitest'
 import { placeList } from '../../api/attribution'
-import { forgetStockChecks } from '../../api/catalog'
+import { forgetCatalogDates, forgetStockChecks } from '../../api/catalog'
 import { toPrototypeProduct } from '../../api/client'
 import { fixture, stubApi } from '../../test/api'
 import { ToastProvider } from '../../components/Toast'
@@ -37,6 +37,14 @@ function Providers({ children }) {
   )
 }
 
+const CATALOGO = {
+  desde: '2026-09-24',
+  hasta: '2026-10-18',
+  verticales: {
+    supermercado: { desde: '2026-10-11', hasta: '2026-10-18' },
+    restaurantes: { desde: '2026-09-24', hasta: '2026-10-05' },
+  },
+}
 const GROCERY = { id: 9101, name: 'Supermercado de prueba Centro', vertical: 'grocery' }
 const PIZZERIA = { id: 9801, name: 'Pizzería de prueba Centro', vertical: 'restaurants' }
 
@@ -55,14 +63,15 @@ const openStore = (params) =>
   render(<StoreScreen back={() => {}} push={() => {}} params={params} />, { wrapper: Providers })
 const tracked = (type) => events.track.mock.calls.filter(([name]) => name === type).map(([, fields]) => fields)
 const rows = () => [...document.querySelectorAll('.product-row strong')].map((node) => node.textContent)
-// Las peticiones hechas por la página de la tienda, como `{ path, query }`; "Para ti" (solo en la propuesta) va aparte y se prueba en su test.
+// Las peticiones hechas por la página de la tienda, como `{ path, query }`; "Para ti" (solo en la propuesta) y la fecha de
+// los precios (`/catalog/home`) van aparte y se prueban en su test.
 const requests = (fetchMock) =>
   fetchMock.mock.calls
     .map(([url]) => {
       const { pathname, searchParams } = new URL(url)
       return { path: pathname, query: Object.fromEntries(searchParams) }
     })
-    .filter(({ path }) => !path.endsWith('/para-ti'))
+    .filter(({ path }) => !path.endsWith('/para-ti') && path !== '/catalog/home')
 
 beforeAll(() => {
   Element.prototype.scrollTo = () => {} // jsdom no lo implementa
@@ -75,6 +84,7 @@ afterAll(() => {
 afterEach(() => {
   cleanup()
   forgetStockChecks()
+  forgetCatalogDates()
   vi.unstubAllGlobals()
   events.track.mockClear()
   localStorage.clear()
@@ -108,6 +118,16 @@ describe('tienda con pasillos', () => {
     ])
     // Era la última página: ya no hay más que traer.
     expect(screen.queryByRole('button', { name: 'Ver más' })).toBeNull()
+  })
+
+  test('las promos de la tienda dicen de qué fecha es el catálogo de su vertical', async () => {
+    stubCatalog({ '/catalog/home': { ...fixture('catalog-home'), catalogo: CATALOGO } })
+    openStore({ store: GROCERY })
+    expect(
+      await screen.findByText(
+        'Promos publicadas por la tienda en Rappi el día de la descarga (catálogo del 11-10 al 18-10).',
+      ),
+    ).toBeTruthy()
   })
 
   test('elegir otro pasillo muestra sus productos desde la primera página', async () => {
@@ -188,6 +208,16 @@ describe('restaurante', () => {
     // La foto es la de un plato, no un logo; un restaurante se abre por su menú y nunca como tienda.
     expect(document.querySelector('.store-hero').className).not.toContain('is-logo')
     expect(requests(fetchMock).map(({ path }) => path)).toEqual(['/catalog/restaurants/9801/menu'])
+  })
+
+  test('el menú dice de qué fecha son los precios de los restaurantes', async () => {
+    stubCatalog({ '/catalog/home': { ...fixture('catalog-home'), catalogo: CATALOGO } })
+    openStore({ store: PIZZERIA })
+    expect(
+      await screen.findByText(
+        'Menú y precios del catálogo descargado de Rappi Chile (precios del 24-09 al 05-10). Las fotos se cargan desde Rappi.',
+      ),
+    ).toBeTruthy()
   })
 
   test('un plato sin foto no rompe el menú', async () => {

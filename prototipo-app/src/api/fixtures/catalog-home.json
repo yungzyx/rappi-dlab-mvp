@@ -1,4 +1,42 @@
 {
+  "catalogo": {
+    "desde": "2026-10-18",
+    "hasta": "2026-10-18",
+    "verticales": {
+      "chocolateria": {
+        "desde": "2026-10-18",
+        "hasta": "2026-10-18"
+      },
+      "conveniencia": {
+        "desde": "2026-10-18",
+        "hasta": "2026-10-18"
+      },
+      "farmacia": {
+        "desde": "2026-10-18",
+        "hasta": "2026-10-18"
+      },
+      "licores": {
+        "desde": "2026-10-18",
+        "hasta": "2026-10-18"
+      },
+      "mall": {
+        "desde": "2026-10-18",
+        "hasta": "2026-10-18"
+      },
+      "restaurantes": {
+        "desde": "2026-10-18",
+        "hasta": "2026-10-18"
+      },
+      "supermercado": {
+        "desde": "2026-10-18",
+        "hasta": "2026-10-18"
+      },
+      "turbo": {
+        "desde": "2026-10-18",
+        "hasta": "2026-10-18"
+      }
+    }
+  },
   "fast_restaurants": [
     {
       "area": "Providencia",

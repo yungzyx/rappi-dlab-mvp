@@ -211,6 +211,7 @@ export function useHomeCatalog() {
   return {
     fastRestaurants: lists.data?.fastRestaurants ?? [],
     nearbyStores: lists.data?.nearbyStores ?? [],
+    dates: lists.data?.dates ?? null, // de qué fecha son los precios (catalogDates)
     // Solo los que tienen nota: uno sin nota no es de los mejor evaluados.
     bestRated: placeList(
       (bestRated.data ?? []).filter((store) => store.rating),

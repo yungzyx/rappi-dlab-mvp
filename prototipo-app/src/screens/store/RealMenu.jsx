@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
+import PricesDate from '../../components/PricesDate'
 import ProductRow from '../../components/ProductRow'
 
 // Espacio que ocupan las pestañas fijas: una sección cuenta como "activa" al pasar bajo ellas.
@@ -78,7 +79,8 @@ export default function RealMenu({ sections, scrollRef }) {
         </section>
       ))}
       <p className="menu-source">
-        Menú y precios del catálogo descargado de Rappi Chile. Las fotos se cargan desde Rappi.
+        Menú y precios del catálogo descargado de Rappi Chile
+        <PricesDate verticals="restaurants" label="precios" />. Las fotos se cargan desde Rappi.
       </p>
     </>
   )

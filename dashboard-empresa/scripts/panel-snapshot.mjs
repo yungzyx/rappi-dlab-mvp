@@ -48,7 +48,12 @@ for (const source of SOURCES) {
   }
 }
 
+// De qué fecha son los precios del catálogo (el encabezado lo dice): el `catalogo` de la Home de la app.
+const home = await fetch(`${API}/catalog/home`)
+if (!home.ok) throw new Error(`/catalog/home respondió ${home.status}`)
+const catalogo = (await home.json()).catalogo ?? null
+
 const fecha = new Date().toLocaleDateString('en-CA') // AAAA-MM-DD en la hora local
 mkdirSync(OUT_DIR, { recursive: true })
-writeFileSync(`${OUT_DIR}panel.json`, `${JSON.stringify({ grabado: { fecha, base: BASE }, respuestas })}\n`)
+writeFileSync(`${OUT_DIR}panel.json`, `${JSON.stringify({ grabado: { fecha, base: BASE }, catalogo, respuestas })}\n`)
 console.log(`Listo: snapshot/panel.json (${Object.keys(respuestas).length} respuestas, ${fecha})`)

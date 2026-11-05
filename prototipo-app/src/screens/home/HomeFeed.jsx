@@ -62,7 +62,7 @@ export default function HomeFeed({ push }) {
           <PlainSearchBar onClick={openSearch} />
           <CreditsBanner credits={CREDITS} onClick={() => push('vertical', { id: 'pharmacy' })} />
         </section>
-        <DemoDisclaimer />
+        <DemoDisclaimer dates={catalog.dates} />
 
         <MainTiles push={push} onOpen={openVertical} />
         <Shortcuts push={push} onOpen={openVertical} onService={openService} />

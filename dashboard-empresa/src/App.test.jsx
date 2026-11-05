@@ -1,7 +1,7 @@
 import { act, fireEvent, screen, within } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest'
 import App from './App.jsx'
-import { apiDown, renderWithData, resetApi, serveFixtures } from './test/fixtureApi.js'
+import { apiDown, renderWithData, resetApi, serveFixtures, serveFixturesWith } from './test/fixtureApi.js'
 
 describe('App', () => {
   beforeEach(() => {
@@ -51,6 +51,21 @@ describe('App', () => {
     expect(screen.getByRole('link', { name: 'Presentación de la propuesta' }).getAttribute('href')).toBe(
       `${import.meta.env.BASE_URL}presentacion.html`,
     )
+  })
+
+  test('the header says the date of the catalog prices, and nothing when the API does not', async () => {
+    const catalogo = { desde: '2026-10-18', hasta: '2026-10-18', verticales: {} }
+    serveFixturesWith({ '/catalog/home': { nearby_stores: [], catalogo } })
+    await renderWithData(<App />)
+
+    expect(document.querySelector('.masthead-catalog').textContent).toBe('Precios de Rappi Chile al 18-10-2026')
+    expect(globalThis.fetch.mock.calls.filter(([url]) => url.endsWith('/catalog/home'))).toHaveLength(1)
+    resetApi()
+
+    apiDown()
+    await renderWithData(<App />)
+    expect(await screen.findByText('Modo sin conexión (datos guardados):')).toBeTruthy()
+    expect(document.querySelector('.masthead-catalog')).toBeNull()
   })
 
   test('only the active tab has aria-controls (the other panels are not in the DOM)', async () => {

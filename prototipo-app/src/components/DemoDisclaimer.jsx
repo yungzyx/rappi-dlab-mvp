@@ -1,10 +1,16 @@
+import { pricesDate } from '../api/usePricesDate'
 import './demo-disclaimer.css'
 
-/** El aviso fijo de la Home: esto es un prototipo hecho con Rappi, no su app oficial. */
-export default function DemoDisclaimer() {
+/**
+ * El aviso fijo de la Home: esto es un prototipo hecho con Rappi, no su app oficial. Con `dates` (las de `catalogDates`),
+ * dice también de qué fecha son los precios.
+ */
+export default function DemoDisclaimer({ dates = null }) {
+  const prices = pricesDate(dates)
   return (
     <>
       <p className="demo-disclaimer">Prototipo dLab con Rappi · demo, no es la app oficial</p>
+      {prices && <p className="demo-disclaimer demo-disclaimer--prices">Precios de Rappi Chile {prices}</p>}
       {/* Solo en "Prototipo MVP.html" (`npm run demo:html`): la API la responde el navegador. */}
       {import.meta.env.VITE_OFFLINE_DEMO === '1' && <OfflineNote />}
     </>

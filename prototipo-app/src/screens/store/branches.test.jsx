@@ -98,7 +98,9 @@ describe('sucursales con el mismo nombre (restaurantes de la API)', () => {
 
     expect(await screen.findByText('Pizza de Las Condes (prueba)')).toBeTruthy()
     expect(
-      fetchMock.mock.calls.map(([url]) => new URL(url).pathname).filter((path) => !path.endsWith('/para-ti')),
+      fetchMock.mock.calls
+        .map(([url]) => new URL(url).pathname)
+        .filter((path) => !path.endsWith('/para-ti') && path !== '/catalog/home'), // la fecha de los precios
     ).toEqual(['/catalog/restaurants/9805/menu'])
     // Es el plato del menú: no se repite como "Lo que elegiste".
     expect(screen.queryByText('Lo que elegiste')).toBeNull()

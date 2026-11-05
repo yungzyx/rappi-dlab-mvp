@@ -7,7 +7,8 @@
   text-align: center;
 }
 
-/* La demo sin conexión ("Prototipo MVP.html"): la nota y el botón para empezar de cero */
+/* De qué fecha son los precios, y la demo sin conexión ("Prototipo MVP.html"): la nota y el botón para empezar de cero */
+.demo-disclaimer--prices,
 .demo-disclaimer--offline {
   margin-top: 4px;
   font-size: 11px;
