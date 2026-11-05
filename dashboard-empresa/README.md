@@ -4,7 +4,7 @@
 
 > Prototipo del programa dLab desarrollado junto con Rappi Chile: no es un producto oficial de Rappi, y el encabezado del panel lo dice. Las marcas pertenecen a sus dueños.
 
-Panel para dos públicos de Rappi: la **gerencia general** (crecimiento, retención y venta cruzada entre verticales) y **RappiAds** (a quién ofrecer qué, en qué momento y con qué resultado). Se ordena en cuatro preguntas, cada una con su cifra, su comparación y una acción sugerida:
+Panel para dos públicos de Rappi: la **gerencia general** (crecimiento, retención y venta cruzada entre verticales) y **RappiAds** (a quién ofrecer qué, en qué momento y con qué resultado). Se ordena en cuatro preguntas, cada una con su cifra, su comparación y una acción sugerida cuando los datos la sostienen (con los simulados, la de Mochi no da cifra ni acción):
 
 1. **¿Dónde está la venta cruzada?** La tabla de combinaciones que compartió Rappi: cuántos usuarios están en cada combinación de verticales y cuánto más vuelve la combinación con un grupo más.
 2. **¿A quién estamos perdiendo?** Personas en riesgo y perdidas según su propio ritmo, a cuántas invitar a volver y qué pedían.

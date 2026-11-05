@@ -74,7 +74,7 @@ Con `make mvp` el panel ya está arriba. Después de la demo de la app, ábrelo 
 
 **Qué decir:** cada sección lleva el rótulo "uso del MVP, pocas personas: no es evidencia". Son las pruebas de unas pocas personas, no una medición, y nunca se mezclan con los datos simulados. "Olvidar" en la app borra también los eventos de esa persona.
 
-Para cerrar, con la fuente **Simulados**, abre el **Resumen**: las cuatro preguntas para la gerencia y RappiAds, cada una con su cifra, su comparación y una acción sugerida. **¿Dónde está la venta cruzada?** lleva a **Retención y venta cruzada**, donde la tabla de Rappi se ve como escalera: el 62,6 % de los usuarios solo pide en Restaurantes y vuelve el 47 % al mes siguiente; quienes además piden en Turbo, el 82 %. **Qué decir:** es el dato de Rappi y el punto de partida del motor, una correlación y no un efecto; el resto de las cifras son simuladas y muestran la mecánica, no evidencia.
+Para cerrar, con la fuente **Simulados**, abre el **Resumen**: las cuatro preguntas para la gerencia y RappiAds, cada una con su cifra, su comparación y una acción sugerida, salvo **¿Funciona lo que ofrece Mochi?**: con los simulados no da cifra ni acción, porque la aceptación la fija el generador y no dice si Mochi funciona. **¿Dónde está la venta cruzada?** lleva a **Retención y venta cruzada**, donde la tabla de Rappi se ve como escalera: el 62,6 % de los usuarios solo pide en Restaurantes y vuelve el 47 % al mes siguiente; quienes además piden en Turbo, el 82 %. **Qué decir:** es el dato de Rappi y el punto de partida del motor, una correlación y no un efecto; el resto de las cifras son simuladas y muestran la mecánica, no evidencia.
 
 ## Qué aclarar si preguntan
 
