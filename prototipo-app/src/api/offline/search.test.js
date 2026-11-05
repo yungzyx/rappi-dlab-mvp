@@ -84,6 +84,42 @@ describe('el foco de la búsqueda (agent/tools.py: _focus)', () => {
   })
 })
 
+describe('un error de tipeo grabado (demo-snapshot.mjs: eval/typos.json)', () => {
+  const corrected = {
+    query: 'cervesa',
+    groups: [{ vertical: 'licores', prototype_vertical: 'liquor', products: [beer] }],
+    unmet: false,
+    unmet_reason: null,
+    corrected_query: 'cerveza',
+  }
+  const typed = { ...snapshot, search: { cervesa: corrected } }
+
+  test('sale tal cual lo corrigió la API, también en la vertical', () => {
+    expect(search(typed, new URLSearchParams('q=cervesa'))).toBe(corrected)
+    const inLiquor = search(typed, new URLSearchParams('q=cervesa&vertical=liquor'))
+    expect(inLiquor.products).toEqual([beer])
+    expect(inLiquor.corrected_query).toBe('cerveza')
+  })
+
+  test('desde una pantalla (`current`) sale la corrección, con la vertical de la pantalla primero', () => {
+    const fruit = product(8, { name: 'Cerveza de fruta', concept: 'cerveza', vertical: 'supermercado' })
+    const both = {
+      ...corrected,
+      groups: [...corrected.groups, { vertical: 'supermercado', prototype_vertical: 'grocery', products: [fruit] }],
+    }
+    const reply = search({ ...snapshot, search: { cervesa: both } }, new URLSearchParams('q=cervesa&current=grocery'))
+    expect(reply.corrected_query).toBe('cerveza')
+    expect(reply.groups.map((g) => g.vertical)).toEqual(['supermercado', 'licores'])
+  })
+
+  test('"Buscar tal cual" (correct=false) no repite la corrección: busca lo escrito en la muestra', () => {
+    const exact = search(typed, new URLSearchParams('q=cervesa&correct=false'))
+    expect(exact.corrected_query).toBeNull()
+    expect(exact.unmet).toBe(true)
+    expect(exact.unmet_reason).toBe('sin coincidencias en la muestra de la demo sin conexión')
+  })
+})
+
 describe('"qué me recomiendas" (rappi_agent.py: _recommend)', () => {
   const recommend = (interests, body = {}) =>
     ask(snapshot, { message: '¿Qué me recomiendas?', mode: 'propuesta', ...body }, { interests, userId: 'proto-1' })

@@ -40,7 +40,8 @@
 // - rappi-ia/src/rappi_ia/agent/rappi_agent.py (DAILY_CROSS_CAP) y events/store.py (cross_suggestions_today) ... el tope
 //   diario de sugerencias cruzadas en las respuestas de Mochi (index.js: crossCapped)
 // No se replica la corrección de errores de tipeo (retrieval/spelling.py, también en rappi_agent.py: _misspelled): sin
-// conexión, lo mal escrito se responde como lo escrito.
+// conexión, lo mal escrito se responde como lo escrito, salvo lo grabado (las de eval/typos.json y las de la
+// presentación, en scripts/demo-snapshot.mjs: TYPOS), que sale con la corrección de la API.
 // - rappi-ia/src/rappi_ia/events/store.py .......... el perfil de intereses (index.js: interests) y el sobre de cada
 //   evento (index.js: storedEvent; el origen, en `origin` o, en los eventos de antes, `payload.origen`); las impresiones
 //   (`list_view`) no se guardan, y sin conexión no hay grupo de control de las ofertas (OFFERS_CONTROL_PCT)
@@ -51,8 +52,9 @@
 // - rappi-ia/src/rappi_ia/offers/profiles.py ....... los perfiles de gusto activos (tastes.js)
 // - rappi-ia/src/rappi_ia/catalog/hours.py y catalog/restaurants.py (filtros, "Destacados", with_hours) ... abierto o
 //   cerrado según el horario publicado y los filtros de restaurantes (catalog.js); las búsquedas recientes de
-//   events/searches.py (index.js: searchesReply). Sin conexión no hay "Lo más buscado", tiendas en la búsqueda, "Lo que
-//   sea", comparar entre tiendas ni "Para ti" en la tienda: esas rutas responden 404 o vacío y la app no las muestra.
+//   events/searches.py (index.js: searchesReply). Sin conexión no hay "Lo más buscado", "Lo que sea", comparar entre
+//   tiendas ni "Para ti" en la tienda: esas rutas responden 404 o vacío y la app no las muestra. Las tiendas de la
+//   búsqueda solo llegan en las respuestas grabadas (`places`), y solo las de la muestra (scripts/demo-snapshot.mjs).
 // - rappi-ia/src/rappi_ia/offers/preferences.py y preferencias.toml, api/preferences.py y rappi_agent.py
 //   (_preference) ... las preferencias explícitas: en la hoja del panel (con las tiendas de sus pedidos), lo que llega
 //   escrito por el buscador, el filtro y el orden de lo que Mochi muestra y ofrece, y el filtro del buscador con
