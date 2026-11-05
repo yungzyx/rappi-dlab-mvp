@@ -112,6 +112,42 @@ describe('AddButton', () => {
     fireEvent.click(screen.getByLabelText('Agregar Maní Salado'))
     expect(count('suggestion_accepted')).toBe(2)
   })
+
+  test('con el teclado el foco no se pierde: pasa a "+" al abrir el contador y vuelve a "Agregar" al quitar el último', () => {
+    const offer = {
+      id: 'cat-300',
+      name: 'Cerveza Kunstmann',
+      price: '$1.990',
+      vertical: 'licores',
+      store: 'Botillería',
+    }
+    render(<AddButton product={offer} />, { wrapper: Providers })
+    const addFirst = screen.getByRole('button', { name: 'Agregar Cerveza Kunstmann' })
+    addFirst.focus()
+    fireEvent.keyDown(addFirst, { key: 'Enter' })
+    expect(document.activeElement).toBe(screen.getByRole('button', { name: 'Agregar uno de Cerveza Kunstmann' }))
+
+    const removeOne = screen.getByRole('button', { name: 'Quitar uno de Cerveza Kunstmann' })
+    removeOne.focus()
+    fireEvent.keyDown(removeOne, { key: 'Enter' })
+    expect(document.activeElement).toBe(screen.getByRole('button', { name: 'Agregar Cerveza Kunstmann' }))
+  })
+
+  test('sin el foco en el botón, abrirlo o cerrarlo no mueve el foco', () => {
+    const offer = { id: 'cat-301', name: 'Agua Benedictino', price: '$990', vertical: 'supermercado', store: 'Unimarc' }
+    render(
+      <>
+        <input aria-label="otro campo" />
+        <AddButton product={offer} />
+      </>,
+      { wrapper: Providers },
+    )
+    const field = screen.getByLabelText('otro campo')
+    field.focus()
+    fireEvent.click(screen.getByLabelText('Agregar Agua Benedictino'))
+    fireEvent.click(screen.getByLabelText('Quitar uno de Agua Benedictino'))
+    expect(document.activeElement).toBe(field)
+  })
 })
 
 const count = (type) => events.track.mock.calls.filter(([name]) => name === type).length
