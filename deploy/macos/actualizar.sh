@@ -11,13 +11,20 @@
 # de a poco.
 main() {
   cd "$REPO_DIR" || exit 1
+  # Se escribe en un .tmp y se mueve: si la escritura falla (disco lleno), desplegado.txt queda como estaba.
+  anotar_desplegado() { git rev-parse HEAD > "$TUNEL_DIR/desplegado.txt.tmp" && mv "$TUNEL_DIR/desplegado.txt.tmp" "$TUNEL_DIR/desplegado.txt"; }
   [ -z "$(git status --porcelain --untracked-files=no)" ] || { log "La copia $REPO_DIR tiene cambios sin commit: no actualizo"; exit 1; }
 
   git fetch -q origin main
   objetivo=$(git rev-parse origin/main)
   # La primera vez, lo que ya estaba servido: así un fallo en esta misma vuelta también se reintenta.
-  [ -f "$TUNEL_DIR/desplegado.txt" ] || git rev-parse HEAD > "$TUNEL_DIR/desplegado.txt"
+  [ -f "$TUNEL_DIR/desplegado.txt" ] || anotar_desplegado
   desplegado=$(cat "$TUNEL_DIR/desplegado.txt")
+  # Vacío o con un commit que no existe, cada vuelta moriría en el git diff hasta que alguien lo borre a mano.
+  git rev-parse -q --verify "$desplegado^{commit}" > /dev/null || {
+    log "desplegado.txt no es un commit: comparo con HEAD"
+    desplegado=$(git rev-parse HEAD)
+  }
   if [ "$desplegado" = "$objetivo" ] && [ "${1:-}" != "--forzar" ]; then
     log "Al día ($(git log -1 --format='%h %s'))"
     exit 0
@@ -33,8 +40,16 @@ main() {
   fi
 
   if ! rappi-ia/.venv/bin/python -m rappi_ia migrate --solo-revisar > /dev/null 2>&1; then
-    log "Hay migraciones pendientes: respaldo antes de migrar"
-    "$(dirname "$0")/respaldo.sh" pre-migracion
+    # Un respaldo por despliegue pendiente: desplegado.txt solo se escribe cuando todo sale bien, así que un
+    # respaldo más nuevo es de un intento anterior de esta misma tanda. Un reintento conserva ese, el de antes de
+    # migrar (cada migración va en su transacción: un intento puede dejar la base a medias, y respaldo.sh solo guarda
+    # los RESPALDOS_A_GUARDAR más nuevos).
+    if [ -n "$(find "$RESPALDOS_DIR" -name 'pre-migracion_*.dump' -newer "$TUNEL_DIR/desplegado.txt")" ]; then
+      log "Hay migraciones pendientes: ya hay un respaldo de este despliegue, no respaldo de nuevo"
+    else
+      log "Hay migraciones pendientes: respaldo antes de migrar"
+      "$(dirname "$0")/respaldo.sh" pre-migracion
+    fi
     rappi-ia/.venv/bin/python -m rappi_ia migrate  # sin (cd …): en el bash 3.2 un fallo en un subshell no avisaría
   fi
 
@@ -70,7 +85,7 @@ main() {
   reiniciar api
   for _ in $(seq 1 60); do api_sana && break; sleep 3; done
   if api_sana; then
-    git rev-parse HEAD > "$TUNEL_DIR/desplegado.txt"
+    anotar_desplegado
     avisar "Demo actualizada a $(git log -1 --format='%h')"
   else
     avisar "La API no volvió después de actualizar"

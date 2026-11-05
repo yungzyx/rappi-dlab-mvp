@@ -245,3 +245,46 @@ def test_a_failed_dump_leaves_no_temporary_file(demo):
     assert result.returncode != 0
     assert list((demo.tunel / "respaldos").iterdir()) == []
     assert any("respaldo.sh falló en la línea" in line for line in demo.recorded("osascript"))
+
+
+def test_an_unreadable_deployed_file_falls_back_to_head(demo):
+    """Un desplegado.txt vacío (una escritura que falló con el disco lleno) hacía morir cada vuelta en el git diff."""
+    (demo.tunel / "desplegado.txt").write_text("")
+    new = demo.commit("README.md", "segunda versión\n")
+
+    result = demo.run()
+
+    assert result.returncode == 0, result.stdout + result.stderr
+    assert "desplegado.txt no es un commit: comparo con HEAD" in result.stdout
+    assert demo.deployed() == new
+    assert not (demo.tunel / "desplegado.txt.tmp").exists()
+
+
+def test_a_failed_migration_is_retried_without_a_new_backup(demo):
+    """Un reintento no vuelve a respaldar: con RESPALDOS_A_GUARDAR=3, tres reintentos borraban el respaldo de antes del
+    primer intento. Un despliegue nuevo, una vez que el anterior quedó bien, sí respalda."""
+    _write_fake(demo.bin / "df", 'echo "Filesystem 1K-blocks Used Available"; echo "disco 1 1 999999999"')
+    _write_fake(
+        demo.bin / "pg_dump",
+        f'echo "$*" >> {demo.rec}/pg_dump.txt; for a in "$@"; do out=$a; done; echo respaldo > "$out"',
+    )
+    _write_fake(demo.bin / "pg_restore", "exit 0")
+    demo.python(f'case "$*" in *--solo-revisar*) exit 1;; esac; [ ! -e {demo.tmp}/migrate-falla ]')
+    (demo.tmp / "migrate-falla").touch()
+    first = demo.commit("rappi-scraper/src/rappi_scraper/storage/migrations/099_a.sql", "select 1;\n")
+
+    assert demo.run().returncode != 0
+    retried = demo.run()
+
+    assert retried.returncode != 0
+    assert "ya hay un respaldo de este despliegue" in retried.stdout
+    assert len(demo.recorded("pg_dump")) == 1
+
+    (demo.tmp / "migrate-falla").unlink()
+    assert demo.run().returncode == 0
+    assert demo.deployed() == first
+    assert len(demo.recorded("pg_dump")) == 1
+
+    demo.commit("rappi-scraper/src/rappi_scraper/storage/migrations/100_b.sql", "select 2;\n")
+    assert demo.run().returncode == 0
+    assert len(demo.recorded("pg_dump")) == 2
