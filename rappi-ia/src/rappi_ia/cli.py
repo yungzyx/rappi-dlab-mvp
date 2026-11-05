@@ -17,6 +17,8 @@ Flujo típico (después de cada `rappi refresh` del scraper):
     rappi-ia search "algo para el carrete" --vertical licores
     rappi-ia eval-search             # léxico vs vectorial vs híbrido + calibración de τ ("sin resultado")
     rappi-ia eval-typos              # errores de tipeo (eval/typos.json): cuántos recupera la corrección
+    rappi-ia eval-graded --revisar   # el juez de tres niveles; falla si algo empeoró contra las últimas listas
+    rappi-ia eval-mochi              # Mochi: revisiones automáticas de sus respuestas y juicio de tres niveles
     rappi-ia eval-sample | eval-human   # muestra de pares para juzgar a mano / el juez automático contra esos juicios
     rappi-ia jev-planillas           # planillas CSV (data/eval/) para juzgar a mano; luego `eval-human` da el κ
     rappi-ia jev-piloto              # con clave y planillas juzgadas: mide a Jev y propone adoptarlo (o no)
@@ -387,6 +389,37 @@ def cmd_eval_graded(conn, args) -> None:
         sheet = sheets.sheet_dir() / "pendientes-tres-niveles.csv"
         sheets.write_csv(sheet, graded.PENDING_COLUMNS, graded.pending_rows(conn, missing))
         print(f"{len(missing)} pares sin juicio en {sheet}: juzgarlos y sumarlos con --importar")
+    if args.revisar:
+        saved = graded.latest_lists()
+        before = json.loads(saved.read_text(encoding="utf-8"))["listas"]
+        if found := graded.regressions(before, lists, judgments):
+            print(f"Empeora contra {saved.name}:")
+            print("\n".join(f"  {line}" for line in found))
+            raise SystemExit(1)
+        print(f'Nada pierde un "sirve" de sus {graded.TOP} primeros ni muestra menos productos que en {saved.name}.')
+
+
+def cmd_eval_mochi(conn, args) -> None:
+    from .embeddings.models import text_embedder
+    from .eval import graded, mochi_eval, sheets
+
+    conn.read_only = True  # solo lee: Mochi sin persona no registra nada, y así no puede
+    embedder = text_embedder()
+    runs = mochi_eval.run_cases(conn, embedder, mochi_eval.load_cases())
+    judgments = graded.load_judgments()
+    lists = mochi_eval.graded_lists(runs)
+    mochi_scores = graded.score(lists, judgments, k=mochi_eval.SHOWN_MAX)
+    search_scores = graded.score(mochi_eval.search_lists(conn, embedder, runs), judgments, k=mochi_eval.SHOWN_MAX)
+    report = mochi_eval.render_markdown(runs, mochi_scores, search_scores)
+    out = config.DATA_DIR / "eval" / "mochi.md"
+    out.parent.mkdir(parents=True, exist_ok=True)
+    out.write_text(report, encoding="utf-8")
+    print(report)
+    print(f"Reporte en {out}")
+    if missing := graded.pending(lists, judgments):
+        sheet = sheets.sheet_dir() / "pendientes-mochi.csv"
+        sheets.write_csv(sheet, graded.PENDING_COLUMNS, graded.pending_rows(conn, missing))
+        print(f"{len(missing)} pares de Mochi sin juicio en {sheet}: se suman con `eval-graded --importar`")
 
 
 def cmd_eval_typos(conn, args) -> None:
@@ -862,6 +895,7 @@ COMMANDS = {
     "eval-search": cmd_eval_search,
     "eval-graded": cmd_eval_graded,
     "eval-typos": cmd_eval_typos,
+    "eval-mochi": cmd_eval_mochi,
     "eval-sample": cmd_eval_sample,
     "eval-human": cmd_eval_human,
     "jev-planillas": cmd_jev_planillas,
@@ -954,7 +988,18 @@ def build_parser() -> argparse.ArgumentParser:
     eg.add_argument("--listas", help="puntúa las listas guardadas en este archivo en vez de buscar")
     eg.add_argument("--guardar-listas", help="guarda lo que mostró la búsqueda (ids) para puntuarlo después")
     eg.add_argument("--importar", help="suma los juicios de la planilla de pendientes al complemento (sin textos)")
+    eg.add_argument(
+        "--revisar",
+        action="store_true",
+        help='falla si una consulta pierde un "sirve" de sus 3 primeros o muestra menos productos que en las últimas '
+        "listas guardadas (eval/tres-niveles-listas-*.json; `make eval-check`)",
+    )
     sub.add_parser("eval-typos", help="errores de tipeo de src/rappi_ia/eval/typos.json y negativas de queries.json")
+    sub.add_parser(
+        "eval-mochi",
+        help="Mochi en las necesidades, las preguntas libres, los primeros turnos y el set apartado: revisiones "
+        "automáticas y juicio LLM de tres niveles (solo lee la base)",
+    )
     sub.add_parser("eval-sample", help="muestra de ~200 pares (consulta, producto) para juzgar a mano")
     sub.add_parser("eval-human", help="juez automático y refuerzo por concepto contra los juicios a mano, y κ")
     sheets_cmd = sub.add_parser("jev-planillas", help="planillas CSV para juzgar a mano la búsqueda y las categorías")

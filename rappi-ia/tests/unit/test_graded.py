@@ -32,7 +32,7 @@ def test_ndcg_skips_what_has_no_judgment_and_takes_the_ideal_from_every_judged_p
 
     dcg = 1 / math.log2(2) + 2 / math.log2(3)
     ideal = 2 / math.log2(2) + 2 / math.log2(3) + 1 / math.log2(4)
-    assert row["ndcg@10"] == pytest.approx(dcg / ideal)
+    assert row["ndcg"] == pytest.approx(dcg / ideal)
     assert (row["mostrados"], row["juzgados"]) == (3, 2)
 
 
@@ -131,3 +131,60 @@ def test_import_adds_the_new_judgments_without_catalog_texts(tmp_path, monkeypat
     assert graded.import_sheet(sheet, extra) == 1
     saved = json.loads(extra.read_text())["pares"]
     assert saved == [_pair("b", "sirve")]
+
+
+def test_fully_judged_queries_are_scored_apart_and_the_report_warns_when_pairs_lack_a_judgment():
+    """Un producto sin juicio cambia el total sin que la búsqueda cambie: el reporte lo dice primero y da aparte las
+    consultas con todo lo mostrado juzgado."""
+    judgments = {**_judged("té", {"a": 2, "b": 2}), **_judged("café", {"c": 2, "d": 2})}
+    scores = score([_list("té", ["a", "b"]), _list("café", ["x", "c"])], judgments)
+
+    assert scores["completas"]["n"] == 1 and scores["completas"]["ndcg"] == 1.0
+    assert scores["total"]["ndcg"] < 1.0
+    report = graded.render_markdown(scores)
+    assert "**1 productos sin juicio: la cifra total no es comparable.**" in report
+    assert report.index("no es comparable") < report.index("| Total |")
+    assert "| Solo consultas juzgadas completas | 1 | 1.0 |" in report
+
+
+def test_the_report_does_not_warn_when_everything_shown_is_judged():
+    scores = score([_list("té", ["a"])], _judged("té", {"a": 2}))
+
+    assert "no es comparable" not in graded.render_markdown(scores)
+
+
+def test_ndcg_counts_only_the_first_k_places_when_asked():
+    """Mochi muestra 6: con k=6 su ideal son los 6 mejores juzgados, no los 10."""
+    judgments = _judged("té", {str(i): 2 for i in range(10)})
+
+    row = score([_list("té", [str(i) for i in range(6)])], judgments, k=6)["consultas"][0]
+
+    assert row["ndcg"] == pytest.approx(1.0)
+
+
+def test_regressions_flag_a_lost_serving_product_in_the_top_three_and_fewer_products():
+    judgments = _judged("té", {"a": 2, "b": 2, "c": 1, "d": 2})
+    before = [_list("té", ["a", "b", "c", "d"]), _list("mate", ["m", "n"])]
+    now = [_list("té", ["a", "c", "x"]), _list("mate", ["n", "m"])]
+
+    found = graded.regressions(before, now, judgments)
+
+    assert found == [
+        'turbo "té": "sirve" entre los 3 primeros 2 → 1 (1 sin juicio: júzgalos con `rappi-ia eval-graded`)',
+        'turbo "té": muestra 3 productos (antes 4)',
+    ]
+
+
+def test_regressions_accept_a_reorder_that_keeps_the_serving_products():
+    judgments = _judged("té", {"a": 2, "b": 2, "c": 1})
+
+    assert graded.regressions([_list("té", ["a", "b", "c"])], [_list("té", ["c", "b", "a"])], judgments) == []
+
+
+def test_latest_lists_go_by_the_date_in_the_name(tmp_path):
+    for name in ("antes-2026-10-25", "despues-2026-10-25", "2026-11-05", "despues-2026-09-30"):
+        (tmp_path / f"tres-niveles-listas-{name}.json").write_text("{}")
+
+    assert graded.latest_lists(tmp_path).name == "tres-niveles-listas-2026-11-05.json"
+    with pytest.raises(FileNotFoundError):
+        graded.latest_lists(tmp_path / "vacia")
