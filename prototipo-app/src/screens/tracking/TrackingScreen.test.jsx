@@ -114,6 +114,7 @@ describe('TrackingScreen', () => {
       {
         moment: 'proximo_pedido',
         user_id: expect.any(String),
+        surface: 'tracking',
         context: { items: [{ entity_type: 'menu_item', entity_id: '95001' }] },
       },
     ])
@@ -255,6 +256,7 @@ describe('TrackingScreen', () => {
       {
         moment: 'ontop',
         user_id: expect.any(String),
+        surface: 'tracking',
         context: { vertical: 'restaurants', items: [{ entity_type: 'menu_item', entity_id: '95001' }] },
       },
     ])

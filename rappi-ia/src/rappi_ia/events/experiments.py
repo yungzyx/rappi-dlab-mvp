@@ -21,11 +21,16 @@ MODE = "modo_app"
 OFFERS_CONTROL = "ofertas_control"
 CONTROL = "control"
 TREATMENT = "tratamiento"
-# Lo que Mochi propone solo: el grupo de control de las ofertas (`ofertas_control`) no lo ve. Un plan o un perfil de
-# gusto los pide la persona: esos se muestran siempre.
+# Lo que el grupo de control de las ofertas (`ofertas_control`) no ve: estos momentos de `POST /agent/offer` cuando la
+# app los pide sin que la persona los pida (la Home, la búsqueda sin resultado, el seguimiento). Lo que la persona pide
+# se muestra siempre: un plan, un perfil de gusto, "¿Me falta algo?" del checkout (el momento `checkout`, que solo se
+# pide al tocarlo) y lo que pide en el buscador (`surface` ASKED_SURFACE: "Repite lo de siempre", "¿Con qué
+# acompaño…?", "¿Qué puedo probar?"). Tampoco retiene "Para ti" (/recommendations), la sugerencia cruzada de las
+# respuestas de Mochi (/agent/ask) ni el orden de la Home.
 HOLDOUT_MOMENTS = frozenset(
-    {"carrito", "checkout", "sin_resultado", "proximo_pedido", "vertical_por_probar", "recompra", "volver", "ontop"}
+    {"carrito", "sin_resultado", "proximo_pedido", "vertical_por_probar", "recompra", "volver", "ontop"}
 )
+ASKED_SURFACE = "agent"
 
 
 def bucket(user_id: str, experiment_id: str) -> int:

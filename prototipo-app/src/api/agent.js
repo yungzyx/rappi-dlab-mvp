@@ -6,6 +6,8 @@ import { userId } from './user'
 import { sessionId } from '../state/EventsContext'
 
 const OFFER_TIMEOUT_MS = 5_000
+// El 204 de una oferta retenida al grupo de control (`ofertas_control`): había oferta, pero esta persona no la ve.
+const WITHHELD_HEADER = 'X-Offer-Withheld'
 
 /**
  * La acción del servidor trae la vertical de la app (`route: ['express']`); aquí pasa a la ruta de su pantalla. Una que
@@ -25,13 +27,21 @@ function toAction({ route, ask, ...action }) {
  * y su lugar (`placement`: `surface`, la pantalla donde se muestra la oferta; su posición y la respuesta), y cada
  * acción la `route` de la app (`push(...route)`).
  * Si falla, lanza el `ApiError`: quien llama decide callar.
+ * `surface` también va a la API: lo pedido desde el buscador (`agent`) lo pide la persona y el grupo de control lo ve.
+ * Un 204 de una oferta retenida a ese grupo también es `null`, y además llama a `onWithheld`.
  */
-export async function offer(moment, context = {}, { userId, surface } = {}) {
+export async function offer(moment, context = {}, { userId, surface, onWithheld } = {}) {
   const response = await request('/agent/offer', {
     method: 'POST',
     // La sesión: si la persona está en el grupo de control de las ofertas, la retenida queda en esta sesión (204).
-    body: { moment, ...(userId ? { user_id: userId, session_id: sessionId() } : {}), context },
+    body: {
+      moment,
+      ...(userId ? { user_id: userId, session_id: sessionId() } : {}),
+      ...(surface ? { surface } : {}),
+      context,
+    },
     timeout: OFFER_TIMEOUT_MS,
+    onEmpty: (reply) => reply.headers.get(WITHHELD_HEADER) === '1' && onWithheld?.(),
   })
   if (!response) return null
   const origin = `agent-${moment}`

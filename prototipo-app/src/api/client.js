@@ -89,7 +89,7 @@ export function renewSession() {
 /** La sesión de este navegador: la que ya tiene o, la primera vez, una nueva (la pide ConnectionGate al abrir). */
 export const ensureSession = () => (userToken() ? Promise.resolve() : renewSession())
 
-async function send(path, { method = 'GET', body, timeout = DEFAULT_TIMEOUT_MS, keepalive, signal } = {}) {
+async function send(path, { method = 'GET', body, timeout = DEFAULT_TIMEOUT_MS, keepalive, signal, onEmpty } = {}) {
   const controller = new AbortController()
   const timer = setTimeout(() => controller.abort(), timeout)
   // `signal`: quien llama puede cortar la petición (cancelar la respuesta de Mochi en curso).
@@ -108,7 +108,10 @@ async function send(path, { method = 'GET', body, timeout = DEFAULT_TIMEOUT_MS, 
       const detail = response.status === 409 ? (await response.json().catch(() => null))?.detail : undefined
       throw new ApiError('http', { status: response.status, detail })
     }
-    if (response.status === 204) return null
+    if (response.status === 204) {
+      onEmpty?.(response) // quien quiere leer las cabeceras de un 204 (una oferta retenida: api/agent.js)
+      return null
+    }
     return await response.json()
   } catch (error) {
     if (error instanceof ApiError) throw error

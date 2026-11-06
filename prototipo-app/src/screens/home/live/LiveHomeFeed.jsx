@@ -418,8 +418,13 @@ export default function LiveHomeFeed({ push, active = true }) {
       }
       return offer('volver', {}, { userId: userId(), surface: 'home' }).then(keep, () => keep(null))
     }
-    offer('recompra', {}, { userId: userId(), surface: 'home' })
-      .then((made) => (made?.products.length ? made : winback()))
+    // Una recompra retenida al grupo de control no pide "¿Volvemos a…?": en tratamiento se habría mostrado la recompra.
+    let withheld = false
+    const onWithheld = () => {
+      withheld = true
+    }
+    offer('recompra', {}, { userId: userId(), surface: 'home', onWithheld })
+      .then((made) => (made?.products.length || withheld ? made : winback()))
       .then(
         (made) => {
           if (!current || generation !== generationNow.current) return

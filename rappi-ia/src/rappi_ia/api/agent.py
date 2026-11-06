@@ -28,6 +28,7 @@ from .services import Services
 router = APIRouter(prefix="/agent", tags=["agent"])
 
 MAX_LINES = 100  # como un pedido (OrderIn)
+WITHHELD_HEADER = "X-Offer-Withheld"  # en el 204 de una oferta retenida al grupo de control
 OFFER_CAP = concurrency_cap("offer", config.API_MAX_CONCURRENT_OFFER, wait_s=config.API_CAP_WAIT_S)
 
 
@@ -95,6 +96,10 @@ class OfferBase(Clean):
     # La sesión de la app (la de sus eventos): con ella, una oferta retenida al grupo de control queda registrada en la
     # sesión donde se habría visto. Sin ella, la persona no entra al grupo de control.
     session_id: str | None = Field(default=None, max_length=64)
+    # Dónde la pide la app (la pantalla de su `placement`). Desde el buscador (`agent`: un chip, "Repite lo de siempre",
+    # "¿Con qué acompaño…?") la pide la persona, y al grupo de control no se le retiene. Sin ella (una app anterior),
+    # se retiene como antes.
+    surface: Literal[tuple(sorted(events.SURFACES))] | None = None  # type: ignore[valid-type]
 
 
 class PlanIn(OfferBase):
@@ -171,8 +176,9 @@ def offer(
     `plan`, `stores`: sus tiendas, un pedido cada una, con lo que suma el kit y si llega a la compra mínima del
     catálogo (`below_min`, `missing`).
     Grupo de control (`ofertas_control`, con OFFERS_CONTROL_PCT): a quien está en `control`, una oferta de los momentos
-    que Mochi propone solo (HOLDOUT_MOMENTS) no se le muestra (204) y queda como impresión contrafactual
-    (`offer_withheld`, con lo que habría mostrado); hace falta `user_id` y `session_id`.
+    que Mochi propone solo (HOLDOUT_MOMENTS, fuera del buscador: `surface` distinta de `agent`) no se le muestra (204
+    con `X-Offer-Withheld: 1`) y queda como impresión contrafactual (`offer_withheld`, con lo que habría mostrado; una
+    por sesión, origen, concepto y vertical); hace falta `user_id` y `session_id`.
     El momento `perfil` tiene su forma: `{ moment, text, perfil, escalera, viaje, reason, actions }` (la escalera de
     un perfil de gusto: `offers/profiles.py`; sus peldaños se buscan a la vez con las conexiones del pool que sobran,
     `spare`, como `/search`). Una ocasión o un perfil que no existe, o una ocasión que el agente no arma (guagua,
@@ -197,16 +203,26 @@ def offer(
         return Response(status_code=204)
     request_id = served_request_id()
     if _withheld(conn, body, found, request_id):
-        return Response(status_code=204)
+        # Para la app: no es que no haya oferta. La Home no pide "¿Volvemos a…?" en lugar de una recompra retenida,
+        # que en tratamiento se habría mostrado.
+        return Response(status_code=204, headers={WITHHELD_HEADER: "1"})
     return {**found.to_dict(), "request_id": request_id}
 
 
 def _withheld(conn: Connection, body, found: Offer | ProfileOffer, request_id: str | None) -> bool:
     """Si la oferta se retiene (la persona está en el grupo de control): entonces queda registrada como `offer_withheld`
     en su sesión, con lo que habría mostrado en `app_event_items` (concepto y vertical incluidos), y la respuesta es un
-    204 como el de un momento sin oferta. Un plan o un perfil nunca se retienen, ni una oferta sin persona o sin
-    sesión."""
-    if body.moment not in HOLDOUT_MOMENTS or not body.user_id or not body.session_id or isinstance(found, ProfileOffer):
+    204 como el de un momento sin oferta. Un plan o un perfil nunca se retienen, ni lo que la persona pide en el
+    buscador (`surface` `agent`), ni una oferta sin persona o sin sesión. La misma oferta (origen, concepto y vertical,
+    la clave con que la app cuenta una mostrada) se anota una vez por sesión: la Home la vuelve a pedir cada vez que
+    queda arriba, y en tratamiento se cuenta una sola mostrada."""
+    if (
+        body.moment not in HOLDOUT_MOMENTS
+        or body.surface == experiments.ASKED_SURFACE
+        or not body.user_id
+        or not body.session_id
+        or isinstance(found, ProfileOffer)
+    ):
         return False
     try:
         events.ensure_user(conn, body.user_id)
@@ -217,6 +233,18 @@ def _withheld(conn: Connection, body, found: Offer | ProfileOffer, request_id: s
         conn.commit()  # su asignación (tratamiento), si era la primera vez
         return False
     concept = found.reason.get("concept")
+    origin = f"agent-{body.moment}"
+    seen = conn.execute(  # un concepto aún sin sembrar queda nulo en el evento (`events.record`): se compara igual
+        """SELECT 1 FROM app_events
+           WHERE user_id = %s AND session_id = %s AND type = 'offer_withheld' AND origin = %s
+             AND concept_id IS NOT DISTINCT FROM (SELECT concept_id FROM concepts WHERE concept_id = %s)
+             AND vertical IS NOT DISTINCT FROM %s
+           LIMIT 1""",
+        (body.user_id, body.session_id, origin, concept, found.vertical),
+    ).fetchone()
+    if seen:
+        conn.commit()
+        return True
     withheld = events.Event(
         user_id=body.user_id,
         session_id=body.session_id,
@@ -225,8 +253,8 @@ def _withheld(conn: Connection, body, found: Offer | ProfileOffer, request_id: s
         concept_id=concept,
         results=len(found.products),
         payload={"moment": body.moment, "experiment": experiments.OFFERS_CONTROL, "variant": variant},
-        surface="agent",
-        origin=f"agent-{body.moment}",
+        surface=body.surface,
+        origin=origin,
         request_id=request_id,
         items=[
             {

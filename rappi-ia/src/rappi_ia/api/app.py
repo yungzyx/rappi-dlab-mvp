@@ -50,6 +50,7 @@ from ..offers.profiles import active_profiles, person_city
 from ..retrieval.hybrid import MODES, detect_concepts
 from ..text import contract_articles
 from . import deps, identity, prewarm
+from .agent import WITHHELD_HEADER
 from .agent import router as agent_router
 from .autonomy import router as autonomy_router
 from .catalog import router as catalog_router
@@ -154,6 +155,7 @@ app.add_middleware(
     allow_origin_regex=CORS_ORIGIN_REGEX,
     allow_methods=["GET", "POST", "PUT", "DELETE"],  # PUT: "Mis preferencias" y "Pedir por mí"
     allow_headers=["content-type", identity.TOKEN_HEADER.lower()],
+    expose_headers=[WITHHELD_HEADER],  # la app lo lee en otro puerto (en local; en producción es el mismo origen)
 )
 app.add_middleware(AccessLog)  # el más externo: también los 413 y 429 llevan su id y su línea
 
