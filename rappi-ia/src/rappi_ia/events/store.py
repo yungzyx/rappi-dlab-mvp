@@ -49,6 +49,9 @@ EVENT_TYPES = {
     # tipos de su `basis` en `payload.basis` (nunca el texto). No enseña al motor.
     "offer_why_open",
 }
+# El `payload.kind` de un `suggestion_dismissed` cuya oferta se fue sola del globo de la Home, sin que la persona tocara
+# nada: no es un rechazo (ni en el panel ni para el "volver"), solo la distingue de "sin respuesta".
+EXPIRED_KIND = "expirada"
 # Lo que el cliente puede mandar a /events: `order_placed` nace solo en /orders, con un pedido guardado detrás, y
 # `offer_withheld`, solo en /agent/offer, que es quien decide retener la oferta.
 CLIENT_EVENT_TYPES = EVENT_TYPES - {"order_placed", "offer_withheld"}

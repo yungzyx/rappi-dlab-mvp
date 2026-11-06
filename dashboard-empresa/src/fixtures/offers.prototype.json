@@ -6,6 +6,7 @@
     },
     "momentos": [
       {
+        "abiertas": 0,
         "aceptacion_pct": null,
         "aceptadas": 1,
         "momento": "plan",
@@ -14,6 +15,7 @@
         "rechazadas": 0
       },
       {
+        "abiertas": 0,
         "aceptacion_pct": null,
         "aceptadas": 0,
         "momento": "carrito",
@@ -25,7 +27,7 @@
     "personas": 1
   },
   "guardado": {
-    "fecha": "2026-11-05",
+    "fecha": "2026-11-06",
     "origen": "make contract · recorrido corto sobre el catálogo de prueba inventado"
   },
   "source": "prototype"

@@ -34,7 +34,7 @@ from psycopg import Connection
 
 from ..agent.grouped_search import SCREEN_VERTICALS
 from ..concepts.taxonomy import load_taxonomy
-from ..events.store import LOW_RATING
+from ..events.store import EXPIRED_KIND, LOW_RATING
 from ..motor.model import TZ
 from .guards import is_offerable, offerable_vertical
 
@@ -199,7 +199,8 @@ def available(conn: Connection, user_id: str, candidates: list[Lapse], now: date
     - la pausa es por persona: si en los últimos `COOLDOWN_DAYS` días se le mostró una, solo esa, si sigue calificando
       (y si no, ninguna).
     Cuentan los eventos con origen `agent-volver` (la columna `origin`, o `payload.origen` en los de antes de la
-    migración 043); los de "Rappi hoy" (`payload.mode = 'actual'`) no."""
+    migración 043); los de "Rappi hoy" (`payload.mode = 'actual'`) y una oferta que se fue sola (`payload.kind`
+    "expirada": no es un "Después") no."""
     if not candidates:
         return []
     now = now or datetime.now(UTC)
@@ -216,8 +217,9 @@ def available(conn: Connection, user_id: str, candidates: list[Lapse], now: date
         """SELECT type, payload ->> 'kind', concept_id, vertical, ts FROM app_events
            WHERE user_id = %s AND type IN ('suggestion_shown', 'suggestion_dismissed')
              AND coalesce(origin, payload ->> 'origen') = %s AND payload ->> 'mode' IS DISTINCT FROM 'actual'
+             AND payload ->> 'kind' IS DISTINCT FROM %s
            ORDER BY ts DESC, event_id DESC""",
-        (user_id, ORIGIN),
+        (user_id, ORIGIN, EXPIRED_KIND),
     ).fetchall()
     open_ = [
         lapse

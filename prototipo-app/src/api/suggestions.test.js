@@ -153,4 +153,24 @@ describe('sugerencias de Mochi', () => {
     expect(noteDismissal(track, [], { origin: 'agent-vertical_por_probar' })).toBe(false)
     expect(track).not.toHaveBeenCalled()
   })
+
+  test('la oferta que se fue sola lleva payload.kind expirada y se cuenta aparte del rechazo', () => {
+    const track = vi.fn()
+    const made = { moment: 'carrito', products: [PAPAS], reason: { concept: 'snacks-salados' } }
+    expect(noteOfferDismissal(track, made, { kind: 'expirada' })).toBe(true)
+    expect(noteOfferDismissal(track, made, { kind: 'expirada' })).toBe(false) // una vez por pestaña, como el rechazo
+    expect(track).toHaveBeenCalledWith('suggestion_dismissed', {
+      concept_id: 'snacks-salados',
+      vertical: 'express',
+      origin: 'agent-carrito',
+      payload: { kind: 'expirada' },
+    })
+    // Que se haya ido sola no impide registrar el "Ahora no" de la misma oferta cuando vuelve.
+    expect(noteOfferDismissal(track, made)).toBe(true)
+    expect(track).toHaveBeenLastCalledWith('suggestion_dismissed', {
+      concept_id: 'snacks-salados',
+      vertical: 'express',
+      origin: 'agent-carrito',
+    })
+  })
 })

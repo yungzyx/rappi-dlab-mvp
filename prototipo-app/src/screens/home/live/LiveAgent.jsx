@@ -43,9 +43,11 @@ function useTypewriter(text, reduceMotion) {
 /**
  * El agente de cuerpo entero viviendo en la Home: se para sobre el bloque del que habla (`target`, que `getBlock`
  * convierte en su elemento) o descansa sobre la barra inferior. Habla con un globo y, a veces, ofrece botones. Tocarlo dispara `onPoke`.
+ * `onHold(motivo, sí o no)` avisa cuándo algo detiene la cuenta del globo: su "¿Por qué?" abierto (`why`), el puntero
+ * (`pointer`) o el foco del teclado (`focus`) sobre él.
  */
 const LiveAgent = forwardRef(function LiveAgent(
-  { say, target, getBlock, entering, away, reduceMotion, onPoke, onWhyToggle },
+  { say, target, getBlock, entering, away, reduceMotion, onPoke, onHold },
   ref,
 ) {
   const layerRef = useRef(null)
@@ -159,7 +161,16 @@ const LiveAgent = forwardRef(function LiveAgent(
       </p>
       <div className={classes.join(' ')} style={style} data-at={target ?? undefined}>
         {say && !away && (
-          <div className="live-bubble">
+          <div
+            className="live-bubble"
+            onPointerEnter={() => onHold?.('pointer', true)}
+            onPointerLeave={() => onHold?.('pointer', false)}
+            // Solo el foco del teclado: el que deja un toque en un botón, en el celular, no lo dejaría irse nunca.
+            onFocus={(event) => event.target.matches(':focus-visible') && onHold?.('focus', true)}
+            onBlur={(event) => {
+              if (!event.currentTarget.contains(event.relatedTarget)) onHold?.('focus', false)
+            }}
+          >
             {/* Lo que falta va invisible detrás (`data-rest`, que pinta el CSS): el globo mide desde la primera letra lo
                 que medirá al terminar, y su borde no se corre con cada letra. */}
             <p aria-hidden="true">
@@ -173,7 +184,9 @@ const LiveAgent = forwardRef(function LiveAgent(
                 className={done ? 'live-bubble-more' : 'live-bubble-more is-pending'}
                 aria-hidden={!done || undefined}
               >
-                {say.why && <OfferWhy reason={say.why} origin={say.whyOrigin} onToggle={onWhyToggle} />}
+                {say.why && (
+                  <OfferWhy reason={say.why} origin={say.whyOrigin} onToggle={(open) => onHold?.('why', open)} />
+                )}
                 {say.actions?.length > 0 && (
                   <div className="live-bubble-actions">
                     {say.actions.map((action, i) => (

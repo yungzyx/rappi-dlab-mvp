@@ -327,22 +327,114 @@ describe('Home del prototipo final', () => {
       expect(within(talk).getByText(fixture('agent-offer-vertical-por-probar').reason.text)).toBeTruthy()
     })
 
-    test('the bubble stays while ¿Por qué? is open and goes away 12 s after it closes', async () => {
+    test('the offer bubble stays while ¿Por qué? is open and goes away 30 s after it closes', async () => {
       memory.session.played = true
       memory.session.lastAdded = LOOSE_CART
       const { container } = await renderHome()
       await advance(4000)
       const why = () => within(container.querySelector('.live-bubble')).getByRole('button', { name: '¿Por qué?' })
       fireEvent.click(why())
-      await advance(30_000) // mucho más que lo que dura un globo con botones
+      await advance(60_000) // mucho más que lo que dura un globo con una oferta
       expect(container.querySelector('.live-bubble')).not.toBeNull()
       expect(screen.getByText(fixture('agent-offer-carrito').reason.text)).toBeTruthy()
 
       fireEvent.click(why())
-      await advance(11_000)
+      await advance(29_000)
       expect(container.querySelector('.live-bubble')).not.toBeNull()
       await advance(1_500)
       expect(container.querySelector('.live-bubble')).toBeNull()
+    })
+
+    test('the offer bubble waits while the pointer or the keyboard focus is on it', async () => {
+      memory.session.played = true
+      memory.session.lastAdded = LOOSE_CART
+      const { container } = await renderHome()
+      await advance(4000)
+      const bubble = container.querySelector('.live-bubble')
+      fireEvent.pointerEnter(bubble)
+      await advance(60_000)
+      expect(container.querySelector('.live-bubble')).not.toBeNull()
+      fireEvent.pointerLeave(bubble)
+      await advance(29_000)
+      expect(container.querySelector('.live-bubble')).not.toBeNull()
+
+      // Con el foco del teclado: jsdom decide :focus-visible por el último evento, y tras los toques de antes es el Tab
+      // el que lo hace calzar. El foco de un toque va en el test siguiente.
+      fireEvent.keyDown(document.body, { key: 'Tab' })
+      within(bubble).getByRole('button', { name: 'Ahora no' }).focus()
+      await advance(60_000)
+      expect(container.querySelector('.live-bubble')).not.toBeNull()
+      within(bubble).getByRole('button', { name: 'Ahora no' }).blur()
+      await advance(30_500)
+      expect(container.querySelector('.live-bubble')).toBeNull()
+    })
+
+    test('the focus a tap leaves on a button (not :focus-visible) does not hold the offer bubble', async () => {
+      memory.session.played = true
+      memory.session.lastAdded = LOOSE_CART
+      const { container } = await renderHome()
+      await advance(4000)
+      // Como en Android tras un toque: el botón queda con foco, pero sin :focus-visible.
+      const matches = Element.prototype.matches
+      const spy = vi.spyOn(Element.prototype, 'matches').mockImplementation(function (selector) {
+        return selector === ':focus-visible' ? false : matches.call(this, selector)
+      })
+      try {
+        within(container.querySelector('.live-bubble')).getByRole('button', { name: 'Ahora no' }).focus()
+        await advance(30_500)
+        expect(container.querySelector('.live-bubble')).toBeNull()
+      } finally {
+        spy.mockRestore()
+      }
+    })
+
+    test('an offer that goes away by itself leaves suggestion_dismissed with kind expirada, not a rejection', async () => {
+      memory.session.played = true
+      memory.session.lastAdded = LOOSE_CART
+      const { container } = await renderHome()
+      await advance(4000)
+      expect(tracked('suggestion_dismissed', 'agent-carrito')).toEqual([])
+      await advance(30_500)
+      expect(container.querySelector('.live-bubble')).toBeNull()
+      const [[, shown]] = tracked('suggestion_shown', 'agent-carrito')
+      expect(tracked('suggestion_dismissed', 'agent-carrito')).toEqual([
+        [
+          'suggestion_dismissed',
+          {
+            concept_id: shown.concept_id,
+            vertical: shown.vertical,
+            surface: 'home',
+            origin: 'agent-carrito',
+            request_id: 'contrato-agent-offer-carrito',
+            payload: { kind: 'expirada' },
+          },
+        ],
+      ])
+
+      // La vertical por probar, igual.
+      cleanup()
+      memory.session.lastAdded = null
+      const poked = await renderHome()
+      await advance(900 + 3400)
+      fireEvent.click(screen.getByRole('button', { name: /^Mochi:/ }))
+      await advance(3000)
+      expect(poked.container.querySelector('.live-bubble')).not.toBeNull()
+      await advance(30_500)
+      expect(tracked('suggestion_dismissed', 'agent-vertical_por_probar')).toEqual([
+        ['suggestion_dismissed', expect.objectContaining({ payload: { kind: 'expirada' } })],
+      ])
+    })
+
+    test('a bubble that is replaced or closed by a button does not count as gone by itself', async () => {
+      memory.session.played = true
+      memory.session.lastAdded = LOOSE_CART
+      await renderHome()
+      await advance(4000)
+      fireEvent.click(screen.getByRole('button', { name: 'Ahora no' }))
+      await advance(60_000)
+      expect(
+        tracked('suggestion_dismissed', 'agent-carrito').filter(([, fields]) => fields.payload?.kind === 'expirada'),
+      ).toEqual([])
     })
 
     test('la Home muestra solo los 5 primeros planes, en el orden del servidor', async () => {
@@ -410,6 +502,18 @@ describe('Home del prototipo final', () => {
       expect(tracked('suggestion_shown', 'agent-carrito')).toHaveLength(1)
       fireEvent.click(screen.getByRole('button', { name: 'Ver snacks salados' }))
       expect(push).toHaveBeenLastCalledWith('vertical', { id: 'express' })
+      // "Ver …" deja la vertical abierta con el origen de la oferta: así se sabe que llegó por Mochi.
+      expect(tracked('vertical_open', 'agent-carrito')).toEqual([
+        [
+          'vertical_open',
+          {
+            vertical: carrito.vertical,
+            surface: 'home',
+            origin: 'agent-carrito',
+            request_id: 'contrato-agent-offer-carrito',
+          },
+        ],
+      ])
 
       cleanup()
       stubAgent({ 'POST /agent/offer': 204 })
@@ -484,6 +588,17 @@ describe('Home del prototipo final', () => {
       expect(screen.queryByRole('button', { name: /Jugar/ })).toBeNull()
       fireEvent.click(screen.getByRole('button', { name: made.actions[0].label }))
       expect(push).toHaveBeenLastCalledWith(...routeForScreen(made.actions[0].route[0]))
+      expect(tracked('vertical_open', 'agent-vertical_por_probar')).toEqual([
+        [
+          'vertical_open',
+          {
+            vertical: made.vertical,
+            surface: 'home',
+            origin: 'agent-vertical_por_probar',
+            request_id: 'contrato-agent-offer-vertical-por-probar',
+          },
+        ],
+      ])
     })
 
     test('si el paso es RappiFavor, Mochi lo presenta y su botón abre su pantalla y lo registra', async () => {
@@ -504,6 +619,7 @@ describe('Home del prototipo final', () => {
       expect(service('service_opened')).toEqual([
         expect.objectContaining({ ...offered, payload: { servicio: 'rappifavor' } }),
       ])
+      expect(service('vertical_open')).toEqual([]) // un servicio no es una vertical: ya deja service_opened
       expect(push).toHaveBeenLastCalledWith('favor')
     })
 

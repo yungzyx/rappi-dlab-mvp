@@ -93,7 +93,15 @@ describe('Ver cómo funciona', () => {
     }
 
     expect(responsesAfter(withoutPlan, 2)['offers.prototype'].data.momentos).toEqual([
-      { momento: 'plan', mostradas: 1, aceptadas: 1, rechazadas: 0, por_que_abiertos: 0, aceptacion_pct: null },
+      {
+        momento: 'plan',
+        mostradas: 1,
+        aceptadas: 1,
+        rechazadas: 0,
+        abiertas: 0,
+        por_que_abiertos: 0,
+        aceptacion_pct: null,
+      },
     ])
   })
 

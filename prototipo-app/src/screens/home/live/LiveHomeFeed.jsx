@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { offer, plans as fetchPlans } from '../../../api/agent'
 import { envelope } from '../../../api/attribution'
 import { conceptOf } from '../../../api/orders'
-import { noteDismissal, noteOfferDismissal, noteOfferShown, noteShown } from '../../../api/suggestions'
+import { EXPIRED, noteDismissal, noteOfferDismissal, noteOfferShown, noteShown } from '../../../api/suggestions'
 import { userId } from '../../../api/user'
 import DemoDisclaimer from '../../../components/DemoDisclaimer'
 import PlainSearchBar from '../../../components/PlainSearchBar'
@@ -69,6 +69,9 @@ const GREETING = '¡Hola! Ahora vivo en tu Home 👋 Toca una idea o prueba una 
 const HOME_PLANS = 5 // la Home muestra solo los primeros planes del servidor (once, carrete, asado, panorama, regalo)
 
 const ACTIONS_HOLD = 12000 // un globo con botones se va solo después de esto (no queda tapando la Home)
+// Un globo con una oferta (el comentario del carro, la vertical por probar) da más tiempo para leerla y decidir; si se
+// va solo, queda anotado que se fue sola (no es un rechazo).
+const OFFER_HOLD = 30000
 
 /** Un toque de vibración en los momentos clave (solo donde el navegador lo permite, como Android). */
 const buzz = () => navigator.vibrate?.(12)
@@ -138,13 +141,16 @@ export default function LiveHomeFeed({ push, active = true }) {
   const said = useRef(null)
   const touring = useRef(false)
   const holdFor = useRef(0) // cuánto dura el globo actual (0: se queda hasta que algo lo reemplace)
+  const paused = useRef(new Set()) // lo que detiene su cuenta: "¿Por qué?" abierto, puntero o teclado encima
 
-  /** Esconde el globo en `ms`. */
+  /** Esconde el globo en `ms`; si trae `onExpire` (una oferta), lo llama al irse solo. */
   const armHide = useCallback((ms) => {
     hideTimer.current = setTimeout(() => {
+      const gone = said.current
       said.current = null
       setSay(null)
       setTarget(null)
+      gone?.onExpire?.()
     }, ms)
   }, [])
 
@@ -159,6 +165,7 @@ export default function LiveHomeFeed({ push, active = true }) {
       if (next?.tour) touring.current = true
       said.current = next
       holdFor.current = next && holdMs ? holdMs : 0
+      paused.current.clear()
       clearTimeout(hideTimer.current)
       setSay(next)
       setTarget(at)
@@ -167,11 +174,16 @@ export default function LiveHomeFeed({ push, active = true }) {
     [armHide],
   )
 
-  /** Mientras se lee el "¿Por qué?" del globo no se va solo; al cerrarlo vuelve a contar desde cero. */
-  const onWhyToggle = useCallback(
-    (open) => {
+  /**
+   * Mientras se lee el "¿Por qué?" del globo (`why`), o el puntero (`pointer`) o el foco del teclado (`focus`) están
+   * sobre él, no se va solo; cuando ya nada lo detiene, vuelve a contar desde cero.
+   */
+  const holdBubble = useCallback(
+    (reason, on) => {
       clearTimeout(hideTimer.current)
-      if (!open && said.current && holdFor.current) armHide(holdFor.current)
+      if (on) paused.current.add(reason)
+      else paused.current.delete(reason)
+      if (!paused.current.size && said.current && holdFor.current) armHide(holdFor.current)
     },
     [armHide],
   )
@@ -183,6 +195,14 @@ export default function LiveHomeFeed({ push, active = true }) {
   }
 
   const visit = useCallback((vertical, route) => push(...(route ?? routeForScreen(vertical))), [push])
+  /** Abrir la vertical de una oferta de Mochi ("Ver …", "Abrir …") cuenta como abrirla, con el origen de la oferta. */
+  const openOffer = (made) => {
+    if (made.backendVertical)
+      events.track('vertical_open', {
+        vertical: made.backendVertical,
+        ...envelope({ surface: 'home', origin: `agent-${made.moment}`, requestId: made.requestId }),
+      })
+  }
 
   // "Moví … más adelante": el cambio de orden que Mochi aún no explica (llega mientras saluda o durante la guía).
   const pendingMove = useRef(null)
@@ -300,8 +320,19 @@ export default function LiveHomeFeed({ push, active = true }) {
         why: made.reason,
         whyOrigin: `agent-${made.moment}`,
         mood: 'wave',
+        onExpire: () => noteOfferDismissal(events.track, made, { generation: profile.resets, kind: EXPIRED }),
         actions: [
-          ...(see ? [{ label: see.label, onClick: () => visit(made.vertical, see.route) }] : []),
+          ...(see
+            ? [
+                {
+                  label: see.label,
+                  onClick: () => {
+                    openOffer(made)
+                    visit(made.vertical, see.route)
+                  },
+                },
+              ]
+            : []),
           {
             label: 'Ahora no',
             onClick: () => {
@@ -313,7 +344,7 @@ export default function LiveHomeFeed({ push, active = true }) {
         ],
       },
       null,
-      ACTIONS_HOLD,
+      OFFER_HOLD,
     )
   }
 
@@ -562,6 +593,12 @@ export default function LiveHomeFeed({ push, active = true }) {
         whyOrigin: `agent-${made.moment}`,
         mood: 'wave',
         gesture: 'hop',
+        onExpire: () =>
+          noteDismissal(events.track, made.products, {
+            origin: `agent-${made.moment}`,
+            generation: profile.resets,
+            kind: EXPIRED,
+          }),
         actions: [
           ...(open
             ? [
@@ -570,6 +607,7 @@ export default function LiveHomeFeed({ push, active = true }) {
                   onClick: () => {
                     if (open.service)
                       events.track('service_opened', { ...offered, payload: { servicio: open.service } })
+                    else openOffer(made)
                     visit(made.vertical, open.route)
                   },
                 },
@@ -586,7 +624,7 @@ export default function LiveHomeFeed({ push, active = true }) {
         ],
       },
       null,
-      ACTIONS_HOLD,
+      OFFER_HOLD,
     )
   }
 
@@ -694,7 +732,7 @@ export default function LiveHomeFeed({ push, active = true }) {
           away={!present || !active}
           reduceMotion={reduceMotion}
           onPoke={poke}
-          onWhyToggle={onWhyToggle}
+          onHold={holdBubble}
         />
       )}
     </>

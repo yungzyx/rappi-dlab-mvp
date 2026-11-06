@@ -17,6 +17,7 @@ from psycopg.rows import dict_row
 
 from ..catalog.hours import TZ
 from ..concepts.taxonomy import load_taxonomy
+from ..events.store import EXPIRED_KIND
 from ..offers.autonomy import ORIGIN as AUTO_ORDER_ORIGIN
 from .multivertical import LABELS as VERTICAL_LABELS
 
@@ -59,9 +60,10 @@ BASIS = {
     "ontop": "sumar de Turbo al pedido en curso",
     "lo_mas_pedido": "lo más pedido",
 }
-ACCEPTED, DISMISSED, NO_ANSWER, WITHHELD = (
+ACCEPTED, DISMISSED, EXPIRED, NO_ANSWER, WITHHELD = (
     "aceptada",
     "rechazada",
+    "se fue sola",
     "sin respuesta registrada",
     "retenida (grupo de control)",
 )
@@ -75,9 +77,9 @@ DISMISS_BUTTONS = {
 }
 # El camino por el que llegó a una vertical sale del origen del evento (`origin`), no de la pantalla.
 SEARCH_ORIGINS = ("resultados", "resultados-tiendas")
-# Los botones "Ver …" de las ofertas de Mochi llevan a la vertical sin dejar `vertical_open`: si llegó por "otro"
-# camino, se nombra la última oferta de Mochi de esa vertical mostrada hasta este tiempo antes, sin afirmar que llegó
-# por ella.
+# Los botones "Ver …" y "Abrir …" de las ofertas de Mochi dejan `vertical_open` con el origen `agent-<momento>` (y el
+# camino sale "Mochi (momento)"); los eventos de antes no lo traían: si llegó por "otro" camino, se nombra la última
+# oferta de Mochi de esa vertical mostrada hasta este tiempo antes, sin afirmar que llegó por ella.
 OFFER_BEFORE = timedelta(minutes=30)
 # Lo que cuenta como tocar una vertical, con lo que hizo ("order" es un pedido de `app_orders`).
 TOUCHES = {
@@ -217,7 +219,8 @@ def load_participant(conn: Connection, user_id: str) -> Participant:
 
 def _offers(events: list[dict]) -> list[dict]:
     """Cada oferta mostrada (o retenida al grupo de control) con lo que pasó después: aceptada si se agregó algo de ella
-    al carro, rechazada (con el botón de su momento) si la descartó; si no, sin respuesta registrada. Se reconocen por
+    al carro, rechazada (con el botón de su momento) si la descartó, "se fue sola" si el globo se fue sin que tocara
+    nada (`suggestion_dismissed` con `payload.kind` "expirada"); si no, sin respuesta registrada. Se reconocen por
     su origen, su concepto y su vertical, como las cuenta la app (prototipo-app/src/api/suggestions.js), y lo que pasó
     después llega hasta la siguiente vez que se mostró la misma: una aceptación no vale por dos mostradas."""
     offers = []
@@ -233,12 +236,15 @@ def _offers(events: list[dict]) -> list[dict]:
                     continue
                 if x["type"] == "suggestion_shown":
                     break
-                after.add(x["type"])
+                expired = x["type"] == "suggestion_dismissed" and x["payload"].get("kind") == EXPIRED_KIND
+                after.add("expired" if expired else x["type"])
             if "suggestion_accepted" in after:
                 status = ACCEPTED
             elif "suggestion_dismissed" in after:
                 button = DISMISS_BUTTONS.get(e["origin"].removeprefix("agent-"))
                 status = f'{DISMISSED} ("{button}")' if button else DISMISSED
+            elif "expired" in after:
+                status = EXPIRED
         offers.append({**e, "moment": e["origin"].removeprefix("agent-"), "status": status})
     return offers
 
@@ -462,8 +468,9 @@ def _journey(p: Participant) -> list[str]:
         "",
         'La primera vez que tocó cada una, con la hora de Santiago y el camino, que sale del origen del evento: "acceso'
         ' de la Home", "Mochi (momento)", "buscador" u "otro (pantalla, origen)"; "sin dato" si no trae ninguno. Los'
-        ' botones "Ver …" de una oferta de Mochi no dejan origen: si en los 30 minutos anteriores vio una oferta de'
-        ' Mochi de esa vertical, "otro" la nombra ("antes, oferta de Mochi…"), sin afirmar que llegó por ella.',
+        ' botones "Ver …" de una oferta de Mochi dejan su momento ("Mochi (carrito)"); en los eventos de antes, que no'
+        ' lo traían, si en los 30 minutos anteriores vio una oferta de Mochi de esa vertical, "otro" la nombra'
+        ' ("antes, oferta de Mochi…"), sin afirmar que llegó por ella.',
         "",
         "| Hora | Vertical | Qué hizo | Camino |",
         "|---|---|---|---|",

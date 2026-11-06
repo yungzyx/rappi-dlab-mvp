@@ -241,6 +241,17 @@ def test_dismissed_twice_since_the_last_order_it_stops(client, db):
     assert offer(client).status_code == 204
 
 
+def test_an_invitation_that_went_away_by_itself_is_not_a_dismissal(client, db):
+    """Una oferta que se fue sola del globo (`payload.kind` "expirada") no es un "Después": no la deja de ofrecer."""
+    rhythm(db, USER, "supermercado", "cafe", COFFEE, last_days_ago=20)
+    for days in (10, 9):
+        event(
+            db, "suggestion_dismissed", concept="cafe", vertical="supermercado", days_ago=days, of=events.EXPIRED_KIND
+        )
+
+    assert offer(client).json()["reason"]["concept"] == "cafe"
+
+
 def test_dismissals_of_another_kind_do_not_count(client, db):
     left_vertical(db, USER, "supermercado", COOKIES, last_days_ago=40)
     bought(db, USER, "turbo", None, ICE_CREAM, 3)

@@ -46,6 +46,10 @@ export const momentHint = (moment) => MOMENT_HINTS[moment] ?? null
 // rechazo no se mide: un 0 se leería como "nadie la rechazó".
 export const REJECTABLE_MOMENTS = new Set(['carrito', 'vertical_por_probar', 'recompra', 'volver'])
 
+// Los momentos con un botón que abre una vertical ("Ver …" en el carro, "Abrir …" en la vertical por probar, "Ver en …"
+// sin resultado, los peldaños del perfil de gusto): ahí se cuentan las abiertas. En los demás, como el rechazo, "—".
+export const OPENABLE_MOMENTS = new Set(['carrito', 'vertical_por_probar', 'sin_resultado', 'perfil'])
+
 const sum = (rows, key) => rows.reduce((total, row) => total + (row[key] ?? 0), 0)
 
 // Una tasa necesita el mínimo en su denominador: con 4 aceptadas, "50% llega a pedido" no dice nada.

@@ -2,6 +2,7 @@
 // aquí con los pedidos de este navegador, y a quién le toca una invitación a volver (offers/winback.py: lapses y
 // available). El panel de la demo siembra personas con semanas de historial para verla. Los productos y el texto de
 // las ofertas están en offers.js.
+import { EXPIRED } from '../suggestions'
 import { OFFER_BLOCKED_VERTICALS } from './motor'
 import { isConfirmed } from './state'
 
@@ -156,8 +157,8 @@ const same = (lapse, event) =>
  * Las invitaciones que se pueden mostrar ahora (winback.py: available): sin las descartadas dos veces después de su
  * último pedido, y con pausa por persona: si en los últimos 7 días se le mostró una, solo esa (si sigue calificando).
  * Cuentan los eventos con origen `agent-volver` (`origin`, o `payload.origen` en los de antes), salvo los de "Rappi
- * hoy". Lo que volvió a pedir ya no está en
- * `candidates`: aquí la recompra se calcula con los mismos pedidos.
+ * hoy" y una oferta que se fue sola (`payload.kind` "expirada": no es un "Después"). Lo que volvió a pedir ya no
+ * está en `candidates`: aquí la recompra se calcula con los mismos pedidos.
  */
 export function available(state, candidates, now) {
   const events = state.events
@@ -165,7 +166,8 @@ export function available(state, candidates, now) {
       (e) =>
         (e.type === 'suggestion_shown' || e.type === 'suggestion_dismissed') &&
         (e.origin ?? e.payload?.origen) === ORIGIN &&
-        e.payload?.mode !== 'actual',
+        e.payload?.mode !== 'actual' &&
+        e.payload?.kind !== EXPIRED,
     )
     .sort((a, b) => b.ts - a.ts)
   const open = candidates.filter(
