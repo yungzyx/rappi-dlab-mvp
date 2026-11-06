@@ -14,6 +14,7 @@ from rappi_ia.concepts.pipeline import build_concepts
 from rappi_ia.embeddings.base import HashEmbedder
 from rappi_ia.embeddings.text_store import embed_search_documents
 from rappi_ia.retrieval import hybrid
+from rappi_ia.text import normalize
 
 
 @pytest.fixture
@@ -1257,6 +1258,53 @@ def test_the_occasion_is_not_a_detail_of_the_product(rappi_agent):
         assert r["products"] and {p["concept"] for p in r["products"]} == {"panales"}, vertical
         assert not any("guagua" in p["name"] for p in r["products"]), vertical
         assert "no hay" not in r["text"], r["text"]
+
+
+def test_when_it_is_for_is_not_a_detail_of_the_product(rappi_agent):
+    """ "pizza para la noche" tomaba "noche" como un detalle (como "lúcuma" en "helado de lúcuma"): como ninguna pizza
+    del súper lo dice, se iba a Turbo, donde una "Pizza Noche Redonda" sí, y decía 'En el súper no hay "noche"'.
+    "para la cena", "esta noche" o "para el sábado" dicen cuándo, y tampoco se buscan ("hamburguesa para la cena"
+    traía primero la "Hamburguesa John Cena"); "crema facial de noche" sí dice cómo es."""
+    agent, db = rappi_agent
+    add_store(db, 4, "turbo", "Turbo")
+    add_store(db, 5, "farmacia", "Farmacia")
+    for pid, name, store, category in [
+        (800, "Pizza congelada margarita", 1, "Pizas y tartas saladas"),
+        (801, "Pizza congelada napolitana", 1, "Pizas y tartas saladas"),
+        (804, "Pizza Noche Redonda congelada", 4, "Pizas y tartas saladas"),
+        (805, "Pizza Noche de Queso congelada", 4, "Pizas y tartas saladas"),
+        (808, "Crema facial hidratante Nivea 50 ml", 5, "Cuidado facial"),
+        (809, "Crema facial antiarrugas Q10 50 ml", 5, "Cuidado facial"),
+        (810, "Crema facial de noche Q10 50 ml", 5, "Cuidado facial"),
+    ]:
+        add_product(db, pid, name, store, category)
+        add_price(db, store, pid, 4990)
+    for item_id, name in [
+        (820, "Hamburguesa clásica"),
+        (821, "Hamburguesa doble queso"),
+        (822, "Hamburguesa John Cena"),
+    ]:
+        add_dish(db, item_id, name, 3, "Hamburguesas", ["Hamburguesas"])
+        db.execute("INSERT INTO menu_price_snapshots (run_id, item_id, price) VALUES (999, %s, 6990)", (item_id,))
+    db.commit()
+    build_search_documents(db)
+    build_concepts(db)
+    embed_search_documents(db, agent.embedder)
+
+    for text, alone, vertical, word in [
+        ("pizza para la noche", "pizza", "supermercado", "noche"),
+        ("pizza para esta noche", "pizza", "supermercado", "noche"),
+        ("pizza para el sábado", "pizza", "supermercado", "sabado"),
+        ("hamburguesa para la cena", "hamburguesa", "restaurantes", "cena"),
+    ]:
+        expected = [p["entity_id"] for p in agent.reply(db, alone, Context(vertical=vertical))["products"]]
+        r = agent.reply(db, text, Context(vertical=vertical))
+        assert r["vertical"] == vertical and expected, text
+        assert [p["entity_id"] for p in r["products"]] == expected, text  # el mismo orden: "John Cena" no sube
+        assert "no hay" not in r["text"] and word not in normalize(r["text"]), (text, r["text"])
+
+    cream = agent.reply(db, "crema facial de noche", Context(vertical="farmacia"))
+    assert cream["products"][0]["name"] == "Crema facial de noche Q10 50 ml"
 
 
 def test_the_text_names_what_is_shown(rappi_agent):

@@ -67,6 +67,39 @@ def test_only_the_said_occasion_words_are_not_a_detail(agent, text, detail):
     assert agent._detail(agent.understander.understand(None, text, "supermercado")) == detail
 
 
+@pytest.mark.parametrize(
+    ("text", "vertical", "detail", "query"),
+    [
+        # cuándo: ni detalle ni parte de lo que se busca
+        ("hamburguesa para la cena", "restaurantes", None, "hamburguesa"),
+        ("pizza para la noche", "restaurantes", None, "pizza"),
+        ("pizza para esta noche", "restaurantes", None, "pizza"),
+        ("pizza esta noche", "restaurantes", None, "pizza"),
+        ("pizza por la noche", "restaurantes", None, "pizza"),
+        ("sushi para el sábado", "restaurantes", None, "sushi"),
+        ("sushi para el fin de semana", "restaurantes", None, "sushi"),
+        ("pizza para mañana", "restaurantes", None, "pizza"),
+        ("helado para la tarde", "supermercado", None, "helado"),
+        ("pan para el desayuno", "supermercado", None, "pan para el desayuno"),  # se busca: dice qué pan
+        ("helado de lúcuma para la noche", "supermercado", ("lucuma", "lúcuma", False), "helado de lucuma"),
+        # cómo es: "de" sin artículo, o justo tras el producto
+        ("crema de noche", "farmacia", ("noche", "noche", False), "crema de noche"),
+        ("antigripal de noche", "farmacia", ("noche", "noche", False), "antigripal de noche"),
+        ("sérum noche", "farmacia", ("noche", "noche", False), "serum noche"),
+    ],
+)
+def test_when_it_is_for_is_neither_a_detail_nor_searched(agent, text, vertical, detail, query):
+    intent = agent.understander.understand(None, text, vertical)
+    assert agent._detail(intent) == detail
+    assert agent._search_query(intent) == query
+
+
+def test_the_occasion_keeps_its_time_words(agent):
+    """ "noche de películas" es la ocasión: se busca con ella."""
+    intent = agent.understander.understand(None, "cabritas para la noche de películas", "supermercado")
+    assert "noche" in agent._search_query(intent).split()
+
+
 # El nombre del agente sale de config.AGENT_NAME. Se quita solo como vocativo: al lado
 # de un saludo o un "gracias", o antes de un pedido; si es todo el pedido ("quiero mochi"), se busca el postre.
 @pytest.fixture(scope="module")

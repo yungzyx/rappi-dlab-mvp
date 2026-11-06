@@ -46,3 +46,9 @@ pañales talla G
 # Varios
 algo para regalarle a mi mamá
 necesito cosas para limpiar la casa
+# Cuándo (06-11): dicen para cuándo, no cómo es el producto; "crema de noche" sí lo dice
+hamburguesa para la cena
+pizza para la noche
+pizza para esta noche
+sushi para el sábado
+crema de noche
