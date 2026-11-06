@@ -22,7 +22,8 @@ juicio, y la diferencia consulta por consulta con su IC 95 % por bootstrap (semi
 
 Regresiones (`eval-mochi --revisar`, `make eval-check`): contra la última corrida guardada (`--guardar-listas`,
 eval/mochi-listas-AAAA-MM-DD.json), una necesidad que pierde un "sirve" de sus 3 primeros o muestra menos productos
-(graded.regressions); un texto que contradice lo mostrado, un "No hay" falso o un duplicado (tienen que ser 0), y más
+(graded.regressions); en los otros sets, un caso que muestra menos productos, y en todos, uno que pasa a menos de la
+mitad de lo anunciado; un texto que contradice lo mostrado, un "No hay" falso o un duplicado (tienen que ser 0), y más
 respuestas con menos de FEW productos, con menos de la mitad de lo anunciado o sin productos que en la corrida guardada
 (esas no parten en 0: algunas lo son a propósito). Siempre con plantillas: con Claude el texto cambia de una vez a otra.
 """
@@ -261,21 +262,41 @@ def search_lists(conn: Connection, embedder: TextEmbedder, runs: list[MochiRun])
 
 
 def saved_run(runs: list[MochiRun]) -> dict:
-    """Lo que se guarda para `--revisar` (sin textos del catálogo): lo que mostró Mochi en las necesidades (ids) y los
-    totales de las revisiones que se comparan."""
+    """Lo que se guarda para `--revisar` (sin textos del catálogo): lo que mostró Mochi en las necesidades (ids), los
+    totales de las revisiones que se comparan y, caso por caso en todos los sets, cuántos productos mostró y si mostró
+    menos de la mitad de lo anunciado."""
     totals = summary(runs)["total"]
     return {
-        "nota": "Lo que mostró Mochi en las necesidades (ids) y los totales de sus revisiones automáticas, con"
-        " plantillas; ver eval/mochi_eval.py.",
+        "nota": "Lo que mostró Mochi en las necesidades (ids), los totales de sus revisiones automáticas y cuántos"
+        " productos mostró cada caso, con plantillas; ver eval/mochi_eval.py.",
         "revisiones": {key: totals[key] for key in (*MUST_BE_ZERO, *NOT_ABOVE_SAVED)},
         "listas": graded_lists(runs),
+        "casos": [
+            {"set": r.set, "vertical": r.vertical, "consulta": r.query, "productos": len(r.products), "mitad": _half(r)}
+            for r in runs
+        ],
     }
 
 
+def _half(r: MochiRun) -> bool:
+    return r.share is not None and 0 < r.share < HALF
+
+
 def regressions(saved: dict, runs: list[MochiRun], judgments: dict[str, graded.Judged]) -> list[str]:
-    """Lo que empeora contra una corrida guardada (`saved_run`): las necesidades, como en graded.regressions; las
-    revisiones de MUST_BE_ZERO que no dan 0 y las de NOT_ABOVE_SAVED que suben."""
+    """Lo que empeora contra una corrida guardada (`saved_run`): las necesidades, como en graded.regressions; en los
+    otros sets, un caso que muestra menos productos; en todos, uno que pasa a menos de la mitad de lo anunciado; las
+    revisiones de MUST_BE_ZERO que no dan 0 y las de NOT_ABOVE_SAVED que suben (los totales: también cuentan los casos
+    nuevos)."""
     found = graded.regressions(saved["listas"], graded_lists(runs), judgments)
+    before = {(c["set"], c["vertical"], c["consulta"]): c for c in saved["casos"]}
+    for r in runs:
+        if (old := before.get((r.set, r.vertical, r.query))) is None:
+            continue
+        where = f'{r.set} {r.vertical or "-"} "{r.query}"'
+        if r.set != "necesidades" and len(r.products) < old["productos"]:  # las necesidades ya las ve graded
+            found.append(f"{where}: muestra {len(r.products)} productos (antes {old['productos']})")
+        if _half(r) and not old["mitad"]:
+            found.append(f"{where}: muestra menos de la mitad de lo anunciado (antes no)")
     totals = summary(runs)["total"]
     found += [f"{label}: {totals[key]} (tiene que ser 0)" for key, label in MUST_BE_ZERO.items() if totals[key]]
     found += [
@@ -301,7 +322,7 @@ def summary(runs: list[MochiRun]) -> dict:
             "cortas": sum(len(r.products) < FEW for r in shown),
             "anuncia": sum(r.share is not None for r in rows),
             "contradice": sum(r.share == 0 for r in rows),
-            "menos_de_la_mitad": sum(r.share is not None and 0 < r.share < HALF for r in rows),
+            "menos_de_la_mitad": sum(_half(r) for r in rows),
             "dice_no_hay": sum(r.says_absent for r in rows),
             "no_hay_falso": sum(r.absent is not None for r in rows),
             "duplicados": sum(bool(r.duplicates) for r in rows),

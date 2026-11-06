@@ -178,6 +178,7 @@ def test_saved_run_keeps_the_needs_and_the_totals_it_compares_without_catalog_te
         "menos_de_la_mitad": 1,
         "sin_productos": 1,
     }
+    assert saved["casos"][-1] == {"set": "libres", "vertical": None, "consulta": "q", "productos": 0, "mitad": False}
     assert "Producto" not in json.dumps(saved)  # solo ids: los nombres son del catálogo
 
 
@@ -223,6 +224,24 @@ def test_more_short_answers_half_announced_or_empty_than_the_saved_run_fails():
         "Menos de 4 productos: 1 → 2",
         "Menos de la mitad de lo anunciado: 1 → 2",
         "Sin productos: 0 → 1",
+    ]
+
+
+def _free(query: str, n_products: int, share: float | None = 1.0) -> MochiRun:
+    products = [_product(f"{query}{i}", "cafe") for i in range(n_products)]
+    return MochiRun("libres", None, query, "", "buscar", "texto", products, share=share)
+
+
+def test_outside_the_needs_each_case_is_compared_so_two_changes_do_not_cancel_out():
+    """Los totales no ven una frase que pasa de 6 a 0 si otra pasa de 0 a 6, ni una que baja de 6 a 4."""
+    saved = mochi_eval.saved_run([_free("asado", 6), _free("helado", 0), _free("once", 6), _free("pisco", 6)])
+    now = [_free("asado", 0), _free("helado", 6), _free("once", 4), _free("pisco", 6, share=0.3)]
+
+    assert mochi_eval.regressions(saved, now, {}) == [
+        'libres - "asado": muestra 0 productos (antes 6)',
+        'libres - "once": muestra 4 productos (antes 6)',
+        'libres - "pisco": muestra menos de la mitad de lo anunciado (antes no)',
+        "Menos de la mitad de lo anunciado: 0 → 1",
     ]
 
 

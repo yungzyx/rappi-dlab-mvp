@@ -1,5 +1,5 @@
 {
- "nota": "Lo que mostró Mochi en las necesidades (ids) y los totales de sus revisiones automáticas, con plantillas; ver eval/mochi_eval.py.",
+ "nota": "Lo que mostró Mochi en las necesidades (ids), los totales de sus revisiones automáticas y cuántos productos mostró cada caso, con plantillas; ver eval/mochi_eval.py.",
  "revisiones": {
   "contradice": 0,
   "no_hay_falso": 0,
@@ -1015,6 +1015,1023 @@
      "81321"
     ]
    ]
+  }
+ ],
+ "casos": [
+  {
+   "set": "necesidades",
+   "vertical": "supermercado",
+   "consulta": "algo dulce para el cafe de la tarde",
+   "productos": 6,
+   "mitad": false
+  },
+  {
+   "set": "necesidades",
+   "vertical": "supermercado",
+   "consulta": "cosas para el asado del domingo",
+   "productos": 6,
+   "mitad": false
+  },
+  {
+   "set": "necesidades",
+   "vertical": "supermercado",
+   "consulta": "snack saludable para la oficina",
+   "productos": 6,
+   "mitad": false
+  },
+  {
+   "set": "necesidades",
+   "vertical": "supermercado",
+   "consulta": "algo calentito para la once",
+   "productos": 6,
+   "mitad": false
+  },
+  {
+   "set": "necesidades",
+   "vertical": "supermercado",
+   "consulta": "almuerzo listo para calentar",
+   "productos": 6,
+   "mitad": false
+  },
+  {
+   "set": "necesidades",
+   "vertical": "licores",
+   "consulta": "espumante para brindar",
+   "productos": 6,
+   "mitad": false
+  },
+  {
+   "set": "necesidades",
+   "vertical": "licores",
+   "consulta": "gin para preparar gin tonic",
+   "productos": 6,
+   "mitad": false
+  },
+  {
+   "set": "necesidades",
+   "vertical": "licores",
+   "consulta": "ron para mojitos",
+   "productos": 6,
+   "mitad": true
+  },
+  {
+   "set": "necesidades",
+   "vertical": "licores",
+   "consulta": "algo para el carrete",
+   "productos": 6,
+   "mitad": false
+  },
+  {
+   "set": "necesidades",
+   "vertical": "licores",
+   "consulta": "bebida para mezclar con pisco",
+   "productos": 6,
+   "mitad": false
+  },
+  {
+   "set": "necesidades",
+   "vertical": "licores",
+   "consulta": "vino blanco fresco para el verano",
+   "productos": 6,
+   "mitad": false
+  },
+  {
+   "set": "necesidades",
+   "vertical": "licores",
+   "consulta": "chela bien helada",
+   "productos": 6,
+   "mitad": false
+  },
+  {
+   "set": "necesidades",
+   "vertical": "licores",
+   "consulta": "papas fritas para picar",
+   "productos": 6,
+   "mitad": false
+  },
+  {
+   "set": "necesidades",
+   "vertical": "licores",
+   "consulta": "regalo para un amante del whisky",
+   "productos": 6,
+   "mitad": false
+  },
+  {
+   "set": "necesidades",
+   "vertical": "licores",
+   "consulta": "leche en polvo para bebé",
+   "productos": 4,
+   "mitad": false
+  },
+  {
+   "set": "necesidades",
+   "vertical": "conveniencia",
+   "consulta": "algo para ver una película",
+   "productos": 6,
+   "mitad": false
+  },
+  {
+   "set": "necesidades",
+   "vertical": "conveniencia",
+   "consulta": "pan para el desayuno",
+   "productos": 6,
+   "mitad": false
+  },
+  {
+   "set": "necesidades",
+   "vertical": "mall",
+   "consulta": "juguete para niño de 5 años",
+   "productos": 6,
+   "mitad": false
+  },
+  {
+   "set": "necesidades",
+   "vertical": "mall",
+   "consulta": "juego de mesa para la familia",
+   "productos": 6,
+   "mitad": false
+  },
+  {
+   "set": "necesidades",
+   "vertical": "mall",
+   "consulta": "mochila para el colegio",
+   "productos": 6,
+   "mitad": false
+  },
+  {
+   "set": "necesidades",
+   "vertical": "mall",
+   "consulta": "regalo para mi polola",
+   "productos": 6,
+   "mitad": false
+  },
+  {
+   "set": "necesidades",
+   "vertical": "mall",
+   "consulta": "algo para hacer ejercicio en la casa",
+   "productos": 6,
+   "mitad": false
+  },
+  {
+   "set": "necesidades",
+   "vertical": "chocolateria",
+   "consulta": "bombones para regalar",
+   "productos": 6,
+   "mitad": false
+  },
+  {
+   "set": "necesidades",
+   "vertical": "chocolateria",
+   "consulta": "postre individual",
+   "productos": 6,
+   "mitad": false
+  },
+  {
+   "set": "necesidades",
+   "vertical": "chocolateria",
+   "consulta": "algo dulce para un cumpleaños",
+   "productos": 6,
+   "mitad": false
+  },
+  {
+   "set": "necesidades",
+   "vertical": "chocolateria",
+   "consulta": "regalo para mi polola",
+   "productos": 6,
+   "mitad": false
+  },
+  {
+   "set": "necesidades",
+   "vertical": "restaurantes",
+   "consulta": "algo rico para almorzar",
+   "productos": 6,
+   "mitad": false
+  },
+  {
+   "set": "necesidades",
+   "vertical": "restaurantes",
+   "consulta": "ensalada liviana",
+   "productos": 6,
+   "mitad": false
+  },
+  {
+   "set": "necesidades",
+   "vertical": "restaurantes",
+   "consulta": "postre de chocolate",
+   "productos": 6,
+   "mitad": false
+  },
+  {
+   "set": "necesidades",
+   "vertical": "farmacia",
+   "consulta": "algo para la piel seca",
+   "productos": 6,
+   "mitad": false
+  },
+  {
+   "set": "necesidades",
+   "vertical": "farmacia",
+   "consulta": "cosas para el bebé recién nacido",
+   "productos": 6,
+   "mitad": false
+  },
+  {
+   "set": "necesidades",
+   "vertical": "turbo",
+   "consulta": "algo para limpiar el baño",
+   "productos": 6,
+   "mitad": false
+  },
+  {
+   "set": "necesidades",
+   "vertical": "turbo",
+   "consulta": "para picar viendo el partido",
+   "productos": 4,
+   "mitad": false
+  },
+  {
+   "set": "libres",
+   "vertical": null,
+   "consulta": "¿qué llevo para un asado de 6?",
+   "productos": 6,
+   "mitad": false
+  },
+  {
+   "set": "libres",
+   "vertical": null,
+   "consulta": "algo para una once para 4",
+   "productos": 6,
+   "mitad": false
+  },
+  {
+   "set": "libres",
+   "vertical": null,
+   "consulta": "cumpleaños de mi hijo, somos 10",
+   "productos": 6,
+   "mitad": false
+  },
+  {
+   "set": "libres",
+   "vertical": null,
+   "consulta": "desayuno para dos",
+   "productos": 5,
+   "mitad": false
+  },
+  {
+   "set": "libres",
+   "vertical": null,
+   "consulta": "picoteo para ver el partido con amigos",
+   "productos": 6,
+   "mitad": false
+  },
+  {
+   "set": "libres",
+   "vertical": null,
+   "consulta": "qué compro para un picnic",
+   "productos": 6,
+   "mitad": false
+  },
+  {
+   "set": "libres",
+   "vertical": null,
+   "consulta": "una cena romántica para dos",
+   "productos": 6,
+   "mitad": false
+  },
+  {
+   "set": "libres",
+   "vertical": null,
+   "consulta": "almuerzo para la oficina, somos 5",
+   "productos": 6,
+   "mitad": false
+  },
+  {
+   "set": "libres",
+   "vertical": null,
+   "consulta": "algo para la tos de mi hija",
+   "productos": 0,
+   "mitad": false
+  },
+  {
+   "set": "libres",
+   "vertical": null,
+   "consulta": "tengo dolor de cabeza",
+   "productos": 6,
+   "mitad": false
+  },
+  {
+   "set": "libres",
+   "vertical": null,
+   "consulta": "me duele la guata",
+   "productos": 6,
+   "mitad": false
+  },
+  {
+   "set": "libres",
+   "vertical": null,
+   "consulta": "algo para el resfrío",
+   "productos": 4,
+   "mitad": false
+  },
+  {
+   "set": "libres",
+   "vertical": null,
+   "consulta": "tengo la garganta irritada",
+   "productos": 6,
+   "mitad": false
+  },
+  {
+   "set": "libres",
+   "vertical": null,
+   "consulta": "mi hijo tiene fiebre, ¿qué le doy?",
+   "productos": 0,
+   "mitad": false
+  },
+  {
+   "set": "libres",
+   "vertical": null,
+   "consulta": "quiero algo dulce y barato",
+   "productos": 6,
+   "mitad": false
+  },
+  {
+   "set": "libres",
+   "vertical": null,
+   "consulta": "algo para comer por menos de 5 lucas",
+   "productos": 6,
+   "mitad": false
+  },
+  {
+   "set": "libres",
+   "vertical": null,
+   "consulta": "un vino bueno hasta 10 mil",
+   "productos": 6,
+   "mitad": false
+  },
+  {
+   "set": "libres",
+   "vertical": null,
+   "consulta": "almuerzo barato",
+   "productos": 6,
+   "mitad": false
+  },
+  {
+   "set": "libres",
+   "vertical": null,
+   "consulta": "un regalo de menos de 20 mil",
+   "productos": 6,
+   "mitad": false
+  },
+  {
+   "set": "libres",
+   "vertical": null,
+   "consulta": "qué puedo cenar con 8 mil pesos",
+   "productos": 6,
+   "mitad": false
+  },
+  {
+   "set": "libres",
+   "vertical": null,
+   "consulta": "qué me recomiendas",
+   "productos": 0,
+   "mitad": false
+  },
+  {
+   "set": "libres",
+   "vertical": null,
+   "consulta": "tengo hambre",
+   "productos": 6,
+   "mitad": false
+  },
+  {
+   "set": "libres",
+   "vertical": null,
+   "consulta": "algo saludable para el almuerzo",
+   "productos": 6,
+   "mitad": true
+  },
+  {
+   "set": "libres",
+   "vertical": null,
+   "consulta": "se me antoja algo salado",
+   "productos": 6,
+   "mitad": false
+  },
+  {
+   "set": "libres",
+   "vertical": null,
+   "consulta": "algo vegano",
+   "productos": 6,
+   "mitad": false
+  },
+  {
+   "set": "libres",
+   "vertical": null,
+   "consulta": "algo rico de postre",
+   "productos": 0,
+   "mitad": false
+  },
+  {
+   "set": "libres",
+   "vertical": null,
+   "consulta": "quiero algo picante",
+   "productos": 6,
+   "mitad": false
+  },
+  {
+   "set": "libres",
+   "vertical": null,
+   "consulta": "algo calentito que hace frío",
+   "productos": 6,
+   "mitad": false
+  },
+  {
+   "set": "libres",
+   "vertical": null,
+   "consulta": "¿qué es un poke?",
+   "productos": 6,
+   "mitad": false
+  },
+  {
+   "set": "libres",
+   "vertical": null,
+   "consulta": "¿qué es el ceviche?",
+   "productos": 3,
+   "mitad": false
+  },
+  {
+   "set": "libres",
+   "vertical": null,
+   "consulta": "¿qué lleva una paella?",
+   "productos": 6,
+   "mitad": false
+  },
+  {
+   "set": "libres",
+   "vertical": null,
+   "consulta": "¿con qué acompaño un salmón?",
+   "productos": 3,
+   "mitad": false
+  },
+  {
+   "set": "libres",
+   "vertical": null,
+   "consulta": "¿qué vino va con pasta?",
+   "productos": 6,
+   "mitad": false
+  },
+  {
+   "set": "libres",
+   "vertical": null,
+   "consulta": "¿el ramen es picante?",
+   "productos": 6,
+   "mitad": false
+  },
+  {
+   "set": "libres",
+   "vertical": null,
+   "consulta": "quiero cerveza para el carrete",
+   "productos": 6,
+   "mitad": false
+  },
+  {
+   "set": "libres",
+   "vertical": null,
+   "consulta": "qué trago me recomiendas",
+   "productos": 6,
+   "mitad": false
+  },
+  {
+   "set": "libres",
+   "vertical": null,
+   "consulta": "algo para que mi guagua duerma",
+   "productos": 2,
+   "mitad": false
+  },
+  {
+   "set": "libres",
+   "vertical": null,
+   "consulta": "pañales talla G",
+   "productos": 6,
+   "mitad": false
+  },
+  {
+   "set": "libres",
+   "vertical": null,
+   "consulta": "algo para regalarle a mi mamá",
+   "productos": 6,
+   "mitad": false
+  },
+  {
+   "set": "libres",
+   "vertical": null,
+   "consulta": "necesito cosas para limpiar la casa",
+   "productos": 4,
+   "mitad": false
+  },
+  {
+   "set": "libres",
+   "vertical": null,
+   "consulta": "hamburguesa para la cena",
+   "productos": 6,
+   "mitad": false
+  },
+  {
+   "set": "libres",
+   "vertical": null,
+   "consulta": "pizza para la noche",
+   "productos": 6,
+   "mitad": false
+  },
+  {
+   "set": "libres",
+   "vertical": null,
+   "consulta": "pizza para esta noche",
+   "productos": 6,
+   "mitad": false
+  },
+  {
+   "set": "libres",
+   "vertical": null,
+   "consulta": "sushi para el sábado",
+   "productos": 6,
+   "mitad": false
+  },
+  {
+   "set": "libres",
+   "vertical": null,
+   "consulta": "crema de noche",
+   "productos": 6,
+   "mitad": false
+  },
+  {
+   "set": "conversaciones",
+   "vertical": null,
+   "consulta": "¿qué llevo para un asado de 6?",
+   "productos": 6,
+   "mitad": false
+  },
+  {
+   "set": "conversaciones",
+   "vertical": null,
+   "consulta": "algo para una once para 4",
+   "productos": 6,
+   "mitad": false
+  },
+  {
+   "set": "conversaciones",
+   "vertical": null,
+   "consulta": "una cena romántica para dos",
+   "productos": 6,
+   "mitad": false
+  },
+  {
+   "set": "conversaciones",
+   "vertical": null,
+   "consulta": "picoteo para ver el partido con amigos",
+   "productos": 6,
+   "mitad": false
+  },
+  {
+   "set": "conversaciones",
+   "vertical": null,
+   "consulta": "cumpleaños de mi hijo, somos 10",
+   "productos": 6,
+   "mitad": false
+  },
+  {
+   "set": "conversaciones",
+   "vertical": null,
+   "consulta": "desayuno para dos",
+   "productos": 5,
+   "mitad": false
+  },
+  {
+   "set": "conversaciones",
+   "vertical": null,
+   "consulta": "sushi",
+   "productos": 6,
+   "mitad": false
+  },
+  {
+   "set": "conversaciones",
+   "vertical": null,
+   "consulta": "pizza",
+   "productos": 6,
+   "mitad": false
+  },
+  {
+   "set": "conversaciones",
+   "vertical": null,
+   "consulta": "quiero un helado",
+   "productos": 6,
+   "mitad": false
+  },
+  {
+   "set": "conversaciones",
+   "vertical": null,
+   "consulta": "cerveza",
+   "productos": 6,
+   "mitad": false
+  },
+  {
+   "set": "conversaciones",
+   "vertical": null,
+   "consulta": "un vino bueno hasta 10 mil",
+   "productos": 6,
+   "mitad": false
+  },
+  {
+   "set": "conversaciones",
+   "vertical": null,
+   "consulta": "hamburguesa",
+   "productos": 6,
+   "mitad": false
+  },
+  {
+   "set": "conversaciones",
+   "vertical": null,
+   "consulta": "pañales talla G",
+   "productos": 6,
+   "mitad": false
+  },
+  {
+   "set": "conversaciones",
+   "vertical": null,
+   "consulta": "algo dulce",
+   "productos": 6,
+   "mitad": false
+  },
+  {
+   "set": "conversaciones",
+   "vertical": null,
+   "consulta": "almuerzo barato",
+   "productos": 6,
+   "mitad": false
+  },
+  {
+   "set": "conversaciones",
+   "vertical": null,
+   "consulta": "leche",
+   "productos": 6,
+   "mitad": false
+  },
+  {
+   "set": "conversaciones",
+   "vertical": null,
+   "consulta": "café en grano",
+   "productos": 6,
+   "mitad": false
+  },
+  {
+   "set": "conversaciones",
+   "vertical": null,
+   "consulta": "algo para el resfrío",
+   "productos": 4,
+   "mitad": false
+  },
+  {
+   "set": "conversaciones",
+   "vertical": null,
+   "consulta": "algo para el carrete",
+   "productos": 6,
+   "mitad": false
+  },
+  {
+   "set": "conversaciones",
+   "vertical": null,
+   "consulta": "tengo hambre",
+   "productos": 6,
+   "mitad": false
+  },
+  {
+   "set": "conversaciones",
+   "vertical": null,
+   "consulta": "sushi",
+   "productos": 6,
+   "mitad": false
+  },
+  {
+   "set": "conversaciones",
+   "vertical": null,
+   "consulta": "pizza",
+   "productos": 6,
+   "mitad": false
+  },
+  {
+   "set": "conversaciones",
+   "vertical": null,
+   "consulta": "cerveza",
+   "productos": 6,
+   "mitad": false
+  },
+  {
+   "set": "conversaciones",
+   "vertical": null,
+   "consulta": "un regalo para mi mamá",
+   "productos": 6,
+   "mitad": false
+  },
+  {
+   "set": "conversaciones",
+   "vertical": null,
+   "consulta": "comida para perro",
+   "productos": 6,
+   "mitad": false
+  },
+  {
+   "set": "apartado",
+   "vertical": null,
+   "consulta": "carbón para el asado",
+   "productos": 6,
+   "mitad": false
+  },
+  {
+   "set": "apartado",
+   "vertical": "supermercado",
+   "consulta": "longanizas para la parrilla",
+   "productos": 6,
+   "mitad": false
+  },
+  {
+   "set": "apartado",
+   "vertical": null,
+   "consulta": "vino tinto para el asado del sábado",
+   "productos": 6,
+   "mitad": false
+  },
+  {
+   "set": "apartado",
+   "vertical": null,
+   "consulta": "hielo para la previa",
+   "productos": 6,
+   "mitad": false
+  },
+  {
+   "set": "apartado",
+   "vertical": "turbo",
+   "consulta": "papas fritas para la junta",
+   "productos": 6,
+   "mitad": false
+  },
+  {
+   "set": "apartado",
+   "vertical": "licores",
+   "consulta": "maní para el carrete",
+   "productos": 6,
+   "mitad": false
+  },
+  {
+   "set": "apartado",
+   "vertical": null,
+   "consulta": "cerveza artesanal para la fiesta",
+   "productos": 6,
+   "mitad": false
+  },
+  {
+   "set": "apartado",
+   "vertical": null,
+   "consulta": "pan amasado para la once",
+   "productos": 6,
+   "mitad": false
+  },
+  {
+   "set": "apartado",
+   "vertical": "supermercado",
+   "consulta": "queque para el tecito",
+   "productos": 6,
+   "mitad": false
+  },
+  {
+   "set": "apartado",
+   "vertical": null,
+   "consulta": "jamón para la once de mañana",
+   "productos": 6,
+   "mitad": false
+  },
+  {
+   "set": "apartado",
+   "vertical": null,
+   "consulta": "torta para el cumpleaños de mi abuela",
+   "productos": 6,
+   "mitad": false
+  },
+  {
+   "set": "apartado",
+   "vertical": null,
+   "consulta": "globos para el cumple",
+   "productos": 6,
+   "mitad": false
+  },
+  {
+   "set": "apartado",
+   "vertical": "supermercado",
+   "consulta": "velas para la torta de cumpleaños",
+   "productos": 6,
+   "mitad": false
+  },
+  {
+   "set": "apartado",
+   "vertical": null,
+   "consulta": "empanadas para el dieciocho",
+   "productos": 6,
+   "mitad": false
+  },
+  {
+   "set": "apartado",
+   "vertical": null,
+   "consulta": "pisco para las fiestas patrias",
+   "productos": 6,
+   "mitad": false
+  },
+  {
+   "set": "apartado",
+   "vertical": "conveniencia",
+   "consulta": "bebida energética para estudiar",
+   "productos": 6,
+   "mitad": false
+  },
+  {
+   "set": "apartado",
+   "vertical": null,
+   "consulta": "café para trasnochar",
+   "productos": 0,
+   "mitad": false
+  },
+  {
+   "set": "apartado",
+   "vertical": null,
+   "consulta": "helado para ver una película",
+   "productos": 6,
+   "mitad": false
+  },
+  {
+   "set": "apartado",
+   "vertical": null,
+   "consulta": "cabritas para la noche de películas",
+   "productos": 6,
+   "mitad": false
+  },
+  {
+   "set": "apartado",
+   "vertical": null,
+   "consulta": "chocolates para una cita",
+   "productos": 6,
+   "mitad": false
+  },
+  {
+   "set": "apartado",
+   "vertical": "licores",
+   "consulta": "espumante para una cena romántica",
+   "productos": 6,
+   "mitad": false
+  },
+  {
+   "set": "apartado",
+   "vertical": null,
+   "consulta": "flores para el aniversario",
+   "productos": 6,
+   "mitad": false
+  },
+  {
+   "set": "apartado",
+   "vertical": "mall",
+   "consulta": "perfume para regalarle a mi pareja",
+   "productos": 6,
+   "mitad": false
+  },
+  {
+   "set": "apartado",
+   "vertical": null,
+   "consulta": "chocolate para el bajón",
+   "productos": 6,
+   "mitad": false
+  },
+  {
+   "set": "apartado",
+   "vertical": null,
+   "consulta": "sopa para un día de lluvia",
+   "productos": 6,
+   "mitad": false
+  },
+  {
+   "set": "apartado",
+   "vertical": null,
+   "consulta": "té para cuando hace frío",
+   "productos": 6,
+   "mitad": false
+  },
+  {
+   "set": "apartado",
+   "vertical": null,
+   "consulta": "jugos para un picnic",
+   "productos": 6,
+   "mitad": false
+  },
+  {
+   "set": "apartado",
+   "vertical": "supermercado",
+   "consulta": "fruta para el paseo al parque",
+   "productos": 6,
+   "mitad": false
+  },
+  {
+   "set": "apartado",
+   "vertical": null,
+   "consulta": "agua mineral para tomar en la pega",
+   "productos": 6,
+   "mitad": false
+  },
+  {
+   "set": "apartado",
+   "vertical": null,
+   "consulta": "juguete para regalarle a mi sobrino",
+   "productos": 6,
+   "mitad": false
+  },
+  {
+   "set": "apartado",
+   "vertical": null,
+   "consulta": "toallitas húmedas para la guagua",
+   "productos": 6,
+   "mitad": false
+  },
+  {
+   "set": "apartado",
+   "vertical": null,
+   "consulta": "leche para mi bebé de 8 meses",
+   "productos": 6,
+   "mitad": false
+  },
+  {
+   "set": "apartado",
+   "vertical": "supermercado",
+   "consulta": "papilla para la guagua",
+   "productos": 6,
+   "mitad": false
+  },
+  {
+   "set": "apartado",
+   "vertical": "farmacia",
+   "consulta": "pañales para recién nacido",
+   "productos": 6,
+   "mitad": false
+  },
+  {
+   "set": "apartado",
+   "vertical": null,
+   "consulta": "mamadera para el bebé",
+   "productos": 6,
+   "mitad": false
+  },
+  {
+   "set": "apartado",
+   "vertical": null,
+   "consulta": "chupete para mi guagua",
+   "productos": 6,
+   "mitad": false
+  },
+  {
+   "set": "apartado",
+   "vertical": "farmacia",
+   "consulta": "crema para las coceduras del bebé",
+   "productos": 6,
+   "mitad": false
+  },
+  {
+   "set": "apartado",
+   "vertical": null,
+   "consulta": "colado de frutas para bebé",
+   "productos": 6,
+   "mitad": false
+  },
+  {
+   "set": "apartado",
+   "vertical": null,
+   "consulta": "shampoo para bebé",
+   "productos": 6,
+   "mitad": false
+  },
+  {
+   "set": "apartado",
+   "vertical": "mall",
+   "consulta": "ropa para recién nacido",
+   "productos": 6,
+   "mitad": false
+  },
+  {
+   "set": "apartado",
+   "vertical": null,
+   "consulta": "pañales talla M para la guagua",
+   "productos": 6,
+   "mitad": false
+  },
+  {
+   "set": "apartado",
+   "vertical": "mall",
+   "consulta": "juguete para la guagua de un año",
+   "productos": 6,
+   "mitad": false
   }
  ]
 }
