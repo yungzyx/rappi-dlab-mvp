@@ -3,13 +3,19 @@
 # respalda la base si hay migraciones pendientes y migra, construye la app y el panel, cambia los archivos servidos de
 # una vez y reinicia la API, y Caddy o el túnel si cambiaron sus archivos. Compara origin/main con el último commit que
 # quedó desplegado (TUNEL_DIR/desplegado.txt, se escribe cuando la API vuelve), no con HEAD: si un paso falla, avisa y
-# la vuelta siguiente lo reintenta. Uso: deploy/macos/actualizar.sh [--forzar]
+# la vuelta siguiente lo reintenta. Si solo cambiaron archivos .md, trae los cambios y anota el commit sin construir ni
+# reiniciar. Mientras exista TUNEL_DIR/pausa-actualizar no hace nada (la prueba con usuarios, docs/prueba-usuarios.md).
+# Uso: deploy/macos/actualizar.sh [--forzar]   (--forzar actualiza aunque esté al día o en pausa, y construye siempre)
 # shellcheck source=deploy/macos/comun.sh
 . "$(dirname "$0")/comun.sh"
 
 # Todo dentro de main, que se llama en la última línea: el merge reescribe este archivo mientras corre, y bash lo lee
 # de a poco.
 main() {
+  if [ -e "$TUNEL_DIR/pausa-actualizar" ] && [ "${1:-}" != "--forzar" ]; then
+    log "Pausado: existe $TUNEL_DIR/pausa-actualizar (se borra para reanudar)"
+    exit 0
+  fi
   cd "$REPO_DIR" || exit 1
   # Se escribe en un .tmp y se mueve: si la escritura falla (disco lleno), desplegado.txt queda como estaba.
   anotar_desplegado() { git rev-parse HEAD > "$TUNEL_DIR/desplegado.txt.tmp" && mv "$TUNEL_DIR/desplegado.txt.tmp" "$TUNEL_DIR/desplegado.txt"; }
@@ -32,6 +38,12 @@ main() {
   cambios=$(git diff --name-only "$desplegado" "$objetivo")  # desde lo desplegado: un reintento los vuelve a ver
   [ "$(git rev-parse HEAD)" = "$objetivo" ] || git merge --ff-only -q origin/main
   log "De $(git rev-parse --short "$desplegado") a $(git log -1 --format='%h %s')"
+  # Nada se construye ni se sirve desde los .md (ni la app, ni el panel, ni la API): sin build ni reinicio.
+  if [ "${1:-}" != "--forzar" ] && [ -n "$cambios" ] && ! grep -qv '\.md$' <<< "$cambios"; then
+    anotar_desplegado
+    log "Solo cambió documentación (.md): sin construir ni reiniciar"
+    exit 0
+  fi
 
   if grep -qE '(requirements.*\.txt|pyproject\.toml|package-lock\.json)$' <<< "$cambios"; then
     log "Cambiaron dependencias: make install"
