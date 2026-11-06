@@ -80,8 +80,8 @@ class Demo:
         self.git("push", "-q", "origin", "HEAD:main", cwd=self.work)
         return self.git("rev-parse", "HEAD", cwd=self.work)
 
-    def run(self, script: str = "actualizar.sh") -> subprocess.CompletedProcess:
-        return subprocess.run(["/bin/bash", str(SCRIPTS / script)], env=self.env, capture_output=True, text=True)
+    def run(self, script: str = "actualizar.sh", *args: str) -> subprocess.CompletedProcess:
+        return subprocess.run(["/bin/bash", str(SCRIPTS / script), *args], env=self.env, capture_output=True, text=True)
 
     def python(self, body: str) -> None:
         """El `.venv/bin/python` de rappi-ia del clon (el que corren purga.sh y resumen.sh)."""
@@ -170,6 +170,111 @@ def test_a_new_tunnel_script_restarts_it_only_with_a_fixed_url(demo):
     demo.run()
 
     assert f"kickstart -k gui/{os.getuid()}/test.tunel" in demo.recorded("launchctl")
+
+
+def test_a_pause_file_stops_updates_unless_forced(demo):
+    """Durante la prueba con usuarios un despliegue reiniciaba la API y recargaba la pestaña del participante: con
+    TUNEL_DIR/pausa-actualizar no se despliega nada, salvo con --forzar; al borrarlo, la vuelta siguiente se pone al
+    día."""
+    first = demo.git("rev-parse", "HEAD", cwd=demo.repo)
+    new = demo.commit("rappi-ia/src/app.py", "x = 1\n")
+    (demo.tunel / "pausa-actualizar").touch()
+
+    paused = demo.run()
+
+    assert paused.returncode == 0, paused.stdout + paused.stderr
+    assert "Pausado" in paused.stdout
+    assert demo.recorded("make") == [] and demo.recorded("launchctl") == []
+    assert demo.git("rev-parse", "HEAD", cwd=demo.repo) == first != new
+
+    forced = demo.run("actualizar.sh", "--forzar")
+
+    assert forced.returncode == 0, forced.stdout + forced.stderr
+    assert demo.recorded("make") == ["-s build"]
+    assert demo.deployed() == new
+
+    (demo.tunel / "pausa-actualizar").unlink()
+    newer = demo.commit("rappi-ia/src/app.py", "x = 2\n")
+    assert demo.run().returncode == 0
+    assert demo.deployed() == newer
+
+
+def test_a_docs_only_change_is_merged_without_building_or_restarting(demo):
+    """El #87 solo tocaba 5 archivos .md y aun así construyó y reinició la API: nada se construye desde los .md."""
+    docs = demo.commit("docs/guia.md", "# Guía\n")
+    demo.commit("deploy/macos/README.md", "# Demo\n")
+
+    result = demo.run()
+
+    assert result.returncode == 0, result.stdout + result.stderr
+    assert "Solo cambió documentación" in result.stdout
+    assert demo.recorded("make") == [] and demo.recorded("launchctl") == []
+    head = demo.git("rev-parse", "HEAD", cwd=demo.repo)
+    assert demo.deployed() == head == demo.git("rev-parse", "origin/main", cwd=demo.repo) != docs
+    assert "Al día" in demo.run().stdout
+
+    demo.commit("docs/guia.md", "# Guía 2\n")
+    code = demo.commit("prototipo-app/src/main.js", "x\n")
+    assert demo.run().returncode == 0
+    assert demo.recorded("make") == ["-s build"]  # un .md junto con código construye
+    assert demo.deployed() == code
+
+    assert demo.run("actualizar.sh", "--forzar").returncode == 0
+    assert demo.recorded("make") == ["-s build", "-s build"]  # --forzar construye aunque no haya cambios
+
+    # Un .js que pasa a .md: con la detección de renombres el diff solo nombraría el .md.
+    demo.git("mv", "prototipo-app/src/main.js", "prototipo-app/src/notas.md", cwd=demo.work)
+    demo.git("commit", "-q", "-m", "renombra main.js", cwd=demo.work)
+    demo.git("push", "-q", "origin", "HEAD:main", cwd=demo.work)
+    assert demo.run().returncode == 0
+    assert demo.recorded("make") == ["-s build"] * 3
+
+    # Un .md en public/ se copia a dist y se sirve.
+    demo.commit("prototipo-app/public/ayuda.md", "# Ayuda\n")
+    assert demo.run().returncode == 0
+    assert demo.recorded("make") == ["-s build"] * 4
+
+
+def test_the_session_check_marks_its_searches_and_warns_about_slow_ones(demo):
+    """El chequeo de antes de cada participante solo lee, y sus búsquedas llevan un id con el prefijo que el resumen
+    diario (rappi_ia/api/log_summary.py, UPKEEP_PREFIX) deja fuera de las visitas."""
+    _write_fake(
+        demo.bin / "curl",
+        f'echo "$*" >> {demo.rec}/curl.txt\n'
+        'case " $* " in\n'
+        '  *"/health "*) echo \'{"ok":true,"documentos":3}\';;\n'
+        f'  *"q=pizza"*) [ -e {demo.tmp}/lenta ] && printf "200 1.734" || printf "200 0.080";;\n'
+        '  *) printf "200 0.120";;\n'
+        "esac",
+    )
+    _write_fake(demo.bin / "psql", 'echo "tiendas 18-10-2026 · restaurantes 05-10-2026"')
+    _write_fake(demo.bin / "pgrep", 'case " $* " in *" -P "*) echo 11;; *) echo 10;; esac')  # el proceso de la API
+    _write_fake(demo.bin / "ps", 'echo " 51200"')
+    _write_fake(demo.bin / "top", 'echo "PID MEM"; echo "1800M"')
+    (demo.tunel / "pausa-actualizar").touch()
+
+    result = demo.run("chequeo-sesion.sh")
+
+    assert result.returncode == 0, result.stdout + result.stderr
+    assert "API: lista" in result.stdout and "Despliegues: en pausa" in result.stdout
+    assert "Catálogo: tiendas 18-10-2026" in result.stdout
+    assert "Proceso 11 de la API: RSS 50 MB, footprint 1800 MB (RSS/footprint 2 %)" in result.stdout
+    assert "Máximo: 120 ms" in result.stdout and result.stdout.rstrip().endswith("Listo para la sesión")
+    searches = [call for call in demo.recorded("curl") if "/search" in call]
+    assert len(searches) == 8
+    summary = (SCRIPTS.parents[1] / "rappi-ia" / "src" / "rappi_ia" / "api" / "log_summary.py").read_text()
+    prefix = re.search(r'UPKEEP_PREFIX = "([^"]+)"', summary)[1]
+    assert all(re.search(rf"-H X-Request-ID: {prefix}chequeo-\d+-[1-8] ", call) for call in searches)
+    assert not any(call for call in demo.recorded("curl") if "-X" in call.split() or "--data " in call)
+
+    (demo.tmp / "lenta").touch()
+    (demo.tunel / "pausa-actualizar").unlink()
+    slow = demo.run("chequeo-sesion.sh")
+
+    assert slow.returncode == 1
+    assert "pizza: 1734 ms (más de 1 s)" in slow.stdout and "Máximo: 1734 ms" in slow.stdout
+    assert "los despliegues no están en pausa" in slow.stdout
+    assert demo.recorded("osascript") == []  # un chequeo con avisos no es un trabajo que falló
 
 
 def test_the_watchdog_marks_its_searches_and_beats_only_when_all_respond(demo):
