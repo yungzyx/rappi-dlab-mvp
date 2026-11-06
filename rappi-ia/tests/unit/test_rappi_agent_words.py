@@ -78,6 +78,9 @@ def test_only_the_said_occasion_words_are_not_a_detail(agent, text, detail):
         ("pizza por la noche", "restaurantes", None, "pizza"),
         ("sushi para el sábado", "restaurantes", None, "sushi"),
         ("sushi para el fin de semana", "restaurantes", None, "sushi"),
+        ("sushi del viernes", "restaurantes", None, "sushi"),  # del = de + el
+        ("hamburguesa para la cena del sábado", "restaurantes", None, "hamburguesa"),
+        ("pizza a la noche", "restaurantes", None, "pizza"),
         ("pizza para mañana", "restaurantes", None, "pizza"),
         ("helado para la tarde", "supermercado", None, "helado"),
         ("pan para el desayuno", "supermercado", None, "pan para el desayuno"),  # se busca: dice qué pan

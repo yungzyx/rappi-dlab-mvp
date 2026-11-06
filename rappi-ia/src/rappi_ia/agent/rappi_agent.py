@@ -118,7 +118,7 @@ TIME_WORDS = {
     *("lunes", "martes", "miercoles", "jueves", "viernes", "sabado", "domingo"),
 }
 TIME_LEADS = {"para", "esta", "este", "estas", "estos"}  # "para mañana", "esta noche"
-# tras "para", "en", "de" o "por": "para la cena", "en la tarde", "de la tarde", "por la noche"
+# tras "para", "en", "de", "por" o "a": "para la cena", "en la tarde", "de la tarde", "por la noche", "a la noche"
 TIME_ARTICLES = {"la", "el", "las", "los", "esta", "este"}
 # Comidas que sí dicen qué se busca ("pan para el desayuno" es pan de molde, no pan de queso): no son detalle, pero
 # se buscan. La cena no: es cualquier comida, y "cena" traía la "Hamburguesa John Cena".
@@ -1217,8 +1217,8 @@ def _stem(word: str) -> str:
 
 def _said_as_time(words: list[str], i: int) -> int:
     """Si la palabra i dice cuándo, cuántas palabras antes van con ella: "para (la) noche", "esta noche", "en la tarde",
-    "de la tarde", "por la noche", "de mañana", "(para el) fin de semana"; 0 si no. "crema de noche" no: "de" sin
-    artículo dice cómo es."""
+    "de la tarde", "por la noche", "a la noche", "del sábado", "de mañana", "(para el) fin de semana"; 0 si no.
+    "crema de noche" no: "de" sin artículo dice cómo es."""
     word = words[i]
     if word == "semana" and words[max(0, i - 2) : i] == ["fin", "de"]:
         return 2 + _time_lead(words, i - 2)
@@ -1230,11 +1230,12 @@ def _said_as_time(words: list[str], i: int) -> int:
 
 
 def _time_lead(words: list[str], i: int) -> int:
-    """Cuántas palabras antes de la i la vuelven un cuándo: "para la", "en el", "por la", "de la", "esta", "para"."""
+    """Cuántas palabras antes de la i la vuelven un cuándo: "para la", "en el", "por la", "de la", "a la", "esta",
+    "para", "del" (de + el: "sushi del viernes")."""
     before = words[max(0, i - 2) : i]
-    if len(before) == 2 and before[1] in TIME_ARTICLES and before[0] in {"para", "en", "de", "por"}:
+    if len(before) == 2 and before[1] in TIME_ARTICLES and before[0] in {"para", "en", "de", "por", "a"}:
         return 2
-    return 1 if before[-1:] and before[-1] in TIME_LEADS else 0
+    return 1 if before[-1:] and (before[-1] in TIME_LEADS or before[-1] == "del") else 0
 
 
 def _query_words(query: str) -> list[str]:
