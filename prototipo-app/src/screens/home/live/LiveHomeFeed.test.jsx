@@ -358,7 +358,8 @@ describe('Home del prototipo final', () => {
       await advance(29_000)
       expect(container.querySelector('.live-bubble')).not.toBeNull()
 
-      // Con el teclado (Tab): el foco que deja un toque no lo detiene.
+      // Con el foco del teclado: jsdom decide :focus-visible por el último evento, y tras los toques de antes es el Tab
+      // el que lo hace calzar. El foco de un toque va en el test siguiente.
       fireEvent.keyDown(document.body, { key: 'Tab' })
       within(bubble).getByRole('button', { name: 'Ahora no' }).focus()
       await advance(60_000)
@@ -366,6 +367,25 @@ describe('Home del prototipo final', () => {
       within(bubble).getByRole('button', { name: 'Ahora no' }).blur()
       await advance(30_500)
       expect(container.querySelector('.live-bubble')).toBeNull()
+    })
+
+    test('the focus a tap leaves on a button (not :focus-visible) does not hold the offer bubble', async () => {
+      memory.session.played = true
+      memory.session.lastAdded = LOOSE_CART
+      const { container } = await renderHome()
+      await advance(4000)
+      // Como en Android tras un toque: el botón queda con foco, pero sin :focus-visible.
+      const matches = Element.prototype.matches
+      const spy = vi.spyOn(Element.prototype, 'matches').mockImplementation(function (selector) {
+        return selector === ':focus-visible' ? false : matches.call(this, selector)
+      })
+      try {
+        within(container.querySelector('.live-bubble')).getByRole('button', { name: 'Ahora no' }).focus()
+        await advance(30_500)
+        expect(container.querySelector('.live-bubble')).toBeNull()
+      } finally {
+        spy.mockRestore()
+      }
     })
 
     test('an offer that goes away by itself leaves suggestion_dismissed with kind expirada, not a rejection', async () => {
