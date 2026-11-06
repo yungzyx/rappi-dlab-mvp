@@ -18,7 +18,7 @@ Flujo típico (después de cada `rappi refresh` del scraper):
     rappi-ia eval-search             # léxico vs vectorial vs híbrido + calibración de τ ("sin resultado")
     rappi-ia eval-typos              # errores de tipeo (eval/typos.json): cuántos recupera la corrección
     rappi-ia eval-graded --revisar   # el juez de tres niveles; falla si algo empeoró contra las últimas listas
-    rappi-ia eval-mochi              # Mochi: revisiones automáticas de sus respuestas y juicio de tres niveles
+    rappi-ia eval-mochi --revisar    # Mochi: revisiones automáticas y juicio de tres niveles; falla si algo empeoró
     rappi-ia eval-sample | eval-human   # muestra de pares para juzgar a mano / el juez automático contra esos juicios
     rappi-ia jev-planillas           # planillas CSV (data/eval/) para juzgar a mano; luego `eval-human` da el κ
     rappi-ia jev-piloto              # con clave y planillas juzgadas: mide a Jev y propone adoptarlo (o no)
@@ -400,6 +400,8 @@ def cmd_eval_graded(conn, args) -> None:
 
 
 def cmd_eval_mochi(conn, args) -> None:
+    import json
+
     from .embeddings.models import text_embedder
     from .eval import graded, mochi_eval, sheets
 
@@ -420,6 +422,15 @@ def cmd_eval_mochi(conn, args) -> None:
         sheet = sheets.sheet_dir() / "pendientes-mochi.csv"
         sheets.write_csv(sheet, graded.PENDING_COLUMNS, graded.pending_rows(conn, missing))
         print(f"{len(missing)} pares de Mochi sin juicio en {sheet}: se suman con `eval-graded --importar`")
+    if args.guardar_listas:
+        sheets.write_json(Path(args.guardar_listas), mochi_eval.saved_run(runs))
+    if args.revisar:
+        saved = graded.latest_lists(pattern=mochi_eval.LISTS_GLOB)
+        if found := mochi_eval.regressions(json.loads(saved.read_text(encoding="utf-8")), runs, judgments):
+            print(f"Mochi empeora contra {saved.name} (detalle en {out}):")
+            print("\n".join(f"  {line}" for line in found))
+            raise SystemExit(1)
+        print(f"Mochi no empeora contra {saved.name}.")
 
 
 def cmd_eval_typos(conn, args) -> None:
@@ -995,10 +1006,21 @@ def build_parser() -> argparse.ArgumentParser:
         "listas guardadas (eval/tres-niveles-listas-*.json; `make eval-check`)",
     )
     sub.add_parser("eval-typos", help="errores de tipeo de src/rappi_ia/eval/typos.json y negativas de queries.json")
-    sub.add_parser(
+    em = sub.add_parser(
         "eval-mochi",
         help="Mochi en las necesidades, las preguntas libres, los primeros turnos y el set apartado: revisiones "
         "automáticas y juicio LLM de tres niveles (solo lee la base)",
+    )
+    em.add_argument(
+        "--guardar-listas", help="guarda lo que mostró Mochi (ids) y los totales de las revisiones para --revisar"
+    )
+    em.add_argument(
+        "--revisar",
+        action="store_true",
+        help='falla si una necesidad pierde un "sirve" de sus 3 primeros o muestra menos productos, si hay textos que '
+        'contradicen lo mostrado, "No hay" falsos o duplicados, o si suben las respuestas cortas, con menos de la '
+        "mitad de lo anunciado o sin productos contra la última corrida guardada (eval/mochi-listas-*.json; "
+        "`make eval-check`)",
     )
     sub.add_parser("eval-sample", help="muestra de ~200 pares (consulta, producto) para juzgar a mano")
     sub.add_parser("eval-human", help="juez automático y refuerzo por concepto contra los juicios a mano, y κ")

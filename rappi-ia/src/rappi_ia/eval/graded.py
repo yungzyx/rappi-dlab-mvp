@@ -270,12 +270,12 @@ def _row(label: str, data: dict) -> str:
     )
 
 
-def latest_lists(directory: Path = EVAL_DIR) -> Path:
+def latest_lists(directory: Path = EVAL_DIR, pattern: str = LISTS_GLOB) -> Path:
     """Las últimas listas guardadas (por la fecha AAAA-MM-DD del nombre; el mismo día, "despues" va después de
-    "antes")."""
-    found = sorted(directory.glob(LISTS_GLOB), key=lambda p: (re.findall(r"\d{4}-\d{2}-\d{2}", p.name), p.name))
+    "antes"). `pattern`: las de la búsqueda o las de Mochi (mochi_eval.LISTS_GLOB)."""
+    found = sorted(directory.glob(pattern), key=lambda p: (re.findall(r"\d{4}-\d{2}-\d{2}", p.name), p.name))
     if not found:
-        raise FileNotFoundError(f"No hay listas guardadas ({LISTS_GLOB}) en {directory}")
+        raise FileNotFoundError(f"No hay listas guardadas ({pattern}) en {directory}")
     return found[-1]
 
 

@@ -73,11 +73,14 @@ eval:  ## Evalúa la búsqueda (léxico vs vectorial vs híbrido) y propone τ; 
 	$(PY) -m rappi_ia eval-search $(if $(filter 1,$(GUARDAR_TAU)),--guardar-tau) $(EVAL_ARGS) --jev-auto
 
 # Lo que ve la persona contra las últimas listas guardadas (eval/tres-niveles-listas-*.json), con el juicio LLM de tres
-# niveles: falla si una consulta pierde un "sirve" de sus 3 primeros o muestra menos productos. El CI no tiene el
-# catálogo real: se corre a mano, sobre la misma copia con que se guardaron las listas (rappi_staging), antes de
-# fusionar cambios en retrieval/ o agent/. Solo lee la base.
-eval-check:  ## Antes de fusionar cambios en retrieval/ o agent/: falla si la búsqueda empeora contra las últimas listas guardadas
+# niveles: falla si una consulta pierde un "sirve" de sus 3 primeros o muestra menos productos. Después, Mochi contra
+# su última corrida guardada (eval/mochi-listas-*.json, con plantillas): lo mismo en las necesidades, y falla si un
+# texto contradice lo mostrado, dice un "No hay" falso o repite un producto, o si suben las respuestas cortas, con menos
+# de la mitad de lo anunciado o sin productos. El CI no tiene el catálogo real: se corre a mano, sobre la misma copia
+# con que se guardaron las listas (rappi_staging), antes de fusionar cambios en retrieval/ o agent/. Solo lee la base.
+eval-check:  ## Antes de fusionar cambios en retrieval/ o agent/: falla si la búsqueda o Mochi empeoran contra lo guardado
 	$(HF_OFFLINE) $(PY) -m rappi_ia eval-graded --revisar
+	$(HF_OFFLINE) $(PY) -m rappi_ia eval-mochi --revisar
 
 synth:  ## Usuarios y eventos SIMULADOS para el panel y el motor (reemplaza los anteriores)
 	$(PY) -m rappi_ia synth

@@ -4,7 +4,9 @@ import json
 
 from rappi_ia.concepts.taxonomy import load_taxonomy
 from rappi_ia.eval import mochi_eval
+from rappi_ia.eval.graded import Judged
 from rappi_ia.eval.mochi_eval import MochiRun, announce_labels, check, claimed_absent, load_cases, summary
+from rappi_ia.eval.sheets import pair_id
 
 TAXONOMY = load_taxonomy()
 LABELS = announce_labels(TAXONOMY)
@@ -126,6 +128,7 @@ def test_summary_counts_short_answers_only_among_those_with_products():
     assert totals["libres"] == {
         "casos": 3,
         "con_productos": 2,
+        "sin_productos": 1,
         "promedio": 4.5,
         "cortas": 1,
         "anuncia": 2,
@@ -136,6 +139,110 @@ def test_summary_counts_short_answers_only_among_those_with_products():
         "duplicados": 0,
     }
     assert totals["total"]["cortas"] == 2 and totals["total"]["menos_de_la_mitad"] == 1
+
+
+def _need(query: str, ids: list[str], share: float | None = 1.0, duplicates: list[str] | None = None) -> MochiRun:
+    products = [_product(i, "cafe") for i in ids]
+    return MochiRun(
+        "necesidades",
+        "turbo",
+        query,
+        "necesidad",
+        "buscar",
+        "texto",
+        products,
+        share=share,
+        duplicates=duplicates or [],
+    )
+
+
+def _judged(query: str, levels: dict[str, int]) -> dict[str, Judged]:
+    return {pair_id("turbo", query, "catalog_item", i): Judged("turbo", query, level) for i, level in levels.items()}
+
+
+def _baseline() -> list[MochiRun]:
+    """Como la corrida del 05-11: una respuesta corta y una con menos de la mitad de lo anunciado, a propósito."""
+    return [_need("café", ["a", "b", "c", "d"]), _need("té", ["t"]), _need("mate", ["m", "n", "o", "p"], share=0.25)]
+
+
+def test_saved_run_keeps_the_needs_and_the_totals_it_compares_without_catalog_text():
+    saved = mochi_eval.saved_run([*_baseline(), _run("libres", 0)])
+
+    assert [x["consulta"] for x in saved["listas"]] == ["café", "té", "mate"]
+    assert saved["listas"][0]["productos"][0] == ["catalog_item", "a"]
+    assert saved["revisiones"] == {
+        "contradice": 0,
+        "no_hay_falso": 0,
+        "duplicados": 0,
+        "cortas": 1,
+        "menos_de_la_mitad": 1,
+        "sin_productos": 1,
+    }
+    assert saved["casos"][-1] == {"set": "libres", "vertical": None, "consulta": "q", "productos": 0, "mitad": False}
+    assert "Producto" not in json.dumps(saved)  # solo ids: los nombres son del catálogo
+
+
+def test_the_same_run_as_the_saved_one_passes_even_with_short_answers_on_purpose():
+    """La base ya tiene respuestas cortas y con menos de la mitad: no se exige 0, solo que no suban."""
+    judgments = _judged("café", {"a": 2, "b": 2})
+    saved = mochi_eval.saved_run(_baseline())
+
+    assert mochi_eval.regressions(saved, _baseline(), judgments) == []
+    better = [_need("café", ["a", "b", "c", "d"]), _need("té", ["t", "u", "v", "w"]), _need("mate", ["m", "n"])]
+    assert mochi_eval.regressions(saved, better, judgments) == ['turbo "mate": muestra 2 productos (antes 4)']
+
+
+def test_a_need_that_loses_a_serving_product_fails():
+    judgments = _judged("café", {"a": 2, "b": 2, "c": 1, "x": 0})
+    saved = mochi_eval.saved_run(_baseline())
+    now = [_need("café", ["a", "x", "c", "d"]), _need("té", ["t"]), _need("mate", ["m", "n", "o", "p"], share=0.25)]
+
+    assert mochi_eval.regressions(saved, now, judgments) == ['turbo "café": "sirve" entre los 3 primeros 2 → 1']
+
+
+def test_a_contradiction_a_false_none_or_a_duplicate_fails_even_once():
+    saved = mochi_eval.saved_run(_baseline())
+    now = [
+        *_baseline(),
+        _need("pan", ["p", "q", "r", "s"], share=0.0),
+        _need("leche", ["l", "l", "k", "j"], duplicates=["catalog_item:l"]),
+        _run("libres", 5, absent='1 de "lúcuma" en turbo'),
+    ]
+
+    assert mochi_eval.regressions(saved, now, {}) == [
+        "Texto que contradice lo mostrado: 1 (tiene que ser 0)",
+        '"No hay" falso: 1 (tiene que ser 0)',
+        "Con duplicados: 1 (tiene que ser 0)",
+    ]
+
+
+def test_more_short_answers_half_announced_or_empty_than_the_saved_run_fails():
+    saved = mochi_eval.saved_run(_baseline())
+    now = [*_baseline(), _run("libres", 2, share=0.3), _run("libres", 0)]
+
+    assert mochi_eval.regressions(saved, now, {}) == [
+        "Menos de 4 productos: 1 → 2",
+        "Menos de la mitad de lo anunciado: 1 → 2",
+        "Sin productos: 0 → 1",
+    ]
+
+
+def _free(query: str, n_products: int, share: float | None = 1.0) -> MochiRun:
+    products = [_product(f"{query}{i}", "cafe") for i in range(n_products)]
+    return MochiRun("libres", None, query, "", "buscar", "texto", products, share=share)
+
+
+def test_outside_the_needs_each_case_is_compared_so_two_changes_do_not_cancel_out():
+    """Los totales no ven una frase que pasa de 6 a 0 si otra pasa de 0 a 6, ni una que baja de 6 a 4."""
+    saved = mochi_eval.saved_run([_free("asado", 6), _free("helado", 0), _free("once", 6), _free("pisco", 6)])
+    now = [_free("asado", 0), _free("helado", 6), _free("once", 4), _free("pisco", 6, share=0.3)]
+
+    assert mochi_eval.regressions(saved, now, {}) == [
+        'libres - "asado": muestra 0 productos (antes 6)',
+        'libres - "once": muestra 4 productos (antes 6)',
+        'libres - "pisco": muestra menos de la mitad de lo anunciado (antes no)',
+        "Menos de la mitad de lo anunciado: 0 → 1",
+    ]
 
 
 def test_report_lists_what_fails_and_says_the_judged_part_is_an_llm_judgment():
