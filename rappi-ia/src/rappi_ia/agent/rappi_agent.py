@@ -109,8 +109,20 @@ NOT_DETAIL = {
     *("pastilla", "pastillas", "capsulas", "comprimidos", "tabletas", "remedio", "remedios", "producto", "productos"),
     # para quién y medidas: los nombres lo dicen de otras formas ("Men", "Kids", "FPS 50")
     *("hombre", "hombres", "mujer", "mujeres", "adulto", "adultos", "nino", "ninos", "nina", "ninas", "factor"),
-    *("persona", "personas", "porcion", "porciones", "docena", "docenas"),
+    *("persona", "personas", "porcion", "porciones", "docena", "docenas", "esta", "este"),
 }
+# Cuándo, no cómo es el producto, si va como complemento de tiempo (_said_as_time): "pizza para la noche", "sushi para
+# el sábado". Tras el producto ("crema de noche", "antigripal noche") sí es un detalle.
+TIME_WORDS = {
+    *("hoy", "noche", "tarde", "manana", "cena", "almuerzo", "desayuno", "once", "semana", "finde"),
+    *("lunes", "martes", "miercoles", "jueves", "viernes", "sabado", "domingo"),
+}
+TIME_LEADS = {"para", "esta", "este", "estas", "estos"}  # "para mañana", "esta noche"
+# tras "para", "en", "de", "por" o "a": "para la cena", "en la tarde", "de la tarde", "por la noche", "a la noche"
+TIME_ARTICLES = {"la", "el", "las", "los", "esta", "este"}
+# Comidas que sí dicen qué se busca ("pan para el desayuno" es pan de molde, no pan de queso): no son detalle, pero
+# se buscan. La cena no: es cualquier comida, y "cena" traía la "Hamburguesa John Cena".
+SEARCHED_MEALS = {"desayuno", "almuerzo", "once"}
 # Detalles que el nombre del producto dice de otra forma: "para celíacos" es "sin gluten".
 DETAIL_ALIASES = {
     **dict.fromkeys(("celiaco", "celiaca", "celiacos", "celiacas"), ("gluten", "sin gluten", True)),
@@ -678,11 +690,26 @@ class RappiAgent:
         if intent.kind == "ocasion" and intent.occasion and not intent.explicit_concepts:
             return " ".join(self.taxonomy.concepts[c].name for c in intent.concepts[:4])
         query = intent.query or intent.text
+        if intent.explicit_concepts:
+            query = self._without_when(intent, query)
         if not self._without(intent):
             return query
         words = _query_words(query)
         kept = [w for i, w in enumerate(words) if w != "sin" and (i == 0 or words[i - 1] != "sin")]
         return " ".join([*kept, self._without_searched(intent, intent.concepts)]).strip() or query
+
+    def _without_when(self, intent: Intent, query: str) -> str:
+        """Lo pedido sin cuándo es (_said_as_time): "hamburguesa para la cena" busca "hamburguesa" (traía primero la
+        "Hamburguesa John Cena"). Quedan las palabras de la ocasión ("cabritas para la noche de películas") y las
+        comidas que dicen qué se busca (SEARCHED_MEALS)."""
+        words = _query_words(query)
+        keep = self._occasion_said(intent) | SEARCHED_MEALS
+        drop = set()
+        for i, word in enumerate(words):
+            if keep.isdisjoint({word, _stem(word)}) and (lead := _said_as_time(words, i)):
+                drop |= set(range(i - lead, i + 1))
+        kept = [w for i, w in enumerate(words) if i not in drop]
+        return " ".join(kept) if drop and kept else query
 
     def _small_talk(self, intent: Intent, ctx: Context) -> dict:
         interest = self._top_interest(ctx.profile) if ctx.mode == "propuesta" else None
@@ -985,14 +1012,20 @@ class RappiAgent:
             "product_ids": list(dict.fromkeys(shown))[-MAX_SHOWN_IDS:],
         }
 
+    def _occasion_said(self, intent: Intent) -> set[str]:
+        """Las palabras de la ocasión entendida, tal como se dijeron ("guaguas") y como las nombra la ocasión."""
+        words: set[str] = set()
+        if matcher := self._occasion_keywords.get(intent.occasion or ""):
+            said_words = tokens(intent.text)
+            for m in matcher.matches(intent.text):
+                words |= {*tokens(m.keyword), *said_words[m.position : m.position + m.words]}
+        return words
+
     def _detail(self, intent: Intent) -> tuple[str, str, bool] | None:
         """(raíz, cómo decirlo, si se pide "sin") de la primera palabra del pedido que no es el concepto, la ocasión
         entendida ni relleno: "lúcuma" en "helado de lúcuma", "sin gluten" en "galletas para celíacos"."""
         concept_words = {w for c in intent.concepts for w in self._concept_words.get(c, ())}
-        if matcher := self._occasion_keywords.get(intent.occasion or ""):
-            said_words = tokens(intent.text)
-            for m in matcher.matches(intent.text):  # la palabra tal como se dijo ("guaguas") y la de la ocasión
-                concept_words |= {*tokens(m.keyword), *said_words[m.position : m.position + m.words]}
+        concept_words |= self._occasion_said(intent)  # "guaguas" en "pañales para guaguas"
         phrases = {p for c in intent.concepts for p in self._concept_phrases.get(c, ())}
         said = {normalize(w): w.lower() for w in intent.text.split()}
         words = _query_words(intent.query)
@@ -1004,6 +1037,8 @@ class RappiAgent:
             free_from = i > 0 and words[i - 1] == "sin" and f"sin {word}" not in phrases
             if free_from and stem == "alcohol" and not self._alcoholic(intent.concepts):
                 continue  # "bebidas sin alcohol": no tienen; no hay que buscar las que lo dicen (ni ir a Licores)
+            if _said_as_time(words, i):
+                continue
             known = set() if free_from else concept_words
             if len(word) >= 4 and word.isalpha() and not {word, stem} & (NOT_DETAIL | known):
                 label = said.get(word, word).strip("¿?¡!.,")
@@ -1178,6 +1213,29 @@ def _stem(word: str) -> str:
     if word.endswith("es") and len(word) > 4 and word[-3] in "nrldzj":
         return word[:-2]
     return word[:-1] if word.endswith("s") and len(word) > 3 else word
+
+
+def _said_as_time(words: list[str], i: int) -> int:
+    """Si la palabra i dice cuándo, cuántas palabras antes van con ella: "para (la) noche", "esta noche", "en la tarde",
+    "de la tarde", "por la noche", "a la noche", "del sábado", "de mañana", "(para el) fin de semana"; 0 si no.
+    "crema de noche" no: "de" sin artículo dice cómo es."""
+    word = words[i]
+    if word == "semana" and words[max(0, i - 2) : i] == ["fin", "de"]:
+        return 2 + _time_lead(words, i - 2)
+    if word not in TIME_WORDS and not (word.endswith("s") and word[:-1] in TIME_WORDS):
+        return 0
+    if lead := _time_lead(words, i):
+        return lead
+    return 1 if i and words[i - 1] == "de" and word in {"hoy", "manana"} else 0
+
+
+def _time_lead(words: list[str], i: int) -> int:
+    """Cuántas palabras antes de la i la vuelven un cuándo: "para la", "en el", "por la", "de la", "a la", "esta",
+    "para", "del" (de + el: "sushi del viernes")."""
+    before = words[max(0, i - 2) : i]
+    if len(before) == 2 and before[1] in TIME_ARTICLES and before[0] in {"para", "en", "de", "por", "a"}:
+        return 2
+    return 1 if before[-1:] and (before[-1] in TIME_LEADS or before[-1] == "del") else 0
 
 
 def _query_words(query: str) -> list[str]:
