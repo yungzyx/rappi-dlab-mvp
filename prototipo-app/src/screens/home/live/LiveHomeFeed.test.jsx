@@ -80,7 +80,7 @@ const allOfferRequests = (mock = api) =>
   mock.mock.calls
     .filter(([url]) => url.endsWith('/agent/offer'))
     .map(([, init]) => JSON.parse(init.body))
-    .map(({ session_id: _session, ...body }) => body) // la sesión la revisa api/agent.test.js
+    .map(({ session_id: _session, surface: _surface, ...body }) => body) // la sesión y la pantalla: api/agent.test.js
 // La recompra (y, sin ella, "¿Volvemos a…?") se pide sola cada vez que la Home está arriba: sus tests la miran con
 // `repeatRequests` y `winbackRequests`.
 const SLOT_MOMENTS = ['recompra', 'volver']
@@ -830,6 +830,24 @@ describe('Home del prototipo final', () => {
       await advance(100)
       expect(winbackRequests()).toEqual([])
       expect(within(slotBlock(container)).getByText(fixture('agent-offer-recompra').text)).toBeTruthy()
+      expect(tracked('suggestion_shown', 'agent-volver')).toEqual([])
+    })
+
+    test('una recompra retenida al grupo de control no pide "¿Volvemos a…?" en su lugar', async () => {
+      // En tratamiento se habría mostrado la recompra: pedir "volver" sumaba una retenida que nunca se le muestra.
+      const withheld = () => new Response(null, { status: 204, headers: { 'X-Offer-Withheld': '1' } })
+      api = stubAgent({
+        'POST /agent/offer': (req) => {
+          if (req.body.moment === 'recompra') return withheld()
+          const name = req.body.moment === 'volver' ? 'agent-offer-volver' : OFFER_FIXTURES[req.body.moment]
+          return name ? fixture(name) : 204
+        },
+      })
+      const { container } = await renderHome()
+      await advance(100)
+      expect(repeatRequests()).toHaveLength(1)
+      expect(winbackRequests()).toEqual([])
+      expect(slotBlock(container)).toBeNull()
       expect(tracked('suggestion_shown', 'agent-volver')).toEqual([])
     })
 

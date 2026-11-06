@@ -104,6 +104,7 @@ describe('"¿Me falta algo?" en el checkout (solo si se pide)', () => {
       {
         moment: 'checkout',
         user_id: expect.any(String),
+        surface: 'checkout',
         context: {
           cart: [
             { entity_type: 'catalog_item', entity_id: '94005' },

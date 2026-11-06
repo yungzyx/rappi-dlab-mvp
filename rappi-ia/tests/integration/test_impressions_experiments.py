@@ -24,6 +24,7 @@ from rappi_ia.embeddings.text_store import embed_search_documents
 from rappi_ia.events import catalog_context, experiments, synth
 from rappi_ia.events import store as events
 from rappi_ia.events.synth import generate
+from rappi_ia.motor.build import refresh_user_conn
 from rappi_ia.motor.model import TZ
 
 CHIPS = "91001"  # papas fritas del súper Centro (9101) del catálogo de prueba
@@ -276,6 +277,63 @@ def test_the_control_group_does_not_see_mochis_offer_and_it_is_recorded_as_count
     assert ask(control, "plan", {"occasion": "carrete"}).status_code == 200
     assert ask(control, session=None).status_code == 200
     assert experiments.variants(db, treated) == {"ofertas_control": "tratamiento"}
+
+
+def test_the_control_group_sees_what_the_person_asks_for_in_the_search_panel(client, db, monkeypatch):
+    """Desde el buscador ("¿Con qué acompaño…?", "Repite lo de siempre") la persona pide la oferta: se muestra. La misma
+    pedida sola por la app (la Home) se retiene, con su pantalla y la cabecera que lo dice."""
+    monkeypatch.setattr(config, "OFFERS_CONTROL_PCT", 50)
+    control = user_in(experiments.CONTROL)
+    body = {"moment": "carrito", "user_id": control, "session_id": "s-of", "context": {"product": {
+        "entity_type": "catalog_item", "entity_id": CHIPS}}}  # fmt: skip
+
+    asked = client.post("/agent/offer", json={**body, "surface": "agent"})
+    assert asked.status_code == 200 and asked.json()["products"]
+    assert "x-offer-withheld" not in asked.headers
+    assert db.execute("SELECT count(*) FROM app_events WHERE type = 'offer_withheld'").fetchone() == (0,)
+
+    alone = client.post("/agent/offer", json={**body, "surface": "home"})
+    assert alone.status_code == 204 and alone.headers["x-offer-withheld"] == "1"
+    rows = db.execute("SELECT surface, origin FROM app_events WHERE type = 'offer_withheld'").fetchall()
+    assert rows == [("home", "agent-carrito")]
+    # "¿Me falta algo?" del checkout solo se pide al tocarlo: también se muestra.
+    checkout = {**body, "moment": "checkout", "surface": "checkout", "context": {"cart": [
+        {"entity_type": "catalog_item", "entity_id": CHIPS}]}}  # fmt: skip
+    assert client.post("/agent/offer", json=checkout).status_code == 200
+    assert db.execute("SELECT count(*) FROM app_events WHERE type = 'offer_withheld'").fetchone() == (1,)
+    # Una pantalla que no existe es un 422 (como en /events), no una retenida.
+    assert client.post("/agent/offer", json={**body, "surface": "otra"}).status_code == 422
+
+
+def test_the_same_withheld_offer_counts_once_per_session(client, db, monkeypatch):
+    """La Home pide la recompra cada vez que vuelve a estar arriba; en tratamiento la app cuenta una sola mostrada por
+    pestaña, y en control, una sola retenida por sesión (origen, concepto y vertical)."""
+    monkeypatch.setattr(config, "OFFERS_CONTROL_PCT", 50)
+    control = user_in(experiments.CONTROL)
+    for days_ago in (7, 14, 21):  # café cada 7 días, el último hace 7: hoy le toca
+        day = datetime.now(TZ).date() - timedelta(days=days_ago)
+        line = {"entity_type": "catalog_item", "entity_id": "91004", "concept_id": "cafe", "unit_price": 1990}
+        events.record_order(
+            db, control, f"s-cafe-{days_ago}", f"c-cafe-{days_ago}", "supermercado", [line],
+            ts=datetime.combine(day, datetime.min.time().replace(hour=12), TZ),
+        )  # fmt: skip
+    refresh_user_conn(db, control)
+
+    def repeat(session):
+        body = {"moment": "recompra", "user_id": control, "session_id": session, "surface": "home", "context": {}}
+        return client.post("/agent/offer", json=body)
+
+    for session in ("s-a", "s-a", "s-b"):
+        reply = repeat(session)
+        assert reply.status_code == 204 and reply.headers["x-offer-withheld"] == "1"
+    rows = db.execute(
+        "SELECT session_id, concept_id FROM app_events WHERE type = 'offer_withheld' ORDER BY session_id"
+    ).fetchall()
+    assert rows == [("s-a", "cafe"), ("s-b", "cafe")]
+    # Sin oferta que retener (un momento sin nada) es un 204 sin la cabecera: la Home sí pide "¿Volvemos a…?".
+    nothing = client.post("/agent/offer", json={"moment": "volver", "user_id": control, "session_id": "s-a",
+                                                "surface": "home", "context": {}})  # fmt: skip
+    assert nothing.status_code == 204 and "x-offer-withheld" not in nothing.headers
 
 
 # ── Vistas de capa y panel ───────────────────────────────────────────────────

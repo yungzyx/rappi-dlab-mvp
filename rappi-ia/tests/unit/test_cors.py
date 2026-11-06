@@ -72,3 +72,14 @@ def test_preflight_allows_put_for_preferences_and_autonomy():
 
         assert reply.status_code == 200, path
         assert "PUT" in reply.headers["access-control-allow-methods"]
+
+
+def test_the_app_can_read_that_an_offer_was_withheld():
+    """En local la app está en otro puerto: sin exponer X-Offer-Withheld, el navegador no la deja leer."""
+    from fastapi.testclient import TestClient
+
+    from rappi_ia.api.app import app
+
+    reply = TestClient(app).get("/live", headers={"Origin": "http://localhost:5174"})
+
+    assert "x-offer-withheld" in reply.headers["access-control-expose-headers"].lower()

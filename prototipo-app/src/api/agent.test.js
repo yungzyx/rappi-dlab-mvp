@@ -60,6 +60,28 @@ describe('agent', () => {
     expect(JSON.parse(calls.mock.calls[1][1].body)).toEqual({ moment: 'plan', context: { occasion: 'carrete' } })
   })
 
+  test('offer manda la pantalla: lo pedido desde el buscador (agent) el grupo de control lo ve', async () => {
+    const calls = stubApi({ 'POST /agent/offer': 204 })
+    await offer('recompra', {}, { userId: 'u1', surface: 'agent' })
+    expect(JSON.parse(calls.mock.calls[0][1].body)).toEqual({
+      moment: 'recompra',
+      user_id: 'u1',
+      session_id: expect.stringMatching(/^s-[0-9a-f]{16}$/),
+      surface: 'agent',
+      context: {},
+    })
+  })
+
+  test('un 204 retenido al grupo de control es null y avisa con onWithheld; uno sin oferta, no', async () => {
+    const withheld = new Response(null, { status: 204, headers: { 'X-Offer-Withheld': '1' } })
+    stubApi({ 'POST /agent/offer': (req) => (req.body.moment === 'recompra' ? withheld : 204) })
+    const onWithheld = vi.fn()
+    expect(await offer('recompra', {}, { userId: 'u1', surface: 'home', onWithheld })).toBeNull()
+    expect(onWithheld).toHaveBeenCalledTimes(1)
+    expect(await offer('volver', {}, { userId: 'u1', surface: 'home', onWithheld })).toBeNull()
+    expect(onWithheld).toHaveBeenCalledTimes(1)
+  })
+
   test('las acciones traen la ruta de la pantalla de la app (Turbo tiene la suya) o ninguna si la vertical no se conoce', async () => {
     const body = fixture('agent-offer-carrito')
     body.actions = [
