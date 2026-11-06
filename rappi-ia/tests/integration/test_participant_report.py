@@ -239,9 +239,9 @@ def test_the_journey_says_how_each_vertical_was_reached_without_vertical_open(db
 def test_the_journey_names_the_mochi_offer_seen_before_reaching_a_vertical_by_another_path(
     db, tmp_path, test_url, monkeypatch
 ):
-    """El botón "Ver Súper" de una oferta de Mochi lleva a la vertical sin dejar `vertical_open`: lo primero que toca
-    allí sale de la pantalla de la vertical ("otro"). El recorrido nombra la oferta de Súper que vio justo antes, pero
-    no una de hace más de 30 minutos (Licores)."""
+    """Antes, el botón "Ver Súper" de una oferta de Mochi llevaba a la vertical sin dejar `vertical_open`: lo primero
+    que toca allí sale de la pantalla de la vertical ("otro"). El recorrido nombra la oferta de Súper que vio justo
+    antes, pero no una de hace más de 30 minutos (Licores)."""
     seed_taxonomy(db, load_taxonomy())
     e = events.Event
     user = "proto-ffff"
@@ -276,6 +276,40 @@ def test_the_journey_names_the_mochi_offer_seen_before_reaching_a_vertical_by_an
     assert "| 03-11 15:42 | Licores | vio una tienda | otro (vertical, tiendas) |" in text
 
 
+def test_the_journey_says_mochi_when_the_offer_button_opened_the_vertical(db, tmp_path, test_url, monkeypatch):
+    """ "Ver …" de una oferta de Mochi deja `vertical_open` con el origen de la oferta: el recorrido dice "Mochi
+    (carrito)", sin la pista de los 30 minutos."""
+    seed_taxonomy(db, load_taxonomy())
+    e = events.Event
+    user = "proto-gggg"
+    events.record(
+        db,
+        [
+            e(
+                user,
+                "s1",
+                "suggestion_shown",
+                ts=_at(0),
+                concept_id="snacks-salados",
+                vertical="conveniencia",
+                origin="agent-carrito",
+                surface="home",
+            ),
+            e(user, "s1", "vertical_open", ts=_at(1), vertical="conveniencia", origin="agent-carrito", surface="home"),
+            e(user, "s1", "view_store", ts=_at(2), vertical="conveniencia", origin="tiendas", surface="vertical"),
+        ],
+        session=ONCE,
+    )
+    db.commit()
+    monkeypatch.setenv("DATABASE_URL", test_url)
+
+    _run(tmp_path, user)
+
+    text = (tmp_path / f"{user}.md").read_text(encoding="utf-8")
+    assert "| abrió la vertical | Mochi (carrito) |" in text
+    assert "Mochi (carrito); antes" not in text
+
+
 def test_the_journey_paths():
     """El camino sale del origen: una oferta de Mochi con su momento, el "Para ti" de su tarjeta (no el de una tienda),
     el buscador, un acceso de la Home, un botón del panel de Mochi, y lo demás tal cual."""
@@ -304,6 +338,21 @@ def test_a_dismissed_offer_says_the_button_of_its_moment():
     assert dismissed("agent-carrito")["status"] == 'rechazada ("Ahora no")'
     assert dismissed("agent-recompra")["status"] == 'rechazada ("Después")'
     assert dismissed("agent-plan")["status"] == "rechazada"
+
+
+def test_an_offer_that_went_away_by_itself_is_not_a_rejection_nor_no_answer():
+    """El globo que se fue solo (`suggestion_dismissed` con `payload.kind` "expirada") sale "se fue sola"; si después
+    la rechazó o la aceptó (la misma oferta volvió), vale eso."""
+    shown = {"origin": "agent-carrito", "concept_id": "cerveza", "vertical": "licores", "payload": {}}
+    expired = {**shown, "type": "suggestion_dismissed", "payload": {"kind": events.EXPIRED_KIND}}
+
+    def status(*after):
+        return report._offers([{**shown, "type": "suggestion_shown"}, *after])[0]["status"]
+
+    assert status(expired) == "se fue sola"
+    assert status(expired, {**shown, "type": "suggestion_dismissed"}) == 'rechazada ("Ahora no")'
+    assert status(expired, {**shown, "type": "suggestion_accepted"}) == "aceptada"
+    assert status() == "sin respuesta registrada"
 
 
 def _synthetic(db, user="syn-0001"):

@@ -3,12 +3,13 @@ import { DataTable } from '../../components/DataTable.jsx'
 import { Meter } from '../../components/Meter.jsx'
 import { EmptyState } from '../../components/States.jsx'
 import { formatNumber, formatPct } from '../../lib/format.js'
-import { MIN_SHOWN_FOR_RATE, REJECTABLE_MOMENTS, momentHint, momentLabel } from './offers.js'
+import { MIN_SHOWN_FOR_RATE, OPENABLE_MOMENTS, REJECTABLE_MOMENTS, momentHint, momentLabel } from './offers.js'
 
 /**
  * Ofertas de Mochi por momento (dónde se hizo la oferta). La tasa llega vacía (—) con menos mostradas que el mínimo:
- * ahí solo valen las cuentas. Después de la tasa, las rechazadas ("Ahora no" o "Después", solo donde hay ese botón)
- * y los "¿Por qué?" abiertos; una respuesta guardada antes de que la API los contara no los trae y muestra "—".
+ * ahí solo valen las cuentas. Después de la tasa, las rechazadas ("Ahora no" o "Después", solo donde hay ese botón),
+ * las abiertas (la vertical abierta desde la oferta, solo donde hay un botón que la abre: no es una aceptación) y los
+ * "¿Por qué?" abiertos; una respuesta guardada antes de que la API los contara no los trae y muestra "—".
  * `make mvp-check` lee esta tabla: "Plan" y sus aceptadas en la tercera celda. Debajo, aparte, los pedidos que Mochi hizo solo con permiso ("Pedir por
  * mí"): no son ofertas aceptadas.
  */
@@ -64,6 +65,13 @@ export function OffersByMoment({ data, source }) {
       render: (row) => (REJECTABLE_MOMENTS.has(row.momento) || row.rechazadas > 0 ? formatNumber(row.rechazadas) : '—'),
     },
     {
+      key: 'abiertas',
+      header: 'Abiertas',
+      numeric: true,
+      // Abrir la vertical de la oferta no es aceptarla; sin un botón que la abra, "—", como las rechazadas.
+      render: (row) => (OPENABLE_MOMENTS.has(row.momento) || row.abiertas > 0 ? formatNumber(row.abiertas) : '—'),
+    },
+    {
       key: 'por_que_abiertos',
       header: '"¿Por qué?" abiertos',
       numeric: true,
@@ -81,7 +89,8 @@ export function OffersByMoment({ data, source }) {
       <p className="cell-sub">
         La tasa aparece desde {MIN_SHOWN_FOR_RATE} mostradas; antes, solo las cuentas. Rechazada es tocar "Ahora no"
         (Carro) o "Después" (Vertical por probar, Recompra y Volver a pedir); los otros momentos no tienen ese botón y
-        muestran "—". Una oferta que no se toca no deja evento.
+        muestran "—". Una oferta que no se toca no es un rechazo: no se cuenta. Abierta es tocar el botón que abre su
+        vertical ("Ver …", "Abrir …"): dice que la persona fue a mirar, no que la aceptó.
       </p>
       <AutoOrders counts={data.autopedidos} />
     </>

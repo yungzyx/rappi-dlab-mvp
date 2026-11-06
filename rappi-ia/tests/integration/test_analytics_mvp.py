@@ -154,6 +154,7 @@ def test_offers_unknown_origin_is_sin_momento(concepts):
                 "mostradas": 4,
                 "aceptadas": 0,
                 "rechazadas": 0,
+                "abiertas": 0,
                 "por_que_abiertos": 0,
                 "aceptacion_pct": None,
             }
@@ -192,6 +193,62 @@ def test_offers_count_rejections_and_opened_whys_by_moment(concepts):
         ("vertical_por_probar", 1, 1, 0, 1),
         ("recompra", 1, 0, 1, 0),
     ]
+
+
+def test_offers_count_verticals_opened_from_the_offer_apart_from_acceptance(concepts):
+    """La vertical abierta desde una oferta ("Ver …", "Abrir …": `vertical_open` con el origen `agent-<momento>`) se
+    cuenta en `abiertas`, no como aceptada; los toques a los accesos de la Home y otros orígenes no entran."""
+    db = concepts
+
+    def opened(user, origin, surface="home"):
+        return events.Event(
+            user, "s1", "vertical_open", ts=NOW, vertical="supermercado", surface=surface, origin=origin
+        )
+
+    events.record(
+        db,
+        [
+            _offer("u1", "agent-vertical_por_probar"),
+            opened("u1", "agent-vertical_por_probar"),
+            opened("u1", "agent-vertical_por_probar"),
+            _offer("u1", "agent-carrito"),
+            opened("u1", "agent-carrito"),
+            opened("u2", "accesos"),  # un acceso de la Home no es una oferta, ni su persona
+            opened("u2", "agent-nuevo"),  # un origen de Mochi que no es un momento tampoco
+            opened("u2", "tambien-en", surface="agent"),
+        ],
+    )
+
+    data = queries.offers(db, "prototype")
+
+    assert data["personas"] == 1
+    assert [(m["momento"], m["mostradas"], m["aceptadas"], m["abiertas"]) for m in data["momentos"]] == [
+        ("carrito", 1, 0, 1),
+        ("vertical_por_probar", 1, 0, 2),
+    ]
+
+
+def test_offers_that_went_away_by_themselves_are_not_rejections(concepts):
+    """La oferta que se fue sola del globo (`suggestion_dismissed` con `payload.kind` "expirada") no es un "Ahora no"
+    ni un "Después": no cuenta en las rechazadas ni en las ignoradas de las sugerencias."""
+    db = concepts
+    expired = {"origen": "agent-carrito", "kind": events.EXPIRED_KIND}
+    events.record(
+        db,
+        [
+            _offer("u1", "agent-carrito"),
+            events.Event(
+                "u1", "s1", "suggestion_dismissed", ts=NOW, concept_id="cerveza", vertical="licores", payload=expired
+            ),
+            _offer("u2", "agent-carrito"),
+            _offer("u2", "agent-carrito", "suggestion_dismissed"),
+        ],
+    )
+
+    [carrito] = queries.offers(db, "prototype")["momentos"]
+    assert (carrito["mostradas"], carrito["rechazadas"]) == (2, 1)
+    [row] = queries.suggestions(db, "prototype")
+    assert (row["mostradas"], row["ignoradas"]) == (2, 1)
 
 
 def test_offers_rate_only_from_ten_shown(concepts):

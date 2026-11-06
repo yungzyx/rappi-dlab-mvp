@@ -41,7 +41,7 @@ describe('SearchResults sin resultados', () => {
   })
 
   // Primero: lo mostrado se recuerda lo que dura la pestaña (este archivo), y la siguiente prueba muestra la misma oferta.
-  test('la oferta sin_resultado registra su mostrada y, al tocar "Ver en…", una aceptada (una sola vez)', async () => {
+  test('la oferta sin_resultado registra su mostrada y, al tocar "Ver en…", una aceptada (una sola vez) y la vertical abierta', async () => {
     events.track.mockClear()
     stubApi({ 'POST /agent/offer': fixture('agent-offer-sin-resultado') })
     render(
@@ -70,6 +70,9 @@ describe('SearchResults sin resultados', () => {
     fireEvent.click(see)
     expect(tracked('suggestion_accepted')).toEqual([fields]) // una, no una por producto: no se agregó ninguno
     expect(tracked('suggestion_shown')).toHaveLength(1)
+    // Cada toque abre la vertical, con el origen de la oferta (como un acceso de la Home, cada vez).
+    const { concept_id: _concept, ...opened } = fields
+    expect(tracked('vertical_open')).toEqual([opened, opened])
   })
 
   test('the offer has ¿Por qué?', async () => {

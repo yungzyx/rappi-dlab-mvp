@@ -18,7 +18,15 @@ function offer(responses, moment, { shown = 0, accepted = 0, newPerson = false }
   return edit(responses['offers.prototype'], (data) => {
     let row = data.momentos.find((item) => item.momento === moment)
     if (!row) {
-      row = { momento: moment, mostradas: 0, aceptadas: 0, rechazadas: 0, por_que_abiertos: 0, aceptacion_pct: null }
+      row = {
+        momento: moment,
+        mostradas: 0,
+        aceptadas: 0,
+        rechazadas: 0,
+        abiertas: 0,
+        por_que_abiertos: 0,
+        aceptacion_pct: null,
+      }
       data.momentos.push(row)
     }
     row.mostradas += shown

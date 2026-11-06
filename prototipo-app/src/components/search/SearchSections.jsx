@@ -298,7 +298,7 @@ function WhimOffer({ query, requestId, onOpenFavor }) {
 /**
  * La oferta `sin_resultado` del agente. Si no tiene nada (204) o falla, solo invita a buscar con otras palabras. Como las
  * demás ofertas, registra su mostrada; tocar "Ver en…" cuenta una aceptada (una, con el concepto de la oferta: no se
- * agregó ningún producto), que noteAccepted cuenta una sola vez.
+ * agregó ningún producto), que noteAccepted cuenta una sola vez, y la vertical abierta (`vertical_open`).
  */
 function AgentEmpty({ query, onOpenVertical, onTryAnother }) {
   const { data: found, loading } = useApi(
@@ -321,6 +321,12 @@ function AgentEmpty({ query, onOpenVertical, onTryAnother }) {
       placement: { surface: 'search', requestId: found.requestId },
     }
     noteAccepted(events.track, [offered], { origin: NO_RESULT_ORIGIN, generation })
+    // Abrir la vertical desde la oferta cuenta como abrirla (`vertical_open`), con el origen de la oferta.
+    if (found.backendVertical)
+      events.track('vertical_open', {
+        vertical: found.backendVertical,
+        ...envelope({ surface: 'search', origin: NO_RESULT_ORIGIN, requestId: found.requestId }),
+      })
     onOpenVertical(found.vertical)
   }
   return (

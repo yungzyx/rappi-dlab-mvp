@@ -341,6 +341,12 @@ describe('volver ("¿Volvemos a…?")', () => {
     expect(offer('volver', state({ orders: both, events: later })).reason.concept).toBe('cafe')
   })
 
+  test('una invitación que se fue sola (payload.kind expirada) no cuenta como "Después"', () => {
+    const both = [...stoppedCoffee, ...stoppedTurbo.slice(0, 3), ago(2, order('restaurantes'))]
+    const expired = [2, 1].map((d) => event('suggestion_dismissed', 'cafe', 'supermercado', 'expirada', d + 7))
+    expect(offer('volver', state({ orders: both, events: expired })).reason.concept).toBe('cafe')
+  })
+
   test('los rechazos de otras ofertas (la recompra, el carrito) no cuentan como "Después" de volver', () => {
     const both = [...stoppedCoffee, ...stoppedTurbo.slice(0, 3), ago(2, order('restaurantes'))]
     const others = ['agent-recompra', 'agent-carrito'].map((origin) => ({

@@ -12,6 +12,7 @@ from ..agent.verticals import MIN_ITEMS_ELSEWHERE, SHARES
 from ..catalog.hours import TZ
 from ..concepts.taxonomy import load_taxonomy
 from ..events import experiments as exp
+from ..events.store import EXPIRED_KIND
 from ..motor.combos import OWN_SIGNALS_ONLY, expected_fine_retention, load_combos
 from ..offers.autonomy import ORIGIN as AUTO_ORDER_ORIGIN
 from ..offers.winback import reach
@@ -413,7 +414,8 @@ def suggestions(conn: Connection, source: str = "synthetic") -> list[dict]:
     """Rendimiento de las sugerencias del agente por concepto sugerido: todas (al preguntarle, en "Para ti" y en cada
     momento de oferta), el mismo material que `offers()` corta por momento.
 
-    Aceptada = el producto sugerido se agregó al carro; convertida = llegó a un pedido. El aviso sobre el carro no
+    Aceptada = el producto sugerido se agregó al carro; convertida = llegó a un pedido; ignorada = "Ahora no" o
+    "Después" (no la que se fue sola del globo, `payload.kind` "expirada"). El aviso sobre el carro no
     entra: ahí "aceptar" es abrir al agente, otra cosa. El % de aceptación necesita 10 mostradas; con la fuente
     prototipo las filas aparecen desde la primera (una demo en vivo debe verse) y el % queda vacío hasta entonces.
     """
@@ -424,7 +426,8 @@ def suggestions(conn: Connection, source: str = "synthetic") -> list[dict]:
                SELECT concept_id, vertical,
                       count(*) FILTER (WHERE type = 'suggestion_shown') AS mostradas,
                       count(*) FILTER (WHERE type = 'suggestion_accepted') AS aceptadas,
-                      count(*) FILTER (WHERE type = 'suggestion_dismissed') AS ignoradas
+                      count(*) FILTER (WHERE type = 'suggestion_dismissed'
+                                         AND payload ->> 'kind' IS DISTINCT FROM %(expired)s) AS ignoradas
                FROM app_events
                WHERE source = %(source)s AND type LIKE 'suggestion_%%'
                  AND coalesce(origin, payload ->> 'origen') IS DISTINCT FROM 'aviso'
@@ -447,6 +450,7 @@ def suggestions(conn: Connection, source: str = "synthetic") -> list[dict]:
             "source": source,
             "min_rate": MIN_SUGGESTIONS_SHOWN,
             "min_shown": 1 if source == "prototype" else MIN_SUGGESTIONS_SHOWN,
+            "expired": EXPIRED_KIND,
         },
     )
 
@@ -505,10 +509,12 @@ OFFER_ORDER = (*OFFER_MOMENTS, "pregunta", "para_ti", "sin_momento")
 
 
 def offers(conn: Connection, source: str = "synthetic") -> dict:
-    """Ofertas del agente mostradas, aceptadas y rechazadas por momento, y cuántas veces se abrió su "¿Por qué?"
-    (`offer_why_open`), según el origen de la sugerencia (la columna `origin`, o `payload.origen` en los eventos de
-    antes de la migración 043). Rechazada = "Ahora no" o "Después" (`suggestion_dismissed`); lo que no se toca no deja
-    evento.
+    """Ofertas del agente mostradas, aceptadas y rechazadas por momento, cuántas veces se abrió su "¿Por qué?"
+    (`offer_why_open`) y cuántas veces se abrió su vertical desde la oferta (`abiertas`: `vertical_open` con el origen
+    `agent-<momento>`, como "Ver …" o "Abrir …"; no es una aceptación), según el origen de la sugerencia (la columna
+    `origin`, o `payload.origen` en los eventos de antes de la migración 043). Rechazada = "Ahora no" o "Después"
+    (`suggestion_dismissed`); la oferta que se fue sola del globo (`payload.kind` "expirada") no es un rechazo y no
+    cuenta.
 
     `agent-<momento>` es el origen actual; `mochi-<momento>` y `chat` son nombres históricos que siguen en la base.
     Los servicios (RappiTravel, RappiFavor) tienen su propia vista y el aviso sobre el carro no es una oferta: no
@@ -522,9 +528,11 @@ def offers(conn: Connection, source: str = "synthetic") -> dict:
         "moments": list(OFFER_MOMENTS),
         "min_rate": MIN_SUGGESTIONS_SHOWN,
         "types": ["suggestion_shown", "suggestion_accepted", "suggestion_dismissed", "offer_why_open"],
+        "expired": EXPIRED_KIND,
     }
+    # `vertical_open` solo entra con el origen de un momento: los toques a los accesos de la Home no son ofertas.
     shown = """WITH e AS (
-                   SELECT user_id, type,
+                   SELECT user_id, type, kind,
                           CASE WHEN origen IN ('agent-ask', 'chat') THEN 'pregunta'  -- 'chat': nombre histórico
                                -- 'para-ti-local' y 'vertical-para-ti': nombres históricos de "Para ti"
                                WHEN origen IN ('para-ti', 'para-ti-local', 'vertical-para-ti') THEN 'para_ti'
@@ -532,20 +540,27 @@ def offers(conn: Connection, source: str = "synthetic") -> dict:
                                WHEN left(origen, 6) IN ('agent-', 'mochi-') AND substr(origen, 7) = ANY(%(moments)s)
                                     THEN substr(origen, 7)
                                ELSE 'sin_momento' END AS momento
-                   FROM (SELECT user_id, type, coalesce(origin, payload ->> 'origen') AS origen FROM app_events
-                         WHERE source = %(source)s AND type = ANY(%(types)s)) o
+                   FROM (SELECT user_id, type, coalesce(origin, payload ->> 'origen') AS origen,
+                                payload ->> 'kind' AS kind
+                         FROM app_events
+                         WHERE source = %(source)s
+                           AND (type = ANY(%(types)s)
+                                OR (type = 'vertical_open' AND left(origin, 6) = 'agent-'
+                                    AND substr(origin, 7) = ANY(%(moments)s)))) o
                    WHERE coalesce(origen, '') <> ALL(%(excluded)s)
                )"""
     [row] = _rows(conn, f"{shown} SELECT count(DISTINCT user_id) AS personas FROM e", params)
     row["momentos"] = _rows(
         conn,
         f"""{shown}
-            SELECT momento, mostradas, aceptadas, rechazadas, por_que_abiertos,
+            SELECT momento, mostradas, aceptadas, rechazadas, abiertas, por_que_abiertos,
                    CASE WHEN mostradas >= %(min_rate)s THEN round(100.0 * aceptadas / mostradas, 1) END
                        AS aceptacion_pct
             FROM (SELECT momento, count(*) FILTER (WHERE type = 'suggestion_shown') AS mostradas,
                          count(*) FILTER (WHERE type = 'suggestion_accepted') AS aceptadas,
-                         count(*) FILTER (WHERE type = 'suggestion_dismissed') AS rechazadas,
+                         count(*) FILTER (WHERE type = 'suggestion_dismissed'
+                                            AND kind IS DISTINCT FROM %(expired)s) AS rechazadas,
+                         count(*) FILTER (WHERE type = 'vertical_open') AS abiertas,
                          count(*) FILTER (WHERE type = 'offer_why_open') AS por_que_abiertos
                   FROM e GROUP BY 1) g""",
         params,
@@ -746,11 +761,15 @@ def motor(conn: Connection, source: str = "synthetic") -> dict | None:
 
 def home(conn: Connection, source: str = "synthetic") -> dict:
     """Toques de los accesos de la Home (`vertical_open`) por vertical: personas y toques. "Rappi hoy"
-    (`payload.mode = 'actual'`) no cuenta, como en todo lo que aprende el motor, ni los servicios sin catálogo."""
+    (`payload.mode = 'actual'`) no cuenta, como en todo lo que aprende el motor, ni los servicios sin catálogo. Solo los
+    de la Home (`surface`; sin ella, los de antes de la migración 043, que solo anotaba la Home) y no los que abren una
+    oferta de Mochi (origen `agent-<momento>`, como el perfil de gusto o "Ver …" de una oferta), que el motor sí
+    aprende."""
     _check(source)
     taps = """FROM app_events
               WHERE source = %(source)s AND type = 'vertical_open' AND vertical IS NOT NULL
-                AND NOT payload ? 'servicio' AND payload ->> 'mode' IS DISTINCT FROM 'actual'"""
+                AND NOT payload ? 'servicio' AND payload ->> 'mode' IS DISTINCT FROM 'actual'
+                AND coalesce(surface, 'home') = 'home' AND coalesce(origin, '') NOT LIKE 'agent-%%'"""
     rows = _rows(
         conn,
         f"""SELECT vertical, count(DISTINCT user_id) AS personas, count(*) AS toques {taps}

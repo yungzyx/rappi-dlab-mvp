@@ -186,6 +186,33 @@ def test_home_counts_people_and_taps_per_vertical_without_rappi_hoy(db):
     }
 
 
+def test_home_counts_only_the_home_shortcuts_not_what_mochi_opened(db):
+    """Los toques a los accesos de la Home (`surface` home, o sin sobre: los de antes de la migración 043), no la
+    vertical que abre una oferta de Mochi ("Ver …", el perfil de gusto) ni "También en" del buscador."""
+
+    def tap(vertical, **where):
+        return events.Event("p1", "s1", "vertical_open", ts=NOW, vertical=vertical, **where)
+
+    events.record(
+        db,
+        [
+            tap("farmacia", surface="home", origin="accesos"),
+            tap("mall", surface="home", origin="accesos-grandes"),
+            tap("turbo"),  # sin sobre: de antes de la migración 043
+            tap("supermercado", surface="home", origin="agent-vertical_por_probar"),
+            tap("conveniencia", surface="home", origin="agent-carrito"),
+            tap("restaurantes", surface="search", origin="agent-sin_resultado"),
+            tap("licores", surface="agent", origin="agent-perfil"),
+            tap("mascotas", surface="agent", origin="tambien-en"),
+        ],
+    )
+
+    data = queries.home(db, "prototype")
+
+    assert [row["vertical"] for row in data["verticales"]] == ["farmacia", "mall", "turbo"]
+    assert data["toques"] == 3
+
+
 def test_home_without_taps_is_empty(db):
     for source in ("prototype", "synthetic"):
         assert queries.home(db, source) == {"personas": 0, "toques": 0, "verticales": []}
