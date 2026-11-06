@@ -12,11 +12,14 @@ from rappi_ia.motor.evaluate import (
     GRID_LAMBDA,
     LAMBDA_MIN_GAIN_HITS,
     _mcnemar_exact,
+    _replenishment_verdict,
+    _return_rates,
     evaluate,
     evaluate_cross_sell,
     evaluate_next_vertical,
     evaluate_replenishment,
     evaluate_step,
+    evaluate_winback,
     make_split,
     not_evaluated,
     rank_metrics,
@@ -200,6 +203,111 @@ def test_evaluate_replenishment_error_in_days():
     assert out["n"] == 2
     assert out["error_mediano_dias"] == 3
     assert out["acierto_7_dias"] == pytest.approx(0.5)
+
+
+def test_replenishment_baselines_on_the_same_cases():
+    cut = T0 + timedelta(days=100)
+    orders = [order("u1", d, "supermercado", "cafe") for d in (70, 80, 90)]  # cada 10 días: le toca el 100
+    orders.append(order("u1", 101, "supermercado", "cafe"))
+    orders += [order("u2", d, "supermercado", "cafe") for d in (30, 60, 90)]  # cada 30: le toca el 120
+    orders.append(order("u2", 120, "supermercado", "cafe"))
+    # Irregular (intervalos 2, 48 y 35: variación 0,68): el motor no lo predice; sin el filtro le toca el 120.
+    orders += [order("u3", d, "turbo", "te") for d in (0, 2, 50, 85)]
+    orders.append(order("u3", 118, "turbo", "te"))
+    orders.sort(key=lambda o: o.ts)
+
+    out = evaluate_replenishment(orders, frozenset(), cut, cut + timedelta(days=28))
+    assert (out["n"], out["compraron"], out["error_mediano_dias"], out["acierto_7_dias"]) == (2, 1.0, 0.5, 1.0)
+    # Los intervalos del café en la población (10, 10, 30 y 30) tienen mediana 20: a los dos les tocaría el 110.
+    same = out["mediana_poblacional"]
+    assert (same["n"], same["error_mediano_dias"], same["acierto_7_dias"]) == (2, 9.5, 0.0)
+    assert (same["solo_intervalo_propio"], same["solo_mediana"]) == (2, 0)
+    assert same["p_mcnemar"] == pytest.approx(0.5)
+    simple = out["regla_simple"]  # también el té irregular, con su mediana (35): le toca el 120
+    assert (simple["n"], simple["error_mediano_dias"]) == (3, 9)
+    assert simple["acierto_7_dias"] == pytest.approx(1 / 3)
+    no_cv = out["sin_filtro_cv"]
+    assert (no_cv["n"], no_cv["error_mediano_dias"], no_cv["acierto_7_dias"]) == (3, 1, 1.0)
+
+
+def test_replenishment_verdict_needs_p_below_5_percent():
+    rp = {
+        "n": 40,
+        "mediana_poblacional": {"solo_intervalo_propio": 12, "solo_mediana": 2, "p_mcnemar": 0.013},
+        "regla_simple": {"n": 90},
+        "sin_filtro_cv": {"n": 80},
+    }
+    (text,) = _replenishment_verdict(rp)
+    assert "McNemar exacto p = 0,01): gana el intervalo propio" in text
+    assert "deja 40 de las 80 predicciones del intervalo propio (cobertura 50 %); la regla simple hace 90" in text
+    rp["mediana_poblacional"] = {"solo_intervalo_propio": 3, "solo_mediana": 2, "p_mcnemar": 1.0}
+    assert "con p ≥ 0,05 la diferencia es ruido" in _replenishment_verdict(rp)[0]
+
+
+def test_winback_concepts_against_the_same_lapse():
+    cut = T0 + timedelta(days=100)
+    orders = [order("u1", d, "supermercado", "cafe") for d in (20, 30, 40)]  # cada 10 días y hace 60: califica
+    orders.append(order("u1", 105, "supermercado", "cafe"))  # y vuelve
+    orders.append(order("u2", 40, "supermercado", "cafe"))  # una vez, hace 60: no califica y no vuelve
+    orders += [order("u3", d, "supermercado", "cafe") for d in (38, 40)]  # dos veces: no califica
+    orders.append(order("u3", 110, "supermercado", "cafe"))  # y vuelve
+    orders += [order("u4", d, "supermercado", "cafe") for d in (50, 70, 84)]  # le toca la recompra: fuera
+    orders.append(order("u5", 40, "supermercado", "leche"))  # Mochi no ofrece leche por su cuenta: fuera
+    orders.append(order("u6", 5, "supermercado", "cafe"))  # hace 95 días: fuera
+    orders.sort(key=lambda o: o.ts)
+
+    out = evaluate_winback(orders, frozenset(), cut, cut + timedelta(days=28))["concepto"]
+    assert out == {
+        "califican": 1,
+        "vuelven": 1.0,
+        "no_califican": 2,
+        "vuelven_no_califican": 0.5,
+        "vuelven_mismo_atraso": 0.5,
+    }
+    assert evaluate_winback(orders, frozenset({"cafe"}), cut, cut + timedelta(days=28))["concepto"]["califican"] == 0
+
+
+def test_winback_verticals_against_the_same_lapse():
+    cut = T0 + timedelta(days=100)
+    orders = [order("u1", d, "supermercado") for d in (40, 50, 60)]  # 3 días, hace 40, y pide en otra: califica
+    orders += [order("u1", 95, "restaurantes"), order("u1", 110, "supermercado")]  # y vuelve
+    orders += [order("u2", 60, "supermercado"), order("u2", 95, "restaurantes")]  # un día: no califica
+    orders += [order("u3", d, "supermercado") for d in (40, 50, 60)]  # no pide en otra: no califica
+    orders.append(order("u3", 104, "supermercado"))  # y vuelve
+    orders += [order("u4", d, "farmacia") for d in (40, 50, 60)] + [order("u4", 95, "restaurantes")]  # fuera
+    orders.append(order("u5", 2, "mall"))  # hace 98 días: fuera
+    orders.sort(key=lambda o: o.ts)
+
+    out = evaluate_winback(orders, frozenset(), cut, cut + timedelta(days=28))["vertical"]
+    assert (out["califican"], out["vuelven"], out["no_califican"], out["vuelven_no_califican"]) == (1, 1.0, 2, 0.5)
+
+
+def test_return_rates_weigh_the_others_by_week_of_lapse():
+    out = _return_rates([(20, True), (40, False)], [(20, False), (15, True), (60, True)])
+    assert out["vuelven"] == 0.5 and out["vuelven_no_califican"] == pytest.approx(2 / 3)
+    assert out["vuelven_mismo_atraso"] == 0.5  # solo la semana 2 se comparte: la 8 no pesa
+    assert _return_rates([(40, True)], [(20, False)])["vuelven_mismo_atraso"] is None
+
+
+def test_report_shows_the_baselines_and_labels_winback_as_simulated():
+    orders = _graduates()
+    results = evaluate(orders, signals_of(orders), frozenset())
+    assert set(results["recompra"]) >= {"n", "mediana_poblacional", "regla_simple", "sin_filtro_cv"}
+    assert set(results["volver"]) == {"concepto", "vertical"}
+
+    text = report(results, "synthetic")
+    for label in (
+        "| Intervalo propio (el motor) |",
+        "| Mediana de la población, mismas predicciones |",
+        "| Regla simple con la mediana de la población |",
+        "| Intervalo propio sin filtro de variación |",
+        "## ¿Volvemos a…? (prueba)",
+        "| Concepto |",
+        "| Vertical |",
+    ):
+        assert label in text
+    assert "Simulado: el generador no simula esta invitación." in text
+    assert "Simulado:" not in report(results, "prototype")
 
 
 def test_report_warns_on_synthetic():

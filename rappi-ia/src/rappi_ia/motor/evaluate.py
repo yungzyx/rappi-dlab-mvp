@@ -12,14 +12,18 @@ import statistics
 from bisect import bisect_left
 from collections import Counter, defaultdict
 from dataclasses import dataclass
-from datetime import datetime, timedelta
+from datetime import date, datetime, timedelta
+from itertools import pairwise
 
+from ..offers import winback
 from ..offers.guards import offerable_vertical
 from .combos import OWN_SIGNALS_ONLY, fine_of, next_fine_step
 from .data import Order, Signal
 from .model import (
     DEFAULT_ORDER,
     DEFAULT_WEIGHTS,
+    REPLENISH_MAX_CV,
+    REPLENISH_MIN_ORDERS,
     affinity,
     combo_months,
     combo_stats,
@@ -381,27 +385,164 @@ def tune_lambda(orders: list[Order], sensitive: frozenset[str], split: Split) ->
 def evaluate_replenishment(orders: list[Order], sensitive: frozenset[str], cut: datetime, end: datetime) -> dict:
     """La recompra calculada con lo anterior a `cut`, para las predicciones que vencen en `[cut, end)`: el error es la
     distancia en días entre el día previsto y la primera compra del concepto desde `cut`; si no lo compró, es un fallo.
-    `error_mediano_dias` (sobre las que compraron), `acierto_7_dias` (error ≤ 7 sobre todas) y `n`."""
+    `error_mediano_dias` (sobre las que compraron), `acierto_7_dias` (error ≤ 7 sobre todas) y `n`.
+
+    Líneas base, medidas igual: `mediana_poblacional` (las mismas predicciones, con el día previsto a la mediana de los
+    intervalos del concepto en toda la población antes de `cut`; `solo_intervalo_propio`, `solo_mediana` y su McNemar
+    exacto `p_mcnemar`), `regla_simple` (3 días de compra o más, sin filtro de variación, con esa mediana) y
+    `sin_filtro_cv` (el intervalo propio sin `REPLENISH_MAX_CV`: la cobertura que cuesta el filtro)."""
     return _replenishment(_History(orders, []), sensitive, cut, end)
+
+
+def _concept_days(orders: list[Order], sensitive: frozenset[str]) -> dict[tuple[str, str], list[date]]:
+    """`(persona, concepto) → días de compra distintos, en orden`, como los cuenta `model.replenishment`."""
+    days: dict[tuple[str, str], set[date]] = defaultdict(set)
+    for o in orders:
+        for concept in order_concepts(o, sensitive):
+            days[o.user_id, concept].add(local_day(o.ts))
+    return {key: sorted(d) for key, d in days.items()}
+
+
+def _intervals(days: list[date]) -> list[int]:
+    return [(b - a).days for a, b in pairwise(days)]
+
+
+def _first_bought(history: _History, sensitive: frozenset[str], cut: datetime, end: datetime) -> dict:
+    """`(persona, concepto) → el primer día que lo compró en [cut, end)`."""
+    first: dict[tuple[str, str], date] = {}
+    for o in history.orders[bisect_left(history.order_ts, cut) : bisect_left(history.order_ts, end)]:
+        for concept in order_concepts(o, sensitive):
+            first.setdefault((o.user_id, concept), local_day(o.ts))
+    return first
+
+
+def _due_metrics(due: dict[tuple[str, str], date], bought: dict[tuple[str, str], date]) -> tuple[dict, set]:
+    """Las métricas de unas predicciones `(persona, concepto) → día previsto` y cuáles aciertan (error ≤ 7 días)."""
+    errors = {key: abs((bought[key] - day).days) for key, day in due.items() if key in bought}
+    hits = {key for key, e in errors.items() if e <= REPLENISH_TOLERANCE_DAYS}
+    metrics = {
+        "n": len(due),
+        "compraron": len(errors) / len(due) if due else 0.0,
+        "error_mediano_dias": statistics.median(errors.values()) if errors else None,
+        "acierto_7_dias": len(hits) / len(due) if due else 0.0,
+    }
+    return metrics, hits
 
 
 def _replenishment(history: _History, sensitive: frozenset[str], cut: datetime, end: datetime) -> dict:
     first_day, last_day = local_day(cut), local_day(end)
-    due = [r for r in replenishment(history.orders_before(cut), sensitive) if first_day <= r.due_on < last_day]
-    errors = []
-    for r in due:
-        days = [
-            local_day(o.ts)
-            for o in history.user_orders(r.user_id, cut, end)
-            if r.concept_id in order_concepts(o, sensitive)
-        ]
-        if days:
-            errors.append(abs((min(days) - r.due_on).days))
+    before = history.orders_before(cut)
+    bought = _first_bought(history, sensitive, cut, end)
+    days = _concept_days(before, sensitive)
+    pooled: dict[str, list[int]] = defaultdict(list)
+    for (_user, concept), d in days.items():
+        pooled[concept] += _intervals(d)
+    population = {concept: statistics.median(v) for concept, v in pooled.items() if v}
+
+    def by_population(key: tuple[str, str]) -> date:
+        return days[key][-1] + timedelta(days=round(population[key[1]]))
+
+    def in_test(due: dict[tuple[str, str], date]) -> dict[tuple[str, str], date]:
+        return {key: day for key, day in due.items() if first_day <= day < last_day}
+
+    motor = {
+        (r.user_id, r.concept_id): r.due_on
+        for r in replenishment(before, sensitive)
+        if first_day <= r.due_on < last_day
+    }
+    rhythm = [key for key, d in days.items() if len(d) >= REPLENISH_MIN_ORDERS]
+    out, own_hits = _due_metrics(motor, bought)
+    same, base_hits = _due_metrics({key: by_population(key) for key in motor}, bought)
+    only_own, only_base = len(own_hits - base_hits), len(base_hits - own_hits)
+    out["mediana_poblacional"] = {
+        **same,
+        "solo_intervalo_propio": only_own,
+        "solo_mediana": only_base,
+        "p_mcnemar": _mcnemar_exact(only_own, only_base),
+    }
+    out["regla_simple"] = _due_metrics(in_test({key: by_population(key) for key in rhythm}), bought)[0]
+    own_interval = {
+        key: days[key][-1] + timedelta(days=round(statistics.median(_intervals(days[key])))) for key in rhythm
+    }
+    out["sin_filtro_cv"] = _due_metrics(in_test(own_interval), bought)[0]
+    return out
+
+
+# "¿Volvemos a…?"
+
+
+def evaluate_winback(orders: list[Order], sensitive: frozenset[str], cut: datetime, end: datetime) -> dict:
+    """Quién calificaba para "¿Volvemos a…?" (`offers.winback`) el día de `cut`, con lo anterior, y qué parte vuelve al
+    concepto o a la vertical en `[cut, end)`, contra lo que tenía el mismo atraso y no calificaba. Sin lo ya mostrado ni
+    descartado (como `winback.reach`: es quién califica). Por tipo de invitación:
+    - `concepto`: conceptos que la persona pidió hace entre `LAPSE_MIN_DAYS` y `LAPSE_MAX_DAYS` días. Califica el de su
+      recompra atrasado más de un intervalo; no califican los que no tienen recompra (menos de 3 días de compra o
+      irregulares). Los que tienen recompra y no están atrasados quedan fuera: les toca "¿Repetimos?" o todavía nada.
+    - `vertical`: verticales sin pedidos hace más de `VERTICAL_LAPSE_DAYS` días (y no más de `LAPSE_MAX_DAYS`). Califica
+      la de al menos `VERTICAL_MIN_DAYS` días con pedido mientras pide en otra; las demás no califican.
+    Solo conceptos y verticales que Mochi ofrece. `vuelven_mismo_atraso` pondera lo que no califica por semana de
+    atraso con la mezcla de semanas de lo que califica (`None` si no comparten ninguna)."""
+    return _winback(_History(orders, []), sensitive, cut, end)
+
+
+def _return_rates(qualify: list[tuple[int, bool]], others: list[tuple[int, bool]]) -> dict:
+    """`(días de atraso, volvió)` de lo que califica y de lo que no, con la tasa de lo que no califica ajustada a las
+    semanas de atraso de lo que califica."""
+    by_week: dict[int, list[bool]] = defaultdict(list)
+    for days, back in others:
+        by_week[days // 7].append(back)
+    weeks = Counter(days // 7 for days, _back in qualify if days // 7 in by_week)
+    total = sum(weeks.values())
     return {
-        "n": len(due),
-        "compraron": len(errors) / len(due) if due else 0.0,
-        "error_mediano_dias": statistics.median(errors) if errors else None,
-        "acierto_7_dias": sum(e <= REPLENISH_TOLERANCE_DAYS for e in errors) / len(due) if due else 0.0,
+        "califican": len(qualify),
+        "vuelven": sum(back for _days, back in qualify) / len(qualify) if qualify else 0.0,
+        "no_califican": len(others),
+        "vuelven_no_califican": sum(back for _days, back in others) / len(others) if others else 0.0,
+        "vuelven_mismo_atraso": (
+            sum(n * statistics.fmean(by_week[week]) for week, n in weeks.items()) / total if total else None
+        ),
+    }
+
+
+def _winback(history: _History, sensitive: frozenset[str], cut: datetime, end: datetime) -> dict:
+    today = local_day(cut)
+    before = history.orders_before(cut)
+    after = history.orders[bisect_left(history.order_ts, cut) : bisect_left(history.order_ts, end)]
+    rhythm = {(r.user_id, r.concept_id): r for r in replenishment(before, sensitive)}
+    last_vertical = {(o.user_id, c): o.vertical for o in before for c in order_concepts(o, sensitive)}
+    back_concepts = {(o.user_id, c) for o in after for c in order_concepts(o, sensitive)}
+    concept_q, concept_others = [], []
+    for key, d in _concept_days(before, sensitive).items():
+        days = (today - d[-1]).days
+        r = rhythm.get(key)
+        lapsed = winback.LAPSE_MIN_DAYS <= days <= winback.LAPSE_MAX_DAYS
+        if not lapsed or not winback._offerable_concept(key[1], r.vertical if r else last_vertical[key]):
+            continue
+        case = (days, key in back_concepts)
+        if r is None:
+            concept_others.append(case)
+        elif r.due_on < today - timedelta(days=round(r.interval_days)):  # como `winback._concept_lapses`
+            concept_q.append(case)
+    vertical_days: dict[tuple[str, str], set[date]] = defaultdict(set)
+    for o in before:
+        vertical_days[o.user_id, o.vertical].add(local_day(o.ts))
+    active = defaultdict(set)
+    for (user, vertical), d in vertical_days.items():
+        if (today - max(d)).days <= winback.VERTICAL_LAPSE_DAYS:
+            active[user].add(vertical)
+    back_verticals = {(o.user_id, o.vertical) for o in after}
+    vertical_q, vertical_others = [], []
+    for (user, vertical), d in vertical_days.items():
+        days = (today - max(d)).days
+        lapsed = winback.VERTICAL_LAPSE_DAYS < days <= winback.LAPSE_MAX_DAYS
+        if not lapsed or not winback._offerable_vertical(vertical):
+            continue
+        case = (days, (user, vertical) in back_verticals)
+        qualifies = len(d) >= winback.VERTICAL_MIN_DAYS and active[user] - {vertical}  # como `winback._vertical_lapses`
+        (vertical_q if qualifies else vertical_others).append(case)
+    return {
+        "concepto": _return_rates(concept_q, concept_others),
+        "vertical": _return_rates(vertical_q, vertical_others),
     }
 
 
@@ -521,9 +662,10 @@ def evaluate(
     previous_lambda: float | None = None,
 ) -> dict | None:
     """Elige los pesos y el λ de la mezcla en validación y mide en prueba el próximo vertical, la compra cruzada, la
-    recompra y el paso de la escalera fina. `None` si no hay 84 días de datos. Si nadie se puede validar, quedan
-    `previous_weights` (por defecto `DEFAULT_WEIGHTS`) y `previous_lambda` (por defecto `CROSS_SELL_LAMBDA`), y
-    `validacion.aviso` lo dice. Un diccionario serializable a JSON (fechas ISO, cifras con 4 decimales)."""
+    recompra, "¿Volvemos a…?" y el paso de la escalera fina. `None` si no hay 84 días de datos. Si nadie se puede
+    validar, quedan `previous_weights` (por defecto `DEFAULT_WEIGHTS`) y `previous_lambda` (por defecto
+    `CROSS_SELL_LAMBDA`), y `validacion.aviso` lo dice. Un diccionario serializable a JSON (fechas ISO, cifras con 4
+    decimales)."""
     split = make_split(orders)
     if split is None:
         return None
@@ -551,6 +693,7 @@ def evaluate(
             "proximo_vertical": _next_vertical(test, weights),
             "compra_cruzada": _cross_sell(_cross_sell_window(history, sensitive, split.valid_end, split.test_end), lam),
             "recompra": _replenishment(history, sensitive, split.valid_end, split.test_end),
+            "volver": _winback(history, sensitive, split.valid_end, split.test_end),
             "paso": _step(history, split.valid_end, split.test_end, weights),
         }
     )
@@ -567,6 +710,25 @@ def _title(source: str) -> list[str]:
     elif source == "prototype":
         lines += [f"> **{PROTOTYPE_WARNING}**", ""]
     return lines
+
+
+def _replenishment_verdict(rp: dict) -> list[str]:
+    """Si el intervalo propio gana a la mediana de la población (McNemar en las mismas predicciones) y la cobertura
+    que cuesta el filtro de variación."""
+    same, no_cv = rp["mediana_poblacional"], rp["sin_filtro_cv"]
+    own, base, p = same["solo_intervalo_propio"], same["solo_mediana"], same["p_mcnemar"]
+    if p >= 0.05:
+        verdict = "con p ≥ 0,05 la diferencia es ruido"
+    else:
+        verdict = "gana el intervalo propio" if own > base else "gana la mediana de la población"
+    p_value = f"{p:.2f}".replace(".", ",")
+    coverage = f"{round(100 * rp['n'] / no_cv['n'])} %" if no_cv["n"] else "—"
+    return [
+        f"En las mismas {rp['n']} predicciones, solo acierta el intervalo propio: {own}; solo la mediana de la "
+        f"población: {base} (McNemar exacto p = {p_value}): {verdict}. El filtro de variación deja "
+        f"{rp['n']} de las {no_cv['n']} predicciones del intervalo propio (cobertura {coverage}); la regla simple "
+        f"hace {rp['regla_simple']['n']}.",
+    ]
 
 
 def report(results: dict, source: str) -> str:
@@ -640,9 +802,47 @@ def report(results: dict, source: str) -> str:
         "concepto en la prueba; las demás cuentan como fallo en el acierto ±7 días. El error mediano es solo sobre las",
         "que compraron.",
         "",
-        "| Predicciones | Compraron | Error mediano (días) | Acierto ±7 días |",
-        "|---:|---:|---:|---:|",
-        f"| {rp['n']} | {_fmt(rp['compraron'])} | {_fmt(rp['error_mediano_dias'])} | {_fmt(rp['acierto_7_dias'])} |",
+        "Líneas base, medidas igual: la mediana de los intervalos del concepto en toda la población antes de la",
+        "prueba (en las mismas predicciones, y con la regla simple: 3 días de compra o más, sin filtro de variación);",
+        "y el intervalo propio sin el filtro de variación (coeficiente ≤ "
+        f"{str(REPLENISH_MAX_CV).replace('.', ',')}), para ver cuánta cobertura cuesta.",
+        "",
+        "| Método | Predicciones | Compraron | Error mediano (días) | Acierto ±7 días |",
+        "|---|---:|---:|---:|---:|",
+        *(
+            f"| {label} | {m['n']} | {_fmt(m['compraron'])} | {_fmt(m['error_mediano_dias'])} | "
+            f"{_fmt(m['acierto_7_dias'])} |"
+            for label, m in (
+                ("Intervalo propio (el motor)", rp),
+                ("Mediana de la población, mismas predicciones", rp["mediana_poblacional"]),
+                ("Regla simple con la mediana de la población", rp["regla_simple"]),
+                ("Intervalo propio sin filtro de variación", rp["sin_filtro_cv"]),
+            )
+        ),
+        "",
+        *_replenishment_verdict(rp),
+        "",
+    ]
+    wb = results["volver"]
+    lines += [
+        "## ¿Volvemos a…? (prueba)",
+        "",
+        "Quién calificaba para la invitación el día en que empieza la prueba (con lo anterior, sin lo ya mostrado ni",
+        "descartado) y qué parte vuelve a pedir ese concepto o en esa vertical en los",
+        f"{WINDOW_DAYS} días de la prueba, contra lo que tenía el mismo atraso y no calificaba: conceptos sin",
+        "recompra (menos de 3 días de compra o irregulares) y verticales con menos días de pedido o sin pedidos en",
+        "otra. La última columna pondera lo que no califica por semana de atraso como lo que califica.",
+        "",
+        "| Invitación | Califican | Vuelven | No califican | Vuelven sin calificar | Sin calificar, mismo atraso |",
+        "|---|---:|---:|---:|---:|---:|",
+        *(
+            f"| {label} | {m['califican']} | {_fmt(m['vuelven'])} | {m['no_califican']} | "
+            f"{_fmt(m['vuelven_no_califican'])} | {_fmt(m['vuelven_mismo_atraso'])} |"
+            for label, m in (("Concepto", wb["concepto"]), ("Vertical", wb["vertical"]))
+        ),
+        "",
+        ("Simulado: el generador no simula esta invitación. " if source == "synthetic" else "")
+        + "Sin grupo al que no se le ofrezca, esto dice si la regla elige lo que vuelve, no el efecto de invitar.",
         "",
     ]
     step = results.get("paso")  # las corridas anteriores a la escalera fina no lo tienen
