@@ -27,14 +27,15 @@ from psycopg_pool import PoolTimeout
 from pydantic import Field, ValidationError, field_validator
 
 from .. import config
-from ..agent.grouped_search import SpareConnector, search_grouped
+from ..agent.grouped_search import SpareConnector, search_each, search_grouped
 from ..agent.rappi_agent import PROTOTYPE_VERTICALS, Context
-from ..agent.tools import VERTICAL_LABELS, search_products, suggest_complement
+from ..agent.tools import VERTICAL_LABELS, Suggestion, search_products, suggest_complement
 from ..analytics import queries
 from ..catalog.restaurants import search_restaurants
 from ..catalog.stores import search_stores
 from ..concepts.taxonomy import load_taxonomy
 from ..db import pending_migrations
+from ..embeddings.base import TextEmbedder
 from ..events import experiments
 from ..events import store as events
 from ..events.searches import recent_searches, top_searches
@@ -539,10 +540,12 @@ def recommendations(
     limit: int = Query(3, ge=1, le=6),
     conn: Connection = Depends(get_conn),
     svc: Services = Depends(get_services),
+    spare: SpareConnector = Depends(get_spare_connector),
 ) -> dict:
-    """ "Para ti, de otras tiendas": intereses del usuario → complementos → productos de otro vertical. Si quedan filas
-    libres, una más con lo más pedido de la vertical que mejor le calza (`_top_row`). Una fila con concepto trae su
-    nombre visible (`concept_label`, el de la taxonomía: "Café", no el id "cafe")."""
+    """ "Para ti, de otras tiendas": intereses del usuario → complementos → productos de otro vertical
+    (`_complements`, a la vez con las conexiones que sobran, como `/search`). Si quedan filas libres, una más con lo
+    más pedido de la vertical que mejor le calza (`_top_row`). Una fila con concepto trae su nombre visible
+    (`concept_label`, el de la taxonomía: "Café", no el id "cafe")."""
     interests = list(events.profile(conn, user_id))
     taxonomy = load_taxonomy()
     mine = preferences.load(
@@ -552,27 +555,22 @@ def recommendations(
     # sensible, así que esos intereses no son fuente de una fila (como en `RappiAgent._top_interest`). El perfil los
     # conserva.
     sources = [c for c in interests if c in taxonomy.concepts and is_offerable(taxonomy.concepts[c])]
-    shown: set[str] = set()
+    with preferences.applied(mine):
+        found = _complements(conn, sources, backend_vertical(vertical), svc.embedder, limit, spare)
     rows = []
-    for concept in sources[:4]:
-        with preferences.applied(mine):
-            suggestion = suggest_complement(conn, [concept], backend_vertical(vertical), svc.embedder, shown)
-        if suggestion:
-            shown.add(suggestion.concept)
-            interest = taxonomy.concepts[concept]
-            rows.append(
-                {
-                    # En el inicio no hay carro: la razón es el interés aprendido, no "porque llevas".
-                    "reason": f"Por tu interés en {interest.emoji} {interest.name.lower()}",
-                    "concept": suggestion.concept,
-                    "concept_label": label.name if (label := taxonomy.concepts.get(suggestion.concept)) else None,
-                    "vertical": suggestion.vertical,
-                    "prototype_vertical": PROTOTYPE_VERTICALS.get(suggestion.vertical),
-                    "products": [p.to_dict() for p in suggestion.products],
-                }
-            )
-        if len(rows) >= limit:
-            break
+    for concept, suggestion in found:
+        interest = taxonomy.concepts[concept]
+        rows.append(
+            {
+                # En el inicio no hay carro: la razón es el interés aprendido, no "porque llevas".
+                "reason": f"Por tu interés en {interest.emoji} {interest.name.lower()}",
+                "concept": suggestion.concept,
+                "concept_label": label.name if (label := taxonomy.concepts.get(suggestion.concept)) else None,
+                "vertical": suggestion.vertical,
+                "prototype_vertical": PROTOTYPE_VERTICALS.get(suggestion.vertical),
+                "products": [p.to_dict() for p in suggestion.products],
+            }
+        )
     taken = {row["vertical"] for row in rows}
     if len(rows) < limit and (top := _top_row(conn, user_id, backend_vertical(vertical), taken)):
         rows.append(top)
@@ -580,6 +578,45 @@ def recommendations(
         row["products"] = preferences.keep_dicts(mine, row["products"])
     rows = [row for row in rows if row["products"]]
     return {"user_id": user_id, "interests": interests[:5], "rows": rows, "request_id": served_request_id()}
+
+
+COMPLEMENT_SOURCES = 4  # intereses de los que "Para ti" busca complemento
+
+
+def _complements(
+    conn: Connection,
+    sources: list[str],
+    current: str | None,
+    embedder: TextEmbedder | None,
+    limit: int,
+    spare: SpareConnector | None,
+) -> list[tuple[str, Suggestion]]:
+    """(interés, complemento) de las filas con concepto, en el orden de los intereses (de los primeros
+    COMPLEMENT_SOURCES), hasta `limit` y sin repetir un complemento: lo mismo que buscarlos uno tras otro, cada uno sin
+    los de las filas anteriores. Los primeros `limit` se buscan a la vez (`search_each`: hasta 3 conexiones extra y
+    nunca la reserva del pool; sin ninguna, en serie), cada uno sin saber de los otros. Al juntarlos, uno que repite el
+    complemento de una fila anterior se busca otra vez sin él; los demás quedan igual, porque `suggest_complement` sin
+    persona da el primer candidato con productos y sacar otros candidatos no lo cambia. Si faltan filas, los intereses
+    que siguen, en serie."""
+    sources = sources[:COMPLEMENT_SOURCES]
+    ahead = search_each(
+        conn,
+        sources[:limit],
+        lambda connection, concept: suggest_complement(connection, [concept], current, embedder),
+        spare,
+    )
+    shown: set[str] = set()
+    found = []
+    for i, concept in enumerate(sources):
+        if len(found) >= limit:
+            break
+        suggestion = ahead[i] if i < len(ahead) else None
+        if i >= len(ahead) or (suggestion is not None and suggestion.concept in shown):
+            suggestion = suggest_complement(conn, [concept], current, embedder, shown)
+        if suggestion is not None:
+            shown.add(suggestion.concept)
+            found.append((concept, suggestion))
+    return found
 
 
 TOP_REASON = "Lo más pedido estas semanas en {vertical}"
