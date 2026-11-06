@@ -87,7 +87,7 @@ La página de la propuesta del panel (`dashboard-empresa/presentacion.html`) sir
 | Publicar la demo desde un Mac, sin servidor: Cloudflare Tunnel y la misma puerta | [deploy/macos/README.md](../deploy/macos/README.md) | 10 min |
 | Consultar la base con SQL | [sql/README.md](sql/README.md) y [consultas.sql](sql/consultas.sql) | 5 min |
 | Probar a Mochi (API) como usuario y dejar cada fallo como test | [probar-agente.md](probar-agente.md) | 3 min |
-| Hacer una prueba con personas en dlab-mvp.com: objetivo, consentimiento, las 6 tareas, el cuestionario, el resumen de cada una (`rappi-ia resumen-prueba`), cómo borrarla al final (`rappi-ia olvidar`) y la plantilla del reporte | [prueba-usuarios.md](prueba-usuarios.md) | 10 min |
+| Hacer una prueba con personas en dlab-mvp.com: objetivo, consentimiento, las 6 tareas, el cuestionario, el resumen de cada una (`rappi-ia resumen-prueba`), cómo borrarla al final (`rappi-ia olvidar`) y la plantilla del reporte, con la hoja del observador para imprimir | [prueba-usuarios.md](prueba-usuarios.md) y [prueba-hoja-observador.md](prueba-hoja-observador.md) | 10 min |
 | Usar el panel de negocio (parte del MVP, para la gerencia y RappiAds: 3 vistas alrededor de 4 preguntas, más Experimentos) | [dashboard-empresa/README.md](../dashboard-empresa/README.md) | 5 min |
 | Contribuir: cómo correr los tests, convenciones y commits | [CONTRIBUTING.md](../CONTRIBUTING.md) y las convenciones del repositorio en [CLAUDE.md](../CLAUDE.md) | 10 min |
 

@@ -19,6 +19,7 @@ De paso, la búsqueda con errores de tipeo y si Mochi molesta (ocultarlo y traer
 - **Cuántas:** 5 personas para la primera ronda, que hayan pedido por una app de delivery en el último mes. Que no sean del equipo ni hayan visto la demo. Mejor si son distintas entre sí: una que solo pide comida, otra que hace el súper por app, alguien que casi no usa apps.
 - **Sin datos personales:** la app no pide cuenta, nombre, correo ni teléfono; la dirección y la tarjeta del checkout son de ejemplo (no se escribe ninguna) y ningún pedido se cobra ni se entrega. Cada participante es un id seudónimo (`proto-…`) que da la API, y todo lo que hace queda con `source = 'prototype'`, que nunca se mezcla con la población simulada (`synthetic`). En las notas, cada persona es P1 a P5: su nombre no se escribe en ninguna parte, ni junto al id.
 - **Lo que escriba en el buscador se guarda** (sin correos, RUT, teléfonos, tarjetas ni direcciones, que se redactan antes) hasta que se borra al terminar las sesiones del día (sección 6). Se le pide que no escriba datos suyos.
+- **Respaldos:** el equipo que sirve la demo respalda la base cada noche a las 03:30 y guarda los 3 respaldos más nuevos. Por eso `olvidar` se corre el mismo día, antes de esa hora (sección 6). Si se atrasa, una copia de seguridad puede guardar lo de la sesión hasta 3 días más, hasta que rota.
 - **Sin grabación:** no se graba pantalla ni voz. El observador anota lo que la persona dice.
 
 Antes de empezar, el moderador lee esto y espera un sí:
@@ -34,18 +35,21 @@ Si dice que no, no hay sesión. Si para en medio, se borran sus datos igual (sec
 - **Grupo de control apagado:** quien opera dlab-mvp.com confirma que `OFFERS_CONTROL_PCT` está en 0 (lo de siempre). Si no, a una persona le pueden retener las ofertas de Mochi y la tarea 3 no se puede hacer; el resumen lo diría en "Experimentos: … ofertas_control = control".
 - **Comandos:** `rappi-ia resumen-prueba` y `rappi-ia olvidar` corren en el equipo que sirve la demo, con el `.env` que apunta a su base (en el Mac de [deploy/macos](../deploy/macos/README.md), desde `rappi-ia/` de esa copia y con su `.venv`).
 - **Roles:** un moderador (lee las consignas, no ayuda) y un observador (anota). Pedirle a la persona que piense en voz alta.
+- **Hojas:** una [hoja del observador](prueba-hoja-observador.md) impresa por participante, más una para la corrida en seco.
+- **Despliegues en pausa**, desde antes de la corrida en seco: en el Mac que sirve la demo, `touch ~/rappi-tunel/pausa-actualizar`. Mientras exista, `actualizar.sh` no despliega (anota "Pausado" cada 15 minutos) y lo que se fusione a `main` no llega a la demo. Sin la pausa, un despliegue reinicia la API (unos segundos sin Mochi), puede recargar la pestaña del participante (pierde lo que Mochi recordaba de la sesión) y, si trae migraciones, deja un respaldo con lo de la sesión. Se quita recién después del `olvidar` del día (sección 6); si las sesiones siguen otro día, se vuelve a crear antes.
 - **Una corrida en seco** con alguien del equipo, en una pestaña privada como las de verdad (sección 6). Al terminarla, con los mismos dos pasos del final de la sección 6: `resumen-prueba --desde <hora en que empezó la corrida>` da su id (anotarlo) y `olvidar` con ese id la borra. Así no queda en el servidor aunque las sesiones de verdad sean otro día.
+- **Justo antes de cada participante** (no una vez al día), en el Mac que sirve la demo, desde su copia del repo: `deploy/macos/chequeo-sesion.sh`. Solo lee: dice si la API está lista, la swap, el disco libre, la fecha del catálogo y si los despliegues están en pausa, y hace 8 búsquedas con su tiempo y el máximo (no cuentan como visitas en el resumen diario). Termina en "Listo para la sesión" o en "Revisar antes de la sesión", con lo que falta. Si una búsqueda pasó de 1 s, correrlo otra vez: la primera después de un rato sin uso suele ser la lenta, y la API tiene dos procesos, así que las 8 pueden caer en uno solo. Si sigue lento, avisar a quien opera la demo antes de recibir a la persona.
 
 ## 4. Guion: 6 tareas (unos 25 minutos)
 
-Se lee cada consigna tal cual. Si la persona se traba más de 2 minutos, el moderador pregunta "¿qué buscarías?" y, si sigue, da la pista y lo anota como "con ayuda". El observador anota por tarea: si la completó (sola, con ayuda o no), el tiempo aproximado y lo que dijo.
+Se lee cada consigna tal cual. Si la persona se traba más de 2 minutos, el moderador pregunta "¿qué buscarías?" y, si sigue, da la pista y lo anota como "con ayuda". El observador anota por tarea, en la [hoja del observador](prueba-hoja-observador.md): si la completó (sola, con ayuda o no), el tiempo aproximado y lo que dijo.
 
 | # | Consigna | Qué mirar | Qué deja el resumen |
 |---|---|---|---|
 | 1 | "Busca unos Doritos. Escríbelo rápido, como te salga; si te sale bien, escribe 'doritoz'." | Si ve el aviso "Mostrando resultados para…" y si le parece bien que corrija. Otro error que el buscador corrige: "mantequlla" ([reporte del 24-10](resultados/busqueda-2026-10-24.md)) | La búsqueda con `corregida a "doritos"`, o "sin resultado" si no la corrigió |
 | 2 | "Ahora pídele a Mochi algo para la once." | Si entiende que el buscador también es Mochi, qué espera que pase y si las tarjetas y los chips le sirven | Lo escrito, como pedido a Mochi ("Mochi") y, si también buscó, en el buscador, con cuántos resultados |
-| 3 | "Agrega algo al carro y vuelve al inicio. Si Mochi te propone algo, decide si lo agregas o no, y cuéntanos por qué." | Si nota la oferta, si la acepta o la descarta y su motivo, dicho con sus palabras. Si Mochi no ofrece nada en la Home, sirve la sugerencia del checkout (tarea 6) | La oferta mostrada, con su momento, concepto, vertical y si se aceptó o se rechazó ("Ahora no" del carro) |
-| 4 | "Antes de tocar nada: ¿por qué crees que Mochi te propuso eso? Ahora toca '¿Por qué?'." | Lo que la persona cree antes de leer, y si el texto coincide o le sorprende. El observador copia el texto del "¿Por qué?" | Que lo abrió (`offer_why_open`), de qué oferta y de qué sale; el texto no se guarda |
+| 3 | "Agrega algo al carro y vuelve al inicio." Apenas aparece la oferta de Mochi en la Home, el moderador lee la consigna 4 sin esperar: la oferta dura 30 s y el "¿Por qué?" abierto detiene la cuenta | Si nota la oferta. Si en la Home no aparece oferta: en el checkout, que toque "¿Me falta algo?" (ahí no aparece por su cuenta y la razón se ve junto a la oferta, sin "¿Por qué?"; el observador la copia igual) | La oferta mostrada, con su momento, concepto y vertical |
+| 4 | "Antes de tocar nada: ¿por qué crees que Mochi te propuso eso? Ahora toca '¿Por qué?'." Después de que lo lea: "Ahora decide si lo agregas o no, y cuéntanos por qué." | Lo que la persona cree antes de leer, si el texto coincide o le sorprende, y su decisión con su motivo, dicho con sus palabras. El observador copia el texto del "¿Por qué?" y anota el botón que tocó | Que abrió el "¿Por qué?" (`offer_why_open`), de qué oferta y de qué sale (el texto no se guarda), y si la oferta se aceptó, se rechazó ("Ahora no" del carro, "Después" de la vertical por probar) o se fue sola; si tocó "Ver …" o "Abrir …", el recorrido lo muestra como "Mochi (momento)" |
 | 5 | "Imagina que Mochi te molesta: escóndelo. Ahora tráelo de vuelta." | Si encuentra el menú de Mochi ("Ocultar"), y "Mostrar a Mochi" en Cuenta para traerlo | "Ocultó a Mochi: sí", con la hora y desde dónde (`menu-mochi`, `cuenta`) |
 | 6 | "Haz un pedido de algo que pedirías de verdad, de la tienda que quieras, hasta ver por dónde viene." | Dónde duda en el checkout, si mira la sugerencia de Mochi antes de pagar, si llega al seguimiento | El pedido (vertical, total, líneas que salieron de una oferta, estado) y su vertical en "Con pedido" |
 
@@ -73,11 +77,11 @@ Una persona nueva por participante: **una pestaña privada (de incógnito) nueva
 
 Para cada participante:
 
-1. **Pestaña privada nueva.** En el teléfono, cerrar todas las pestañas privadas (en Chrome comparten lo guardado mientras quede una abierta) y abrir una nueva en dlab-mvp.com; la puerta de acceso la escribe el moderador. Anotar la hora (HH:MM) en la hoja de P*n*.
+1. **Pestaña privada nueva**, con el chequeo de la sección 3 en "Listo para la sesión". En el teléfono, cerrar todas las pestañas privadas (en Chrome comparten lo guardado mientras quede una abierta) y abrir una nueva en dlab-mvp.com; la puerta de acceso la escribe el moderador. Anotar la hora (HH:MM) en la [hoja](prueba-hoja-observador.md) de P*n*.
 2. **Consentimiento, tareas y cuestionario** (secciones 2, 4 y 5). Que la persona no toque "Borrar mis datos" ni "Olvidar" de Mochi en medio: borran lo hecho hasta ahí. Si pide que se borre en ese momento, "Borrar mis datos" (Cuenta) lo hace en el servidor, y esa persona queda sin resumen.
 3. **Cerrar la pestaña privada.**
 
-Al terminar las sesiones del día, en el equipo que sirve la demo (sección 3):
+Al terminar las sesiones del día, en el equipo que sirve la demo (sección 3), el mismo día y antes de las 03:30, cuando corre el respaldo nocturno (sección 2):
 
 1. **Los resúmenes**, desde la hora del primer participante:
 
@@ -94,8 +98,9 @@ Al terminar las sesiones del día, en el equipo que sirve la demo (sección 3):
    ```
 
    Dice cuántos eventos, pedidos y sesiones tiene cada una y pide confirmación ("s"). Borra lo mismo que "Borrar mis datos" de la app (DELETE /profile): la persona entera, con sus eventos, búsquedas, pedidos, sesiones y preferencias, y su afinidad y su recompra del motor, en cascada. Solo acepta personas del prototipo: si un id es de una simulada o no existe, no borra a ninguna. Con esto se cumple lo dicho en el consentimiento: se borra al terminar, después de anotar el resumen.
+3. **Reanudar los despliegues**, solo después de `olvidar`: `rm ~/rappi-tunel/pausa-actualizar` (si las sesiones siguen otro día, se puede dejar). La vuelta siguiente de `actualizar.sh` despliega lo que se haya fusionado entretanto. Si un respaldo se tomó entre una sesión y el borrado (un `pre-migracion_*.dump` o un `nocturno_*.dump` en `~/rappi-tunel/respaldos/` de esas horas), anotarlo y mandarlo a la Papelera.
 
-Los resúmenes y las hojas se quedan fuera de git (`~/prueba-usuarios/`, no en el repositorio). Al reporte en `docs/resultados/` solo van las cifras por participante, las respuestas y citas cortas sin nada que identifique a nadie.
+Los resúmenes y las [hojas](prueba-hoja-observador.md) se quedan fuera de git (`~/prueba-usuarios/`, no en el repositorio). Al reporte en `docs/resultados/` solo van las cifras por participante, las respuestas y citas cortas sin nada que identifique a nadie.
 
 ### Qué trae el resumen y qué no
 
@@ -104,9 +109,9 @@ Los resúmenes y las hojas se quedan fuera de git (`~/prueba-usuarios/`, no en e
 | Experimentos | `modo_app` y, si estaba encendido, `ofertas_control` | `experiment_assignments` |
 | Sesiones | cada sesión (30 minutos sin actividad la cierran) con su inicio, duración, modo y eventos; el total cuenta una vez las que se superponen | `app_sessions` y la hora de sus eventos |
 | Búsquedas | lo escrito en el buscador (`search`) y lo que se le pidió a Mochi (`ask`), con resultados; marca "sin resultado", "corregida a…" y "buscó tal cual" | `app_events` |
-| Ofertas de Mochi | cada oferta mostrada (origen `agent-<momento>` o el "Para ti" de su tarjeta) con su momento, de qué sale su "¿Por qué?" (sus pedidos, lo que buscó, su perfil…), concepto y vertical, y si se aceptó (se agregó algo al carro), se rechazó ("Ahora no" del carro o "Después" de la vertical por probar, "¿Repetimos?" y "¿Volvemos a…?") o quedó sin respuesta registrada | `suggestion_shown` (con `payload.basis`), `suggestion_accepted`, `suggestion_dismissed` y `offer_withheld` |
+| Ofertas de Mochi | cada oferta mostrada (origen `agent-<momento>` o el "Para ti" de su tarjeta) con su momento, de qué sale su "¿Por qué?" (sus pedidos, lo que buscó, su perfil…), concepto y vertical, y si se aceptó (se agregó algo al carro), se rechazó ("Ahora no" del carro o "Después" de la vertical por probar, "¿Repetimos?" y "¿Volvemos a…?"), se fue sola (el globo de la Home se fue a los 30 s sin que tocara nada: `suggestion_dismissed` con `payload.kind` "expirada", que no es un rechazo) o quedó sin respuesta registrada | `suggestion_shown` (con `payload.basis`), `suggestion_accepted`, `suggestion_dismissed` y `offer_withheld` |
 | El "¿Por qué?" de las ofertas | cada vez que abrió el "¿Por qué?" de una oferta: la hora, el momento, de qué sale y el concepto | `offer_why_open` (migración 053) |
-| Recorrido por verticales | la primera vertical que tocó y cada una nueva, con la hora y el camino según el origen del evento: un acceso de la Home, Mochi (con el momento de la oferta), el buscador u otro. Los botones "Ver …" de una oferta de Mochi no dejan origen: quien llega por ellos sale como "otro (vertical, …)", y si vio una oferta de Mochi de esa vertical en los 30 minutos anteriores, la nombra ("antes, oferta de Mochi…") sin afirmar que llegó por ella; el observador anota el botón que tocó | `vertical_open`, `view_store`, `view_item`, `cart_add` y `app_orders` |
+| Recorrido por verticales | la primera vertical que tocó y cada una nueva, con la hora y el camino según el origen del evento: un acceso de la Home, Mochi (con el momento de la oferta), el buscador u otro. Los botones "Ver …" y "Abrir …" de una oferta de Mochi (y el "Ver en …" de una búsqueda sin resultado) dejan `vertical_open` con el origen de la oferta, `agent-<momento>`, y salen como "Mochi (momento)". Los eventos anteriores al 06-11-2026 no lo traían: quien llegó por ellos sale como "otro (vertical, …)" y, si vio una oferta de Mochi de esa vertical en los 30 minutos anteriores, la nombra ("antes, oferta de Mochi…") sin afirmar que llegó por ella. El observador anota igual el botón que tocó | `vertical_open`, `view_store`, `view_item`, `cart_add` y `app_orders` |
 | Verticales | las abiertas desde un acceso o un botón de Mochi, los servicios abiertos y las verticales con pedido (sin los cancelados) | `vertical_open`, `service_opened` y `app_orders` |
 | Mochi a la vista | si lo ocultó y lo trajo de vuelta, cuándo y desde dónde | `agent_visibility` |
 | Pedidos | hora, vertical, total, líneas (cuántas de una oferta), modo, estado y si lo pidió la persona o Mochi ("Pedir por mí") | `app_orders` y `app_order_lines` |
@@ -129,5 +134,20 @@ No se puede decir:
 - **Nada de efecto.** No hay grupo de control, las tareas piden buscar, aceptar una oferta y pedir (lo hacen porque se les pide), y la persona sabe que la miran. "Abrió otra vertical" en la tarea 3 no muestra que Mochi lleve a probar otra vertical fuera de la prueba.
 - **Comparaciones con la tabla de Rappi** ni con las cifras simuladas del motor: son otra población y otra pregunta. Las cifras de esta prueba nunca se juntan con las de `synthetic`.
 - **Que a "las personas" les gusta o no Mochi.** Cinco personas elegidas por conveniencia no representan a quienes usan Rappi.
+
+### Criterios, fijados antes de la primera sesión
+
+Qué resultado lleva a qué cambio. Se fijan antes de la primera sesión y no se mueven después de ver los resultados: si el equipo quiere otro umbral, lo cambia aquí antes de empezar. Cada señal sale de la [hoja del observador](prueba-hoja-observador.md) o del resumen; el umbral se cuenta en personas, "n de 5".
+
+| Pregunta | Señal | Umbral | Cambio que dispara |
+|---|---|---|---|
+| ¿Se entiende el "¿Por qué?"? | En la tarea 4, lo que creía antes de leer no coincide con el texto, o dice que no lo entiende; o marca 1 o 2 en la afirmación 1 | 3 de 5 | Reescribir la plantilla del texto del "¿Por qué?" de ese momento |
+| ¿Se nota la oferta? | En la tarea 3 no la vio o se fue sola ("se fue sola" en el resumen) | 2 de 5 | Revisar dónde y cuánto rato se muestra el globo con oferta en la Home |
+| ¿Se entiende qué pasa al aceptarla? | En la tarea 4 se sorprende de lo que pasó al tocarla, o dice que no sabía que se agregaba al carro | 2 de 5 | Cambiar el rótulo del botón que agrega la oferta |
+| ¿Se puede rechazar sin problema? | No encuentra "Ahora no" o "Después", o pide ayuda para decir que no | 2 de 5 | Hacer más visible el botón de rechazar |
+| ¿Mochi estorba? | Marca 4 o 5 en la afirmación 3, o lo cuenta en la pregunta abierta 2 | 2 de 5 | Revisar cuántas veces y cuándo habla Mochi en la Home |
+| ¿Se puede ocultar y traer de vuelta? | En la tarea 5 no lo trae de vuelta sin ayuda | 1 de 5 | Mover o rotular "Mostrar a Mochi" |
+| ¿Se entiende la corrección del tipeo? | En la tarea 1 no ve "Mostrando resultados para…", o marca 1 o 2 en la afirmación 5 | 2 de 5 | Revisar el aviso de la corrección en los resultados |
+| ¿Lleva a mirar otra vertical? | No abre otra vertical por un acceso de la Home ni por una oferta de Mochi (recorrido del resumen) | 4 de 5 | Revisar, antes de una prueba más grande, si la oferta de vertical por probar aparece y se entiende; no se concluye nada de efecto ni de retención |
 
 Medir si Mochi lleva a combinar verticales, y si eso retiene, pide una prueba con tráfico real y un grupo de control al azar (`ofertas_control`, hoy apagado), con Rappi ([capa-de-datos.md](capa-de-datos.md#impresiones-experimentos-y-vistas-derivadas)). El [plan de piloto](plan-piloto.md) dice de qué tamaño: para detectar +2 puntos de retención M+1 hacen falta unas 54 mil personas con 10 % de control, o unas 20 mil con 50/50. En dlab-mvp.com se enciende después de esta prueba, nunca durante: `OFFERS_CONTROL_PCT=10` en `~/rappi-tunel/tunel.env` (ver `deploy/macos/env.example`) y reiniciar la API (`launchctl kickstart -k gui/$(id -u)/cl.rappidlab.api`). Quien ya tenía variante la conserva; la pestaña Experimentos del panel muestra las dos con la fuente del prototipo.
