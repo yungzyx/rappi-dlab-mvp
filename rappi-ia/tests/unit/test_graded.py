@@ -186,5 +186,8 @@ def test_latest_lists_go_by_the_date_in_the_name(tmp_path):
         (tmp_path / f"tres-niveles-listas-{name}.json").write_text("{}")
 
     assert graded.latest_lists(tmp_path).name == "tres-niveles-listas-2026-11-05.json"
+    (tmp_path / "mochi-listas-2026-11-06.json").write_text("{}")  # las de Mochi no se mezclan con las de la búsqueda
+    assert graded.latest_lists(tmp_path).name == "tres-niveles-listas-2026-11-05.json"
+    assert graded.latest_lists(tmp_path, "mochi-listas-*.json").name == "mochi-listas-2026-11-06.json"
     with pytest.raises(FileNotFoundError):
         graded.latest_lists(tmp_path / "vacia")
