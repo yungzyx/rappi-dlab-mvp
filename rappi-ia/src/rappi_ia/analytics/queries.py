@@ -890,9 +890,15 @@ def experiment_results(conn: Connection, source: str = "synthetic") -> dict:
     (`elegida`). En `ofertas_control`, además, `control_pct` (OFFERS_CONTROL_PCT: en 0 nadie entra) y por variante las
     ofertas de los momentos que Mochi propone solo (`exp.HOLDOUT_MOMENTS`): mostradas (`suggestion_shown`), retenidas
     (`offer_withheld`), aceptadas, personas con alguna y los pedidos confirmados después de la primera; y su
-    `retencion` (`_offers_retention`)."""
+    `retencion` (`_offers_retention`). Las mostradas y aceptadas son las de fuera del buscador (`exp.ASKED_SURFACE`):
+    lo que la persona pide ahí lo ven los dos grupos, así que no cuenta ni como oferta ni como persona expuesta."""
     _check(source)
-    params = {"source": source, "offers": exp.OFFERS_CONTROL, "origins": [f"agent-{m}" for m in exp.HOLDOUT_MOMENTS]}
+    params = {
+        "source": source,
+        "offers": exp.OFFERS_CONTROL,
+        "origins": [f"agent-{m}" for m in exp.HOLDOUT_MOMENTS],
+        "asked": exp.ASKED_SURFACE,
+    }
     declared = _rows(
         conn,
         "SELECT experiment_id, description, variants, assignment FROM experiments ORDER BY started_at, experiment_id",
@@ -926,7 +932,8 @@ def experiment_results(conn: Connection, source: str = "synthetic") -> dict:
                JOIN app_events e ON e.user_id = a.user_id AND e.source = %(source)s AND e.ts >= a.assigned_at
                WHERE e.type = 'offer_withheld'
                   OR (e.type IN ('suggestion_shown', 'suggestion_accepted')
-                      AND coalesce(e.origin, e.payload ->> 'origen') = ANY(%(origins)s))
+                      AND coalesce(e.origin, e.payload ->> 'origen') = ANY(%(origins)s)
+                      AND e.surface IS DISTINCT FROM %(asked)s)
            ),
            first_offer AS (
                SELECT user_id, variant, min(ts) AS ts FROM seen

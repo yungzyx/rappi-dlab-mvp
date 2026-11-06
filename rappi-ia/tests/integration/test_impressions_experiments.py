@@ -3,6 +3,7 @@
 contrafactual `offer_withheld`), `payload.catalogo` en las vistas y el carro, y las vistas de `capa` que los leen."""
 
 import uuid
+from dataclasses import replace
 from datetime import UTC, date, datetime, timedelta
 
 import pytest
@@ -14,6 +15,7 @@ from rappi_ia import config
 from rappi_ia.agent.compose import TemplateComposer
 from rappi_ia.agent.rappi_agent import RappiAgent
 from rappi_ia.analytics import queries
+from rappi_ia.api import agent as api_agent
 from rappi_ia.api import app as api
 from rappi_ia.api.services import Services
 from rappi_ia.catalog.stores import product_detail
@@ -336,6 +338,25 @@ def test_the_same_withheld_offer_counts_once_per_session(client, db, monkeypatch
     assert nothing.status_code == 204 and "x-offer-withheld" not in nothing.headers
 
 
+def test_a_withheld_offer_with_an_unseeded_concept_also_counts_once_per_session(client, db, monkeypatch):
+    """Un concepto de taxonomy.toml aún sin sembrar se guarda nulo en el evento: la segunda vez igual se reconoce."""
+    monkeypatch.setattr(config, "OFFERS_CONTROL_PCT", 50)
+    real = api_agent.make_offer
+
+    def unseeded(*args, **kwargs):
+        found = real(*args, **kwargs)
+        return replace(found, reason={**found.reason, "concept": "concepto-sin-sembrar"})
+
+    monkeypatch.setattr(api_agent, "make_offer", unseeded)
+    body = {"moment": "carrito", "user_id": user_in(experiments.CONTROL), "session_id": "s-of", "surface": "home",
+            "context": {"product": {"entity_type": "catalog_item", "entity_id": CHIPS}}}  # fmt: skip
+    for _ in range(2):
+        reply = client.post("/agent/offer", json=body)
+        assert reply.status_code == 204 and reply.headers["x-offer-withheld"] == "1"
+    rows = db.execute("SELECT concept_id FROM app_events WHERE type = 'offer_withheld'").fetchall()
+    assert rows == [(None,)]
+
+
 # ── Vistas de capa y panel ───────────────────────────────────────────────────
 def test_ctr_by_position_counts_a_click_from_the_same_place(client, db):
     seen = list_view(product(0), product(1, "91003", "gaseosas"))
@@ -379,8 +400,8 @@ def ordered(db, user_id, vertical, days, source="prototype"):
     events.record_order(db, user_id, "s-exp", f"c-{uuid.uuid4().hex[:8]}", vertical, [line], source, days_ago(days))
 
 
-def offer_event(db, user_id, kind, moment, days, source="prototype"):
-    event = events.Event(user_id, "s-exp", kind, ts=days_ago(days), surface="agent", origin=f"agent-{moment}")
+def offer_event(db, user_id, kind, moment, days, source="prototype", surface="cart"):
+    event = events.Event(user_id, "s-exp", kind, ts=days_ago(days), surface=surface, origin=f"agent-{moment}")
     events.record(db, [event], source=source)
 
 
@@ -455,6 +476,35 @@ def test_the_experiments_panel_counts_each_variant_within_one_population(client,
             {"mostradas": 0, "retenidas": 1, "aceptadas": 0, "personas_con_oferta": 1, "pedidos_despues": 1},
         ),
     ]
+
+
+def test_offers_asked_for_in_the_search_panel_do_not_count_in_the_offers_experiment(client, db):
+    """Lo que la persona pide en el buscador lo ven los dos grupos: ni es una mostrada ni la expone."""
+    offers = experiments.OFFERS_CONTROL
+    assigned(db, "p-ctl", {offers: "control"})
+    assigned(db, "p-tra", {offers: "tratamiento"})
+    assigned(db, "p-pide", {offers: "tratamiento"})
+    offer_event(db, "p-ctl", "suggestion_shown", "recompra", days=8, surface="agent")
+    offer_event(db, "p-ctl", "offer_withheld", "recompra", days=7, surface="home")
+    offer_event(db, "p-tra", "suggestion_shown", "recompra", days=8, surface="home")
+    offer_event(db, "p-tra", "suggestion_accepted", "recompra", days=8, surface="agent")
+    offer_event(db, "p-pide", "suggestion_shown", "recompra", days=8, surface="agent")
+
+    by_variant = {v["variante"]: v["ofertas"] for v in experiments_of(client, "prototype")[offers]["variantes"]}
+    assert by_variant["control"] == {
+        "mostradas": 0,
+        "retenidas": 1,
+        "aceptadas": 0,
+        "personas_con_oferta": 1,
+        "pedidos_despues": 0,
+    }
+    assert by_variant["tratamiento"] == {
+        "mostradas": 1,
+        "retenidas": 0,
+        "aceptadas": 0,
+        "personas_con_oferta": 1,
+        "pedidos_despues": 0,
+    }
 
 
 def test_an_experiment_without_assignments_lists_its_variants_empty(client, db, monkeypatch):

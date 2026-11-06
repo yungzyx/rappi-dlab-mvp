@@ -234,10 +234,11 @@ def _withheld(conn: Connection, body, found: Offer | ProfileOffer, request_id: s
         return False
     concept = found.reason.get("concept")
     origin = f"agent-{body.moment}"
-    seen = conn.execute(
+    seen = conn.execute(  # un concepto aún sin sembrar queda nulo en el evento (`events.record`): se compara igual
         """SELECT 1 FROM app_events
            WHERE user_id = %s AND session_id = %s AND type = 'offer_withheld' AND origin = %s
-             AND concept_id IS NOT DISTINCT FROM %s AND vertical IS NOT DISTINCT FROM %s
+             AND concept_id IS NOT DISTINCT FROM (SELECT concept_id FROM concepts WHERE concept_id = %s)
+             AND vertical IS NOT DISTINCT FROM %s
            LIMIT 1""",
         (body.user_id, body.session_id, origin, concept, found.vertical),
     ).fetchone()
