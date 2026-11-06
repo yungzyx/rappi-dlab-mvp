@@ -35,11 +35,14 @@ main() {
     log "Al día ($(git log -1 --format='%h %s'))"
     exit 0
   fi
-  cambios=$(git diff --name-only "$desplegado" "$objetivo")  # desde lo desplegado: un reintento los vuelve a ver
+  # Desde lo desplegado: un reintento los vuelve a ver. Sin renombres: un .js que pasa a .md nombra los dos.
+  cambios=$(git diff --name-only --no-renames "$desplegado" "$objetivo")
   [ "$(git rev-parse HEAD)" = "$objetivo" ] || git merge --ff-only -q origin/main
   log "De $(git rev-parse --short "$desplegado") a $(git log -1 --format='%h %s')"
-  # Nada se construye ni se sirve desde los .md (ni la app, ni el panel, ni la API): sin build ni reinicio.
-  if [ "${1:-}" != "--forzar" ] && [ -n "$cambios" ] && ! grep -qv '\.md$' <<< "$cambios"; then
+  # Nada se construye ni se sirve desde los .md (ni la app, ni el panel, ni la API): sin build ni reinicio. Salvo los de
+  # un public/, que vite copia a dist.
+  if [ "${1:-}" != "--forzar" ] && [ -n "$cambios" ] && ! grep -qv '\.md$' <<< "$cambios" \
+      && ! grep -q '/public/' <<< "$cambios"; then
     anotar_desplegado
     log "Solo cambió documentación (.md): sin construir ni reiniciar"
     exit 0

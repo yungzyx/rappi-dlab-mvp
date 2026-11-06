@@ -48,7 +48,7 @@ Se lee cada consigna tal cual. Si la persona se traba más de 2 minutos, el mode
 |---|---|---|---|
 | 1 | "Busca unos Doritos. Escríbelo rápido, como te salga; si te sale bien, escribe 'doritoz'." | Si ve el aviso "Mostrando resultados para…" y si le parece bien que corrija. Otro error que el buscador corrige: "mantequlla" ([reporte del 24-10](resultados/busqueda-2026-10-24.md)) | La búsqueda con `corregida a "doritos"`, o "sin resultado" si no la corrigió |
 | 2 | "Ahora pídele a Mochi algo para la once." | Si entiende que el buscador también es Mochi, qué espera que pase y si las tarjetas y los chips le sirven | Lo escrito, como pedido a Mochi ("Mochi") y, si también buscó, en el buscador, con cuántos resultados |
-| 3 | "Agrega algo al carro y vuelve al inicio." Apenas aparece la oferta de Mochi en la Home, el moderador lee la consigna 4 sin esperar: la oferta dura 30 s y el "¿Por qué?" abierto detiene la cuenta | Si nota la oferta. Si en la Home no aparece oferta: en el checkout, que toque "¿Me falta algo?" (ahí no aparece por su cuenta y la razón se ve junto a la oferta, sin "¿Por qué?"; el observador la copia igual) | La oferta mostrada, con su momento, concepto y vertical |
+| 3 | "Agrega algo al carro y vuelve al inicio." Apenas aparece la oferta de Mochi en la Home, el moderador lee la consigna 4 sin esperar: la oferta dura 30 s y el "¿Por qué?" abierto detiene la cuenta | Si nota la oferta. Si en la Home no aparece oferta: en el checkout, que toque "¿Me falta algo?" (ahí no aparece por su cuenta; también trae "¿Por qué?" y la consigna 4 se hace igual; solo tiene "Agregar": no hay botón para rechazar ni se va sola) | La oferta mostrada, con su momento, concepto y vertical |
 | 4 | "Antes de tocar nada: ¿por qué crees que Mochi te propuso eso? Ahora toca '¿Por qué?'." Después de que lo lea: "Ahora decide si lo agregas o no, y cuéntanos por qué." | Lo que la persona cree antes de leer, si el texto coincide o le sorprende, y su decisión con su motivo, dicho con sus palabras. El observador copia el texto del "¿Por qué?" y anota el botón que tocó | Que abrió el "¿Por qué?" (`offer_why_open`), de qué oferta y de qué sale (el texto no se guarda), y si la oferta se aceptó, se rechazó ("Ahora no" del carro, "Después" de la vertical por probar) o se fue sola; si tocó "Ver …" o "Abrir …", el recorrido lo muestra como "Mochi (momento)" |
 | 5 | "Imagina que Mochi te molesta: escóndelo. Ahora tráelo de vuelta." | Si encuentra el menú de Mochi ("Ocultar"), y "Mostrar a Mochi" en Cuenta para traerlo | "Ocultó a Mochi: sí", con la hora y desde dónde (`menu-mochi`, `cuenta`) |
 | 6 | "Haz un pedido de algo que pedirías de verdad, de la tienda que quieras, hasta ver por dónde viene." | Dónde duda en el checkout, si mira la sugerencia de Mochi antes de pagar, si llega al seguimiento | El pedido (vertical, total, líneas que salieron de una oferta, estado) y su vertical en "Con pedido" |
@@ -57,7 +57,7 @@ Después de la tarea 6, una pregunta abierta antes del cuestionario: "¿Hay algo
 
 ## 5. Preguntas al final
 
-Cinco afirmaciones de 1 a 5 (1 = muy en desacuerdo, 5 = muy de acuerdo). El moderador las lee y anota el número; no las explica.
+Cinco afirmaciones de 1 a 5 (1 = muy en desacuerdo, 5 = muy de acuerdo). El moderador las lee, sin explicarlas, y el observador anota el número en la [hoja](prueba-hoja-observador.md).
 
 1. Entendí por qué Mochi me ofrecía lo que me ofrecía.
 2. Lo que Mochi me ofreció era algo que podría querer.

@@ -26,7 +26,7 @@ Sin datos personales: ni nombre, ni teléfono, ni nada que identifique a la pers
 - Antes de leer, por qué cree que Mochi se lo propuso: \_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_
 - Texto del "¿Por qué?", copiado tal cual: \_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_
 - ¿Coincide con lo que creía? ☐ sí ☐ en parte ☐ no ☐ le sorprendió
-- Botón que tocó: ☐ el producto (lo agregó) ☐ "Ver …" ☐ "Abrir …" ☐ "Ahora no" ☐ "Después" ☐ ninguno: se fue sola
+- Botón que tocó: ☐ el producto o "Agregar" (lo agregó) ☐ "Ver …" ☐ "Abrir …" ☐ "Ahora no" ☐ "Después" ☐ ninguno: se fue sola (en la Home) ☐ no la agregó (en el checkout: no se va sola ni tiene botón para rechazar)
 - Su decisión y su motivo, con sus palabras: \_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_
 
 **Después de la tarea 6.** ¿Algo le llamó la atención? \_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_

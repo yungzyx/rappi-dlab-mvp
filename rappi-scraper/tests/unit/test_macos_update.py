@@ -222,6 +222,18 @@ def test_a_docs_only_change_is_merged_without_building_or_restarting(demo):
     assert demo.run("actualizar.sh", "--forzar").returncode == 0
     assert demo.recorded("make") == ["-s build", "-s build"]  # --forzar construye aunque no haya cambios
 
+    # Un .js que pasa a .md: con la detección de renombres el diff solo nombraría el .md.
+    demo.git("mv", "prototipo-app/src/main.js", "prototipo-app/src/notas.md", cwd=demo.work)
+    demo.git("commit", "-q", "-m", "renombra main.js", cwd=demo.work)
+    demo.git("push", "-q", "origin", "HEAD:main", cwd=demo.work)
+    assert demo.run().returncode == 0
+    assert demo.recorded("make") == ["-s build"] * 3
+
+    # Un .md en public/ se copia a dist y se sirve.
+    demo.commit("prototipo-app/public/ayuda.md", "# Ayuda\n")
+    assert demo.run().returncode == 0
+    assert demo.recorded("make") == ["-s build"] * 4
+
 
 def test_the_session_check_marks_its_searches_and_warns_about_slow_ones(demo):
     """El chequeo de antes de cada participante solo lee, y sus búsquedas llevan un id con el prefijo que el resumen
