@@ -22,5 +22,8 @@ export const assignedPeople = (experiment) => experiment.variantes.reduce((total
 /** % de las asignadas que pidió, o null sin personas. */
 export const orderedPct = (row) => (row.personas > 0 ? (row.con_pedido * 100) / row.personas : null)
 
+/** % de las asignadas con una oferta retenible (la parte expuesta del plan de piloto), o null sin personas. */
+export const exposedPct = (row) => (row.personas > 0 ? (row.ofertas.personas_con_oferta * 100) / row.personas : null)
+
 /** Personas de la cohorte con su mes siguiente completo, en todas las variantes. */
 export const cohortPeople = (retention) => retention.variantes.reduce((total, row) => total + row.personas, 0)
