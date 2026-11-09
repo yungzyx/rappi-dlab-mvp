@@ -142,6 +142,18 @@ def test_heavy_restaurant_user_sees_own_use_first(client, db):
     assert body["order"][0]["reason"]["text"] == "Porque pides seguido en farmacia."
 
 
+def test_one_order_says_you_ordered_not_often(client):
+    """Un solo pedido en el súper lo sube, pero no "pides seguido": "Porque pediste en el súper." (con el artículo
+    contraído igual que los otros textos)."""
+    who = person()
+    order(client, who, "supermercado", 0)
+    body = verticales(client, who)
+    assert body["order"][0]["id"] == "supermercado"
+    assert body["order"][0]["reason"]["text"] == "Porque pediste en el súper."
+    order(client, who, "supermercado", 1)
+    assert verticales(client, who)["order"][0]["reason"]["text"] == "Porque pides seguido en el súper."
+
+
 def test_restaurant_orders_alone_keep_the_fixed_order(client):
     """Restaurantes va fijo arriba: sin afinidad entre los 6, el orden es el de siempre."""
     who = person()
@@ -216,8 +228,8 @@ def test_doritos_from_a_liquor_store_do_not_move_licores(client, db):
 
 
 def test_alcohol_in_licores_counts(client, db):
-    """Lo propio de Licores sí cuenta: cerveza agregada en dos días la sube con "entras seguido" y un pedido de
-    cerveza, con "pides seguido"."""
+    """Lo propio de Licores sí cuenta: cerveza agregada en dos días la sube con "entras seguido", un pedido de cerveza
+    dice "pediste" (uno no es "seguido") y dos, "pides seguido"."""
     who = person()
     visit(client, db, who, "licores", 0, "cart_add", BEER)
     visit(client, db, who, "licores", 2, "cart_add", BEER)
@@ -225,6 +237,8 @@ def test_alcohol_in_licores_counts(client, db):
     assert body["order"][0]["id"] == "licores"
     assert body["order"][0]["reason"]["text"] == "Porque entras seguido a Licores."
     order(client, who, "licores", 0, line=BEER)
+    assert verticales(client, who)["order"][0]["reason"]["text"] == "Porque pediste en Licores."
+    order(client, who, "licores", 1, line=BEER)
     assert verticales(client, who)["order"][0]["reason"]["text"] == "Porque pides seguido en Licores."
 
 

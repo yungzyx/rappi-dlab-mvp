@@ -19,6 +19,7 @@ const AFFINITY_WINDOW_DAYS = 180
 export const HOME_FIXED = ['restaurantes', 'turbo']
 export const HOME_ORDERABLE = ['supermercado', 'farmacia', 'mall', 'licores', 'conveniencia', 'chocolateria']
 const REASON_ORDERS = 'Porque pides seguido en {vertical}.'
+const REASON_ONE_ORDER = 'Porque pediste en {vertical}.' // un solo pedido no es "seguido"
 const REASON_VISITS = 'Porque entras seguido a {vertical}.'
 // Uso mínimo para mover un acceso: un pedido ahí o señales en 2 días distintos de Santiago. En Farmacia y Licores solo
 // cuenta lo propio: un concepto de su grupo de la taxonomía o un toque a su acceso (unos Doritos de una botillería no).
@@ -94,16 +95,18 @@ export function homeVerticals(state, now, labels, concepts) {
     return HOME_ORDERABLE.includes(s.vertical) && age >= 0 && age <= AFFINITY_WINDOW_DAYS && countsForHome(s, concepts)
   })
   const own = affinity(signals, now)
-  const ordered = new Set(signals.filter((s) => s.kind === 'order').map((s) => s.vertical))
+  const ordered = {}
+  for (const s of signals) if (s.kind === 'order') ordered[s.vertical] = (ordered[s.vertical] ?? 0) + 1
   const days = (v) => new Set(signals.filter((s) => s.vertical === v).map((s) => localDay(s.ts))).size
   const score = Object.fromEntries(ranked.map((s) => [s.vertical, s.score]))
-  const used = HOME_ORDERABLE.filter((v) => own[v] > 0 && (ordered.has(v) || days(v) >= MIN_USE_DAYS)).sort(
+  const used = HOME_ORDERABLE.filter((v) => own[v] > 0 && (ordered[v] || days(v) >= MIN_USE_DAYS)).sort(
     (a, b) => own[b] - own[a] || score[b] - score[a],
   )
   const ids = [...used, ...HOME_ORDERABLE.filter((v) => !used.includes(v))]
   const order = ids.map((id) => ({ id, score: Math.round(score[id] * 10_000) / 10_000, reason: null }))
   if (used.length) {
-    const template = ordered.has(used[0]) ? REASON_ORDERS : REASON_VISITS
+    const orders = ordered[used[0]] ?? 0
+    const template = orders > 1 ? REASON_ORDERS : orders ? REASON_ONE_ORDER : REASON_VISITS
     order[0].reason = {
       text: contractArticles(template.replace('{vertical}', labels[used[0]] ?? used[0])),
       basis: [{ kind: 'afinidad_vertical', id: used[0], source: 'eventos' }],
