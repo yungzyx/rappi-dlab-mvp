@@ -1,5 +1,6 @@
 import { forwardRef, useCallback, useEffect, useImperativeHandle, useLayoutEffect, useRef, useState } from 'react'
 import { AGENT_NAME } from '../../../agent/name'
+import { ProductCards } from '../../../components/assistant/AgentMessage'
 import Mascot from '../../../components/assistant/Mascot'
 import OfferWhy from '../../../components/assistant/OfferWhy'
 import { rectInPhone } from '../../../state/AssistantContext'
@@ -42,12 +43,13 @@ function useTypewriter(text, reduceMotion) {
 
 /**
  * El agente de cuerpo entero viviendo en la Home: se para sobre el bloque del que habla (`target`, que `getBlock`
- * convierte en su elemento) o descansa sobre la barra inferior. Habla con un globo y, a veces, ofrece botones. Tocarlo dispara `onPoke`.
+ * convierte en su elemento) o descansa sobre la barra inferior. Habla con un globo y, a veces, ofrece botones y productos
+ * (`say.products`, con su "+"; tocar uno abre su hoja y su "Ver tienda" llama a `onOpenProduct`). Tocarlo dispara `onPoke`.
  * `onHold(motivo, sí o no)` avisa cuándo algo detiene la cuenta del globo: su "¿Por qué?" abierto (`why`), el puntero
  * (`pointer`) o el foco del teclado (`focus`) sobre él.
  */
 const LiveAgent = forwardRef(function LiveAgent(
-  { say, target, getBlock, entering, away, reduceMotion, onPoke, onHold },
+  { say, target, getBlock, entering, away, reduceMotion, onPoke, onHold, onOpenProduct },
   ref,
 ) {
   const layerRef = useRef(null)
@@ -179,7 +181,7 @@ const LiveAgent = forwardRef(function LiveAgent(
             </p>
             {/* "¿Por qué?" y los botones también ocupan su lugar desde el principio (el globo no crece al terminar),
                 pero no se ven ni se tocan hasta que termina de escribir. */}
-            {(say.why || say.actions?.length > 0) && (
+            {(say.why || say.actions?.length > 0 || say.products?.length > 0) && (
               <div
                 className={done ? 'live-bubble-more' : 'live-bubble-more is-pending'}
                 aria-hidden={!done || undefined}
@@ -187,6 +189,7 @@ const LiveAgent = forwardRef(function LiveAgent(
                 {say.why && (
                   <OfferWhy reason={say.why} origin={say.whyOrigin} onToggle={(open) => onHold?.('why', open)} />
                 )}
+                {say.products?.length > 0 && <ProductCards products={say.products} onOpenProduct={onOpenProduct} />}
                 {say.actions?.length > 0 && (
                   <div className="live-bubble-actions">
                     {say.actions.map((action, i) => (

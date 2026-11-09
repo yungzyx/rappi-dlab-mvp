@@ -72,16 +72,21 @@ export const moveWhy = (reason) => ({
  * el orden fijo.
  */
 export function useShortcutMove({ order, entries, requestId }, { active, resets }) {
-  const [shown, setShown] = useState(() => ({ order: readSeen(userId()), resets, move: null }))
+  // `seq` cuenta los cambios y nunca vuelve a cero (ni tras "Olvidar"): es la `key` de cada uno, y los accesos solo se
+  // deslizan con una key que no vieron (HomeSections: useGlide).
+  const [shown, setShown] = useState(() => ({ order: readSeen(userId()), resets, move: null, seq: 0 }))
   const current = shown.resets === resets
   if (active && order && !(current && sameOrder(shown.order, order))) {
     const before = current ? shown.order : null
     const rise = before && biggestRise(before, order)
     const reason = rise ? (entries?.find((entry) => entry.id === rise.vertical)?.reason ?? null) : null
+    const seq = rise ? shown.seq + 1 : shown.seq
     setShown({
       order,
       resets,
-      move: rise ? { ...rise, reason, requestId, key: (shown.move?.key ?? 0) + 1 } : shown.move,
+      seq,
+      // El cambio lleva la generación del perfil en que nació: tras "Olvidar" no se explica uno de antes.
+      move: rise ? { ...rise, reason, requestId, resets, key: seq } : current ? shown.move : null,
     })
   }
 

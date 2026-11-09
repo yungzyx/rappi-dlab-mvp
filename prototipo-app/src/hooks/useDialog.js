@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useSyncExternalStore } from 'react'
 
 const FOCUSABLE = [
   'button:not([disabled])',
@@ -12,6 +12,18 @@ const FOCUSABLE = [
 // Los diálogos abiertos, el último arriba: con dos a la vez (el panel de Mochi y una hoja encima) solo el de arriba
 // atrapa Tab y atiende Escape; si no, cada uno le deshace al otro el foco y Escape cierra los dos.
 const stack = []
+// Quién quiere saber cuántos hay abiertos (useOpenDialogs).
+const listeners = new Set()
+const notify = () => listeners.forEach((listener) => listener())
+const subscribe = (listener) => {
+  listeners.add(listener)
+  return () => listeners.delete(listener)
+}
+
+/** Cuántos diálogos hay abiertos (el buscador con Mochi y las hojas): la Home de Mochi no habla debajo de ellos. */
+export function useOpenDialogs() {
+  return useSyncExternalStore(subscribe, () => stack.length)
+}
 
 // Un diálogo tapado (bajo una pantalla inerte, como una hoja que quedó abierta al apilar otra pantalla) u oculto no
 // recibe el teclado: nadie puede llegar a él y atraparía el Tab de toda la app.
@@ -45,6 +57,7 @@ export function useDialog(ref, open, onClose) {
     target?.focus({ preventScroll: true })
 
     stack.push(root)
+    notify()
     const onKeyDown = (event) => {
       if (topDialog() !== root) return
       if (event.key === 'Escape') {
@@ -69,6 +82,7 @@ export function useDialog(ref, open, onClose) {
     return () => {
       document.removeEventListener('keydown', onKeyDown)
       stack.splice(stack.indexOf(root), 1)
+      notify()
       if (opener?.isConnected) opener.focus({ preventScroll: true })
     }
   }, [open, ref])

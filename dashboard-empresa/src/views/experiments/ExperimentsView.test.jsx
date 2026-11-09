@@ -10,11 +10,11 @@ const cells = (row) =>
     .map((cell) => cell.textContent)
 const bodyRows = (table) => within(table).getAllByRole('row').slice(1)
 
-const offers = (mostradas, retenidas, aceptadas, pedidos) => ({
+const offers = (mostradas, retenidas, aceptadas, pedidos, expuestas = mostradas + retenidas > 0 ? 1 : 0) => ({
   mostradas,
   retenidas,
   aceptadas,
-  personas_con_oferta: mostradas + retenidas > 0 ? 1 : 0,
+  personas_con_oferta: expuestas,
   pedidos_despues: pedidos,
 })
 
@@ -61,7 +61,7 @@ const withControl = (overrides = {}) => ({
               personas: 5,
               con_pedido: 4,
               verticales_por_persona: 1.5,
-              ofertas: offers(9, 0, 3, 6),
+              ofertas: offers(9, 0, 3, 6, 4),
             },
             {
               variante: 'control',
@@ -120,9 +120,26 @@ describe('ExperimentsView', () => {
         'supuesto). Con menos personas por grupo, la diferencia entre ellos no es concluyente.',
     )
     const [treated, control] = bodyRows(table)
-    expect(cells(treated)).toEqual(['Tratamiento (ve las ofertas)', '5', '480,0%', '1,5', '9', '0', '3', '6'])
-    expect(cells(control)).toEqual(['Control (no las ve)', '1', '00,0%', '—', '0', '2', '0', '0'])
+    expect(cells(treated)).toEqual(['Tratamiento (ve las ofertas)', '5', '480,0%', '1,5', '9', '0', '480,0%', '3', '6'])
+    expect(cells(control)).toEqual(['Control (no las ve)', '1', '00,0%', '—', '0', '2', '1100,0%', '0', '0'])
     expect(screen.getByText(NOT_EVIDENCE)).toBeTruthy() // la población rotulada
+  })
+
+  test('the exposed people say how each group is counted, and an empty group has no share', async () => {
+    const control = { variante: 'control', personas: 0, con_pedido: 0, verticales_por_persona: null }
+    const [treated] = withControl().experimentos.data.experimentos[1].variantes
+    serveFixturesWith(withControl({ variantes: [treated, { ...control, ofertas: offers(0, 0, 0, 0) }] }))
+    await renderWithData(<ExperimentsView source="prototype" />)
+
+    const table = await screen.findByRole('table', { name: 'Grupo de control de las ofertas de Mochi' })
+    expect(screen.getByTestId('expuestas-nota').textContent).toContain(
+      'Control: ofertas retenidas · Tratamiento: ofertas mostradas',
+    )
+    const column = within(table)
+      .getAllByRole('columnheader')
+      .map((cell) => cell.textContent)
+      .indexOf('Personas expuestas')
+    expect(within(bodyRows(table)[1]).getAllByRole('cell')[column].textContent).toBe('0') // sin personas, sin %
   })
 
   test('the control group shows M+1 retention by group and the difference, neutral under the minimum', async () => {
