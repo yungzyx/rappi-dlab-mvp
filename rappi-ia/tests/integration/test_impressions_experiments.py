@@ -671,6 +671,31 @@ def test_the_amplitude_bridge_uses_rappis_names_and_envelope(client, db):
     assert all(r[3] for r in rows.values())  # todos con uuid, también los que no lo trajeron
 
 
+def test_the_amplitude_bridge_keeps_kind_and_visible(client, db):
+    """Migración 055: una oferta que se fue sola (kind "expirada") se distingue en el puente de un rechazo, y
+    `agent_visibility` dice si ocultó a Mochi o lo trajo de vuelta (el false de jsonb no se pierde)."""
+    dismissed = {"type": "suggestion_dismissed", "session_id": "s-imp", "concept_id": "snacks-salados"}
+    response = post(
+        client,
+        "u-kind",
+        {**dismissed, "origin": "agent-home", "client_event_id": str(uuid.uuid4()), "payload": {"kind": "expirada"}},
+        {**dismissed, "origin": "agent-home", "client_event_id": str(uuid.uuid4())},
+        {**dismissed, "origin": "agent-volver", "client_event_id": str(uuid.uuid4()), "payload": {"kind": "volver"}},
+        {"type": "agent_visibility", "session_id": "s-imp", "origin": "cuenta", "payload": {"visible": False}},
+        {"type": "agent_visibility", "session_id": "s-imp", "origin": "cuenta", "payload": {"visible": True}},
+    )
+    assert response.status_code == 200, response.text
+    rows = db.execute(
+        """SELECT event_type, event_properties FROM capa.v_eventos_amplitude WHERE user_id = 'u-kind'
+           ORDER BY event_id"""
+    ).fetchall()
+    kinds = [props.get("KIND") for name, props in rows if name == "MVP_SUGGESTION_DISMISSED"]
+    assert kinds == ["expirada", None, "volver"]  # el rechazo no lleva KIND
+    visible = [props.get("VISIBLE") for name, props in rows if name == "MVP_AGENT_VISIBILITY"]
+    assert visible == [False, True]
+    assert all("KIND" not in props for name, props in rows if name == "MVP_AGENT_VISIBILITY")
+
+
 def test_every_event_type_says_if_rappi_has_it(db):
     """Cada tipo de EVENT_TYPES sale en el puente con un nombre, y `equivalente` es false solo en los MVP_ (migración
     051: antes `order_cancelled` salía MVP_ y equivalente). Un tipo nuevo sin traducción obliga a decidirlo aquí."""
