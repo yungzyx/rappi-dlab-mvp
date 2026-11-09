@@ -3,7 +3,7 @@ import { readFileSync } from 'node:fs'
 import { describe, expect, test } from 'vitest'
 import { LIMITS } from './autonomy'
 import { DAILY_CROSS_CAP, INTEREST_HALF_LIFE_DAYS, INTEREST_WEIGHTS } from './index'
-import { DEFAULT_ORDER } from './motor'
+import { DEFAULT_ORDER, MIN_USE_DAYS, OWN_CONCEPT_GROUPS } from './motor'
 
 // Las constantes que la demo sin conexión copia a mano del backend tienen que ser las de allá: se leen los .py, sin
 // Python (como guards.test.js). winback.js y motor.js no exportan todas las suyas: se leen también de su código.
@@ -14,6 +14,7 @@ const AGENT_PY = backend('agent/rappi_agent.py')
 const AUTONOMY_PY = backend('offers/autonomy.py')
 const WINBACK_PY = backend('offers/winback.py')
 const MODEL_PY = backend('motor/model.py')
+const HOME_PY = backend('motor/home.py')
 const WINBACK_JS = read('./winback.js')
 const MOTOR_JS = read('./motor.js')
 
@@ -86,5 +87,13 @@ describe('la demo sin conexión tiene las constantes del backend', () => {
       expect([name, constant(MOTOR_JS, name)]).toEqual([name, constant(MODEL_PY, name)])
     const order = MODEL_PY.match(/^DEFAULT_ORDER = \(([^)]*)\)/m)[1]
     expect(DEFAULT_ORDER).toEqual([...order.matchAll(/"([^"]+)"/g)].map((m) => m[1]))
+  })
+
+  test('el uso mínimo de la Home y lo propio de Farmacia y Licores (motor/home.py)', () => {
+    expect(MIN_USE_DAYS).toBe(constant(HOME_PY, 'MIN_USE_DAYS'))
+    const groups = HOME_PY.match(/^OWN_CONCEPT_GROUPS = \{([^}]*)\}/m)[1]
+    expect(OWN_CONCEPT_GROUPS).toEqual(
+      Object.fromEntries([...groups.matchAll(/"(\w+)": "(\w+)"/g)].map((m) => m.slice(1))),
+    )
   })
 })

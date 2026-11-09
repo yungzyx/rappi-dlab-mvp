@@ -1,9 +1,10 @@
 import { describe, expect, test } from 'vitest'
 import { currentFine, fineExpectation, homeVerticals, stepSignal, targetStep } from './motor'
-import { COMBOS, LABELS } from '../../test/offlineMeta'
+import { COMBOS, CONCEPTS, LABELS } from '../../test/offlineMeta'
 
 const NOW = Date.UTC(2026, 9, 17, 15)
 const MIN = 60_000
+const DAY = 86_400_000
 let n = 0
 const order = (vertical, { mode = 'propuesta', ago = 0 } = {}) => ({
   order_id: `o-${(n += 1)}`,
@@ -18,9 +19,11 @@ const open = (vertical, { mode, ago = MIN } = {}) => ({
   vertical,
   payload: mode ? { mode } : {},
 })
+// Un evento con producto (ver, agregar al carro) en esa vertical, con su concepto.
+const withConcept = (type, vertical, concept, ago = MIN) => ({ type, ts: NOW - ago, vertical, concept_id: concept })
 const serviceOpened = (servicio) => ({ type: 'service_opened', ts: NOW - MIN, vertical: null, payload: { servicio } })
 const state = ({ orders = [], events = [] } = {}) => ({ userId: 'proto-test', orders, events })
-const home = (s) => homeVerticals(s, NOW, LABELS)
+const home = (s) => homeVerticals(s, NOW, LABELS, CONCEPTS)
 const ids = (reply) => reply.order.map((entry) => entry.id)
 const step = (s) => targetStep(COMBOS, s, NOW)
 
@@ -33,8 +36,9 @@ describe('orden de la Home (motor/home.py)', () => {
     expect(reply.order.every((entry) => entry.reason === null)).toBe(true)
   })
 
-  test('los toques a Farmacia la suben primera entre los accesos chicos, con "Porque entras seguido a…"', () => {
-    const reply = home(state({ events: [open('farmacia'), open('farmacia'), open('mall')] }))
+  test('los toques a Farmacia en días distintos la suben primera, con "Porque entras seguido a…"', () => {
+    const events = [open('farmacia'), open('farmacia', { ago: DAY }), open('mall'), open('mall', { ago: 2 * DAY })]
+    const reply = home(state({ events }))
     expect(ids(reply)).toEqual(['farmacia', 'mall', 'supermercado', 'licores', 'conveniencia', 'chocolateria'])
     expect(reply.personalized).toBe(true)
     expect(reply.order[0].reason).toEqual({
@@ -47,8 +51,39 @@ describe('orden de la Home (motor/home.py)', () => {
   test('los pedidos dicen "Porque pides seguido en…" y contraen el artículo', () => {
     const reply = home(state({ orders: [order('supermercado')] }))
     expect(reply.order[0]).toMatchObject({ id: 'supermercado', reason: { text: 'Porque pides seguido en el súper.' } })
-    const visits = home(state({ events: [open('supermercado')] }))
+    const visits = home(state({ events: [open('supermercado'), open('supermercado', { ago: 3 * DAY })] }))
     expect(visits.order[0].reason.text).toBe('Porque entras seguido al súper.')
+  })
+
+  test('un solo día de uso no mueve la Home ni dice "seguido"', () => {
+    const events = [withConcept('view_item', 'supermercado', 'cafe'), withConcept('cart_add', 'supermercado', 'cafe')]
+    const reply = home(state({ events: [...events, open('supermercado')] }))
+    expect(reply.personalized).toBe(false)
+    expect(reply.order.every((entry) => entry.reason === null)).toBe(true)
+  })
+
+  test('lo que no es alcohol en Licores (unos snacks, hielo) no la sube, ni en varios días ni pedido', () => {
+    const events = [
+      withConcept('view_item', 'licores', 'snacks-salados'),
+      withConcept('cart_add', 'licores', 'snacks-salados'),
+      withConcept('cart_add', 'licores', 'hielo', 4 * DAY),
+      { type: 'view_store', ts: NOW - 9 * DAY, vertical: 'licores', payload: {} },
+    ]
+    const bought = { ...order('licores'), lines: [{ concept_id: 'hielo' }] }
+    const reply = home(state({ orders: [bought], events }))
+    expect(ids(reply)).toEqual(['supermercado', 'farmacia', 'mall', 'licores', 'conveniencia', 'chocolateria'])
+    expect(reply.personalized).toBe(false)
+  })
+
+  test('el alcohol en Licores sí cuenta: "entras seguido" en dos días y "pides seguido" con un pedido', () => {
+    const events = [
+      withConcept('cart_add', 'licores', 'cerveza'),
+      withConcept('cart_add', 'licores', 'cerveza', 2 * DAY),
+    ]
+    const reply = home(state({ events }))
+    expect(reply.order[0]).toMatchObject({ id: 'licores', reason: { text: 'Porque entras seguido a Licores.' } })
+    const bought = { ...order('licores'), lines: [{ concept_id: 'cerveza' }] }
+    expect(home(state({ orders: [bought] })).order[0].reason.text).toBe('Porque pides seguido en Licores.')
   })
 
   test('Restaurantes y Turbo quedan fijos: usarlos no mueve los accesos chicos', () => {

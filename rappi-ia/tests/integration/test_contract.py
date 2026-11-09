@@ -316,10 +316,12 @@ def client(db):
         assert (
             test_client.post("/orders", json={**order, "vertical": "restaurants", "lines": [line]}).status_code == 200
         )
-    # Una persona que pide seguido en farmacia, para `profile-verticales` (la nueva, `u-nueva`, no tiene historial).
+    # Una persona que pide seguido en farmacia, para `profile-verticales` (la nueva, `u-nueva`, no tiene historial):
+    # paracetamol, porque Farmacia solo sube por lo propio (motor/home.py: OWN_CONCEPT_GROUPS).
+    medicine = {"entity_type": "catalog_item", "entity_id": "95001", "concept_id": "medicamentos"}
     for n in range(3):
         farmacia = {"user_id": "u-verticales", "session_id": f"s-verticales-{n}", "cart_id": f"c-verticales-{n}"}
-        order = {**farmacia, "vertical": "farmacia", "lines": [chips]}
+        order = {**farmacia, "vertical": "farmacia", "lines": [medicine]}
         assert test_client.post("/orders", json=order).status_code == 200
     # Una persona que pide café en el súper cada 7 días, el último hace 7, para `agent-offer-recompra`. Los pedidos van
     # a mediodía de Santiago de días contados desde hoy: la respuesta es la misma cada día.
