@@ -1,5 +1,6 @@
+import { renderHook } from '@testing-library/react'
 import { afterEach, describe, expect, test } from 'vitest'
-import { SEEN_KEY, biggestRise, moveText, readSeen } from './shortcutMoves'
+import { SEEN_KEY, biggestRise, moveText, readSeen, useShortcutMove } from './shortcutMoves'
 
 afterEach(() => localStorage.clear())
 
@@ -40,5 +41,34 @@ describe('el último orden visto', () => {
     expect(readSeen('u-1')).toBeNull()
     localStorage.setItem(SEEN_KEY, '{roto')
     expect(readSeen('u-1')).toBeNull()
+  })
+})
+
+describe('el cambio de orden y "Olvidar"', () => {
+  test('el cambio lleva la generación en que nació; tras "Olvidar" no vuelve el de antes', () => {
+    localStorage.setItem('rappi-proto-user', 'proto-olvida')
+    localStorage.setItem(SEEN_KEY, JSON.stringify({ user: 'proto-olvida', order: ['a', 'b'] }))
+    const { result, rerender } = renderHook(
+      ({ resets }) => useShortcutMove({ order: ['b', 'a'], entries: [], requestId: 'r' }, { active: true, resets }),
+      { initialProps: { resets: 0 } },
+    )
+    expect(result.current.move).toMatchObject({ vertical: 'b', from: 1, to: 0, resets: 0 })
+    rerender({ resets: 1 }) // "Olvidar" sin recargar (el borrado falló): el mismo orden ya no es un cambio
+    expect(result.current.move).toBeNull()
+  })
+
+  test('dos cambios separados por un "Olvidar" tienen keys distintas (los accesos se vuelven a deslizar)', () => {
+    localStorage.setItem('rappi-proto-user', 'proto-olvida')
+    localStorage.setItem(SEEN_KEY, JSON.stringify({ user: 'proto-olvida', order: ['a', 'b', 'c'] }))
+    const { result, rerender } = renderHook(
+      ({ order, resets }) => useShortcutMove({ order, entries: [], requestId: 'r' }, { active: true, resets }),
+      { initialProps: { order: ['b', 'a', 'c'], resets: 0 } },
+    )
+    const first = result.current.move.key
+    rerender({ order: ['b', 'a', 'c'], resets: 1 }) // "Olvidar" sin recargar
+    expect(result.current.move).toBeNull()
+    rerender({ order: ['c', 'b', 'a'], resets: 1 }) // otro cambio, ya en la generación nueva
+    expect(result.current.move).toMatchObject({ vertical: 'c', resets: 1 })
+    expect(result.current.move.key).not.toBe(first)
   })
 })

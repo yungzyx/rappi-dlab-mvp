@@ -501,6 +501,13 @@
   }
 }
 
+/* Los productos de una oferta (las tarjetas del buscador de Mochi): de borde a borde del globo, con scroll lateral */
+.live-bubble .agent-msg-products {
+  margin: 4px -14px 0;
+  padding: 6px 14px 4px;
+  scroll-padding-left: 14px;
+}
+
 .live-bubble-actions {
   display: flex;
   flex-wrap: wrap;

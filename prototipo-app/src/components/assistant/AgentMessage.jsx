@@ -86,7 +86,8 @@ function StreamText({ text, animate, onDone }) {
   )
 }
 
-function ProductCards({ products, onOpenProduct, delay = 0 }) {
+/** Tarjetas compactas con su "+" (las respuestas de Mochi y el globo de su oferta en la Home). */
+export function ProductCards({ products, onOpenProduct, delay = 0 }) {
   const sheet = useProductSheet()
   const watch = useImpressions() // lo que Mochi mostró: cada producto con su lugar en la respuesta (api/impressions.js)
   return (
