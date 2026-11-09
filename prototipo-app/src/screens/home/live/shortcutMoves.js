@@ -45,7 +45,7 @@ export function biggestRise(before, after) {
 export const shortcutName = (vertical) => SHORTCUTS.find((item) => item.vertical === vertical)?.label ?? vertical
 
 /**
- * Lo que dice Mochi al mover un acceso. Con la razón de la API (`reason.text`, "Porque entras seguido a Rappi Mall.")
+ * Lo que dice Mochi al mover un acceso. Con la razón de la API (`reason.text`, "Porque pediste en Rappi Mall.")
  * dice esa razón; sin ella (la API solo la da al primero), que el orden sigue lo que más usa.
  */
 export function moveText({ vertical, to, reason }) {
@@ -61,7 +61,7 @@ export function moveText({ vertical, to, reason }) {
 
 /** "¿Por qué?" del globo: cómo se ordenan los accesos (motor/home.py), con la señal de la API. */
 export const moveWhy = (reason) => ({
-  text: 'Ordeno estos accesos por lo que más usas: lo que pides y lo que abres. Restaurantes y Turbo no se mueven.',
+  text: 'Ordeno estos accesos por lo que más usas: lo que pides y lo que abres en días distintos. Restaurantes y Turbo no se mueven.',
   basis: reason?.basis ?? [],
 })
 
