@@ -603,10 +603,18 @@ describe('Home del prototipo final', () => {
 
     test('mientras la hoja de un producto del globo está abierta, la oferta no se va sola', async () => {
       const sheet = await import('../../../state/ProductSheetContext')
+      const ProductSheet = (await import('../../../components/ProductSheet')).default
       memory.session.played = true
       memory.session.lastAdded = LOOSE_CART
       const [offered] = fixture('agent-offer-carrito').products
-      const { container } = render(<sheet.ProductSheetProvider>{homeTree()}</sheet.ProductSheetProvider>)
+      const { container } = render(
+        <sheet.ProductSheetProvider>
+          {homeTree()}
+          <Providers>
+            <ProductSheet />
+          </Providers>
+        </sheet.ProductSheetProvider>,
+      )
       await advance(4000)
       fireEvent.click(within(container.querySelector('.live-bubble')).getByText(offered.name))
       await advance(40000)
@@ -1612,6 +1620,8 @@ describe('Home del prototipo final', () => {
     const withPanel = async ({ active = true } = {}) => {
       const { useAddToCart } = await import('../../../hooks/useAddToCart')
       const { useAddress } = await import('../../../state/AddressContext')
+      const AddressSheet = (await import('../../../components/AddressSheet')).default
+      const CartBar = (await import('../../../components/CartBar')).default
       const hooks = {}
       function Probe() {
         hooks.assistant = useAssistant()
@@ -1626,6 +1636,8 @@ describe('Home del prototipo final', () => {
             <div className="screen-wrap">
               <HomeScreen push={vi.fn()} tab={tab} setTab={vi.fn()} active={on} />
             </div>
+            <CartBar push={vi.fn()} />
+            <AddressSheet />
           </div>
         </Providers>
       )
@@ -1928,6 +1940,40 @@ describe('Home del prototipo final', () => {
       await advance(1000)
       expect(said(container)).toBe(CARRITO)
       await advance(30000)
+      expect(said(container)).toBe(LINE)
+    })
+
+    test('la hoja "Tu carro" abierta tapa la Home: el globo del carro espera y "Moví…" no se explica debajo', async () => {
+      const { container, hooks } = await cartOverMove()
+      act(() => hooks.cart.add({ ...LOOSE_CART })) // con la Home a la vista: no es "lo agregado fuera"
+      fireEvent.click(screen.getByRole('button', { name: /Ver carro/ }))
+      await advance(500)
+      expect(screen.getByRole('dialog', { name: 'Tu carro' })).toBeTruthy()
+      await advance(40000)
+      expect(tracked('suggestion_dismissed', 'agent-carrito')).toEqual([])
+      expect(tracked('vertical_reorder_shown', 'agent-reorden')).toEqual([])
+      fireEvent.click(
+        within(screen.getByRole('dialog', { name: 'Tu carro' }).parentElement).getByRole('button', { name: 'Cerrar' }),
+      )
+      await advance(1000)
+      expect(said(container)).toBe(CARRITO)
+      await advance(30000)
+      expect(said(container)).toBe(LINE)
+    })
+
+    test('salir de la Home durante el saludo y volver antes de que termine: la oferta y "Moví…" salen igual', async () => {
+      remember(FIXED)
+      stubAgent({ 'GET /profile/*': fixture('profile-verticales') })
+      memory.session.lastAdded = LOOSE_CART
+      const { container, rerender } = await renderHome()
+      await advance(1500) // entró y saluda; el orden nuevo quedó pendiente
+      rerender(homeTree({ active: false })) // abrió algo
+      await advance(500)
+      rerender(homeTree({ active: true })) // volvió antes de que el saludo terminara
+      await advance(4000)
+      expect(said(container)).toBe(CARRITO)
+      fireEvent.click(screen.getByRole('button', { name: 'Ahora no' }))
+      await advance(500)
       expect(said(container)).toBe(LINE)
     })
 

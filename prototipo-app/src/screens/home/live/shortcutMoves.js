@@ -81,7 +81,12 @@ export function useShortcutMove({ order, entries, requestId }, { active, resets 
     setShown({
       order,
       resets,
-      move: rise ? { ...rise, reason, requestId, key: (shown.move?.key ?? 0) + 1 } : shown.move,
+      // El cambio lleva la generación del perfil en que nació: tras "Olvidar" no se explica uno de antes.
+      move: rise
+        ? { ...rise, reason, requestId, resets, key: (shown.move?.key ?? 0) + 1 }
+        : current
+          ? shown.move
+          : null,
     })
   }
 

@@ -16,11 +16,11 @@ import { useScrollState } from '../../../hooks/useScrollState'
 import { useAddress } from '../../../state/AddressContext'
 import { useAssistant } from '../../../state/AssistantContext'
 import { useAddToCart } from '../../../hooks/useAddToCart'
+import { useOpenDialogs } from '../../../hooks/useDialog'
 import { lineKey } from '../../../state/CartContext'
 import { useEvents } from '../../../state/EventsContext'
 import { useOrders } from '../../../state/OrdersContext'
 import { useProfile } from '../../../state/ProfileContext'
-import { useProductSheet } from '../../../state/ProductSheetContext'
 import CreditsBanner from '../CreditsBanner'
 import { BestRated, FastRestaurants, MainTiles, NearbyStores, Promos, Shortcuts, useHomeCatalog } from '../HomeSections'
 import { CREDITS } from '../../../data/home'
@@ -103,8 +103,10 @@ export default function LiveHomeFeed({ push, active = true }) {
   // La fila que se ve: el último orden que vio la persona hasta que la Home está a la vista (arriba y sin el buscador
   // encima); ahí, si cambió, se mueve. Un cambio con el buscador abierto se ve al cerrarlo.
   const searching = useAssistant()?.isOpen === true
-  // El buscador de Mochi y la hoja de direcciones se abren encima de la Home (sin cambiar `active`) y la tapan.
-  const overlay = searching || address.sheetOpen === true
+  // El buscador de Mochi y las hojas (direcciones, "Tu carro", la de un producto) se abren encima de la Home sin
+  // cambiar `active` y la tapan: todos pasan por useDialog, que lleva la cuenta.
+  const dialogs = useOpenDialogs()
+  const overlay = searching || dialogs > 0
   const shortcuts = useShortcutMove(verticalOrder, { active: active && !searching, resets: profile.resets })
   // Cambia con cada pedido y con cada calificación (una mala pausa lo de ese pedido): "¿Volvemos a…?" se vuelve a pedir.
   const orders = useOrders().orders
@@ -155,8 +157,9 @@ export default function LiveHomeFeed({ push, active = true }) {
   const holdFor = useRef(0) // cuánto dura el globo actual (0: se queda hasta que algo lo reemplace)
   const paused = useRef(new Set()) // lo que detiene su cuenta: "¿Por qué?" abierto, puntero o teclado encima
 
-  // Lo de este render que leen los timers, las respuestas de la API y los globos: si la Home está tapada y `drain`.
-  const live = useRef({ covered: true, drain: () => {} })
+  // Lo de este render que leen los timers, las respuestas de la API y los globos: si la Home está tapada, si se fue de
+  // ella (otra pantalla o el buscador de Mochi: lo que se agrega ahí es "lo agregado fuera") y `drain`.
+  const live = useRef({ covered: true, away: true, drain: () => {} })
   const spoken = useRef(0) // cuenta los globos dichos: lo pedido no reemplaza a uno que apareció mientras llegaba
 
   /** Esconde el globo en `ms`; si trae `onExpire` (una oferta), lo llama al irse solo. */
@@ -184,10 +187,12 @@ export default function LiveHomeFeed({ push, active = true }) {
       said.current = next
       holdFor.current = next && holdMs ? holdMs : 0
       paused.current.clear()
+      // Con algo encima (la hoja del producto que se agregó, por ejemplo) la cuenta espera a que se cierre.
+      if (live.current.covered) paused.current.add('cover')
       clearTimeout(hideTimer.current)
       setSay(next)
       setTarget(at)
-      if (holdFor.current) armHide(holdFor.current)
+      if (holdFor.current && !paused.current.size) armHide(holdFor.current)
       // Al cerrarse un globo, lo que esperaba puede ir.
       if (!next) live.current.drain()
     },
@@ -305,12 +310,14 @@ export default function LiveHomeFeed({ push, active = true }) {
     later((reduceMotion ? 0 : T.enter) + T.greet, () => {
       setEntering(false)
       session.played = true
+      live.current.drain() // lo que llegó mientras saludaba, si salió y volvió antes de que terminara
     })
     // Cuando el saludo termina, la primera vez: la guía (en silencio, no; ni encima de algo que la persona pidió). Lo
     // que llegó mientras saludaba (un cambio de orden) va cuando se cierra el saludo, o al terminar la guía.
     later((reduceMotion ? 0 : T.enter) + T.greetHold, () => {
       const free = !said.current || said.current.text === GREETING
       if (free && !silent() && !tourSeen()) showTour(0)
+      else live.current.drain()
     })
     return clearTimers
     // Solo al montar (o al repetir la escena, o al cerrarse el aviso de privacidad).
@@ -411,14 +418,14 @@ export default function LiveHomeFeed({ push, active = true }) {
     else if (session.pendingMove) explainMove()
   }
   useLayoutEffect(() => {
-    live.current = { covered: !active || overlay, drain }
+    live.current = { covered: !active || overlay, away: !active || searching, drain }
   })
 
   // Lo que se agrega con la Home a la vista (un kit, un "+" de sus bloques o del globo) no es "lo agregado fuera": no se
   // comenta. Agregar un producto del globo de la oferta la acepta (useAddToCart lo anota) y Mochi lo confirma.
   useEffect(() => {
     const onAdded = ({ detail }) => {
-      if (live.current.covered) return
+      if (live.current.away) return
       forgetAdded()
       const shown = said.current
       if (!shown?.cart || !shown.products.some((product) => product.id === detail.product.id)) return
@@ -428,12 +435,6 @@ export default function LiveHomeFeed({ push, active = true }) {
     window.addEventListener(AGENT_CART_EVENT, onAdded)
     return () => window.removeEventListener(AGENT_CART_EVENT, onAdded)
   }, [speak])
-
-  // Mirar un producto del globo (su hoja encima) también detiene su cuenta.
-  const sheetOpen = useProductSheet().isOpen === true
-  useEffect(() => {
-    if (said.current?.cart) holdBubble('sheet', sheetOpen)
-  }, [sheetOpen, holdBubble])
 
   /**
    * Al volver a la Home o al destaparla. Si el globo del carro sigue a la vista (pausado mientras estaba tapada) y
@@ -467,8 +468,8 @@ export default function LiveHomeFeed({ push, active = true }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [active])
 
-  // Con el buscador de Mochi o la hoja de direcciones encima, el globo no se va solo (no se vería irse); al cerrarlos,
-  // como al volver.
+  // Con el buscador de Mochi o una hoja encima, el globo no se va solo (no se vería irse); al cerrarse lo último que
+  // la tapaba, como al volver.
   const wasCovered = useRef(overlay)
   useEffect(() => {
     if (said.current) holdBubble('cover', overlay)
@@ -485,7 +486,7 @@ export default function LiveHomeFeed({ push, active = true }) {
   const moveKey = shortcuts.move?.key
   useEffect(() => {
     if (!moveKey || silent()) return
-    rememberMove({ ...shortcuts.move, resets: profile.resets })
+    rememberMove(shortcuts.move) // con la generación en que nació (useShortcutMove)
     drain()
     // Solo con cada cambio nuevo.
     // eslint-disable-next-line react-hooks/exhaustive-deps
