@@ -19,6 +19,7 @@ import { useAddToCart } from '../../../hooks/useAddToCart'
 import { useEvents } from '../../../state/EventsContext'
 import { useOrders } from '../../../state/OrdersContext'
 import { useProfile } from '../../../state/ProfileContext'
+import { useProductSheet } from '../../../state/ProductSheetContext'
 import CreditsBanner from '../CreditsBanner'
 import { BestRated, FastRestaurants, MainTiles, NearbyStores, Promos, Shortcuts, useHomeCatalog } from '../HomeSections'
 import { CREDITS } from '../../../data/home'
@@ -26,7 +27,7 @@ import '../home.css'
 import { useVerticalOrder } from '../useVerticalOrder'
 import LiveAgent from './LiveAgent'
 import { PlanBlock, RepeatBlock, kitAddedText, openItem } from './LiveBlocks'
-import { REPLAY_EVENT, markTourSeen, session, tourSeen } from '../../../state/liveMemory'
+import { AGENT_CART_EVENT, REPLAY_EVENT, markTourSeen, session, tourSeen } from '../../../state/liveMemory'
 import { isHushed, isQuiet, noteDismissed } from '../../../state/agentQuiet'
 import { isAgentHidden, useAgentHidden } from '../../../state/agentHidden'
 import { moveText, moveWhy, useShortcutMove } from './shortcutMoves'
@@ -45,7 +46,7 @@ const backVertical = () => {
   const made = session.winback?.offer
   return made && winbackKind(made) === 'vuelta' ? made.backendVertical : null
 }
-const T = { enter: 900, greet: 3400, greetHold: 6000, notice: 500 }
+const T = { enter: 900, greet: 3400, greetHold: 6000 }
 // Silenciado por hoy (desde el agente flotante) o callado porque lo ignoraron: no habla por su cuenta; si lo tocan, sí.
 // Oculto ("Ocultar a Mochi"): no está, así que tampoco habla ni propone nada.
 const silent = () => isQuiet(today()) || isHushed() || isAgentHidden()
@@ -206,6 +207,10 @@ export default function LiveHomeFeed({ push, active = true }) {
 
   // "Moví … más adelante": el cambio de orden que Mochi aún no explica (llega mientras saluda o durante la guía).
   const pendingMove = useRef(null)
+  // La oferta del carro va antes que la explicación de los accesos movidos: mientras se pide (`waiting`, la escena en que
+  // se pidió) y mientras su globo está a la vista (`cart`), un cambio de orden queda pendiente y se explica al cerrarse.
+  const waiting = useRef(null)
+  const commenting = () => waiting.current === run.current || said.current?.cart === true
   /** Mochi se para sobre el bloque de los accesos, los señala y dice cuál movió y por qué (cuenta como explicación vista). */
   const explainMove = () => {
     const move = pendingMove.current
@@ -288,47 +293,74 @@ export default function LiveHomeFeed({ push, active = true }) {
     later((reduceMotion ? 0 : T.enter) + T.greetHold, () => {
       const free = !said.current || said.current.text === GREETING
       if (free && !silent() && !tourSeen()) showTour(0)
-      else if (free && pendingMove.current) explainMove()
+      else if (free && pendingMove.current && !commenting()) explainMove()
     })
     return clearTimers
     // Solo al montar (o al repetir la escena, o al cerrarse el aviso de privacidad).
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [replays, privacyClosed])
 
-  // Lo último que se agregó al carro lo comenta la oferta `carrito` de la API; sin oferta (204) o si falla, no dice nada.
+  /** Se cerró el globo de la oferta del carro: si quedó un cambio de orden por explicar, va ahora; si no, `next`. */
+  const afterOffer = (next = null, holdMs = 0) => {
+    if (pendingMove.current && !silent()) explainMove()
+    else speak(next, null, holdMs)
+  }
+
+  // Lo último que se agregó al carro lo comenta la oferta `carrito` de la API, con sus productos para agregar ahí mismo.
+  // Lo agregado se olvida recién cuando la oferta se muestra o la API dice que no hay (204); si falla, queda para la
+  // próxima vez.
   async function commentOn(added) {
-    if (added.entityId == null) return
     const mine = run.current
+    waiting.current = mine
     let made = null
-    try {
-      made = await offer(
-        'carrito',
-        { product: { entity_type: added.entityType, entity_id: added.entityId } },
-        { userId: userId(), surface: 'home' },
-      )
-    } catch {
+    let answered = true
+    if (added.entityId != null) {
+      try {
+        made = await offer(
+          'carrito',
+          { product: { entity_type: added.entityType, entity_id: added.entityId } },
+          { userId: userId(), surface: 'home' },
+        )
+      } catch {
+        answered = false
+      }
+    }
+    // Se fue de la Home o repitió la escena: ya no es el momento (lo agregado sigue pendiente).
+    if (mine !== run.current) return
+    waiting.current = null
+    if (answered && !made && session.lastAdded === added) session.lastAdded = null
+    // Sin oferta, silenciado mientras tanto, ya empezó la guía o ya se están explicando los accesos: lo que esperaba
+    // detrás (el cambio de orden) va ahora, y lo del carro, si hubo oferta, la próxima vez.
+    if (!made || silent() || touring.current || said.current?.reorder) {
+      if (session.played && !touring.current) explainMove()
       return
     }
-    // Se fue de la Home, repitió la escena, lo silenciaron mientras tanto o ya empezó la guía: ya no es el momento.
-    // Tampoco tapa la explicación de los accesos que se acaban de mover.
-    if (!made || mine !== run.current || silent() || touring.current || said.current?.reorder) return
+    if (session.lastAdded === added) session.lastAdded = null
     noteOfferShown(events.track, made, { generation: profile.resets })
     const see = made.actions.find((action) => action.route)
     speak(
       {
+        cart: true,
         text: made.text,
         why: made.reason,
         whyOrigin: `agent-${made.moment}`,
         mood: 'wave',
-        onExpire: () => noteOfferDismissal(events.track, made, { generation: profile.resets, kind: EXPIRED }),
+        // Sus productos van en el globo con su "+": agregarlos es aceptar la oferta (llevan `fromSuggestion`).
+        products: made.products,
+        onExpire: () => {
+          noteOfferDismissal(events.track, made, { generation: profile.resets, kind: EXPIRED })
+          afterOffer()
+        },
         actions: [
           ...(see
             ? [
                 {
                   label: see.label,
+                  // "Ver …" busca lo ofrecido en su vertical; el cambio de orden pendiente se explica al volver.
                   onClick: () => {
                     openOffer(made)
-                    visit(made.vertical, see.route)
+                    if (see.query) push('search', { query: see.query, vertical: made.vertical })
+                    else visit(made.vertical, see.route)
                   },
                 },
               ]
@@ -338,7 +370,7 @@ export default function LiveHomeFeed({ push, active = true }) {
             onClick: () => {
               noteDismissed()
               noteOfferDismissal(events.track, made, { generation: profile.resets })
-              speak(null)
+              afterOffer()
             },
           },
         ],
@@ -348,21 +380,38 @@ export default function LiveHomeFeed({ push, active = true }) {
     )
   }
 
-  // Al volver a la Home: comenta lo último que se agregó al carro. La Home queda montada bajo las pantallas que se
-  // abren encima (`active` es si está arriba), así que corre cada vez que vuelve a estar arriba; durante la guía
-  // espera, y corre al terminarla.
+  // Agregar un producto desde el globo de la oferta la acepta (useAddToCart lo anota): Mochi lo confirma y el globo se
+  // cierra (o explica el cambio de orden que esperaba).
+  useEffect(() => {
+    if (!say?.cart) return undefined
+    const onAdded = ({ detail }) => {
+      if (said.current === say && say.products.some((product) => product.id === detail.product.id))
+        afterOffer({ text: kitAddedText([detail.product]), mood: 'wave', gesture: 'spin' }, 3500)
+    }
+    window.addEventListener(AGENT_CART_EVENT, onAdded)
+    return () => window.removeEventListener(AGENT_CART_EVENT, onAdded)
+    // Solo con cada globo nuevo.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [say])
+
+  // Mirar un producto del globo (su hoja encima) también detiene su cuenta.
+  const sheetOpen = useProductSheet().isOpen === true
+  useEffect(() => {
+    if (said.current?.cart) holdBubble('sheet', sheetOpen)
+  }, [sheetOpen, holdBubble])
+
+  // Al volver a la Home (o al cerrar el buscador de Mochi): comenta lo último que se agregó al carro y, cuando su globo
+  // se cierra, explica el cambio de orden de los accesos si quedó uno pendiente. La Home queda montada bajo las
+  // pantallas que se abren encima (`active` es si está arriba), así que corre cada vez que vuelve a estar arriba;
+  // durante la guía espera, y corre al terminarla.
   function welcomeBack() {
-    // Primero, si quedó pendiente, por qué se movieron los accesos (lo del carro se comenta la próxima vez).
-    if (pendingMove.current && !silent()) return explainMove()
-    // Lo pendiente se borra de la sesión recién cuando el agente habla: en desarrollo, StrictMode monta dos veces y la
-    // primera vez se cancelan los timers.
     if (silent()) {
       session.lastAdded = null
-    } else if (session.lastAdded) {
-      const added = session.lastAdded
-      later(T.notice, () => (session.lastAdded = null))
-      commentOn(added)
+      return
     }
+    if (commenting()) return
+    if (session.lastAdded) commentOn(session.lastAdded)
+    else explainMove()
   }
   // Con otra pantalla encima, lo que Mochi esperaba (una oferta, un kit) ya no corresponde: se calla y no habla después.
   // La guía no: sigue donde quedó cuando la Home vuelve a estar arriba.
@@ -379,14 +428,25 @@ export default function LiveHomeFeed({ push, active = true }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [active])
 
+  // Cerrar el buscador de Mochi (que se abre encima de la Home, sin cambiar `active`) también es volver. Va antes que el
+  // efecto del cambio de orden: el mismo cierre puede mover los accesos, y la oferta va primero.
+  const wasSearching = useRef(searching)
+  useEffect(() => {
+    const closed = wasSearching.current && !searching
+    wasSearching.current = searching
+    if (closed && active && session.played && !touring.current) welcomeBack()
+    // Solo al abrirse o cerrarse el buscador.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searching])
+
   // Cambió el orden con la Home arriba (el "Panel de la demo", o al volver de otra pantalla, o al abrir): la fila ya se
-  // desliza (Shortcuts), y Mochi lo explica si puede hablar; si está saludando o en la guía, después. Oculto o en
-  // silencio, el orden cambia sin explicación.
+  // desliza (Shortcuts), y Mochi lo explica si puede hablar; si está saludando, en la guía o con la oferta del carro,
+  // después. Oculto o en silencio, el orden cambia sin explicación.
   const moveKey = shortcuts.move?.key
   useEffect(() => {
     if (!moveKey || silent()) return
     pendingMove.current = shortcuts.move
-    if (session.played && !touring.current) explainMove()
+    if (session.played && !touring.current && !commenting()) explainMove()
     // Solo con cada cambio nuevo.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [moveKey])
@@ -738,6 +798,7 @@ export default function LiveHomeFeed({ push, active = true }) {
           reduceMotion={reduceMotion}
           onPoke={poke}
           onHold={holdBubble}
+          onOpenProduct={openFromBlock}
         />
       )}
     </>
