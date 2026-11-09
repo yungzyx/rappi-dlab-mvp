@@ -91,7 +91,8 @@ export default function OfflineDemoPanel() {
 
           <h2>Mover la Home</h2>
           <p className="offline-demo-help">
-            Cada toque es una visita de otro día al acceso en el prototipo (no en "Rappi hoy").
+            Cada toque es una visita de otro día al acceso en el prototipo (no en "Rappi hoy"): la Home lo mueve desde
+            el segundo toque.
           </p>
           <div className="offline-demo-buttons">
             {VISITS.map(([vertical, label]) => (
