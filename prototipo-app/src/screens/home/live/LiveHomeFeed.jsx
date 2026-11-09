@@ -454,6 +454,13 @@ export default function LiveHomeFeed({ push, active = true }) {
     drain()
   }
 
+  // Con la Home tapada (otra pantalla encima, el buscador de Mochi o una hoja), el globo no se va solo: no se vería irse.
+  // Va antes que los efectos de volver: al destaparse, el globo que esperaba vuelve a contar y `drain` lo respeta.
+  const covered = !active || overlay
+  useEffect(() => {
+    if (said.current) holdBubble('cover', covered)
+  }, [covered, holdBubble])
+
   // Con otra pantalla encima, lo que Mochi esperaba (una oferta, un kit) ya no corresponde: se calla y no habla después.
   // La guía no: sigue donde quedó cuando la Home vuelve a estar arriba.
   useEffect(() => {
@@ -468,11 +475,9 @@ export default function LiveHomeFeed({ push, active = true }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [active])
 
-  // Con el buscador de Mochi o una hoja encima, el globo no se va solo (no se vería irse); al cerrarse lo último que
-  // la tapaba, como al volver.
+  // Al cerrarse lo último que tapaba la Home (el buscador de Mochi o una hoja), como al volver.
   const wasCovered = useRef(overlay)
   useEffect(() => {
-    if (said.current) holdBubble('cover', overlay)
     const uncovered = wasCovered.current && !overlay
     wasCovered.current = overlay
     if (uncovered && active) back()

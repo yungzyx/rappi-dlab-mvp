@@ -1961,6 +1961,17 @@ describe('Home del prototipo final', () => {
       expect(said(container)).toBe(LINE)
     })
 
+    test('si la Home abre tapada (se recargó en otra pantalla), el saludo se va al volver y sale la oferta', async () => {
+      memory.session.lastAdded = LOOSE_CART
+      const { container, rerender } = await renderHome({ active: false })
+      await advance(8000) // saluda con otra pantalla encima
+      rerender(homeTree({ active: true }))
+      await advance(500)
+      expect(said(container)).toMatch(/^¡Hola!/) // el saludo, que esperaba, ahora cuenta
+      await advance(10000)
+      expect(said(container)).toBe(CARRITO)
+    })
+
     test('salir de la Home durante el saludo y volver antes de que termine: la oferta y "Moví…" salen igual', async () => {
       remember(FIXED)
       stubAgent({ 'GET /profile/*': fixture('profile-verticales') })
