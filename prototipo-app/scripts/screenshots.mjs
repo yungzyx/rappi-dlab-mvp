@@ -65,6 +65,29 @@ async function run(page) {
     await page.locator('.home-shortcut', { hasText: label }).first().scrollIntoViewIfNeeded()
     await tap('.home-shortcut', label)
   }
+  // En el checkout: la compra mínima de cada tienda (más unidades hasta llegar, "Te faltan $X para hacer el pedido"),
+  // "Hacer pedido", la edad si hay algo +18 (una vez por sesión) y la ventana de "Deshacer pedido" (5 s).
+  const placeOrder = async () => {
+    const short = page.locator('.checkout-basket:has(.basket-min.is-short)')
+    for (let tries = 0; tries < 60 && (await short.count()) > 0; tries++) {
+      await short
+        .first()
+        .getByRole('button', { name: /^Agregar uno de / })
+        .first()
+        .click()
+      await wait(100)
+    }
+    await tap('.checkout-place')
+    const adult = page.getByRole('button', { name: 'Sí, soy mayor de edad' })
+    if (
+      await adult.waitFor({ timeout: 2000 }).then(
+        () => true,
+        () => false,
+      )
+    )
+      await adult.click()
+    await wait(5500)
+  }
   const reset = async () => {
     // Como quien ya vio la guía de la primera vez y el aviso de privacidad: taparían las capturas de la Home.
     await page.evaluate(() => {
@@ -161,27 +184,7 @@ async function run(page) {
   await tap('.cart-checkout')
   await wait(800)
   await shot('25-checkout')
-  // La compra mínima de la tienda: más unidades del producto hasta llegar ("Te faltan $X para hacer el pedido").
-  const short = page.locator('.checkout-basket:has(.basket-min.is-short)')
-  for (let tries = 0; tries < 60 && (await short.count()) > 0; tries++) {
-    await short
-      .first()
-      .getByRole('button', { name: /^Agregar uno de / })
-      .first()
-      .click()
-    await wait(100)
-  }
-  await tap('.checkout-place')
-  // Un producto +18 pregunta la edad una vez por sesión; después, la ventana de "Deshacer pedido" (5 s).
-  const adult = page.getByRole('button', { name: 'Sí, soy mayor de edad' })
-  if (
-    await adult.waitFor({ timeout: 2000 }).then(
-      () => true,
-      () => false,
-    )
-  )
-    await adult.click()
-  await wait(5500)
+  await placeOrder()
   await wait(13000)
   await shot('26-seguimiento')
   await wait(10000) // el pedido llega
@@ -198,17 +201,28 @@ async function run(page) {
   await wait(900)
   await shot('28-loyalty-vinculado')
 
-  // --- La Home que aprende: otra persona entra dos veces a Chocolates y una a Rappi Mall ---
+  // --- La Home que aprende: otra persona pide una vez en Chocolates. Un pedido basta para mover el acceso ("Porque
+  // pediste en…"); entrar varias veces el mismo día no lo mueve (motor/home.py: MIN_USE_DAYS) ---
   await reset()
   await wait(4200) // el saludo de Mochi
-  for (const label of ['Chocolates', 'Chocolates', 'Rappi Mall']) {
-    await shortcut(label)
-    await page.locator('.vertical-store').first().waitFor()
-    await back()
-    await settle(400)
-  }
+  await shortcut('Chocolates')
+  await page.locator('.vertical-store').first().waitFor()
+  await tap('.vertical-store')
+  const product = page
+    .getByRole('listitem')
+    .getByRole('button', { name: /^Agregar / })
+    .first()
+  await product.waitFor()
+  await product.click()
+  await wait(700)
+  await tap('.cart-bar')
+  await wait(500)
+  await tap('.cart-checkout')
+  await wait(800)
+  await placeOrder()
+  await tab('Inicio') // al volver, la Home pide su orden: Chocolates sube y Mochi dice por qué
   await page.getByText('Ordenadas según lo que más usas').waitFor()
-  // Abrir Rappi Mall corrió la fila hacia la derecha: vuelve al principio, como la ve quien llega a la Home.
+  // Abrir Chocolates corrió la fila hacia la derecha: vuelve al principio, como la ve quien llega a la Home.
   await page.locator('.home-shortcuts').evaluate((row) => {
     for (const el of [row, ...row.querySelectorAll('*')]) el.scrollLeft = 0
   })
