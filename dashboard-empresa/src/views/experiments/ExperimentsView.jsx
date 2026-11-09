@@ -6,7 +6,7 @@ import { SourceNote } from '../../components/SourceNote.jsx'
 import { EmptyState } from '../../components/States.jsx'
 import { formatNumber, formatPct, formatPoints } from '../../lib/format.js'
 import { useAnalytics } from '../../lib/useAnalytics.js'
-import { assignedPeople, cohortPeople, experimentLabel, orderedPct, variantLabel } from './experiments.js'
+import { assignedPeople, cohortPeople, experimentLabel, exposedPct, orderedPct, variantLabel } from './experiments.js'
 
 // Las columnas de todos los experimentos: personas, con pedido y verticales por persona, desde que se asignó la variante.
 const GROUP_COLUMNS = [
@@ -36,7 +36,8 @@ const GROUP_COLUMNS = [
   },
 ]
 
-// En el grupo de control, además, las ofertas de los momentos que Mochi propone solo.
+// En el grupo de control, además, las ofertas de los momentos que Mochi propone solo. Las personas expuestas son las que
+// tuvieron una oferta retenible (mostrada en tratamiento o retenida en control): la parte expuesta de docs/plan-piloto.md.
 const OFFER_COLUMNS = [
   {
     key: 'mostradas',
@@ -45,6 +46,17 @@ const OFFER_COLUMNS = [
     render: (row) => formatNumber(row.ofertas.mostradas),
   },
   { key: 'retenidas', header: 'Retenidas', numeric: true, render: (row) => formatNumber(row.ofertas.retenidas) },
+  {
+    key: 'expuestas',
+    header: 'Personas expuestas',
+    numeric: true,
+    render: (row) => (
+      <span className="cell-stack">
+        {formatNumber(row.ofertas.personas_con_oferta)}
+        {row.personas > 0 && <span className="cell-sub">{formatPct(exposedPct(row))}</span>}
+      </span>
+    ),
+  },
   { key: 'aceptadas', header: 'Aceptadas', numeric: true, render: (row) => formatNumber(row.ofertas.aceptadas) },
   {
     key: 'despues',
