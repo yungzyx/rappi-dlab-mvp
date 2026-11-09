@@ -8,7 +8,7 @@ Hecho con Vite + React 19. **Necesita la API de [`rappi-ia`](../rappi-ia/)**: si
 
 ![Modo demo: la misma app en el prototipo final y en "Rappi hoy"](docs/screenshots/00-modo-demo.jpg)
 
-*Las capturas de las pantallas se tomaron el 03-11-2026 con la API corriendo sobre una copia de la base (`rappi_staging`) y el catálogo real (`npm run screenshots`); solo la ficha de Mochi es anterior. "¿Repetimos?" sale de la respuesta de ejemplo del contrato con un café real del catálogo: es una ilustración, no un hábito medido. Como el recorrido paga una compra y deja un pedido y sus eventos (`source = 'prototype'`) en la base que use la API, `npm run screenshots` se niega a correr sin `SCREENSHOTS_ALLOW_WRITES=1`: se corre con la API sobre `rappi_staging`, nunca sobre `rappi`.*
+*Las capturas de las pantallas se tomaron el 03-11-2026 (la Home que aprende, la vertical por probar y "¿Repetimos?", el 09-11-2026) con la API corriendo sobre una copia de la base (`rappi_staging`) y el catálogo real (`npm run screenshots`); solo la ficha de Mochi es anterior. "¿Repetimos?" sale de la respuesta de ejemplo del contrato con un café real del catálogo: es una ilustración, no un hábito medido. Como el recorrido paga dos compras (una en Ofertas y otra en Chocolates, para la Home dinámica) y deja sus pedidos y eventos (`source = 'prototype'`) en la base que use la API, `npm run screenshots` se niega a correr sin `SCREENSHOTS_ALLOW_WRITES=1`: se corre con la API sobre `rappi_staging`, nunca sobre `rappi`.*
 
 ## Cómo correrlo
 
@@ -61,7 +61,7 @@ Si la API se cae con la app ya abierta, el buscador con Mochi dice "Sin conexió
 | `npm run format` | Formato con Prettier |
 | `npm run format:check` | Revisa el formato sin cambiar nada (lo que corre el CI) |
 | `npm run build` | Build de producción en `dist/` |
-| `npm run screenshots` | Regenera las capturas de este README con el Chrome instalado (`CHROME_PATH` o `PLAYWRIGHT_CHANNEL` eligen otro). Necesita el MVP corriendo sobre una copia de la base (`DATABASE_URL=postgresql:///rappi_staging make mvp`), o una API sobre la copia en otro puerto (`VITE_API_URL`), y `SCREENSHOTS_ALLOW_WRITES=1`, porque paga una compra: sin la variable se niega |
+| `npm run screenshots` | Regenera las capturas de este README con el Chrome instalado (`CHROME_PATH` o `PLAYWRIGHT_CHANNEL` eligen otro). Necesita el MVP corriendo sobre una copia de la base (`DATABASE_URL=postgresql:///rappi_staging make mvp`), o una API sobre la copia en otro puerto (`VITE_API_URL`), y `SCREENSHOTS_ALLOW_WRITES=1`, porque paga dos compras (una en Ofertas y otra en Chocolates): sin la variable se niega |
 | `npm run demo:snapshot` | Graba la muestra del catálogo para la demo sin conexión desde una API sobre una copia de la base (ver "Demo sin conexión") |
 | `npm run demo:html` | Arma "Prototipo MVP.html": la app en un solo archivo, sin la API (ver "Demo sin conexión") |
 | `node scripts/make-icons.mjs` | Regenera los íconos de la app instalada (`public/`: manifiesto, iPhone y pestaña) desde la pose de frente de `src/assets/mochi-poses.webp`, sin el logo que trae la mochila, con el Chrome instalado |
@@ -126,8 +126,8 @@ La Home del prototipo final se ordena según cada persona, con el [motor multive
 
 | Home que aprende | Mochi propone una vertical | ¿Repetimos? |
 |:---:|:---:|:---:|
-| <img src="docs/screenshots/03-home-dinamica.jpg" width="240" alt="Home con los accesos reordenados: Chocolates y Rappi Mall primero, con la leyenda &quot;Ordenadas según lo que más usas&quot;"> | <img src="docs/screenshots/22-vertical-por-probar.jpg" width="240" alt="Mochi en la Home pregunta &quot;¿Y si pruebas algo de Súper?&quot; y, en &quot;¿Por qué?&quot;, dice &quot;Porque aún no pides en el súper&quot;"> | <img src="docs/screenshots/21-recompra.jpg" width="240" alt="Bloque de ejemplo &quot;¿Repetimos café? Pides cada 7 días.&quot; con un café molido del catálogo, Ver producto y Después"> |
-| Tras abrir dos veces Chocolates y una vez Rappi Mall, esos accesos suben. | Esa persona nunca pidió: Mochi le propone el súper y dice por qué. | Ilustración con la respuesta de ejemplo del contrato y un café real del catálogo; no es un hábito medido. |
+| <img src="docs/screenshots/03-home-dinamica.jpg" width="240" alt="Home tras un pedido en Chocolates: Chocolates sube al primer lugar, con la leyenda &quot;Ordenadas según lo que más usas&quot; y Mochi diciendo &quot;Moví Chocolates al primer lugar: pediste en chocolaterías.&quot;"> | <img src="docs/screenshots/22-vertical-por-probar.jpg" width="240" alt="Mochi en la Home pregunta &quot;¿Y si pruebas algo de Restaurantes?&quot; y, en &quot;¿Por qué?&quot;, dice &quot;Porque aún no pides en restaurantes: esto es lo que más se pide.&quot;"> | <img src="docs/screenshots/21-recompra.jpg" width="240" alt="Bloque de ejemplo &quot;¿Repetimos café? Pides cada 7 días.&quot; con un café molido del catálogo, Ver producto y Después"> |
+| Tras un pedido en Chocolates, Chocolates sube y Mochi dice por qué (abrir un acceso varias veces el mismo día no lo mueve). | Esa persona solo pidió en Chocolates (Retail): Mochi le propone Restaurantes, el siguiente peldaño, y dice por qué. | Ilustración con la respuesta de ejemplo del contrato y un café real del catálogo; no es un hábito medido. |
 
 ### Mochi, el buscador
 
