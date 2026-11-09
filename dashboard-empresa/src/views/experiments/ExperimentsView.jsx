@@ -36,8 +36,10 @@ const GROUP_COLUMNS = [
   },
 ]
 
-// En el grupo de control, además, las ofertas de los momentos que Mochi propone solo. Las personas expuestas son las que
-// tuvieron una oferta retenible (mostrada en tratamiento o retenida en control): la parte expuesta de docs/plan-piloto.md.
+// En el grupo de control, además, las ofertas de los momentos que Mochi propone solo. Las personas expuestas tienen una
+// oferta desde su asignación, sin tope (también en M+1), y cada grupo se mide con otro evento: en control, las ofertas
+// que la API retuvo (offer_withheld); en tratamiento, las que la app mostró (suggestion_shown). No se comparan uno a uno
+// ni sirven todavía para el efecto entre expuestos (docs/plan-piloto.md).
 const OFFER_COLUMNS = [
   {
     key: 'mostradas',
@@ -185,6 +187,16 @@ function Retention({ retention }) {
   )
 }
 
+/** Cómo se cuentan las personas expuestas: cada grupo con su evento, así que no se comparan uno a uno. */
+function ExposedNote() {
+  return (
+    <p className="block-note" data-testid="expuestas-nota">
+      Personas expuestas: con una oferta desde su asignación. Control: ofertas retenidas · Tratamiento: ofertas
+      mostradas. Cada grupo se cuenta con otro evento, así que no se comparan uno a uno.
+    </p>
+  )
+}
+
 function Experiment({ experiment }) {
   const offers = experiment.id === 'ofertas_control'
   const empty = assignedPeople(experiment) === 0
@@ -206,6 +218,7 @@ function Experiment({ experiment }) {
             rows={experiment.variantes}
             rowKey={(row) => row.variante}
           />
+          {offers && <ExposedNote />}
           {offers && experiment.retencion && <Retention retention={experiment.retencion} />}
         </>
       )}

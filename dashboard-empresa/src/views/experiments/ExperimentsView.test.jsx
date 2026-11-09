@@ -125,20 +125,21 @@ describe('ExperimentsView', () => {
     expect(screen.getByText(NOT_EVIDENCE)).toBeTruthy() // la población rotulada
   })
 
-  test('the control group shows the exposed people of each group and their share of it', async () => {
-    serveFixturesWith(withControl())
+  test('the exposed people say how each group is counted, and an empty group has no share', async () => {
+    const control = { variante: 'control', personas: 0, con_pedido: 0, verticales_por_persona: null }
+    const [treated] = withControl().experimentos.data.experimentos[1].variantes
+    serveFixturesWith(withControl({ variantes: [treated, { ...control, ofertas: offers(0, 0, 0, 0) }] }))
     await renderWithData(<ExperimentsView source="prototype" />)
 
     const table = await screen.findByRole('table', { name: 'Grupo de control de las ofertas de Mochi' })
-    const headers = within(table)
+    expect(screen.getByTestId('expuestas-nota').textContent).toContain(
+      'Control: ofertas retenidas · Tratamiento: ofertas mostradas',
+    )
+    const column = within(table)
       .getAllByRole('columnheader')
       .map((cell) => cell.textContent)
-    const column = headers.indexOf('Personas expuestas')
-    expect(column).toBeGreaterThan(-1)
-    const [treated, control] = bodyRows(table).map((row) => within(row).getAllByRole('cell')[column])
-    expect(treated.textContent).toBe('480,0%') // 4 de 5 con una oferta mostrada
-    expect(within(treated).getByText('80,0%').className).toBe('cell-sub')
-    expect(control.textContent).toBe('1100,0%') // 1 de 1 con una oferta retenida
+      .indexOf('Personas expuestas')
+    expect(within(bodyRows(table)[1]).getAllByRole('cell')[column].textContent).toBe('0') // sin personas, sin %
   })
 
   test('the control group shows M+1 retention by group and the difference, neutral under the minimum', async () => {
