@@ -5,9 +5,12 @@ import { resetQuiet } from './agentQuiet'
 
 // `repeatLater`: tocaron "Después" en "¿Repetimos?" o en "¿Volvemos a…?"; no vuelven en lo que dura la pestaña.
 // `winback`: la respuesta de "¿Volvemos a…?" (`{ generation, offer }`, offer null si no hubo), pedida una vez.
+// `pendingMove`: el cambio de orden de los accesos que Mochi aún no explica (sobrevive a cambiar de pestaña: el orden
+// nuevo ya quedó como visto).
 export const session = {
   played: false,
   lastAdded: null,
+  pendingMove: null,
   plan: null,
   planPrompted: false,
   repeatLater: false,
@@ -17,6 +20,16 @@ export const session = {
 /** Lo último agregado al carro en el prototipo final (fuera de la Home): el agente lo comenta al volver. */
 export function rememberAdded(product) {
   session.lastAdded = product
+}
+
+/** Lo agregado ya se comentó (o no hay qué decir): se olvida. */
+export function forgetAdded() {
+  session.lastAdded = null
+}
+
+/** El cambio de orden de los accesos que Mochi tiene que explicar (`null`: ya lo explicó o no corresponde). */
+export function rememberMove(move) {
+  session.pendingMove = move
 }
 
 /** La guía de la primera vez (2 pasos tras el saludo) ya se vio o se saltó: se recuerda en el navegador. */
@@ -53,6 +66,7 @@ export function resetLive() {
   Object.assign(session, {
     played: false,
     lastAdded: null,
+    pendingMove: null,
     plan: null,
     planPrompted: false,
     repeatLater: false,

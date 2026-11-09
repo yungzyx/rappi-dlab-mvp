@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { offer, plans as fetchPlans } from '../../../api/agent'
 import { envelope } from '../../../api/attribution'
 import { conceptOf } from '../../../api/orders'
@@ -16,6 +16,7 @@ import { useScrollState } from '../../../hooks/useScrollState'
 import { useAddress } from '../../../state/AddressContext'
 import { useAssistant } from '../../../state/AssistantContext'
 import { useAddToCart } from '../../../hooks/useAddToCart'
+import { lineKey } from '../../../state/CartContext'
 import { useEvents } from '../../../state/EventsContext'
 import { useOrders } from '../../../state/OrdersContext'
 import { useProfile } from '../../../state/ProfileContext'
@@ -27,7 +28,15 @@ import '../home.css'
 import { useVerticalOrder } from '../useVerticalOrder'
 import LiveAgent from './LiveAgent'
 import { PlanBlock, RepeatBlock, kitAddedText, openItem } from './LiveBlocks'
-import { AGENT_CART_EVENT, REPLAY_EVENT, markTourSeen, session, tourSeen } from '../../../state/liveMemory'
+import {
+  AGENT_CART_EVENT,
+  REPLAY_EVENT,
+  forgetAdded,
+  markTourSeen,
+  rememberMove,
+  session,
+  tourSeen,
+} from '../../../state/liveMemory'
 import { isHushed, isQuiet, noteDismissed, noteEngaged } from '../../../state/agentQuiet'
 import { isAgentHidden, useAgentHidden } from '../../../state/agentHidden'
 import { moveText, moveWhy, useShortcutMove } from './shortcutMoves'
@@ -94,11 +103,8 @@ export default function LiveHomeFeed({ push, active = true }) {
   // La fila que se ve: el último orden que vio la persona hasta que la Home está a la vista (arriba y sin el buscador
   // encima); ahí, si cambió, se mueve. Un cambio con el buscador abierto se ve al cerrarlo.
   const searching = useAssistant()?.isOpen === true
-  // Lo mismo para timers y respuestas que llegan después: el buscador tapa la Home (y su globo) mientras está abierto.
-  const searchOpen = useRef(searching)
-  const visible = useRef(active) // la Home arriba (`active`)
-  /** La Home se ve: arriba y sin el buscador de Mochi encima. */
-  const homeVisible = () => visible.current && !searchOpen.current
+  // El buscador de Mochi y la hoja de direcciones se abren encima de la Home (sin cambiar `active`) y la tapan.
+  const overlay = searching || address.sheetOpen === true
   const shortcuts = useShortcutMove(verticalOrder, { active: active && !searching, resets: profile.resets })
   // Cambia con cada pedido y con cada calificación (una mala pausa lo de ese pedido): "¿Volvemos a…?" se vuelve a pedir.
   const orders = useOrders().orders
@@ -149,8 +155,9 @@ export default function LiveHomeFeed({ push, active = true }) {
   const holdFor = useRef(0) // cuánto dura el globo actual (0: se queda hasta que algo lo reemplace)
   const paused = useRef(new Set()) // lo que detiene su cuenta: "¿Por qué?" abierto, puntero o teclado encima
 
-  // Lo que corre cuando la Home queda sin globo (el cambio de orden que esperaba): se renueva en cada render.
-  const freed = useRef(() => {})
+  // Lo de este render que leen los timers, las respuestas de la API y los globos: si la Home está tapada y `drain`.
+  const live = useRef({ covered: true, drain: () => {} })
+  const spoken = useRef(0) // cuenta los globos dichos: lo pedido no reemplaza a uno que apareció mientras llegaba
 
   /** Esconde el globo en `ms`; si trae `onExpire` (una oferta), lo llama al irse solo. */
   const armHide = useCallback((ms) => {
@@ -160,7 +167,7 @@ export default function LiveHomeFeed({ push, active = true }) {
       setSay(null)
       setTarget(null)
       gone?.onExpire?.()
-      freed.current()
+      live.current.drain()
     }, ms)
   }, [])
 
@@ -173,7 +180,7 @@ export default function LiveHomeFeed({ push, active = true }) {
         markTourSeen()
       }
       if (next?.tour) touring.current = true
-      const closed = said.current
+      if (next) spoken.current += 1
       said.current = next
       holdFor.current = next && holdMs ? holdMs : 0
       paused.current.clear()
@@ -181,8 +188,8 @@ export default function LiveHomeFeed({ push, active = true }) {
       setSay(next)
       setTarget(at)
       if (holdFor.current) armHide(holdFor.current)
-      // Al cerrarse un globo (no la guía, que al terminar sigue con lo de "al volver"), lo que esperaba puede ir.
-      if (!next && closed && !closed.tour) freed.current()
+      // Al cerrarse un globo, lo que esperaba puede ir.
+      if (!next) live.current.drain()
     },
     [armHide],
   )
@@ -217,24 +224,24 @@ export default function LiveHomeFeed({ push, active = true }) {
       })
   }
 
-  // "Moví … más adelante": el cambio de orden que Mochi aún no explica (llega mientras saluda o durante la guía).
-  const pendingMove = useRef(null)
-  // La oferta del carro va antes que la explicación de los accesos movidos: mientras se pide (`waiting`, la escena en que
-  // se pidió) y mientras su globo está a la vista (`cart`), un cambio de orden queda pendiente y se explica al cerrarse.
+  // La oferta del carro en camino: la escena en que se pidió (al salir de la Home, `run` cambia y deja de valer).
   const waiting = useRef(null)
-  const commenting = () => waiting.current === run.current || said.current?.cart === true
-  /** Mochi se para sobre el bloque de los accesos, los señala y dice cuál movió y por qué (cuenta como explicación vista). */
+  /**
+   * Mochi se para sobre el bloque de los accesos, los señala y dice cuál movió y por qué (cuenta como explicación vista).
+   * Si la persona bajó y la fila no se ve, espera a que vuelva a verla (no la lleva arriba).
+   */
   const explainMove = () => {
-    const move = pendingMove.current
-    // Con la Home tapada (otra pantalla o el buscador encima) espera: lo explica al volver.
-    if (!move || !homeVisible()) return
-    pendingMove.current = null
-    if (silent()) return
+    const move = session.pendingMove
+    if (move.resets !== profile.resets) {
+      rememberMove(null) // de antes de "Olvidar"
+      return
+    }
     const screenEl = screenRef.current
     const row = blockRefs.current.get('essentials')
-    // Si la fila quedó arriba, fuera de la vista, vuelve a ella para que se vea el cambio.
-    if (screenEl && row && screenEl.scrollTop > row.offsetTop + row.offsetHeight - 160)
-      screenEl.scrollTo({ top: 0, behavior: reduceMotion ? 'auto' : 'smooth' })
+    // Arriba del todo la fila siempre se ve (es el primer bloque).
+    const below = screenEl?.scrollTop > 0 && row && screenEl.scrollTop > row.offsetTop + row.offsetHeight - 160
+    if (below) return
+    rememberMove(null)
     speak(
       {
         reorder: true,
@@ -256,20 +263,9 @@ export default function LiveHomeFeed({ push, active = true }) {
     })
   }
 
-  // Un cambio de orden que esperaba (detrás de la oferta del carro o de un globo que la reemplazó: tocar a Mochi, el kit)
-  // se explica apenas la Home queda libre: sin globo, ya saludó y sin una oferta del carro en camino.
-  useEffect(() => {
-    freed.current = () => {
-      if (pendingMove.current && !said.current && session.played && !touring.current && !commenting()) explainMove()
-    }
-  })
-
   // La guía: cada paso espera a que la persona siga; "Saltar" o "Listo" la terminan para siempre (speak la marca
   // vista) y entonces el agente muestra lo que quedó pendiente de "al volver".
-  const endTour = () => {
-    speak(null)
-    welcomeBack()
-  }
+  const endTour = () => speak(null)
   const showTour = (step) => {
     const last = step === TOUR.length - 1
     speak(
@@ -310,32 +306,25 @@ export default function LiveHomeFeed({ push, active = true }) {
       setEntering(false)
       session.played = true
     })
-    // Cuando el saludo termina, la primera vez: la guía (en silencio, no; ni encima de algo que la persona pidió).
-    // Si mientras saludaba cambió el orden de los accesos, lo explica después (o al terminar la guía).
+    // Cuando el saludo termina, la primera vez: la guía (en silencio, no; ni encima de algo que la persona pidió). Lo
+    // que llegó mientras saludaba (un cambio de orden) va cuando se cierra el saludo, o al terminar la guía.
     later((reduceMotion ? 0 : T.enter) + T.greetHold, () => {
       const free = !said.current || said.current.text === GREETING
       if (free && !silent() && !tourSeen()) showTour(0)
-      else if (free && pendingMove.current && !commenting()) explainMove()
     })
     return clearTimers
     // Solo al montar (o al repetir la escena, o al cerrarse el aviso de privacidad).
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [replays, privacyClosed])
 
-  /** Se cerró el globo de la oferta del carro: si quedó un cambio de orden por explicar, va ahora; si no, `next`. */
-  const afterOffer = (next = null, holdMs = 0) => {
-    if (pendingMove.current && !silent() && homeVisible()) explainMove()
-    else speak(next, null, holdMs)
-  }
-
-  // Lo último que se agregó al carro lo comenta la oferta `carrito` de la API, con sus productos para agregar ahí mismo.
-  // Lo agregado se olvida recién cuando la oferta se muestra o la API dice que no hay (204); si falla, queda para la
-  // próxima vez.
+  // Lo último que se agregó al carro fuera de la Home lo comenta la oferta `carrito` de la API, con sus productos para
+  // agregar ahí mismo. Lo agregado se olvida recién cuando la oferta se muestra o la API dice que no hay (204); si falla,
+  // o si al llegar la Home está tapada o ya hay otro globo, queda para el próximo `drain`.
   async function commentOn(added) {
     const mine = run.current
     waiting.current = mine
     let made = null
-    let answered = true
+    let failed = false
     if (added.entityId != null) {
       try {
         made = await offer(
@@ -344,29 +333,27 @@ export default function LiveHomeFeed({ push, active = true }) {
           { userId: userId(), surface: 'home' },
         )
       } catch {
-        answered = false
+        failed = true
       }
     }
-    // Se fue de la Home o repitió la escena: ya no es el momento (lo agregado sigue pendiente).
-    if (mine !== run.current) return
+    if (mine !== run.current) return // se fue de la Home o repitió la escena
     waiting.current = null
-    // Con el buscador de Mochi encima no se vería: al cerrarlo se vuelve a pedir.
-    if (searchOpen.current) return
-    if (answered && !made && session.lastAdded === added) session.lastAdded = null
-    // Sin oferta, silenciado mientras tanto, ya empezó la guía o ya se están explicando los accesos: lo que esperaba
-    // detrás (el cambio de orden) va ahora, y lo del carro, si hubo oferta, la próxima vez.
-    if (!made || silent() || touring.current || said.current?.reorder) {
-      if (session.played && !touring.current) explainMove()
-      return
+    // Lo que sigue lee la Home de ahora (`live`), no la de cuando se pidió.
+    if (failed) return live.current.drain({ cart: false })
+    const same = session.lastAdded && lineKey(session.lastAdded) === lineKey(added)
+    if (!made) {
+      if (same) forgetAdded()
+      return live.current.drain()
     }
-    if (session.lastAdded === added) session.lastAdded = null
+    if (live.current.covered || said.current || touring.current || silent()) return
+    if (same) forgetAdded()
     noteOfferShown(events.track, made, { generation: profile.resets })
     const see = made.actions.find((action) => action.route)
     const expired = () => noteOfferDismissal(events.track, made, { generation: profile.resets, kind: EXPIRED })
     speak(
       {
         cart: true,
-        added, // lo que comenta: si se agrega otra cosa, esta oferta se reemplaza
+        added, // lo que comenta: si después se agrega otra cosa, esta oferta se reemplaza
         expired,
         text: made.text,
         why: made.reason,
@@ -374,16 +361,13 @@ export default function LiveHomeFeed({ push, active = true }) {
         mood: 'wave',
         // Sus productos van en el globo con su "+": agregarlos es aceptar la oferta (llevan `fromSuggestion`).
         products: made.products,
-        onExpire: () => {
-          expired()
-          afterOffer()
-        },
+        onExpire: expired,
         actions: [
           ...(see
             ? [
                 {
                   label: see.label,
-                  // "Ver …" busca lo ofrecido en su vertical; el cambio de orden pendiente se explica al volver.
+                  // "Ver …" busca lo ofrecido en su vertical.
                   onClick: () => {
                     noteEngaged()
                     openOffer(made)
@@ -398,7 +382,7 @@ export default function LiveHomeFeed({ push, active = true }) {
             onClick: () => {
               noteDismissed()
               noteOfferDismissal(events.track, made, { generation: profile.resets })
-              afterOffer()
+              speak(null)
             },
           },
         ],
@@ -408,21 +392,42 @@ export default function LiveHomeFeed({ push, active = true }) {
     )
   }
 
-  // Agregar un producto desde el globo de la oferta la acepta (useAddToCart lo anota): Mochi lo confirma y el globo se
-  // cierra (o explica el cambio de orden que esperaba).
+  /**
+   * Lo que Mochi tiene pendiente, cuando la Home queda libre (arriba, sin nada encima, ya saludó, sin guía, sin globo
+   * y sin una oferta en camino): primero la oferta del carro de lo agregado fuera de la Home y después el cambio de
+   * orden de los accesos. Corre al volver a la Home, al destaparla, al terminar la guía y al cerrarse cualquier globo.
+   * Con `cart: false` (la oferta acaba de fallar) solo el cambio de orden. En silencio, lo pendiente se olvida.
+   */
+  const drain = ({ cart = true } = {}) => {
+    const covered = !active || overlay
+    if (covered || !session.played) return
+    if (silent()) {
+      forgetAdded()
+      rememberMove(null)
+      return
+    }
+    if (touring.current || said.current || waiting.current === run.current) return
+    if (cart && session.lastAdded) commentOn(session.lastAdded)
+    else if (session.pendingMove) explainMove()
+  }
+  useLayoutEffect(() => {
+    live.current = { covered: !active || overlay, drain }
+  })
+
+  // Lo que se agrega con la Home a la vista (un kit, un "+" de sus bloques o del globo) no es "lo agregado fuera": no se
+  // comenta. Agregar un producto del globo de la oferta la acepta (useAddToCart lo anota) y Mochi lo confirma.
   useEffect(() => {
-    if (!say?.cart) return undefined
     const onAdded = ({ detail }) => {
-      if (!homeVisible() || said.current !== say) return
-      if (!say.products.some((product) => product.id === detail.product.id)) return
+      if (live.current.covered) return
+      forgetAdded()
+      const shown = said.current
+      if (!shown?.cart || !shown.products.some((product) => product.id === detail.product.id)) return
       noteEngaged()
-      afterOffer({ text: kitAddedText([detail.product]), mood: 'wave', gesture: 'spin' }, 3500)
+      speak({ text: kitAddedText([detail.product]), mood: 'wave', gesture: 'spin' }, null, 3500)
     }
     window.addEventListener(AGENT_CART_EVENT, onAdded)
     return () => window.removeEventListener(AGENT_CART_EVENT, onAdded)
-    // Solo con cada globo nuevo.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [say])
+  }, [speak])
 
   // Mirar un producto del globo (su hoja encima) también detiene su cuenta.
   const sheetOpen = useProductSheet().isOpen === true
@@ -430,29 +435,24 @@ export default function LiveHomeFeed({ push, active = true }) {
     if (said.current?.cart) holdBubble('sheet', sheetOpen)
   }, [sheetOpen, holdBubble])
 
-  // Al volver a la Home (o al cerrar el buscador de Mochi): comenta lo último que se agregó al carro y, cuando su globo
-  // se cierra, explica el cambio de orden de los accesos si quedó uno pendiente. La Home queda montada bajo las
-  // pantallas que se abren encima (`active` es si está arriba), así que corre cada vez que vuelve a estar arriba;
-  // durante la guía espera, y corre al terminarla.
-  function welcomeBack() {
-    if (silent()) {
-      session.lastAdded = null
-      return
-    }
-    // Con el globo del carro a la vista (pausado mientras el buscador estaba abierto) y otra cosa agregada después: la
-    // oferta anterior queda como ida sola y se pide la de lo nuevo.
+  /**
+   * Al volver a la Home o al destaparla. Si el globo del carro sigue a la vista (pausado mientras estaba tapada) y
+   * después se agregó otra cosa, esa oferta se va (como ida sola) y se pide la de lo nuevo; otra unidad del mismo
+   * producto no es otra cosa.
+   */
+  const back = () => {
     const shown = said.current
-    if (shown?.cart && session.lastAdded && session.lastAdded !== shown.added) {
-      shown.expired()
-      waiting.current = run.current // el cierre no deja pasar al cambio de orden: la oferta nueva va primero
-      speak(null)
-    } else if (commenting()) return
-    if (session.lastAdded) commentOn(session.lastAdded)
-    else explainMove()
+    if (shown?.cart && session.lastAdded) {
+      if (lineKey(session.lastAdded) !== lineKey(shown.added)) {
+        shown.expired()
+        speak(null) // y drain pide la nueva
+        return
+      }
+      forgetAdded()
+    }
+    drain()
   }
-  useEffect(() => {
-    visible.current = active
-  }, [active])
+
   // Con otra pantalla encima, lo que Mochi esperaba (una oferta, un kit) ya no corresponde: se calla y no habla después.
   // La guía no: sigue donde quedó cuando la Home vuelve a estar arriba.
   useEffect(() => {
@@ -462,32 +462,31 @@ export default function LiveHomeFeed({ push, active = true }) {
   }, [active, speak])
 
   useEffect(() => {
-    if (!active || !session.played || touring.current) return
-    welcomeBack()
+    if (active) back()
     // Solo al volver a estar arriba (y al montar).
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [active])
 
-  // Cerrar el buscador de Mochi (que se abre encima de la Home, sin cambiar `active`) también es volver. Va antes que el
-  // efecto del cambio de orden: el mismo cierre puede mover los accesos, y la oferta va primero.
-  // Mientras está abierto, el globo no se va solo (no se vería irse).
+  // Con el buscador de Mochi o la hoja de direcciones encima, el globo no se va solo (no se vería irse); al cerrarlos,
+  // como al volver.
+  const wasCovered = useRef(overlay)
   useEffect(() => {
-    const closed = searchOpen.current && !searching
-    searchOpen.current = searching
-    if (said.current) holdBubble('search', searching)
-    if (closed && active && session.played && !touring.current) welcomeBack()
-    // Solo al abrirse o cerrarse el buscador.
+    if (said.current) holdBubble('cover', overlay)
+    const uncovered = wasCovered.current && !overlay
+    wasCovered.current = overlay
+    if (uncovered && active) back()
+    // Solo al abrirse o cerrarse lo que tapa la Home.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [searching])
+  }, [overlay])
 
   // Cambió el orden con la Home arriba (el "Panel de la demo", o al volver de otra pantalla, o al abrir): la fila ya se
-  // desliza (Shortcuts), y Mochi lo explica si puede hablar; si está saludando, en la guía o con la oferta del carro,
-  // después. Oculto o en silencio, el orden cambia sin explicación.
+  // desliza (Shortcuts), y Mochi lo explica cuando la Home queda libre (`drain`). Oculto o en silencio, el orden cambia
+  // sin explicación.
   const moveKey = shortcuts.move?.key
   useEffect(() => {
     if (!moveKey || silent()) return
-    pendingMove.current = shortcuts.move
-    if (session.played && !touring.current && !commenting()) explainMove()
+    rememberMove({ ...shortcuts.move, resets: profile.resets })
+    drain()
     // Solo con cada cambio nuevo.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [moveKey])
@@ -581,7 +580,8 @@ export default function LiveHomeFeed({ push, active = true }) {
     const observer = new IntersectionObserver(
       ([entry]) => {
         if (!entry.isIntersecting || session.planPrompted || !session.played || silent() || touring.current) return
-        if (commenting()) return // no tapa la oferta del carro ni se adelanta al cambio de orden que espera
+        // Tampoco con la Home tapada ni encima de la oferta del carro (en camino o a la vista).
+        if (live.current.covered || waiting.current === run.current || said.current?.cart) return
         session.planPrompted = true
         speak(
           {
@@ -629,6 +629,7 @@ export default function LiveHomeFeed({ push, active = true }) {
     setKitReason(null)
     setKitStores([])
     setKitAdded(null)
+    const seen = spoken.current
     let made = null
     try {
       made = await offer('plan', { occasion: id }, { userId: userId(), surface: 'home' })
@@ -651,7 +652,9 @@ export default function LiveHomeFeed({ push, active = true }) {
     setKit(made.products)
     setKitReason(made.reason)
     setKitStores(made.stores)
-    speak({ text: `${chosen.emoji} ${made.text}`, mood: 'wave', gesture: 'hop' }, 'plan', 4500)
+    // El globo no sale con la Home tapada ni reemplaza a uno que apareció mientras llegaba el kit (el bloque sí lo muestra).
+    if (!live.current.covered && spoken.current === seen)
+      speak({ text: `${chosen.emoji} ${made.text}`, mood: 'wave', gesture: 'hop' }, 'plan', 4500)
   }
 
   // Igual que el "+" de cada producto: al carro, al perfil y a los eventos del panel (una aceptación por producto).
@@ -669,6 +672,7 @@ export default function LiveHomeFeed({ push, active = true }) {
     if (!session.played || poking.current) return
     poking.current = true
     const mine = run.current
+    const seen = spoken.current
     let made = null
     try {
       made = await offer('vertical_por_probar', {}, { userId: userId(), surface: 'home' })
@@ -680,6 +684,8 @@ export default function LiveHomeFeed({ push, active = true }) {
     // Sin nada que proponer (204) el agente no dice nada. Tampoco repite con "Vuelve a…" la vertical a la que la Home ya
     // invitó a volver en esta sesión ("¿Volvemos a…?"): una sola invitación por vertical.
     if (mine !== run.current || !made) return
+    // Con la Home tapada, o si apareció otro globo mientras llegaba, lo pedido se descarta (ni se muestra ni se cuenta).
+    if (live.current.covered || spoken.current !== seen) return
     if (made.reason?.basis?.some((signal) => signal.kind === 'vuelta' && signal.id === backVertical())) return
     noteShown(events.track, made.products, {
       origin: `agent-${made.moment}`,
@@ -801,6 +807,8 @@ export default function LiveHomeFeed({ push, active = true }) {
         onScroll={(event) => {
           onScroll(event)
           agentRef.current?.scrolled()
+          // Un cambio de orden que esperaba a que la fila volviera a verse.
+          if (session.pendingMove) drain({ cart: false })
         }}
         data-top={scrolled ? 'scrolled' : 'top'}
       >
