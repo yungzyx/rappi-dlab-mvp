@@ -673,8 +673,10 @@ def test_the_amplitude_bridge_uses_rappis_names_and_envelope(client, db):
 
 def test_the_amplitude_bridge_keeps_kind_and_visible(client, db):
     """Migración 055: una oferta que se fue sola (kind "expirada") se distingue en el puente de un rechazo, y
-    `agent_visibility` dice si ocultó a Mochi o lo trajo de vuelta (el false de jsonb no se pierde)."""
+    `agent_visibility` dice si ocultó a Mochi o lo trajo de vuelta (el false de jsonb no se pierde). KIND también sale
+    en la mostrada (VIEW_COMPONENT): para contar los "Después" no basta con KIND, hay que mirar el event_type."""
     dismissed = {"type": "suggestion_dismissed", "session_id": "s-imp", "concept_id": "snacks-salados"}
+    shown = {"type": "suggestion_shown", "session_id": "s-imp", "concept_id": "snacks-salados"}
     response = post(
         client,
         "u-kind",
@@ -683,6 +685,8 @@ def test_the_amplitude_bridge_keeps_kind_and_visible(client, db):
         {**dismissed, "origin": "agent-volver", "client_event_id": str(uuid.uuid4()), "payload": {"kind": "volver"}},
         {"type": "agent_visibility", "session_id": "s-imp", "origin": "cuenta", "payload": {"visible": False}},
         {"type": "agent_visibility", "session_id": "s-imp", "origin": "cuenta", "payload": {"visible": True}},
+        {**shown, "origin": "agent-volver", "client_event_id": str(uuid.uuid4()), "payload": {"kind": "volver"}},
+        {**shown, "origin": "para-ti", "client_event_id": str(uuid.uuid4()), "payload": {"kind": "lo_mas_pedido"}},
     )
     assert response.status_code == 200, response.text
     rows = db.execute(
@@ -694,6 +698,8 @@ def test_the_amplitude_bridge_keeps_kind_and_visible(client, db):
     visible = [props.get("VISIBLE") for name, props in rows if name == "MVP_AGENT_VISIBILITY"]
     assert visible == [False, True]
     assert all("KIND" not in props for name, props in rows if name == "MVP_AGENT_VISIBILITY")
+    shown_kinds = [props.get("KIND") for name, props in rows if name == "VIEW_COMPONENT"]
+    assert shown_kinds == ["volver", "lo_mas_pedido"]
 
 
 def test_every_event_type_says_if_rappi_has_it(db):

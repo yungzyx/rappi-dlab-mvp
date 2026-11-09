@@ -2,6 +2,9 @@
 -- - `KIND` (`payload.kind`): separa un `suggestion_dismissed` con kind "expirada" (la oferta se fue sola del globo de la
 --   Home, events/store.py:EXPIRED_KIND) de un rechazo, y el "Después" de "¿Volvemos a…?" (kind "volver" o "vuelta").
 --   El panel, el resumen y winback ya los separan; sin esto, quien leyera la vista contaba la expirada como rechazo.
+--   KIND sale en todo evento que traiga payload.kind: también en la mostrada (`suggestion_shown`, VIEW_COMPONENT), con
+--   "lo_mas_pedido" o con "volver"/"vuelta" en la invitación de "¿Volvemos a…?". Para contar los "Después" hay que
+--   filtrar también por event_type (MVP_SUGGESTION_DISMISSED).
 -- - `VISIBLE` (`payload.visible`): si un `agent_visibility` ocultó a Mochi (false) o lo trajo de vuelta (true). El false
 --   de jsonb no es nulo, así que jsonb_strip_nulls lo conserva.
 -- No hay un event_type nuevo: siguen como MVP_SUGGESTION_DISMISSED y MVP_AGENT_VISIBILITY. Mismas columnas en el mismo
@@ -77,4 +80,4 @@ LEFT JOIN LATERAL (
     WHERE i.event_id = e.event_id AND e.type IN ('list_view', 'offer_withheld')
 ) it ON true;
 
-COMMENT ON COLUMN capa.v_eventos_amplitude.event_properties IS 'Propiedades con los nombres de Rappi, en mayúsculas (sin las nulas): CONTEXT (surface), SOURCE y COMPONENT_NAME (origin), COMPONENT_INDEX (position), VERTICAL, STORE_ID, PRODUCT_ID, REQUEST_ID, CART_ID, PRODUCT_VALUE, TOTAL, RESULTS, PRICE, OFFER_VALUE y OPEN (el catálogo fijado al registrar, payload.catalogo), PRODUCT_ID_LIST y STORE_ID_LIST (lo que la lista dejó a la vista), LAST_POSITION_VIEWED, KIND (payload.kind: "expirada" en una oferta que se fue sola, que no es un rechazo, y "volver" o "vuelta" en el "Después" de "¿Volvemos a…?") y VISIBLE (payload.visible de agent_visibility: false al ocultar a Mochi, true al traerlo de vuelta).';
+COMMENT ON COLUMN capa.v_eventos_amplitude.event_properties IS 'Propiedades con los nombres de Rappi, en mayúsculas (sin las nulas): CONTEXT (surface), SOURCE y COMPONENT_NAME (origin), COMPONENT_INDEX (position), VERTICAL, STORE_ID, PRODUCT_ID, REQUEST_ID, CART_ID, PRODUCT_VALUE, TOTAL, RESULTS, PRICE, OFFER_VALUE y OPEN (el catálogo fijado al registrar, payload.catalogo), PRODUCT_ID_LIST y STORE_ID_LIST (lo que la lista dejó a la vista), LAST_POSITION_VIEWED, KIND (payload.kind, en todo evento que lo traiga: en MVP_SUGGESTION_DISMISSED, "expirada" si la oferta se fue sola, que no es un rechazo, o "volver"/"vuelta" en el "Después" de "¿Volvemos a…?", y sin KIND en un rechazo; en VIEW_COMPONENT de una suggestion_shown, "lo_mas_pedido" o "volver"/"vuelta" en la invitación mostrada. Para contar los "Después" hay que filtrar también por event_type) y VISIBLE (payload.visible de agent_visibility: false al ocultar a Mochi, true al traerlo de vuelta).';
