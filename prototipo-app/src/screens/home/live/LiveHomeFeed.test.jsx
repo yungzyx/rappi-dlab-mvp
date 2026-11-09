@@ -613,6 +613,47 @@ describe('Home del prototipo final', () => {
       expect(status(container)).toBe(fixture('agent-offer-carrito').text)
     })
 
+    // Vuelve a la Home con algo recién agregado al carro: Mochi pide la oferta del carro.
+    const backWithCart = async (rerender, push) => {
+      rerender(homeTree({ push, active: false }))
+      memory.session.lastAdded = LOOSE_CART
+      rerender(homeTree({ push, active: true }))
+      await advance(4000)
+    }
+
+    test('aceptar con el "+" del globo cuenta como usar a Mochi: dos "Ahora no" no seguidos no lo callan', async () => {
+      const carrito = fixture('agent-offer-carrito')
+      memory.session.played = true
+      memory.session.lastAdded = LOOSE_CART
+      const { container, rerender } = await renderHome()
+      await advance(4000)
+      fireEvent.click(screen.getByRole('button', { name: 'Ahora no' }))
+      await backWithCart(rerender)
+      const bubble = container.querySelector('.live-bubble')
+      fireEvent.click(within(bubble).getByRole('button', { name: `Agregar ${carrito.products[0].name}` }))
+      await advance(4000)
+      await backWithCart(rerender)
+      fireEvent.click(screen.getByRole('button', { name: 'Ahora no' }))
+      await backWithCart(rerender)
+      expect(status(container)).toBe(carrito.text)
+    })
+
+    test('"Ver …" también cuenta como usar a Mochi', async () => {
+      const push = vi.fn()
+      memory.session.played = true
+      memory.session.lastAdded = LOOSE_CART
+      const { container, rerender } = await renderHome({ push })
+      await advance(4000)
+      fireEvent.click(screen.getByRole('button', { name: 'Ahora no' }))
+      await backWithCart(rerender, push)
+      fireEvent.click(screen.getByRole('button', { name: 'Ver snacks salados' }))
+      expect(tracked('vertical_open', 'agent-carrito')).toHaveLength(1)
+      await backWithCart(rerender, push)
+      fireEvent.click(screen.getByRole('button', { name: 'Ahora no' }))
+      await backWithCart(rerender, push)
+      expect(status(container)).toBe(fixture('agent-offer-carrito').text)
+    })
+
     test('"Después" en la vertical por probar registra el rechazo con el concepto de la mostrada', async () => {
       const { container } = await renderHome()
       await advance(900 + 3400)
@@ -1669,6 +1710,103 @@ describe('Home del prototipo final', () => {
       rerender(homeTree({ push, active: true }))
       await advance(1500)
       expect(said(container)).toBe(LINE)
+    })
+
+    // La Home con un orden nuevo pendiente detrás del globo del carro (al volver de una vertical).
+    const cartOverMove = async () => {
+      memory.session.played = true
+      let calls = 0
+      const mock = stubAgent({
+        'GET /profile/*': () => (++calls === 1 ? fixture('profile-verticales-nueva') : fixture('profile-verticales')),
+      })
+      const view = await withPanel()
+      await advance(500)
+      view.show(false)
+      memory.session.lastAdded = LOOSE_CART
+      view.show(true)
+      await advance(4000)
+      expect(said(view.container)).toBe(CARRITO)
+      return { ...view, mock }
+    }
+
+    test('si la oferta del carro llega con el buscador abierto, no se muestra ni se cuenta: sale al cerrarlo', async () => {
+      memory.session.played = true
+      memory.session.lastAdded = LOOSE_CART
+      stubAgent({
+        'POST /agent/offer': (req) =>
+          req.body.moment === 'carrito' ? { slow: 2000, body: fixture('agent-offer-carrito') } : 204,
+      })
+      const { container, hooks } = await withPanel()
+      await advance(100) // la oferta ya se pidió
+      act(() => hooks.assistant.open())
+      await advance(3000) // llega con el buscador encima
+      expect(container.querySelector('.live-bubble')).toBeNull()
+      expect(tracked('suggestion_shown', 'agent-carrito')).toEqual([])
+      expect(memory.session.lastAdded).toBe(LOOSE_CART)
+      act(() => hooks.assistant.close({ viaHistory: true }))
+      await advance(3000)
+      expect(said(container)).toBe(CARRITO)
+      expect(tracked('suggestion_shown', 'agent-carrito')).toHaveLength(1)
+    })
+
+    test('con el buscador abierto el globo del carro no se va solo ni explica el orden debajo', async () => {
+      const { container, hooks } = await cartOverMove()
+      act(() => hooks.assistant.open())
+      await advance(40000)
+      expect(tracked('suggestion_dismissed', 'agent-carrito')).toEqual([])
+      expect(tracked('vertical_reorder_shown', 'agent-reorden')).toEqual([])
+      act(() => hooks.assistant.close({ viaHistory: true }))
+      await advance(1000)
+      expect(said(container)).toBe(CARRITO) // sigue ahí, y vuelve a contar
+      await advance(30000)
+      expect(said(container)).toBe(LINE)
+      expect(tracked('vertical_reorder_shown', 'agent-reorden')).toHaveLength(1)
+    })
+
+    test('si otro globo reemplaza al del carro (tocar a Mochi), "Moví…" sale cuando ese se cierra', async () => {
+      const { container } = await cartOverMove()
+      fireEvent.click(screen.getByRole('button', { name: /^Mochi:/ }))
+      await advance(3000)
+      expect(said(container)).toBe(POKE_LINE)
+      fireEvent.click(screen.getByRole('button', { name: 'Después' }))
+      await advance(500)
+      expect(said(container)).toBe(LINE)
+    })
+
+    test('el aviso del plan del día no tapa el globo del carro', async () => {
+      let seePlan
+      globalThis.IntersectionObserver = class {
+        constructor(callback) {
+          seePlan = callback
+        }
+        observe() {}
+        disconnect() {}
+      }
+      try {
+        const { container } = await cartOverMove()
+        act(() => seePlan([{ isIntersecting: true }]))
+        await advance(1000)
+        expect(said(container)).toBe(CARRITO)
+      } finally {
+        delete globalThis.IntersectionObserver
+      }
+    })
+
+    test('con el globo del carro a la vista y otra cosa agregada en el buscador: la oferta vieja se va y se pide la nueva', async () => {
+      const OTHER = { ...LOOSE_CART, id: 'cat-94002', name: 'Pisco 35° 750 cc (prueba)', entityId: '94002' }
+      const { container, hooks, mock } = await cartOverMove()
+      act(() => hooks.assistant.open())
+      act(() => hooks.cart.add(OTHER))
+      await advance(500)
+      act(() => hooks.assistant.close({ viaHistory: true }))
+      await advance(4000)
+      expect(tracked('suggestion_dismissed', 'agent-carrito')).toEqual([
+        ['suggestion_dismissed', expect.objectContaining({ payload: { kind: 'expirada' } })],
+      ])
+      const carts = offerRequests(mock).filter((body) => body.moment === 'carrito')
+      expect(carts.map((body) => body.context.product.entity_id)).toEqual(['94001', '94002'])
+      expect(said(container)).toBe(CARRITO) // la nueva va primero; el orden, después
+      expect(tracked('vertical_reorder_shown', 'agent-reorden')).toEqual([])
     })
 
     test('recién abierta, primero saluda y después explica el cambio', async () => {
