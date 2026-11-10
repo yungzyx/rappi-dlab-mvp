@@ -47,6 +47,17 @@
   margin-bottom: calc(-1 * var(--space-3));
 }
 
+/* Lo que sigue a una tabla (su nota, "Ver las 30") queda separado por una línea, como un pie */
+.panel-body > .table-wrap:not(:last-child) {
+  border-bottom: 1px solid var(--line);
+}
+
+/* Un título dentro del cuerpo (el embudo de cada modo de la app) */
+.panel-body > .subhead {
+  margin-top: 0;
+  font-size: var(--text-sm);
+}
+
 .panel-foot {
   display: grid;
   gap: var(--space-1);
@@ -84,14 +95,15 @@
 
 .data-table th {
   height: 32px;
-  padding: 0 var(--space-3);
+  padding: 6px var(--space-3);
   font-size: var(--text-xs);
   font-weight: 600;
   text-align: left;
   color: var(--ink-2);
+  line-height: 1.3;
+  vertical-align: bottom;
   background: var(--surface-sunken);
   border-bottom: 1px solid var(--line-strong);
-  white-space: nowrap;
 }
 
 .data-table td {
@@ -103,6 +115,7 @@
 }
 
 .data-table td:first-child {
+  min-width: 8rem;
   color: var(--ink);
   font-weight: 500;
 }
@@ -137,6 +150,9 @@
 .data-table .is-num {
   text-align: right;
   font-variant-numeric: tabular-nums;
+}
+
+.data-table td.is-num {
   white-space: nowrap;
 }
 

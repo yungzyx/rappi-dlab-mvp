@@ -4,6 +4,7 @@ import { DataTable } from '../../components/DataTable.jsx'
 import { Delta } from '../../components/Delta.jsx'
 import { ProvenanceBadge } from '../../components/ProvenanceBadge.jsx'
 import { SourceNote } from '../../components/SourceNote.jsx'
+import { Panel } from '../../components/Panel.jsx'
 import { EmptyState } from '../../components/States.jsx'
 import { Stats } from '../../components/Stats.jsx'
 import { formatNumber, formatPct, formatSignedPct } from '../../lib/format.js'
@@ -61,36 +62,17 @@ function Suggestions({ source }) {
 }
 
 /**
- * Por momento y entre verticales, lado a lado. Con los simulados no hay momentos (el simulador no los guarda): el aviso
- * va en una línea y las sugerencias ocupan todo el ancho, sin dejar un hueco al lado.
+ * Por momento, a todo el ancho (7 columnas). Con los simulados no hay momentos (el simulador no los guarda): en su lugar,
+ * la caja que lo dice.
  */
-function OffersAndSuggestions({ source }) {
+function Moments({ source }) {
   const offers = useAnalytics('offers', source)
-  const suggestions = (
-    <div className="pair-item">
-      <h3 className="subhead">Entre verticales: qué se acepta</h3>
-      <Async>
-        <Suggestions source={source} />
-      </Async>
-    </div>
-  )
   const noMoments = offers.momentos.length > 0 && offers.momentos.every((row) => row.momento === 'sin_momento')
-  if (source === 'synthetic' && noMoments) {
-    return (
-      <>
-        <OffersByMoment data={offers} source={source} />
-        {suggestions}
-      </>
-    )
-  }
+  if (source === 'synthetic' && noMoments) return <OffersByMoment data={offers} source={source} />
   return (
-    <div className="pair">
-      <div className="pair-item">
-        <h3 className="subhead">Por momento</h3>
-        <OffersByMoment data={offers} source={source} />
-      </div>
-      {suggestions}
-    </div>
+    <Panel title="Por momento">
+      <OffersByMoment data={offers} source={source} />
+    </Panel>
   )
 }
 
@@ -115,7 +97,11 @@ function Unmet({ source }) {
   return (
     <>
       <UnmetSearches data={unmet} table={!opportunities.length} />
-      {opportunities.length > 0 && <UnmetDemand rows={opportunities} />}
+      {opportunities.length > 0 && (
+        <Panel>
+          <UnmetDemand rows={opportunities} />
+        </Panel>
+      )}
     </>
   )
 }
@@ -220,30 +206,33 @@ export function MochiView({ source }) {
             A quién le ofrece qué, en qué momento y con qué resultado. Aceptada: la oferta se agregó al carro; la tasa
             aparece desde 10 mostradas.
           </p>
+          <SourceNote source={source} />
           <ProvenanceBadge kind={source} />
         </div>
         <div className="block">
-          <SourceNote source={source} />
           <Async fallback={null}>
             <OfferStats source={source} />
           </Async>
           <Async>
-            <OffersAndSuggestions source={source} />
+            <Moments source={source} />
           </Async>
-          <div className="pair">
-            <div className="pair-item">
-              <h3 className="subhead">Servicios sin catálogo</h3>
+          <div className="pair pair--7-5">
+            <Panel title="Entre verticales: qué se acepta">
+              <Async>
+                <Suggestions source={source} />
+              </Async>
+            </Panel>
+            <Panel title="Servicios sin catálogo">
               <Async>
                 <Services source={source} />
               </Async>
-            </div>
-            <div className="pair-item">
-              <h3 className="subhead">El motor contra una regla simple</h3>
-              <Async>
-                <Motor source={source} />
-              </Async>
-            </div>
+            </Panel>
           </div>
+          <Panel title="El motor contra una regla simple">
+            <Async>
+              <Motor source={source} />
+            </Async>
+          </Panel>
         </div>
       </section>
 
@@ -256,10 +245,10 @@ export function MochiView({ source }) {
             Últimos 30 días. Oculto es quien lo ocultó y no lo trajo de vuelta en Cuenta. Si muchas personas lo ocultan,{' '}
             {AGENT_NAME} molesta: hay que revisar cada cuánto habla y propone.
           </p>
+          <SourceNote source={source} />
           <ProvenanceBadge kind={source} />
         </div>
         <div className="block">
-          <SourceNote source={source} />
           <Async>
             <AgentPresence source={source} />
           </Async>
@@ -276,23 +265,21 @@ export function MochiView({ source }) {
             hasta dónde llega cada sesión. El primer lugar se toca más también por estar primero: este es el sesgo que
             hay que descontar antes de comparar órdenes.
           </p>
+          <SourceNote source={source} />
           <ProvenanceBadge kind={source} />
         </div>
         <div className="block">
-          <SourceNote source={source} />
           <div className="pair">
-            <div className="pair-item">
-              <h3 className="subhead">CTR por posición</h3>
+            <Panel title="CTR por posición">
               <Async>
                 <Ctr source={source} />
               </Async>
-            </div>
-            <div className="pair-item">
-              <h3 className="subhead">Embudo por sesión</h3>
+            </Panel>
+            <Panel title="Embudo por sesión">
               <Async>
                 <Funnel source={source} />
               </Async>
-            </div>
+            </Panel>
           </div>
         </div>
       </section>
@@ -307,33 +294,31 @@ export function MochiView({ source }) {
             y para cuántas personas. "No está en la muestra" no es "Rappi no lo vende": la muestra pública trae hasta 24
             productos por sub-pasillo.
           </p>
+          <SourceNote source={source} />
           <ProvenanceBadge kind={source} />
         </div>
         <div className="block">
-          <SourceNote source={source} />
           <Async>
             <Unmet source={source} />
           </Async>
           <div className="pair">
-            <div className="pair-item">
-              <h3 className="subhead">Lo que sube</h3>
-              <p className="cell-sub">
+            <Panel title="Lo que sube">
+              <p className="block-note">
                 Búsquedas, preguntas a {AGENT_NAME} y agregados al carro: últimas 4 semanas contra las 4 anteriores. Lo
                 que sube y tiene surtido es campaña con horario; lo que sube "sin surtido", demanda que cubrir.
               </p>
               <Async>
                 <Rising source={source} />
               </Async>
-            </div>
-            <div className="pair-item">
-              <h3 className="subhead">Poco surtido para lo que se busca</h3>
-              <p className="cell-sub">
+            </Panel>
+            <Panel title="Poco surtido para lo que se busca">
+              <p className="block-note">
                 Más personas buscando que productos en el catálogo; los productos son reales (muestra pública).
               </p>
               <Async>
                 <Thin source={source} />
               </Async>
-            </div>
+            </Panel>
           </div>
         </div>
       </section>

@@ -3,6 +3,7 @@ import { DataTable } from '../../components/DataTable.jsx'
 import { EmptyState } from '../../components/States.jsx'
 import { formatNumber, formatPct } from '../../lib/format.js'
 import { plural, verticalLabel } from '../../lib/labels.js'
+import { Panel } from '../../components/Panel.jsx'
 import { Stats } from '../../components/Stats.jsx'
 
 const COLUMNS = [
@@ -55,15 +56,15 @@ export function UnmetSearches({ data, table = true }) {
         ]}
       />
       {table && rows.length > 0 && (
-        <DataTable
-          caption="Búsquedas sin resultado por vertical y concepto"
-          columns={COLUMNS}
-          rows={rows}
-          rowKey={(row) => `${row.vertical}/${row.concepto ?? ''}`}
-        />
-      )}
-      {table && rows.length > 0 && (
-        <p className="cell-sub">Hasta 20 filas, por vertical y concepto; nunca el texto que escribió la persona.</p>
+        <Panel>
+          <DataTable
+            caption="Búsquedas sin resultado por vertical y concepto"
+            columns={COLUMNS}
+            rows={rows}
+            rowKey={(row) => `${row.vertical}/${row.concepto ?? ''}`}
+          />
+          <p className="cell-sub">Hasta 20 filas, por vertical y concepto; nunca el texto que escribió la persona.</p>
+        </Panel>
       )}
     </>
   )

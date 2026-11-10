@@ -1,6 +1,7 @@
 import { AGENT_NAME } from '../../lib/agentName.js'
 import { DataTable } from '../../components/DataTable.jsx'
 import { Meter } from '../../components/Meter.jsx'
+import { Panel } from '../../components/Panel.jsx'
 import { EmptyState } from '../../components/States.jsx'
 import { Stats } from '../../components/Stats.jsx'
 import { formatDate, formatNumber } from '../../lib/format.js'
@@ -86,36 +87,35 @@ export function Churn({ source }) {
           Nadie pasó el doble de su propio ritmo sin pedir (o todavía nadie tiene dos compras).
         </EmptyState>
       ) : (
-        <div className="panel">
-          <div className="panel-head">
-            <h3 className="subhead">Qué pedían y cómo llegarles</h3>
-          </div>
-          <div className="panel-body">
-            <p className="block-note">
-              Con aviso aceptado: recordatorio en su ritmo con lo que más pedían y un complemento. Sin aviso: solo{' '}
-              {AGENT_NAME} en la app. Muestra de {formatNumber(rows.length)} de las{' '}
-              {formatNumber(kpis.en_riesgo + kpis.perdidos)}, primero las en riesgo más atrasadas respecto de su ritmo.
+        <Panel
+          title="Qué pedían y cómo llegarles"
+          foot={
+            <>
+              {audiences.length > TOP_AUDIENCES && (
+                <p>
+                  Los {TOP_AUDIENCES} grupos más grandes de {audiences.length}.
+                </p>
+              )}
+              <details className="disclosure">
+                <summary>Ver la lista de personas (id seudónimo)</summary>
+                <AtRiskTable rows={rows} />
+              </details>
+            </>
+          }
+        >
+          <p className="block-note">
+            Con aviso aceptado: recordatorio en su ritmo con lo que más pedían y un complemento. Sin aviso: solo{' '}
+            {AGENT_NAME} en la app. Muestra de {formatNumber(rows.length)} de las{' '}
+            {formatNumber(kpis.en_riesgo + kpis.perdidos)}, primero las en riesgo más atrasadas respecto de su ritmo.
+          </p>
+          {shownAtRisk === 0 && kpis.en_riesgo > 0 && (
+            <p className="table-warning status status--warn">
+              La API entregó {rows.length} filas y ninguna es de una persona en riesgo: las{' '}
+              {formatNumber(kpis.en_riesgo)} en riesgo, las más fáciles de recuperar, no alcanzan a aparecer.
             </p>
-            {shownAtRisk === 0 && kpis.en_riesgo > 0 && (
-              <p className="table-warning status status--warn">
-                La API entregó {rows.length} filas y ninguna es de una persona en riesgo: las{' '}
-                {formatNumber(kpis.en_riesgo)} en riesgo, las más fáciles de recuperar, no alcanzan a aparecer.
-              </p>
-            )}
-            <Audiences rows={rows} audiences={audiences} />
-          </div>
-          <div className="panel-foot">
-            {audiences.length > TOP_AUDIENCES && (
-              <p>
-                Los {TOP_AUDIENCES} grupos más grandes de {audiences.length}.
-              </p>
-            )}
-            <details className="disclosure">
-              <summary>Ver la lista de personas (id seudónimo)</summary>
-              <AtRiskTable rows={rows} />
-            </details>
-          </div>
-        </div>
+          )}
+          <Audiences rows={rows} audiences={audiences} />
+        </Panel>
       )}
     </>
   )
