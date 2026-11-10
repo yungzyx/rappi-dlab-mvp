@@ -37,7 +37,9 @@ export function OverviewView({ source, onNavigate }) {
     <div className="view">
       <section className="section" aria-labelledby="que-decidir">
         <div className="section-head">
-          <h2 id="que-decidir">Qué decidir</h2>
+          <h2 id="que-decidir" tabIndex={-1}>
+            Qué decidir
+          </h2>
           <p>
             Cada pregunta con su cifra, su comparación y una acción, cuando los datos la sostienen. Ninguna se escala
             sin un grupo de control.
@@ -85,7 +87,9 @@ export function OverviewView({ source, onNavigate }) {
 
       <section className="section" aria-labelledby="como-va">
         <div className="section-head">
-          <h2 id="como-va">Cómo va</h2>
+          <h2 id="como-va" tabIndex={-1}>
+            Cómo va
+          </h2>
           <p>La última semana completa contra la de hace 4 semanas. Rojo solo si empeora.</p>
           <ProvenanceBadge kind={source} />
         </div>

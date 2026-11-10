@@ -84,7 +84,17 @@ abbr {
 .view {
   display: grid;
   gap: var(--section-gap);
-  padding-block: var(--space-6) var(--section-gap);
+}
+
+/* Al llegar a una sección (un enlace del Resumen, "En esta vista"), el título queda bajo lo fijo de arriba */
+h2[id] {
+  scroll-margin-top: 56px;
+}
+
+@media (min-width: 1024px) {
+  h2[id] {
+    scroll-margin-top: calc(var(--top-h, 96px) + 16px);
+  }
 }
 
 .section {
@@ -113,7 +123,6 @@ abbr {
 
 .section-head h2 {
   grid-area: title;
-  scroll-margin-top: 72px; /* bajo la barra de pestañas fija, al llegar desde un enlace del Resumen */
   font-size: 1.75rem;
   font-weight: 700;
   letter-spacing: -0.03em;

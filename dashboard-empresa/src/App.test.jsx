@@ -1,6 +1,6 @@
 import { act, fireEvent, screen, within } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest'
-import App from './App.jsx'
+import App, { VIEWS } from './App.jsx'
 import { apiDown, renderWithData, resetApi, serveFixtures, serveFixturesWith } from './test/fixtureApi.js'
 
 describe('App', () => {
@@ -40,6 +40,53 @@ describe('App', () => {
     expect(screen.getByRole('tab', { name: 'Experimentos' }).getAttribute('aria-selected')).toBe('true')
     expect(await screen.findByRole('heading', { name: 'Experimentos del MVP' })).toBeTruthy()
     expect(screen.getByText('Usuarios y eventos SIMULADOS:')).toBeTruthy()
+  })
+
+  test('ArrowDown and ArrowUp also move between the tabs (the side navigation is vertical)', async () => {
+    serveFixtures()
+    await renderWithData(<App />)
+
+    await act(async () => fireEvent.keyDown(screen.getByRole('tab', { name: 'Resumen' }), { key: 'ArrowDown' }))
+    const customersTab = screen.getByRole('tab', { name: 'Retención y venta cruzada' })
+    expect(customersTab.getAttribute('aria-selected')).toBe('true')
+    expect(document.activeElement).toBe(customersTab)
+
+    await act(async () => fireEvent.keyDown(customersTab, { key: 'ArrowUp' }))
+    expect(screen.getByRole('tab', { name: 'Resumen' }).getAttribute('aria-selected')).toBe('true')
+  })
+
+  test('every section of "En esta vista" is a heading of its view', async () => {
+    for (const { id, sections } of VIEWS) {
+      window.history.replaceState(null, '', `/?vista=${id}`)
+      serveFixtures()
+      const { unmount } = await renderWithData(<App />)
+      const nav = screen.getByRole('navigation', { name: 'Secciones de esta vista' })
+      expect(
+        within(nav)
+          .getAllByRole('button')
+          .map((button) => button.textContent),
+      ).toEqual(sections.map((section) => section.label))
+      for (const section of sections) {
+        const heading = document.getElementById(section.id)
+        expect(heading?.tagName, `${id}#${section.id}`).toBe('H2')
+        expect(heading.textContent).toBe(section.label)
+      }
+      unmount()
+      resetApi()
+    }
+  })
+
+  test('a button of "En esta vista" takes the focus to its heading without changing the view', async () => {
+    window.history.replaceState(null, '', '/?vista=mochi')
+    serveFixtures()
+    await renderWithData(<App />)
+
+    const nav = screen.getByRole('navigation', { name: 'Secciones de esta vista' })
+    await act(async () => fireEvent.click(within(nav).getByRole('button', { name: 'Qué buscan y no encuentran' })))
+
+    expect(screen.getByRole('tabpanel').id).toBe('panel-mochi')
+    expect(document.activeElement).toBe(screen.getByRole('heading', { name: 'Qué buscan y no encuentran' }))
+    expect(window.location.search).toContain('vista=mochi')
   })
 
   test('the header and the footer say it is a dLab prototype with Rappi, not official, and the footer links the presentation', async () => {

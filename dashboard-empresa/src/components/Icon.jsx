@@ -32,6 +32,9 @@ const PATHS = {
   arrowRight: <path d="M5 12h14M13 5l7 7-7 7" />,
   table: <path d="M3 5h18v14H3zM3 10h18M3 15h18M9 10v9" />,
   chart: <path d="M4 20V10M10 20V4M16 20v-7M22 20H2" />,
+  refresh: (
+    <path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8M21 3v5h-5M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16M8 16H3v5" />
+  ),
 }
 
 export function Icon({ name, className }) {

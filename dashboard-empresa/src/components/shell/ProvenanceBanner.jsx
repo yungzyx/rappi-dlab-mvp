@@ -27,14 +27,14 @@ export function ProvenanceBanner({ source, fallbacks, prototypeOffline, onRetry 
   return (
     <div className="provenance" role="note" aria-label="Procedencia de los datos">
       <div className={`provenance-row provenance-row--${source}`}>
-        <div className="container provenance-inner">
+        <div className="provenance-inner">
           <Icon name="flask" />
           <p>{MESSAGES[source]}</p>
         </div>
       </div>
       {SNAPSHOT_INFO && (
         <div className="provenance-row provenance-row--offline">
-          <div className="container provenance-inner">
+          <div className="provenance-inner">
             <Icon name="offline" />
             <p>
               <strong>Foto sin conexión:</strong> respuestas de la API de rappi-ia grabadas el{' '}
@@ -46,7 +46,7 @@ export function ProvenanceBanner({ source, fallbacks, prototypeOffline, onRetry 
       )}
       {source === 'prototype' && prototypeOffline && (
         <div className="provenance-row provenance-row--offline" role="alert">
-          <div className="container provenance-inner">
+          <div className="provenance-inner">
             <Icon name="offline" />
             <p>
               <strong>Sin conexión con la API:</strong> {PROTOTYPE_OFFLINE_MESSAGE}
@@ -59,7 +59,7 @@ export function ProvenanceBanner({ source, fallbacks, prototypeOffline, onRetry 
       )}
       {fallbacks.length > 0 && (
         <div className="provenance-row provenance-row--offline" role="status">
-          <div className="container provenance-inner">
+          <div className="provenance-inner">
             <Icon name="offline" />
             <p>
               <strong>Modo sin conexión (datos guardados):</strong> la API de rappi-ia en{' '}

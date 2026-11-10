@@ -1,9 +1,9 @@
 import { use } from 'react'
-import { AGENT_NAME } from '../../lib/agentName.js'
 import { loadCatalogDates, SNAPSHOT_INFO } from '../../lib/api.js'
 import { formatDate } from '../../lib/format.js'
 import { useAnalytics } from '../../lib/useAnalytics.js'
 import { Async } from '../Async.jsx'
+import { Icon } from '../Icon.jsx'
 import { SourceSwitch } from './SourceSwitch.jsx'
 import { ThemeToggle } from './ThemeToggle.jsx'
 
@@ -35,55 +35,74 @@ function CatalogDates() {
   )
 }
 
-export function Header({ source, reloadKey, onSourceChange, onRefresh }) {
+/**
+ * De dónde salen los datos que se ven ahora: el único punto de color de estado de la página. Sale del estado que ya hay
+ * (la foto grabada, el prototipo sin la API, los bloques con datos guardados); el detalle va en el aviso de procedencia.
+ */
+function dataStatus({ source, fallbacks, prototypeOffline }) {
+  if (SNAPSHOT_INFO) return { kind: 'snapshot', label: 'Foto grabada' }
+  if (source === 'prototype' && prototypeOffline) return { kind: 'offline', label: 'API sin conexión' }
+  if (fallbacks.length > 0) return { kind: 'saved', label: 'Datos guardados' }
+  return { kind: 'live', label: 'API en vivo' }
+}
+
+export function Header({ source, reloadKey, fallbacks, prototypeOffline, onSourceChange, onRefresh }) {
+  const status = dataStatus({ source, fallbacks, prototypeOffline })
   return (
     <header className="masthead">
-      <div className="container masthead-inner">
-        <div className="brand">
-          {/* Marca del panel: tres barras que crecen, en el naranja-rojo de Rappi (decorativa). */}
-          <svg className="brand-mark" viewBox="0 0 32 32" aria-hidden="true">
-            <rect width="32" height="32" rx="9" />
-            <path className="brand-bar" d="M9 22v-5" />
-            <path className="brand-bar" d="M16 22V10" />
-            <path className="brand-bar" d="M23 22v-8" />
-          </svg>
-          <div>
-            <p className="eyebrow">Prototipo dLab con Rappi, no oficial</p>
-            <h1>Panel de negocio</h1>
-          </div>
+      <div className="brand">
+        {/* Marca del panel: tres barras en el naranja-rojo de Rappi (decorativa). */}
+        <svg className="brand-mark" viewBox="0 0 32 32" aria-hidden="true">
+          <rect width="32" height="32" rx="8" />
+          <path className="brand-bar" d="M9 22v-5" />
+          <path className="brand-bar" d="M16 22V10" />
+          <path className="brand-bar" d="M23 22v-8" />
+        </svg>
+        <div className="brand-text">
+          <h1>Panel de negocio</h1>
+          <p className="masthead-sub">Prototipo dLab con Rappi, no oficial</p>
         </div>
-        <div className="masthead-controls">
-          <SourceSwitch value={source} onChange={onSourceChange} />
-          <ThemeToggle />
-        </div>
-        <p className="masthead-lede">
-          Para la <strong>gerencia</strong> y <strong>RappiAds</strong>: venta cruzada, retención y lo que ofrece{' '}
-          {AGENT_NAME}.
-        </p>
-        <div className="masthead-meta">
+      </div>
+      <div className="masthead-source">
+        <SourceSwitch value={source} onChange={onSourceChange} />
+      </div>
+      <div className="masthead-meta">
+        <p className="masthead-asof">
+          <span className={`data-status data-status--${status.kind}`}>{status.label}</span>
+          <span className="masthead-sep" aria-hidden="true">
+            ·
+          </span>
           {/* Sin caja de error en el encabezado; la clave la vuelve a intentar al cambiar de fuente o al reintentar. */}
-          <Async
-            key={`${source}-${reloadKey}`}
-            fallback={<span>Cargando fecha de corte…</span>}
-            errorFallback={<span>fecha de corte: sin conexión</span>}
-          >
-            <AsOf source={source} />
-          </Async>
-          {' · '}
+          <span>
+            <Async
+              key={`${source}-${reloadKey}`}
+              fallback={<span>Cargando fecha de corte…</span>}
+              errorFallback={<span>fecha de corte: sin conexión</span>}
+            >
+              <AsOf source={source} />
+            </Async>
+          </span>
           {SNAPSHOT_INFO ? (
             // En el archivo suelto no hay nada que volver a pedir: se dice de cuándo es la foto.
             <span>
+              <span className="masthead-sep" aria-hidden="true">
+                ·
+              </span>
               foto del <strong className="num">{formatDate(SNAPSHOT_INFO.fecha)}</strong>
             </span>
           ) : (
-            <button type="button" className="text-button" onClick={onRefresh}>
+            <button type="button" className="masthead-refresh" onClick={onRefresh}>
+              <Icon name="refresh" />
               Actualizar
             </button>
           )}
-          <Async key={`catalogo-${reloadKey}`} fallback={null}>
-            <CatalogDates />
-          </Async>
-        </div>
+        </p>
+        <Async key={`catalogo-${reloadKey}`} fallback={null}>
+          <CatalogDates />
+        </Async>
+      </div>
+      <div className="masthead-theme">
+        <ThemeToggle />
       </div>
     </header>
   )
