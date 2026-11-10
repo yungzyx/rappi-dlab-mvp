@@ -12,7 +12,10 @@ export function EmptyState({ title, children }) {
 export function LoadingState() {
   return (
     <div className="state state--loading" role="status" aria-live="polite">
-      <span>Cargando datos…</span>
+      <span className="visually-hidden">Cargando datos…</span>
+      <span className="skeleton" aria-hidden="true" />
+      <span className="skeleton" aria-hidden="true" />
+      <span className="skeleton" aria-hidden="true" />
     </div>
   )
 }

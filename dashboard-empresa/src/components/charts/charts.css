@@ -3,7 +3,7 @@
 /* ---------- Chispa (tendencia de un indicador) ---------- */
 .sparkline {
   min-width: 0;
-  height: 36px;
+  height: 32px;
 }
 
 .sparkline svg {
@@ -14,15 +14,15 @@
 .sparkline-path {
   fill: none;
   stroke: var(--deemph);
-  stroke-width: 2;
+  stroke-width: 1.5;
   stroke-linejoin: round;
   stroke-linecap: round;
 }
 
-/* El último punto en tinta, con anillo del color de la página: el naranja se leería como "empeora" */
+/* El último punto en tinta, con anillo del color de la superficie: el naranja se leería como "empeora" */
 .sparkline-dot {
   fill: var(--ink-2);
-  stroke: var(--page);
+  stroke: var(--surface);
   stroke-width: 2;
 }
 

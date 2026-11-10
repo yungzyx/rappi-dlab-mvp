@@ -1,26 +1,57 @@
-/* ---------- Dos bloques lado a lado (por momento | entre verticales; servicios | motor; sube | surtido) ---------- */
+/* ---------- Dos paneles lado a lado (entre verticales | servicios; CTR | embudo; sube | surtido) ---------- */
 .pair {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: var(--space-6) var(--space-7);
+  gap: var(--space-4);
   align-items: start;
 }
 
+.pair--7-5 {
+  grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
+}
+
+/* Cada mitad es un panel: el título hace de cabecera y la tabla va a sangre */
 .pair-item {
   display: grid;
-  gap: var(--space-3);
   align-content: start;
+  gap: var(--space-3);
   min-width: 0;
+  padding-bottom: var(--space-3);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-m);
+  background: var(--surface);
 }
 
 .pair-item > .subhead {
-  margin-top: 0;
-  padding-bottom: var(--space-2);
-  border-bottom: 2px solid var(--ink);
+  display: flex;
+  align-items: center;
+  min-height: 44px;
+  margin: 0;
+  padding: var(--space-2) var(--space-4);
+  border-bottom: 1px solid var(--line);
+  font-size: 0.84375rem;
+}
+
+.pair-item > :not(.subhead):not(.table-wrap) {
+  margin-inline: var(--space-4);
+}
+
+.pair-item > .subhead + .table-wrap {
+  margin-top: calc(-1 * var(--space-3));
+}
+
+.pair-item > .table-wrap:last-child {
+  margin-bottom: calc(-1 * var(--space-3));
+}
+
+.pair-item .table-wrap {
+  border: 0;
+  border-radius: 0;
 }
 
 @media (max-width: 1000px) {
-  .pair {
+  .pair,
+  .pair--7-5 {
     grid-template-columns: minmax(0, 1fr);
   }
 }
