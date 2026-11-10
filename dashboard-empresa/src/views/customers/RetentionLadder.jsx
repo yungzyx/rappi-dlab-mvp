@@ -84,18 +84,20 @@ export function RetentionLadder({ rappi }) {
   const [lo, hi] = retentionDomain(steps)
   const toX = (pct) => ((pct - lo) / (hi - lo)) * 100
   const ticks = Array.from({ length: (hi - lo) / TICK_STEP + 1 }, (_, index) => lo + index * TICK_STEP)
+  const legend = (
+    <div className="legend">
+      <span className="legend-item">
+        <span className="ladder-key ladder-key--from" />
+        Hoy: vuelven al mes siguiente
+      </span>
+      <span className="legend-item">
+        <span className="ladder-key ladder-key--to" />
+        Quienes además usan el grupo siguiente
+      </span>
+    </div>
+  )
   const chart = (
     <div className="ladder">
-      <div className="legend">
-        <span className="legend-item">
-          <span className="ladder-key ladder-key--from" />
-          Hoy: vuelven al mes siguiente
-        </span>
-        <span className="legend-item">
-          <span className="ladder-key ladder-key--to" />
-          Quienes además usan el grupo siguiente
-        </span>
-      </div>
       <ol className="ladder-rows">
         {steps.map((step) => (
           <Step key={step.from.combo} step={step} toX={toX} ticks={ticks} />
@@ -123,5 +125,5 @@ export function RetentionLadder({ rappi }) {
       rowClassName={(row) => (row.combo === 'total' ? 'is-group-start' : undefined)}
     />
   )
-  return <ChartTableSwitch chart={chart} table={table} />
+  return <ChartTableSwitch chart={chart} table={table} legend={legend} />
 }

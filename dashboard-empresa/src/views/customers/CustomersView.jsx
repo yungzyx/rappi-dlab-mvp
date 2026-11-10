@@ -12,14 +12,14 @@ import './customers.css'
 function Ladder() {
   const { rappi } = useAnalytics('combos', 'synthetic')
   return (
-    <>
+    <div className="panel ladder-panel">
       <RetentionLadder rappi={rappi} />
-      <p className="block-note">
+      <p className="panel-foot">
         {rappi.nota} Retail agrupa todo el comercio que no es restaurante ni Turbo; Favor no tiene una combinación con
         un grupo más en la tabla. {AGENT_NAME} ofrece el paso como "vertical por probar"; solo un grupo de control mide
         si sumar la vertical hace volver.
       </p>
-    </>
+    </div>
   )
 }
 
@@ -58,10 +58,10 @@ export function CustomersView({ source }) {
             Rappi Pro une las verticales con envío gratis. Lado a lado: cuánto piden, cuántos vuelven a comprar y
             cuántos combinan verticales en cada grupo. Es una comparación, no un efecto: quien ya pide más se hace Pro.
           </p>
+          <SourceNote source={source} />
           <ProvenanceBadge kind={source} />
         </div>
         <div className="block">
-          <SourceNote source={source} />
           <Async>
             <ProSplit source={source} />
           </Async>
@@ -77,10 +77,10 @@ export function CustomersView({ source }) {
             Cada persona tiene su propio ritmo de compra, y el riesgo se mide contra ese ritmo. El concepto que se
             muestra nunca es sensible, y fuera de la app solo se escribe a quien aceptó avisos.
           </p>
+          <SourceNote source={source} />
           <ProvenanceBadge kind={source} />
         </div>
         <div className="block">
-          <SourceNote source={source} />
           <Async>
             <Churn source={source} />
           </Async>

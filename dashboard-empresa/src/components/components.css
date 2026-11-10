@@ -426,3 +426,14 @@
 .disclosure > summary:hover {
   background: var(--surface-sunken);
 }
+
+/* Una lista a pedido en el pie de un panel: abierta, su tabla va a sangre */
+.panel-foot .disclosure {
+  font-size: var(--text-sm);
+}
+
+.panel-foot .disclosure .table-wrap {
+  margin-inline: calc(-1 * var(--space-4));
+  border-width: 1px 0;
+  border-radius: 0;
+}

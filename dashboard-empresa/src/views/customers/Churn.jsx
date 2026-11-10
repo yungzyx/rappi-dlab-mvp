@@ -10,8 +10,7 @@ import { AtRiskTable } from './AtRiskTable.jsx'
 
 const TOP_AUDIENCES = 8
 
-function Audiences({ rows }) {
-  const audiences = riskAudiences(rows)
+function Audiences({ rows, audiences }) {
   const top = audiences.slice(0, TOP_AUDIENCES)
   const max = Math.max(...top.map((audience) => audience.people))
   const columns = [
@@ -36,19 +35,12 @@ function Audiences({ rows }) {
     },
   ].filter((column) => column.key !== 'atRisk' || rows.some((row) => row.estado !== 'en_riesgo'))
   return (
-    <>
-      <DataTable
-        caption="Personas en riesgo o perdidas por lo que más pedían"
-        columns={columns}
-        rows={top}
-        rowKey={(row) => row.concept}
-      />
-      {audiences.length > TOP_AUDIENCES && (
-        <p className="cell-sub">
-          Los {TOP_AUDIENCES} grupos más grandes de {audiences.length}.
-        </p>
-      )}
-    </>
+    <DataTable
+      caption="Personas en riesgo o perdidas por lo que más pedían"
+      columns={columns}
+      rows={top}
+      rowKey={(row) => row.concept}
+    />
   )
 }
 
@@ -59,6 +51,7 @@ function Audiences({ rows }) {
 export function Churn({ source }) {
   const [kpis, rows, winback] = useAnalyticsMany(['kpis', 'at-risk', 'volver'], source)
   const shownAtRisk = rows.filter((row) => row.estado === 'en_riesgo').length
+  const audiences = riskAudiences(rows)
   return (
     <>
       <Stats
@@ -93,25 +86,36 @@ export function Churn({ source }) {
           Nadie pasó el doble de su propio ritmo sin pedir (o todavía nadie tiene dos compras).
         </EmptyState>
       ) : (
-        <>
-          <h3 className="subhead">Qué pedían y cómo llegarles</h3>
-          <p className="block-note">
-            Con aviso aceptado: recordatorio en su ritmo con lo que más pedían y un complemento. Sin aviso: solo{' '}
-            {AGENT_NAME} en la app. Muestra de {formatNumber(rows.length)} de las{' '}
-            {formatNumber(kpis.en_riesgo + kpis.perdidos)}, primero las en riesgo más atrasadas respecto de su ritmo.
-          </p>
-          {shownAtRisk === 0 && kpis.en_riesgo > 0 && (
-            <p className="table-warning status status--warn">
-              La API entregó {rows.length} filas y ninguna es de una persona en riesgo: las{' '}
-              {formatNumber(kpis.en_riesgo)} en riesgo, las más fáciles de recuperar, no alcanzan a aparecer.
+        <div className="panel">
+          <div className="panel-head">
+            <h3 className="subhead">Qué pedían y cómo llegarles</h3>
+          </div>
+          <div className="panel-body">
+            <p className="block-note">
+              Con aviso aceptado: recordatorio en su ritmo con lo que más pedían y un complemento. Sin aviso: solo{' '}
+              {AGENT_NAME} en la app. Muestra de {formatNumber(rows.length)} de las{' '}
+              {formatNumber(kpis.en_riesgo + kpis.perdidos)}, primero las en riesgo más atrasadas respecto de su ritmo.
             </p>
-          )}
-          <Audiences rows={rows} />
-          <details className="disclosure">
-            <summary>Ver la lista de personas (id seudónimo)</summary>
-            <AtRiskTable rows={rows} />
-          </details>
-        </>
+            {shownAtRisk === 0 && kpis.en_riesgo > 0 && (
+              <p className="table-warning status status--warn">
+                La API entregó {rows.length} filas y ninguna es de una persona en riesgo: las{' '}
+                {formatNumber(kpis.en_riesgo)} en riesgo, las más fáciles de recuperar, no alcanzan a aparecer.
+              </p>
+            )}
+            <Audiences rows={rows} audiences={audiences} />
+          </div>
+          <div className="panel-foot">
+            {audiences.length > TOP_AUDIENCES && (
+              <p>
+                Los {TOP_AUDIENCES} grupos más grandes de {audiences.length}.
+              </p>
+            )}
+            <details className="disclosure">
+              <summary>Ver la lista de personas (id seudónimo)</summary>
+              <AtRiskTable rows={rows} />
+            </details>
+          </div>
+        </div>
       )}
     </>
   )

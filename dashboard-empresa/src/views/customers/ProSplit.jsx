@@ -40,26 +40,31 @@ export function ProSplit({ source }) {
   const missing =
     split.sin_dato > 0 ? ` ${formatNumber(split.sin_dato)} personas con pedidos no tienen la marca y no entran.` : ''
   return (
-    <>
-      {split.grupos.length ? (
-        <DataTable caption="Pro y sin Pro" columns={COLUMNS} rows={split.grupos} rowKey={(row) => row.grupo} />
-      ) : (
-        <EmptyState title="Todavía no hay grupos que mostrar">
-          Cada grupo necesita al menos {formatNumber(split.minimo_personas)} personas con pedidos.{missing}
-        </EmptyState>
-      )}
-      <p className="block-note">
-        Volvió a comprar: hizo una segunda compra (un carro dividido en dos tiendas es una compra). Multi-vertical:
-        pidió en dos verticales o más entre quienes pidieron en los últimos 60 días. La retención es solo de quien tiene
-        120 días de historia, y se omite con menos de {formatNumber(split.minimo_personas)} personas.
-        {split.grupos.length > 0 && missing}
-      </p>
-      {source === 'synthetic' && (
+    <div className="panel">
+      <div className="panel-body">
+        {split.grupos.length ? (
+          <DataTable caption="Pro y sin Pro" columns={COLUMNS} rows={split.grupos} rowKey={(row) => row.grupo} />
+        ) : (
+          <EmptyState title="Todavía no hay grupos que mostrar">
+            Cada grupo necesita al menos {formatNumber(split.minimo_personas)} personas con pedidos.{missing}
+          </EmptyState>
+        )}
+      </div>
+      <div className="panel-foot">
         <p className="block-note">
-          En los datos simulados, quién es Pro lo sortea el generador según cuántas verticales combina cada persona (un
-          supuesto propio, no un dato de Rappi): que Pro combine más verticales lo puso el generador, no es evidencia.
+          Volvió a comprar: hizo una segunda compra (un carro dividido en dos tiendas es una compra). Multi-vertical:
+          pidió en dos verticales o más entre quienes pidieron en los últimos 60 días. La retención es solo de quien
+          tiene 120 días de historia, y se omite con menos de {formatNumber(split.minimo_personas)} personas.
+          {split.grupos.length > 0 && missing}
         </p>
-      )}
-    </>
+        {source === 'synthetic' && (
+          <p className="block-note">
+            En los datos simulados, quién es Pro lo sortea el generador según cuántas verticales combina cada persona
+            (un supuesto propio, no un dato de Rappi): que Pro combine más verticales lo puso el generador, no es
+            evidencia.
+          </p>
+        )}
+      </div>
+    </div>
   )
 }
