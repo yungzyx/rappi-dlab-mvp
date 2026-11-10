@@ -1,8 +1,9 @@
 /*
  * Armazón del panel: barra superior y franja de procedencia fijas, navegación lateral y contenido. El scroll es del
  * documento (la presentación lo desplaza con scrollBy y las capturas son de página completa): lo fijo va con sticky.
- * Desde 1024 px, todo lo de arriba queda fijo y la navegación va a la izquierda; en angosto, solo la navegación queda
- * fija, como tira horizontal.
+ * Desde 1200 px, todo lo de arriba queda fijo y la navegación va a la izquierda; por debajo, solo la navegación queda
+ * fija, como tira horizontal (con la columna lateral, a 1024 px el contenido quedaba en 756 px y las tablas se
+ * desbordaban).
  */
 .app {
   display: grid;
@@ -383,7 +384,7 @@
   padding: var(--space-5) var(--pad) var(--space-7);
 }
 
-@media (min-width: 1024px) {
+@media (min-width: 1200px) {
   .app-top {
     position: sticky;
     top: 0;
@@ -491,21 +492,7 @@
   }
 }
 
-@media (max-width: 1023px) {
-  .masthead {
-    grid-template-columns: minmax(0, 1fr) auto;
-    grid-template-areas:
-      'brand theme'
-      'source source'
-      'meta meta';
-    gap: var(--space-3) var(--space-4);
-    padding-block: var(--space-3);
-  }
-
-  .masthead-meta {
-    white-space: normal;
-  }
-
+@media (max-width: 1199px) {
   .provenance-inner {
     align-items: flex-start;
   }
@@ -522,6 +509,22 @@
   .tabs {
     padding-right: var(--space-5);
     mask-image: linear-gradient(90deg, #000 calc(100% - 28px), transparent);
+  }
+}
+
+@media (max-width: 1023px) {
+  .masthead {
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-areas:
+      'brand theme'
+      'source source'
+      'meta meta';
+    gap: var(--space-3) var(--space-4);
+    padding-block: var(--space-3);
+  }
+
+  .masthead-meta {
+    white-space: normal;
   }
 }
 

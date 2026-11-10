@@ -10,7 +10,8 @@
   grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
 }
 
-@media (max-width: 1000px) {
+/* Con la navegación lateral, bajo 1280 px cada mitad queda angosta para sus tablas */
+@media (max-width: 1000px), (min-width: 1200px) and (max-width: 1279px) {
   .pair,
   .pair--7-5 {
     grid-template-columns: minmax(0, 1fr);

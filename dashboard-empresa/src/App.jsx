@@ -73,8 +73,8 @@ export default function App() {
   const top = useRef(null)
   const nav = useRef(null)
   const anchor = useRef(null)
-  // Desde 1024 px: barra superior fija y navegación lateral; en angosto, la navegación es una tira fija arriba.
-  const wide = useMediaQuery('(min-width: 1024px)')
+  // Desde 1200 px: barra superior fija y navegación lateral; más angosto, la navegación es una tira fija arriba.
+  const wide = useMediaQuery('(min-width: 1200px)')
   const { View, sections } = VIEWS.find((item) => item.id === view)
 
   // La altura de lo fijo arriba (la franja de procedencia puede ocupar dos líneas o sumar avisos), para el CSS.

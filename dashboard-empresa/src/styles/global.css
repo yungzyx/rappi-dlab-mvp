@@ -91,16 +91,19 @@ h2[id] {
   scroll-margin-top: 56px;
 }
 
-@media (min-width: 1024px) {
+@media (min-width: 1200px) {
   h2[id] {
     scroll-margin-top: calc(var(--top-h, 96px) + 16px);
   }
 }
 
+/* Cada sección es un contenedor: sus filas y tiras se acomodan a su ancho, no al de la ventana (la navegación lateral
+   le quita 224 px) */
 .section {
   display: grid;
   gap: var(--space-4);
   min-width: 0;
+  container-type: inline-size;
 }
 
 /* Cabecera de sección: título, rótulo del prototipo e insignia en una fila; el texto debajo */
