@@ -47,9 +47,13 @@
   margin-bottom: calc(-1 * var(--space-3));
 }
 
-/* Lo que sigue a una tabla (su nota, "Ver las 30") queda separado por una línea, como un pie */
+/* Una tabla entre notas (lo que la explica, "Ver las 30") queda separada por líneas */
 .panel-body > .table-wrap:not(:last-child) {
   border-bottom: 1px solid var(--line);
+}
+
+.panel-body > :not(.table-wrap) + .table-wrap {
+  border-top: 1px solid var(--line);
 }
 
 /* Un título dentro del cuerpo (el embudo de cada modo de la app) */

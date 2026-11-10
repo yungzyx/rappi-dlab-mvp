@@ -3,6 +3,7 @@ import { Async } from '../../components/Async.jsx'
 import { DataTable } from '../../components/DataTable.jsx'
 import { ProvenanceBadge } from '../../components/ProvenanceBadge.jsx'
 import { SourceNote } from '../../components/SourceNote.jsx'
+import { Panel } from '../../components/Panel.jsx'
 import { EmptyState } from '../../components/States.jsx'
 import { formatNumber, formatPct, formatPoints } from '../../lib/format.js'
 import { useAnalytics } from '../../lib/useAnalytics.js'
@@ -202,10 +203,13 @@ function Experiment({ experiment }) {
   const empty = assignedPeople(experiment) === 0
   const label = experimentLabel(experiment.id)
   return (
-    <div className="block">
-      <h3 className="subhead">
-        {label} <Kind random={experiment.al_azar} />
-      </h3>
+    <Panel
+      title={
+        <>
+          {label} <Kind random={experiment.al_azar} />
+        </>
+      }
+    >
       <p className="block-note">{experiment.nota}</p>
       {empty ? (
         <NobodyYet experiment={experiment} />
@@ -222,7 +226,7 @@ function Experiment({ experiment }) {
           {offers && experiment.retencion && <Retention retention={experiment.retencion} />}
         </>
       )}
-    </div>
+    </Panel>
   )
 }
 
@@ -245,10 +249,10 @@ export function ExperimentsView({ source }) {
             efecto; uno elegido por alguien describe. Las cifras cuentan desde que se asignó la variante. La tabla de
             Rappi (combinar verticales retiene más) es una correlación: medir el efecto pide un grupo de control.
           </p>
+          <SourceNote source={source} />
           <ProvenanceBadge kind={source} />
         </div>
         <div className="block">
-          <SourceNote source={source} />
           <Async>
             <Experiments source={source} />
           </Async>
