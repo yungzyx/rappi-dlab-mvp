@@ -81,6 +81,7 @@ export function Pulse({ source }) {
       <div className="pulse">
         <WeeklyTile rows={rows} item={series('usuarios_activos')} asOf={kpis.as_of} />
         <WeeklyTile rows={rows} item={series('pedidos')} asOf={kpis.as_of} />
+        <WeeklyTile rows={rows} item={series('abandono_carrito_pct')} asOf={kpis.as_of} />
         <KpiTile
           title="Frecuencia (30 días)"
           value={formatNumber(kpis.frecuencia, 2)}
@@ -93,7 +94,6 @@ export function Pulse({ source }) {
           unit="de quienes pidieron en 60 días"
           context="Es la palanca: en la tabla de Rappi, quien combina verticales vuelve más."
         />
-        <WeeklyTile rows={rows} item={series('abandono_carrito_pct')} asOf={kpis.as_of} />
       </div>
       {rows.length > 0 && (
         <details className="disclosure">

@@ -91,9 +91,9 @@ export function OverviewView({ source, onNavigate }) {
             Cómo va
           </h2>
           <p>La última semana completa contra la de hace 4 semanas. Rojo solo si empeora.</p>
+          <SourceNote source={source} />
           <ProvenanceBadge kind={source} />
         </div>
-        <SourceNote source={source} />
         <Async>
           <Pulse source={source} />
         </Async>
