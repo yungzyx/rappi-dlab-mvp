@@ -2,5 +2,5 @@
 import '@fontsource-variable/figtree'
 import './styles/tokens.css'
 import './styles/global.css'
-import './components/shell/shell.css'
+import './styles/shared.css'
 import './styles/presentacion.css'

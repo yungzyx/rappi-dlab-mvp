@@ -62,9 +62,7 @@
   padding: var(--space-5);
   border-radius: var(--radius-m);
   background: var(--surface);
-  box-shadow:
-    var(--shadow-card),
-    inset 0 0 0 1px var(--hairline);
+  box-shadow: inset 0 0 0 1px var(--line);
 }
 
 .decision-head {

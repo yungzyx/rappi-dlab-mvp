@@ -1,0 +1,43 @@
+/* Lo que comparten el panel y la presentación: la marca y el pie. */
+
+/* Marca: tres barras en el naranja-rojo de Rappi (decorativa, sin animación) */
+.brand-mark {
+  width: 24px;
+  height: 24px;
+  flex: none;
+}
+
+.brand-mark rect {
+  fill: var(--brand);
+}
+
+.brand-mark path {
+  fill: none;
+  stroke: var(--on-brand);
+  stroke-width: 3;
+  stroke-linecap: round;
+}
+
+/* ---------- Pie ---------- */
+.site-footer {
+  padding-block: var(--space-6) var(--space-7);
+  border-top: 1px solid var(--line);
+  font-size: var(--text-sm);
+  color: var(--ink-3);
+}
+
+.site-footer p + p {
+  margin-top: var(--space-2);
+}
+
+.site-footer a {
+  color: var(--ink-2);
+  text-decoration: underline;
+  text-decoration-color: var(--line-strong);
+  text-underline-offset: 3px;
+}
+
+.site-footer a:hover {
+  color: var(--ink);
+  text-decoration-color: currentColor;
+}

@@ -20,47 +20,12 @@
   gap: var(--space-3);
 }
 
-.brand-mark {
-  width: 40px;
-  height: 40px;
-  flex: none;
-}
-
-.brand-mark rect {
-  fill: var(--brand);
-}
-
-.brand-mark path {
-  fill: none;
-  stroke: var(--on-brand);
-  stroke-width: 3;
-  stroke-linecap: round;
-  transform-box: fill-box;
-  transform-origin: bottom;
-  /* Las barras crecen una vez al cargar: dice "datos" sin decirlo */
-  animation: grow-y var(--duration-enter) var(--ease-spring) both;
-}
-
-.brand-mark path:nth-child(3) {
-  animation-delay: 90ms;
-}
-
-.brand-mark path:nth-child(4) {
-  animation-delay: 180ms;
-}
-
-@keyframes grow-y {
-  from {
-    transform: scaleY(0);
-  }
-}
-
 .brand .eyebrow {
   color: var(--brand-ink);
 }
 
 .brand h1 {
-  font-size: var(--text-display);
+  font-size: 1.75rem;
   letter-spacing: -0.03em;
   line-height: 1;
 }
@@ -194,7 +159,7 @@
 .provenance-row {
   border-block: 1px solid var(--sim-edge);
   color: var(--sim-ink);
-  background: var(--sim-hatch), var(--sim-bg);
+  background: var(--sim-bg);
 }
 
 .provenance-row--prototype {
@@ -290,7 +255,7 @@
   border-radius: 3px 3px 0 0;
   background: var(--brand);
   transform: scaleX(0);
-  transition: transform var(--duration-normal) var(--ease-spring);
+  transition: transform var(--duration-normal) var(--ease-out);
 }
 
 .tab:first-child::after {
@@ -320,22 +285,6 @@
 
 .tab-short {
   display: none;
-}
-
-/* ---------- Pie ---------- */
-.site-footer {
-  padding-block: var(--space-6) var(--space-7);
-  border-top: 1px solid var(--line);
-  font-size: var(--text-sm);
-  color: var(--ink-3);
-}
-
-.site-footer p + p {
-  margin-top: var(--space-2);
-}
-
-.site-footer a {
-  color: var(--brand-ink);
 }
 
 @media (max-width: 640px) {
