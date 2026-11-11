@@ -80,7 +80,7 @@ async function run(page) {
       await wait(100)
     }
     const posted = page.waitForResponse(
-      (r) => r.request().method() === 'POST' && new URL(r.url()).pathname === '/orders',
+      (r) => r.request().method() === 'POST' && r.url() === `${API}/orders`, // la URL que arma la app (VITE_API_URL)
       { timeout: 30000 },
     )
     await tap('.checkout-place')
@@ -238,7 +238,17 @@ async function run(page) {
   await wait(800)
   await placeOrder()
   await backHome() // al volver, la Home pide su orden: Chocolates sube y Mochi dice por qué
-  await page.getByText('Ordenadas según lo que más usas').waitFor()
+  // Tras un pedido la API recalcula los segmentos de la persona (en rappi_staging, unos 10 s): se espera más.
+  await page.getByText('Ordenadas según lo que más usas').waitFor({ timeout: 60000 })
+  // Antes de "Moví…" Mochi puede ofrecer algo para acompañar lo pedido (la oferta del carro): "Ahora no" la cierra y
+  // deja pasar la explicación de los accesos, que es la que muestra 03.
+  const moved = page.getByRole('button', { name: 'Entendido' })
+  const later = page.getByRole('button', { name: 'Ahora no' })
+  await moved.or(later).first().waitFor({ timeout: 60000 })
+  if (await later.isVisible()) {
+    await later.click()
+    await moved.waitFor({ timeout: 30000 })
+  }
   // Abrir Chocolates corrió la fila hacia la derecha: vuelve al principio, como la ve quien llega a la Home.
   await page.locator('.home-shortcuts').evaluate((row) => {
     for (const el of [row, ...row.querySelectorAll('*')]) el.scrollLeft = 0
@@ -246,7 +256,7 @@ async function run(page) {
   await shot('03-home-dinamica')
 
   // Mochi explica qué acceso movió (03 lo muestra). "Entendido" lo cierra: si no, su "¿Por qué?" es el que se abre.
-  await page.getByRole('button', { name: 'Entendido' }).click()
+  await moved.click()
   await settle(400)
   // Tocar a Mochi en la Home: la API propone la vertical donde la persona aún no pide. El globo escribe letra por
   // letra: se espera la pregunta entera antes de abrir su "¿Por qué?".
@@ -259,7 +269,10 @@ async function run(page) {
   await tap('.live-bubble .offer-why-toggle')
   await shot('22-vertical-por-probar')
 
-  // "¿Repetimos?": la recompra del fixture del contrato, con un café molido real del catálogo.
+  // "¿Repetimos?": la recompra del fixture del contrato, con un café molido real del catálogo. Con otra persona, sin
+  // pedido en curso: la barra flotante del pedido de Chocolates tapaba "Ver producto" y "Después".
+  await reset()
+  await wait(4200) // el saludo de Mochi
   const repeat = await repeatOffer()
   await page.route('**/agent/offer', async (route) => {
     if (route.request().postDataJSON()?.moment !== 'recompra') return route.continue()
