@@ -36,12 +36,22 @@ describe('lo pendiente de Mochi en la Home sobrevive a recargar la página', () 
     expect(again.session.pendingMove).toBeNull()
   })
 
-  test('"Repetir escena" lo borra, y "Olvidar" también (sus claves son `rappi-proto-*`)', async () => {
+  test('"Repetir escena" lo borra, y también lo rechazado en la sesión', async () => {
     const before = await reload()
+    const events = await import('./EventsContext')
     before.rememberAdded(ADDED)
-    expect(Object.keys(sessionStorage).every((key) => key.startsWith('rappi-proto-'))).toBe(true)
+    events.noteRefused('snacks-salados')
     before.resetLive()
     expect((await reload()).session.lastAdded).toBeNull()
+    expect(events.refusedConcepts()).toEqual([])
+  })
+
+  test('se guarda con el prefijo `rappi-proto-`, el que borra "Olvidar" (forgetAll)', async () => {
+    const memory = await reload()
+    memory.rememberAdded(ADDED)
+    const keys = Object.keys(sessionStorage)
+    expect(keys.length).toBeGreaterThan(0)
+    expect(keys.every((key) => key.startsWith('rappi-proto-'))).toBe(true)
   })
 
   test('sin almacenamiento, lo pendiente sigue en memoria', async () => {

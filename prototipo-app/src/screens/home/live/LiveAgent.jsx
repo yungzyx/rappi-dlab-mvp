@@ -56,8 +56,13 @@ const LiveAgent = forwardRef(function LiveAgent(
 ) {
   const layerRef = useRef(null)
   const agentRef = useRef(null) // Mochi y su globo: tocar fuera de ellos cierra el menú
+  const bodyRef = useRef(null)
   const menu = say?.menu && !away ? say.menu : null
-  useMenuDismiss(Boolean(menu), agentRef, () => menu?.onClose())
+  // Con Escape, el foco vuelve a Mochi (como en Mochi flotante).
+  useMenuDismiss(Boolean(menu), agentRef, (event) => {
+    menu?.onClose()
+    if (event) bodyRef.current?.focus()
+  })
   const [spot, setSpot] = useState(null)
   const [hopKey, setHopKey] = useState(0)
   const lastY = useRef(null)
@@ -223,6 +228,7 @@ const LiveAgent = forwardRef(function LiveAgent(
           </div>
         )}
         <button
+          ref={bodyRef}
           type="button"
           className="live-agent-body"
           aria-label={`${AGENT_NAME}: ayuda y opciones`}

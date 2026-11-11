@@ -18,8 +18,9 @@ import { useProfile } from '../../state/ProfileContext'
  * "¿Me falta algo?" en el checkout (prototipo final): solo si la persona lo pide, se consulta la oferta `checkout` de
  * El agente con lo que lleva el carro. Si hay oferta, sugiere UNA cosa (con su razón, "Agregar" y "Deshacer"); si no (204),
  * dice que el carro está completo; si la API no contesta, no dice nada. Nada aparece por su cuenta. Lo que la persona
- * ya rechazó en la sesión no se vuelve a proponer (cuenta como "completo"), y si el producto es de una tienda que no
- * está en el carro, avisa que va en otro pedido, con su propio envío. Lo agregado aquí no lo comenta Mochi en la Home.
+ * ya rechazó en la sesión no se vuelve a proponer (dice que no tiene otra idea: el carro no está "completo"), y si el
+ * producto es de una tienda que no está en el carro, avisa que va en otro pedido, con su propio envío. Lo agregado
+ * aquí no lo comenta Mochi en la Home.
  */
 export default function CheckoutSuggestion() {
   const demo = useDemo()
@@ -29,7 +30,8 @@ export default function CheckoutSuggestion() {
   const { add, remove } = useAddToCart()
   const [asking, setAsking] = useState(false)
   const [picked, setPicked] = useState(null) // la oferta pedida: { text, product }; queda fija aunque cambie el carro
-  const [complete, setComplete] = useState(false) // la API no tiene nada que agregar
+  // Sin nada que agregar: la API no tiene nada (204, "completo") o solo tenía lo que la persona ya rechazó ("sin idea").
+  const [complete, setComplete] = useState(null)
   const [added, setAdded] = useState(null)
   const hidden = useAgentHidden()
 
@@ -39,7 +41,7 @@ export default function CheckoutSuggestion() {
     return (
       <p className="checkout-ask" role="status">
         <Mascot size={28} badge />
-        Tu carrito está completo
+        {complete === 'completo' ? 'Tu carrito está completo' : 'Por ahora no tengo otra idea para tu carrito'}
       </p>
     )
 
@@ -52,8 +54,9 @@ export default function CheckoutSuggestion() {
       setAsking(true)
       try {
         const made = await offer('checkout', { cart: lines }, { userId: userId(), surface: 'checkout' })
-        const product = made?.products.find((candidate) => !wasRefused(made, candidate))
-        if (!product) return setComplete(true)
+        if (!made?.products.length) return setComplete('completo')
+        const product = made.products.find((candidate) => !wasRefused(made, candidate))
+        if (!product) return setComplete('sin idea')
         noteOfferShown(events.track, made, { generation: profile.resets, products: [product] })
         // Si es de otra tienda, sale en un pedido aparte (basketsOf): se dice al mostrarlo, con el carro de ese momento.
         const otherStore = !cart.items.some((line) => storeKeyOf(line.product) === storeKeyOf(product))

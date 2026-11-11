@@ -2,6 +2,7 @@
 // agregó al carro (el agente lo comenta al volver).
 import { isAgentHidden as isAgentHiddenNow, setAgentHidden } from './agentHidden'
 import { resetQuiet } from './agentQuiet'
+import { clearRefused } from './EventsContext'
 
 // `repeatLater`: tocaron "Después" en "¿Repetimos?" o en "¿Volvemos a…?"; no vuelven en lo que dura la pestaña.
 // `winback`: la respuesta de "¿Volvemos a…?" (`{ generation, offer }`, offer null si no hubo), pedida una vez.
@@ -99,6 +100,7 @@ export function resetLive() {
     winback: null,
   })
   savePending()
+  clearRefused()
   resetQuiet()
   const wasHidden = isAgentHiddenNow()
   if (wasHidden) setAgentHidden(false)

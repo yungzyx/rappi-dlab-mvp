@@ -123,6 +123,16 @@ test('"Vaciar carro" pide confirmar: tocarlo no vacía ni registra nada, y "Canc
   expect(events.track.mock.calls.filter(([type]) => type === 'cart_remove')).toEqual([])
 })
 
+test('vaciar el carro olvida lo agregado: Mochi no lo comenta al volver a la Home', async () => {
+  const memory = await import('../state/liveMemory')
+  const [beer] = fixture('catalog-store').products.slice(0, 1).map(toPrototypeProduct)
+  memory.rememberAdded(beer)
+  renderCart([beer])
+  fireEvent.click(screen.getByText('Vaciar carro'))
+  fireEvent.click(screen.getByRole('button', { name: 'Vaciar' }))
+  expect(memory.session.lastAdded).toBeNull()
+})
+
 test('confirmar "Vaciar" deja el carro vacío con un cart_remove por línea', () => {
   const [beer, other] = fixture('catalog-store').products.slice(0, 2).map(toPrototypeProduct)
   renderCart([beer, other])

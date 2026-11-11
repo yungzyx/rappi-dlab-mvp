@@ -1165,6 +1165,24 @@ describe('Home del prototipo final', () => {
       ])
     })
 
+    test('"Después" deja rechazado su concepto: no vuelve como oferta del carro en la sesión', async () => {
+      const back = fixture('agent-offer-volver')
+      const carrito = fixture('agent-offer-carrito')
+      carrito.reason.concept = back.reason.concept
+      api = stubAgent({ 'POST /agent/offer': (req) => ({ volver: back, carrito })[req.body.moment] ?? 204 })
+      memory.session.played = true
+      const { container, rerender } = await renderHome()
+      await advance(100)
+      fireEvent.click(within(slotBlock(container)).getByRole('button', { name: 'Después' }))
+      rerender(homeTree({ active: false }))
+      memory.session.lastAdded = LOOSE_CART
+      rerender(homeTree({ active: true }))
+      await advance(4000)
+      expect(offerRequests().filter((body) => body.moment === 'carrito')).toHaveLength(1)
+      expect(container.querySelector('.live-layer [role="status"]').textContent).toBe('')
+      expect(tracked('suggestion_shown', 'agent-carrito')).toEqual([])
+    })
+
     test('"Después" en la recompra registra su rechazo, no un descarte de "¿Volvemos a…?"', async () => {
       api = stubRepeat()
       const { container } = await renderHome()
@@ -1256,6 +1274,49 @@ describe('Home del prototipo final', () => {
         origin: 'menu-mochi',
         payload: { visible: false },
       })
+    })
+
+    test('abrirlo sobre la oferta del carro y cerrarlo sin elegir: la oferta vuelve (y, si se va sola, queda expirada)', async () => {
+      memory.session.played = true
+      memory.session.lastAdded = LOOSE_CART
+      const { container } = await renderHome()
+      await advance(4000)
+      const offerText = fixture('agent-offer-carrito').text
+      expect(container.querySelector('.live-layer [role="status"]').textContent).toBe(offerText)
+      fireEvent.click(mochi())
+      expect(menu()).toBeTruthy()
+      fireEvent.keyDown(document, { key: 'Escape' })
+      expect(menu()).toBeNull()
+      expect(container.querySelector('.live-layer [role="status"]').textContent).toBe(offerText)
+      expect(document.activeElement).toBe(mochi()) // con Escape, el foco vuelve a Mochi
+      expect(tracked('suggestion_dismissed', 'agent-carrito')).toEqual([])
+      await advance(30500)
+      expect(tracked('suggestion_dismissed', 'agent-carrito')).toEqual([
+        ['suggestion_dismissed', expect.objectContaining({ payload: { kind: 'expirada' } })],
+      ])
+    })
+
+    test('ocultarlo desde el menú no explica un cambio de orden pendiente que nadie vería', async () => {
+      memory.session.played = true
+      memory.session.lastAdded = LOOSE_CART
+      memory.session.pendingMove = {
+        key: 1,
+        vertical: 'farmacia',
+        from: 1,
+        to: 0,
+        reason: { text: 'Porque pides seguido en farmacia.', basis: [] },
+        requestId: 'contrato-profile-verticales',
+        resets: 0,
+      }
+      const { container } = await renderHome()
+      await advance(4000) // la oferta del carro va primero; "Moví…" espera
+      fireEvent.click(mochi())
+      fireEvent.click(screen.getByRole('button', { name: 'Ocultar a Mochi' }))
+      fireEvent.click(screen.getByRole('button', { name: 'Ocultar' }))
+      await advance(2000)
+      expect(container.querySelector('.live-agent')).toBeNull()
+      expect(tracked('vertical_reorder_shown', 'agent-reorden')).toEqual([])
+      expect(memory.session.pendingMove).toBeNull()
     })
 
     test('"Buscar con Mochi" abre el buscador y, con algo en el carro, se puede revisar', async () => {

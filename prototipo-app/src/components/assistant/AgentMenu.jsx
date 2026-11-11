@@ -23,9 +23,10 @@ export default function AgentMenu({ className, actions, onRun, onClose, surface 
             type="button"
             className="agent-action is-primary tap"
             onClick={() => {
-              onClose()
+              // Primero se oculta: lo que cierra el menú ya lo ve oculto (en la Home no muestra lo pendiente).
               events.track('agent_visibility', { surface, origin: 'menu-mochi', payload: { visible: false } })
               setAgentHidden(true)
+              onClose()
             }}
           >
             Ocultar

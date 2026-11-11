@@ -23,9 +23,10 @@
 //     Rappi Mall." y la fila lo muestra con el texto. Un pedido basta; tocar un acceso varias veces el mismo día no
 //     mueve la Home (hacen falta dos días distintos: motor/home.py, MIN_USE_DAYS);
 //   con --combo: combinación de verticales. Una persona nueva pide en Restaurantes (Home → Restaurantes → primer
-//     restaurante → agregar un plato → pagar), vuelve a la Home y toca a Mochi: la oferta es de Turbo (el siguiente peldaño
-//     de la escalera desde Restaurantes, según la tabla de Rappi) y su "¿Por qué?" muestra la razón. Solo se mira la
-//     vertical y que haya una razón: el texto exacto depende de lo que haya aprendido el motor;
+//     restaurante → agregar un plato → pagar), vuelve a la Home, toca a Mochi y elige "Muéstrame algo nuevo" en su menú:
+//     la oferta es de Turbo (el siguiente peldaño de la escalera desde Restaurantes, según la tabla de Rappi) y su
+//     "¿Por qué?" muestra la razón. Solo se mira la vertical y que haya una razón: el texto exacto depende de lo que haya
+//     aprendido el motor;
 //   con --expect-offline: la API está detenida y la app muestra "Sin conexión con <agente>";
 //   con --panel <url del panel> (sin --app): corre después de las demás, con la API en marcha. Espera a que la API ya
 //     cuente lo que dejó el kit (una oferta aceptada en "Plan"), abre el panel en "Mochi y búsquedas" con la fuente

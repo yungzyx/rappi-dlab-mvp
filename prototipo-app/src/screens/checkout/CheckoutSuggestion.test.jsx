@@ -186,14 +186,15 @@ describe('"¿Me falta algo?" en el checkout (solo si se pide)', () => {
     expect(screen.queryByText(OTHER)).toBeNull()
   })
 
-  test('no propone lo que la persona rechazó en la sesión: dice que el carro está completo', async () => {
+  test('no propone lo que la persona rechazó en la sesión: dice que no tiene otra idea (no que está completo)', async () => {
     const { refuseConcept } = await import('../../api/suggestions')
     refuseConcept('snacks-salados') // "Ahora no" a la oferta del carro en la Home
     renderCheckout()
     await ask()
     expect(offerRequests()).toHaveLength(1)
     expect(document.querySelector('.checkout-suggestion')).toBeNull()
-    expect(screen.getByText('Tu carrito está completo')).toBeTruthy()
+    expect(screen.getByText('Por ahora no tengo otra idea para tu carrito')).toBeTruthy()
+    expect(screen.queryByText('Tu carrito está completo')).toBeNull()
     expect(tracked('suggestion_shown')).toEqual([])
   })
 

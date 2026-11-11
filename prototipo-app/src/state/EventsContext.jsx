@@ -120,6 +120,11 @@ export function noteRefused(concept, now = Date.now()) {
   touchSession(now, (session) => ({ ...session, refused: [...new Set([...(session.refused ?? []), concept])] }))
 }
 
+/** "Repetir escena": como una persona que llega por primera vez, sin nada rechazado. */
+export function clearRefused(now = Date.now()) {
+  touchSession(now, (session) => ({ ...session, refused: [] }))
+}
+
 const EventsContext = createContext(null)
 
 export function EventsProvider({ children }) {
