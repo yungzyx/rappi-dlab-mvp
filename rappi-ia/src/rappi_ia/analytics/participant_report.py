@@ -37,7 +37,8 @@ MOMENTS = {
     "volver": 'algo que dejó ("¿Volvemos a…?")',
     "ontop": "sumar de Turbo al pedido en curso",
     "perfil": "su perfil de gusto",
-    "ask": "respuesta a lo que le pidió",
+    # La respuesta de Mochi no deja `suggestion_shown`: sí la idea de otra vertical que va debajo (sugerencia cruzada).
+    "ask": "idea de otra vertical bajo su respuesta (no la respuesta)",
     "para-ti": '"Para ti" en su tarjeta (sus intereses o lo más pedido)',
 }
 # De qué sale el "¿Por qué?": los tipos de `reason.basis` (`payload.basis`). Uno que no esté aquí sale tal cual.
@@ -148,7 +149,7 @@ def _rows(conn: Connection, query: str, user_id: str) -> list[dict]:
 
 # Todas las consultas filtran `source = 'prototype'` además de la persona: nunca se mezcla con lo simulado.
 _EVENTS = f"""SELECT coalesce(client_ts, ts) AS at, type, vertical, concept_id, query, results, unmet, payload,
-                     {_ORIGIN} AS origin, surface
+                     {_ORIGIN} AS origin, surface, request_id
               FROM app_events WHERE user_id = %(user)s AND source = 'prototype'"""
 _ORDER = " ORDER BY coalesce(client_ts, ts), seq NULLS LAST, event_id"
 
@@ -355,6 +356,19 @@ def _basis(payload: dict) -> str:
     return _cell(", ".join(BASIS.get(str(kind), str(kind)) for kind in kinds))
 
 
+def _motive(p: Participant, offer: dict) -> str:
+    """El motivo según el momento. La idea bajo una respuesta de Mochi nombra también la vertical de la respuesta (el
+    `ask` con su mismo `request_id`): la oferta es la idea de abajo, no lo que respondió."""
+    motive = MOMENTS.get(offer["moment"], "otro")
+    if offer["moment"] != "ask" or not offer.get("request_id"):
+        return motive
+    answer = next(
+        (e for e in p.searches if e["type"] == "ask" and e.get("request_id") == offer["request_id"] and e["vertical"]),
+        None,
+    )
+    return f"{motive}; la respuesta fue de {_vertical(answer['vertical'])}" if answer else motive
+
+
 def _offer_lines(p: Participant) -> list[str]:
     if not p.offers:
         return ["## Ofertas de Mochi", "", "Mochi no mostró ofertas."]
@@ -376,7 +390,7 @@ def _offer_lines(p: Participant) -> list[str]:
         kind = o["payload"].get("kind")
         moment = f"{o['moment']} ({kind})" if kind else o["moment"]
         lines.append(
-            f"| {_time(o['at'])} | {moment} | {MOMENTS.get(o['moment'], 'otro')} | {_basis(o['payload'])} "
+            f"| {_time(o['at'])} | {moment} | {_motive(p, o)} | {_basis(o['payload'])} "
             f"| {_concept(o['concept_id'])} "
             f"| {_vertical(o['vertical'])} | {o['status']} |"
         )

@@ -16,8 +16,9 @@
 #   6. home: la Home dinámica; una persona nueva ve el orden fijo y, tras pedir en Rappi Mall (un pedido basta; varios
 #      toques el mismo día no mueven la Home), Rappi Mall queda primero con el motivo "Porque pediste en Rappi Mall." y
 #      el texto "Ordenadas según lo que más usas";
-#   7. combinación: una persona nueva pide en Restaurantes, vuelve a la Home y toca a Mochi: la oferta es de Turbo (el
-#      siguiente peldaño de la escalera de combinaciones) y su "¿Por qué?" muestra la razón;
+#   7. combinación: una persona nueva pide en Restaurantes, vuelve a la Home, toca a Mochi y elige "Muéstrame algo
+#      nuevo" en su menú: la oferta es de Turbo (el siguiente peldaño de la escalera de combinaciones) y su "¿Por qué?"
+#      muestra la razón;
 #   8. panel: "Mochi y búsquedas" del panel (fuente prototipo) muestra lo que dejó la revisión 3 (una oferta aceptada
 #      en "Plan") con el rótulo "uso del MVP, pocas personas: no es evidencia". Corre después de las demás, con la API
 #      todavía en marcha;

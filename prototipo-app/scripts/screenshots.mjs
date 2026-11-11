@@ -258,9 +258,10 @@ async function run(page) {
   // Mochi explica qué acceso movió (03 lo muestra). "Entendido" lo cierra: si no, su "¿Por qué?" es el que se abre.
   await moved.click()
   await settle(400)
-  // Tocar a Mochi en la Home: la API propone la vertical donde la persona aún no pide. El globo escribe letra por
-  // letra: se espera la pregunta entera antes de abrir su "¿Por qué?".
+  // Tocar a Mochi en la Home abre su menú; "Muéstrame algo nuevo" pide a la API la vertical donde la persona aún no
+  // pide. El globo escribe letra por letra: se espera la pregunta entera antes de abrir su "¿Por qué?".
   await tap('.live-agent-body')
+  await tap('button.agent-action', 'Muéstrame algo nuevo')
   await page.waitForFunction(
     () => /¿Y si pruebas algo de [^?]+\?/.test(document.querySelector('.live-bubble')?.textContent ?? ''),
     null,

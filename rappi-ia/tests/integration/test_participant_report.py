@@ -340,6 +340,44 @@ def test_a_dismissed_offer_says_the_button_of_its_moment():
     assert dismissed("agent-plan")["status"] == "rechazada"
 
 
+def test_the_idea_under_a_mochi_answer_is_not_presented_as_the_answer():
+    """De una respuesta de Mochi solo queda como mostrada la idea de otra vertical que va debajo (sugerencia cruzada):
+    el resumen no la presenta como la respuesta y nombra la vertical de lo que respondió (el `ask` con su mismo
+    `request_id`). Sin ese `ask`, el motivo solo dice que es la idea de abajo."""
+    asked = {"at": _at(3), "type": "ask", "vertical": "supermercado", "concept_id": "te", "request_id": "r1"}
+    idea = {
+        "at": _at(3.1),
+        "type": "suggestion_shown",
+        "vertical": "conveniencia",
+        "concept_id": "galletas",
+        "payload": {},
+        "origin": "agent-ask",
+        "request_id": "r1",
+    }
+
+    def offer_table(searches):
+        p = report.Participant(
+            user_id="proto-aaaa",
+            created_at=NOW,
+            variants={},
+            sessions=[],
+            searches=searches,
+            offers=report._offers([idea]),
+            accepted_products=0,
+            why_opened=[],
+            opened=[],
+            touches=[],
+            services=[],
+            visibility=[],
+            orders=[],
+        )
+        return "\n".join(report._offer_lines(p))
+
+    motive = "idea de otra vertical bajo su respuesta (no la respuesta)"
+    assert f"| ask | {motive}; la respuesta fue de Súper | — | Galletas | Express |" in offer_table([asked])
+    assert f"| ask | {motive} | — | Galletas | Express |" in offer_table([{**asked, "request_id": "otra"}])
+
+
 def test_an_offer_that_went_away_by_itself_is_not_a_rejection_nor_no_answer():
     """El globo que se fue solo (`suggestion_dismissed` con `payload.kind` "expirada") sale "se fue sola"; si después
     la rechazó o la aceptó (la misma oferta volvió), vale eso."""
