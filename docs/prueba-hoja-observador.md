@@ -10,23 +10,23 @@ Sin datos personales: ni nombre, ni teléfono, ni nada que identifique a la pers
 
 **Perfil de selección.** ¿Pidió por una app de delivery el último mes? ☐ sí ☐ no. ¿En qué? ☐ Restaurantes ☐ Súper ☐ Turbo ☐ Farmacia ☐ Licores ☐ otra: \_\_\_\_\_\_\_\_ ☐ casi no usa apps
 
-**Consentimiento:** ☐ dijo que sí (sin sí, no hay sesión) · **Chequeo antes de la sesión** (`chequeo-sesion.sh`): ☐ "Listo para la sesión"
+**Consentimiento** (antes de abrir la pestaña): ☐ dijo que sí (sin sí, no se abre la pestaña ni hay sesión) · **Chequeo antes de la sesión** (`chequeo-sesion.sh`): ☐ "Listo para la sesión" (con "Grupo de control: 0 %") · **Antes de pasarle el teléfono:** ☐ aviso de privacidad cerrado con "Entendido" ☐ guía de la primera visita cerrada con "Saltar" (sale unos 7 s después del aviso, tras el saludo de Mochi)
 
 | Tarea | Resultado | Tiempo | Notas (lo que dijo, dónde dudó) |
 |---|---|---|---|
 | 1. Doritos ("doritoz") | ☐ sola ☐ con ayuda ☐ no | \_\_ min | ¿Vio "Mostrando resultados para…"? ☐ sí ☐ no |
 | 2. Algo para la once, a Mochi | ☐ sola ☐ con ayuda ☐ no | \_\_ min | |
-| 3. Carro y vuelta al inicio | ☐ sola ☐ con ayuda ☐ no | \_\_ min | |
+| 3. Carro y vuelta al inicio | ☐ sola ☐ con ayuda ☐ no | \_\_ min | Agregó desde: ☐ el buscador ☐ una tienda · ¿Vio la oferta en la Home? ☐ sí ☐ no |
 | 4. "¿Por qué?" y decidir | ☐ sola ☐ con ayuda ☐ no | \_\_ min | |
 | 5. Ocultar a Mochi y traerlo | ☐ sola ☐ con ayuda ☐ no | \_\_ min | ¿Ocultar? ☐ solo ☐ ayuda · ¿Traerlo? ☐ solo ☐ ayuda |
 | 6. Pedido hasta el seguimiento | ☐ sola ☐ con ayuda ☐ no | \_\_ min | |
 
-**Tareas 3 y 4, la oferta.** Dónde apareció: ☐ en la Home ☐ en el checkout, con "¿Me falta algo?" ☐ no apareció. Qué ofrecía: \_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_
+**Tareas 3 y 4, la oferta.** Dónde apareció: ☐ en la Home, en el globo con productos y "+" ☐ en el checkout, con "¿Me falta algo?" ☐ no apareció. El globo "Moví … al primer lugar…" no es la oferta: si sale, ☐ la persona lo tomó por la oferta. Qué ofrecía: \_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_
 
 - Antes de leer, por qué cree que Mochi se lo propuso: \_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_
 - Texto del "¿Por qué?", copiado tal cual: \_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_
 - ¿Coincide con lo que creía? ☐ sí ☐ en parte ☐ no ☐ le sorprendió
-- Botón que tocó: ☐ el producto o "Agregar" (lo agregó) ☐ "Ver …" ☐ "Abrir …" ☐ "Ahora no" ☐ "Después" ☐ ninguno: se fue sola (en la Home) ☐ no la agregó (en el checkout: no se va sola ni tiene botón para rechazar)
+- Botón que tocó: ☐ el "+" de un producto del globo, o "Agregar" en el checkout (lo agregó) ☐ "Ver …" ☐ "Abrir …" ☐ "Ahora no" ☐ "Después" ☐ ninguno: se fue sola (en la Home) ☐ no la agregó (en el checkout: no se va sola ni tiene botón para rechazar)
 - Su decisión y su motivo, con sus palabras: \_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_
 
 **Después de la tarea 6.** ¿Algo le llamó la atención? \_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_

@@ -1,8 +1,9 @@
 #!/usr/bin/env bash
 # Chequeo de un comando justo antes de cada participante de la prueba con usuarios (docs/prueba-usuarios.md, sección
-# 3): /health, la swap, el disco libre, la fecha del catálogo, si los despliegues están en pausa y 8 búsquedas variadas
-# contra la API local con su tiempo y el máximo. Avisa si la API no está lista, si una búsqueda falla o pasa de 1 s, o
-# si los despliegues no están en pausa (sale con 1). El RSS y el footprint de cada proceso de la API van como dato: con
+# 3): /health, la swap, el disco libre, la fecha del catálogo, si los despliegues están en pausa, el grupo de control y
+# 8 búsquedas variadas contra la API local con su tiempo y el máximo. Avisa si la API no está lista, si una búsqueda
+# falla o pasa de 1 s, si los despliegues no están en pausa o si el grupo de control no está en 0 o no se puede leer
+# (sale con 1). El RSS y el footprint de cada proceso de la API van como dato: con
 # la mayor parte en swap, la primera búsqueda tarda segundos. Solo lee: no pausa los despliegues ni escribe en la base.
 # Las búsquedas llevan el id "vigilante-chequeo-…" (X-Request-ID): el resumen diario las cuenta como mantención, no
 # como visitas. Uso: deploy/macos/chequeo-sesion.sh
@@ -35,6 +36,21 @@ if [ -e "$TUNEL_DIR/pausa-actualizar" ]; then
 else
   echo "Despliegues: no están en pausa (touch $TUNEL_DIR/pausa-actualizar)"
   problemas+=("los despliegues no están en pausa")
+fi
+
+# OFFERS_CONTROL_PCT calculado como la API (rappi_ia/config.py): de tunel.env (lo carga comun.sh, y api.sh también) o,
+# si no lo define, del .env de rappi-ia de la copia que se sirve (load_dotenv). Es el valor con que arranca la API: la
+# que corre lo tomó al reiniciarse, y si se cambió sin reiniciarla sigue con el anterior. De esos archivos solo sale
+# este número (y, más arriba, el nombre de la base si no la pudo leer): ninguna clave.
+control=$(cd "$REPO_DIR/rappi-ia" \
+  && .venv/bin/python -c 'from rappi_ia import config; print(config.OFFERS_CONTROL_PCT)' 2>/dev/null | tail -n 1 || true)
+if [ -z "$control" ]; then
+  echo "Grupo de control: no pude leerlo"
+  problemas+=("no pude leer el grupo de control (OFFERS_CONTROL_PCT)")
+else
+  echo "Grupo de control: $control %"
+  [ "$control" = 0 ] \
+    || problemas+=("el grupo de control está en $control % (OFFERS_CONTROL_PCT en tunel.env o rappi-ia/.env: 0 y reiniciar la API)")
 fi
 
 # Dato, no criterio: el RSS (lo que está en memoria) sobre el footprint (lo que usa el proceso, también en swap).
