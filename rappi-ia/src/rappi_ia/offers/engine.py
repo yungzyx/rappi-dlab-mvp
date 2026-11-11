@@ -43,7 +43,7 @@ la evidencia de sus segmentos (`source` "segmento:<id>", el peso de su nivel com
 (`source` "pedidos" o "busquedas", cuántas veces como `score`).
 """
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 from datetime import date, datetime, timedelta
 
 from psycopg import Connection
@@ -55,9 +55,9 @@ from ..agent.tools import VERTICAL_LABELS, Product, search_products, suggest_com
 from ..agent.verticals import contending_verticals, ranked_verticals, typical_verticals
 from ..catalog.cache import cached
 from ..catalog.deals import deals
-from ..catalog.stores import BIGINT_MAX, product_card, product_detail
+from ..catalog.stores import BIGINT_MAX, IN_DEMO_CITY, demo_places, product_card, product_detail
 from ..catalog.terms import store_terms
-from ..concepts.taxonomy import Concept, Service, load_taxonomy
+from ..concepts.taxonomy import Concept, Occasion, Service, load_taxonomy
 from ..embeddings.base import MemoizedQueryEmbedder, TextEmbedder
 from ..motor.combos import SERVICES, Step, load_combos
 from ..motor.model import TZ
@@ -316,7 +316,24 @@ def make_offer(
     """La oferta de un momento, o None si no hay una buena. Con `user_id` de alguien del prototipo, los momentos que
     personalizan se ordenan por lo que le gusta (`vertical_por_probar`; sus intereses se calculan una sola vez),
     prefieren las marcas que compra (el complemento de `carrito`, `checkout` y `proximo_pedido`) o parten de sus
-    perfiles de gusto (`perfil`, que busca sus peldaños a la vez con las conexiones extra de la API, `spare`)."""
+    perfiles de gusto (`perfil`, que busca sus peldaños a la vez con las conexiones extra de la API, `spare`).
+    Todo producto que propone es de una tienda de la ciudad de la demo (`_in_demo_city`)."""
+    found = _moment_offer(conn, embedder, moment, context, user_id, spare)
+    if found is None:
+        return None
+    # La recompra y "volver" no ofrecen lo de una tienda en pausa: tampoco al cambiarlo por la de la ciudad.
+    avoid = paused(conn, user_id).stores if moment in ("recompra", "volver") else frozenset()
+    return _in_demo_city(conn, found, avoid, person_city(conn, user_id))
+
+
+def _moment_offer(
+    conn: Connection,
+    embedder: TextEmbedder | None,
+    moment: str,
+    context: dict,
+    user_id: str | None,
+    spare: SpareConnector | None,
+) -> Offer | ProfileOffer | None:
     if moment == "plan":
         return plan(conn, embedder, context["occasion"], person_city(conn, user_id))
     if moment == "carrito":
@@ -396,22 +413,14 @@ def plan(conn: Connection, embedder: TextEmbedder | None, occasion_id: str, city
         return None
     chosen = _fewest_stores([found[c.id, p.vertical] for c, p in kit])
     kit = [(concept, product) for (concept, _), product in zip(kit, chosen, strict=True)]
-    verticals = list(dict.fromkeys(p.vertical for _, p in kit))
-    text = contract_articles(
-        PLAN_TEXT.format(
-            occasion=occasion.name,
-            concepts=_join([c.name.lower() for c, _ in kit]),
-            verticals=_join([VERTICAL_LABELS.get(v, v) for v in verticals]),
-        )
-    )
     # "Más ideas" busca lo que el agente busca para una ocasión: los nombres de sus primeros conceptos que arma
     query = " ".join(c.name for c in concepts[:4])
     products = [p.to_dict() for _, p in kit]
     return PlanOffer(
         "plan",
-        text,
+        _plan_text(occasion, products),
         products,
-        verticals[0],
+        products[0]["vertical"],
         _reason(
             REASON_PLAN.format(occasion=occasion.name),
             [_context_signal("ocasion", occasion.id)],
@@ -419,6 +428,19 @@ def plan(conn: Connection, embedder: TextEmbedder | None, occasion_id: str, city
         ),
         [{"label": PLAN_ACTION, "query": query}],
         kit_stores(conn, products),
+    )
+
+
+def _plan_text(occasion: Occasion, products: list[dict]) -> str:
+    """ "Tu kit…": los conceptos del kit (uno por producto, en su orden) y sus verticales."""
+    concepts = load_taxonomy().concepts
+    verticals = list(dict.fromkeys(p["vertical"] for p in products))
+    return contract_articles(
+        PLAN_TEXT.format(
+            occasion=occasion.name,
+            concepts=_join([concepts[p["concept"]].name.lower() for p in products]),
+            verticals=_join([VERTICAL_LABELS.get(v, v) for v in verticals]),
+        )
     )
 
 
@@ -1163,10 +1185,11 @@ def _trip(destination: Destination, travel: Service) -> dict:
 def _offerable_deals(conn: Connection, vertical: str) -> list[dict]:
     """Las ofertas de la vertical que el agente puede proponer: ni +18 (tampoco un nombre que dice alcohol), ni un
     nombre que dice bebé, ni de un concepto que no ofrece, ni de una tienda Farmacia, Sex shop o Smoking shop (`deals`
-    ya quita lo sensible, pero con vertical no quita esas tiendas). Un producto que está dos veces con otro id (el
-    catálogo repite nombres) sale una vez. Las de un concepto típico de la vertical van primero."""
+    ya quita lo sensible, pero con vertical no quita esas tiendas), y solo de tiendas de la ciudad de la demo, como en
+    las pantallas (`in_city`). Un producto que está dos veces con otro id (el catálogo repite nombres) sale una vez.
+    Las de un concepto típico de la vertical van primero."""
     unique: dict[str, dict] = {}
-    for deal in _offerable_products(conn, deals(conn, vertical, DEAL_POOL)):
+    for deal in _offerable_products(conn, deals(conn, vertical, DEAL_POOL, in_city=True)):
         unique.setdefault(" ".join(deal["name"].lower().split()), deal)
     return _typical_first(list(unique.values()), vertical, typical_verticals(conn))[:SHOWN_PRODUCTS]
 
@@ -1192,6 +1215,136 @@ def _offerable_products(conn: Connection, products: list[dict]) -> list[dict]:
         and p["store_id"] not in blocked
         and (p["concept"] not in concepts or is_offerable(concepts[p["concept"]]))
     ]
+
+
+# La oferta vigente más barata de cada producto del catálogo pedido (id y vertical) en una tienda de la ciudad de la
+# demo que lo tiene en un pasillo (una que se abre, como en "Disponible en N tiendas", `stores._PRODUCT_STORES`), de
+# esa vertical, que no es Farmacia, Sex shop ni Smoking shop (`guards.unofferable_subverticals`) ni está en `avoid`.
+_CITY_OFFERS = f"""
+SELECT DISTINCT ON (w.id, w.vertical) w.id::text, w.vertical, sp.store_id, btrim(coalesce(b.name, s.name)), l.price,
+       l.real_price
+FROM unnest(%(ids)s::bigint[], %(verticals)s::text[]) AS w(id, vertical)
+JOIN store_products sp ON sp.master_product_id = w.id
+JOIN v_latest_offers l ON l.store_id = sp.store_id AND l.sku = sp.sku
+JOIN aisles a ON a.store_id = sp.store_id AND a.aisle_id = sp.aisle_id AND a.parent_aisle_id IS NULL
+JOIN stores s ON s.store_id = sp.store_id
+LEFT JOIN brands b ON b.brand_id = s.brand_id
+WHERE l.current AND l.in_stock IS NOT FALSE AND l.price >= %(min_price)s AND {IN_DEMO_CITY}
+  AND sp.store_id <> ALL(%(avoid)s::bigint[])
+  AND EXISTS (SELECT 1 FROM v_store_verticals v WHERE v.store_id = sp.store_id AND v.vertical = w.vertical)
+  AND NOT EXISTS (SELECT 1 FROM store_verticals own
+                  WHERE own.store_id = sp.store_id AND own.subvertical = ANY(%(blocked)s))
+ORDER BY w.id, w.vertical, l.price, sp.store_id"""
+
+
+def _in_demo_city(
+    conn: Connection,
+    found: Offer | ProfileOffer | None,
+    avoid: frozenset[int] = frozenset(),
+    dish_city: str | None = None,
+) -> Offer | ProfileOffer | None:
+    """La oferta con sus productos en tiendas de la ciudad de la demo (`_city_products`), en todos los momentos: la
+    persona los agrega al carro y "Ver tienda" abre su tienda. Una acción que abría la tienda de un producto que cambió
+    de tienda (la recompra, "volver") abre la nueva; el kit rehace su texto y sus tiendas. Si no queda ningún producto
+    de los que traía, no hay oferta (204); un peldaño de un perfil que se queda sin productos se saca, como con la dieta
+    (api/agent.py: `_with_preferences`). Los platos, de un local de `dish_city` (`person_city`, como en el kit y la
+    escalera; sin ella, la ciudad de la demo)."""
+    if found is None:
+        return None
+    if isinstance(found, ProfileOffer):
+        steps = []
+        for step in found.steps:
+            kept = _city_products(conn, step["products"], dish_city=dish_city)
+            if kept or not step["products"]:
+                steps.append({**step, "products": kept})
+        return replace(found, steps=steps) if steps else None
+    products = _city_products(conn, found.products, avoid, dish_city)
+    if found.products and not products:
+        return None
+    now_at = {p["id"]: p["store_id"] for p in products}
+    moved = {
+        p["store_id"]: now_at[p["id"]] for p in found.products if now_at.get(p["id"], p["store_id"]) != p["store_id"]
+    }
+    actions = [
+        {**action, "store_id": moved.get(action["store_id"], action["store_id"])} if "store_id" in action else action
+        for action in found.actions
+    ]
+    if isinstance(found, PlanOffer) and products != found.products:
+        occasion = load_taxonomy().occasions[found.reason["occasion"]]
+        return replace(
+            found,
+            text=_plan_text(occasion, products),
+            products=products,
+            vertical=products[0]["vertical"],
+            actions=actions,
+            stores=kit_stores(conn, products),
+        )
+    return replace(found, products=products, actions=actions)
+
+
+def _city_products(
+    conn: Connection, products: list[dict], avoid: frozenset[int] = frozenset(), dish_city: str | None = None
+) -> list[dict]:
+    """Los productos (`Product.to_dict()`) de una tienda de la ciudad de la demo (`catalog.stores.IN_DEMO_CITY`), en su
+    orden: uno del catálogo de una tienda de otra ciudad se cambia por la misma ficha en la tienda de la ciudad con la
+    oferta vigente más barata (`_CITY_OFFERS`, sin las tiendas de `avoid`), con su precio; si no hay ninguna, sale. Un
+    plato es de un solo local: sale si el local no es de `dish_city` (sin ella, la ciudad de la demo). Uno sin tienda
+    que se abra (`store_id` nulo) queda igual."""
+    store_ids = sorted({p["store_id"] for p in products if p["store_id"] is not None})
+    if not store_ids:
+        return products
+    places = demo_places()
+    in_city, local = {}, {}
+    for store_id, city_store, city_local in conn.execute(
+        f"""SELECT s.store_id, {IN_DEMO_CITY}, {IN_DEMO_CITY.replace("%(places)s", "%(dish_places)s")}
+            FROM stores s WHERE s.store_id = ANY(%(ids)s)""",
+        {"ids": store_ids, "places": places, "dish_places": demo_places(dish_city)},
+    ):
+        in_city[store_id], local[store_id] = city_store, city_local
+
+    def here(product: dict) -> bool:
+        store_id = product["store_id"]
+        dish = product.get("entity_type", "catalog_item") == "menu_item"
+        return store_id is None or (local if dish else in_city).get(store_id, False)
+
+    away = [p for p in products if not here(p) and p.get("entity_type", "catalog_item") == "catalog_item"]
+    swaps: dict[tuple[str, str], tuple] = {}
+    if away:
+        params = {
+            "ids": [int(p["entity_id"]) for p in away],
+            "verticals": [p["vertical"] for p in away],
+            "min_price": MIN_PRICE,
+            "places": places,
+            "avoid": sorted(avoid),
+            "blocked": unofferable_subverticals(),
+        }
+        swaps = {(id_, vertical): rest for id_, vertical, *rest in conn.execute(_CITY_OFFERS, params)}
+    kept = []
+    for product in products:
+        if here(product):
+            kept.append(product)
+        elif swap := swaps.get((product["entity_id"], product["vertical"])):
+            store_id, store, price, real = swap
+            card = Product(
+                id=product["id"],
+                entity_type=product.get("entity_type", "catalog_item"),
+                entity_id=product["entity_id"],
+                name=product["name"],
+                vertical=product["vertical"],
+                concept=product["concept"],
+                price_value=float(price),
+                before_value=float(real) if real is not None else None,
+                store=store,
+                img=product["img"],
+                age_restricted=product["age_restricted"],
+                store_id=store_id,
+                presentation=product["presentation"],
+            ).to_dict()
+            kept.append({**product, **{key: card[key] for key in _STORE_KEYS}})
+    return kept
+
+
+_STORE_KEYS = ("price", "price_value", "before", "discount", "store", "store_id")  # lo que cambia con la tienda
 
 
 def _typical_first(found: list[dict], vertical: str, typical: dict[str, str]) -> list[dict]:

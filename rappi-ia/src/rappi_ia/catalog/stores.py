@@ -44,23 +44,28 @@ _NORMALIZED = "btrim(regexp_replace(lower(unaccent(coalesce({column}, ''))), '[^
 
 # La tienda o el local `s` es de la ciudad de la demo: su ciudad (o su comuna), normalizada, es una de `%(places)s`
 # (`demo_places`). Lo usan las listas: las de restaurantes (catalog/restaurants.py), las de tiendas de una vertical,
-# "Cerca de ti", las ofertas de las pantallas (`/catalog/deals`) y "Disponible en N tiendas". Abrir una tienda o un menú
-# por su id, la búsqueda, Mochi y las ofertas de Mochi no se filtran (cambiaría lo que miden las evaluaciones).
+# "Cerca de ti", las ofertas de las pantallas (`/catalog/deals`) y "Disponible en N tiendas"; las ofertas de Mochi
+# (`offers/engine.py: _in_demo_city`) cambian un producto de otra ciudad por el de una tienda de ella, o lo sacan; y
+# la búsqueda y Mochi muestran cada producto con una tienda de ella si alguna lo vende (`agent/tools.py:
+# _with_prices`), sin sacar nada ni cambiar el orden (cambiaría lo que miden las evaluaciones). Abrir una tienda o un
+# menú por su id, no.
 IN_DEMO_CITY = _NORMALIZED.format(column="s.city") + " = ANY(%(places)s)"
 
 
-def demo_places() -> list[str]:
+def demo_places(city: str | None = None) -> list[str]:
     """Las comunas de la ciudad de la demo (`city_places(config.PROFILE_CITY)`, las de los restaurantes) y el nombre de
-    esa ciudad: Rappi da a un restaurante su comuna ("Providencia") y a una tienda, su ciudad ("Santiago de Chile")."""
+    esa ciudad: Rappi da a un restaurante su comuna ("Providencia") y a una tienda, su ciudad ("Santiago de Chile").
+    Con `city`, las de esa ciudad (la de una persona: `offers.profiles.person_city`)."""
     from ..offers.profiles import CITY_COMUNAS, city_places  # import diferido: offers importa events, que importa esto
 
-    places = city_places(config.PROFILE_CITY)
+    places = city_places(city or config.PROFILE_CITY)
     return sorted(places | {normalize(name) for name in CITY_COMUNAS if city_places(name) == places})
 
 
 def demo_city_warning(conn: Connection) -> str | None:
-    """El aviso que la API anota al arrancar (api/prewarm.py) si ningún restaurante o ninguna tienda del catálogo es de
-    la ciudad de la demo: con un `PROFILE_CITY` que no está en `stores.city`, esas listas salen vacías. None si hay."""
+    """El aviso que la API anota al arrancar (api/prewarm.py: `check_demo_city`) si ningún restaurante o ninguna tienda
+    del catálogo es de la ciudad de la demo: con un `PROFILE_CITY` que no está en `stores.city`, esas listas salen
+    vacías. None si hay."""
     restaurants, stores = conn.execute(
         f"""SELECT count(*) FILTER (WHERE v.vertical = 'restaurantes'),
                    count(*) FILTER (WHERE v.vertical <> 'restaurantes')

@@ -145,10 +145,11 @@ def db(test_url):
         conn.rollback()
 
 
-def add_store(conn, store_id: int, vertical: str, name: str = "Tienda") -> None:
+def add_store(conn, store_id: int, vertical: str, name: str = "Tienda", city: str | None = "Santiago") -> None:
+    """Una tienda (o un local) de `city`: por defecto, de la ciudad de la demo, como las de `seed_demo`."""
     conn.execute(
-        "INSERT INTO stores (store_id, name, store_type, path) VALUES (%s, %s, %s, %s)",
-        (store_id, name, f"tipo_{store_id}", f"/tiendas/{store_id}"),
+        "INSERT INTO stores (store_id, name, store_type, city, path) VALUES (%s, %s, %s, %s, %s)",
+        (store_id, name, f"tipo_{store_id}", city, f"/tiendas/{store_id}"),
     )
     conn.execute("INSERT INTO store_verticals (store_id, vertical) VALUES (%s, %s)", (store_id, vertical))
 
