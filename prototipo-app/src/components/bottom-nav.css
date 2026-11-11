@@ -60,7 +60,7 @@
 }
 
 .bottom-nav-item.is-active {
-  color: var(--rappi-red);
+  color: var(--rappi-red-ink);
 }
 
 .bottom-nav-item.is-active::before {

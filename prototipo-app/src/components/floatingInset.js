@@ -5,6 +5,8 @@ import { useLayoutEffect } from 'react'
 // las pantallas lo usan como relleno inferior (`max(<el suyo>, var(--floating-bottom))`), así el final de la lista
 // siempre se puede subir por encima de lo que flota, y el relleno cambia cuando aparece o se va algo.
 export const FLOATING_GAP = 12
+// Avisa en el teléfono cuando cambia `--floating-bottom` (Mochi de la Home se para encima de lo que flota).
+export const FLOATING_EVENT = 'floating-bottom'
 
 const floating = new Map() // elemento → el teléfono donde está
 
@@ -28,8 +30,14 @@ export function floatingInset(phone, elements) {
 function update(phone) {
   if (!phone) return
   const mine = [...floating].filter(([, where]) => where === phone).map(([el]) => el)
-  phone.style.setProperty('--floating-bottom', `${floatingInset(phone, mine)}px`)
+  const value = `${floatingInset(phone, mine)}px`
+  if (phone.style.getPropertyValue('--floating-bottom') === value) return
+  phone.style.setProperty('--floating-bottom', value)
+  phone.dispatchEvent(new Event(FLOATING_EVENT))
 }
+
+/** Cuánto ocupa lo que flota abajo del teléfono (0 si nada), según la última medida. */
+export const floatingBottom = (phone) => parseFloat(phone?.style.getPropertyValue('--floating-bottom')) || 0
 
 /**
  * Registra lo que flota (`target()` da el elemento, o null si no se ve) y vuelve a medir en cada render: las clases que

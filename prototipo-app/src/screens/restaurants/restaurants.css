@@ -13,15 +13,6 @@
   padding: 0 var(--gutter);
 }
 
-.round-button {
-  display: grid;
-  place-items: center;
-  width: 34px;
-  height: 34px;
-  border-radius: 50%;
-  background: var(--chip);
-}
-
 .rest-header .round-button {
   position: absolute;
   left: var(--gutter);

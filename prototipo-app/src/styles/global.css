@@ -173,6 +173,37 @@ img {
   letter-spacing: -0.2px;
 }
 
+/* Encabezado de sección con botón "Ver más"/"Ver todo" a la derecha. Vive aquí, no en tab-page.css: lo usan también
+   VerticalScreen y Cuenta, que no cargan TabPage (cada pantalla es un chunk aparte) */
+.section-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 0 var(--gutter);
+}
+
+.see-more {
+  flex: none;
+  height: 33px;
+  padding: 0 17px;
+  border-radius: 99px;
+  background: #ebeff3;
+  font-size: 17px;
+  font-weight: 500;
+}
+
+/* "Volver" en un círculo gris (Restaurantes, Súper y las demás verticales, la lista, el pago y Mis pedidos). Vivía en
+   restaurants.css: las otras pantallas lo veían solo después de pasar por Restaurantes */
+.round-button {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: var(--chip);
+}
+
 .free-delivery {
   display: inline-flex;
   align-items: center;

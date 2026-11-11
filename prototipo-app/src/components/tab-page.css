@@ -47,25 +47,6 @@
   font-weight: 600;
 }
 
-/* Encabezado de sección con botón "See more"/"See all" a la derecha */
-.section-head {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  padding: 0 var(--gutter);
-}
-
-.see-more {
-  flex: none;
-  height: 33px;
-  padding: 0 17px;
-  border-radius: 99px;
-  background: #ebeff3;
-  font-size: 17px;
-  font-weight: 500;
-}
-
 /* Filas horizontales de tarjetas */
 .card-row {
   gap: 17px;

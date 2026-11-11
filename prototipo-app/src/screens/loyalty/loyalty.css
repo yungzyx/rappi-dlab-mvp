@@ -135,7 +135,7 @@
 .loyalty-change {
   font-size: 14px;
   font-weight: 600;
-  color: var(--agent-orange);
+  color: var(--accent-ink);
 }
 
 .loyalty-terms {

@@ -1,5 +1,6 @@
-import { describe, expect, test } from 'vitest'
-import { FLOATING_GAP, floatingInset } from './floatingInset'
+import { renderHook } from '@testing-library/react'
+import { describe, expect, test, vi } from 'vitest'
+import { FLOATING_EVENT, FLOATING_GAP, floatingBottom, floatingInset, useFloatingInset } from './floatingInset'
 
 // Elementos de mentira: jsdom no calcula el layout, así que la geometría va a mano (alto del teléfono 874).
 const phone = { clientHeight: 874 }
@@ -28,5 +29,28 @@ describe('relleno de lo que flota abajo', () => {
     expect(floatingInset(phone, [cart, { ...at(100, 0) }, { ...at(100, 40), isConnected: false }])).toBe(
       80 + FLOATING_GAP,
     )
+  })
+
+  test('al cambiar avisa en el teléfono (Mochi de la Home se para encima) y floatingBottom lo lee', () => {
+    const phone = document.createElement('div')
+    phone.className = 'phone'
+    const bar = document.createElement('button')
+    phone.append(bar)
+    document.body.append(phone)
+    Object.defineProperty(phone, 'clientHeight', { value: 874 })
+    Object.defineProperties(bar, {
+      offsetTop: { value: 874 - 100 - 52 },
+      offsetHeight: { value: 52 },
+      offsetParent: { value: phone },
+    })
+    const changed = vi.fn()
+    phone.addEventListener(FLOATING_EVENT, changed)
+    expect(floatingBottom(phone)).toBe(0)
+    const { rerender } = renderHook(() => useFloatingInset(() => bar))
+    expect(floatingBottom(phone)).toBe(152 + FLOATING_GAP)
+    expect(changed).toHaveBeenCalledTimes(1)
+    rerender() // la misma medida no vuelve a avisar
+    expect(changed).toHaveBeenCalledTimes(1)
+    phone.remove()
   })
 })

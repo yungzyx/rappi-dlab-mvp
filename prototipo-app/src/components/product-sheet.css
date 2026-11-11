@@ -54,6 +54,7 @@
 
 .product-sheet-store img,
 .product-sheet-store .store-badge {
+  flex: none; /* .product-sheet-store span (el nombre) crece; el avatar, que también es un span, no */
   width: 28px;
   height: 28px;
   border-radius: 50%;
@@ -74,7 +75,7 @@
 
 .product-sheet-store small {
   font-size: 14px;
-  color: var(--rappi-red);
+  color: var(--rappi-red-ink);
 }
 
 .product-sheet-prices {
@@ -147,7 +148,7 @@
   height: 52px;
   margin-top: 6px;
   border-radius: 99px;
-  background: var(--rappi-red);
+  background: var(--rappi-red-ink);
   color: var(--surface);
   font-size: 17px;
   font-weight: 600;

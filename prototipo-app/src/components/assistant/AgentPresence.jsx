@@ -13,6 +13,7 @@ import { today } from '../../utils/today'
 import { useFloatingInset } from '../floatingInset'
 import AgentMenu, { useMenuDismiss } from './AgentMenu'
 import Mascot from './Mascot'
+import { coversControl, tuckLift } from './agentSpot'
 import './agent-presence.css'
 
 // Donde el agente no flota: ya está en la pantalla (la Home, el mapa del seguimiento) o estorba (el checkout).
@@ -21,7 +22,8 @@ export const SIDE_KEY = 'rappi-proto-mochi-lado'
 
 const SIZE = 68
 const JUMP_MS = 900 // al tocarlo salta, como en la Home
-const SMALL_AFTER_SCROLL_MS = 750 // al hacer scroll se achica y vuelve un rato después
+const SETTLE_MS = 750 // al hacer scroll se aparta al borde y, un rato después del último, vuelve a mirar si puede salir
+const CHECK_MS = 200 // lo que cambia en la pantalla sin scroll se revisa cuando deja de cambiar
 const DRAG_THRESHOLD_PX = 8 // menos que esto es un toque, no un arrastre
 const CART_BUBBLE_MS = 4000
 
@@ -46,7 +48,8 @@ export default function AgentPresence({ screen, homeTab, raised }) {
   const [menu, setMenu] = useState(false)
   const [side, setSide] = useState(readSide)
   const [jumping, setJumping] = useState(false)
-  const [small, setSmall] = useState(false)
+  const [tucked, setTucked] = useState(false) // apartado al borde: ver agentSpot.js
+  const [lift, setLift] = useState(0) // apartado, cuánto sube para no pisar un control con lo que asoma
   const [quiet, setQuiet] = useState(() => isQuiet(today()))
   const [dragging, setDragging] = useState(false) // se arrastra un producto: el agente lo espera
   const agentHidden = useAgentHidden()
@@ -54,6 +57,8 @@ export default function AgentPresence({ screen, homeTab, raised }) {
   const body = useRef(null)
   const drag = useRef(null)
   const timers = useRef({})
+  const scrolling = useRef(false)
+  const hasCart = cart.count > 0
   // Lo que cuenta para el relleno de las pantallas es Mochi (o su pestañita), no sus globos pasajeros.
   useFloatingInset(() => host.current?.querySelector('.agent-presence-body, .agent-quiet-tab'))
 
@@ -70,17 +75,50 @@ export default function AgentPresence({ screen, homeTab, raised }) {
   }
   useEffect(() => () => Object.values(timers.current).forEach(clearTimeout), [])
 
-  // Al hacer scroll en el teléfono se achica para no tapar lo que se está mirando.
+  // Al hacer scroll en el teléfono se aparta al borde para no tapar lo que se está mirando. Al parar vuelve, salvo que
+  // quede sobre un control (un "+", "Ver más", un chip): ahí sigue apartado hasta que deje de estar encima. También mira
+  // al cambiar de lugar (carro, barra inferior, lado) y cuando la pantalla cambia sin scroll (llega la lista).
   useEffect(() => {
     const phone = host.current?.closest('.phone')
     if (!phone) return undefined
-    const onScroll = () => {
-      setSmall(true)
-      later('small', () => setSmall(false), SMALL_AFTER_SCROLL_MS)
+    const check = () => {
+      if (scrolling.current) return
+      const covers = coversControl(body.current)
+      setTucked(covers)
+      setLift(covers ? tuckLift(body.current) : 0)
     }
+    const onScroll = (event) => {
+      // Solo lo que se mueve en la pantalla de adelante: el carrusel de la Home, que avanza solo detrás, lo dejaba
+      // apartado para siempre (cada paso volvía a empezar la espera) y con la altura de antes
+      if (typeof document.elementFromPoint === 'function') {
+        const r = phone.getBoundingClientRect()
+        const front = document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2)?.closest('.screen')
+        if (front && event.target instanceof Node && !front.contains(event.target)) return
+      }
+      scrolling.current = true
+      setTucked(true)
+      later(
+        'settle',
+        () => {
+          scrolling.current = false
+          check()
+        },
+        SETTLE_MS,
+      )
+    }
+    const soon = () => later('check', check, CHECK_MS)
+    const observer = new MutationObserver(soon)
+    observer.observe(phone, { childList: true, subtree: true })
+    soon()
     phone.addEventListener('scroll', onScroll, true)
-    return () => phone.removeEventListener('scroll', onScroll, true)
-  }, [hidden])
+    // Una foto que termina de cargar puede correr la lista sin scroll ni cambio en el DOM
+    phone.addEventListener('load', soon, true)
+    return () => {
+      observer.disconnect()
+      phone.removeEventListener('scroll', onScroll, true)
+      phone.removeEventListener('load', soon, true)
+    }
+  }, [hidden, screen, hasCart, raised, side])
 
   // Al agregar al carro, una confirmación corta con "Deshacer". No sugiere nada: eso queda para la Home al volver.
   // En silencio (por hoy o porque lo ignoraron) no dice nada.
@@ -170,7 +208,7 @@ export default function AgentPresence({ screen, homeTab, raised }) {
   // La misma posición en silencio y despierto: sobre la barra del carrito y la inferior, nunca encima.
   const classes = ['agent-presence']
   if (side === 'left') classes.push('is-left')
-  if (cart.count > 0) classes.push('has-cart')
+  if (hasCart) classes.push('has-cart')
   if (raised) classes.push('is-raised')
 
   // Silenciado por hoy: solo una pestañita en el borde, sin globos; tocarla lo despierta.
@@ -219,10 +257,11 @@ export default function AgentPresence({ screen, homeTab, raised }) {
     setMenu((open) => !open)
   }
 
-  if (small && !menu) classes.push('is-small')
+  // Con el menú abierto o un producto arrastrándose hacia él, sale entero.
+  if (tucked && !menu && !dragging) classes.push('is-tucked')
 
   return (
-    <div ref={host} className={classes.join(' ')}>
+    <div ref={host} className={classes.join(' ')} style={lift ? { '--tuck-lift': `${lift}px` } : undefined}>
       {dragging && (
         <div className="agent-popover" role="status">
           <p>Acércamelo y lo vemos juntos.</p>

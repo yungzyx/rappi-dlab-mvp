@@ -243,7 +243,7 @@
 
 .account-demo-value {
   font-size: 14px;
-  color: var(--agent-orange);
+  color: var(--accent-ink);
 }
 
 /* "Borrar mis datos": una entrada fija, con su explicación, antes de cerrar sesión */

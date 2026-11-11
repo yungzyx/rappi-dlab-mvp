@@ -200,7 +200,7 @@
   position: relative;
   font-size: 13px;
   font-weight: 600;
-  color: var(--agent-orange);
+  color: var(--accent-ink);
   text-decoration: underline;
 }
 
