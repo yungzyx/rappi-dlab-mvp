@@ -17,6 +17,7 @@ import math
 from psycopg import Connection
 from rappi_scraper.storage.search import MIN_PRICE
 
+from .. import config
 from ..agent.tools import Product, clp
 from ..agent.verticals import LOGO_BASE_URL
 from ..concepts.taxonomy import load_taxonomy
@@ -36,6 +37,22 @@ NOT_PUSHED_VERTICALS = ("farmacia", "restaurantes")
 # en la base real, sex shops y smoking shops (tabaco, Ley 20.105) del mall y farmacias listadas entre los súper (Cruz
 # Verde). Quien abre su vertical a propósito (Retail, Súper) sí las ve: la regla es de lo que la app propone sola.
 NOT_PUSHED_SUBVERTICALS = ("Farmacia", "Sex shop", "Smoking shop")
+
+
+# La tienda `s` es de la ciudad de la demo: su ciudad, normalizada como en `text.normalize` (sin tildes, mayúsculas ni
+# signos), es una de `%(places)s` (`demo_places`). Solo las listas de tiendas (las de una vertical y "Cerca de ti"),
+# como las de restaurantes (catalog/restaurants.py): abrir una tienda por su id, la búsqueda, Mochi y las ofertas no se
+# filtran.
+IN_DEMO_CITY = "btrim(regexp_replace(lower(unaccent(coalesce(s.city, ''))), '[^a-z0-9]+', ' ', 'g')) = ANY(%(places)s)"
+
+
+def demo_places() -> list[str]:
+    """Las comunas de la ciudad de la demo (`city_places(config.PROFILE_CITY)`, las de los restaurantes) y el nombre de
+    esa ciudad: Rappi da a un restaurante su comuna ("Providencia") y a una tienda, su ciudad ("Santiago de Chile")."""
+    from ..offers.profiles import CITY_COMUNAS, city_places  # import diferido: offers importa events, que importa esto
+
+    places = city_places(config.PROFILE_CITY)
+    return sorted(places | {normalize(name) for name in CITY_COMUNAS if city_places(name) == places})
 
 
 def not_pushed_params() -> dict[str, list[str]]:
@@ -156,15 +173,18 @@ def downloaded_cte(in_vertical: bool, history: bool = False) -> str:
     )
 
 
-# Una tarjeta por formato (store_type) del vertical: la sucursal que la última corrida de su formato bajó. Si hubiera
-# varias en esa corrida, la de más ofertas. Las tarjetas se cortan antes de unir con tiendas y marcas. El LATERAL hace
-# que el plan busque por llave en vez de leer price_snapshots entero (el plan sin él tardaba el doble).
+# Una tarjeta por formato (store_type) del vertical: la sucursal de la ciudad de la demo (`IN_DEMO_CITY`) que la última
+# corrida de su formato bajó. Si hubiera varias en esa corrida, la de más ofertas. Las tarjetas se cortan antes de unir
+# con tiendas y marcas. El LATERAL hace que el plan busque por llave en vez de leer price_snapshots entero (el plan sin
+# él tardaba el doble).
 _VERTICAL_STORES = f"""
 WITH downloaded AS MATERIALIZED (
     SELECT f.store_id, f.format, f.format_run_id
     FROM v_store_format_runs f
     JOIN v_store_verticals v ON v.store_id = f.store_id AND v.vertical = %(vertical)s
+    JOIN stores s ON s.store_id = f.store_id
     WHERE EXISTS (SELECT 1 FROM aisles a WHERE a.store_id = f.store_id AND a.parent_aisle_id IS NULL)  -- sin pasillos
+      AND {IN_DEMO_CITY}
 ),
 offers AS (
     SELECT d.format, d.store_id, o.master_product_id
@@ -283,14 +303,15 @@ def line_prices(conn: Connection, lines: list[dict]) -> list[float | None]:
 
 
 def vertical_stores(conn: Connection, vertical: str, limit: int = 30) -> list[dict]:
-    """Una tarjeta por formato de tienda del vertical, de más a menos ofertas vigentes; las cerradas en la descarga al
-    final. Restaurantes no entra: sus locales no venden productos del catálogo (tienen menú). Sale de la caché del
-    catálogo (catalog/cache.py)."""
+    """Una tarjeta por formato de tienda del vertical, solo de la ciudad de la demo (`demo_places`), de más a menos
+    ofertas vigentes; las cerradas en la descarga al final. Restaurantes no entra: sus locales no venden productos del
+    catálogo (tienen menú). Sale de la caché del catálogo (catalog/cache.py)."""
     if vertical == "restaurantes":
         return []
 
     def compute(c: Connection = conn) -> list[dict]:
-        rows = c.execute(_VERTICAL_STORES, {"vertical": vertical, "min_price": MIN_PRICE, "limit": limit})
+        params = {"vertical": vertical, "min_price": MIN_PRICE, "limit": limit, "places": demo_places()}
+        rows = c.execute(_VERTICAL_STORES, params)
         return closed_last([store_card(*row[:5], vertical, row[5]) for row in rows])
 
     return cached(f"vertical_stores:{vertical}:{limit}", conn, compute, refresh=compute)

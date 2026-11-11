@@ -135,7 +135,7 @@ La tarea semanal del scraper (`make schedule` en `rappi-scraper/`) ya lo hace so
 | `API_REQUIRE_SEMANTIC` | `0` | `1` en el stack |
 | `LLM_DAILY_CALL_CAP` | `300` | igual |
 | `LOG_LEVEL` | `INFO` | igual |
-| `PROFILE_CITY` | `Santiago de Chile`: la ciudad de los restaurantes de un perfil de gusto cuando la persona no tiene ciudad (otra ciudad del scraper vale como su comuna) | igual |
+| `PROFILE_CITY` | `Santiago de Chile`: la ciudad de la demo. Las listas de restaurantes y de tiendas (las de una vertical y "Cerca de ti") son de ella, y también los restaurantes de un perfil de gusto cuando la persona no tiene ciudad (otra ciudad del scraper vale como su comuna) | igual |
 | `PROTOTYPE_USER_RETENTION_DAYS` | `180` | igual |
 | `RAPPI_ENV_FILE` · `RAPPI_IA_DATA_DIR` | `.env` · `data/` | `/etc/rappi/rappi.env` · `/data/ia` |
 

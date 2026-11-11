@@ -112,7 +112,7 @@ Todas van en `/etc/rappi/rappi.env`, salvo las que fija `docker-compose.yml` o l
 | `LLM_DAILY_CALL_CAP` | api (por proceso; `0` = nunca Claude) | `300` | `300` | no |
 | `AGENT_NAME` | api | `Mochi` | — | no |
 | `MVP_HOME_LAT` / `MVP_HOME_LNG` | api ("Cerca de ti") | `-33.4263` / `-70.6106` | — | no |
-| `PROFILE_CITY` | api (la ciudad de los restaurantes de un perfil de gusto si la persona no tiene) | `Santiago de Chile` | `Viña del Mar` | no |
+| `PROFILE_CITY` | api (la ciudad de la demo: las listas de restaurantes y de tiendas, y los restaurantes de un perfil de gusto si la persona no tiene ciudad) | `Santiago de Chile` | `Viña del Mar` | no |
 | `MOTOR_POBLACION` | api (la población de la que aprende el motor multivertical: `synthetic` o `prototype`; nunca se mezclan, y otro valor no deja arrancar) | `synthetic` (simulada: no es evidencia) | `prototype` | no |
 | `OFFERS_CONTROL_PCT` | api (el porcentaje de personas del grupo de control `ofertas_control`, de 0 a 50: no ven lo que Mochi propone solo y queda `offer_withheld`) | `0` (apagado) | `10` | no |
 | `TEXT_EMBEDDING_MODEL` | api, jobs | `intfloat/multilingual-e5-base` | — | no |

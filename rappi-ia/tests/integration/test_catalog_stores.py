@@ -94,12 +94,19 @@ def test_card_uses_the_brand_name_and_leaves_unknown_logo_and_eta_empty(seeded):
 
 
 def add_branch(
-    conn, store_id: int, store_type: str, with_aisle: bool, product_id: int = 91001, price: int = 1990
+    conn,
+    store_id: int,
+    store_type: str,
+    with_aisle: bool,
+    product_id: int = 91001,
+    price: int = 1990,
+    city: str = "Santiago de Chile",
 ) -> None:
-    """Una sucursal más del súper de prueba con una oferta en la corrida actual (como las de una descarga)."""
+    """Una sucursal más del súper de prueba con una oferta en la corrida actual (como las de una descarga), en `city`
+    (Rappi da a una tienda su ciudad, no su comuna)."""
     conn.execute(
-        'INSERT INTO stores (store_id, name, store_type, raw) VALUES (%s, %s, %s, \'{"image": "x.png"}\')',
-        (store_id, f"Sucursal de prueba {store_id}", store_type),
+        'INSERT INTO stores (store_id, name, store_type, city, raw) VALUES (%s, %s, %s, %s, \'{"image": "x.png"}\')',
+        (store_id, f"Sucursal de prueba {store_id}", store_type, city),
     )
     conn.execute("INSERT INTO store_verticals (store_id, vertical) VALUES (%s, 'supermercado')", (store_id,))
     if with_aisle:
@@ -133,6 +140,43 @@ def test_a_format_downloaded_in_two_branches_has_one_card_the_one_with_more_offe
         (PHARMACY_IN_SUPER, 2),
     ]
     assert store_page(seeded, 9105)["store"]["products"] == 1  # la otra sucursal sigue abierta por su id
+
+
+def test_vertical_stores_lists_only_the_demo_city_and_any_store_still_opens_by_its_id(seeded):
+    # Norte pasa a ser de Viña del Mar: su formato queda con la sucursal que tiene en Santiago, aunque tenga menos
+    # ofertas. Una tienda de otra ciudad con más ofertas que todas (9106, formato propio) no sale en la lista.
+    seeded.execute("UPDATE stores SET city = 'Viña del Mar' WHERE store_id = %s", (NORTE,))
+    add_branch(seeded, 9105, "prueba_9102", with_aisle=True)
+    add_branch(seeded, 9106, "prueba_9106", with_aisle=True, city="Temuco")
+    others = seeded.execute(
+        "SELECT DISTINCT master_product_id FROM store_products WHERE store_id = %s AND master_product_id <> 91001",
+        (CENTRO,),
+    ).fetchall()
+    for (product_id,) in others:
+        add_branch_offer(seeded, 9106, product_id)
+
+    assert [(card["id"], card["products"]) for card in vertical_stores(seeded, "supermercado")] == [
+        (CENTRO, 36),
+        (PHARMACY_IN_SUPER, 2),
+        (9105, 1),
+    ]
+    # Por su id (un enlace, la búsqueda, Mochi) se abren igual, como el menú de un restaurante de otra ciudad.
+    assert store_page(seeded, NORTE)["store"]["products"] == 35
+    assert store_page(seeded, 9106)["store"]["products"] == 1 + len(others) > 36
+
+
+def add_branch_offer(conn, store_id: int, product_id: int, price: int = 1990) -> None:
+    """Una oferta más, en el pasillo "Despensa" y en la corrida actual, de una sucursal de `add_branch`."""
+    sku = f"sku-{product_id}"
+    conn.execute(
+        "INSERT INTO store_products (store_id, sku, master_product_id, aisle_id) VALUES (%s, %s, %s, 100)",
+        (store_id, sku, product_id),
+    )
+    run_id = conn.execute("SELECT max(run_id) FROM scrape_runs WHERE kind = 'stores'").fetchone()[0]
+    conn.execute(
+        "INSERT INTO price_snapshots (run_id, store_id, sku, price, in_stock) VALUES (%s, %s, %s, %s, true)",
+        (run_id, store_id, sku, price),
+    )
 
 
 def test_store_page_lists_aisles_with_current_counts_biggest_first(seeded):
