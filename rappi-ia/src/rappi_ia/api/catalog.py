@@ -164,12 +164,12 @@ def deals_list(
     limit: int = Query(24, ge=1, le=100),
     conn: Connection = Depends(get_conn),
 ) -> list[dict]:
-    """Los productos que bajaron de precio o que su tienda rebajó, de mayor a menor descuento. Una vertical es el código
-    del backend o el id del prototipo; sin ella, no entra farmacia."""
+    """Los productos que bajaron de precio o que su tienda rebajó, de mayor a menor descuento, de tiendas de la ciudad
+    de la demo. Una vertical es el código del backend o el id del prototipo; sin ella, no entra farmacia."""
     code = backend_vertical(vertical or None)
     if vertical and code is None:
         raise HTTPException(404, VERTICAL_NOT_FOUND)
-    return deals(conn, code, limit)
+    return deals(conn, code, limit, in_city=True)
 
 
 @router.get("/home")

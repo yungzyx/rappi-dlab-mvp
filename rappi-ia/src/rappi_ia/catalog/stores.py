@@ -17,6 +17,7 @@ import math
 from psycopg import Connection
 from rappi_scraper.storage.search import MIN_PRICE
 
+from .. import config
 from ..agent.tools import Product, clp
 from ..agent.verticals import LOGO_BASE_URL
 from ..concepts.taxonomy import load_taxonomy
@@ -36,6 +37,44 @@ NOT_PUSHED_VERTICALS = ("farmacia", "restaurantes")
 # en la base real, sex shops y smoking shops (tabaco, Ley 20.105) del mall y farmacias listadas entre los súper (Cruz
 # Verde). Quien abre su vertical a propósito (Retail, Súper) sí las ve: la regla es de lo que la app propone sola.
 NOT_PUSHED_SUBVERTICALS = ("Farmacia", "Sex shop", "Smoking shop")
+
+
+# Una columna normalizada en SQL como `text.normalize`: sin tildes, en minúsculas y con los signos como espacios.
+_NORMALIZED = "btrim(regexp_replace(lower(unaccent(coalesce({column}, ''))), '[^a-z0-9]+', ' ', 'g'))"
+
+# La tienda o el local `s` es de la ciudad de la demo: su ciudad (o su comuna), normalizada, es una de `%(places)s`
+# (`demo_places`). Lo usan las listas: las de restaurantes (catalog/restaurants.py), las de tiendas de una vertical,
+# "Cerca de ti", las ofertas de las pantallas (`/catalog/deals`) y "Disponible en N tiendas". Abrir una tienda o un menú
+# por su id, la búsqueda, Mochi y las ofertas de Mochi no se filtran (cambiaría lo que miden las evaluaciones).
+IN_DEMO_CITY = _NORMALIZED.format(column="s.city") + " = ANY(%(places)s)"
+
+
+def demo_places() -> list[str]:
+    """Las comunas de la ciudad de la demo (`city_places(config.PROFILE_CITY)`, las de los restaurantes) y el nombre de
+    esa ciudad: Rappi da a un restaurante su comuna ("Providencia") y a una tienda, su ciudad ("Santiago de Chile")."""
+    from ..offers.profiles import CITY_COMUNAS, city_places  # import diferido: offers importa events, que importa esto
+
+    places = city_places(config.PROFILE_CITY)
+    return sorted(places | {normalize(name) for name in CITY_COMUNAS if city_places(name) == places})
+
+
+def demo_city_warning(conn: Connection) -> str | None:
+    """El aviso que la API anota al arrancar (api/prewarm.py) si ningún restaurante o ninguna tienda del catálogo es de
+    la ciudad de la demo: con un `PROFILE_CITY` que no está en `stores.city`, esas listas salen vacías. None si hay."""
+    restaurants, stores = conn.execute(
+        f"""SELECT count(*) FILTER (WHERE v.vertical = 'restaurantes'),
+                   count(*) FILTER (WHERE v.vertical <> 'restaurantes')
+            FROM stores s JOIN store_verticals v ON v.store_id = s.store_id
+            WHERE {IN_DEMO_CITY}""",
+        {"places": demo_places()},
+    ).fetchone()
+    missing = [name for name, count in (("restaurantes", restaurants), ("tiendas", stores)) if count == 0]
+    if not missing:
+        return None
+    return (
+        f"PROFILE_CITY={config.PROFILE_CITY!r}: ningún local del catálogo ({' ni '.join(missing)}) es de esa ciudad; "
+        "sus listas saldrán vacías. Usa una ciudad de stores.city y cambia MVP_HOME_LAT/LNG con ella."
+    )
 
 
 def not_pushed_params() -> dict[str, list[str]]:
@@ -137,8 +176,10 @@ _DOWNLOADED = """
 downloaded AS MATERIALIZED (
     SELECT DISTINCT f.store_id, f.format_run_id{history}
     FROM v_store_format_runs f
-    JOIN v_store_verticals v ON v.store_id = f.store_id AND {scope}{unpushed}
+    JOIN v_store_verticals v ON v.store_id = f.store_id AND {scope}{city}{unpushed}
 )"""
+_IN_CITY = f"""
+    JOIN stores s ON s.store_id = f.store_id AND {IN_DEMO_CITY}"""
 _NOT_PUSHED_SUBVERTICAL = """
     WHERE NOT EXISTS (SELECT 1 FROM store_verticals own
                       WHERE own.store_id = f.store_id AND own.subvertical = ANY(%(not_pushed_subverticals)s))"""
@@ -147,24 +188,29 @@ _HAS_HISTORY = """,
                    WHERE e.store_id = f.store_id AND e.run_id < f.format_run_id) AS has_history"""
 
 
-def downloaded_cte(in_vertical: bool, history: bool = False) -> str:
-    """El CTE `downloaded` de una vertical (parámetro `vertical`) o de las que se empujan (`not_pushed_params`)."""
+def downloaded_cte(in_vertical: bool, history: bool = False, in_city: bool = False) -> str:
+    """El CTE `downloaded` de una vertical (parámetro `vertical`) o de las que se empujan (`not_pushed_params`). Con
+    `in_city`, solo las tiendas de la ciudad de la demo (parámetro `places`: `demo_places`)."""
     return _DOWNLOADED.format(
         scope="v.vertical = %(vertical)s" if in_vertical else "v.vertical <> ALL(%(not_pushed)s)",
+        city=_IN_CITY if in_city else "",
         unpushed="" if in_vertical else _NOT_PUSHED_SUBVERTICAL,
         history=_HAS_HISTORY if history else "",
     )
 
 
-# Una tarjeta por formato (store_type) del vertical: la sucursal que la última corrida de su formato bajó. Si hubiera
-# varias en esa corrida, la de más ofertas. Las tarjetas se cortan antes de unir con tiendas y marcas. El LATERAL hace
-# que el plan busque por llave en vez de leer price_snapshots entero (el plan sin él tardaba el doble).
+# Una tarjeta por formato (store_type) del vertical: la sucursal de la ciudad de la demo (`IN_DEMO_CITY`) que la última
+# corrida de su formato bajó. Si hubiera varias en esa corrida, la de más ofertas. Las tarjetas se cortan antes de unir
+# con tiendas y marcas. El LATERAL hace que el plan busque por llave en vez de leer price_snapshots entero (el plan sin
+# él tardaba el doble).
 _VERTICAL_STORES = f"""
 WITH downloaded AS MATERIALIZED (
     SELECT f.store_id, f.format, f.format_run_id
     FROM v_store_format_runs f
     JOIN v_store_verticals v ON v.store_id = f.store_id AND v.vertical = %(vertical)s
+    JOIN stores s ON s.store_id = f.store_id
     WHERE EXISTS (SELECT 1 FROM aisles a WHERE a.store_id = f.store_id AND a.parent_aisle_id IS NULL)  -- sin pasillos
+      AND {IN_DEMO_CITY}
 ),
 offers AS (
     SELECT d.format, d.store_id, o.master_product_id
@@ -283,14 +329,15 @@ def line_prices(conn: Connection, lines: list[dict]) -> list[float | None]:
 
 
 def vertical_stores(conn: Connection, vertical: str, limit: int = 30) -> list[dict]:
-    """Una tarjeta por formato de tienda del vertical, de más a menos ofertas vigentes; las cerradas en la descarga al
-    final. Restaurantes no entra: sus locales no venden productos del catálogo (tienen menú). Sale de la caché del
-    catálogo (catalog/cache.py)."""
+    """Una tarjeta por formato de tienda del vertical, solo de la ciudad de la demo (`demo_places`), de más a menos
+    ofertas vigentes; las cerradas en la descarga al final. Restaurantes no entra: sus locales no venden productos del
+    catálogo (tienen menú). Sale de la caché del catálogo (catalog/cache.py)."""
     if vertical == "restaurantes":
         return []
 
     def compute(c: Connection = conn) -> list[dict]:
-        rows = c.execute(_VERTICAL_STORES, {"vertical": vertical, "min_price": MIN_PRICE, "limit": limit})
+        params = {"vertical": vertical, "min_price": MIN_PRICE, "limit": limit, "places": demo_places()}
+        rows = c.execute(_VERTICAL_STORES, params)
         return closed_last([store_card(*row[:5], vertical, row[5]) for row in rows])
 
     return cached(f"vertical_stores:{vertical}:{limit}", conn, compute, refresh=compute)
@@ -387,7 +434,7 @@ WITH offers AS (
     ORDER BY l.store_id, l.in_stock IS NOT FALSE DESC, l.price, l.sku
 )
 SELECT o.store_id, btrim(coalesce(b.name, s.name)), s.raw->>'image', s.raw->>'eta_value', s.raw->>'delivery_price',
-       {OWN_VERTICAL}, o.price, o.real_price, o.in_stock, ps.stock
+       {OWN_VERTICAL}, o.price, o.real_price, o.in_stock, ps.stock, {IN_DEMO_CITY}
 FROM offers o
 JOIN stores s ON s.store_id = o.store_id
 LEFT JOIN brands b ON b.brand_id = s.brand_id
@@ -452,9 +499,10 @@ def product_stores(
     conn: Connection, entity_id: str, store_id: int | None = None, substitutes: bool = False
 ) -> dict | None:
     """Dónde está un producto del catálogo: `{count, stores, here, similar}`.
-    - `stores`: cada tienda que lo vende (vigente, en un pasillo), por precio, con su tiempo y envío publicados, si está
-      disponible y si quedan pocas unidades (`low_stock`). Entre las disponibles, si hay más de una y no todas son
-      iguales, `best_price` marca la más barata y `fastest` la de menor tiempo. `count` cuenta las disponibles.
+    - `stores`: cada tienda de la ciudad de la demo (`demo_places`) que lo vende (vigente, en un pasillo), por precio,
+      con su tiempo y envío publicados, si está disponible y si quedan pocas unidades (`low_stock`); también
+      `store_id`, aunque sea de otra ciudad (se abrió por su id). Entre las disponibles, si hay más de una y no todas
+      son iguales, `best_price` marca la más barata y `fastest` la de menor tiempo. `count` cuenta las disponibles.
     - `here`: la de `store_id`, si lo vende (None si no).
     - `similar`: si en `store_id` está agotado (sin stock o con 0 unidades), los productos del mismo concepto que esa
       tienda sí tiene, del más barato al más caro. Con `substitutes`, aunque ahí esté disponible: los sustitutos que
@@ -463,8 +511,8 @@ def product_stores(
     item_id = int(entity_id) if entity_id.isascii() and entity_id.isdigit() else None
     if item_id is None or item_id > BIGINT_MAX:
         return None
-    rows = conn.execute(_PRODUCT_STORES, {"id": item_id, "min_price": MIN_PRICE}).fetchall()
-    stores = [_offer_entry(*row) for row in rows]
+    rows = conn.execute(_PRODUCT_STORES, {"id": item_id, "min_price": MIN_PRICE, "places": demo_places()}).fetchall()
+    stores = [_offer_entry(*row[:-1]) for row in rows if row[-1] or row[0] == store_id]
     available = [s for s in stores if s["available"]]
     _mark_best(available, "price_value", "best_price")
     _mark_best(available, "eta_minutes", "fastest")
@@ -564,7 +612,7 @@ def store_card(
 def normalized_sql(column: str) -> str:
     """`column` normalizado en SQL como `text.normalize` (sin tildes, en minúsculas y con los signos como espacios) y
     con un espacio delante: así `like_pattern` calza el comienzo de una palabra."""
-    return f"(' ' || btrim(regexp_replace(lower(unaccent(coalesce({column}, ''))), '[^a-z0-9]+', ' ', 'g')))"
+    return f"(' ' || {_NORMALIZED.format(column=column)})"
 
 
 def like_pattern(q: str) -> str | None:

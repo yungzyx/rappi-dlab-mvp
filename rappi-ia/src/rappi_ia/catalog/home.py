@@ -9,14 +9,24 @@ from .cache import cached
 from .dates import catalog_dates
 from .hours import closed_last
 from .restaurants import restaurants, with_hours
-from .stores import CURRENT_OFFERS, OWN_VERTICAL, STORE_STATE, downloaded_cte, not_pushed_params, store_card
+from .stores import (
+    CURRENT_OFFERS,
+    IN_DEMO_CITY,
+    OWN_VERTICAL,
+    STORE_STATE,
+    demo_places,
+    downloaded_cte,
+    not_pushed_params,
+    store_card,
+)
 
 NEARBY_STORES = 6
 FAST_RESTAURANTS = 2
 LOW_FEE_RESTAURANTS = 6
 
-# Las tiendas con ofertas vigentes más cercanas al punto, con coordenadas y sin las que no se empujan (farmacia,
-# restaurantes, sex shops, smoking shops: ver `stores.NOT_PUSHED_*`). La distancia es la del círculo máximo (haversine).
+# Las tiendas con ofertas vigentes más cercanas al punto, con coordenadas, de la ciudad de la demo (`IN_DEMO_CITY`) y
+# sin las que no se empujan (farmacia, restaurantes, sex shops, smoking shops: ver `stores.NOT_PUSHED_*`). La distancia
+# es la del círculo máximo (haversine).
 # Las tiendas se ordenan y se cortan solo con las que tienen alguna oferta vigente (el EXISTS se detiene en la primera):
 # así una cercana sin ofertas no ocupa un lugar y los productos se cuentan solo para las que quedan. Cada tarjeta es la
 # que da `vertical_stores`.
@@ -28,7 +38,7 @@ nearest AS MATERIALIZED (
                          + cos(radians(%(lat)s)) * cos(radians(s.lat)) * sin(radians(s.lng - %(lng)s) / 2) ^ 2)) AS km
     FROM downloaded d
     JOIN stores s ON s.store_id = d.store_id
-    WHERE s.lat IS NOT NULL AND s.lng IS NOT NULL AND EXISTS (SELECT 1 {CURRENT_OFFERS})
+    WHERE s.lat IS NOT NULL AND s.lng IS NOT NULL AND {IN_DEMO_CITY} AND EXISTS (SELECT 1 {CURRENT_OFFERS})
     ORDER BY km, d.store_id
     LIMIT %(limit)s
 )
@@ -66,5 +76,6 @@ def _home(conn: Connection) -> dict:
 
 
 def _nearby_stores(conn: Connection, lat: float, lng: float, limit: int) -> list[dict]:
-    params = {"lat": lat, "lng": lng, "limit": limit, "min_price": MIN_PRICE, **not_pushed_params()}
+    params = {"lat": lat, "lng": lng, "limit": limit, "min_price": MIN_PRICE, "places": demo_places()}
+    params |= not_pushed_params()
     return closed_last([store_card(*row) for row in conn.execute(_NEARBY, params)])

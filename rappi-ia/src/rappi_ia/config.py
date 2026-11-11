@@ -31,9 +31,12 @@ HNSW_MAINTENANCE_WORK_MEM = os.environ.get("HNSW_MAINTENANCE_WORK_MEM", "1GB")
 # Nombre con que el agente se presenta ante la persona. Es el único lugar del backend donde vive.
 AGENT_NAME = os.environ.get("AGENT_NAME", "Mochi")
 
-# Ciudad de los restaurantes que ofrece la escalera de un perfil de gusto cuando la persona no tiene ciudad
-# (`app_users.city`; la app no la pide). Es una ciudad del scraper ("Santiago de Chile", "Viña del Mar"): ver
-# offers/profiles.py, CITY_COMUNAS.
+# Ciudad de la demo: las listas de restaurantes y de tiendas (de una vertical, "Cerca de ti", las ofertas de las
+# pantallas y "Disponible en N tiendas", catalog/stores.py: demo_places) son de ella, los platos que destacan las
+# ofertas de Mochi son de sus locales (offers/engine.py, featured.py) y la escalera de un perfil de gusto ofrece sus
+# restaurantes cuando la persona no tiene ciudad (`app_users.city`; la app no la pide). Es una ciudad de `stores.city`
+# ("Santiago de Chile", "Viña del Mar"; ver offers/profiles.py, CITY_COMUNAS): si ningún local calza, la API lo avisa al
+# arrancar. Se cambia junto con MVP_HOME_LAT/LNG.
 PROFILE_CITY = os.environ.get("PROFILE_CITY") or "Santiago de Chile"
 
 # De qué población aprende el motor multivertical (motor/): "synthetic" (personas simuladas, no son evidencia) o

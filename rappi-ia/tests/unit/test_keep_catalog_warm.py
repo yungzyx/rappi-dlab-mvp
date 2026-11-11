@@ -46,12 +46,15 @@ def test_keep_catalog_warm_computes_the_home_first_and_then_one_pass_per_cycle(m
     monkeypatch.setattr(psycopg, "connect", connect)
     homes, passes, stop = [], [], threading.Event()
     monkeypatch.setattr("rappi_ia.catalog.home.home", lambda conn: homes.append(conn))
+    checked = []  # la ciudad de la demo se revisa una vez, en la primera pasada, y su aviso queda en el log
+    monkeypatch.setattr("rappi_ia.catalog.stores.demo_city_warning", lambda conn: checked.append(conn) or "sin locales")
     monkeypatch.setattr(cache, "keep_warm", _stop_after(passes, 2, stop))
     monkeypatch.setattr(cache, "WARM_EVERY_S", 0)
 
     with caplog.at_level(logging.INFO, logger="rappi_ia.api.prewarm"):
         prewarm.keep_catalog_warm(url="postgresql:///falsa", stop=stop)
 
+    assert checked == [conns[0]] and "sin locales" in caplog.text
     assert homes == [conns[0]]  # la Home una sola vez, en la primera pasada
     assert passes == conns and len(conns) == 2  # una conexión nueva por pasada, y se cierra
     assert all("statement_timeout" in c.statements[0] for c in conns)
