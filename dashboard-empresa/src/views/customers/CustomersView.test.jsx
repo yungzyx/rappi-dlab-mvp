@@ -32,7 +32,9 @@ describe('CustomersView', () => {
     serveFixtures()
     await renderWithData(<CustomersView source="synthetic" />)
 
-    await act(async () => fireEvent.click(screen.getByRole('button', { name: 'Ver tabla' })))
+    await act(async () =>
+      fireEvent.click(screen.getByRole('button', { name: 'Ver tabla de Combinaciones de verticales de Rappi' })),
+    )
 
     const table = screen.getByRole('table', { name: 'Combinaciones de verticales de Rappi' })
     const rows = within(table).getAllByRole('row').slice(1)

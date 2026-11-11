@@ -1,6 +1,17 @@
 import { Icon } from './Icon.jsx'
 
-export function EmptyState({ title, children }) {
+/** Estado vacío: una caja; con `inline`, una línea sin caja (lo que falta no ocupa una tarjeta). */
+export function EmptyState({ title, inline, children }) {
+  if (inline) {
+    return (
+      <div className="state state--inline">
+        <p>
+          <strong>{title}</strong>
+          {children && <> {children}</>}
+        </p>
+      </div>
+    )
+  }
   return (
     <div className="state">
       <strong>{title}</strong>

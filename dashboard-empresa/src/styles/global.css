@@ -95,20 +95,16 @@ abbr {
   container-type: inline-size;
 }
 
-/* Cabecera de sección: título, rótulo del prototipo e insignia en una fila; el texto debajo */
+/* Cabecera de sección: título, ayuda, meta corta y rótulo de procedencia en una fila; las salvedades debajo */
 .section-head {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto auto;
-  grid-template-areas:
-    'title note badge'
-    'lede lede lede';
+  position: relative;
+  display: flex;
+  flex-wrap: wrap;
   align-items: center;
-  gap: var(--space-1) var(--space-3);
-  padding-bottom: var(--space-1);
+  gap: var(--space-1) var(--space-2);
 }
 
 .section-head h2 {
-  grid-area: title;
   font-size: var(--text-title);
   font-weight: 600;
   letter-spacing: -0.01em;
@@ -119,35 +115,56 @@ abbr {
   outline-offset: 4px;
 }
 
-.section-head .mvp-note {
-  grid-area: note;
+.section-meta {
+  font-size: var(--text-sm);
+  color: var(--ink-3);
 }
 
-.section-head .badge {
-  grid-area: badge;
-  justify-self: end;
+.section-head .section-meta {
+  margin-left: var(--space-1);
 }
 
-.section-head > p:not(.mvp-note) {
-  grid-area: lede;
-  max-width: 80ch;
+.section-source {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+  margin-left: auto;
+}
+
+.section-head .caveat {
+  flex-basis: 100%;
+  max-width: none;
+}
+
+/* Transición: los párrafos de las secciones que todavía no pasan a ayuda a demanda */
+.section-head > p:not([class]) {
+  flex-basis: 100%;
+  order: 10;
   font-size: var(--text-sm);
   color: var(--ink-2);
 }
 
+.section-head .caveat:first-of-type {
+  margin-top: var(--space-1);
+}
+
 @media (max-width: 760px) {
-  .section-head {
-    grid-template-columns: auto minmax(0, 1fr);
-    grid-template-areas:
-      'title title'
-      'badge note'
-      'lede lede';
-    align-items: center;
-    justify-items: start;
+  /* La meta y el rótulo bajan a su propia línea, alineados a la izquierda */
+  .section-head .section-meta {
+    flex-basis: 100%;
+    order: 1;
+    margin-left: 0;
   }
 
-  .section-head .badge {
-    justify-self: start;
+  .section-source {
+    flex-basis: 100%;
+    order: 2;
+    margin-left: 0;
+  }
+
+  .section-head .caveat {
+    order: 3;
   }
 }
 
@@ -263,6 +280,20 @@ abbr {
 }
 
 /* ---------- Estados vacíos, de carga y de error ---------- */
+/* En línea: lo que falta dicho en una línea, sin caja */
+.state--inline {
+  padding: 0;
+  background: none;
+}
+
+.state--inline p {
+  max-width: 90ch;
+}
+
+.state--inline strong {
+  font-weight: 500;
+}
+
 .state {
   display: grid;
   gap: var(--space-1);

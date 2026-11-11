@@ -125,5 +125,13 @@ export function RetentionLadder({ rappi }) {
       rowClassName={(row) => (row.combo === 'total' ? 'is-group-start' : undefined)}
     />
   )
-  return <ChartTableSwitch chart={chart} table={table} legend={legend} />
+  return (
+    <ChartTableSwitch
+      chart={chart}
+      table={table}
+      legend={legend}
+      name="Combinaciones de verticales de Rappi"
+      keepTable={false}
+    />
+  )
 }
