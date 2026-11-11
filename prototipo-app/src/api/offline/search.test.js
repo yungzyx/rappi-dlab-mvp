@@ -84,6 +84,43 @@ describe('el foco de la búsqueda (agent/tools.py: _focus)', () => {
   })
 })
 
+describe('Licores no encabeza lo que no es +18 (agent/verticals.py: liquor_last)', () => {
+  const liquor = (id, name, concept, extra = {}) => product(id, { name, concept, vertical: 'licores', ...extra })
+  const pool = [
+    liquor(31, 'Galletas de agua', 'galletas'),
+    liquor(32, 'Galletas de soda', 'galletas'),
+    liquor(33, 'Cerveza rubia', 'cerveza', { age_restricted: true }),
+    liquor(34, 'Cerveza negra', 'cerveza', { age_restricted: true }),
+    product(35, { name: 'Galletas de avena', concept: 'galletas' }),
+    product(36, { name: 'Cerveza de trigo', concept: 'cerveza', age_restricted: true }),
+  ]
+  const store = { ...snapshot, pool }
+  const order = (params) => search(store, new URLSearchParams(params)).groups.map((g) => g.vertical)
+
+  test('con más galletas en la botillería, el súper va primero y Licores al final', () => {
+    expect(order('q=galletas')).toEqual(['supermercado', 'licores'])
+  })
+
+  test('la cerveza y lo que se busca desde Licores, como siempre', () => {
+    expect(order('q=cerveza')).toEqual(['licores', 'supermercado'])
+    expect(order('q=galletas&current=liquor')).toEqual(['licores', 'supermercado'])
+  })
+
+  test('con una muestra sin `age_restricted` (grabada antes), el grupo del concepto dice si es +18', () => {
+    const { age_restricted: _flag, ...beerWithoutFlag } = META.concepts.cerveza
+    const old = { ...store, meta: { ...META, concepts: { ...META.concepts, cerveza: beerWithoutFlag } } }
+    const oldOrder = (q) => search(old, new URLSearchParams(`q=${q}`)).groups.map((g) => g.vertical)
+    expect(oldOrder('cerveza')).toEqual(['licores', 'supermercado'])
+    expect(oldOrder('chela')).toEqual(['licores', 'supermercado'])
+    expect(oldOrder('galletas')).toEqual(['supermercado', 'licores'])
+  })
+
+  test('Mochi tampoco responde desde Licores lo que no es +18', () => {
+    const reply = ask(store, { message: '¿tienen galletas?', mode: 'propuesta' })
+    expect(reply.vertical).toBe('supermercado')
+  })
+})
+
 describe('un error de tipeo grabado (demo-snapshot.mjs: eval/typos.json)', () => {
   const corrected = {
     query: 'cervesa',

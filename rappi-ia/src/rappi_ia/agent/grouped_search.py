@@ -23,7 +23,7 @@ from ..retrieval.hybrid import UNNAMED_TAU, detect_concepts, has_words, occasion
 from ..retrieval.spelling import correct_query
 from .rappi_agent import PROTOTYPE_VERTICALS
 from .tools import Product, search_products
-from .verticals import ranked_verticals
+from .verticals import liquor_last, ranked_verticals
 
 TYPICAL_VERTICALS = 3  # con un concepto detectado, las verticales donde es más típico
 
@@ -76,9 +76,10 @@ class GroupedResult:
 def _verticals_to_search(
     conn: Connection, concepts: list[str], current: str | None, fixed: str | None = None
 ) -> list[str]:
-    """Con un concepto detectado, sus verticales típicas (hasta 3; primero la fija de la ocasión, si tiene) y la de la
-    pantalla; si no, las 8."""
-    typical = ranked_verticals(conn, concepts)[:TYPICAL_VERTICALS] if concepts else []
+    """Con un concepto detectado, sus verticales típicas (hasta 3, con Licores al final si no se pidió nada +18:
+    `liquor_last`; primero la fija de la ocasión, si tiene, y entonces Licores puede quedar fuera, como en "estoy
+    triste") y la de la pantalla; si no, las 8."""
+    typical = liquor_last(ranked_verticals(conn, concepts)[:TYPICAL_VERTICALS], concepts) if concepts else []
     if fixed:
         typical = [fixed, *[v for v in typical if v != fixed]][:TYPICAL_VERTICALS]
     if not typical:
@@ -152,15 +153,16 @@ def search_grouped(
     correct: bool = True,
 ) -> GroupedResult:
     """Productos por vertical, con `limit` por grupo y solo los grupos que traen algo. Con un concepto detectado el
-    orden es el de sus verticales típicas. Una ocasión sin concepto nombrado ("algo para el carrete") se busca como
-    el agente: sus conceptos (sin los sensibles: una ocasión no los nombra), en sus verticales típicas. Sin ninguno de
-    los dos, solo las verticales que calzan todas las palabras o, si ninguna, las muy cercanas (UNNAMED_TAU):
-    primero las que calzan y luego por la cercanía vectorial. La pantalla actual (`current`), si trae productos, va
-    siempre primero (el resto conserva su orden); sin productos, no aparece. `unmet` solo si ningún grupo trae
-    productos. Con `spare` (las conexiones extra de la API), las verticales se buscan a la vez (`search_each`); el
-    resultado es el mismo que en serie. Con `correct`, si ninguna vertical calza todas las palabras, corrige una vez los
-    errores de tipeo con el vocabulario de todas las verticales (`retrieval.spelling`) y vuelve a buscar: si así hay
-    grupos y alguna vertical calza todas las palabras, los devuelve con `corrected_query`."""
+    orden es el de sus verticales típicas, salvo Licores, que va al final si no se pidió nada +18 (`liquor_last`). Una
+    ocasión sin concepto nombrado ("algo para el carrete") se busca como el agente: sus conceptos (sin los sensibles:
+    una ocasión no los nombra), en sus verticales típicas. Sin ninguno de los dos, solo las verticales que calzan todas
+    las palabras o, si ninguna, las muy cercanas (UNNAMED_TAU): primero las que calzan y luego por la cercanía
+    vectorial. La pantalla actual (`current`), si trae productos, va siempre primero (el resto conserva su orden); sin
+    productos, no aparece. `unmet` solo si ningún grupo trae productos. Con `spare` (las conexiones extra de la API),
+    las verticales se buscan a la vez (`search_each`); el resultado es el mismo que en serie. Con `correct`, si ninguna
+    vertical calza todas las palabras, corrige una vez los errores de tipeo con el vocabulario de todas las verticales
+    (`retrieval.spelling`) y vuelve a buscar: si así hay grupos y alguna vertical calza todas las palabras, los devuelve
+    con `corrected_query`."""
     found, strict = _search_grouped(conn, q, embedder, current, limit, price_max, mode, spare)
     if not correct or strict or (fixed := correct_query(conn, q, None)) is None:
         return found
