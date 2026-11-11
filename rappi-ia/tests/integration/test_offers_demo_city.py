@@ -1,11 +1,14 @@
 """Las ofertas de Mochi (`POST /agent/offer`, todos sus momentos) y la búsqueda llevan a tiendas de la ciudad de la demo
 (`config.PROFILE_CITY`; en el catálogo de prueba, todas son de Santiago hasta que un test mueve alguna a Viña del Mar).
-La búsqueda muestra la misma ficha en una tienda de la ciudad sin cambiar qué sale ni en qué orden; una oferta cambia
-el producto de otra ciudad por esa ficha en la tienda más barata de la ciudad o lo saca (engine.py: `_in_demo_city`).
+La búsqueda y Mochi muestran la misma ficha en una tienda de la ciudad, y lo que solo vende otra ciudad (o un plato de
+un local de otra ciudad) va después de lo de la ciudad, sin sacarlo (tools.py: `_city_first`); una oferta cambia el
+producto de otra ciudad por esa ficha en la tienda más barata de la ciudad o lo saca (engine.py: `_in_demo_city`).
 """
 
 import pytest
 
+from rappi_ia.agent.grouped_search import search_grouped
+from rappi_ia.agent.rappi_agent import Context, RappiAgent
 from rappi_ia.agent.tools import search_products
 from rappi_ia.demo.seed import seed_demo
 from rappi_ia.embeddings.base import HashEmbedder
@@ -54,7 +57,7 @@ def test_search_shows_the_same_product_from_a_store_of_the_demo_city_without_mov
     cola = next(p for p in after if p.entity_id == COLA)
     assert (cola.store, cola.store_id, cola.price_value) == ("Supermercado de prueba Norte", NORTE, 1850)
 
-    to_other_city(seeded, NORTE)  # en ninguna de la ciudad: la búsqueda lo sigue mostrando, con la más barata
+    to_other_city(seeded, NORTE)  # en ninguna de la ciudad (como todo el súper): lo sigue mostrando, con la más barata
     last = found()
     assert [p.id for p in last] == [p.id for p in before]
     cola = next(p for p in last if p.entity_id == COLA)
@@ -132,3 +135,66 @@ def test_a_kit_that_loses_a_product_says_only_what_it_brings(seeded):
     assert again.text == engine._plan_text(engine.load_taxonomy().occasions["carrete"], again.products)
     assert again.vertical == again.products[0]["vertical"]
     assert [s["store_id"] for s in again.stores] == list(dict.fromkeys(p["store_id"] for p in again.products))
+
+
+ONLY_CENTRO = {"91126", "91127", "91128", "91201", "91202"}  # el súper de prueba Centro es el único que los vende
+
+
+def test_search_puts_what_only_another_city_sells_after_the_city_without_leaving_it_out(seeded):
+    embedder = HashEmbedder()
+
+    def found():
+        return search_products(seeded, "supermercado", "prueba", None, embedder, k=50).products
+
+    before = found()
+    only_centro = ONLY_CENTRO & {p.entity_id for p in before}
+    assert only_centro and before[-1].entity_id not in only_centro
+
+    to_other_city(seeded, CENTRO)
+    after = found()
+
+    assert {p.id for p in after} == {p.id for p in before}  # no saca nada
+    away = [p.entity_id in only_centro for p in after]
+    assert away == sorted(away)  # todo lo de la ciudad primero
+    assert all(p.in_city == (p.entity_id not in only_centro) for p in after)
+    # Cada parte, en el orden de la búsqueda
+    order = [p.id for p in before]
+    for part in ([p for p in after if p.in_city], [p for p in after if not p.in_city]):
+        assert [p.id for p in part] == sorted((p.id for p in part), key=order.index)
+
+
+def test_dishes_of_a_place_of_another_city_go_after_and_a_wider_pool_fills_with_the_city(seeded):
+    embedder = HashEmbedder()
+
+    def found(k):
+        return search_products(seeded, "restaurantes", "prueba", None, embedder, k=k).products
+
+    first_two = found(2)
+    assert first_two
+    to_other_city(seeded, *{p.store_id for p in first_two})
+
+    after = found(50)
+    away = other_city_stores(seeded)
+    flags = [p.store_id in away for p in after]
+    assert flags == sorted(flags) and any(flags) and not all(flags)
+    # Con k=1 los 2 candidatos de siempre son de otra ciudad: se mira más abajo y sale uno de la ciudad
+    (only,) = found(1)
+    assert only.in_city and only.store_id not in away
+
+
+def test_grouped_search_and_mochi_show_the_city_first(seeded):
+    embedder = HashEmbedder()
+    before = search_grouped(seeded, "prueba", embedder, None, 6)
+    dishes = next(g for g in before.groups if g.vertical == "restaurantes").products
+    to_other_city(seeded, dishes[0].store_id)
+    away = other_city_stores(seeded)
+
+    grouped = search_grouped(seeded, "prueba", embedder, None, 6)
+    for group in grouped.groups:
+        flags = [p.store_id in away for p in group.products]
+        assert flags == sorted(flags)
+    assert next(g for g in grouped.groups if g.vertical == "restaurantes").products[0].store_id not in away
+
+    reply = RappiAgent(embedder).reply(seeded, "pizza o roll", Context(vertical="restaurantes"))
+    flags = [p["store_id"] in away for p in reply["products"]]
+    assert flags == sorted(flags)

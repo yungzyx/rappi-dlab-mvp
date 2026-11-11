@@ -6,7 +6,7 @@ Todo producto que el agente muestra pasa por aquí: sale de la base, con su prec
 import hashlib
 import re
 import unicodedata
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 
 from psycopg import Connection
 from rappi_scraper.storage.search import MIN_PRICE
@@ -65,6 +65,8 @@ class Product:
     age_restricted: bool = False
     store_id: int | None = None
     presentation: str | None = None
+    # De una tienda o un local de la ciudad de la demo (`_with_prices`); no va en `to_dict`: ordena (`_city_first`).
+    in_city: bool = True
 
     def to_dict(self) -> dict:
         discount = None
@@ -159,6 +161,11 @@ def search_products(
     return again
 
 
+# Los candidatos de una búsqueda que no es oferta, por cada producto pedido, si con los de siempre (2 por producto) se
+# mostraría algo de otra ciudad que la de la demo porque no hay suficientes de ella (`_city_first`).
+CITY_POOL = 8
+
+
 def _search_products(
     conn, vertical, query, concepts, embedder, price_max, k, mode, symptom, offer, adult_ok, words
 ) -> SearchOutcome:
@@ -166,14 +173,28 @@ def _search_products(
     # corta. Las favoritas solo ordenan lo que quedó.
     preferences = active_preferences()
     pool = k * (4 if preferences and preferences.filters else 2)
+    # Fuera de una oferta (que ya busca solo en tiendas de la ciudad) se traen más candidatos, por si entre los de
+    # siempre saldría algo de otra ciudad (`_city_first`); la búsqueda es la misma, solo se mira más abajo.
+    wide = pool if offer else max(pool, k * CITY_POOL)
     result = retrieve(
-        conn, vertical, query, embedder, k=pool, filters=Filters(price_max), mode=mode, concepts=concepts, words=words
+        conn, vertical, query, embedder, k=wide, filters=Filters(price_max), mode=mode, concepts=concepts, words=words
     )
     concepts = result.query_concepts
     capped = price_max is not None
     strict = symptom or vertical == "farmacia"
-    hits = _focus([h for h in result.hits if _allowed(h.concept_id, concepts, strict)], result, capped)
-    products = _dedupe(_within_budget(_with_prices(conn, vertical, hits, offer, adult_ok), price_max))
+
+    def priced(hits) -> list[Product]:
+        hits = _focus([h for h in hits if _allowed(h.concept_id, concepts, strict)], result, capped)
+        return _dedupe(_within_budget(_with_prices(conn, vertical, hits, offer, adult_ok), price_max))
+
+    products = priced(result.hits[:pool])
+    here = sum(p.in_city for p in products)
+    if not offer and here < k and len(products) > here and len(result.hits) > pool:
+        products = priced(result.hits)  # entre los de siempre saldría algo de otra ciudad: se mira más abajo
+    else:
+        result = replace(result, hits=result.hits[:pool])  # lo que se miró
+    if not offer:
+        products = _city_first(products)
     dropped = 0
     if preferences:
         dropped = sum(not preferences.keeps(p) for p in products[:k])
@@ -248,7 +269,7 @@ def search_remedies(
         and "lexico" in h.ranks
         and _treats(_title(h) if parts else h.content, words)
     ]
-    products = _dedupe(_within_budget(_with_prices(conn, "farmacia", hits), price_max))[:k]
+    products = _city_first(_dedupe(_within_budget(_with_prices(conn, "farmacia", hits), price_max)))[:k]
     return SearchOutcome(result, products if len(products) >= MIN_REMEDIES else [])
 
 
@@ -729,7 +750,7 @@ def _with_prices(conn: Connection, vertical: str, hits, offer: bool = False, adu
         # si no está en ninguna de la ciudad; en una oferta, solo las de la ciudad (`_OFFER_STORES`).
         # El pasillo va como LEFT JOIN (uno por llave) y la vertical como EXISTS: como subconsulta, el pasillo recorría
         # todos los pasillos raíz dos veces y la vertical se armaba entera (−2,5 ms por búsqueda).
-        for pid, name, price, real, store, age, store_id, presentation in conn.execute(
+        for pid, name, price, real, store, age, store_id, presentation, here in conn.execute(
             f"""WITH offers AS (
                    SELECT sp.master_product_id, ci.name, l.price, l.real_price, l.store_id,
                           btrim(coalesce(b.name, s.name)) AS store, ci.is_alcoholic OR ci.age_restricted AS adult,
@@ -747,7 +768,7 @@ def _with_prices(conn: Connection, vertical: str, hits, offer: bool = False, adu
                                  WHERE v.store_id = s.store_id AND v.vertical = %(vertical)s)
                )
                SELECT DISTINCT ON (master_product_id) master_product_id::text, name, price, real_price, store, adult,
-                      CASE WHEN openable THEN store_id END, presentation
+                      CASE WHEN openable THEN store_id END, presentation, in_city
                FROM offers
                ORDER BY master_product_id, openable DESC, in_city DESC, price, store_id""",  # empate: la misma
             {
@@ -757,31 +778,31 @@ def _with_prices(conn: Connection, vertical: str, hits, offer: bool = False, adu
                 "places": places,
             },
         ):
-            prices[("catalog_item", pid)] = (name, price, real, store, age, store_id, presentation)
+            prices[("catalog_item", pid)] = (name, price, real, store, age, store_id, presentation, here)
     if menu_ids:
         dish_concepts = {h.entity_id: h.concept_id for h in hits if h.entity_type == "menu_item"}
-        for iid, name, price, real, store, store_id, section, description in conn.execute(
-            """SELECT mi.item_id::text, mi.name, mp.price, mp.real_price, s.name, mi.store_id, ms.name,
-                      CASE WHEN %s THEN clean_html(mi.description) END
+        for iid, name, price, real, store, store_id, section, description, here in conn.execute(
+            f"""SELECT mi.item_id::text, mi.name, mp.price, mp.real_price, s.name, mi.store_id, ms.name,
+                      CASE WHEN %(offer)s THEN clean_html(mi.description) END, {IN_DEMO_CITY}
                FROM menu_items mi
                JOIN stores s USING (store_id)
                LEFT JOIN latest_menu_prices mp ON mp.item_id = mi.item_id
                LEFT JOIN menu_sections ms ON ms.store_id = mi.store_id AND ms.section_id = mi.section_id
-               WHERE mi.item_id = ANY(%s::bigint[])""",
-            (offer, menu_ids),  # la descripción solo hace falta en una oferta
+               WHERE mi.item_id = ANY(%(ids)s::bigint[])""",
+            {"offer": offer, "ids": menu_ids, "places": places},  # la descripción solo hace falta en una oferta
         ):
             # En una oferta, un plato de una sección de tragos, o sin concepto o de bebida y con una descripción (o, sin
             # concepto, una sección de botellas o vinos) que nombra alcohol, cuenta como +18 (offers/guards.py).
             unknown = alcohol_in_description(description, dish_concepts[iid], section) if offer else False
             adult = offer and (alcohol_section(section) or unknown)
-            prices[("menu_item", iid)] = (name, price, real, store, adult, store_id, None)
+            prices[("menu_item", iid)] = (name, price, real, store, adult, store_id, None, here)
     taxonomy = load_taxonomy()
     products = []
     for hit in hits:
         found = prices.get((hit.entity_type, hit.entity_id))
         if found is None:  # sin precio vigente en el vertical (agotado o sin stock): no se ofrece
             continue
-        name, price, real, store, age, store_id, presentation = found
+        name, price, real, store, age, store_id, presentation, here = found
         # En una oferta, un nombre que dice alcohol cuenta como +18 aunque la tienda no lo marque (offers/guards.py).
         age = age or (offer and alcohol_in_name(hit.entity_type, name, hit.concept_id))
         if offer and age and not adult_ok:  # +18 aunque su concepto sea corriente: el catálogo lo marca
@@ -810,6 +831,13 @@ def _with_prices(conn: Connection, vertical: str, hits, offer: bool = False, adu
                 age_restricted=bool(age) or bool(concept and concept.age_restricted),
                 store_id=store_id,
                 presentation=presentation or None,
+                in_city=here,
             )
         )
     return [p for p in products if p.price_value is not None]
+
+
+def _city_first(products: list[Product]) -> list[Product]:
+    """Lo de la ciudad de la demo antes que lo de otra (`Product.in_city`), cada parte en su orden: un producto que
+    solo vende otra ciudad, o un plato de un local de otra ciudad, sale solo si no hay suficientes de la ciudad."""
+    return [p for p in products if p.in_city] + [p for p in products if not p.in_city]
