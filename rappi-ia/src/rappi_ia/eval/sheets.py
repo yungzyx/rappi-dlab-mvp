@@ -275,11 +275,11 @@ def _spread(groups: dict[tuple, list], n: int, counts: Counter, order: list[tupl
     return chosen
 
 
-def search_ids_document(sample: list[dict], seed: int = DEFAULT_SEED) -> dict:
+def search_ids_document(sample: list[dict], seed: int = DEFAULT_SEED, sheet: str = SEARCH_SHEET) -> dict:
     """Lo versionado: ids, consulta, posición, estrato y lo que dijo el juez por concepto. Ningún nombre, categoría
     ni tienda del catálogo."""
     return {
-        "nota": "Pares de planilla-busqueda.csv (los textos están en data/eval/, fuera de git); ver eval/sheets.py.",
+        "nota": f"Pares de {sheet} (los textos están en data/eval/, fuera de git); ver eval/sheets.py.",
         "semilla": seed,
         "pares": [{key: pair[key] for key in _IDS_KEYS} for pair in sample],
     }
@@ -492,15 +492,21 @@ planilla ya llena, se niega a pisarla (`--forzar` la reemplaza).
 
 
 def shortfalls(summary: dict) -> list[str]:
-    """Lo que quedó bajo la meta (200 pares; 40 / 30 / 30 categorías) de lo que devolvió `build_sheets`."""
+    """Lo que quedó bajo la meta (200 pares; 40 / 30 / 30 categorías) de lo que devolvió `build_sheets` (sin
+    `categorias` si solo armó la de búsqueda)."""
     missing = []
     if summary["pares"] < SEARCH_PAIRS:
         missing.append(f"búsqueda: {summary['pares']} de {SEARCH_PAIRS} pares")
-    for group, target in CATEGORY_SIZES.items():
+    for group, target in CATEGORY_SIZES.items() if "categorias" in summary else ():
         got = summary["categorias"].get(group, 0)
         if got < target:
             missing.append(f"{group.replace('_', ' ')}: {got} de {target}")
     return missing
+
+
+def dated(name: str, date: str | None) -> str:
+    """`planilla-busqueda.csv` → `planilla-busqueda-2026-11-11.csv`: otra muestra al lado de la anterior."""
+    return f"{Path(name).stem}-{date}{Path(name).suffix}" if date else name
 
 
 def build_sheets(
@@ -513,26 +519,30 @@ def build_sheets(
     force: bool = False,
     pairs: int = SEARCH_PAIRS,
     category_sizes: dict[str, int] | None = None,
+    date: str | None = None,
 ) -> dict:
     """Escribe las dos planillas y el LEEME en `out_dir` (por defecto `data/eval/`) y los ids en `ids_dir`.
-    Se niega (`SheetInUse`) a pisar una planilla que ya tiene juicios, salvo `force`."""
+    Con `date`, solo la de búsqueda, con la fecha en el nombre de la planilla y de sus ids: no pisa la muestra
+    anterior ni toca las categorías. Se niega (`SheetInUse`) a pisar una planilla que ya tiene juicios, salvo
+    `force`."""
     out_dir = out_dir or sheet_dir()
+    search_sheet = dated(SEARCH_SHEET, date)
     if not force:
-        for name, column in ((SEARCH_SHEET, "juicio"), (CATEGORY_SHEET, "concepto_correcto")):
+        checks = [(search_sheet, "juicio")] + ([] if date else [(CATEGORY_SHEET, "concepto_correcto")])
+        for name, column in checks:
             filled = count_filled(out_dir / name, column)
             if filled:
                 raise SheetInUse(f"{out_dir / name} ya tiene {filled} juicios; usa --forzar si quieres reemplazarla")
     sample = sample_search_pairs(search_pool(runs), pairs, seed)
-    write_csv(out_dir / SEARCH_SHEET, SEARCH_COLUMNS, search_sheet_rows(sample, category_names(conn, sample)))
-    write_json(ids_dir / SEARCH_IDS_FILE.name, search_ids_document(sample, seed))
+    write_csv(out_dir / search_sheet, SEARCH_COLUMNS, search_sheet_rows(sample, category_names(conn, sample)))
+    write_json(ids_dir / dated(SEARCH_IDS_FILE.name, date), search_ids_document(sample, seed, search_sheet))
+    (out_dir / README_FILE).write_text(readme_text(), encoding="utf-8")
+    searched = {"pares": len(sample), "pares_discrepantes": sum(p["discrepa"] for p in sample)}
+    if date:
+        return searched
 
     map_rows = read_category_map_csv() if map_rows is None else map_rows
     categories = sample_categories(conn, coverage_report(conn)["categorias_sin_mapear"], map_rows, seed, category_sizes)
     write_csv(out_dir / CATEGORY_SHEET, CATEGORY_COLUMNS, category_sheet_rows(categories))
     write_json(ids_dir / CATEGORY_IDS_FILE.name, category_ids_document(categories, seed))
-    (out_dir / README_FILE).write_text(readme_text(), encoding="utf-8")
-    return {
-        "pares": len(sample),
-        "pares_discrepantes": sum(p["discrepa"] for p in sample),
-        "categorias": dict(Counter(r["grupo"] for r in categories)),
-    }
+    return {**searched, "categorias": dict(Counter(r["grupo"] for r in categories))}

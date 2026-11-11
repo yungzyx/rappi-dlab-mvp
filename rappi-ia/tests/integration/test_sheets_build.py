@@ -116,3 +116,25 @@ def test_readme_explains_how_to_fill_in_and_lists_the_concepts(db, runs, tmp_pat
     text = (tmp_path / "data" / sheets.README_FILE).read_text(encoding="utf-8")
     for expected in ("Numbers", "Excel", "sirve", "a medias", "no sirve", "ninguno", "`cerveza`", "CSV"):
         assert expected in text
+
+
+def test_a_dated_sample_sits_next_to_the_previous_one_without_touching_it(db, runs, tmp_path):
+    _build(db, runs, tmp_path)
+    path = tmp_path / "data" / sheets.SEARCH_SHEET
+    rows = _rows(path)
+    rows[0]["juicio"] = "sirve"
+    sheets.write_csv(path, sheets.SEARCH_COLUMNS, rows)  # la anterior ya tiene juicios
+    before = {p: p.read_bytes() for p in (tmp_path / "data").iterdir()} | {
+        p: p.read_bytes() for p in (tmp_path / "git").iterdir()
+    }
+
+    summary = _build(db, runs, tmp_path, date="2026-11-11")
+
+    assert set(summary) == {"pares", "pares_discrepantes"} and summary["pares"] == 6  # sin categorías
+    assert all(p.read_bytes() == content for p, content in before.items())
+    dated_ids = json.loads((tmp_path / "git" / "planilla-busqueda-ids-2026-11-11.json").read_text(encoding="utf-8"))
+    dated_rows = _rows(tmp_path / "data" / "planilla-busqueda-2026-11-11.csv")
+    assert {p["id"] for p in dated_ids["pares"]} == {r["id"] for r in dated_rows} and len(dated_rows) == 6
+    assert "planilla-busqueda-2026-11-11.csv" in dated_ids["nota"]
+    assert not (tmp_path / "git" / "planilla-categorias-ids-2026-11-11.json").exists()
+    assert sheets.shortfalls(summary) == ["búsqueda: 6 de 200 pares"]  # no reclama categorías que no pidió

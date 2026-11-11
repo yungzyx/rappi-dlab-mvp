@@ -32,6 +32,8 @@ Nada escucha hacia la red: Caddy y la API solo atienden en `127.0.0.1`, y se ent
 4. Los archivos servidos la primera vez: `deploy/macos/actualizar.sh --forzar` (o copiar `prototipo-app/dist` y `dashboard-empresa/dist` a `~/rappi-tunel/srv/app` y `srv/panel`).
 5. `deploy/macos/instalar.sh` desde la copia de `~/rappi-prod`. Si el modelo de texto no está en la caché de Hugging Face (en el commit fijado en `rappi-ia/src/rappi_ia/config.py`), primero lo descarga (una vez, ~1 GB); después instala y arranca los servicios. La URL queda en `~/rappi-tunel/url.txt`.
 
+6. El rol de la API: `deploy/macos/rol-api.sh`. Crea `rappi_api` (o `API_DB_ROLE`) en el Postgres del Mac, le da los permisos de [`deploy/db/grants.sql`](../db/grants.sql) (lee todo y escribe solo los datos de las personas) y reinicia la API, que desde entonces se conecta con ese rol en vez del usuario del Mac (`api.sh` lo pone en `PGUSER`). Con Postgres de Homebrew la conexión local es "trust": el rol no lleva clave, y el límite es contra un error de la API, no contra alguien con acceso al Mac. Cada actualización vuelve a aplicar los permisos (`deploy-migrate` con `DB_API_ROLE`). Si Postgres no responde al arrancar, la API espera (launchd la relanza) en vez de entrar como el usuario del Mac. **Después de restaurar la base o de cambiar la de `DATABASE_URL`, volver a correr `rol-api.sh`:** un respaldo restaurado sin permisos deja al rol sin poder leer. Sin el rol, todo sigue como antes.
+
 Para cambiar la clave de la puerta: `deploy/macos/cambiar-clave.sh` (la pide dos veces sin mostrarla, guarda solo su hash y reinicia Caddy). Para quitar todo: `deploy/macos/instalar.sh --quitar`. Registros en `~/rappi-tunel/logs/`.
 
 ## Pausar los despliegues y chequear antes de una sesión

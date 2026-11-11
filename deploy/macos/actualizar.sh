@@ -54,7 +54,9 @@ main() {
     make -s -C rappi-ia install-ml
   fi
 
+  pendientes=0
   if ! rappi-ia/.venv/bin/python -m rappi_ia migrate --solo-revisar > /dev/null 2>&1; then
+    pendientes=1
     # Un respaldo por despliegue pendiente: desplegado.txt solo se escribe cuando todo sale bien, así que un
     # respaldo más nuevo es de un intento anterior de esta misma tanda. Un reintento conserva ese, el de antes de
     # migrar (cada migración va en su transacción: un intento puede dejar la base a medias, y respaldo.sh solo guarda
@@ -65,6 +67,14 @@ main() {
       log "Hay migraciones pendientes: respaldo antes de migrar"
       "$(dirname "$0")/respaldo.sh" pre-migracion
     fi
+  fi
+  # Con el rol de la API (rol-api.sh), en cada despliegue: migra lo pendiente (ya respaldado) y vuelve a aplicar sus
+  # permisos (deploy/db/grants.sql, idempotente), aunque no haya migraciones: grants.sql puede cambiar solo, y un
+  # intento que migró pero no alcanzó a dar los permisos se completa en la vuelta siguiente.
+  role=${API_DB_ROLE:-rappi_api}
+  if [ "$(psql -X -Atq -d postgres -c "SELECT 1 FROM pg_roles WHERE rolname = '$role'")" = 1 ]; then
+    DB_API_ROLE=$role rappi-ia/.venv/bin/python -m rappi_ia deploy-migrate --sin-respaldo
+  elif [ "$pendientes" = 1 ]; then
     rappi-ia/.venv/bin/python -m rappi_ia migrate  # sin (cd …): en el bash 3.2 un fallo en un subshell no avisaría
   fi
 

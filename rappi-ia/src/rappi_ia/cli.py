@@ -544,20 +544,34 @@ def cmd_eval_human(conn, args) -> None:
 
 
 def cmd_jev_planillas(conn, args) -> None:
+    from datetime import date
+
     from .embeddings.models import text_embedder
     from .eval import search_eval, sheets
 
+    if args.fecha:
+        try:
+            args.fecha = date.fromisoformat(args.fecha).isoformat()
+        except ValueError:
+            raise SystemExit(f"--fecha {args.fecha}: no es una fecha AAAA-MM-DD") from None
     runs = search_eval.run_queries(conn, text_embedder(), search_eval.load_queries(), modes=(search_eval.SHOWN,))
     try:
-        summary = sheets.build_sheets(conn, runs, force=args.forzar)
+        summary = sheets.build_sheets(conn, runs, force=args.forzar, date=args.fecha)
     except sheets.SheetInUse as exc:
         log.error("%s", exc)
         sys.exit(1)
-    groups = ", ".join(f"{n} {group.replace('_', ' ')}" for group, n in summary["categorias"].items())
-    print(
+    searched = (
         f"{summary['pares']} pares de búsqueda ({summary['pares_discrepantes']} donde el juez por concepto y la"
-        f" posición discrepan) y {sum(summary['categorias'].values())} categorías ({groups}) en {sheets.sheet_dir()}"
+        " posición discrepan)"
     )
+    if args.fecha:
+        print(
+            f"{searched} en {sheets.sheet_dir() / sheets.dated(sheets.SEARCH_SHEET, args.fecha)}; ids en"
+            f" {sheets.EVAL_DIR / sheets.dated(sheets.SEARCH_IDS_FILE.name, args.fecha)}"
+        )
+    else:
+        groups = ", ".join(f"{n} {group.replace('_', ' ')}" for group, n in summary["categorias"].items())
+        print(f"{searched} y {sum(summary['categorias'].values())} categorías ({groups}) en {sheets.sheet_dir()}")
     if short := sheets.shortfalls(summary):
         log.warning("Bajo la meta (el catálogo no alcanza): %s", "; ".join(short))
     print(f"Cómo llenarlas: {sheets.sheet_dir() / sheets.README_FILE}")
@@ -1026,6 +1040,10 @@ def build_parser() -> argparse.ArgumentParser:
     sub.add_parser("eval-human", help="juez automático y refuerzo por concepto contra los juicios a mano, y κ")
     sheets_cmd = sub.add_parser("jev-planillas", help="planillas CSV para juzgar a mano la búsqueda y las categorías")
     sheets_cmd.add_argument("--forzar", action="store_true", help="reemplaza planillas que ya tienen juicios")
+    sheets_cmd.add_argument(
+        "--fecha",
+        help="AAAA-MM-DD: solo la planilla de búsqueda, con la fecha en el nombre (no pisa la muestra anterior)",
+    )
     sub.add_parser("jev-piloto", help="mide a Jev contra las planillas juzgadas y escribe la propuesta de adopción")
     synth = sub.add_parser("synth", help="genera usuarios y eventos SIMULADOS (source = synthetic)")
     synth.add_argument("--usuarios", type=int, help="personas (por defecto DEFAULT_USERS)")
