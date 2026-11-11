@@ -1,8 +1,9 @@
 import { AGENT_NAME } from './lib/agentName.js'
 import { lazy, Suspense, useEffect, useRef, useState } from 'react'
 import { Header } from './components/shell/Header.jsx'
-import { ProvenanceBanner } from './components/shell/ProvenanceBanner.jsx'
-import { SubNav } from './components/shell/SubNav.jsx'
+import { PageHeader } from './components/shell/PageHeader.jsx'
+import { ConnectionNotices, ProvenanceBanner } from './components/shell/ProvenanceBanner.jsx'
+import { SourceSwitch } from './components/shell/SourceSwitch.jsx'
 import { Tabs } from './components/shell/Tabs.jsx'
 import { API_URL, refreshSource, retryConnection, SNAPSHOT_INFO } from './lib/api.js'
 import { formatDate } from './lib/format.js'
@@ -79,11 +80,12 @@ export default function App() {
   const top = useRef(null)
   const nav = useRef(null)
   const anchor = useRef(null)
-  // Desde 1200 px: barra superior fija y navegación lateral; más angosto, la navegación es una tira fija arriba.
+  // Desde 1200 px: barra lateral con la marca, la fuente y las vistas, y la franja de procedencia fija arriba del
+  // contenido; más angosto, las vistas son una tira fija arriba y la franja queda fija bajo ella.
   const wide = useMediaQuery('(min-width: 1200px)')
-  const { View, tabs } = VIEWS.find((item) => item.id === view)
+  const { View, label, tabs } = VIEWS.find((item) => item.id === view)
 
-  // La altura de lo fijo arriba (la franja de procedencia puede ocupar dos líneas o sumar avisos), para el CSS.
+  // La altura de la franja de procedencia (en angosto ocupa dos líneas), para el CSS.
   useEffect(() => {
     const element = top.current
     if (!element || typeof ResizeObserver === 'undefined') return undefined
@@ -96,7 +98,7 @@ export default function App() {
 
   /** Vuelve al comienzo del contenido (bajo lo que queda fijo arriba) si se está más abajo. */
   const toContentStart = () => {
-    const fixed = wide ? top.current.offsetHeight : nav.current.offsetHeight
+    const fixed = wide ? top.current.offsetHeight : nav.current.offsetHeight + top.current.offsetHeight
     const start = main.current.getBoundingClientRect().top + window.scrollY - fixed
     if (window.scrollY > start) window.scrollTo({ top: start })
   }
@@ -166,52 +168,57 @@ export default function App() {
 
   return (
     <div className="app">
-      <div className="app-top" ref={top}>
-        <Header
-          source={source}
-          reloadKey={reloadKey}
-          fallbacks={fallbacks}
-          prototypeOffline={prototypeOffline}
-          onSourceChange={(next) => setUrlState((state) => ({ ...state, source: next }))}
-          onRefresh={refresh}
-        />
-        <ProvenanceBanner source={source} fallbacks={fallbacks} prototypeOffline={prototypeOffline} onRetry={retry} />
-      </div>
-      <div className="app-body">
+      <div className="sidebar">
+        <Header />
+        <div className="app-source">
+          <SourceSwitch value={source} onChange={(next) => setUrlState((state) => ({ ...state, source: next }))} />
+        </div>
         <div className="sidenav" ref={nav}>
-          <div className="sidenav-inner">
-            <Tabs views={VIEWS} active={view} onSelect={selectView} orientation={wide ? 'vertical' : 'horizontal'} />
-          </div>
+          <Tabs views={VIEWS} active={view} onSelect={selectView} orientation={wide ? 'vertical' : 'horizontal'} />
         </div>
-        <div className="app-main">
-          <main ref={main} id={`panel-${view}`} role="tabpanel" aria-labelledby={`tab-${view}`} className="app-content">
-            {tabs.length > 1 && <SubNav tabs={tabs} active={section} onSelect={selectTab} />}
-            <View key={`${view}-${source}-${reloadKey}`} source={source} tab={section} onNavigate={selectView} />
-          </main>
-          <footer className="site-footer">
-            <div className="site-footer-inner">
-              {SNAPSHOT_INFO ? (
-                // El archivo suelto no lleva la presentación ni habla con una API.
-                <p>
-                  Definiciones de cada métrica: <span className="mono">docs/diseno-ia.md §5</span>. Datos grabados el{' '}
-                  {formatDate(SNAPSHOT_INFO.fecha)} desde la API de rappi-ia sobre una copia de la base (
-                  {SNAPSHOT_INFO.base}).
-                </p>
-              ) : (
-                <p>
-                  Definiciones de cada métrica: <span className="mono">docs/diseno-ia.md §5</span>. Datos de la API de
-                  rappi-ia en <span className="mono">{API_URL}</span>.{' '}
-                  <a href={`${import.meta.env.BASE_URL}presentacion.html`}>Presentación de la propuesta</a>.
-                </p>
-              )}
-              <p>Prototipo dLab con Rappi · demo, no es un producto oficial de Rappi.</p>
+      </div>
+      <div className="app-main">
+        <div className="app-top" ref={top}>
+          <ProvenanceBanner source={source} />
+        </div>
+        <ConnectionNotices source={source} fallbacks={fallbacks} prototypeOffline={prototypeOffline} onRetry={retry} />
+        <main ref={main} id={`panel-${view}`} role="tabpanel" aria-labelledby={`tab-${view}`} className="app-content">
+          <PageHeader
+            title={label}
+            source={source}
+            reloadKey={reloadKey}
+            fallbacks={fallbacks}
+            prototypeOffline={prototypeOffline}
+            onRefresh={refresh}
+            tabs={tabs}
+            tab={section}
+            onTab={selectTab}
+          />
+          <View key={`${view}-${source}-${reloadKey}`} source={source} tab={section} onNavigate={selectView} />
+        </main>
+        <footer className="site-footer">
+          <div className="site-footer-inner">
+            {SNAPSHOT_INFO ? (
+              // El archivo suelto no lleva la presentación ni habla con una API.
               <p>
-                Personas con id seudónimo; las listas por persona nunca muestran conceptos sensibles. Ninguna palanca se
-                escala sin un grupo de control (A/B con holdout).
+                Definiciones de cada métrica: <span className="mono">docs/diseno-ia.md §5</span>. Datos grabados el{' '}
+                {formatDate(SNAPSHOT_INFO.fecha)} desde la API de rappi-ia sobre una copia de la base (
+                {SNAPSHOT_INFO.base}).
               </p>
-            </div>
-          </footer>
-        </div>
+            ) : (
+              <p>
+                Definiciones de cada métrica: <span className="mono">docs/diseno-ia.md §5</span>. Datos de la API de
+                rappi-ia en <span className="mono">{API_URL}</span>.{' '}
+                <a href={`${import.meta.env.BASE_URL}presentacion.html`}>Presentación de la propuesta</a>.
+              </p>
+            )}
+            <p>Prototipo dLab con Rappi · demo, no es un producto oficial de Rappi.</p>
+            <p>
+              Personas con id seudónimo; las listas por persona nunca muestran conceptos sensibles. Ninguna palanca se
+              escala sin un grupo de control (A/B con holdout).
+            </p>
+          </div>
+        </footer>
       </div>
       {DemoTour && (
         <Suspense fallback={null}>

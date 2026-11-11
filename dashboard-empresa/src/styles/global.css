@@ -86,17 +86,6 @@ abbr {
   gap: var(--section-gap);
 }
 
-/* Al llegar a una sección (un enlace del Resumen, "En esta vista"), el título queda bajo lo fijo de arriba */
-h2[id] {
-  scroll-margin-top: 56px;
-}
-
-@media (min-width: 1200px) {
-  h2[id] {
-    scroll-margin-top: calc(var(--top-h, 96px) + 16px);
-  }
-}
-
 /* Cada sección es un contenedor: sus filas y tiras se acomodan a su ancho, no al de la ventana (la navegación lateral
    le quita 224 px) */
 .section {

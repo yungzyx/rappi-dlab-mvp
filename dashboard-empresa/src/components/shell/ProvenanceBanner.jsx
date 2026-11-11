@@ -19,11 +19,8 @@ const MESSAGES = {
   ),
 }
 
-/**
- * Aviso permanente de procedencia (nunca se oculta) y, si alguna consulta cayó a los datos guardados, cuál y por qué.
- * Con el prototipo sin la API (`prototypeOffline`), el único aviso de error de la página, con su Reintentar.
- */
-export function ProvenanceBanner({ source, fallbacks, prototypeOffline, onRetry }) {
+/** Aviso permanente de procedencia, fijo arriba del contenido (nunca se oculta). */
+export function ProvenanceBanner({ source }) {
   return (
     <div className="provenance" role="note" aria-label="Procedencia de los datos">
       <div className={`provenance-row provenance-row--${source}`}>
@@ -32,6 +29,20 @@ export function ProvenanceBanner({ source, fallbacks, prototypeOffline, onRetry 
           <p>{MESSAGES[source]}</p>
         </div>
       </div>
+    </div>
+  )
+}
+
+/**
+ * Los avisos de conexión, bajo la franja (no fijos): la foto sin conexión y, si alguna consulta cayó a los datos
+ * guardados, cuál y por qué. Con el prototipo sin la API (`prototypeOffline`), el único aviso de error de la página,
+ * con su Reintentar.
+ */
+export function ConnectionNotices({ source, fallbacks, prototypeOffline, onRetry }) {
+  const offline = source === 'prototype' && prototypeOffline
+  if (!SNAPSHOT_INFO && !offline && fallbacks.length === 0) return null
+  return (
+    <div className="notices">
       {SNAPSHOT_INFO && (
         <div className="provenance-row provenance-row--offline">
           <div className="provenance-inner">
@@ -44,7 +55,7 @@ export function ProvenanceBanner({ source, fallbacks, prototypeOffline, onRetry 
           </div>
         </div>
       )}
-      {source === 'prototype' && prototypeOffline && (
+      {offline && (
         <div className="provenance-row provenance-row--offline" role="alert">
           <div className="provenance-inner">
             <Icon name="offline" />

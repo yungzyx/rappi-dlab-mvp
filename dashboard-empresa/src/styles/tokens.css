@@ -86,8 +86,8 @@
   --radius-s: 6px; /* botones, selector, ítems de navegación */
   --radius-m: 8px; /* paneles y tiras de indicadores */
   --radius-l: 12px; /* flotantes */
-  --topbar-h: 56px;
-  --sidenav-w: 224px;
+  --sidenav-w: 232px;
+  --nav-h: 44px; /* la tira de vistas, bajo 1200 px */
   --panel-max: 1200px;
   --content-max: 1320px; /* la presentación */
   --row-h: 36px;

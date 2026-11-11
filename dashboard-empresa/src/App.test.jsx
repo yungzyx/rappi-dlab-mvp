@@ -117,6 +117,15 @@ describe('App', () => {
     )
   })
 
+  test('the page title is the name of the view', async () => {
+    serveFixtures()
+    await renderWithData(<App />)
+
+    expect(screen.getByRole('heading', { level: 1, name: 'Resumen' })).toBeTruthy()
+    await act(async () => fireEvent.click(screen.getByRole('tab', { name: 'Mochi y búsquedas' })))
+    expect(screen.getByRole('heading', { level: 1, name: 'Mochi y búsquedas' })).toBeTruthy()
+  })
+
   test('the header says the date of the catalog prices, and nothing when the API does not', async () => {
     const catalogo = { desde: '2026-10-18', hasta: '2026-10-18', verticales: {} }
     serveFixturesWith({ '/catalog/home': { nearby_stores: [], catalogo } })
@@ -235,7 +244,7 @@ describe('App', () => {
     expect(others).toHaveLength(0)
     expect(within(alert).getByRole('button', { name: 'Reintentar' })).toBeTruthy()
     expect(screen.getAllByRole('button', { name: 'Reintentar' })).toHaveLength(1)
-    const header = document.querySelector('.masthead')
+    const header = document.querySelector('.page-head')
     expect(header.textContent).not.toContain('No se pudieron cargar')
     expect(header.textContent).toContain('fecha de corte: sin conexión')
 

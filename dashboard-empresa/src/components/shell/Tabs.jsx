@@ -1,4 +1,5 @@
 import { useRef } from 'react'
+import { Icon } from '../Icon.jsx'
 
 const KEY_MOVES = { ArrowRight: 1, ArrowLeft: -1, ArrowDown: 1, ArrowUp: -1 }
 
@@ -47,6 +48,7 @@ export function Tabs({ views, active, onSelect, orientation = 'horizontal' }) {
           onClick={() => onSelect(view.id)}
           aria-label={view.label}
         >
+          {view.icon && <Icon name={view.icon} className="tab-icon" />}
           {/* En angosto, el nombre corto (si no caben, la barra se desliza); el lector de pantalla lee siempre el largo. */}
           <span className="tab-long">{view.label}</span>
           <span className="tab-short">{view.short ?? view.label}</span>
