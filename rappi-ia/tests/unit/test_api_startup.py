@@ -68,6 +68,21 @@ def test_api_prewarm_0_skips_the_prewarm(monkeypatch):
     assert calls == []
 
 
+def test_startup_checks_the_demo_city_even_without_the_prewarm(monkeypatch):
+    """Las demos se graban con API_PREWARM=0 (`demo:snapshot`, `panel:snapshot`): el aviso de una PROFILE_CITY mal
+    escrita no depende de la precarga."""
+    monkeypatch.setenv("RAPPI_IA_LIGHT", "1")
+    monkeypatch.setattr(config, "API_PREWARM", False)
+    checked = []
+    monkeypatch.setattr(prewarm, "check_demo_city", lambda: checked.append(1))
+    services._load_services.cache_clear()
+    try:
+        with TestClient(api.app):
+            assert checked == [1]
+    finally:
+        services._load_services.cache_clear()
+
+
 def test_prewarm_with_the_database_down_only_warns(caplog):
     """Sin Postgres, la precarga anota un aviso y termina: nunca tumba la API."""
     with caplog.at_level(logging.WARNING, logger="rappi_ia.api.prewarm"):

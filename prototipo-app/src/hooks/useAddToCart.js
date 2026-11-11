@@ -1,6 +1,6 @@
 import { cartEventFields } from '../api/orders'
 import { noteAccepted } from '../api/suggestions'
-import { AGENT_CART_EVENT, rememberAdded, session } from '../state/liveMemory'
+import { AGENT_CART_EVENT, forgetAdded, rememberAdded, session } from '../state/liveMemory'
 import { lineKey, useCart } from '../state/CartContext'
 import { useEvents } from '../state/EventsContext'
 import { useProfile } from '../state/ProfileContext'
@@ -8,7 +8,8 @@ import { useDemo } from '../state/DemoContext'
 
 /**
  * Agregar y quitar una unidad del carrito con todo lo que eso implica (eventos, memoria del agente).
- * Lo usan el botón "+" de los productos y la hoja de producto.
+ * Lo usan el botón "+" de los productos y la hoja de producto. `add(item, { comment: false })` agrega sin que Mochi lo
+ * comente al volver a la Home ("¿Me falta algo?" del checkout: ya es una sugerencia suya, justo antes de pagar).
  */
 export function useAddToCart() {
   const cart = useCart()
@@ -17,7 +18,10 @@ export function useAddToCart() {
   const events = useEvents()
   const cartEvent = (type, item) => events.track(type, cartEventFields(item, cart.id))
 
-  const add = (item) => {
+  const add = (item, { comment = true } = {}) => {
+    // Otra unidad de lo que ya está en el carro es solo cantidad (los "+" del checkout, por ejemplo): no es algo nuevo
+    // que comentar.
+    const fresh = cart.qtyOf(item) === 0
     cart.add(item)
     cartEvent('cart_add', item)
     // Aceptar una sugerencia es agregarla por primera vez: los "+" siguientes son solo cantidad, y quitarla y volver a
@@ -27,7 +31,7 @@ export function useAddToCart() {
     // En el prototipo final no hay aviso del carro: el agente flotante lo confirma (con "Deshacer") y, si combina con
     // algo de otra vertical, lo comenta al volver a la Home.
     if (demo.isFinal) {
-      rememberAdded(item)
+      if (fresh && comment) rememberAdded(item)
       window.dispatchEvent(new CustomEvent(AGENT_CART_EVENT, { detail: { product: item } }))
     }
   }
@@ -37,7 +41,7 @@ export function useAddToCart() {
     cart.remove(item)
     cartEvent('cart_remove', item)
     // Lo que sale del carro (o se deshace) ya no es "lo último agregado": el agente no lo comenta al volver a la Home.
-    if (lastUnit && session.lastAdded && lineKey(session.lastAdded) === lineKey(item)) session.lastAdded = null
+    if (lastUnit && session.lastAdded && lineKey(session.lastAdded) === lineKey(item)) forgetAdded()
   }
 
   return { add, remove, qtyOf: cart.qtyOf }

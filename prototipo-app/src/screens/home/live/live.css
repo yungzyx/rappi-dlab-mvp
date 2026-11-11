@@ -508,6 +508,12 @@
   scroll-padding-left: 14px;
 }
 
+/* El menú de Mochi (AgentMenu) en su globo, como el de Mochi flotante */
+.live-menu p {
+  margin: 0 0 8px;
+  font-weight: 600;
+}
+
 .live-bubble-actions {
   display: flex;
   flex-wrap: wrap;
