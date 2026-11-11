@@ -12,9 +12,9 @@ const snapshot = {
   recommendations: { rows: [] },
   complements: {},
 }
-const call = (method, path, body) => {
+const call = (method, path, body, now) => {
   const [pathname, search = ''] = path.split('?')
-  return route(snapshot, { method, path: pathname, query: new URLSearchParams(search), body })
+  return route(snapshot, { method, path: pathname, query: new URLSearchParams(search), body }, now)
 }
 
 beforeEach(() => localStorage.clear())
@@ -30,7 +30,10 @@ test('la sesión, los eventos y los pedidos ordenan la Home; "Rappi hoy" no; "Ol
       { type: 'vertical_open', vertical: 'pharmacy' },
     ],
   })
-  expect(readState().events.map((e) => e.vertical)).toEqual(['chocolateria', 'farmacia'])
+  // Otro toque a Farmacia, de ayer: la Home pide uso en dos días distintos (motor.js: MIN_USE_DAYS).
+  const yesterday = Date.now() - 86_400_000
+  call('POST', '/events', { user_id: id, events: [{ type: 'vertical_open', vertical: 'pharmacy' }] }, yesterday)
+  expect(readState().events.map((e) => e.vertical)).toEqual(['chocolateria', 'farmacia', 'farmacia'])
   const order = call('POST', `/profile/${id}/verticales`)
   expect(order.status).toBe(404)
   const home = call('GET', `/profile/${id}/verticales`).body
@@ -47,7 +50,7 @@ test('la sesión, los eventos y los pedidos ordenan la Home; "Rappi hoy" no; "Ol
   expect(readState().orders[0].vertical).toBe('supermercado')
   expect(call('POST', '/orders', { user_id: id, vertical: 'pet', lines: [{}] }).status).toBe(400)
 
-  expect(call('DELETE', `/profile/${id}`).body.eventos_borrados).toBe(3)
+  expect(call('DELETE', `/profile/${id}`).body.eventos_borrados).toBe(4)
   expect(call('GET', `/profile/${id}/verticales`).body.personalized).toBe(false)
 })
 

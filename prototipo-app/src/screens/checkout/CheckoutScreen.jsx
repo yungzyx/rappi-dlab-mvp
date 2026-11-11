@@ -18,6 +18,7 @@ import CheckoutDelivery from './CheckoutDelivery'
 import CheckoutSuggestion from './CheckoutSuggestion'
 import { useOrders } from '../../state/OrdersContext'
 import { useDemo } from '../../state/DemoContext'
+import { forgetAdded } from '../../state/liveMemory'
 import { DEFAULT_TIP, TIPS, checkoutTotals, deliveryType, orderShares, pricedBasket } from './pricing'
 import { ageConfirmed, confirmAge, hasAgeRestricted, needsPrescription } from './restrictions'
 import { anyClosed, slotsFor } from './schedule'
@@ -163,6 +164,7 @@ export default function CheckoutScreen({ back, push }) {
     spendCredits(totals.credits)
     if (totals.couponAmount > 0) markCoupon(coupon.code)
     cart.clear()
+    forgetAdded() // lo agregado ya se pidió: Mochi no lo comenta al volver a la Home
     // El seguimiento (del primero) reemplaza al checkout en el historial: "volver" no regresa a un carrito vacío.
     push('tracking', { orderId: id }, { swap: true })
   }

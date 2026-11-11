@@ -34,7 +34,7 @@ from rappi_ia.catalog import cache
 from rappi_ia.catalog.deals import deals
 from rappi_ia.catalog.home import home
 from rappi_ia.catalog.restaurants import restaurant_menu, restaurants
-from rappi_ia.catalog.stores import product_detail, vertical_stores
+from rappi_ia.catalog.stores import product_detail, store_page, vertical_stores
 from rappi_ia.concepts.taxonomy import sensitive_concepts
 from rappi_ia.demo.seed import DEMO_VERTICALS, seed_demo
 
@@ -431,6 +431,24 @@ def test_deals_by_vertical(seeded):
     assert deals(seeded, "no-existe") == []
 
 
+def test_deals_of_the_screens_are_from_stores_of_the_demo_city_and_mochis_are_not_filtered(seeded, client):
+    # Norte pasa a Viña del Mar: su baja de la gaseosa (91002, la mayor del Súper) sale de "Bajaron de precio" y de la
+    # pestaña Ofertas, que piden `in_city`; queda la rebaja menor de la misma gaseosa en Centro. Las ofertas de Mochi
+    # (offers/engine.py, sin `in_city`) siguen viendo la de Norte.
+    seeded.execute("UPDATE stores SET city = 'Viña del Mar' WHERE store_id = 9102")
+
+    for screen in (
+        deals(seeded, "supermercado", in_city=True),
+        client.get("/catalog/deals?vertical=supermercado").json(),
+        client.get("/catalog/deals").json(),
+    ):
+        assert screen and 9102 not in {deal["store_id"] for deal in screen}
+    in_city = deal_summary(deals(seeded, "supermercado", in_city=True))
+    assert [deal[:2] for deal in in_city[:2]] == [("91401", PHARMACY_IN_SUPER), ("91002", 9101)]
+    assert deal_summary(deals(seeded, "supermercado"))[0][:2] == ("91002", 9102)
+    assert deal_summary(deals(seeded))[0][:2] == ("91002", 9102)
+
+
 def test_deals_limit_keeps_the_biggest_discounts(seeded):
     assert ids_of(deals(seeded, limit=3)) == ["91002", "92002", "92004"]
     assert deals(seeded, limit=0) == []
@@ -672,6 +690,19 @@ def test_home_nearby_leaves_out_restaurants_even_when_they_have_catalog_prices(s
     assert downloaded.fetchone() == (1,)
 
     assert PIZZERIA not in ids(home(seeded)["nearby_stores"])
+
+
+def test_home_nearby_leaves_out_stores_of_another_city(seeded):
+    # La más cercana de la lista, con la misma ubicación, pero de otra ciudad (Rappi da a una tienda su ciudad): sale, y
+    # entra la siguiente. Se sigue abriendo por su id.
+    first, *rest = ids(home(seeded)["nearby_stores"])
+    seeded.execute("UPDATE stores SET city = 'Temuco' WHERE store_id = %s", (first,))
+    cache.clear()
+
+    nearby = ids(home(seeded)["nearby_stores"])
+
+    assert first not in nearby and nearby[:5] == rest
+    assert store_page(seeded, first) is not None
 
 
 def test_home_nearby_follows_the_configured_point(seeded, monkeypatch):

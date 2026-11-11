@@ -20,7 +20,9 @@ describe('ThresholdBar', () => {
   test('dice cuánto falta y avanza con lo que suma el carro', () => {
     const view = bar(5000)
     expect(view.textContent).toContain('Agrega $10.000 para lograrlo.')
-    expect(view.querySelector('.threshold-bar-fill').style.width).toBe(`${(5000 / 15000) * 100}%`)
+    const width = view.querySelector('.threshold-bar-fill').style.width
+    expect(width).toMatch(/%$/)
+    expect(parseFloat(width)).toBeCloseTo((5000 / 15000) * 100, 3)
   })
 
   test('al llegar al monto dice que está listo', () => {

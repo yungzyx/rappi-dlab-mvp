@@ -19,6 +19,10 @@
 //   pausa por una calificación mala (winback.js: paused, de los eventos `order_rated`); un pedido cancelado
 //   (`order_cancelled`, state.js: cancelOrders e isConfirmed) no cuenta para la recompra, el motor ni los perfiles
 // - rappi-ia/src/rappi_ia/offers/engine.py (ontop_offer) ... el OnTop de Turbo en el seguimiento (offers.js: onTopOffer)
+// - rappi-ia/src/rappi_ia/offers/engine.py (_in_demo_city) y agent/tools.py (_with_prices) ... no se replican: las
+//   ofertas grabadas ya traen tiendas de la ciudad de la demo, y cada producto de la muestra viene con una tienda de
+//   ella si alguna lo vende. La muestra no trae la ciudad de las tiendas, así que la recompra y "volver" sin conexión
+//   pueden repetir un producto que solo vende otra ciudad (la API lo sacaría)
 // - rappi-ia/src/rappi_ia/catalog/stores.py (line_prices) y api/catalog.py (availability) ... "Pídelo de nuevo"
 //   (index.js: availability, con los precios de la muestra)
 // - rappi-ia/src/rappi_ia/offers/guards.py ......... lo que el agente nunca ofrece (offers.js: offerableProduct); las
@@ -30,6 +34,8 @@
 //   panel (personas.js: sampleOf)
 // - rappi-ia/src/rappi_ia/agent/tools.py ........... el foco de la búsqueda (_focus, en search.js) y el complemento
 //   alternado (_takes_second, en offers.js: complementOf)
+// - rappi-ia/src/rappi_ia/agent/verticals.py (liquor_last) ... Licores al final de los grupos de una búsqueda que no
+//   pide nada +18 (search.js: groupsOf; el +18 de cada concepto llega en meta.concepts)
 // - rappi-ia/src/rappi_ia/agent/rappi_agent.py ..... "qué me recomiendas" (search.js: recommend) y el texto del consejo
 //   médico (ADVICE_*, en search.js: unrecorded)
 // - rappi-ia/src/rappi_ia/agent/understand.py ...... síntomas y consejo médico (SYMPTOMS, MEDICINE_WORDS, ADVICE, en
@@ -553,7 +559,7 @@ function answer(snapshot, { method, path, query, body }, now) {
     if (method === 'DELETE' && !profile[2])
       return { body: { user_id: userId, concept: null, eventos_borrados: clearState() } }
     if (method === 'GET' && profile[2] === '/verticales')
-      return { body: homeVerticals(state, now, snapshot.meta.vertical_labels) }
+      return { body: homeVerticals(state, now, snapshot.meta.vertical_labels, snapshot.meta.concepts) }
     if (method === 'GET' && profile[2] === '/gustos') return { body: tastesReply(snapshot, state) }
     if (method === 'GET' && profile[2] === '/busquedas') return { body: searchesReply(state) }
     if (method === 'GET' && !profile[2]) {

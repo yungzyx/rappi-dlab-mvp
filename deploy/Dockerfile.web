@@ -29,7 +29,7 @@ RUN VITE_API_URL=/api VITE_DEMO="$VITE_DEMO" npm --prefix prototipo-app run buil
     && VITE_DEMO="$VITE_DEMO" scripts/check-dist.sh
 
 
-FROM caddy:2.11.7-alpine
+FROM caddy:2.11.8-alpine
 
 # Caddy sin root: el binario de la imagen oficial ya trae la capacidad de abrir los puertos 80 y 443
 # (cap_net_bind_service); los volúmenes nuevos de /data (certificados) y /config heredan este dueño.

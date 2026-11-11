@@ -18,6 +18,10 @@ la oferta de mayor descuento.
 Una oferta se propone sin que nadie la pida, así que sigue la regla del agente: un producto de concepto sensible
 (`sensitive` en la taxonomía: medicamentos, salud y bienestar sexual, tabaco, vapeo) no sale en ninguna vertical.
 Sin vertical, tampoco las tiendas que no se empujan (`stores.NOT_PUSHED_*`).
+
+Las pantallas ("Bajaron de precio" de cada vertical y la pestaña Ofertas, `/catalog/deals`) piden solo las tiendas de
+la ciudad de la demo (`in_city`), como las listas de tiendas. Las ofertas de Mochi también (`offers/engine.py`:
+`_offerable_deals`), y lo que les llega de otra ciudad por otro camino lo cambian o lo sacan (`_in_demo_city`).
 """
 
 from psycopg import Connection
@@ -26,7 +30,7 @@ from rappi_scraper.storage.search import MIN_PRICE
 from ..agent.tools import Product
 from ..concepts.taxonomy import load_taxonomy, sensitive_concepts
 from .cache import cached
-from .stores import CURRENT_OFFERS, OWN_VERTICAL, downloaded_cte, not_pushed_params, product_card
+from .stores import CURRENT_OFFERS, OWN_VERTICAL, demo_places, downloaded_cte, not_pushed_params, product_card
 
 MAX_DISCOUNT_PCT = 60
 
@@ -93,28 +97,29 @@ LEFT JOIN item_concepts ic ON ic.entity_type = 'catalog_item' AND ic.entity_id =
 ORDER BY 1 - t.price / t.before DESC, ci.master_product_id"""
 
 
-def deals(conn: Connection, vertical: str | None = None, limit: int = 24) -> list[dict]:
+def deals(conn: Connection, vertical: str | None = None, limit: int = 24, in_city: bool = False) -> list[dict]:
     """Los productos que bajaron de precio (o que su tienda rebajó), del mayor descuento al menor, de una vertical si
     se pide. Sin vertical, no entran las tiendas que no se empujan (farmacia, sex shops, smoking shops). Ninguno es de
-    un concepto sensible. Restaurantes no vende productos del catálogo: no tiene ofertas. Sale de la caché del
-    catálogo (catalog/cache.py)."""
+    un concepto sensible. Con `in_city`, solo de tiendas de la ciudad de la demo (lo que ven las pantallas).
+    Restaurantes no vende productos del catálogo: no tiene ofertas. Sale de la caché del catálogo (catalog/cache.py)."""
     if vertical == "restaurantes":
         return []
     return cached(
-        f"deals:{vertical}:{limit}",
+        f"deals:{vertical}:{limit}" + (":ciudad" if in_city else ""),
         conn,
-        lambda: _deals(conn, vertical, limit),
-        refresh=lambda c: _deals(c, vertical, limit),
+        lambda: _deals(conn, vertical, limit, in_city),
+        refresh=lambda c: _deals(c, vertical, limit, in_city),
     )
 
 
-def _deals(conn: Connection, vertical: str | None, limit: int) -> list[dict]:
+def _deals(conn: Connection, vertical: str | None, limit: int, in_city: bool) -> list[dict]:
     sql = _DEALS.format(
-        downloaded=downloaded_cte(vertical is not None, history=True),
+        downloaded=downloaded_cte(vertical is not None, history=True, in_city=in_city),
         vertical=OWN_VERTICAL if vertical is None else "%(vertical)s",
     )
     params = {
         "vertical": vertical,
+        "places": demo_places(),
         **not_pushed_params(),
         "sensitive": sorted(sensitive_concepts()),
         "min_price": MIN_PRICE,

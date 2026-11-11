@@ -118,7 +118,7 @@
 .favor-submit {
   height: 48px;
   border-radius: 24px;
-  background: var(--rappi-red);
+  background: var(--rappi-red-ink);
   color: var(--surface);
   font-size: 15px;
   font-weight: 700;

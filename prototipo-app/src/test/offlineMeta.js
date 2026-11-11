@@ -73,6 +73,7 @@ export const CONCEPTS = {
     emoji: '🍺',
     group: 'alcohol',
     offerable: false,
+    age_restricted: true,
     keywords: ['cerveza'],
     alone: ['chela'],
   },

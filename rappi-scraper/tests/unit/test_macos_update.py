@@ -100,6 +100,19 @@ def demo(tmp_path) -> Demo:
     return Demo(tmp_path)
 
 
+def _config_python(demo: Demo) -> None:
+    """El `.venv/bin/python` del clon, para el chequeo: responde OFFERS_CONTROL_PCT como `rappi_ia.config` (la variable
+    del entorno, que trae tunel.env; si no está, la del .env de rappi-ia, porque load_dotenv no sobreescribe; si no,
+    0), solo si lo llaman desde rappi-ia con ese import."""
+    demo.python(
+        'case "$*" in *"from rappi_ia import config"*"config.OFFERS_CONTROL_PCT"*) ;; *) exit 0;; esac\n'
+        f'[ "$PWD" = "{demo.repo}/rappi-ia" ] || exit 1\n'
+        'if [ -n "${OFFERS_CONTROL_PCT+x}" ]; then echo "$OFFERS_CONTROL_PCT"; exit 0; fi\n'
+        "v=$(sed -n 's/^OFFERS_CONTROL_PCT=//p' .env 2>/dev/null | tail -n 1)\n"
+        'echo "${v:-0}"'
+    )
+
+
 def test_a_failed_update_warns_and_the_next_round_retries(demo):
     """Antes, el merge iba primero: si un paso fallaba, la vuelta siguiente veía HEAD == origin/main, anotaba "Al día"
     y no reintentaba nunca. Ahora la referencia es lo que quedó desplegado, y un reintento vuelve a ver las
@@ -251,6 +264,7 @@ def test_the_session_check_marks_its_searches_and_warns_about_slow_ones(demo):
     _write_fake(demo.bin / "pgrep", 'case " $* " in *" -P "*) echo 11;; *) echo 10;; esac')  # el proceso de la API
     _write_fake(demo.bin / "ps", 'echo " 51200"')
     _write_fake(demo.bin / "top", 'echo "PID MEM"; echo "1800M"')
+    _config_python(demo)
     (demo.tunel / "pausa-actualizar").touch()
 
     result = demo.run("chequeo-sesion.sh")
@@ -275,6 +289,40 @@ def test_the_session_check_marks_its_searches_and_warns_about_slow_ones(demo):
     assert "pizza: 1734 ms (más de 1 s)" in slow.stdout and "Máximo: 1734 ms" in slow.stdout
     assert "los despliegues no están en pausa" in slow.stdout
     assert demo.recorded("osascript") == []  # un chequeo con avisos no es un trabajo que falló
+    assert "Grupo de control: 0 %" in result.stdout  # sin la variable en tunel.env ni en rappi-ia/.env, apagado
+
+
+def test_the_session_check_fails_with_the_control_group_on(demo):
+    """Con OFFERS_CONTROL_PCT distinto de 0, a un participante se le pueden retener las ofertas: el chequeo lo calcula
+    como la API (de tunel.env o, si no lo define, del .env de rappi-ia), lo dice y sale con 1. Si no lo puede calcular,
+    tampoco da la sesión por lista. De esos archivos no imprime nada más."""
+    _write_fake(
+        demo.bin / "curl",
+        'case " $* " in *"/health "*) echo \'{"ok":true}\';; *) printf "200 0.100";; esac',
+    )
+    _write_fake(demo.bin / "psql", "exit 0")
+    _config_python(demo)
+    (demo.tunel / "pausa-actualizar").touch()
+    (demo.repo / "rappi-ia" / ".env").write_text("OFFERS_CONTROL_PCT=10\nAPI_SECRET=no-se-imprime-env\n")
+
+    from_dotenv = demo.run("chequeo-sesion.sh")
+
+    assert from_dotenv.returncode == 1, from_dotenv.stdout + from_dotenv.stderr
+    assert "Grupo de control: 10 %" in from_dotenv.stdout
+    assert "el grupo de control está en 10 %" in from_dotenv.stdout
+
+    with (demo.tunel / "tunel.env").open("a") as env:
+        env.write("OFFERS_CONTROL_PCT=20\nAPI_SECRET=no-se-imprime\n")
+    from_tunel = demo.run("chequeo-sesion.sh")  # tunel.env gana: la API lo recibe en su entorno
+
+    assert from_tunel.returncode == 1 and "Grupo de control: 20 %" in from_tunel.stdout
+    for result in (from_dotenv, from_tunel):
+        assert "no-se-imprime" not in result.stdout + result.stderr
+
+    demo.python("exit 1")  # p. ej. un valor fuera de rango: rappi_ia.config no carga
+    unreadable = demo.run("chequeo-sesion.sh")
+
+    assert unreadable.returncode == 1 and "Grupo de control: no pude leerlo" in unreadable.stdout
 
 
 def test_the_watchdog_marks_its_searches_and_beats_only_when_all_respond(demo):

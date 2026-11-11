@@ -9,6 +9,9 @@ Se apaga con API_PREWARM=0 (los tests).
 
 El mismo hilo sigue después con la mantención de la caché del catálogo (catalog/cache.py: `keep_warm`): calcula la
 Home una vez, para que ni el primer request la pague, y cada minuto renueva lo registrado que esté por vencer.
+
+Aparte, y aunque la precarga esté apagada (así se graban las demos: `demo:snapshot`, `panel:snapshot`), el arranque
+avisa si la ciudad de la demo (`PROFILE_CITY`) no tiene locales en el catálogo (`check_demo_city`).
 """
 
 import logging
@@ -118,6 +121,28 @@ def keep_catalog_warm(url: str | None = None, stop: threading.Event | None = Non
 
 
 WARM_STATEMENT_TIMEOUT_MS = 30_000  # una consulta de la mantención que tarde más se corta: la próxima pasada reintenta
+
+
+CITY_CHECK_TIMEOUT_MS = 5_000  # el arranque la espera: una base lenta no lo retiene más que esto
+
+
+def check_demo_city(url: str | None = None) -> None:
+    """Anota el aviso de `stores.demo_city_warning` si ningún restaurante o ninguna tienda del catálogo es de la ciudad
+    de la demo (`PROFILE_CITY` mal escrita: sus listas salen vacías). La API lo llama al arrancar (`lifespan`), con
+    API_PREWARM o sin ella, y con su propia conexión. Nunca lanza: sin base, solo otro aviso."""
+    from ..catalog.stores import demo_city_warning
+
+    try:
+        with psycopg.connect(
+            url or database_url(), connect_timeout=3, autocommit=True, application_name="rappi-ia-ciudad"
+        ) as conn:
+            conn.execute("SELECT set_config('statement_timeout', %s, false)", (f"{CITY_CHECK_TIMEOUT_MS}ms",))
+            warning = demo_city_warning(conn)
+    except (psycopg.Error, RuntimeError) as exc:  # RuntimeError: falta DATABASE_URL
+        log.warning("No se pudo revisar la ciudad de la demo (PROFILE_CITY): %s", exc)
+        return
+    if warning:
+        log.warning(warning)
 
 
 _stop = threading.Event()

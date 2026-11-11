@@ -4,8 +4,9 @@ embedding por consulta. Con `vertical`, la respuesta de siempre."""
 import numpy as np
 import pytest
 from fastapi.testclient import TestClient
-from rappi_scraper.storage.search import VERTICALS
+from rappi_scraper.storage.search import VERTICALS, build_search_documents
 
+from conftest import add_price, add_product, add_store
 from rappi_ia.agent import grouped_search
 from rappi_ia.agent.compose import TemplateComposer
 from rappi_ia.agent.grouped_search import SCREEN_VERTICALS, search_grouped
@@ -13,6 +14,7 @@ from rappi_ia.agent.rappi_agent import RappiAgent
 from rappi_ia.agent.verticals import ranked_verticals
 from rappi_ia.api import app as api
 from rappi_ia.api.services import Services
+from rappi_ia.concepts.pipeline import build_concepts
 from rappi_ia.concepts.taxonomy import load_taxonomy
 from rappi_ia.demo.seed import seed_demo
 from rappi_ia.embeddings.base import HashEmbedder
@@ -90,6 +92,39 @@ def test_grouped_search_puts_the_typical_vertical_first(demo):
     assert all(group.products for group in result.groups)
     assert groups["licores"].prototype_vertical == "liquor"
     assert SCREEN_VERTICALS["turbo"] == "turbo" and SCREEN_VERTICALS["conveniencia"] == "express"  # Turbo, su pantalla
+
+
+def test_licores_does_not_lead_what_is_not_alcohol(db):
+    """La botillería tiene más gaseosas que el súper (por participación, Licores es su vertical más típica), pero quien
+    busca "gaseosa" ve primero el súper: Licores sigue, al final. La cerveza y lo que se busca desde Licores, igual que
+    siempre."""
+    embedder = HashEmbedder()
+    add_store(db, 1, "supermercado", "Súper (prueba)")
+    add_store(db, 2, "licores", "Botillería (prueba)")
+    products = [
+        (301, "Gaseosa cola 1,5 L (prueba)", 2, "Gaseosas"),
+        (302, "Gaseosa lima 1,5 L (prueba)", 2, "Gaseosas"),
+        (303, "Gaseosa naranja 1,5 L (prueba)", 1, "Gaseosas"),
+        (304, "Cerveza lager lata (prueba)", 2, "Cervezas"),
+        (305, "Cerveza lager botella (prueba)", 2, "Cervezas"),
+        (306, "Cerveza pilsner lata (prueba)", 1, "Cervezas"),
+    ]
+    for pid, name, store, category in products:
+        add_product(db, pid, name, store, category)
+        add_price(db, store, pid, 1990)
+    db.commit()
+    build_search_documents(db)
+    build_concepts(db)
+    embed_search_documents(db, embedder)
+    assert ranked_verticals(db, ["gaseosas"]) == ranked_verticals(db, ["cerveza"]) == ["licores", "supermercado"]
+
+    def order(q, current=None):
+        return [g.vertical for g in search_grouped(db, q, embedder, current=current, limit=6).groups]
+
+    assert order("gaseosa") == ["supermercado", "licores"]
+    assert order("cerveza") == ["licores", "supermercado"]
+    assert order("cerveza y gaseosa") == ["licores", "supermercado"]  # pide algo +18
+    assert order("gaseosa", current="licores") == ["licores", "supermercado"]
 
 
 def test_grouped_search_embeds_the_query_once(demo):

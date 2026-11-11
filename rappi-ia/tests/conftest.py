@@ -63,9 +63,10 @@ def real_db_guard(monkeypatch):
     """Ningún test abre la base real por el connector de la API (el recálculo de segmentos después de un pedido):
     sin un `get_connector` propio, la tarea falla con este error (queda en el log) y la lista anota cada intento.
     Tampoco abre el pool de la API, que se conecta a DATABASE_URL: el `lifespan` de un `with TestClient(app)` lo
-    intenta y aquí no hace nada (test_pool instala uno propio sobre rappi_ia_test). Sin pool, `get_conn` se niega.
+    intenta y aquí no hace nada (test_pool instala uno propio sobre rappi_ia_test). Sin pool, `get_conn` se niega. Ni
+    revisa la ciudad de la demo (`prewarm.check_demo_city`, con su propia conexión): queda anotado en la lista.
     Va en el módulo, no en `dependency_overrides`, que los fixtures vacían con `clear()`."""
-    from rappi_ia.api import deps
+    from rappi_ia.api import deps, prewarm
 
     attempts: list[str] = []
 
@@ -75,6 +76,7 @@ def real_db_guard(monkeypatch):
 
     monkeypatch.setattr(deps, "_own_connection", refuse)
     monkeypatch.setattr(deps, "open_pool", lambda: attempts.append("pool"))
+    monkeypatch.setattr(prewarm, "check_demo_city", lambda: attempts.append("ciudad"))
     return attempts
 
 
@@ -143,10 +145,11 @@ def db(test_url):
         conn.rollback()
 
 
-def add_store(conn, store_id: int, vertical: str, name: str = "Tienda") -> None:
+def add_store(conn, store_id: int, vertical: str, name: str = "Tienda", city: str | None = "Santiago") -> None:
+    """Una tienda (o un local) de `city`: por defecto, de la ciudad de la demo, como las de `seed_demo`."""
     conn.execute(
-        "INSERT INTO stores (store_id, name, store_type, path) VALUES (%s, %s, %s, %s)",
-        (store_id, name, f"tipo_{store_id}", f"/tiendas/{store_id}"),
+        "INSERT INTO stores (store_id, name, store_type, city, path) VALUES (%s, %s, %s, %s, %s)",
+        (store_id, name, f"tipo_{store_id}", city, f"/tiendas/{store_id}"),
     )
     conn.execute("INSERT INTO store_verticals (store_id, vertical) VALUES (%s, %s)", (store_id, vertical))
 

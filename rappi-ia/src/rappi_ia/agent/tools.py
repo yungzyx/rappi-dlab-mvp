@@ -701,30 +701,39 @@ def _verticals_for(conn: Connection, concept_id: str, current_vertical: str | No
 
 
 # Una oferta del agente no sale de una tienda que Rappi rotula Farmacia, Sex shop o Smoking shop, esté en la vertical
-# que esté: entre las tiendas que quedan, vale la más barata.
+# que esté, ni de una de otra ciudad que la de la demo (`stores.IN_DEMO_CITY`): entre las tiendas que quedan, vale la
+# más barata. Así, lo que solo se vende en otra ciudad no ocupa el lugar de otro producto (offers/engine.py:
+# `_in_demo_city` lo revisa de nuevo al final).
 _OFFER_STORES = """
                      AND NOT EXISTS (SELECT 1 FROM store_verticals own
-                                     WHERE own.store_id = l.store_id AND own.subvertical = ANY(%(blocked)s))"""
+                                     WHERE own.store_id = l.store_id AND own.subvertical = ANY(%(blocked)s))
+                     AND {in_city}"""
 
 
 def _with_prices(conn: Connection, vertical: str, hits, offer: bool = False, adult_ok: bool = False) -> list[Product]:
     catalog_ids = [h.entity_id for h in hits if h.entity_type == "catalog_item"]
     menu_ids = [h.entity_id for h in hits if h.entity_type == "menu_item"]
+    from ..catalog.stores import IN_DEMO_CITY, demo_places  # import diferido: catalog.stores importa este módulo
+
     prices: dict[tuple[str, str], tuple] = {}
-    store_filter = _OFFER_STORES if offer else ""
+    store_filter = _OFFER_STORES.format(in_city=IN_DEMO_CITY) if offer else ""
+    places = demo_places()
     if catalog_ids:
         # Solo ofertas vigentes, con la misma regla que la búsqueda (v_latest_offers): una sucursal que la última
         # corrida de su formato ya no bajó no pone el precio, así el tope y el precio mostrado coinciden.
         # El precio, el precio anterior y la tienda (id y nombre) son los de una misma oferta: la más barata de las
         # tiendas que la app abre con este producto en un pasillo (como /catalog/stores). Una tienda sin pasillos,
         # importada de un CSV antiguo, no tiene página: sin ninguna que se abra vale la oferta más barata de todas y
-        # el id es nulo. El pasillo va como LEFT JOIN (uno por llave) y la vertical como EXISTS: como subconsulta, el
-        # pasillo recorría todos los pasillos raíz dos veces y la vertical se armaba entera (−2,5 ms por búsqueda).
+        # el id es nulo. Entre las que se abren van primero las de la ciudad de la demo (`stores.IN_DEMO_CITY`): el
+        # mismo producto sale con la tienda de la ciudad aunque una de otra sea más barata, y con la de otra ciudad solo
+        # si no está en ninguna de la ciudad; en una oferta, solo las de la ciudad (`_OFFER_STORES`).
+        # El pasillo va como LEFT JOIN (uno por llave) y la vertical como EXISTS: como subconsulta, el pasillo recorría
+        # todos los pasillos raíz dos veces y la vertical se armaba entera (−2,5 ms por búsqueda).
         for pid, name, price, real, store, age, store_id, presentation in conn.execute(
             f"""WITH offers AS (
                    SELECT sp.master_product_id, ci.name, l.price, l.real_price, l.store_id,
                           btrim(coalesce(b.name, s.name)) AS store, ci.is_alcoholic OR ci.age_restricted AS adult,
-                          ci.presentation, a.store_id IS NOT NULL AS openable
+                          ci.presentation, a.store_id IS NOT NULL AS openable, {IN_DEMO_CITY} AS in_city
                    FROM store_products sp
                    JOIN v_latest_offers l ON l.store_id = sp.store_id AND l.sku = sp.sku
                    JOIN stores s ON s.store_id = sp.store_id
@@ -740,8 +749,13 @@ def _with_prices(conn: Connection, vertical: str, hits, offer: bool = False, adu
                SELECT DISTINCT ON (master_product_id) master_product_id::text, name, price, real_price, store, adult,
                       CASE WHEN openable THEN store_id END, presentation
                FROM offers
-               ORDER BY master_product_id, openable DESC, price, store_id""",  # con igual precio, siempre la misma
-            {"ids": catalog_ids, "vertical": vertical, "blocked": unofferable_subverticals() if offer else []},
+               ORDER BY master_product_id, openable DESC, in_city DESC, price, store_id""",  # empate: la misma
+            {
+                "ids": catalog_ids,
+                "vertical": vertical,
+                "blocked": unofferable_subverticals() if offer else [],
+                "places": places,
+            },
         ):
             prices[("catalog_item", pid)] = (name, price, real, store, age, store_id, presentation)
     if menu_ids:

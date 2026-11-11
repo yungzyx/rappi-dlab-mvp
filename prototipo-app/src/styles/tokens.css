@@ -11,6 +11,9 @@
   --line: #e9e9ec;
 
   --rappi-red: #db492a;
+  /* El rojo de marca donde lleva texto (botones con letra blanca, enlaces, la pestaña activa): --rappi-red da 4,2:1 con
+     blanco; este, 5,5:1 con blanco y 4,7:1 sobre el resalte gris de la barra inferior (AA) */
+  --rappi-red-ink: #be3b1f;
   --yellow: #f6dd52;
   --orange-bolt: #f39a2b;
 

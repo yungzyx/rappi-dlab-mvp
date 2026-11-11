@@ -1,7 +1,9 @@
 import { forwardRef, useCallback, useEffect, useImperativeHandle, useLayoutEffect, useRef, useState } from 'react'
 import { AGENT_NAME } from '../../../agent/name'
 import { ProductCards } from '../../../components/assistant/AgentMessage'
+import AgentMenu, { useMenuDismiss } from '../../../components/assistant/AgentMenu'
 import Mascot from '../../../components/assistant/Mascot'
+import { FLOATING_EVENT, floatingBottom } from '../../../components/floatingInset'
 import OfferWhy from '../../../components/assistant/OfferWhy'
 import { rectInPhone } from '../../../state/AssistantContext'
 import { typedEnd } from '../../../utils/typed'
@@ -10,7 +12,7 @@ const SIZE = 84 // ancho de la mascota de cuerpo entero (alto = 1,2 × ancho)
 const HEIGHT = SIZE * 1.2
 const EDGE = 14 // margen derecho
 const TOP_LIMIT = 118 // bajo la dirección: nunca tapa la barra de estado
-const BOTTOM_RESERVE = 104 // sobre la barra inferior (y la del carrito)
+const BOTTOM_RESERVE = 104 // sobre la barra inferior; con "Ver carro" o "Pedido en curso", sobre ellas (floatingInset.js)
 const TYPE_MS = 16 // ms por letra al "hablar"
 // Mientras nadie le habla, el agente no se queda quieto: cada tanto mira, baila, saluda o se estira (en este orden).
 const FIDGETS = ['look', 'dance', 'wave', 'stretch', 'hop']
@@ -44,7 +46,8 @@ function useTypewriter(text, reduceMotion) {
 /**
  * El agente de cuerpo entero viviendo en la Home: se para sobre el bloque del que habla (`target`, que `getBlock`
  * convierte en su elemento) o descansa sobre la barra inferior. Habla con un globo y, a veces, ofrece botones y productos
- * (`say.products`, con su "+"; tocar uno abre su hoja y su "Ver tienda" llama a `onOpenProduct`). Tocarlo dispara `onPoke`.
+ * (`say.products`, con su "+"; tocar uno abre su hoja y su "Ver tienda" llama a `onOpenProduct`). Tocarlo dispara `onPoke`;
+ * con `say.menu` (`{ actions, onRun, onClose }`) el globo es el menú de Mochi (AgentMenu), que Escape o tocar fuera cierran.
  * `onHold(motivo, sí o no)` avisa cuándo algo detiene la cuenta del globo: su "¿Por qué?" abierto (`why`), el puntero
  * (`pointer`) o el foco del teclado (`focus`) sobre él.
  */
@@ -53,6 +56,14 @@ const LiveAgent = forwardRef(function LiveAgent(
   ref,
 ) {
   const layerRef = useRef(null)
+  const agentRef = useRef(null) // Mochi y su globo: tocar fuera de ellos cierra el menú
+  const bodyRef = useRef(null)
+  const menu = say?.menu && !away ? say.menu : null
+  // Con Escape, el foco vuelve a Mochi (como en Mochi flotante).
+  useMenuDismiss(Boolean(menu), agentRef, (event) => {
+    menu?.onClose()
+    if (event) bodyRef.current?.focus()
+  })
   const [spot, setSpot] = useState(null)
   const [hopKey, setHopKey] = useState(0)
   const lastY = useRef(null)
@@ -83,13 +94,15 @@ const LiveAgent = forwardRef(function LiveAgent(
       phoneSize.current = { height: phone.phoneHeight, width: phone.phoneWidth }
     }
     const { height, width } = phoneSize.current
-    let y = height - BOTTOM_RESERVE - HEIGHT
+    // La barra del carrito tapaba la mitad de abajo de Mochi: se para sobre lo más alto de lo que flota.
+    const reserve = Math.max(BOTTOM_RESERVE, floatingBottom(layer.closest('.phone')))
+    let y = height - reserve - HEIGHT
     const block = target ? getBlock(target) : null
     if (block) {
       const box = rectInPhone(block)
-      const visible = box.top + box.height > TOP_LIMIT && box.top < height - BOTTOM_RESERVE
+      const visible = box.top + box.height > TOP_LIMIT && box.top < height - reserve
       // Parado sobre el borde superior del bloque (los zapatos lo pisan), dentro de la pantalla.
-      if (visible) y = Math.min(Math.max(box.top - HEIGHT + 16, TOP_LIMIT), height - BOTTOM_RESERVE - HEIGHT)
+      if (visible) y = Math.min(Math.max(box.top - HEIGHT + 16, TOP_LIMIT), height - reserve - HEIGHT)
     }
     const x = width - SIZE - EDGE
     // En la mitad de abajo el globo crece hacia arriba (no tapa la barra inferior).
@@ -107,6 +120,13 @@ const LiveAgent = forwardRef(function LiveAgent(
     if (lastY.current !== null && Math.abs(lastY.current - spot.y) > 30) setHopKey((n) => n + 1)
     lastY.current = spot.y
   }, [spot])
+
+  // Aparece o se va la barra del carrito: vuelve a pararse encima.
+  useEffect(() => {
+    const phone = layerRef.current?.closest('.phone')
+    phone?.addEventListener(FLOATING_EVENT, place)
+    return () => phone?.removeEventListener(FLOATING_EVENT, place)
+  }, [place])
 
   useEffect(() => {
     const onResize = () => {
@@ -161,8 +181,17 @@ const LiveAgent = forwardRef(function LiveAgent(
       <p className="sr-only" role="status">
         {away ? '' : (say?.text ?? '')}
       </p>
-      <div className={classes.join(' ')} style={style} data-at={target ?? undefined}>
-        {say && !away && (
+      <div ref={agentRef} className={classes.join(' ')} style={style} data-at={target ?? undefined}>
+        {menu && (
+          <AgentMenu
+            className="live-bubble live-menu"
+            actions={menu.actions}
+            onRun={menu.onRun}
+            onClose={menu.onClose}
+            surface="home"
+          />
+        )}
+        {say && !away && !menu && (
           <div
             className="live-bubble"
             onPointerEnter={() => onHold?.('pointer', true)}
@@ -209,9 +238,11 @@ const LiveAgent = forwardRef(function LiveAgent(
           </div>
         )}
         <button
+          ref={bodyRef}
           type="button"
           className="live-agent-body"
-          aria-label={`${AGENT_NAME}: muéstrame algo nuevo para probar`}
+          aria-label={`${AGENT_NAME}: ayuda y opciones`}
+          aria-expanded={Boolean(menu)}
           title={AGENT_NAME}
           hidden={away}
           onPointerDown={() => {

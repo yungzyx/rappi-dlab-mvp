@@ -5,6 +5,8 @@ import { formatPrice, parsePrice } from '../../state/CartContext'
 import { useOrders } from '../../state/OrdersContext'
 import { HELP_REASONS, HELP_WINDOW_HOURS, REFUND_METHODS, clockAndDay, helpDeadline } from './help'
 import { deliveredItems } from './liveChanges'
+// Mis pedidos también abre esta hoja: sin esto, sus estilos llegaban solo después de pasar por el seguimiento.
+import './tracking.css'
 
 /**
  * "Ayuda con este pedido", de demostración y sin dinero real: "Problemas con productos" (cuáles y qué pasó), "¿Dónde

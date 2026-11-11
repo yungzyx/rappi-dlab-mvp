@@ -16,9 +16,14 @@ from rappi_ia.embeddings import models
 class FakeSentenceTransformer:
     def __init__(self, name: str, device: str, revision: str | None = None):
         self.name, self.device, self.revision = name, device, revision
+        self.encoded: list[list[str]] = []
 
     def get_sentence_embedding_dimension(self) -> int:
         return 768
+
+    def encode(self, texts, **kwargs):
+        self.encoded.append(texts)
+        return np.zeros((len(texts), 768))
 
 
 def test_models_log_the_device_they_load_on(monkeypatch, caplog):
@@ -46,6 +51,19 @@ def test_model_loaded_with_pinned_revision(monkeypatch):
     assert e5._model.name == "intfloat/multilingual-e5-base"
     assert e5._model.revision == models.config.TEXT_EMBEDDING_REVISION
     assert len(e5._model.revision) == 40 and int(e5._model.revision, 16) >= 0  # un commit, no "main"
+
+
+def test_the_first_inference_is_paid_when_loading(monkeypatch):
+    """La primera inferencia de un proceso es la lenta (con la API recién encendida, la primera oferta del carro tardaba
+    4 s y la app espera 5): se hace una al cargar, antes de "startup complete", y no en la primera consulta."""
+    monkeypatch.setitem(
+        sys.modules, "sentence_transformers", types.SimpleNamespace(SentenceTransformer=FakeSentenceTransformer)
+    )
+    monkeypatch.setattr(models, "_device", lambda: "mps")
+
+    e5 = models.E5Embedder("e5-test")
+
+    assert e5._model.encoded == [["query: calentar"]]
 
 
 class CountingCall:

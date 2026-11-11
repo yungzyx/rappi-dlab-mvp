@@ -23,7 +23,7 @@
   padding: 0 24px;
   height: 48px;
   border-radius: 99px;
-  background: var(--rappi-red);
+  background: var(--rappi-red-ink);
   color: var(--surface);
   font-weight: 700;
 }

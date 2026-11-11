@@ -19,6 +19,9 @@ vi.mock('../../state/EventsContext', async (importOriginal) => ({
   ...(await importOriginal()),
   useEvents: () => events,
 }))
+// Qué tiene Mochi debajo (agentSpot.js mide el layout, que jsdom no calcula): lo decide cada test.
+const spot = vi.hoisted(() => ({ covers: false, lift: 0 }))
+vi.mock('./agentSpot', () => ({ coversControl: () => spot.covers, tuckLift: () => spot.lift }))
 
 const BEER = { id: 'b1', name: 'Cerveza Escudo 470 cc', price: '$1.380', vertical: 'liquor', store: 'Botillería' }
 
@@ -61,6 +64,8 @@ afterEach(() => {
   vi.unstubAllGlobals()
   resetQuiet()
   localStorage.clear()
+  spot.covers = false
+  spot.lift = 0
 })
 
 const added = (product) => act(() => window.dispatchEvent(new CustomEvent(AGENT_CART_EVENT, { detail: { product } })))
@@ -283,5 +288,53 @@ describe('Mochi flotante', () => {
     fireEvent.click(agentButton())
     fireEvent.click(screen.getByRole('button', { name: 'Buscar con Mochi' }))
     expect(probe.assistant.isOpen).toBe(true)
+  })
+})
+
+describe('Mochi no tapa los "+"', () => {
+  const host = () => document.querySelector('.agent-presence')
+
+  test('al hacer scroll se aparta al borde y, al parar sin nada debajo, vuelve', () => {
+    vi.useFakeTimers()
+    mountTree()
+    fireEvent.scroll(document.querySelector('.phone'))
+    expect(host().classList).toContain('is-tucked')
+    act(() => vi.advanceTimersByTime(750))
+    expect(host().classList).not.toContain('is-tucked')
+  })
+
+  test('si al parar queda sobre un control, sigue apartado; tocarlo abre el menú y ahí sale entero', () => {
+    vi.useFakeTimers()
+    spot.covers = true
+    mountTree()
+    act(() => vi.advanceTimersByTime(200))
+    expect(host().classList).toContain('is-tucked')
+    fireEvent.scroll(document.querySelector('.phone'))
+    act(() => vi.advanceTimersByTime(750))
+    expect(host().classList).toContain('is-tucked')
+    fireEvent.click(agentButton())
+    expect(host().classList).not.toContain('is-tucked')
+  })
+
+  test('cuando deja de tener algo debajo (cambió la pantalla) vuelve a salir', async () => {
+    vi.useFakeTimers()
+    spot.covers = true
+    const { container } = mountTree()
+    act(() => vi.advanceTimersByTime(200))
+    expect(host().classList).toContain('is-tucked')
+    spot.covers = false
+    // El aviso del MutationObserver llega en una microtarea
+    await act(async () => container.querySelector('.phone').append(document.createElement('div')))
+    act(() => vi.advanceTimersByTime(200))
+    expect(host().classList).not.toContain('is-tucked')
+  })
+
+  test('apartado, sube lo que diga tuckLift para no pisar un "+" con lo que asoma', () => {
+    vi.useFakeTimers()
+    spot.covers = true
+    spot.lift = 48
+    mountTree()
+    act(() => vi.advanceTimersByTime(200))
+    expect(host().style.getPropertyValue('--tuck-lift')).toBe('48px')
   })
 })

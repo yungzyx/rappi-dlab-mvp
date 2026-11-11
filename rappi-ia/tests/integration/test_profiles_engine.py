@@ -419,6 +419,9 @@ def test_the_restaurants_step_only_shows_places_in_the_city(catalog, db, monkeyp
 
     assert len(places()) == 1 and places() <= {SUSHI_STORE, CHAIN_BRANCH}  # la cadena, una vez
     assert places(city="Viña del Mar") == {OTHER_SUSHI}
+    # Con la demo en Viña del Mar, los otros peldaños también tienen que tener tiendas ahí (una oferta solo trae
+    # tiendas de la ciudad de la demo): se mudan todas menos los locales de Maipú.
+    db.execute("UPDATE stores SET city = 'Viña del Mar' WHERE store_id NOT IN (%s, %s)", (SUSHI_STORE, CHAIN_BRANCH))
     monkeypatch.setattr(config, "PROFILE_CITY", "Viña del Mar")
     assert places() == {OTHER_SUSHI}
 
