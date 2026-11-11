@@ -173,6 +173,26 @@ img {
   letter-spacing: -0.2px;
 }
 
+/* Encabezado de sección con botón "Ver más"/"Ver todo" a la derecha. Vive aquí, no en tab-page.css: lo usan también
+   VerticalScreen y Cuenta, que no cargan TabPage (cada pantalla es un chunk aparte) */
+.section-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 0 var(--gutter);
+}
+
+.see-more {
+  flex: none;
+  height: 33px;
+  padding: 0 17px;
+  border-radius: 99px;
+  background: #ebeff3;
+  font-size: 17px;
+  font-weight: 500;
+}
+
 .free-delivery {
   display: inline-flex;
   align-items: center;

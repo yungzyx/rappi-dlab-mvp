@@ -47,8 +47,32 @@ describe('contraste', () => {
     ['la insignia de lealtad', '../../screens/loyalty/loyalty.css', '.loyalty-badge', 4.5],
     ['Pro en el pago, ya socio', '../../screens/checkout/checkout.css', '.checkout-pro.is-member', 4.5],
     ['la × de borrar la búsqueda', '../search/search.css', '.search-clear', 3],
+    [
+      '"Entendido" del aviso de privacidad (rojo de marca con letra blanca)',
+      '../privacy-notice.css',
+      '.privacy-notice-ok',
+      4.5,
+    ],
   ])('%s cumple AA sobre su fondo', (_label, sheet, selector, min) => {
     const value = rule(sheet, selector)
     expect(contrast(value('color'), value('background'))).toBeGreaterThanOrEqual(min)
+  })
+
+  test('el rojo de marca con texto cumple AA con blanco (--rappi-red, el muestreado, no: 4,2:1)', () => {
+    expect(contrast(token('--rappi-red-ink'), '#ffffff')).toBeGreaterThanOrEqual(4.5)
+  })
+
+  // La pestaña activa se lee sobre su resalte: blanco del vidrio con 7 % de negro encima (≈ #ededed).
+  test('"Inicio" activa cumple AA sobre su resalte', () => {
+    expect(
+      contrast(rule('../bottom-nav.css', '.bottom-nav-item.is-active')('color'), '#ededed'),
+    ).toBeGreaterThanOrEqual(4.5)
+  })
+
+  test('el texto de Mochi en el pago ("Para completar…") y "Cambiar" cumplen AA', () => {
+    const checkout = '../../screens/checkout/checkout.css'
+    const cream = rule(checkout, '.checkout-suggestion')('background')
+    expect(contrast(rule(checkout, '.checkout-suggestion-reason')('color'), cream)).toBeGreaterThanOrEqual(4.5)
+    expect(contrast(rule(checkout, '.checkout-change')('color'), '#ffffff')).toBeGreaterThanOrEqual(4.5)
   })
 })

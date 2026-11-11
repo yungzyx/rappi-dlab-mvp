@@ -102,7 +102,7 @@
 .checkout-change {
   font-size: 14px;
   font-weight: 600;
-  color: var(--agent-orange);
+  color: var(--accent-ink);
 }
 
 .checkout-eta {
@@ -235,7 +235,7 @@
 }
 
 .checkout-suggestion-reason {
-  color: var(--agent-orange);
+  color: var(--accent-ink);
   font-weight: 700;
 }
 
@@ -654,11 +654,11 @@
   color: var(--ink-2);
 }
 
+/* El producto arriba y la elección debajo, a lo ancho: al lado, con el 55 % del ancho, la opción por defecto se cortaba
+   ("Si no contesto, elijan pc…") */
 .checkout-substitution {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 10px;
+  display: grid;
+  gap: 4px;
   font-size: 13px;
 }
 
@@ -670,8 +670,8 @@
 }
 
 .checkout-substitution select {
-  flex: none;
-  max-width: 55%;
+  width: 100%;
+  min-height: 44px;
   padding: 6px 8px;
   border: 1px solid var(--control-border);
   border-radius: 10px;

@@ -472,7 +472,7 @@
 .tracking-chat-line.is-user {
   align-self: flex-end;
   border-radius: 18px 18px 4px 18px;
-  background: var(--rappi-red);
+  background: var(--rappi-red-ink);
   color: var(--surface);
 }
 
@@ -531,7 +531,7 @@
 }
 
 .tracking-cancel {
-  color: var(--rappi-red);
+  color: var(--rappi-red-ink);
 }
 
 .tracking-sheet-body {
@@ -601,7 +601,7 @@
 .tracking-sheet-danger {
   padding: 12px;
   border-radius: 14px;
-  background: var(--rappi-red);
+  background: var(--rappi-red-ink);
   color: var(--surface);
   font-weight: 700;
 }
