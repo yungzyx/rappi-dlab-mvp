@@ -127,7 +127,7 @@ La Home del prototipo final se ordena según cada persona, con el [motor multive
 | Home que aprende | Mochi propone una vertical | ¿Repetimos? |
 |:---:|:---:|:---:|
 | <img src="docs/screenshots/03-home-dinamica.jpg" width="240" alt="Home tras un pedido en Chocolates: Chocolates sube al primer lugar, con la leyenda &quot;Ordenadas según lo que más usas&quot; y Mochi diciendo &quot;Moví Chocolates al primer lugar: pediste en chocolaterías.&quot;"> | <img src="docs/screenshots/22-vertical-por-probar.jpg" width="240" alt="Mochi en la Home pregunta &quot;¿Y si pruebas algo de Restaurantes?&quot; y, en &quot;¿Por qué?&quot;, dice &quot;Porque aún no pides en restaurantes: esto es lo que más se pide.&quot;"> | <img src="docs/screenshots/21-recompra.jpg" width="240" alt="Bloque de ejemplo &quot;¿Repetimos café? Pides cada 7 días.&quot; con un café molido del catálogo, Ver producto y Después"> |
-| Tras un pedido en Chocolates, Chocolates sube y Mochi dice por qué (abrir un acceso varias veces el mismo día no lo mueve). | Esa persona solo pidió en Chocolates (Retail): Mochi le propone Restaurantes, el siguiente peldaño, y dice por qué. | Ilustración con la respuesta de ejemplo del contrato y un café real del catálogo; no es un hábito medido. |
+| Tras un pedido en Chocolates, Chocolates sube y Mochi dice por qué (abrir un acceso varias veces el mismo día no lo mueve). | Esa persona solo pidió en Chocolates (Retail): Mochi le propone Restaurantes y dice por qué. Ese peldaño sale de lo aprendido de los simulados (con la tabla de Rappi sola sería Turbo). | Ilustración con la respuesta de ejemplo del contrato y un café real del catálogo; no es un hábito medido. |
 
 ### Mochi, el buscador
 
