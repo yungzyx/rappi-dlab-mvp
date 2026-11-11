@@ -16,7 +16,7 @@ from rappi_ia.embeddings.text_store import embed_search_documents
 from rappi_ia.events import store as events
 from rappi_ia.motor.build import refresh_user_conn
 from rappi_ia.motor.model import TZ
-from rappi_ia.offers.engine import _days_ago, _every
+from rappi_ia.offers.engine import _days_ago, _every, _last_bought_in
 
 
 def today():
@@ -126,6 +126,36 @@ def test_a_product_no_longer_sold_in_the_vertical_is_replaced_by_one_of_the_conc
     [product] = body["products"]
     assert product["concept"] == "gaseosas" and product["vertical"] == "supermercado"
     assert product["entity_id"] != COLA_SMALL[1]
+
+
+INSTANT_COFFEE = ("catalog_item", "91128")  # café instantáneo: solo en el súper Centro (9101)
+
+
+def test_what_is_only_sold_in_another_city_gives_way_to_the_search_not_to_a_204(client, db):
+    """Lo último que compró solo se vende en otra ciudad (el súper Centro pasa a Viña del Mar): la recompra no se cae,
+    ofrece el café que da la búsqueda en una tienda de la ciudad."""
+    rhythm(db, "u-ritmo", "supermercado", "cafe", INSTANT_COFFEE, last_days_ago=7)
+    db.execute("UPDATE stores SET city = 'Viña del Mar' WHERE store_id = 9101")
+
+    reply = repeat(client)
+
+    assert reply.status_code == 200, reply.text
+    [product] = reply.json()["products"]
+    assert product["concept"] == "cafe" and product["entity_id"] != INSTANT_COFFEE[1]
+    assert product["store_id"] == 9102 and reply.json()["actions"][0]["store_id"] == 9102
+
+
+def test_volver_skips_what_is_only_sold_in_another_city(db):
+    """ "Volver" a una vertical prueba lo que compró ahí, del más nuevo al más viejo: lo que solo se vende en otra
+    ciudad deja paso al siguiente, con su tienda de la ciudad."""
+    seed_demo(db)
+    bought(db, "u-vuelta", "supermercado", "cafe", COFFEE, days_ago=40)
+    bought(db, "u-vuelta", "supermercado", "cafe", INSTANT_COFFEE, days_ago=35)
+    db.execute("UPDATE stores SET city = 'Viña del Mar' WHERE store_id = 9101")
+
+    product = _last_bought_in(db, "u-vuelta", "supermercado")
+
+    assert (product["entity_id"], product["store_id"]) == (COFFEE[1], 9102)
 
 
 def test_what_the_agent_does_not_push_is_never_repeated(client, db):

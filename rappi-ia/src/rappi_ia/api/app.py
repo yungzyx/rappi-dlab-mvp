@@ -86,6 +86,7 @@ async def lifespan(app: FastAPI):
         await run_in_threadpool(services)
         # uvicorn solo muestra sus propios loggers: así la duración queda junto a "Application startup complete"
         logging.getLogger("uvicorn.error").info("Servicios cargados en %.1f s", time.perf_counter() - start)
+        await run_in_threadpool(prewarm.check_demo_city)  # sin depender de API_PREWARM, apagada al grabar las demos
         prewarm.start()  # en su hilo: ni el arranque ni /health la esperan
         yield
     finally:

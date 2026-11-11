@@ -32,8 +32,9 @@ HNSW_MAINTENANCE_WORK_MEM = os.environ.get("HNSW_MAINTENANCE_WORK_MEM", "1GB")
 AGENT_NAME = os.environ.get("AGENT_NAME", "Mochi")
 
 # Ciudad de la demo: las listas de restaurantes y de tiendas (de una vertical, "Cerca de ti", las ofertas de las
-# pantallas y "Disponible en N tiendas", catalog/stores.py: demo_places) son de ella, los platos que destacan las
-# ofertas de Mochi son de sus locales (offers/engine.py, featured.py) y la escalera de un perfil de gusto ofrece sus
+# pantallas y "Disponible en N tiendas", catalog/stores.py: demo_places) son de ella, lo que ofrece Mochi es de sus
+# tiendas y locales (offers/engine.py: _in_demo_city, featured.py), la búsqueda y Mochi muestran un producto con una
+# tienda de ella si alguna lo vende (agent/tools.py: _with_prices) y la escalera de un perfil de gusto ofrece sus
 # restaurantes cuando la persona no tiene ciudad (`app_users.city`; la app no la pide). Es una ciudad de `stores.city`
 # ("Santiago de Chile", "Viña del Mar"; ver offers/profiles.py, CITY_COMUNAS): si ningún local calza, la API lo avisa al
 # arrancar. Se cambia junto con MVP_HOME_LAT/LNG.

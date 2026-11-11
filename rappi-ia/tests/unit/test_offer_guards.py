@@ -330,7 +330,7 @@ def test_vertical_to_try_never_offers_a_deal_whose_name_says_alcohol(monkeypatch
         def execute(self, *args):
             return []
 
-    monkeypatch.setattr(engine, "deals", lambda conn, vertical, limit: found)
+    monkeypatch.setattr(engine, "deals", lambda conn, vertical, limit, in_city: found)
     monkeypatch.setattr(engine, "typical_verticals", lambda conn: {})
 
     offered = engine._offerable_deals(NoBlockedStores(), "supermercado")
@@ -384,7 +384,7 @@ def test_vertical_to_try_never_offers_a_deal_whose_name_says_baby(monkeypatch):
         def execute(self, *args):
             return []
 
-    monkeypatch.setattr(engine, "deals", lambda conn, vertical, limit: found)
+    monkeypatch.setattr(engine, "deals", lambda conn, vertical, limit, in_city: found)
     monkeypatch.setattr(engine, "typical_verticals", lambda conn: {})
 
     offered = engine._offerable_deals(NoBlockedStores(), "mall")
