@@ -244,13 +244,18 @@ export function matchProducts(snapshot, q) {
   return focus(snapshot.meta, q, concepts, found)
 }
 
+// Los grupos de taxonomy.toml cuyos conceptos son todos +18 (y los únicos con +18): el respaldo de una muestra grabada
+// antes de que meta.concepts trajera `age_restricted`.
+const ADULT_GROUPS = ['alcohol', 'tabaco', 'adultos']
+const isAdult = (concept) => concept?.age_restricted ?? ADULT_GROUPS.includes(concept?.group)
+
 /** Grupos por vertical: la de la pantalla primero, después las que más productos calzan (search_grouped), con Licores
  * al final si la consulta nombra conceptos y ninguno es +18 (agent/verticals.py: liquor_last). */
 function groupsOf(snapshot, q, found, current, limit) {
   const byVertical = new Map()
   for (const p of found) byVertical.set(p.vertical, [...(byVertical.get(p.vertical) ?? []), p])
   const concepts = detectConcepts(snapshot.meta, q)
-  const adult = concepts.some((c) => snapshot.meta.concepts[c]?.age_restricted)
+  const adult = concepts.some((c) => isAdult(snapshot.meta.concepts[c]))
   const last = (vertical) => concepts.length > 0 && !adult && vertical === 'licores'
   const order = [...byVertical.keys()].sort(
     (a, b) =>

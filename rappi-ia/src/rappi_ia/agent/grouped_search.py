@@ -77,7 +77,8 @@ def _verticals_to_search(
     conn: Connection, concepts: list[str], current: str | None, fixed: str | None = None
 ) -> list[str]:
     """Con un concepto detectado, sus verticales típicas (hasta 3, con Licores al final si no se pidió nada +18:
-    `liquor_last`; primero la fija de la ocasión, si tiene) y la de la pantalla; si no, las 8."""
+    `liquor_last`; primero la fija de la ocasión, si tiene, y entonces Licores puede quedar fuera, como en "estoy
+    triste") y la de la pantalla; si no, las 8."""
     typical = liquor_last(ranked_verticals(conn, concepts)[:TYPICAL_VERTICALS], concepts) if concepts else []
     if fixed:
         typical = [fixed, *[v for v in typical if v != fixed]][:TYPICAL_VERTICALS]

@@ -106,6 +106,15 @@ describe('Licores no encabeza lo que no es +18 (agent/verticals.py: liquor_last)
     expect(order('q=galletas&current=liquor')).toEqual(['licores', 'supermercado'])
   })
 
+  test('con una muestra sin `age_restricted` (grabada antes), el grupo del concepto dice si es +18', () => {
+    const { age_restricted: _flag, ...beerWithoutFlag } = META.concepts.cerveza
+    const old = { ...store, meta: { ...META, concepts: { ...META.concepts, cerveza: beerWithoutFlag } } }
+    const oldOrder = (q) => search(old, new URLSearchParams(`q=${q}`)).groups.map((g) => g.vertical)
+    expect(oldOrder('cerveza')).toEqual(['licores', 'supermercado'])
+    expect(oldOrder('chela')).toEqual(['licores', 'supermercado'])
+    expect(oldOrder('galletas')).toEqual(['supermercado', 'licores'])
+  })
+
   test('Mochi tampoco responde desde Licores lo que no es +18', () => {
     const reply = ask(store, { message: '¿tienen galletas?', mode: 'propuesta' })
     expect(reply.vertical).toBe('supermercado')
