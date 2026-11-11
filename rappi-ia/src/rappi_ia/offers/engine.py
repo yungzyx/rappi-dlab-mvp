@@ -957,7 +957,8 @@ def _repeat_product(
 ) -> dict | None:
     """El último producto (o plato, en restaurantes) del concepto que la persona compró en un pedido `propuesta`, con
     su precio en la vertical; si ya no está ahí, el primero del concepto que da la búsqueda en la vertical. Los dos
-    pasan las guardias de las ofertas (`_offerable_products`) y ninguno es de una tienda en pausa (`hold`)."""
+    pasan las guardias de las ofertas (`_offerable_products`), son de la ciudad (`_city_products`: si lo último que
+    compró solo se vende en otra ciudad, sigue la búsqueda) y ninguno es de una tienda en pausa (`hold`)."""
     kind = "menu_item" if vertical == "restaurantes" else "catalog_item"
     row = conn.execute(
         """SELECT l.entity_id FROM app_order_lines l JOIN app_orders o USING (order_id)
@@ -966,14 +967,19 @@ def _repeat_product(
            ORDER BY o.ts DESC, o.order_id DESC, l.line_no DESC LIMIT 1""",
         (user_id, concept.id, kind),
     ).fetchone()
+    city = person_city(conn, user_id)
+
+    def first_open(products: list[dict]) -> dict | None:
+        offerable = _city_products(conn, _offerable_products(conn, products), hold.stores, city)
+        return next((p for p in offerable if p["store_id"] not in hold.stores), None)
+
     last = _priced_in_vertical(conn, vertical, [row[0]]).get(row[0]) if row and _valid_id(row[0]) else None
-    if last:
-        offerable = [p for p in _offerable_products(conn, [last.to_dict()]) if p["store_id"] not in hold.stores]
-        if offerable:
-            return offerable[0]
-    outcome = search_products(conn, vertical, concept.name, [concept.id], embedder, k=4, offer=True)
-    found = [p.to_dict() for p in outcome.products if p.concept == concept.id]
-    return next((p for p in _offerable_products(conn, found) if p["store_id"] not in hold.stores), None)
+    if last and (product := first_open([last.to_dict()])):
+        return product
+    # En restaurantes se piden más candidatos: los platos de locales de otra ciudad salen después (como en el kit)
+    k = RESTAURANT_CANDIDATES if vertical == "restaurantes" else 4
+    outcome = search_products(conn, vertical, concept.name, [concept.id], embedder, k=k, offer=True)
+    return first_open([p.to_dict() for p in outcome.products if p.concept == concept.id])
 
 
 # ── volver ───────────────────────────────────────────────────────────────────
@@ -1023,7 +1029,8 @@ def _winback(lapse: Lapse, product: dict) -> Offer:
 
 def _last_bought_in(conn: Connection, user_id: str, vertical: str, hold: Paused = NO_PAUSE) -> dict | None:
     """Lo último que la persona compró en la vertical (pedidos `propuesta`) que tenga concepto y siga a la venta ahí,
-    con el precio de ahí y pasando las guardias de las ofertas, que no sea de un concepto ni de una tienda en pausa
+    con el precio de ahí, pasando las guardias de las ofertas y en una tienda de la ciudad (`_city_products`: lo que
+    solo se vende en otra ciudad deja paso al siguiente), que no sea de un concepto ni de una tienda en pausa
     (`hold`). Sin concepto la app no registra la mostrada, y sin ella no empezaría la pausa."""
     kind = "menu_item" if vertical == "restaurantes" else "catalog_item"
     rows = conn.execute(
@@ -1036,7 +1043,8 @@ def _last_bought_in(conn: Connection, user_id: str, vertical: str, hold: Paused 
     ids = list(dict.fromkeys(i for (i,) in rows if _valid_id(i)))
     found = _priced_in_vertical(conn, vertical, ids)
     priced = [found[i].to_dict() for i in ids if i in found and found[i].concept]
-    return next((p for p in _offerable_products(conn, priced) if hold.allows(p)), None)
+    offerable = _city_products(conn, _offerable_products(conn, priced), hold.stores, person_city(conn, user_id))
+    return next((p for p in offerable if hold.allows(p)), None)
 
 
 def _every(days: int) -> str:

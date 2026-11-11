@@ -20,8 +20,8 @@ Una oferta se propone sin que nadie la pida, así que sigue la regla del agente:
 Sin vertical, tampoco las tiendas que no se empujan (`stores.NOT_PUSHED_*`).
 
 Las pantallas ("Bajaron de precio" de cada vertical y la pestaña Ofertas, `/catalog/deals`) piden solo las tiendas de
-la ciudad de la demo (`in_city`), como las listas de tiendas. Las ofertas de Mochi (`offers/engine.py`) las piden sin
-filtrar y después cambian cada producto de otra ciudad por el de una tienda de ella, o lo sacan (`_in_demo_city`).
+la ciudad de la demo (`in_city`), como las listas de tiendas. Las ofertas de Mochi también (`offers/engine.py`:
+`_offerable_deals`), y lo que les llega de otra ciudad por otro camino lo cambian o lo sacan (`_in_demo_city`).
 """
 
 from psycopg import Connection
