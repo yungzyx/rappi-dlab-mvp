@@ -141,6 +141,15 @@ describe('inicio de pago', () => {
     expect(checkoutStarts()).toHaveLength(2)
   })
 
+  test('un pedido hecho olvida lo agregado: Mochi no lo comenta al volver a la Home', async () => {
+    const memory = await import('../../state/liveMemory')
+    memory.rememberAdded(BEER)
+    renderCheckout()
+    await pay()
+    await vi.waitFor(() => expect(api.sendOrder).toHaveBeenCalledTimes(2))
+    expect(memory.session.lastAdded).toBeNull()
+  })
+
   test('el pedido guardado lleva el tipo y el id de cada línea (con ellos Mochi arma el próximo pedido)', async () => {
     renderCheckout()
     await pay()

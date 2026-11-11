@@ -329,10 +329,13 @@ async function checkCombo(page) {
     await home.waitFor()
   })
   const why = page.getByRole('button', { name: '¿Por qué?' })
-  const mochi = page.getByRole('button', { name: `${AGENT_NAME}: muéstrame algo nuevo para probar` })
+  // Tocar a Mochi abre su menú; "Muéstrame algo nuevo" pide la vertical por probar.
+  const mochi = page.getByRole('button', { name: `${AGENT_NAME}: ayuda y opciones` })
+  const askNew = page.getByRole('button', { name: 'Muéstrame algo nuevo' })
   const deadline = Date.now() + COMBO_WAIT_MS
   while ((await why.count()) === 0 && Date.now() < deadline) {
-    await mochi.click({ timeout: 2000 }).catch(() => {}) // aún entra a escena o saluda
+    if (await askNew.isVisible()) await askNew.click({ timeout: 2000 }).catch(() => {})
+    else await mochi.click({ timeout: 2000 }).catch(() => {}) // aún entra a escena o saluda
     await page.waitForTimeout(1000)
   }
   await step(page, 'ver la oferta de Mochi con su "¿Por qué?"', () => why.first().waitFor({ timeout: 2000 }))

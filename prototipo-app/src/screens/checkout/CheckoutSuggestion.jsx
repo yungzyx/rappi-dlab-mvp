@@ -1,7 +1,8 @@
 import { useState } from 'react'
 import { AGENT_NAME } from '../../agent/name'
 import { offer } from '../../api/agent'
-import { noteOfferShown } from '../../api/suggestions'
+import { storeKeyOf } from '../../api/orders'
+import { noteOfferShown, wasRefused } from '../../api/suggestions'
 import { userId } from '../../api/user'
 import Mascot from '../../components/assistant/Mascot'
 import OfferWhy from '../../components/assistant/OfferWhy'
@@ -16,7 +17,9 @@ import { useProfile } from '../../state/ProfileContext'
 /**
  * "¿Me falta algo?" en el checkout (prototipo final): solo si la persona lo pide, se consulta la oferta `checkout` de
  * El agente con lo que lleva el carro. Si hay oferta, sugiere UNA cosa (con su razón, "Agregar" y "Deshacer"); si no (204),
- * dice que el carro está completo; si la API no contesta, no dice nada. Nada aparece por su cuenta.
+ * dice que el carro está completo; si la API no contesta, no dice nada. Nada aparece por su cuenta. Lo que la persona
+ * ya rechazó en la sesión no se vuelve a proponer (cuenta como "completo"), y si el producto es de una tienda que no
+ * está en el carro, avisa que va en otro pedido, con su propio envío. Lo agregado aquí no lo comenta Mochi en la Home.
  */
 export default function CheckoutSuggestion() {
   const demo = useDemo()
@@ -49,10 +52,12 @@ export default function CheckoutSuggestion() {
       setAsking(true)
       try {
         const made = await offer('checkout', { cart: lines }, { userId: userId(), surface: 'checkout' })
-        if (!made?.products.length) return setComplete(true)
-        const [product] = made.products
+        const product = made?.products.find((candidate) => !wasRefused(made, candidate))
+        if (!product) return setComplete(true)
         noteOfferShown(events.track, made, { generation: profile.resets, products: [product] })
-        setPicked({ text: made.text, product, reason: made.reason, origin: `agent-${made.moment}` })
+        // Si es de otra tienda, sale en un pedido aparte (basketsOf): se dice al mostrarlo, con el carro de ese momento.
+        const otherStore = !cart.items.some((line) => storeKeyOf(line.product) === storeKeyOf(product))
+        setPicked({ text: made.text, product, reason: made.reason, origin: `agent-${made.moment}`, otherStore })
       } catch {
         // Sin respuesta, el agente no dice nada: el botón sigue ahí para volver a pedir.
       } finally {
@@ -67,7 +72,7 @@ export default function CheckoutSuggestion() {
     )
   }
 
-  const { text, product, reason, origin } = picked
+  const { text, product, reason, origin, otherStore } = picked
   return (
     <section className="checkout-suggestion" aria-label={`Sugerencia de ${AGENT_NAME}`}>
       <Mascot size={40} badge mood="wave" />
@@ -82,6 +87,11 @@ export default function CheckoutSuggestion() {
             </span>
           )}
         </p>
+        {otherStore && (
+          <p className="checkout-suggestion-store checkout-basis">
+            Es de otra tienda: va en otro pedido, con su propio envío.
+          </p>
+        )}
         {added ? (
           <button
             type="button"
@@ -98,7 +108,7 @@ export default function CheckoutSuggestion() {
             type="button"
             className="checkout-suggestion-action is-primary tap"
             onClick={() => {
-              add(product)
+              add(product, { comment: false })
               setAdded(product)
             }}
           >

@@ -170,6 +170,42 @@ describe('"¿Me falta algo?" en el checkout (solo si se pide)', () => {
     expect(document.querySelector('.checkout-suggestion')).not.toBeNull()
   })
 
+  test('si el producto es de una tienda que no está en el carro, avisa que va en otro pedido con su envío', async () => {
+    const OTHER = 'Es de otra tienda: va en otro pedido, con su propio envío.'
+    renderCheckout()
+    await ask()
+    expect(screen.getByText(OTHER)).toBeTruthy()
+    fireEvent.click(screen.getByRole('button', { name: 'Agregar' }))
+    expect(screen.getByText(OTHER)).toBeTruthy() // queda dicho aunque ya esté en el carro
+
+    // De la misma tienda que algo del carro, no hay nada que avisar.
+    cleanup()
+    renderCheckout([{ ...PISCO, store: 'Tienda express de prueba Centro', storeId: 9201 }])
+    await ask()
+    expect(document.querySelector('.checkout-suggestion')).not.toBeNull()
+    expect(screen.queryByText(OTHER)).toBeNull()
+  })
+
+  test('no propone lo que la persona rechazó en la sesión: dice que el carro está completo', async () => {
+    const { refuseConcept } = await import('../../api/suggestions')
+    refuseConcept('snacks-salados') // "Ahora no" a la oferta del carro en la Home
+    renderCheckout()
+    await ask()
+    expect(offerRequests()).toHaveLength(1)
+    expect(document.querySelector('.checkout-suggestion')).toBeNull()
+    expect(screen.getByText('Tu carrito está completo')).toBeTruthy()
+    expect(tracked('suggestion_shown')).toEqual([])
+  })
+
+  test('lo agregado aquí no queda para que Mochi lo comente al volver a la Home', async () => {
+    const memory = await import('../../state/liveMemory')
+    memory.forgetAdded()
+    renderCheckout()
+    await ask()
+    fireEvent.click(screen.getByRole('button', { name: 'Agregar' }))
+    expect(memory.session.lastAdded).toBeNull()
+  })
+
   test('sin nada en el carro no ofrece el botón', async () => {
     renderCheckout([])
     expect(screen.queryByRole('button', { name: ASK })).toBeNull()

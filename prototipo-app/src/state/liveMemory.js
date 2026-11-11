@@ -7,10 +7,33 @@ import { resetQuiet } from './agentQuiet'
 // `winback`: la respuesta de "¿Volvemos a…?" (`{ generation, offer }`, offer null si no hubo), pedida una vez.
 // `pendingMove`: el cambio de orden de los accesos que Mochi aún no explica (sobrevive a cambiar de pestaña: el orden
 // nuevo ya quedó como visto).
+// `lastAdded` y `pendingMove` también sobreviven a recargar la página (en el celular, tirar la pantalla hacia abajo
+// recarga): se guardan en la pestaña (sessionStorage). "Olvidar" los borra con todo lo `rappi-proto-*` y "Repetir
+// escena" (resetLive) también.
+const PENDING_KEY = 'rappi-proto-mochi-pendiente'
+
+function readPending() {
+  try {
+    const saved = JSON.parse(sessionStorage.getItem(PENDING_KEY))
+    return { lastAdded: saved?.lastAdded ?? null, pendingMove: saved?.pendingMove ?? null }
+  } catch {
+    return { lastAdded: null, pendingMove: null }
+  }
+}
+
+function savePending() {
+  try {
+    const { lastAdded, pendingMove } = session
+    if (lastAdded || pendingMove) sessionStorage.setItem(PENDING_KEY, JSON.stringify({ lastAdded, pendingMove }))
+    else sessionStorage.removeItem(PENDING_KEY)
+  } catch {
+    // Sin almacenamiento: lo pendiente dura lo que la página.
+  }
+}
+
 export const session = {
   played: false,
-  lastAdded: null,
-  pendingMove: null,
+  ...readPending(),
   plan: null,
   planPrompted: false,
   repeatLater: false,
@@ -20,16 +43,19 @@ export const session = {
 /** Lo último agregado al carro en el prototipo final (fuera de la Home): el agente lo comenta al volver. */
 export function rememberAdded(product) {
   session.lastAdded = product
+  savePending()
 }
 
 /** Lo agregado ya se comentó (o no hay qué decir): se olvida. */
 export function forgetAdded() {
   session.lastAdded = null
+  savePending()
 }
 
 /** El cambio de orden de los accesos que Mochi tiene que explicar (`null`: ya lo explicó o no corresponde). */
 export function rememberMove(move) {
   session.pendingMove = move
+  savePending()
 }
 
 /** La guía de la primera vez (2 pasos tras el saludo) ya se vio o se saltó: se recuerda en el navegador. */
@@ -72,6 +98,7 @@ export function resetLive() {
     repeatLater: false,
     winback: null,
   })
+  savePending()
   resetQuiet()
   const wasHidden = isAgentHiddenNow()
   if (wasHidden) setAgentHidden(false)

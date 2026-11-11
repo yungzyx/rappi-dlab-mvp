@@ -56,6 +56,14 @@ describe('AddButton (extra)', () => {
     expect(session.lastAdded).toBeNull()
   })
 
+  test('otra unidad de lo que ya está en el carro no es algo nuevo que comentar (los "+" del checkout)', () => {
+    render(<AddButton product={heineken} />, { wrapper: Providers })
+    add()
+    session.lastAdded = null // Mochi ya lo comentó en la Home
+    fireEvent.click(screen.getByLabelText(`Agregar uno de ${heineken.name}`))
+    expect(session.lastAdded).toBeNull()
+  })
+
   test('en el prototipo final, agregar avisa a Mochi', () => {
     const heard = vi.fn()
     window.addEventListener(AGENT_CART_EVENT, heard)

@@ -1,8 +1,17 @@
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
+import { AGENT_NAME } from '../../../agent/name'
 import { offer, plans as fetchPlans } from '../../../api/agent'
 import { envelope } from '../../../api/attribution'
 import { conceptOf } from '../../../api/orders'
-import { EXPIRED, noteDismissal, noteOfferDismissal, noteOfferShown, noteShown } from '../../../api/suggestions'
+import {
+  EXPIRED,
+  noteDismissal,
+  noteOfferDismissal,
+  noteOfferShown,
+  noteShown,
+  refuseConcept,
+  wasRefused,
+} from '../../../api/suggestions'
 import { userId } from '../../../api/user'
 import DemoDisclaimer from '../../../components/DemoDisclaimer'
 import PlainSearchBar from '../../../components/PlainSearchBar'
@@ -17,7 +26,8 @@ import { useAddress } from '../../../state/AddressContext'
 import { useAssistant } from '../../../state/AssistantContext'
 import { useAddToCart } from '../../../hooks/useAddToCart'
 import { useOpenDialogs } from '../../../hooks/useDialog'
-import { lineKey } from '../../../state/CartContext'
+import { formatPrice, lineKey, useCart } from '../../../state/CartContext'
+import { openCartSheet } from '../../../state/cartSheet'
 import { useEvents } from '../../../state/EventsContext'
 import { useOrders } from '../../../state/OrdersContext'
 import { useProfile } from '../../../state/ProfileContext'
@@ -71,7 +81,7 @@ const TOUR = [
     at: 'essentials',
     gesture: 'point',
   },
-  { text: 'Y si me tocas, te propongo una vertical nueva para probar ✨', at: 'essentials', gesture: 'hop' },
+  { text: 'Y si me tocas, abro mi menú: algo nuevo para probar u ocultarme ✨', at: 'essentials', gesture: 'hop' },
 ]
 
 const GREETING = '¡Hola! Ahora vivo en tu Home 👋 Toca una idea o prueba una vertical nueva.'
@@ -82,14 +92,18 @@ const ACTIONS_HOLD = 12000 // un globo con botones se va solo después de esto (
 // Un globo con una oferta (el comentario del carro, la vertical por probar) da más tiempo para leerla y decidir; si se
 // va solo, queda anotado que se fue sola (no es un rechazo).
 const OFFER_HOLD = 30000
+// Si la oferta del carro no llega (la API tardó más que su tope o falló), se vuelve a pedir una vez, en segundo plano,
+// si la Home sigue a la vista y libre: sin eso, lo agregado esperaba a que la persona saliera y volviera.
+const OFFER_RETRY_MS = 2000
 
 /** Un toque de vibración en los momentos clave (solo donde el navegador lo permite, como Android). */
 const buzz = () => navigator.vibrate?.(12)
 
 /**
  * Home del prototipo final: la barra abre el buscador con el agente. El agente de cuerpo entero vive en
- * la Home: saluda, acompaña el plan del día, al tocarlo invita a una vertical nueva y, cuando el motor cambia el orden
- * de los accesos, los mueve y dice por qué. Oculto ("Ocultar a Mochi"), la Home queda sin él y con el buscador de siempre.
+ * la Home: saluda, acompaña el plan del día, al tocarlo abre su menú (con "Muéstrame algo nuevo", la vertical por
+ * probar, y "Ocultar") y, cuando el motor cambia el orden de los accesos, los mueve y dice por qué. Oculto ("Ocultar a
+ * Mochi"), la Home queda sin él y con el buscador de siempre.
  */
 export default function LiveHomeFeed({ push, active = true }) {
   const toast = useToast()
@@ -102,7 +116,9 @@ export default function LiveHomeFeed({ push, active = true }) {
   const hidden = useAgentHidden()
   // La fila que se ve: el último orden que vio la persona hasta que la Home está a la vista (arriba y sin el buscador
   // encima); ahí, si cambió, se mueve. Un cambio con el buscador abierto se ve al cerrarlo.
-  const searching = useAssistant()?.isOpen === true
+  const assistant = useAssistant()
+  const searching = assistant?.isOpen === true
+  const cart = useCart()
   // El buscador de Mochi y las hojas (direcciones, "Tu carro", la de un producto) se abren encima de la Home sin
   // cambiar `active` y la tapan: todos pasan por useDialog, que lleva la cuenta.
   const dialogs = useOpenDialogs()
@@ -326,7 +342,9 @@ export default function LiveHomeFeed({ push, active = true }) {
 
   // Lo último que se agregó al carro fuera de la Home lo comenta la oferta `carrito` de la API, con sus productos para
   // agregar ahí mismo. Lo agregado se olvida recién cuando la oferta se muestra o la API dice que no hay (204); si falla,
-  // o si al llegar la Home está tapada o ya hay otro globo, queda para el próximo `drain`.
+  // o si al llegar la Home está tapada o ya hay otro globo, queda para el próximo `drain` (y, si falló, para un solo
+  // reintento: `OFFER_RETRY_MS`). Una oferta de un concepto que la persona ya rechazó en la sesión cuenta como "no hay".
+  const retried = useRef(null) // lo agregado cuya oferta ya se volvió a pedir tras fallar
   async function commentOn(added) {
     const mine = run.current
     waiting.current = mine
@@ -346,7 +364,15 @@ export default function LiveHomeFeed({ push, active = true }) {
     if (mine !== run.current) return // se fue de la Home o repitió la escena
     waiting.current = null
     // Lo que sigue lee la Home de ahora (`live`), no la de cuando se pidió.
-    if (failed) return live.current.drain({ cart: false })
+    if (failed) {
+      if (retried.current !== lineKey(added)) {
+        retried.current = lineKey(added)
+        later(OFFER_RETRY_MS, () => live.current.drain())
+      }
+      return live.current.drain({ cart: false })
+    }
+    retried.current = null
+    if (made && wasRefused(made)) made = null
     const same = session.lastAdded && lineKey(session.lastAdded) === lineKey(added)
     if (!made) {
       if (same) forgetAdded()
@@ -413,7 +439,7 @@ export default function LiveHomeFeed({ push, active = true }) {
       rememberMove(null)
       return
     }
-    if (touring.current || said.current || waiting.current === run.current) return
+    if (touring.current || said.current || waiting.current === run.current || poking.current) return
     if (cart && session.lastAdded) commentOn(session.lastAdded)
     else if (session.pendingMove) explainMove()
   }
@@ -555,6 +581,7 @@ export default function LiveHomeFeed({ push, active = true }) {
     noteDismissed()
     if (repeat?.moment === 'volver') {
       const [product] = repeat.products
+      refuseConcept(repeat.reason?.concept ?? conceptOf(product))
       events.track('suggestion_dismissed', {
         concept_id: repeat.reason?.concept ?? conceptOf(product),
         vertical: product.vertical,
@@ -587,7 +614,7 @@ export default function LiveHomeFeed({ push, active = true }) {
       ([entry]) => {
         if (!entry.isIntersecting || session.planPrompted || !session.played || silent() || touring.current) return
         // Tampoco con la Home tapada ni encima de la oferta del carro (en camino o a la vista).
-        if (live.current.covered || waiting.current === run.current || said.current?.cart) return
+        if (live.current.covered || waiting.current === run.current || said.current?.cart || said.current?.menu) return
         session.planPrompted = true
         speak(
           {
@@ -672,11 +699,34 @@ export default function LiveHomeFeed({ push, active = true }) {
     speak({ text: kitAddedText(kit), mood: 'wave', gesture: 'spin' }, 'plan', 3500)
   }
 
-  // Tocar al agente: la API propone la vertical que la persona aún no prueba (según sus pedidos), con sus ofertas.
-  const poke = async () => {
-    // Mientras saluda, tocarlo no cambia de tema.
-    if (!session.played || poking.current) return
+  // Tocar a Mochi abre su menú, el mismo que fuera de la Home (AgentMenu, con "Ocultar a Mochi" al final); otro toque lo
+  // cierra. Aquí no se mueve de lado ni se silencia por hoy (eso es de Mochi flotante), y "Muéstrame algo nuevo" pide
+  // la vertical por probar. Mientras saluda, tocarlo no cambia de tema.
+  const poke = () => {
+    if (!session.played) return
+    if (said.current?.menu) return speak(null)
+    const actions = [
+      { id: 'new', label: 'Muéstrame algo nuevo' },
+      { id: 'search', label: `Buscar con ${AGENT_NAME}` },
+      ...(cart.count > 0 ? [{ id: 'cart', label: `Revisar mi carrito · ${formatPrice(cart.total)}` }] : []),
+    ]
+    speak({ menu: { actions, onRun: runMenu, onClose: () => speak(null) }, mood: 'listen' })
+  }
+  // Pedir algo nuevo no cuenta como usar a Mochi: su "Después" sigue contando para callarlo (como antes, al tocarlo).
+  const runMenu = (id) => {
+    if (id === 'new') return suggestNew()
+    speak(null)
+    noteEngaged()
+    if (id === 'search') assistant.open()
+    if (id === 'cart') openCartSheet()
+  }
+
+  // "Muéstrame algo nuevo": la API propone la vertical que la persona aún no prueba (según sus pedidos), con sus ofertas.
+  // Mientras llega, lo pendiente (la oferta del carro, "Moví…") espera: `drain` no corre con `poking`.
+  const suggestNew = async () => {
+    if (poking.current) return
     poking.current = true
+    speak(null) // cierra el menú
     const mine = run.current
     const seen = spoken.current
     let made = null
@@ -688,11 +738,12 @@ export default function LiveHomeFeed({ push, active = true }) {
       poking.current = false
     }
     // Sin nada que proponer (204) el agente no dice nada. Tampoco repite con "Vuelve a…" la vertical a la que la Home ya
-    // invitó a volver en esta sesión ("¿Volvemos a…?"): una sola invitación por vertical.
-    if (mine !== run.current || !made) return
-    // Con la Home tapada, o si apareció otro globo mientras llegaba, lo pedido se descarta (ni se muestra ni se cuenta).
-    if (live.current.covered || spoken.current !== seen) return
-    if (made.reason?.basis?.some((signal) => signal.kind === 'vuelta' && signal.id === backVertical())) return
+    // invitó a volver en esta sesión ("¿Volvemos a…?"): una sola invitación por vertical. Con la Home tapada, o si
+    // apareció otro globo mientras llegaba, lo pedido se descarta (ni se muestra ni se cuenta). Sin globo, sigue lo
+    // pendiente.
+    const repeated = made?.reason?.basis?.some((signal) => signal.kind === 'vuelta' && signal.id === backVertical())
+    if (mine !== run.current || !made || live.current.covered || spoken.current !== seen || repeated)
+      return live.current.drain()
     noteShown(events.track, made.products, {
       origin: `agent-${made.moment}`,
       reason: made.reason,

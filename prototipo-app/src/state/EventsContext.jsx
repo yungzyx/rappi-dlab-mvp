@@ -108,6 +108,18 @@ export function clearShownTopics(now = Date.now()) {
   touchSession(now, (session) => ({ ...session, topics: [] }))
 }
 
+/**
+ * Conceptos de ofertas que la persona rechazó en la sesión ("Ahora no", "Después"; no las que se fueron solas): Mochi no
+ * los vuelve a proponer en la misma sesión (api/suggestions.js: `wasRefused`). Viven con la sesión, como los temas.
+ */
+export function refusedConcepts(now = Date.now()) {
+  return touchSession(now).refused ?? []
+}
+
+export function noteRefused(concept, now = Date.now()) {
+  touchSession(now, (session) => ({ ...session, refused: [...new Set([...(session.refused ?? []), concept])] }))
+}
+
 const EventsContext = createContext(null)
 
 export function EventsProvider({ children }) {
