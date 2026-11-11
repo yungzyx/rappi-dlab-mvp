@@ -3,7 +3,7 @@
 import { currentFine, NONE_COMBO, targetStep } from './motor'
 import { featuredProduct, offerableProduct } from './offers'
 import { PRO_KEY } from '../../state/pro'
-import { saveStored } from '../../state/storage'
+import { localStore, saveStored, tabStore } from '../../state/storage'
 import { addEvents, readState, writeState } from './state'
 
 const DAY_MS = 86_400_000
@@ -161,19 +161,8 @@ const KEEP_TOO = ['rappi-proto-guia-vista', 'rappi-proto-address']
 export function switchPersona(snapshot, persona) {
   const { userId } = readState()
   writeState({ userId, ...personaHistory(snapshot, persona) })
-  for (const storage of [localStorage, sessionStorage]) {
-    try {
-      for (const key of Object.keys(storage))
-        if (
-          key.startsWith('rappi-proto-') &&
-          key !== 'rappi-proto-offline-api' &&
-          ![...KEEP, ...KEEP_TOO].includes(key)
-        )
-          storage.removeItem(key)
-    } catch {
-      // Sin almacenamiento no hay nada que borrar.
-    }
-  }
+  for (const store of [localStore, tabStore])
+    store.clear('rappi-proto-', ['rappi-proto-offline-api', ...KEEP, ...KEEP_TOO])
   // Su marca Rappi Pro (state/pro.js), después de borrar la de la persona anterior.
   saveStored(PRO_KEY, Boolean(persona.pro))
   // Sin el estado de la pantalla en que estaba (useNavigation lo lee antes que el hash): vuelve a la Home.
