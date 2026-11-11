@@ -4,6 +4,7 @@
 // Rappi con el supuesto del rendimiento decreciente (combos.toml, que llega en la muestra como `meta.combos`).
 
 import { isConfirmed } from './state'
+import { localDay } from './winback'
 
 const DAY_MS = 86_400_000
 
@@ -18,7 +19,12 @@ const AFFINITY_WINDOW_DAYS = 180
 export const HOME_FIXED = ['restaurantes', 'turbo']
 export const HOME_ORDERABLE = ['supermercado', 'farmacia', 'mall', 'licores', 'conveniencia', 'chocolateria']
 const REASON_ORDERS = 'Porque pides seguido en {vertical}.'
+const REASON_ONE_ORDER = 'Porque pediste en {vertical}.' // un solo pedido no es "seguido"
 const REASON_VISITS = 'Porque entras seguido a {vertical}.'
+// Uso mínimo para mover un acceso: un pedido ahí o señales en 2 días distintos de Santiago. En Farmacia y Licores solo
+// cuenta lo propio: un concepto de su grupo de la taxonomía o un toque a su acceso (unos Doritos de una botillería no).
+export const MIN_USE_DAYS = 2
+export const OWN_CONCEPT_GROUPS = { licores: 'alcohol', farmacia: 'salud' }
 // motor/predict.py
 const CURRENT_COMBO_DAYS = 30
 const LAPSED_COMBO_DAYS = 90
@@ -34,13 +40,21 @@ export const contractArticles = (text) => text.replace(/\b(de|a) el\b/g, (_, wor
 const isProposal = (order) => order.mode === 'propuesta' && isConfirmed(order)
 const isTaught = (event) => event.payload?.mode !== 'actual' // lo hecho en "Rappi hoy" no enseña
 
-/** Las señales de afinidad (motor/data.py: load_signals): sus pedidos `propuesta` y sus eventos con vertical. */
+/**
+ * Las señales de afinidad (motor/data.py: load_signals): sus pedidos `propuesta` y sus eventos con vertical, con sus
+ * conceptos (los de las líneas del pedido o el del evento).
+ */
 export function signalsOf(state) {
   return [
-    ...state.orders.filter(isProposal).map((o) => ({ ts: o.ts, kind: 'order', vertical: o.vertical })),
+    ...state.orders.filter(isProposal).map((o) => ({
+      ts: o.ts,
+      kind: 'order',
+      vertical: o.vertical,
+      concepts: (o.lines ?? []).map((line) => line.concept_id).filter(Boolean),
+    })),
     ...state.events
       .filter((e) => e.vertical && e.type in AFFINITY_WEIGHTS && e.type !== 'order' && isTaught(e))
-      .map((e) => ({ ts: e.ts, kind: e.type, vertical: e.vertical })),
+      .map((e) => ({ ts: e.ts, kind: e.type, vertical: e.vertical, concepts: e.concept_id ? [e.concept_id] : [] })),
   ]
 }
 
@@ -63,16 +77,36 @@ export function rankVerticals(aff) {
   )
 }
 
-/** `GET /profile/{id}/verticales` (motor/home.py: home_verticals). `labels`: nombres de las verticales. */
-export function homeVerticals(state, now, labels) {
+/** Si la señal cuenta como uso de su vertical en la Home (motor/home.py: _counts). `concepts`: id → `{group}`. */
+function countsForHome(signal, concepts) {
+  const group = OWN_CONCEPT_GROUPS[signal.vertical]
+  if (!group || signal.kind === 'vertical_open') return true
+  return signal.concepts.some((c) => (concepts[c]?.group ?? c) === group)
+}
+
+/**
+ * `GET /profile/{id}/verticales` (motor/home.py: home_verticals). `labels`: nombres de las verticales; `concepts`: los
+ * de la muestra (`meta.concepts`, con su grupo).
+ */
+export function homeVerticals(state, now, labels, concepts) {
   const ranked = rankVerticals(affinity(signalsOf(state), now))
-  const used = ranked.filter((s) => HOME_ORDERABLE.includes(s.vertical) && s.score > 0).map((s) => s.vertical)
-  const ids = [...used, ...HOME_ORDERABLE.filter((v) => !used.includes(v))]
+  const signals = signalsOf(state).filter((s) => {
+    const age = (now - s.ts) / DAY_MS
+    return HOME_ORDERABLE.includes(s.vertical) && age >= 0 && age <= AFFINITY_WINDOW_DAYS && countsForHome(s, concepts)
+  })
+  const own = affinity(signals, now)
+  const ordered = {}
+  for (const s of signals) if (s.kind === 'order') ordered[s.vertical] = (ordered[s.vertical] ?? 0) + 1
+  const days = (v) => new Set(signals.filter((s) => s.vertical === v).map((s) => localDay(s.ts))).size
   const score = Object.fromEntries(ranked.map((s) => [s.vertical, s.score]))
+  const used = HOME_ORDERABLE.filter((v) => own[v] > 0 && (ordered[v] || days(v) >= MIN_USE_DAYS)).sort(
+    (a, b) => own[b] - own[a] || score[b] - score[a],
+  )
+  const ids = [...used, ...HOME_ORDERABLE.filter((v) => !used.includes(v))]
   const order = ids.map((id) => ({ id, score: Math.round(score[id] * 10_000) / 10_000, reason: null }))
   if (used.length) {
-    const ordered = state.orders.some((o) => isProposal(o) && o.vertical === used[0])
-    const template = ordered ? REASON_ORDERS : REASON_VISITS
+    const orders = ordered[used[0]] ?? 0
+    const template = orders > 1 ? REASON_ORDERS : orders ? REASON_ONE_ORDER : REASON_VISITS
     order[0].reason = {
       text: contractArticles(template.replace('{vertical}', labels[used[0]] ?? used[0])),
       basis: [{ kind: 'afinidad_vertical', id: used[0], source: 'eventos' }],

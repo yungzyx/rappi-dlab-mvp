@@ -9,7 +9,7 @@ Los botones de la presentación tocan los de la app: el interruptor de modo y el
 
 ## Capítulos del recorrido
 
-1. La Home que aprende: Mochi se presenta, los accesos ordenados por uso (y "+1 visita", con la que Mochi los mueve y dice por qué), la vertical que Mochi propone con su "¿Por qué?".
+1. La Home que aprende: Mochi se presenta, los accesos ordenados por uso (y "+1 visita" dos veces a la misma vertical, el recorrido lo hace con Rappi Mall: con el segundo toque Mochi los mueve y dice por qué; uno solo no basta), la vertical que Mochi propone con su "¿Por qué?".
 2. El buscador con Mochi: "¿Repetimos?", el perfil de gusto con su "¿Por qué?" y su saludo, la escalera por verticales (hasta RappiTravel) y agregar una idea al carro.
 3. Por necesidad o por plan: "¿Qué llevo para un asado de 6?", el chip "Más barato" y el kit de "¿Qué plan tienes hoy?".
 4. "¿Volvemos a…?" y Ofertas.

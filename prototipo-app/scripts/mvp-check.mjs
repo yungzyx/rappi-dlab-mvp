@@ -18,9 +18,10 @@
 //     más barata del catálogo de prueba va primero. Después toca "Otra opción": ya vio las dos, y Mochi lo dice ("No
 //     encontré otras opciones de…") en vez de repetirlas. No hay ningún campo para escribirle aparte del buscador;
 //   con --home: Home dinámica. Una persona nueva ve los 6 accesos en el orden fijo, con Lealtad y Beneficios Pro al final y
-//     sin el texto "Ordenadas según lo que más usas"; toca "Rappi Mall" tres veces, volviendo a la Home cada
-//     vez, espera a que la API acepte los toques (`vertical_open`; al volver a la Home la app los manda y vuelve a pedir
-//     el orden) y, sin recargar, Rappi Mall queda primero y el texto aparece;
+//     sin el texto "Ordenadas según lo que más usas"; pide en Rappi Mall (Home → Rappi Mall → primera tienda → agregar
+//     un producto → pagar), recarga y vuelve a la Home: la API pone Rappi Mall primero con el motivo "Porque pediste en
+//     Rappi Mall." y la fila lo muestra con el texto. Un pedido basta; tocar un acceso varias veces el mismo día no
+//     mueve la Home (hacen falta dos días distintos: motor/home.py, MIN_USE_DAYS);
 //   con --combo: combinación de verticales. Una persona nueva pide en Restaurantes (Home → Restaurantes → primer
 //     restaurante → agregar un plato → pagar), vuelve a la Home y toca a Mochi: la oferta es de Turbo (el siguiente peldaño
 //     de la escalera desde Restaurantes, según la tabla de Rappi) y su "¿Por qué?" muestra la razón. Solo se mira la
@@ -350,6 +351,7 @@ async function checkCombo(page) {
 }
 
 const ORDER_CAPTION = 'Ordenadas según lo que más usas'
+const ONE_ORDER_REASON = 'Porque pediste en Rappi Mall.' // motor/home.py: REASON_ONE_ORDER
 const FIXED_LABELS = ['Súper', 'Farmacia', 'Rappi Mall', 'Licores', 'Express', 'Chocolates']
 const TAIL_LABELS = ['Lealtad', 'Beneficios Pro']
 
@@ -358,9 +360,10 @@ const shortcutLabels = (page) =>
   page.locator('.home-shortcut').evaluateAll((nodes) => nodes.map((node) => node.innerText.trim()))
 
 /**
- * Home dinámica: sin historial, el orden fijo; tras tocar Rappi Mall tres veces, Rappi Mall va primero y la Home dice por qué.
- * Los toques se cuentan en las respuestas 200 de `POST /events` (al volver a la Home la app los manda y después vuelve a
- * pedir el orden): la Home se reordena sin recargar.
+ * Home dinámica: sin historial, el orden fijo; tras un pedido en Rappi Mall, Rappi Mall va primero, la Home dice por qué
+ * y la API da el motivo "Porque pediste en Rappi Mall." (un pedido basta; tocar un acceso varias veces el mismo día no
+ * mueve la Home: motor/home.py, MIN_USE_DAYS). Después de pagar se recarga la app y se vuelve a la Home, como en
+ * checkCombo: el orden se lee de la respuesta de `GET /profile/{id}/verticales` que pide la Home al montarse.
  */
 async function checkHome(page) {
   await checkOnline(page)
@@ -374,29 +377,62 @@ async function checkHome(page) {
   if ((await page.getByText(ORDER_CAPTION).count()) > 0)
     throw new Error(`una persona nueva ve "${ORDER_CAPTION}" sin historial`)
 
-  let opens = 0
-  page.on('response', (response) => {
-    const request = response.request()
-    if (request.method() === 'POST' && new URL(request.url()).pathname === '/events' && response.status() === 200)
-      opens += (request.postData() ?? '').split('"vertical_open"').length - 1
+  await step(page, 'abrir Rappi Mall desde la Home', () =>
+    page.locator('.home-shortcut', { hasText: 'Rappi Mall' }).first().click(),
+  )
+  const stores = page.getByRole('region', { name: 'Tiendas' })
+  await step(page, 'ver las tiendas de Rappi Mall', () => stores.waitFor())
+  await step(page, 'abrir la primera tienda', () =>
+    stores
+      .getByRole('button', { name: /de prueba/ })
+      .first()
+      .click(),
+  )
+  const product = page
+    .getByRole('listitem')
+    .getByRole('button', { name: /^Agregar / })
+    .first()
+  await step(page, 'ver productos en la tienda', () => product.waitFor())
+  await step(page, 'agregar un producto', () => product.click())
+  await step(page, 'abrir el carrito', () => page.getByRole('button', { name: /Ver carro/ }).click())
+  await step(page, 'ir a pagar', () => page.getByRole('button', { name: 'Ir a pagar' }).click())
+  await payOrder(page)
+
+  const ordered = page.waitForResponse(
+    (r) => r.request().method() === 'GET' && /^\/profile\/[^/]+\/verticales$/.test(new URL(r.url()).pathname),
+    { timeout: TIMEOUT_MS },
+  )
+  ordered.catch(() => {}) // si no llega, falla abajo con su propio mensaje
+  await page.reload({ timeout: TIMEOUT_MS })
+  // La app vuelve al seguimiento del pedido: "Volver al inicio" o la flecha de atrás llevan a la Home.
+  await step(page, 'volver a la Home desde el seguimiento', async () => {
+    const leave = page.getByRole('button', { name: 'Volver al inicio' }).or(page.locator('[aria-label="Volver"]'))
+    for (let tries = 0; tries < 10 && !(await row.isVisible()); tries++) {
+      await leave
+        .first()
+        .click({ timeout: 3000, force: true })
+        .catch(() => {})
+      await page.waitForTimeout(500)
+    }
+    await row.waitFor()
   })
-  for (let tap = 1; tap <= 3; tap++) {
-    await step(page, `tocar "Rappi Mall" (${tap} de 3)`, () =>
-      page.locator('.home-shortcut', { hasText: 'Rappi Mall' }).first().click(),
-    )
-    await step(page, 'volver a la Home', () => page.locator('[aria-label="Volver"]').first().click())
-    await step(page, 'ver la Home de nuevo', () => row.waitFor())
-  }
-  const deadline = Date.now() + EVENTS_WAIT_MS
-  while (opens < 3 && Date.now() < deadline) await new Promise((resolve) => setTimeout(resolve, 250))
-  if (opens < 3) throw new Error(`la API aceptó ${opens} de 3 toques (POST /events con vertical_open) tras 30 s`)
+  const reply = await ordered.then(
+    (r) => r.json(),
+    () => {
+      throw new Error('la Home no pidió su orden a la API (GET /profile/{id}/verticales)')
+    },
+  )
+  const first = reply.order?.[0]
+  if (first?.id !== 'mall') throw new Error(`tras pedir en Rappi Mall la API pone primero "${first?.id}"`)
+  if (first.reason?.text !== ONE_ORDER_REASON)
+    throw new Error(`el motivo es "${first.reason?.text}" y se esperaba "${ONE_ORDER_REASON}"`)
 
   await step(page, `ver el texto "${ORDER_CAPTION}"`, () => page.getByText(ORDER_CAPTION).waitFor())
   const after = await shortcutLabels(page)
-  if (after[0] !== 'Rappi Mall') throw new Error(`tras tocar Rappi Mall 3 veces el primero es "${after[0]}"`)
+  if (after[0] !== 'Rappi Mall') throw new Error(`tras pedir en Rappi Mall el primero es "${after[0]}"`)
   if (after.slice(-2).join() !== TAIL_LABELS.join())
     throw new Error(`con el orden personal, la fila debe terminar en ${TAIL_LABELS.join(' y ')}`)
-  return `orden fijo sin historial; tras 3 toques a Rappi Mall queda primero (${after.slice(0, 3).join(', ')}…) con el texto "${ORDER_CAPTION}"`
+  return `orden fijo sin historial; tras un pedido en Rappi Mall queda primero (${after.slice(0, 3).join(', ')}…) con "${ORDER_CAPTION}" y el motivo "${ONE_ORDER_REASON}"`
 }
 
 /** Cuánto se espera a que la API cuente los eventos de las revisiones anteriores (la app los manda en lotes cada 5 s). */

@@ -10,10 +10,15 @@ from rappi_ia.api import identity
 from rappi_ia.api.services import Services
 from rappi_ia.demo.seed import seed_demo
 from rappi_ia.embeddings.base import HashEmbedder
-from rappi_ia.motor.home import HOME_FIXED, HOME_ORDERABLE
+from rappi_ia.motor.combos import OWN_SIGNALS_ONLY
+from rappi_ia.motor.home import HOME_FIXED, HOME_ORDERABLE, MIN_USE_DAYS, OWN_CONCEPT_GROUPS
 
 FIXED_ORDER = ["supermercado", "farmacia", "mall", "licores", "conveniencia", "chocolateria"]
 CHIPS = {"entity_type": "catalog_item", "entity_id": "91001"}
+MEDICINE = {"entity_type": "catalog_item", "entity_id": "95001", "concept_id": "medicamentos"}  # el paracetamol
+BEER = {"entity_type": "catalog_item", "entity_id": "94001", "concept_id": "cerveza"}
+# Unos Doritos de una botillería (la tarea 1 de la prueba con personas): un snack, no un trago.
+DORITOS = {"entity_type": "catalog_item", "entity_id": "91001", "concept_id": "snacks-salados"}
 
 
 @pytest.fixture
@@ -36,17 +41,29 @@ def person(user_id: str = "u-home") -> tuple[str, dict]:
     return user_id, {"X-User-Token": identity.sign(user_id)}
 
 
-def order(client, who, vertical: str, n: int, mode: str = "propuesta") -> None:
+def order(client, who, vertical: str, n: int, mode: str = "propuesta", line: dict = CHIPS) -> None:
     user_id, headers = who
     body = {
         "user_id": user_id,
         "session_id": f"s-{vertical}-{n}",
         "cart_id": f"c-{vertical}-{n}-{mode}",
         "vertical": vertical,
-        "lines": [CHIPS],
+        "lines": [line],
         "mode": mode,
     }
     assert client.post("/orders", json=body, headers=headers).status_code == 200
+
+
+def visit(client, db, who, vertical: str, days_ago: int, kind: str = "vertical_open", product: dict | None = None):
+    """Un evento de hace `days_ago` días (la API los guarda con la hora de llegada: se atrasa en la base)."""
+    user_id, headers = who
+    session = f"s-{vertical}-{kind}-{days_ago}"
+    event = {"type": kind, "session_id": session, "vertical": vertical, **(product or {})}
+    assert client.post("/events", json={"user_id": user_id, "events": [event]}, headers=headers).status_code == 200
+    db.execute(
+        "UPDATE app_events SET ts = ts - make_interval(days => %s) WHERE user_id = %s AND session_id = %s",
+        (days_ago, user_id, session),
+    )
 
 
 def verticales(client, who) -> dict:
@@ -59,6 +76,8 @@ def verticales(client, who) -> dict:
 def test_constants():
     assert HOME_FIXED == ("restaurantes", "turbo")
     assert tuple(FIXED_ORDER) == HOME_ORDERABLE
+    assert MIN_USE_DAYS == 2
+    assert set(OWN_CONCEPT_GROUPS) == OWN_SIGNALS_ONLY
 
 
 def test_new_person_gets_the_fixed_order(client):
@@ -72,7 +91,7 @@ def test_new_person_gets_the_fixed_order(client):
 def test_pharmacy_orders_put_pharmacy_first(client):
     who = person()
     for n in range(3):
-        order(client, who, "farmacia", n)
+        order(client, who, "farmacia", n, line=MEDICINE)
     body = verticales(client, who)
     assert [v["id"] for v in body["order"]][0] == "farmacia"
     assert sorted(v["id"] for v in body["order"]) == sorted(FIXED_ORDER)
@@ -89,7 +108,7 @@ def test_used_verticals_go_by_own_use(client):
     """Entre los que la persona usa, primero el que más usa; después el resto, en el orden de siempre."""
     who = person()
     for n in range(3):
-        order(client, who, "farmacia", n)
+        order(client, who, "farmacia", n, line=MEDICINE)
     order(client, who, "supermercado", 0)
     body = verticales(client, who)
     assert [v["id"] for v in body["order"]] == [
@@ -113,7 +132,7 @@ def test_heavy_restaurant_user_sees_own_use_first(client, db):
     )
     who = person()
     for n in range(3):
-        order(client, who, "farmacia", n)
+        order(client, who, "farmacia", n, line=MEDICINE)
     for n in range(2):
         order(client, who, "supermercado", n)
     for n in range(8):
@@ -121,6 +140,18 @@ def test_heavy_restaurant_user_sees_own_use_first(client, db):
     body = verticales(client, who)
     assert [v["id"] for v in body["order"]][:2] == ["farmacia", "supermercado"]
     assert body["order"][0]["reason"]["text"] == "Porque pides seguido en farmacia."
+
+
+def test_one_order_says_you_ordered_not_often(client):
+    """Un solo pedido en el súper lo sube, pero no "pides seguido": "Porque pediste en el súper." (con el artículo
+    contraído igual que los otros textos)."""
+    who = person()
+    order(client, who, "supermercado", 0)
+    body = verticales(client, who)
+    assert body["order"][0]["id"] == "supermercado"
+    assert body["order"][0]["reason"]["text"] == "Porque pediste en el súper."
+    order(client, who, "supermercado", 1)
+    assert verticales(client, who)["order"][0]["reason"]["text"] == "Porque pides seguido en el súper."
 
 
 def test_restaurant_orders_alone_keep_the_fixed_order(client):
@@ -133,10 +164,10 @@ def test_restaurant_orders_alone_keep_the_fixed_order(client):
     assert body["personalized"] is False
 
 
-def test_vertical_open_events_count(client):
+def test_vertical_open_events_count(client, db):
     who = person()
-    events = [{"type": "vertical_open", "session_id": f"s{n}", "vertical": "mall"} for n in range(4)]
-    assert client.post("/events", json={"user_id": who[0], "events": events}, headers=who[1]).status_code == 200
+    for days_ago in range(4):
+        visit(client, db, who, "mall", days_ago)
     body = verticales(client, who)
     assert body["order"][0]["id"] == "mall"
     assert body["personalized"] is True
@@ -144,15 +175,84 @@ def test_vertical_open_events_count(client):
     assert body["order"][0]["reason"]["text"] == "Porque entras seguido a Rappi Mall."
 
 
-def test_opening_a_vertical_without_ordering_there_does_not_say_you_order(client):
+def test_opening_a_vertical_without_ordering_there_does_not_say_you_order(client, db):
     """Pedidos en Express y visitas al súper que pesan más: el súper va primero, pero no "pides seguido en el súper"."""
     who = person()
     order(client, who, "conveniencia", 0)
-    events = [{"type": "vertical_open", "session_id": f"s{n}", "vertical": "supermercado"} for n in range(8)]
-    assert client.post("/events", json={"user_id": who[0], "events": events}, headers=who[1]).status_code == 200
+    for days_ago in range(8):
+        visit(client, db, who, "supermercado", days_ago)
     body = verticales(client, who)
     assert [v["id"] for v in body["order"]][:2] == ["supermercado", "conveniencia"]
     assert body["order"][0]["reason"]["text"] == "Porque entras seguido al súper."
+
+
+def test_one_visit_does_not_reorder(client):
+    """Ver y agregar al carro el mismo día (aunque sean varias sesiones) no es "entrar seguido": la Home no cambia."""
+    who = person()
+    events = [
+        {"type": kind, "session_id": f"s{n}", "vertical": "supermercado", **CHIPS}
+        for n, kind in enumerate(("search", "view_store", "view_item", "cart_add", "vertical_open"))
+    ]
+    assert client.post("/events", json={"user_id": who[0], "events": events}, headers=who[1]).status_code == 200
+    body = verticales(client, who)
+    assert [v["id"] for v in body["order"]] == FIXED_ORDER
+    assert body["personalized"] is False
+    assert all(v["reason"] is None for v in body["order"])
+
+
+def test_visits_on_two_days_reorder(client, db):
+    """Con señales en `MIN_USE_DAYS` días distintos sí: el súper sube y Mochi dice "entras seguido"."""
+    who = person()
+    visit(client, db, who, "supermercado", 0, "cart_add", CHIPS)
+    visit(client, db, who, "supermercado", 3, "view_item", CHIPS)
+    body = verticales(client, who)
+    assert body["order"][0]["id"] == "supermercado"
+    assert body["personalized"] is True
+    assert body["order"][0]["reason"]["text"] == "Porque entras seguido al súper."
+
+
+def test_doritos_from_a_liquor_store_do_not_move_licores(client, db):
+    """Unos Doritos de una botillería no son uso de Licores: ni vistos y agregados en un día, ni en varios días, ni
+    pedidos. La Home no cambia y Mochi no dice "entras seguido a Licores"."""
+    who = person()
+    visit(client, db, who, "licores", 0, "view_item", DORITOS)
+    visit(client, db, who, "licores", 0, "cart_add", DORITOS)
+    assert verticales(client, who)["personalized"] is False
+    visit(client, db, who, "licores", 4, "cart_add", DORITOS)
+    visit(client, db, who, "licores", 9, "view_store")  # entrar a la tienda no trae concepto: tampoco cuenta
+    order(client, who, "licores", 0, line=DORITOS)
+    body = verticales(client, who)
+    assert [v["id"] for v in body["order"]] == FIXED_ORDER
+    assert body["personalized"] is False
+    assert all(v["reason"] is None for v in body["order"])
+
+
+def test_alcohol_in_licores_counts(client, db):
+    """Lo propio de Licores sí cuenta: cerveza agregada en dos días la sube con "entras seguido", un pedido de cerveza
+    dice "pediste" (uno no es "seguido") y dos, "pides seguido"."""
+    who = person()
+    visit(client, db, who, "licores", 0, "cart_add", BEER)
+    visit(client, db, who, "licores", 2, "cart_add", BEER)
+    body = verticales(client, who)
+    assert body["order"][0]["id"] == "licores"
+    assert body["order"][0]["reason"]["text"] == "Porque entras seguido a Licores."
+    order(client, who, "licores", 0, line=BEER)
+    assert verticales(client, who)["order"][0]["reason"]["text"] == "Porque pediste en Licores."
+    order(client, who, "licores", 1, line=BEER)
+    assert verticales(client, who)["order"][0]["reason"]["text"] == "Porque pides seguido en Licores."
+
+
+def test_pharmacy_needs_its_own_concepts(client, db):
+    """Farmacia igual: unas papas pedidas o agregadas en una farmacia no la suben; tocar su acceso en dos días, sí."""
+    who = person()
+    order(client, who, "farmacia", 0)
+    visit(client, db, who, "farmacia", 3, "cart_add", CHIPS)
+    assert verticales(client, who)["personalized"] is False
+    visit(client, db, who, "farmacia", 1)
+    visit(client, db, who, "farmacia", 5)
+    body = verticales(client, who)
+    assert body["order"][0]["id"] == "farmacia"
+    assert body["order"][0]["reason"]["text"] == "Porque entras seguido a farmacia."
 
 
 def test_actual_mode_does_not_reorder(client):

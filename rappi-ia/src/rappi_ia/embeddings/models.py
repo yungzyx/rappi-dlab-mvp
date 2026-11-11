@@ -42,6 +42,9 @@ class E5Embedder:
             getattr(self._model, "get_embedding_dimension", None) or self._model.get_sentence_embedding_dimension
         )
         self.dim = dimension()
+        # La primera inferencia del proceso es la lenta (en MPS, segundos): se paga aquí, al cargar, y no en la
+        # primera consulta (en la API, cada proceso lo carga antes de "startup complete").
+        self.embed_queries(["calentar"])
 
     def _encode(self, texts: list[str]) -> np.ndarray:
         with self._lock:
