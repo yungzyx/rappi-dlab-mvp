@@ -63,9 +63,10 @@ def real_db_guard(monkeypatch):
     """Ningún test abre la base real por el connector de la API (el recálculo de segmentos después de un pedido):
     sin un `get_connector` propio, la tarea falla con este error (queda en el log) y la lista anota cada intento.
     Tampoco abre el pool de la API, que se conecta a DATABASE_URL: el `lifespan` de un `with TestClient(app)` lo
-    intenta y aquí no hace nada (test_pool instala uno propio sobre rappi_ia_test). Sin pool, `get_conn` se niega.
+    intenta y aquí no hace nada (test_pool instala uno propio sobre rappi_ia_test). Sin pool, `get_conn` se niega. Ni
+    revisa la ciudad de la demo (`prewarm.check_demo_city`, con su propia conexión): queda anotado en la lista.
     Va en el módulo, no en `dependency_overrides`, que los fixtures vacían con `clear()`."""
-    from rappi_ia.api import deps
+    from rappi_ia.api import deps, prewarm
 
     attempts: list[str] = []
 
@@ -75,6 +76,7 @@ def real_db_guard(monkeypatch):
 
     monkeypatch.setattr(deps, "_own_connection", refuse)
     monkeypatch.setattr(deps, "open_pool", lambda: attempts.append("pool"))
+    monkeypatch.setattr(prewarm, "check_demo_city", lambda: attempts.append("ciudad"))
     return attempts
 
 

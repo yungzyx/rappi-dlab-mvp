@@ -7,6 +7,7 @@ import threading
 import psycopg
 
 from rappi_ia.api import prewarm
+from rappi_ia.api.prewarm import check_demo_city  # la de verdad: conftest reemplaza la del módulo en cada test
 from rappi_ia.catalog import cache
 
 
@@ -46,15 +47,12 @@ def test_keep_catalog_warm_computes_the_home_first_and_then_one_pass_per_cycle(m
     monkeypatch.setattr(psycopg, "connect", connect)
     homes, passes, stop = [], [], threading.Event()
     monkeypatch.setattr("rappi_ia.catalog.home.home", lambda conn: homes.append(conn))
-    checked = []  # la ciudad de la demo se revisa una vez, en la primera pasada, y su aviso queda en el log
-    monkeypatch.setattr("rappi_ia.catalog.stores.demo_city_warning", lambda conn: checked.append(conn) or "sin locales")
     monkeypatch.setattr(cache, "keep_warm", _stop_after(passes, 2, stop))
     monkeypatch.setattr(cache, "WARM_EVERY_S", 0)
 
     with caplog.at_level(logging.INFO, logger="rappi_ia.api.prewarm"):
         prewarm.keep_catalog_warm(url="postgresql:///falsa", stop=stop)
 
-    assert checked == [conns[0]] and "sin locales" in caplog.text
     assert homes == [conns[0]]  # la Home una sola vez, en la primera pasada
     assert passes == conns and len(conns) == 2  # una conexión nueva por pasada, y se cierra
     assert all("statement_timeout" in c.statements[0] for c in conns)
@@ -89,3 +87,28 @@ def test_start_runs_the_prewarm_and_then_the_upkeep_and_stop_ends_it(monkeypatch
     assert order[1][1] is prewarm._stop and not prewarm._stop.is_set()
     prewarm.stop()
     assert prewarm._stop.is_set()
+
+
+def test_check_demo_city_logs_the_warning_with_its_own_connection(monkeypatch, caplog):
+    """El aviso de una PROFILE_CITY sin locales sale en el log (`check_demo_city`, al arrancar la API)."""
+    conns = []
+
+    def connect(*args, **kwargs):
+        assert kwargs["application_name"] == "rappi-ia-ciudad" and kwargs["autocommit"]
+        conns.append(FakeConn())
+        return conns[-1]
+
+    monkeypatch.setattr(psycopg, "connect", connect)
+    monkeypatch.setattr("rappi_ia.catalog.stores.demo_city_warning", lambda conn: "sin locales" if conn else None)
+    with caplog.at_level(logging.WARNING, logger="rappi_ia.api.prewarm"):
+        check_demo_city(url="postgresql:///falsa")
+
+    assert len(conns) == 1 and "statement_timeout" in conns[0].statements[0]
+    assert "sin locales" in caplog.text
+
+
+def test_check_demo_city_with_the_database_down_only_warns(caplog):
+    with caplog.at_level(logging.WARNING, logger="rappi_ia.api.prewarm"):
+        check_demo_city("postgresql://127.0.0.1:1/rappi_ia_test")
+
+    assert "No se pudo revisar la ciudad de la demo" in caplog.text
