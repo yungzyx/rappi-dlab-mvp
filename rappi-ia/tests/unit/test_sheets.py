@@ -336,6 +336,12 @@ def test_shortfalls_warn_when_a_sheet_has_fewer_rows_than_the_target():
     assert sheets.shortfalls(short) == ["búsqueda: 150 de 200 pares", "sin mapear: 12 de 40", "acuerdo: 0 de 30"]
 
 
+def test_a_dated_name_keeps_the_extension_and_no_date_keeps_the_name():
+    assert sheets.dated(sheets.SEARCH_SHEET, "2026-11-11") == "planilla-busqueda-2026-11-11.csv"
+    assert sheets.dated(sheets.SEARCH_IDS_FILE.name, "2026-11-11") == "planilla-busqueda-ids-2026-11-11.json"
+    assert sheets.dated(sheets.SEARCH_SHEET, None) == sheets.SEARCH_SHEET
+
+
 def test_readme_says_how_to_save_as_utf8():
     text = sheets.readme_text()
 
