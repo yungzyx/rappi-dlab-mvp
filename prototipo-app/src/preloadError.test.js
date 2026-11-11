@@ -19,7 +19,7 @@ describe('chunk que no carga tras un despliegue', () => {
     stop()
   })
 
-  test('con sessionStorage bloqueado (leerlo lanza) tampoco entra en bucle', () => {
+  test('con sessionStorage bloqueado no recarga: la bandera se perdería y la recarga se repetiría sin fin', () => {
     const original = Object.getOwnPropertyDescriptor(globalThis, 'sessionStorage')
     Object.defineProperty(globalThis, 'sessionStorage', {
       configurable: true,
@@ -30,9 +30,10 @@ describe('chunk que no carga tras un despliegue', () => {
     try {
       const reload = vi.fn()
       const stop = reloadOnPreloadError({ reload })
-      window.dispatchEvent(new Event('vite:preloadError', { cancelable: true }))
-      window.dispatchEvent(new Event('vite:preloadError', { cancelable: true }))
-      expect(reload).toHaveBeenCalledTimes(1)
+      const event = new Event('vite:preloadError', { cancelable: true })
+      window.dispatchEvent(event)
+      expect(reload).not.toHaveBeenCalled()
+      expect(event.defaultPrevented).toBe(false) // el error llega a la pantalla, que ofrece "Volver al inicio"
       stop()
     } finally {
       Object.defineProperty(globalThis, 'sessionStorage', original)

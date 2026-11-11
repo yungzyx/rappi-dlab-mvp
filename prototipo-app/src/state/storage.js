@@ -31,20 +31,24 @@ function browserStore(name) {
   const storage = () => globalThis[name] // en un navegador que lo bloquea, solo leerlo ya lanza
   return {
     get(key) {
+      // Primero la memoria: si el navegador aceptó un valor y después rechazó el siguiente (cuota llena), el de la
+      // memoria es el más nuevo. `set` la limpia cuando el navegador acepta.
+      if (memory.has(key)) return memory.get(key)
       try {
-        const value = storage().getItem(key)
-        if (value !== null) return value
+        return storage().getItem(key)
       } catch {
-        // Bloqueado: queda lo de la memoria.
+        return null
       }
-      return memory.get(key) ?? null
     },
+    /** Guarda `value`; devuelve si el navegador lo aceptó (si no, solo vive en memoria y no sobrevive a recargar). */
     set(key, value) {
       try {
         storage().setItem(key, value)
         memory.delete(key)
+        return true
       } catch {
         memory.set(key, value)
+        return false
       }
     },
     remove(key) {
