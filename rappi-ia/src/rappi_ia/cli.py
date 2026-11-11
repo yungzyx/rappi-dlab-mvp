@@ -550,7 +550,10 @@ def cmd_jev_planillas(conn, args) -> None:
     from .eval import search_eval, sheets
 
     if args.fecha:
-        args.fecha = date.fromisoformat(args.fecha).isoformat()  # falla antes de buscar si no es AAAA-MM-DD
+        try:
+            args.fecha = date.fromisoformat(args.fecha).isoformat()
+        except ValueError:
+            raise SystemExit(f"--fecha {args.fecha}: no es una fecha AAAA-MM-DD") from None
     runs = search_eval.run_queries(conn, text_embedder(), search_eval.load_queries(), modes=(search_eval.SHOWN,))
     try:
         summary = sheets.build_sheets(conn, runs, force=args.forzar, date=args.fecha)
