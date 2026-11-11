@@ -178,9 +178,8 @@ def test_api_role_can_prewarm_with_the_grants_file(searchable):
     conn = searchable
     indexes = [n for n, am in _search_indexes(conn).items() if am in ("hnsw", "gin")]
     role = "rappi_api_precarga"
-    for name in ("rappi_owner", role):  # rappi_owner: el dueño de ALTER DEFAULT PRIVILEGES (en el servidor ya existe)
-        if conn.execute("SELECT 1 FROM pg_roles WHERE rolname = %s", (name,)).fetchone() is None:
-            conn.execute(sql.SQL("CREATE ROLE {}").format(sql.Identifier(name)))
+    if conn.execute("SELECT 1 FROM pg_roles WHERE rolname = %s", (role,)).fetchone() is None:
+        conn.execute(sql.SQL("CREATE ROLE {}").format(sql.Identifier(role)))
     conn.execute(sql.SQL(cli.GRANTS_FILE.read_text(encoding="utf-8")).format(api_role=sql.Identifier(role)))
     conn.execute(sql.SQL("SET LOCAL ROLE {}").format(sql.Identifier(role)))
 

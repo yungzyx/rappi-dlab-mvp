@@ -11,6 +11,7 @@ cd "$REPO_DIR" || exit 1
 role=${API_DB_ROLE:-rappi_api}
 [[ "$role" =~ ^[a-z_][a-z0-9_]*$ ]] || { echo "API_DB_ROLE no es un nombre de rol válido: $role" >&2; exit 1; }
 
+psql -X -Atq -d postgres -c "SELECT 1" > /dev/null || { echo "Postgres no responde: no hago nada." >&2; exit 1; }
 if ! rappi-ia/.venv/bin/python -m rappi_ia migrate --solo-revisar > /dev/null 2>&1; then
   echo "Hay migraciones pendientes: corre deploy/macos/actualizar.sh --forzar y después este script." >&2
   exit 1
@@ -26,10 +27,11 @@ log "Permisos de $role aplicados"
 if [ "${1:-}" != "--sin-reiniciar" ]; then
   reiniciar api
   for _ in $(seq 1 60); do api_sana && break; sleep 3; done
-  if api_sana; then
+  # Que de verdad se conecte con el rol: una sesión de la API con ese usuario en la base.
+  if api_sana && [ "$(psql -X -Atq -d postgres -c "SELECT count(*) > 0 FROM pg_stat_activity WHERE usename = '$role'")" = t ]; then
     log "La API volvió con el rol $role"
   else
-    avisar "La API no volvió con el rol $role"
+    avisar "La API no volvió con el rol $role (revisa /health y ~/rappi-tunel/logs/api.log)"
     exit 1
   fi
 fi

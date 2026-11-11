@@ -6,9 +6,15 @@
 . "$(dirname "$0")/comun.sh"
 cd "$REPO_DIR/rappi-ia" || exit 1
 # Con su propio rol (rol-api.sh) si existe: lee todo y escribe solo los datos de las personas. Sin él, como antes, con
-# el usuario del Mac. El rol va en PGUSER: la URL de los .env (postgresql:///rappi) no nombra usuario.
+# el usuario del Mac. El rol va en PGUSER: la URL de los .env (postgresql:///rappi) no nombra usuario. Si Postgres aún
+# no responde (al encender el Mac launchd arranca los dos a la vez), sale: launchd la vuelve a lanzar a los 10 s, en vez
+# de quedar como el usuario del Mac hasta el próximo reinicio.
 role=${API_DB_ROLE:-rappi_api}
-if [ "$(psql -X -Atq -d postgres -c "SELECT 1 FROM pg_roles WHERE rolname = '$role'" 2>/dev/null)" = 1 ]; then
+if ! existe=$(psql -X -Atq -d postgres -c "SELECT 1 FROM pg_roles WHERE rolname = '$role'" 2>&1); then
+  log "Postgres no responde ($existe): la API espera a que suba"
+  exit 1
+fi
+if [ "$existe" = 1 ]; then
   export PGUSER=$role
 else
   log "Sin el rol $role: la API usa el usuario del Mac (deploy/macos/rol-api.sh lo crea)"
