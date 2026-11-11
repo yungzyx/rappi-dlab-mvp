@@ -55,33 +55,31 @@ export function Churn({ source }) {
   const audiences = riskAudiences(rows)
   return (
     <>
+      {winback.dia && <p className="section-meta">Al {formatDate(winback.dia)}</p>}
       <Stats
         items={[
           {
             label: 'En riesgo',
             value: formatNumber(kpis.en_riesgo),
-            note: 'Pasaron el doble de su ritmo sin pedir (mínimo 21 días). Todavía se pueden recuperar.',
+            note: 'Doble de su ritmo sin pedir. Todavía se pueden recuperar.',
           },
           {
             label: 'Perdidas',
             value: formatNumber(kpis.perdidos),
-            note: 'Pasaron el triple de su ritmo sin pedir (mínimo 45 días).',
+            note: 'Triple de su ritmo sin pedir.',
           },
           {
             label: 'Califican para "¿Volvemos a…?"',
             value: formatNumber(winback.califican),
-            note: `Dejaron algo que pedían con ritmo: ${formatNumber(winback.por_concepto)} un concepto y ${formatNumber(winback.por_vertical)} una vertical. Es otra regla que la del riesgo.`,
+            note: `${formatNumber(winback.por_concepto)} por un concepto, ${formatNumber(winback.por_vertical)} por una vertical`,
           },
           {
             label: 'Les toca "¿Repetimos?"',
             value: formatNumber(winback.recompra),
-            note: 'La recompra va primero: a ellas no se las invita a volver.',
+            note: 'La recompra va primero: no se las invita a volver.',
           },
         ]}
       />
-      {winback.dia && (
-        <p className="cell-sub">Califican al {formatDate(winback.dia)}, el último día de los pedidos simulados.</p>
-      )}
       {rows.length === 0 ? (
         <EmptyState title="Nadie en riesgo ni perdido">
           Nadie pasó el doble de su propio ritmo sin pedir (o todavía nadie tiene dos compras).
@@ -89,6 +87,13 @@ export function Churn({ source }) {
       ) : (
         <Panel
           title="Qué pedían y cómo llegarles"
+          help={
+            <p>
+              Con aviso aceptado: recordatorio en su ritmo con lo que más pedían y un complemento. Sin aviso: solo{' '}
+              {AGENT_NAME} en la app.
+            </p>
+          }
+          meta={`Muestra de ${formatNumber(rows.length)} de las ${formatNumber(kpis.en_riesgo + kpis.perdidos)}, primero las en riesgo más atrasadas.`}
           foot={
             <>
               {audiences.length > TOP_AUDIENCES && (
@@ -103,11 +108,6 @@ export function Churn({ source }) {
             </>
           }
         >
-          <p className="block-note">
-            Con aviso aceptado: recordatorio en su ritmo con lo que más pedían y un complemento. Sin aviso: solo{' '}
-            {AGENT_NAME} en la app. Muestra de {formatNumber(rows.length)} de las{' '}
-            {formatNumber(kpis.en_riesgo + kpis.perdidos)}, primero las en riesgo más atrasadas respecto de su ritmo.
-          </p>
           {shownAtRisk === 0 && kpis.en_riesgo > 0 && (
             <p className="table-warning status status--warn">
               La API entregó {rows.length} filas y ninguna es de una persona en riesgo: las{' '}

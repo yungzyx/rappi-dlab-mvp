@@ -133,3 +133,163 @@
     fill: CanvasText;
   }
 }
+
+/* ---------- Barras horizontales: rótulo | barras con su valor al final | nota ---------- */
+.bars {
+  display: grid;
+  gap: var(--space-2);
+  min-width: 0;
+}
+
+.bars-rows {
+  list-style: none;
+}
+
+.bars-row {
+  display: grid;
+  grid-template-columns: minmax(120px, 200px) minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 4px var(--space-4);
+  padding: var(--space-2) 0;
+  border-top: 1px solid var(--line);
+}
+
+.bars-row:first-child {
+  border-top: 0;
+}
+
+.bars-label {
+  display: grid;
+  gap: 1px;
+  min-width: 0;
+}
+
+.bars-label strong {
+  font-size: var(--text-sm);
+  font-weight: 500;
+}
+
+.bars-label span,
+.bars-note {
+  font-size: var(--text-xs);
+  color: var(--ink-3);
+}
+
+.bars-note {
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.bars-tracks {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+}
+
+/* El valor va justo al final de la barra: la barra llega como mucho al ancho menos el lugar del valor */
+.bars-track {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-width: 0;
+}
+
+.bars-bar {
+  flex: none;
+  width: max(2px, calc((100% - 72px) * var(--f)));
+  height: 10px;
+  border-radius: 2px;
+  background: var(--series-1);
+}
+
+.bars-bar--2 {
+  background: var(--series-2);
+}
+
+.bars-value {
+  font-size: var(--text-sm);
+  color: var(--ink-2);
+  white-space: nowrap;
+}
+
+.bars-track:first-child .bars-value {
+  color: var(--ink);
+  font-weight: 500;
+}
+
+.legend-swatch {
+  width: 10px;
+  height: 10px;
+  border-radius: 2px;
+  background: var(--series-1);
+}
+
+.legend-swatch--2 {
+  background: var(--series-2);
+}
+
+/* Facetas: varias barras pequeñas lado a lado, cada una con su escala desde 0 */
+.facets {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: var(--space-5);
+}
+
+.facet {
+  display: grid;
+  align-content: start;
+  gap: var(--space-1);
+  min-width: 0;
+}
+
+.facet-title {
+  min-height: 2.6em;
+  font-size: var(--text-sm);
+  font-weight: 500;
+  letter-spacing: 0;
+  line-height: 1.3;
+  color: var(--ink-2);
+}
+
+.facet .bars-row {
+  grid-template-columns: 56px minmax(0, 1fr);
+  padding: 6px 0;
+}
+
+@container (max-width: 1000px) {
+  .facets {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@container (max-width: 640px) {
+  .facets {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .facet-title {
+    min-height: 0;
+  }
+
+  /* El rótulo arriba (con la nota a su derecha) y las barras debajo, a todo el ancho */
+  .bars-row:not(.facet .bars-row) {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+
+  .bars-row:not(.facet .bars-row) .bars-tracks {
+    grid-column: 1 / -1;
+    grid-row: 2;
+  }
+}
+
+@media (forced-colors: active) {
+  .bars-bar,
+  .legend-swatch {
+    background: CanvasText;
+  }
+
+  .bars-bar--2,
+  .legend-swatch--2 {
+    background: GrayText;
+  }
+}

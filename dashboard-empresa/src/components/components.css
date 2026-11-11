@@ -399,12 +399,6 @@
   }
 }
 
-@container (max-width: 480px) {
-  .stats {
-    grid-template-columns: minmax(0, 1fr);
-  }
-}
-
 /* Junto al rótulo del prototipo mientras corre "Ver cómo funciona" */
 .mvp-note-demo {
   font-size: var(--text-xs);

@@ -1,32 +1,8 @@
 /* ---------- Escalera de Rappi: gráfico de pesas (hoy → sumando un grupo), etiqueta | pista | ganancia ---------- */
 
-/* En su panel: leyenda y "Ver tabla" hacen de cabecera; la nota de Rappi va al pie */
-.ladder-panel > .view-switch {
-  justify-content: space-between;
-  flex-wrap: wrap;
-  gap: var(--space-2) var(--space-4);
-  min-height: 44px;
-  padding: var(--space-2) var(--space-4);
-  border-bottom: 1px solid var(--line);
-}
-
-.ladder-panel > .view-switch .text-button {
-  margin-left: auto;
-}
-
-.ladder-panel > .state {
-  margin: var(--space-4);
-}
-
-.ladder-panel .table-wrap {
-  border: 0;
-  border-radius: 0;
-}
-
 .ladder {
   display: grid;
   gap: var(--space-2);
-  padding: 0 var(--space-4) var(--space-3);
 }
 
 .ladder-rows,

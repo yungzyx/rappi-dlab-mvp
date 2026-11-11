@@ -26,6 +26,18 @@ describe('CustomersView', () => {
     ).toBeTruthy()
     expect(within(ladder).getAllByRole('listitem')).toHaveLength(6)
     expect(within(ladder).getAllByText(/Es una correlación, no un efecto\./).length).toBeGreaterThan(0)
+    expect(within(ladder).getByText('1.180.000')).toBeTruthy() // usuarios de toda la tabla
+  })
+
+  test('users and orders by combination: a bar per series and its table, from more to fewer users', async () => {
+    serveFixtures()
+    await renderWithData(<CustomersView source="synthetic" />)
+
+    const table = screen.getByRole('table', { name: 'Usuarios y pedidos por combinación' })
+    const rows = within(table).getAllByRole('row').slice(1)
+    expect(rows).toHaveLength(8)
+    expect(within(rows[0]).getAllByRole('cell')[1].textContent).toBe('62,6%')
+    expect(screen.getByRole('button', { name: 'Ver tabla de Usuarios y pedidos por combinación' })).toBeTruthy()
   })
 
   test('the ladder table is the full Rappi table with its total', async () => {
@@ -50,7 +62,9 @@ describe('CustomersView', () => {
     expect(within(losing).getByText('280')).toBeTruthy()
     expect(within(losing).getByText('564')).toBeTruthy()
     expect(within(losing).getByText('Califican para "¿Volvemos a…?"')).toBeTruthy()
-    expect(within(losing).getByText(/el último día de los pedidos simulados/)).toBeTruthy()
+    expect(within(losing).getByText('Al 02-10-2026')).toBeTruthy()
+    expect(within(losing).getByText('Doble de su ritmo sin pedir. Todavía se pueden recuperar.')).toBeTruthy()
+    expect(within(losing).getByText('0 por un concepto, 0 por una vertical')).toBeTruthy()
 
     const audiences = within(losing).getByRole('table', { name: 'Personas en riesgo o perdidas por lo que más pedían' })
     const [first] = within(audiences).getAllByRole('row').slice(1)
@@ -152,6 +166,14 @@ describe('CustomersView', () => {
     expect(within(pro).getByText(/3 personas con pedidos no tienen la marca/)).toBeTruthy()
     expect(within(pro).getByText(/lo sortea el generador/)).toBeTruthy()
     expect(within(pro).getByText('Simulado')).toBeTruthy()
+    for (const title of [
+      'Pedidos por persona (30 días)',
+      'Volvió a comprar',
+      '2 o más verticales (60 días)',
+      'Retención (días 61 a 120)',
+    ]) {
+      expect(within(pro).getByRole('heading', { name: title, hidden: true })).toBeTruthy()
+    }
   })
 
   test('Pro y sin Pro con el prototipo: sin grupos con el mínimo de personas, lo dice y lleva el rótulo', async () => {

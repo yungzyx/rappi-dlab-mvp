@@ -1,5 +1,7 @@
-import { ChartTableSwitch } from '../../components/ChartTableSwitch.jsx'
+import { Caveat } from '../../components/Caveat.jsx'
+import { ChartPanel } from '../../components/ChartTableSwitch.jsx'
 import { DataTable } from '../../components/DataTable.jsx'
+import { Panel } from '../../components/Panel.jsx'
 import { EmptyState } from '../../components/States.jsx'
 import { formatNumber, formatPct, formatPoints } from '../../lib/format.js'
 import { comboLabel } from '../../lib/labels.js'
@@ -31,7 +33,7 @@ const RAPPI_COLUMNS = [
 ]
 
 /** "Solo Restaurantes" para un grupo; la combinación tal cual para dos o más. */
-const startLabel = (combo) => (combo.includes('+') ? comboLabel(combo) : `Solo ${comboLabel(combo)}`)
+export const startLabel = (combo) => (combo.includes('+') ? comboLabel(combo) : `Solo ${comboLabel(combo)}`)
 
 function Step({ step, toX, ticks }) {
   const from = toX(step.fromPct)
@@ -78,8 +80,13 @@ function Step({ step, toX, ticks }) {
  */
 export function RetentionLadder({ rappi }) {
   const steps = ladderSteps(rappi.filas)
+  const title = 'Vuelven al mes siguiente: hoy y con un grupo más'
   if (!steps.length) {
-    return <EmptyState title="La tabla de Rappi no trae combinaciones que comparar" />
+    return (
+      <Panel title={title}>
+        <EmptyState title="La tabla de Rappi no trae combinaciones que comparar" />
+      </Panel>
+    )
   }
   const [lo, hi] = retentionDomain(steps)
   const toX = (pct) => ((pct - lo) / (hi - lo)) * 100
@@ -88,11 +95,11 @@ export function RetentionLadder({ rappi }) {
     <div className="legend">
       <span className="legend-item">
         <span className="ladder-key ladder-key--from" />
-        Hoy: vuelven al mes siguiente
+        Hoy
       </span>
       <span className="legend-item">
         <span className="ladder-key ladder-key--to" />
-        Quienes además usan el grupo siguiente
+        Con el grupo siguiente
       </span>
     </div>
   )
@@ -126,12 +133,19 @@ export function RetentionLadder({ rappi }) {
     />
   )
   return (
-    <ChartTableSwitch
+    <ChartPanel
+      title={title}
+      className="ladder-panel"
+      name="Combinaciones de verticales de Rappi"
+      legend={legend}
       chart={chart}
       table={table}
-      legend={legend}
-      name="Combinaciones de verticales de Rappi"
       keepTable={false}
+      foot={
+        <Caveat>
+          Es una correlación, no un efecto. Solo un grupo de control mide si sumar una vertical hace volver.
+        </Caveat>
+      }
     />
   )
 }
