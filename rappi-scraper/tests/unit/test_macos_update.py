@@ -275,6 +275,27 @@ def test_the_session_check_marks_its_searches_and_warns_about_slow_ones(demo):
     assert "pizza: 1734 ms (más de 1 s)" in slow.stdout and "Máximo: 1734 ms" in slow.stdout
     assert "los despliegues no están en pausa" in slow.stdout
     assert demo.recorded("osascript") == []  # un chequeo con avisos no es un trabajo que falló
+    assert "Grupo de control: 0 %" in result.stdout  # sin la variable en tunel.env, apagado
+
+
+def test_the_session_check_fails_with_the_control_group_on(demo):
+    """Con OFFERS_CONTROL_PCT distinto de 0 en tunel.env, a un participante se le pueden retener las ofertas: el chequeo
+    lo dice y sale con 1. De tunel.env solo imprime ese valor."""
+    _write_fake(
+        demo.bin / "curl",
+        'case " $* " in *"/health "*) echo \'{"ok":true}\';; *) printf "200 0.100";; esac',
+    )
+    _write_fake(demo.bin / "psql", "exit 0")
+    (demo.tunel / "pausa-actualizar").touch()
+    with (demo.tunel / "tunel.env").open("a") as env:
+        env.write("OFFERS_CONTROL_PCT=10\nAPI_SECRET=no-se-imprime\n")
+
+    result = demo.run("chequeo-sesion.sh")
+
+    assert result.returncode == 1, result.stdout + result.stderr
+    assert "Grupo de control: 10 %" in result.stdout
+    assert "el grupo de control está en 10 %" in result.stdout
+    assert "no-se-imprime" not in result.stdout + result.stderr
 
 
 def test_the_watchdog_marks_its_searches_and_beats_only_when_all_respond(demo):

@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 # Chequeo de un comando justo antes de cada participante de la prueba con usuarios (docs/prueba-usuarios.md, sección
-# 3): /health, la swap, el disco libre, la fecha del catálogo, si los despliegues están en pausa y 8 búsquedas variadas
-# contra la API local con su tiempo y el máximo. Avisa si la API no está lista, si una búsqueda falla o pasa de 1 s, o
-# si los despliegues no están en pausa (sale con 1). El RSS y el footprint de cada proceso de la API van como dato: con
+# 3): /health, la swap, el disco libre, la fecha del catálogo, si los despliegues están en pausa, el grupo de control y
+# 8 búsquedas variadas contra la API local con su tiempo y el máximo. Avisa si la API no está lista, si una búsqueda
+# falla o pasa de 1 s, si los despliegues no están en pausa o si el grupo de control no está en 0 (sale con 1). El RSS y el footprint de cada proceso de la API van como dato: con
 # la mayor parte en swap, la primera búsqueda tarda segundos. Solo lee: no pausa los despliegues ni escribe en la base.
 # Las búsquedas llevan el id "vigilante-chequeo-…" (X-Request-ID): el resumen diario las cuenta como mantención, no
 # como visitas. Uso: deploy/macos/chequeo-sesion.sh
@@ -36,6 +36,12 @@ else
   echo "Despliegues: no están en pausa (touch $TUNEL_DIR/pausa-actualizar)"
   problemas+=("los despliegues no están en pausa")
 fi
+
+# OFFERS_CONTROL_PCT viene de tunel.env (lo carga comun.sh): esto lee el archivo, no la API, que toma el valor al
+# reiniciarse; si se cambió sin reiniciarla, la API sigue con el anterior. De tunel.env solo se imprime este valor.
+control=${OFFERS_CONTROL_PCT:-0}
+echo "Grupo de control: $control %"
+[ "$control" = 0 ] || problemas+=("el grupo de control está en $control % (OFFERS_CONTROL_PCT en tunel.env: 0 y reiniciar la API)")
 
 # Dato, no criterio: el RSS (lo que está en memoria) sobre el footprint (lo que usa el proceso, también en swap).
 padre=$(pgrep -f "rappi_ia.api.app:app.*--port $API_PORT( |\$)" | head -1 || true)
