@@ -15,7 +15,7 @@ describe('App', () => {
     serveFixtures()
     await renderWithData(<App />)
 
-    expect(screen.getByText('Usuarios y eventos SIMULADOS:')).toBeTruthy()
+    expect(screen.getByText('Datos simulados:')).toBeTruthy()
     expect(screen.getAllByRole('tab').map((tab) => tab.getAttribute('aria-label'))).toEqual([
       'Resumen',
       'Retención y venta cruzada',
@@ -39,7 +39,7 @@ describe('App', () => {
     await act(async () => fireEvent.keyDown(screen.getByRole('tab', { name: 'Mochi y búsquedas' }), { key: 'End' }))
     expect(screen.getByRole('tab', { name: 'Experimentos' }).getAttribute('aria-selected')).toBe('true')
     expect(await screen.findByRole('heading', { name: 'Experimentos del MVP' })).toBeTruthy()
-    expect(screen.getByText('Usuarios y eventos SIMULADOS:')).toBeTruthy()
+    expect(screen.getByText('Datos simulados:')).toBeTruthy()
   })
 
   test('ArrowDown and ArrowUp also move between the tabs (the side navigation is vertical)', async () => {
@@ -181,7 +181,8 @@ describe('App', () => {
 
     await act(async () => fireEvent.click(screen.getByRole('radio', { name: 'Prototipo' })))
 
-    expect(screen.getByText('Usuarios y eventos del PROTOTIPO:')).toBeTruthy()
+    expect(screen.getByText('Datos del prototipo:')).toBeTruthy()
+    expect(screen.getByText('uso del MVP, pocas personas: no es evidencia')).toBeTruthy()
     expect(window.location.search).toContain('fuente=prototipo')
     expect(
       await screen.findByText(

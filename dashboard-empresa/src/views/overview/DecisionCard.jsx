@@ -2,7 +2,6 @@ import { Async } from '../../components/Async.jsx'
 import { Delta } from '../../components/Delta.jsx'
 import { Icon } from '../../components/Icon.jsx'
 import { ProvenanceBadge } from '../../components/ProvenanceBadge.jsx'
-import { SourceNote } from '../../components/SourceNote.jsx'
 import { formatPoints } from '../../lib/format.js'
 
 // Cómo se llama la acción según de dónde salen los datos: solo la del dato de Rappi es una sugerencia; con datos
@@ -59,7 +58,6 @@ export function DecisionCard({ id, question, badge, linkLabel, onOpen, children 
         <h3 id={id}>{question}</h3>
         <div className="decision-provenance">
           <ProvenanceBadge kind={badge} />
-          <SourceNote source={badge} />
         </div>
       </header>
       <div className="decision-body">

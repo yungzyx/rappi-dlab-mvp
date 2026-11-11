@@ -3,7 +3,6 @@ import { Async } from '../../components/Async.jsx'
 import { DataTable } from '../../components/DataTable.jsx'
 import { Delta } from '../../components/Delta.jsx'
 import { ProvenanceBadge } from '../../components/ProvenanceBadge.jsx'
-import { SourceNote } from '../../components/SourceNote.jsx'
 import { Panel } from '../../components/Panel.jsx'
 import { EmptyState } from '../../components/States.jsx'
 import { Stats } from '../../components/Stats.jsx'
@@ -212,7 +211,6 @@ export function MochiView({ source, tab }) {
                 A quién le ofrece qué, en qué momento y con qué resultado. Aceptada: la oferta se agregó al carro; la
                 tasa aparece desde 10 mostradas.
               </p>
-              <SourceNote source={source} />
               <ProvenanceBadge kind={source} />
             </div>
             <div className="block">
@@ -251,7 +249,6 @@ export function MochiView({ source, tab }) {
                 Últimos 30 días. Oculto es quien lo ocultó y no lo trajo de vuelta en Cuenta. Si muchas personas lo
                 ocultan, {AGENT_NAME} molesta: hay que revisar cada cuánto habla y propone.
               </p>
-              <SourceNote source={source} />
               <ProvenanceBadge kind={source} />
             </div>
             <div className="block">
@@ -274,7 +271,6 @@ export function MochiView({ source, tab }) {
               y hasta dónde llega cada sesión. El primer lugar se toca más también por estar primero: este es el sesgo
               que hay que descontar antes de comparar órdenes.
             </p>
-            <SourceNote source={source} />
             <ProvenanceBadge kind={source} />
           </div>
           <div className="block">
@@ -305,7 +301,6 @@ export function MochiView({ source, tab }) {
               dónde y para cuántas personas. "No está en la muestra" no es "Rappi no lo vende": la muestra pública trae
               hasta 24 productos por sub-pasillo.
             </p>
-            <SourceNote source={source} />
             <ProvenanceBadge kind={source} />
           </div>
           <div className="block">

@@ -60,7 +60,7 @@ describe('panel en un solo HTML', () => {
     )
     expect(screen.queryByRole('button', { name: 'Actualizar' })).toBeNull()
     expect(screen.queryByRole('link', { name: 'Presentación de la propuesta' })).toBeNull()
-    expect(screen.getByText('Usuarios y eventos SIMULADOS:')).toBeTruthy()
+    expect(screen.getByText('Datos simulados:')).toBeTruthy()
     expect(globalThis.fetch).not.toHaveBeenCalled()
   })
 })
@@ -96,6 +96,7 @@ describe('Ver cómo funciona', () => {
 
     await act(async () => fireEvent.click(within(tour).getByRole('button', { name: 'Empezar' })))
     expect(within(tour).getByText('Paso 1 de 5')).toBeTruthy()
+    expect(screen.getByText('las cifras traen eventos de ejemplo, no son datos reales.', { exact: false })).toBeTruthy()
     expect(await planRow()).toEqual(['2', '1'])
     // Cada sección del prototipo a la vista (ofertas y si molesta) dice que trae eventos de ejemplo, no solo la tarjeta.
     expect(screen.getAllByText(/con eventos de ejemplo de la demostración: no son datos reales/)).toHaveLength(2)

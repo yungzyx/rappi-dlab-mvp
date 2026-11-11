@@ -28,8 +28,8 @@
 //   con --expect-offline: la API está detenida y la app muestra "Sin conexión con <agente>";
 //   con --panel <url del panel> (sin --app): corre después de las demás, con la API en marcha. Espera a que la API ya
 //     cuente lo que dejó el kit (una oferta aceptada en "Plan"), abre el panel en "Mochi y búsquedas" con la fuente
-//     del prototipo y ve esa cifra en "Ofertas del agente por momento", con el rótulo "uso del MVP, pocas personas: no
-//     es evidencia" y sin el aviso de datos guardados (que taparía una API que no responde).
+//     del prototipo y ve esa cifra en "Ofertas del agente por momento", con el aviso "uso del MVP, pocas personas: no
+//     es evidencia" en la franja de procedencia y sin el aviso de datos guardados (que taparía una API que no responde).
 // Con la API en marcha (sin --expect-offline) también falla ante un error de la página o de la consola, o una respuesta
 // 4xx/5xx, desde la primera carga; solo se ignoran las imágenes del catálogo de prueba, que no existen.
 // Sale con 0 si la revisión pasa y con 1 si no. Usa el Chrome instalado (playwright-core, sin descargar navegadores);

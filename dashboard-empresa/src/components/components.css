@@ -405,18 +405,9 @@
   }
 }
 
-/* Rótulo de las secciones con datos del prototipo */
-.mvp-note {
-  font-size: var(--text-xs);
-  font-weight: 500;
-  color: var(--ink-2);
-}
-
-.mvp-note strong {
-  font-weight: 500;
-}
-
+/* Junto al rótulo del prototipo mientras corre "Ver cómo funciona" */
 .mvp-note-demo {
+  font-size: var(--text-xs);
   font-weight: 600;
   color: var(--sim-ink);
 }

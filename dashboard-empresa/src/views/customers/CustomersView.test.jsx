@@ -3,7 +3,7 @@ import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest'
 import { renderWithData, resetApi, serveFixtures, serveFixturesWith } from '../../test/fixtureApi.js'
 import { CustomersView } from './CustomersView.jsx'
 
-const NOT_EVIDENCE = 'uso del MVP, pocas personas: no es evidencia'
+const NOT_EVIDENCE = 'Prototipo · no es evidencia'
 const section = (name) => screen.getByRole('region', { name })
 
 describe('CustomersView', () => {

@@ -4,7 +4,7 @@ import App from '../../App.jsx'
 import { apiDown, renderWithData, resetApi, serveFixtures, serveFixturesWith } from '../../test/fixtureApi.js'
 import { MochiView } from './MochiView.jsx'
 
-const NOT_EVIDENCE = 'uso del MVP, pocas personas: no es evidencia'
+const NOT_EVIDENCE = 'Prototipo · no es evidencia'
 const OFFLINE = 'La API no responde: el uso del MVP solo se ve con la base viva.'
 
 const cells = (row) =>

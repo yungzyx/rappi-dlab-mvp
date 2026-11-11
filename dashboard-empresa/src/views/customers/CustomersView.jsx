@@ -1,7 +1,6 @@
 import { AGENT_NAME } from '../../lib/agentName.js'
 import { Async } from '../../components/Async.jsx'
 import { ProvenanceBadge } from '../../components/ProvenanceBadge.jsx'
-import { SourceNote } from '../../components/SourceNote.jsx'
 import { useAnalytics } from '../../lib/useAnalytics.js'
 import { Churn } from './Churn.jsx'
 import { ProSplit } from './ProSplit.jsx'
@@ -63,7 +62,6 @@ export function CustomersView({ source, tab }) {
               cuántos combinan verticales en cada grupo. Es una comparación, no un efecto: quien ya pide más se hace
               Pro.
             </p>
-            <SourceNote source={source} />
             <ProvenanceBadge kind={source} />
           </div>
           <div className="block">
@@ -84,7 +82,6 @@ export function CustomersView({ source, tab }) {
               Cada persona tiene su propio ritmo de compra, y el riesgo se mide contra ese ritmo. El concepto que se
               muestra nunca es sensible, y fuera de la app solo se escribe a quien aceptó avisos.
             </p>
-            <SourceNote source={source} />
             <ProvenanceBadge kind={source} />
           </div>
           <div className="block">

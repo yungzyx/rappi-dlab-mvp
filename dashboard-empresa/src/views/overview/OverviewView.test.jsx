@@ -3,7 +3,7 @@ import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest'
 import { renderWithData, resetApi, serveFixtures, serveFixturesWith } from '../../test/fixtureApi.js'
 import { OverviewView } from './OverviewView.jsx'
 
-const NOT_EVIDENCE = 'uso del MVP, pocas personas: no es evidencia'
+const NOT_EVIDENCE = 'Prototipo · no es evidencia'
 const decision = (name) => screen.getByRole('article', { name })
 
 describe('OverviewView', () => {

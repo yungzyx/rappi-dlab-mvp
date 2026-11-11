@@ -211,10 +211,18 @@ abbr {
   border: 1px dashed var(--sim-edge);
 }
 
-.badge--prototype {
-  color: var(--ink);
-  background: var(--surface-sunken);
-  border: 1px solid var(--line-strong);
+.badge--quiet {
+  height: auto;
+  padding: 0;
+  font-size: var(--text-xs);
+  font-weight: 500;
+  color: var(--ink-2);
+  background: none;
+  border: 0;
+}
+
+.badge--quiet svg {
+  color: var(--ink-3);
 }
 
 .badge--real {

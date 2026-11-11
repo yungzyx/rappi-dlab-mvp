@@ -216,6 +216,12 @@
   background: var(--sim-bg);
 }
 
+.provenance-row--demo {
+  border-bottom-color: color-mix(in srgb, var(--sim-edge) 45%, transparent);
+  color: var(--sim-ink);
+  background: var(--sim-bg);
+}
+
 .provenance-row--offline {
   color: var(--ink-2);
   background: var(--chrome);
@@ -252,6 +258,18 @@
 
 .provenance-inner .link-button {
   flex: none;
+}
+
+/* "¿Qué es real?": su panel se abre bajo la franja, alineado a la derecha */
+.provenance-inner .help {
+  flex: none;
+}
+
+.provenance-inner .help-panel {
+  right: var(--pad);
+  left: auto;
+  width: min(420px, calc(100% - 2 * var(--pad)));
+  color: var(--ink-2);
 }
 
 /* ---------- Contenido ---------- */

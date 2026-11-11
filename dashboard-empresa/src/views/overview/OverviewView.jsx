@@ -1,7 +1,6 @@
 import { AGENT_NAME } from '../../lib/agentName.js'
 import { Async } from '../../components/Async.jsx'
 import { ProvenanceBadge } from '../../components/ProvenanceBadge.jsx'
-import { SourceNote } from '../../components/SourceNote.jsx'
 import { useAnalytics, useAnalyticsMany } from '../../lib/useAnalytics.js'
 import { DecisionBody, DecisionCard } from './DecisionCard.jsx'
 import { churnDecision, crossSellDecision, demandDecision, mochiDecision } from './decisions.js'
@@ -91,7 +90,6 @@ export function OverviewView({ source, onNavigate }) {
             Cómo va
           </h2>
           <p>La última semana completa contra la de hace 4 semanas. Rojo solo si empeora.</p>
-          <SourceNote source={source} />
           <ProvenanceBadge kind={source} />
         </div>
         <Async>
