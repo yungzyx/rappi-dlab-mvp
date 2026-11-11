@@ -19,10 +19,11 @@
 //   pausa por una calificación mala (winback.js: paused, de los eventos `order_rated`); un pedido cancelado
 //   (`order_cancelled`, state.js: cancelOrders e isConfirmed) no cuenta para la recompra, el motor ni los perfiles
 // - rappi-ia/src/rappi_ia/offers/engine.py (ontop_offer) ... el OnTop de Turbo en el seguimiento (offers.js: onTopOffer)
-// - rappi-ia/src/rappi_ia/offers/engine.py (_in_demo_city) y agent/tools.py (_with_prices) ... no se replican: las
-//   ofertas grabadas ya traen tiendas de la ciudad de la demo, y cada producto de la muestra viene con una tienda de
-//   ella si alguna lo vende. La muestra no trae la ciudad de las tiendas, así que la recompra y "volver" sin conexión
-//   pueden repetir un producto que solo vende otra ciudad (la API lo sacaría)
+// - rappi-ia/src/rappi_ia/offers/engine.py (_in_demo_city) y agent/tools.py (_with_prices, _city_first) ... no se
+//   replican: las ofertas grabadas ya traen tiendas de la ciudad de la demo, cada producto de la muestra viene con una
+//   tienda de ella si alguna lo vende, y las búsquedas y respuestas grabadas traen lo de ella primero. La muestra no
+//   trae la ciudad de las tiendas, así que la recompra y "volver" sin conexión pueden repetir un producto que solo
+//   vende otra ciudad (la API lo sacaría)
 // - rappi-ia/src/rappi_ia/catalog/stores.py (line_prices) y api/catalog.py (availability) ... "Pídelo de nuevo"
 //   (index.js: availability, con los precios de la muestra)
 // - rappi-ia/src/rappi_ia/offers/guards.py ......... lo que el agente nunca ofrece (offers.js: offerableProduct); las
