@@ -1,4 +1,5 @@
 import { describe, expect, test } from 'vitest'
+import { tabOf, VIEWS } from '../App.jsx'
 import { responsesAfter, TOUR } from './tour.js'
 
 const recorded = {
@@ -110,6 +111,10 @@ describe('Ver cómo funciona', () => {
       expect(['resumen', 'clientes', 'mochi']).toContain(step.view)
       expect(step.section).toMatch(/^[a-z-]+$/)
       expect(step.title && step.text).toBeTruthy()
+      expect(tabOf(step.view, step.section)).toBeTruthy()
+      expect(VIEWS.find((view) => view.id === step.view).tabs.some((tab) => tab.sections.includes(step.section))).toBe(
+        true,
+      )
     }
   })
 })

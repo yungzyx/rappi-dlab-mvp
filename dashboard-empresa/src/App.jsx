@@ -2,7 +2,7 @@ import { AGENT_NAME } from './lib/agentName.js'
 import { lazy, Suspense, useEffect, useRef, useState } from 'react'
 import { Header } from './components/shell/Header.jsx'
 import { ProvenanceBanner } from './components/shell/ProvenanceBanner.jsx'
-import { SectionNav } from './components/shell/SectionNav.jsx'
+import { SubNav } from './components/shell/SubNav.jsx'
 import { Tabs } from './components/shell/Tabs.jsx'
 import { API_URL, refreshSource, retryConnection, SNAPSHOT_INFO } from './lib/api.js'
 import { formatDate } from './lib/format.js'
@@ -17,55 +17,61 @@ import { OverviewView } from './views/overview/OverviewView.jsx'
 // Cuatro vistas: tres alrededor de 4 preguntas (el porqué, en docs/decisiones.md), el Resumen para la gerencia y RappiAds
 // y un detalle para cada público, y al final los experimentos del MVP: cómo leer cada comparación antes de decidir con
 // ella.
-// `sections`: los títulos de sección de cada vista (sus ids), para "En esta vista".
+// `tabs`: las subpestañas de cada vista (?seccion=, la primera por defecto), cada una con los ids de los títulos de sus
+// secciones. Una vista con una sola no muestra subpestañas.
 export const VIEWS = [
   {
     id: 'resumen',
     label: 'Resumen',
+    icon: 'dashboard',
     View: OverviewView,
-    sections: [
-      { id: 'que-decidir', label: 'Qué decidir' },
-      { id: 'como-va', label: 'Cómo va' },
-    ],
+    tabs: [{ id: 'resumen', label: 'Resumen', sections: ['como-va', 'que-decidir'] }],
   },
   {
     id: 'clientes',
     label: 'Retención y venta cruzada',
     short: 'Clientes',
+    icon: 'users',
     View: CustomersView,
-    sections: [
-      { id: 'venta-cruzada', label: 'Dónde está la venta cruzada' },
-      { id: 'pro', label: 'Pro y sin Pro' },
-      { id: 'perdiendo', label: 'A quién estamos perdiendo' },
+    tabs: [
+      { id: 'venta-cruzada', label: 'Venta cruzada', sections: ['venta-cruzada'] },
+      { id: 'pro', label: 'Pro y sin Pro', sections: ['pro'] },
+      { id: 'perdiendo', label: 'En riesgo', sections: ['perdiendo'] },
     ],
   },
   {
     id: 'mochi',
     label: `${AGENT_NAME} y búsquedas`,
     short: AGENT_NAME,
+    icon: 'search',
     View: MochiView,
-    sections: [
-      { id: 'ofertas', label: `Lo que ofrece ${AGENT_NAME}` },
-      { id: 'presencia', label: `¿${AGENT_NAME} molesta?` },
-      { id: 'listas', label: 'Qué se ve y qué se toca' },
-      { id: 'busquedas', label: 'Qué buscan y no encuentran' },
+    tabs: [
+      { id: 'ofertas', label: 'Ofertas', sections: ['ofertas', 'presencia'] },
+      { id: 'listas', label: 'Listas y embudo', sections: ['listas'] },
+      { id: 'busquedas', label: 'Búsquedas', sections: ['busquedas'] },
     ],
   },
   {
     id: 'experimentos',
     label: 'Experimentos',
+    icon: 'columns',
     View: ExperimentsView,
-    sections: [{ id: 'experimentos', label: 'Experimentos del MVP' }],
+    tabs: [{ id: 'experimentos', label: 'Experimentos', sections: ['experimentos'] }],
   },
 ]
-const VIEW_IDS = VIEWS.map((view) => view.id)
+
+/** La subpestaña de la vista `viewId` que tiene la sección `sectionId`; si ninguna la tiene, la primera. */
+export const tabOf = (viewId, sectionId) => {
+  const { tabs } = VIEWS.find((item) => item.id === viewId)
+  return (tabs.find((tab) => tab.sections.includes(sectionId)) ?? tabs[0]).id
+}
 
 // "Ver cómo funciona": solo en el panel en un solo HTML (el modo panel-html de `npm run panel:html`); se decide por el
 // modo del armado y no por una variable de entorno, que podría colarse en un build normal.
 const DemoTour = import.meta.env.MODE === 'panel-html' ? lazy(() => import('./demo/DemoTour.jsx')) : null
 
 export default function App() {
-  const [{ view, source }, setUrlState] = useUrlState(VIEW_IDS)
+  const [{ view, source, section }, setUrlState] = useUrlState(VIEWS)
   const fallbacks = useFallbacks()
   const prototypeOffline = usePrototypeOffline()
   const [reloadKey, setReloadKey] = useState(0)
@@ -75,7 +81,7 @@ export default function App() {
   const anchor = useRef(null)
   // Desde 1200 px: barra superior fija y navegación lateral; más angosto, la navegación es una tira fija arriba.
   const wide = useMediaQuery('(min-width: 1200px)')
-  const { View, sections } = VIEWS.find((item) => item.id === view)
+  const { View, tabs } = VIEWS.find((item) => item.id === view)
 
   // La altura de lo fijo arriba (la franja de procedencia puede ocupar dos líneas o sumar avisos), para el CSS.
   useEffect(() => {
@@ -88,24 +94,39 @@ export default function App() {
     return () => observer.disconnect()
   }, [])
 
-  /** Cambia de vista; con `section` (el id del título de una sección), llega a esa sección y le pasa el foco. */
-  const selectView = (id, section) => {
-    // En la misma vista el efecto de abajo no vuelve a correr: se lleva a la sección aquí mismo.
-    if (section && id === view) {
-      const target = document.getElementById(section)
-      target?.scrollIntoView?.({ block: 'start' })
-      target?.focus({ preventScroll: true })
-      return
-    }
-    setUrlState((state) => ({ ...state, view: id }))
-    if (section) {
-      anchor.current = { id: section, focus: true }
-      return
-    }
-    // Al cambiar de vista desde abajo, se vuelve al comienzo del contenido (bajo lo que queda fijo arriba).
+  /** Vuelve al comienzo del contenido (bajo lo que queda fijo arriba) si se está más abajo. */
+  const toContentStart = () => {
     const fixed = wide ? top.current.offsetHeight : nav.current.offsetHeight
     const start = main.current.getBoundingClientRect().top + window.scrollY - fixed
     if (window.scrollY > start) window.scrollTo({ top: start })
+  }
+
+  /**
+   * Cambia de vista; con `section` (el id del título de una sección), abre su subpestaña, llega a esa sección y le pasa
+   * el foco. Sin `section`, la primera subpestaña de la vista.
+   */
+  const selectView = (id, target) => {
+    if (target) {
+      const tab = tabOf(id, target)
+      // Ya a la vista: el efecto de abajo no vuelve a correr; se lleva a la sección aquí mismo.
+      if (id === view && tab === section) {
+        const heading = document.getElementById(target)
+        heading?.scrollIntoView?.({ block: 'start' })
+        heading?.focus({ preventScroll: true })
+        return
+      }
+      anchor.current = { id: target, focus: true }
+      setUrlState((state) => ({ ...state, view: id, section: tab }))
+      return
+    }
+    setUrlState((state) => ({ ...state, view: id, section: null }))
+    toContentStart()
+  }
+
+  /** Cambia de subpestaña dentro de la vista; el foco sigue en su botón. */
+  const selectTab = (tab) => {
+    setUrlState((state) => ({ ...state, section: tab }))
+    toContentStart()
   }
 
   // También tras recargar los datos: la demostración vuelve a pintar la vista y lleva a la sección que cambió. Lo que
@@ -130,7 +151,7 @@ export default function App() {
     }
     frame = requestAnimationFrame(settle)
     return () => cancelAnimationFrame(frame)
-  }, [view, reloadKey])
+  }, [view, section, reloadKey])
 
   const retry = () => {
     retryConnection()
@@ -160,12 +181,12 @@ export default function App() {
         <div className="sidenav" ref={nav}>
           <div className="sidenav-inner">
             <Tabs views={VIEWS} active={view} onSelect={selectView} orientation={wide ? 'vertical' : 'horizontal'} />
-            <SectionNav sections={sections} onSelect={(section) => selectView(view, section)} />
           </div>
         </div>
         <div className="app-main">
           <main ref={main} id={`panel-${view}`} role="tabpanel" aria-labelledby={`tab-${view}`} className="app-content">
-            <View key={`${view}-${source}-${reloadKey}`} source={source} onNavigate={selectView} />
+            {tabs.length > 1 && <SubNav tabs={tabs} active={section} onSelect={selectTab} />}
+            <View key={`${view}-${source}-${reloadKey}`} source={source} tab={section} onNavigate={selectView} />
           </main>
           <footer className="site-footer">
             <div className="site-footer-inner">
@@ -199,7 +220,7 @@ export default function App() {
               // El recorrido es del prototipo: lleva a esa fuente y a la sección que cambia; al cerrar, solo repinta.
               if (target) {
                 anchor.current = { id: target.section, focus: false }
-                setUrlState({ view: target.view, source: 'prototype' })
+                setUrlState({ view: target.view, source: 'prototype', section: tabOf(target.view, target.section) })
               }
               setReloadKey((key) => key + 1)
             }}

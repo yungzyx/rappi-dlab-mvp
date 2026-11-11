@@ -97,8 +97,8 @@ describe('Ver cómo funciona', () => {
     await act(async () => fireEvent.click(within(tour).getByRole('button', { name: 'Empezar' })))
     expect(within(tour).getByText('Paso 1 de 5')).toBeTruthy()
     expect(await planRow()).toEqual(['2', '1'])
-    // Cada sección del prototipo dice que trae eventos de ejemplo, no solo la tarjeta.
-    expect(screen.getAllByText(/con eventos de ejemplo de la demostración: no son datos reales/)).toHaveLength(4)
+    // Cada sección del prototipo a la vista (ofertas y si molesta) dice que trae eventos de ejemplo, no solo la tarjeta.
+    expect(screen.getAllByText(/con eventos de ejemplo de la demostración: no son datos reales/)).toHaveLength(2)
 
     await act(async () => fireEvent.click(within(tour).getByRole('button', { name: 'Siguiente' })))
     expect(await planRow()).toEqual(['2', '2'])
@@ -112,11 +112,12 @@ describe('Ver cómo funciona', () => {
 
     // Paso 4: una búsqueda sin resultado más en "Qué buscan y no encuentran".
     await act(async () => fireEvent.click(within(tour).getByRole('button', { name: 'Siguiente' })))
-    expect(window.location.search).toBe('?vista=mochi&fuente=prototipo')
+    expect(window.location.search).toBe('?vista=mochi&fuente=prototipo&seccion=busquedas')
     expect(await screen.findByText('2 de 2')).toBeTruthy() // lo grabado: 1 de 1
 
     // Paso 5: oculta a Mochi; "Ocultaron a Mochi" suma una persona de las 11 activas. El botón ya dice "Terminar".
     await act(async () => fireEvent.click(within(tour).getByRole('button', { name: 'Siguiente' })))
+    expect(window.location.search).toBe('?vista=mochi&fuente=prototipo')
     expect(within(tour).getByRole('button', { name: 'Terminar' })).toBe(advance)
     expect(await screen.findByText('18,2% de 11 personas activas; lo ocultaron 2 veces')).toBeTruthy() // lo grabado: 1 de 10
 

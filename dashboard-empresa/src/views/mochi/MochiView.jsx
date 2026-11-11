@@ -193,135 +193,147 @@ function Thin({ source }) {
   )
 }
 
-/** RappiAds: qué ofrece Mochi, en qué momento y con qué resultado, y qué busca la gente que no encuentra. */
-export function MochiView({ source }) {
+/**
+ * RappiAds: qué ofrece Mochi, en qué momento y con qué resultado, y qué busca la gente que no encuentra. Con `tab` (la
+ * subpestaña), solo sus secciones ("ofertas" lleva también "¿Mochi molesta?"); sin `tab`, todas.
+ */
+export function MochiView({ source, tab }) {
+  const show = (id) => !tab || tab === id
   return (
     <div className="view">
-      <section className="section" aria-labelledby="ofertas">
-        <div className="section-head">
-          <h2 id="ofertas" tabIndex={-1}>
-            Lo que ofrece {AGENT_NAME}
-          </h2>
-          <p>
-            A quién le ofrece qué, en qué momento y con qué resultado. Aceptada: la oferta se agregó al carro; la tasa
-            aparece desde 10 mostradas.
-          </p>
-          <SourceNote source={source} />
-          <ProvenanceBadge kind={source} />
-        </div>
-        <div className="block">
-          <Async fallback={null}>
-            <OfferStats source={source} />
-          </Async>
-          <Async>
-            <Moments source={source} />
-          </Async>
-          <div className="pair pair--7-5">
-            <Panel title="Entre verticales: qué se acepta">
-              <Async>
-                <Suggestions source={source} />
+      {show('ofertas') && (
+        <>
+          <section className="section" aria-labelledby="ofertas">
+            <div className="section-head">
+              <h2 id="ofertas" tabIndex={-1}>
+                Lo que ofrece {AGENT_NAME}
+              </h2>
+              <p>
+                A quién le ofrece qué, en qué momento y con qué resultado. Aceptada: la oferta se agregó al carro; la
+                tasa aparece desde 10 mostradas.
+              </p>
+              <SourceNote source={source} />
+              <ProvenanceBadge kind={source} />
+            </div>
+            <div className="block">
+              <Async fallback={null}>
+                <OfferStats source={source} />
               </Async>
-            </Panel>
-            <Panel title="Servicios sin catálogo">
               <Async>
-                <Services source={source} />
+                <Moments source={source} />
               </Async>
-            </Panel>
+              <div className="pair pair--7-5">
+                <Panel title="Entre verticales: qué se acepta">
+                  <Async>
+                    <Suggestions source={source} />
+                  </Async>
+                </Panel>
+                <Panel title="Servicios sin catálogo">
+                  <Async>
+                    <Services source={source} />
+                  </Async>
+                </Panel>
+              </div>
+              <Panel title="El motor contra una regla simple">
+                <Async>
+                  <Motor source={source} />
+                </Async>
+              </Panel>
+            </div>
+          </section>
+
+          <section className="section" aria-labelledby="presencia">
+            <div className="section-head">
+              <h2 id="presencia" tabIndex={-1}>
+                ¿{AGENT_NAME} molesta?
+              </h2>
+              <p>
+                Últimos 30 días. Oculto es quien lo ocultó y no lo trajo de vuelta en Cuenta. Si muchas personas lo
+                ocultan, {AGENT_NAME} molesta: hay que revisar cada cuánto habla y propone.
+              </p>
+              <SourceNote source={source} />
+              <ProvenanceBadge kind={source} />
+            </div>
+            <div className="block">
+              <Async>
+                <AgentPresence source={source} />
+              </Async>
+            </div>
+          </section>
+        </>
+      )}
+
+      {show('listas') && (
+        <section className="section" aria-labelledby="listas">
+          <div className="section-head">
+            <h2 id="listas" tabIndex={-1}>
+              Qué se ve y qué se toca
+            </h2>
+            <p>
+              Lo que cada lista de la app dejó a la vista (al menos la mitad en pantalla), cuánto se tocó según su lugar
+              y hasta dónde llega cada sesión. El primer lugar se toca más también por estar primero: este es el sesgo
+              que hay que descontar antes de comparar órdenes.
+            </p>
+            <SourceNote source={source} />
+            <ProvenanceBadge kind={source} />
           </div>
-          <Panel title="El motor contra una regla simple">
+          <div className="block">
+            <div className="pair">
+              <Panel title="CTR por posición">
+                <Async>
+                  <Ctr source={source} />
+                </Async>
+              </Panel>
+              <Panel title="Embudo por sesión">
+                <Async>
+                  <Funnel source={source} />
+                </Async>
+              </Panel>
+            </div>
+          </div>
+        </section>
+      )}
+
+      {show('busquedas') && (
+        <section className="section" aria-labelledby="busquedas">
+          <div className="section-head">
+            <h2 id="busquedas" tabIndex={-1}>
+              Qué buscan y no encuentran
+            </h2>
+            <p>
+              Cada búsqueda o pregunta a {AGENT_NAME} sin resultado es demanda que el catálogo no cubre: qué falta,
+              dónde y para cuántas personas. "No está en la muestra" no es "Rappi no lo vende": la muestra pública trae
+              hasta 24 productos por sub-pasillo.
+            </p>
+            <SourceNote source={source} />
+            <ProvenanceBadge kind={source} />
+          </div>
+          <div className="block">
             <Async>
-              <Motor source={source} />
+              <Unmet source={source} />
             </Async>
-          </Panel>
-        </div>
-      </section>
-
-      <section className="section" aria-labelledby="presencia">
-        <div className="section-head">
-          <h2 id="presencia" tabIndex={-1}>
-            ¿{AGENT_NAME} molesta?
-          </h2>
-          <p>
-            Últimos 30 días. Oculto es quien lo ocultó y no lo trajo de vuelta en Cuenta. Si muchas personas lo ocultan,{' '}
-            {AGENT_NAME} molesta: hay que revisar cada cuánto habla y propone.
-          </p>
-          <SourceNote source={source} />
-          <ProvenanceBadge kind={source} />
-        </div>
-        <div className="block">
-          <Async>
-            <AgentPresence source={source} />
-          </Async>
-        </div>
-      </section>
-
-      <section className="section" aria-labelledby="listas">
-        <div className="section-head">
-          <h2 id="listas" tabIndex={-1}>
-            Qué se ve y qué se toca
-          </h2>
-          <p>
-            Lo que cada lista de la app dejó a la vista (al menos la mitad en pantalla), cuánto se tocó según su lugar y
-            hasta dónde llega cada sesión. El primer lugar se toca más también por estar primero: este es el sesgo que
-            hay que descontar antes de comparar órdenes.
-          </p>
-          <SourceNote source={source} />
-          <ProvenanceBadge kind={source} />
-        </div>
-        <div className="block">
-          <div className="pair">
-            <Panel title="CTR por posición">
-              <Async>
-                <Ctr source={source} />
-              </Async>
-            </Panel>
-            <Panel title="Embudo por sesión">
-              <Async>
-                <Funnel source={source} />
-              </Async>
-            </Panel>
+            <div className="pair">
+              <Panel title="Lo que sube">
+                <p className="block-note">
+                  Búsquedas, preguntas a {AGENT_NAME} y agregados al carro: últimas 4 semanas contra las 4 anteriores.
+                  Lo que sube y tiene surtido es campaña con horario; lo que sube "sin surtido", demanda que cubrir.
+                </p>
+                <Async>
+                  <Rising source={source} />
+                </Async>
+              </Panel>
+              <Panel title="Poco surtido para lo que se busca">
+                <p className="block-note">
+                  Más personas buscando que productos en el catálogo; los productos son reales (muestra pública).
+                </p>
+                <Async>
+                  <Thin source={source} />
+                </Async>
+              </Panel>
+            </div>
           </div>
-        </div>
-      </section>
-
-      <section className="section" aria-labelledby="busquedas">
-        <div className="section-head">
-          <h2 id="busquedas" tabIndex={-1}>
-            Qué buscan y no encuentran
-          </h2>
-          <p>
-            Cada búsqueda o pregunta a {AGENT_NAME} sin resultado es demanda que el catálogo no cubre: qué falta, dónde
-            y para cuántas personas. "No está en la muestra" no es "Rappi no lo vende": la muestra pública trae hasta 24
-            productos por sub-pasillo.
-          </p>
-          <SourceNote source={source} />
-          <ProvenanceBadge kind={source} />
-        </div>
-        <div className="block">
-          <Async>
-            <Unmet source={source} />
-          </Async>
-          <div className="pair">
-            <Panel title="Lo que sube">
-              <p className="block-note">
-                Búsquedas, preguntas a {AGENT_NAME} y agregados al carro: últimas 4 semanas contra las 4 anteriores. Lo
-                que sube y tiene surtido es campaña con horario; lo que sube "sin surtido", demanda que cubrir.
-              </p>
-              <Async>
-                <Rising source={source} />
-              </Async>
-            </Panel>
-            <Panel title="Poco surtido para lo que se busca">
-              <p className="block-note">
-                Más personas buscando que productos en el catálogo; los productos son reales (muestra pública).
-              </p>
-              <Async>
-                <Thin source={source} />
-              </Async>
-            </Panel>
-          </div>
-        </div>
-      </section>
+        </section>
+      )}
     </div>
   )
 }

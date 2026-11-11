@@ -25,67 +25,75 @@ function Ladder() {
 
 /**
  * Gerencia: dónde está la venta cruzada (la tabla de Rappi), Pro frente a sin Pro y a quién estamos perdiendo (la fuente
- * elegida).
+ * elegida). Con `tab` (la subpestaña), solo esa sección; sin `tab`, las tres.
  */
-export function CustomersView({ source }) {
+export function CustomersView({ source, tab }) {
+  const show = (id) => !tab || tab === id
   return (
     <div className="view">
-      <section className="section" aria-labelledby="venta-cruzada">
-        <div className="section-head">
-          <h2 id="venta-cruzada" tabIndex={-1}>
-            Dónde está la venta cruzada
-          </h2>
-          <p>
-            En la tabla que compartió Rappi, quien combina grupos de verticales vuelve más al mes siguiente y pide más.
-            Es una correlación, no un efecto. Cada fila: cuántos vuelven en una combinación y en la combinación con un
-            grupo más que más retiene; arriba, donde están más usuarios.
-          </p>
-          <ProvenanceBadge kind="rappi" />
-        </div>
-        <div className="block">
-          <Async>
-            <Ladder />
-          </Async>
-        </div>
-      </section>
+      {show('venta-cruzada') && (
+        <section className="section" aria-labelledby="venta-cruzada">
+          <div className="section-head">
+            <h2 id="venta-cruzada" tabIndex={-1}>
+              Dónde está la venta cruzada
+            </h2>
+            <p>
+              En la tabla que compartió Rappi, quien combina grupos de verticales vuelve más al mes siguiente y pide
+              más. Es una correlación, no un efecto. Cada fila: cuántos vuelven en una combinación y en la combinación
+              con un grupo más que más retiene; arriba, donde están más usuarios.
+            </p>
+            <ProvenanceBadge kind="rappi" />
+          </div>
+          <div className="block">
+            <Async>
+              <Ladder />
+            </Async>
+          </div>
+        </section>
+      )}
 
-      <section className="section" aria-labelledby="pro">
-        <div className="section-head">
-          <h2 id="pro" tabIndex={-1}>
-            Pro y sin Pro
-          </h2>
-          <p>
-            Rappi Pro une las verticales con envío gratis. Lado a lado: cuánto piden, cuántos vuelven a comprar y
-            cuántos combinan verticales en cada grupo. Es una comparación, no un efecto: quien ya pide más se hace Pro.
-          </p>
-          <SourceNote source={source} />
-          <ProvenanceBadge kind={source} />
-        </div>
-        <div className="block">
-          <Async>
-            <ProSplit source={source} />
-          </Async>
-        </div>
-      </section>
+      {show('pro') && (
+        <section className="section" aria-labelledby="pro">
+          <div className="section-head">
+            <h2 id="pro" tabIndex={-1}>
+              Pro y sin Pro
+            </h2>
+            <p>
+              Rappi Pro une las verticales con envío gratis. Lado a lado: cuánto piden, cuántos vuelven a comprar y
+              cuántos combinan verticales en cada grupo. Es una comparación, no un efecto: quien ya pide más se hace
+              Pro.
+            </p>
+            <SourceNote source={source} />
+            <ProvenanceBadge kind={source} />
+          </div>
+          <div className="block">
+            <Async>
+              <ProSplit source={source} />
+            </Async>
+          </div>
+        </section>
+      )}
 
-      <section className="section" aria-labelledby="perdiendo">
-        <div className="section-head">
-          <h2 id="perdiendo" tabIndex={-1}>
-            A quién estamos perdiendo
-          </h2>
-          <p>
-            Cada persona tiene su propio ritmo de compra, y el riesgo se mide contra ese ritmo. El concepto que se
-            muestra nunca es sensible, y fuera de la app solo se escribe a quien aceptó avisos.
-          </p>
-          <SourceNote source={source} />
-          <ProvenanceBadge kind={source} />
-        </div>
-        <div className="block">
-          <Async>
-            <Churn source={source} />
-          </Async>
-        </div>
-      </section>
+      {show('perdiendo') && (
+        <section className="section" aria-labelledby="perdiendo">
+          <div className="section-head">
+            <h2 id="perdiendo" tabIndex={-1}>
+              A quién estamos perdiendo
+            </h2>
+            <p>
+              Cada persona tiene su propio ritmo de compra, y el riesgo se mide contra ese ritmo. El concepto que se
+              muestra nunca es sensible, y fuera de la app solo se escribe a quien aceptó avisos.
+            </p>
+            <SourceNote source={source} />
+            <ProvenanceBadge kind={source} />
+          </div>
+          <div className="block">
+            <Async>
+              <Churn source={source} />
+            </Async>
+          </div>
+        </section>
+      )}
     </div>
   )
 }

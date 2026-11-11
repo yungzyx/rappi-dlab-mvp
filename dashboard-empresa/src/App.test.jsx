@@ -55,38 +55,55 @@ describe('App', () => {
     expect(screen.getByRole('tab', { name: 'Resumen' }).getAttribute('aria-selected')).toBe('true')
   })
 
-  test('every section of "En esta vista" is a heading of its view', async () => {
-    for (const { id, sections } of VIEWS) {
-      window.history.replaceState(null, '', `/?vista=${id}`)
-      serveFixtures()
-      const { unmount } = await renderWithData(<App />)
-      const nav = screen.getByRole('navigation', { name: 'Secciones de esta vista' })
-      expect(
-        within(nav)
-          .getAllByRole('button')
-          .map((button) => button.textContent),
-      ).toEqual(sections.map((section) => section.label))
-      for (const section of sections) {
-        const heading = document.getElementById(section.id)
-        expect(heading?.tagName, `${id}#${section.id}`).toBe('H2')
-        expect(heading.textContent).toBe(section.label)
+  test('each sub-tab shows the headings of its sections', async () => {
+    for (const { id, tabs } of VIEWS) {
+      for (const tab of tabs) {
+        window.history.replaceState(null, '', `/?vista=${id}&seccion=${tab.id}`)
+        serveFixtures()
+        const { unmount } = await renderWithData(<App />)
+        for (const section of tab.sections) {
+          expect(document.getElementById(section)?.tagName, `${id}/${tab.id}#${section}`).toBe('H2')
+        }
+        const nav = screen.queryByRole('navigation', { name: 'Secciones de esta vista' })
+        if (tabs.length > 1) {
+          const buttons = within(nav).getAllByRole('button')
+          expect(buttons.map((button) => button.textContent)).toEqual(tabs.map((item) => item.label))
+          expect(buttons.filter((button) => button.getAttribute('aria-current') === 'page')).toEqual([
+            within(nav).getByRole('button', { name: tab.label }),
+          ])
+        } else {
+          expect(nav).toBeNull()
+        }
+        unmount()
+        resetApi()
       }
-      unmount()
-      resetApi()
     }
   })
 
-  test('a button of "En esta vista" takes the focus to its heading without changing the view', async () => {
+  test('a sub-tab changes the section and the link', async () => {
     window.history.replaceState(null, '', '/?vista=mochi')
     serveFixtures()
     await renderWithData(<App />)
 
     const nav = screen.getByRole('navigation', { name: 'Secciones de esta vista' })
-    await act(async () => fireEvent.click(within(nav).getByRole('button', { name: 'Qué buscan y no encuentran' })))
+    await act(async () => fireEvent.click(within(nav).getByRole('button', { name: 'Búsquedas' })))
 
     expect(screen.getByRole('tabpanel').id).toBe('panel-mochi')
-    expect(document.activeElement).toBe(screen.getByRole('heading', { name: 'Qué buscan y no encuentran' }))
-    expect(window.location.search).toContain('vista=mochi')
+    expect(screen.getByRole('heading', { name: 'Qué buscan y no encuentran' })).toBeTruthy()
+    expect(screen.queryByRole('heading', { name: 'Lo que ofrece Mochi' })).toBeNull()
+    expect(window.location.search).toBe('?vista=mochi&fuente=simulados&seccion=busquedas')
+
+    await act(async () => fireEvent.click(within(nav).getByRole('button', { name: 'Ofertas' })))
+    expect(window.location.search).toBe('?vista=mochi&fuente=simulados')
+  })
+
+  test('an unknown section in the link opens the first sub-tab', async () => {
+    window.history.replaceState(null, '', '/?vista=clientes&seccion=otra')
+    serveFixtures()
+    await renderWithData(<App />)
+
+    expect(screen.getByRole('heading', { name: 'Dónde está la venta cruzada' })).toBeTruthy()
+    expect(window.location.search).toBe('?vista=clientes&fuente=simulados')
   })
 
   test('the header and the footer say it is a dLab prototype with Rappi, not official, and the footer links the presentation', async () => {
@@ -146,6 +163,7 @@ describe('App', () => {
     await act(async () => fireEvent.click(screen.getByRole('button', { name: 'Ver las búsquedas' })))
     expect(screen.getByRole('tabpanel').id).toBe('panel-mochi')
     expect(document.activeElement).toBe(screen.getByRole('heading', { name: 'Qué buscan y no encuentran' }))
+    expect(window.location.search).toContain('seccion=busquedas')
   })
 
   test('switching to Prototipo changes the notice and the URL', async () => {
