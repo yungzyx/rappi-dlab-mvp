@@ -3,7 +3,6 @@ import { ChartPanel } from '../../components/ChartTableSwitch.jsx'
 import { Panel } from '../../components/Panel.jsx'
 import { DataTable } from '../../components/DataTable.jsx'
 import { Delta } from '../../components/Delta.jsx'
-import { Meter } from '../../components/Meter.jsx'
 import { LineChart } from '../../components/charts/LineChart.jsx'
 import { Sparkline } from '../../components/charts/Sparkline.jsx'
 import { formatNumber, formatPct, formatShortDate } from '../../lib/format.js'
@@ -100,7 +99,6 @@ export function Pulse({ source }) {
         title="2 o más verticales (60 días)"
         value={formatPct(kpis.multi_vertical_pct)}
         line={<p className="pulse-unit">de quienes pidieron</p>}
-        slot={<Meter value={kpis.multi_vertical_pct} max={100} />}
       />
     </div>
   )

@@ -316,3 +316,9 @@
     background: GrayText;
   }
 }
+
+.chart-note {
+  margin: var(--space-2) 0 0;
+  font-size: var(--text-xs);
+  color: var(--ink-3);
+}

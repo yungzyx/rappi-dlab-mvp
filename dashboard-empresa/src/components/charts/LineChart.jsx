@@ -131,6 +131,9 @@ export function LineChart({ points, format, tickFormat = format, label }) {
           </svg>
         )}
       </div>
+      {partialIndex !== -1 && (
+        <p className="chart-note">La línea punteada es la semana en curso: todavía no está completa.</p>
+      )}
     </div>
   )
 }
