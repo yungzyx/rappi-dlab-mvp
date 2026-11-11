@@ -92,10 +92,10 @@ Preguntas abiertas, con las palabras de cada persona (citas cortas):
 
 Los de [prueba-usuarios.md](../prueba-usuarios.md#criterios-fijados-antes-de-la-primera-sesión), con el umbral fijado antes de la primera sesión: no se cambia aquí. "n de 5 observado" cuenta a quienes mostraron la señal; si llega al umbral, se dispara el cambio.
 
-| Pregunta | Señal | Umbral | n de 5 observado | ¿Pasa el umbral? | Cambio que se dispara |
+| Pregunta | Señal | Umbral | n de 5 observado | ¿Llega al umbral? (se dispara el cambio) | Cambio que se dispara |
 |---|---|---|---|---|---|
 | ¿Se entiende el "¿Por qué?"? | En la tarea 4, lo que creía antes de leer no coincide con el texto, o dice que no lo entiende; o marca 1 o 2 en la afirmación 1 | 3 de 5 | | | Reescribir la plantilla del texto del "¿Por qué?" de ese momento |
-| ¿Se nota la oferta? | En la tarea 3 no la vio o se fue sola (si la Home no la mostró, va a "Problemas encontrados") | 2 de 5 | | | Revisar dónde y cuánto rato se muestra el globo con oferta en la Home |
+| ¿Se nota la oferta? | Entre quienes tuvieron la oferta en la Home (momento "carrito" en el resumen): en la tarea 3 no la vio o se fue sola. A quien la Home no se la mostró no se cuenta: va a "Problemas encontrados" | 2 de quienes la tuvieron en la Home (anotar "n de m") | | | Revisar dónde y cuánto rato se muestra el globo con oferta en la Home |
 | ¿Se entiende qué pasa al aceptarla? | En la tarea 4 se sorprende de lo que pasó al tocar el "+" de un producto o "Ver …", o dice que no sabía que el "+" lo agregaba al carro | 2 de 5 | | | Cambiar cómo se ve o se rotula el "+" de los productos del globo |
 | ¿Se puede rechazar sin problema? | No encuentra "Ahora no" o "Después", o pide ayuda para decir que no | 2 de 5 | | | Hacer más visible el botón de rechazar |
 | ¿Mochi estorba? | Marca 4 o 5 en la afirmación 3, o lo cuenta en la pregunta abierta 2 | 2 de 5 | | | Revisar cuántas veces y cuándo habla Mochi en la Home |

@@ -10,7 +10,7 @@ Sin datos personales: ni nombre, ni teléfono, ni nada que identifique a la pers
 
 **Perfil de selección.** ¿Pidió por una app de delivery el último mes? ☐ sí ☐ no. ¿En qué? ☐ Restaurantes ☐ Súper ☐ Turbo ☐ Farmacia ☐ Licores ☐ otra: \_\_\_\_\_\_\_\_ ☐ casi no usa apps
 
-**Consentimiento** (antes de abrir la pestaña): ☐ dijo que sí (sin sí, no se abre la pestaña ni hay sesión) · **Chequeo antes de la sesión** (`chequeo-sesion.sh`): ☐ "Listo para la sesión" (con "Grupo de control: 0 %") · **Guía de la primera visita:** ☐ cerrada con "Saltar" antes de la tarea 1
+**Consentimiento** (antes de abrir la pestaña): ☐ dijo que sí (sin sí, no se abre la pestaña ni hay sesión) · **Chequeo antes de la sesión** (`chequeo-sesion.sh`): ☐ "Listo para la sesión" (con "Grupo de control: 0 %") · **Antes de pasarle el teléfono:** ☐ aviso de privacidad cerrado con "Entendido" ☐ guía de la primera visita cerrada con "Saltar" (sale unos 7 s después del aviso, tras el saludo de Mochi)
 
 | Tarea | Resultado | Tiempo | Notas (lo que dijo, dónde dudó) |
 |---|---|---|---|
