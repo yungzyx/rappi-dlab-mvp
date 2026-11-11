@@ -244,12 +244,17 @@ export function matchProducts(snapshot, q) {
   return focus(snapshot.meta, q, concepts, found)
 }
 
-/** Grupos por vertical: la de la pantalla primero, después las que más productos calzan (search_grouped). */
-function groupsOf(snapshot, found, current, limit) {
+/** Grupos por vertical: la de la pantalla primero, después las que más productos calzan (search_grouped), con Licores
+ * al final si la consulta nombra conceptos y ninguno es +18 (agent/verticals.py: liquor_last). */
+function groupsOf(snapshot, q, found, current, limit) {
   const byVertical = new Map()
   for (const p of found) byVertical.set(p.vertical, [...(byVertical.get(p.vertical) ?? []), p])
+  const concepts = detectConcepts(snapshot.meta, q)
+  const adult = concepts.some((c) => snapshot.meta.concepts[c]?.age_restricted)
+  const last = (vertical) => concepts.length > 0 && !adult && vertical === 'licores'
   const order = [...byVertical.keys()].sort(
-    (a, b) => (b === current) - (a === current) || byVertical.get(b).length - byVertical.get(a).length,
+    (a, b) =>
+      (b === current) - (a === current) || last(a) - last(b) || byVertical.get(b).length - byVertical.get(a).length,
   )
   return order.map((vertical) => ({
     vertical,
@@ -288,7 +293,7 @@ export function search(snapshot, query) {
       ...recorded,
       groups: [...recorded.groups].sort((a, b) => (b.vertical === current) - (a.vertical === current)),
     }
-  const groups = groupsOf(snapshot, matchProducts(snapshot, q), current, limit ?? GROUPED_LIMIT)
+  const groups = groupsOf(snapshot, q, matchProducts(snapshot, q), current, limit ?? GROUPED_LIMIT)
   return {
     groups,
     query: q,
@@ -634,7 +639,7 @@ function unrecorded(snapshot, message, body, userId) {
   if (symptom && !named.length) return textReply(NO_REMEDIES, 'buscar', { symptom: true })
   if (!looksLikeQuestion(message)) return null
   const found = matchProducts(snapshot, message)
-  const group = groupsOf(snapshot, found, backendVertical(body?.vertical), ASK_LIMIT)[0]
+  const group = groupsOf(snapshot, message, found, backendVertical(body?.vertical), ASK_LIMIT)[0]
   if (!group) return textReply(`${NEW_QUESTION}. Prueba con una de las ideas o escribe un producto.`, 'buscar')
   const reply = replyWith(snapshot, message, group, { mode: body?.mode, userId })
   const label = snapshot.meta.vertical_labels[group.vertical] ?? group.vertical
@@ -673,6 +678,6 @@ function answer(snapshot, body, { interests = [], userId = null } = {}) {
   const honest = unrecorded(snapshot, message, body, userId)
   if (honest) return honest
   const found = matchProducts(snapshot, message)
-  const group = groupsOf(snapshot, found, backendVertical(body?.vertical), ASK_LIMIT)[0]
+  const group = groupsOf(snapshot, message, found, backendVertical(body?.vertical), ASK_LIMIT)[0]
   return replyWith(snapshot, message, group, { mode: body?.mode, userId })
 }

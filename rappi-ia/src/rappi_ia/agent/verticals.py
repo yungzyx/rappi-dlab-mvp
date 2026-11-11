@@ -13,6 +13,8 @@ from collections import defaultdict
 
 from psycopg import Connection
 
+from ..concepts.taxonomy import load_taxonomy
+
 # Participación de cada concepto en cada vertical, con restaurantes solo para lo que se pide hecho.
 SHARES = """
     WITH total AS (SELECT vertical, sum(items) AS items FROM concept_assortment GROUP BY vertical)
@@ -66,6 +68,21 @@ def _rank(offer: list[tuple[str, int, int]]) -> tuple[list[str], list[str]]:
     if not contenders:
         return [row[0] for row in sorted(offer, key=lambda row: (-row[1], row[0]))], []
     return contenders, [row[0] for row in by_share if row[1] < floor]
+
+
+def liquor_last(verticals: list[str], concept_ids: list[str]) -> list[str]:
+    """Licores después de las demás, salvo que algún concepto sea +18 (alcohol o tabaco: `age_restricted`).
+
+    Por participación, Licores es la vertical más típica de las gaseosas, los jugos, el hielo, los snacks salados y el
+    carbón (en las botillerías pesan más que en el súper), y encabezaba la búsqueda de "doritos" o "coca cola". Lo que
+    se muestra primero no empuja alcohol si no se pidió: Licores sigue en la lista, solo que al final. Es el mismo
+    criterio con que Mochi no lleva a Licores por su cuenta (agent/rappi_agent.py: `alcohol`). Farmacia no entra: en
+    rappi_staging (medido el 11-11-2026) solo encabeza salud, bebé y belleza (maquillaje, fragancias, cuidado del
+    cabello), que también son lo suyo."""
+    concepts = load_taxonomy().concepts
+    if any(c in concepts and concepts[c].age_restricted for c in concept_ids):
+        return verticals
+    return [v for v in verticals if v != "licores"] + [v for v in verticals if v == "licores"]
 
 
 LOGO_BASE_URL = "https://images.rappi.cl/marketplace/"  # el scraper guarda solo el archivo del logo

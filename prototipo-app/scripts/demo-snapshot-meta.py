@@ -64,6 +64,7 @@ print(
                     "emoji": c.emoji,
                     "group": c.parent or c.id,
                     "offerable": is_offerable(c),
+                    "age_restricted": c.age_restricted,
                     **query_keywords(c),
                 }
                 for c in taxonomy.concepts.values()

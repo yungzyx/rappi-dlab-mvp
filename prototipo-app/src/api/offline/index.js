@@ -30,6 +30,8 @@
 //   panel (personas.js: sampleOf)
 // - rappi-ia/src/rappi_ia/agent/tools.py ........... el foco de la búsqueda (_focus, en search.js) y el complemento
 //   alternado (_takes_second, en offers.js: complementOf)
+// - rappi-ia/src/rappi_ia/agent/verticals.py (liquor_last) ... Licores al final de los grupos de una búsqueda que no
+//   pide nada +18 (search.js: groupsOf; el +18 de cada concepto llega en meta.concepts)
 // - rappi-ia/src/rappi_ia/agent/rappi_agent.py ..... "qué me recomiendas" (search.js: recommend) y el texto del consejo
 //   médico (ADVICE_*, en search.js: unrecorded)
 // - rappi-ia/src/rappi_ia/agent/understand.py ...... síntomas y consejo médico (SYMPTOMS, MEDICINE_WORDS, ADVICE, en
