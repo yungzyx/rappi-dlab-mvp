@@ -1,4 +1,5 @@
 import { screenForBackend } from '../data/verticals'
+import { noteRefused, refusedConcepts } from '../state/EventsContext'
 import { envelope } from './attribution'
 import { conceptOf } from './orders'
 
@@ -98,14 +99,36 @@ export function noteDismissal(track, products, { origin, concept, generation = 0
   return true
 }
 
-/** `noteDismissal` de una oferta del agente (`made`), con el mismo concepto y origen que `noteOfferShown`. */
+/** El concepto de una oferta del agente (`made`): el de su razón o, sin él, el de su primer producto. */
+const offerConcept = (made) => made.reason?.concept ?? (made.products?.[0] && conceptOf(made.products[0]))
+
+/**
+ * `noteDismissal` de una oferta del agente (`made`), con el mismo concepto y origen que `noteOfferShown`. Si la
+ * rechazaron (no se fue sola), su concepto queda rechazado en la sesión: ver `wasRefused`.
+ */
 export function noteOfferDismissal(track, made, { generation, kind } = {}) {
+  if (kind !== EXPIRED) refuseConcept(offerConcept(made))
   return noteDismissal(track, made.products, {
     origin: `agent-${made.moment}`,
     concept: made.reason?.concept,
     generation,
     kind,
   })
+}
+
+/** Anota un concepto rechazado en la sesión (sin concepto, nada): "Ahora no", "Después" de una oferta de la Home. */
+export function refuseConcept(concept) {
+  if (concept) noteRefused(concept)
+}
+
+/**
+ * Si la persona ya rechazó en esta sesión el concepto de esta oferta (`made`), o el de `product`: Mochi no se lo
+ * vuelve a ofrecer (el comentario del carro en la Home, "¿Me falta algo?" del checkout).
+ */
+export function wasRefused(made, product) {
+  const refused = refusedConcepts()
+  const concepts = [offerConcept(made), product && conceptOf(product)].filter(Boolean)
+  return concepts.some((concept) => refused.includes(concept))
 }
 
 /**

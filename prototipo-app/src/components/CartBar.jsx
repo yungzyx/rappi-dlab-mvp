@@ -5,6 +5,7 @@ import { useStoreTerms } from '../screens/checkout/useStoreTerms'
 import { OPEN_CART_EVENT } from '../state/cartSheet'
 import { formatPrice, lineKey, parsePrice, useCart } from '../state/CartContext'
 import { useEvents } from '../state/EventsContext'
+import { forgetAdded } from '../state/liveMemory'
 import AddButton from './AddButton'
 import BasketMinimum from './BasketMinimum'
 import { useFloatingInset } from './floatingInset'
@@ -38,6 +39,7 @@ export default function CartBar({ raised, push }) {
   const emptyCart = () => {
     cart.items.forEach(({ product, qty }) => events.track('cart_remove', cartEventFields(product, cart.id, { qty })))
     cart.clear()
+    forgetAdded() // vaciado, lo agregado ya no está: Mochi no lo comenta al volver a la Home
     setConfirming(false)
   }
 

@@ -23,9 +23,10 @@
 //     Rappi Mall." y la fila lo muestra con el texto. Un pedido basta; tocar un acceso varias veces el mismo día no
 //     mueve la Home (hacen falta dos días distintos: motor/home.py, MIN_USE_DAYS);
 //   con --combo: combinación de verticales. Una persona nueva pide en Restaurantes (Home → Restaurantes → primer
-//     restaurante → agregar un plato → pagar), vuelve a la Home y toca a Mochi: la oferta es de Turbo (el siguiente peldaño
-//     de la escalera desde Restaurantes, según la tabla de Rappi) y su "¿Por qué?" muestra la razón. Solo se mira la
-//     vertical y que haya una razón: el texto exacto depende de lo que haya aprendido el motor;
+//     restaurante → agregar un plato → pagar), vuelve a la Home, toca a Mochi y elige "Muéstrame algo nuevo" en su menú:
+//     la oferta es de Turbo (el siguiente peldaño de la escalera desde Restaurantes, según la tabla de Rappi) y su
+//     "¿Por qué?" muestra la razón. Solo se mira la vertical y que haya una razón: el texto exacto depende de lo que haya
+//     aprendido el motor;
 //   con --expect-offline: la API está detenida y la app muestra "Sin conexión con <agente>";
 //   con --panel <url del panel> (sin --app): corre después de las demás, con la API en marcha. Espera a que la API ya
 //     cuente lo que dejó el kit (una oferta aceptada en "Plan"), abre el panel en "Mochi y búsquedas" con la fuente
@@ -329,10 +330,13 @@ async function checkCombo(page) {
     await home.waitFor()
   })
   const why = page.getByRole('button', { name: '¿Por qué?' })
-  const mochi = page.getByRole('button', { name: `${AGENT_NAME}: muéstrame algo nuevo para probar` })
+  // Tocar a Mochi abre su menú; "Muéstrame algo nuevo" pide la vertical por probar.
+  const mochi = page.getByRole('button', { name: `${AGENT_NAME}: ayuda y opciones` })
+  const askNew = page.getByRole('button', { name: 'Muéstrame algo nuevo' })
   const deadline = Date.now() + COMBO_WAIT_MS
   while ((await why.count()) === 0 && Date.now() < deadline) {
-    await mochi.click({ timeout: 2000 }).catch(() => {}) // aún entra a escena o saluda
+    if (await askNew.isVisible()) await askNew.click({ timeout: 2000 }).catch(() => {})
+    else await mochi.click({ timeout: 2000 }).catch(() => {}) // aún entra a escena o saluda
     await page.waitForTimeout(1000)
   }
   await step(page, 'ver la oferta de Mochi con su "¿Por qué?"', () => why.first().waitFor({ timeout: 2000 }))

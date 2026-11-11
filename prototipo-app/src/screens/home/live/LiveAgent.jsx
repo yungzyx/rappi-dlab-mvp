@@ -1,6 +1,7 @@
 import { forwardRef, useCallback, useEffect, useImperativeHandle, useLayoutEffect, useRef, useState } from 'react'
 import { AGENT_NAME } from '../../../agent/name'
 import { ProductCards } from '../../../components/assistant/AgentMessage'
+import AgentMenu, { useMenuDismiss } from '../../../components/assistant/AgentMenu'
 import Mascot from '../../../components/assistant/Mascot'
 import OfferWhy from '../../../components/assistant/OfferWhy'
 import { rectInPhone } from '../../../state/AssistantContext'
@@ -44,7 +45,8 @@ function useTypewriter(text, reduceMotion) {
 /**
  * El agente de cuerpo entero viviendo en la Home: se para sobre el bloque del que habla (`target`, que `getBlock`
  * convierte en su elemento) o descansa sobre la barra inferior. Habla con un globo y, a veces, ofrece botones y productos
- * (`say.products`, con su "+"; tocar uno abre su hoja y su "Ver tienda" llama a `onOpenProduct`). Tocarlo dispara `onPoke`.
+ * (`say.products`, con su "+"; tocar uno abre su hoja y su "Ver tienda" llama a `onOpenProduct`). Tocarlo dispara `onPoke`;
+ * con `say.menu` (`{ actions, onRun, onClose }`) el globo es el menú de Mochi (AgentMenu), que Escape o tocar fuera cierran.
  * `onHold(motivo, sí o no)` avisa cuándo algo detiene la cuenta del globo: su "¿Por qué?" abierto (`why`), el puntero
  * (`pointer`) o el foco del teclado (`focus`) sobre él.
  */
@@ -53,6 +55,14 @@ const LiveAgent = forwardRef(function LiveAgent(
   ref,
 ) {
   const layerRef = useRef(null)
+  const agentRef = useRef(null) // Mochi y su globo: tocar fuera de ellos cierra el menú
+  const bodyRef = useRef(null)
+  const menu = say?.menu && !away ? say.menu : null
+  // Con Escape, el foco vuelve a Mochi (como en Mochi flotante).
+  useMenuDismiss(Boolean(menu), agentRef, (event) => {
+    menu?.onClose()
+    if (event) bodyRef.current?.focus()
+  })
   const [spot, setSpot] = useState(null)
   const [hopKey, setHopKey] = useState(0)
   const lastY = useRef(null)
@@ -161,8 +171,17 @@ const LiveAgent = forwardRef(function LiveAgent(
       <p className="sr-only" role="status">
         {away ? '' : (say?.text ?? '')}
       </p>
-      <div className={classes.join(' ')} style={style} data-at={target ?? undefined}>
-        {say && !away && (
+      <div ref={agentRef} className={classes.join(' ')} style={style} data-at={target ?? undefined}>
+        {menu && (
+          <AgentMenu
+            className="live-bubble live-menu"
+            actions={menu.actions}
+            onRun={menu.onRun}
+            onClose={menu.onClose}
+            surface="home"
+          />
+        )}
+        {say && !away && !menu && (
           <div
             className="live-bubble"
             onPointerEnter={() => onHold?.('pointer', true)}
@@ -209,9 +228,11 @@ const LiveAgent = forwardRef(function LiveAgent(
           </div>
         )}
         <button
+          ref={bodyRef}
           type="button"
           className="live-agent-body"
-          aria-label={`${AGENT_NAME}: muéstrame algo nuevo para probar`}
+          aria-label={`${AGENT_NAME}: ayuda y opciones`}
+          aria-expanded={Boolean(menu)}
           title={AGENT_NAME}
           hidden={away}
           onPointerDown={() => {
