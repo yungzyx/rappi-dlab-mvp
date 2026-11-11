@@ -13,7 +13,7 @@ import { isHushed, isQuiet, noteDismissed, noteEngaged, quietToday, wake } from 
 import { today } from '../../utils/today'
 import { useFloatingInset } from '../floatingInset'
 import Mascot from './Mascot'
-import { coversControl } from './agentSpot'
+import { coversControl, tuckLift } from './agentSpot'
 import './agent-presence.css'
 
 // Donde el agente no flota: ya está en la pantalla (la Home, el mapa del seguimiento) o estorba (el checkout).
@@ -49,6 +49,7 @@ export default function AgentPresence({ screen, homeTab, raised }) {
   const [side, setSide] = useState(readSide)
   const [jumping, setJumping] = useState(false)
   const [tucked, setTucked] = useState(false) // apartado al borde: ver agentSpot.js
+  const [lift, setLift] = useState(0) // apartado, cuánto sube para no pisar un control con lo que asoma
   const [quiet, setQuiet] = useState(() => isQuiet(today()))
   const [dragging, setDragging] = useState(false) // se arrastra un producto: el agente lo espera
   const [confirmHide, setConfirmHide] = useState(false) // "Ocultar a Mochi" pide confirmar en el mismo globo
@@ -83,9 +84,19 @@ export default function AgentPresence({ screen, homeTab, raised }) {
     const phone = host.current?.closest('.phone')
     if (!phone) return undefined
     const check = () => {
-      if (!scrolling.current) setTucked(coversControl(body.current))
+      if (scrolling.current) return
+      const covers = coversControl(body.current)
+      setTucked(covers)
+      setLift(covers ? tuckLift(body.current) : 0)
     }
-    const onScroll = () => {
+    const onScroll = (event) => {
+      // Solo lo que se mueve en la pantalla de adelante: el carrusel de la Home, que avanza solo detrás, lo dejaba
+      // apartado para siempre (cada paso volvía a empezar la espera) y con la altura de antes
+      if (typeof document.elementFromPoint === 'function') {
+        const r = phone.getBoundingClientRect()
+        const front = document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2)?.closest('.screen')
+        if (front && event.target instanceof Node && !front.contains(event.target)) return
+      }
       scrolling.current = true
       setTucked(true)
       later(
@@ -97,13 +108,17 @@ export default function AgentPresence({ screen, homeTab, raised }) {
         SETTLE_MS,
       )
     }
-    const observer = new MutationObserver(() => later('check', check, CHECK_MS))
+    const soon = () => later('check', check, CHECK_MS)
+    const observer = new MutationObserver(soon)
     observer.observe(phone, { childList: true, subtree: true })
-    later('check', check, CHECK_MS)
+    soon()
     phone.addEventListener('scroll', onScroll, true)
+    // Una foto que termina de cargar puede correr la lista sin scroll ni cambio en el DOM
+    phone.addEventListener('load', soon, true)
     return () => {
       observer.disconnect()
       phone.removeEventListener('scroll', onScroll, true)
+      phone.removeEventListener('load', soon, true)
     }
   }, [hidden, screen, hasCart, raised, side])
 
@@ -269,7 +284,7 @@ export default function AgentPresence({ screen, homeTab, raised }) {
   if (tucked && !menu && !dragging) classes.push('is-tucked')
 
   return (
-    <div ref={host} className={classes.join(' ')}>
+    <div ref={host} className={classes.join(' ')} style={lift ? { '--tuck-lift': `${lift}px` } : undefined}>
       {dragging && (
         <div className="agent-popover" role="status">
           <p>Acércamelo y lo vemos juntos.</p>

@@ -1,7 +1,9 @@
-/* Mochi flotante (prototipo final, fuera de la Home): a un costado, sobre la barra inferior o la del carrito. */
+/* Mochi flotante (prototipo final, fuera de la Home): a un costado, sobre la barra inferior o la del carrito. El
+   contenedor va de lado a lado (no recibe toques): así los globos miden su ancho máximo contra el del teléfono. */
 .agent-presence {
   --agent-bottom: 28px;
   position: absolute;
+  left: 12px;
   right: 12px;
   bottom: calc(var(--agent-bottom) + env(safe-area-inset-bottom, 0px));
   z-index: var(--z-agent);
@@ -26,8 +28,6 @@
 }
 
 .agent-presence.is-left {
-  right: auto;
-  left: 12px;
   align-items: flex-start;
 }
 
@@ -43,15 +43,21 @@
 }
 
 /* Apartado: mientras se hace scroll y mientras quedaría sobre un control (agentSpot.js). Asoma media cara desde el
-   borde, como en silencio, fuera de la columna de los "+"; tocarlo abre el menú igual. */
+   borde: 12 + 68 × 0,6 − 28 = 24,8 px de ancho visible y tocable (WCAG 2.5.8 pide 24; lo revisa agent-presence.test.js).
+   Si lo que asoma pisaría el borde de un "+", sube --tuck-lift (agentSpot.js: tuckLift). Tocarlo abre el menú igual. */
 .agent-presence.is-tucked .agent-presence-body {
-  transform: translateX(34px) scale(0.6);
+  transform: translate(28px, calc(-1 * var(--tuck-lift, 0px))) scale(0.6);
   transform-origin: bottom right;
 }
 
 .agent-presence.is-left.is-tucked .agent-presence-body {
-  transform: translateX(-34px) scale(0.6);
+  transform: translate(-28px, calc(-1 * var(--tuck-lift, 0px))) scale(0.6);
   transform-origin: bottom left;
+}
+
+/* Con el foco del teclado sale entero: apartado, medio anillo de foco quedaba fuera de la pantalla */
+.agent-presence.is-tucked .agent-presence-body:focus-visible {
+  transform: none;
 }
 
 .agent-popover {
@@ -148,8 +154,10 @@
 
 /* Su × quedaba justo sobre el "+" del producto recién agregado (la columna de la derecha): el globo se corre hacia
    adentro, a la izquierda del "− 1 +" (92 px desde el borde de la lista), así un segundo toque al "+" o al "−" cambia
-   la cantidad en vez de cerrar el globo. El resto del globo deja pasar los toques. */
+   la cantidad en vez de cerrar el globo. El resto del globo deja pasar los toques. En un teléfono angosto (320 px) se
+   angosta en vez de salirse por la izquierda: el 100 % es el ancho del contenedor, de lado a lado del teléfono. */
 .agent-presence:not(.is-left) .agent-bubble {
+  max-width: min(220px, calc(100% - 108px));
   margin-right: 108px;
 }
 

@@ -13,16 +13,9 @@
   padding: 0 var(--gutter);
 }
 
-/* Solo aquí: sin el prefijo, el círculo gris también les aparecía a Súper, la lista y el pago tras pasar por Restaurantes */
 .rest-header .round-button {
   position: absolute;
   left: var(--gutter);
-  display: grid;
-  place-items: center;
-  width: 34px;
-  height: 34px;
-  border-radius: 50%;
-  background: var(--chip);
 }
 
 .rest-address {

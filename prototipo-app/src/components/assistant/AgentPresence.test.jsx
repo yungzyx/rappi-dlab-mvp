@@ -20,8 +20,8 @@ vi.mock('../../state/EventsContext', async (importOriginal) => ({
   useEvents: () => events,
 }))
 // Qué tiene Mochi debajo (agentSpot.js mide el layout, que jsdom no calcula): lo decide cada test.
-const spot = vi.hoisted(() => ({ covers: false }))
-vi.mock('./agentSpot', () => ({ coversControl: () => spot.covers }))
+const spot = vi.hoisted(() => ({ covers: false, lift: 0 }))
+vi.mock('./agentSpot', () => ({ coversControl: () => spot.covers, tuckLift: () => spot.lift }))
 
 const BEER = { id: 'b1', name: 'Cerveza Escudo 470 cc', price: '$1.380', vertical: 'liquor', store: 'Botillería' }
 
@@ -65,6 +65,7 @@ afterEach(() => {
   resetQuiet()
   localStorage.clear()
   spot.covers = false
+  spot.lift = 0
 })
 
 const added = (product) => act(() => window.dispatchEvent(new CustomEvent(AGENT_CART_EVENT, { detail: { product } })))
@@ -326,5 +327,14 @@ describe('Mochi no tapa los "+"', () => {
     await act(async () => container.querySelector('.phone').append(document.createElement('div')))
     act(() => vi.advanceTimersByTime(200))
     expect(host().classList).not.toContain('is-tucked')
+  })
+
+  test('apartado, sube lo que diga tuckLift para no pisar un "+" con lo que asoma', () => {
+    vi.useFakeTimers()
+    spot.covers = true
+    spot.lift = 48
+    mountTree()
+    act(() => vi.advanceTimersByTime(200))
+    expect(host().style.getPropertyValue('--tuck-lift')).toBe('48px')
   })
 })

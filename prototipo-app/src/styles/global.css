@@ -193,6 +193,17 @@ img {
   font-weight: 500;
 }
 
+/* "Volver" en un círculo gris (Restaurantes, Súper y las demás verticales, la lista, el pago y Mis pedidos). Vivía en
+   restaurants.css: las otras pantallas lo veían solo después de pasar por Restaurantes */
+.round-button {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: var(--chip);
+}
+
 .free-delivery {
   display: inline-flex;
   align-items: center;
