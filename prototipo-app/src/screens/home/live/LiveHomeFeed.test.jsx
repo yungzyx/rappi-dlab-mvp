@@ -1308,7 +1308,10 @@ describe('Home del prototipo final', () => {
       expect(localStorage.getItem('rappi-proto-mochi-silencio')).toBe(today())
       expect(menu()).toBeNull()
       expect(container.querySelector('.live-agent')).toBeTruthy() // sigue a la vista
-      expect(status()).toBe('') // la oferta que estaba debajo no vuelve
+      expect(status()).toBe('') // la oferta que estaba debajo no vuelve, y queda como expirada
+      expect(tracked('suggestion_dismissed', 'agent-carrito')).toEqual([
+        ['suggestion_dismissed', expect.objectContaining({ payload: { kind: 'expirada' } })],
+      ])
       await advance(30500)
       expect(status()).toBe('')
 

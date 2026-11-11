@@ -66,7 +66,7 @@ const backVertical = () => {
   return made && winbackKind(made) === 'vuelta' ? made.backendVertical : null
 }
 const T = { enter: 900, greet: 3400, greetHold: 6000 }
-// Silenciado por hoy (desde el agente flotante) o callado porque lo ignoraron: no habla por su cuenta; si lo tocan, sí.
+// Silenciado por hoy (desde su menú, en la Home o flotante) o callado porque lo ignoraron: no habla por su cuenta; si lo tocan, sí.
 // Oculto ("Ocultar a Mochi"): no está, así que tampoco habla ni propone nada.
 const silent = () => isQuiet(today()) || isHushed() || isAgentHidden()
 // El origen de los eventos de "Mochi movió tus accesos".
@@ -102,7 +102,7 @@ const buzz = () => navigator.vibrate?.(12)
 /**
  * Home del prototipo final: la barra abre el buscador con el agente. El agente de cuerpo entero vive en
  * la Home: saluda, acompaña el plan del día, al tocarlo abre su menú (con "Muéstrame algo nuevo", la vertical por
- * probar, y "Ocultar") y, cuando el motor cambia el orden de los accesos, los mueve y dice por qué. Oculto ("Ocultar a
+ * probar, "Silenciar por hoy" y "Ocultar") y, cuando el motor cambia el orden de los accesos, los mueve y dice por qué. Oculto ("Ocultar a
  * Mochi"), la Home queda sin él y con el buscador de siempre.
  */
 export default function LiveHomeFeed({ push, active = true }) {
@@ -704,13 +704,18 @@ export default function LiveHomeFeed({ push, active = true }) {
   // "Silenciar por hoy" es el mismo silencio de Mochi flotante (sigue a la vista y responde si lo tocan, pero no habla
   // por su cuenta hasta mañana); silenciado, la opción es "Volver a hablar". Mientras saluda, tocarlo no cambia de tema.
   // Si el menú se abre sobre una oferta (el globo del carro, la vertical por probar), al cerrarlo sin pedir algo nuevo
-  // la oferta vuelve: no se pierde sin registrar nada. Oculto o silenciado (desde el menú), no vuelve nada y lo
-  // pendiente se olvida (`drain` en silencio).
+  // la oferta vuelve: no se pierde sin registrar nada. Oculto o silenciado (desde el menú), la oferta queda como
+  // expirada, no vuelve nada y lo pendiente se olvida (`drain` en silencio).
   const poke = () => {
     if (!session.played) return
     if (said.current?.menu) return said.current.menu.onClose()
     const under = said.current?.onExpire ? said.current : null
-    const close = () => (under && !isAgentHidden() && !isQuiet(today()) ? speak(under, null, OFFER_HOLD) : speak(null))
+    // Silenciado u oculto desde el menú, la oferta de debajo no vuelve: queda anotada como si se hubiera ido sola.
+    const close = () => {
+      if (under && !isAgentHidden() && !isQuiet(today())) return speak(under, null, OFFER_HOLD)
+      under?.onExpire()
+      speak(null)
+    }
     const actions = [
       { id: 'new', label: 'Muéstrame algo nuevo' },
       { id: 'search', label: `Buscar con ${AGENT_NAME}` },
