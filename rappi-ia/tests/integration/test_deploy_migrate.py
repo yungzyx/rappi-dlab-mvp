@@ -254,9 +254,8 @@ def test_grants_file_lets_the_api_role_write_only_its_tables(db):
 
     conn = db
     role = "rappi_api_prueba"
-    for name in ("rappi_owner", role):  # rappi_owner: el dueño de ALTER DEFAULT PRIVILEGES (en el servidor ya existe)
-        if conn.execute("SELECT 1 FROM pg_roles WHERE rolname = %s", (name,)).fetchone() is None:
-            conn.execute(sql.SQL("CREATE ROLE {}").format(sql.Identifier(name)))
+    if conn.execute("SELECT 1 FROM pg_roles WHERE rolname = %s", (role,)).fetchone() is None:
+        conn.execute(sql.SQL("CREATE ROLE {}").format(sql.Identifier(role)))
     # Un permiso de más (de antes, o puesto a mano) desaparece; aplicarlo dos veces da lo mismo (cada despliegue).
     conn.execute(sql.SQL("GRANT INSERT, UPDATE, DELETE ON stores TO {}").format(sql.Identifier(role)))
     grants = sql.SQL(cli.GRANTS_FILE.read_text(encoding="utf-8")).format(api_role=sql.Identifier(role))
@@ -319,9 +318,8 @@ def test_grants_file_covers_every_person_table_the_api_writes(db):
     assert PERSON_TABLES.keys() >= NOT_WRITTEN_BY_API
     conn = db
     role = "rappi_api_prueba"
-    for name in ("rappi_owner", role):
-        if conn.execute("SELECT 1 FROM pg_roles WHERE rolname = %s", (name,)).fetchone() is None:
-            conn.execute(sql.SQL("CREATE ROLE {}").format(sql.Identifier(name)))
+    if conn.execute("SELECT 1 FROM pg_roles WHERE rolname = %s", (role,)).fetchone() is None:
+        conn.execute(sql.SQL("CREATE ROLE {}").format(sql.Identifier(role)))
     conn.execute(sql.SQL(cli.GRANTS_FILE.read_text(encoding="utf-8")).format(api_role=sql.Identifier(role)))
 
     written = sorted(PERSON_TABLES.keys() - NOT_WRITTEN_BY_API)
