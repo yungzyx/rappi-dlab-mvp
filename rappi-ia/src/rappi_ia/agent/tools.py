@@ -12,7 +12,7 @@ from psycopg import Connection
 from rappi_scraper.storage.search import MIN_PRICE
 
 from .. import config
-from ..concepts.taxonomy import load_taxonomy
+from ..concepts.taxonomy import complement_queries, load_taxonomy
 from ..embeddings.base import TextEmbedder
 from ..motor.combos import SERVICES
 from ..motor.predict import step_signal, target_step
@@ -364,24 +364,26 @@ def suggest_complement(
         return _verticals_for(conn, candidate.concept, current_vertical)
 
     def search(candidate: _Candidate, verticals: list[str]) -> tuple[str, list[Product], str | None] | None:
-        """(vertical, productos, marca) de la primera vertical donde el candidato tiene productos."""
+        """(vertical, productos, marca) de la primera vertical donde el candidato tiene productos. Si la arista trae su
+        consulta (`complement_queries`), primero se busca con ella en todas las verticales, y solo vale lo que calza
+        alguna de sus palabras (`_of_concept`); si nada la calza, con el nombre del concepto, como siempre."""
         concept = taxonomy.concepts[candidate.concept]
-        for vertical in verticals:
-            if not offerable_vertical(vertical):
-                continue
-            brand = None
-            if prefer_brands:
-                pool = search_products(
-                    conn, vertical, concept.name, [concept.id], embedder, k=BRAND_CANDIDATES, offer=True
-                )
-                products, brand = _brand_first(
-                    conn, [p for p in pool.products if p.concept == concept.id], prefer_brands
-                )
-            if brand is None:
-                outcome = search_products(conn, vertical, concept.name, [concept.id], embedder, k=4, offer=True)
-                products = [p for p in outcome.products if p.concept == concept.id]
-            if products := _dedupe(products):
-                return vertical, products[:3], brand
+        query = complement_queries().get((candidate.source, candidate.concept))
+        passes = [(query, True), (concept.name, False)] if query else [(concept.name, False)]
+        for text, named in passes:
+            for vertical in verticals:
+                if not offerable_vertical(vertical):
+                    continue
+                brand = None
+                if prefer_brands:
+                    pool = search_products(conn, vertical, text, [concept.id], embedder, k=BRAND_CANDIDATES, offer=True)
+                    products, brand = _brand_first(conn, _of_concept(pool, concept.id, named), prefer_brands)
+                if brand is None:
+                    k = NAMED_CANDIDATES if named else 4
+                    outcome = search_products(conn, vertical, text, [concept.id], embedder, k=k, offer=True)
+                    products = _of_concept(outcome, concept.id, named)
+                if products := _dedupe(products):
+                    return vertical, products[:3], brand
         return None
 
     def suggestion(candidate: _Candidate, result: tuple[str, list[Product], str | None], basis: list[dict]):
@@ -500,6 +502,16 @@ def _ordered_lately(conn: Connection, user_id: str, concepts: list[str]) -> bool
 
 
 BRAND_CANDIDATES = 12  # productos del concepto que se miran para encontrar una marca que la persona compra
+NAMED_CANDIDATES = 8  # con la consulta de la arista se miran más: solo quedan los que calzan alguna de sus palabras
+
+
+def _of_concept(outcome: SearchOutcome, concept: str, named: bool) -> list[Product]:
+    """Los productos del concepto. Con `named`, solo los que la búsqueda por palabras encontró (`lexico`): los que
+    calzan alguna palabra de la consulta de la arista en su nombre, categoría o descripción. Lo que solo trae la
+    cercanía de vectores no vale ahí: un sahumerio en "Limpiadores multiusos" se parece a la limpieza, pero no dice
+    lavaloza ni detergente."""
+    said = {(h.entity_type, h.entity_id) for h in outcome.result.hits if "lexico" in h.ranks}
+    return [p for p in outcome.products if p.concept == concept and (not named or (p.entity_type, p.entity_id) in said)]
 
 
 def _brand_first(conn: Connection, products: list[Product], brands: dict[str, int]) -> tuple[list[Product], str | None]:
