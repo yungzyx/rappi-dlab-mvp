@@ -1237,7 +1237,7 @@ describe('Home del prototipo final', () => {
       const options = within(menu())
         .getAllByRole('button')
         .map((button) => button.textContent)
-      expect(options).toEqual(['Muéstrame algo nuevo', 'Buscar con Mochi', 'Ocultar a Mochi'])
+      expect(options).toEqual(['Muéstrame algo nuevo', 'Buscar con Mochi', 'Silenciar por hoy', 'Ocultar a Mochi'])
       expect(mochi().getAttribute('aria-expanded')).toBe('true')
       expect(offerRequests()).toEqual([])
       fireEvent.click(mochi())
@@ -1294,6 +1294,54 @@ describe('Home del prototipo final', () => {
       expect(tracked('suggestion_dismissed', 'agent-carrito')).toEqual([
         ['suggestion_dismissed', expect.objectContaining({ payload: { kind: 'expirada' } })],
       ])
+    })
+
+    test('"Silenciar por hoy" lo calla hasta mañana sin sacarlo de la Home; "Volver a hablar" lo despierta', async () => {
+      memory.session.played = true
+      memory.session.lastAdded = LOOSE_CART
+      const { container } = await renderHome()
+      await advance(4000)
+      const status = () => container.querySelector('.live-layer [role="status"]').textContent
+      expect(status()).toBe(fixture('agent-offer-carrito').text)
+      fireEvent.click(mochi())
+      fireEvent.click(screen.getByRole('button', { name: 'Silenciar por hoy' }))
+      expect(localStorage.getItem('rappi-proto-mochi-silencio')).toBe(today())
+      expect(menu()).toBeNull()
+      expect(container.querySelector('.live-agent')).toBeTruthy() // sigue a la vista
+      expect(status()).toBe('') // la oferta que estaba debajo no vuelve
+      await advance(30500)
+      expect(status()).toBe('')
+
+      fireEvent.click(mochi())
+      const options = within(menu())
+        .getAllByRole('button')
+        .map((button) => button.textContent)
+      expect(options).toContain('Volver a hablar')
+      expect(options).not.toContain('Silenciar por hoy')
+      fireEvent.click(screen.getByRole('button', { name: 'Volver a hablar' }))
+      expect(localStorage.getItem('rappi-proto-mochi-silencio')).toBeNull()
+      expect(menu()).toBeNull()
+    })
+
+    test('silenciarlo desde el menú no explica un cambio de orden pendiente', async () => {
+      memory.session.played = true
+      memory.session.pendingMove = {
+        key: 1,
+        vertical: 'farmacia',
+        from: 1,
+        to: 0,
+        reason: { text: 'Porque pides seguido en farmacia.', basis: [] },
+        requestId: 'contrato-profile-verticales',
+        resets: 0,
+      }
+      memory.session.lastAdded = LOOSE_CART
+      await renderHome()
+      await advance(4000) // la oferta del carro va primero; "Moví…" espera
+      fireEvent.click(mochi())
+      fireEvent.click(screen.getByRole('button', { name: 'Silenciar por hoy' }))
+      await advance(2000)
+      expect(tracked('vertical_reorder_shown', 'agent-reorden')).toEqual([])
+      expect(memory.session.pendingMove).toBeNull()
     })
 
     test('ocultarlo desde el menú no explica un cambio de orden pendiente que nadie vería', async () => {

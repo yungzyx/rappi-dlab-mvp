@@ -217,6 +217,19 @@ describe('Mochi flotante', () => {
     expect(agentButton()).toBeTruthy()
   })
 
+  test('silenciado o despertado desde la Home, al salir de ella lo respeta', async () => {
+    const { container, rerender } = mountTree({ screen: 'home', homeTab: 'home' })
+    expect(container.querySelector('.agent-presence')).toBeNull()
+    localStorage.setItem(QUIET_KEY, today()) // "Silenciar por hoy" en el menú de la Home
+    rerender(tree({ screen: 'vertical' }))
+    expect(container.querySelector('.agent-presence').classList).toContain('is-quiet')
+
+    rerender(tree({ screen: 'home', homeTab: 'home' }))
+    localStorage.removeItem(QUIET_KEY) // "Volver a hablar" en la Home
+    rerender(tree({ screen: 'vertical' }))
+    expect(container.querySelector('.agent-presence').classList).not.toContain('is-quiet')
+  })
+
   test('"Ocultar a Mochi" pide confirmar; "Cancelar" vuelve al menú y "Ocultar" lo saca para siempre', async () => {
     const { container } = mountTree()
     fireEvent.click(agentButton())

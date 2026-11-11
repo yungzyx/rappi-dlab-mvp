@@ -18,7 +18,7 @@ Sin datos personales: ni nombre, ni teléfono, ni nada que identifique a la pers
 | 2. Algo para la once, a Mochi | ☐ sola ☐ con ayuda ☐ no | \_\_ min | |
 | 3. Carro y vuelta al inicio | ☐ sola ☐ con ayuda ☐ no | \_\_ min | Agregó desde: ☐ el buscador ☐ una tienda · ¿Vio la oferta en la Home? ☐ sí ☐ no |
 | 4. "¿Por qué?" y decidir | ☐ sola ☐ con ayuda ☐ no | \_\_ min | |
-| 5. Ocultar a Mochi y traerlo | ☐ sola ☐ con ayuda ☐ no | \_\_ min | ¿Ocultar? ☐ solo ☐ ayuda · ¿Traerlo? ☐ solo ☐ ayuda |
+| 5. Ocultar a Mochi y traerlo | ☐ sola ☐ con ayuda ☐ no | \_\_ min | ¿Ocultar? ☐ solo ☐ ayuda ☐ silenció en vez de ocultar · ¿Traerlo? ☐ solo ☐ ayuda |
 | 6. Pedido hasta el seguimiento | ☐ sola ☐ con ayuda ☐ no | \_\_ min | |
 
 **Tareas 3 y 4, la oferta.** Dónde apareció: ☐ en la Home, en el globo con productos y "+" ☐ en el checkout, con "¿Me falta algo?" ☐ no apareció. El globo "Moví … al primer lugar…" no es la oferta: si sale, ☐ la persona lo tomó por la oferta. Qué ofrecía: \_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_

@@ -47,7 +47,7 @@ import {
   session,
   tourSeen,
 } from '../../../state/liveMemory'
-import { isHushed, isQuiet, noteDismissed, noteEngaged } from '../../../state/agentQuiet'
+import { isHushed, isQuiet, noteDismissed, noteEngaged, quietToday, wake } from '../../../state/agentQuiet'
 import { isAgentHidden, useAgentHidden } from '../../../state/agentHidden'
 import { moveText, moveWhy, useShortcutMove } from './shortcutMoves'
 import { today } from '../../../utils/today'
@@ -700,19 +700,22 @@ export default function LiveHomeFeed({ push, active = true }) {
   }
 
   // Tocar a Mochi abre su menú, el mismo que fuera de la Home (AgentMenu, con "Ocultar a Mochi" al final); otro toque lo
-  // cierra. Aquí no se mueve de lado ni se silencia por hoy (eso es de Mochi flotante), y "Muéstrame algo nuevo" pide
-  // la vertical por probar. Mientras saluda, tocarlo no cambia de tema. Si el menú se abre sobre una oferta (el globo
-  // del carro, la vertical por probar), al cerrarlo sin pedir algo nuevo la oferta vuelve: no se pierde sin registrar
-  // nada. Oculto (desde el menú), no vuelve nada y lo pendiente se olvida (`drain` en silencio).
+  // cierra. Aquí no se mueve de lado (eso es de Mochi flotante), y "Muéstrame algo nuevo" pide la vertical por probar.
+  // "Silenciar por hoy" es el mismo silencio de Mochi flotante (sigue a la vista y responde si lo tocan, pero no habla
+  // por su cuenta hasta mañana); silenciado, la opción es "Volver a hablar". Mientras saluda, tocarlo no cambia de tema.
+  // Si el menú se abre sobre una oferta (el globo del carro, la vertical por probar), al cerrarlo sin pedir algo nuevo
+  // la oferta vuelve: no se pierde sin registrar nada. Oculto o silenciado (desde el menú), no vuelve nada y lo
+  // pendiente se olvida (`drain` en silencio).
   const poke = () => {
     if (!session.played) return
     if (said.current?.menu) return said.current.menu.onClose()
     const under = said.current?.onExpire ? said.current : null
-    const close = () => (under && !isAgentHidden() ? speak(under, null, OFFER_HOLD) : speak(null))
+    const close = () => (under && !isAgentHidden() && !isQuiet(today()) ? speak(under, null, OFFER_HOLD) : speak(null))
     const actions = [
       { id: 'new', label: 'Muéstrame algo nuevo' },
       { id: 'search', label: `Buscar con ${AGENT_NAME}` },
       ...(cart.count > 0 ? [{ id: 'cart', label: `Revisar mi carrito · ${formatPrice(cart.total)}` }] : []),
+      isQuiet(today()) ? { id: 'wake', label: 'Volver a hablar' } : { id: 'quiet', label: 'Silenciar por hoy' },
     ]
     speak({ menu: { actions, onRun: (id) => runMenu(id, close), onClose: close }, mood: 'listen' })
   }
@@ -720,6 +723,8 @@ export default function LiveHomeFeed({ push, active = true }) {
   // Las demás opciones tapan la Home (el buscador, la hoja del carro): la oferta que había vuelve y espera debajo.
   const runMenu = (id, close) => {
     if (id === 'new') return suggestNew()
+    if (id === 'quiet') quietToday(today())
+    if (id === 'wake') wake()
     close()
     noteEngaged()
     if (id === 'search') assistant.open()
