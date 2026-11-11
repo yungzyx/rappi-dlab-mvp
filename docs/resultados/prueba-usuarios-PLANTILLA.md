@@ -11,7 +11,7 @@
 | Fecha y lugar | AAAA-MM-DD, … |
 | Versión de la app | commit `…` de `main` que servía dlab-mvp.com |
 | Equipo | teléfono / notebook, navegador … |
-| `OFFERS_CONTROL_PCT` | 0 (confirmado por …) |
+| `OFFERS_CONTROL_PCT` | 0 ("Grupo de control: 0 %" en `chequeo-sesion.sh` antes de cada participante) |
 | Roles | moderador, observador (sin nombres) |
 | Desvíos del guion | … (o "ninguno") |
 
@@ -35,8 +35,8 @@ En cada celda: sola, con ayuda o no, y entre paréntesis el tiempo aproximado (p
 |---|---|---|---|---|---|---|
 | 1. Buscar con un error de tipeo | | | | | | … |
 | 2. "Algo para la once" | | | | | | … |
-| 3. Aceptar o rechazar una oferta y decir por qué | | | | | | … |
-| 4. Abrir "¿Por qué?" | | | | | | … |
+| 3. Agrega algo al carro y vuelve al inicio | | | | | | … |
+| 4. "¿Por qué?" y decidir | | | | | | … |
 | 5. Ocultar a Mochi y traerlo de vuelta | | | | | | … |
 | 6. Pedir hasta el seguimiento | | | | | | … |
 
@@ -49,7 +49,9 @@ Copiado del resumen de cada persona (`rappi-ia resumen-prueba`). La duración es
 | Duración | | | | | |
 | Búsquedas (sin resultado / corregidas) | | | | | |
 | Ofertas de Mochi mostradas | | | | | |
-| … aceptadas / rechazadas / sin respuesta | | | | | |
+| … aceptadas / rechazadas / se fue sola / sin respuesta | | | | | |
+| Abrió el "¿Por qué?" | | | | | |
+| Abrió la vertical o la búsqueda desde la oferta (Ver/Abrir) | | | | | |
 | Productos agregados desde una oferta | | | | | |
 | Verticales abiertas | | | | | |
 | Verticales con pedido | | | | | |
@@ -86,6 +88,21 @@ Preguntas abiertas, con las palabras de cada persona (citas cortas):
 3. **Si usaras esto de verdad, ¿pedirías algo en una categoría que hoy no usas? ¿Qué te haría hacerlo?**
    - P1: "…"
 
+## Criterios
+
+Los de [prueba-usuarios.md](../prueba-usuarios.md#criterios-fijados-antes-de-la-primera-sesión), con el umbral fijado antes de la primera sesión: no se cambia aquí. "n de 5 observado" cuenta a quienes mostraron la señal; si llega al umbral, se dispara el cambio.
+
+| Pregunta | Señal | Umbral | n de 5 observado | ¿Pasa el umbral? | Cambio que se dispara |
+|---|---|---|---|---|---|
+| ¿Se entiende el "¿Por qué?"? | En la tarea 4, lo que creía antes de leer no coincide con el texto, o dice que no lo entiende; o marca 1 o 2 en la afirmación 1 | 3 de 5 | | | Reescribir la plantilla del texto del "¿Por qué?" de ese momento |
+| ¿Se nota la oferta? | En la tarea 3 no la vio o se fue sola (si la Home no la mostró, va a "Problemas encontrados") | 2 de 5 | | | Revisar dónde y cuánto rato se muestra el globo con oferta en la Home |
+| ¿Se entiende qué pasa al aceptarla? | En la tarea 4 se sorprende de lo que pasó al tocar el "+" de un producto o "Ver …", o dice que no sabía que el "+" lo agregaba al carro | 2 de 5 | | | Cambiar cómo se ve o se rotula el "+" de los productos del globo |
+| ¿Se puede rechazar sin problema? | No encuentra "Ahora no" o "Después", o pide ayuda para decir que no | 2 de 5 | | | Hacer más visible el botón de rechazar |
+| ¿Mochi estorba? | Marca 4 o 5 en la afirmación 3, o lo cuenta en la pregunta abierta 2 | 2 de 5 | | | Revisar cuántas veces y cuándo habla Mochi en la Home |
+| ¿Se puede ocultar y traer de vuelta? | En la tarea 5 no lo trae de vuelta sin ayuda | 1 de 5 | | | Mover o rotular "Mostrar a Mochi" |
+| ¿Se entiende la corrección del tipeo? | En la tarea 1 no ve "Mostrando resultados para…", o marca 1 o 2 en la afirmación 5 | 2 de 5 | | | Revisar el aviso de la corrección en los resultados |
+| ¿Lleva a mirar otra vertical? | No abre otra vertical por un acceso de la Home ni por una oferta de Mochi (recorrido del resumen) | 4 de 5 | | | Revisar, antes de una prueba más grande, si la oferta de vertical por probar aparece y se entiende; no se concluye nada de efecto ni de retención |
+
 ## Problemas encontrados
 
 De más a menos grave. Gravedad: alta (impide la tarea), media (la demora o confunde), baja (molesta).
@@ -104,7 +121,7 @@ Respuestas a las tres preguntas de la prueba, siempre como "n de N" y con las ci
 
 ## Qué no se puede decir
 
-Esta prueba no mide retención (una sesión, pedidos de mentira), no muestra un efecto de Mochi (sin grupo de control, con tareas que piden buscar, aceptar y pedir, y con alguien mirando) y no representa a quienes usan Rappi (N personas elegidas por conveniencia). Sus cifras no se juntan con las simuladas ni se comparan con la tabla de Rappi, que además es una correlación.
+Esta prueba no mide retención (una sesión, pedidos de mentira), no muestra un efecto de Mochi (sin grupo de control, con tareas que piden buscar, decidir sobre una oferta y pedir, y con alguien mirando) y no representa a quienes usan Rappi (N personas elegidas por conveniencia). Sus cifras no se juntan con las simuladas ni se comparan con la tabla de Rappi, que además es una correlación.
 
 ## Próximos pasos
 
