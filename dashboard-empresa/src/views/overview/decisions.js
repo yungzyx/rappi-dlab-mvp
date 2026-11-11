@@ -1,5 +1,5 @@
 // Las 4 preguntas del Resumen, cada una con su cifra, su contexto (comparación o tendencia) y una acción sugerida.
-// Funciones puras sobre las respuestas de /analytics: `{ figure, unit, context, delta?, action? }`.
+// Funciones puras sobre las respuestas de /analytics: `{ figure, unit, context, delta?, caveat?, action? }`.
 import { AGENT_NAME } from '../../lib/agentName.js'
 import { formatDate, formatNumber, formatPct, formatPoints, formatSignedPct } from '../../lib/format.js'
 import { comboLabel, demandLabel, verticalLabel } from '../../lib/labels.js'
@@ -26,8 +26,9 @@ export function crossSellDecision(combos) {
   return {
     figure: formatPct(step.from.pct_usuarios),
     unit: `de los usuarios de Rappi (${formatNumber(step.from.usuarios)}) ${single ? 'solo pide' : 'pide'} en ${from}`,
-    context: `Vuelven al mes siguiente el ${formatPct(step.fromPct, 0)}; quienes además piden en ${added}, el ${formatPct(step.toPct, 0)} (${formatPoints(step.gain, 0)}). Es una correlación, no un efecto.`,
-    action: `Que ${AGENT_NAME} ofrezca ${added} a quien ${single ? 'solo ' : ''}pide en ${from} ("vertical por probar") y medirlo contra un grupo de control.`,
+    context: `Al mes siguiente vuelve el ${formatPct(step.fromPct, 0)}; entre quienes además piden en ${added}, el ${formatPct(step.toPct, 0)} (${formatPoints(step.gain, 0)}).`,
+    caveat: 'Es una correlación, no un efecto.',
+    action: `Ofrecer ${added} a quien ${single ? 'solo ' : ''}pide en ${from} ("vertical por probar") y medirlo contra un grupo de control.`,
   }
 }
 
@@ -45,11 +46,11 @@ export function churnDecision(kpis, winback) {
   return {
     figure: formatNumber(atRisk),
     unit: `${atRisk === 1 ? 'persona' : 'personas'} en riesgo, según su propio ritmo`,
-    context: `Pasaron el doble de su ritmo sin pedir y todavía se pueden recuperar. Otras ${formatNumber(lost)} pasaron el triple y se dan por perdidas.`,
+    context: `Pasaron el doble de su ritmo sin pedir. Otras ${formatNumber(lost)} pasaron el triple y se dan por perdidas.`,
     action:
       winback.califican > 0
-        ? `Invitar a volver con "¿Volvemos a…?" de ${AGENT_NAME}: ${winback.dia ? `al ${formatDate(winback.dia)}` : 'hoy'} califican ${people(winback.califican)} que dejaron algo que pedían con ritmo. Fuera de la app, solo a quien aceptó avisos.`
-        : 'Recordarles su concepto top en su ritmo; fuera de la app, solo a quien aceptó avisos.',
+        ? `Invitar a volver con "¿Volvemos a…?": ${winback.dia ? `al ${formatDate(winback.dia)}` : 'hoy'} califican ${people(winback.califican)}. Fuera de la app, solo a quien aceptó avisos.`
+        : 'Recordarles lo que más pedían, en su ritmo. Fuera de la app, solo a quien aceptó avisos.',
   }
 }
 

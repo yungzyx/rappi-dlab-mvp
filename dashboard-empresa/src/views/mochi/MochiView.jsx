@@ -20,7 +20,6 @@ import { SuggestionRanking } from './SuggestionRanking.jsx'
 import { splitTrends } from './trends.js'
 import { UnmetDemand } from './UnmetDemand.jsx'
 import { UnmetSearches } from './UnmetSearches.jsx'
-import './mochi.css'
 
 const TOP_RISING = 5
 

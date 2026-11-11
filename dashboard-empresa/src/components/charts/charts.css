@@ -41,12 +41,95 @@
   gap: 6px;
 }
 
+/* ---------- Línea semanal ---------- */
+.line-chart {
+  display: grid;
+  gap: var(--space-2);
+  min-width: 0;
+}
+
+.chart-readout {
+  min-height: 1.5em;
+  font-size: var(--text-sm);
+  color: var(--ink-2);
+}
+
+.chart-readout strong {
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.line-chart-plot {
+  min-width: 0;
+  touch-action: pan-y;
+}
+
+.line-chart-plot svg {
+  display: block;
+  overflow: visible;
+}
+
+.chart-grid {
+  stroke: var(--chart-grid);
+  stroke-width: 1;
+  shape-rendering: crispEdges;
+}
+
+.chart-axis {
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+  fill: var(--chart-axis);
+}
+
+.chart-line {
+  fill: none;
+  stroke: var(--series-1);
+  stroke-width: 1.5;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+}
+
+.chart-line--partial {
+  stroke-dasharray: 4 4;
+}
+
+.chart-dot {
+  fill: var(--series-1);
+  stroke: var(--surface);
+  stroke-width: 2;
+}
+
+.chart-dot--partial {
+  fill: var(--surface);
+  stroke: var(--series-1);
+  stroke-width: 1.5;
+}
+
+.chart-dot--hover {
+  fill: var(--surface);
+  stroke: var(--series-1);
+  stroke-width: 2;
+}
+
+.chart-guide {
+  stroke: var(--line-strong);
+  stroke-width: 1;
+  shape-rendering: crispEdges;
+}
+
+/* El selector de serie hace de leyenda, a la izquierda de "Ver tabla" */
+.chart-picker {
+  margin-right: auto;
+}
+
 @media (forced-colors: active) {
-  .sparkline-path {
+  .sparkline-path,
+  .chart-line {
     stroke: CanvasText;
   }
 
-  .sparkline-dot {
+  .sparkline-dot,
+  .chart-dot {
     fill: CanvasText;
   }
 }

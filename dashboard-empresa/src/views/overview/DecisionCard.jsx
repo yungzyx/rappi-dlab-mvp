@@ -1,4 +1,5 @@
 import { Async } from '../../components/Async.jsx'
+import { Caveat } from '../../components/Caveat.jsx'
 import { Delta } from '../../components/Delta.jsx'
 import { Icon } from '../../components/Icon.jsx'
 import { ProvenanceBadge } from '../../components/ProvenanceBadge.jsx'
@@ -13,12 +14,12 @@ const ACTION_LABELS = {
 }
 
 /**
- * Lo que dice una decisión (`decisions.js`): a la izquierda la cifra (si la hay) y su cambio; a la derecha el contexto y
- * la acción, rotulada según su fuente. Sin cifra, el texto ocupa todo el ancho.
+ * Lo que dice una decisión (`decisions.js`): a la izquierda la cifra (si la hay) y su cambio; a la derecha el contexto,
+ * su salvedad y la acción, rotulada según su fuente. Sin cifra, el texto ocupa todo el ancho.
  */
 export function DecisionBody({ decision, source }) {
   if (!decision) return <p className="decision-context decision-empty">Sin datos suficientes en esta fuente.</p>
-  const { figure, unit, context, delta, action } = decision
+  const { figure, unit, context, delta, caveat, action } = decision
   return (
     <>
       {(figure || delta) && (
@@ -34,6 +35,7 @@ export function DecisionBody({ decision, source }) {
       )}
       <div className="decision-detail">
         <p className="decision-context">{context}</p>
+        {caveat && <Caveat>{caveat}</Caveat>}
         {action && (
           <p className="decision-action">
             <span>{ACTION_LABELS[source]}</span>

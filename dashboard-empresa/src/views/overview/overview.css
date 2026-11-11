@@ -86,8 +86,7 @@
   color: var(--ink-2);
 }
 
-.decision-metric .delta,
-.pulse-tile .delta {
+.decision-metric .delta {
   flex-wrap: wrap;
   align-self: start;
 }
@@ -125,11 +124,10 @@
   justify-self: end;
 }
 
-/* ---------- Cómo va: una tira de 5 indicadores ---------- */
+/* ---------- Cómo va: una tira de 5 indicadores de igual altura ---------- */
 .pulse {
   display: grid;
   grid-template-columns: repeat(5, minmax(0, 1fr));
-  grid-auto-rows: auto;
   gap: 1px;
   overflow: hidden;
   border: 1px solid var(--line);
@@ -137,12 +135,12 @@
   background: var(--line);
 }
 
-/* Subgrid de filas: rótulo, cifra, cambio y chispa en la misma línea en todas las celdas, aunque un rótulo ocupe dos */
+/* Cuatro filas fijas en cada celda: rótulo (hasta dos líneas), cifra, cambio o unidad y la ranura (tendencia, barra o
+   nota). Así cifras, cambios y tendencias quedan en la misma línea en todas las celdas. */
 .pulse-tile {
   display: grid;
-  grid-row: span 4;
-  grid-template-rows: subgrid;
-  gap: var(--space-1);
+  grid-template-rows: 34px 32px minmax(20px, auto) minmax(32px, auto);
+  row-gap: var(--space-1);
   align-content: start;
   min-width: 0;
   padding: 14px var(--space-4);
@@ -150,18 +148,16 @@
 }
 
 .pulse-tile h3 {
-  font-size: 0.78125rem;
+  align-self: start;
+  font-size: var(--text-sm);
   font-weight: 500;
   letter-spacing: 0;
+  line-height: 1.3;
   color: var(--ink-2);
 }
 
 .pulse-value {
-  display: grid;
-  gap: 0;
-}
-
-.pulse-value strong {
+  align-self: center;
   font-size: var(--text-kpi);
   font-weight: 600;
   letter-spacing: -0.01em;
@@ -169,15 +165,71 @@
   font-variant-numeric: tabular-nums;
 }
 
-.pulse-value span,
-.pulse-context {
-  font-size: var(--text-xs);
+.pulse-line {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+  font-size: 0.78125rem;
+}
+
+.pulse-line .delta {
+  font-size: 0.78125rem;
+}
+
+.pulse-unit {
   color: var(--ink-3);
 }
 
-.pulse-tile .sparkline {
-  align-self: end;
-  margin-top: var(--space-2);
+.pulse-slot {
+  display: flex;
+  align-items: flex-end;
+  min-width: 0;
+}
+
+.pulse-slot > * {
+  flex: 1;
+  min-width: 0;
+}
+
+.pulse-slot .meter {
+  align-self: center;
+}
+
+.pulse-context {
+  font-size: var(--text-xs);
+  line-height: 1.35;
+  color: var(--ink-3);
+}
+
+.pulse-line .pulse-context {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* La tarjeta de la serie semanal, junto a las decisiones desde 1280 px (más angosto, debajo y a todo el ancho). Su borde
+   de arriba calza con el de la lista (bajo el título "Qué decidir") y queda fija al bajar. */
+.overview-pair {
+  align-items: start;
+}
+
+@media (max-width: 1279px) {
+  .overview-pair {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@media (min-width: 1280px) {
+  .overview-pair > .weekly-panel {
+    position: sticky;
+    top: calc(var(--top-h, 36px) + var(--space-4));
+    margin-top: calc(var(--text-title) * 1.3 + var(--space-4));
+  }
+}
+
+.weekly-panel .view-switch {
+  align-items: center;
+  gap: var(--space-2);
 }
 
 @container (max-width: 1060px) {
@@ -208,18 +260,6 @@
     grid-column: 2;
     grid-row: 1;
   }
-
-  .pulse {
-    grid-template-columns: repeat(6, minmax(0, 1fr));
-  }
-
-  .pulse-tile:nth-child(-n + 3) {
-    grid-column: span 2;
-  }
-
-  .pulse-tile:nth-child(n + 4) {
-    grid-column: span 3;
-  }
 }
 
 @container (max-width: 600px) {
@@ -240,7 +280,23 @@
     grid-row: 3;
     justify-self: start;
   }
+}
 
+@container (max-width: 860px) {
+  .pulse {
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+  }
+
+  .pulse-tile:nth-child(-n + 3) {
+    grid-column: span 2;
+  }
+
+  .pulse-tile:nth-child(n + 4) {
+    grid-column: span 3;
+  }
+}
+
+@container (max-width: 520px) {
   .pulse {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }

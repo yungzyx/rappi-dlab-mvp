@@ -42,6 +42,10 @@
   --data: var(--brand); /* solo la serie destacada */
   --data-bar: light-dark(#52525b, #a1a1aa); /* barras de magnitud en tablas */
   --deemph: light-dark(#8a8a8a, #6b6b6b); /* contexto: chispas, "hoy" en la escalera */
+  --series-1: light-dark(#27272a, #d4d4d8); /* gráficos: serie principal (línea y barra) */
+  --series-2: light-dark(#85858f, #6f6f7a); /* gráficos: segunda serie */
+  --chart-grid: var(--line);
+  --chart-axis: var(--ink-3);
 
   /* Estados: reservados, siempre con ícono y texto */
   --bad: light-dark(#b8123a, #f25c7e);

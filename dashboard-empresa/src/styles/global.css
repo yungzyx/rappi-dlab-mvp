@@ -175,6 +175,47 @@ abbr {
   min-width: 0;
 }
 
+/* Dos bloques lado a lado (entre verticales | servicios; CTR | embudo; sube | surtido; decisiones | serie) */
+.pair {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-4);
+  align-items: start;
+}
+
+.pair--7-5 {
+  grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
+}
+
+/* Con la barra lateral, bajo 1280 px cada mitad queda angosta para sus tablas */
+@media (max-width: 1000px), (min-width: 1200px) and (max-width: 1279px) {
+  .pair,
+  .pair--7-5 {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+/* Selector nativo (el indicador de la serie semanal) */
+.select {
+  height: 28px;
+  padding: 0 28px 0 10px;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius-s);
+  font: inherit;
+  font-size: var(--text-sm);
+  font-weight: 500;
+  color: var(--ink);
+  background: var(--surface)
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' fill='none' stroke='%2371717a' stroke-width='1.5'%3E%3Cpath d='m1 1 4 4 4-4'/%3E%3C/svg%3E")
+    no-repeat right 10px center;
+  appearance: none;
+  cursor: pointer;
+}
+
+.select:hover {
+  background-color: var(--surface-sunken);
+}
+
 /* Nota bajo un bloque (fuente, definición, límite) */
 .block-note {
   max-width: 88ch;
