@@ -69,6 +69,13 @@ export default function AgentPresence({ screen, homeTab, raised }) {
     AGENT_HIDDEN_SCREENS.has(screen) ||
     (screen === 'home' && homeTab === 'home')
 
+  // Al volver a aparecer (al salir de la Home, donde también se silencia o despierta), lee el silencio guardado.
+  const [wasHidden, setWasHidden] = useState(hidden)
+  if (wasHidden !== hidden) {
+    setWasHidden(hidden)
+    if (!hidden) setQuiet(isQuiet(today()))
+  }
+
   const later = (key, fn, ms) => {
     clearTimeout(timers.current[key])
     timers.current[key] = setTimeout(fn, ms)
