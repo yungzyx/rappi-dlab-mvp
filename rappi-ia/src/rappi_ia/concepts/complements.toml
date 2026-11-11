@@ -5,9 +5,9 @@
 # Nunca se sugieren conceptos sensibles, +18 (alcohol), de salud ni de bebé (offers/guards.py), aunque aparezcan
 # como destino aquí: esas aristas son datos (analítica, datos simulados), no ofertas.
 # Cuarto campo opcional: el texto con que se buscan los productos del destino en esa arista (agent/tools.py:
-# suggest_complement), si el nombre del concepto trae lo que no es. Con él solo vale lo que la búsqueda por palabras
-# encuentra (nombre, categoría o descripción): "Salsas y aderezos" traía salsa agridulce y aliño César para los
-# Doritos, y "Limpieza", sahumerios (11-11-2026; la medición, en docs/decisiones.md).
+# suggest_complement), si el nombre del concepto trae lo que no es. Con él solo vale lo que dice alguna de sus
+# palabras en su nombre: "Salsas y aderezos" traía salsa agridulce y aliño César para los Doritos, y "Limpieza",
+# sahumerios (11-11-2026; la medición, en docs/decisiones.md).
 
 edges = [
   # Alcohol → acompañamientos
@@ -221,8 +221,9 @@ edges = [
   ["cocina-menaje", "papeles-desechables", 0.4],
   ["electrohogar", "cocina-menaje", 0.4],
   ["electrohogar", "ferreteria", 0.3],
-  # La ferretería (pilas, ampolletas) no tiene complementos que ofrecer: "Plantas y jardín" traía un sahumerio y "Auto",
-  # un cubreauto. Mejor sin oferta que con una mala (11-11-2026).
+  # "Plantas y jardín" traía un sahumerio para las pilas: con el texto, herramientas de jardín. Ferretería → auto salió
+  # (un cubreauto; con otro texto, aceite de motor o cables de batería): mejor sin esa oferta que con una mala (11-11-2026).
+  ["ferreteria", "jardin", 0.4, "pala escardillo tijera de podar llave de jardín"],
   ["jardin", "ferreteria", 0.5],
   ["jardin", "decoracion", 0.3],
   ["limpieza", "papeles-desechables", 0.7, "toalla de papel papel higiénico servilletas"],
