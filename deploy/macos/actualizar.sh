@@ -65,7 +65,13 @@ main() {
       log "Hay migraciones pendientes: respaldo antes de migrar"
       "$(dirname "$0")/respaldo.sh" pre-migracion
     fi
-    rappi-ia/.venv/bin/python -m rappi_ia migrate  # sin (cd …): en el bash 3.2 un fallo en un subshell no avisaría
+    # Con el rol de la API (rol-api.sh), también sus permisos sobre lo que trajo la migración (deploy/db/grants.sql).
+    role=${API_DB_ROLE:-rappi_api}
+    if [ "$(psql -X -Atq -d postgres -c "SELECT 1 FROM pg_roles WHERE rolname = '$role'")" = 1 ]; then
+      DB_API_ROLE=$role rappi-ia/.venv/bin/python -m rappi_ia deploy-migrate --sin-respaldo
+    else
+      rappi-ia/.venv/bin/python -m rappi_ia migrate  # sin (cd …): en el bash 3.2 un fallo en un subshell no avisaría
+    fi
   fi
 
   make -s build

@@ -41,5 +41,6 @@ BEGIN
 END
 $$;
 
--- Lo que el dueño cree más adelante (fuera de una migración) también se puede leer.
-ALTER DEFAULT PRIVILEGES FOR ROLE rappi_owner GRANT SELECT ON TABLES TO {api_role};
+-- Lo que el dueño cree más adelante (fuera de una migración) también se puede leer. El dueño es quien aplica este
+-- archivo: rappi_owner en el servidor y el usuario del Mac en la demo desde un Mac (deploy/macos/rol-api.sh).
+ALTER DEFAULT PRIVILEGES GRANT SELECT ON TABLES TO {api_role};
