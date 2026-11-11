@@ -113,16 +113,28 @@ export function clearShownTopics(now = Date.now()) {
  * los vuelve a proponer en la misma sesión (api/suggestions.js: `wasRefused`). Viven con la sesión, como los temas.
  */
 export function refusedConcepts(now = Date.now()) {
-  return touchSession(now).refused ?? []
+  return withoutStorage(() => touchSession(now).refused ?? [], [])
 }
 
 export function noteRefused(concept, now = Date.now()) {
-  touchSession(now, (session) => ({ ...session, refused: [...new Set([...(session.refused ?? []), concept])] }))
+  withoutStorage(() =>
+    touchSession(now, (session) => ({ ...session, refused: [...new Set([...(session.refused ?? []), concept])] })),
+  )
 }
 
 /** "Repetir escena": como una persona que llega por primera vez, sin nada rechazado. */
 export function clearRefused(now = Date.now()) {
-  touchSession(now, (session) => ({ ...session, refused: [] }))
+  withoutStorage(() => touchSession(now, (session) => ({ ...session, refused: [] })))
+}
+
+// Sin sessionStorage (bloqueado en el navegador, o una prueba sin jsdom) no se recuerda lo rechazado: la oferta sale
+// igual, y nunca se cae por eso.
+function withoutStorage(read, fallback) {
+  try {
+    return read()
+  } catch {
+    return fallback
+  }
 }
 
 const EventsContext = createContext(null)

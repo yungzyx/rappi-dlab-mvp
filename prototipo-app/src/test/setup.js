@@ -5,5 +5,8 @@ import { afterEach, vi } from 'vitest'
 vi.mock('../state/reloadApp.js', () => ({ reloadToHome: vi.fn() }))
 
 // Lo que la app guarda en la pestaña (la sesión, lo pendiente de Mochi, lo rechazado) no pasa de una prueba a otra:
-// cada una empieza como en una pestaña nueva.
-afterEach(() => sessionStorage.clear())
+// cada una empieza como en una pestaña nueva. Las pruebas en entorno node (sin jsdom) no tienen sessionStorage en
+// Node 24, el del CI.
+afterEach(() => {
+  if (typeof sessionStorage !== 'undefined') sessionStorage.clear()
+})
