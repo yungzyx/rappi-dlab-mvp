@@ -2,8 +2,10 @@ import { AGENT_NAME } from '../../lib/agentName.js'
 import { Async } from '../../components/Async.jsx'
 import { DataTable } from '../../components/DataTable.jsx'
 import { Delta } from '../../components/Delta.jsx'
-import { ProvenanceBadge } from '../../components/ProvenanceBadge.jsx'
-import { SourceNote } from '../../components/SourceNote.jsx'
+import { Caveat } from '../../components/Caveat.jsx'
+import { SectionHead } from '../../components/SectionHead.jsx'
+import { Panel } from '../../components/Panel.jsx'
+import { Meter } from '../../components/Meter.jsx'
 import { EmptyState } from '../../components/States.jsx'
 import { Stats } from '../../components/Stats.jsx'
 import { formatNumber, formatPct, formatSignedPct } from '../../lib/format.js'
@@ -20,7 +22,6 @@ import { SuggestionRanking } from './SuggestionRanking.jsx'
 import { splitTrends } from './trends.js'
 import { UnmetDemand } from './UnmetDemand.jsx'
 import { UnmetSearches } from './UnmetSearches.jsx'
-import './mochi.css'
 
 const TOP_RISING = 5
 
@@ -61,36 +62,31 @@ function Suggestions({ source }) {
 }
 
 /**
- * Por momento y entre verticales, lado a lado. Con los simulados no hay momentos (el simulador no los guarda): el aviso
- * va en una línea y las sugerencias ocupan todo el ancho, sin dejar un hueco al lado.
+ * Por momento, a todo el ancho (7 columnas), con qué es rechazar y abrir a demanda. Con los simulados no hay momentos (el
+ * simulador no los guarda): en su lugar, una línea que lo dice.
  */
-function OffersAndSuggestions({ source }) {
+function Moments({ source }) {
   const offers = useAnalytics('offers', source)
-  const suggestions = (
-    <div className="pair-item">
-      <h3 className="subhead">Entre verticales: qué se acepta</h3>
-      <Async>
-        <Suggestions source={source} />
-      </Async>
-    </div>
-  )
   const noMoments = offers.momentos.length > 0 && offers.momentos.every((row) => row.momento === 'sin_momento')
-  if (source === 'synthetic' && noMoments) {
-    return (
-      <>
-        <OffersByMoment data={offers} source={source} />
-        {suggestions}
-      </>
-    )
-  }
+  if (source === 'synthetic' && noMoments) return <OffersByMoment data={offers} source={source} />
   return (
-    <div className="pair">
-      <div className="pair-item">
-        <h3 className="subhead">Por momento</h3>
-        <OffersByMoment data={offers} source={source} />
-      </div>
-      {suggestions}
-    </div>
+    <Panel
+      title="Por momento"
+      help={
+        <>
+          <p>
+            Rechazada: tocar "Ahora no" (Carro) o "Después" (Vertical por probar, Recompra y Volver a pedir). Los otros
+            momentos no tienen ese botón y muestran una raya. Una oferta que no se toca no es un rechazo: no se cuenta.
+          </p>
+          <p>
+            Abierta: tocar el botón que abre su vertical ("Ver …", "Abrir …"); dice que la persona fue a mirar, no que
+            la aceptó.
+          </p>
+        </>
+      }
+    >
+      <OffersByMoment data={offers} source={source} />
+    </Panel>
   )
 }
 
@@ -115,7 +111,11 @@ function Unmet({ source }) {
   return (
     <>
       <UnmetSearches data={unmet} table={!opportunities.length} />
-      {opportunities.length > 0 && <UnmetDemand rows={opportunities} />}
+      {opportunities.length > 0 && (
+        <Panel title="Demanda sin oferta">
+          <UnmetDemand rows={opportunities} />
+        </Panel>
+      )}
     </>
   )
 }
@@ -133,12 +133,13 @@ function Rising({ source }) {
   const rising = splitTrends(trends).rising.slice(0, TOP_RISING)
   if (!rising.length) {
     return (
-      <EmptyState title="Ningún concepto sube">
+      <EmptyState title="Ningún concepto sube" inline>
         La comparación pide 20 o más señales de interés en las 4 semanas anteriores.
       </EmptyState>
     )
   }
   const unmet = new Set(opportunities.map((row) => row.concept_id).filter(Boolean))
+  const max = Math.max(...rising.map((row) => row.recientes))
   const columns = [
     {
       key: 'concepto',
@@ -155,7 +156,12 @@ function Rising({ source }) {
       key: 'senales',
       header: 'Interés: ahora vs antes',
       numeric: true,
-      render: (row) => `${formatNumber(row.recientes)} vs ${formatNumber(row.anteriores)}`,
+      render: (row) => (
+        <span className="cell-bar">
+          <Meter value={row.recientes} max={max} />
+          {formatNumber(row.recientes)} vs {formatNumber(row.anteriores)}
+        </span>
+      ),
     },
     {
       key: 'cambio',
@@ -171,7 +177,7 @@ function Thin({ source }) {
   const rows = thinAssortment(useAnalytics('assortment', source))
   if (!rows.length) {
     return (
-      <EmptyState title="Ningún concepto tiene más personas buscando que productos">
+      <EmptyState title="Ningún concepto tiene más personas buscando que productos" inline>
         Se compara con los productos reales de la muestra pública.
       </EmptyState>
     )
@@ -207,136 +213,155 @@ function Thin({ source }) {
   )
 }
 
-/** RappiAds: qué ofrece Mochi, en qué momento y con qué resultado, y qué busca la gente que no encuentra. */
-export function MochiView({ source }) {
+/**
+ * RappiAds: qué ofrece Mochi, en qué momento y con qué resultado, y qué busca la gente que no encuentra. Con `tab` (la
+ * subpestaña), solo sus secciones ("ofertas" lleva también "¿Mochi molesta?"); sin `tab`, todas.
+ */
+export function MochiView({ source, tab }) {
+  const show = (id) => !tab || tab === id
   return (
     <div className="view">
-      <section className="section" aria-labelledby="ofertas">
-        <div className="section-head">
-          <h2 id="ofertas" tabIndex={-1}>
-            Lo que ofrece {AGENT_NAME}
-          </h2>
-          <p>
-            A quién le ofrece qué, en qué momento y con qué resultado. Aceptada: la oferta se agregó al carro; la tasa
-            aparece desde 10 mostradas.
-          </p>
-          <ProvenanceBadge kind={source} />
-        </div>
-        <div className="block">
-          <SourceNote source={source} />
-          <Async fallback={null}>
-            <OfferStats source={source} />
-          </Async>
-          <Async>
-            <OffersAndSuggestions source={source} />
-          </Async>
-          <div className="pair">
-            <div className="pair-item">
-              <h3 className="subhead">Servicios sin catálogo</h3>
-              <Async>
-                <Services source={source} />
-              </Async>
+      {show('ofertas') && (
+        <>
+          <section className="section" aria-labelledby="ofertas">
+            <SectionHead
+              id="ofertas"
+              title={`Lo que ofrece ${AGENT_NAME}`}
+              source={source}
+              help={
+                <p>
+                  A quién le ofrece qué, en qué momento y con qué resultado. Aceptada: la oferta se agregó al carro. La
+                  tasa aparece desde 10 mostradas; antes, solo las cuentas.
+                </p>
+              }
+            />
+            <Async fallback={null}>
+              <OfferStats source={source} />
+            </Async>
+            <Async>
+              <Moments source={source} />
+            </Async>
+            <div className="pair pair--7-5">
+              <Panel title="Entre verticales: qué se acepta">
+                <Async>
+                  <Suggestions source={source} />
+                </Async>
+              </Panel>
+              <Panel title="Servicios sin catálogo">
+                <Async>
+                  <Services source={source} />
+                </Async>
+              </Panel>
             </div>
-            <div className="pair-item">
-              <h3 className="subhead">El motor contra una regla simple</h3>
+            <Panel
+              title="El motor contra una regla simple"
+              help={
+                <p>
+                  Compara lo que decide el motor con una regla simple, en pedidos posteriores a los que usó para
+                  aprender.
+                </p>
+              }
+            >
               <Async>
                 <Motor source={source} />
               </Async>
-            </div>
-          </div>
-        </div>
-      </section>
+            </Panel>
+          </section>
 
-      <section className="section" aria-labelledby="presencia">
-        <div className="section-head">
-          <h2 id="presencia" tabIndex={-1}>
-            ¿{AGENT_NAME} molesta?
-          </h2>
-          <p>
-            Últimos 30 días. Oculto es quien lo ocultó y no lo trajo de vuelta en Cuenta. Si muchas personas lo ocultan,{' '}
-            {AGENT_NAME} molesta: hay que revisar cada cuánto habla y propone.
-          </p>
-          <ProvenanceBadge kind={source} />
-        </div>
-        <div className="block">
-          <SourceNote source={source} />
-          <Async>
-            <AgentPresence source={source} />
-          </Async>
-        </div>
-      </section>
+          <section className="section" aria-labelledby="presencia">
+            <SectionHead
+              id="presencia"
+              title={`¿${AGENT_NAME} molesta?`}
+              meta="Últimos 30 días"
+              source={source}
+              help={
+                <p>
+                  Oculto es quien lo ocultó y no lo trajo de vuelta en Cuenta. Si muchas personas lo ocultan,{' '}
+                  {AGENT_NAME} molesta: hay que revisar cada cuánto habla y propone.
+                </p>
+              }
+            />
+            <Async>
+              <AgentPresence source={source} />
+            </Async>
+          </section>
+        </>
+      )}
 
-      <section className="section" aria-labelledby="listas">
-        <div className="section-head">
-          <h2 id="listas" tabIndex={-1}>
-            Qué se ve y qué se toca
-          </h2>
-          <p>
-            Lo que cada lista de la app dejó a la vista (al menos la mitad en pantalla), cuánto se tocó según su lugar y
-            hasta dónde llega cada sesión. El primer lugar se toca más también por estar primero: este es el sesgo que
-            hay que descontar antes de comparar órdenes.
-          </p>
-          <ProvenanceBadge kind={source} />
-        </div>
-        <div className="block">
-          <SourceNote source={source} />
+      {show('listas') && (
+        <section className="section" aria-labelledby="listas">
+          <SectionHead
+            id="listas"
+            title="Qué se ve y qué se toca"
+            source={source}
+            help={
+              <p>
+                A la vista: el elemento quedó al menos la mitad en pantalla. CTR: de lo que quedó a la vista en cada
+                lugar, cuánto se tocó. El embudo cuenta sesiones y cada paso exige los anteriores.
+              </p>
+            }
+          />
           <div className="pair">
-            <div className="pair-item">
-              <h3 className="subhead">CTR por posición</h3>
-              <Async>
-                <Ctr source={source} />
-              </Async>
-            </div>
-            <div className="pair-item">
-              <h3 className="subhead">Embudo por sesión</h3>
-              <Async>
-                <Funnel source={source} />
-              </Async>
-            </div>
+            <Async>
+              <Ctr source={source} />
+            </Async>
+            <Async>
+              <Funnel source={source} />
+            </Async>
           </div>
-        </div>
-      </section>
+        </section>
+      )}
 
-      <section className="section" aria-labelledby="busquedas">
-        <div className="section-head">
-          <h2 id="busquedas" tabIndex={-1}>
-            Qué buscan y no encuentran
-          </h2>
-          <p>
-            Cada búsqueda o pregunta a {AGENT_NAME} sin resultado es demanda que el catálogo no cubre: qué falta, dónde
-            y para cuántas personas. "No está en la muestra" no es "Rappi no lo vende": la muestra pública trae hasta 24
-            productos por sub-pasillo.
-          </p>
-          <ProvenanceBadge kind={source} />
-        </div>
-        <div className="block">
-          <SourceNote source={source} />
+      {show('busquedas') && (
+        <section className="section" aria-labelledby="busquedas">
+          <SectionHead
+            id="busquedas"
+            title="Qué buscan y no encuentran"
+            source={source}
+            help={
+              <p>
+                Cada búsqueda o pregunta a {AGENT_NAME} sin resultado es demanda que el catálogo no cubre: qué falta,
+                dónde y para cuántas personas. La demanda se agrupa cuando la pidieron 5 o más personas. Nunca se
+                muestra el texto que escribió la persona ni un concepto sensible.
+              </p>
+            }
+          >
+            <Caveat>
+              "No está en la muestra" no es "Rappi no lo vende": la muestra pública trae hasta 24 productos por
+              sub-pasillo.
+            </Caveat>
+          </SectionHead>
           <Async>
             <Unmet source={source} />
           </Async>
           <div className="pair">
-            <div className="pair-item">
-              <h3 className="subhead">Lo que sube</h3>
-              <p className="cell-sub">
-                Búsquedas, preguntas a {AGENT_NAME} y agregados al carro: últimas 4 semanas contra las 4 anteriores. Lo
-                que sube y tiene surtido es campaña con horario; lo que sube "sin surtido", demanda que cubrir.
-              </p>
+            <Panel
+              title="Lo que sube"
+              meta="Últimas 4 semanas frente a las 4 anteriores"
+              help={
+                <p>
+                  Suma búsquedas, preguntas a {AGENT_NAME} y agregados al carro. Lo que sube y tiene surtido es campaña
+                  con horario; lo que sube "sin surtido", demanda que cubrir. La comparación pide 20 o más señales en
+                  las 4 semanas anteriores.
+                </p>
+              }
+            >
               <Async>
                 <Rising source={source} />
               </Async>
-            </div>
-            <div className="pair-item">
-              <h3 className="subhead">Poco surtido para lo que se busca</h3>
-              <p className="cell-sub">
-                Más personas buscando que productos en el catálogo; los productos son reales (muestra pública).
-              </p>
+            </Panel>
+            <Panel
+              title="Poco surtido para lo que se busca"
+              meta="Productos reales de la muestra pública"
+              help={<p>Conceptos con más personas buscando que productos en el catálogo.</p>}
+            >
               <Async>
                 <Thin source={source} />
               </Async>
-            </div>
+            </Panel>
           </div>
-        </div>
-      </section>
+        </section>
+      )}
     </div>
   )
 }

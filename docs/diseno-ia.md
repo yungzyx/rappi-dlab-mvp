@@ -314,7 +314,7 @@ Ninguna palanca usa conceptos sensibles.
 
 **Límites honestos:**
 
-- **Uso del MVP.** Lo que se ve con la fuente `prototype` es lo que hicieron pocas personas probando la app: cada sección se rotula "uso del MVP, pocas personas: no es evidencia" y nunca se mezcla con lo simulado. "Olvidar" en la app borra los eventos de esa persona, así que también salen de estas cuentas.
+- **Uso del MVP.** Lo que se ve con la fuente `prototype` es lo que hicieron pocas personas probando la app: la franja fija del panel dice "uso del MVP, pocas personas: no es evidencia", cada sección se rotula "Prototipo · no es evidencia" y nunca se mezcla con lo simulado. "Olvidar" en la app borra los eventos de esa persona, así que también salen de estas cuentas.
 - Hoy los usuarios, eventos y pedidos son **simulados**: los genera `events/synth.py` (3.000 usuarios × 26 semanas, semilla 7; `source = 'synthetic'`), con supuestos explícitos. Por ejemplo, el generador asume que quien usa más verticales abandona menos. El panel **muestra la mecánica, no evidencia**: con datos reales, esa relación se mide y puede no cumplirse. Son reales la tabla de combinaciones que compartió Rappi (agregada, una correlación) y los ítems del catálogo.
 - Cualquier palanca se valida con un grupo de control (A/B con *holdout*) antes de escalar. El efecto causal de "Segunda vertical" se mide solo así, no con la comparación de retención.
 

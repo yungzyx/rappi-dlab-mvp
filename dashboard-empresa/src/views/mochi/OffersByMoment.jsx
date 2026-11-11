@@ -3,15 +3,15 @@ import { DataTable } from '../../components/DataTable.jsx'
 import { Meter } from '../../components/Meter.jsx'
 import { EmptyState } from '../../components/States.jsx'
 import { formatNumber, formatPct } from '../../lib/format.js'
-import { MIN_SHOWN_FOR_RATE, OPENABLE_MOMENTS, REJECTABLE_MOMENTS, momentHint, momentLabel } from './offers.js'
+import { OPENABLE_MOMENTS, REJECTABLE_MOMENTS, momentHint, momentLabel } from './offers.js'
 
 /**
  * Ofertas de Mochi por momento (dónde se hizo la oferta). La tasa llega vacía (—) con menos mostradas que el mínimo:
  * ahí solo valen las cuentas. Después de la tasa, las rechazadas ("Ahora no" o "Después", solo donde hay ese botón),
  * las abiertas (la vertical abierta desde la oferta, solo donde hay un botón que la abre: no es una aceptación) y los
  * "¿Por qué?" abiertos; una respuesta guardada antes de que la API los contara no los trae y muestra "—".
- * `make mvp-check` lee esta tabla: "Plan" y sus aceptadas en la tercera celda. Debajo, aparte, los pedidos que Mochi hizo solo con permiso ("Pedir por
- * mí"): no son ofertas aceptadas.
+ * `make mvp-check` lee esta tabla: "Plan" y sus aceptadas en la tercera celda. Debajo, aparte, los pedidos que Mochi hizo
+ * solo con permiso ("Pedir por mí"): no son ofertas aceptadas. Qué es rechazar y abrir, en la ayuda del panel.
  */
 export function OffersByMoment({ data, source }) {
   const { momentos } = data
@@ -25,7 +25,7 @@ export function OffersByMoment({ data, source }) {
   // El simulador no guarda en qué momento se hizo cada oferta: todo cae en "sin momento".
   if (source === 'synthetic' && momentos.every((row) => row.momento === 'sin_momento')) {
     return (
-      <EmptyState title="Los datos simulados no registran el momento de la oferta">
+      <EmptyState title="Los datos simulados no registran el momento de la oferta" inline>
         Solo el prototipo guarda dónde se hizo cada oferta; las sugerencias entre verticales, abajo, sí tienen datos.
       </EmptyState>
     )
@@ -86,12 +86,6 @@ export function OffersByMoment({ data, source }) {
         rows={momentos}
         rowKey={(row) => row.momento}
       />
-      <p className="cell-sub">
-        La tasa aparece desde {MIN_SHOWN_FOR_RATE} mostradas; antes, solo las cuentas. Rechazada es tocar "Ahora no"
-        (Carro) o "Después" (Vertical por probar, Recompra y Volver a pedir); los otros momentos no tienen ese botón y
-        muestran "—". Una oferta que no se toca no es un rechazo: no se cuenta. Abierta es tocar el botón que abre su
-        vertical ("Ver …", "Abrir …"): dice que la persona fue a mirar, no que la aceptó.
-      </p>
       <AutoOrders counts={data.autopedidos} />
     </>
   )

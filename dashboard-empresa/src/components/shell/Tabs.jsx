@@ -1,9 +1,13 @@
 import { useRef } from 'react'
+import { Icon } from '../Icon.jsx'
 
-const KEY_MOVES = { ArrowRight: 1, ArrowLeft: -1 }
+const KEY_MOVES = { ArrowRight: 1, ArrowLeft: -1, ArrowDown: 1, ArrowUp: -1 }
 
-/** Pestañas WAI-ARIA con foco itinerante: ← → recorren, Inicio y Fin saltan a los extremos. */
-export function Tabs({ views, active, onSelect }) {
+/**
+ * Pestañas WAI-ARIA con foco itinerante: ← → (y ↑ ↓) recorren, Inicio y Fin saltan a los extremos. Con
+ * `orientation="vertical"` son la navegación lateral.
+ */
+export function Tabs({ views, active, onSelect, orientation = 'horizontal' }) {
   const buttons = useRef(new Map())
 
   const onKeyDown = (event) => {
@@ -20,7 +24,13 @@ export function Tabs({ views, active, onSelect }) {
   }
 
   return (
-    <div role="tablist" aria-label="Vistas del panel" className="tabs" onKeyDown={onKeyDown}>
+    <div
+      role="tablist"
+      aria-label="Vistas del panel"
+      aria-orientation={orientation === 'vertical' ? 'vertical' : undefined}
+      className="tabs"
+      onKeyDown={onKeyDown}
+    >
       {views.map((view) => (
         <button
           key={view.id}
@@ -38,6 +48,7 @@ export function Tabs({ views, active, onSelect }) {
           onClick={() => onSelect(view.id)}
           aria-label={view.label}
         >
+          {view.icon && <Icon name={view.icon} className="tab-icon" />}
           {/* En angosto, el nombre corto (si no caben, la barra se desliza); el lector de pantalla lee siempre el largo. */}
           <span className="tab-long">{view.label}</span>
           <span className="tab-short">{view.short ?? view.label}</span>

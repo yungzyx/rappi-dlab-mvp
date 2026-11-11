@@ -1,6 +1,7 @@
 import { AGENT_NAME } from '../../lib/agentName.js'
 import { DataTable } from '../../components/DataTable.jsx'
 import { Meter } from '../../components/Meter.jsx'
+import { Panel } from '../../components/Panel.jsx'
 import { EmptyState } from '../../components/States.jsx'
 import { Stats } from '../../components/Stats.jsx'
 import { formatDate, formatNumber } from '../../lib/format.js'
@@ -10,8 +11,7 @@ import { AtRiskTable } from './AtRiskTable.jsx'
 
 const TOP_AUDIENCES = 8
 
-function Audiences({ rows }) {
-  const audiences = riskAudiences(rows)
+function Audiences({ rows, audiences }) {
   const top = audiences.slice(0, TOP_AUDIENCES)
   const max = Math.max(...top.map((audience) => audience.people))
   const columns = [
@@ -36,19 +36,12 @@ function Audiences({ rows }) {
     },
   ].filter((column) => column.key !== 'atRisk' || rows.some((row) => row.estado !== 'en_riesgo'))
   return (
-    <>
-      <DataTable
-        caption="Personas en riesgo o perdidas por lo que más pedían"
-        columns={columns}
-        rows={top}
-        rowKey={(row) => row.concept}
-      />
-      {audiences.length > TOP_AUDIENCES && (
-        <p className="cell-sub">
-          Los {TOP_AUDIENCES} grupos más grandes de {audiences.length}.
-        </p>
-      )}
-    </>
+    <DataTable
+      caption="Personas en riesgo o perdidas por lo que más pedían"
+      columns={columns}
+      rows={top}
+      rowKey={(row) => row.concept}
+    />
   )
 }
 
@@ -59,59 +52,70 @@ function Audiences({ rows }) {
 export function Churn({ source }) {
   const [kpis, rows, winback] = useAnalyticsMany(['kpis', 'at-risk', 'volver'], source)
   const shownAtRisk = rows.filter((row) => row.estado === 'en_riesgo').length
+  const audiences = riskAudiences(rows)
   return (
     <>
+      {winback.dia && <p className="section-meta">Al {formatDate(winback.dia)}</p>}
       <Stats
         items={[
           {
             label: 'En riesgo',
             value: formatNumber(kpis.en_riesgo),
-            note: 'Pasaron el doble de su ritmo sin pedir (mínimo 21 días). Todavía se pueden recuperar.',
+            note: 'Doble de su ritmo sin pedir. Todavía se pueden recuperar.',
           },
           {
             label: 'Perdidas',
             value: formatNumber(kpis.perdidos),
-            note: 'Pasaron el triple de su ritmo sin pedir (mínimo 45 días).',
+            note: 'Triple de su ritmo sin pedir.',
           },
           {
             label: 'Califican para "¿Volvemos a…?"',
             value: formatNumber(winback.califican),
-            note: `Dejaron algo que pedían con ritmo: ${formatNumber(winback.por_concepto)} un concepto y ${formatNumber(winback.por_vertical)} una vertical. Es otra regla que la del riesgo.`,
+            note: `${formatNumber(winback.por_concepto)} por un concepto, ${formatNumber(winback.por_vertical)} por una vertical`,
           },
           {
             label: 'Les toca "¿Repetimos?"',
             value: formatNumber(winback.recompra),
-            note: 'La recompra va primero: a ellas no se las invita a volver.',
+            note: 'La recompra va primero: no se las invita a volver.',
           },
         ]}
       />
-      {winback.dia && (
-        <p className="cell-sub">Califican al {formatDate(winback.dia)}, el último día de los pedidos simulados.</p>
-      )}
       {rows.length === 0 ? (
         <EmptyState title="Nadie en riesgo ni perdido">
           Nadie pasó el doble de su propio ritmo sin pedir (o todavía nadie tiene dos compras).
         </EmptyState>
       ) : (
-        <>
-          <h3 className="subhead">Qué pedían y cómo llegarles</h3>
-          <p className="block-note">
-            Con aviso aceptado: recordatorio en su ritmo con lo que más pedían y un complemento. Sin aviso: solo{' '}
-            {AGENT_NAME} en la app. Muestra de {formatNumber(rows.length)} de las{' '}
-            {formatNumber(kpis.en_riesgo + kpis.perdidos)}, primero las en riesgo más atrasadas respecto de su ritmo.
-          </p>
+        <Panel
+          title="Qué pedían y cómo llegarles"
+          help={
+            <p>
+              Con aviso aceptado: recordatorio en su ritmo con lo que más pedían y un complemento. Sin aviso: solo{' '}
+              {AGENT_NAME} en la app.
+            </p>
+          }
+          meta={`Muestra de ${formatNumber(rows.length)} de las ${formatNumber(kpis.en_riesgo + kpis.perdidos)}, primero las en riesgo más atrasadas.`}
+          foot={
+            <>
+              {audiences.length > TOP_AUDIENCES && (
+                <p>
+                  Los {TOP_AUDIENCES} grupos más grandes de {audiences.length}.
+                </p>
+              )}
+              <details className="disclosure">
+                <summary>Ver la lista de personas (id seudónimo)</summary>
+                <AtRiskTable rows={rows} />
+              </details>
+            </>
+          }
+        >
           {shownAtRisk === 0 && kpis.en_riesgo > 0 && (
             <p className="table-warning status status--warn">
               La API entregó {rows.length} filas y ninguna es de una persona en riesgo: las{' '}
               {formatNumber(kpis.en_riesgo)} en riesgo, las más fáciles de recuperar, no alcanzan a aparecer.
             </p>
           )}
-          <Audiences rows={rows} />
-          <details className="disclosure">
-            <summary>Ver la lista de personas (id seudónimo)</summary>
-            <AtRiskTable rows={rows} />
-          </details>
-        </>
+          <Audiences rows={rows} audiences={audiences} />
+        </Panel>
       )}
     </>
   )

@@ -16,10 +16,12 @@ describe('crossSellDecision', () => {
     expect(decision.figure).toBe('62,6%')
     expect(decision.unit).toBe('de los usuarios de Rappi (739.000) solo pide en Restaurantes')
     expect(decision.context).toBe(
-      'Vuelven al mes siguiente el 47%; quienes además piden en Turbo, el 82% (+35 puntos). Es una correlación, no un efecto.',
+      'Al mes siguiente vuelve el 47%; entre quienes además piden en Turbo, el 82% (+35 puntos).',
     )
-    expect(decision.action).toMatch(/^Que Mochi ofrezca Turbo a quien solo pide en Restaurantes/)
-    expect(decision.action).toMatch(/grupo de control\.$/)
+    expect(decision.caveat).toBe('Es una correlación, no un efecto.')
+    expect(decision.action).toBe(
+      'Ofrecer Turbo a quien solo pide en Restaurantes ("vertical por probar") y medirlo contra un grupo de control.',
+    )
   })
 
   test('without a step there is nothing to say', () => {
@@ -32,8 +34,12 @@ describe('churnDecision', () => {
     const decision = churnDecision({ en_riesgo: 280, perdidos: 564 }, { califican: 137 })
 
     expect(decision.figure).toBe('280')
-    expect(decision.context).toMatch(/Otras 564 pasaron el triple y se dan por perdidas/)
-    expect(decision.action).toMatch(/hoy califican 137 personas que dejaron algo que pedían con ritmo/)
+    expect(decision.context).toBe(
+      'Pasaron el doble de su ritmo sin pedir. Otras 564 pasaron el triple y se dan por perdidas.',
+    )
+    expect(decision.action).toBe(
+      'Invitar a volver con "¿Volvemos a…?": hoy califican 137 personas. Fuera de la app, solo a quien aceptó avisos.',
+    )
     // Con datos simulados, la fecha del último pedido simulado y no "hoy".
     expect(churnDecision({ en_riesgo: 1, perdidos: 0 }, { califican: 2, dia: '2026-10-17' }).action).toMatch(
       /al 17-10-2026 califican 2 personas/,
@@ -41,7 +47,9 @@ describe('churnDecision', () => {
   })
 
   test('without anyone to invite back, the reminder in their rhythm', () => {
-    expect(churnDecision({ en_riesgo: 3, perdidos: 0 }, { califican: 0 }).action).toMatch(/^Recordarles su concepto/)
+    expect(churnDecision({ en_riesgo: 3, perdidos: 0 }, { califican: 0 }).action).toBe(
+      'Recordarles lo que más pedían, en su ritmo. Fuera de la app, solo a quien aceptó avisos.',
+    )
   })
 
   test('nobody at risk yet says why, with no action', () => {

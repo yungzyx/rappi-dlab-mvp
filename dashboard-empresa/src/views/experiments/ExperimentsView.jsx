@@ -1,8 +1,9 @@
 import { AGENT_NAME } from '../../lib/agentName.js'
 import { Async } from '../../components/Async.jsx'
 import { DataTable } from '../../components/DataTable.jsx'
-import { ProvenanceBadge } from '../../components/ProvenanceBadge.jsx'
-import { SourceNote } from '../../components/SourceNote.jsx'
+import { Caveat } from '../../components/Caveat.jsx'
+import { SectionHead } from '../../components/SectionHead.jsx'
+import { Panel } from '../../components/Panel.jsx'
 import { EmptyState } from '../../components/States.jsx'
 import { formatNumber, formatPct, formatPoints } from '../../lib/format.js'
 import { useAnalytics } from '../../lib/useAnalytics.js'
@@ -127,7 +128,7 @@ function Kind({ random }) {
 function NobodyYet({ experiment }) {
   if (experiment.id === 'ofertas_control' && experiment.control_pct === 0) {
     return (
-      <EmptyState title="El grupo de control está apagado">
+      <EmptyState title="El grupo de control está apagado" inline>
         Con OFFERS_CONTROL_PCT en 0 nadie tiene variante y {AGENT_NAME} no retiene ninguna oferta. Para medir el efecto
         de sus ofertas, la API se levanta con OFFERS_CONTROL_PCT entre 1 y 50 (la parte de las personas que queda en
         control).
@@ -135,7 +136,7 @@ function NobodyYet({ experiment }) {
     )
   }
   return (
-    <EmptyState title="Nadie tiene variante todavía">
+    <EmptyState title="Nadie tiene variante todavía" inline>
       Cada persona recibe la suya al abrir la app (o al pedir su primera oferta) y la conserva.
     </EmptyState>
   )
@@ -202,10 +203,13 @@ function Experiment({ experiment }) {
   const empty = assignedPeople(experiment) === 0
   const label = experimentLabel(experiment.id)
   return (
-    <div className="block">
-      <h3 className="subhead">
-        {label} <Kind random={experiment.al_azar} />
-      </h3>
+    <Panel
+      title={
+        <>
+          {label} <Kind random={experiment.al_azar} />
+        </>
+      }
+    >
       <p className="block-note">{experiment.nota}</p>
       {empty ? (
         <NobodyYet experiment={experiment} />
@@ -222,7 +226,7 @@ function Experiment({ experiment }) {
           {offers && experiment.retencion && <Retention retention={experiment.retencion} />}
         </>
       )}
-    </div>
+    </Panel>
   )
 }
 
@@ -236,19 +240,23 @@ export function ExperimentsView({ source }) {
   return (
     <div className="view">
       <section className="section" aria-labelledby="experimentos">
-        <div className="section-head">
-          <h2 id="experimentos" tabIndex={-1}>
-            Experimentos del MVP
-          </h2>
-          <p>
-            Cada persona tiene una variante por experimento, asignada una vez. Solo un experimento al azar mide un
-            efecto; uno elegido por alguien describe. Las cifras cuentan desde que se asignó la variante. La tabla de
-            Rappi (combinar verticales retiene más) es una correlación: medir el efecto pide un grupo de control.
-          </p>
-          <ProvenanceBadge kind={source} />
-        </div>
+        <SectionHead
+          id="experimentos"
+          title="Experimentos del MVP"
+          source={source}
+          help={
+            <p>
+              Cada persona tiene una variante por experimento, asignada una vez; las cifras cuentan desde esa
+              asignación. Solo un experimento al azar mide un efecto; uno elegido por alguien describe.
+            </p>
+          }
+        >
+          <Caveat>
+            La tabla de Rappi (combinar verticales retiene más) es una correlación: medir el efecto pide un grupo de
+            control.
+          </Caveat>
+        </SectionHead>
         <div className="block">
-          <SourceNote source={source} />
           <Async>
             <Experiments source={source} />
           </Async>

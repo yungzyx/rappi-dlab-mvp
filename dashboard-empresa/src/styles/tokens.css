@@ -2,69 +2,52 @@
  * Tokens del panel. Cada color trae su par claro/oscuro con light-dark(): el tema sigue al sistema
  * (prefers-color-scheme) salvo que el usuario lo fije con el botón (data-theme en <html>).
  *
- * Identidad: la paleta sigue a la app de Rappi (colores muestreados en prototipo-app/src/styles/tokens.css):
- * un solo acento, el naranja-rojo Rappi, sobre neutros cálidos casi blancos, y la tipografía Figtree.
+ * Lenguaje propio, sin sistema de diseño externo. Se toman prestadas tres convenciones: la densidad de tabla de Carbon
+ * (filas de 36 px, cabecera de 32), el "entorno de datos" fijo tipo "Test mode" de Stripe (la franja de procedencia) y
+ * la navegación lateral de Linear.
+ *
  * Reglas semánticas:
- *  - el acento es de marca y de magnitud (línea principal, barras, pestaña activa);
- *  - el carmesí es solo para tendencias malas y riesgo, distinto del acento para que no se confundan;
- *  - el ámbar rayado marca lo simulado (nunca solo por color: siempre con texto).
- * Colores de datos: ramas ordinales, contraste de texto >= 4,5:1 y de marcas >= 3:1 con el fondo, separables con
- * daltonismo.
+ *  - neutros fríos (zinc) para todo lo que no tiene juicio: texto, líneas, barras de tabla, botones;
+ *  - un solo acento, el naranja-rojo Rappi, racionado: marca, vista activa, punto "después" de la escalera, foco y
+ *    resaltado de la demostración. No es link, botón ni magnitud;
+ *  - el carmesí es el único rojo con juicio (empeora, riesgo), siempre con ícono y texto;
+ *  - el ámbar liso marca lo simulado, con borde punteado y texto (nunca solo por color).
+ * Contrastes: texto >= 4,5:1 y marcas >= 3:1 con su fondo, en los dos temas.
+ * Forma: badge y chip 4 px, controles 6 px, paneles 8 px, flotantes 12 px. Sin píldoras ni sombras en paneles.
  */
 :root {
   color-scheme: light dark;
 
   /* Superficies y tinta */
-  --page: light-dark(#f4f4f4, #121212);
-  --surface: light-dark(#ffffff, #1c1c1c);
-  --surface-sunken: light-dark(#ececec, #171717);
-  --surface-raised: light-dark(#ffffff, #242424);
-  --ink: light-dark(#161616, #f6f6f6);
-  --ink-2: light-dark(#4b4b4b, #c4c4c4);
-  --ink-3: light-dark(#6f6f6f, #9a9a9a);
-  --line: light-dark(#e6e6e6, #2b2b2b);
-  --line-strong: light-dark(#c9c9c9, #454545);
-  --hairline: light-dark(rgba(22, 22, 22, 0.08), rgba(255, 255, 255, 0.1));
+  --page: light-dark(#ffffff, #111113);
+  --chrome: light-dark(#fafafa, #0c0c0e); /* barra superior y navegación */
+  --surface: light-dark(#ffffff, #161618);
+  --surface-sunken: light-dark(#f4f4f5, #1f1f23); /* cabecera de tabla, hover, chips, estados */
+  --surface-raised: light-dark(#ffffff, #212126); /* flotantes */
+  --ink: light-dark(#18181b, #ededef);
+  --ink-2: light-dark(#52525b, #b4b4bb);
+  --ink-3: light-dark(#66666e, #8f8f99);
+  --line: light-dark(#e4e4e7, #27272a);
+  --line-strong: light-dark(#d4d4d8, #3f3f46);
+  --hairline: light-dark(rgba(24, 24, 27, 0.08), rgba(255, 255, 255, 0.1));
   --focus: light-dark(#d43a17, #ff7a5c);
 
-  /* Acento Rappi: marca, magnitud y foco */
+  /* Acento Rappi (racionado) */
   --brand: light-dark(#ff441f, #ff5a38);
-  --brand-ink: light-dark(#c8360f, #ff8a70); /* texto sobre superficie: 4,6:1 claro / 7:1 oscuro */
+  --brand-ink: light-dark(#c8360f, #ff8a70);
   --brand-wash: light-dark(rgba(255, 68, 31, 0.1), rgba(255, 90, 56, 0.16));
-  --brand-soft: light-dark(#ffe9e2, #3a1d15);
   --on-brand: #ffffff;
 
-  /* Panel invertido ("Qué hacer esta semana"): tinta Rappi con un velo cálido del acento */
-  --inverse: light-dark(#1b1918, #232120);
-  --inverse-ink: #ffffff;
-  --inverse-ink-2: #cfc9c5;
-  --inverse-line: rgba(255, 255, 255, 0.14);
-  --inverse-glow: rgba(255, 68, 31, 0.22);
+  /* Datos */
+  --data: var(--brand); /* solo la serie destacada */
+  --data-bar: light-dark(#52525b, #a1a1aa); /* barras de magnitud en tablas */
+  --deemph: light-dark(#8a8a8a, #6b6b6b); /* contexto: chispas, "hoy" en la escalera */
+  --series-1: light-dark(#27272a, #d4d4d8); /* gráficos: serie principal (línea y barra) */
+  --series-2: light-dark(#85858f, #6f6f7a); /* gráficos: segunda serie */
+  --chart-grid: var(--line);
+  --chart-axis: var(--ink-3);
 
-  /* Datos: el acento para magnitud; rampa ordinal (etapas) y secuencial (mapa de calor) en la misma familia */
-  --data: var(--brand);
-  --data-ink: var(--brand-ink);
-  --data-wash: var(--brand-wash);
-  /* Contexto (chispas, "hoy" en la escalera): >= 3:1 con el fondo y ΔE >= 9 con el acento */
-  --deemph: light-dark(#8a8a8a, #6b6b6b);
-  --ord-1: light-dark(#ffb59f, #8a2c14);
-  --ord-2: light-dark(#ff8a6a, #c8360f);
-  --ord-3: light-dark(#ff441f, #ff5a38);
-  --ord-4: light-dark(#b32d0e, #ffb59f);
-  --seq-1: light-dark(#ffe3da, #4a1c10);
-  --seq-2: light-dark(#ffc4b3, #6f2612);
-  --seq-3: light-dark(#ff9c80, #9c2f12);
-  --seq-4: light-dark(#ff6a45, #c8360f);
-  --seq-5: light-dark(#e63d15, #ff5a38);
-  --seq-6: light-dark(#a82a0c, #ff8a70);
-  --seq-ink-1: light-dark(#161616, #ffffff);
-  --seq-ink-2: light-dark(#161616, #ffffff);
-  --seq-ink-3: light-dark(#161616, #ffffff);
-  --seq-ink-4: light-dark(#161616, #ffffff);
-  --seq-ink-5: light-dark(#ffffff, #161616);
-  --seq-ink-6: light-dark(#ffffff, #161616);
-
-  /* Estados: reservados, siempre con ícono y texto. El carmesí es distinto del acento. */
+  /* Estados: reservados, siempre con ícono y texto */
   --bad: light-dark(#b8123a, #f25c7e);
   --bad-ink: light-dark(#9c0f31, #f58ba4);
   --bad-wash: light-dark(rgba(184, 18, 58, 0.09), rgba(242, 92, 126, 0.14));
@@ -73,28 +56,26 @@
   --warn: #f5b400;
   --warn-ink: light-dark(#7a4d00, #f7cf5c);
 
-  /* Procedencia: simulado (ámbar rayado) y real (sólido) */
-  --sim-bg: light-dark(#fdf1c8, #2b2412);
-  --sim-stripe: light-dark(#f7df8e, #3d3218);
-  --sim-edge: light-dark(#eda100, #c98500);
+  /* Procedencia: simulado (ámbar liso, borde punteado) y real (sólido) */
+  --sim-bg: light-dark(#fef6d8, #2a2310);
+  --sim-edge: light-dark(#b97f00, #c98500);
   --sim-ink: light-dark(#5a3b00, #f7d98b);
-  --sim-hatch: repeating-linear-gradient(135deg, var(--sim-stripe) 0 5px, transparent 5px 11px);
-  --real-bg: light-dark(#161616, #f4f4f4);
-  --real-ink: light-dark(#ffffff, #161616);
+  --real-bg: light-dark(#18181b, #ededef);
+  --real-ink: light-dark(#ffffff, #18181b);
 
-  /* Tipografía: Figtree, la misma familia de la app */
+  /* Tipografía: Figtree, la misma familia de la app; pesos 400, 500 y 600 */
   --font: 'Figtree Variable', system-ui, -apple-system, 'Segoe UI', sans-serif;
-  --font-mono: 'IBM Plex Mono', ui-monospace, 'SF Mono', monospace;
-  --text-xs: 0.75rem;
-  --text-sm: 0.8125rem;
-  --text-base: 0.9rem;
-  --text-md: 1rem;
-  --text-lg: 1.1875rem;
-  --text-xl: 1.625rem;
-  --text-display: clamp(1.875rem, 1.35rem + 1.7vw, 2.75rem);
+  --font-mono: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+  --text-xs: 0.75rem; /* 12 */
+  --text-sm: 0.8125rem; /* 13: tablas y notas */
+  --text-base: 0.875rem; /* 14: cuerpo */
+  --text-md: 1rem; /* la presentación */
+  --text-lg: 1.1875rem; /* la presentación */
+  --text-title: 1.125rem; /* 18: título de sección */
+  --text-kpi: 1.5rem; /* 24: cifra de un indicador */
+  --text-figure: 1.75rem; /* 28: cifra de una decisión */
 
-  /* Espacio y forma: una sola escala de radios (suave) */
-  --gutter: clamp(16px, 3.4vw, 40px);
+  /* Espacio, forma y layout */
   --space-1: 4px;
   --space-2: 8px;
   --space-3: 12px;
@@ -102,20 +83,25 @@
   --space-5: 24px;
   --space-6: 32px;
   --space-7: 48px;
-  --space-section: clamp(40px, 5vw, 72px);
-  --radius-s: 8px;
-  --radius-m: 12px;
-  --radius-l: 18px;
-  --content-max: 1320px;
-  --shadow-card: 0 1px 2px light-dark(rgba(22, 22, 22, 0.05), rgba(0, 0, 0, 0.4));
-  --shadow-float: 0 18px 40px light-dark(rgba(60, 20, 8, 0.16), rgba(0, 0, 0, 0.55));
+  --section-gap: 40px;
+  --pad: clamp(16px, 2.2vw, 32px);
+  --gutter: clamp(16px, 3.4vw, 40px); /* la presentación */
+  --radius-xs: 4px; /* badges y chips */
+  --radius-s: 6px; /* botones, selector, ítems de navegación */
+  --radius-m: 8px; /* paneles y tiras de indicadores */
+  --radius-l: 12px; /* flotantes */
+  --sidenav-w: 232px;
+  --nav-h: 44px; /* la tira de vistas, bajo 1200 px */
+  --panel-max: 1200px;
+  --content-max: 1320px; /* la presentación */
+  --row-h: 36px;
+  --shadow-float: 0 8px 24px light-dark(rgba(24, 24, 27, 0.12), rgba(0, 0, 0, 0.5));
 
   /* Movimiento */
   --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
-  --ease-spring: cubic-bezier(0.34, 1.4, 0.64, 1);
   --duration-fast: 150ms;
   --duration-normal: 320ms;
-  --duration-enter: 560ms;
+  --duration-enter: 560ms; /* la presentación */
 }
 
 :root[data-theme='light'] {

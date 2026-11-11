@@ -1,19 +1,19 @@
 /* ---------- Escalera de Rappi: gráfico de pesas (hoy → sumando un grupo), etiqueta | pista | ganancia ---------- */
+
 .ladder {
   display: grid;
-  gap: var(--space-3);
+  gap: var(--space-2);
 }
 
 .ladder-rows,
 .ladder-axis {
   display: grid;
-  grid-template-columns: minmax(150px, 220px) minmax(0, 1fr) 128px;
+  grid-template-columns: minmax(150px, 200px) minmax(0, 1fr) 210px;
   column-gap: var(--space-6);
 }
 
 .ladder-rows {
   list-style: none;
-  border-top: 1px solid var(--line);
 }
 
 /* Subgrid: todas las filas comparten columnas, así las pistas empiezan en el mismo x. */
@@ -22,13 +22,9 @@
   grid-column: 1 / -1;
   grid-template-columns: subgrid;
   align-items: center;
-  padding-block: var(--space-3);
+  min-height: 52px;
+  padding-block: var(--space-2);
   border-bottom: 1px solid var(--line);
-  transition: background var(--duration-fast);
-}
-
-.ladder-row:hover {
-  background: linear-gradient(90deg, transparent, var(--surface-sunken) 8%, var(--surface-sunken) 92%, transparent);
 }
 
 .ladder-label {
@@ -39,7 +35,7 @@
 
 .ladder-label strong {
   font-size: var(--text-sm);
-  font-weight: 600;
+  font-weight: 500;
 }
 
 .ladder-label span,
@@ -50,7 +46,7 @@
 
 .ladder-track {
   position: relative;
-  height: 28px;
+  height: 24px;
 }
 
 .ladder-tick {
@@ -64,18 +60,17 @@
   position: absolute;
   top: 50%;
   height: 2px;
-  border-radius: 2px;
-  background: color-mix(in srgb, var(--data) 45%, var(--deemph));
+  background: var(--line-strong);
   transform: translateY(-50%);
 }
 
 .ladder-dot {
   position: absolute;
   top: 50%;
-  width: 12px;
-  height: 12px;
+  width: 10px;
+  height: 10px;
   border-radius: 50%;
-  box-shadow: 0 0 0 2px var(--page);
+  box-shadow: 0 0 0 2px var(--surface);
   transform: translate(-50%, -50%);
 }
 
@@ -86,16 +81,16 @@
 
 .ladder-dot--to,
 .ladder-key--to {
-  background: var(--data);
+  background: var(--brand);
 }
 
 .ladder-value {
   position: absolute;
   top: 50%;
   font-size: var(--text-xs);
-  font-weight: 600;
+  font-weight: 500;
   font-variant-numeric: tabular-nums;
-  color: var(--ink-2);
+  color: var(--ink-3);
   white-space: nowrap;
   transform: translateY(-50%);
 }
@@ -106,25 +101,36 @@
 
 .ladder-value--to {
   left: calc(100% + 6px);
+  font-weight: 600;
   color: var(--ink);
 }
 
 .ladder-gain {
-  display: grid;
-  justify-items: end;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  column-gap: 4px;
   text-align: right;
 }
 
 .ladder-gain strong {
-  font-size: var(--text-lg);
-  font-weight: 700;
-  letter-spacing: -0.02em;
+  flex-basis: 100%;
+}
+
+.ladder-gain span + span::before {
+  content: '· ';
+}
+
+.ladder-gain strong {
+  font-size: 0.9375rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
 }
 
 .ladder-key {
   display: inline-block;
-  width: 10px;
-  height: 10px;
+  width: 8px;
+  height: 8px;
   border-radius: 50%;
 }
 
@@ -135,7 +141,7 @@
 
 .ladder-axis-track span {
   position: absolute;
-  font-size: 12px;
+  font-size: 0.71875rem;
   font-variant-numeric: tabular-nums;
   color: var(--ink-3);
   transform: translateX(-50%);
@@ -145,8 +151,18 @@
   /* La columna de la diferencia tiene el mismo ancho en las filas y en el eje: si no, las marcas no calzan */
   .ladder-rows,
   .ladder-axis {
-    grid-template-columns: minmax(0, 1fr) 104px;
+    grid-template-columns: minmax(0, 1fr) 112px;
     column-gap: var(--space-4);
+  }
+
+  /* En angosto, la ganancia vuelve a apilarse: el punto medio quedaba al comienzo de una línea */
+  .ladder-gain {
+    display: grid;
+    justify-items: end;
+  }
+
+  .ladder-gain span + span::before {
+    content: none;
   }
 
   .ladder-label {

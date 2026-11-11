@@ -3,7 +3,7 @@
 /* ---------- Chispa (tendencia de un indicador) ---------- */
 .sparkline {
   min-width: 0;
-  height: 36px;
+  height: 32px;
 }
 
 .sparkline svg {
@@ -14,15 +14,15 @@
 .sparkline-path {
   fill: none;
   stroke: var(--deemph);
-  stroke-width: 2;
+  stroke-width: 1.5;
   stroke-linejoin: round;
   stroke-linecap: round;
 }
 
-/* El último punto en tinta, con anillo del color de la página: el naranja se leería como "empeora" */
+/* El último punto en tinta, con anillo del color de la superficie: el naranja se leería como "empeora" */
 .sparkline-dot {
   fill: var(--ink-2);
-  stroke: var(--page);
+  stroke: var(--surface);
   stroke-width: 2;
 }
 
@@ -41,12 +41,284 @@
   gap: 6px;
 }
 
+/* ---------- Línea semanal ---------- */
+.line-chart {
+  display: grid;
+  gap: var(--space-2);
+  min-width: 0;
+}
+
+.chart-readout {
+  min-height: 1.5em;
+  font-size: var(--text-sm);
+  color: var(--ink-2);
+}
+
+.chart-readout strong {
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.line-chart-plot {
+  min-width: 0;
+  touch-action: pan-y;
+}
+
+.line-chart-plot svg {
+  display: block;
+  overflow: visible;
+}
+
+.chart-grid {
+  stroke: var(--chart-grid);
+  stroke-width: 1;
+  shape-rendering: crispEdges;
+}
+
+.chart-axis {
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+  fill: var(--chart-axis);
+}
+
+.chart-line {
+  fill: none;
+  stroke: var(--series-1);
+  stroke-width: 1.5;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+}
+
+.chart-line--partial {
+  stroke-dasharray: 4 4;
+}
+
+.chart-dot {
+  fill: var(--series-1);
+  stroke: var(--surface);
+  stroke-width: 2;
+}
+
+.chart-dot--partial {
+  fill: var(--surface);
+  stroke: var(--series-1);
+  stroke-width: 1.5;
+}
+
+.chart-dot--hover {
+  fill: var(--surface);
+  stroke: var(--series-1);
+  stroke-width: 2;
+}
+
+.chart-guide {
+  stroke: var(--line-strong);
+  stroke-width: 1;
+  shape-rendering: crispEdges;
+}
+
+/* El selector de serie hace de leyenda, arriba del gráfico */
+.chart-picker {
+  justify-self: start;
+}
+
+/* El embudo: un bloque por modo de la app */
+.funnel {
+  display: grid;
+  gap: var(--space-4);
+}
+
+.funnel-mode {
+  display: grid;
+  gap: var(--space-1);
+}
+
+.funnel-mode .subhead {
+  margin: 0;
+  font-size: var(--text-sm);
+}
+
 @media (forced-colors: active) {
-  .sparkline-path {
+  .sparkline-path,
+  .chart-line {
     stroke: CanvasText;
   }
 
-  .sparkline-dot {
+  .sparkline-dot,
+  .chart-dot {
     fill: CanvasText;
   }
+}
+
+/* ---------- Barras horizontales: rótulo | barras con su valor al final | nota ---------- */
+.bars {
+  display: grid;
+  gap: var(--space-2);
+  min-width: 0;
+}
+
+.bars-rows {
+  display: grid;
+  grid-template-columns: fit-content(200px) minmax(0, 1fr) auto;
+  list-style: none;
+}
+
+/* Subgrid: los rótulos comparten el ancho del más largo, así todas las barras empiezan en el mismo x */
+.bars-row {
+  display: grid;
+  grid-column: 1 / -1;
+  grid-template-columns: subgrid;
+  align-items: center;
+  gap: 4px var(--space-4);
+  padding: var(--space-2) 0;
+  border-top: 1px solid var(--line);
+}
+
+.bars-row:first-child {
+  border-top: 0;
+}
+
+.bars-label {
+  display: grid;
+  gap: 1px;
+  min-width: 0;
+}
+
+.bars-label strong {
+  font-size: var(--text-sm);
+  font-weight: 500;
+}
+
+.bars-label span,
+.bars-note {
+  font-size: var(--text-xs);
+  color: var(--ink-3);
+}
+
+.bars-note {
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.bars-tracks {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+}
+
+/* El valor va justo al final de la barra: la barra llega como mucho al ancho menos el lugar del valor */
+.bars-track {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-width: 0;
+}
+
+.bars-bar {
+  flex: none;
+  width: max(2px, calc((100% - var(--value-w, 9ch) - 8px) * var(--f)));
+  height: 10px;
+  border-radius: 2px;
+  background: var(--series-1);
+}
+
+.bars-bar--2 {
+  background: var(--series-2);
+}
+
+.bars-value {
+  font-size: var(--text-sm);
+  color: var(--ink-2);
+  white-space: nowrap;
+}
+
+.bars-track:first-child .bars-value {
+  color: var(--ink);
+  font-weight: 500;
+}
+
+.legend-swatch {
+  width: 10px;
+  height: 10px;
+  border-radius: 2px;
+  background: var(--series-1);
+}
+
+.legend-swatch--2 {
+  background: var(--series-2);
+}
+
+/* Facetas: varias barras pequeñas lado a lado, cada una con su escala desde 0 */
+.facets {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: var(--space-5);
+}
+
+.facet {
+  display: grid;
+  align-content: start;
+  gap: var(--space-1);
+  min-width: 0;
+}
+
+.facet-title {
+  min-height: 2.6em;
+  font-size: var(--text-sm);
+  font-weight: 500;
+  letter-spacing: 0;
+  line-height: 1.3;
+  color: var(--ink-2);
+}
+
+.facet .bars-rows {
+  grid-template-columns: 56px minmax(0, 1fr) auto;
+}
+
+.facet .bars-row {
+  padding: 6px 0;
+}
+
+@container (max-width: 1000px) {
+  .facets {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@container (max-width: 640px) {
+  .facets {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .facet-title {
+    min-height: 0;
+  }
+
+  /* El rótulo arriba (con la nota a su derecha) y las barras debajo, a todo el ancho */
+  .bars-rows:not(.facet .bars-rows) {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+
+  .bars-row:not(.facet .bars-row) .bars-tracks {
+    grid-column: 1 / -1;
+    grid-row: 2;
+  }
+}
+
+@media (forced-colors: active) {
+  .bars-bar,
+  .legend-swatch {
+    background: CanvasText;
+  }
+
+  .bars-bar--2,
+  .legend-swatch--2 {
+    background: GrayText;
+  }
+}
+
+.chart-note {
+  margin: var(--space-2) 0 0;
+  font-size: var(--text-xs);
+  color: var(--ink-3);
 }

@@ -1,5 +1,6 @@
 import { DataTable } from '../../components/DataTable.jsx'
 import { Delta } from '../../components/Delta.jsx'
+import { Meter } from '../../components/Meter.jsx'
 import { EmptyState } from '../../components/States.jsx'
 import { formatDate, formatNumber, formatPct, formatPoints } from '../../lib/format.js'
 import { motorRows } from './motor.js'
@@ -18,14 +19,27 @@ const COLUMNS = [
       </span>
     ),
   },
-  { key: 'motor', header: 'Motor', numeric: true, render: (row) => formatPct(row.motor) },
+  {
+    key: 'motor',
+    header: 'Motor',
+    numeric: true,
+    render: (row) => (
+      <span className="cell-bar">
+        <Meter value={row.motor} max={100} />
+        {formatPct(row.motor)}
+      </span>
+    ),
+  },
   {
     key: 'base',
     header: 'Regla simple',
     numeric: true,
     render: (row) => (
       <span className="cell-stack">
-        {formatPct(row.base)}
+        <span className="cell-bar">
+          <Meter value={row.base} max={100} />
+          {formatPct(row.base)}
+        </span>
         <span className="cell-sub">{row.baseLabel}</span>
       </span>
     ),
@@ -56,14 +70,14 @@ const COLUMNS = [
 export function MotorCheck({ data, source }) {
   if (!data) {
     return (
-      <EmptyState title="El motor todavía no corrió">
+      <EmptyState title="El motor todavía no corrió" inline>
         Aparece cuando corre el motor sobre los pedidos de esta fuente.
       </EmptyState>
     )
   }
   if (!data.evaluacion) {
     return (
-      <EmptyState title="Sin evaluación todavía">
+      <EmptyState title="Sin evaluación todavía" inline>
         La evaluación por fechas pide al menos 84 días de pedidos. Última corrida del motor: {formatDate(data.fecha)}.
       </EmptyState>
     )

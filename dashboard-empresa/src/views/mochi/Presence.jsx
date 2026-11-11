@@ -15,11 +15,11 @@ export function Presence({ data, source }) {
   const nothing = !data.ocultadas && !data.ocultos && !data.volvieron && !data.explicaciones
   if (nothing) {
     return source === 'synthetic' ? (
-      <EmptyState title={`Los datos simulados no registran ocultar a ${AGENT_NAME}`}>
+      <EmptyState title={`Los datos simulados no registran ocultar a ${AGENT_NAME}`} inline>
         Tampoco sus explicaciones de la Home: se ven con el uso del MVP.
       </EmptyState>
     ) : (
-      <EmptyState title={`Nadie ocultó a ${AGENT_NAME} ni lo vio mover la Home`}>
+      <EmptyState title={`Nadie ocultó a ${AGENT_NAME} ni lo vio mover la Home`} inline>
         Aparece cuando alguien lo oculta (en su menú o en Cuenta) o cuando {AGENT_NAME} explica por qué movió los
         accesos de la Home.
       </EmptyState>

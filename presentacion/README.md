@@ -17,7 +17,7 @@ Los botones de la presentación tocan los de la app: el interruptor de modo y el
 6. Preferencias y "Pedir por mí".
 7. Cambiar de persona: asiático, café y mascotero.
 8. Rappi hoy frente al MVP.
-9. El panel de negocio: Resumen, Retención y venta cruzada, Mochi y búsquedas (con "¿Mochi molesta?").
+9. El panel de negocio: Resumen, Retención y venta cruzada (En riesgo), Mochi y búsquedas (con "¿Mochi molesta?" y Búsquedas).
 
 Cada capítulo elige su persona (que borra lo de antes) o sigue con lo que dejó el anterior; si algo no aparece, el paso se salta y queda en la consola del navegador ("Paso saltado").
 

@@ -1,9 +1,9 @@
-import { screen, within } from '@testing-library/react'
+import { act, fireEvent, screen, within } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest'
 import { renderWithData, resetApi, serveFixtures, serveFixturesWith } from '../../test/fixtureApi.js'
 import { OverviewView } from './OverviewView.jsx'
 
-const NOT_EVIDENCE = 'uso del MVP, pocas personas: no es evidencia'
+const NOT_EVIDENCE = 'Prototipo · no es evidencia'
 const decision = (name) => screen.getByRole('article', { name })
 
 describe('OverviewView', () => {
@@ -49,7 +49,7 @@ describe('OverviewView', () => {
     expect(screen.queryByText(NOT_EVIDENCE)).toBeNull()
   })
 
-  test('how it is going: weekly figures against 4 weeks before, and the full series on demand', async () => {
+  test('how it is going: weekly figures against 4 weeks before, and the weekly series in a chart', async () => {
     serveFixtures()
     await renderWithData(<OverviewView source="synthetic" onNavigate={() => {}} />)
 
@@ -59,7 +59,11 @@ describe('OverviewView', () => {
     expect(within(active).getByRole('img', { name: 'Personas activas, últimas 12 semanas completas' })).toBeTruthy()
     expect(within(screen.getByRole('article', { name: 'Frecuencia (30 días)' })).getByText('1,50')).toBeTruthy()
     expect(screen.getByRole('table', { name: 'Serie semanal' })).toBeTruthy()
-    expect(screen.getByText('Ver la serie semanal completa')).toBeTruthy()
+    expect(screen.getByRole('button', { name: 'Ver tabla de Serie semanal' })).toBeTruthy()
+    const picker = screen.getByRole('combobox', { name: 'Indicador' })
+    expect(screen.getByRole('img', { name: /^Personas activas: / })).toBeTruthy()
+    await act(async () => fireEvent.change(picker, { target: { value: 'pedidos' } }))
+    expect(screen.getByRole('img', { name: /^Pedidos: / })).toBeTruthy()
   })
 
   test('with the prototype each card from it carries the MVP label, and Rappi data does not', async () => {

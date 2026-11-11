@@ -3,6 +3,7 @@ import { DataTable } from '../../components/DataTable.jsx'
 import { EmptyState } from '../../components/States.jsx'
 import { formatNumber, formatPct } from '../../lib/format.js'
 import { plural, verticalLabel } from '../../lib/labels.js'
+import { Panel } from '../../components/Panel.jsx'
 import { Stats } from '../../components/Stats.jsx'
 
 const COLUMNS = [
@@ -24,10 +25,13 @@ function abandonmentStat({ busquedas, rescatadas, abandonadas, abandono_pct: pct
   return {
     label: 'Abandono de búsqueda',
     value: pct === null ? `${formatNumber(abandonadas)} de ${formatNumber(busquedas)}` : formatPct(pct),
-    note:
-      `${formatNumber(busquedas)} ${plural(busquedas, 'búsqueda')} que saben qué se tocó desde ellas; abandonada es la que no terminó ` +
-      `en ningún toque ni en otra búsqueda con toque en ${minutes} minutos ` +
-      `(${formatNumber(rescatadas)} se ${rescatadas === 1 ? 'salvó' : 'salvaron'} al reformularla).`,
+    note: `de ${formatNumber(busquedas)} ${plural(busquedas, 'búsqueda')}; ${formatNumber(rescatadas)} se ${rescatadas === 1 ? 'salvó' : 'salvaron'} al reformular`,
+    help: (
+      <p>
+        Cuenta las búsquedas que saben qué se tocó desde ellas. Abandonada es la que no terminó en ningún toque ni en
+        otra búsqueda con toque en {minutes} minutos.
+      </p>
+    ),
   }
 }
 
@@ -47,7 +51,7 @@ export function UnmetSearches({ data, table = true }) {
           {
             label: 'Sin resultado',
             value: `${formatNumber(unmet)} de ${formatNumber(busquedas)}`,
-            note: `${plural(busquedas, 'búsqueda o pregunta', 'búsquedas y preguntas')} a ${AGENT_NAME} que saben si encontraron algo.`,
+            note: `${plural(busquedas, 'búsqueda o pregunta', 'búsquedas y preguntas')} a ${AGENT_NAME}`,
           },
           // una respuesta guardada antes del 03-11-2026 no trae el abandono
           ...(abandonment?.busquedas ? [abandonmentStat(abandonment)] : []),
@@ -55,15 +59,17 @@ export function UnmetSearches({ data, table = true }) {
         ]}
       />
       {table && rows.length > 0 && (
-        <DataTable
-          caption="Búsquedas sin resultado por vertical y concepto"
-          columns={COLUMNS}
-          rows={rows}
-          rowKey={(row) => `${row.vertical}/${row.concepto ?? ''}`}
-        />
-      )}
-      {table && rows.length > 0 && (
-        <p className="cell-sub">Hasta 20 filas, por vertical y concepto; nunca el texto que escribió la persona.</p>
+        <Panel
+          title="Sin resultado por vertical y concepto"
+          meta="Hasta 20 filas; nunca el texto que escribió la persona."
+        >
+          <DataTable
+            caption="Búsquedas sin resultado por vertical y concepto"
+            columns={COLUMNS}
+            rows={rows}
+            rowKey={(row) => `${row.vertical}/${row.concepto ?? ''}`}
+          />
+        </Panel>
       )}
     </>
   )
