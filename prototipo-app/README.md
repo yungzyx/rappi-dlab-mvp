@@ -174,7 +174,7 @@ En el prototipo final no hay filas de sugerencias al entrar a una vertical ni en
 
 ### Mochi fuera de la Home
 
-En el prototipo final, Mochi flota a un costado en las demás pantallas (no en la Home, el buscador con Mochi, el checkout ni el seguimiento), sobre la barra inferior o la del carrito, y se achica al hacer scroll:
+En el prototipo final, Mochi flota a un costado en las demás pantallas (no en la Home, el buscador con Mochi, el checkout ni el seguimiento), sobre la barra inferior o la del carrito. Al hacer scroll se aparta al borde (asoma media cara) y vuelve al parar, salvo que quede sobre un control (un "+", "Ver más", un chip): ahí sigue apartado hasta que deje de taparlo (`components/assistant/agentSpot.js`). En la Home, con "Ver carro" o "Pedido en curso", se para sobre ellas:
 
 - **Tocarlo:** salta y abre un menú: "Buscar con Mochi", "Revisar mi carrito · $total" (o "¿Qué puedo probar?" con el carro vacío), "Mover al otro lado", "Silenciar por hoy" y "Ocultar a Mochi". Escape o tocar fuera lo cierran.
 - **Moverlo:** arrastrarlo lo deja en el lado más cercano; el lado se recuerda en el navegador.

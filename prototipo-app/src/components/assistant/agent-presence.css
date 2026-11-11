@@ -42,12 +42,15 @@
   outline-offset: 2px;
 }
 
-.agent-presence.is-small .agent-presence-body {
-  transform: scale(0.8);
+/* Apartado: mientras se hace scroll y mientras quedaría sobre un control (agentSpot.js). Asoma media cara desde el
+   borde, como en silencio, fuera de la columna de los "+"; tocarlo abre el menú igual. */
+.agent-presence.is-tucked .agent-presence-body {
+  transform: translateX(34px) scale(0.6);
   transform-origin: bottom right;
 }
 
-.agent-presence.is-left.is-small .agent-presence-body {
+.agent-presence.is-left.is-tucked .agent-presence-body {
+  transform: translateX(-34px) scale(0.6);
   transform-origin: bottom left;
 }
 
@@ -141,6 +144,13 @@
   max-width: 220px;
   padding-right: 34px;
   pointer-events: none;
+}
+
+/* Su × quedaba justo sobre el "+" del producto recién agregado (la columna de la derecha): el globo se corre hacia
+   adentro, a la izquierda del "− 1 +" (92 px desde el borde de la lista), así un segundo toque al "+" o al "−" cambia
+   la cantidad en vez de cerrar el globo. El resto del globo deja pasar los toques. */
+.agent-presence:not(.is-left) .agent-bubble {
+  margin-right: 108px;
 }
 
 .agent-bubble button {

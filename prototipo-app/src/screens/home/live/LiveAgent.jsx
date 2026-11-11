@@ -2,6 +2,7 @@ import { forwardRef, useCallback, useEffect, useImperativeHandle, useLayoutEffec
 import { AGENT_NAME } from '../../../agent/name'
 import { ProductCards } from '../../../components/assistant/AgentMessage'
 import Mascot from '../../../components/assistant/Mascot'
+import { FLOATING_EVENT, floatingBottom } from '../../../components/floatingInset'
 import OfferWhy from '../../../components/assistant/OfferWhy'
 import { rectInPhone } from '../../../state/AssistantContext'
 import { typedEnd } from '../../../utils/typed'
@@ -10,7 +11,7 @@ const SIZE = 84 // ancho de la mascota de cuerpo entero (alto = 1,2 × ancho)
 const HEIGHT = SIZE * 1.2
 const EDGE = 14 // margen derecho
 const TOP_LIMIT = 118 // bajo la dirección: nunca tapa la barra de estado
-const BOTTOM_RESERVE = 104 // sobre la barra inferior (y la del carrito)
+const BOTTOM_RESERVE = 104 // sobre la barra inferior; con "Ver carro" o "Pedido en curso", sobre ellas (floatingInset.js)
 const TYPE_MS = 16 // ms por letra al "hablar"
 // Mientras nadie le habla, el agente no se queda quieto: cada tanto mira, baila, saluda o se estira (en este orden).
 const FIDGETS = ['look', 'dance', 'wave', 'stretch', 'hop']
@@ -83,13 +84,15 @@ const LiveAgent = forwardRef(function LiveAgent(
       phoneSize.current = { height: phone.phoneHeight, width: phone.phoneWidth }
     }
     const { height, width } = phoneSize.current
-    let y = height - BOTTOM_RESERVE - HEIGHT
+    // La barra del carrito tapaba la mitad de abajo de Mochi: se para sobre lo más alto de lo que flota.
+    const reserve = Math.max(BOTTOM_RESERVE, floatingBottom(layer.closest('.phone')))
+    let y = height - reserve - HEIGHT
     const block = target ? getBlock(target) : null
     if (block) {
       const box = rectInPhone(block)
-      const visible = box.top + box.height > TOP_LIMIT && box.top < height - BOTTOM_RESERVE
+      const visible = box.top + box.height > TOP_LIMIT && box.top < height - reserve
       // Parado sobre el borde superior del bloque (los zapatos lo pisan), dentro de la pantalla.
-      if (visible) y = Math.min(Math.max(box.top - HEIGHT + 16, TOP_LIMIT), height - BOTTOM_RESERVE - HEIGHT)
+      if (visible) y = Math.min(Math.max(box.top - HEIGHT + 16, TOP_LIMIT), height - reserve - HEIGHT)
     }
     const x = width - SIZE - EDGE
     // En la mitad de abajo el globo crece hacia arriba (no tapa la barra inferior).
@@ -107,6 +110,13 @@ const LiveAgent = forwardRef(function LiveAgent(
     if (lastY.current !== null && Math.abs(lastY.current - spot.y) > 30) setHopKey((n) => n + 1)
     lastY.current = spot.y
   }, [spot])
+
+  // Aparece o se va la barra del carrito: vuelve a pararse encima.
+  useEffect(() => {
+    const phone = layerRef.current?.closest('.phone')
+    phone?.addEventListener(FLOATING_EVENT, place)
+    return () => phone?.removeEventListener(FLOATING_EVENT, place)
+  }, [place])
 
   useEffect(() => {
     const onResize = () => {
