@@ -7,8 +7,10 @@
 export function BarRows({ rows, series, max }) {
   const top = max ?? Math.max(0, ...rows.flatMap((row) => row.values.filter((value) => value !== null)))
   const fraction = (value) => (top > 0 && value > 0 ? Math.min(1, value / top) : 0)
+  // El lugar del valor escrito: la barra más larga termina antes, así el texto nunca se sale.
+  const longest = Math.max(1, ...rows.flatMap((row) => row.texts.map((text) => String(text).length)))
   return (
-    <div className="bars" aria-hidden="true">
+    <div className="bars" aria-hidden="true" style={{ '--value-w': `${longest + 1}ch` }}>
       {series.length > 1 && (
         <div className="legend">
           {series.map((item, index) => (

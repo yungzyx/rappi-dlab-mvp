@@ -329,19 +329,6 @@ abbr {
 }
 
 /* ---------- Estados vacíos, de carga y de error ---------- */
-/* En línea: lo que falta dicho en una línea, sin caja */
-.state--inline {
-  padding: 0;
-  background: none;
-}
-
-.state--inline p {
-  max-width: 90ch;
-}
-
-.state--inline strong {
-  font-weight: 500;
-}
 
 .state {
   display: grid;
@@ -394,6 +381,20 @@ abbr {
 
 .state--error strong {
   color: var(--bad-ink);
+}
+
+/* En línea: lo que falta dicho en una línea, sin caja */
+.state--inline {
+  padding: 0;
+  background: none;
+}
+
+.state--inline p {
+  max-width: 90ch;
+}
+
+.state--inline strong {
+  font-weight: 500;
 }
 
 /* ---------- Botones: un solo estilo secundario ---------- */

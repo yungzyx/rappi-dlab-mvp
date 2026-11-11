@@ -117,9 +117,25 @@
   shape-rendering: crispEdges;
 }
 
-/* El selector de serie hace de leyenda, a la izquierda de "Ver tabla" */
+/* El selector de serie hace de leyenda, arriba del gráfico */
 .chart-picker {
-  margin-right: auto;
+  justify-self: start;
+}
+
+/* El embudo: un bloque por modo de la app */
+.funnel {
+  display: grid;
+  gap: var(--space-4);
+}
+
+.funnel-mode {
+  display: grid;
+  gap: var(--space-1);
+}
+
+.funnel-mode .subhead {
+  margin: 0;
+  font-size: var(--text-sm);
 }
 
 @media (forced-colors: active) {
@@ -142,12 +158,16 @@
 }
 
 .bars-rows {
+  display: grid;
+  grid-template-columns: fit-content(200px) minmax(0, 1fr) auto;
   list-style: none;
 }
 
+/* Subgrid: los rótulos comparten el ancho del más largo, así todas las barras empiezan en el mismo x */
 .bars-row {
   display: grid;
-  grid-template-columns: minmax(120px, 200px) minmax(0, 1fr) auto;
+  grid-column: 1 / -1;
+  grid-template-columns: subgrid;
   align-items: center;
   gap: 4px var(--space-4);
   padding: var(--space-2) 0;
@@ -196,7 +216,7 @@
 
 .bars-bar {
   flex: none;
-  width: max(2px, calc((100% - 72px) * var(--f)));
+  width: max(2px, calc((100% - var(--value-w, 9ch) - 8px) * var(--f)));
   height: 10px;
   border-radius: 2px;
   background: var(--series-1);
@@ -251,8 +271,11 @@
   color: var(--ink-2);
 }
 
+.facet .bars-rows {
+  grid-template-columns: 56px minmax(0, 1fr) auto;
+}
+
 .facet .bars-row {
-  grid-template-columns: 56px minmax(0, 1fr);
   padding: 6px 0;
 }
 
@@ -272,7 +295,7 @@
   }
 
   /* El rótulo arriba (con la nota a su derecha) y las barras debajo, a todo el ancho */
-  .bars-row:not(.facet .bars-row) {
+  .bars-rows:not(.facet .bars-rows) {
     grid-template-columns: minmax(0, 1fr) auto;
   }
 

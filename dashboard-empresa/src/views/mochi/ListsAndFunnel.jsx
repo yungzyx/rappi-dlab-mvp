@@ -1,6 +1,10 @@
+import { Caveat } from '../../components/Caveat.jsx'
+import { ChartPanel } from '../../components/ChartTableSwitch.jsx'
 import { DataTable } from '../../components/DataTable.jsx'
 import { Meter } from '../../components/Meter.jsx'
+import { Panel } from '../../components/Panel.jsx'
 import { EmptyState } from '../../components/States.jsx'
+import { BarRows } from '../../components/charts/BarRows.jsx'
 import { formatNumber, formatPct } from '../../lib/format.js'
 
 // Los pasos del embudo por sesión (/analytics/embudo-sesion): cada uno exige los anteriores.
@@ -12,18 +16,24 @@ export const FUNNEL_STEPS = [
   { key: 'pidieron', label: 'Pidieron' },
 ]
 const MODE_LABELS = { propuesta: 'Prototipo con Mochi', actual: 'Rappi hoy' }
+const ONE_SERIES = [{ key: 'valor', label: 'Valor' }]
+
+const CTR_TITLE = 'CTR por posición'
+const FUNNEL_TITLE = 'Embudo por sesión'
 
 /**
  * CTR por posición (/analytics/ctr-posicion, capa.v_ctr_posicion): de lo que quedó a la vista en cada lugar de las
- * listas, cuánto se tocó desde ahí. Solo el prototipo con Mochi.
+ * listas, cuánto se tocó desde ahí, en barras y en su tabla. Solo el prototipo con Mochi.
  */
 export function CtrByPosition({ data }) {
   const { posiciones } = data
   if (!posiciones.length) {
     return (
-      <EmptyState title="Todavía no hay impresiones">
-        Aparecen cuando las listas de la app (Home, búsqueda, tiendas, Turbo, Mochi) quedan a la vista.
-      </EmptyState>
+      <Panel title={CTR_TITLE}>
+        <EmptyState title="Todavía no hay impresiones" inline>
+          Aparecen cuando las listas de la app (Home, búsqueda, tiendas, Turbo, Mochi) quedan a la vista.
+        </EmptyState>
+      </Panel>
     )
   }
   const top = Math.max(...posiciones.map((row) => row.ctr ?? 0))
@@ -44,27 +54,61 @@ export function CtrByPosition({ data }) {
     },
   ]
   return (
-    <DataTable
-      caption="CTR por posición en las listas"
-      columns={columns}
-      rows={posiciones}
-      rowKey={(row) => row.posicion}
+    <ChartPanel
+      title={CTR_TITLE}
+      className="bars-panel"
+      chart={
+        <BarRows
+          series={ONE_SERIES}
+          max={top * 100}
+          rows={posiciones.map((row) => ({
+            key: row.posicion,
+            label: `${row.posicion + 1}.º`,
+            values: [row.ctr === null ? null : row.ctr * 100],
+            texts: [formatPct(row.ctr * 100)],
+            note: `${formatNumber(row.clics)} de ${formatNumber(row.impresiones)}`,
+          }))}
+        />
+      }
+      table={
+        <DataTable
+          caption="CTR por posición en las listas"
+          columns={columns}
+          rows={posiciones}
+          rowKey={(row) => row.posicion}
+        />
+      }
+      foot={
+        <Caveat>
+          El primer lugar se toca más también por estar primero: hay que descontar ese sesgo antes de comparar órdenes.
+        </Caveat>
+      }
     />
   )
 }
 
-/** El embudo por sesión (/analytics/embudo-sesion, capa.v_embudo_sesion): una tabla por modo de la app. */
-export function SessionFunnel({ rows }) {
-  if (!rows.length) {
-    return <EmptyState title="Todavía no hay sesiones">Aparecen con el primer uso de la app.</EmptyState>
-  }
-  return rows.map((row) => (
-    <FunnelTable key={row.modo} row={row} title={rows.length > 1 ? (MODE_LABELS[row.modo] ?? row.modo) : null} />
-  ))
+const stepsOf = (row) => FUNNEL_STEPS.map((step) => ({ ...step, n: row[step.key] }))
+const shareOf = (row, n) => (row.sesiones ? (n * 100) / row.sesiones : null)
+
+function FunnelBars({ row, title }) {
+  return (
+    <div className="funnel-mode">
+      {title && <h4 className="subhead">{title}</h4>}
+      <BarRows
+        series={ONE_SERIES}
+        max={row.sesiones}
+        rows={stepsOf(row).map((step) => ({
+          key: step.key,
+          label: step.label,
+          values: [step.n],
+          texts: [`${formatNumber(step.n)} · ${formatPct(shareOf(row, step.n))}`],
+        }))}
+      />
+    </div>
+  )
 }
 
 function FunnelTable({ row, title }) {
-  const steps = FUNNEL_STEPS.map((step) => ({ ...step, n: row[step.key] }))
   const columns = [
     { key: 'label', header: 'Paso', primary: true },
     { key: 'n', header: 'Sesiones', numeric: true, render: (step) => formatNumber(step.n) },
@@ -75,20 +119,47 @@ function FunnelTable({ row, title }) {
       render: (step) => (
         <span className="cell-bar">
           <Meter value={step.n} max={row.sesiones} />
-          {formatPct(row.sesiones ? (step.n * 100) / row.sesiones : null)}
+          {formatPct(shareOf(row, step.n))}
         </span>
       ),
     },
   ]
   return (
-    <>
-      {title && <h4 className="subhead">{title}</h4>}
-      <DataTable
-        caption={`Embudo por sesión${title ? `: ${title}` : ''}`}
-        columns={columns}
-        rows={steps}
-        rowKey={(step) => step.key}
-      />
-    </>
+    <DataTable
+      caption={`${FUNNEL_TITLE}${title ? `: ${title}` : ''}`}
+      columns={columns}
+      rows={stepsOf(row)}
+      rowKey={(step) => step.key}
+    />
+  )
+}
+
+/** El embudo por sesión (/analytics/embudo-sesion, capa.v_embudo_sesion): barras y tabla, un bloque por modo de la app. */
+export function SessionFunnel({ rows }) {
+  if (!rows.length) {
+    return (
+      <Panel title={FUNNEL_TITLE}>
+        <EmptyState title="Todavía no hay sesiones" inline>
+          Aparecen con el primer uso de la app.
+        </EmptyState>
+      </Panel>
+    )
+  }
+  const titleOf = (row) => (rows.length > 1 ? (MODE_LABELS[row.modo] ?? row.modo) : null)
+  return (
+    <ChartPanel
+      title={FUNNEL_TITLE}
+      className="bars-panel"
+      chart={
+        <div className="funnel">
+          {rows.map((row) => (
+            <FunnelBars key={row.modo} row={row} title={titleOf(row)} />
+          ))}
+        </div>
+      }
+      table={rows.map((row) => (
+        <FunnelTable key={row.modo} row={row} title={titleOf(row)} />
+      ))}
+    />
   )
 }

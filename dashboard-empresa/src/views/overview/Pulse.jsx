@@ -1,5 +1,6 @@
 import { useState } from 'react'
-import { ChartTableSwitch } from '../../components/ChartTableSwitch.jsx'
+import { ChartPanel } from '../../components/ChartTableSwitch.jsx'
+import { Panel } from '../../components/Panel.jsx'
 import { DataTable } from '../../components/DataTable.jsx'
 import { Delta } from '../../components/Delta.jsx'
 import { Meter } from '../../components/Meter.jsx'
@@ -117,10 +118,9 @@ export function WeeklyChart({ source }) {
   const table = <WeeklyTable rows={rows} asOf={kpis.as_of} />
   if (points.filter((point) => !point.partial && point.value !== null).length < MIN_CHART_WEEKS) {
     return (
-      <>
-        <p className="panel-meta">Faltan semanas para dibujar la serie.</p>
+      <Panel title="Serie semanal" className="weekly-panel" meta="Faltan semanas para dibujar la serie.">
         {rows.length > 0 && table}
-      </>
+      </Panel>
     )
   }
   const picker = (
@@ -138,8 +138,9 @@ export function WeeklyChart({ source }) {
     </div>
   )
   return (
-    <ChartTableSwitch
-      name="Serie semanal"
+    <ChartPanel
+      title="Serie semanal"
+      className="weekly-panel"
       legend={picker}
       chart={
         <LineChart

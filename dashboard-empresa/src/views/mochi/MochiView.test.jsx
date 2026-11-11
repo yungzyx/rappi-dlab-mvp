@@ -121,7 +121,7 @@ describe('MochiView', () => {
     expect(cells(rows['Volver a pedir']).slice(4)).toEqual(['0', '—', '0'])
     // Sin momento (un origen desconocido) muestra los rechazos que haya; sin ninguno, "—".
     expect(cells(rows['Sin momento']).slice(4)).toEqual(['2', '—', '0'])
-    expect(screen.getByText(/los otros momentos no tienen ese botón/)).toBeTruthy()
+    expect(screen.getByText(/Los otros momentos no tienen ese botón y muestran una raya/)).toBeTruthy()
   })
 
   test('prototype sections carry the not-evidence label', async () => {
@@ -212,6 +212,7 @@ describe('MochiView', () => {
       ['1.º', '10', '3', '30,0%'],
       ['2.º', '8', '1', '12,5%'],
     ])
+    expect(screen.getByRole('button', { name: 'Ver tabla de CTR por posición' })).toBeTruthy()
     const funnel = screen.getByRole('table', { name: 'Embudo por sesión' })
     expect(bodyRows(funnel).map((row) => cells(row)[2])).toEqual(['100,0%', '100,0%', '50,0%', '25,0%', '25,0%'])
   })
@@ -364,9 +365,9 @@ describe('MochiView', () => {
 
     expect(await screen.findByText('Abandono de búsqueda')).toBeTruthy()
     expect(screen.getByText('41,0%')).toBeTruthy()
-    expect(
-      screen.getByText(/61 búsquedas que saben qué se tocó.*en 2 minutos \(1 se salvó al reformularla\)/),
-    ).toBeTruthy()
+    expect(screen.getByText('de 61 búsquedas; 1 se salvó al reformular')).toBeTruthy()
+    expect(screen.getByLabelText('Ayuda: Abandono de búsqueda')).toBeTruthy()
+    expect(screen.getByText(/ni en otra búsqueda con toque en 2 minutos\./)).toBeTruthy()
     unmount()
 
     const few = { ...abandono, busquedas: 3, con_clic: 1, rescatadas: 0, abandonadas: 2, abandono_pct: null }

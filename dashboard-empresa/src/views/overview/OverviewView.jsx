@@ -1,6 +1,5 @@
 import { AGENT_NAME } from '../../lib/agentName.js'
 import { Async } from '../../components/Async.jsx'
-import { Panel } from '../../components/Panel.jsx'
 import { SectionHead } from '../../components/SectionHead.jsx'
 import { useAnalytics, useAnalyticsMany } from '../../lib/useAnalytics.js'
 import { DecisionBody, DecisionCard } from './DecisionCard.jsx'
@@ -109,11 +108,9 @@ export function OverviewView({ source, onNavigate }) {
             </DecisionCard>
           </div>
         </section>
-        <Panel title="Serie semanal" className="weekly-panel">
-          <Async>
-            <WeeklyChart source={source} />
-          </Async>
-        </Panel>
+        <Async>
+          <WeeklyChart source={source} />
+        </Async>
       </div>
     </div>
   )
