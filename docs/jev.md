@@ -42,6 +42,8 @@ Centavos de dólar por corrida. TypeSafe cobra por tokens de entrada (`JEV_PRICE
 
    Deja en `rappi-ia/data/eval/` dos CSV, `planilla-busqueda.csv` (200 pares consulta-producto: "sirve", "a medias" o "no sirve") y `planilla-categorias.csv` (100 categorías: el concepto correcto o "ninguno"), y un `LEEME-planillas.md` que explica cómo llenarlas. Se abren en Numbers o Excel, se llena una sola columna de cada una y se guardan como CSV UTF-8 con el mismo nombre. Se puede juzgar de a ratos. Los textos quedan fuera de git; solo los ids van versionados. Con `.venv/bin/rappi-ia eval-human` ves cuánto coincide el juez por concepto con tu juicio.
 
+   Con `--fecha AAAA-MM-DD` arma solo una muestra nueva de búsqueda al lado de la anterior, sin pisarla (`planilla-busqueda-<fecha>.csv` y sus ids). `eval-human` y `jev-piloto` siguen leyendo la planilla sin fecha.
+
 3. **Piloto.** Con las dos planillas juzgadas (basta con el 90 % de cada una):
 
    ```bash
