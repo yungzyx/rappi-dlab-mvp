@@ -42,7 +42,7 @@ test('las personas de la escalera están donde dice su nombre, y la línea del p
 
 test('"Usa mucho Farmacia" la sube primera en la Home y Mochi igual nunca la ofrece', () => {
   const state = stateOf('farmacia')
-  expect(homeVerticals(state, NOW, LABELS).order[0].id).toBe('farmacia')
+  expect(homeVerticals(state, NOW, LABELS, META.concepts).order[0].id).toBe('farmacia')
   expect(targetStep(COMBOS, state, NOW).vertical).toBe('turbo')
 })
 

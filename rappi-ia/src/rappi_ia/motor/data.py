@@ -39,6 +39,8 @@ class Signal:
     ts: datetime
     kind: str
     vertical: str
+    # Los conceptos de la señal: el del evento, si lo trae, o los de las líneas del pedido (los lee `motor.home`).
+    concepts: frozenset[str] = frozenset()
 
 
 def _filters(
@@ -106,10 +108,13 @@ def load_signals(
     personas y `before`, si quien llama ya lo leyó (así no se lee dos veces)."""
     if orders is None:
         orders = load_orders(conn, source, user_id, before)
-    signals = [Signal(o.user_id, o.ts, "order", o.vertical) for o in orders]
+    signals = [
+        Signal(o.user_id, o.ts, "order", o.vertical, frozenset(line.concept_id for line in o.lines if line.concept_id))
+        for o in orders
+    ]
     where, params = _filters(source, user_id, before, "e")
     rows = conn.execute(
-        f"""SELECT e.user_id, e.ts, e.type, e.vertical
+        f"""SELECT e.user_id, e.ts, e.type, e.vertical, e.concept_id
             FROM app_events e
             JOIN app_users u USING (user_id)
             WHERE e.type = ANY(%s) AND e.vertical IS NOT NULL
@@ -117,7 +122,10 @@ def load_signals(
             ORDER BY e.ts, e.event_id""",
         [list(EVENT_KINDS), *params],
     ).fetchall()
-    signals += [Signal(*row) for row in rows]
+    signals += [
+        Signal(user, ts, kind, vertical, frozenset({concept} if concept else ()))
+        for user, ts, kind, vertical, concept in rows
+    ]
     signals.sort(key=lambda s: s.ts)  # estable: a igual hora, el pedido va antes que el evento
     return signals
 

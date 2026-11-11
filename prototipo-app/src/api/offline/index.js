@@ -553,7 +553,7 @@ function answer(snapshot, { method, path, query, body }, now) {
     if (method === 'DELETE' && !profile[2])
       return { body: { user_id: userId, concept: null, eventos_borrados: clearState() } }
     if (method === 'GET' && profile[2] === '/verticales')
-      return { body: homeVerticals(state, now, snapshot.meta.vertical_labels) }
+      return { body: homeVerticals(state, now, snapshot.meta.vertical_labels, snapshot.meta.concepts) }
     if (method === 'GET' && profile[2] === '/gustos') return { body: tastesReply(snapshot, state) }
     if (method === 'GET' && profile[2] === '/busquedas') return { body: searchesReply(state) }
     if (method === 'GET' && !profile[2]) {

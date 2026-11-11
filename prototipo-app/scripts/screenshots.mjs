@@ -2,9 +2,10 @@
 // Usa el Chrome instalado (playwright-core, sin descargar navegadores; CHROME_PATH apunta a otro ejecutable y
 // PLAYWRIGHT_CHANNEL a otro canal, p. ej. chrome-beta) y un servidor Vite propio en el 5199.
 // La app no abre sin la API: antes de capturar hay que tener el MVP corriendo (`make mvp`), o una API propia en otro
-// puerto (`VITE_API_URL`, la misma variable que lee la app). El recorrido paga una compra y deja eventos en la base de
-// la API: por eso no corre sin `SCREENSHOTS_ALLOW_WRITES=1`, y se corre sobre una copia
-// (`DATABASE_URL=postgresql:///rappi_staging make mvp`), nunca sobre `rappi`.
+// puerto (`VITE_API_URL`, la misma variable que lee la app). El recorrido paga dos compras (una en Ofertas y otra en
+// Chocolates, para la Home dinámica) y deja pedidos y eventos en la base de la API: por eso no corre sin
+// `SCREENSHOTS_ALLOW_WRITES=1`, y se corre sobre una copia (`DATABASE_URL=postgresql:///rappi_staging make mvp`),
+// nunca sobre `rappi`.
 // La conversación (45, 46 y 48) se pide en el buscador y se refina con los chips "Más barato" y "Sin carne".
 // "¿Repetimos?" necesita tres compras con ritmo: esa oferta sale del fixture del contrato, con un café real del catálogo.
 import { mkdirSync, readFileSync } from 'node:fs'
@@ -64,6 +65,49 @@ async function run(page) {
   const shortcut = async (label) => {
     await page.locator('.home-shortcut', { hasText: label }).first().scrollIntoViewIfNeeded()
     await tap('.home-shortcut', label)
+  }
+  // En el checkout: la compra mínima de cada tienda (más unidades hasta llegar, "Te faltan $X para hacer el pedido"),
+  // "Hacer pedido", la edad si hay algo +18 (una vez por sesión) y, pasada la ventana de "Deshacer pedido", el pedido
+  // en la API (POST /orders).
+  const placeOrder = async () => {
+    const short = page.locator('.checkout-basket:has(.basket-min.is-short)')
+    for (let tries = 0; tries < 60 && (await short.count()) > 0; tries++) {
+      await short
+        .first()
+        .getByRole('button', { name: /^Agregar uno de / })
+        .first()
+        .click()
+      await wait(100)
+    }
+    const posted = page.waitForResponse(
+      (r) => r.request().method() === 'POST' && r.url() === `${API}/orders`, // la URL que arma la app (VITE_API_URL)
+      { timeout: 30000 },
+    )
+    await tap('.checkout-place')
+    const adult = page.getByRole('button', { name: 'Sí, soy mayor de edad' })
+    if (
+      await adult.waitFor({ timeout: 2000 }).then(
+        () => true,
+        () => false,
+      )
+    )
+      await adult.click()
+    const response = await posted
+    if (!response.ok()) throw new Error(`la API rechazó el pedido (POST /orders → ${response.status()})`)
+  }
+  // Del seguimiento de un pedido a la Home: "Volver al inicio" o la flecha de atrás, las veces que haga falta (la Home
+  // queda debajo, oculta, y sin la barra de abajo), como checkHome de scripts/mvp-check.mjs.
+  const backHome = async () => {
+    const home = page.locator('.home-shortcut').first()
+    const leave = page.getByRole('button', { name: 'Volver al inicio' }).or(page.locator('[aria-label="Volver"]'))
+    for (let tries = 0; tries < 10 && !(await home.isVisible()); tries++) {
+      await leave
+        .first()
+        .click({ timeout: 3000, force: true })
+        .catch(() => {})
+      await wait(500)
+    }
+    await home.waitFor()
   }
   const reset = async () => {
     // Como quien ya vio la guía de la primera vez y el aviso de privacidad: taparían las capturas de la Home.
@@ -161,27 +205,7 @@ async function run(page) {
   await tap('.cart-checkout')
   await wait(800)
   await shot('25-checkout')
-  // La compra mínima de la tienda: más unidades del producto hasta llegar ("Te faltan $X para hacer el pedido").
-  const short = page.locator('.checkout-basket:has(.basket-min.is-short)')
-  for (let tries = 0; tries < 60 && (await short.count()) > 0; tries++) {
-    await short
-      .first()
-      .getByRole('button', { name: /^Agregar uno de / })
-      .first()
-      .click()
-    await wait(100)
-  }
-  await tap('.checkout-place')
-  // Un producto +18 pregunta la edad una vez por sesión; después, la ventana de "Deshacer pedido" (5 s).
-  const adult = page.getByRole('button', { name: 'Sí, soy mayor de edad' })
-  if (
-    await adult.waitFor({ timeout: 2000 }).then(
-      () => true,
-      () => false,
-    )
-  )
-    await adult.click()
-  await wait(5500)
+  await placeOrder()
   await wait(13000)
   await shot('26-seguimiento')
   await wait(10000) // el pedido llega
@@ -198,24 +222,41 @@ async function run(page) {
   await wait(900)
   await shot('28-loyalty-vinculado')
 
-  // --- La Home que aprende: otra persona entra dos veces a Chocolates y una a Rappi Mall ---
+  // --- La Home que aprende: otra persona pide una vez en Chocolates. Un pedido basta para mover el acceso ("Porque
+  // pediste en…"); entrar varias veces el mismo día no lo mueve (motor/home.py: MIN_USE_DAYS) ---
   await reset()
   await wait(4200) // el saludo de Mochi
-  for (const label of ['Chocolates', 'Chocolates', 'Rappi Mall']) {
-    await shortcut(label)
-    await page.locator('.vertical-store').first().waitFor()
-    await back()
-    await settle(400)
+  await shortcut('Chocolates')
+  // El primer producto de las filas de la vertical: la primera tienda puede tener todo agotado.
+  const product = page.locator('.vertical-product-row .product-card .add-button').first()
+  await product.waitFor()
+  await product.click()
+  await wait(700)
+  await tap('.cart-bar')
+  await wait(500)
+  await tap('.cart-checkout')
+  await wait(800)
+  await placeOrder()
+  await backHome() // al volver, la Home pide su orden: Chocolates sube y Mochi dice por qué
+  // Tras un pedido la API recalcula los segmentos de la persona (en rappi_staging, unos 10 s): se espera más.
+  await page.getByText('Ordenadas según lo que más usas').waitFor({ timeout: 60000 })
+  // Antes de "Moví…" Mochi puede ofrecer algo para acompañar lo pedido (la oferta del carro): "Ahora no" la cierra y
+  // deja pasar la explicación de los accesos, que es la que muestra 03.
+  const moved = page.getByRole('button', { name: 'Entendido' })
+  const later = page.getByRole('button', { name: 'Ahora no' })
+  await moved.or(later).first().waitFor({ timeout: 60000 })
+  if (await later.isVisible()) {
+    await later.click()
+    await moved.waitFor({ timeout: 30000 })
   }
-  await page.getByText('Ordenadas según lo que más usas').waitFor()
-  // Abrir Rappi Mall corrió la fila hacia la derecha: vuelve al principio, como la ve quien llega a la Home.
+  // Abrir Chocolates corrió la fila hacia la derecha: vuelve al principio, como la ve quien llega a la Home.
   await page.locator('.home-shortcuts').evaluate((row) => {
     for (const el of [row, ...row.querySelectorAll('*')]) el.scrollLeft = 0
   })
   await shot('03-home-dinamica')
 
   // Mochi explica qué acceso movió (03 lo muestra). "Entendido" lo cierra: si no, su "¿Por qué?" es el que se abre.
-  await page.getByRole('button', { name: 'Entendido' }).click()
+  await moved.click()
   await settle(400)
   // Tocar a Mochi en la Home: la API propone la vertical donde la persona aún no pide. El globo escribe letra por
   // letra: se espera la pregunta entera antes de abrir su "¿Por qué?".
@@ -228,7 +269,10 @@ async function run(page) {
   await tap('.live-bubble .offer-why-toggle')
   await shot('22-vertical-por-probar')
 
-  // "¿Repetimos?": la recompra del fixture del contrato, con un café molido real del catálogo.
+  // "¿Repetimos?": la recompra del fixture del contrato, con un café molido real del catálogo. Con otra persona, sin
+  // pedido en curso: la barra flotante del pedido de Chocolates tapaba "Ver producto" y "Después".
+  await reset()
+  await wait(4200) // el saludo de Mochi
   const repeat = await repeatOffer()
   await page.route('**/agent/offer', async (route) => {
     if (route.request().postDataJSON()?.moment !== 'recompra') return route.continue()
@@ -270,7 +314,7 @@ async function repeatOffer() {
 function requireWritesAllowed() {
   if (process.env.SCREENSHOTS_ALLOW_WRITES === '1') return
   console.error(
-    'Las capturas pagan una compra y dejan un pedido y eventos en la base que usa la API.\n' +
+    'Las capturas pagan dos compras y dejan pedidos y eventos en la base que usa la API.\n' +
       'Apunta la API a una copia, nunca a `rappi`: `DATABASE_URL=postgresql:///rappi_staging make mvp`,\n' +
       'y después corre `SCREENSHOTS_ALLOW_WRITES=1 npm run screenshots`.',
   )

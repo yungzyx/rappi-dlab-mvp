@@ -13,8 +13,9 @@
 #   5. refinar sin chat: "¿tienen pizza?", el chip "Más barato" debajo de la respuesta (la más barata primero, con lo
 #      dicho arriba), que el buscador sea el único campo de texto del panel y el chip "Otra opción" (Mochi dice que no
 #      hay otras, sin repetir);
-#   6. home: la Home dinámica; una persona nueva ve el orden fijo y, tras tocar "Retail" (Rappi Mall) tres veces, Retail
-#      queda primero con el texto "Ordenadas según lo que más usas";
+#   6. home: la Home dinámica; una persona nueva ve el orden fijo y, tras pedir en Rappi Mall (un pedido basta; varios
+#      toques el mismo día no mueven la Home), Rappi Mall queda primero con el motivo "Porque pediste en Rappi Mall." y
+#      el texto "Ordenadas según lo que más usas";
 #   7. combinación: una persona nueva pide en Restaurantes, vuelve a la Home y toca a Mochi: la oferta es de Turbo (el
 #      siguiente peldaño de la escalera de combinaciones) y su "¿Por qué?" muestra la razón;
 #   8. panel: "Mochi y búsquedas" del panel (fuente prototipo) muestra lo que dejó la revisión 3 (una oferta aceptada

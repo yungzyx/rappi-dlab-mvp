@@ -143,9 +143,10 @@ export function personaHistory(snapshot, persona, now = Date.now()) {
   const orders = plan
     .filter(([product]) => product)
     .map(([product, days], i) => orderOf(product, now - days * DAY_MS, i))
+  // Un toque por día: la Home pide uso en dos días distintos para moverse (motor.js: MIN_USE_DAYS).
   const events = (persona.opens ?? []).map((vertical, i) => ({
     type: 'vertical_open',
-    ts: now - (i + 1) * 3_600_000,
+    ts: now - (i + 1) * DAY_MS,
     vertical,
     payload: { desde: 'panel-demo' },
   }))
@@ -183,9 +184,13 @@ export function switchPersona(snapshot, persona) {
 /** El aviso con que la Home vuelve a pedir el orden de sus accesos (screens/home/useVerticalOrder.js). */
 export const DEMO_HISTORY_EVENT = 'rappi-demo-history'
 
-/** "+1 visita": un toque al acceso de esa vertical en el prototipo (no en "Rappi hoy"), y la Home se reordena. */
+/**
+ * "+1 visita": un toque al acceso de esa vertical en el prototipo (no en "Rappi hoy"), un día antes que el anterior del
+ * panel a esa vertical (la Home pide uso en dos días distintos: motor.js, MIN_USE_DAYS), y la Home se reordena.
+ */
 export function addVisit(vertical) {
-  addEvents([{ type: 'vertical_open', ts: Date.now(), vertical, payload: { desde: 'panel-demo' } }])
+  const before = readState().events.filter((e) => e.vertical === vertical && e.payload?.desde === 'panel-demo').length
+  addEvents([{ type: 'vertical_open', ts: Date.now() - before * DAY_MS, vertical, payload: { desde: 'panel-demo' } }])
   window.dispatchEvent(new Event(DEMO_HISTORY_EVENT))
 }
 
