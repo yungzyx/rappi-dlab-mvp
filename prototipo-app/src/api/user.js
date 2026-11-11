@@ -1,5 +1,6 @@
 // Id seudónimo de este navegador, compartido por quienes hablan con la API (eventos, preguntas, pedidos, "Para ti"), y
-// el token que lo firma. Los ayudantes de almacenamiento también los usa la sesión de EventsContext.
+// el token que lo firma.
+import { localStore } from '../state/storage'
 
 const USER_KEY = 'rappi-proto-user'
 
@@ -19,51 +20,12 @@ export function randomUuid() {
   return `${hex.slice(0, 8)}-${hex.slice(8, 12)}-${hex.slice(12, 16)}-${hex.slice(16, 20)}-${hex.slice(20)}`
 }
 
-export function readStore(storage, key) {
-  try {
-    return storage.getItem(key)
-  } catch {
-    return null
-  }
-}
-
-export function writeStore(storage, key, value) {
-  try {
-    storage.setItem(key, value)
-  } catch {
-    // Modo privado: el id vive solo en memoria.
-  }
-}
-
 // La sesión de este navegador: el id que dio la API (`POST /session`) y su token firmado, que va en X-User-Token. Sin
-// almacenamiento (el navegador lo bloquea), vive en memoria mientras la pestaña siga abierta.
+// almacenamiento (el navegador lo bloquea), vive en memoria mientras la pestaña siga abierta (`localStore`).
 const TOKEN_KEY = 'rappi-proto-token'
-const memory = new Map()
-
-function load(key) {
-  try {
-    return localStorage.getItem(key)
-  } catch {
-    return memory.get(key) ?? null
-  }
-}
-
-function save(key, value) {
-  try {
-    localStorage.setItem(key, value)
-  } catch {
-    memory.set(key, value)
-  }
-}
-
-function drop(key) {
-  memory.delete(key)
-  try {
-    localStorage.removeItem(key)
-  } catch {
-    // Sin almacenamiento no hay nada que borrar.
-  }
-}
+const load = (key) => localStore.get(key)
+const save = (key, value) => localStore.set(key, value)
+const drop = (key) => localStore.remove(key)
 
 /**
  * Id seudónimo de este navegador (no es una cuenta ni un dato personal). Lo da la API con la sesión. Si se perdió, se
