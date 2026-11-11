@@ -137,14 +137,6 @@ abbr {
   max-width: none;
 }
 
-/* Transición: los párrafos de las secciones que todavía no pasan a ayuda a demanda */
-.section-head > p:not([class]) {
-  flex-basis: 100%;
-  order: 10;
-  font-size: var(--text-sm);
-  color: var(--ink-2);
-}
-
 .section-head .caveat:first-of-type {
   margin-top: var(--space-1);
 }
