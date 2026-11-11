@@ -431,6 +431,24 @@ def test_deals_by_vertical(seeded):
     assert deals(seeded, "no-existe") == []
 
 
+def test_deals_of_the_screens_are_from_stores_of_the_demo_city_and_mochis_are_not_filtered(seeded, client):
+    # Norte pasa a Viña del Mar: su baja de la gaseosa (91002, la mayor del Súper) sale de "Bajaron de precio" y de la
+    # pestaña Ofertas, que piden `in_city`; queda la rebaja menor de la misma gaseosa en Centro. Las ofertas de Mochi
+    # (offers/engine.py, sin `in_city`) siguen viendo la de Norte.
+    seeded.execute("UPDATE stores SET city = 'Viña del Mar' WHERE store_id = 9102")
+
+    for screen in (
+        deals(seeded, "supermercado", in_city=True),
+        client.get("/catalog/deals?vertical=supermercado").json(),
+        client.get("/catalog/deals").json(),
+    ):
+        assert screen and 9102 not in {deal["store_id"] for deal in screen}
+    in_city = deal_summary(deals(seeded, "supermercado", in_city=True))
+    assert [deal[:2] for deal in in_city[:2]] == [("91401", PHARMACY_IN_SUPER), ("91002", 9101)]
+    assert deal_summary(deals(seeded, "supermercado"))[0][:2] == ("91002", 9102)
+    assert deal_summary(deals(seeded))[0][:2] == ("91002", 9102)
+
+
 def test_deals_limit_keeps_the_biggest_discounts(seeded):
     assert ids_of(deals(seeded, limit=3)) == ["91002", "92002", "92004"]
     assert deals(seeded, limit=0) == []

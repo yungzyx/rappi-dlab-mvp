@@ -13,11 +13,19 @@ from fastapi.testclient import TestClient
 from psycopg.types.json import Jsonb
 from rappi_scraper.storage.search import build_search_documents
 
+from rappi_ia import config
 from rappi_ia.agent.tools import search_products
 from rappi_ia.agent.verticals import LOGO_BASE_URL
 from rappi_ia.api import app as api
 from rappi_ia.catalog import cache as catalog_cache
-from rappi_ia.catalog.stores import offer_price, product_detail, product_stores, store_page, vertical_stores
+from rappi_ia.catalog.stores import (
+    demo_city_warning,
+    offer_price,
+    product_detail,
+    product_stores,
+    store_page,
+    vertical_stores,
+)
 from rappi_ia.demo.seed import DEMO_VERTICALS, seed_demo
 from rappi_ia.events.store import catalog_prices
 
@@ -163,6 +171,14 @@ def test_vertical_stores_lists_only_the_demo_city_and_any_store_still_opens_by_i
     # Por su id (un enlace, la búsqueda, Mochi) se abren igual, como el menú de un restaurante de otra ciudad.
     assert store_page(seeded, NORTE)["store"]["products"] == 35
     assert store_page(seeded, 9106)["store"]["products"] == 1 + len(others) > 36
+
+
+def test_the_api_warns_when_no_store_is_from_the_demo_city(seeded, monkeypatch):
+    assert demo_city_warning(seeded) is None
+    monkeypatch.setattr(config, "PROFILE_CITY", "Temuco")
+    assert "restaurantes ni tiendas" in demo_city_warning(seeded)
+    seeded.execute("UPDATE stores SET city = 'Temuco' WHERE store_id = %s", (CENTRO,))
+    assert "(restaurantes)" in demo_city_warning(seeded)
 
 
 def add_branch_offer(conn, store_id: int, product_id: int, price: int = 1990) -> None:

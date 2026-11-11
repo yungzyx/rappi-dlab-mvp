@@ -13,14 +13,12 @@ from typing import Literal
 from psycopg import Connection
 from rappi_scraper.storage.search import MIN_PRICE
 
-from .. import config
 from ..agent.tools import clp
 from ..concepts.taxonomy import load_taxonomy
-from ..offers.profiles import city_places
 from . import hours as clock
 from .cache import cached
 from .hours import closed_last, normalize_schedule, restaurant_hours
-from .stores import BIGINT_MAX, like_pattern, normalized_sql, product_card
+from .stores import BIGINT_MAX, IN_DEMO_CITY, demo_places, like_pattern, normalized_sql, product_card
 
 POPULAR_SECTION = "Lo más pedido"
 
@@ -65,10 +63,11 @@ _DISCOUNTED_DISH = """EXISTS (SELECT 1 FROM menu_items mi JOIN latest_menu_price
 
 # Las tarjetas de los restaurantes con algún plato con precio, en un orden, de una cocina o de un local, o cuyo nombre o
 # cocina contiene lo buscado (`name`, un patrón de LIKE ya normalizado); con los filtros de la lista (los que no se
-# piden son NULL o false). Sin local, solo los de una comuna de la ciudad de la demo (`places`; la comuna se compara
-# normalizada como en `text.normalize`: sin tildes, mayúsculas ni signos): la Home y la lista de restaurantes no
-# muestran locales de Valparaíso a quien está en Providencia. El orden y el corte se hacen antes de buscar la portada y
-# las cocinas, que solo se buscan para los que quedan. El EXISTS se detiene en el primer plato con precio.
+# piden son NULL o false). Sin local, solo los de una comuna de la ciudad de la demo (`stores.IN_DEMO_CITY`; la comuna
+# se compara normalizada como en `text.normalize`: sin tildes, mayúsculas ni signos): la Home y la lista de
+# restaurantes no muestran locales de Valparaíso a quien está en Providencia. El orden y el corte se hacen antes de
+# buscar la portada y las cocinas, que solo se buscan para los que quedan. El EXISTS se detiene en el primer plato con
+# precio.
 _CARDS = """
 WITH ranked AS (
     SELECT s.store_id, s.name, d.rating, d.eta, d.delivery_cost, d.review_count, d.schedules,
@@ -78,7 +77,7 @@ WITH ranked AS (
     LEFT JOIN restaurant_details d ON d.store_id = s.store_id
     WHERE (%(store_id)s::bigint IS NULL OR s.store_id = %(store_id)s)
       AND (%(store_id)s::bigint IS NOT NULL
-           OR btrim(regexp_replace(lower(unaccent(coalesce(s.city, ''))), '[^a-z0-9]+', ' ', 'g')) = ANY(%(places)s))
+           OR {in_city})
       AND (%(cuisine)s::text IS NULL
            OR EXISTS (SELECT 1 FROM restaurant_cuisines rc WHERE rc.store_id = s.store_id AND rc.cuisine = %(cuisine)s))
       AND (%(name)s::text IS NULL OR {name_s} LIKE %(name)s
@@ -217,7 +216,7 @@ def _card_rows(
         "name": name,
         "limit": limit,
         "min_price": MIN_PRICE,
-        "places": sorted(city_places(config.PROFILE_CITY)),
+        "places": demo_places(),
         "max_eta": filters.max_eta,
         "min_rating": max(filters.min_rating or 0, TOP_MIN_RATING if top else 0) or None,
         "min_reviews": TOP_MIN_REVIEWS if top else None,
@@ -230,6 +229,7 @@ def _card_rows(
         discounted_r=_DISCOUNTED_DISH.format(alias="r"),
         name_s=normalized_sql("s.name"),
         name_rc=normalized_sql("rc.cuisine"),
+        in_city=IN_DEMO_CITY,
     )
     return conn.execute(query, params).fetchall()
 

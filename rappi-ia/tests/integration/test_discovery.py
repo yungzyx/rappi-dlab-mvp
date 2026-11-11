@@ -150,6 +150,25 @@ def test_product_stores_compare_price_eta_and_fee(seeded):
     assert reply["here"] is None and reply["similar"] == []
 
 
+def test_product_stores_only_compare_stores_of_the_demo_city_and_keep_the_open_one(seeded):
+    # La tienda más barata del chocolate pasa a Temuco: sale de la comparación, y "Mejor precio" y "Más rápido" se
+    # marcan entre las que quedan. Si la persona la abrió por su id (`store_id`), sigue ahí, como `here`.
+    seeded.execute("UPDATE stores SET city = 'Temuco' WHERE store_id = %s", (EXPRESS_CENTRO,))
+
+    reply = product_stores(seeded, CHOCOLATE)
+    stores = reply["stores"]
+    assert EXPRESS_CENTRO not in [s["store_id"] for s in stores]
+    assert reply["count"] == 3 == len(stores)
+    cheapest = min(s["price_value"] for s in stores)
+    assert [s["best_price"] for s in stores] == [s["price_value"] == cheapest for s in stores]
+    assert stores[0]["best_price"]
+    assert any(s["fastest"] for s in stores)
+
+    opened = product_stores(seeded, CHOCOLATE, EXPRESS_CENTRO)
+    assert opened["here"]["store_id"] == EXPRESS_CENTRO and opened["count"] == 4
+    assert [s["store_id"] for s in opened["stores"]][0] == EXPRESS_CENTRO
+
+
 def test_low_stock_and_sold_out_with_similar_products(seeded):
     coffee = product_stores(seeded, CAFE_MOLIDO, CENTRO)["here"]
     assert coffee["available"] is True and coffee["low_stock"] is True

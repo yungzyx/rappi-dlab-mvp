@@ -8,7 +8,9 @@ tiene un tope de tiempo. Si falta la extensión, el permiso o la base, anota un 
 Se apaga con API_PREWARM=0 (los tests).
 
 El mismo hilo sigue después con la mantención de la caché del catálogo (catalog/cache.py: `keep_warm`): calcula la
-Home una vez, para que ni el primer request la pague, y cada minuto renueva lo registrado que esté por vencer.
+Home una vez, para que ni el primer request la pague, y cada minuto renueva lo registrado que esté por vencer. En esa
+primera pasada avisa si la ciudad de la demo (`PROFILE_CITY`) no tiene locales en el catálogo
+(`stores.demo_city_warning`).
 """
 
 import logging
@@ -97,6 +99,7 @@ def keep_catalog_warm(url: str | None = None, stop: threading.Event | None = Non
     retiene una conexión). Nunca lanza: una base caída deja un aviso y vuelve a intentar en la próxima pasada."""
     from ..catalog import cache
     from ..catalog.home import home
+    from ..catalog.stores import demo_city_warning
 
     stop = stop or threading.Event()
     first = True
@@ -107,6 +110,8 @@ def keep_catalog_warm(url: str | None = None, stop: threading.Event | None = Non
             ) as conn:
                 conn.execute("SELECT set_config('statement_timeout', %s, false)", (f"{WARM_STATEMENT_TIMEOUT_MS}ms",))
                 if first:
+                    if warning := demo_city_warning(conn):
+                        log.warning(warning)
                     home(conn)
                     first = False
                 renewed = cache.keep_warm(conn)
