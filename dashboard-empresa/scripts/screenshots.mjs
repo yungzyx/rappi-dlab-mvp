@@ -15,7 +15,17 @@ const PORT = 5198
 const BASE = `http://localhost:${PORT}/`
 const LOAD_TIMEOUT_MS = 45_000 // margen para una base fría (hoy /analytics/weekly responde en menos de 1 s)
 
-const VIEWS = ['resumen', 'clientes', 'mochi']
+// Cada vista y sus subpestañas (?seccion=; la primera no lo lleva). Los 5 nombres que usa el README no cambian.
+const VIEWS = [
+  { file: '1-resumen', query: 'vista=resumen' },
+  { file: '2-clientes', query: 'vista=clientes' },
+  { file: '2-clientes-pro', query: 'vista=clientes&seccion=pro' },
+  { file: '2-clientes-en-riesgo', query: 'vista=clientes&seccion=perdiendo' },
+  { file: '3-mochi', query: 'vista=mochi' },
+  { file: '3-mochi-listas', query: 'vista=mochi&seccion=listas' },
+  { file: '3-mochi-busquedas', query: 'vista=mochi&seccion=busquedas' },
+  { file: '4-experimentos', query: 'vista=experimentos' },
+]
 const VIEWPORTS = [
   { name: 'escritorio', options: { viewport: { width: 1440, height: 900 }, deviceScaleFactor: 1 } },
   {
@@ -58,9 +68,9 @@ async function run(browser) {
   for (const viewport of VIEWPORTS) {
     for (const theme of THEMES) {
       const page = await newPage(browser, { viewport, theme })
-      for (const [index, view] of VIEWS.entries()) {
-        await page.goto(`${BASE}?vista=${view}&fuente=simulados`)
-        await capture(page, `${index + 1}-${view}-${viewport.name}-${theme.name}`)
+      for (const view of VIEWS) {
+        await page.goto(`${BASE}?${view.query}&fuente=simulados`)
+        await capture(page, `${view.file}-${viewport.name}-${theme.name}`)
       }
       await page.context().close()
     }
