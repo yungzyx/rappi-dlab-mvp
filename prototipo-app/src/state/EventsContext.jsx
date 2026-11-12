@@ -1,8 +1,9 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef } from 'react'
 import { version } from '../../package.json'
 import { beaconEvents, health, sendEvents } from '../api/client'
-import { randomId, randomUuid, readStore, userId, writeStore } from '../api/user'
+import { randomId, randomUuid, userId } from '../api/user'
 import { useDemo } from './DemoContext'
+import { tabStore } from './storage'
 
 // Eventos de uso para el panel de la empresa (búsquedas, carrito, sugerencias, pedidos). Se envían en lotes a
 // rappi-ia; sin API esperan en la cola (con tope) hasta que contesta, y un lote que falla en el camino vuelve a la cola:
@@ -44,11 +45,14 @@ function withinLimits(event) {
   return clipped
 }
 
-/** Sesión vigente (se renueva tras 30 min sin actividad), con `change` aplicado a lo que vive con ella. */
+/**
+ * Sesión vigente (se renueva tras 30 min sin actividad), con `change` aplicado a lo que vive con ella. Si el navegador
+ * bloquea sessionStorage, vive en memoria durante la pestaña (`tabStore`), con el mismo id y la misma expiración.
+ */
 function touchSession(now, change = (session) => session) {
   let stored
   try {
-    stored = JSON.parse(readStore(sessionStorage, SESSION_KEY))
+    stored = JSON.parse(tabStore.get(SESSION_KEY))
   } catch {
     stored = null
   }
@@ -58,7 +62,7 @@ function touchSession(now, change = (session) => session) {
     nextEntry = 'directa'
   }
   const next = change({ ...session, lastAt: now })
-  writeStore(sessionStorage, SESSION_KEY, JSON.stringify(next))
+  tabStore.set(SESSION_KEY, JSON.stringify(next))
   return next
 }
 
@@ -80,9 +84,9 @@ function nextInSession(now) {
 function sessionInfo(proposal) {
   let stored = null
   try {
-    stored = JSON.parse(readStore(sessionStorage, SESSION_KEY))
+    stored = JSON.parse(tabStore.get(SESSION_KEY))
   } catch {
-    // Sin almacenamiento: la entrada queda como directa.
+    // Guardado corrupto: la entrada queda como directa.
   }
   return {
     app_version: version,
@@ -113,28 +117,16 @@ export function clearShownTopics(now = Date.now()) {
  * los vuelve a proponer en la misma sesión (api/suggestions.js: `wasRefused`). Viven con la sesión, como los temas.
  */
 export function refusedConcepts(now = Date.now()) {
-  return withoutStorage(() => touchSession(now).refused ?? [], [])
+  return touchSession(now).refused ?? []
 }
 
 export function noteRefused(concept, now = Date.now()) {
-  withoutStorage(() =>
-    touchSession(now, (session) => ({ ...session, refused: [...new Set([...(session.refused ?? []), concept])] })),
-  )
+  touchSession(now, (session) => ({ ...session, refused: [...new Set([...(session.refused ?? []), concept])] }))
 }
 
 /** "Repetir escena": como una persona que llega por primera vez, sin nada rechazado. */
 export function clearRefused(now = Date.now()) {
-  withoutStorage(() => touchSession(now, (session) => ({ ...session, refused: [] })))
-}
-
-// Sin sessionStorage (bloqueado en el navegador, o una prueba sin jsdom) no se recuerda lo rechazado: la oferta sale
-// igual, y nunca se cae por eso.
-function withoutStorage(read, fallback) {
-  try {
-    return read()
-  } catch {
-    return fallback
-  }
+  touchSession(now, (session) => ({ ...session, refused: [] }))
 }
 
 const EventsContext = createContext(null)

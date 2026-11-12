@@ -1,4 +1,5 @@
 import { pricesDate } from '../api/usePricesDate'
+import { localStore, tabStore } from '../state/storage'
 import './demo-disclaimer.css'
 
 /**
@@ -20,13 +21,7 @@ export default function DemoDisclaimer({ dates = null }) {
 function OfflineNote() {
   // Lo que la demo recuerda (pedidos, toques, carro) vive en este navegador con el prefijo de la app.
   const restart = () => {
-    for (const storage of [localStorage, sessionStorage]) {
-      try {
-        for (const key of Object.keys(storage)) if (key.startsWith('rappi-proto-')) storage.removeItem(key)
-      } catch {
-        // Sin almacenamiento no hay nada que borrar.
-      }
-    }
+    for (const store of [localStore, tabStore]) store.clear('rappi-proto-')
     // Sin el estado de la pantalla en que estaba (useNavigation lo lee antes que el hash): vuelve a la Home.
     window.history.replaceState(null, '', `${window.location.pathname}#/home`)
     window.location.reload()

@@ -1,11 +1,16 @@
-import { expect, test } from 'vitest'
+import { afterEach, expect, test, vi } from 'vitest'
 import { homeVerticals, targetStep } from './motor'
 import { makeOffer } from './offers'
-import { ladderReadout, personaHistory, personas } from './personas'
+import { ladderReadout, personaHistory, personas, switchPersona } from './personas'
 import { profileOffer, tastesReply } from './tastes'
 import { COMBOS, LABELS, META, product } from '../../test/offlineMeta'
 
 const NOW = Date.UTC(2026, 9, 17, 15)
+
+afterEach(() => {
+  localStorage.clear()
+  vi.unstubAllGlobals()
+})
 const VERTICALS = ['restaurantes', 'turbo', 'supermercado', 'conveniencia', 'mall', 'chocolateria', 'farmacia']
 const sushi = product(9, {
   name: 'Roll de salmón',
@@ -166,4 +171,29 @@ test('cada persona trae su marca Rappi Pro, coherente con lo que pide: quien com
   expect(persona('restaurantes').pro).toBe(false)
   expect(persona('rest-turbo').pro).toBe(true)
   expect(persona('todo').pro).toBe(true)
+})
+
+test('cambiar de persona conserva la sesión, el modo y los avisos vistos, y borra lo demás de la app', () => {
+  const reload = vi.fn()
+  vi.stubGlobal('location', { ...window.location, pathname: '/', reload })
+  const kept = [
+    'rappi-proto-user',
+    'rappi-proto-token',
+    'rappi-proto-demo-mode',
+    'rappi-proto-privacy-seen',
+    'rappi-proto-guia-vista',
+    'rappi-proto-address',
+  ]
+  for (const key of [...kept, 'rappi-proto-cart', 'rappi-proto-orders', 'otra-app']) localStorage.setItem(key, '1')
+  sessionStorage.setItem('rappi-proto-session', '{}')
+  sessionStorage.setItem('rappi-proto-mochi-pendiente', '{}')
+
+  switchPersona(snapshot, persona('rest-turbo'))
+
+  expect(Object.keys(localStorage).sort()).toEqual(
+    [...kept, 'rappi-proto-offline-api', 'rappi-proto-pro', 'otra-app'].sort(), // su historial y su marca Pro, nuevos
+  )
+  expect(localStorage.getItem('rappi-proto-pro')).toBe('true')
+  expect(Object.keys(sessionStorage)).toEqual([])
+  expect(reload).toHaveBeenCalledTimes(1)
 })

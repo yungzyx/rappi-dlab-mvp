@@ -3,20 +3,10 @@ import { ordersSettled } from '../api/orders'
 import { clearSession, userId } from '../api/user'
 import { clearShownTopics, useEvents } from './EventsContext'
 import { reloadToHome } from './reloadApp'
+import { localStore, tabStore } from './storage'
 
 // Todo lo que el prototipo guarda en este navegador lleva este prefijo (localStorage y sessionStorage).
 const PREFIX = 'rappi-proto-'
-
-function wipe(storage) {
-  try {
-    const keys = Array.from({ length: storage.length }, (_, i) => storage.key(i)).filter((key) =>
-      key?.startsWith(PREFIX),
-    )
-    for (const key of keys) storage.removeItem(key)
-  } catch {
-    // Sin almacenamiento no hay nada que borrar.
-  }
-}
 
 /**
  * "Borrar mis datos" / "Olvidar": lo que el servidor sabe de esta persona y lo que guardó este navegador.
@@ -37,8 +27,8 @@ export async function forgetAll({ events, profile, settle, reload = reloadToHome
   // Lo último, pegado al DELETE: se espera lo que ya iba en vuelo, para que nada llegue después y recree al usuario.
   await ordersSettled()
   await forget(userId())
-  wipe(localStorage)
-  wipe(sessionStorage)
+  localStore.clear(PREFIX)
+  tabStore.clear(PREFIX)
   clearSession()
   events?.clear()
   profile?.reset()
