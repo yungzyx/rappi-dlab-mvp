@@ -51,6 +51,8 @@
 // - rappi-ia/src/rappi_ia/events/store.py .......... el perfil de intereses (index.js: interests) y el sobre de cada
 //   evento (index.js: storedEvent; el origen, en `origin` o, en los eventos de antes, `payload.origen`); las impresiones
 //   (`list_view`) no se guardan, y sin conexión no hay grupo de control de las ofertas (OFFERS_CONTROL_PCT)
+// - rappi-ia/src/rappi_ia/api/agent.py (_without_refused) ... no se replica: lo que la persona rechazó en la sesión lo
+//   filtra la app antes de mostrarlo (api/suggestions.js: wasRefused), también sin conexión
 // - rappi-ia/src/rappi_ia/api/app.py (_search_concept y _log_ask) ... el concepto de una búsqueda lo deduce el servidor
 //   del texto, corregido si lo hay (index.js: searchConcept), y cada pregunta a Mochi guarda un `ask` con el suyo
 //   (index.js: askEvent). Los pesos, el tope diario, los límites de "Pedir por mí", la recompra y "volver" se comparan

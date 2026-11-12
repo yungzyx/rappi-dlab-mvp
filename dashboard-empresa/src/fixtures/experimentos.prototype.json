@@ -33,12 +33,16 @@
           "minimo": null,
           "variantes": [
             {
+              "expuestas": 0,
+              "expuestas_pct": null,
               "personas": 0,
               "retencion_m1_pct": null,
               "suma_vertical_pct": null,
               "variante": "tratamiento"
             },
             {
+              "expuestas": 0,
+              "expuestas_pct": null,
               "personas": 0,
               "retencion_m1_pct": null,
               "suma_vertical_pct": null,
@@ -78,7 +82,7 @@
     ]
   },
   "guardado": {
-    "fecha": "2026-11-05",
+    "fecha": "2026-11-11",
     "origen": "make contract · recorrido corto sobre el catálogo de prueba inventado"
   },
   "source": "prototype"

@@ -123,7 +123,9 @@ export function refuseConcept(concept) {
 
 /**
  * Si la persona ya rechazó en esta sesión el concepto de esta oferta (`made`), o el de `product`: Mochi no se lo
- * vuelve a ofrecer (el comentario del carro en la Home, "¿Me falta algo?" del checkout).
+ * vuelve a ofrecer (el comentario del carro en la Home, "¿Me falta algo?" del checkout). La API hace lo mismo con los
+ * rechazos que ya le llegaron, igual en los dos grupos del control (rappi-ia: api/agent.py, `_without_refused`); esto
+ * cubre el rechazo que la app aún no envía (los eventos salen cada pocos segundos) y la demo sin conexión.
  */
 export function wasRefused(made, product) {
   const refused = refusedConcepts()
