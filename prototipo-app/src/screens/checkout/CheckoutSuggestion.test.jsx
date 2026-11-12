@@ -92,12 +92,12 @@ describe('"¿Me falta algo?" en el checkout (solo si se pide)', () => {
     expect(tracked('suggestion_shown')).toHaveLength(1)
   })
 
-  test('¿Me falta algo? pide la oferta solo al tocarlo y dice Tu carrito está completo en un 204', async () => {
+  test('¿Me falta algo? pide la oferta solo al tocarlo y dice Tu carro está completo en un 204', async () => {
     api = stubApi({ 'POST /agent/offer': 204 })
     renderCheckout([PISCO, PIZZA])
     await act(async () => {})
     expect(offerRequests()).toEqual([]) // nada aparece ni se pide por su cuenta
-    expect(screen.queryByText('Tu carrito está completo')).toBeNull()
+    expect(screen.queryByText('Tu carro está completo')).toBeNull()
 
     await ask()
     expect(offerRequests()).toEqual([
@@ -113,7 +113,7 @@ describe('"¿Me falta algo?" en el checkout (solo si se pide)', () => {
         },
       },
     ])
-    expect(screen.getByText('Tu carrito está completo')).toBeTruthy()
+    expect(screen.getByText('Tu carro está completo')).toBeTruthy()
     expect(screen.queryByRole('button', { name: ASK })).toBeNull()
     expect(events.track.mock.calls.filter(([name]) => name === 'suggestion_shown')).toHaveLength(0)
   })
@@ -164,7 +164,7 @@ describe('"¿Me falta algo?" en el checkout (solo si se pide)', () => {
     renderCheckout()
     await ask()
     expect(document.querySelector('.checkout-suggestion')).toBeNull()
-    expect(screen.queryByText('Tu carrito está completo')).toBeNull()
+    expect(screen.queryByText('Tu carro está completo')).toBeNull()
     api = stubApi({ 'POST /agent/offer': fixture('agent-offer-checkout') })
     await ask()
     expect(document.querySelector('.checkout-suggestion')).not.toBeNull()
@@ -193,8 +193,8 @@ describe('"¿Me falta algo?" en el checkout (solo si se pide)', () => {
     await ask()
     expect(offerRequests()).toHaveLength(1)
     expect(document.querySelector('.checkout-suggestion')).toBeNull()
-    expect(screen.getByText('Por ahora no tengo otra idea para tu carrito')).toBeTruthy()
-    expect(screen.queryByText('Tu carrito está completo')).toBeNull()
+    expect(screen.getByText('Por ahora no tengo otra idea para tu carro')).toBeTruthy()
+    expect(screen.queryByText('Tu carro está completo')).toBeNull()
     expect(tracked('suggestion_shown')).toEqual([])
   })
 

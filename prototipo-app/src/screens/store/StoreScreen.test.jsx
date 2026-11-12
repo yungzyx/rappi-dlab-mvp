@@ -166,7 +166,7 @@ describe('tienda con pasillos', () => {
     await waitFor(() => expect(rows()).toHaveLength(24))
 
     fireEvent.click(screen.getByRole('button', { name: 'Ver más' }))
-    expect(await screen.findByText('No se pudo cargar más productos')).toBeTruthy()
+    expect(await screen.findByText('No se pudieron cargar más productos')).toBeTruthy()
     expect(rows()).toHaveLength(24)
     expect(screen.getByRole('button', { name: 'Ver más' })).toBeTruthy()
   })

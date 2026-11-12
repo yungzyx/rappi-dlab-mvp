@@ -23,7 +23,7 @@ export default function CartBar({ raised, push }) {
   const bar = useRef(null)
   const cancel = useRef(null)
   useFloatingInset(() => bar.current)
-  // "Revisar mi carrito" desde el menú de Mochi (openCartSheet) abre la misma hoja que "Ver carro".
+  // "Revisar mi carro" desde el menú de Mochi (openCartSheet) abre la misma hoja que "Ver carro".
   useEffect(() => {
     const onOpen = () => setOpen(true)
     window.addEventListener(OPEN_CART_EVENT, onOpen)

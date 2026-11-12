@@ -189,7 +189,7 @@ export default function AgentPresence({ screen, homeTab, raised }) {
   const actions = [
     { id: 'search', label: `Buscar con ${AGENT_NAME}` },
     cart.count > 0
-      ? { id: 'cart', label: `Revisar mi carrito · ${formatPrice(cart.total)}` }
+      ? { id: 'cart', label: `Revisar mi carro · ${formatPrice(cart.total)}` }
       : { id: 'try', label: '¿Qué puedo probar?' },
     { id: 'move', label: side === 'right' ? 'Mover a la izquierda' : 'Mover a la derecha' },
     { id: 'quiet', label: 'Silenciar por hoy' },
@@ -287,7 +287,7 @@ export default function AgentPresence({ screen, homeTab, raised }) {
           >
             ×
           </button>
-          <p>¡Listo! {added.name} está en tu carrito.</p>
+          <p>¡Listo! {added.name} está en tu carro.</p>
           <button
             type="button"
             className="agent-action tap"

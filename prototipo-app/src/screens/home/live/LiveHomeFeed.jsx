@@ -719,7 +719,7 @@ export default function LiveHomeFeed({ push, active = true }) {
     const actions = [
       { id: 'new', label: 'Muéstrame algo nuevo' },
       { id: 'search', label: `Buscar con ${AGENT_NAME}` },
-      ...(cart.count > 0 ? [{ id: 'cart', label: `Revisar mi carrito · ${formatPrice(cart.total)}` }] : []),
+      ...(cart.count > 0 ? [{ id: 'cart', label: `Revisar mi carro · ${formatPrice(cart.total)}` }] : []),
       isQuiet(today()) ? { id: 'wake', label: 'Volver a hablar' } : { id: 'quiet', label: 'Silenciar por hoy' },
     ]
     speak({ menu: { actions, onRun: (id) => runMenu(id, close), onClose: close }, mood: 'listen' })

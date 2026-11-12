@@ -47,7 +47,7 @@ export function useShopAisles(shopId) {
         hasMore: next.hasMore,
       })
     } catch {
-      toast('No se pudo cargar más productos')
+      toast('No se pudieron cargar más productos')
     } finally {
       setLoadingMore(false)
     }

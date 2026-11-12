@@ -56,7 +56,7 @@ test('vaciar el carro lo registra (una salida por línea con sus unidades): si n
   expect(screen.queryByText('Ver carro')).toBeNull()
 })
 
-test('openCartSheet (el "Revisar mi carrito" de Mochi) abre la misma hoja que "Ver carro"', () => {
+test('openCartSheet (el "Revisar mi carro" de Mochi) abre la misma hoja que "Ver carro"', () => {
   const oil = toPrototypeProduct(fixture('catalog-store').products[0])
   render(
     <DemoProvider>

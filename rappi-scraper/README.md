@@ -166,7 +166,7 @@ rappi-scraper/
 │   │   ├── search.py               documentos y búsqueda por vertical
 │   │   ├── backup.py               respaldo con pg_dump, validación y rotación
 │   │   ├── export.py               catálogo por vertical a CSV (`rappi export-csv`)
-│   │   └── migrations/             esquema SQL versionado, un solo historial para toda la base (001–055; las de rappi-ia: 009–013, 016, 020, 022–031, 033–037 y 041–055)
+│   │   └── migrations/             esquema SQL versionado, un solo historial para toda la base (001–056; las de rappi-ia: 009–013, 016, 020, 022–031, 033–037 y 041–056)
 ├── tests/
 │   ├── unit/                     sin red ni base de datos
 │   ├── integration/              contra la base `rappi_test`

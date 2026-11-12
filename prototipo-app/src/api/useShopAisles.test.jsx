@@ -112,7 +112,7 @@ describe('useShopAisles', () => {
     await waitFor(() => expect(result.current.products).toHaveLength(24))
 
     await act(() => result.current.loadMore())
-    expect(document.querySelector('.toast').textContent).toBe('No se pudo cargar más productos')
+    expect(document.querySelector('.toast').textContent).toBe('No se pudieron cargar más productos')
     expect(result.current.products).toHaveLength(24)
     expect(result.current.hasMore).toBe(true)
     expect(result.current.loadingMore).toBe(false)

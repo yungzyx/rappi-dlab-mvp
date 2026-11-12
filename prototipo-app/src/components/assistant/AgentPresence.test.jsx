@@ -72,11 +72,11 @@ const added = (product) => act(() => window.dispatchEvent(new CustomEvent(AGENT_
 const bubble = () => document.querySelector('.agent-bubble')
 
 describe('Mochi y el carro', () => {
-  test('al agregar dice "¡Listo! … está en tu carrito" y se va a los 4 s', async () => {
+  test('al agregar dice "¡Listo! … está en tu carro" y se va a los 4 s', async () => {
     vi.useFakeTimers()
     mountTree()
     added(BEER)
-    expect(bubble().textContent).toContain(`¡Listo! ${BEER.name} está en tu carrito.`)
+    expect(bubble().textContent).toContain(`¡Listo! ${BEER.name} está en tu carro.`)
     act(() => vi.advanceTimersByTime(4000))
     expect(bubble()).toBeNull()
   })
@@ -168,19 +168,19 @@ describe('Mochi flotante', () => {
     mountTree()
     act(() => probe.cart.add(BEER))
     fireEvent.click(agentButton())
-    expect(screen.getByRole('button', { name: `Revisar mi carrito · ${formatPrice(probe.cart.total)}` })).toBeTruthy()
+    expect(screen.getByRole('button', { name: `Revisar mi carro · ${formatPrice(probe.cart.total)}` })).toBeTruthy()
   })
 
-  test('"Revisar mi carrito" pide abrir la hoja del carro y cierra el menú', async () => {
+  test('"Revisar mi carro" pide abrir la hoja del carro y cierra el menú', async () => {
     const opened = vi.fn()
     window.addEventListener(OPEN_CART_EVENT, opened)
     mountTree()
     act(() => probe.cart.add(BEER))
     fireEvent.click(agentButton())
-    fireEvent.click(screen.getByRole('button', { name: /^Revisar mi carrito/ }))
+    fireEvent.click(screen.getByRole('button', { name: /^Revisar mi carro/ }))
     window.removeEventListener(OPEN_CART_EVENT, opened)
     expect(opened).toHaveBeenCalledTimes(1)
-    expect(screen.queryByRole('button', { name: /^Revisar mi carrito/ })).toBeNull()
+    expect(screen.queryByRole('button', { name: /^Revisar mi carro/ })).toBeNull()
   })
 
   test('"Mover a la izquierda" lo cambia de lado y lo recuerda', async () => {
