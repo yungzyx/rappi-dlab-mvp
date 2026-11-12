@@ -41,6 +41,9 @@ EVENT_TYPES = {
     "order_cancelled",  # la persona canceló un pedido (`payload.reason` y `.stage`; el pedido, `cart_id` y su tienda)
     "list_view",  # lo que una lista dejó a la vista (sus elementos en `app_event_items`; `position`, la mayor vista)
     "offer_withheld",  # una oferta de Mochi retenida al grupo de control (lo que habría mostrado, en `app_event_items`)
+    # La misma oferta entregada al grupo de tratamiento (migración 056): la anota la API con la regla de
+    # `offer_withheld`, antes de que la app decida mostrarla, así la parte expuesta se cuenta igual en los dos grupos.
+    "offer_eligible",
     # Mochi movió los accesos de la Home y dijo por qué (migración 052): el acceso que más subió en `vertical`, su lugar
     # nuevo en `position` y el de antes en `payload.antes`. No enseña al motor (motor/data.py: EVENT_KINDS).
     "vertical_reorder_shown",
@@ -53,10 +56,10 @@ EVENT_TYPES = {
 # nada: no es un rechazo (ni en el panel ni para el "volver"), solo la distingue de "sin respuesta".
 EXPIRED_KIND = "expirada"
 # Lo que el cliente puede mandar a /events: `order_placed` nace solo en /orders, con un pedido guardado detrás, y
-# `offer_withheld`, solo en /agent/offer, que es quien decide retener la oferta.
-CLIENT_EVENT_TYPES = EVENT_TYPES - {"order_placed", "offer_withheld"}
+# `offer_withheld` y `offer_eligible`, solo en /agent/offer, que es quien decide retener la oferta.
+CLIENT_EVENT_TYPES = EVENT_TYPES - {"order_placed", "offer_withheld", "offer_eligible"}
 # Los eventos que traen elementos (`app_event_items`), y cuántos como mucho en uno.
-ITEM_EVENT_TYPES = frozenset({"list_view", "offer_withheld"})
+ITEM_EVENT_TYPES = frozenset({"list_view", "offer_withheld", "offer_eligible"})
 ITEM_ENTITY_TYPES = frozenset({"catalog_item", "menu_item", "store", "vertical"})
 MAX_EVENT_ITEMS = 20
 QUERY_RETENTION_DAYS = 90
@@ -197,7 +200,7 @@ class Event:
     origin: str | None = None
     position: int | None = None
     request_id: str | None = None
-    # Los elementos de un `list_view` u `offer_withheld`: `{position, entity_type, entity_id, concept_id, vertical}`.
+    # Los elementos de un evento de ITEM_EVENT_TYPES: `{position, entity_type, entity_id, concept_id, vertical}`.
     items: list[dict] = field(default_factory=list)
 
 
@@ -256,8 +259,9 @@ def record(conn: Connection, events: list[Event], source: str = "prototype", ses
     crea una sola vez (un lote de la app trae hasta 200 eventos de una misma persona). Un evento con `client_event_id`
     que ya estaba (un lote reintentado) no entra otra vez. Cada sesión del lote queda en `app_sessions` con su primer
     evento (y `session`, lo que la app cuenta de ella: su modo es también la variante de `modo_app` de la persona, si
-    aún no tenía). Los elementos de un `list_view` u `offer_withheld` van a `app_event_items`, y `view_store`,
-    `view_item` y `cart_add` llevan el catálogo tal como estaba (`payload.catalogo`, events/catalog_context.py)."""
+    aún no tenía). Los elementos de un `list_view`, `offer_withheld` u `offer_eligible` van a `app_event_items`, y
+    `view_store`, `view_item` y `cart_add` llevan el catálogo tal como estaba (`payload.catalogo`,
+    events/catalog_context.py)."""
     unknown = next((e.type for e in events if e.type not in EVENT_TYPES), None)
     if unknown is not None:
         raise ValueError(f"Tipo de evento desconocido: {unknown}")
@@ -346,7 +350,7 @@ def _returned_ids(cur, n: int) -> list[int | None]:
 
 
 def _check_items(e: Event) -> None:
-    """Solo `list_view` y `offer_withheld` traen elementos, hasta MAX_EVENT_ITEMS, cada uno con su lugar y un tipo
+    """Solo los de ITEM_EVENT_TYPES traen elementos, hasta MAX_EVENT_ITEMS, cada uno con su lugar y un tipo
     conocido. Uno que no cumple rechaza el lote, como un tipo desconocido. Dos en el mismo lugar no: queda el primero
     (`_record_items`), y el lote, con sus eventos de carro, no se pierde por una impresión."""
     if not e.items:
@@ -363,7 +367,7 @@ def _check_items(e: Event) -> None:
 
 
 def _record_items(conn: Connection, saved: list[tuple[int, Event]], known: set[str]) -> None:
-    """Los elementos de cada `list_view` u `offer_withheld` que entró. En "Rappi hoy" (`payload.mode = 'actual'`) van
+    """Los elementos de cada evento de ITEM_EVENT_TYPES que entró. En "Rappi hoy" (`payload.mode = 'actual'`) van
     sin concepto, como sus eventos: ese modo no enseña."""
     rows = [
         (

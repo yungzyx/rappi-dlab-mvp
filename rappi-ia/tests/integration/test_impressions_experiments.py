@@ -140,6 +140,7 @@ def test_in_rappi_hoy_the_items_go_without_concept(client, db):
         list_view(*[product(i) for i in range(events.MAX_EVENT_ITEMS + 1)]),
         list_view({"position": 0, "entity_type": "concepto", "entity_id": "x"}),
         {"type": "offer_withheld", "session_id": "s"},  # la retención la decide solo /agent/offer
+        {"type": "offer_eligible", "session_id": "s"},  # y la oferta entregada en tratamiento, también
     ],
 )
 def test_bad_impressions_are_rejected(client, event):
@@ -357,6 +358,89 @@ def test_a_withheld_offer_with_an_unseeded_concept_also_counts_once_per_session(
     assert rows == [(None,)]
 
 
+def test_the_treatment_group_records_the_same_offer_as_eligible_once_per_session(client, db, monkeypatch):
+    """La parte expuesta se cuenta con el mismo hecho del servidor en los dos grupos: en tratamiento la oferta se
+    muestra y queda `offer_eligible`, con lo mismo que `offer_withheld` en control (payload, origen, concepto,
+    elementos) y una vez por sesión. Lo pedido en el buscador, un plan y el experimento apagado no anotan nada."""
+    monkeypatch.setattr(config, "OFFERS_CONTROL_PCT", 50)
+    cart = {"product": {"entity_type": "catalog_item", "entity_id": CHIPS}}
+    control, treated = user_in(experiments.CONTROL), user_in(experiments.TREATMENT)
+
+    def ask(user_id, session="s-el", surface="home", moment="carrito", context=cart):
+        body = {"moment": moment, "user_id": user_id, "session_id": session, "surface": surface, "context": context}
+        return client.post("/agent/offer", json=body)
+
+    shown = [ask(treated) for _ in range(2)]
+    assert all(reply.status_code == 200 and "x-offer-withheld" not in reply.headers for reply in shown)
+    assert ask(control).status_code == 204
+    rows = db.execute(
+        """SELECT e.user_id, e.type, e.payload, e.origin, e.surface, e.concept_id, e.results,
+                  array_agg(i.entity_id ORDER BY i.position)
+           FROM app_events e JOIN app_event_items i USING (event_id)
+           WHERE e.type IN ('offer_withheld', 'offer_eligible') GROUP BY e.event_id ORDER BY e.type"""
+    ).fetchall()
+    products = [p["entity_id"] for p in shown[0].json()["products"]]
+    concept = shown[0].json()["reason"]["concept"]
+    assert rows == [
+        (treated, "offer_eligible", {"moment": "carrito", "experiment": "ofertas_control", "variant": "tratamiento"},
+         "agent-carrito", "home", concept, len(products), products),
+        (control, "offer_withheld", {"moment": "carrito", "experiment": "ofertas_control", "variant": "control"},
+         "agent-carrito", "home", concept, len(products), products),
+    ]  # fmt: skip
+    # Otra sesión sí cuenta otra vez; lo pedido en el buscador y un plan, no.
+    assert ask(treated, session="s-el2").status_code == 200
+    assert ask(treated, surface="agent").status_code == 200
+    assert ask(treated, moment="plan", context={"occasion": "carrete"}).status_code == 200
+    count = "SELECT count(*) FROM app_events WHERE type = 'offer_eligible'"
+    assert db.execute(count).fetchone() == (2,)
+    # Apagado, nadie entra y nada se anota.
+    monkeypatch.setattr(config, "OFFERS_CONTROL_PCT", 0)
+    assert ask(user_in(experiments.TREATMENT, pct=0), session="s-off").status_code == 200
+    assert db.execute(count).fetchone() == (2,)
+
+
+def test_a_refusal_in_the_app_does_not_change_what_the_api_records_in_either_group(client, db, monkeypatch):
+    """Lo rechazado en la sesión lo filtra la app (`wasRefused`), después de la respuesta: la API anota igual la oferta
+    en los dos grupos (`offer_eligible` y `offer_withheld`), así que ese filtro no sesga la cuenta."""
+    monkeypatch.setattr(config, "OFFERS_CONTROL_PCT", 50)
+    control, treated = user_in(experiments.CONTROL), user_in(experiments.TREATMENT)
+
+    def ask(user_id, session):
+        body = {"moment": "carrito", "user_id": user_id, "session_id": session, "surface": "home",
+                "context": {"product": {"entity_type": "catalog_item", "entity_id": CHIPS}}}  # fmt: skip
+        return client.post("/agent/offer", json=body)
+
+    concept = ask(treated, "s-antes").json()["reason"]["concept"]
+    for user_id in (treated, control):
+        refused = {"type": "suggestion_dismissed", "session_id": "s-no", "concept_id": concept, "surface": "home",
+                   "origin": "agent-carrito", "client_event_id": str(uuid.uuid4())}  # fmt: skip
+        assert post(client, user_id, refused).status_code == 200
+    assert ask(treated, "s-no").status_code == 200
+    reply = ask(control, "s-no")
+    assert reply.status_code == 204 and reply.headers["x-offer-withheld"] == "1"
+    rows = db.execute(
+        """SELECT user_id, type, concept_id FROM app_events
+           WHERE session_id = 's-no' AND type IN ('offer_eligible', 'offer_withheld') ORDER BY 2"""
+    ).fetchall()
+    assert rows == [(treated, "offer_eligible", concept), (control, "offer_withheld", concept)]
+
+
+def test_the_same_offer_is_recognized_within_a_day_of_the_session(client, db, monkeypatch):
+    """La cuenta de "ya anotada en la sesión" mira las últimas 24 horas (la sesión de la app expira tras 30 minutos sin
+    actividad): una anotación más vieja con la misma sesión ya no la frena."""
+    monkeypatch.setattr(config, "OFFERS_CONTROL_PCT", 50)
+    treated = user_in(experiments.TREATMENT)
+    body = {"moment": "carrito", "user_id": treated, "session_id": "s-dia", "surface": "home",
+            "context": {"product": {"entity_type": "catalog_item", "entity_id": CHIPS}}}  # fmt: skip
+    for _ in range(2):
+        assert client.post("/agent/offer", json=body).status_code == 200
+    count = "SELECT count(*) FROM app_events WHERE type = 'offer_eligible'"
+    assert db.execute(count).fetchone() == (1,)
+    db.execute("UPDATE app_events SET ts = now() - interval '25 hours' WHERE type = 'offer_eligible'")
+    assert client.post("/agent/offer", json=body).status_code == 200
+    assert db.execute(count).fetchone() == (2,)
+
+
 # ── Vistas de capa y panel ───────────────────────────────────────────────────
 def test_ctr_by_position_counts_a_click_from_the_same_place(client, db):
     seen = list_view(product(0), product(1, "91003", "gaseosas"))
@@ -422,8 +506,9 @@ def test_the_experiments_panel_counts_each_variant_within_one_population(client,
     ordered(db, "p-ctl", "supermercado", days=5)
     ordered(db, "p-ctl", "farmacia", days=4)
     ordered(db, "p-ctl", "restaurantes", days=12)
-    # Tratamiento: una oferta del carro mostrada y aceptada; un plan (lo pide la persona) no es del experimento. Un
-    # pedido antes de la oferta y otro después.
+    # Tratamiento: una oferta del carro entregada (offer_eligible, la anota la API), mostrada y aceptada; un plan (lo
+    # pide la persona) no es del experimento. Un pedido antes de la oferta y otro después.
+    offer_event(db, "p-tra", "offer_eligible", "carrito", days=8)
     offer_event(db, "p-tra", "suggestion_shown", "carrito", days=8)
     offer_event(db, "p-tra", "suggestion_accepted", "carrito", days=8)
     offer_event(db, "p-tra", "suggestion_shown", "plan", days=7)
@@ -486,6 +571,7 @@ def test_offers_asked_for_in_the_search_panel_do_not_count_in_the_offers_experim
     assigned(db, "p-pide", {offers: "tratamiento"})
     offer_event(db, "p-ctl", "suggestion_shown", "recompra", days=8, surface="agent")
     offer_event(db, "p-ctl", "offer_withheld", "recompra", days=7, surface="home")
+    offer_event(db, "p-tra", "offer_eligible", "recompra", days=8, surface="home")
     offer_event(db, "p-tra", "suggestion_shown", "recompra", days=8, surface="home")
     offer_event(db, "p-tra", "suggestion_accepted", "recompra", days=8, surface="agent")
     offer_event(db, "p-pide", "suggestion_shown", "recompra", days=8, surface="agent")
@@ -505,6 +591,30 @@ def test_offers_asked_for_in_the_search_panel_do_not_count_in_the_offers_experim
         "personas_con_oferta": 1,
         "pedidos_despues": 0,
     }
+
+
+def test_both_groups_count_exposure_with_the_offer_the_api_recorded(client, db):
+    """Las personas con oferta se cuentan con lo que anotó la API en los dos grupos (`offer_eligible` en tratamiento,
+    `offer_withheld` en control), no con lo que la app alcanzó a mostrar: una entregada que la app no mostró (la Home
+    estaba tapada) expone igual, y una mostrada sin su anotación del servidor no."""
+    offers = experiments.OFFERS_CONTROL
+    assigned(db, "p-ctl", {offers: "control"})
+    assigned(db, "p-entregada", {offers: "tratamiento"})
+    assigned(db, "p-solo-app", {offers: "tratamiento"})
+    offer_event(db, "p-ctl", "offer_withheld", "carrito", days=7, surface="home")
+    offer_event(db, "p-entregada", "offer_eligible", "carrito", days=7, surface="home")
+    offer_event(db, "p-solo-app", "suggestion_shown", "carrito", days=7, surface="home")
+    ordered(db, "p-entregada", "turbo", days=2)
+
+    by_variant = {v["variante"]: v["ofertas"] for v in experiments_of(client, "prototype")[offers]["variantes"]}
+    assert by_variant["tratamiento"] == {
+        "mostradas": 1,
+        "retenidas": 0,
+        "aceptadas": 0,
+        "personas_con_oferta": 1,
+        "pedidos_despues": 1,
+    }
+    assert by_variant["control"]["personas_con_oferta"] == 1
 
 
 def test_an_experiment_without_assignments_lists_its_variants_empty(client, db, monkeypatch):
@@ -533,6 +643,11 @@ def assigned_on(db, user_id, variant, at, source="prototype"):
     db.execute("UPDATE experiment_assignments SET assigned_at = %s WHERE user_id = %s", (at, user_id))
 
 
+def offer_on(db, user_id, kind, at, source="prototype"):
+    event = events.Event(user_id, "s-exp", kind, ts=at, surface="home", origin="agent-carrito")
+    events.record(db, [event], source=source)
+
+
 def ordered_on(db, user_id, vertical, at, source="prototype"):
     line = {"entity_type": "catalog_item", "entity_id": CHIPS, "unit_price": 1990}
     events.record_order(db, user_id, "s-exp", f"c-{uuid.uuid4().hex[:8]}", vertical, [line], source, at)
@@ -559,15 +674,38 @@ def test_the_control_group_reads_m1_retention_and_a_new_vertical_within_the_coho
     ordered_on(db, "c1", "farmacia", following + timedelta(days=10))
     assigned_on(db, "c2", "control", datetime.now(TZ) - timedelta(minutes=5))
     ordered_on(db, "c2", "turbo", datetime.now(TZ))
+    # La parte expuesta, en la misma cohorte y con ofertas entre la asignación y el inicio de M+1, igual en los dos
+    # grupos: t1 tuvo una en M (cuenta); t2, recién en M+1 (no cuenta); c1, una antes de su asignación (no cuenta) y
+    # otra en M (cuenta). c2 no es de la cohorte y lo simulado no entra.
+    offer_on(db, "t1", "offer_eligible", at + timedelta(days=1))
+    offer_on(db, "t2", "offer_eligible", following + timedelta(days=1))
+    offer_on(db, "c1", "offer_withheld", at - timedelta(days=1))
+    offer_on(db, "c1", "offer_withheld", following - timedelta(minutes=1))
+    offer_on(db, "c2", "offer_withheld", datetime.now(TZ))
     # Lo simulado no entra en las cifras del prototipo.
     assigned_on(db, "s1", "control", at, source="synthetic")
     ordered_on(db, "s1", "turbo", following + timedelta(days=1), source="synthetic")
+    offer_on(db, "s1", "offer_withheld", at + timedelta(days=1), source="synthetic")
 
     retention = experiments_of(client, "prototype")["ofertas_control"]["retencion"]
     assert retention == {
         "variantes": [
-            {"variante": "tratamiento", "personas": 3, "retencion_m1_pct": 33.3, "suma_vertical_pct": 66.7},
-            {"variante": "control", "personas": 1, "retencion_m1_pct": 100.0, "suma_vertical_pct": 0.0},
+            {
+                "variante": "tratamiento",
+                "personas": 3,
+                "retencion_m1_pct": 33.3,
+                "suma_vertical_pct": 66.7,
+                "expuestas": 1,
+                "expuestas_pct": 33.3,
+            },
+            {
+                "variante": "control",
+                "personas": 1,
+                "retencion_m1_pct": 100.0,
+                "suma_vertical_pct": 0.0,
+                "expuestas": 1,
+                "expuestas_pct": 100.0,
+            },
         ],
         # Bajo el mínimo, sin intervalo: con 1 persona en control (100 % y 0 %), el de Wald se encoge y excluiría el 0.
         "diferencia": {
@@ -587,7 +725,14 @@ def test_without_a_finished_cohort_the_retention_is_empty_and_not_conclusive(cli
     ordered(db, "p-ctl", "turbo", days=1)
     retention = experiments_of(client, "prototype")["ofertas_control"]["retencion"]
     assert retention["variantes"] == [
-        {"variante": v, "personas": 0, "retencion_m1_pct": None, "suma_vertical_pct": None}
+        {
+            "variante": v,
+            "personas": 0,
+            "retencion_m1_pct": None,
+            "suma_vertical_pct": None,
+            "expuestas": 0,
+            "expuestas_pct": None,
+        }
         for v in ("tratamiento", "control")
     ]
     assert retention["diferencia"] is None and retention["minimo"] is None and retention["concluyente"] is False
@@ -729,7 +874,9 @@ def test_every_event_type_says_if_rappi_has_it(db):
         "vertical_reorder_shown",
         "agent_visibility",
         "offer_why_open",
+        "offer_eligible",
     }
+    assert rows["offer_eligible"] == ("MVP_OFFER_ELIGIBLE", False)
     assert rows["order_cancelled"] == ("MVP_ORDER_CANCELLED", False)
     assert rows["vertical_reorder_shown"] == ("MVP_VERTICAL_REORDER_SHOWN", False)
     assert rows["agent_visibility"] == ("MVP_AGENT_VISIBILITY", False)

@@ -7,7 +7,7 @@ import { Panel } from '../../components/Panel.jsx'
 import { EmptyState } from '../../components/States.jsx'
 import { formatNumber, formatPct, formatPoints } from '../../lib/format.js'
 import { useAnalytics } from '../../lib/useAnalytics.js'
-import { assignedPeople, cohortPeople, experimentLabel, exposedPct, orderedPct, variantLabel } from './experiments.js'
+import { assignedPeople, cohortPeople, experimentLabel, offeredPct, orderedPct, variantLabel } from './experiments.js'
 
 // Las columnas de todos los experimentos: personas, con pedido y verticales por persona, desde que se asignó la variante.
 const GROUP_COLUMNS = [
@@ -37,10 +37,10 @@ const GROUP_COLUMNS = [
   },
 ]
 
-// En el grupo de control, además, las ofertas de los momentos que Mochi propone solo. Las personas expuestas tienen una
-// oferta desde su asignación, sin tope (también en M+1), y cada grupo se mide con otro evento: en control, las ofertas
-// que la API retuvo (offer_withheld); en tratamiento, las que la app mostró (suggestion_shown). No se comparan uno a uno
-// ni sirven todavía para el efecto entre expuestos (docs/plan-piloto.md).
+// En el grupo de control, además, las ofertas de los momentos que Mochi propone solo. Las personas con oferta tienen
+// una desde su asignación, sin tope (también en M+1), contada en los dos grupos con lo que anota la API: en control, la
+// oferta retenida (offer_withheld); en tratamiento, la misma oferta entregada (offer_eligible). La parte expuesta para
+// el efecto entre expuestos es la de la tabla de retención: misma cohorte y antes de M+1 (docs/plan-piloto.md).
 const OFFER_COLUMNS = [
   {
     key: 'mostradas',
@@ -50,13 +50,13 @@ const OFFER_COLUMNS = [
   },
   { key: 'retenidas', header: 'Retenidas', numeric: true, render: (row) => formatNumber(row.ofertas.retenidas) },
   {
-    key: 'expuestas',
-    header: 'Personas expuestas',
+    key: 'con_oferta',
+    header: 'Personas con oferta',
     numeric: true,
     render: (row) => (
       <span className="cell-stack">
         {formatNumber(row.ofertas.personas_con_oferta)}
-        {row.personas > 0 && <span className="cell-sub">{formatPct(exposedPct(row))}</span>}
+        {row.personas > 0 && <span className="cell-sub">{formatPct(offeredPct(row))}</span>}
       </span>
     ),
   },
@@ -101,6 +101,20 @@ const retentionColumns = (diferencia) => [
     header: 'Personas con su mes siguiente completo',
     numeric: true,
     render: (row) => formatNumber(row.personas),
+  },
+  {
+    key: 'expuestas',
+    header: 'Con oferta elegible antes de M+1',
+    numeric: true,
+    render: (row) =>
+      row.variante === DIFFERENCE ? (
+        formatPct(null)
+      ) : (
+        <span className="cell-stack">
+          {formatNumber(row.expuestas)}
+          {row.personas > 0 && <span className="cell-sub">{formatPct(row.expuestas_pct)}</span>}
+        </span>
+      ),
   },
   {
     key: 'retencion',
@@ -184,16 +198,24 @@ function Retention({ retention }) {
           ? 'Cada grupo llega al mínimo del plan de piloto: la diferencia se lee con su intervalo.'
           : 'No es concluyente: los grupos no llegan al mínimo del plan de piloto.'}
       </p>
+      <p className="block-note" data-testid="expuestas-cohorte-nota">
+        Con oferta elegible antes de M+1: de esta misma cohorte, con una oferta retenible entre su asignación y el
+        inicio de M+1, contada igual en los dos grupos con lo que anota la API. En tratamiento puede no haberla visto
+        (la Home estaba tapada, {AGENT_NAME} en silencio o la había rechazado antes). Es la parte expuesta del plan de
+        piloto: el efecto entre expuestos es la diferencia dividida por esa parte, si en quien no tuvo una oferta el
+        efecto es cero.
+      </p>
     </>
   )
 }
 
-/** Cómo se cuentan las personas expuestas: cada grupo con su evento, así que no se comparan uno a uno. */
-function ExposedNote() {
+/** Cómo se cuentan las personas con oferta: igual en los dos grupos, con lo que anota la API. */
+function OfferedNote() {
   return (
     <p className="block-note" data-testid="expuestas-nota">
-      Personas expuestas: con una oferta desde su asignación. Control: ofertas retenidas · Tratamiento: ofertas
-      mostradas. Cada grupo se cuenta con otro evento, así que no se comparan uno a uno.
+      Personas con oferta: con una oferta que {AGENT_NAME} propone solo desde su asignación, sin tope. Los dos grupos se
+      cuentan igual, con lo que anota la API: en control la oferta retenida y en tratamiento la misma oferta entregada,
+      la haya alcanzado a mostrar la app o no.
     </p>
   )
 }
@@ -222,7 +244,7 @@ function Experiment({ experiment }) {
             rows={experiment.variantes}
             rowKey={(row) => row.variante}
           />
-          {offers && <ExposedNote />}
+          {offers && <OfferedNote />}
           {offers && experiment.retencion && <Retention retention={experiment.retencion} />}
         </>
       )}

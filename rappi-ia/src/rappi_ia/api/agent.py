@@ -29,6 +29,9 @@ router = APIRouter(prefix="/agent", tags=["agent"])
 
 MAX_LINES = 100  # como un pedido (OrderIn)
 WITHHELD_HEADER = "X-Offer-Withheld"  # en el 204 de una oferta retenida al grupo de control
+# Hasta dónde mira atrás la cuenta de una oferta ya anotada en la sesión (`_withheld`): la sesión de la app expira tras
+# 30 minutos sin actividad, así que con esto basta y la consulta usa el índice (user_id, ts) de `app_events`.
+OFFERED_LOOKBACK = "24 hours"
 OFFER_CAP = concurrency_cap("offer", config.API_MAX_CONCURRENT_OFFER, wait_s=config.API_CAP_WAIT_S)
 
 
@@ -178,7 +181,9 @@ def offer(
     Grupo de control (`ofertas_control`, con OFFERS_CONTROL_PCT): a quien está en `control`, una oferta de los momentos
     que Mochi propone solo (HOLDOUT_MOMENTS, fuera del buscador: `surface` distinta de `agent`) no se le muestra (204
     con `X-Offer-Withheld: 1`) y queda como impresión contrafactual (`offer_withheld`, con lo que habría mostrado; una
-    por sesión, origen, concepto y vertical); hace falta `user_id` y `session_id`.
+    por sesión, origen, concepto y vertical); hace falta `user_id` y `session_id`. En `tratamiento` la misma oferta se
+    muestra y queda como `offer_eligible`, con la misma clave: los dos grupos se cuentan con un hecho del servidor,
+    antes de lo que la app muestre o filtre.
     El momento `perfil` tiene su forma: `{ moment, text, perfil, escalera, viaje, reason, actions }` (la escalera de
     un perfil de gusto: `offers/profiles.py`; sus peldaños se buscan a la vez con las conexiones del pool que sobran,
     `spare`, como `/search`). Una ocasión o un perfil que no existe, o una ocasión que el agente no arma (guagua,
@@ -212,10 +217,13 @@ def offer(
 def _withheld(conn: Connection, body, found: Offer | ProfileOffer, request_id: str | None) -> bool:
     """Si la oferta se retiene (la persona está en el grupo de control): entonces queda registrada como `offer_withheld`
     en su sesión, con lo que habría mostrado en `app_event_items` (concepto y vertical incluidos), y la respuesta es un
-    204 como el de un momento sin oferta. Un plan o un perfil nunca se retienen, ni lo que la persona pide en el
-    buscador (`surface` `agent`), ni una oferta sin persona o sin sesión. La misma oferta (origen, concepto y vertical,
-    la clave con que la app cuenta una mostrada) se anota una vez por sesión: la Home la vuelve a pedir cada vez que
-    queda arriba, y en tratamiento se cuenta una sola mostrada."""
+    204 como el de un momento sin oferta. En tratamiento la misma oferta queda, igual, como `offer_eligible` y se
+    muestra: los dos grupos se cuentan con el mismo hecho del servidor, que no depende de lo que la app muestre o filtre
+    (lo rechazado en la sesión, una Home tapada). Un plan o un perfil nunca se retienen ni se anotan, ni lo que la
+    persona pide en el buscador (`surface` `agent`), ni una oferta sin persona o sin sesión, ni nada con el experimento
+    apagado. La misma oferta (origen, concepto y vertical, la clave con que la app cuenta una mostrada) se anota una vez
+    por sesión (mirando OFFERED_LOOKBACK atrás): la Home la vuelve a pedir cada vez que queda arriba, y en tratamiento
+    se cuenta una sola mostrada."""
     if (
         body.moment not in HOLDOUT_MOMENTS
         or body.surface == experiments.ASKED_SURFACE
@@ -229,47 +237,46 @@ def _withheld(conn: Connection, body, found: Offer | ProfileOffer, request_id: s
     except ValueError:  # un id de otra población (simulada): no entra al experimento
         return False
     variant = experiments.offers_variant(conn, body.user_id)
-    if variant != experiments.CONTROL:
-        conn.commit()  # su asignación (tratamiento), si era la primera vez
+    if variant is None:
+        conn.commit()
         return False
+    kind = "offer_withheld" if variant == experiments.CONTROL else "offer_eligible"
     concept = found.reason.get("concept")
     origin = f"agent-{body.moment}"
     seen = conn.execute(  # un concepto aún sin sembrar queda nulo en el evento (`events.record`): se compara igual
         """SELECT 1 FROM app_events
-           WHERE user_id = %s AND session_id = %s AND type = 'offer_withheld' AND origin = %s
+           WHERE user_id = %s AND ts > now() - %s::interval AND session_id = %s AND type = %s AND origin = %s
              AND concept_id IS NOT DISTINCT FROM (SELECT concept_id FROM concepts WHERE concept_id = %s)
              AND vertical IS NOT DISTINCT FROM %s
            LIMIT 1""",
-        (body.user_id, body.session_id, origin, concept, found.vertical),
+        (body.user_id, OFFERED_LOOKBACK, body.session_id, kind, origin, concept, found.vertical),
     ).fetchone()
-    if seen:
-        conn.commit()
-        return True
-    withheld = events.Event(
-        user_id=body.user_id,
-        session_id=body.session_id,
-        type="offer_withheld",
-        vertical=found.vertical,
-        concept_id=concept,
-        results=len(found.products),
-        payload={"moment": body.moment, "experiment": experiments.OFFERS_CONTROL, "variant": variant},
-        surface=body.surface,
-        origin=origin,
-        request_id=request_id,
-        items=[
-            {
-                "position": position,
-                "entity_type": product["entity_type"],
-                "entity_id": product["entity_id"],
-                "concept_id": product.get("concept"),
-                "vertical": product.get("vertical"),
-            }
-            for position, product in enumerate(found.products[: events.MAX_EVENT_ITEMS])
-        ],
-    )
-    events.record(conn, [withheld], source="prototype")
+    if not seen:
+        offered = events.Event(
+            user_id=body.user_id,
+            session_id=body.session_id,
+            type=kind,
+            vertical=found.vertical,
+            concept_id=concept,
+            results=len(found.products),
+            payload={"moment": body.moment, "experiment": experiments.OFFERS_CONTROL, "variant": variant},
+            surface=body.surface,
+            origin=origin,
+            request_id=request_id,
+            items=[
+                {
+                    "position": position,
+                    "entity_type": product["entity_type"],
+                    "entity_id": product["entity_id"],
+                    "concept_id": product.get("concept"),
+                    "vertical": product.get("vertical"),
+                }
+                for position, product in enumerate(found.products[: events.MAX_EVENT_ITEMS])
+            ],
+        )
+        events.record(conn, [offered], source="prototype")
     conn.commit()
-    return True
+    return variant == experiments.CONTROL
 
 
 def _with_preferences(found: Offer | ProfileOffer | None, mine: preferences.Preferences) -> Offer | ProfileOffer | None:

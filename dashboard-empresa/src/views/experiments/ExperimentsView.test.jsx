@@ -21,8 +21,15 @@ const offers = (mostradas, retenidas, aceptadas, pedidos, expuestas = mostradas 
 // La retención del grupo de control: la cohorte con su mes siguiente completo, bajo el mínimo del plan de piloto.
 const retention = (overrides = {}) => ({
   variantes: [
-    { variante: 'tratamiento', personas: 3, retencion_m1_pct: 33.3, suma_vertical_pct: 66.7 },
-    { variante: 'control', personas: 1, retencion_m1_pct: 100, suma_vertical_pct: 0 },
+    {
+      variante: 'tratamiento',
+      personas: 3,
+      retencion_m1_pct: 33.3,
+      suma_vertical_pct: 66.7,
+      expuestas: 2,
+      expuestas_pct: 66.7,
+    },
+    { variante: 'control', personas: 1, retencion_m1_pct: 100, suma_vertical_pct: 0, expuestas: 1, expuestas_pct: 100 },
   ],
   diferencia: {
     retencion_m1: { puntos: -66.7, ic95: null },
@@ -125,20 +132,20 @@ describe('ExperimentsView', () => {
     expect(screen.getByText(NOT_EVIDENCE)).toBeTruthy() // la población rotulada
   })
 
-  test('the exposed people say how each group is counted, and an empty group has no share', async () => {
+  test('the people with an offer are counted the same in both groups, and an empty group has no share', async () => {
     const control = { variante: 'control', personas: 0, con_pedido: 0, verticales_por_persona: null }
     const [treated] = withControl().experimentos.data.experimentos[1].variantes
     serveFixturesWith(withControl({ variantes: [treated, { ...control, ofertas: offers(0, 0, 0, 0) }] }))
     await renderWithData(<ExperimentsView source="prototype" />)
 
     const table = await screen.findByRole('table', { name: 'Grupo de control de las ofertas de Mochi' })
-    expect(screen.getByTestId('expuestas-nota').textContent).toContain(
-      'Control: ofertas retenidas · Tratamiento: ofertas mostradas',
-    )
+    const note = screen.getByTestId('expuestas-nota').textContent
+    expect(note).toContain('Los dos grupos se cuentan igual, con lo que anota la API')
+    expect(note).not.toMatch(/no se comparan/)
     const column = within(table)
       .getAllByRole('columnheader')
       .map((cell) => cell.textContent)
-      .indexOf('Personas expuestas')
+      .indexOf('Personas con oferta')
     expect(within(bodyRows(table)[1]).getAllByRole('cell')[column].textContent).toBe('0') // sin personas, sin %
   })
 
@@ -148,9 +155,13 @@ describe('ExperimentsView', () => {
 
     const table = await screen.findByRole('table', { name: 'Retención M+1 por grupo' })
     const [treated, control, difference] = bodyRows(table)
-    expect(cells(treated)).toEqual(['Tratamiento (ve las ofertas)', '3', '33,3%', '66,7%'])
-    expect(cells(control)).toEqual(['Control (no las ve)', '1', '100,0%', '0,0%'])
-    expect(cells(difference)).toEqual(['Diferencia (tratamiento − control)', '—', '−66,7 puntos', '+66,7 puntos'])
+    expect(cells(treated)).toEqual(['Tratamiento (ve las ofertas)', '3', '266,7%', '33,3%', '66,7%'])
+    expect(cells(control)).toEqual(['Control (no las ve)', '1', '1100,0%', '100,0%', '0,0%'])
+    expect(cells(difference)).toEqual(['Diferencia (tratamiento − control)', '—', '—', '−66,7 puntos', '+66,7 puntos'])
+    // La parte expuesta es de la misma cohorte y antes de M+1: la que sirve para el efecto entre expuestos.
+    expect(screen.getByTestId('expuestas-cohorte-nota').textContent).toMatch(
+      /^Con oferta elegible antes de M\+1: de esta misma.*puede no haberla visto/,
+    )
     expect(within(table).queryByText(/IC 95 %/)).toBeNull() // bajo el mínimo, sin intervalo
     expect(screen.getByTestId('retencion-nota').textContent).toBe(
       'No es concluyente: los grupos no llegan al mínimo del plan de piloto.',
@@ -169,7 +180,7 @@ describe('ExperimentsView', () => {
       'Cada grupo llega al mínimo del plan de piloto: la diferencia se lee con su intervalo.',
     )
     const table = screen.getByRole('table', { name: 'Retención M+1 por grupo' })
-    expect(cells(bodyRows(table)[2]).slice(2)).toEqual([
+    expect(cells(bodyRows(table)[2]).slice(3)).toEqual([
       '−66,7 puntosIC 95 %: −100,0 a −13,3',
       '+66,7 puntosIC 95 %: 13,3 a 100,0',
     ])
@@ -182,6 +193,8 @@ describe('ExperimentsView', () => {
         personas: 0,
         retencion_m1_pct: null,
         suma_vertical_pct: null,
+        expuestas: 0,
+        expuestas_pct: null,
       })),
       diferencia: null,
     })

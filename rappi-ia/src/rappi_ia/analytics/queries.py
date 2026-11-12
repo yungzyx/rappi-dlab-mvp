@@ -129,7 +129,7 @@ funnel_steps AS (
            bool_or(type = 'order_placed') AS pedido
     FROM app_events e
     WHERE source = %(source)s AND vertical IS NOT NULL
-      AND type NOT IN ('suggestion_shown', 'suggestion_dismissed', 'list_view', 'offer_withheld')
+      AND type NOT IN ('suggestion_shown', 'suggestion_dismissed', 'list_view', 'offer_withheld', 'offer_eligible')
       AND {_NOT_CANCELLED}
     GROUP BY 1, 2
 )"""
@@ -883,6 +883,12 @@ EXPERIMENT_NOTES = {
 }
 
 
+# Lo que anota la API cuando tiene una oferta retenible para alguien de `ofertas_control` (api/agent.py: `_withheld`),
+# con la misma regla en los dos grupos: `offer_withheld` en control (no la ve) y `offer_eligible` en tratamiento.
+# La parte expuesta se cuenta con ellos, no con lo que la app alcanzó a mostrar (`suggestion_shown`).
+OFFERED_EVENTS = ("offer_withheld", "offer_eligible")
+
+
 def experiment_results(conn: Connection, source: str = "synthetic") -> dict:
     """Los experimentos (migración 047) por variante, dentro de una sola población: personas asignadas, con pedido y
     verticales por persona con pedido (distintas en sus pedidos confirmados, como el multi-vertical de `kpis`), todo
@@ -891,13 +897,16 @@ def experiment_results(conn: Connection, source: str = "synthetic") -> dict:
     ofertas de los momentos que Mochi propone solo (`exp.HOLDOUT_MOMENTS`): mostradas (`suggestion_shown`), retenidas
     (`offer_withheld`), aceptadas, personas con alguna y los pedidos confirmados después de la primera; y su
     `retencion` (`_offers_retention`). Las mostradas y aceptadas son las de fuera del buscador (`exp.ASKED_SURFACE`):
-    lo que la persona pide ahí lo ven los dos grupos, así que no cuenta ni como oferta ni como persona expuesta."""
+    lo que la persona pide ahí lo ven los dos grupos, así que no cuenta ni como oferta ni como persona expuesta. Las
+    personas con alguna se cuentan en los dos grupos con lo que anota la API (OFFERED_EVENTS: `offer_withheld` en
+    control y `offer_eligible` en tratamiento), desde la asignación y sin tope."""
     _check(source)
     params = {
         "source": source,
         "offers": exp.OFFERS_CONTROL,
         "origins": [f"agent-{m}" for m in exp.HOLDOUT_MOMENTS],
         "asked": exp.ASKED_SURFACE,
+        "offered": list(OFFERED_EVENTS),
     }
     declared = _rows(
         conn,
@@ -930,14 +939,14 @@ def experiment_results(conn: Connection, source: str = "synthetic") -> dict:
            seen AS (
                SELECT a.user_id, a.variant, e.type, e.ts FROM assigned a
                JOIN app_events e ON e.user_id = a.user_id AND e.source = %(source)s AND e.ts >= a.assigned_at
-               WHERE e.type = 'offer_withheld'
+               WHERE e.type = ANY(%(offered)s)
                   OR (e.type IN ('suggestion_shown', 'suggestion_accepted')
                       AND coalesce(e.origin, e.payload ->> 'origen') = ANY(%(origins)s)
                       AND e.surface IS DISTINCT FROM %(asked)s)
            ),
            first_offer AS (
                SELECT user_id, variant, min(ts) AS ts FROM seen
-               WHERE type IN ('suggestion_shown', 'offer_withheld') GROUP BY 1, 2
+               WHERE type = ANY(%(offered)s) GROUP BY 1, 2
            ),
            after AS (
                SELECT f.variant, count(o.order_id) AS pedidos FROM first_offer f
@@ -993,7 +1002,10 @@ def _offers_retention(conn: Connection, params: dict, variants: list[dict]) -> d
     puntos. `minimo` son las personas que pide cada grupo para un efecto de +5 puntos sobre la M+1 de "solo
     Restaurantes" de la tabla de Rappi (un supuesto), con el reparto de quienes tienen variante; bajo ese mínimo,
     `concluyente` es falso y la diferencia va sin su IC de 95 % (`ic95` nulo): con pocas personas, un grupo en 0 % o
-    100 % lo encoge y parecería un efecto."""
+    100 % lo encoge y parecería un efecto.
+    `expuestas` (y `expuestas_pct`) es la parte expuesta de la misma cohorte: quien tuvo una oferta retenible
+    (OFFERED_EVENTS, el mismo hecho del servidor en los dos grupos) entre su asignación y el inicio de M+1. Sirve para
+    pasar del efecto por intención de tratar al efecto entre expuestos (docs/plan-piloto.md)."""
     cohort = _rows(
         conn,
         f"""WITH cohort AS (
@@ -1015,7 +1027,11 @@ def _offers_retention(conn: Connection, params: dict, variants: list[dict]) -> d
                          AND o.ts >= c.assigned_at AND o.ts < c.assigned_at + interval '28 days'
                          AND NOT EXISTS (
                              SELECT 1 FROM confirmed b WHERE b.user_id = c.user_id AND b.vertical = o.vertical
-                                AND b.ts < c.assigned_at))) AS suman_vertical
+                                AND b.ts < c.assigned_at))) AS suman_vertical,
+                  count(*) FILTER (WHERE EXISTS (
+                      SELECT 1 FROM app_events e WHERE e.user_id = c.user_id AND e.source = %(source)s
+                         AND e.type = ANY(%(offered)s) AND e.ts >= c.assigned_at
+                         AND e.ts AT TIME ZONE %(tz)s < c.month + interval '1 month')) AS expuestas
            FROM cohort c
            WHERE c.month + interval '2 months' <= {_AS_OF} AT TIME ZONE %(tz)s
            GROUP BY 1""",
@@ -1031,6 +1047,7 @@ def _offers_retention(conn: Connection, params: dict, variants: list[dict]) -> d
             "personas": n,
             "retenidas": row.get("retenidas", 0),
             "suman_vertical": row.get("suman_vertical", 0),
+            "expuestas": row.get("expuestas", 0),
         }
 
     def pct(part: int, n: int) -> float | None:
@@ -1059,6 +1076,8 @@ def _offers_retention(conn: Connection, params: dict, variants: list[dict]) -> d
                 "personas": g["personas"],
                 "retencion_m1_pct": pct(g["retenidas"], g["personas"]),
                 "suma_vertical_pct": pct(g["suman_vertical"], g["personas"]),
+                "expuestas": g["expuestas"],
+                "expuestas_pct": pct(g["expuestas"], g["personas"]),
             }
             for g in groups.values()
         ],
