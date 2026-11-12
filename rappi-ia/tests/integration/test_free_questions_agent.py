@@ -7,6 +7,7 @@ from rappi_scraper.storage.search import build_search_documents
 
 from conftest import add_dish, add_price, add_product, add_store
 from rappi_ia.agent.rappi_agent import Context, RappiAgent
+from rappi_ia.agent.tools import search_remedies
 from rappi_ia.concepts.pipeline import build_concepts
 from rappi_ia.embeddings.base import HashEmbedder
 from rappi_ia.embeddings.text_store import embed_search_documents
@@ -232,3 +233,38 @@ def test_nothing_is_recommended_to_make_a_baby_sleep(agent):
         assert not any(p["concept"] == "medicamentos" for p in r["products"]), text
     r = rappi.reply(db, "algo para que mi guagua duerma", Context())
     assert sorted(p["entity_id"] for p in r["products"]) == ["305", "306"] and r["conversation"] is None
+
+
+def test_bedtime_shows_the_demo_city_first(agent):
+    """La hora de dormir intercala un artículo de bebé y un pañal; lo que solo vende otra ciudad va después, sin sacarlo
+    (rappi_agent.py: `_bedtime`, `_city_first`)."""
+    rappi, db = agent
+    add_store(db, 5, "farmacia", "Farmacia de Viña", city="Viña del Mar")
+    _add(
+        db,
+        [
+            (305, "Chupete nocturno 6-18 meses", 5, "Chupetes", 4990),  # artículo de bebé: el primero al intercalar
+            (306, "Pañales Voy a Dormir talla M 40 un", 4, "Pañales", 12990),
+        ],
+    )
+    r = rappi.reply(db, "algo para que mi guagua duerma", Context())
+    assert [p["entity_id"] for p in r["products"]] == ["306", "305"]
+
+
+def test_a_remedy_only_sold_in_another_city_goes_after_the_city(agent):
+    """Los remedios para un síntoma (Farmacia): lo que solo vende otra ciudad va después de lo de la ciudad, cada parte
+    en su orden, sin sacarlo (tools.py: `search_remedies`, `_city_first`)."""
+    _, db = agent
+    add_store(db, 5, "farmacia", "Farmacia Norte")
+    _add(db, [(302, "Ibuprofeno 400 mg para la fiebre 20 comprimidos", 5, "Analgésicos tópicos", 2490)])
+    store = {"300": 4, "301": 4, "302": 5}
+
+    def found():
+        return [p.entity_id for p in search_remedies(db, "tengo fiebre", HashEmbedder()).products]
+
+    before = found()
+    assert sorted(before) == sorted(store)
+    moved = store[before[0]]  # la tienda del primero se va a otra ciudad; la otra queda
+    db.execute("UPDATE stores SET city = 'Viña del Mar' WHERE store_id = %s", (moved,))
+
+    assert found() == [e for e in before if store[e] != moved] + [e for e in before if store[e] == moved]
