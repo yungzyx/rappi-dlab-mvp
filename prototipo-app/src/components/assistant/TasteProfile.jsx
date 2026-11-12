@@ -130,7 +130,7 @@ function TripStep({ trip, onOpenTravel }) {
   return (
     <>
       <button type="button" className={`taste-trip tap${photo ? ' taste-trip--photo' : ''}`} onClick={onOpenTravel}>
-        {photo && <img src={photo.img} alt={photo.alt} draggable="false" />}
+        {photo && <img src={photo.img} alt="" draggable="false" />}
         <span className="taste-trip-label">{trip.label}</span>
         <strong>{trip.text}</strong>
       </button>

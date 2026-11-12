@@ -1,5 +1,6 @@
 import { cleanup, fireEvent, render, screen } from '@testing-library/react'
 import { afterEach, expect, test, vi } from 'vitest'
+import { TRIP_PHOTOS } from '../../data/trips'
 import { fixture } from '../../test/api'
 import { LadderRail, ProfileCard } from './TasteProfile'
 
@@ -71,11 +72,16 @@ const trip = (id) => {
 }
 const renderTrip = (t) => render(<LadderRail ladder={{ steps: [], trip: t }} onOpenTravel={vi.fn()} />)
 
-test('la idea para RappiTravel de un destino conocido lleva su foto con alt y el crédito con enlace', () => {
+test('la idea para RappiTravel de un destino conocido lleva su foto (decorativa) y el crédito con enlace', () => {
   renderTrip(trip())
-  const photo = screen.getByRole('img', { name: 'Torii naranjos en Kioto' })
-  expect(photo.closest('button').textContent).toContain('¿Y si un día vas a Japón?')
-  const credit = screen.getByRole('link', { name: 'Foto: David Emrich en Unsplash (licencia Unsplash)' })
+  const photo = document.querySelector('.taste-trip--photo img')
+  expect(photo.getAttribute('src')).toBe(TRIP_PHOTOS.japon.img)
+  expect(photo.getAttribute('alt')).toBe('')
+  // El nombre del botón empieza por la idea, no por la foto.
+  const button = screen.getByRole('button', { name: /^Idea para RappiTravel/ })
+  expect(button).toBe(photo.closest('button'))
+  expect(button.textContent).toContain('¿Y si un día vas a Japón?')
+  const credit = screen.getByRole('link', { name: 'Foto: David Emrich / Unsplash' })
   expect(credit.getAttribute('href')).toBe('https://unsplash.com/photos/torii-gates-in-kyoto-EJvGBYjrwEA')
 })
 
