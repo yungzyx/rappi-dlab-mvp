@@ -1,6 +1,7 @@
 import { useId, useState } from 'react'
 import { productItem } from '../../api/impressions'
 import { MAIN_TILES, SHORTCUTS } from '../../data/home'
+import { TRIP_PHOTOS } from '../../data/trips'
 import { VERTICAL_NAMES } from '../../data/verticals'
 import { useImpressions } from '../../hooks/useImpressions'
 import { useProductSheet } from '../../state/ProductSheetContext'
@@ -123,11 +124,13 @@ function StepProduct({ product, onOpenProduct }) {
   )
 }
 
-/** La idea para RappiTravel al final de la escalera: el destino, dos datos con su fuente. */
+/** La idea para RappiTravel al final de la escalera: el destino (con su foto y su crédito, si tiene) y dos datos. */
 function TripStep({ trip, onOpenTravel }) {
+  const photo = TRIP_PHOTOS[trip.id]
   return (
     <>
-      <button type="button" className="taste-trip tap" onClick={onOpenTravel}>
+      <button type="button" className={`taste-trip tap${photo ? ' taste-trip--photo' : ''}`} onClick={onOpenTravel}>
+        {photo && <img src={photo.img} alt={photo.alt} draggable="false" />}
         <span className="taste-trip-label">{trip.label}</span>
         <strong>{trip.text}</strong>
       </button>
@@ -141,6 +144,11 @@ function TripStep({ trip, onOpenTravel }) {
           </li>
         ))}
       </ul>
+      {photo && (
+        <a className="taste-credit" href={photo.creditUrl} target="_blank" rel="noreferrer">
+          {photo.credit}
+        </a>
+      )}
     </>
   )
 }
