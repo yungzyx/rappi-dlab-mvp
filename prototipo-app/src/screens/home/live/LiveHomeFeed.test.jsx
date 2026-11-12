@@ -1397,7 +1397,7 @@ describe('Home del prototipo final', () => {
       await advance(900 + 3400 + 6000)
       act(() => hooks.add({ ...LOOSE_CART, price: '$1.000' }))
       fireEvent.click(mochi())
-      expect(screen.getByRole('button', { name: 'Revisar mi carrito · $1.000' })).toBeTruthy()
+      expect(screen.getByRole('button', { name: 'Revisar mi carro · $1.000' })).toBeTruthy()
       fireEvent.click(screen.getByRole('button', { name: 'Buscar con Mochi' }))
       expect(hooks.assistant.isOpen).toBe(true)
       expect(menu()).toBeNull()

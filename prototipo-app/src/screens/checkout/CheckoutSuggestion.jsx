@@ -41,7 +41,7 @@ export default function CheckoutSuggestion() {
     return (
       <p className="checkout-ask" role="status">
         <Mascot size={28} badge />
-        {complete === 'completo' ? 'Tu carrito está completo' : 'Por ahora no tengo otra idea para tu carrito'}
+        {complete === 'completo' ? 'Tu carro está completo' : 'Por ahora no tengo otra idea para tu carro'}
       </p>
     )
 
