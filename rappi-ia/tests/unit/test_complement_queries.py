@@ -116,6 +116,10 @@ CATALOG = {
 }
 
 
+# Cuánto dice la consulta el nombre de un producto de la marca (`_name_scores`); los de CATALOG que la dicen valen 1.
+SCORES = {"Dip Sabor Marca Querida": 1.0, "Salsa Ketchup Marca Querida": 0.4}
+
+
 class FakeConn:
     """Solo responde la consulta de las aristas de `suggest_complement` y la de las marcas de `_brand_first`."""
 
@@ -145,12 +149,13 @@ def searched(monkeypatch):
         ]
         return SearchOutcome(SimpleNamespace(hits=[]), products[:k])
 
-    def saying(conn, products, text):
+    def name_scores(conn, vertical, names, text):
+        """Cada nombre que dice el texto vale 1 (o lo que diga `SCORES`); el que no lo dice no está."""
         said = {name for name, _, says in CATALOG.get(text, []) if says}
-        return [p for p in products if p.name in said]
+        return {n: SCORES.get(n, 1.0) for n in names if n in said or n in SCORES}
 
     monkeypatch.setattr(tools, "search_products", search)
-    monkeypatch.setattr(tools, "_saying", saying)
+    monkeypatch.setattr(tools, "_name_scores", name_scores)
     monkeypatch.setattr(tools, "_verticals_for", lambda conn, concept, current: ["supermercado"])
     return texts
 
@@ -217,7 +222,7 @@ def product(name, concept="salsas"):
 
 def test_the_brand_they_buy_goes_first_even_if_the_search_leaves_it_further_down(searched, monkeypatch):
     """Con la consulta de la arista, la marca que la persona compra se busca aparte (`_brand_products`): el dip de su
-    marca no está entre los primeros de la búsqueda, pero calza la consulta y va primero."""
+    marca no está entre los primeros de la búsqueda, pero dice la consulta tanto como lo que se ofrece y va primero."""
     asked = []
 
     def brand_products(conn, vertical, text, concept, brands):
@@ -241,6 +246,20 @@ def test_without_a_product_of_their_brand_that_says_the_query_the_offer_is_the_u
     chosen = suggest_complement(
         FakeConn([("snacks-salados", "salsas", 0.4)]), ["snacks-salados"], None, None, prefer_brands={"otra": 1}
     )
+
+    assert chosen.brand is None
+    assert names(chosen) == ["Buka Dip Untable Cheddar", "Guacamole Natural"]
+
+
+def test_a_product_of_their_brand_that_says_the_query_less_than_the_offer_does_not_go_first(searched, monkeypatch):
+    """El kétchup de su marca dice "salsa", pero menos que los dips que se ofrecen: no encabeza la oferta de los Doritos
+    (con el 57bbba7, una palabra cualquiera bastaba y la marca ponía primero kétchup y mayonesa para los fideos)."""
+    monkeypatch.setattr(
+        tools, "_brand_products", lambda conn, vertical, text, concept, brands: [product("Salsa Ketchup Marca Querida")]
+    )
+    conn = FakeConn([("snacks-salados", "salsas", 0.4)], {"Salsa Ketchup Marca Querida": "querida"})
+
+    chosen = suggest_complement(conn, ["snacks-salados"], None, None, prefer_brands={"querida": 3})
 
     assert chosen.brand is None
     assert names(chosen) == ["Buka Dip Untable Cheddar", "Guacamole Natural"]

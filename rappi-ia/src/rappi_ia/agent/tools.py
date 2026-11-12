@@ -4,6 +4,7 @@ Todo producto que el agente muestra pasa por aquí: sale de la base, con su prec
 """
 
 import hashlib
+import math
 import re
 import unicodedata
 from dataclasses import dataclass, field
@@ -32,11 +33,13 @@ from ..retrieval.hybrid import (
     UNNAMED_TAU,
     Filters,
     RetrievalResult,
+    _document_frequencies,
     _hydrate,
     _lexemes,
     named_occasion,
     occasion_search,
     retrieve,
+    vertical_doc_count,
 )
 from ..retrieval.spelling import correct_query
 from ..text import FILLER_WORDS, LEAFLET_WARNINGS, normalize, tokens
@@ -375,9 +378,10 @@ def suggest_complement(
     def search(candidate: _Candidate, verticals: list[str]) -> tuple[str, list[Product], str | None] | None:
         """(vertical, productos, marca) de la primera vertical donde el candidato tiene productos. Si la arista trae su
         consulta (`complement_queries`), primero se busca con ella en todas las verticales, y solo vale lo que dice
-        alguna de sus palabras en el nombre (`_saying`); si nada la dice, con el nombre del concepto, como siempre. Con
-        la consulta, el producto de una marca que la persona compra se busca aparte (`_brand_products`), no entre los
-        primeros de la búsqueda: si dice la consulta, va primero aunque la búsqueda lo deje más abajo."""
+        alguna de sus palabras en el nombre (`_name_scores`); si nada la dice, con el nombre del concepto, como siempre.
+        Con la consulta, el producto de una marca que la persona compra se busca aparte (`_brand_products`), no entre
+        los primeros de la búsqueda, y va primero solo si su nombre dice la consulta tanto como el que menos de los que
+        se ofrecerían sin marca: el "Tucapel Arroz Blanco" para el atún sí; su kétchup para los fideos, no."""
         concept = taxonomy.concepts[candidate.concept]
         query = complement_queries().get((candidate.source, candidate.concept))
         passes = [(query, True), (concept.name, False)] if query else [(concept.name, False)]
@@ -390,9 +394,14 @@ def suggest_complement(
                     outcome = search_products(
                         conn, vertical, text, [concept.id], embedder, k=NAMED_CANDIDATES, offer=True
                     )
-                    products = _saying(conn, _of_concept(outcome, concept.id), text)
-                    if prefer_brands:
-                        owned = _brand_products(conn, vertical, text, concept.id, prefer_brands)
+                    usual = _of_concept(outcome, concept.id)
+                    owned = _brand_products(conn, vertical, text, concept.id, prefer_brands) if prefer_brands else []
+                    scores = _name_scores(conn, vertical, [p.name for p in (*usual, *owned)], text)
+                    products = [p for p in usual if scores.get(p.name)]
+                    if owned and (shown := _dedupe(products)[:3]):
+                        floor = min(scores[p.name] for p in shown)
+                        owned = [p for p in owned if round(scores.get(p.name, 0) - floor, 9) >= 0]
+                        owned.sort(key=lambda p: -scores[p.name])
                         owned, brand = _brand_first(conn, owned, prefer_brands)
                         if brand is not None:
                             products = [owned[0], *products]
@@ -527,61 +536,53 @@ def _ordered_lately(conn: Connection, user_id: str, concepts: list[str]) -> bool
 BRAND_CANDIDATES = 12  # productos del concepto que se miran para encontrar una marca que la persona compra
 NAMED_CANDIDATES = 8  # con la consulta de la arista se miran más: solo quedan los que dicen alguna de sus palabras
 
-# Una consulta de arista en tsquery: alguna de sus palabras (OR), con su raíz y sin tildes, como `tsv_unaccent`.
-_ANY_WORD = "(SELECT string_agg(quote_literal(l), ' | ')::tsquery FROM unnest(%(lexemes)s::text[]) AS l)"
-
-
-def _name_says(name: str) -> str:
-    """La condición SQL de que `name` (una columna) diga alguna palabra de la consulta (`%(lexemes)s`)."""
-    return f"to_tsvector('spanish', es_unaccent({name})) @@ {_ANY_WORD}"
-
 
 def _of_concept(outcome: SearchOutcome, concept: str) -> list[Product]:
     return [p for p in outcome.products if p.concept == concept]
 
 
-def _saying(conn: Connection, products: list[Product], text: str) -> list[Product]:
-    """Los productos que dicen en su nombre alguna palabra de `text` (la consulta de una arista), con la misma raíz y
-    sin tildes, como la búsqueda por palabras. Solo el nombre: lo que trae la cercanía de vectores no vale (un sahumerio
-    en "Limpiadores multiusos" se parece a la limpieza, pero no dice lavaloza ni detergente), y en una descripción larga
-    las raíces engañan ("Palo Santo" calza "pala"; "poder", "podar")."""
+def _name_scores(conn: Connection, vertical: str, names: list[str], text: str) -> dict[str, float]:
+    """Cuánto dice cada nombre la consulta de una arista: la suma del IDF en la vertical (el de la búsqueda por
+    palabras) de las palabras de `text` que dice, con su raíz y sin tildes; sin ninguna, no está. Solo el nombre: lo que
+    trae la cercanía de vectores no vale (un sahumerio en "Limpiadores multiusos" se parece a la limpieza, pero no dice
+    lavaloza ni detergente), y en una descripción larga las raíces engañan ("Palo Santo" calza "pala")."""
     lexemes = _lexemes(conn, text)
-    if not products or not lexemes:
-        return []
-    said = {
-        name
-        for (name,) in conn.execute(
-            f"SELECT n FROM unnest(%(names)s::text[]) AS n WHERE {_name_says('n')}",
-            {"names": [p.name for p in products], "lexemes": lexemes},
-        )
-    }
-    return [p for p in products if p.name in said]
+    if not names or not lexemes:
+        return {}
+    n = vertical_doc_count(conn, vertical)
+    dfs = _document_frequencies(conn, vertical, lexemes, n)
+    idf = {lexeme: math.log(1 + n / (1 + df)) for lexeme, df in zip(lexemes, dfs, strict=True)}
+    scores: dict[str, float] = {}
+    for name, lexeme in conn.execute(
+        """SELECT DISTINCT n, l FROM unnest(%s::text[]) AS n, unnest(%s::text[]) AS l
+           WHERE to_tsvector('spanish', es_unaccent(n)) @@ quote_literal(l)::tsquery""",
+        (list(dict.fromkeys(names)), lexemes),
+    ):
+        scores[name] = scores.get(name, 0.0) + idf[lexeme]
+    return scores
 
 
 BRAND_MATCHES = 50  # productos de sus marcas que calzan la consulta de la arista que se miran (los que más calzan)
 
 
 def _brand_products(conn: Connection, vertical: str, text: str, concept: str, brands: dict[str, int]) -> list[Product]:
-    """Los productos del concepto, de las marcas que la persona compra, que dicen en su nombre alguna palabra de `text`
-    (la consulta de una arista; `_saying`) en la vertical, del que más calza al que menos, con su precio de oferta
-    (`_with_prices(offer=True)`: de la ciudad de la demo y sin lo que el agente no propone) y sin lo que sacan su dieta
-    o sus alergias. No depende de su lugar en la búsqueda: entre los primeros de "arroz", el "Tucapel Arroz Blanco"
-    quedaba el 16.º."""
+    """Los productos del concepto, de las marcas que la persona compra, que calzan alguna palabra de `text` (la consulta
+    de una arista) en la vertical, del que más calza al que menos, con su precio de oferta (`_with_prices(offer=True)`:
+    de la ciudad de la demo y sin lo que el agente no propone) y sin lo que sacan su dieta o sus alergias. No depende de
+    su lugar en la búsqueda (entre los primeros de "arroz", el "Tucapel Arroz Blanco" quedaba el 16.º); cuál vale lo
+    decide quien llama, con `_name_scores`."""
     lexemes = _lexemes(conn, text)
     if not lexemes:
         return []
     rows = conn.execute(
-        f"""WITH q AS (SELECT {_ANY_WORD} AS q)
+        """WITH q AS (SELECT string_agg(quote_literal(l), ' | ')::tsquery AS q FROM unnest(%(lexemes)s::text[]) AS l)
            SELECT d.entity_type, d.entity_id, ts_rank_cd(d.tsv_unaccent, q.q) AS score
            FROM search_documents d
            CROSS JOIN q
            JOIN item_concepts ic USING (entity_type, entity_id)
            JOIN item_brands b USING (entity_type, entity_id)
-           LEFT JOIN catalog_items ci ON d.entity_type = 'catalog_item' AND ci.master_product_id::text = d.entity_id
-           LEFT JOIN menu_items mi ON d.entity_type = 'menu_item' AND mi.item_id::text = d.entity_id
            WHERE d.vertical = %(vertical)s AND ic.concept_id = %(concept)s AND b.brand_key = ANY(%(brands)s)
              AND d.tsv_unaccent @@ q.q
-             AND {_name_says("coalesce(ci.name, mi.name)")}
            ORDER BY score DESC, d.entity_id
            LIMIT %(limit)s""",
         {"lexemes": lexemes, "vertical": vertical, "concept": concept, "brands": list(brands), "limit": BRAND_MATCHES},
