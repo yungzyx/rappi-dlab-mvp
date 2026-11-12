@@ -167,14 +167,34 @@ def keeps_guarded(current: str | None, candidate: str) -> bool:
 
 @cache
 def load_complements(path: Path = DATA_DIR / "complements.toml") -> tuple[tuple[str, str, float], ...]:
+    return tuple((s, t, w) for s, t, w, _ in _curated_complements(path))
+
+
+@cache
+def complement_queries(path: Path = DATA_DIR / "complements.toml") -> dict[tuple[str, str], str]:
+    """(origen, destino) → el texto con que se buscan los productos del destino en esa arista, si la arista lo trae
+    (su cuarto campo). Sin él se busca con el nombre del concepto destino (agent/tools.py: suggest_complement)."""
+    return {(s, t): q for s, t, _, q in _curated_complements(path) if q is not None}
+
+
+@cache
+def _curated_complements(path: Path) -> tuple[tuple[str, str, float, str | None], ...]:
     edges = tomllib.loads(path.read_text(encoding="utf-8"))["edges"]
     taxonomy = load_taxonomy()
-    for source, target, weight in edges:
+    rows = []
+    for edge in edges:
+        if len(edge) not in (3, 4):
+            raise ValueError(f"Complemento con {len(edge)} campos (origen, destino, peso y consulta opcional): {edge}")
+        source, target, weight, *rest = edge
         if source not in taxonomy.concepts or target not in taxonomy.concepts:
             raise ValueError(f"Complemento con concepto desconocido: {source} → {target}")
         if not 0 <= weight <= 1:
             raise ValueError(f"Peso fuera de [0, 1]: {source} → {target} = {weight}")
-    return tuple((s, t, float(w)) for s, t, w in edges)
+        query = rest[0] if rest else None
+        if query is not None and (not isinstance(query, str) or not query.strip()):
+            raise ValueError(f"Consulta vacía o que no es texto: {source} → {target} = {query!r}")
+        rows.append((source, target, float(weight), query.strip() if query else None))
+    return tuple(rows)
 
 
 def _validate(groups: dict, concepts: dict, occasions: dict, services: dict | None = None) -> None:

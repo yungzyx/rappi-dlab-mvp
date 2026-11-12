@@ -107,7 +107,7 @@ Se llena solo con datos públicos.
 | **`concepts`** (taxonomía común) | Árbol propio y estable de conceptos, 136 al 16-10-2026 ("lácteos > yogur", "comida > pizza"), enlazable después a Google Product Taxonomy | Análisis entre verticales que no dependa de cómo cada tienda nombra sus pasillos |
 | **`category_map`** | Categorías, secciones de menú y cocinas de Rappi → concepto, con fecha de vigencia (las categorías nuevas de cada semana se exportan con `rappi-ia map-categories` para revisarlas) | Las categorías de Rappi cambian; el concepto no |
 | **`item_concepts`** | Un concepto principal por producto o plato | Un plato y un producto del súper se conectan al compartir concepto (pizza ↔ pizza congelada). Reemplaza a la idea inicial de una tabla de platos estándar |
-| **`concept_edges`** | Complementos entre conceptos: 240 curados (contados el 16-10-2026; cada concepto que se puede ofrecer tiene al menos dos), más los aprendidos por co-ocurrencia | La recomendación cruzada: cerveza → snacks |
+| **`concept_edges`** | Complementos entre conceptos: 240 curados (contados el 11-11-2026; cada concepto que se puede ofrecer tiene al menos dos, salvo la ferretería, que tiene uno; 47 dicen con qué texto se buscan sus productos), más los aprendidos por co-ocurrencia | La recomendación cruzada: cerveza → snacks |
 | **Trazabilidad** en todo dato inferido | `method` (`curado`, `llm`, `regla`, `embedding`; en complementos, `curado` o `coocurrencia`; ver [diseno-ia.md](diseno-ia.md#6-modelo-de-datos-nuevo)), `model_version`, `confidence` y fecha | Poder auditar y rehacer lo que generen modelos o reglas |
 | **Geografía H3** | `h3_cell` (y comuna) en `stores` | **Pendiente:** análisis por zona y, más adelante, cobertura de despacho |
 

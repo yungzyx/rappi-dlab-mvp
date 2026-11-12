@@ -7,6 +7,7 @@ import { AddressProvider } from '../../state/AddressContext'
 import { DemoProvider } from '../../state/DemoContext'
 import { forgetAll } from '../../state/forgetAll'
 import { reloadToHome } from '../../state/reloadApp'
+import { localStore } from '../../state/storage'
 import { OrdersProvider, useOrders } from '../../state/OrdersContext'
 import { ProfileProvider } from '../../state/ProfileContext'
 import AccountScreen from './AccountScreen'
@@ -107,6 +108,28 @@ describe('forgetAll', () => {
     })
     await forgetAll({ events: { clear: vi.fn(), settled: vi.fn().mockResolvedValue(undefined) }, reload })
     expect(reload).toHaveBeenCalledTimes(1)
+  })
+
+  test('con localStorage bloqueado (leerlo lanza SecurityError) termina y recarga', async () => {
+    const original = Object.getOwnPropertyDescriptor(globalThis, 'localStorage')
+    Object.defineProperty(globalThis, 'localStorage', {
+      configurable: true,
+      get: () => {
+        throw new DOMException('El acceso al almacenamiento está bloqueado', 'SecurityError')
+      },
+    })
+    try {
+      const api = stubApi({ 'DELETE /profile/*': {} })
+      const before = userId() // en memoria
+      const reload = vi.fn()
+      await forgetAll({ events: { clear: vi.fn(), settled: vi.fn().mockResolvedValue(undefined) }, reload })
+      expect(deletes(api)).toEqual([`/profile/${before}`])
+      expect(userId()).toBe(fixture('session').user_id) // la sesión nueva, también en memoria
+      expect(reload).toHaveBeenCalledTimes(1)
+    } finally {
+      localStore.clear() // la memoria, antes de devolver el almacenamiento
+      Object.defineProperty(globalThis, 'localStorage', original)
+    }
   })
 
   test('forgetAll pide una sesión nueva', async () => {
