@@ -48,8 +48,8 @@ _NORMALIZED = "btrim(regexp_replace(lower(unaccent(coalesce({column}, ''))), '[^
 # (`offers/engine.py: _in_demo_city`) cambian un producto de otra ciudad por el de una tienda de ella, o lo sacan; lo
 # que Mochi propone por su cuenta (`search_products(..., offer=True)`: la sugerencia cruzada, "qué me recomiendas", las
 # ideas de un servicio) trae solo productos de tiendas de ella; y lo que la persona pide en la búsqueda o a Mochi sale
-# con una tienda de ella si alguna lo vende (`agent/tools.py: _with_prices`), sin sacar nada ni cambiar el orden
-# (cambiaría lo que miden las evaluaciones). Abrir una tienda o un menú por su id, no.
+# con una tienda de ella si alguna lo vende (`agent/tools.py: _with_prices`) y antes que lo que solo vende otra ciudad,
+# sin sacarlo (`_city_first`). Abrir una tienda o un menú por su id, no.
 IN_DEMO_CITY = _NORMALIZED.format(column="s.city") + " = ANY(%(places)s)"
 
 
