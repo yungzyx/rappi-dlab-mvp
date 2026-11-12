@@ -15,8 +15,9 @@ from rappi_ia.agent.tools import Product, search_products
 from rappi_ia.demo.seed import seed_demo
 from rappi_ia.embeddings.base import HashEmbedder
 from rappi_ia.embeddings.text_store import embed_search_documents
-from rappi_ia.offers import engine
+from rappi_ia.offers import engine, preferences
 from rappi_ia.offers.engine import Offer, PlanOffer, make_offer
+from rappi_ia.text import normalize
 
 COLA = "91003"  # súper: $1.790 en el Centro (9101) y $1.850 en el Norte (9102)
 CENTRO, NORTE = 9101, 9102
@@ -165,6 +166,29 @@ def test_search_puts_what_only_another_city_sells_after_the_city_without_leaving
         assert [p.id for p in part] == sorted((p.id for p in part), key=order.index)
 
 
+def test_a_favorite_store_of_another_city_does_not_go_before_the_city(seeded):
+    """Con tiendas favoritas (offers/preferences.py), la búsqueda de Mochi las sube, pero dentro de lo de la ciudad: una
+    favorita de otra ciudad no pone lo que solo vende ella antes de la ciudad (tools.py: `_city_first` tras `rank`)."""
+    embedder = HashEmbedder()
+    to_other_city(seeded, CENTRO)
+
+    def found(favorites):
+        with preferences.applied(favorites):
+            return search_products(seeded, "supermercado", "prueba", None, embedder, k=50).products
+
+    plain = found(None)
+    away = [p for p in plain if not p.in_city]
+    assert away and any(p.in_city for p in plain)
+    favorite = preferences.Preferences(stores=(normalize(away[0].store),))
+    assert all(favorite._favorite(p) for p in away)  # la favorita es la tienda de otra ciudad
+
+    after = found(favorite)
+
+    assert {p.id for p in after} == {p.id for p in plain}  # no saca nada
+    flags = [not p.in_city for p in after]
+    assert flags == sorted(flags)  # todo lo de la ciudad primero
+
+
 def test_dishes_of_a_place_of_another_city_go_after_and_a_wider_pool_fills_with_the_city(seeded):
     embedder = HashEmbedder()
 
@@ -236,3 +260,30 @@ def test_mochi_shows_the_city_first_also_after_ordering_by_price(seeded, monkeyp
     reply = RappiAgent(HashEmbedder()).reply(seeded, "papas fritas baratas", Context(vertical="supermercado"))
 
     assert [p["entity_id"] for p in reply["products"]] == ["3", "2", "1", "4"]  # por precio, dentro de cada ciudad
+
+
+def test_mochi_fills_with_the_concept_and_keeps_the_city_first(seeded, monkeypatch):
+    """Con menos de MIN_SHOWN productos, Mochi completa con la búsqueda por el nombre del concepto y muestra 6: lo de la
+    ciudad que trae el relleno no queda fuera por lo de otra ciudad que ya estaba (rappi_agent.py: `_city_first` antes
+    de cortar)."""
+    from rappi_ia.agent import rappi_agent
+
+    def chips(entity_id, in_city):
+        return Product(f"cat-{entity_id}", "catalog_item", entity_id, f"Papas fritas {entity_id}", "supermercado",
+                       "snacks-salados", 1000, None, "Tienda", None, store_id=1, in_city=in_city)  # fmt: skip
+
+    away = [chips("1", False), chips("2", False)]  # menos de MIN_SHOWN, y de otra ciudad
+    here = [chips(str(i), True) for i in range(3, 9)]  # el relleno: 6 de la ciudad
+    real = rappi_agent.search_products
+    queries = []
+
+    def search(conn, vertical, query, concepts, *args, **kwargs):
+        queries.append(query)
+        outcome = real(conn, vertical, query, concepts, *args, **kwargs)
+        return replace(outcome, products=list(here if query == "Snacks salados" else away))
+
+    monkeypatch.setattr(rappi_agent, "search_products", search)
+    reply = RappiAgent(HashEmbedder()).reply(seeded, "papas fritas", Context(vertical="supermercado"))
+
+    assert "Snacks salados" in queries  # se completó por el nombre del concepto
+    assert [p["entity_id"] for p in reply["products"]] == ["3", "4", "5", "6", "7", "8"]
