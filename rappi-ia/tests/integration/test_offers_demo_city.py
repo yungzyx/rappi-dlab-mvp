@@ -5,11 +5,13 @@ un local de otra ciudad) va después de lo de la ciudad, sin sacarlo (tools.py: 
 producto de otra ciudad por esa ficha en la tienda más barata de la ciudad o lo saca (engine.py: `_in_demo_city`).
 """
 
+from dataclasses import replace
+
 import pytest
 
 from rappi_ia.agent.grouped_search import search_grouped
 from rappi_ia.agent.rappi_agent import Context, RappiAgent
-from rappi_ia.agent.tools import search_products
+from rappi_ia.agent.tools import Product, search_products
 from rappi_ia.demo.seed import seed_demo
 from rappi_ia.embeddings.base import HashEmbedder
 from rappi_ia.embeddings.text_store import embed_search_documents
@@ -182,7 +184,7 @@ def test_dishes_of_a_place_of_another_city_go_after_and_a_wider_pool_fills_with_
     assert only.in_city and only.store_id not in away
 
 
-def test_grouped_search_and_mochi_show_the_city_first(seeded):
+def test_grouped_search_shows_the_city_first(seeded):
     embedder = HashEmbedder()
     before = search_grouped(seeded, "prueba", embedder, None, 6)
     dishes = next(g for g in before.groups if g.vertical == "restaurantes").products
@@ -195,6 +197,42 @@ def test_grouped_search_and_mochi_show_the_city_first(seeded):
         assert flags == sorted(flags)
     assert next(g for g in grouped.groups if g.vertical == "restaurantes").products[0].store_id not in away
 
-    reply = RappiAgent(embedder).reply(seeded, "pizza o roll", Context(vertical="restaurantes"))
-    flags = [p["store_id"] in away for p in reply["products"]]
-    assert flags == sorted(flags)
+
+def test_of_two_with_the_same_name_the_search_keeps_the_one_of_the_city(seeded):
+    embedder = HashEmbedder()
+
+    def found():
+        return search_products(seeded, "restaurantes", "prueba", None, embedder, k=50).products
+
+    first, *rest = found()
+    twin = next(p for p in rest if p.store_id != first.store_id)  # otro local, más abajo
+    seeded.execute("UPDATE menu_items SET name = %s WHERE item_id = %s", (first.name, int(twin.entity_id)))
+    to_other_city(seeded, first.store_id)
+
+    after = found()
+
+    named = [p for p in after if p.name == first.name]
+    assert [p.id for p in named] == [twin.id]  # el de otra ciudad con el mismo nombre se va, no el de la ciudad
+    assert named[0].in_city
+
+
+def test_mochi_shows_the_city_first_also_after_ordering_by_price(seeded, monkeypatch):
+    """La búsqueda ya pone lo de la ciudad primero, pero "barato" reordena por precio: lo de otra ciudad, más barato,
+    no sube a los primeros."""
+    from rappi_ia.agent import rappi_agent
+
+    def priced(entity_id, price, in_city):
+        return Product(f"cat-{entity_id}", "catalog_item", entity_id, f"Papas fritas {entity_id}", "supermercado",
+                       "snacks-salados", price, None, "Tienda", None, store_id=1, in_city=in_city)  # fmt: skip
+
+    found = [priced("1", 3000, True), priced("2", 2500, True), priced("3", 2000, True), priced("4", 900, False)]
+    real = rappi_agent.search_products
+
+    def search(conn, vertical, query, concepts, *args, **kwargs):
+        outcome = real(conn, vertical, query, concepts, *args, **kwargs)
+        return replace(outcome, products=list(found))
+
+    monkeypatch.setattr(rappi_agent, "search_products", search)
+    reply = RappiAgent(HashEmbedder()).reply(seeded, "papas fritas baratas", Context(vertical="supermercado"))
+
+    assert [p["entity_id"] for p in reply["products"]] == ["3", "2", "1", "4"]  # por precio, dentro de cada ciudad

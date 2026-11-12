@@ -185,20 +185,22 @@ def _search_products(
 
     def priced(hits) -> list[Product]:
         hits = _focus([h for h in hits if _allowed(h.concept_id, concepts, strict)], result, capped)
-        return _dedupe(_within_budget(_with_prices(conn, vertical, hits, offer, adult_ok), price_max))
+        return _within_budget(_with_prices(conn, vertical, hits, offer, adult_ok), price_max)
 
-    products = priced(result.hits[:pool])
-    here = sum(p.in_city for p in products)
-    if not offer and here < k and len(products) > here and len(result.hits) > pool:
-        products = priced(result.hits)  # entre los de siempre saldría algo de otra ciudad: se mira más abajo
+    found = priced(result.hits[:pool])
+    here = len(_dedupe([p for p in found if p.in_city]))
+    if not offer and here < k and any(not p.in_city for p in found) and len(result.hits) > pool:
+        found = priced(result.hits)  # entre los de siempre saldría algo de otra ciudad: se mira más abajo
     else:
         result = replace(result, hits=result.hits[:pool])  # lo que se miró
-    if not offer:
-        products = _city_first(products)
+    # Lo de la ciudad antes de quitar los repetidos: de dos con el mismo nombre queda el de la ciudad.
+    products = _dedupe(found if offer else _city_first(found))
     dropped = 0
     if preferences:
         dropped = sum(not preferences.keeps(p) for p in products[:k])
         products = preferences.rank(preferences.keep(products)[:k])
+        if not offer:  # las favoritas primero, pero dentro de lo de la ciudad
+            products = _city_first(products)
     else:
         products = products[:k]
     cheapest = None
@@ -269,7 +271,7 @@ def search_remedies(
         and "lexico" in h.ranks
         and _treats(_title(h) if parts else h.content, words)
     ]
-    products = _city_first(_dedupe(_within_budget(_with_prices(conn, "farmacia", hits), price_max)))[:k]
+    products = _dedupe(_city_first(_within_budget(_with_prices(conn, "farmacia", hits), price_max)))[:k]
     return SearchOutcome(result, products if len(products) >= MIN_REMEDIES else [])
 
 
@@ -839,5 +841,6 @@ def _with_prices(conn: Connection, vertical: str, hits, offer: bool = False, adu
 
 def _city_first(products: list[Product]) -> list[Product]:
     """Lo de la ciudad de la demo antes que lo de otra (`Product.in_city`), cada parte en su orden: un producto que
-    solo vende otra ciudad, o un plato de un local de otra ciudad, sale solo si no hay suficientes de la ciudad."""
+    solo vende otra ciudad, o un plato de un local de otra ciudad, sale solo si no hay suficientes de la ciudad. Es
+    estable: quien reordena después (el precio y las favoritas de Mochi) lo vuelve a aplicar al final."""
     return [p for p in products if p.in_city] + [p for p in products if not p.in_city]

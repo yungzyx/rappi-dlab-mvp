@@ -47,6 +47,7 @@ from .tools import (
     Product,
     Suggestion,
     _active_ingredient,
+    _city_first,
     _forms,
     clp,
     search_products,
@@ -417,7 +418,7 @@ class RappiAgent:
                 outcome, products = retry, retry.products
             elif extra:
                 ids = {p.id for p in products}
-                products = (products + [p for p in extra if p.id not in ids])[:6]
+                products = _city_first(products + [p for p in extra if p.id not in ids])[:6]
         # "helado de lúcuma": si nada de lo mostrado dice "lúcuma", se busca entre más candidatos y, si aquí no hay,
         # en la vertical que lo tenga (salvo que se haya nombrado una).
         # Con menos de MIN_SHOWN que lo digan se buscan más entre 24 candidatos; si aquí no hay ninguno, en la
@@ -453,7 +454,8 @@ class RappiAgent:
             core = _core_query(intent.query)
             named = [p for p in products if _says(p.name, core)] if core else []
             products = _by_price(named if len(named) >= MIN_SHOWN else products, intent)
-        products = products[:6]
+        # Lo de la ciudad de la demo primero, como en la búsqueda, también después del precio y de lo que se juntó.
+        products = _city_first(products)[:6]
 
         suggestion = None
         # "Porque llevas X": X está en la respuesta (en una ocasión, no cualquiera de sus conceptos). Con síntomas no
@@ -575,7 +577,7 @@ class RappiAgent:
                     and not ADULT_NAMES.search(normalize(p.name))
                 ]
             )
-        products = [p for row in zip_longest(*rows) for p in row if p is not None][:6]
+        products = _city_first([p for row in zip_longest(*rows) for p in row if p is not None])[:6]
         intent = replace(intent, kind="buscar", concepts=BEDTIME_CONCEPTS, symptom=True)
         response = _base(intent, BEDTIME_TEXT + (BEDTIME_SHOWN if products else ""))
         response.update(
