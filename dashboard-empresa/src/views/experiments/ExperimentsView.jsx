@@ -104,7 +104,7 @@ const retentionColumns = (diferencia) => [
   },
   {
     key: 'expuestas',
-    header: 'Expuestas antes de M+1',
+    header: 'Con oferta elegible antes de M+1',
     numeric: true,
     render: (row) =>
       row.variante === DIFFERENCE ? (
@@ -199,9 +199,11 @@ function Retention({ retention }) {
           : 'No es concluyente: los grupos no llegan al mínimo del plan de piloto.'}
       </p>
       <p className="block-note" data-testid="expuestas-cohorte-nota">
-        Expuestas antes de M+1: de esta misma cohorte, con una oferta retenible entre su asignación y el inicio de M+1,
-        contada igual en los dos grupos. Es la parte expuesta del plan de piloto: el efecto entre expuestos es la
-        diferencia dividida por esa parte, si en quien no tuvo una oferta el efecto es cero.
+        Con oferta elegible antes de M+1: de esta misma cohorte, con una oferta retenible entre su asignación y el
+        inicio de M+1, contada igual en los dos grupos con lo que anota la API. En tratamiento puede no haberla visto
+        (la Home estaba tapada, {AGENT_NAME} en silencio o la había rechazado antes). Es la parte expuesta del plan de
+        piloto: el efecto entre expuestos es la diferencia dividida por esa parte, si en quien no tuvo una oferta el
+        efecto es cero.
       </p>
     </>
   )

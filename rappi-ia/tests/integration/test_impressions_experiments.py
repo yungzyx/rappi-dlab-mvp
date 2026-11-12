@@ -399,77 +399,46 @@ def test_the_treatment_group_records_the_same_offer_as_eligible_once_per_session
     assert db.execute(count).fetchone() == (2,)
 
 
-def dismissal(concept, session, origin="agent-carrito", kind=None):
-    """Un `suggestion_dismissed` de la app, como lo manda `noteDismissal`."""
-    event = {"type": "suggestion_dismissed", "session_id": session, "concept_id": concept, "surface": "home",
-             "origin": origin, "client_event_id": str(uuid.uuid4())}  # fmt: skip
-    return {**event, "payload": {"kind": kind}} if kind else event
-
-
-def test_a_refused_concept_is_not_offered_again_in_the_session_in_either_group(client, db, monkeypatch):
-    """Lo rechazado se filtra en la API, antes de decidir la retención: en tratamiento no se ofrece (204 sin la
-    cabecera) y en control no queda como `offer_withheld`. Los dos grupos se cuentan igual."""
+def test_a_refusal_in_the_app_does_not_change_what_the_api_records_in_either_group(client, db, monkeypatch):
+    """Lo rechazado en la sesión lo filtra la app (`wasRefused`), después de la respuesta: la API anota igual la oferta
+    en los dos grupos (`offer_eligible` y `offer_withheld`), así que ese filtro no sesga la cuenta."""
     monkeypatch.setattr(config, "OFFERS_CONTROL_PCT", 50)
-    cart = {"product": {"entity_type": "catalog_item", "entity_id": CHIPS}}
     control, treated = user_in(experiments.CONTROL), user_in(experiments.TREATMENT)
 
-    def ask(user_id, session, surface="home"):
-        body = {"moment": "carrito", "user_id": user_id, "session_id": session, "surface": surface, "context": cart}
+    def ask(user_id, session):
+        body = {"moment": "carrito", "user_id": user_id, "session_id": session, "surface": "home",
+                "context": {"product": {"entity_type": "catalog_item", "entity_id": CHIPS}}}  # fmt: skip
         return client.post("/agent/offer", json=body)
 
     concept = ask(treated, "s-antes").json()["reason"]["concept"]
-    for user_id in (control, treated):
-        assert post(client, user_id, dismissal(concept, "s-no")).status_code == 200
-        reply = ask(user_id, "s-no")
-        assert reply.status_code == 204 and "x-offer-withheld" not in reply.headers
-    offered = "SELECT user_id, type FROM app_events WHERE session_id = 's-no' AND type LIKE 'offer_%' ORDER BY 1"
-    assert db.execute(offered).fetchall() == []
-
-    # Lo que la persona pide en el buscador no se filtra (la app tampoco lo hace); otra sesión empieza sin rechazos.
-    assert ask(treated, "s-no", surface="agent").status_code == 200
-    assert ask(treated, "s-otra").status_code == 200
-    assert ask(control, "s-otra").headers["x-offer-withheld"] == "1"
-    # La que se fue sola no es un rechazo, ni el "Después" de la vertical por probar (la app no los cuenta).
-    for session, refusal in (
-        ("s-expirada", dismissal(concept, "s-expirada", kind=events.EXPIRED_KIND)),
-        ("s-probar", dismissal(concept, "s-probar", origin="agent-vertical_por_probar")),
-    ):
-        post(client, treated, refusal)
-        assert ask(treated, session).status_code == 200
-    # El "Después" de la recompra y de "¿Volvemos a…?" sí, como en la app.
-    for origin, kind in (("agent-recompra", None), ("agent-volver", "volver")):
-        session = f"s-{origin}"
-        post(client, control, dismissal(concept, session, origin=origin, kind=kind))
-        reply = ask(control, session)
-        assert reply.status_code == 204 and "x-offer-withheld" not in reply.headers
+    for user_id in (treated, control):
+        refused = {"type": "suggestion_dismissed", "session_id": "s-no", "concept_id": concept, "surface": "home",
+                   "origin": "agent-carrito", "client_event_id": str(uuid.uuid4())}  # fmt: skip
+        assert post(client, user_id, refused).status_code == 200
+    assert ask(treated, "s-no").status_code == 200
+    reply = ask(control, "s-no")
+    assert reply.status_code == 204 and reply.headers["x-offer-withheld"] == "1"
+    rows = db.execute(
+        """SELECT user_id, type, concept_id FROM app_events
+           WHERE session_id = 's-no' AND type IN ('offer_eligible', 'offer_withheld') ORDER BY 2"""
+    ).fetchall()
+    assert rows == [(treated, "offer_eligible", concept), (control, "offer_withheld", concept)]
 
 
-def test_the_checkout_leaves_out_the_products_of_a_refused_concept(client, db, monkeypatch):
-    """El checkout ("¿Me falta algo?") muestra uno de sus productos: sin los de un concepto rechazado; si rechazó el de
-    la oferta o no queda ninguno, no hay oferta."""
-    real = api_agent.make_offer
-
-    def two_concepts(*args, **kwargs):
-        found = real(*args, **kwargs)
-        first = {**found.products[0], "concept": "gaseosas"}
-        second = {**found.products[0], "entity_id": "91004", "concept": "cafe"}
-        return replace(found, products=[first, second], reason={**found.reason, "concept": "snacks-salados"})
-
-    monkeypatch.setattr(api_agent, "make_offer", two_concepts)
-    user_id = "proto-checkout-rechazos"
-
-    def ask(session):
-        body = {"moment": "checkout", "user_id": user_id, "session_id": session, "surface": "checkout",
-                "context": {"cart": [{"entity_type": "catalog_item", "entity_id": CHIPS}]}}  # fmt: skip
-        return client.post("/agent/offer", json=body)
-
-    assert [p["concept"] for p in ask("s-c1").json()["products"]] == ["gaseosas", "cafe"]
-    post(client, user_id, dismissal("gaseosas", "s-c1"))
-    assert [p["concept"] for p in ask("s-c1").json()["products"]] == ["cafe"]
-    post(client, user_id, dismissal("cafe", "s-c1", origin="agent-recompra"))
-    assert ask("s-c1").status_code == 204
-    post(client, user_id, dismissal("snacks-salados", "s-c2"))
-    assert ask("s-c2").status_code == 204
+def test_the_same_offer_is_recognized_within_a_day_of_the_session(client, db, monkeypatch):
+    """La cuenta de "ya anotada en la sesión" mira las últimas 24 horas (la sesión de la app expira tras 30 minutos sin
+    actividad): una anotación más vieja con la misma sesión ya no la frena."""
+    monkeypatch.setattr(config, "OFFERS_CONTROL_PCT", 50)
+    treated = user_in(experiments.TREATMENT)
+    body = {"moment": "carrito", "user_id": treated, "session_id": "s-dia", "surface": "home",
+            "context": {"product": {"entity_type": "catalog_item", "entity_id": CHIPS}}}  # fmt: skip
+    for _ in range(2):
+        assert client.post("/agent/offer", json=body).status_code == 200
+    count = "SELECT count(*) FROM app_events WHERE type = 'offer_eligible'"
+    assert db.execute(count).fetchone() == (1,)
+    db.execute("UPDATE app_events SET ts = now() - interval '25 hours' WHERE type = 'offer_eligible'")
+    assert client.post("/agent/offer", json=body).status_code == 200
+    assert db.execute(count).fetchone() == (2,)
 
 
 # ── Vistas de capa y panel ───────────────────────────────────────────────────

@@ -159,7 +159,9 @@ describe('ExperimentsView', () => {
     expect(cells(control)).toEqual(['Control (no las ve)', '1', '1100,0%', '100,0%', '0,0%'])
     expect(cells(difference)).toEqual(['Diferencia (tratamiento − control)', '—', '—', '−66,7 puntos', '+66,7 puntos'])
     // La parte expuesta es de la misma cohorte y antes de M+1: la que sirve para el efecto entre expuestos.
-    expect(screen.getByTestId('expuestas-cohorte-nota').textContent).toMatch(/^Expuestas antes de M\+1: de esta misma/)
+    expect(screen.getByTestId('expuestas-cohorte-nota').textContent).toMatch(
+      /^Con oferta elegible antes de M\+1: de esta misma.*puede no haberla visto/,
+    )
     expect(within(table).queryByText(/IC 95 %/)).toBeNull() // bajo el mínimo, sin intervalo
     expect(screen.getByTestId('retencion-nota').textContent).toBe(
       'No es concluyente: los grupos no llegan al mínimo del plan de piloto.',

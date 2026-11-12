@@ -41,8 +41,8 @@ EVENT_TYPES = {
     "order_cancelled",  # la persona canceló un pedido (`payload.reason` y `.stage`; el pedido, `cart_id` y su tienda)
     "list_view",  # lo que una lista dejó a la vista (sus elementos en `app_event_items`; `position`, la mayor vista)
     "offer_withheld",  # una oferta de Mochi retenida al grupo de control (lo que habría mostrado, en `app_event_items`)
-    # La misma oferta en el grupo de tratamiento, que sí la ve (migración 056): la anota la API con la regla de
-    # `offer_withheld`, así la parte expuesta se cuenta igual en los dos grupos. Lo que trae, en `app_event_items`.
+    # La misma oferta entregada al grupo de tratamiento (migración 056): la anota la API con la regla de
+    # `offer_withheld`, antes de que la app decida mostrarla, así la parte expuesta se cuenta igual en los dos grupos.
     "offer_eligible",
     # Mochi movió los accesos de la Home y dijo por qué (migración 052): el acceso que más subió en `vertical`, su lugar
     # nuevo en `position` y el de antes en `payload.antes`. No enseña al motor (motor/data.py: EVENT_KINDS).

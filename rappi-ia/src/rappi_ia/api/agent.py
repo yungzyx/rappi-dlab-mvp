@@ -29,13 +29,9 @@ router = APIRouter(prefix="/agent", tags=["agent"])
 
 MAX_LINES = 100  # como un pedido (OrderIn)
 WITHHELD_HEADER = "X-Offer-Withheld"  # en el 204 de una oferta retenida al grupo de control
-# Los momentos en que Mochi no vuelve a ofrecer en la sesión un concepto que la persona rechazó: el comentario del carro
-# en la Home y "¿Me falta algo?" del checkout (la app hace lo mismo con lo que aún no envió: `wasRefused`, en
-# prototipo-app/src/api/suggestions.js).
-REFUSAL_MOMENTS = frozenset({"carrito", "checkout"})
-# Los rechazos que cuentan, los mismos con que la app anota un concepto rechazado (`refuseConcept`): "Ahora no" del
-# carro y "Después" de la recompra y de "¿Volvemos a…?". No cuenta la que se fue sola (`payload.kind` "expirada").
-REFUSAL_ORIGINS = ("agent-carrito", "agent-recompra", "agent-volver")
+# Hasta dónde mira atrás la cuenta de una oferta ya anotada en la sesión (`_withheld`): la sesión de la app expira tras
+# 30 minutos sin actividad, así que con esto basta y la consulta usa el índice (user_id, ts) de `app_events`.
+OFFERED_LOOKBACK = "24 hours"
 OFFER_CAP = concurrency_cap("offer", config.API_MAX_CONCURRENT_OFFER, wait_s=config.API_CAP_WAIT_S)
 
 
@@ -186,8 +182,8 @@ def offer(
     que Mochi propone solo (HOLDOUT_MOMENTS, fuera del buscador: `surface` distinta de `agent`) no se le muestra (204
     con `X-Offer-Withheld: 1`) y queda como impresión contrafactual (`offer_withheld`, con lo que habría mostrado; una
     por sesión, origen, concepto y vertical); hace falta `user_id` y `session_id`. En `tratamiento` la misma oferta se
-    muestra y queda como `offer_eligible`, con la misma clave. Antes de eso, una oferta del carro o del checkout cuyo
-    concepto la persona rechazó en la sesión no se ofrece en ningún grupo (`_without_refused`).
+    muestra y queda como `offer_eligible`, con la misma clave: los dos grupos se cuentan con un hecho del servidor,
+    antes de lo que la app muestre o filtre.
     El momento `perfil` tiene su forma: `{ moment, text, perfil, escalera, viaje, reason, actions }` (la escalera de
     un perfil de gusto: `offers/profiles.py`; sus peldaños se buscan a la vez con las conexiones del pool que sobran,
     `spare`, como `/search`). Una ocasión o un perfil que no existe, o una ocasión que el agente no arma (guagua,
@@ -208,7 +204,6 @@ def offer(
         found = replace(found, stores=kit_stores(conn, found.products))
     if body.moment == "recompra":
         found = _with_auto_order(conn, found, body.user_id)
-    found = _without_refused(conn, body, found)  # antes de decidir la retención: igual en los dos grupos
     if found is None:
         return Response(status_code=204)
     request_id = served_request_id()
@@ -219,49 +214,16 @@ def offer(
     return {**found.to_dict(), "request_id": request_id}
 
 
-def _without_refused(conn: Connection, body, found: Offer | ProfileOffer | None) -> Offer | ProfileOffer | None:
-    """La oferta sin lo que la persona ya rechazó en esta sesión (REFUSAL_MOMENTS, con los rechazos de REFUSAL_ORIGINS
-    que ya llegaron a la base): si rechazó el concepto de la oferta, no hay oferta (un 204, como un momento sin nada);
-    en el checkout, que muestra uno de sus productos, salen además los productos de un concepto rechazado. Corre antes
-    de `_withheld`, así que lo rechazado no se ofrece en tratamiento ni queda como `offer_withheld` en control. Lo que
-    la persona pide en el buscador (`surface` `agent`) no se filtra, ni una oferta sin persona o sin sesión."""
-    if (
-        found is None
-        or body.moment not in REFUSAL_MOMENTS
-        or body.surface == experiments.ASKED_SURFACE
-        or not body.user_id
-        or not body.session_id
-    ):
-        return found
-    refused = {
-        concept
-        for (concept,) in conn.execute(
-            """SELECT DISTINCT concept_id FROM app_events
-               WHERE user_id = %s AND session_id = %s AND type = 'suggestion_dismissed' AND origin = ANY(%s)
-                 AND concept_id IS NOT NULL AND payload ->> 'kind' IS DISTINCT FROM %s""",
-            (body.user_id, body.session_id, list(REFUSAL_ORIGINS), events.EXPIRED_KIND),
-        )
-    }
-    conn.commit()
-    if not refused:
-        return found
-    if found.reason.get("concept") in refused:
-        return None
-    if body.moment == "checkout":
-        kept = [product for product in found.products if product.get("concept") not in refused]
-        return replace(found, products=kept) if kept else None
-    return found
-
-
 def _withheld(conn: Connection, body, found: Offer | ProfileOffer, request_id: str | None) -> bool:
     """Si la oferta se retiene (la persona está en el grupo de control): entonces queda registrada como `offer_withheld`
     en su sesión, con lo que habría mostrado en `app_event_items` (concepto y vertical incluidos), y la respuesta es un
     204 como el de un momento sin oferta. En tratamiento la misma oferta queda, igual, como `offer_eligible` y se
-    muestra: la parte expuesta de los dos grupos se cuenta con el mismo hecho del servidor, no con lo que la app alcanzó
-    a mostrar. Un plan o un perfil nunca se retienen ni se anotan, ni lo que la persona pide en el buscador (`surface`
-    `agent`), ni una oferta sin persona o sin sesión, ni nada con el experimento apagado. La misma oferta (origen,
-    concepto y vertical, la clave con que la app cuenta una mostrada) se anota una vez por sesión: la Home la vuelve a
-    pedir cada vez que queda arriba, y en tratamiento se cuenta una sola mostrada."""
+    muestra: los dos grupos se cuentan con el mismo hecho del servidor, que no depende de lo que la app muestre o filtre
+    (lo rechazado en la sesión, una Home tapada). Un plan o un perfil nunca se retienen ni se anotan, ni lo que la
+    persona pide en el buscador (`surface` `agent`), ni una oferta sin persona o sin sesión, ni nada con el experimento
+    apagado. La misma oferta (origen, concepto y vertical, la clave con que la app cuenta una mostrada) se anota una vez
+    por sesión (mirando OFFERED_LOOKBACK atrás): la Home la vuelve a pedir cada vez que queda arriba, y en tratamiento
+    se cuenta una sola mostrada."""
     if (
         body.moment not in HOLDOUT_MOMENTS
         or body.surface == experiments.ASKED_SURFACE
@@ -283,11 +245,11 @@ def _withheld(conn: Connection, body, found: Offer | ProfileOffer, request_id: s
     origin = f"agent-{body.moment}"
     seen = conn.execute(  # un concepto aún sin sembrar queda nulo en el evento (`events.record`): se compara igual
         """SELECT 1 FROM app_events
-           WHERE user_id = %s AND session_id = %s AND type = %s AND origin = %s
+           WHERE user_id = %s AND ts > now() - %s::interval AND session_id = %s AND type = %s AND origin = %s
              AND concept_id IS NOT DISTINCT FROM (SELECT concept_id FROM concepts WHERE concept_id = %s)
              AND vertical IS NOT DISTINCT FROM %s
            LIMIT 1""",
-        (body.user_id, body.session_id, kind, origin, concept, found.vertical),
+        (body.user_id, OFFERED_LOOKBACK, body.session_id, kind, origin, concept, found.vertical),
     ).fetchone()
     if not seen:
         offered = events.Event(

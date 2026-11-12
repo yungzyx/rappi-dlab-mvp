@@ -2,8 +2,9 @@
 -- dos grupos, con un hecho del servidor:
 -- - `offer_eligible`: una oferta retenible de Mochi que la API entregó a alguien del grupo de tratamiento. La anota
 --   POST /agent/offer con la misma regla que `offer_withheld` en control (los momentos que Mochi propone solo, fuera del
---   buscador, una vez por sesión, origen, concepto y vertical), y lleva lo que mostró en `app_event_items`. Antes, en
---   tratamiento solo quedaba la `suggestion_shown` de la app, que falta si la app no alcanzó a mostrarla.
+--   buscador, una vez por sesión, origen, concepto y vertical), al responder y antes de que la app decida mostrarla, y
+--   lleva lo que entregó en `app_event_items`. Antes, en tratamiento solo quedaba la `suggestion_shown` de la app, que
+--   falta si la app no la muestra (la Home tapada, una oferta ya rechazada en la sesión).
 -- - `capa.v_eventos_amplitude` lleva sus elementos (PRODUCT_ID_LIST, STORE_ID_LIST) como los de `offer_withheld`. Sale
 --   como MVP_OFFER_ELIGIBLE, sin equivalente en Rappi (regla de la migración 051). Mismas columnas en el mismo orden.
 -- Solo el CHECK, la vista y comentarios: no cambia ni borra datos.
@@ -18,7 +19,7 @@ ALTER TABLE app_events ADD CONSTRAINT app_events_type_check CHECK (type IN (
 ));
 COMMENT ON COLUMN app_events.type IS 'Qué pasó: abrir la app, buscar, preguntar al agente, ver, carro, pedido, sugerencias y servicios del agente (la mostrada lleva en payload.basis los tipos de su razón), abrir un vertical, calificar un pedido (order_rated), "Pídelo de nuevo" (reorder), lo que una lista dejó a la vista (list_view), una oferta retenida al grupo de control (offer_withheld) o la misma oferta entregada al grupo de tratamiento (offer_eligible: la anota la API con la misma regla, para contar la parte expuesta igual en los dos grupos), cancelar un pedido (order_cancelled: motivo, etapa y costo de ejemplo en payload; el pedido en cart_id y payload.store_id), Mochi explicó por qué movió los accesos de la Home (vertical_reorder_shown: el acceso en vertical, su lugar nuevo en position y el anterior en payload.antes), ocultar o volver a mostrar a Mochi (agent_visibility: payload.visible) y abrir el "¿Por qué?" de una oferta (offer_why_open: el origen de la oferta, el concepto de su razón y los tipos de su basis en payload.basis).';
 
-COMMENT ON TABLE app_event_items IS 'Los elementos de un list_view (lo que quedó a la vista, cada uno con su lugar), de un offer_withheld (lo que la oferta retenida habría mostrado) o de un offer_eligible (lo que la misma oferta mostró en tratamiento). La lista, la pantalla y la respuesta de la API van en su evento (surface, origin, request_id). Datos de personas: está en PERSON_TABLES (rappi_ia/delivery.py), se va con su evento ("Olvidar" y la purga, en cascada) y la purga de rappi-ia (purge_old_impressions) la borra a los 90 días, como el texto de las consultas.';
+COMMENT ON TABLE app_event_items IS 'Los elementos de un list_view (lo que quedó a la vista, cada uno con su lugar), de un offer_withheld (lo que la oferta retenida habría mostrado) o de un offer_eligible (lo que la misma oferta entregó en tratamiento, la haya mostrado la app o no). La lista, la pantalla y la respuesta de la API van en su evento (surface, origin, request_id). Datos de personas: está en PERSON_TABLES (rappi_ia/delivery.py), se va con su evento ("Olvidar" y la purga, en cascada) y la purga de rappi-ia (purge_old_impressions) la borra a los 90 días, como el texto de las consultas.';
 COMMENT ON COLUMN app_event_items.event_id IS 'El evento list_view, offer_withheld u offer_eligible al que pertenece.';
 
 CREATE OR REPLACE VIEW capa.v_eventos_amplitude AS
