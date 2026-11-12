@@ -1,5 +1,5 @@
 {
- "nota": "Juicio LLM (no humano) de los pares sin juicio en juicio-llm-2026-10-25.json que mostró la búsqueda el 25-10-2026, antes y después de los cambios de docs/resultados/busqueda-2026-10-25.md: un juez, a ciegas (solo la consulta, la vertical, el nombre, la categoría y la tienda; sin el juez por concepto, la posición ni qué búsqueda lo mostró), con el criterio del 25-10. Con 60 pares del juicio del 25-10 mezclados como control coincidió en 56 (κ 0,90). Sin textos del catálogo: solo ids. El 05-11-2026 se sumaron 43 pares, con el mismo juez y criterio (juicio LLM, no humano): los 5 que mostraba la búsqueda sin juicio y 38 que mostraba Mochi en las necesidades (`rappi-ia eval-mochi`), con 40 pares ya juzgados mezclados como control: coincidió en 37 (κ 0,85). Ver docs/resultados/mochi-2026-11-05.md. El 11-11-2026 se sumaron 98 pares, juicio de Claude (no humano), con el mismo criterio y a ciegas (un juez nuevo que solo vio la consulta, la vertical, el nombre, la categoría y la tienda, sin la posición ni qué búsqueda lo mostró, y sin juzgar la ciudad): los que mostraban sin juicio la búsqueda (92) y Mochi en las necesidades (6 más) al poner primero lo de la ciudad de la demo, con 45 pares ya juzgados mezclados como control: coincidió en 39 (κ 0,71 en \"sirve\"; las 6 diferencias son de un nivel: 5 entre \"sirve\" y \"a medias\", 1 entre \"a medias\" y \"no sirve\"). Ver la fila del 11-11-2026 sobre la ciudad en la búsqueda, en docs/decisiones.md.",
+ "nota": "Juicio LLM (no humano) de los pares sin juicio en juicio-llm-2026-10-25.json que mostró la búsqueda el 25-10-2026, antes y después de los cambios de docs/resultados/busqueda-2026-10-25.md: un juez, a ciegas (solo la consulta, la vertical, el nombre, la categoría y la tienda; sin el juez por concepto, la posición ni qué búsqueda lo mostró), con el criterio del 25-10. Con 60 pares del juicio del 25-10 mezclados como control coincidió en 56 (κ 0,90). Sin textos del catálogo: solo ids. El 05-11-2026 se sumaron 43 pares, con el mismo juez y criterio (juicio LLM, no humano): los 5 que mostraba la búsqueda sin juicio y 38 que mostraba Mochi en las necesidades (`rappi-ia eval-mochi`), con 40 pares ya juzgados mezclados como control: coincidió en 37 (κ 0,85). Ver docs/resultados/mochi-2026-11-05.md. El 11-11-2026 se sumaron 98 pares, juicio de Claude (no humano), con el mismo criterio y a ciegas (un juez nuevo que solo vio la consulta, la vertical, el nombre, la categoría y la tienda, sin la posición ni qué búsqueda lo mostró, y sin juzgar la ciudad): los que mostraban sin juicio la búsqueda (92) y Mochi en las necesidades (6 más) al poner primero lo de la ciudad de la demo, con 45 pares ya juzgados mezclados como control: coincidió en 39 (κ 0,71 en \"sirve\"; las 6 diferencias son de un nivel: 5 entre \"sirve\" y \"a medias\", 1 entre \"a medias\" y \"no sirve\"). Después, con el mismo juez nuevo y criterio, 8 pares más (7 de la búsqueda y 1 de Mochi) que salieron al quedarse con la versión de la ciudad de dos productos con el mismo nombre, con 16 de control: coincidió en los 16. Ver la fila del 11-11-2026 sobre la ciudad en la búsqueda, en docs/decisiones.md.",
  "pares": [
   {
    "id": "P001e2a6815",
@@ -223,6 +223,14 @@
    "consulta": "algo para el carrete",
    "entity_type": "catalog_item",
    "entity_id": "1549442",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P079c87a911",
+   "vertical": "restaurantes",
+   "consulta": "gelato de pistacho",
+   "entity_type": "menu_item",
+   "entity_id": "366015",
    "juicio": "sirve"
   },
   {
@@ -1682,6 +1690,14 @@
    "juicio": "sirve"
   },
   {
+   "id": "P39b3190f9b",
+   "vertical": "mall",
+   "consulta": "regalo para mi polola",
+   "entity_type": "catalog_item",
+   "entity_id": "1051598",
+   "juicio": "sirve"
+  },
+  {
    "id": "P39d921fbb4",
    "vertical": "licores",
    "consulta": "algo para el carrete",
@@ -2946,6 +2962,14 @@
    "juicio": "sirve"
   },
   {
+   "id": "P6371851b74",
+   "vertical": "restaurantes",
+   "consulta": "pasta a la bolognesa",
+   "entity_type": "menu_item",
+   "entity_id": "784075",
+   "juicio": "a medias"
+  },
+  {
    "id": "P648e35fd2e",
    "vertical": "supermercado",
    "consulta": "queso gouda laminado",
@@ -4082,6 +4106,14 @@
    "juicio": "a medias"
   },
   {
+   "id": "P8a31bd7905",
+   "vertical": "conveniencia",
+   "consulta": "papas fritas",
+   "entity_type": "catalog_item",
+   "entity_id": "196687",
+   "juicio": "sirve"
+  },
+  {
    "id": "P8a36dc1272",
    "vertical": "mall",
    "consulta": "audífonos bluetooth",
@@ -4738,6 +4770,14 @@
    "juicio": "sirve"
   },
   {
+   "id": "Pa02f0eaaf0",
+   "vertical": "restaurantes",
+   "consulta": "tiramisu",
+   "entity_type": "menu_item",
+   "entity_id": "2325327",
+   "juicio": "sirve"
+  },
+  {
    "id": "Pa0daa5a082",
    "vertical": "chocolateria",
    "consulta": "algo dulce para un cumpleaños",
@@ -5178,6 +5218,14 @@
    "juicio": "a medias"
   },
   {
+   "id": "Pae71c0eed0",
+   "vertical": "licores",
+   "consulta": "energetica",
+   "entity_type": "catalog_item",
+   "entity_id": "1533654",
+   "juicio": "sirve"
+  },
+  {
    "id": "Paecbaddef5",
    "vertical": "chocolateria",
    "consulta": "chocolate blanco",
@@ -5311,6 +5359,14 @@
    "consulta": "vino tinto",
    "entity_type": "catalog_item",
    "entity_id": "251230",
+   "juicio": "sirve"
+  },
+  {
+   "id": "Pb33328a598",
+   "vertical": "restaurantes",
+   "consulta": "pizza pepperoni",
+   "entity_type": "menu_item",
+   "entity_id": "1059215",
    "juicio": "sirve"
   },
   {
@@ -5672,6 +5728,14 @@
    "entity_type": "menu_item",
    "entity_id": "2099464411",
    "juicio": "a medias"
+  },
+  {
+   "id": "Pbe439f51ec",
+   "vertical": "conveniencia",
+   "consulta": "energetica monster",
+   "entity_type": "catalog_item",
+   "entity_id": "1533654",
+   "juicio": "sirve"
   },
   {
    "id": "Pbe535954ba",
