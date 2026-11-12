@@ -38,7 +38,7 @@ const RESTAURANT = {
   cartId: 'c-prueba',
   items: [PIZZA],
   total: 12_000,
-  address: 'Los Aromos 123',
+  address: 'Av. La Plaza 630',
 }
 const PASTA = {
   name: 'Tallarines (prueba)',

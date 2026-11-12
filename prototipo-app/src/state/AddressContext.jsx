@@ -5,7 +5,7 @@ const STORAGE_KEY = 'rappi-proto-address'
 
 // Dos direcciones de ejemplo, inventadas, para poder cambiar de dirección.
 const ADDRESSES = [
-  { id: 'home', label: 'Casa', line: 'Los Aromos 123' },
+  { id: 'home', label: 'Casa', line: 'Av. La Plaza 630' },
   { id: 'work', label: 'Trabajo', line: 'Av. Apoquindo 3000' },
 ]
 
