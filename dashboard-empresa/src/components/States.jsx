@@ -1,13 +1,22 @@
 import { Icon } from './Icon.jsx'
 
-/** Estado vacío: una caja; con `inline`, una línea sin caja (lo que falta no ocupa una tarjeta). */
+/**
+ * Estado vacío: una caja; con `inline`, una línea sin caja (lo que falta no ocupa una tarjeta). En la línea, el título
+ * y el texto se separan con un punto si el título no termina en uno (o en ":", "?" o "!").
+ */
 export function EmptyState({ title, inline, children }) {
   if (inline) {
+    const separator = /[.:?!]$/.test(String(title).trim()) ? ' ' : '. '
     return (
       <div className="state state--inline">
         <p>
           <strong>{title}</strong>
-          {children && <> {children}</>}
+          {children && (
+            <>
+              {separator}
+              {children}
+            </>
+          )}
         </p>
       </div>
     )
