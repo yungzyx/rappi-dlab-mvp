@@ -4,6 +4,7 @@ Todo producto que el agente muestra pasa por aquí: sale de la base, con su prec
 """
 
 import hashlib
+import math
 import re
 import unicodedata
 from dataclasses import dataclass, field
@@ -12,7 +13,7 @@ from psycopg import Connection
 from rappi_scraper.storage.search import MIN_PRICE
 
 from .. import config
-from ..concepts.taxonomy import load_taxonomy
+from ..concepts.taxonomy import complement_queries, load_taxonomy
 from ..embeddings.base import TextEmbedder
 from ..motor.combos import SERVICES
 from ..motor.predict import step_signal, target_step
@@ -28,7 +29,18 @@ from ..offers.guards import (
     unofferable_subverticals,
 )
 from ..offers.preferences import active as active_preferences
-from ..retrieval.hybrid import UNNAMED_TAU, Filters, RetrievalResult, named_occasion, occasion_search, retrieve
+from ..retrieval.hybrid import (
+    UNNAMED_TAU,
+    Filters,
+    RetrievalResult,
+    _document_frequencies,
+    _hydrate,
+    _lexemes,
+    named_occasion,
+    occasion_search,
+    retrieve,
+    vertical_doc_count,
+)
 from ..retrieval.spelling import correct_query
 from ..text import FILLER_WORDS, LEAFLET_WARNINGS, normalize, tokens
 from .verticals import ranked_verticals
@@ -364,24 +376,46 @@ def suggest_complement(
         return _verticals_for(conn, candidate.concept, current_vertical)
 
     def search(candidate: _Candidate, verticals: list[str]) -> tuple[str, list[Product], str | None] | None:
-        """(vertical, productos, marca) de la primera vertical donde el candidato tiene productos."""
+        """(vertical, productos, marca) de la primera vertical donde el candidato tiene productos. Si la arista trae su
+        consulta (`complement_queries`), primero se busca con ella en todas las verticales, y solo vale lo que dice
+        alguna de sus palabras en el nombre (`_name_scores`); si nada la dice, con el nombre del concepto, como siempre.
+        Con la consulta, el producto de una marca que la persona compra se busca aparte (`_brand_products`), no entre
+        los primeros de la búsqueda, y va primero solo si su nombre dice la consulta tanto como el que menos de los que
+        se ofrecerían sin marca: el "Tucapel Arroz Blanco" para el atún sí; su kétchup para los fideos, no."""
         concept = taxonomy.concepts[candidate.concept]
-        for vertical in verticals:
-            if not offerable_vertical(vertical):
-                continue
-            brand = None
-            if prefer_brands:
-                pool = search_products(
-                    conn, vertical, concept.name, [concept.id], embedder, k=BRAND_CANDIDATES, offer=True
-                )
-                products, brand = _brand_first(
-                    conn, [p for p in pool.products if p.concept == concept.id], prefer_brands
-                )
-            if brand is None:
-                outcome = search_products(conn, vertical, concept.name, [concept.id], embedder, k=4, offer=True)
-                products = [p for p in outcome.products if p.concept == concept.id]
-            if products := _dedupe(products):
-                return vertical, products[:3], brand
+        query = complement_queries().get((candidate.source, candidate.concept))
+        passes = [(query, True), (concept.name, False)] if query else [(concept.name, False)]
+        for text, named in passes:
+            for vertical in verticals:
+                if not offerable_vertical(vertical):
+                    continue
+                brand = None
+                if named:
+                    outcome = search_products(
+                        conn, vertical, text, [concept.id], embedder, k=NAMED_CANDIDATES, offer=True
+                    )
+                    usual = _of_concept(outcome, concept.id)
+                    owned = _brand_products(conn, vertical, text, concept.id, prefer_brands) if prefer_brands else []
+                    scores = _name_scores(conn, vertical, [p.name for p in (*usual, *owned)], text)
+                    products = [p for p in usual if scores.get(p.name)]
+                    if owned and (shown := _dedupe(products)[:3]):
+                        floor = min(scores[p.name] for p in shown)
+                        owned = [p for p in owned if round(scores.get(p.name, 0) - floor, 9) >= 0]
+                        owned.sort(key=lambda p: -scores[p.name])
+                        owned, brand = _brand_first(conn, owned, prefer_brands)
+                        if brand is not None:
+                            products = [owned[0], *products]
+                else:
+                    if prefer_brands:
+                        pool = search_products(
+                            conn, vertical, text, [concept.id], embedder, k=BRAND_CANDIDATES, offer=True
+                        )
+                        products, brand = _brand_first(conn, _of_concept(pool, concept.id), prefer_brands)
+                    if brand is None:
+                        outcome = search_products(conn, vertical, text, [concept.id], embedder, k=4, offer=True)
+                        products = _of_concept(outcome, concept.id)
+                if products := _dedupe(products):
+                    return vertical, products[:3], brand
         return None
 
     def suggestion(candidate: _Candidate, result: tuple[str, list[Product], str | None], basis: list[dict]):
@@ -500,6 +534,64 @@ def _ordered_lately(conn: Connection, user_id: str, concepts: list[str]) -> bool
 
 
 BRAND_CANDIDATES = 12  # productos del concepto que se miran para encontrar una marca que la persona compra
+NAMED_CANDIDATES = 8  # con la consulta de la arista se miran más: solo quedan los que dicen alguna de sus palabras
+
+
+def _of_concept(outcome: SearchOutcome, concept: str) -> list[Product]:
+    return [p for p in outcome.products if p.concept == concept]
+
+
+def _name_scores(conn: Connection, vertical: str, names: list[str], text: str) -> dict[str, float]:
+    """Cuánto dice cada nombre la consulta de una arista: la suma del IDF en la vertical (el de la búsqueda por
+    palabras) de las palabras de `text` que dice, con su raíz y sin tildes; sin ninguna, no está. Solo el nombre: lo que
+    trae la cercanía de vectores no vale (un sahumerio en "Limpiadores multiusos" se parece a la limpieza, pero no dice
+    lavaloza ni detergente), y en una descripción larga las raíces engañan ("Palo Santo" calza "pala")."""
+    lexemes = _lexemes(conn, text)
+    if not names or not lexemes:
+        return {}
+    n = vertical_doc_count(conn, vertical)
+    dfs = _document_frequencies(conn, vertical, lexemes, n)
+    idf = {lexeme: math.log(1 + n / (1 + df)) for lexeme, df in zip(lexemes, dfs, strict=True)}
+    scores: dict[str, float] = {}
+    for name, lexeme in conn.execute(
+        """SELECT DISTINCT n, l FROM unnest(%s::text[]) AS n, unnest(%s::text[]) AS l
+           WHERE to_tsvector('spanish', es_unaccent(n)) @@ quote_literal(l)::tsquery""",
+        (list(dict.fromkeys(names)), lexemes),
+    ):
+        scores[name] = scores.get(name, 0.0) + idf[lexeme]
+    return scores
+
+
+BRAND_MATCHES = 50  # productos de sus marcas que calzan la consulta de la arista que se miran (los que más calzan)
+
+
+def _brand_products(conn: Connection, vertical: str, text: str, concept: str, brands: dict[str, int]) -> list[Product]:
+    """Los productos del concepto, de las marcas que la persona compra, que calzan alguna palabra de `text` (la consulta
+    de una arista) en la vertical, del que más calza al que menos, con su precio de oferta (`_with_prices(offer=True)`:
+    de la ciudad de la demo y sin lo que el agente no propone) y sin lo que sacan su dieta o sus alergias. No depende de
+    su lugar en la búsqueda (entre los primeros de "arroz", el "Tucapel Arroz Blanco" quedaba el 16.º); cuál vale lo
+    decide quien llama, con `_name_scores`."""
+    lexemes = _lexemes(conn, text)
+    if not lexemes:
+        return []
+    rows = conn.execute(
+        """WITH q AS (SELECT string_agg(quote_literal(l), ' | ')::tsquery AS q FROM unnest(%(lexemes)s::text[]) AS l)
+           SELECT d.entity_type, d.entity_id, ts_rank_cd(d.tsv_unaccent, q.q) AS score
+           FROM search_documents d
+           CROSS JOIN q
+           JOIN item_concepts ic USING (entity_type, entity_id)
+           JOIN item_brands b USING (entity_type, entity_id)
+           WHERE d.vertical = %(vertical)s AND ic.concept_id = %(concept)s AND b.brand_key = ANY(%(brands)s)
+             AND d.tsv_unaccent @@ q.q
+           ORDER BY score DESC, d.entity_id
+           LIMIT %(limit)s""",
+        {"lexemes": lexemes, "vertical": vertical, "concept": concept, "brands": list(brands), "limit": BRAND_MATCHES},
+    ).fetchall()
+    keys = [(kind, entity) for kind, entity, _ in rows]
+    hits = _hydrate(conn, vertical, keys, {(k, e): s for k, e, s in rows}, {}, {})
+    products = [p for p in _with_prices(conn, vertical, hits, offer=True) if p.concept == concept]
+    preferences = active_preferences()
+    return preferences.keep(products) if preferences else products
 
 
 def _brand_first(conn: Connection, products: list[Product], brands: dict[str, int]) -> tuple[list[Product], str | None]:
