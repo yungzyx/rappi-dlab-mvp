@@ -1807,7 +1807,12 @@ describe('Home del prototipo final', () => {
       expect(said(container)).toBe(LINE)
       const bubble = container.querySelector('.live-bubble')
       fireEvent.click(within(bubble).getByRole('button', { name: '¿Por qué?' }))
-      expect(within(bubble).getByText(/Ordeno estos accesos por lo que más usas/)).toBeTruthy()
+      // Dice por qué un toque no la movió (12-11: en la demo se tocó Farmacia una vez y no se movió).
+      expect(
+        within(bubble).getByText(
+          /Ordeno estos accesos por lo que más usas.*un solo toque no basta.*Farmacia y Licores/,
+        ),
+      ).toBeTruthy()
       expect(tracked('vertical_reorder_shown', 'agent-reorden').map(([, fields]) => fields)).toEqual([
         {
           vertical: 'farmacia',
