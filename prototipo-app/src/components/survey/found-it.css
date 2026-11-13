@@ -1,0 +1,97 @@
+/* La pregunta in-app: una tarjeta blanca abajo, sobre lo que flota (el carro, "Pedido en curso", Mochi), sin taparlo.
+   Neutra: los chips son los grises de la app, no los naranjos de Mochi (la p1 se lee igual con Mochi y sin él). */
+.found-it {
+  --found-it-base: 28px;
+  position: absolute;
+  left: var(--gutter);
+  right: var(--gutter);
+  bottom: max(calc(var(--found-it-base) + env(safe-area-inset-bottom, 0px)), var(--floating-bottom, 0px));
+  z-index: var(--z-survey);
+  display: grid;
+  gap: 10px;
+  padding: 12px 12px 14px 16px;
+  border-radius: 18px;
+  background: var(--surface);
+  box-shadow: var(--glass-shadow);
+  animation: found-it-in var(--duration-normal) var(--ease-out);
+}
+
+/* Con barra inferior (la Home, Turbo): sobre ella */
+.found-it.is-raised {
+  --found-it-base: 100px;
+}
+
+.found-it-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.found-it-title {
+  flex: 1;
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 1.3;
+}
+
+/* La × es chica a la vista, pero su área de toque mide 44 px */
+.found-it-close {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  margin: -8px -6px -8px 0;
+  border-radius: 50%;
+  color: var(--ink-2);
+  font-size: 22px;
+  line-height: 1;
+}
+
+.found-it-chips {
+  display: flex;
+  gap: 8px;
+}
+
+.found-it-chip {
+  flex: 1;
+  min-height: 44px;
+  padding: 0 12px;
+  border-radius: 99px;
+  background: var(--chip);
+  color: var(--ink);
+  font-size: 15px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.found-it-scale {
+  display: flex;
+  justify-content: space-between;
+  margin-top: -4px;
+  padding: 0 6px;
+  color: var(--ink-3);
+  font-size: 13px;
+}
+
+.found-it.is-thanks {
+  padding: 14px 16px;
+}
+
+.found-it-thanks {
+  font-size: 15px;
+  font-weight: 600;
+}
+
+@keyframes found-it-in {
+  from {
+    transform: translateY(16px);
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .found-it {
+    animation: none;
+  }
+}

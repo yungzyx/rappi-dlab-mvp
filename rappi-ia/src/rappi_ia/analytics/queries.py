@@ -12,7 +12,7 @@ from ..agent.verticals import MIN_ITEMS_ELSEWHERE, SHARES
 from ..catalog.hours import TZ
 from ..concepts.taxonomy import load_taxonomy
 from ..events import experiments as exp
-from ..events.store import EXPIRED_KIND
+from ..events.store import EXPIRED_KIND, SURVEY_TYPES
 from ..motor.combos import OWN_SIGNALS_ONLY, expected_fine_retention, load_combos
 from ..offers.autonomy import ORIGIN as AUTO_ORDER_ORIGIN
 from ..offers.winback import reach
@@ -822,6 +822,80 @@ def presence(conn: Connection, source: str = "synthetic") -> dict:
         {"source": source},
     )
     return row
+
+
+# La pregunta in-app de la H3 (migración 057): cada evento con su pregunta, su respuesta, su motivo, si Mochi estaba a
+# la vista (`payload.mochi`, de la app; nulo si no lo dice) y la variante de `ofertas_control` que la persona ya tenía.
+_SURVEY_EVENTS = """
+    SELECT e.user_id, e.type, e.payload ->> 'question' AS question, e.payload ->> 'answer' AS answer,
+           e.payload ->> 'trigger' AS trigger,
+           CASE WHEN jsonb_typeof(e.payload -> 'mochi') = 'boolean' THEN (e.payload ->> 'mochi')::boolean END AS mochi,
+           a.variant
+    FROM app_events e
+    LEFT JOIN experiment_assignments a ON a.user_id = e.user_id AND a.source = e.source
+         AND a.experiment_id = %(offers)s AND a.assigned_at <= e.ts
+    WHERE e.source = %(source)s AND e.type = ANY(%(types)s)"""
+_SURVEY_COUNTS = """
+    count(*) FILTER (WHERE type = 'survey_shown' AND question = 'p1') AS mostradas,
+    count(*) FILTER (WHERE type = 'survey_answer' AND question = 'p1') AS respondidas,
+    count(*) FILTER (WHERE type = 'survey_dismissed' AND question = 'p1') AS cerradas,
+    count(DISTINCT user_id) FILTER (WHERE type = 'survey_shown' AND question = 'p1') AS personas,
+    count(*) FILTER (WHERE type = 'survey_answer' AND question = 'p1' AND answer = 'si') AS si,
+    count(*) FILTER (WHERE type = 'survey_answer' AND question = 'p1' AND answer = 'en_parte') AS en_parte,
+    count(*) FILTER (WHERE type = 'survey_answer' AND question = 'p1' AND answer = 'no') AS no,
+    count(*) FILTER (WHERE type = 'survey_shown' AND question = 'p3') AS p3_mostradas,
+    count(*) FILTER (WHERE type = 'survey_answer' AND question = 'p3') AS p3_respondidas,
+    round(avg(CASE WHEN type = 'survey_answer' AND question = 'p3' AND answer ~ '^[1-5]$' THEN answer::int END), 2)
+      AS p3_promedio"""
+
+
+def survey(conn: Connection, source: str = "synthetic") -> dict:
+    """La pregunta in-app de la H3 (`survey_*`, migración 057). De la p1 ("¿Encontraste lo que buscabas?"): mostradas,
+    respondidas, cerradas sin responder, personas a las que se mostró, `respuesta_pct` (respondidas / mostradas) y el
+    reparto de Sí / En parte / No (sus `*_pct`, sobre las respondidas). De la p3 ("¿Confías en las sugerencias de
+    Mochi?", de 1 a 5): mostradas, respondidas y su promedio. Todo junto (`total`), por lo que la hizo aparecer
+    (`por_motivo`), según Mochi estuviera a la vista (`por_mochi`: la persona lo ocultó o estaba en "Rappi hoy"; lo
+    elige la persona o quien presenta, así que describe, no mide un efecto) y por la variante de `ofertas_control` que
+    la persona ya tenía al verla (`por_grupo`, vacío si nadie la tiene)."""
+    _check(source)
+    params = {"source": source, "offers": exp.OFFERS_CONTROL, "types": sorted(SURVEY_TYPES)}
+
+    def pct(part: int, n: int) -> float | None:
+        return round(100 * part / n, 1) if n else None
+
+    def shaped(row: dict) -> dict:
+        shown, answered = row["mostradas"], row["respondidas"]
+        return {
+            "mostradas": shown,
+            "respondidas": answered,
+            "cerradas": row["cerradas"],
+            "personas": row["personas"],
+            "respuesta_pct": pct(answered, shown),
+            **{key: row[key] for key in ("si", "en_parte", "no")},
+            **{f"{key}_pct": pct(row[key], answered) for key in ("si", "en_parte", "no")},
+            "p3": {
+                "mostradas": row["p3_mostradas"],
+                "respondidas": row["p3_respondidas"],
+                "promedio": row["p3_promedio"],
+            },
+        }
+
+    def by(column: str, name: str) -> list[dict]:
+        rows = _rows(
+            conn,
+            f"""SELECT {column} AS clave, {_SURVEY_COUNTS} FROM ({_SURVEY_EVENTS}) s
+                WHERE {column} IS NOT NULL GROUP BY 1 ORDER BY 1""",
+            params,
+        )
+        return [{name: row.pop("clave"), **shaped(row)} for row in rows]
+
+    [total] = _rows(conn, f"SELECT {_SURVEY_COUNTS} FROM ({_SURVEY_EVENTS}) s", params)
+    return {
+        "total": shaped(total),
+        "por_motivo": by("trigger", "motivo"),
+        "por_mochi": by("mochi", "mochi"),
+        "por_grupo": by("variant", "variante"),
+    }
 
 
 CTR_POSITIONS = 10  # las primeras posiciones de cada lista que muestra el panel

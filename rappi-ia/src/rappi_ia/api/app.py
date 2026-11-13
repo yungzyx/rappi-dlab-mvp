@@ -913,6 +913,7 @@ ANALYTICS = {
     "motor": queries.motor,
     "home": queries.home,
     "presencia": queries.presence,
+    "encuesta": queries.survey,
     "ctr-posicion": queries.ctr_by_position,
     "embudo-sesion": queries.session_funnel,
     "experimentos": queries.experiment_results,
