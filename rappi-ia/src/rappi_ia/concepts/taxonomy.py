@@ -7,6 +7,8 @@ from pathlib import Path
 
 from rappi_scraper.storage.search import VERTICALS
 
+from ..text import normalize
+
 DATA_DIR = Path(__file__).resolve().parent
 
 
@@ -175,6 +177,38 @@ def complement_queries(path: Path = DATA_DIR / "complements.toml") -> dict[tuple
     """(origen, destino) → el texto con que se buscan los productos del destino en esa arista, si la arista lo trae
     (su cuarto campo). Sin él se busca con el nombre del concepto destino (agent/tools.py: suggest_complement)."""
     return {(s, t): q for s, t, _, q in _curated_complements(path) if q is not None}
+
+
+@dataclass(frozen=True)
+class PetSpecies:
+    """Una especie de mascota (`[especies]` de complements.toml): los conceptos que son solo de ella y las palabras que
+    la nombran en un nombre de producto (normalizadas: sin tildes, en minúscula)."""
+
+    id: str
+    concepts: frozenset[str]
+    words: frozenset[str]
+
+
+@cache
+def pet_species(path: Path = DATA_DIR / "complements.toml") -> dict[str, PetSpecies]:
+    """especie → `PetSpecies`. Los conceptos tienen que existir y no estar en dos especies; las palabras, ya
+    normalizadas (agent/tools.py las compara con `text.tokens` del nombre)."""
+    data = tomllib.loads(path.read_text(encoding="utf-8")).get("especies", {})
+    taxonomy = load_taxonomy()
+    out: dict[str, PetSpecies] = {}
+    for species, values in data.items():
+        concepts = frozenset(values["conceptos"])
+        words = frozenset(values["palabras"])
+        unknown = concepts - taxonomy.concepts.keys()
+        if unknown:
+            raise ValueError(f"Especie {species} con conceptos desconocidos: {sorted(unknown)}")
+        if not words or any(w != normalize(w) or " " in w for w in words):
+            raise ValueError(f"Especie {species}: las palabras van sueltas, sin tildes y en minúscula")
+        for other in out.values():
+            if concepts & other.concepts:
+                raise ValueError(f"Concepto en dos especies: {sorted(concepts & other.concepts)}")
+        out[species] = PetSpecies(species, concepts, words)
+    return out
 
 
 @cache
