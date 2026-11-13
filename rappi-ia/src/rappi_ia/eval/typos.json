@@ -319,6 +319,30 @@
    "query": "oreos",
    "quiso": "oreo",
    "motivo": "plural raro de una marca"
+  },
+  {
+   "vertical": "supermercado",
+   "query": "zalsa de tomate",
+   "quiso": "salsa de tomate",
+   "motivo": "5 letras: letra que suena igual (z por s)"
+  },
+  {
+   "vertical": "supermercado",
+   "query": "quezo rallado",
+   "quiso": "queso rallado",
+   "motivo": "5 letras: letra que suena igual (z por s)"
+  },
+  {
+   "vertical": "licores",
+   "query": "pizco mistral",
+   "quiso": "pisco mistral",
+   "motivo": "5 letras: letra que suena igual (z por s)"
+  },
+  {
+   "vertical": "conveniencia",
+   "query": "bodka",
+   "quiso": "vodka",
+   "motivo": "5 letras: letra que suena igual (b por v), sin otra palabra que la acompañe"
   }
  ]
 }
