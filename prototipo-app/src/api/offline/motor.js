@@ -174,7 +174,8 @@ export function fineExpectation(combos, fine) {
 /**
  * El paso que más retención esperada suma (next_fine_step): `candidates` en el orden de preferencia de la persona,
  * que desempata; una vertical del catálogo que suma algo va antes que cualquier servicio; Farmacia y Licores nunca.
- * `{ vertical, current, target, gain, usedAssumption }` o null.
+ * `{ vertical, current, target, gain, usedAssumption }` o null. El margen de la tabla (`[margen_tabla]` de combos.toml)
+ * no se replica: solo frena a lo aprendido de la población, que aquí no está, así que el paso ya es el de la tabla.
  */
 export function nextFineStep(combos, fine, candidates) {
   if (fine === NONE_COMBO) return null
