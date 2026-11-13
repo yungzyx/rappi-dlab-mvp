@@ -24,6 +24,11 @@ avenas" no calza). Palabra por palabra:
   DOCS_RATIO veces más (`choose`): "nutela" → "nutella", "cuchuflis" → "cuchuflies". No por una de la misma raíz
   ("cuerpos" → "cuerpo"), que la búsqueda léxica ya junta, ni por una stopword ("estadio" → "estado"), que la
   búsqueda bota y dejaría calzar todo lo demás;
+- una palabra de SHORT_LENGTH letras (una menos que MIN_LENGTH) se cambia solo si la que la reemplaza es la única a
+  una edición con mucho más uso (en KNOWN_DOCS documentos o más y SHORT_RATIO veces los de la escrita) y esa edición
+  es una letra que suena igual o casi (`SOUND_ALIKE`): "suchi" → "sushi", "arros" → "arroz", "bodka" → "vodka". Una
+  vocal cambiada ya es otra palabra ("tonto" no es "tinto"), y bajo SHORT_LENGTH letras solo se deja una letra doble
+  en una ("sofa" no es "soft");
 - una palabra que el catálogo entero tiene en KNOWN_DOCS documentos o más es una palabra real, no un error, aunque la
   vertical no la tenga: "crema para las manos" en Licores no pasa a "crema para las anos", ni "comida china" a
   "comida chica". Tampoco un número ("3000" no es "30").
@@ -47,6 +52,10 @@ from ..text import CHEAP_WORDS, FILLER_WORDS, MUTTER_WORDS, PRICEY_WORDS, REQUES
 from .hybrid import detect_concepts, named_occasion
 
 MIN_LENGTH = 6  # bajo esto, una edición ya suele ser otra palabra ("sofa" → "soft", "tonto" → "tinto")
+SHORT_LENGTH = 5  # con estas letras, solo una letra que suena igual, a una única candidata ("suchi" → "sushi")
+SHORT_RATIO = 100  # la candidata de una palabra de SHORT_LENGTH letras está en 100 veces más documentos que ella
+# Letras que se confunden al escribir de oído: c, s y z ("arros"); ch y sh ("suchi"); b y v; g y j; c, k y q; i e y.
+SOUND_ALIKE = (frozenset("csz"), frozenset("bv"), frozenset("gj"), frozenset("ckq"), frozenset("iy"))
 LONG_WORD = 9  # desde aquí se aceptan dos ediciones ("cancelar" → "canela" no)
 KNOWN_DOCS = 20  # en tantos documentos del catálogo (todas las verticales), la palabra es real: no se corrige
 DOCS_RATIO = 10  # la palabra corregida está en al menos 10 veces más documentos de la vertical que la escrita
@@ -58,6 +67,7 @@ SHORT_QUERY = 4
 PRICE_WORDS = frozenset(CHEAP_WORDS | PRICEY_WORDS)
 _REPEAT = re.compile(r"(.)\1{2,}")
 _WORD = re.compile(r"[^\W_]+")
+_LETTERS = "abcdefghijklmnopqrstuvwxyz"  # las del vocabulario: sin tildes ni ñ
 
 
 @dataclass(frozen=True)
@@ -115,6 +125,27 @@ def repeat_forms(word: str) -> list[str]:
     return [_REPEAT.sub(r"\1", word), _REPEAT.sub(r"\1\1", word)]
 
 
+def sound_alike(word: str, candidate: str) -> bool:
+    """`candidate` es `word` con una sola letra cambiada por otra que suena igual o casi (`SOUND_ALIKE`)."""
+    if len(word) != len(candidate):
+        return False
+    changed = [(a, b) for a, b in zip(word, candidate, strict=True) if a != b]
+    return len(changed) == 1 and any(set(changed[0]) <= group for group in SOUND_ALIKE)
+
+
+def one_edit_forms(word: str) -> list[str]:
+    """Todas las palabras a una edición de `word` (sin una letra, con una cambiada o de más, o dos dadas vuelta): en
+    una palabra corta los trigramas casi no ven una letra cambiada ("suchi" y "sushi" comparten 2 de 7) y se buscan
+    todas tal cual, para saber si la candidata es la única."""
+    splits = [(word[:i], word[i:]) for i in range(len(word) + 1)]
+    forms = {a + b[1:] for a, b in splits if b}
+    forms |= {a + c + b[1:] for a, b in splits if b for c in _LETTERS}
+    forms |= {a + c + b for a, b in splits for c in _LETTERS}
+    forms |= set(transpositions(word))
+    forms.discard(word)
+    return sorted(forms)
+
+
 def choose(
     word: str, own_docs: int, candidates: list[tuple[str, int]], excluded: frozenset[str] = frozenset()
 ) -> str | None:
@@ -127,8 +158,10 @@ def choose(
 
 
 def _ranked(word: str, own_docs: int, candidates: list[tuple[str, int]]) -> list[str]:
-    if len(word) < MIN_LENGTH or word.isdigit():
+    if len(word) < SHORT_LENGTH or word.isdigit():
         return []
+    if len(word) < MIN_LENGTH:
+        return _ranked_short(word, own_docs, candidates)
     limit = 2 if len(word) >= LONG_WORD else 1
     floor = max(1, DOCS_RATIO * own_docs)
     scored = []
@@ -139,6 +172,13 @@ def _ranked(word: str, own_docs: int, candidates: list[tuple[str, int]]) -> list
         if distance <= limit:  # a igual documentos, la más larga: lo más común es que falte una letra
             scored.append((distance, -docs, -len(candidate), candidate))
     return [candidate for *_, candidate in sorted(scored)]
+
+
+def _ranked_short(word: str, own_docs: int, candidates: list[tuple[str, int]]) -> list[str]:
+    """Una palabra de SHORT_LENGTH letras: la única candidata a una edición con mucho más uso, si suena igual."""
+    floor = max(KNOWN_DOCS, SHORT_RATIO * own_docs)
+    near = {candidate for candidate, docs in candidates if docs >= floor and edit_distance(word, candidate) == 1}
+    return [*near] if len(near) == 1 and sound_alike(word, *near) else []
 
 
 def correct_query(conn: Connection, query: str, vertical: str | None) -> str | None:
@@ -183,18 +223,21 @@ def _fix(conn: Connection, vertical: str | None, word: str) -> str | None:
     if repeated:
         return _display(conn, vertical, max(repeated)[1])
     singles = _docs(conn, vertical, single_forms(word))
-    if len(word) < MIN_LENGTH:  # una palabra corta solo pierde una letra doble
+    if len(word) < MIN_LENGTH:  # una palabra corta pierde una letra doble o, con SHORT_LENGTH letras, cambia una
         fit = [(docs, form) for form, docs in singles.items() if docs >= floor]
-        return _display(conn, vertical, max(fit)[1]) if fit else None
-    rows = conn.execute(
-        """SELECT word, sum(docs)::int FROM search_vocabulary
-           WHERE word %% %(word)s AND (%(vertical)s::text IS NULL OR vertical = %(vertical)s)
-           GROUP BY word
-           ORDER BY similarity(word, %(word)s) DESC, word
-           LIMIT %(n)s""",
-        {"word": word, "vertical": vertical, "n": CANDIDATES},
-    ).fetchall()
-    rows += [*_docs(conn, vertical, transpositions(word)).items(), *singles.items()]
+        if fit or len(word) < SHORT_LENGTH:
+            return _display(conn, vertical, max(fit)[1]) if fit else None
+        rows = list(_docs(conn, vertical, one_edit_forms(word)).items())  # todas: la candidata tiene que ser la única
+    else:
+        rows = conn.execute(
+            """SELECT word, sum(docs)::int FROM search_vocabulary
+               WHERE word %% %(word)s AND (%(vertical)s::text IS NULL OR vertical = %(vertical)s)
+               GROUP BY word
+               ORDER BY similarity(word, %(word)s) DESC, word
+               LIMIT %(n)s""",
+            {"word": word, "vertical": vertical, "n": CANDIDATES},
+        ).fetchall()
+        rows += [*_docs(conn, vertical, transpositions(word)).items(), *singles.items()]
     ranked = _ranked(word, own, rows)
     if not ranked:
         return None
