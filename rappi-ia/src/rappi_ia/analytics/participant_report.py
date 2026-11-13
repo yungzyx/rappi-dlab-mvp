@@ -511,18 +511,30 @@ def _verticals(p: Participant) -> list[str]:
     ]
 
 
+def _visibility_change(payload: dict) -> str:
+    """Qué hizo con Mochi: silenciarlo y despertarlo llevan `quiet` (`visible` sigue en true); ocultarlo, no."""
+    if "quiet" in payload:
+        return "lo silenció por hoy" if payload["quiet"] else "lo volvió a hacer hablar"
+    return "lo trajo de vuelta" if payload.get("visible") else "lo ocultó"
+
+
 def _visibility(p: Participant) -> list[str]:
     if not p.visibility:
-        return ["## Mochi a la vista", "", "Ocultó a Mochi: no (sin eventos `agent_visibility`)."]
-    hid = any(e["payload"].get("visible") is False for e in p.visibility)
+        return [
+            "## Mochi a la vista",
+            "",
+            "Ocultó a Mochi: no. Lo silenció por hoy: no (sin eventos `agent_visibility`).",
+        ]
+    hid = any(e["payload"].get("visible") is False and "quiet" not in e["payload"] for e in p.visibility)
+    silenced = sum(e["payload"].get("quiet") is True for e in p.visibility)
     return [
         "## Mochi a la vista",
         "",
-        f"Ocultó a Mochi: {'sí' if hid else 'no'}.",
+        f"Ocultó a Mochi: {'sí' if hid else 'no'}. Lo silenció por hoy: "
+        + (f"sí ({silenced} {'vez' if silenced == 1 else 'veces'})." if silenced else "no."),
         "",
         *(
-            f"- {_time(e['at'])}: {'lo trajo de vuelta' if e['payload'].get('visible') else 'lo ocultó'}"
-            f" (desde {e['origin'] or 'sin origen'})"
+            f"- {_time(e['at'])}: {_visibility_change(e['payload'])} (desde {e['origin'] or 'sin origen'})"
             for e in p.visibility
         ),
     ]

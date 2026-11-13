@@ -4,6 +4,7 @@ from datetime import date, datetime
 
 from rappi_ia.api import log_summary
 from rappi_ia.catalog.hours import TZ
+from rappi_ia.events import store as events
 
 
 def test_new_people_are_the_prototype_ones_created_that_chilean_day(db):
@@ -17,3 +18,25 @@ def test_new_people_are_the_prototype_ones_created_that_chilean_day(db):
         db.execute("INSERT INTO app_users (user_id, source, created_at) VALUES (%s, %s, %s)", row)
 
     assert log_summary.new_people(db, date(2026, 11, 3)) == 2
+
+
+def test_agent_changes_count_silences_apart_from_hides_that_chilean_day(db):
+    day = datetime(2026, 11, 3, 12, 0, tzinfo=TZ)
+
+    def change(user, payload, ts=day):
+        return events.Event(user, "s1", "agent_visibility", ts=ts, origin="menu-mochi", payload=payload)
+
+    events.record(
+        db,
+        [
+            change("proto-a", {"visible": True, "quiet": True}),
+            change("proto-a", {"visible": True, "quiet": False}),  # despertarlo no cuenta
+            change("proto-b", {"visible": True, "quiet": True}),
+            change("proto-b", {"visible": False}),
+            change("proto-c", {"visible": True}),  # traerlo de vuelta no cuenta
+            change("proto-c", {"visible": False}, ts=datetime(2026, 11, 4, 0, 1, tzinfo=TZ)),  # otro día
+        ],
+    )
+    events.record(db, [change("syn-x", {"visible": True, "quiet": True})], source="synthetic")
+
+    assert log_summary.agent_changes(db, date(2026, 11, 3)) == (2, 1)

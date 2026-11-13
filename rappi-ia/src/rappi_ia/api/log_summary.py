@@ -10,7 +10,8 @@ Las búsquedas de calentamiento de `deploy/macos/vigilante.sh` llevan un `reques
 cuentan aparte (cuántas y cuántas pasaron de SLOW_MS) y no entran a las rutas, los lentos ni los promedios; un 5xx
 suyo sí va a los errores. Las personas nuevas salen de dos lados: los `POST /session 200` del registro (cada uno, una
 persona nueva o un id viejo de la app que se reclama) y las filas de `app_users` de ese día que siguen en la base, que
-pueden ser menos porque "Borrar mis datos" borra la fila.
+pueden ser menos porque "Borrar mis datos" borra la fila. De la base también salen las veces que el prototipo
+silenció a Mochi por hoy y las que lo ocultó ese día (`agent_visibility`; `agent_changes`).
 """
 
 import re
@@ -47,6 +48,8 @@ class Summary:
     upkeep: int = 0  # búsquedas del vigilante (no cuentan en `routes`)
     upkeep_slow: int = 0
     new_sessions: int = 0  # POST /session 200
+    silenced: int | None = None  # veces que silenciaron a Mochi por hoy ese día (de la base)
+    hidden: int | None = None  # veces que lo ocultaron ese día (de la base)
 
     @property
     def requests(self) -> int:
@@ -113,6 +116,23 @@ def new_people(conn: Connection, day: date) -> int:
     ).fetchone()[0]
 
 
+def agent_changes(conn: Connection, day: date) -> tuple[int, int]:
+    """Las veces que el prototipo silenció a Mochi por hoy (`payload.quiet` true) y las que lo ocultó (`visible`
+    false, sin `quiet`) ese día (hora de Chile)."""
+    start = datetime.combine(day, datetime.min.time(), TZ)
+    return conn.execute(
+        """SELECT count(*) FILTER (WHERE payload -> 'quiet' = 'true'::jsonb),
+                  count(*) FILTER (WHERE payload -> 'visible' = 'false'::jsonb AND NOT payload ? 'quiet')
+           FROM app_events
+           WHERE source = 'prototype' AND type = 'agent_visibility' AND ts >= %s AND ts < %s""",
+        (start, start + timedelta(days=1)),
+    ).fetchone()
+
+
+def _times(value: int) -> str:
+    return f"{_number(value)} {'vez' if value == 1 else 'veces'}"
+
+
 def _number(value: int) -> str:
     return f"{value:,}".replace(",", ".")
 
@@ -125,6 +145,8 @@ def render(summary: Summary) -> str:
         f" · {summary.new_sessions} personas nuevas"
         + ("" if summary.new_people is None else f" ({summary.new_people} siguen en la base)"),
     ]
+    if summary.silenced is not None and summary.hidden is not None:
+        lines.append(f"Mochi: silenciado por hoy {_times(summary.silenced)} · ocultado {_times(summary.hidden)}")
     if summary.upkeep:
         lines.append(
             f"Mantención del vigilante (no cuenta arriba): {_number(summary.upkeep)} búsquedas"
