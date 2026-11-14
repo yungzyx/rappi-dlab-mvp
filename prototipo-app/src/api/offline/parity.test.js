@@ -4,6 +4,7 @@ import { describe, expect, test } from 'vitest'
 import { LIMITS } from './autonomy'
 import { DAILY_CROSS_CAP, INTEREST_HALF_LIFE_DAYS, INTEREST_WEIGHTS } from './index'
 import { DEFAULT_ORDER, MIN_USE_DAYS, OWN_CONCEPT_GROUPS } from './motor'
+import { PET_SPECIES } from './offers'
 
 // Las constantes que la demo sin conexión copia a mano del backend tienen que ser las de allá: se leen los .py, sin
 // Python (como guards.test.js). winback.js y motor.js no exportan todas las suyas: se leen también de su código.
@@ -15,6 +16,7 @@ const AUTONOMY_PY = backend('offers/autonomy.py')
 const WINBACK_PY = backend('offers/winback.py')
 const MODEL_PY = backend('motor/model.py')
 const HOME_PY = backend('motor/home.py')
+const COMPLEMENTS_TOML = backend('concepts/complements.toml')
 const WINBACK_JS = read('./winback.js')
 const MOTOR_JS = read('./motor.js')
 
@@ -44,6 +46,16 @@ function jsWeights(source, name) {
 }
 
 describe('la demo sin conexión tiene las constantes del backend', () => {
+  test('las especies de mascota (concepts/complements.toml: [especies])', () => {
+    const list = (text) => [...text.matchAll(/"([^"]+)"/g)].map(([, word]) => word)
+    const species = Object.fromEntries(
+      [...COMPLEMENTS_TOML.matchAll(/^\[especies\.(\w+)\]\nconceptos = \[(.*)\]\npalabras = \[(.*)\]$/gm)].map(
+        ([, id, concepts, words]) => [id, { concepts: list(concepts), words: list(words) }],
+      ),
+    )
+    expect(PET_SPECIES).toEqual(species)
+  })
+
   test('el perfil de intereses (events/store.py: WEIGHTS y HALF_LIFE_DAYS), salvo "chat" (el nombre anterior de `ask`, que la app ya no manda)', () => {
     const { chat: _chat, ...weights } = pyWeights(STORE_PY, 'WEIGHTS')
     expect(INTEREST_WEIGHTS).toEqual(weights)

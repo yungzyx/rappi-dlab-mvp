@@ -281,3 +281,16 @@ edges = [
   ["tv-video", "audio", 0.5],
   ["tv-video", "videojuegos", 0.4],
 ]
+
+# Especies de mascota (agent/tools.py: suggest_complement). Con una especie conocida (la del concepto de origen o, para
+# los accesorios, la que nombra el producto del carro), lo de otra especie no se ofrece: ni su concepto (arena de gato →
+# comida de perro) ni un accesorio que no diga una palabra de la especie en su nombre (comida de gato → "Educador
+# Sanitario Perro" de la marca que la persona compra; 13-11-2026). `conceptos`: los que son solo de esa especie;
+# `palabras`: las que la nombran en un nombre de producto, sin tildes y en minúscula (la arena y el rascador son de gato).
+[especies.gato]
+conceptos = ["alimento-gato"]
+palabras = ["gato", "gatos", "gatito", "gatitos", "felino", "felinos", "cat", "cats", "kitten", "arena", "rascador"]
+
+[especies.perro]
+conceptos = ["alimento-perro"]
+palabras = ["perro", "perros", "perrito", "perritos", "cachorro", "cachorros", "canino", "caninos", "dog", "dogs", "puppy"]

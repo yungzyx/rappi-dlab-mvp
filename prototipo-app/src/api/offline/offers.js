@@ -355,21 +355,84 @@ export function complementOf(snapshot, concept, userId) {
   return second && userId && takesSecond(userId, concept) ? second : snapshot.complements[concept]
 }
 
+// Especies de mascota (concepts/complements.toml: [especies]; agent/tools.py: origin_species y says_species), copiadas
+// a mano: parity.test.js las compara con el TOML.
+export const PET_SPECIES = {
+  gato: {
+    concepts: ['alimento-gato'],
+    words: ['gato', 'gatos', 'gatito', 'gatitos', 'felino', 'felinos', 'cat', 'cats', 'kitten', 'arena', 'rascador'],
+  },
+  perro: {
+    concepts: ['alimento-perro'],
+    words: [
+      'perro',
+      'perros',
+      'perrito',
+      'perritos',
+      'cachorro',
+      'cachorros',
+      'canino',
+      'caninos',
+      'dog',
+      'dogs',
+      'puppy',
+    ],
+  },
+}
+const PETS_GROUP = 'mascotas'
+
+/** Si el nombre de un producto nombra la especie ("gato", "gatos", "cat", "arena"…). */
+export const saysSpecies = (name, species) =>
+  normalize(name)
+    .split(' ')
+    .some((word) => PET_SPECIES[species].words.includes(word))
+
+/**
+ * La especie de mascota de lo que se lleva, si es una sola: la de los conceptos que son solo de una especie y la que
+ * nombran `names` (los nombres de lo que se lleva de mascotas). Con dos especies, o ninguna, null.
+ */
+export function originSpecies(sources, names = []) {
+  const found = new Set()
+  for (const [species, { concepts }] of Object.entries(PET_SPECIES)) {
+    if (concepts.some((c) => sources.includes(c)) || names.some((name) => saysSpecies(name, species)))
+      found.add(species)
+  }
+  return found.size === 1 ? [...found][0] : null
+}
+
+/**
+ * La oferta grabada si sirve para la especie (agent/tools.py: suggest_complement): nunca el concepto de otra especie y,
+ * de los otros conceptos de mascotas (los accesorios), solo los productos que la nombran; null si no queda nada. Las
+ * ofertas se grabaron por concepto de origen, sin el nombre de lo que se lleva: por eso se revisan aquí.
+ */
+function forSpecies(recorded, species, concepts) {
+  if (!recorded || !species) return recorded
+  const target = recorded.reason?.concept
+  const other = Object.entries(PET_SPECIES).some(([s, { concepts: own }]) => s !== species && own.includes(target))
+  if (other) return null
+  if (concepts[target]?.group !== PETS_GROUP || PET_SPECIES[species].concepts.includes(target)) return recorded
+  const products = recorded.products.filter((p) => saysSpecies(p.name, species))
+  return products.length ? { ...recorded, products } : null
+}
+
 /**
  * El complemento de lo que hay (engine.py: complement): la oferta `carrito` real grabada para el concepto de origen
- * (la de esta persona: `complementOf`), sin lo que ya lleva. En `checkout` y `proximo_pedido` cambia el texto (y en el
- * próximo pedido, el porqué).
+ * (la de esta persona: `complementOf`), sin lo que ya lleva. Con una mascota de una sola especie (`originSpecies`), si
+ * la grabada no le sirve, la otra grabada (la de siempre o la alternada) o ninguna. En `checkout` y `proximo_pedido`
+ * cambia el texto (y en el próximo pedido, el porqué).
  */
 export function complementOffer(snapshot, moment, entities, userId) {
   const { concepts, vertical_labels: labels } = snapshot.meta
   const have = new Set(entities.map((e) => entityKey(e.entity_type, e.entity_id)))
-  const sources = [
-    ...new Set(
-      entities.map((e) => snapshot.byEntity.get(entityKey(e.entity_type, e.entity_id))?.concept).filter(Boolean),
-    ),
-  ]
+  const items = entities.map((e) => snapshot.byEntity.get(entityKey(e.entity_type, e.entity_id))).filter(Boolean)
+  const sources = [...new Set(items.map((p) => p.concept).filter(Boolean))]
+  const pets = items.filter((p) => concepts[p.concept]?.group === PETS_GROUP).map((p) => p.name)
+  const species = originSpecies(sources, pets)
   for (const source of sources) {
-    const recorded = complementOf(snapshot, source, userId)
+    const mine = complementOf(snapshot, source, userId)
+    const other =
+      mine === snapshot.complements[source] ? snapshot.complementsAlt?.[source] : snapshot.complements[source]
+    const recorded = forSpecies(mine, species, concepts) ?? forSpecies(other, species, concepts)
     if (!recorded || sources.includes(recorded.reason?.concept)) continue
     const offer = guarded(
       {

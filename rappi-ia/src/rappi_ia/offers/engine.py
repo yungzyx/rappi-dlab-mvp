@@ -51,7 +51,7 @@ from rappi_scraper.storage.search import MIN_PRICE
 
 from .. import config
 from ..agent.grouped_search import SCREEN_VERTICALS, SpareConnector
-from ..agent.tools import VERTICAL_LABELS, Product, search_products, suggest_complement
+from ..agent.tools import PETS_GROUP, VERTICAL_LABELS, Product, search_products, suggest_complement
 from ..agent.verticals import contending_verticals, ranked_verticals, typical_verticals
 from ..catalog.cache import cached
 from ..catalog.deals import deals
@@ -553,7 +553,10 @@ def complement(
     if not sources:
         return None
     current = (ranked_verticals(conn, [sources[0]]) or [None])[0]  # de dónde es lo primero que lleva
-    suggestion = suggest_complement(conn, sources, current, embedder, set(sources), brands, user_id)
+    pets = [key for key in keys if key in known and _parent(known[key]) == PETS_GROUP]
+    suggestion = suggest_complement(
+        conn, sources, current, embedder, set(sources), brands, user_id, _catalog_names(conn, pets)
+    )
     if suggestion is None:
         return None
     products = [p.to_dict() for p in suggestion.products if (p.entity_type, p.entity_id) not in set(keys)]
@@ -574,6 +577,23 @@ def complement(
         reason["text"] += REASON_BRAND.format(brand=name)
         reason["basis"].append(Signal("marca", suggestion.brand, brands[suggestion.brand], "pedidos").to_dict())
     return Offer(moment, text, products, suggestion.vertical, reason, [_see_action(target, suggestion.vertical)])
+
+
+def _parent(concept_id: str) -> str | None:
+    concept = load_taxonomy().concepts.get(concept_id)
+    return concept.parent if concept else None
+
+
+def _catalog_names(conn: Connection, keys: list[tuple[str, str]]) -> list[str]:
+    """Los nombres de esos productos del catálogo (los platos no son de mascotas): la especie de lo que se lleva sale de
+    ellos ("Arena Aglutinante" es de gato; `agent.tools.origin_species`)."""
+    ids = [entity for kind, entity in keys if kind == "catalog_item"]
+    if not ids:
+        return []
+    rows = conn.execute(
+        "SELECT DISTINCT name FROM catalog_items WHERE master_product_id = ANY(%s::bigint[])", (ids,)
+    ).fetchall()
+    return [name for (name,) in rows]
 
 
 def complement_reason(moment: str, origin: Concept, target: Concept) -> dict:

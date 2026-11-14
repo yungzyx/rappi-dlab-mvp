@@ -7,13 +7,14 @@ import hashlib
 import math
 import re
 import unicodedata
+from collections.abc import Sequence
 from dataclasses import dataclass, field, replace
 
 from psycopg import Connection
 from rappi_scraper.storage.search import MIN_PRICE
 
 from .. import config
-from ..concepts.taxonomy import complement_queries, load_taxonomy
+from ..concepts.taxonomy import complement_queries, load_taxonomy, pet_species
 from ..embeddings.base import TextEmbedder
 from ..motor.combos import SERVICES
 from ..motor.predict import step_signal, target_step
@@ -320,6 +321,7 @@ def suggest_complement(
     exclude: set[str] = frozenset(),
     prefer_brands: dict[str, int] | None = None,
     user_id: str | None = None,
+    source_names: Sequence[str] = (),
 ) -> Suggestion | None:
     """Mejor complemento que el agente pueda proponer (offers/guards.py: ni alcohol, farmacia, bebé, salud ni
     sensibles), preferentemente de OTRO vertical, con productos reales.
@@ -349,11 +351,19 @@ def suggest_complement(
     Con `user_id`, antes de todo eso, si los dos primeros pesan parecido (`_takes_second`), a la mitad de las personas
     les toca primero el segundo: las gaseosas eran el primer complemento de toda la comida preparada. Lo personal le
     gana a esa alternancia: si el primero trae un producto de una marca que compra, o si completa su combinación, va
-    primero (el desempate se mide desde el primero de siempre)."""
+    primero (el desempate se mide desde el primero de siempre).
+
+    Mascotas: con una sola especie conocida (`origin_species`: la de los `source_concepts`, como la comida de gato, o la
+    que nombran los `source_names`, los nombres de lo que se lleva de mascotas, como "Arena Aglutinante"), no sale el
+    concepto de otra especie (arena de gato → comida de perro) y de los demás conceptos de mascotas solo valen los
+    productos que la nombran (`says_species`): con la comida de gato, ni el "Educador Sanitario Perro" de la marca que
+    la persona compra."""
     taxonomy = load_taxonomy()
     sources = [c for c in source_concepts if c in taxonomy.concepts and not taxonomy.concepts[c].sensitive]
     if not sources:
         return None
+    species = origin_species(sources, source_names)
+    other_species = {c for s in pet_species().values() if s.id != species for c in s.concepts} if species else set()
     edges = conn.execute(
         """SELECT from_concept, to_concept, max(weight) AS weight
            FROM concept_edges
@@ -387,6 +397,7 @@ def suggest_complement(
             and is_offerable(taxonomy.concepts[c.concept])
             and c.concept not in exclude
             and c.concept not in sources
+            and c.concept not in other_species
         ),
         key=lambda c: (-c.weight, c.concept),
     )
@@ -408,6 +419,12 @@ def suggest_complement(
         concept = taxonomy.concepts[candidate.concept]
         query = complement_queries().get((candidate.source, candidate.concept))
         passes = [(query, True), (concept.name, False)] if query else [(concept.name, False)]
+        # Un concepto de mascotas que no es solo de la especie (los accesorios): solo lo que la nombra.
+        named_species = concept.parent == PETS_GROUP and species and concept.id not in pet_species()[species].concepts
+
+        def fit(products: list[Product]) -> list[Product]:
+            return [p for p in products if says_species(p.name, species)] if named_species else products
+
         for text, named in passes:
             for vertical in verticals:
                 if not offerable_vertical(vertical):
@@ -417,8 +434,9 @@ def suggest_complement(
                     outcome = search_products(
                         conn, vertical, text, [concept.id], embedder, k=NAMED_CANDIDATES, offer=True
                     )
-                    usual = _of_concept(outcome, concept.id)
+                    usual = fit(_of_concept(outcome, concept.id))
                     owned = _brand_products(conn, vertical, text, concept.id, prefer_brands) if prefer_brands else []
+                    owned = fit(owned)
                     scores = _name_scores(conn, vertical, [p.name for p in (*usual, *owned)], text)
                     products = [p for p in usual if scores.get(p.name)]
                     if owned and (shown := _dedupe(products)[:3]):
@@ -433,10 +451,10 @@ def suggest_complement(
                         pool = search_products(
                             conn, vertical, text, [concept.id], embedder, k=BRAND_CANDIDATES, offer=True
                         )
-                        products, brand = _brand_first(conn, _of_concept(pool, concept.id), prefer_brands)
+                        products, brand = _brand_first(conn, fit(_of_concept(pool, concept.id)), prefer_brands)
                     if brand is None:
                         outcome = search_products(conn, vertical, text, [concept.id], embedder, k=4, offer=True)
-                        products = _of_concept(outcome, concept.id)
+                        products = fit(_of_concept(outcome, concept.id))
                 if products := _dedupe(products):
                     return vertical, products[:3], brand
         return None
@@ -508,6 +526,22 @@ def suggest_complement(
         if (chosen := choose(pool)) is not None:
             return chosen
     return None
+
+
+PETS_GROUP = "mascotas"  # el grupo de la taxonomía de los conceptos de mascotas
+
+
+def says_species(name: str, species: str) -> bool:
+    """Si el nombre de un producto nombra la especie (`pet_species`: "gato", "gatos", "cat", "arena"…)."""
+    return not pet_species()[species].words.isdisjoint(tokens(name))
+
+
+def origin_species(sources: Sequence[str], names: Sequence[str] = ()) -> str | None:
+    """La especie de mascota de lo que se lleva, si es una sola: la de los conceptos que son solo de una especie y la
+    que nombran `names` (los nombres de lo que se lleva de mascotas). Con dos especies, o ninguna, `None`."""
+    found = {s.id for s in pet_species().values() if s.concepts & set(sources)}
+    found |= {s for s in pet_species() for name in names if says_species(name, s)}
+    return found.pop() if len(found) == 1 else None
 
 
 def _takes_second(candidates: list[_Candidate], user_id: str) -> bool:
