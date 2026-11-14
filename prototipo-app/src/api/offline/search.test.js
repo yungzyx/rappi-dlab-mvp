@@ -108,6 +108,7 @@ describe('"X para Y" pide X (concepts/need.py: read_need)', () => {
   test('quien pide el pisco lo recibe', () => {
     expect(matchProducts(store, 'pisco con bebida')).toEqual(expect.arrayContaining([pisco, pack]))
     expect(matchProducts(store, 'pisco con bebida')).not.toContain(cola)
+    expect(matchProducts(store, 'pisco con bebida')[0]).toBe(pack) // con "con", la frase entera: el pack primero
   })
 
   test('con una muestra grabada sin las aristas, como siempre', () => {
