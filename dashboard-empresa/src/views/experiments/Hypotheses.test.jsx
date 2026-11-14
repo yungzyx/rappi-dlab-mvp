@@ -134,12 +134,17 @@ describe('Las tres hipótesis', () => {
 
   afterEach(resetApi)
 
-  test('they come first, in the order the business asked for, with adoption below and the mechanics last', async () => {
+  test('they come first, in the order the business asked for, with their value, adoption below and the mechanics last', async () => {
     serveFixturesWith(respond('synthetic', offersControl()))
     await renderWithData(<ExperimentsView source="synthetic" />)
 
     const headings = screen.getAllByRole('heading', { level: 2 }).map((heading) => heading.textContent)
-    expect(headings).toEqual(['Las tres hipótesis', 'Adopción y apagado', 'Experimentos del MVP'])
+    expect(headings).toEqual([
+      'Las tres hipótesis',
+      '¿Cuánto vale la meta?',
+      'Adopción y apagado',
+      'Experimentos del MVP',
+    ])
     const cards = screen.getAllByRole('article').map((article) => article.getAttribute('aria-labelledby'))
     expect(cards).toEqual(['hipotesis-h1', 'hipotesis-h2', 'hipotesis-h3'])
     expect(card(/Retención M\+1/).textContent).toContain('Meta: +2 puntos sobre el control')
