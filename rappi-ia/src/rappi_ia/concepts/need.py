@@ -60,34 +60,40 @@ def read_need(
 ) -> Need:
     """`words`: el texto en palabras (normalizado, como lo leen `matches` y `occasion`). Un concepto nombrado después de
     un conector es contexto si antes de ese conector se nombra lo que va con él: un concepto distinto con arista, o la
-    ocasión `occasion` con alguno de sus conceptos (`occasion_concepts`) con arista. Un concepto nombrado antes del
-    conector manda sobre la ocasión ("chocolate para el café" pide chocolate)."""
+    ocasión `occasion` con alguno de sus conceptos (`occasion_concepts`) con arista. Un concepto +18 también lo es, sin
+    arista, si antes del conector hay un concepto que no es +18 o una ocasión sin conceptos +18. Un concepto nombrado
+    antes del conector manda sobre la ocasión ("chocolate para el café" pide chocolate)."""
     connectors = [i for i, word in enumerate(words) if word in CONNECTORS]
     context: dict[str, int] = {}  # concepto del para qué → su conector
     with_occasion: list[str] = []
+    adult = {c.id for c in load_taxonomy().concepts.values() if c.age_restricted}
     for y in matches:
         for c in (c for c in connectors if c < y.position):
             heads = [h for h in matches if h.position + h.words <= c and h.target != y.target]
             if any(goes_with(h.target, y.target) for h in heads):
                 context.setdefault(y.target, c)
                 break
-            if heads or occasion is None or occasion.position + occasion.words > c:
-                continue
+            occasion_before = occasion is not None and occasion.position + occasion.words <= c
             linked = [k for k in occasion_concepts if k != y.target and goes_with(k, y.target)]
-            if linked:
+            if not heads and occasion_before and linked:
                 context.setdefault(y.target, c)
                 with_occasion += [k for k in linked if k not in with_occasion]
+                break
+            # Alcohol nombrado después del conector, tras algo sin alcohol (un concepto o una ocasión sin tragos): es el
+            # para qué aunque no haya arista ("jugo para el ron", "limón para el pisco sour"). Si lo de antes es +18, el
+            # trago es lo pedido ("ron con coca cola": la bebida es la que va después).
+            sober_occasion = occasion_before and not adult & set(occasion_concepts)  # "carrete" ya trae el trago
+            if y.target in adult and (heads or sober_occasion) and not any(h.target in adult for h in heads):
+                context.setdefault(y.target, c)
                 break
     if not context:
         return Need(tuple(matches))
     weight = {k: max(goes_with(k, y) for y in context) for k in with_occasion}
     end = min(context.values())
-    concepts = load_taxonomy().concepts
-    adult = any(concepts[c].age_restricted for c in context if c in concepts)
     return Need(
         tuple(m for m in matches if m.target not in context),
         tuple(context),
-        None if words[end] == "con" and not adult else end,  # "café con leche" se llama así: se busca entero
+        None if words[end] == "con" and not adult & set(context) else end,  # "café con leche" se llama así: entero
         occasion.target if with_occasion and occasion else None,
         tuple(sorted(with_occasion, key=lambda k: -weight[k])),
     )

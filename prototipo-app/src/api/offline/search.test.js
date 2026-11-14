@@ -111,9 +111,12 @@ describe('"X para Y" pide X (concepts/need.py: read_need)', () => {
     expect(matchProducts(store, 'pisco con bebida')[0]).toBe(pack) // con "con", la frase entera: el pack primero
   })
 
-  test('con una muestra grabada sin las aristas, como siempre', () => {
+  test('sin arista, el alcohol después de algo sin alcohol también es el para qué', () => {
     const old = { ...store, meta: { ...meta, complements: undefined } }
-    expect(matchProducts(old, 'bebida para mezclar con pisco')).toEqual(expect.arrayContaining([pisco, pack]))
+    expect(matchProducts(old, 'bebida para mezclar con pisco')).toEqual([cola])
+    expect(matchProducts(old, 'bebida para el pisco')).toEqual([cola])
+    // lo pedido es el trago: sin arista, la bebida no es para qué y todo sigue como siempre
+    expect(matchProducts(old, 'pisco con bebida')).toEqual(expect.arrayContaining([pisco, pack]))
   })
 
   // Pedir y refinar dos veces con los chips: el para qué viaja en `conversation.context`.
