@@ -8,13 +8,14 @@ La combinación fina (`fine_key`) es el conjunto de verticales del catálogo, un
 RappiTravel. Su retención esperada (`expected_fine_retention`) parte de la gruesa y reduce la parte que no vuelve por
 cada vertical extra dentro de un grupo, cada vez menos, y por cada servicio: un supuesto propio
 (`[rendimiento_decreciente]` en `combos.toml`) que lo aprendido reemplaza cuando hay suficientes personas.
-`next_fine_step` elige el paso con eso.
+`next_fine_step` elige el paso con eso; lo aprendido solo cambia el orden en que la tabla pone los pasos si gana por el
+margen de `[margen_tabla]`, otro supuesto propio.
 """
 
 import tomllib
 from collections import Counter
 from collections.abc import Iterable, Sequence
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from functools import cache
 from pathlib import Path
 
@@ -69,12 +70,17 @@ class Combos:
     source_note: str
     diminishing: Diminishing
     services: dict[str, str]  # servicio → `payload.servicio` del evento `service_opened`
+    # Supuesto propio (`[margen_tabla]`): cuánta retención esperada más tiene que sumar el paso que prefiere lo
+    # aprendido para pasar antes que el que prefiere la tabla de Rappi.
+    table_margin: float
+    table_margin_note: str
 
 
 @dataclass(frozen=True)
 class Step:
-    """El paso fino: la vertical (o el servicio) que más retención esperada suma. `used_assumption` dice si la reducción
-    del supuesto propio pesó en la retención de la combinación actual o en la del objetivo."""
+    """El paso fino: la vertical (o el servicio) que más retención esperada suma. `used_assumption` dice si pesó un
+    supuesto propio: la reducción del rendimiento decreciente en la retención de la combinación actual o en la del
+    objetivo, o el margen de la tabla al decidir el paso."""
 
     vertical: str
     current: str
@@ -138,6 +144,10 @@ def load_combos() -> Combos:
     services = dict(data["servicios"])
     if tuple(services) != SERVICES:
         raise ValueError(f"combos.toml: los servicios deben ser {', '.join(SERVICES)}")
+    margin = data["margen_tabla"]
+    table_margin = float(margin["retencion"])
+    if not 0 <= table_margin < 1:
+        raise ValueError("combos.toml: el margen de la tabla debe estar entre 0 y 1 (sin 1)")
     return Combos(
         version=data["version"],
         groups=groups,
@@ -147,6 +157,8 @@ def load_combos() -> Combos:
         source_note=data["nota"],
         diminishing=diminishing,
         services=services,
+        table_margin=table_margin,
+        table_margin_note=margin["nota"],
     )
 
 
@@ -309,6 +321,11 @@ def next_fine_step(
     cualquier servicio; Farmacia y Licores nunca son paso. `None` si la persona no tiene pedidos, si su combinación no
     tiene retención esperada o si nada suma.
 
+    Lo aprendido no da vuelta la tabla de Rappi por poco: si el paso que más suma con lo aprendido es uno que la tabla
+    sola (con el supuesto del rendimiento decreciente, sin lo aprendido) pone después de otro que también suma, solo
+    gana si suma al menos `table_margin` más que ese (`[margen_tabla]`, supuesto propio); si no, el paso es el que la
+    tabla pone primero, con `used_assumption`. Dentro de un grupo la tabla no ordena, así que ahí decide lo aprendido.
+
     Dentro del mismo grupo grueso, un objetivo sin fina aprendida suficiente parte de la retención de la combinación
     actual (con lo que se aprendió de ella) y solo le aplica la reducción del supuesto: 1 − (1 − actual)·(factor del
     objetivo / factor de la actual). Así una corrección aprendida de la actual no detiene la escalera; sin nada
@@ -321,6 +338,8 @@ def next_fine_step(
     have = set(_members(fine))
     group = _group_of(fine)
     best: dict[bool, Step] = {}  # ¿es servicio? → mejor paso
+    table: dict[bool, tuple[float, Step]] = {}  # ¿es servicio? → el paso que la tabla sola pone primero
+    by_table: dict[str, float] = {}  # vertical → retención esperada de su objetivo con la tabla sola
     for vertical in candidates:
         if vertical in have or vertical in OWN_SIGNALS_ONLY:
             continue
@@ -337,4 +356,13 @@ def next_fine_step(
         is_service = vertical in SERVICES
         if is_service not in best or step.gain > best[is_service].gain:
             best[is_service] = step
+        rappi_only = _fine_expectation(target, None, None)[0]
+        by_table[vertical] = -1.0 if rappi_only is None else rappi_only
+        if is_service not in table or by_table[vertical] > table[is_service][0]:
+            table[is_service] = (by_table[vertical], step)
+    margin = load_combos().table_margin
+    for is_service, step in best.items():
+        first_by_table, anchor = table[is_service]
+        if first_by_table > by_table[step.vertical] and step.gain - anchor.gain < margin:
+            best[is_service] = replace(anchor, used_assumption=True)
     return best.get(False) or best.get(True)

@@ -92,7 +92,8 @@ export default function OfflineDemoPanel() {
           <h2>Mover la Home</h2>
           <p className="offline-demo-help">
             Cada toque es una visita de otro día al acceso en el prototipo (no en "Rappi hoy"): la Home lo mueve desde
-            el segundo toque.
+            el segundo toque. Tocar el acceso en la app es una visita de hoy y no lo mueve, tampoco Farmacia; con una
+            persona que ya pide en otras verticales (un perfil de gusto), las visitas quedan detrás de sus pedidos.
           </p>
           <div className="offline-demo-buttons">
             {VISITS.map(([vertical, label]) => (

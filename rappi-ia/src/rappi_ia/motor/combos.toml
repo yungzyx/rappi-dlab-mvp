@@ -93,6 +93,14 @@ reduccion_base = 0.10
 decaimiento = 0.5
 servicio = 0.05
 
+# Margen de la tabla (docs/capa-de-datos.md#la-escalera-fina). Supuesto propio, no viene de Rappi: lo aprendido de la
+# población cambia el orden en que la tabla de arriba pone los pasos solo si el paso que prefiere suma al menos este
+# margen más de retención esperada que el que prefiere la tabla. Sin él, a quien solo pide Restaurantes la escalera le
+# proponía Express antes que Turbo por una décima de punto, con la retención simulada.
+[margen_tabla]
+nota = "supuesto propio: lo aprendido de la población cambia el orden de la tabla de Rappi solo si su paso suma al menos 2 puntos más de retención esperada; si no, manda la tabla"
+retencion = 0.02
+
 # Servicios sin catálogo que también cuentan en la combinación fina: su clave y el `payload.servicio` del evento
 # `service_opened` con que la persona los usa.
 [servicios]
