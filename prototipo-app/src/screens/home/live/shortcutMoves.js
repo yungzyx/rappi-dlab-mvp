@@ -61,7 +61,7 @@ export function moveText({ vertical, to, reason }) {
 
 /** "¿Por qué?" del globo: cómo se ordenan los accesos (motor/home.py), con la señal de la API. */
 export const moveWhy = (reason) => ({
-  text: 'Ordeno estos accesos por lo que más usas: lo que pides y lo que abres en días distintos. Restaurantes y Turbo no se mueven.',
+  text: 'Ordeno estos accesos por lo que más usas: un pedido ahí o abrirlo en dos días distintos (un solo toque no basta, y un pedido pesa más que una visita). Farmacia y Licores solo suben con sus propios productos o al abrirlos. Restaurantes y Turbo no se mueven.',
   basis: reason?.basis ?? [],
 })
 
