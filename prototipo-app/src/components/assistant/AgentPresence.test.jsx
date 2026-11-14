@@ -207,6 +207,28 @@ describe('Mochi flotante', () => {
     expect(screen.queryByRole('group', { name: 'Opciones de Mochi' })).toBeNull()
   })
 
+  test('abrir el menú deja un `agent_open` por apertura; cerrarlo o arrastrarlo, no', async () => {
+    const { container } = mountTree()
+    events.track.mockClear()
+    const opens = () => events.track.mock.calls.filter(([type]) => type === 'agent_open')
+    fireEvent.click(agentButton())
+    expect(screen.getByRole('group', { name: 'Opciones de Mochi' })).toBeTruthy()
+    expect(opens()).toEqual([['agent_open', { surface: 'agent', origin: 'mascota-flotante' }]])
+    fireEvent.click(agentButton()) // lo cierra
+    expect(screen.queryByRole('group', { name: 'Opciones de Mochi' })).toBeNull()
+    expect(opens()).toHaveLength(1)
+    // Un arrastre no abre el menú ni cuenta.
+    container.querySelector('.phone').getBoundingClientRect = () => ({ left: 0, width: 400, top: 0, height: 800 })
+    const body = agentButton()
+    fireEvent.pointerDown(body, { clientX: 360, pointerId: 1 })
+    fireEvent.pointerMove(body, { clientX: 200, pointerId: 1 })
+    fireEvent.pointerUp(body, { clientX: 40, pointerId: 1 })
+    fireEvent.click(body)
+    expect(opens()).toHaveLength(1)
+    fireEvent.click(agentButton())
+    expect(opens()).toHaveLength(2)
+  })
+
   test('"Silenciar por hoy" lo deja como pestañita y tocarla lo despierta; los dos quedan medidos', async () => {
     const { container } = mountTree()
     fireEvent.click(agentButton())

@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { AGENT_NAME } from '../agent/name'
 import { API_URL, checkConnection, ensureSession } from '../api/client'
+import { userToken } from '../api/user'
 import { isAgentEnabled } from '../state/agentEnabled'
 import Mascot from './assistant/Mascot'
 import './connection-gate.css'
@@ -57,8 +58,10 @@ export default function ConnectionGate({ children }) {
  * de conexión.
  */
 function ConnectionNotice({ status, onRetry }) {
-  // Con Mochi apagado (el grupo de control, lo que dijo la última sesión de este navegador): sin la mascota ni su nombre.
-  const agent = isAgentEnabled()
+  // La mascota y su nombre, solo si se sabe que la persona tiene a Mochi: lo dijo la última sesión de este navegador.
+  // En la primera visita (sin sesión) todavía no se sabe si cae en el grupo de control ("Mochi apagado"): la espera es
+  // neutra, sin parpadeos de una mascota que después no estaría.
+  const agent = Boolean(userToken()) && isAgentEnabled()
   const withAgent = agent ? ` con ${AGENT_NAME}` : ''
   return (
     <main className="connection-gate">

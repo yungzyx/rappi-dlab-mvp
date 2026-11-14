@@ -338,11 +338,11 @@ export function ExperimentsView({ source }) {
           source={source}
           help={
             <p>
-              Usaron a {AGENT_NAME}: buscaron o preguntaron en su buscador o aceptaron una oferta suya desde la
-              asignación (tocar la mascota no deja un evento propio). Oculto: su último cambio fue ocultarlo.
-              Silenciado: lo silenciaron por hoy alguna vez; no cuenta como ocultarlo. En control las tres quedan en 0
-              por diseño: tiene a {AGENT_NAME} apagado, sin mascota que ocultar ni buscador con {AGENT_NAME}. Sin
-              grupos, las personas activas de 30 días.
+              Usaron a {AGENT_NAME}: buscaron o preguntaron en su buscador, abrieron su menú tocando la mascota o
+              aceptaron una oferta suya desde la asignación. Oculto: su último cambio fue ocultarlo. Silenciado: lo
+              silenciaron por hoy alguna vez; no cuenta como ocultarlo. En control las tres quedan en 0 por diseño:
+              tiene a {AGENT_NAME} apagado, sin mascota que ocultar ni buscador con {AGENT_NAME}. Sin grupos, las
+              personas activas de 30 días.
             </p>
           }
         />

@@ -1210,12 +1210,14 @@ FREQUENCY_DAYS = 30  # la de la frecuencia desde la asignación
 # aproximación normal vale. Con menos, "no es concluyente".
 MIN_SURVEY_ANSWERS = 100
 H2_VERTICALS = ("restaurantes", "turbo")
-# Usar a Mochi: una búsqueda o pregunta en su buscador (`ask`, o `chat` de antes, fuera de "Rappi hoy") o aceptar una
-# oferta suya (`agent-<momento>`, o los nombres históricos `mochi-<momento>` y `chat`). Tocar la mascota no deja evento
-# propio: cuenta si de ahí sale una de estas. En el grupo de control es 0 por diseño: no tiene a Mochi (ni la mascota,
-# ni su buscador, ni sus ofertas) y lo que una app vieja le pregunte queda como búsqueda (`search`), no como `ask`.
+# Usar a Mochi: una búsqueda o pregunta en su buscador (`ask`, o `chat` de antes, fuera de "Rappi hoy"), abrir su menú
+# tocando la mascota (`agent_open`, desde la migración 059; antes no dejaba evento) o aceptar una oferta suya
+# (`agent-<momento>`, o los nombres históricos `mochi-<momento>` y `chat`). En el grupo de control es 0 por diseño: no
+# tiene a Mochi (ni la mascota, ni su buscador, ni sus ofertas) y lo que una app vieja le pregunte queda como búsqueda
+# (`search`), no como `ask`.
 _USED_AGENT = """(
     (e.type IN ('ask', 'chat') AND e.payload ->> 'mode' IS DISTINCT FROM 'actual')
+    OR e.type = 'agent_open'
     OR (e.type = 'suggestion_accepted' AND (left(coalesce(e.origin, e.payload ->> 'origen'), 6) IN ('agent-', 'mochi-')
                                            OR coalesce(e.origin, e.payload ->> 'origen') = 'chat')))"""
 

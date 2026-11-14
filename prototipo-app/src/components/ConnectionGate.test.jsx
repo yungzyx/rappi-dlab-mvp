@@ -110,8 +110,23 @@ describe('ConnectionGate', () => {
     localStorage.removeItem('rappi-proto-token')
     stubApi({ '/health': fixture('health'), 'POST /session': 429 })
     renderGate()
-    expect(await screen.findByRole('heading', { name: 'Sin conexión con Mochi' })).toBeTruthy()
+    // Primera visita: sin sesión no se sabe si tiene a Mochi, así que el aviso no lo nombra.
+    expect(await screen.findByRole('heading', { name: 'Sin conexión' })).toBeTruthy()
     expect(screen.queryByText('La app')).toBeNull()
+  })
+
+  test('en la primera visita la espera es neutra (sin la mascota ni su nombre) hasta saber si tiene a Mochi', async () => {
+    vi.useFakeTimers()
+    localStorage.clear()
+    stubApi({ '/health': 'slow:1000', 'POST /session': { ...fixture('session'), agent_enabled: true } })
+    const { container } = renderGate()
+    expect(screen.getByText('Conectando…')).toBeTruthy()
+    expect(container.querySelector('.mascot, svg, img')).toBeNull()
+    expect(screen.queryByText(/Mochi/)).toBeNull()
+
+    await act(() => vi.advanceTimersByTimeAsync(1000))
+    expect(screen.getByText('La app')).toBeTruthy()
+    expect(isAgentEnabled()).toBe(true)
   })
 
   test('sin API muestra "Sin conexión con Mochi" y no la app', async () => {
