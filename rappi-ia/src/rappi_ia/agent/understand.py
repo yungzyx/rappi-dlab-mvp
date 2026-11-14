@@ -721,8 +721,9 @@ class Understander:
         """Un mensaje corto que no nombra nada nuevo (o que empieza con "con", "sin", "talla", "más"…) sigue el pedido
         anterior: "talla g" tras "pañales" busca "pañales talla g"; "y en el súper?" busca lo mismo allá. Hereda del
         turno anterior (`previous`, el `conversation` de la respuesta) lo que este mensaje no cambia: la ocasión, el
-        síntoma, el tope de precio, las personas y el orden por precio (docs/diseno/2026-10-25-mochi-conversacion-
-        design.md). La consulta junta lo pedido con sus detalles ("sin carne", "talla g"), sin el orden ni "otra"."""
+        síntoma, el tope de precio, las personas, el orden por precio y el para qué de lo pedido (sin él, "más barato"
+        tras "tónica para el gin" mostraba tónicas +18; docs/diseno/2026-10-25-mochi-conversacion-design.md). La
+        consulta junta lo pedido con sus detalles ("sin carne", "talla g"), sin el orden ni "otra"."""
         if body_words[:2] == ["mejor", "no"]:  # "mejor no, algo más barato": el "no" rechaza lo anterior
             body_words = body_words[2:]
         if not previous or occasion or symptom or len([w for w in body_words if w not in FOLLOW_UP_FILLER]) > 4:
@@ -762,6 +763,7 @@ class Understander:
             follow_up=True,
             exclude_previous=other,
             people=people or previous.get("people"),
+            context=[c for c in previous.get("context") or [] if c in self.taxonomy.concepts],
         )
 
     def _emoji_names(self, text: str) -> str:

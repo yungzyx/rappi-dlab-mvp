@@ -1001,7 +1001,8 @@ class RappiAgent:
         """El estado que la app devuelve como `previous` en el próximo mensaje (docs/diseno/2026-10-25-mochi-
         conversacion-design.md): lo pedido con sus detalles (sin el orden por precio), los conceptos nombrados (vacío
         en una ocasión sin productos nombrados), la ocasión, la vertical, el tope, las personas, el orden, si habló de
-        síntomas y lo ya mostrado (que se acumula mientras se pida "otra opción")."""
+        síntomas, lo ya mostrado (que se acumula mientras se pida "otra opción") y el para qué de lo pedido
+        (`context`: "bebida para mezclar con pisco" sigue sin nada +18 en "más barato")."""
         shown = [p.entity_id for p in products]
         if intent.exclude_previous and ctx.previous:
             shown = [*(ctx.previous.get("product_ids") or []), *shown]
@@ -1018,6 +1019,7 @@ class RappiAgent:
             "order": "barato" if intent.cheapest else "caro" if intent.priciest else None,
             "symptom": intent.symptom,
             "product_ids": list(dict.fromkeys(shown))[-MAX_SHOWN_IDS:],
+            "context": intent.context[:MAX_CONCEPTS],
         }
 
     def _occasion_said(self, intent: Intent) -> set[str]:
