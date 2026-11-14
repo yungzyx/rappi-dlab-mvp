@@ -6,10 +6,13 @@
     "ocultos": 1,
     "ocultos_pct": 10.0,
     "personas_activas": 10,
+    "silenciadas": 1,
+    "silenciaron": 1,
+    "silenciaron_pct": 10.0,
     "volvieron": 0
   },
   "guardado": {
-    "fecha": "2026-10-30",
+    "fecha": "2026-11-13",
     "origen": "make contract · recorrido corto sobre el catálogo de prueba inventado"
   },
   "source": "prototype"

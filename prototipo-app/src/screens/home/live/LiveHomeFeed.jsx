@@ -728,8 +728,23 @@ export default function LiveHomeFeed({ push, active = true }) {
   // Las demás opciones tapan la Home (el buscador, la hoja del carro): la oferta que había vuelve y espera debajo.
   const runMenu = (id, close) => {
     if (id === 'new') return suggestNew()
-    if (id === 'quiet') quietToday(today())
-    if (id === 'wake') wake()
+    // Silenciar y despertar quedan medidos como ocultar (`agent_visibility`), pero con `quiet`: no es ocultarlo.
+    if (id === 'quiet') {
+      quietToday(today())
+      events.track('agent_visibility', {
+        surface: 'home',
+        origin: 'menu-mochi',
+        payload: { visible: true, quiet: true },
+      })
+    }
+    if (id === 'wake') {
+      wake()
+      events.track('agent_visibility', {
+        surface: 'home',
+        origin: 'menu-mochi',
+        payload: { visible: true, quiet: false },
+      })
+    }
     close()
     noteEngaged()
     if (id === 'search') assistant.open()

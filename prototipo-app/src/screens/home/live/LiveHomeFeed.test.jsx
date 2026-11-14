@@ -1306,6 +1306,12 @@ describe('Home del prototipo final', () => {
       fireEvent.click(mochi())
       fireEvent.click(screen.getByRole('button', { name: 'Silenciar por hoy' }))
       expect(localStorage.getItem('rappi-proto-mochi-silencio')).toBe(today())
+      // Queda medido como el ocultar, pero sin ocultarlo: `visible` sigue en true y `quiet` dice que se calló.
+      expect(events.track).toHaveBeenCalledWith('agent_visibility', {
+        surface: 'home',
+        origin: 'menu-mochi',
+        payload: { visible: true, quiet: true },
+      })
       expect(menu()).toBeNull()
       expect(container.querySelector('.live-agent')).toBeTruthy() // sigue a la vista
       expect(status()).toBe('') // la oferta que estaba debajo no vuelve, y queda como expirada
@@ -1323,6 +1329,11 @@ describe('Home del prototipo final', () => {
       expect(options).not.toContain('Silenciar por hoy')
       fireEvent.click(screen.getByRole('button', { name: 'Volver a hablar' }))
       expect(localStorage.getItem('rappi-proto-mochi-silencio')).toBeNull()
+      expect(events.track).toHaveBeenLastCalledWith('agent_visibility', {
+        surface: 'home',
+        origin: 'menu-mochi',
+        payload: { visible: true, quiet: false },
+      })
       expect(menu()).toBeNull()
     })
 
