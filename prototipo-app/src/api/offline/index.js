@@ -106,6 +106,7 @@ import { applied, cleaned, CUISINES, describe, findStore, options, readCommand, 
 import { ask, backendVertical, detectConcepts, search } from './search'
 import { loadSnapshot } from './snapshot'
 import { addEvents, addOrder, cancelOrders, clearState, readState, updateState } from './state'
+import { startingHistory } from './personas'
 import { profileOffer, tastesReply } from './tastes'
 
 const DAY_MS = 86_400_000
@@ -482,7 +483,9 @@ function answer(snapshot, { method, path, query, body }, now) {
   // Sin conexión no hay grupo de control: Mochi está siempre (`agent_enabled`).
   if (key === 'POST /session') {
     const userId = body?.legacy_user_id || state.userId || `proto-${randomHex()}`
-    updateState((s) => ({ ...s, userId }))
+    // La primera vez, la demo arranca con la persona del perfil principal (personas.js: startingHistory).
+    const start = state.userId || body?.legacy_user_id ? null : startingHistory(snapshot, now)
+    updateState((s) => ({ ...s, userId, ...(start ?? {}) }))
     return { body: { user_id: userId, token: `offline.${userId}`, agent_enabled: true } }
   }
   if (key === 'GET /session') {

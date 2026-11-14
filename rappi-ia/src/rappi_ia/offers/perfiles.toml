@@ -2,7 +2,8 @@
 # perfil tiene una escalera de verticales que el agente ofrece de a un peldaño, con su "¿Por qué?" y con "Olvidar".
 # Agregar un perfil es escribir datos aquí, no código. offers/profiles.py los valida al cargar.
 #
-# - `principal = true`: va primero entre los perfiles de la persona (solo uno; hoy, el asiático).
+# - `principal = true`: va primero entre los perfiles de la persona (solo uno; desde el 14-11-2026, el mexicano, porque
+#   el prototipo se presenta a Rappi México; antes, el asiático).
 # - `segmentos`: ids de segments.toml que lo activan, en un nivel igual o mayor a `nivel_minimo`. Nunca sensibles.
 # - `escalera`: peldaños en orden, de lo más cercano a lo más lejano. Cada uno busca en su `vertical` los productos de
 #   sus `conceptos`; con `palabras`, solo los que tienen alguna en el nombre (se comparan sin tildes ni mayúsculas, al
@@ -11,16 +12,59 @@
 #   que la tienda puso en cocina). `texto` es lo que dice el agente al ofrecerlo.
 # - `viaje`: id de un destino de destinos.toml (el último peldaño, "Idea para RappiTravel"), o nada.
 # - `gusto` (obligatorio): lo que sigue a "Por tu gusto por…" cuando el agente ofrece la escalera y a "Veo que te
-#   gusta…" en el saludo del buscador con Mochi ("lo asiático").
+#   gusta…" en el saludo del buscador con Mochi ("lo mexicano").
+# - Los `texto` y el `gusto` los dice Mochi: en español neutro, sin chilenismos (el perfil mexicano es para un público
+#   mexicano). Los nombres de los productos son los del catálogo de rappi.cl y no se tocan.
 #
 # Las guardias de ofertas mandan (offers/guards.py): ningún peldaño nombra alcohol, farmacia, bebé, salud ni algo
 # sensible, ni las verticales Farmacia y Licores. Por eso el carrete va sin alcohol.
 
 [[perfil]]
+id = "mexicano"
+nombre = "Amante de lo mexicano"
+emoji = "🌮"
+principal = true
+segmentos = ["mexicana"]
+nivel_minimo = "medio"
+viaje = "mexico"
+gusto = "lo mexicano"
+
+[[perfil.escalera]]
+vertical = "restaurantes"
+conceptos = ["mexicana"]
+texto = "Mexicanos que aún no has probado"
+
+# Lo mexicano del catálogo (rappi.cl) no tiene un concepto propio: las tortillas son `panaderia`, el guacamole en dip
+# `golosinas`, los chips de maíz `snacks-salados`, los frijoles `conservas` y la prensa para tortillas `ferreteria`. Las
+# `palabras` eligen lo mexicano de cada uno; un concepto nuevo obligaba a reetiquetar la base (`rappi-ia concepts`).
+[[perfil.escalera]]
+vertical = "turbo"
+conceptos = ["panaderia", "golosinas", "verduras", "snacks-salados"]
+palabras = ["tortillas mexicanas", "tortillas para burritos", "guacamole", "palta hass", "panchitos"]
+texto = "Para armar tus tacos en casa, en minutos"
+
+[[perfil.escalera]]
+vertical = "conveniencia"
+conceptos = ["snacks-salados", "golosinas", "aceites-condimentos", "conservas"]
+palabras = ["tortilla chips", "panchitos", "nacho", "guacamole", "sazonador para tacos", "jalapeños"]
+texto = "Nachos y dips para el antojo"
+
+[[perfil.escalera]]
+vertical = "supermercado"
+conceptos = ["panaderia", "conservas", "salsas", "frutas"]
+palabras = ["tortillas mexicanas", "tortilla de maíz", "frijol", "pico de gallo", "tajín", "jalapeño", "palta hass"]
+texto = "Tu despensa mexicana"
+
+[[perfil.escalera]]
+vertical = "mall"
+conceptos = ["ferreteria", "cocina-menaje"]
+palabras = ["prensa para tortillas", "tortillero", "molcajete"]
+texto = "Para hacer tus propias tortillas"
+
+[[perfil]]
 id = "asiatico"
 nombre = "Amante de lo asiático"
 emoji = "🥢"
-principal = true
 segmentos = ["sushi", "asiatica", "japonesa", "china"]
 nivel_minimo = "medio"
 viaje = "japon"

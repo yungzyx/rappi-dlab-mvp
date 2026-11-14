@@ -49,3 +49,19 @@ url = "https://ich.unesco.org/en/RL/art-of-neapolitan-pizzaiuolo-00722"
 texto = "Según la tradición, la pizza margarita se creó en 1889 en Nápoles: el pizzaiolo Raffaele Esposito la habría hecho en honor a la reina Margarita de Saboya, con tomate, albahaca y mozzarella como los colores de la bandera italiana."
 fuente = "Wikipedia"
 url = "https://es.wikipedia.org/wiki/Pizza_margarita"
+
+# Verificados el 14-11-2026 (perfil "Amante de lo mexicano", la demo para Rappi México).
+[[destino]]
+id = "mexico"
+nombre = "México"
+texto = "¿Y si un día vas a México?"
+
+[[destino.hechos]]
+texto = "La cocina tradicional mexicana es Patrimonio Cultural Inmaterial de la Humanidad desde 2010, con el paradigma de Michoacán."
+fuente = "UNESCO"
+url = "https://ich.unesco.org/en/RL/traditional-mexican-cuisine-ancestral-ongoing-community-culture-the-michoacan-paradigm-00400"
+
+[[destino.hechos]]
+texto = "Los tacos al pastor vienen del shawarma de los inmigrantes libaneses llegados en la década de 1920, con cerdo en vez de cordero."
+fuente = "Wikipedia"
+url = "https://es.wikipedia.org/wiki/Taco_al_pastor"

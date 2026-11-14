@@ -28,7 +28,8 @@ const STORES_PER_VERTICAL = 3
 const AISLES_PER_STORE = 4
 const TURBO_AISLES = 14 // la tienda de la pantalla Turbo: más pasillos, es la que más se recorre
 const RESTAURANTS = 16
-const CUISINES = ['Pizzas', 'Hamburguesa', 'Experiencias Culinarias']
+// Mexicana: la persona con que arranca la demo pide ahí (el perfil principal, offers/perfiles.toml).
+const CUISINES = ['Pizzas', 'Hamburguesa', 'Experiencias Culinarias', 'Mexicana']
 const DEAL_VERTICALS = ['supermercado', 'licores', 'conveniencia', 'mall', 'chocolateria', 'turbo', 'farmacia']
 // Las ideas del buscador (SearchSections) y búsquedas comunes; cada una se graba tal cual responde la API.
 const QUERIES = [
@@ -362,7 +363,21 @@ async function tastes(snapshot) {
   const out = {}
   for (const [id, profile] of Object.entries(snapshot.meta.profiles)) {
     const concept = profile.concepts.find((c) => pool.some((p) => p.concept === c && !p.age_restricted))
-    const found = pool.filter((p) => p.concept === concept && !p.age_restricted)
+    // Un historial creíble: productos distintos, primero los de tiendas y restaurantes de la muestra (su "Ver
+    // producto" abre algo) y de lugares distintos.
+    const inSample = (p) =>
+      Boolean(p.entity_type === 'menu_item' ? snapshot.catalog.menus[p.store_id] : snapshot.catalog.stores[p.store_id])
+    const unique = [
+      ...new Map(
+        pool
+          .filter((p) => p.concept === concept && !p.age_restricted)
+          .map((p) => [`${p.entity_type}:${p.entity_id}`, p]),
+      ).values(),
+    ]
+    const ordered = [...unique.filter(inSample), ...unique.filter((p) => !inSample(p))]
+    const places = new Set()
+    const onePerPlace = ordered.filter((p) => !places.has(p.store_id) && places.add(p.store_id))
+    const found = [...onePerPlace, ...ordered.filter((p) => !onePerPlace.includes(p))]
     const seed = [0, 1, 2].map((i) => found[i % found.length]).filter(Boolean)
     if (!seed.length) {
       console.log(`  perfil ${id}: sin productos de ${profile.concepts.join(', ')} en la muestra`)

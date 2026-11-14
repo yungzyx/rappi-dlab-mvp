@@ -108,7 +108,7 @@ def test_tastes_list_the_active_profiles(client):
         **ASIAN,
         "gusto": "lo asiático",
         "nivel": "medio",
-        "principal": True,
+        "principal": False,  # el principal es el mexicano
         "por_que": WHY,
         "basis": asian["basis"],
         "conceptos": {

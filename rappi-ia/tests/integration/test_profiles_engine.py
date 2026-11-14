@@ -174,7 +174,7 @@ def test_a_sushi_lover_has_the_asian_profile_and_its_reason_counts_what_they_did
 
     [found] = active_profiles(db, user)
 
-    assert (found.profile.id, found.level, found.profile.main) == ("asiatico", "medio", True)
+    assert (found.profile.id, found.level, found.profile.main) == ("asiatico", "medio", False)  # el principal: mexicano
     assert found.reason == "Pediste 🍣 sushi 2 veces, y buscaste 🥡 comida asiática 1 vez."
     assert {"kind": "concepto", "id": "sushi", "score": 2, "source": "pedidos"} in found.basis
     assert {"kind": "concepto", "id": "asiatica", "score": 1, "source": "busquedas"} in found.basis
@@ -189,7 +189,7 @@ def test_a_sushi_lover_has_the_asian_profile_and_its_reason_counts_what_they_did
         "emoji": "🥢",
         "gusto": "lo asiático",
         "nivel": "medio",
-        "principal": True,
+        "principal": False,
         "por_que": found.reason,
         "basis": list(found.basis),
         # Lo que cuenta el "por qué", con su nombre y su emoji para "¿Por qué?" en la app (los segmentos no se repiten).
@@ -280,13 +280,15 @@ def test_the_main_profile_goes_first_then_by_score(catalog, db):
     _give_segment(db, "u1", "pizzero", "medio", score=9.0)
     _give_segment(db, "u1", "sushi", "medio", score=5.0)
     _give_segment(db, "u1", "china", "bajo", score=2.0)
+    _give_segment(db, "u1", "mexicana", "medio", score=3.0)
 
     found = active_profiles(db, "u1")
 
     assert [(p.profile.id, p.level, p.score) for p in found] == [
-        ("asiatico", "medio", 7.0),  # el nivel es el mayor de sus segmentos y el puntaje, la suma
+        ("mexicano", "medio", 3.0),  # el principal (desde el 14-11-2026), aunque sea el que menos suma
         ("cafe", "alto", 30.0),
         ("italiano", "medio", 9.0),
+        ("asiatico", "medio", 7.0),  # el nivel es el mayor de sus segmentos y el puntaje, la suma
         ("mascotas", "medio", 6.0),
     ]
     assert all(p.reason == REASON_NEUTRAL for p in found)  # sin pedidos ni búsquedas que contar

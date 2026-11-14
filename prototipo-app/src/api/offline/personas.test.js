@@ -1,6 +1,8 @@
 import { afterEach, expect, test, vi } from 'vitest'
 import { homeVerticals, targetStep } from './motor'
-import { ladderReadout, personaHistory, personas, switchPersona } from './personas'
+import { ladderReadout, personaHistory, personas, startingHistory, startingPersona, switchPersona } from './personas'
+import { route } from './index'
+import { readState } from './state'
 import { profileOffer, tastesReply } from './tastes'
 import { COMBOS, LABELS, META, product } from '../../test/offlineMeta'
 
@@ -17,11 +19,24 @@ const sushi = product(9, {
   vertical: 'restaurantes',
   entity_type: 'menu_item',
 })
+const tacos = product(10, {
+  name: 'Tacos al pastor',
+  concept: 'mexicana',
+  vertical: 'restaurantes',
+  entity_type: 'menu_item',
+})
 const snapshot = {
   meta: {
     ...META,
-    concepts: { ...META.concepts, sushi: { name: 'Sushi', emoji: '🍣', group: 'comida', offerable: true } },
-    profiles: { asiatico: { name: 'Amante de lo asiático', emoji: '🥢', main: true, concepts: ['sushi', 'asiatica'] } },
+    concepts: {
+      ...META.concepts,
+      sushi: { name: 'Sushi', emoji: '🍣', group: 'comida', offerable: true },
+      mexicana: { name: 'Comida mexicana', emoji: '🌮', group: 'comida', offerable: true },
+    },
+    profiles: {
+      asiatico: { name: 'Amante de lo asiático', emoji: '🥢', main: false, concepts: ['sushi', 'asiatica'] },
+      mexicano: { name: 'Amante de lo mexicano', emoji: '🌮', main: true, concepts: ['mexicana'] },
+    },
   },
   pool: VERTICALS.map((vertical, i) => product(i + 1, { vertical })),
   tastes: {
@@ -29,6 +44,11 @@ const snapshot = {
       gustos: { id: 'asiatico', nombre: 'Amante de lo asiático', emoji: '🥢', nivel: 'medio', principal: true },
       ladder: { moment: 'perfil', escalera: [] },
       seed: [sushi, sushi, sushi],
+    },
+    mexicano: {
+      gustos: { id: 'mexicano', nombre: 'Amante de lo mexicano', emoji: '🌮', nivel: 'medio', principal: true },
+      ladder: { moment: 'perfil', escalera: [] },
+      seed: [tacos, { ...tacos, entity_id: '11' }, { ...tacos, entity_id: '12' }],
     },
   },
 }
@@ -176,4 +196,38 @@ test('cambiar de persona conserva la sesión, el modo y los avisos vistos, y bor
   expect(localStorage.getItem('rappi-proto-pro')).toBe('true')
   expect(Object.keys(sessionStorage)).toEqual([])
   expect(reload).toHaveBeenCalledTimes(1)
+})
+
+test('la demo arranca una sola vez con la persona del perfil principal (el mexicano), que sigue entre las personas', () => {
+  expect(startingPersona(snapshot)).toMatchObject({ id: 'gusto-mexicano', label: '🌮 Amante de lo mexicano' })
+  // Entre las personas de gusto, el principal va primero.
+  const tastes = personas(snapshot).filter((p) => p.taste)
+  expect(tastes.map((p) => p.id)).toEqual(['gusto-mexicano', 'gusto-asiatico'])
+
+  const first = startingHistory(snapshot, NOW)
+  expect(first.orders).toHaveLength(3)
+  expect(first.orders.every((o) => o.lines[0].concept_id === 'mexicana' && o.vertical === 'restaurantes')).toBe(true)
+  expect(tastesReply(snapshot, { userId: 'proto-test', ...first }).perfiles.map((p) => p.id)).toEqual(['mexicano'])
+  expect(localStorage.getItem('rappi-proto-pro')).toBe('true')
+  // Ya arrancó en este navegador: "Borrar mis datos" (que borra `rappi-proto-*`) no la vuelve a sembrar.
+  expect(startingHistory(snapshot, NOW)).toBeNull()
+})
+
+test('sin conexión, la primera sesión trae el historial de la persona principal; una sesión que vuelve, no', () => {
+  const call = (body) =>
+    route(snapshot, { method: 'POST', path: '/session', query: new URLSearchParams(), body: body ?? {} }, NOW)
+  call()
+  expect(readState().orders).toHaveLength(3)
+  localStorage.removeItem('rappi-proto-offline-api') // "Borrar mis datos"
+  call()
+  expect(readState().orders).toEqual([])
+  localStorage.clear()
+  call({ legacy_user_id: 'proto-0123456789abcdef' }) // un id de antes: no se le inventa un historial
+  expect(readState().orders).toEqual([])
+})
+
+test('sin perfil principal grabado en la muestra, la demo arranca como siempre: sin historial', () => {
+  const without = { ...snapshot, tastes: { asiatico: snapshot.tastes.asiatico } }
+  expect(startingPersona(without)).toBeNull()
+  expect(startingHistory(without, NOW)).toBeNull()
 })

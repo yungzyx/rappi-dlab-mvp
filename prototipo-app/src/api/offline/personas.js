@@ -15,8 +15,10 @@ const ALL_CATALOG = ['restaurantes', 'turbo', 'supermercado', 'conveniencia', 'm
  * (events/synth.py, PRO_SHARE): quien combina verticales o pide seguido es Pro; la nueva y quien pide en una sola, no.
  */
 export function personas(snapshot) {
+  // El principal primero (offers/perfiles.toml: `principal`, hoy el mexicano): es con quien arranca la demo.
   const tastes = Object.entries(snapshot.meta.profiles ?? {})
     .filter(([id]) => snapshot.tastes?.[id])
+    .sort(([, a], [, b]) => Boolean(b.main) - Boolean(a.main))
     .map(([id, profile]) => ({ id: `gusto-${id}`, label: `${profile.emoji} ${profile.name}`, taste: id, pro: true }))
   return [
     { id: 'nueva', label: 'Nueva (sin historial)', orders: [], pro: false },
@@ -38,6 +40,35 @@ export function personas(snapshot) {
     },
     ...tastes,
   ]
+}
+
+// La demo arranca, la primera vez en este navegador, con la persona del perfil de gusto principal y su historial
+// (`startingHistory`). Se recuerda fuera de `rappi-proto-`: "Borrar mis datos" y "Empezar de cero" dejan a una persona
+// nueva, sin volver a sembrarla.
+const STARTED_KEY = 'rappi-demo-persona-inicial'
+
+/** La persona con que arranca la demo: la del perfil principal grabado en la muestra (hoy, el mexicano), o null. */
+export function startingPersona(snapshot) {
+  const [main] = Object.entries(snapshot.meta.profiles ?? {}).find(([id, p]) => p.main && snapshot.tastes?.[id]) ?? []
+  return main ? (personas(snapshot).find((p) => p.taste === main) ?? null) : null
+}
+
+/**
+ * El historial (`{ orders, events }`) con que arranca la demo la primera vez (`POST /session` sin persona), con su marca
+ * Rappi Pro; null si ya arrancó antes en este navegador o si la muestra no trae el perfil principal. Sin almacenamiento
+ * (modo privado), arranca así en cada pestaña.
+ */
+export function startingHistory(snapshot, now = Date.now()) {
+  const persona = startingPersona(snapshot)
+  if (!persona) return null
+  try {
+    if (localStorage.getItem(STARTED_KEY)) return null
+    localStorage.setItem(STARTED_KEY, persona.id)
+  } catch {
+    // Sin almacenamiento: arranca con ella igual.
+  }
+  saveStored(PRO_KEY, Boolean(persona.pro))
+  return personaHistory(snapshot, persona, now)
 }
 
 /** Si la tienda o el restaurante del producto está en la muestra (su "Ver producto" abre algo). */
