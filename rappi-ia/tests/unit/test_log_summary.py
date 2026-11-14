@@ -111,3 +111,12 @@ def test_the_rotated_copy_adds_up_the_watchdog_and_the_sessions(tmp_path):
 def test_silences_and_hides_go_right_after_what_matters():
     summary = log_summary.Summary(date(2026, 11, 3), new_people=0, silenced=2, hidden=1)
     assert log_summary.render(summary).splitlines()[2] == "Mochi: silenciado por hoy 2 veces · ocultado 1 vez"
+
+
+def test_the_in_app_question_goes_after_mochi():
+    survey = {"mostrada": 3, "si": 1, "en_parte": 1, "no": 0, "cerrada": 1, "p3": 1}
+    summary = log_summary.Summary(date(2026, 11, 3), new_people=0, silenced=0, hidden=0, survey=survey)
+    assert log_summary.render(summary).splitlines()[3] == (
+        'Encuesta: "¿Encontraste lo que buscabas?" mostrada 3 veces · Sí 1 · En parte 1 · No 0'
+        ' · cerrada sin responder 1 · "¿Confías en las sugerencias de Mochi?" respondida 1 vez'
+    )

@@ -4,15 +4,34 @@ La propuesta para medir con Rappi el efecto de las ofertas de Mochi: qué se mid
 
 La tabla de combinaciones de Rappi muestra que quien combina verticales retiene más, pero es una correlación ([contexto-y-problema.md](contexto-y-problema.md)). Para saber si Mochi causa algo hace falta un grupo de control al azar: el experimento `ofertas_control`, que ya está en el MVP y viene apagado ([capa-de-datos.md](capa-de-datos.md#impresiones-experimentos-y-vistas-derivadas)).
 
-## Qué se mide
+## Las tres hipótesis
 
-- **Métrica primaria: la retención M+1 de quien usa una sola vertical.** Es la parte de las personas que recibieron su variante en el mes M y tienen algún pedido confirmado en el mes M+1, como la calcula el panel (`_offers_retention` en `rappi_ia/analytics/queries.py`). Se parece a la de la tabla de Rappi, pero queda un mes más lejos del mes que define a la persona (ver "Población").
-- **Las otras dos hipótesis**, que el panel muestra junto a la retención (la H1) en "Las tres hipótesis" de Experimentos:
-  - **H2, frecuencia y Restaurantes → Turbo.** Los pedidos confirmados por persona en los 30 días desde la asignación y en M+1, y de los clientes de Restaurantes, la parte que pide en Turbo en los 28 días desde la asignación. Meta: +10 % relativo sobre el control en Restaurantes → Turbo.
-  - **H3, "¿Encontraste lo que buscabas?".** El % de "Sí" a la pregunta de la app ([diseno-ia.md](diseno-ia.md#la-pregunta-de-la-h3)), con la prueba de proporciones a una cola (H0: igual en los dos grupos; la alternativa: mayor en tratamiento) y su intervalo, sin umbral.
-- **Secundarias:**
-  - la parte que **suma una vertical nueva en 28 días**, es decir, que pide en una vertical en la que no había pedido antes de recibir su variante;
-  - la **aceptación de las ofertas por momento** (carro, checkout, vertical por probar, recompra, etc.), que el panel ya muestra en la pestaña "Mochi y búsquedas".
+Cada una compara a quienes tienen a Mochi ("Mochi activo", tratamiento) con el control, "Mochi apagado" (ver "El control: Mochi apagado"). Las metas son las que planteó el gerente de Rappi el 12-11-2026.
+
+| Hipótesis | Métrica | Meta | Cómo se prueba |
+|---|---|---|---|
+| **H1, retención** | La retención M+1 de quien usa una sola vertical: la parte de las personas que recibieron su variante en el mes M y tienen algún pedido confirmado en M+1, como la calcula el panel (`_offers_retention` en `rappi_ia/analytics/queries.py`). Se parece a la de la tabla de Rappi, pero queda un mes más lejos del mes que define a la persona (ver "Población"). Es la primaria | **+2 puntos** sobre el control | Dos proporciones a dos colas, con su intervalo de 95 % |
+| **H2, frecuencia y venta cruzada** | De los clientes de Restaurantes, la parte que pide en Turbo en los 28 días desde la asignación; junto a ella, los pedidos confirmados por persona en los 30 días desde la asignación y en M+1 | **Restaurantes → Turbo, +10 % relativo** sobre el control (la tasa del tratamiento, 1,1 veces la del control); la frecuencia, sin meta propia | Restaurantes → Turbo: dos proporciones a dos colas; la frecuencia: diferencia de promedios con su intervalo (Welch) |
+| **H3, "¿Encontraste lo que buscabas?"** | El % de "Sí" a la pregunta de la app ([diseno-ia.md](diseno-ia.md#la-pregunta-de-la-h3)), que sale igual en los dos grupos | **Sin umbral previo** | Dos proporciones a **una cola**: H0, igual en los dos grupos; la alternativa, mayor con Mochi. Con su p y su intervalo |
+
+El panel las muestra en ese orden en "Las tres hipótesis" de Experimentos (ver "Qué hace hoy el MVP").
+
+### Orden de lectura
+
+1. **Retención, frecuencia y venta cruzada** (H1 y H2): lo que Rappi quiere saber primero es si con Mochi activo las personas vuelven, piden más seguido y cruzan de Restaurantes a Turbo.
+2. **"¿Encontraste lo que buscabas?"** (H3).
+3. **Adopción y apagado, después:** cuántas personas de tratamiento usan a Mochi, y cuántas lo ocultan o lo silencian por hoy. No son hipótesis: ocultar y silenciar son un **indicador de alerta**. Si suben, Mochi molesta, aunque la retención no lo muestre todavía; no se usan para declarar un efecto.
+
+Las secundarias (abajo) van al final, como exploratorias.
+
+### Dónde corre
+
+El piloto corre **dentro de Rappi**, con su tráfico y en su app: el equipo del proyecto no tiene acceso a la base de Rappi, y la retención M+1, los pedidos y Restaurantes → Turbo de personas reales solo se pueden contar ahí. Lo que entrega el proyecto es la definición de cada métrica (las consultas de `rappi_ia/analytics/queries.py`), el reparto y el sorteo estable (`rappi_ia/events/experiments.py`), los eventos que hacen falta (incluida la pregunta in-app y `offer_withheld` / `offer_eligible` para la parte expuesta) y este análisis declarado. dlab-mvp.com solo comprueba que la mecánica funciona (ver "Qué hace hoy el MVP").
+
+### Secundarias
+
+- la parte que **suma una vertical nueva en 28 días**, es decir, que pide en una vertical en la que no había pedido antes de recibir su variante;
+- la **aceptación de las ofertas por momento** (carro, checkout, vertical por probar, recompra, etc.), que el panel ya muestra en la pestaña "Mochi y búsquedas".
 
 ## En quiénes, con qué reparto y cuánto dura
 
@@ -53,6 +72,10 @@ Lo pidió el gerente de Rappi el 12-11-2026: comparar "Mochi activo" contra "Moc
 
 ## Qué haría falta para medirlo
 
+Los tamaños salen de `sample_size` en `rappi-ia/src/rappi_ia/analytics/power.py` (la fórmula, abajo), que prueban los tests de `tests/unit/test_power.py`. Son personas asignadas, por intención de tratar: si solo una parte llega a una oferta, hacen falta más (ver "Análisis declarado antes de empezar").
+
+### H1, retención M+1
+
 La tabla parte de una base de 47 % de retención M+1, la de la fila "solo Restaurantes" de la tabla de Rappi (Chile, cohortes de enero a junio de 2026). **Es un supuesto:** la población del piloto puede tener otra base, y esa fila mide a un mes, no a dos (ver "Desfase con la tabla de Rappi"). El efecto mínimo es cuánto sube la retención del grupo con ofertas sobre la del grupo de control.
 
 | Efecto mínimo | Con 10 % en control: en control | en tratamiento | total | Con 50/50: por grupo | total |
@@ -67,7 +90,23 @@ N = [z₀,₉₇₅ · √(p̄(1 − p̄)(1/k + 1/(1 − k))) + z₀,₈ · √(
 
 donde z₀,₉₇₅ = 1,960 y z₀,₈ = 0,842. Cada grupo se redondea hacia arriba (⌈k·N⌉ y ⌈(1 − k)·N⌉), así que el total puede quedar una persona sobre ⌈N⌉. El cálculo está en `rappi-ia/src/rappi_ia/analytics/power.py` y lo prueban los tests de `tests/unit/test_power.py`.
 
-La fila "solo Restaurantes" de la tabla de Rappi reúne 739 mil personas, así que para Rappi el tamaño no es el límite. El efecto mínimo que vale la pena medir se decide con Rappi; la tabla muestra las tres opciones.
+La fila "solo Restaurantes" de la tabla de Rappi reúne 739 mil personas, así que para Rappi el tamaño no es el límite. La meta es +2 puntos; las filas de +1 y +5 quedan como referencia.
+
+### H2, Restaurantes → Turbo
+
+La meta es relativa (+10 % sobre el control), así que el tamaño depende de la tasa del control, que no está en el repositorio: es un dato de Rappi y se le pide con la definición de la H2 (de quienes piden en Restaurantes, la parte que pide en Turbo en 28 días). La tabla la muestra con tres tasas supuestas, solo para ver el orden de magnitud. Cuentan solo los clientes de Restaurantes de cada grupo.
+
+| Tasa del control (supuesta) | Meta (+10 % relativo) | Con 10 % en control: en control | en tratamiento | total | Con 50/50: por grupo | total |
+|---|---|---:|---:|---:|---:|---:|
+| 10 % | 10 → 11 % | 8.302 | 74.718 | 83.020 | 14.751 | 29.502 |
+| 20 % | 20 → 22 % | 3.656 | 32.897 | 36.553 | 6.510 | 13.020 |
+| 30 % | 30 → 33 % | 2.107 | 18.956 | 21.063 | 3.763 | 7.526 |
+
+Con una tasa más baja, +10 % relativo es una diferencia más chica en puntos y pide más personas: con 10 % pide más que la H1 con +2 puntos (54.432 con 10 % en control); con 20 o 30 %, menos. El panel calcula el mínimo con la tasa del control que observa (`H2_RELATIVE_GOAL` en `power.py`). La frecuencia no tiene meta ni tamaño propio: se informa con su intervalo.
+
+### H3, "¿Encontraste lo que buscabas?"
+
+Sin umbral previo no hay un efecto mínimo con que calcular un tamaño: la H3 se lee con las respuestas que haya. El panel no la lee antes de 100 respuestas por grupo (un supuesto propio, no un cálculo de potencia) y cuenta respuestas, no personas: cada una responde a lo más una por día, y solo quien busca. Si Rappi quiere un tamaño para la H3, hay que fijar antes de empezar el efecto mínimo y la tasa de "Sí" esperada en el control.
 
 ## Qué hace hoy el MVP
 
