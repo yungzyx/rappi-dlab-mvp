@@ -71,6 +71,16 @@ edges = [
   ["cafe", "pasteleria", 0.7, "kuchen queque croissant medialuna brownie"],
   ["cafe", "galletas", 0.5],
   ["cereales", "lacteos", 0.8, "leche"],
+  # Combinaciones cotidianas que faltaban (14-11-2026): café o té con leche o azúcar, pan con mantequilla o palta,
+  # mayonesa para los completos y las vienesas. Pesan menos que lo que ya tenía su origen, así que la oferta del carro
+  # no cambia lo que mostraba primero; sirven a "X para Y" ("leche para el café", concepts/need.py) y a la alternancia.
+  # Ya estaban: pasta con queso rallado y con salsa, cereal con leche, vino con queso, pan con queso o mermelada.
+  ["cafe", "lacteos", 0.4, "leche"],
+  ["te", "lacteos", 0.3, "leche"],
+  ["te", "azucar", 0.3],
+  ["panaderia", "lacteos", 0.3, "mantequilla"],
+  ["panaderia", "frutas", 0.3, "palta"],
+  ["fiambres", "salsas", 0.3, "mayonesa"],
   ["carbon", "carnes", 0.8, "asado lomo vetado entraña punta paleta"],
 
   # Comida preparada → bebidas y postres
@@ -164,6 +174,7 @@ edges = [
   ["pollo-preparado", "postres", 0.4],
   ["sandwiches", "jugos", 0.5],
   ["sandwiches", "snacks-salados", 0.4],
+  ["sandwiches", "salsas", 0.3, "mayonesa"],  # el completo (14-11-2026)
 
   # Despensa, frescos y dulces
   ["aceites-condimentos", "verduras", 0.4, "papas zanahoria cebolla pimentón zapallo"],
