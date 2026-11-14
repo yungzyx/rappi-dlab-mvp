@@ -252,10 +252,10 @@ def occasion_search(q: str) -> tuple[str, list[str], Occasion] | None:
     need = query_need(q)
     if need.asked:
         return None
-    occasion = named_occasion(q)
+    taxonomy = load_taxonomy()
+    occasion = taxonomy.occasions[need.occasion] if need.occasion else named_occasion(q)
     if occasion is None:
         return None
-    taxonomy = load_taxonomy()
     concepts = [c for c in need.occasion_concepts or occasion.concepts if not taxonomy.concepts[c].sensitive]
     return occasion_query(concepts), concepts, occasion
 
