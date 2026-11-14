@@ -443,6 +443,7 @@ def cmd_eval_typos(conn, args) -> None:
         typo_eval.run_typos(conn, embedder, typo_eval.load_typos()),
         typo_eval.run_negatives(conn, embedder),
         typo_eval.run_grouped_negatives(conn, embedder),
+        typo_eval.run_names(conn, embedder, typo_eval.load_names()),
     )
     out = config.DATA_DIR / "eval" / "tipeo.md"
     out.parent.mkdir(parents=True, exist_ok=True)
