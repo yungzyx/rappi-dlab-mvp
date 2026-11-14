@@ -2,6 +2,7 @@ import { act, fireEvent, screen, within } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest'
 import App from '../../App.jsx'
 import { apiDown, renderWithData, resetApi, serveFixtures, serveFixturesWith } from '../../test/fixtureApi.js'
+import { OFFERS_WITHOUT_MOMENT } from '../../test/oldSynthetic.js'
 import { MochiView } from './MochiView.jsx'
 
 const NOT_EVIDENCE = 'Prototipo · no es evidencia'
@@ -192,8 +193,9 @@ describe('MochiView', () => {
     expect(await screen.findByText('Nadie ocultó ni silenció a Mochi, ni lo vio mover la Home')).toBeTruthy()
     expect(screen.queryByText('Ocultaron a Mochi')).toBeNull()
 
+    // Los simulados de antes del 14-11-2026 no traían ocultar ni silenciar: lo dice en vez de un 0 %.
     resetApi()
-    serveFixtures()
+    serveFixturesWith({ presencia: { source: 'synthetic', data: none } })
     await renderWithData(<MochiView source="synthetic" />)
     expect(await screen.findByText('Los datos simulados no registran ocultar ni silenciar a Mochi')).toBeTruthy()
   })
@@ -227,8 +229,9 @@ describe('MochiView', () => {
     expect(bodyRows(funnel).map((row) => cells(row)[2])).toEqual(['100,0%', '100,0%', '50,0%', '25,0%', '25,0%'])
   })
 
-  test('synthetic: the simulator has no moment, so the cross suggestions carry the section', async () => {
-    serveFixtures()
+  test('synthetic without moments: the cross suggestions carry the section', async () => {
+    // Los simulados de antes del 14-11-2026 no guardaban el momento de la oferta: todo caía en "sin momento".
+    serveFixturesWith({ offers: { source: 'synthetic', data: OFFERS_WITHOUT_MOMENT } })
     await renderWithData(<MochiView source="synthetic" />)
 
     expect(await screen.findByText('Los datos simulados no registran el momento de la oferta')).toBeTruthy()

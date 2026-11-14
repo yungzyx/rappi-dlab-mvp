@@ -7,10 +7,10 @@
         "nota": "No es al azar: el modo lo elige quien presenta la demo. Comparar la propuesta con \"Rappi hoy\" describe, no mide efecto.",
         "variantes": [
           {
-            "con_pedido": 16,
+            "con_pedido": 22,
             "personas": 40,
             "variante": "propuesta",
-            "verticales_por_persona": 1.5
+            "verticales_por_persona": 1.23
           },
           {
             "con_pedido": 0,
@@ -24,23 +24,23 @@
         "adopcion": {
           "variantes": [
             {
-              "ocultos": 0,
-              "ocultos_pct": null,
-              "personas": 0,
+              "ocultos": 1,
+              "ocultos_pct": 5.6,
+              "personas": 18,
               "silenciaron": 0,
-              "silenciaron_pct": null,
-              "usaron": 0,
-              "usaron_pct": null,
+              "silenciaron_pct": 0.0,
+              "usaron": 9,
+              "usaron_pct": 50.0,
               "variante": "tratamiento"
             },
             {
               "ocultos": 0,
-              "ocultos_pct": null,
-              "personas": 0,
+              "ocultos_pct": 0.0,
+              "personas": 22,
               "silenciaron": 0,
-              "silenciaron_pct": null,
+              "silenciaron_pct": 0.0,
               "usaron": 0,
-              "usaron_pct": null,
+              "usaron_pct": 0.0,
               "variante": "control"
             }
           ]
@@ -49,39 +49,52 @@
         "control_pct": 0,
         "encuesta": {
           "concluyente": false,
-          "diferencia": null,
+          "diferencia": {
+            "ic95": null,
+            "p_una_cola": null,
+            "puntos": -14.1
+          },
           "minimo": 100,
           "variantes": [
             {
-              "respondidas": 0,
-              "si": 0,
-              "si_pct": null,
+              "respondidas": 9,
+              "si": 2,
+              "si_pct": 22.2,
               "variante": "tratamiento"
             },
             {
-              "respondidas": 0,
-              "si": 0,
-              "si_pct": null,
+              "respondidas": 11,
+              "si": 4,
+              "si_pct": 36.4,
               "variante": "control"
             }
           ]
         },
         "frecuencia": {
           "dias": 30,
-          "diferencia": null,
+          "diferencia": {
+            "pedidos_30d": {
+              "ic95": null,
+              "valor": 0.62
+            },
+            "pedidos_m1": {
+              "ic95": null,
+              "valor": 0.83
+            }
+          },
           "variantes": [
             {
-              "pedidos_30d": null,
-              "pedidos_m1": null,
-              "personas_30d": 0,
-              "personas_m1": 0,
+              "pedidos_30d": 1.88,
+              "pedidos_m1": 1.71,
+              "personas_30d": 8,
+              "personas_m1": 7,
               "variante": "tratamiento"
             },
             {
-              "pedidos_30d": null,
-              "pedidos_m1": null,
-              "personas_30d": 0,
-              "personas_m1": 0,
+              "pedidos_30d": 1.25,
+              "pedidos_m1": 0.89,
+              "personas_30d": 12,
+              "personas_m1": 9,
               "variante": "control"
             }
           ]
@@ -91,53 +104,57 @@
         "poblacion": {
           "adopcion": {
             "dias": 30,
-            "ocultos_pct": 0.0,
-            "personas": 26,
+            "ocultos_pct": 3.4,
+            "personas": 29,
             "silenciaron_pct": 0.0,
-            "usaron": 16,
-            "usaron_pct": 61.5
+            "usaron": 8,
+            "usaron_pct": 27.6
           },
           "encuesta": {
-            "respondidas": 0,
-            "si": 0,
-            "si_pct": null
+            "respondidas": 20,
+            "si": 6,
+            "si_pct": 30.0
           },
           "frecuencia": {
             "dias": 30,
-            "pedidos": 27,
-            "pedidos_por_persona": 1.04,
-            "personas": 26
+            "pedidos": 34,
+            "pedidos_por_persona": 1.17,
+            "personas": 29
           },
           "rest_a_turbo": {
-            "con_turbo": 4,
+            "con_turbo": 3,
             "dias": 28,
-            "pct": 36.4,
-            "personas": 11
+            "pct": 17.6,
+            "personas": 17
           },
           "retencion_m1": {
             "mes": "2026-08",
             "mes_siguiente": "2026-09",
-            "pct": 66.7,
-            "personas": 3
+            "pct": 85.7,
+            "personas": 7
           }
         },
         "rest_a_turbo": {
           "concluyente": false,
           "dias": 28,
-          "diferencia": null,
+          "diferencia": {
+            "ic95": null,
+            "puntos": 20.0,
+            "relativa_pct": null
+          },
           "meta_relativa_pct": 10,
           "minimo": null,
           "variantes": [
             {
-              "con_turbo": 0,
-              "pct": null,
-              "personas": 0,
+              "con_turbo": 1,
+              "pct": 20.0,
+              "personas": 5,
               "variante": "tratamiento"
             },
             {
               "con_turbo": 0,
-              "pct": null,
-              "personas": 0,
+              "pct": 0.0,
+              "personas": 9,
               "variante": "control"
             }
           ]
@@ -145,55 +162,71 @@
         "retencion": {
           "base_pct": 47.0,
           "concluyente": false,
-          "diferencia": null,
+          "diferencia": {
+            "retencion_m1": {
+              "ic95": null,
+              "puntos": 4.8
+            },
+            "suma_vertical": {
+              "ic95": null,
+              "puntos": -6.3
+            }
+          },
           "efecto_minimo_puntos": 2,
-          "minimo": null,
-          "referencia": null,
+          "minimo": {
+            "control": 10882,
+            "tratamiento": 8904
+          },
+          "referencia": {
+            "control": 1743,
+            "efecto_puntos": 5,
+            "tratamiento": 1426
+          },
           "variantes": [
             {
-              "expuestas": 0,
-              "expuestas_pct": null,
-              "personas": 0,
-              "retencion_m1_pct": null,
-              "suma_vertical_pct": null,
+              "expuestas": 3,
+              "expuestas_pct": 42.9,
+              "personas": 7,
+              "retencion_m1_pct": 71.4,
+              "suma_vertical_pct": 71.4,
               "variante": "tratamiento"
             },
             {
-              "expuestas": 0,
-              "expuestas_pct": null,
-              "personas": 0,
-              "retencion_m1_pct": null,
-              "suma_vertical_pct": null,
+              "expuestas": 1,
+              "expuestas_pct": 11.1,
+              "personas": 9,
+              "retencion_m1_pct": 66.7,
+              "suma_vertical_pct": 77.8,
               "variante": "control"
             }
           ]
         },
         "variantes": [
           {
-            "con_pedido": 0,
+            "con_pedido": 9,
             "ofertas": {
-              "aceptadas": 0,
-              "mostradas": 0,
-              "pedidos_despues": 0,
-              "personas_con_oferta": 0,
+              "aceptadas": 3,
+              "mostradas": 11,
+              "pedidos_despues": 17,
+              "personas_con_oferta": 9,
               "retenidas": 0
             },
-            "personas": 0,
+            "personas": 18,
             "variante": "tratamiento",
-            "verticales_por_persona": null
+            "verticales_por_persona": 1.44
           },
           {
-            "con_pedido": 0,
+            "con_pedido": 13,
             "ofertas": {
               "aceptadas": 0,
               "mostradas": 0,
-              "pedidos_despues": 0,
-              "personas_con_oferta": 0,
-              "retenidas": 0
+              "pedidos_despues": 13,
+              "personas_con_oferta": 8,
+              "retenidas": 11
             },
-            "personas": 0,
+            "personas": 22,
             "variante": "control",
-            "verticales_por_persona": null
+            "verticales_por_persona": 1.08
           }
         ]
       }

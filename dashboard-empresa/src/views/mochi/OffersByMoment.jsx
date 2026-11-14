@@ -22,7 +22,7 @@ export function OffersByMoment({ data, source }) {
       </EmptyState>
     )
   }
-  // El simulador no guarda en qué momento se hizo cada oferta: todo cae en "sin momento".
+  // Los simulados de antes del 14-11-2026 no guardan en qué momento se hizo cada oferta: todo cae en "sin momento".
   if (source === 'synthetic' && momentos.every((row) => row.momento === 'sin_momento')) {
     return (
       <EmptyState title="Los datos simulados no registran el momento de la oferta" inline>

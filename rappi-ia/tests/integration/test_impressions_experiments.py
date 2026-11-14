@@ -1222,9 +1222,10 @@ def test_the_synthetic_population_has_impressions_positions_and_its_mode(db):
                  AND i.position = k.position AND i.entity_id = k.entity_id)"""
     ).fetchone()[0]
     assert orphans == 0
-    assert db.execute("SELECT DISTINCT variant FROM experiment_assignments WHERE source = 'synthetic'").fetchall() == [
-        ("propuesta",)
-    ]
+    assert db.execute(
+        "SELECT DISTINCT variant FROM experiment_assignments WHERE source = 'synthetic' AND experiment_id = %s",
+        (experiments.MODE,),
+    ).fetchall() == [("propuesta",)]
     assert db.execute("SELECT count(*) FROM capa.v_ctr_posicion WHERE source = 'synthetic'").fetchone()[0] > 0
 
 
