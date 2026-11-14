@@ -3,6 +3,7 @@ import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest'
 import { API_URL } from '../api/client'
 import { fixture, stubApi } from '../test/api'
 import { userId, userToken } from '../api/user'
+import { isAgentEnabled, setAgentEnabled } from '../state/agentEnabled'
 import ConnectionGate from './ConnectionGate'
 
 // Un navegador que ya tiene su sesión: la puerta solo revisa la API. La primera carga (sin token) se prueba aparte.
@@ -19,6 +20,9 @@ afterEach(() => {
   localStorage.clear()
 })
 
+// Las veces que la puerta preguntó por la API (/health): con sesión, también confirma la suya (GET /session).
+const healthCalls = (api) => api.mock.calls.filter(([url]) => new URL(url).pathname === '/health').length
+
 const renderGate = () =>
   render(
     <ConnectionGate>
@@ -28,12 +32,40 @@ const renderGate = () =>
 
 describe('ConnectionGate', () => {
   test('con la API arriba muestra la app', async () => {
-    const api = stubApi({ '/health': fixture('health') })
+    const api = stubApi({ '/health': fixture('health'), 'GET /session': fixture('session-actual') })
     renderGate()
     expect(await screen.findByText('La app')).toBeTruthy()
     expect(screen.queryByText('Sin conexión con Mochi')).toBeNull()
-    expect(api).toHaveBeenCalledTimes(1)
-    expect(api.mock.calls[0][0]).toBe(`${API_URL}/health`)
+    // Con la sesión ya guardada no pide otra: la confirma, y así sabe si Mochi está (el grupo de control).
+    expect(api.mock.calls.map(([url, init]) => `${init.method ?? 'GET'} ${url}`)).toEqual([
+      `GET ${API_URL}/health`,
+      `GET ${API_URL}/session`,
+    ])
+    expect(isAgentEnabled()).toBe(true)
+  })
+
+  test('en el grupo de control (Mochi apagado) entra igual y lo recuerda: al recargar, la espera es sin Mochi', async () => {
+    stubApi({ '/health': fixture('health'), 'GET /session': { ...fixture('session-actual'), agent_enabled: false } })
+    renderGate()
+    expect(await screen.findByText('La app')).toBeTruthy()
+    expect(isAgentEnabled()).toBe(false)
+    cleanup()
+
+    vi.useFakeTimers()
+    stubApi({ '/health': 'slow:3000', 'GET /session': 'slow:3000' })
+    const { container } = renderGate()
+    expect(screen.getByText('Conectando…')).toBeTruthy()
+    expect(container.querySelector('.mascot, svg, img')).toBeNull()
+    stubApi({ '/health': 'offline' })
+    await act(() => vi.advanceTimersByTimeAsync(3000))
+  })
+
+  test('sin conexión y con Mochi apagado, el aviso no lo nombra', async () => {
+    setAgentEnabled(false)
+    stubApi({ '/health': 'offline', 'GET /session': 'offline' })
+    renderGate()
+    expect(await screen.findByRole('heading', { name: 'Sin conexión' })).toBeTruthy()
+    expect(screen.queryByText(/Mochi/)).toBeNull()
   })
 
   test('la primera carga migra el id viejo', async () => {
@@ -133,12 +165,12 @@ describe('ConnectionGate', () => {
     const offline = stubApi({ '/health': 'offline' })
     renderGate()
     await screen.findByText('Sin conexión con Mochi')
-    expect(offline).toHaveBeenCalledTimes(1)
+    expect(healthCalls(offline)).toBe(1)
 
     const online = stubApi({ '/health': fixture('health') })
     fireEvent.click(screen.getByRole('button', { name: 'Reintentar' }))
     expect(await screen.findByText('La app')).toBeTruthy()
-    expect(online).toHaveBeenCalledTimes(1)
+    expect(healthCalls(online)).toBe(1)
     expect(screen.queryByText('Sin conexión con Mochi')).toBeNull()
   })
 
@@ -149,19 +181,19 @@ describe('ConnectionGate', () => {
     await act(() => vi.advanceTimersByTimeAsync(0))
     expect(screen.getByRole('heading', { name: 'Sin conexión con Mochi' })).toBeTruthy()
     const retry = screen.getByRole('button', { name: 'Reintentar' })
-    expect(offline).toHaveBeenCalledTimes(1)
+    expect(healthCalls(offline)).toBe(1)
 
     await act(() => vi.advanceTimersByTimeAsync(1999))
-    expect(offline).toHaveBeenCalledTimes(1)
+    expect(healthCalls(offline)).toBe(1)
     await act(() => vi.advanceTimersByTimeAsync(1))
-    expect(offline).toHaveBeenCalledTimes(2)
+    expect(healthCalls(offline)).toBe(2)
     // En silencio: sigue la misma pantalla y el mismo botón, sin pasar por "Conectando…".
     expect(screen.queryByText('Conectando con Mochi…')).toBeNull()
     expect(screen.getByRole('button', { name: 'Reintentar' })).toBe(retry)
 
     const online = stubApi({ '/health': fixture('health') })
     await act(() => vi.advanceTimersByTimeAsync(2000))
-    expect(online).toHaveBeenCalledTimes(1)
+    expect(healthCalls(online)).toBe(1)
     expect(screen.getByText('La app')).toBeTruthy()
     expect(screen.queryByText('Sin conexión con Mochi')).toBeNull()
   })
@@ -174,7 +206,8 @@ describe('ConnectionGate', () => {
     expect(screen.getByText('La app')).toBeTruthy()
 
     await act(() => vi.advanceTimersByTimeAsync(10_000))
-    expect(api).toHaveBeenCalledTimes(1)
+    expect(healthCalls(api)).toBe(1)
+    expect(api).toHaveBeenCalledTimes(2) // y su sesión, una vez
   })
 
   test('Reintentar no desmonta el botón: el foco se queda en él', async () => {
@@ -190,7 +223,7 @@ describe('ConnectionGate', () => {
     expect(screen.getByRole('button', { name: 'Reintentar' })).toBe(retry)
     await act(() => vi.advanceTimersByTimeAsync(0))
 
-    expect(api).toHaveBeenCalledTimes(2)
+    expect(healthCalls(api)).toBe(2)
     expect(screen.getByRole('button', { name: 'Reintentar' })).toBe(retry)
     expect(document.activeElement).toBe(retry)
   })

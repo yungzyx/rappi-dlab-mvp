@@ -67,6 +67,7 @@ export const SECTIONS = [
         Icon: SparkleLineIcon,
         action: 'agent',
         finalOnly: true,
+        agentOnly: true, // ni esta ni la de abajo en el grupo de control ("Mochi apagado")
       },
       // Solo en el prototipo final: en el celular no está el botón "Repetir escena" de la notebook.
       {
@@ -75,6 +76,7 @@ export const SECTIONS = [
         Icon: SparkleLineIcon,
         action: 'replay',
         finalOnly: true,
+        agentOnly: true,
       },
     ],
   },

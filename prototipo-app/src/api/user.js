@@ -1,5 +1,6 @@
 // Id seudónimo de este navegador, compartido por quienes hablan con la API (eventos, preguntas, pedidos, "Para ti"), y
 // el token que lo firma.
+import { setAgentEnabled } from '../state/agentEnabled'
 import { localStore } from '../state/storage'
 
 const USER_KEY = 'rappi-proto-user'
@@ -47,10 +48,14 @@ export const storedUserId = () => load(USER_KEY)
 /** El token de la sesión (null sin sesión). */
 export const userToken = () => load(TOKEN_KEY)
 
-/** Guarda la sesión que dio la API: desde aquí, `userId()` es ese id. */
-export function saveSession({ user_id: id, token }) {
+/**
+ * Guarda la sesión que dio la API: desde aquí, `userId()` es ese id. `agent_enabled` dice si la persona tiene a Mochi
+ * (falso en el grupo de control, "Mochi apagado": state/agentEnabled.js).
+ */
+export function saveSession({ user_id: id, token, agent_enabled: agentEnabled }) {
   save(USER_KEY, id)
   save(TOKEN_KEY, token)
+  setAgentEnabled(agentEnabled)
 }
 
 /** Olvida el id y el token (tras "Borrar mis datos"): la próxima sesión es de una persona nueva. */

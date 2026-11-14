@@ -7,6 +7,7 @@ import { DemoProvider } from '../../state/DemoContext'
 import { OrdersProvider } from '../../state/OrdersContext'
 import { ProfileProvider } from '../../state/ProfileContext'
 import { HIDDEN_KEY } from '../../state/agentHidden'
+import { setAgentEnabled } from '../../state/agentEnabled'
 import AccountScreen from './AccountScreen'
 
 const events = vi.hoisted(() => ({ track: vi.fn(), flush: async () => {}, clear: () => {}, settled: async () => {} }))
@@ -43,6 +44,15 @@ function renderAccount() {
 }
 
 const row = () => screen.getByRole('switch', { name: 'Mostrar a Mochi' })
+
+test('en el grupo de control (Mochi apagado) Cuenta no ofrece mostrar, ocultar ni repetir la escena de Mochi', () => {
+  setAgentEnabled(false)
+  renderAccount()
+  expect(screen.queryByRole('switch', { name: 'Mostrar a Mochi' })).toBeNull()
+  expect(screen.queryByRole('button', { name: /Repetir escena/ })).toBeNull()
+  expect(screen.queryByText(/Mochi/)).toBeNull()
+  expect(screen.getByRole('button', { name: /Notificaciones/ })).toBeTruthy() // lo demás de Cuenta sigue
+})
 
 describe('"Mostrar a Mochi" en Cuenta', () => {
   test('encendido por defecto; apagarlo pide confirmar, y "Cancelar" lo deja como estaba', () => {

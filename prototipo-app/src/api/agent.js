@@ -4,6 +4,7 @@ import { placeList } from './attribution'
 import { request, toPrototypeProduct } from './client'
 import { userId } from './user'
 import { sessionId } from '../state/EventsContext'
+import { isAgentEnabled } from '../state/agentEnabled'
 
 const OFFER_TIMEOUT_MS = 5_000
 // El 204 de una oferta retenida al grupo de control (`ofertas_control`): había oferta, pero esta persona no la ve.
@@ -27,8 +28,11 @@ function toAction({ route, ask, ...action }) {
  * y su lugar (`placement`: `surface`, la pantalla donde se muestra la oferta; su posición y la respuesta), y cada
  * acción la `route` de la app (`push(...route)`).
  * Si falla, lanza el `ApiError`: quien llama decide callar.
- * `surface` también va a la API: lo pedido desde el buscador (`agent`) lo pide la persona y el grupo de control lo ve.
- * Un 204 de una oferta retenida a ese grupo también es `null`, y además llama a `onWithheld`.
+ * `surface` también va a la API: lo pedido desde el buscador (`agent`) lo pide la persona y no se anota en el
+ * experimento. Un 204 de una oferta retenida al grupo de control también es `null`, y además llama a `onWithheld`.
+ * Con Mochi apagado (el grupo de control: state/agentEnabled.js) siempre es `null`: la app igual pide las ofertas que
+ * pide sola (la Home, el seguimiento, la búsqueda sin resultado), para que la API las anote como en tratamiento, pero
+ * nunca muestra una, aunque la API la entregue (el grupo se encendió o se apagó con la app abierta).
  */
 export async function offer(moment, context = {}, { userId, surface, onWithheld } = {}) {
   const response = await request('/agent/offer', {
@@ -43,7 +47,7 @@ export async function offer(moment, context = {}, { userId, surface, onWithheld 
     timeout: OFFER_TIMEOUT_MS,
     onEmpty: (reply) => reply.headers.get(WITHHELD_HEADER) === '1' && onWithheld?.(),
   })
-  if (!response) return null
+  if (!response || !isAgentEnabled()) return null
   const origin = `agent-${moment}`
   const requestId = response.request_id ?? null
   return {

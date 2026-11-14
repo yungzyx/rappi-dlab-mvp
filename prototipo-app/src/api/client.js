@@ -4,6 +4,7 @@
 import { VERTICAL_NAMES, routeForScreen, screenForBackend } from '../data/verticals'
 import { PLACEHOLDER_IMG } from '../components/Img'
 import { placeList } from './attribution'
+import { setAgentEnabled } from '../state/agentEnabled'
 import { saveSession, storedUserId, userToken } from './user'
 
 const DEFAULT_PORT = 8000
@@ -86,8 +87,22 @@ export function renewSession() {
   return renewing
 }
 
-/** La sesión de este navegador: la que ya tiene o, la primera vez, una nueva (la pide ConnectionGate al abrir). */
-export const ensureSession = () => (userToken() ? Promise.resolve() : renewSession())
+/**
+ * La sesión de este navegador al abrir (la pide ConnectionGate): la primera vez, una nueva (`POST /session`). Si ya
+ * tiene una, la confirma con `GET /session`, que dice si la persona tiene a Mochi (`agent_enabled`: falso en el grupo de
+ * control, "Mochi apagado"); así lo sabe también al recargar, y quien ya tenía sesión recibe su variante si el grupo de
+ * control se encendió después. Un 401 (el token no es de esta API) pide una sesión nueva. Si la confirmación falla por
+ * otra razón, sigue con lo que ya sabía; una API sin `GET /session` (404 o 405) no tiene grupo de control.
+ */
+export async function ensureSession() {
+  if (!userToken()) return renewSession()
+  try {
+    setAgentEnabled((await send(SESSION_PATH, { timeout: CONNECTION_TIMEOUT_MS }))?.agent_enabled)
+  } catch (error) {
+    if (error.status === 401) return renewSession()
+    if (error.status === 404 || error.status === 405) setAgentEnabled(true)
+  }
+}
 
 async function send(path, { method = 'GET', body, timeout = DEFAULT_TIMEOUT_MS, keepalive, signal, onEmpty } = {}) {
   const controller = new AbortController()

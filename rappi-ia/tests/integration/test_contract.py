@@ -27,6 +27,7 @@ from owner_client import OwnerClient
 from rappi_ia.agent.compose import TemplateComposer
 from rappi_ia.agent.rappi_agent import RappiAgent
 from rappi_ia.api import app as api
+from rappi_ia.api import identity
 from rappi_ia.api.services import Services
 from rappi_ia.demo.seed import seed_demo
 from rappi_ia.embeddings.base import HashEmbedder
@@ -73,6 +74,7 @@ class Example:
     body: dict | None = None
     status: int = 200
     after: str | None = None  # el Example que se pide antes: cada test parte de una base nueva
+    user: str | None = None  # la persona cuyo token va en X-User-Token, si la ruta no lleva su id (GET /session)
 
 
 # Las etapas siguientes agregan aquí los endpoints que la app consume.
@@ -251,6 +253,8 @@ CONTRACT: tuple[Example, ...] = (
     # Se reclama el id viejo de un navegador (de antes de la sesión firmada): la respuesta no cambia en cada corrida.
     # El token sale del secreto de los tests (tests/conftest.py), que no sirve fuera de ellos.
     Example("session", "POST", "/session", {"legacy_user_id": "proto-0123456789abcdef"}),
+    # Al volver a abrir, la sesión que ya tenía: con el grupo de control apagado, Mochi está (`agent_enabled`).
+    Example("session-actual", "GET", "/session", user="proto-0123456789abcdef"),
 )
 
 
@@ -421,6 +425,8 @@ def test_contract_examples_are_up_to_date(client, example):
         assert client.request(before.method, before.path, json=before.body).status_code == before.status
     # El `request_id` de las respuestas que ordenan cosas es el X-Request-ID del pedido: fijo, el ejemplo no cambia.
     headers = {"X-Request-ID": f"contrato-{example.name}"}
+    if example.user:
+        headers[identity.TOKEN_HEADER] = identity.sign(example.user)
     reply = client.request(example.method, example.path, json=example.body, headers=headers)
     check_example(example, reply, FIXTURES, write=os.environ.get("RAPPI_CONTRACT_WRITE") == "1")
 

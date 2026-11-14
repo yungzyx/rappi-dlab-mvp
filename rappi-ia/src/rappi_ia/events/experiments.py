@@ -5,7 +5,8 @@
   `app_sessions.mode`. Comparar sus variantes describe, no mide un efecto.
 - `ofertas_control` sí es al azar: un sorteo estable con el id de la persona (`bucket`) la deja en `control` si cae bajo
   `config.OFFERS_CONTROL_PCT`. En 0 (lo de siempre) nadie entra: no se asigna ni se retiene nada. Quien ya tenía una
-  variante la conserva aunque el porcentaje cambie.
+  variante la conserva aunque el porcentaje cambie. Desde el 14-11-2026 el control es "Mochi apagado" (`agent_enabled`
+  falso en `/session`, docs/plan-piloto.md): sin la mascota, sin sus ofertas y con el buscador de siempre.
 
 Las asignaciones llevan la población de la persona (`app_users.source`): un trigger de la base lo exige, y quien compare
 variantes lo hace dentro de una sola.
@@ -21,15 +22,22 @@ MODE = "modo_app"
 OFFERS_CONTROL = "ofertas_control"
 CONTROL = "control"
 TREATMENT = "tratamiento"
-# Lo que el grupo de control de las ofertas (`ofertas_control`) no ve: estos momentos de `POST /agent/offer` cuando la
-# app los pide sin que la persona los pida (la Home, la búsqueda sin resultado, el seguimiento). Lo que la persona pide
-# se muestra siempre: un plan, un perfil de gusto, "¿Me falta algo?" del checkout (el momento `checkout`, que solo se
-# pide al tocarlo) y lo que pide en el buscador (`surface` ASKED_SURFACE: "Repite lo de siempre", "¿Con qué
-# acompaño…?", "¿Qué puedo probar?"). Tampoco retiene "Para ti" (/recommendations), la sugerencia cruzada de las
-# respuestas de Mochi (/agent/ask) ni el orden de la Home.
+# El grupo de control es "Mochi apagado" (`agent_enabled`): no ve la mascota ni el buscador con Mochi, y la API nunca le
+# entrega una oferta (`POST /agent/offer`, cualquier momento) ni una respuesta de Mochi (`/agent/ask` le da la búsqueda
+# de siempre). Conserva "Para ti" (/recommendations) y el orden de la Home, que Rappi ya tiene.
+# Las ofertas que Mochi propone solo: estos momentos de `POST /agent/offer` cuando la app los pide sin que la persona
+# los pida (la Home, la búsqueda sin resultado, el seguimiento). El panel cuenta sus mostradas y aceptadas. Lo que la
+# persona pide no está aquí: un plan, un perfil de gusto, "¿Me falta algo?" del checkout (el momento `checkout`, que
+# solo se pide al tocarlo) y lo que pide en el buscador (`surface` ASKED_SURFACE: "Repite lo de siempre", "¿Con qué
+# acompaño…?", "¿Qué puedo probar?").
 HOLDOUT_MOMENTS = frozenset(
     {"carrito", "sin_resultado", "proximo_pedido", "vertical_por_probar", "recompra", "volver", "ontop"}
 )
+# De ellas, las que la app pide igual en los dos grupos, sin tocar nada de Mochi (el control las pide aunque no las
+# muestre): la API las anota al responder (`offer_withheld` en control, `offer_eligible` en tratamiento) y con ellas se
+# cuenta la parte expuesta. "Muéstrame algo nuevo" (`vertical_por_probar`) se pide en el menú de la mascota, que el
+# control no tiene: no se anota en ningún grupo.
+EXPOSURE_MOMENTS = HOLDOUT_MOMENTS - {"vertical_por_probar"}
 ASKED_SURFACE = "agent"
 
 

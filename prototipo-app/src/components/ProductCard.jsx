@@ -7,6 +7,7 @@ import { useImpressions } from '../hooks/useImpressions'
 import { useLongPress } from '../hooks/useLongPress'
 import { useAssistant } from '../state/AssistantContext'
 import { useDemo } from '../state/DemoContext'
+import { useAgentEnabled } from '../state/agentEnabled'
 import { useAgentHidden } from '../state/agentHidden'
 import AddButton from './AddButton'
 import Img from './Img'
@@ -30,7 +31,8 @@ export function ProductCard({ product, onOpenStore, impression = false, showStor
   const watch = useImpressions()
   const agentHidden = useAgentHidden()
   // Preguntarle a Mochi por el producto: solo en el prototipo final y con Mochi a la vista.
-  const final = useDemo()?.isFinal === true && !agentHidden
+  const agentEnabled = useAgentEnabled()
+  const final = useDemo()?.isFinal === true && !agentHidden && agentEnabled
   const assistant = useAssistant()
   const [asking, setAsking] = useState(false)
   const press = useLongPress(() => setAsking(true))

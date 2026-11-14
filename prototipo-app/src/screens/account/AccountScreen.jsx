@@ -8,6 +8,7 @@ import { CardIcon, HeadsetIcon, LogoutIcon, OrdersIcon } from '../../components/
 import { useAddress } from '../../state/AddressContext'
 import { MODE_LABELS, nextMode, useDemo } from '../../state/DemoContext'
 import { useEvents } from '../../state/EventsContext'
+import { useAgentEnabled } from '../../state/agentEnabled'
 import { setAgentHidden, useAgentHidden } from '../../state/agentHidden'
 import { resetLive } from '../../state/liveMemory'
 import { useOrders } from '../../state/OrdersContext'
@@ -29,6 +30,8 @@ export default function AccountScreen({ onBack, push }) {
   const isPro = usePro()
   const [sheet, setSheet] = useState(null)
   const agentHidden = useAgentHidden()
+  // En el grupo de control ("Mochi apagado") no hay a quién mostrar ni ocultar: sin las filas de Mochi.
+  const agentEnabled = useAgentEnabled()
   const events = useEvents()
   // "Modo demo" cambia toda la app de modo: como el interruptor de la presentación, solo en desarrollo o con VITE_DEMO=1.
   const showDemoRow = import.meta.env.DEV || import.meta.env.VITE_DEMO === '1'
@@ -148,7 +151,12 @@ export default function AccountScreen({ onBack, push }) {
               <h2>{section.title}</h2>
               <ul>
                 {section.rows
-                  .filter((row) => (!row.finalOnly || demo.isFinal) && (showDemoRow || row.action !== 'demo'))
+                  .filter(
+                    (row) =>
+                      (!row.finalOnly || demo.isFinal) &&
+                      (showDemoRow || row.action !== 'demo') &&
+                      (agentEnabled || !row.agentOnly),
+                  )
                   .map((row) => (
                     <li key={row.id}>
                       <button

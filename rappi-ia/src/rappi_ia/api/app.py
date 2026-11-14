@@ -27,7 +27,7 @@ from psycopg_pool import PoolTimeout
 from pydantic import Field, ValidationError, field_validator
 
 from .. import config
-from ..agent.grouped_search import SpareConnector, search_each, search_grouped
+from ..agent.grouped_search import GroupedResult, SpareConnector, search_each, search_grouped
 from ..agent.rappi_agent import PROTOTYPE_VERTICALS, Context
 from ..agent.tools import VERTICAL_LABELS, Suggestion, search_products, suggest_complement
 from ..analytics import queries
@@ -50,7 +50,7 @@ from ..offers.profiles import active_profiles, person_city
 from ..retrieval.hybrid import MODES, detect_concepts
 from ..text import contract_articles
 from . import deps, identity, prewarm
-from .agent import WITHHELD_HEADER
+from .agent import AGENT_WITHHELD_HEADER, WITHHELD_HEADER, agent_enabled, offers_variant
 from .agent import router as agent_router
 from .autonomy import router as autonomy_router
 from .catalog import router as catalog_router
@@ -156,7 +156,8 @@ app.add_middleware(
     allow_origin_regex=CORS_ORIGIN_REGEX,
     allow_methods=["GET", "POST", "PUT", "DELETE"],  # PUT: "Mis preferencias" y "Pedir por mí"
     allow_headers=["content-type", identity.TOKEN_HEADER.lower()],
-    expose_headers=[WITHHELD_HEADER],  # la app lo lee en otro puerto (en local; en producción es el mismo origen)
+    # La app las lee en otro puerto (en local; en producción es el mismo origen).
+    expose_headers=[WITHHELD_HEADER, AGENT_WITHHELD_HEADER],
 )
 app.add_middleware(AccessLog)  # el más externo: también los 413 y 429 llevan su id y su línea
 
@@ -435,6 +436,8 @@ def health(conn: Connection = Depends(get_conn), svc: Services = Depends(get_ser
 def ask(
     body: AskIn, request: Request, conn: Connection = Depends(get_conn), svc: Services = Depends(get_services)
 ) -> dict:
+    """La respuesta de Mochi a lo escrito (o a un chip). A quien está en el grupo de control ("Mochi apagado"; la app
+    no le muestra este buscador) responde la búsqueda de siempre, con `X-Agent-Withheld: 1`: ver `_withheld_answer`."""
     owner_of_body(request, body.user_id)
     ctx = _context(conn, body.vertical, body.user_id, body.profile, body.shown_topics, body.mode)
     if body.previous and (body.previous.concepts or body.previous.occasion or body.previous.symptom):
@@ -446,8 +449,95 @@ def ask(
     except ValueError as exc:
         raise rejected(exc, body.user_id) from exc
     response = {**response, "request_id": served_request_id()}
+    if offers_variant(conn, body.user_id) == experiments.CONTROL:
+        return _withheld_answer(conn, svc, body, response)
     _log_ask(conn, body.user_id, body.session_id, body.message, response, "texto", body.mode)
     return response
+
+
+# Lo que una respuesta de Mochi suma a la búsqueda y el grupo de control no ve: `payload.retenido` de su impresión.
+WITHHELD_PARTS = (
+    ("suggestion", "sugerencia"),
+    ("autopedido", "autopedido"),
+    ("also_in", "tambien_en"),
+    ("actions", "acciones"),
+    ("service", "servicio"),
+)
+
+
+def _withheld_answer(conn: Connection, svc: Services, body: AskIn, answer: dict) -> JSONResponse:
+    """`/agent/ask` para el grupo de control: la búsqueda de siempre de lo escrito (la de `/search` sin vertical, con la
+    pantalla primero y sin las preferencias que la persona le dijo a Mochi), en una lista, sin texto de Mochi, sin plan,
+    sin sugerencia cruzada ni acciones, con `X-Agent-Withheld: 1`. Lo que Mochi habría respondido (`answer`, ya
+    calculado) queda como impresión contrafactual: un `offer_withheld` de origen `agent-ask` en el buscador (`surface`
+    `agent`), con la sugerencia cruzada en sus elementos y lo retenido en `payload.retenido`. La app en control no llama
+    aquí (su buscador es el de siempre): solo una app vieja u otro cliente, así que esa impresión no cuenta en la parte
+    expuesta, que se cuenta con lo que la app pide igual en los dos grupos. Queda como una búsqueda (`search`), no como
+    una pregunta a Mochi (`ask`): para el control no lo fue, y la adopción no la cuenta."""
+    _note_withheld_answer(conn, body, answer)
+    conn.commit()  # el vector de la consulta se calcula sin una lectura abierta (como en `/search`)
+    query = body.message.strip()[:200]
+    found = (
+        search_grouped(conn, query, svc.embedder, backend_vertical(body.vertical), GROUPED_SEARCH_LIMIT)
+        if query
+        else GroupedResult(query, unmet=True)
+    )
+    products = [p.to_dict() for group in found.groups for p in group.products]
+    concepts = detect_concepts(found.corrected_query or query) if query else []
+    plain = {
+        "text": f'Resultados para "{query}".' if products else f'Sin resultados para "{query}".',
+        "products": products,
+        "unmet": found.unmet,
+        "corrected_query": found.corrected_query,
+        "intent": {"kind": "buscar", "concepts": concepts[:1]},
+        "request_id": answer["request_id"],
+    }
+    _log_ask(conn, body.user_id, body.session_id, body.message, plain, "texto", body.mode, kind="search")
+    return JSONResponse(plain, headers={AGENT_WITHHELD_HEADER: "1"})
+
+
+def _note_withheld_answer(conn: Connection, body: AskIn, answer: dict) -> None:
+    """La impresión contrafactual de una respuesta de Mochi retenida al grupo de control (ver `_withheld_answer`); sin
+    sesión no se anota, como en `/agent/offer`."""
+    if not body.session_id:
+        return
+    suggestion = answer.get("suggestion") or {}
+    products = suggestion.get("products") or []
+    held = ["respuesta", *(name for key, name in WITHHELD_PARTS if answer.get(key))]
+    event = events.Event(
+        user_id=body.user_id,
+        session_id=body.session_id,
+        type="offer_withheld",
+        vertical=suggestion.get("vertical"),
+        concept_id=suggestion.get("concept"),
+        results=len(products),
+        payload={
+            "moment": "ask",
+            "experiment": experiments.OFFERS_CONTROL,
+            "variant": experiments.CONTROL,
+            "retenido": held,
+        },
+        surface=experiments.ASKED_SURFACE,
+        origin="agent-ask",
+        request_id=answer["request_id"],
+        items=[
+            {
+                "position": position,
+                "entity_type": product["entity_type"],
+                "entity_id": product["entity_id"],
+                "concept_id": product.get("concept"),
+                "vertical": product.get("vertical"),
+            }
+            for position, product in enumerate(products[: events.MAX_EVENT_ITEMS])
+        ],
+    )
+    try:
+        with conn.transaction():
+            events.record(conn, [event], source="prototype")
+    except (ValueError, Error) as exc:  # anotarla es secundario: la respuesta sale igual
+        log.warning("No se pudo anotar la respuesta retenida (%s)", type(exc).__name__)
+        return
+    conn.commit()
 
 
 GROUPED_SEARCH_LIMIT = 6  # por grupo
@@ -657,7 +747,7 @@ def new_session(body: SessionIn, request: Request, conn: Connection = Depends(ge
     """El id de este navegador y su token (X-User-Token). Un id viejo de la app (de antes de la identidad firmada) se
     reclama una sola vez y conserva lo que ya tenía; si no, una persona nueva, con un tope por IP al día (429). Aquí se
     le asigna su variante del grupo de control de las ofertas (`ofertas_control`, si está encendido): una vez y estable.
-    """
+    `agent_enabled` es falso si quedó en el grupo de control ("Mochi apagado": la app no muestra a Mochi)."""
     user_id = identity.claim_legacy(conn, body.legacy_user_id)
     if user_id is None:
         client = request.client
@@ -667,9 +757,19 @@ def new_session(body: SessionIn, request: Request, conn: Connection = Depends(ge
             conn.rollback()
             raise HTTPException(429, TOO_MANY, headers={"Retry-After": str(retry)})
         user_id = identity.create_user(conn)
-    experiments.offers_variant(conn, user_id)  # su variante del grupo de control de las ofertas, si está encendido
     conn.commit()
-    return {"user_id": user_id, "token": identity.sign(user_id)}
+    return {"user_id": user_id, "token": identity.sign(user_id), "agent_enabled": agent_enabled(conn, user_id)}
+
+
+@app.get("/session")
+def current_session(request: Request, conn: Connection = Depends(get_conn)) -> dict:
+    """La sesión que ya tiene este navegador (la de su X-User-Token; sin él o con uno que no es de esta API, 401): su id
+    y `agent_enabled`. La app la pide cada vez que abre, así sabe si la persona está en el grupo de control también al
+    recargar, y quien ya tenía token recibe aquí su variante si el experimento se encendió después."""
+    user_id = identity.current_user(request)
+    if user_id is None:
+        raise HTTPException(401, identity.NO_SESSION)
+    return {"user_id": user_id, "agent_enabled": agent_enabled(conn, user_id)}
 
 
 @app.get("/profile/{user_id}", dependencies=[Depends(owner_in_path)])
@@ -986,8 +1086,9 @@ def _searchable(conn: Connection, vertical: str | None) -> str | None:
     return None
 
 
-def _log_ask(conn, user_id, session_id, text, response, modality, mode) -> None:
-    """Registra la consulta (redactada) para tendencias y demanda no satisfecha. En "Rappi hoy" no se aprende."""
+def _log_ask(conn, user_id, session_id, text, response, modality, mode, kind="ask") -> None:
+    """Registra la consulta (redactada) para tendencias y demanda no satisfecha. En "Rappi hoy" no se aprende. `kind` es
+    `ask` (una pregunta a Mochi) o `search` (la búsqueda de siempre que responde al grupo de control)."""
     if not user_id or not session_id:
         return
     concepts = response.get("intent", {}).get("concepts") or []
@@ -997,7 +1098,7 @@ def _log_ask(conn, user_id, session_id, text, response, modality, mode) -> None:
     event = events.Event(
         user_id=user_id,
         session_id=session_id,
-        type="ask",
+        type=kind,
         vertical=response.get("vertical"),
         concept_id=concepts[0] if concepts and mode == "propuesta" else None,
         query=None if private else text,
