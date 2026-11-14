@@ -27,7 +27,7 @@
 //     la oferta es de Turbo (el siguiente peldaño de la escalera desde Restaurantes, según la tabla de Rappi) y su
 //     "¿Por qué?" muestra la razón. Solo se mira la vertical y que haya una razón: el texto exacto depende de lo que haya
 //     aprendido el motor;
-//   con --expect-offline: la API está detenida y la app muestra "Sin conexión con <agente>";
+//   con --expect-offline: la API está detenida y la app muestra "Sin conexión" (con el agente si ya tenía sesión);
 //   con --panel <url del panel> (sin --app): corre después de las demás, con la API en marcha. Espera a que la API ya
 //     cuente lo que dejó el kit (una oferta aceptada en "Plan"), abre el panel en "Mochi y búsquedas" con la fuente
 //     del prototipo y ve esa cifra en "Ofertas del agente por momento", con el aviso "uso del MVP, pocas personas: no
@@ -45,6 +45,9 @@ import { AGENT_NAME } from '../src/agent/name.js'
 // Los textos visibles llevan el nombre del agente: salen de la misma constante que usa la app.
 const HOME_HINT = `Busca o pídele ideas a ${AGENT_NAME}`
 const OFFLINE_TITLE = `Sin conexión con ${AGENT_NAME}`
+// En la primera visita (un navegador sin sesión, como el de esta revisión) todavía no se sabe si la persona tiene al
+// agente (el grupo de control), así que el aviso no lo nombra: vale cualquiera de los dos.
+const OFFLINE_HEADING = new RegExp(`^Sin conexión(?: con ${AGENT_NAME})?$`)
 const SEARCH_DIALOG = `Buscador con ${AGENT_NAME}`
 const API_DEFAULT = 'http://localhost:8010'
 const TIMEOUT_MS = 20_000 // la barra rota tres frases cada 3,2 s: la de Mochi tarda hasta ~6 s en salir
@@ -62,7 +65,7 @@ async function checkOnline(page) {
   } catch {
     throw new Error(`no apareció la barra "${HOME_HINT}": ${await pageSays(page)}`)
   }
-  if ((await page.getByRole('heading', { name: OFFLINE_TITLE }).count()) > 0) {
+  if ((await page.getByRole('heading', { name: OFFLINE_HEADING }).count()) > 0) {
     throw new Error(`apareció "${OFFLINE_TITLE}" con la API en marcha`)
   }
   // Una persona nueva ve el aviso de privacidad (qué se guarda y cómo borrarlo); se cierra para que no tape el resto.
@@ -505,12 +508,12 @@ async function step(page, what, action) {
 
 async function checkOffline(page) {
   try {
-    await page.getByRole('heading', { name: OFFLINE_TITLE }).waitFor({ timeout: TIMEOUT_MS })
+    await page.getByRole('heading', { name: OFFLINE_HEADING }).waitFor({ timeout: TIMEOUT_MS })
   } catch {
-    throw new Error(`no apareció "${OFFLINE_TITLE}": ${await pageSays(page)}`)
+    throw new Error(`no apareció "Sin conexión": ${await pageSays(page)}`)
   }
   if ((await page.locator('.smart-bar').count()) > 0) throw new Error('la Home se montó sin API')
-  return `la app muestra "${OFFLINE_TITLE}"`
+  return `la app muestra "${await page.getByRole('heading', { name: OFFLINE_HEADING }).textContent()}"`
 }
 
 const { values } = parseArgs({

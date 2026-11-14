@@ -125,7 +125,7 @@ Ctrl-C detiene los tres; si uno se cae solo, detiene el resto. No descarga nada 
 - Sirve en una wifi local (192.168.x, 10.x), con el hotspot de un iPhone (el Mac queda en 172.20.10.x) y con el nombre Bonjour del Mac (`http://nombre-del-mac.local:5174`).
 - macOS pide permiso de red la primera vez.
 
-**Si aparece "Sin conexión con Mochi":** la app no corre sin la API y no tiene respaldo local.
+**Si aparece "Sin conexión con Mochi" (o "Sin conexión", la primera vez):** la app no corre sin la API y no tiene respaldo local.
 
 - ¿Está corriendo `make mvp`? Si no, levántalo desde la raíz.
 - ¿La API terminó de cargar? Espera a "MVP listo" (o a "Application startup complete" en el registro `[api]`): la pantalla vuelve a probar sola cada 2 s y entra cuando responde; **Reintentar** prueba al instante.
@@ -143,7 +143,7 @@ Ctrl-C detiene los tres; si uno se cae solo, detiene el resto. No descarga nada 
 6. **Home dinámica:** una persona nueva ve los 6 accesos en el orden fijo, con Lealtad y Beneficios Pro al final y sin el texto "Ordenadas según lo que más usas"; pide en Rappi Mall (Home → Rappi Mall → primera tienda → agregar un producto → pagar), recarga y vuelve a la Home: la API pone Rappi Mall primero con el motivo "Porque pediste en Rappi Mall." y la fila lo muestra con el texto. Un pedido basta para mover un acceso; tocarlo varias veces el mismo día no (hacen falta señales en dos días distintos, `motor/home.py`).
 7. **Combinación:** una persona nueva pide en Restaurantes (Home → Restaurantes → el primer restaurante → agregar un plato → pagar), la app se recarga y Mochi, al tocarlo y elegir "Muéstrame algo nuevo", propone **Turbo** (el siguiente peldaño de la escalera desde Restaurantes, con la tabla de Rappi como punto de partida) con su "¿Por qué?", que muestra la razón. Solo mira la vertical y que haya una razón: el texto exacto depende de lo que haya aprendido el motor.
 8. **Panel:** abierto en "Mochi y búsquedas" con la fuente del prototipo, la tabla "Ofertas del agente por momento" muestra "Plan" con al menos una oferta aceptada (la del kit) y el aviso "uso del MVP, pocas personas: no es evidencia" en la franja de procedencia, sin el aviso de datos guardados. Espera hasta 30 s a que la API ya cuente los eventos de las revisiones anteriores (la app los manda en lotes cada 5 s).
-9. **Sin API:** al detener la API, la app muestra "Sin conexión con Mochi".
+9. **Sin API:** al detener la API, la app muestra "Sin conexión" (en un navegador nuevo no nombra a Mochi: todavía no sabe si la persona lo tiene).
 
 Mientras la API está en marcha, también falla ante un error de la página o de la consola o una respuesta 4xx/5xx (solo se ignoran las imágenes de prueba, que no existen). Termina con "MVP check: 9 de 9 bien" y no deja nada escuchando. Necesita libres los puertos 8010, 5184 y 5185. **Borra y vuelve a sembrar `rappi_ia_test`:** comparte con `make test` y `make contract` de `rappi-ia/` un candado (`.git/rappi-ia-test-db.lock`, en la carpeta común de git, así que también entre worktrees; fuera de git, `rappi-ia/.test-db.lock`), así que si otra prueba está corriendo sale de inmediato con "Otra prueba está usando rappi_ia_test"; si el proceso que lo tenía murió (kill -9, apagón), el siguiente comando toma el candado solo; si el aviso persiste y nada usa la base, el mensaje dice cómo borrarlo (`rm -rf` con la ruta del candado). Funciona igual en Linux (sin `lsof`; con `CHROME_PATH` o `PLAYWRIGHT_CHANNEL` se elige otro Chrome) y es el job `mvp-check` del CI (que sube capturas de las revisiones que fallen).
 

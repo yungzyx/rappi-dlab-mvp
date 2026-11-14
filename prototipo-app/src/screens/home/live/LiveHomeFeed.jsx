@@ -713,10 +713,12 @@ export default function LiveHomeFeed({ push, active = true }) {
   // por su cuenta hasta mañana); silenciado, la opción es "Volver a hablar". Mientras saluda, tocarlo no cambia de tema.
   // Si el menú se abre sobre una oferta (el globo del carro, la vertical por probar), al cerrarlo sin pedir algo nuevo
   // la oferta vuelve: no se pierde sin registrar nada. Oculto o silenciado (desde el menú), la oferta queda como
-  // expirada, no vuelve nada y lo pendiente se olvida (`drain` en silencio).
+  // expirada, no vuelve nada y lo pendiente se olvida (`drain` en silencio). Cada apertura del menú deja un
+  // `agent_open` (cuenta como usar a Mochi en el panel); cerrarlo no.
   const poke = () => {
     if (!session.played) return
     if (said.current?.menu) return said.current.menu.onClose()
+    events.track('agent_open', { surface: 'home', origin: 'mascota-home' })
     const under = said.current?.onExpire ? said.current : null
     // Silenciado u oculto desde el menú, la oferta de debajo no vuelve: queda anotada como si se hubiera ido sola.
     const close = () => {

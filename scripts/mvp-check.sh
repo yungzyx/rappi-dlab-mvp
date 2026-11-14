@@ -22,7 +22,7 @@
 #   8. panel: "Mochi y búsquedas" del panel (fuente prototipo) muestra lo que dejó la revisión 3 (una oferta aceptada
 #      en "Plan") con el rótulo "uso del MVP, pocas personas: no es evidencia". Corre después de las demás, con la API
 #      todavía en marcha;
-#   9. sin API: se detiene la API y la app muestra "Sin conexión con Mochi".
+#   9. sin API: se detiene la API y la app muestra "Sin conexión" (en un navegador nuevo, sin nombrar a Mochi).
 set -euo pipefail
 SELF="$(cd "$(dirname "$0")" && pwd)/$(basename "$0")"
 cd "$(dirname "$0")/.."

@@ -56,6 +56,10 @@ EVENT_TYPES = {
     "survey_shown",
     "survey_answer",
     "survey_dismissed",
+    # Abrir el menú de Mochi tocando la mascota (migración 059): en la Home (`surface` home, `origin` mascota-home) o
+    # Mochi flotante (`surface` agent, `origin` mascota-flotante). Cuenta como usar a Mochi en la adopción
+    # (analytics/queries.py: _USED_AGENT); no enseña al motor.
+    "agent_open",
 }
 # El `payload.kind` de un `suggestion_dismissed` cuya oferta se fue sola del globo de la Home, sin que la persona tocara
 # nada: no es un rechazo (ni en el panel ni para el "volver"), solo la distingue de "sin respuesta".

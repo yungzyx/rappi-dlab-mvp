@@ -137,6 +137,16 @@ test('acepta los eventos de la pregunta in-app (survey_shown, survey_answer y su
   ])
 })
 
+test('acepta agent_open (tocar a Mochi abre su menú) y no suma interés', () => {
+  const reply = call('POST', '/events', {
+    user_id: 'u',
+    events: [{ type: 'agent_open', surface: 'home', origin: 'mascota-home' }],
+  })
+  expect(reply.body).toEqual({ guardados: 1 })
+  expect(readState().events.map((e) => [e.type, e.origin])).toEqual([['agent_open', 'mascota-home']])
+  expect(call('GET', '/profile/u').body.interests).toEqual([])
+})
+
 test('order_cancelled cancela el pedido de su carro y su tienda (en los dos modos); el otro de la compra sigue', () => {
   const placed = (vertical, store) =>
     call('POST', '/orders', {
