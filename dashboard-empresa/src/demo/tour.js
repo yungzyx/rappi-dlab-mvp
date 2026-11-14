@@ -44,13 +44,18 @@ function kpis(responses, { activeUsers = 0, orders = 0 }) {
   })
 }
 
-/** "¿Mochi molesta?": una persona activa más y, si lo oculta (`hides`), una persona oculta más y su % de nuevo. */
+/**
+ * "¿Mochi molesta?": una persona activa más y, si lo oculta (`hides`), una persona oculta más; los dos % de nuevo (el de
+ * quienes lo silenciaron también cambia con las activas).
+ */
 function presence(responses, { activeUsers = 0, hides = 0 }) {
   return edit(responses['presencia.prototype'], (data) => {
     data.personas_activas += activeUsers
     data.ocultos += hides
     data.ocultadas += hides
-    data.ocultos_pct = data.personas_activas ? round((data.ocultos * 100) / data.personas_activas, 1) : null
+    const pct = (n) => (data.personas_activas ? round((n * 100) / data.personas_activas, 1) : null)
+    data.ocultos_pct = pct(data.ocultos)
+    if (data.silenciaron !== undefined) data.silenciaron_pct = pct(data.silenciaron)
   })
 }
 

@@ -136,6 +136,24 @@ def _participant(db, user="proto-aaaa"):
                 payload={"visible": False},
             ),
             e(user, "s1", "agent_visibility", ts=_at(10), origin="cuenta", payload={"visible": True}),
+            e(
+                user,
+                "s1",
+                "agent_visibility",
+                ts=_at(10.25),
+                origin="menu-mochi",
+                surface="home",
+                payload={"visible": True, "quiet": True},
+            ),
+            e(
+                user,
+                "s1",
+                "agent_visibility",
+                ts=_at(10.5),
+                origin="pestana-silencio",
+                surface="agent",
+                payload={"visible": True, "quiet": False},
+            ),
         ],
         session=ONCE,
     )
@@ -430,7 +448,7 @@ def test_summary_of_a_participant(seeded, tmp_path, capsys):
     assert "Experimentos: modo_app = propuesta." in text
     # Sesión: 12 minutos, del app_open a la cancelación, en modo propuesta.
     assert "1 sesión(es), 12 min 00 s en total" in text
-    assert "| 03-11-2026 15:00 | 12 min 00 s | propuesta | 18 |" in text
+    assert "| 03-11-2026 15:00 | 12 min 00 s | propuesta | 20 |" in text
     # Búsquedas: la corregida y la sin resultado, marcadas; la de Mochi también cuenta.
     assert "3 búsqueda(s): 1 sin resultado y 1 corregida(s)" in text
     assert '| 03-11 15:01 | buscador | "cervesa" | 5 | corregida a "cerveza" |' in text
@@ -458,10 +476,12 @@ def test_summary_of_a_participant(seeded, tmp_path, capsys):
     # Verticales: las dos abiertas; con pedido solo Licores (el de Restaurantes se canceló).
     assert "- Abiertas (un acceso de la Home o un botón de Mochi): Licores, Restaurantes." in text
     assert "- Con pedido (sin los cancelados): Licores." in text
-    # Ocultó a Mochi y lo trajo de vuelta.
-    assert "Ocultó a Mochi: sí." in text
+    # Ocultó a Mochi y lo trajo de vuelta; después lo silenció por hoy y lo despertó (eso no es ocultarlo).
+    assert "Ocultó a Mochi: sí. Lo silenció por hoy: sí (1 vez)." in text
     assert "- 03-11 15:09: lo ocultó (desde menu-mochi)" in text
     assert "- 03-11 15:10: lo trajo de vuelta (desde cuenta)" in text
+    assert "lo silenció por hoy (desde menu-mochi)" in text
+    assert "lo volvió a hacer hablar (desde pestana-silencio)" in text
     # Pedidos, con el cancelado marcado.
     assert "| 03-11 15:11 | Licores | $4.380 | 1 (1) | propuesta | confirmado | la persona |" in text
     assert "| 03-11 15:11 | Restaurantes | $8.990 | 1 (0) | propuesta | cancelado | la persona |" in text

@@ -784,10 +784,13 @@ def presence(conn: Connection, source: str = "synthetic") -> dict:
     """Si Mochi molesta: en los últimos ACTIVE_DAYS días (hasta el último evento de la fuente, como `kpis`), de las
     personas activas (algún evento), cuántas lo tienen oculto (su último `agent_visibility`, de cuando sea, es
     `visible: false`) y qué % son; cuántas veces lo ocultaron y cuántas personas lo trajeron de vuelta (algún
-    `visible: true`); y cuántas veces explicó por qué movió los accesos de la Home (`vertical_reorder_shown`), a cuántas
-    personas. La app no anota "¿Por qué?" ni "Entendido" del globo: no se cuentan. "Repetir escena" lo devuelve y lo
-    anota (`visible: true`); cambiar de persona en la demo o "Borrar mis datos" lo devuelven sin evento, porque es otra
-    persona: "oculto" es el último cambio que hizo la persona."""
+    `visible: true`); cuántas veces lo silenciaron por hoy (`silenciadas`), cuántas personas (`silenciaron`) y qué %
+    de las activas son (`silenciaron_pct`); y cuántas veces explicó por qué movió los accesos de la Home
+    (`vertical_reorder_shown`), a cuántas personas. La app no anota "¿Por qué?" ni "Entendido" del globo: no se
+    cuentan. "Repetir escena" lo devuelve y lo anota (`visible: true`); cambiar de persona en la demo o "Borrar mis
+    datos" lo devuelven sin evento, porque es otra persona: "oculto" es el último cambio que hizo la persona. Silenciar
+    y despertar también son `agent_visibility`, con `payload.quiet` (`visible` sigue en true): no cuentan como ocultar
+    ni como traerlo de vuelta."""
     _check(source)
     [row] = _rows(
         conn,
@@ -798,7 +801,12 @@ def presence(conn: Connection, source: str = "synthetic") -> dict:
             visibility AS (
                 SELECT user_id, ts, (payload ->> 'visible')::boolean AS visible FROM app_events
                 WHERE source = %(source)s AND type = 'agent_visibility'
-                  AND jsonb_typeof(payload -> 'visible') = 'boolean'
+                  AND jsonb_typeof(payload -> 'visible') = 'boolean' AND NOT payload ? 'quiet'
+            ),
+            quieted AS (
+                SELECT user_id FROM app_events
+                WHERE source = %(source)s AND type = 'agent_visibility' AND payload -> 'quiet' = 'true'::jsonb
+                  AND ts > {_AS_OF} - interval '{ACTIVE_DAYS} days'
             ),
             last_visibility AS (
                 SELECT DISTINCT ON (user_id) user_id, visible FROM visibility ORDER BY user_id, ts DESC
@@ -817,6 +825,10 @@ def presence(conn: Connection, source: str = "synthetic") -> dict:
                    round(100.0 * (SELECT n FROM hidden) / nullif((SELECT count(*) FROM active), 0), 1) AS ocultos_pct,
                    (SELECT count(*) FROM recent WHERE NOT visible) AS ocultadas,
                    (SELECT count(DISTINCT user_id) FROM recent WHERE visible) AS volvieron,
+                   (SELECT count(*) FROM quieted) AS silenciadas,
+                   (SELECT count(DISTINCT user_id) FROM quieted) AS silenciaron,
+                   round(100.0 * (SELECT count(DISTINCT user_id) FROM quieted)
+                         / nullif((SELECT count(*) FROM active), 0), 1) AS silenciaron_pct,
                    (SELECT count(*) FROM explained) AS explicaciones,
                    (SELECT count(DISTINCT user_id) FROM explained) AS explicaciones_personas""",
         {"source": source},
