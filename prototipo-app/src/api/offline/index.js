@@ -34,7 +34,8 @@
 //   offers/destacado.toml, llegan en meta.featured) y, con engine.py (_typical_first), lo que piden las personas del
 //   panel (personas.js: sampleOf)
 // - rappi-ia/src/rappi_ia/agent/tools.py ........... el foco de la búsqueda (_focus, en search.js) y el complemento
-//   alternado (_takes_second, en offers.js: complementOf)
+//   alternado (_takes_second, en offers.js: complementOf), y la especie de mascota (origin_species y says_species, en
+//   offers.js: complementOffer; las especies de concepts/complements.toml, copiadas a mano, que parity.test.js compara)
 // - rappi-ia/src/rappi_ia/agent/verticals.py (liquor_last) ... Licores al final de los grupos de una búsqueda que no
 //   pide nada +18 (search.js: groupsOf; el +18 de cada concepto llega en meta.concepts)
 // - rappi-ia/src/rappi_ia/agent/rappi_agent.py ..... "qué me recomiendas" (search.js: recommend) y el texto del consejo
