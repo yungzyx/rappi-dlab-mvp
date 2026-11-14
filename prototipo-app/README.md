@@ -4,7 +4,7 @@ Maqueta navegable de la app de Rappi Chile, hecha a partir de capturas y videos 
 
 > Imágenes, logos y marcas pertenecen a Rappi y a sus dueños; se usan solo como maqueta de demostración. Proyecto del programa dLab desarrollado junto con Rappi Chile; no es la app oficial de Rappi. Los banners y promociones de terceros que traían las capturas (bancos, aerolíneas, hoteles, restaurantes) se reemplazaron por contenido genérico o de ejemplo.
 
-Hecho con Vite + React 19. **Necesita la API de [`rappi-ia`](../rappi-ia/)**: sin ella no abre y muestra "Sin conexión con Mochi" con un botón "Reintentar". Con la API, Mochi busca en el catálogo real. Las imágenes que no cargan muestran un respaldo neutro.
+Hecho con Vite + React 19. **Necesita la API de [`rappi-ia`](../rappi-ia/)**: sin ella no abre y muestra "Sin conexión con Mochi" (o "Sin conexión" en la primera visita, antes de saber si la persona tiene a Mochi) con un botón "Reintentar". Con la API, Mochi busca en el catálogo real. Las imágenes que no cargan muestran un respaldo neutro.
 
 ![Modo demo: la misma app en el prototipo final y en "Rappi hoy"](docs/screenshots/00-modo-demo.jpg)
 
