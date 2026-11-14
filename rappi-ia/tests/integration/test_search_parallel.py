@@ -250,7 +250,7 @@ def test_searches_in_parallel_leave_room_for_other_requests(catalog, test_url, m
     active = {"now": 0}
     busy = threading.Condition()
 
-    def slow(conn, vertical, query, concepts, embedder, price_max=None, k=6, mode="hibrido", words=None):
+    def slow(conn, vertical, query, concepts, embedder, price_max=None, k=6, mode="hibrido", words=None, sober=False):
         with busy:
             active["now"] += 1
             busy.notify_all()

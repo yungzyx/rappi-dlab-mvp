@@ -1,6 +1,6 @@
 """Las tablas del backend que la API simulada de la demo sin conexión necesita y que la API no expone: los conceptos con
 sus guardias de ofertas y las palabras con que se los nombra en una consulta (con las de las ocasiones, sus conceptos y
-las de relleno), los servicios sin catálogo, la tabla de combinaciones de Rappi (motor/combos.toml), los
+las de relleno), qué concepto va con cuál (los complementos curados), los servicios sin catálogo, la tabla de combinaciones de Rappi (motor/combos.toml), los
 nombres visibles de las verticales, los perfiles de gusto (offers/perfiles.toml) con los conceptos que los activan
 (concepts/segments.toml), las reglas de lo destacado (offers/destacado.toml) y las palabras con que las guardias de
 ofertas reconocen alcohol o bebé en un nombre (offers/guards.py). Lo corre `scripts/demo-snapshot.mjs`
@@ -11,7 +11,8 @@ import json
 from rappi_ia.agent.grouped_search import SCREEN_VERTICALS
 from rappi_ia.agent.tools import VERTICAL_LABELS
 from rappi_ia.concepts.assign import _name_keyword, _query_only_words
-from rappi_ia.concepts.taxonomy import load_taxonomy
+from rappi_ia.concepts.need import goes_with
+from rappi_ia.concepts.taxonomy import load_complements, load_taxonomy
 from rappi_ia.layers.segments import load_segment_rules
 from rappi_ia.motor.combos import FINE_ORDER, OWN_SIGNALS_ONLY, SERVICES, load_combos
 from rappi_ia.offers.featured import load_rules
@@ -117,6 +118,11 @@ print(
                 "baby": sorted(BABY_NAME_WORDS),
             },
             "occasion_keywords": [phrase(k) for o in taxonomy.occasions.values() for k in o.keywords],
+            # Qué va con qué (concepts/complements.toml, en los dos sentidos): "bebida para mezclar con pisco" pide la
+            # bebida (concepts/need.py; src/api/offline/search.js: needOf).
+            "complements": {
+                f"{a}|{b}": goes_with(a, b) for s, t, _ in load_complements() for a, b in ((s, t), (t, s))
+            },
             # Para seguir una conversación sin conexión (src/api/offline/conversation.js): sus conceptos y la porción.
             "occasions": {
                 o.id: {

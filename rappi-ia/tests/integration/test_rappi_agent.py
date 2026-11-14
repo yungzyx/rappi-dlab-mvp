@@ -1308,15 +1308,20 @@ def test_when_it_is_for_is_not_a_detail_of_the_product(rappi_agent):
 
 
 def test_the_text_names_what_is_shown(rappi_agent):
-    """El texto nombra lo que se muestra. "bebida para mezclar con pisco" (gaseosas y pisco) mostraba solo piscos como
-    "bebidas gaseosas"; "algo dulce para el café de la tarde" (antojo dulce y café), cafés como "antojo dulce". La
-    ocasión sigue rotulando lo que es de ella ("cerveza para el asado")."""
+    """El texto nombra lo que se muestra, y lo que se muestra es lo pedido, no su para qué (concepts/need.py): "bebida
+    para mezclar con pisco" mostraba piscos (como "bebidas gaseosas" y después como pisco) y "algo dulce para el café
+    de la tarde", cafés. Ahora, bebidas sin nada +18 y lo dulce del antojo que va con el café. La ocasión sigue
+    rotulando lo que es de ella ("cerveza para el asado")."""
     agent, db = rappi_agent
     for pid, name, store, category in [
         (700, "Pisco Mistral 35° 750 cc", 2, "Pisco"),
         (701, "Pisco Capel Especial 40° 750 cc", 2, "Pisco"),
         (702, "Café Nescafé Tradición 170 g", 1, "Café"),
         (703, "Café Dolca Instantáneo 170 g", 1, "Café"),
+        (704, "Coca-Cola Bebida Original 1,5 L", 2, "Gaseosas"),
+        (705, "Sprite Bebida Lima Limón 1,5 L", 2, "Gaseosas"),
+        (706, "Galletas Tritón Vainilla 126 g", 1, "Galletas"),
+        (707, "Kuchen de manzana", 1, "Tortas y ponques"),
     ]:
         add_product(db, pid, name, store, category)
         add_price(db, store, pid, 5990)
@@ -1325,15 +1330,17 @@ def test_the_text_names_what_is_shown(rappi_agent):
     build_concepts(db)
     embed_search_documents(db, agent.embedder)
 
-    pisco = agent.reply(db, "bebida para mezclar con pisco", Context(vertical="licores"))
-    assert pisco["intent"]["concepts"][:1] == ["gaseosas"] and "pisco" in pisco["intent"]["concepts"]
-    assert {p["concept"] for p in pisco["products"]} == {"pisco"}
-    assert "pisco" in pisco["text"] and "gaseosas" not in pisco["text"]
+    drink = agent.reply(db, "bebida para mezclar con pisco", Context(vertical="licores"))
+    assert drink["intent"]["concepts"] == ["gaseosas"] and drink["intent"]["query"] == "bebida"
+    assert drink["products"] and {p["concept"] for p in drink["products"]} == {"gaseosas"}
+    assert not any(p["age_restricted"] for p in drink["products"]) and not drink["age_notice"]
+    assert "gaseosas" in drink["text"] and "pisco" not in drink["text"]
 
-    coffee = agent.reply(db, "algo dulce para el café de la tarde", Context(vertical="supermercado"))
-    assert coffee["intent"]["occasion"] == "antojo" and coffee["intent"]["concepts"] == ["cafe"]
-    assert coffee["vertical"] == "supermercado" and {p["concept"] for p in coffee["products"]} == {"cafe"}
-    assert "café" in coffee["text"] and "antojo" not in coffee["text"] and "no hay" not in coffee["text"]
+    sweet = agent.reply(db, "algo dulce para el café de la tarde", Context(vertical="supermercado"))
+    assert sweet["intent"]["occasion"] == "antojo" and "cafe" not in sweet["intent"]["concepts"]
+    assert sweet["vertical"] == "supermercado" and sweet["products"]
+    assert {p["concept"] for p in sweet["products"]} <= {"pasteleria", "galletas", "chocolates"}
+    assert "antojo" in sweet["text"] and "café" not in sweet["text"] and "no hay" not in sweet["text"]
 
     beer = agent.reply(db, "cerveza para el asado", Context(vertical="licores"))
     assert {p["concept"] for p in beer["products"]} == {"cerveza"} and "asado 🔥" in beer["text"]
