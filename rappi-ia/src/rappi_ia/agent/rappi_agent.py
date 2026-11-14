@@ -30,6 +30,7 @@ from psycopg import Connection
 from psycopg.pq import TransactionStatus
 
 from ..concepts.matcher import KeywordMatcher
+from ..concepts.need import context_text
 from ..concepts.taxonomy import load_taxonomy
 from ..embeddings.base import MemoizedQueryEmbedder, TextEmbedder
 from ..events.store import ensure_user
@@ -394,6 +395,7 @@ class RappiAgent:
                 symptom=intent.symptom,
                 offer=offer,
                 correct=self.correct_typos and not intent.symptom,
+                sober=self._sober(intent),
             )
             products = outcome.products
         # "algo más sano" se entiende como ensaladas, pero esas palabras no están en los productos: si nada de lo
@@ -454,6 +456,8 @@ class RappiAgent:
             core = _core_query(intent.query)
             named = [p for p in products if _says(p.name, core)] if core else []
             products = _by_price(named if len(named) >= MIN_SHOWN else products, intent)
+        if self._sober(intent):  # el alcohol era solo el para qué ("bebida para mezclar con pisco"): nada +18
+            products = [p for p in products if not p.age_restricted]
         # Lo de la ciudad de la demo primero, como en la búsqueda, también después del precio y de lo que se juntó.
         products = _city_first(products)[:6]
 
@@ -694,6 +698,8 @@ class RappiAgent:
         query = intent.query or intent.text
         if intent.explicit_concepts:
             query = self._without_when(intent, query)
+        if intent.context:  # "salsa para la pasta": también como se nombra la salsa que va con la pasta
+            query = f"{query} {context_text(intent.concepts, intent.context)}".strip()
         if not self._without(intent):
             return query
         words = _query_words(query)
@@ -1107,6 +1113,11 @@ class RappiAgent:
 
     def _alcoholic(self, concept_ids: list[str]) -> bool:
         return any(c in self.taxonomy.concepts and self.taxonomy.concepts[c].age_restricted for c in concept_ids)
+
+    def _sober(self, intent: Intent) -> bool:
+        """Si el alcohol nombrado es solo el para qué de lo pedido, y lo pedido no lo es: "bebida para mezclar con
+        pisco" muestra bebidas sin nada +18. "pisco con bebida" pide el pisco."""
+        return self._alcoholic(intent.context) and not self._alcoholic(intent.concepts)
 
     def _interests(self, profile: dict[str, float]) -> list[str]:
         concepts = self.taxonomy.concepts

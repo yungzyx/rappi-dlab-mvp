@@ -71,6 +71,7 @@ Documentos contados el 05-10 sobre la descarga del 04-10-2026 (segunda descarga 
 
 | Reporte | Qué mide |
 |---|---|
+| [necesidades-2026-11-13.md](necesidades-2026-11-13.md) | Las búsquedas por necesidad "X para Y": por qué fallaban tres, el set nuevo de 30 necesidades y el juez de tres niveles (juicio LLM, no humano) antes y después |
 | [mochi-2026-11-05.md](mochi-2026-11-05.md) | Mochi con revisiones automáticas (sin juez) y el juez de tres niveles (juicio LLM, no humano), con un set apartado; la búsqueda repuntuada con los juicios nuevos y las listas del 05-11 para `make eval-check` |
 | [simulados-2026-11-04.md](simulados-2026-11-04.md) | Los simulados regenerados con el sobre de eventos y las reformulaciones: el panel y el motor |
 | [tipeo-2026-11-04.md](tipeo-2026-11-04.md) | Los errores de tipeo en la búsqueda y en Mochi: la medida vigente |
