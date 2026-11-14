@@ -1,5 +1,10 @@
 """Lo pedido y para qué: en "X para Y" o "X con Y", lo pedido es X; Y dice con qué va.
 
+Con "para" se busca solo X (`Need.end`); con "con" se busca la frase entera, porque "X con Y" suele ser el nombre de lo
+pedido ("café con leche", "pan con palta", "pisco con bebida"): Y igual no es un concepto pedido. Salvo que Y sea +18:
+"algo para picar con la cerveza" busca solo lo de antes, porque no se muestra nada +18 y la cerveza solo llenaría los
+candidatos.
+
 "bebida para mezclar con pisco" pide bebidas, no pisco; "algo dulce para el café de la tarde" pide algo dulce, no café.
 Solo cuando los complementos curados (complements.toml) dicen que X e Y van juntos, en cualquier sentido: así "comida
 para gato" (un solo concepto), "pilas para control" o "shampoo para perro" (sin arista: el perro dice de qué tipo es el
@@ -13,7 +18,7 @@ from dataclasses import dataclass
 from functools import cache
 
 from .matcher import Match
-from .taxonomy import complement_queries, load_complements
+from .taxonomy import complement_queries, load_complements, load_taxonomy
 
 # Lo que separa lo pedido de su para qué. "de" no: "galletas de chocolate" dice cómo son las galletas.
 CONNECTORS = frozenset({"para", "con"})
@@ -23,7 +28,7 @@ CONNECTORS = frozenset({"para", "con"})
 class Need:
     asked: tuple[Match, ...]  # los conceptos pedidos (sin los del para qué)
     context: tuple[str, ...] = ()  # los conceptos que solo dicen para qué o con qué va lo pedido
-    end: int | None = None  # con contexto, el conector: lo pedido son las palabras antes de él
+    end: int | None = None  # el conector: lo pedido son las palabras antes de él (None con un "con" sin +18)
     occasion: str | None = None  # si lo pedido es una ocasión ("algo dulce"), cuál
     occasion_concepts: tuple[str, ...] = ()  # y sus conceptos que van con el contexto
 
@@ -76,10 +81,13 @@ def read_need(
     if not context:
         return Need(tuple(matches))
     weight = {k: max(goes_with(k, y) for y in context) for k in with_occasion}
+    end = min(context.values())
+    concepts = load_taxonomy().concepts
+    adult = any(concepts[c].age_restricted for c in context if c in concepts)
     return Need(
         tuple(m for m in matches if m.target not in context),
         tuple(context),
-        min(context.values()),
+        None if words[end] == "con" and not adult else end,  # "café con leche" se llama así: se busca entero
         occasion.target if with_occasion and occasion else None,
         tuple(sorted(with_occasion, key=lambda k: -weight[k])),
     )

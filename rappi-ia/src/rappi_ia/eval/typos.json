@@ -1,6 +1,6 @@
 {
- "version": "2026-10-24",
- "nota": "Errores de tipeo para la corrección de la búsqueda (retrieval/spelling.py, 24-10). Cada caso tiene lo que la persona escribió (`query`), lo que quiso escribir (`quiso`) y el motivo. Se recupera si la búsqueda no queda \"sin resultado\" y muestra al menos 3 de los 5 primeros productos que muestra `quiso` (o todos, si muestra menos). Los errores son los que se ven al escribir rápido en el teléfono: letras repetidas, faltantes, cambiadas o traspuestas, marcas mal escritas, sin tildes, con muletillas y plurales raros. `rappi-ia eval-typos` los mide junto con las negativas de queries.json, que deben seguir sin resultado.",
+ "version": "2026-11-14",
+ "nota": "Errores de tipeo para la corrección de la búsqueda (retrieval/spelling.py, 24-10). Cada caso tiene lo que la persona escribió (`query`), lo que quiso escribir (`quiso`) y el motivo. Se recupera si la búsqueda no queda \"sin resultado\" y muestra al menos 3 de los 5 primeros productos que muestra `quiso` (o todos, si muestra menos). Los errores son los que se ven al escribir rápido en el teléfono: letras repetidas, faltantes, cambiadas o traspuestas, marcas mal escritas, sin tildes, con muletillas y plurales raros. `rappi-ia eval-typos` los mide junto con las negativas de queries.json, que deben seguir sin resultado. Desde el 14-11, una palabra que calza solo por el nombre de un local se corrige si suena igual a una con muchísimo más uso (\"suchi\", por \"Suchi Tacna\"), y `nombres` son locales, tiendas y marcas que se buscan por su nombre: `rappi-ia eval-typos` cuenta cuántos siguen sin corregir en /search, en la agrupada y en Mochi.",
  "queries": [
   {
    "vertical": "supermercado",
@@ -343,6 +343,92 @@
    "query": "bodka",
    "quiso": "vodka",
    "motivo": "5 letras: letra que suena igual (b por v), sin otra palabra que la acompañe"
+  },
+  {
+   "vertical": "restaurantes",
+   "query": "hand roll suchi",
+   "quiso": "hand roll sushi",
+   "motivo": "nombre de un local que calza: letra cambiada (c por s)"
+  },
+  {
+   "vertical": "restaurantes",
+   "query": "promo suchi",
+   "quiso": "promo sushi",
+   "motivo": "nombre de un local que calza: letra cambiada (c por s)"
+  },
+  {
+   "vertical": "restaurantes",
+   "query": "rolls de suchi",
+   "quiso": "rolls de sushi",
+   "motivo": "nombre de un local que calza: letra cambiada (c por s)"
+  },
+  {
+   "vertical": "restaurantes",
+   "query": "suchi salmon",
+   "quiso": "sushi salmon",
+   "motivo": "nombre de un local que calza: letra cambiada (c por s)"
+  }
+ ],
+ "nombres": [
+  {
+   "vertical": "restaurantes",
+   "query": "suchi tacna",
+   "motivo": "el local completo: \"Suchi Tacna\""
+  },
+  {
+   "vertical": "restaurantes",
+   "query": "burgery",
+   "motivo": "local \"The Burgery\" (burger)"
+  },
+  {
+   "vertical": "restaurantes",
+   "query": "cevicheo",
+   "motivo": "local \"Cevicheo\" (ceviche)"
+  },
+  {
+   "vertical": "restaurantes",
+   "query": "chilantro",
+   "motivo": "local \"Chilantro\" (cilantro)"
+  },
+  {
+   "vertical": "restaurantes",
+   "query": "sanguchela",
+   "motivo": "local \"Sanguchela Arawato\""
+  },
+  {
+   "vertical": "restaurantes",
+   "query": "dullce sabor",
+   "motivo": "local \"Dullce Sabor\" (dulce)"
+  },
+  {
+   "vertical": "restaurantes",
+   "query": "iscookies",
+   "motivo": "local \"Iscookies\" (cookies)"
+  },
+  {
+   "vertical": "restaurantes",
+   "query": "las pechugonas",
+   "motivo": "local \"Las Pechugonas\" (pechugas)"
+  },
+  {
+   "vertical": "mall",
+   "query": "clementoni",
+   "motivo": "marca de juguetes (clementina)"
+  },
+  {
+   "vertical": "supermercado",
+   "query": "cakao",
+   "motivo": "chocolatería \"Cakao\" (cacao): suena igual"
+  },
+  {
+   "vertical": "licores",
+   "query": "todo likores",
+   "motivo": "botillería \"Todo Likores\" (licores): suena igual"
+  },
+  {
+   "vertical": "mall",
+   "query": "wiphone",
+   "motivo": "tienda \"Wiphone\" (iphone)"
   }
  ]
 }

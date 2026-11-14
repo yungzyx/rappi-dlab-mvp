@@ -151,8 +151,9 @@ const CONNECTORS = ['para', 'con']
 /**
  * "X para Y" o "X con Y" (concepts/need.py: read_need, en corto): lo nombrado después de un conector es solo el para
  * qué si los complementos curados dicen que va con algo nombrado antes (meta.complements, en los dos sentidos).
- * Devuelve { asked, words, sober }: los conceptos pedidos, las palabras de lo pedido (antes del conector) y si no va
- * nada +18 (el para qué es alcohol y lo pedido no). null si nada es para qué. Sin conexión no se replica la ocasión como
+ * Devuelve { asked, words, whole, sober, context }: los conceptos pedidos, las palabras de lo pedido (antes del
+ * conector), si se busca la frase entera (con "con", salvo que el para qué sea +18), si no va nada +18 (el para qué es
+ * alcohol y lo pedido no) y los conceptos del para qué. null si nada es para qué. Sin conexión no se replica la ocasión como
  * lo pedido ("algo dulce para el café": ahí sigue mandando lo nombrado) ni el texto de la arista; una muestra grabada
  * sin `complements`, como siempre.
  */
@@ -174,11 +175,24 @@ function needOf(meta, q) {
   if (!context.size) return null
   const asked = spans.filter((s) => !context.has(s.id)).map((s) => s.id)
   const adult = (c) => isAdult(meta.concepts[c])
+  const end = Math.min(...context.values())
   return {
     asked,
-    words: words.slice(0, Math.min(...context.values())),
-    sober: [...context.keys()].some(adult) && !asked.some(adult),
+    words: words.slice(0, end),
+    // Con "con" se busca la frase entera ("café con leche" se llama así), salvo que el para qué sea +18 (need.py).
+    whole: words[end] === 'con' && ![...context.keys()].some(adult),
+    sober: soberFor(meta, [...context.keys()], asked),
+    context: [...context.keys()],
   }
+}
+
+/**
+ * Sin nada +18: el para qué (`context`) es alcohol y lo pedido no (rappi_agent.py: _sober). También en un seguimiento,
+ * con el `context` del turno anterior (conversation.js: followUp).
+ */
+export function soberFor(meta, context = [], asked = []) {
+  const adult = (c) => isAdult(meta.concepts[c])
+  return context.some(adult) && !asked.some(adult)
 }
 
 /** Los conceptos pedidos: los que nombra la consulta, sin los de su para qué (retrieval/hybrid.py: query_need). */
@@ -264,12 +278,13 @@ const namesIngredient = (name, forms) => {
 
 /**
  * Los productos de la muestra que calzan con `q`, del mejor al peor (cada uno una vez por vertical), con el foco. En
- * "X para Y", solo X (`needOf`): "bebida para mezclar con pisco" busca bebidas, sin nada +18.
+ * "X para Y", solo X (`needOf`): "bebida para mezclar con pisco" busca bebidas, sin nada +18; en "X con Y", la frase
+ * entera con los conceptos de X (`askedConceptIds`).
  */
-export function matchProducts(snapshot, q) {
-  const need = needOf(snapshot.meta, q)
+export function matchProducts(snapshot, q, askedConceptIds = null) {
+  const need = askedConceptIds ? null : needOf(snapshot.meta, q)
   if (need) {
-    const asked = matchProducts(snapshot, need.words.join(' '))
+    const asked = need.whole ? matchProducts(snapshot, q, need.asked) : matchProducts(snapshot, need.words.join(' '))
     return need.sober ? asked.filter((p) => !p.age_restricted) : asked
   }
   const words = normalize(q)
@@ -277,7 +292,7 @@ export function matchProducts(snapshot, q) {
     .filter((w) => w && !STOP.has(w))
     .map(stem)
   if (!words.length) return []
-  const concepts = detectConcepts(snapshot.meta, q)
+  const concepts = askedConceptIds ?? detectConcepts(snapshot.meta, q)
   const scored = []
   const seen = new Set()
   for (const p of snapshot.pool) {
@@ -392,6 +407,7 @@ function replyWith(snapshot, message, group, { mode, userId }) {
   const products = group?.products ?? []
   const concept = topConcept(products)
   const ageNotice = products.some((p) => p.age_restricted)
+  const context = needOf(snapshot.meta, message)?.context ?? [] // el para qué: el seguimiento lo conserva
   const suggestion = concept && mode !== 'actual' ? suggestionFor(snapshot, concept, userId) : null
   const text = group
     ? `Mira lo que encontré de "${message.trim()}" en ${labels[group.vertical] ?? group.vertical}.${ageNotice ? AGE_NOTICE : ''}`
@@ -410,6 +426,7 @@ function replyWith(snapshot, message, group, { mode, userId }) {
       follow_up: false,
       occasion: null,
       price_max: null,
+      context,
     },
     reason: suggestion?.reason ?? null,
     suggestion,

@@ -72,6 +72,16 @@ def test_only_the_asked_words_are_searched_plus_how_the_edge_names_them():
     assert asked_text("café para llevar", query_need("café para llevar")) == "café para llevar"  # tal cual
 
 
+def test_with_con_the_whole_phrase_is_searched():
+    """ "café con leche" y "pan con palta" son platos que se llaman así: con "con" se busca la frase entera, aunque la
+    leche y la palta solo digan con qué va (no son conceptos pedidos). Con "para", solo lo pedido."""
+    assert read_query("café con leche") == ("café con leche", ["cafe"], None, False)
+    assert read_query("pan con palta")[:2] == ("pan con palta", ["panaderia"])
+    assert read_query("leche para el café")[:2] == ("leche leche", ["lacteos"])  # más el texto de la arista
+    # con alcohol en el para qué se corta igual: la cerveza no se muestra y solo llenaría los candidatos
+    assert read_query("algo para picar con la cerveza")[0] == "algo para picar"
+
+
 def test_alcohol_only_as_context_means_nothing_adult():
     assert read_query("bebida para mezclar con pisco") == ("bebida", ["gaseosas"], None, True)
     _, concepts, _, sober = read_query("pisco con bebida")

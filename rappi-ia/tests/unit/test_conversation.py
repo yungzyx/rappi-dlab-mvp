@@ -115,3 +115,13 @@ def test_the_state_never_exceeds_what_the_api_accepts():
     state = RappiAgent()._conversation(intent, "restaurantes", [], Context())
     assert len(state["query"]) <= 200 and state["query"].endswith("con extra queso")
     PreviousTurnIn(**state)  # no lanza
+
+
+def test_a_follow_up_keeps_what_the_request_was_for():
+    """ "tónica para el gin" → "más barato" perdía el para qué (el gin) y mostraba tónicas +18. Lo desconocido se
+    ignora, y un tema nuevo no lo hereda."""
+    tonic = {"query": "tonica", "concepts": ["gaseosas"], "vertical": "conveniencia", "context": ["gin", "nada"]}
+    for chip in ("más barato", "otra opción"):
+        intent = _then(tonic, chip, "conveniencia")
+        assert intent.follow_up and intent.concepts == ["gaseosas"] and intent.context == ["gin"], chip
+    assert _then(tonic, "pañales", "conveniencia").context == []
