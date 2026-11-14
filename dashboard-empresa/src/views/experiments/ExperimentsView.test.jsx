@@ -101,13 +101,14 @@ describe('ExperimentsView', () => {
     const mode = await screen.findByRole('table', { name: 'Modo de la app' })
     expect(screen.getByRole('heading', { name: /Modo de la app/ }).textContent).toContain('describe, no mide efecto')
     const [proposal, today] = bodyRows(mode)
-    expect(cells(proposal)).toEqual(['Propuesta (con Mochi)', '40', '1640,0%', '1,5']) // 16 de 40 (40,0%)
+    expect(cells(proposal)).toEqual(['Propuesta (con Mochi)', '40', '2255,0%', '1,2']) // 22 de 40 (55,0%)
     expect(cells(today)).toEqual(['"Rappi hoy"', '0', '0', '—'])
   })
 
   test('with the control group off and nobody assigned, it says so instead of an empty table', async () => {
+    // Los simulados traen los dos grupos (con su propio porcentaje): sin nadie asignado está el prototipo.
     serveFixtures()
-    await renderWithData(<ExperimentsView source="synthetic" />)
+    await renderWithData(<ExperimentsView source="prototype" />)
 
     expect(await screen.findByText('El grupo de control está apagado')).toBeTruthy()
     expect(screen.getByText(/Con OFFERS_CONTROL_PCT en 0 nadie tiene variante/)).toBeTruthy()

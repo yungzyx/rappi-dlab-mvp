@@ -62,9 +62,9 @@ describe('CustomersView', () => {
     expect(within(losing).getByText('280')).toBeTruthy()
     expect(within(losing).getByText('564')).toBeTruthy()
     expect(within(losing).getByText('Califican para "¿Volvemos a…?"')).toBeTruthy()
-    expect(within(losing).getByText('Al 02-10-2026')).toBeTruthy()
+    expect(within(losing).getByText('Al 03-10-2026')).toBeTruthy()
     expect(within(losing).getByText('Doble de su ritmo sin pedir. Todavía se pueden recuperar.')).toBeTruthy()
-    expect(within(losing).getByText('0 por un concepto, 0 por una vertical')).toBeTruthy()
+    expect(within(losing).getByText('1 por un concepto, 0 por una vertical')).toBeTruthy()
 
     const audiences = within(losing).getByRole('table', { name: 'Personas en riesgo o perdidas por lo que más pedían' })
     const [first] = within(audiences).getAllByRole('row').slice(1)

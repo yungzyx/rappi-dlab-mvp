@@ -2,6 +2,7 @@ import { act, fireEvent, screen, within } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest'
 import App, { VIEWS } from './App.jsx'
 import { apiDown, renderWithData, resetApi, serveFixtures, serveFixturesWith } from './test/fixtureApi.js'
+import { OFFERS_WITHOUT_MOMENT } from './test/oldSynthetic.js'
 
 describe('App', () => {
   beforeEach(() => {
@@ -226,7 +227,7 @@ describe('App', () => {
 
   test('an empty state is static text: it is not announced as a live region', async () => {
     window.history.replaceState(null, '', '/?vista=mochi&fuente=simulados')
-    serveFixtures()
+    serveFixturesWith({ offers: { source: 'synthetic', data: OFFERS_WITHOUT_MOMENT } })
     await renderWithData(<App />)
 
     const empty = (await screen.findByText('Los datos simulados no registran el momento de la oferta')).closest(

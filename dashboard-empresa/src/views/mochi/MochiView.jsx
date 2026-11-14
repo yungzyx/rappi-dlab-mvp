@@ -62,8 +62,8 @@ function Suggestions({ source }) {
 }
 
 /**
- * Por momento, a todo el ancho (7 columnas), con qué es rechazar y abrir a demanda. Con los simulados no hay momentos (el
- * simulador no los guarda): en su lugar, una línea que lo dice.
+ * Por momento, a todo el ancho (7 columnas), con qué es rechazar y abrir a demanda. Con simulados sin momentos (los de
+ * antes del 14-11-2026 no los guardan): en su lugar, una línea que lo dice.
  */
 function Moments({ source }) {
   const offers = useAnalytics('offers', source)

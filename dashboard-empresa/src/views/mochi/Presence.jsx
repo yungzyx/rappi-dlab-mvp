@@ -9,7 +9,7 @@ const times = (n) => `${formatNumber(n)} ${n === 1 ? 'vez' : 'veces'}`
 /**
  * Si Mochi molesta (`/analytics/presencia`, últimos 30 días): quiénes lo tienen oculto y qué % de las personas activas
  * son, quiénes lo silenciaron por hoy (y su %), quiénes lo trajeron de vuelta y cuántas veces explicó por qué movió los
- * accesos de la Home. Sin ningún evento de estos, un estado vacío: el simulador no los genera.
+ * accesos de la Home. Sin ningún evento de estos, un estado vacío (los simulados de antes del 14-11-2026 no los traen).
  */
 export function Presence({ data, source }) {
   const nothing = !data.ocultadas && !data.ocultos && !data.volvieron && !data.silenciadas && !data.explicaciones
