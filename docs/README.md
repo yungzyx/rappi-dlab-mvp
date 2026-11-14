@@ -13,7 +13,7 @@
 | Saber qué se decidió y por qué | [decisiones.md](decisiones.md) | 5 min |
 | Saber cómo se mediría con Rappi si las ofertas de Mochi retienen y cuántas personas hacen falta (plan de piloto) | [plan-piloto.md](plan-piloto.md) | 4 min |
 | Calcular las métricas del piloto sobre las tablas de Rappi: población, ventanas, fórmulas, pruebas y SQL de referencia | [especificacion-metricas-piloto.md](especificacion-metricas-piloto.md) | 15 min |
-| Ver qué cambió desde el 25-10-2026 (las fases de la comparación con la app de Rappi, las revisiones y lo que siguió hasta el 12-11), PR por PR | [cambios.md](cambios.md) | 3 min |
+| Ver qué cambió desde el 25-10-2026 (las fases de la comparación con la app de Rappi, las revisiones y lo que siguió hasta el 14-11), PR por PR | [cambios.md](cambios.md) | 3 min |
 
 ## 2. Cómo funciona
 
