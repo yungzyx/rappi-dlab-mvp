@@ -58,7 +58,7 @@ La URL de la API se cambia con `VITE_API_URL`, por ejemplo `VITE_API_URL=http://
 | `npm run format:check` | Revisa el formato con Prettier sin cambiar nada (lo que corre el CI); `npm run format` lo arregla |
 | `npm run build` | Build de producción en `dist/` |
 | `npm run fixtures` | Guarda en el repo las respuestas simuladas de la última foto de `npm run panel:snapshot`: las de `src/fixtures/sin-conexion/` (lo que se ve sin la API) y los ejemplos `*.synthetic.json` de los tests. Correrlo tras `make synth` o una actualización del catálogo, después de grabar la foto. El uso del prototipo no se guarda (lleva lo que hizo la gente). Los ejemplos de ofertas por momento, a quién invitar a volver, búsquedas sin resultado, combinaciones, motor y experimentos de `src/fixtures/` no pasan por aquí: los escribe `make contract` en `rappi-ia/` (con su simulación chica) y el CI falla si quedan desactualizados |
-| `npm run screenshots` | Regenera `docs/screenshots/` con el Chrome instalado y un Vite propio en el 5198 (con `VITE_API_URL`, contra otra API: las de este README se tomaron el 11-11-2026 contra una API sobre `rappi_staging`) |
+| `npm run screenshots` | Regenera `docs/screenshots/` con el Chrome instalado y un Vite propio en el 5198 (con `VITE_API_URL`, contra otra API: las de este README se tomaron el 14-11-2026 contra una API sobre `rappi_staging`) |
 | `npm run panel:snapshot` | Graba las respuestas que lee el panel (solo GET) desde una API sobre una copia de la base, en `snapshot/panel.json` (ignorada en git). La usan `npm run fixtures` y el [panel en un solo HTML](#panel-en-un-solo-html) |
 | `npm run panel:html` | Arma `dist-html/Panel de negocio (demo).html`: el panel con esas respuestas adentro, que abre con doble clic sin la API ni internet |
 | `npm run panel:snapshot:fixtures` | Arma `snapshot/panel.json` desde los ejemplos de `src/fixtures/` (sin API), para probar `npm run panel:html` (lo hace el CI). No pisa una foto grabada |
@@ -130,6 +130,10 @@ Desde el 31-10. Los experimentos del MVP (`/analytics/experimentos`, migración 
 
 El simulador pone a todas sus personas en la propuesta y, desde el 14-11-2026, también las reparte en el grupo de control (la mitad, con su propio porcentaje), con la pregunta in-app y ocultar y silenciar en una parte chica del tratamiento. Las diferencias entre los grupos simulados son supuestos puestos a mano en el generador, no resultados ([capa de datos](../docs/capa-de-datos.md#datos-simulados-y-datos-reales)).
 
+![Experimentos con los simulados: las tres hipótesis con tratamiento y control, ¿Cuánto vale la meta? con los campos vacíos, Adopción y apagado y la mecánica](docs/screenshots/4-experimentos-escritorio-claro.jpg)
+
+*Datos simulados: los dos grupos y sus diferencias salen de supuestos del generador; muestran cómo se lee cada hipótesis, sin veredicto.*
+
 Todas las vistas tienen versión móvil (sin scroll horizontal; las tablas pasan a tarjetas) y tema claro y oscuro: sigue al sistema y se puede fijar con el botón.
 
 <p>
@@ -189,7 +193,7 @@ src/
 ├── styles/                 tokens, estilos globales y shared.css (marca y pie, compartidos con la presentación)
 └── test/                   API falsa para los tests de render
 scripts/                    panel-snapshot.mjs (la foto de la API), fixtures-snapshot.mjs (la foto chica que usa el CI), update-fixtures.mjs, screenshots.mjs y panel-html.mjs (el HTML suelto)
-docs/screenshots/           capturas (en git solo las 5 que usa este README, comprimidas)
+docs/screenshots/           capturas (en git solo las 6 que usa este README, comprimidas)
 ```
 
 ## Límites conocidos

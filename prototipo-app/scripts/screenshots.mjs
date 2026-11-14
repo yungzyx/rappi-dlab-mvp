@@ -189,8 +189,23 @@ async function run(page) {
   await tap('.agent-follow-chip', 'Sin carne')
   await asked('"sin carne"')
   await shot('48-conversacion-sin-carne')
+  // Una búsqueda de siempre (lo que pedirle a Mochi no es una búsqueda): con ella, al volver a la Home sale la pregunta
+  // in-app de la H3, "¿Encontraste lo que buscabas?" (una por sesión y por día). Si no sale, se sigue sin su captura.
+  const searchInput = page.locator('[role="dialog"] input[type="search"]')
+  await searchInput.fill('pizza')
+  await searchInput.press('Enter')
+  await wait(4000)
   await tap('[role="dialog"] .search-back')
   await wait(600)
+  const survey = page.locator('.found-it-title')
+  try {
+    await survey.waitFor({ timeout: 15000 })
+    await shot('23-pregunta-in-app')
+    await tap('.found-it-close')
+    await wait(400)
+  } catch {
+    console.warn('  ! 23-pregunta-in-app: la pregunta no salió')
+  }
 
   await tab('Ofertas')
   // Un producto de las bajas de precio reales: el primero con la marca +18 (como la cerveza de antes) o, si no hay, el primero.

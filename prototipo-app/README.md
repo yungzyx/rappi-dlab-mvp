@@ -8,7 +8,7 @@ Hecho con Vite + React 19. **Necesita la API de [`rappi-ia`](../rappi-ia/)**: si
 
 ![Modo demo: la misma app en el prototipo final y en "Rappi hoy"](docs/screenshots/00-modo-demo.jpg)
 
-*Las capturas de las pantallas se tomaron el 12-11-2026 con la API corriendo sobre una copia de la base (`rappi_staging`) y el catálogo real (`npm run screenshots`); solo la ficha de Mochi es anterior. "¿Repetimos?" sale de la respuesta de ejemplo del contrato con un café real del catálogo: es una ilustración, no un hábito medido. Como el recorrido paga dos compras (una en Ofertas y otra en Chocolates, para la Home dinámica) y deja sus pedidos y eventos (`source = 'prototype'`) en la base que use la API, `npm run screenshots` se niega a correr sin `SCREENSHOTS_ALLOW_WRITES=1`: se corre con la API sobre `rappi_staging`, nunca sobre `rappi`.*
+*Las capturas de las pantallas se tomaron el 14-11-2026 con la API corriendo sobre una copia de la base (`rappi_staging`) y el catálogo real (`npm run screenshots`); solo la ficha de Mochi es anterior. "¿Repetimos?" sale de la respuesta de ejemplo del contrato con un café real del catálogo: es una ilustración, no un hábito medido. Como el recorrido paga dos compras (una en Ofertas y otra en Chocolates, para la Home dinámica) y deja sus pedidos y eventos (`source = 'prototype'`) en la base que use la API, `npm run screenshots` se niega a correr sin `SCREENSHOTS_ALLOW_WRITES=1`: se corre con la API sobre `rappi_staging`, nunca sobre `rappi`.*
 
 ## Cómo correrlo
 
@@ -126,8 +126,8 @@ La Home del prototipo final se ordena según cada persona, con el [motor multive
 
 | Home que aprende | Mochi propone una vertical | ¿Repetimos? |
 |:---:|:---:|:---:|
-| <img src="docs/screenshots/03-home-dinamica.jpg" width="240" alt="Home tras un pedido en Chocolates: Chocolates sube al primer lugar, con la leyenda &quot;Ordenadas según lo que más usas&quot; y Mochi diciendo &quot;Moví Chocolates al primer lugar: pediste en chocolaterías.&quot;"> | <img src="docs/screenshots/22-vertical-por-probar.jpg" width="240" alt="Mochi en la Home pregunta &quot;¿Y si pruebas algo de Restaurantes?&quot; y, en &quot;¿Por qué?&quot;, dice &quot;Porque aún no pides en restaurantes: esto es lo que más se pide.&quot;"> | <img src="docs/screenshots/21-recompra.jpg" width="240" alt="Bloque de ejemplo &quot;¿Repetimos café? Pides cada 7 días.&quot; con un café molido del catálogo, Ver producto y Después"> |
-| Tras un pedido en Chocolates, Chocolates sube y Mochi dice por qué (abrir un acceso varias veces el mismo día no lo mueve). | Esa persona solo pidió en Chocolates (Retail): en la captura Mochi le propone Restaurantes, por lo aprendido de los simulados. Desde el 13-11 le propone Turbo, como la tabla de Rappi: lo aprendido solo cambia su orden si gana por 2 puntos o más (supuesto propio); la captura se rehace con `npm run screenshots`. | Ilustración con la respuesta de ejemplo del contrato y un café real del catálogo; no es un hábito medido. |
+| <img src="docs/screenshots/03-home-dinamica.jpg" width="240" alt="Home tras un pedido en Chocolates: Chocolates sube al primer lugar, con la leyenda &quot;Ordenadas según lo que más usas&quot; y Mochi diciendo &quot;Moví Chocolates al primer lugar: pediste en chocolaterías.&quot;"> | <img src="docs/screenshots/22-vertical-por-probar.jpg" width="240" alt="Mochi en la Home pregunta &quot;¿Y si pruebas algo de Turbo?&quot; y, en &quot;¿Por qué?&quot;, dice &quot;Porque aún no pides en Turbo: esto es lo que más se pide.&quot;"> | <img src="docs/screenshots/21-recompra.jpg" width="240" alt="Bloque de ejemplo &quot;¿Repetimos café? Pides cada 7 días.&quot; con un café molido del catálogo, Ver producto y Después"> |
+| Tras un pedido en Chocolates, Chocolates sube y Mochi dice por qué (abrir un acceso varias veces el mismo día no lo mueve). | Esa persona solo pidió en Chocolates (Retail): Mochi le propone Turbo, como la tabla de Rappi (lo aprendido de los simulados solo cambia ese orden si gana por 2 puntos o más, un supuesto propio). | Ilustración con la respuesta de ejemplo del contrato y un café real del catálogo; no es un hábito medido. |
 
 ### Mochi, el buscador
 
@@ -182,6 +182,14 @@ En el prototipo final, Mochi flota a un costado en las demás pantallas (no en l
 - **Preguntarle por un producto:** mantener presionada una tarjeta muestra "Preguntarle a Mochi" (abre el buscador con "¿Con qué acompaño …?"). En escritorio también se puede arrastrar la tarjeta hasta Mochi.
 - **Silencio:** "Silenciar por hoy" lo deja como una pestañita en el borde hasta mañana (tocarla lo despierta). Si se cierran dos globos seguidos, no habla por su cuenta el resto de la sesión. "Repetir escena" lo despierta.
 - **Ocultarlo:** "Ocultar a Mochi" (con una confirmación: "Mochi no volverá a aparecer. Puedes traerlo de vuelta en Cuenta.") lo saca de toda la app hasta que se encienda "Mostrar a Mochi" en Cuenta (también se puede ocultar ahí). Oculto no hay mascota, globos ni lo que propone solo (recompra, "¿Volvemos a…?", el plan del día, el OnTop, "¿Me falta algo?"), y la barra de la Home y la lupa abren el buscador de siempre, como en "Rappi hoy". Sobrevive a recargar; cambiar de persona en la demo, "Repetir escena" y "Borrar mis datos" lo traen de vuelta.
+
+### La pregunta in-app
+
+Tras una búsqueda, al volver a la Home o a donde se empezó, una tarjeta pregunta "¿Encontraste lo que buscabas?" con Sí, En parte y No, con Mochi a la vista o sin él. Si además se abrió un "¿Por qué?" en la sesión, sigue "¿Confías en las sugerencias de Mochi?" de 1 a 5. Una por sesión y una por día, nunca en el checkout ni el seguimiento, espera a que Mochi termine de hablar y se cierra sin responder (eventos `survey_shown`, `survey_answer` y `survey_dismissed`; [diseño](../docs/diseno-ia.md#la-pregunta-de-la-h3)).
+
+<img src="docs/screenshots/23-pregunta-in-app.jpg" width="240" alt="Home con la tarjeta &quot;¿Encontraste lo que buscabas?&quot; y los chips Sí, En parte y No">
+
+*Después de buscar "pizza" en el buscador con Mochi y volver a la Home.*
 
 ### Compra completa
 

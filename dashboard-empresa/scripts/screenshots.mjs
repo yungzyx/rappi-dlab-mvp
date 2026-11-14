@@ -15,7 +15,7 @@ const PORT = 5198
 const BASE = `http://localhost:${PORT}/`
 const LOAD_TIMEOUT_MS = 45_000 // margen para una base fría (hoy /analytics/weekly responde en menos de 1 s)
 
-// Cada vista y sus subpestañas (?seccion=; la primera no lo lleva). Los 5 nombres que usa el README no cambian.
+// Cada vista y sus subpestañas (?seccion=; la primera no lo lleva). Los 6 nombres que usa el README no cambian.
 const VIEWS = [
   { file: '1-resumen', query: 'vista=resumen' },
   { file: '2-clientes', query: 'vista=clientes' },
