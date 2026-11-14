@@ -4,9 +4,10 @@
 # En la carpeta de ese respaldo deja los RESPALDOS_PRE_MIGRACION_A_GUARDAR (2) `pre-migracion_<base>_*.dump` y los
 # RESPALDOS_NOCTURNOS_A_GUARDAR (RESPALDOS_A_GUARDAR o 3) `nocturno_<base>_*.dump` más nuevos (por fecha de
 # modificación) de la misma base, y saca los `.dump.tmp` de esos dos tipos con más de un día (de un respaldo cortado
-# de golpe). Lo que saca va a la Papelera con `trash`; sin `trash`, o si falla, a `para-borrar/` en la misma carpeta.
-# Nunca borra, nunca saca el respaldo recién hecho y no toca otros archivos (los `rappi_*.dump` de la descarga semanal,
-# los de otra base, uno hecho a mano). No respalda: no carga comun.sh ni tunel.env (las variables llegan del entorno).
+# de golpe). Lo que saca lo borra, para liberar el disco (como la rotación de antes). Con RESPALDOS_A_PAPELERA=1 lo
+# manda a la Papelera con `trash` (sin `trash`, o si falla, a `para-borrar/` en la misma carpeta): así se puede
+# recuperar, pero el disco no se libera hasta vaciarla. Nunca saca el respaldo recién hecho y no toca otros archivos
+# (los `rappi_*.dump` de la descarga semanal, los de otra base, uno hecho a mano). No respalda: no carga comun.sh ni tunel.env (las variables llegan del entorno).
 # Sale con 0 si terminó, 2 si no sacó nada porque algo no calza (el respaldo nuevo no existe, está vacío, mide menos
 # de la mitad del anterior, o una cantidad no es un entero mayor que 0) y 3 si algo quedó en para-borrar/.
 set -euo pipefail
@@ -54,7 +55,10 @@ fi
 
 a_para_borrar=0
 sacar() {
-  if command -v trash > /dev/null 2>&1 && trash "$1"; then
+  if [ "${RESPALDOS_A_PAPELERA:-0}" != 1 ]; then
+    rm -f "$1"
+    log "borrado: $1"
+  elif command -v trash > /dev/null 2>&1 && trash "$1"; then
     log "a la Papelera: $1"
   else
     mkdir -p "$dir/para-borrar"

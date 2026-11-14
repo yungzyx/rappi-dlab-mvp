@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 # Respaldo de la base `rappi` (pg_dump -Fc) en TUNEL_DIR/respaldos. Lo corre launchd cada noche; actualizar.sh lo
-# llama con el prefijo "pre-migracion" antes de migrar. Cuando el respaldo terminó bien, retencion.sh manda a la
-# Papelera los antiguos de los dos tipos (RESPALDOS_NOCTURNOS_A_GUARDAR y RESPALDOS_PRE_MIGRACION_A_GUARDAR).
+# llama con el prefijo "pre-migracion" antes de migrar. Cuando el respaldo terminó bien, retencion.sh borra los
+# antiguos de los dos tipos (RESPALDOS_NOCTURNOS_A_GUARDAR y RESPALDOS_PRE_MIGRACION_A_GUARDAR; con
+# RESPALDOS_A_PAPELERA=1, a la Papelera).
 # shellcheck source=deploy/macos/comun.sh
 . "$(dirname "$0")/comun.sh"
 prefijo=${1:-nocturno}

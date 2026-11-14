@@ -49,8 +49,7 @@ disco_para_respaldo() {
   libre_kb=$(df -k "$RESPALDOS_DIR" | awk 'NR==2 {print $4}')
   [ "$libre_kb" -lt "$necesita_kb" ] || return 0
   echo "poco espacio en disco, $(( libre_kb / 1048576 )) GB libres y el próximo respaldo pide" \
-    "$(( necesita_kb / 1048576 )) GB (dos veces el último y 5 GB): lo que la retención mandó a la Papelera ocupa" \
-    "disco hasta vaciarla"
+    "$(( necesita_kb / 1048576 )) GB (dos veces el último y 5 GB)"
   return 1
 }
 reiniciar() { launchctl kickstart -k "gui/$(id -u)/$LABEL.$1"; }

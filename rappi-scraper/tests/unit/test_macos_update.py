@@ -513,24 +513,39 @@ def backups(tmp_path) -> Path:
     return folder
 
 
-def test_retention_keeps_the_newest_of_each_type_and_nothing_else_moves(tmp_path, backups):
+GONE = {
+    "nocturno_rappi_20261101-033000.dump",
+    "nocturno_rappi_20261102-033000.dump",
+    "nocturno_rappi_20261103-033000.dump",
+    "pre-migracion_rappi_20261101-220000.dump",
+    "pre-migracion_rappi_20261102-220000.dump",
+    "nocturno_rappi_20261101-033000.dump.tmp",
+}
+
+
+def test_retention_deletes_the_rotated_ones_by_default_and_nothing_else(tmp_path, backups):
+    """Por defecto borra, como la rotación de antes: lo rotado libera el disco."""
     before = _tree(backups)
     new = _backup(backups, "nocturno_rappi_20261106-033000.dump", 0)
 
     result = _retention(tmp_path, new)
 
     assert result.returncode == 0, result.stdout + result.stderr
-    gone = {
-        "nocturno_rappi_20261101-033000.dump",
-        "nocturno_rappi_20261102-033000.dump",
-        "nocturno_rappi_20261103-033000.dump",
-        "pre-migracion_rappi_20261101-220000.dump",
-        "pre-migracion_rappi_20261102-220000.dump",
-        "nocturno_rappi_20261101-033000.dump.tmp",
-    }
-    assert _tree(tmp_path / "papelera") == gone
-    assert _tree(backups) == (before | {new.name}) - gone  # 3 nocturnos con el nuevo, 2 pre-migracion, lo demás igual
-    assert result.stdout.count("a la Papelera: ") == len(gone)
+    assert _tree(backups) == (before | {new.name}) - GONE  # 3 nocturnos con el nuevo, 2 pre-migracion, lo demás igual
+    assert not (tmp_path / "papelera").exists() and not (backups / "para-borrar").exists()
+    assert result.stdout.count("borrado: ") == len(GONE)
+
+
+def test_retention_can_send_the_rotated_ones_to_the_trash(tmp_path, backups):
+    before = _tree(backups)
+    new = _backup(backups, "nocturno_rappi_20261106-033000.dump", 0)
+
+    result = _retention(tmp_path, new, RESPALDOS_A_PAPELERA="1")
+
+    assert result.returncode == 0, result.stdout + result.stderr
+    assert _tree(tmp_path / "papelera") == GONE
+    assert _tree(backups) == (before | {new.name}) - GONE
+    assert result.stdout.count("a la Papelera: ") == len(GONE)
 
 
 def test_retention_counts_come_from_the_environment(tmp_path, backups):
@@ -596,7 +611,7 @@ def test_retention_without_trash_moves_to_a_folder_and_never_deletes(tmp_path, b
     new = _backup(backups, "nocturno_rappi_20261106-033000.dump", 0)
     before = _tree(backups) | {new.name}
 
-    result = _retention(tmp_path, new, trash=trash)
+    result = _retention(tmp_path, new, trash=trash, RESPALDOS_A_PAPELERA="1")
 
     assert result.returncode == 3, result.stdout + result.stderr
     moved = _tree(backups / "para-borrar")
@@ -605,7 +620,7 @@ def test_retention_without_trash_moves_to_a_folder_and_never_deletes(tmp_path, b
     assert "sigue ocupando disco" in result.stdout
 
 
-def test_a_nightly_backup_sends_the_old_ones_to_the_trash_only_after_it_worked(demo):
+def test_a_nightly_backup_rotates_the_old_ones_only_after_it_worked(demo):
     folder = demo.tunel / "respaldos"
     folder.mkdir()
     for day in range(1, 4):
@@ -625,10 +640,9 @@ def test_a_nightly_backup_sends_the_old_ones_to_the_trash_only_after_it_worked(d
     result = demo.run("respaldo.sh")
 
     assert result.returncode == 0, result.stdout + result.stderr
-    assert _tree(demo.tmp / "papelera") == {
-        "nocturno_rappi_20261101-033000.dump",
-        "pre-migracion_rappi_20261101-220000.dump",
-    }
+    assert not (folder / "nocturno_rappi_20261101-033000.dump").exists()
+    assert not (folder / "pre-migracion_rappi_20261101-220000.dump").exists()
+    assert not (demo.tmp / "papelera").exists()  # por defecto se borran: liberan el disco
     assert len([name for name in _tree(folder) if name.startswith("nocturno_")]) == 3
     assert len([name for name in _tree(folder) if name.startswith("pre-migracion_")]) == 2
     assert not any("Retención" in notice or "para-borrar" in notice for notice in demo.recorded("osascript")[1:])
