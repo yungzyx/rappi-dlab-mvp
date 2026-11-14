@@ -664,6 +664,8 @@ const simulate = (text, say) => [
   { say, run: () => { simBox.open = true; }, after: 200 },
   { say, click: { panel: ".sim", text }, after: 1100 },
 ];
+/* Tras abrir un "¿Por qué?" puede salir la pregunta "¿Confías en las sugerencias de Mochi?": se cierra sin responder */
+const closeSurvey = (say) => ({ say, click: { sel: ".found-it-close" }, timeout: 3500, after: 600, optional: true });
 const backHome = (say) => ({ say: say || "Vuelve a la Home.", click: [{ sel: "button.search-back" }, { sel: "button.back-button" }], timeout: 2500 });
 
 /* Al abrir la app: el aviso de privacidad de la primera visita (si está) */
@@ -686,19 +688,20 @@ const CHAPTERS = [
       { say: "Toca a Mochi: abre su menú, con \"Ocultar\" al final.", click: { sel: ".live-agent-body" }, after: 1400 },
       { say: "Le pide a Mochi algo nuevo para probar.", click: { sel: "button.agent-action", text: "Muéstrame algo nuevo" }, timeout: 3000, after: 2600 },
       { say: "Mochi propone la vertical que sigue en su escalera. ¿Por qué?", click: { sel: ".live-bubble .offer-why-toggle" }, timeout: 6000, after: 2600 },
-      { say: 'Por ahora, "Después".', click: { sel: "button.live-chip", text: "Después" } },
+      { say: 'Por ahora, "Después".', click: { sel: "button.live-chip", text: "Después" }, after: 600 },
+      closeSurvey('Por ahora, "Después".'),
     ],
   },
   {
     id: "buscador",
-    title: "2 · El buscador con Mochi",
+    title: "2 · El buscador con Mochi: lo mexicano",
     steps: [
-      ...persona("asiático", "Ahora, alguien que pide sushi seguido.", false),
-      { say: '"¿Repetimos sushi?": lo que pide con ritmo, a un toque.', point: { sel: ".live-card--repeat" }, timeout: 6000, after: 1600 },
-      { say: "Cada oferta dice por qué.", click: { sel: ".live-card--repeat .offer-why-toggle" }, after: 2400 },
-      { say: "El buscador con Mochi: su perfil de gusto y un saludo.", click: { sel: ".smart-bar" }, after: 2400 },
+      ...persona("mexicano", "Ahora, alguien a quien le gusta lo mexicano.", false),
+      { say: "El buscador con Mochi: su perfil de gusto y un saludo.", click: { sel: ".smart-bar" }, after: 1600 },
+      { say: '"Tu perfil": amante de lo mexicano, y Mochi lo saluda por eso.', point: { sel: 'section.taste-card[aria-label="Tu perfil"]' }, timeout: 4000, after: 2200 },
       { say: "¿Por qué este perfil? Lo que pidió.", click: { sel: "button.taste-why-toggle" }, timeout: 2500, after: 2600 },
       { say: "Su escalera: ideas en otras verticales, de la más cercana a RappiTravel.", run: async () => { if (!(await panRail(() => !!tour))) skip({ say: "Su escalera (no apareció)" }); }, after: 600 },
+      { say: "Al final, la idea para RappiTravel: un viaje a México.", point: { sel: ".taste-step--travel" }, timeout: 2500, after: 2400 },
       { say: "Abre una idea y la agrega al carro.", click: { sel: ".taste-product-main" }, after: 1500 },
       { say: "Abre una idea y la agrega al carro.", click: { sel: ".product-sheet-confirm" }, timeout: 3000 },
       backHome(),
@@ -719,14 +722,17 @@ const CHAPTERS = [
     ],
   },
   {
-    id: "volver",
-    title: '4 · "¿Volvemos a…?" y Ofertas',
+    id: "nueva",
+    title: "4 · Una persona nueva y Ofertas",
     steps: [
-      ...persona("Dejó de pedir su plato", "Alguien que dejó de pedir su plato de siempre."),
-      { say: '"¿Volvemos a…?": lo que pedía con ritmo y dejó de pedir.', point: { sel: ".live-card--repeat" }, timeout: 6000, after: 1800 },
-      { say: "Con su porqué.", click: { sel: ".live-card--repeat .offer-why-toggle" }, after: 2600 },
-      { say: 'Si dice "Después", Mochi no insiste (con dos, lo deja).', click: { sel: ".live-repeat-later", text: "Después" } },
-      { say: "Ofertas: lo que bajó de precio, por vertical.", click: { sel: ".bottom-nav-item", text: "Ofertas" }, after: 2000 },
+      ...persona("Nueva", "Una persona nueva: sin pedidos ni perfil de gusto.", false),
+      { say: "Abre el buscador con Mochi.", click: { sel: ".smart-bar" }, after: 1600 },
+      { say: "Sin perfil, Mochi igual le muestra una escalera por otras verticales.", point: { sel: "section.taste-ladder" }, timeout: 4000, after: 1800 },
+      { say: "Con su porqué.", click: { sel: ".taste-ladder-head .offer-why-toggle" }, timeout: 2500, after: 2600 },
+      { say: "De lo más cercano a lo más lejano.", run: async () => { if (!(await panRail(() => !!tour))) skip({ say: "La escalera sin perfil (no apareció)" }); }, after: 600 },
+      backHome(),
+      { say: "Ofertas: lo que bajó de precio, por vertical.", click: { sel: ".bottom-nav-item", text: "Ofertas" }, after: 600 },
+      closeSurvey("Ofertas: lo que bajó de precio, por vertical."),
       { say: "Ofertas: lo que bajó de precio, por vertical.", scroll: { in: { sel: ".deals-vertical-title" }, by: 600 } },
       { say: "Vuelve a la Home.", click: { sel: ".bottom-nav-item", text: "Inicio" } },
     ],
@@ -762,8 +768,10 @@ const CHAPTERS = [
       { say: "Y su cocina favorita: sushi.", click: { sel: ".agent-prefs-chip", text: "🍣 Sushi" }, after: 900 },
       { say: "Guarda.", click: { sel: ".sheet-confirm-primary", text: "Guardar" }, after: 1600 },
       { say: '"Pedir por mí": por defecto, Mochi revisa antes de pedir.', click: { sel: ".agent-search-body button", text: "Pedir por mí" }, after: 1600 },
-      { say: "Le da permiso en una tienda donde ya pidió.", click: { sel: ".agent-autonomy-mode", text: "Pedir por mí" }, after: 900 },
-      { say: "Le da permiso en una tienda donde ya pidió.", click: { sel: ".agent-prefs-chip", text: "Akira" }, after: 900 },
+      { say: "Le da permiso en las tiendas donde ya pidió.", click: { sel: ".agent-autonomy-mode", text: "Pedir por mí" }, after: 900 },
+      { say: "Le da permiso en las tiendas donde ya pidió.", click: { sel: ".agent-autonomy .agent-prefs-chip" }, after: 500 },
+      /* lo de siempre puede venir de cualquiera de sus tiendas: se marcan todas */
+      { say: "Le da permiso en las tiendas donde ya pidió.", run: () => appButtons(".agent-autonomy .agent-prefs-chip:not(.is-on)").forEach(tap), after: 900 },
       { say: "Guarda.", click: { sel: ".sheet-confirm-primary", text: "Guardar" }, after: 1600 },
       { say: '"Repite lo de siempre".', click: { sel: ".agent-capability", text: "Repite lo de siempre" }, after: 2400 },
       { say: "Mochi lo pide solo, con unos segundos para deshacer.", click: { sel: ".agent-msg-action", text: "Pide lo de siempre por mí" }, after: 3600 },
@@ -774,11 +782,11 @@ const CHAPTERS = [
     id: "personas",
     title: "7 · Cambiar de persona",
     steps: [
-      ...persona("asiático", "Perfil asiático: el buscador muestra su escalera."),
+      ...persona("mexicano", "Perfil mexicano: el buscador muestra su escalera."),
       backHome(),
-      ...persona("café", "Cambia a amante del café: el buscador se adapta."),
+      ...persona("asiático", "Cambia a amante de lo asiático: el buscador se adapta."),
       backHome(),
-      ...persona("Mascotero", "Y a mascotero: otras ideas, otras verticales."),
+      ...persona("café", "Y a amante del café: otras ideas, otras verticales."),
       backHome(),
     ],
   },
