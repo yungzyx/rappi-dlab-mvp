@@ -1,7 +1,9 @@
+from dataclasses import replace
 from itertools import combinations
 
 import pytest
 
+from rappi_ia.motor import combos
 from rappi_ia.motor.combos import (
     FINE_ORDER,
     GROUP_ORDER,
@@ -96,6 +98,7 @@ def test_services_and_assumption_come_from_the_toml():
     a = c.diminishing
     assert (a.reduction_base, a.decay, a.service) == (0.10, 0.5, 0.05)
     assert "supuesto propio" in a.note and "nunca llega a 100 %" in a.note
+    assert c.table_margin == 0.02 and "supuesto propio" in c.table_margin_note
 
 
 def test_group_counts_count_catalog_verticals_only():
@@ -256,3 +259,49 @@ def test_a_learned_correction_of_the_current_combo_does_not_stall_the_ladder():
     assert next_fine_step(fine, ["conveniencia"]).gain == pytest.approx(
         expected_fine_retention(fine + "+conveniencia") - expected_fine_retention(fine)
     )
+
+
+# Lo aprendido en rappi_staging (synthetic, corrida del 05-11-2026): Restaurantes + Express quedaba una décima de punto
+# sobre Restaurantes + Turbo y la escalera le proponía Express a quien solo pide Restaurantes.
+STAGING_COARSE = {"rest": (2201, 0.4457), "rest+turbo": (229, 0.7380), "rest+retail": (182, 0.7527)}
+STAGING_FINE = {
+    "restaurantes": (2201, 0.4457),
+    "restaurantes+turbo": (229, 0.7380),
+    "restaurantes+conveniencia": (100, 0.7700),
+    "restaurantes+supermercado": (68, 0.6912),
+}
+
+
+def _without_margin(monkeypatch):
+    table = replace(load_combos(), table_margin=0.0)
+    monkeypatch.setattr(combos, "load_combos", lambda: table)
+
+
+def test_learned_values_do_not_flip_the_rappi_table_by_a_hair(monkeypatch):
+    candidates = ["conveniencia", "supermercado", "turbo"]
+    step = next_fine_step("restaurantes", candidates, STAGING_COARSE, STAGING_FINE)
+    # La tabla de Rappi pone Turbo antes que Retail; Express le gana por menos del margen: manda la tabla, rotulado.
+    assert (step.vertical, step.target, step.used_assumption) == ("turbo", "restaurantes+turbo", True)
+    express = expected_fine_retention("restaurantes+conveniencia", STAGING_COARSE, STAGING_FINE)
+    turbo = expected_fine_retention("restaurantes+turbo", STAGING_COARSE, STAGING_FINE)
+    assert 0 < express - turbo < load_combos().table_margin
+    assert step.gain == pytest.approx(turbo - expected_fine_retention("restaurantes", STAGING_COARSE, STAGING_FINE))
+    _without_margin(monkeypatch)  # sin margen, la décima decidía
+    assert next_fine_step("restaurantes", candidates, STAGING_COARSE, STAGING_FINE).vertical == "conveniencia"
+
+
+def test_learned_values_beyond_the_margin_still_change_the_order():
+    learned_fine = {"restaurantes+turbo": (400, 0.70)}  # Turbo queda 3,6 puntos bajo Súper con lo aprendido
+    step = next_fine_step("restaurantes", ["turbo", "supermercado"], learned_fine=learned_fine)
+    assert (step.vertical, step.used_assumption) == ("supermercado", False)
+
+
+def test_the_margin_does_not_reorder_inside_a_group():
+    # Dentro de Retail la tabla no ordena (Súper y Express esperan lo mismo): decide lo aprendido, aunque gane por poco.
+    learned_coarse = {"rest+turbo+retail": (300, 0.90)}
+    learned_fine = {
+        "restaurantes+turbo+supermercado": (100, 0.900),
+        "restaurantes+turbo+conveniencia": (100, 0.905),
+    }
+    step = next_fine_step("restaurantes+turbo", ["supermercado", "conveniencia"], learned_coarse, learned_fine)
+    assert (step.vertical, step.used_assumption) == ("conveniencia", False)
