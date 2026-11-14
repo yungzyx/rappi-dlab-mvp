@@ -2,9 +2,10 @@
 # Chequeo de un comando justo antes de cada participante de la prueba con usuarios (docs/prueba-usuarios.md, sección
 # 3): /health, la swap, el disco libre, la fecha del catálogo, si los despliegues están en pausa, el grupo de control y
 # 8 búsquedas variadas contra la API local con su tiempo y el máximo. Avisa si la API no está lista, si una búsqueda
-# falla o pasa de 1 s, si los despliegues no están en pausa o si el grupo de control no está en 0 o no se puede leer
-# (sale con 1). El RSS y el footprint de cada proceso de la API van como dato: con
-# la mayor parte en swap, la primera búsqueda tarda segundos. Solo lee: no pausa los despliegues ni escribe en la base.
+# falla o pasa de 1 s, si los despliegues no están en pausa, si el grupo de control no está en 0 o no se puede leer o
+# si el disco no alcanza para el próximo respaldo (sale con 1). El RSS y el footprint de cada proceso de la API van
+# como dato: con la mayor parte en swap, la primera búsqueda tarda segundos. Solo lee: no pausa los despliegues ni
+# escribe en la base.
 # Las búsquedas llevan el id "vigilante-chequeo-…" (X-Request-ID): el resumen diario las cuenta como mantención, no
 # como visitas. Uso: deploy/macos/chequeo-sesion.sh
 # shellcheck source=deploy/macos/comun.sh
@@ -24,6 +25,10 @@ fi
 
 echo "Swap: $(sysctl -n vm.swapusage 2>/dev/null || echo 'no disponible')"
 echo "Disco: $(df -h "$TUNEL_DIR" | awk 'NR==2 {print $4 " libres de " $2}')"
+if ! falta=$(disco_para_respaldo); then
+  echo "Disco: $falta"
+  problemas+=("$falta (el respaldo nocturno se omitiría)")
+fi
 catalogo=$(PGOPTIONS='-c default_transaction_read_only=on' psql -X -qAt -d "$base" -c "
   SELECT string_agg(CASE kind WHEN 'stores' THEN 'tiendas' ELSE 'restaurantes' END || ' '
                     || to_char(fin AT TIME ZONE 'America/Santiago', 'DD-MM-YYYY'), ' · ' ORDER BY kind DESC)

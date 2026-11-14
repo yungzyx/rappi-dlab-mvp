@@ -59,8 +59,8 @@ main() {
     pendientes=1
     # Un respaldo por despliegue pendiente: desplegado.txt solo se escribe cuando todo sale bien, así que un
     # respaldo más nuevo es de un intento anterior de esta misma tanda. Un reintento conserva ese, el de antes de
-    # migrar (cada migración va en su transacción: un intento puede dejar la base a medias, y respaldo.sh solo guarda
-    # los RESPALDOS_A_GUARDAR más nuevos).
+    # migrar (cada migración va en su transacción: un intento puede dejar la base a medias, y la retención de
+    # respaldo.sh solo guarda los RESPALDOS_PRE_MIGRACION_A_GUARDAR más nuevos).
     if [ -n "$(find "$RESPALDOS_DIR" -name 'pre-migracion_*.dump' -newer "$TUNEL_DIR/desplegado.txt")" ]; then
       log "Hay migraciones pendientes: ya hay un respaldo de este despliegue, no respaldo de nuevo"
     else
