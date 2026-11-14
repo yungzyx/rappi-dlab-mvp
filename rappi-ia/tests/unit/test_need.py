@@ -91,6 +91,44 @@ def test_alcohol_only_as_context_means_nothing_adult():
     assert read_query("café para llevar") == ("café para llevar", None, None, False)  # tal cual
 
 
+@pytest.mark.parametrize(
+    ("text", "asked", "query"),
+    [
+        ("jugo para el ron", ["jugos"], "jugo"),  # sin arista ron–jugos
+        ("bebida para el whisky", ["gaseosas"], "bebida"),  # sin arista whisky–gaseosas
+        ("limón para el pisco sour", ["frutas"], "limon"),  # sin arista pisco–frutas
+        ("chicle para el cigarro", ["golosinas"], "chicle"),  # cualquier +18, no solo el alcohol
+    ],
+)
+def test_alcohol_after_the_connector_is_only_what_it_goes_with(text, asked, query):
+    """Algo sin alcohol para acompañar un trago: se busca eso, sin nada +18, aunque no haya arista curada."""
+    assert read_query(text) == (query, asked, None, True)
+
+
+@pytest.mark.parametrize(
+    ("text", "asked"),
+    [
+        ("ron con coca cola", ["ron"]),  # lo pedido es el trago
+        ("cerveza para el asado", ["cerveza"]),
+        ("vino para la pasta", ["vino"]),
+    ],
+)
+def test_a_drink_named_first_is_still_what_is_asked(text, asked):
+    _, concepts, _, sober = read_query(text)
+    assert concepts == asked and not sober
+
+
+def test_an_occasion_with_drinks_does_not_hide_them():
+    """Una ocasión sin tragos ("algo para tomar") antes del pisco: lo que va con él por su arista, sin +18. Una con
+    tragos en sus conceptos ("carrete") no hace del alcohol un para qué sin arista: "carrete con tequila" pide el
+    tequila."""
+    _, concepts, occasion, sober = read_query("algo para tomar con el pisco")
+    assert occasion.id == "bebestibles" and concepts == ["gaseosas"] and sober
+    assert query_need("algo para el carrete con tequila").context == ()
+    need = query_need("vaso para whisky")  # "vaso" no nombra un concepto: como siempre
+    assert need.context == () and need.end is None
+
+
 def test_mochi_understands_the_same_need():
     intent = U.understand(None, "bebida para mezclar con pisco", "licores")
     assert intent.concepts == ["gaseosas"] and intent.context == ["pisco"] and intent.query == "bebida"

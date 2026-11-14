@@ -150,7 +150,8 @@ const CONNECTORS = ['para', 'con']
 
 /**
  * "X para Y" o "X con Y" (concepts/need.py: read_need, en corto): lo nombrado después de un conector es solo el para
- * qué si los complementos curados dicen que va con algo nombrado antes (meta.complements, en los dos sentidos).
+ * qué si los complementos curados dicen que va con algo nombrado antes (meta.complements, en los dos sentidos) o si es
+ * +18 y lo nombrado antes no ("jugo para el ron", sin arista).
  * Devuelve { asked, words, whole, sober, context }: los conceptos pedidos, las palabras de lo pedido (antes del
  * conector), si se busca la frase entera (con "con", salvo que el para qué sea +18), si no va nada +18 (el para qué es
  * alcohol y lo pedido no) y los conceptos del para qué. null si nada es para qué. Sin conexión no se replica la ocasión como
@@ -163,18 +164,20 @@ function needOf(meta, q) {
   const spans = keywordSpans(index.keywords, words, index.avoid)
   const goesWith = (a, b) => (meta.complements ?? {})[`${a}|${b}`] ?? 0
   const connectors = words.flatMap((word, i) => (CONNECTORS.includes(word) ? [i] : []))
+  const adult = (c) => isAdult(meta.concepts[c])
   const context = new Map()
   for (const y of spans)
     for (const c of connectors.filter((c) => c < y.position)) {
       const heads = spans.filter((h) => h.position + h.size <= c && h.id !== y.id)
-      if (heads.some((h) => goesWith(h.id, y.id) > 0)) {
+      // Con arista, o un +18 después de algo sin alcohol aunque no la haya ("jugo para el ron").
+      const goes = heads.some((h) => goesWith(h.id, y.id) > 0)
+      if (goes || (adult(y.id) && heads.length && !heads.some((h) => adult(h.id)))) {
         if (!context.has(y.id)) context.set(y.id, c)
         break
       }
     }
   if (!context.size) return null
   const asked = spans.filter((s) => !context.has(s.id)).map((s) => s.id)
-  const adult = (c) => isAdult(meta.concepts[c])
   const end = Math.min(...context.values())
   return {
     asked,
