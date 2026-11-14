@@ -23,6 +23,7 @@ La respuesta de `/agent/ask` trae `conversation`: lo que hay que mandar como `pr
 | `price_max`, `people`, `order` | El tope de precio, para cuántas personas y `barato` o `caro` |
 | `symptom` | Habló de síntomas: el seguimiento sigue buscando lo que nombra el síntoma |
 | `product_ids` | Lo ya mostrado; se acumula mientras se pida "otra opción" |
+| `context` | El para qué de lo pedido ("pisco" en "bebida para mezclar con pisco", desde el 14-11): si es alcohol y lo pedido no, el seguimiento tampoco muestra nada +18 |
 
 ## 3. Cómo se combina un mensaje con el anterior
 
