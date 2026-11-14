@@ -1,6 +1,6 @@
 {
- "version": "2026-11-13",
- "nota": "Necesidades con la forma \"X para Y\" o \"X con Y\": lo pedido es X y Y dice para qué o con qué va (\"bebida para mezclar con pisco\" pide bebidas, no pisco). Las tres primeras son las que el juicio de Claude del 11-11 dio por \"no sirve\" (docs/resultados/juicio-claude-busqueda-2026-11-11.md); las demás son de la misma forma, y las de tipo \"control\" son frases donde el \"para\" o el \"con\" no cambian lo pedido y no se pueden romper. Cada caso dice qué conceptos sirven (`sirve`), cuáles no se pueden mostrar (`no`) y si puede mostrar alcohol (`alcohol`: solo si la persona nombra el licor como lo pedido). `rappi-ia eval-necesidades` lo mide en /search de la vertical, en la búsqueda agrupada y en Mochi (eval/need_eval.py). El juicio es por concepto: sirve para ver si se busca lo pedido, no reemplaza el juicio de personas.",
+ "version": "2026-11-14",
+ "nota": "Necesidades con la forma \"X para Y\" o \"X con Y\": lo pedido es X y Y dice para qué o con qué va (\"bebida para mezclar con pisco\" pide bebidas, no pisco). Las tres primeras son las que el juicio de Claude del 11-11 dio por \"no sirve\" (docs/resultados/juicio-claude-busqueda-2026-11-11.md); las demás son de la misma forma, y las de tipo \"control\" son frases donde el \"para\" o el \"con\" no cambian lo pedido y no se pueden romper. Cada caso dice qué conceptos sirven (`sirve`), cuáles no se pueden mostrar (`no`) y si puede mostrar alcohol (`alcohol`: solo si la persona nombra el licor como lo pedido). `rappi-ia eval-necesidades` lo mide en /search de la vertical, en la búsqueda agrupada y en Mochi (eval/need_eval.py). El juicio es por concepto: sirve para ver si se busca lo pedido, no reemplaza el juicio de personas. Los 8 patrones y 2 controles del 14-11 se agregaron antes de sumar aristas a complements.toml, con combinaciones cotidianas (leche, mantequilla y palta con el pan o el té, mayonesa para los completos) y algunas que ya tenían arista; los dos controles (\"café con leche\", \"pan con palta\") son platos cuyo \"con\" no se puede perder.",
  "queries": [
   {"vertical": "licores", "query": "bebida para mezclar con pisco", "tipo": "patron", "sirve": ["gaseosas", "jugos", "agua", "hielo", "energizantes"], "no": ["pisco"], "alcohol": false, "motivo": "juicio del 11-11: traía piscos"},
   {"vertical": "supermercado", "query": "algo dulce para el café de la tarde", "tipo": "patron", "sirve": ["pasteleria", "galletas", "chocolates", "golosinas", "postres", "helados"], "no": ["cafe"], "alcohol": false, "motivo": "juicio del 11-11: traía cafés"},
@@ -25,12 +25,22 @@
   {"vertical": "conveniencia", "query": "algo para tomar con la pizza", "tipo": "patron", "sirve": ["gaseosas", "jugos", "agua"], "no": ["pizza"], "alcohol": false, "motivo": "algo para tomar, no la pizza"},
   {"vertical": "licores", "query": "vino para el asado", "tipo": "patron", "sirve": ["vino"], "no": ["carnes"], "alcohol": true, "motivo": "el vino (nombrado), no la carne"},
   {"vertical": "licores", "query": "pisco con bebida", "tipo": "patron", "sirve": ["pisco"], "no": [], "alcohol": true, "motivo": "pide el pisco: el licor nombrado como lo pedido sí se muestra"},
+  {"vertical": "supermercado", "query": "leche para el té", "tipo": "patron", "sirve": ["lacteos"], "no": ["te"], "alcohol": false, "motivo": "la leche, no el té"},
+  {"vertical": "supermercado", "query": "mantequilla para el pan", "tipo": "patron", "sirve": ["lacteos"], "no": ["panaderia"], "alcohol": false, "motivo": "la mantequilla, no el pan"},
+  {"vertical": "supermercado", "query": "palta para el pan", "tipo": "patron", "sirve": ["frutas"], "no": ["panaderia"], "alcohol": false, "motivo": "la palta, no el pan"},
+  {"vertical": "supermercado", "query": "azúcar para el té", "tipo": "patron", "sirve": ["azucar"], "no": ["te"], "alcohol": false, "motivo": "el azúcar o el endulzante, no el té"},
+  {"vertical": "supermercado", "query": "mayonesa para los completos", "tipo": "patron", "sirve": ["salsas"], "no": ["sandwiches"], "alcohol": false, "motivo": "la mayonesa, no los completos"},
+  {"vertical": "supermercado", "query": "queso rallado para los fideos", "tipo": "patron", "sirve": ["quesos"], "no": ["pastas"], "alcohol": false, "motivo": "el queso, no los fideos"},
+  {"vertical": "supermercado", "query": "leche para la avena", "tipo": "patron", "sirve": ["lacteos"], "no": ["cereales"], "alcohol": false, "motivo": "la leche, no la avena"},
+  {"vertical": "turbo", "query": "endulzante para el café", "tipo": "patron", "sirve": ["azucar"], "no": ["cafe"], "alcohol": false, "motivo": "el endulzante, no el café"},
   {"vertical": "restaurantes", "query": "café para llevar", "tipo": "control", "sirve": ["cafe"], "no": [], "alcohol": false, "motivo": "\"para llevar\" no nombra un concepto"},
   {"vertical": "supermercado", "query": "comida para gato", "tipo": "control", "sirve": ["alimento-gato"], "no": [], "alcohol": false, "motivo": "\"comida para gato\" es un solo concepto"},
   {"vertical": "supermercado", "query": "pilas para control", "tipo": "control", "sirve": ["ferreteria"], "no": ["videojuegos"], "alcohol": false, "motivo": "las pilas, no el control"},
   {"vertical": "supermercado", "query": "arroz con leche", "tipo": "control", "sirve": ["postres"], "no": [], "alcohol": false, "motivo": "\"arroz con leche\" es un postre"},
   {"vertical": "restaurantes", "query": "pizza con piña", "tipo": "control", "sirve": ["pizza"], "no": [], "alcohol": false, "motivo": "la piña dice cómo es la pizza"},
   {"vertical": "restaurantes", "query": "hamburguesa con papas fritas", "tipo": "control", "sirve": ["hamburguesa"], "no": [], "alcohol": false, "motivo": "la hamburguesa con sus papas"},
-  {"vertical": "supermercado", "query": "agua con gas", "tipo": "control", "sirve": ["agua"], "no": [], "alcohol": false, "motivo": "\"agua con gas\" es un solo concepto"}
+  {"vertical": "supermercado", "query": "agua con gas", "tipo": "control", "sirve": ["agua"], "no": [], "alcohol": false, "motivo": "\"agua con gas\" es un solo concepto"},
+  {"vertical": "restaurantes", "query": "café con leche", "tipo": "control", "sirve": ["cafe"], "no": [], "alcohol": false, "motivo": "\"café con leche\" es un café"},
+  {"vertical": "restaurantes", "query": "pan con palta", "tipo": "control", "sirve": ["panaderia", "desayuno", "sandwiches"], "no": [], "alcohol": false, "motivo": "\"pan con palta\" es un plato de desayuno"}
  ]
 }
