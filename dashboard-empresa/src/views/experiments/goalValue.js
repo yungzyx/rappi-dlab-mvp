@@ -3,9 +3,11 @@
 // la pestaña. Ninguna cifra de Rappi vive aquí, ni como valor por defecto: los campos parten vacíos.
 //
 // El método del gerente: margen incremental = pedidos incrementales × valor del pedido × margen por pedido, mes a mes.
-// H1 (+Δ puntos de retención): cada mes se retienen de más E = usuarios × cobertura × Δ. Dos lecturas:
-//   techo:    los retenidos de más se acumulan y ninguno se va   X_k = X_(k−1) + E          (X_k = k × E)
-//   prudente: después se van a la tasa normal de fuga (1 − r)    X_k = r × X_(k−1) + E      (X_k = E × (1 − r^k) / (1 − r))
+// H1 (+Δ puntos de retención): el primer mes se retienen de más E = usuarios × cobertura × Δ. Dos lecturas:
+//   techo:    +Δ % de usuarios cada mes, compuesto, y nadie se va (el modelo del gerente)
+//             X_k = (1 + Δ) × X_(k−1) + E      (X_k = usuarios × cobertura × ((1 + Δ)^k − 1))
+//   prudente: cada mes E de más, que después se van a la tasa normal de fuga (1 − r)
+//             X_k = r × X_(k−1) + E            (X_k = E × (1 − r^k) / (1 − r))
 // y el margen del mes k es X_k × pedidos por usuario × valor × margen.
 // H2 (+L % relativo en Restaurantes → Turbo): clientes nuevos en Turbo = clientes de Restaurantes × cobertura × t × L,
 // cada uno con un pedido de Turbo al mes (lo mínimo que cuenta la H2), con el mismo valor y margen; igual cada mes.
@@ -81,7 +83,10 @@ function fieldError(key, value, values) {
   return null
 }
 
-/** Los meses 1…HORIZON de retenidos de más, en una lectura: `perMonth` nuevos cada mes; `keep`, la parte que sigue. */
+/**
+ * Los meses 1…HORIZON de retenidos de más, en una lectura: `perMonth` nuevos cada mes; `keep`, cuánto queda al mes
+ * siguiente de lo que había (r en la prudente; 1 + Δ en el techo, que compone).
+ */
 export function extraActive(perMonth, keep) {
   const series = []
   let stock = 0
@@ -150,7 +155,7 @@ export function goalValue(texts) {
       retained,
       orders: retained * values.pedidos,
       margin: retained * values.pedidos * marginPerOrder,
-      techo: reading(1),
+      techo: reading(1 + values.puntos / 100),
       prudente: reading(values.retencion / 100),
     }
   }
