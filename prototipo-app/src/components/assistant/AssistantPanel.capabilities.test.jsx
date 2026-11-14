@@ -136,6 +136,21 @@ describe('lo que Mochi sabe hacer', () => {
     expect(bubbles().at(-1)).toMatch(/Todavía no veo algo que pidas seguido/)
   })
 
+  test('con "Pedir por mí", la recompra del buscador trae "Pide lo de siempre por mí" (su entrada, sin la de la Home)', async () => {
+    const made = fixture('agent-offer-recompra')
+    const ask = 'Pide lo de siempre en Supermercado de prueba Centro'
+    made.actions = [...made.actions, { label: 'Pide lo de siempre por mí', ask }]
+    stubApi({ 'POST /agent/offer': (req) => (req.body.moment === 'recompra' ? made : 204) })
+    api.ask.mockResolvedValue(fixture('agent-ask-autopedido'))
+    await renderPanel()
+    fireEvent.click(screen.getByRole('button', { name: '🔁 Repite lo de siempre' }))
+    await runUntilIdle()
+    expect(bubbles().at(-1)).toBe(made.text)
+    fireEvent.click(screen.getByRole('button', { name: /Pide lo de siempre por mí/ }))
+    await runUntilIdle()
+    expect(api.ask.mock.calls.at(-1)[0].message).toBe(ask)
+  })
+
   test('"Arma un kit" deja elegir la ocasión y trae su kit', async () => {
     await renderPanel()
     fireEvent.click(screen.getByRole('button', { name: '🧺 Arma un kit' }))

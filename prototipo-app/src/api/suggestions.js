@@ -78,8 +78,7 @@ export const EXPIRED = 'expirada'
  * Registra la sugerencia del agente rechazada (`suggestion_dismissed`, "Ahora no" o "Después"): con el concepto, la
  * vertical, el origen y el lugar con que `noteShown` registró la mostrada, una vez por pestaña. Sin concepto no
  * registra nada, como la mostrada. Con `kind: EXPIRED`, la oferta que se fue sola (en el payload, y contada aparte del
- * rechazo). El "Después" de "¿Volvemos a…?" no pasa por aquí: lleva su `payload.kind` y cada uno cuenta para la API
- * (LiveHomeFeed: repeatLater). Devuelve si la registró.
+ * rechazo). Devuelve si la registró.
  */
 export function noteDismissal(track, products, { origin, concept, generation = 0, kind }) {
   const [first] = products ?? []

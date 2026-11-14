@@ -116,7 +116,7 @@ export default function AutonomyEditor({ onSaved, onTurnedOff }) {
             Solo pido lo de siempre: tu último pedido en esa tienda, con el precio de hoy. Nunca alcohol, +18, farmacia,
             bebé ni salud, nunca sobre tu tope ni en una tienda cerrada, y te doy unos segundos para deshacerlo (si
             cierras el buscador antes, no lo pido). Si algo no calza, te lo dejo para que lo revises. Cuando te toque
-            repetir, toca "Pide lo de siempre por mí" en la Home.
+            repetir, toca "Repite lo de siempre" aquí y luego "Pide lo de siempre por mí".
           </p>
         </>
       )}

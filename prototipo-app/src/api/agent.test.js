@@ -101,23 +101,17 @@ describe('agent', () => {
     })
   })
 
-  test('un 204 retenido al grupo de control es null y avisa con onWithheld; uno sin oferta, no', async () => {
+  test('un 204 retenido al grupo de control es null, como uno sin oferta', async () => {
     const withheld = new Response(null, { status: 204, headers: { 'X-Offer-Withheld': '1' } })
-    stubApi({ 'POST /agent/offer': (req) => (req.body.moment === 'recompra' ? withheld : 204) })
-    const onWithheld = vi.fn()
-    expect(await offer('recompra', {}, { userId: 'u1', surface: 'home', onWithheld })).toBeNull()
-    expect(onWithheld).toHaveBeenCalledTimes(1)
-    expect(await offer('volver', {}, { userId: 'u1', surface: 'home', onWithheld })).toBeNull()
-    expect(onWithheld).toHaveBeenCalledTimes(1)
+    stubApi({ 'POST /agent/offer': withheld })
+    expect(await offer('carrito', {}, { userId: 'u1', surface: 'home' })).toBeNull()
   })
 
   test('con Mochi apagado (el grupo de control) la oferta se pide igual, pero nunca se entrega a la app', async () => {
     const calls = stubApi({ 'POST /agent/offer': fixture('agent-offer-carrito') })
     setAgentEnabled(false)
-    const onWithheld = vi.fn()
-    expect(await offer('carrito', {}, { userId: 'u1', surface: 'home', onWithheld })).toBeNull()
+    expect(await offer('carrito', {}, { userId: 'u1', surface: 'home' })).toBeNull()
     expect(calls).toHaveBeenCalledTimes(1) // la API la anota como en tratamiento
-    expect(onWithheld).not.toHaveBeenCalled()
     setAgentEnabled(true)
     expect((await offer('carrito', {}, { userId: 'u1', surface: 'home' })).products.length).toBeGreaterThan(0)
   })

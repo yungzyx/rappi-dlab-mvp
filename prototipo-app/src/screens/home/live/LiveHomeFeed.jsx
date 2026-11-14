@@ -2,14 +2,12 @@ import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react
 import { AGENT_NAME } from '../../../agent/name'
 import { offer, plans as fetchPlans } from '../../../api/agent'
 import { envelope } from '../../../api/attribution'
-import { conceptOf } from '../../../api/orders'
 import {
   EXPIRED,
   noteDismissal,
   noteOfferDismissal,
   noteOfferShown,
   noteShown,
-  refuseConcept,
   wasRefused,
 } from '../../../api/suggestions'
 import { userId } from '../../../api/user'
@@ -29,7 +27,6 @@ import { useOpenDialogs } from '../../../hooks/useDialog'
 import { formatPrice, lineKey, useCart } from '../../../state/CartContext'
 import { openCartSheet } from '../../../state/cartSheet'
 import { useEvents } from '../../../state/EventsContext'
-import { useOrders } from '../../../state/OrdersContext'
 import { useProfile } from '../../../state/ProfileContext'
 import CreditsBanner from '../CreditsBanner'
 import { BestRated, FastRestaurants, MainTiles, NearbyStores, Promos, Shortcuts, useHomeCatalog } from '../HomeSections'
@@ -37,7 +34,7 @@ import { CREDITS } from '../../../data/home'
 import '../home.css'
 import { useVerticalOrder } from '../useVerticalOrder'
 import LiveAgent from './LiveAgent'
-import { PlanBlock, RepeatBlock, kitAddedText, openItem } from './LiveBlocks'
+import { PlanBlock, kitAddedText, openItem } from './LiveBlocks'
 import {
   AGENT_CART_EVENT,
   REPLAY_EVENT,
@@ -54,25 +51,15 @@ import { moveText, moveWhy, useShortcutMove } from './shortcutMoves'
 import { today } from '../../../utils/today'
 import './live.css'
 
-// Las secciones de la Home de hoy, más "¿Repetimos?" (la recompra) o, si no hay, "¿Volvemos a…?" (lo que dejó de pedir),
-// que solo aparecen cuando la API los ofrece.
-const ORDER = ['essentials', 'recompra', 'promos', 'turbo', 'plan', 'nearby', 'lower']
-const WINBACK_ORIGIN = 'agent-volver'
-// El tipo de una invitación a volver (su señal): `volver` si es de un concepto, `vuelta` si es de una vertical. Va en
-// `payload.kind` de sus eventos: así la API reconoce cuál se mostró o se descartó.
-const winbackKind = (made) => made.reason?.basis?.[0]?.kind
-/** Si la invitación a volver de esta sesión es la de una vertical (`¿Volvemos a Turbo?`): su vertical del backend. */
-const backVertical = () => {
-  const made = session.winback?.offer
-  return made && winbackKind(made) === 'vuelta' ? made.backendVertical : null
-}
+// Las secciones de la Home de hoy. Desde el 14-11-2026 no lleva "¿Repetimos?" ni "¿Volvemos a…?" (no saturar la Home):
+// la recompra se pide en el buscador con Mochi ("Repite lo de siempre").
+const ORDER = ['essentials', 'promos', 'turbo', 'plan', 'nearby', 'lower']
 const T = { enter: 900, greet: 3400, greetHold: 6000 }
 // Silenciado por hoy (desde su menú, en la Home o flotante) o callado porque lo ignoraron: no habla por su cuenta; si lo tocan, sí.
 // Oculto ("Ocultar a Mochi"): no está, así que tampoco habla ni propone nada.
 const silent = () => isQuiet(today()) || isHushed() || isAgentHidden()
 // Apagado (el grupo de control, state/agentEnabled.js): no está ni habla, pero la Home pide igual lo que pide sola (la
-// oferta del carro, "¿Repetimos?" o "¿Volvemos a…?"): la API la retiene y la anota como en tratamiento, y la app no la
-// muestra (api/agent.js).
+// oferta del carro): la API la retiene y la anota como en tratamiento, y la app no la muestra (api/agent.js).
 const mute = () => silent() || !isAgentEnabled()
 // El origen de los eventos de "Mochi movió tus accesos".
 const MOVE_ORIGIN = 'agent-reorden'
@@ -132,9 +119,6 @@ export default function LiveHomeFeed({ push, active = true }) {
   const dialogs = useOpenDialogs()
   const overlay = searching || dialogs > 0
   const shortcuts = useShortcutMove(verticalOrder, { active: active && !searching, resets: profile.resets })
-  // Cambia con cada pedido y con cada calificación (una mala pausa lo de ese pedido): "¿Volvemos a…?" se vuelve a pedir.
-  const orders = useOrders().orders
-  const lastOrder = `${orders[0]?.id ?? ''}|${orders.filter((order) => order.rating).length}`
   const reduceMotion = useReducedMotion()
   const [replays, setReplays] = useState(0)
   const [privacyClosed, setPrivacyClosed] = useState(0) // sube al cerrarse el aviso de privacidad: recién ahí saluda
@@ -148,7 +132,6 @@ export default function LiveHomeFeed({ push, active = true }) {
   const [say, setSay] = useState(null)
   const [target, setTarget] = useState(null) // id del bloque donde se para el agente
   const [present, setPresent] = useState(() => session.played) // aún no entra a escena
-  const [repeat, setRepeat] = useState(null) // "¿Repetimos?" (`recompra`) o, si no hay, "¿Volvemos a…?" (`volver`)
   const [entering, setEntering] = useState(false)
 
   const screenRef = useRef(null)
@@ -531,76 +514,6 @@ export default function LiveHomeFeed({ push, active = true }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [moveKey])
 
-  // La generación del perfil vigente, para lo que llega después de pedirlo.
-  const generationNow = useRef(profile.resets)
-  useEffect(() => {
-    generationNow.current = profile.resets
-  }, [profile.resets])
-
-  // "¿Repetimos?" se pide cada vez que la Home vuelve a estar arriba (un pedido nuevo cambia lo que le toca). Si no hay
-  // (204), "¿Volvemos a…?", una vez por pestaña y por pedido: la API mantiene la misma invitación una semana, así que se
-  // guarda para que no cambie ni desaparezca al volver a la Home; un pedido nuevo (o "Olvidar") la vuelve a pedir, para
-  // no invitar a volver a lo que se acaba de comprar. La recompra siempre gana. Sin ninguna, sin red o con una API que no
-  // conoce el momento, no hay bloque; en silencio, o si ya dijeron "Después", no se pide.
-  // Tras "Olvidar" no pide (como useVerticalOrder): el buscador olvida antes de que el servidor borre, y pedir ahí traía
-  // la misma oferta y otra `suggestion_shown`; lo que venía en camino tampoco se muestra ni se cuenta. Si el borrado sale
-  // bien la app se recarga; si falla, pide al volver a la Home.
-  useEffect(() => {
-    if (!active || silent() || session.repeatLater) return undefined
-    let current = true
-    const generation = generationNow.current
-    const key = `${generation}|${lastOrder}`
-    const winback = () => {
-      if (session.winback?.key === key) return session.winback.offer
-      const keep = (made) => {
-        session.winback = { key, offer: made?.products.length ? made : null }
-        return session.winback.offer
-      }
-      return offer('volver', {}, { userId: userId(), surface: 'home' }).then(keep, () => keep(null))
-    }
-    // Una recompra retenida al grupo de control no pide "¿Volvemos a…?": en tratamiento se habría mostrado la recompra.
-    let withheld = false
-    const onWithheld = () => {
-      withheld = true
-    }
-    offer('recompra', {}, { userId: userId(), surface: 'home', onWithheld })
-      .then((made) => (made?.products.length || withheld ? made : winback()))
-      .then(
-        (made) => {
-          if (!current || generation !== generationNow.current) return
-          const shown = made?.products.length ? made : null
-          if (shown)
-            noteOfferShown(events.track, shown, {
-              generation,
-              kind: shown.moment === 'volver' ? winbackKind(shown) : undefined,
-            })
-          setRepeat(shown)
-        },
-        () => {},
-      )
-    return () => {
-      current = false
-    }
-  }, [active, events.track, lastOrder])
-
-  // "Después" deja el bloque para otra vez y registra el descarte. En "¿Volvemos a…?" lleva su tipo, como la mostrada:
-  // con dos, la API deja de ofrecer esa invitación. El de la recompra lleva su propio origen y no cuenta ahí.
-  const repeatLater = () => {
-    noteDismissed()
-    if (repeat?.moment === 'volver') {
-      const [product] = repeat.products
-      refuseConcept(repeat.reason?.concept ?? conceptOf(product))
-      events.track('suggestion_dismissed', {
-        concept_id: repeat.reason?.concept ?? conceptOf(product),
-        vertical: product.vertical,
-        ...envelope({ surface: 'home', origin: WINBACK_ORIGIN, requestId: repeat.requestId }),
-        payload: { kind: winbackKind(repeat) },
-      })
-    } else if (repeat) noteOfferDismissal(events.track, repeat, { generation: generationNow.current })
-    session.repeatLater = true
-    setRepeat(null)
-  }
-
   // Las ocasiones del plan del día salen de la API; sin ellas el bloque no ofrece nada (no hay kits locales).
   useEffect(() => {
     let current = true
@@ -777,13 +690,9 @@ export default function LiveHomeFeed({ push, active = true }) {
     } finally {
       poking.current = false
     }
-    // Sin nada que proponer (204) el agente no dice nada. Tampoco repite con "Vuelve a…" la vertical a la que la Home ya
-    // invitó a volver en esta sesión ("¿Volvemos a…?"): una sola invitación por vertical. Con la Home tapada, o si
-    // apareció otro globo mientras llegaba, lo pedido se descarta (ni se muestra ni se cuenta). Sin globo, sigue lo
-    // pendiente.
-    const repeated = made?.reason?.basis?.some((signal) => signal.kind === 'vuelta' && signal.id === backVertical())
-    if (mine !== run.current || !made || live.current.covered || spoken.current !== seen || repeated)
-      return live.current.drain()
+    // Sin nada que proponer (204) el agente no dice nada. Con la Home tapada, o si apareció otro globo mientras llegaba,
+    // lo pedido se descarta (ni se muestra ni se cuenta). Sin globo, sigue lo pendiente.
+    if (mine !== run.current || !made || live.current.covered || spoken.current !== seen) return live.current.drain()
     noteShown(events.track, made.products, {
       origin: `agent-${made.moment}`,
       reason: made.reason,
@@ -874,7 +783,6 @@ export default function LiveHomeFeed({ push, active = true }) {
         />
       </>
     ),
-    recompra: !hidden && repeat && <RepeatBlock offer={repeat} onLater={repeatLater} onOpen={openFromBlock} />,
     promos: <Promos push={push} />,
     turbo: <FastRestaurants stores={catalog.fastRestaurants} push={push} />,
     // El plan del día lo arma Mochi: oculto, no está.

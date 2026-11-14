@@ -29,8 +29,10 @@ TREATMENT = "tratamiento"
 # los pida (la Home, la búsqueda sin resultado, el seguimiento). El panel cuenta sus mostradas y aceptadas. Lo que la
 # persona pide no está aquí: un plan, un perfil de gusto, "¿Me falta algo?" del checkout (el momento `checkout`, que
 # solo se pide al tocarlo) y lo que pide en el buscador (`surface` ASKED_SURFACE: "Repite lo de siempre", "¿Con qué
-# acompaño…?", "¿Qué puedo probar?"). La escalera de verticales (`escalera`, la de quien no tiene perfil) va como la del
-# perfil: sale al abrir el buscador con Mochi, que el control no tiene, así que no hay un control con quien compararla.
+# acompaño…?", "¿Qué puedo probar?"). Desde el 14-11-2026 la Home no pide `recompra` ni `volver` (la recompra se pide en
+# el buscador): siguen en la lista para que lo anotado antes, y una app anterior, se cuenten igual en los dos grupos.
+# La escalera de verticales (`escalera`, la de quien no tiene perfil) va como la del perfil: sale al abrir el buscador
+# con Mochi, que el control no tiene, así que no hay un control con quien compararla.
 HOLDOUT_MOMENTS = frozenset(
     {"carrito", "sin_resultado", "proximo_pedido", "vertical_por_probar", "recompra", "volver", "ontop"}
 )
