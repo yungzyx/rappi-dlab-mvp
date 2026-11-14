@@ -4,6 +4,7 @@ bash 5) sobre un clon con git real y `make`, `caddy`, `launchctl`, `osascript`, 
 
 import os
 import re
+import shutil
 import subprocess
 import time
 from pathlib import Path
@@ -50,6 +51,14 @@ class Demo:
         (self.tunel / "tunel.env").write_text(f"REPO_DIR='{self.repo}'\nLABEL=test\n")
         (self.tunel / "srv" / "app").mkdir(parents=True)  # lo que ya se servía
         _write_fake(self.bin / "brew", "exit 0")
+        # El disco libre en KB sale de `df-libre` (por defecto, de sobra); `trash` mueve a `papelera/` (nunca a la
+        # Papelera de verdad del equipo que corre los tests, ni falta en el CI de Ubuntu).
+        _write_fake(
+            self.bin / "df",
+            'echo "Filesystem 1K-blocks Used Available"\n'
+            f'echo "disco 1 1 $(cat {tmp_path}/df-libre 2>/dev/null || echo 999999999)"',
+        )
+        _write_fake(self.bin / "trash", f'mkdir -p {tmp_path}/papelera && mv "$@" {tmp_path}/papelera/')
         _write_fake(self.bin / "launchctl", f'echo "$*" >> {self.rec}/launchctl.txt')
         _write_fake(self.bin / "osascript", f'echo "$*" >> {self.rec}/osascript.txt')
         _write_fake(
@@ -441,3 +450,263 @@ def test_a_failed_migration_is_retried_without_a_new_backup(demo):
     demo.commit("rappi-scraper/src/rappi_scraper/storage/migrations/100_b.sql", "select 2;\n")
     assert demo.run().returncode == 0
     assert len(demo.recorded("pg_dump")) == 2
+
+
+# Retención de los respaldos (deploy/macos/retencion.sh), sola y desde respaldo.sh.
+
+DAY = 86400
+
+
+def _backup(folder: Path, name: str, days_ago: float, size: int = 100) -> Path:
+    path = folder / name
+    path.write_bytes(b"x" * size)
+    when = time.time() - days_ago * DAY
+    os.utime(path, (when, when))
+    return path
+
+
+def _tree(root: Path) -> set[str]:
+    return {str(p.relative_to(root)) for p in root.rglob("*") if p.is_file()}
+
+
+def _retention(tmp_path: Path, new: Path, trash: str | None = "mv", **env: str) -> subprocess.CompletedProcess:
+    """Corre retencion.sh con un `trash` falso que mueve a `papelera/` ("mv"), uno que falla ("falla") o ninguno."""
+    fake_bin = tmp_path / "bin"
+    if trash == "mv":
+        _write_fake(fake_bin / "trash", f'mkdir -p {tmp_path}/papelera && mv "$@" {tmp_path}/papelera/')
+    elif trash == "falla":
+        _write_fake(fake_bin / "trash", "exit 1")
+    else:
+        fake_bin.mkdir(exist_ok=True)
+    path = f"{fake_bin}:{os.environ['PATH']}"
+    if trash is None:  # sin trash (macOS trae /usr/bin/trash): solo las herramientas que usa el script
+        for tool in ("dirname", "basename", "date", "wc", "tr", "ls", "tail", "mkdir", "mv", "find"):
+            (fake_bin / tool).symlink_to(shutil.which(tool))
+        path = str(fake_bin)
+    return subprocess.run(
+        ["/bin/bash", str(SCRIPTS / "retencion.sh"), str(new)],
+        env={"PATH": path, "HOME": str(tmp_path), **env},
+        capture_output=True,
+        text=True,
+    )
+
+
+@pytest.fixture
+def backups(tmp_path) -> Path:
+    """Cinco nocturnos y cuatro de antes de migrar de `rappi`, y lo que no es de la retención: los de la descarga
+    semanal, los de `rappi_staging` (el patrón `nocturno_rappi_*` también los tomaría), uno a mano, uno con otro
+    nombre, una nota y dos `.tmp` (uno de hace dos días y uno de hace una hora, quizá de un respaldo en curso)."""
+    folder = tmp_path / "respaldos"
+    folder.mkdir()
+    for day in range(1, 6):
+        _backup(folder, f"nocturno_rappi_2026110{day}-033000.dump", 10 - day)
+    for day in range(1, 5):
+        _backup(folder, f"pre-migracion_rappi_2026110{day}-220000.dump", 10 - day - 0.5)
+    _backup(folder, "rappi_20261101-040000.dump", 20)
+    _backup(folder, "nocturno_rappi_staging_20261101-033000.dump", 20)
+    _backup(folder, "pre-migracion_rappi_staging_20261101-033000.dump", 20)
+    _backup(folder, "manual.dump", 20)
+    _backup(folder, "nocturno_rappi_copia.dump", 20)
+    _backup(folder, "notas.txt", 20)
+    _backup(folder, "nocturno_rappi_20261101-033000.dump.tmp", 2)
+    _backup(folder, "pre-migracion_rappi_20261108-220000.dump.tmp", 1 / 24)
+    return folder
+
+
+GONE = {
+    "nocturno_rappi_20261101-033000.dump",
+    "nocturno_rappi_20261102-033000.dump",
+    "nocturno_rappi_20261103-033000.dump",
+    "pre-migracion_rappi_20261101-220000.dump",
+    "pre-migracion_rappi_20261102-220000.dump",
+    "nocturno_rappi_20261101-033000.dump.tmp",
+}
+
+
+def test_retention_deletes_the_rotated_ones_by_default_and_nothing_else(tmp_path, backups):
+    """Por defecto borra, como la rotación de antes: lo rotado libera el disco."""
+    before = _tree(backups)
+    new = _backup(backups, "nocturno_rappi_20261106-033000.dump", 0)
+
+    result = _retention(tmp_path, new)
+
+    assert result.returncode == 0, result.stdout + result.stderr
+    assert _tree(backups) == (before | {new.name}) - GONE  # 3 nocturnos con el nuevo, 2 pre-migracion, lo demás igual
+    assert not (tmp_path / "papelera").exists() and not (backups / "para-borrar").exists()
+    assert result.stdout.count("borrado: ") == len(GONE)
+
+
+def test_retention_can_send_the_rotated_ones_to_the_trash(tmp_path, backups):
+    before = _tree(backups)
+    new = _backup(backups, "nocturno_rappi_20261106-033000.dump", 0)
+
+    result = _retention(tmp_path, new, RESPALDOS_A_PAPELERA="1")
+
+    assert result.returncode == 0, result.stdout + result.stderr
+    assert _tree(tmp_path / "papelera") == GONE
+    assert _tree(backups) == (before | {new.name}) - GONE
+    assert result.stdout.count("a la Papelera: ") == len(GONE)
+
+
+def test_retention_counts_come_from_the_environment(tmp_path, backups):
+    new = _backup(backups, "pre-migracion_rappi_20261106-220000.dump", 0)
+
+    result = _retention(
+        tmp_path, new, RESPALDOS_A_GUARDAR="2", RESPALDOS_PRE_MIGRACION_A_GUARDAR="1"
+    )  # RESPALDOS_A_GUARDAR, el nombre anterior, vale para los nocturnos
+
+    assert result.returncode == 0, result.stdout + result.stderr
+    left = {name for name in _tree(backups) if re.fullmatch(r"(nocturno|pre-migracion)_rappi_\d{8}-\d{6}\.dump", name)}
+    assert left == {
+        "nocturno_rappi_20261105-033000.dump",
+        "nocturno_rappi_20261104-033000.dump",
+        "pre-migracion_rappi_20261106-220000.dump",
+    }
+
+    newer = _backup(backups, "nocturno_rappi_20261107-033000.dump", 0)
+    os.utime(newer, (time.time() - 30 * DAY,) * 2)  # el reloj corrido: el nuevo parece el más viejo
+    assert _retention(tmp_path, newer, RESPALDOS_NOCTURNOS_A_GUARDAR="1").returncode == 0
+    assert newer.exists()  # el recién hecho nunca sale, aunque no sea el más nuevo por fecha
+
+
+@pytest.mark.parametrize("value", ["0", "dos", "-1", ""])
+def test_retention_moves_nothing_with_a_count_that_is_not_a_positive_integer(tmp_path, backups, value):
+    new = _backup(backups, "nocturno_rappi_20261106-033000.dump", 0)
+    before = _tree(backups)
+
+    result = _retention(tmp_path, new, RESPALDOS_NOCTURNOS_A_GUARDAR=value)
+
+    if value == "":  # vacía es como no ponerla: 3
+        assert result.returncode == 0
+        return
+    assert result.returncode == 2 and "no es un entero mayor que 0" in result.stdout
+    assert _tree(backups) == before and not (tmp_path / "papelera").exists()
+
+
+def test_retention_does_not_run_when_the_new_backup_is_missing_or_suspicious(tmp_path, backups):
+    """respaldo.sh la llama solo si pg_dump, pg_restore --list y el mv salieron bien; aun así se revisa el archivo."""
+    before = _tree(backups)
+    cases = [
+        (backups / "nocturno_rappi_20261107-033000.dump", "no existe"),
+        (backups / "pre-migracion_rappi_20261108-220000.dump.tmp", "no es un respaldo"),
+        (backups / "manual.dump", "no es un respaldo"),
+        ("pre-migracion_rappi_20261106-220000.dump", "menos de la mitad"),  # 40 bytes, los otros 100
+        ("nocturno_rappi_20261106-033000.dump", "está vacío"),
+    ]
+
+    for new, reason in cases:
+        if isinstance(new, str):
+            new = _backup(backups, new, 0, size=0 if reason == "está vacío" else 40)
+            before.add(new.name)
+        result = _retention(tmp_path, new)
+        assert result.returncode == 2, (new, result.stdout + result.stderr)
+        assert reason in result.stdout
+
+    assert _tree(backups) == before
+    assert not (tmp_path / "papelera").exists()
+
+
+@pytest.mark.parametrize("trash", ["falla", None])
+def test_retention_without_trash_moves_to_a_folder_and_never_deletes(tmp_path, backups, trash):
+    new = _backup(backups, "nocturno_rappi_20261106-033000.dump", 0)
+    before = _tree(backups) | {new.name}
+
+    result = _retention(tmp_path, new, trash=trash, RESPALDOS_A_PAPELERA="1")
+
+    assert result.returncode == 3, result.stdout + result.stderr
+    moved = _tree(backups / "para-borrar")
+    assert len(moved) == 6 and "nocturno_rappi_20261101-033000.dump" in moved
+    assert {name.removeprefix("para-borrar/") for name in _tree(backups)} == before  # nada se borró
+    assert "sigue ocupando disco" in result.stdout
+
+
+def test_a_nightly_backup_rotates_the_old_ones_only_after_it_worked(demo):
+    folder = demo.tunel / "respaldos"
+    folder.mkdir()
+    for day in range(1, 4):
+        _backup(folder, f"nocturno_rappi_2026110{day}-033000.dump", 10 - day, size=9)
+    for day in range(1, 4):
+        _backup(folder, f"pre-migracion_rappi_2026110{day}-220000.dump", 10 - day, size=9)
+    before = _tree(folder)
+    _write_fake(demo.bin / "pg_dump", 'for a in "$@"; do out=$a; done; echo parcial > "$out"; exit 1')
+
+    failed = demo.run("respaldo.sh")
+
+    assert failed.returncode != 0
+    assert _tree(folder) == before and not (demo.tmp / "papelera").exists()
+
+    _write_fake(demo.bin / "pg_dump", 'for a in "$@"; do out=$a; done; echo respaldo > "$out"')
+    _write_fake(demo.bin / "pg_restore", "exit 0")
+    result = demo.run("respaldo.sh")
+
+    assert result.returncode == 0, result.stdout + result.stderr
+    assert not (folder / "nocturno_rappi_20261101-033000.dump").exists()
+    assert not (folder / "pre-migracion_rappi_20261101-220000.dump").exists()
+    assert not (demo.tmp / "papelera").exists()  # por defecto se borran: liberan el disco
+    assert len([name for name in _tree(folder) if name.startswith("nocturno_")]) == 3
+    assert len([name for name in _tree(folder) if name.startswith("pre-migracion_")]) == 2
+    assert not any("Retención" in notice or "para-borrar" in notice for notice in demo.recorded("osascript")[1:])
+
+
+def test_low_disk_is_said_by_the_backup_the_check_and_the_daily_summary(demo):
+    """Lo que pide respaldo.sh: el doble del último respaldo y 5 GB. Con menos, el respaldo no se toma, el chequeo de
+    antes de una sesión lo lista y el resumen diario lo escribe y lo avisa aparte."""
+    folder = demo.tunel / "respaldos"
+    folder.mkdir()
+    _backup(folder, "nocturno_rappi_20261101-033000.dump", 1, size=2 * 1024 * 1024)  # 2 MB: pide 5 GB + 4 MB
+    (demo.tmp / "df-libre").write_text(str(5 * 1024 * 1024 + 1024))  # 5 GB + 1 MB libres
+
+    backup = demo.run("respaldo.sh")
+
+    assert backup.returncode == 1
+    assert any("Respaldo omitido: poco espacio en disco, 5 GB libres" in n for n in demo.recorded("osascript"))
+
+    _write_fake(demo.bin / "curl", 'case " $* " in *"/health "*) echo \'{"ok":true}\';; *) printf "200 0.100";; esac')
+    _write_fake(demo.bin / "psql", "exit 0")
+    _config_python(demo)
+    (demo.tunel / "pausa-actualizar").touch()
+    check = demo.run("chequeo-sesion.sh")
+
+    assert check.returncode == 1
+    assert "poco espacio en disco" in check.stdout.split("Revisar antes de la sesión:")[1]
+
+    (demo.tunel / "logs").mkdir(exist_ok=True)
+    (demo.tunel / "logs" / "api.log").write_text("")
+    demo.python('printf "Resumen\\n3 peticiones\\n"')
+    assert demo.run("resumen.sh").returncode == 0
+    assert "Disco: poco espacio en disco" in (demo.tunel / "resumen-api.txt").read_text()
+    assert "Respaldo en riesgo: poco espacio" in demo.recorded("osascript")[-1]
+
+    (demo.tmp / "df-libre").write_text("999999999")
+    assert demo.run("resumen.sh").returncode == 0
+    assert "Disco:" not in (demo.tunel / "resumen-api.txt").read_text()
+    assert "API de ayer" in demo.recorded("osascript")[-1]
+
+
+def test_the_external_copy_does_nothing_unless_configured_and_checks_what_it_copied(demo):
+    folder = demo.tunel / "respaldos"
+    folder.mkdir()
+    _backup(folder, "nocturno_rappi_20261101-033000.dump", 2)
+    newest = _backup(folder, "pre-migracion_rappi_20261102-220000.dump", 1, size=300)
+    target = demo.tmp / "disco-externo" / "rappi"
+
+    off = demo.run("respaldo-externo.sh")
+
+    assert off.returncode == 0 and "Sin RESPALDO_EXTERNO_DIR" in off.stdout
+
+    with (demo.tunel / "tunel.env").open("a") as env:
+        env.write(f"RESPALDO_EXTERNO_DIR='{target}'\n")
+    unmounted = demo.run("respaldo-externo.sh")
+
+    assert unmounted.returncode == 1 and not target.exists()  # no crea la carpeta de un disco sin montar
+    assert "¿el disco no está conectado?" in demo.recorded("osascript")[-1]
+
+    target.mkdir(parents=True)
+    copied = demo.run("respaldo-externo.sh")
+
+    assert copied.returncode == 0, copied.stdout + copied.stderr
+    assert _tree(target) == {newest.name}
+    assert (target / newest.name).read_bytes() == newest.read_bytes()
+    again = demo.run("respaldo-externo.sh")
+    assert again.returncode == 0 and "Copia externa al día" in again.stdout
+    assert _tree(folder) == {"nocturno_rappi_20261101-033000.dump", newest.name}  # el origen no cambia
