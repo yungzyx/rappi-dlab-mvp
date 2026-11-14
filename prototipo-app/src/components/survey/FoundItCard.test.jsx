@@ -6,9 +6,10 @@ import { DemoProvider } from '../../state/DemoContext'
 import { sessionId } from '../../state/EventsContext'
 import { HIDDEN_KEY } from '../../state/agentHidden'
 import { setAgentEnabled } from '../../state/agentEnabled'
-import { SURVEY_DAY_KEY, observeEvent, resetSurvey } from '../../state/survey'
+import { SURVEY_DAY_KEY, SURVEY_P3_DAY_KEY, observeEvent, resetSurvey } from '../../state/survey'
 import { tabStore } from '../../state/storage'
 import { today } from '../../utils/today'
+import OfferWhy from '../assistant/OfferWhy'
 import FoundItSurvey, { P1_TEXT, P3_TEXT } from './FoundItCard'
 import { SETTLE_MS, THANKS_MS } from './useFoundItSurvey'
 
@@ -18,7 +19,8 @@ vi.mock('../../state/EventsContext', async (importOriginal) => ({
   useEvents: () => events,
 }))
 
-// La app de prueba: la pregunta sobre la pantalla `screen` (con `depth` en la pila) y, si `talking`, un globo de Mochi.
+// La app de prueba: la pregunta sobre la pantalla `screen` (con `depth` en la pila) y, si `talking`, un globo de Mochi;
+// si `offer`, el globo trae una oferta con su "¿Por qué?" (el de verdad) y "Ahora no", que la cierra.
 const probe = {}
 const setView = (next) => act(() => probe.set((prev) => ({ ...prev, ...next })))
 function Harness() {
@@ -29,6 +31,14 @@ function Harness() {
   return (
     <div className="phone">
       {view.talking && <div className="live-bubble">¿Le sumas una bebida?</div>}
+      {view.offer && (
+        <div className="live-bubble">
+          <OfferWhy reason={{ text: 'Porque agregaste pizza' }} origin="agent-carro" />
+          <button type="button" onClick={() => set((prev) => ({ ...prev, offer: false }))}>
+            Ahora no
+          </button>
+        </div>
+      )}
       <FoundItSurvey screen={view.screen} depth={view.depth} raised={view.screen === 'home'} />
     </div>
   )
@@ -241,6 +251,165 @@ describe('la p3', () => {
     expect(tracked('survey_shown')[0].payload).toEqual({ question: 'p1', trigger: 'abandono', mochi: false })
     fireEvent.click(screen.getByRole('button', { name: 'Sí' }))
     expect(screen.queryByRole('heading', { name: P3_TEXT })).toBeNull()
+  })
+})
+
+describe('la p3 sola, cuando se va una oferta con su "¿Por qué?" abierto', () => {
+  const p3 = () => screen.queryByRole('heading', { name: P3_TEXT })
+  // Mochi muestra la oferta en un globo: la pregunta lo ve con un MutationObserver (su aviso llega en una microtarea).
+  const offerShows = async () => {
+    setView({ offer: true })
+    await act(async () => {})
+  }
+  const readWhy = () => fireEvent.click(screen.getByRole('button', { name: '¿Por qué?' }))
+  const notNow = async () => {
+    fireEvent.click(screen.getByRole('button', { name: 'Ahora no' }))
+    await act(async () => {})
+  }
+
+  test('the user test: p1 after searching, then a "¿Por qué?", "Ahora no" and the p3 shows on its own', async () => {
+    mount()
+    searchAndBack({ touch: 'view_item' })
+    settle()
+    fireEvent.click(screen.getByRole('button', { name: 'Sí' })) // sin "¿Por qué?" todavía: solo la p1
+    act(() => vi.advanceTimersByTime(THANKS_MS))
+    expect(p3()).toBeNull()
+
+    await offerShows()
+    readWhy()
+    act(() => vi.advanceTimersByTime(10 * SETTLE_MS))
+    expect(p3()).toBeNull() // mientras la oferta sigue, nada
+    await notNow()
+    expect(p3()).toBeNull() // espera a que la pantalla se asiente
+    settle()
+    expect(p3()).toBeTruthy()
+    expect(tracked('survey_shown').map((f) => f.payload)).toEqual([
+      { question: 'p1', trigger: 'busqueda', mochi: true },
+      { question: 'p3', trigger: 'porque', mochi: true },
+    ])
+    expect(tracked('survey_shown')[1]).toEqual({
+      surface: 'home',
+      payload: { question: 'p3', trigger: 'porque', mochi: true },
+    })
+    fireEvent.click(screen.getByRole('button', { name: '5, mucho' }))
+    expect(tracked('survey_answer')[1].payload).toEqual({ question: 'p3', trigger: 'porque', mochi: true, answer: 5 })
+    expect(screen.getByRole('status').textContent).toContain('¡Gracias!')
+    expect(localStorage.getItem(SURVEY_P3_DAY_KEY)).toBe(today())
+  })
+
+  test('a p1 already shown in the session does not block it, and it can be closed without answering', async () => {
+    mount()
+    searchAndBack()
+    settle()
+    fireEvent.click(screen.getByRole('button', { name: 'Cerrar sin responder' }))
+    await offerShows()
+    readWhy()
+    await notNow()
+    settle()
+    expect(p3()).toBeTruthy()
+    fireEvent.click(screen.getByRole('button', { name: 'Cerrar sin responder' }))
+    expect(p3()).toBeNull()
+    expect(tracked('survey_dismissed').map((f) => f.payload)).toEqual([
+      { question: 'p1', trigger: 'abandono', mochi: true },
+      { question: 'p3', trigger: 'porque', mochi: true },
+    ])
+  })
+
+  test('once per day: another offer with its "¿Por qué?" the same day does not bring it back', async () => {
+    mount()
+    setView({ screen: 'home', depth: 1 })
+    await offerShows()
+    readWhy()
+    await notNow()
+    settle()
+    fireEvent.click(screen.getByRole('button', { name: '3' }))
+    act(() => vi.advanceTimersByTime(THANKS_MS))
+    await offerShows()
+    readWhy()
+    await notNow()
+    act(() => vi.advanceTimersByTime(10 * SETTLE_MS))
+    expect(p3()).toBeNull()
+    expect(tracked('survey_shown')).toHaveLength(1)
+  })
+
+  test('the p3 already shown today: the p1 is not followed by it either', async () => {
+    localStorage.setItem(SURVEY_P3_DAY_KEY, today())
+    mount()
+    act(() => observeEvent({ type: 'offer_why_open', session_id: sessionId() }))
+    searchAndBack()
+    settle()
+    fireEvent.click(screen.getByRole('button', { name: 'Sí' }))
+    expect(p3()).toBeNull()
+    expect(screen.getByRole('status').textContent).toContain('¡Gracias!')
+  })
+
+  test('only after the "¿Por qué?" was opened: an offer that just leaves does not ask', async () => {
+    mount()
+    setView({ screen: 'home', depth: 1 })
+    await offerShows()
+    await notNow()
+    act(() => vi.advanceTimersByTime(10 * SETTLE_MS))
+    expect(p3()).toBeNull()
+    expect(tracked('survey_shown')).toEqual([])
+  })
+
+  test.each(['checkout', 'tracking'])('never on %s: it waits for a screen where it can show', async (where) => {
+    mount()
+    setView({ screen: where, depth: 2 })
+    await offerShows()
+    readWhy()
+    await notNow()
+    act(() => vi.advanceTimersByTime(10 * SETTLE_MS))
+    expect(p3()).toBeNull()
+    setView({ screen: 'home', depth: 1 })
+    settle()
+    expect(p3()).toBeTruthy()
+  })
+
+  test('if the p1 is due at the same time it goes first, and the p3 follows it in the same card', async () => {
+    mount()
+    await offerShows() // Mochi habla al volver de la búsqueda: la p1 espera
+    act(() => observeEvent({ type: 'offer_why_open', session_id: sessionId() })) // lo que anota el EventsContext real
+    searchAndBack({ touch: 'cart_add' })
+    readWhy()
+    await notNow()
+    settle()
+    expect(question()).toBeTruthy()
+    fireEvent.click(screen.getByRole('button', { name: 'En parte' }))
+    expect(p3()).toBeTruthy()
+    fireEvent.click(screen.getByRole('button', { name: '4' }))
+    act(() => vi.advanceTimersByTime(THANKS_MS + 10 * SETTLE_MS))
+    expect(tracked('survey_shown').map((f) => f.payload.question)).toEqual(['p1', 'p3']) // no vuelve sola
+  })
+
+  test('closing the p1 that the p3 would follow leaves both', async () => {
+    mount()
+    await offerShows()
+    act(() => observeEvent({ type: 'offer_why_open', session_id: sessionId() }))
+    searchAndBack()
+    readWhy()
+    await notNow()
+    settle()
+    fireEvent.click(screen.getByRole('button', { name: 'Cerrar sin responder' }))
+    act(() => vi.advanceTimersByTime(10 * SETTLE_MS))
+    expect(p3()).toBeNull()
+    expect(tracked('survey_shown').map((f) => f.payload.question)).toEqual(['p1'])
+  })
+
+  test.each([
+    ['Mochi oculto', () => localStorage.setItem(HIDDEN_KEY, '1')],
+    ['"Rappi hoy"', () => localStorage.setItem('rappi-proto-demo-mode', 'actual')],
+    ['Mochi apagado (el grupo de control)', () => setAgentEnabled(false)],
+  ])('with %s it does not show', async (_, setUp) => {
+    setUp()
+    mount()
+    setView({ screen: 'home', depth: 1 })
+    await offerShows()
+    readWhy()
+    await notNow()
+    act(() => vi.advanceTimersByTime(10 * SETTLE_MS))
+    expect(p3()).toBeNull()
+    expect(tracked('survey_shown')).toEqual([])
   })
 })
 

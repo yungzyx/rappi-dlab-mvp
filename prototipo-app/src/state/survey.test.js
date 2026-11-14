@@ -1,10 +1,15 @@
 import { afterEach, expect, test } from 'vitest'
 import {
   canAsk,
+  canAskP3,
+  clearP3,
   currentJourney,
   endJourney,
   markAsked,
+  markAskedP3,
   observeEvent,
+  offerLeft,
+  pendingP3,
   resetSurvey,
   surveyTrigger,
   whyOpened,
@@ -60,4 +65,22 @@ test('el "¿Por qué?" abierto vale para su sesión', () => {
   observeEvent({ type: 'offer_why_open', session_id: 's1' }, NOW)
   expect(whyOpened('s1')).toBe(true)
   expect(whyOpened('s2')).toBe(false)
+})
+
+test('la p3 tiene su propio tope diario: la p1 no la bloquea ni ella a la p1', () => {
+  markAsked('s1', '2026-11-13')
+  expect(canAskP3('2026-11-13')).toBe(true)
+  markAskedP3('2026-11-13')
+  expect(canAskP3('2026-11-13')).toBe(false)
+  expect(canAskP3('2026-11-14')).toBe(true)
+  expect(canAsk('s2', '2026-11-14')).toBe(true)
+})
+
+test('una oferta que se fue con su "¿Por qué?" abierto deja pendiente la p3, por una sesión', () => {
+  expect(pendingP3(NOW)).toBe(false)
+  offerLeft(NOW)
+  expect(pendingP3(NOW + 60_000)).toBe(true)
+  expect(pendingP3(NOW + 31 * 60_000)).toBe(false)
+  clearP3()
+  expect(pendingP3(NOW)).toBe(false)
 })

@@ -2,17 +2,20 @@ import { useSyncExternalStore } from 'react'
 import { localStore, tabStore } from './storage'
 
 // La pregunta in-app de la H3 (docs/diseno-ia.md, "La pregunta de la H3"): "¿Encontraste lo que buscabas?" (p1) para
-// todos, con Mochi o sin él, y "¿Confías en las sugerencias de Mochi?" (p3) solo si la persona ve a Mochi y abrió un
-// "¿Por qué?" en la sesión. Aquí viven sus topes y el recorrido de búsqueda que la hace aparecer; la tarjeta es
+// todos, con Mochi o sin él, y "¿Confías en las sugerencias de Mochi?" (p3) solo si la persona ve a Mochi, después de un
+// "¿Por qué?": sigue a la p1 si ya abrió uno en la sesión, o sale sola cuando se va la oferta cuyo "¿Por qué?" abrió.
+// Aquí viven sus topes, el recorrido de búsqueda que hace aparecer la p1 y la oferta que se fue; la tarjeta es
 // components/survey/FoundItCard.jsx.
 //
-// Topes: una vez por sesión de los eventos (la de EventsContext: 30 min sin actividad la terminan; se guarda su id en
-// sessionStorage) y una vez por día por persona (la fecha, en localStorage, como el silencio de agentQuiet.js). Llevan
+// Topes de la p1: una vez por sesión de los eventos (la de EventsContext: 30 min sin actividad la terminan; se guarda su
+// id en sessionStorage) y una vez por día por persona (la fecha, en localStorage, como el silencio de agentQuiet.js).
+// La p3 tiene el suyo: una vez por día por persona (otra fecha en localStorage; la p1 no la bloquea). Llevan
 // el prefijo `rappi-proto-`: "Borrar mis datos" los borra con lo demás. Sin almacenamiento viven en memoria (storage.js):
 // la pregunta sigue saliendo una vez en la pestaña y la app no se cae.
 
 export const SURVEY_SESSION_KEY = 'rappi-proto-encuesta-sesion'
 export const SURVEY_DAY_KEY = 'rappi-proto-encuesta-dia'
+export const SURVEY_P3_DAY_KEY = 'rappi-proto-encuesta-p3-dia'
 const WHY_KEY = 'rappi-proto-encuesta-porque' // la sesión en que la persona abrió un "¿Por qué?"
 
 /** Las preguntas y sus respuestas, con los códigos que acepta la API (events/store.py: SURVEY_ANSWERS). */
@@ -32,6 +35,9 @@ const JOURNEY_MAX_MS = 30 * 60 * 1000
 // (`requestIds`, los `request_id` de sus respuestas), si tocó algún resultado y si agregó algo al carro. Vive en la
 // memoria de la pestaña: recargar en medio de una búsqueda no la pregunta.
 let journey = null
+// Cuándo se fue la última oferta de Mochi con su "¿Por qué?" abierto (OfferWhy lo avisa al desmontarse), mientras la p3
+// no haya salido por ella. También en la memoria de la pestaña.
+let whyLeftAt = null
 const listeners = new Set()
 const notify = () => listeners.forEach((listener) => listener())
 
@@ -108,10 +114,40 @@ export function markAsked(session, day) {
 /** ¿Abrió un "¿Por qué?" en la sesión `session`? */
 export const whyOpened = (session) => tabStore.get(WHY_KEY) === session
 
+/** Se fue (se aceptó, se dejó para después o se cerró) una oferta de Mochi cuyo "¿Por qué?" se abrió: toca la p3. */
+export function offerLeft(now = Date.now()) {
+  whyLeftAt = now
+  notify()
+}
+
+/** ¿Hay una p3 pendiente por una oferta que se fue? No si fue hace más que una sesión de los eventos. */
+export const pendingP3 = (now = Date.now()) => whyLeftAt !== null && now - whyLeftAt < JOURNEY_MAX_MS
+
+/** La p3 pendiente ya salió o ya no corresponde. */
+export function clearP3() {
+  if (whyLeftAt === null) return
+  whyLeftAt = null
+  notify()
+}
+
+/** Cuándo se fue la oferta que deja pendiente la p3 (o null); se actualiza con cada una. */
+export function useP3Pending() {
+  return useSyncExternalStore(subscribe, () => whyLeftAt)
+}
+
+/** ¿Se puede hacer la p3 el día `day` (AAAA-MM-DD)? Una por día, aparte de la p1. */
+export const canAskP3 = (day) => localStore.get(SURVEY_P3_DAY_KEY) !== day
+
+/** La p3 se mostró: no vuelve en este día. */
+export function markAskedP3(day) {
+  localStore.set(SURVEY_P3_DAY_KEY, day)
+}
+
 /** Para los tests: como una pestaña nueva. */
 export function resetSurvey() {
   journey = null
+  whyLeftAt = null
   for (const key of [SURVEY_SESSION_KEY, WHY_KEY]) tabStore.remove(key)
-  localStore.remove(SURVEY_DAY_KEY)
+  for (const key of [SURVEY_DAY_KEY, SURVEY_P3_DAY_KEY]) localStore.remove(key)
   notify()
 }

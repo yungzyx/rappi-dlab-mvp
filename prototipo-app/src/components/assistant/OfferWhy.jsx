@@ -1,6 +1,7 @@
-import { useId, useState } from 'react'
+import { useEffect, useId, useRef, useState } from 'react'
 import { basisKinds } from '../../api/suggestions'
 import { useEvents } from '../../state/EventsContext'
+import { offerLeft } from '../../state/survey'
 import './offer-why.css'
 
 /**
@@ -10,11 +11,20 @@ import './offer-why.css'
  * cada vez que se abre queda un `offer_why_open` con el concepto de la razón y los tipos de su `basis`, como la
  * mostrada (`noteShown`): así la prueba con usuarios sabe si se leyó. Sin `origin` (el porqué de los accesos de la
  * Home, que no es una oferta), no se anota.
+ * Si se abrió, al irse la oferta (se acepta, se deja para después o se cierra, y el porqué se desmonta con ella) avisa
+ * a la pregunta in-app, que hace la p3 (state/survey.js).
  */
 export default function OfferWhy({ reason, origin, onToggle }) {
   const [open, setOpen] = useState(false)
   const id = useId()
   const events = useEvents()
+  const read = useRef(false) // se abrió el porqué de una oferta
+  useEffect(
+    () => () => {
+      if (read.current) offerLeft()
+    },
+    [],
+  )
   if (!reason?.text) return null
   return (
     <div className="offer-why">
@@ -27,6 +37,7 @@ export default function OfferWhy({ reason, origin, onToggle }) {
           setOpen(!open)
           onToggle?.(!open)
           if (!open && origin) {
+            read.current = true
             const basis = basisKinds(reason)
             events.track('offer_why_open', {
               origin,
