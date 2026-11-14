@@ -213,7 +213,7 @@ export default function AssistantPanel({ push, vertical, depth = 1 }) {
       ask(() => lastOrderAnswer(shownOrder(orders?.orders ?? [])), { cancellable: false })
     } else if (id === 'recompra') ask((signal) => answers.offered('recompra', {}, NOTHING_TO_REPEAT, signal))
     else if (id === 'plan') ask((signal) => answers.kitOptions(signal))
-    else if (taste) ask((signal) => answers.forYou(taste, signal))
+    else if (taste?.profile) ask((signal) => answers.forYou(taste, signal))
     else ask((signal) => answers.answer('qué me recomiendas', undefined, signal))
   }
 
@@ -392,7 +392,28 @@ export default function AssistantPanel({ push, vertical, depth = 1 }) {
   }
   // Con perfil de gusto (en la propuesta), arriba van el perfil, el saludo y la escalera, como en el Comité 2; lo demás
   // (el autopedido fijo, los atajos con "Mis preferencias" y "Pedir por mí", las ideas y el aviso de IA), debajo.
-  const withProfile = Boolean(taste && demo.isFinal)
+  const withProfile = Boolean(taste?.profile && demo.isFinal)
+  // La escalera: la del perfil o, sin perfil, la de verticales (el momento `escalera`), que va bajo la respuesta con su
+  // "¿Por qué?": el panel de siempre, sin la tarjeta del perfil ni su saludo (no supone un gusto).
+  const ladder = demo.isFinal && taste ? taste.ladder : null
+  const ladderRail = ladder && (
+    <LadderRail
+      ladder={ladder}
+      why={withProfile ? null : ladder.reason}
+      onOpenVertical={(screen, where) => {
+        noteVerticalOpen({ ...where, origin: ladder.origin, requestId: ladder.requestId })
+        go(...routeForScreen(screen))
+      }}
+      onOpenTravel={() =>
+        onAction({
+          route: ladder.trip?.route ?? ['travel'],
+          service: 'rappitravel',
+          placement: { surface: 'agent', origin: ladder.origin, requestId: ladder.requestId },
+        })
+      }
+      onOpenProduct={openProduct}
+    />
+  )
   // Con perfil, la respuesta sale arriba de la escalera: tocar un chip de abajo sube a verla.
   const showAnswer = (event) => {
     if (withProfile) event.currentTarget.closest('.agent-search-body')?.scrollTo?.({ top: 0, behavior: 'smooth' })
@@ -587,21 +608,7 @@ export default function AssistantPanel({ push, vertical, depth = 1 }) {
 
               {withProfile ? (
                 <>
-                  <LadderRail
-                    ladder={taste.ladder}
-                    onOpenVertical={(screen, where) => {
-                      noteVerticalOpen({ ...where, origin: 'agent-perfil', requestId: taste.ladder.requestId })
-                      go(...routeForScreen(screen))
-                    }}
-                    onOpenTravel={() =>
-                      onAction({
-                        route: taste.ladder.trip?.route ?? ['travel'],
-                        service: 'rappitravel',
-                        placement: { surface: 'agent', origin: 'agent-perfil', requestId: taste.ladder.requestId },
-                      })
-                    }
-                    onOpenProduct={openProduct}
-                  />
+                  {ladderRail}
                   {pinnedCard}
                   {/* Lo demás que Mochi sabe hacer, en una sola fila: los atajos y sus ajustes. */}
                   <div className="assistant-chips agent-capabilities agent-more">
@@ -627,15 +634,17 @@ export default function AssistantPanel({ push, vertical, depth = 1 }) {
                   </div>
                 </>
               ) : (
-                capabilities.length > 0 &&
-                !current?.health && (
-                  <>
-                    <p className="agent-picks-label">Puedo ayudarte a:</p>
-                    <div className="assistant-chips agent-capabilities">
-                      <CapabilityChips capabilities={capabilities} disabled={forgetting} onPick={pickCapability} />
-                    </div>
-                  </>
-                )
+                <>
+                  {ladderRail}
+                  {capabilities.length > 0 && !current?.health && (
+                    <>
+                      <p className="agent-picks-label">Puedo ayudarte a:</p>
+                      <div className="assistant-chips agent-capabilities">
+                        <CapabilityChips capabilities={capabilities} disabled={forgetting} onPick={pickCapability} />
+                      </div>
+                    </>
+                  )}
+                </>
               )}
 
               {/* Bajo una respuesta de salud no van las ideas de siempre ("Arma un carrete") */}

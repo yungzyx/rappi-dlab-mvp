@@ -92,9 +92,10 @@ export const tasteProfiles = () =>
 
 /**
  * La escalera de un perfil de gusto (el momento `perfil` de /agent/offer), o null (204):
- * `{ text, profile, reason, steps: [{ vertical, backendVertical, text, products }], trip, requestId }`. Cada peldaño es una
- * vertical (id de la app) con sus productos, que ya pasaron las guardias de las ofertas y cuentan como sugerencia de
- * Mochi (`suggestionOrigin: 'agent-perfil'`); `trip` es la idea para RappiTravel (`{ name, text, label, facts, route }`).
+ * `{ text, profile, reason, origin, steps: [{ vertical, backendVertical, text, products }], trip, requestId }`. Cada
+ * peldaño es una vertical (id de la app) con sus productos, que ya pasaron las guardias de las ofertas y cuentan como
+ * sugerencia de Mochi (`suggestionOrigin: 'agent-perfil'`); `trip` es la idea para RappiTravel (`{ name, text, label,
+ * facts, route }`).
  */
 export async function profileLadder(profileId) {
   const response = await request('/agent/offer', {
@@ -102,7 +103,26 @@ export async function profileLadder(profileId) {
     body: { moment: 'perfil', user_id: userId(), context: { perfil: profileId } },
     timeout: OFFER_TIMEOUT_MS,
   })
-  if (!response) return null
+  return response ? toLadder(response, 'agent-perfil') : null
+}
+
+/**
+ * La escalera de verticales de quien todavía no tiene perfil de gusto (el momento `escalera`), o null (204): la misma
+ * forma que `profileLadder`, con `profile` y `trip` null y el origen `agent-escalera`. Sale de los pasos del motor, no
+ * de un gusto: su `reason` lo dice. Se pide desde el buscador con Mochi (`surface: 'agent'`). Con Mochi apagado (el
+ * grupo de control) es null: ese buscador no existe ahí, y la API tampoco la entrega.
+ */
+export async function verticalLadder() {
+  const response = await request('/agent/offer', {
+    method: 'POST',
+    body: { moment: 'escalera', user_id: userId(), session_id: sessionId(), surface: 'agent', context: {} },
+    timeout: OFFER_TIMEOUT_MS,
+  })
+  return response && isAgentEnabled() ? toLadder(response, 'agent-escalera') : null
+}
+
+/** Una respuesta de los momentos `perfil` y `escalera` como la usa la app. */
+function toLadder(response, origin) {
   const trip = response.viaje
   const requestId = response.request_id ?? null
   // Las posiciones siguen de corrido entre peldaños (como searchAll): los peldaños comparten origen y respuesta, y
@@ -110,6 +130,7 @@ export async function profileLadder(profileId) {
   let start = 0
   return {
     requestId,
+    origin,
     text: response.text,
     profile: response.perfil,
     reason: response.reason,
@@ -122,9 +143,9 @@ export async function profileLadder(profileId) {
           step.products.map((p) => ({
             ...toPrototypeProduct(p),
             fromSuggestion: true,
-            suggestionOrigin: 'agent-perfil',
+            suggestionOrigin: origin,
           })),
-          { surface: 'agent', origin: 'agent-perfil', requestId, start },
+          { surface: 'agent', origin, requestId, start },
         )
         start += placed.length
         return placed

@@ -200,7 +200,8 @@ export function useAgentAnswers({ vertical, offline, checkAutoOrder, later }) {
   /**
    * El saludo, con "Para ti" de /recommendations (sin él si la API no contesta o no tiene nada que recomendar). Con un
    * perfil de gusto (`taste`, en la propuesta) es "¡Hola de nuevo!" con lo que le gusta, sin "Para ti" (y sin esperarlo):
-   * su escalera va justo debajo. Espera también lo aprendido (`learned`): el panel aparece con el saludo (`waiting`), y
+   * su escalera va justo debajo. Sin perfil, con la escalera de verticales, el saludo de siempre (no supone un gusto) y
+   * tampoco "Para ti": la escalera va debajo y su primer peldaño ya lo muestra. Espera también lo aprendido (`learned`): el panel aparece con el saludo (`waiting`), y
    * lo que llegara después lo empujaría. Recibe lo que se pidió al abrir (`useOpenData`).
    */
   const greeting = async ({ rows, taste, learned }) => {
@@ -212,14 +213,17 @@ export function useAgentAnswers({ vertical, offline, checkAutoOrder, later }) {
     const waited = new Promise((resolve) => later(() => resolve([arrived, tasteArrived]), FOR_YOU_WAIT_MS))
     // Una muestra sin conexión grabada antes de `gusto` no lo trae: entonces, el saludo de siempre. Con perfil no
     // se espera "Para ti": no sale en su saludo.
-    const withGusto = (found) => demo.isFinal && Boolean(found?.profile.gusto)
+    const withGusto = (found) => demo.isFinal && Boolean(found?.profile?.gusto)
+    // Con una escalera (la del perfil o, sin perfil, la de verticales) tampoco va "Para ti": su primer peldaño ya
+    // muestra lo de ahí (sin historial, los mismos platos de restaurantes) y la escalera va justo debajo.
+    const withLadder = (found) => demo.isFinal && Boolean(found)
     const all = taste.then(async (found) => {
-      const [list] = await Promise.allSettled([withGusto(found) ? [] : rows, learned])
+      const [list] = await Promise.allSettled([withLadder(found) ? [] : rows, learned])
       return [list.value ?? [], found]
     })
     const [[row], found] = await Promise.race([all, waited])
     if (withGusto(found)) return { text: PROFILE_GREETING(found.profile) }
-    if (!row) return { text: GREETING }
+    if (!row || withLadder(found)) return { text: GREETING }
     const shown = {
       origin: 'para-ti',
       concept: row.concept,

@@ -1,6 +1,7 @@
 """La predicción del motor para una persona: el próximo vertical, su combinación de este mes y el paso que más retención
 suma: la vertical del catálogo (o, si ya usa todas las que se pueden ofrecer, RappiFavor o RappiTravel) con la que más
-sube su retención esperada (`combos.next_fine_step`).
+sube su retención esperada (`combos.next_fine_step`). Encadenando esos pasos sale su escalera de verticales
+(`ladder_steps`).
 
 Lee solo las filas de la persona y las tablas chicas de la población (transiciones, tendencias por vertical,
 combinaciones, la última corrida); nunca recorre todos los pedidos en el momento de responder. La afinidad se calcula en
@@ -21,7 +22,9 @@ from .combos import (
     SERVICES,
     Step,
     combo_of_verticals,
+    fine_key,
     fine_of,
+    first_vertical,
     load_combos,
     next_fine_step,
 )
@@ -143,6 +146,32 @@ def target_step(conn: Connection, user_id: str, population: str | None = None) -
     return next_fine_step(fine, candidates, learned_coarse, learned_fine)
 
 
+def ladder_steps(conn: Connection, user_id: str | None, population: str | None = None) -> list[Step]:
+    """La escalera de verticales de la persona, de lo más cercano a lo más lejano: el paso de `target_step` y, sobre la
+    combinación que deja cada uno, el siguiente (`combos.next_fine_step`), hasta que nada sume. Solo verticales del
+    catálogo que el agente ofrece (sin servicios: no tienen productos que mostrar), en el orden de `next_verticals`,
+    que desempata. Sin pedidos en 90 días (o sin persona), el primer peldaño es la vertical del grupo con el que más
+    personas parten según la tabla de Rappi (`combos.first_vertical`: Restaurantes), con `current` "ninguna" y sin
+    ganancia; de ahí sigue igual (Turbo y después Retail). Vacía si ya usa todas."""
+    population = population or config.MOTOR_POBLACION
+    fine = current_fine(conn, user_id) if user_id else NONE_COMBO
+    ranked = [s.vertical for s in next_verticals(conn, user_id, population)]
+    candidates = [v for v in ranked if offerable_vertical(v) and v not in OWN_SIGNALS_ONLY]
+    learned_coarse = _learned_retention(conn, population)
+    learned_fine = _learned_fine_retention(conn, population)
+    steps: list[Step] = []
+    if fine == NONE_COMBO:
+        first = first_vertical(candidates)
+        if first is None:
+            return []
+        steps.append(Step(first, NONE_COMBO, fine_key([first]), 0.0, False))
+        fine = steps[0].target
+    while step := next_fine_step(fine, candidates, learned_coarse, learned_fine):
+        steps.append(step)
+        fine = step.target
+    return steps
+
+
 def step_signal(conn: Connection, step: Step, population: str | None = None) -> dict:
     """La señal `combinacion` de un paso (`target_step`) para la `basis` de una oferta: "<actual>→<objetivo>", con sus
     combinaciones finas sin Farmacia ni Licores (cuentan en el paso, pero la base no los nombra). Su fuente parte de la
@@ -150,8 +179,20 @@ def step_signal(conn: Connection, step: Step, population: str | None = None) -> 
     "+poblacion:<fuente>" si pesó la retención aprendida de la población (gruesa o fina, con al menos
     `LEARNED_RETENTION_MIN_USERS` personas) en la combinación actual o en la objetivo."""
     population = population or config.MOTOR_POBLACION
+    return steps_signals(conn, [step], population)[0]
+
+
+def steps_signals(conn: Connection, steps: list[Step], population: str | None = None) -> list[dict]:
+    """La señal `combinacion` de cada paso (`step_signal`), leyendo una sola vez lo aprendido de la población."""
+    population = population or config.MOTOR_POBLACION
     coarse = _learned_retention(conn, population)
     fine = _learned_fine_retention(conn, population)
+    return [_step_signal(step, coarse, fine, population) for step in steps]
+
+
+def _step_signal(
+    step: Step, coarse: dict[str, tuple[int, float]], fine: dict[str, tuple[int, float]], population: str
+) -> dict:
     enough = LEARNED_RETENTION_MIN_USERS
     weighed = any(
         fine.get(combo, (0, 0.0))[0] >= enough or coarse.get(_coarse_of(combo), (0, 0.0))[0] >= enough

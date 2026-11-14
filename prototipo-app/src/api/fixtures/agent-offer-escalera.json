@@ -1,0 +1,341 @@
+{
+  "actions": [
+    {
+      "label": "Abrir restaurantes",
+      "route": [
+        "restaurants"
+      ]
+    },
+    {
+      "label": "Abrir Turbo",
+      "route": [
+        "turbo"
+      ]
+    },
+    {
+      "label": "Abrir el súper",
+      "route": [
+        "grocery"
+      ]
+    },
+    {
+      "label": "Abrir Rappi Mall",
+      "route": [
+        "retail"
+      ]
+    },
+    {
+      "label": "Abrir Express",
+      "route": [
+        "express"
+      ]
+    },
+    {
+      "label": "Abrir chocolaterías",
+      "route": [
+        "chocolates"
+      ]
+    }
+  ],
+  "escalera": [
+    {
+      "products": [
+        {
+          "age_restricted": false,
+          "before": null,
+          "concept": "postres",
+          "discount": null,
+          "entity_id": "98004",
+          "entity_type": "menu_item",
+          "id": "menu-98004",
+          "img": "https://imagenes.prueba.invalid/platos/98004.png",
+          "name": "Tiramisú individual (prueba)",
+          "presentation": null,
+          "price": "$3.990",
+          "price_value": 3990.0,
+          "store": "Pizzería de prueba Centro",
+          "store_id": 9801,
+          "vertical": "restaurantes"
+        },
+        {
+          "age_restricted": false,
+          "before": null,
+          "concept": "desayuno",
+          "discount": null,
+          "entity_id": "98015",
+          "entity_type": "menu_item",
+          "id": "menu-98015",
+          "img": "https://imagenes.prueba.invalid/platos/98015.png",
+          "name": "Tostada con palta (prueba)",
+          "presentation": null,
+          "price": "$4.290",
+          "price_value": 4290.0,
+          "store": "Café de prueba - Las Condes",
+          "store_id": 9805,
+          "vertical": "restaurantes"
+        },
+        {
+          "age_restricted": false,
+          "before": null,
+          "concept": "pizza",
+          "discount": null,
+          "entity_id": "98002",
+          "entity_type": "menu_item",
+          "id": "menu-98002",
+          "img": "https://imagenes.prueba.invalid/platos/98002.png",
+          "name": "Pizza margarita mediana (prueba)",
+          "presentation": null,
+          "price": "$8.990",
+          "price_value": 8990.0,
+          "store": "Pizzería de prueba Centro",
+          "store_id": 9801,
+          "vertical": "restaurantes"
+        }
+      ],
+      "prototype_vertical": "restaurants",
+      "texto": "Platos populares para empezar",
+      "vertical": "restaurantes"
+    },
+    {
+      "products": [
+        {
+          "age_restricted": false,
+          "before": "$4.990",
+          "concept": "helados",
+          "discount": "-20%",
+          "entity_id": "93001",
+          "entity_type": "catalog_item",
+          "id": "cat-93001",
+          "img": "https://imagenes.prueba.invalid/productos/93001.png",
+          "name": "Helado de vainilla 1 L (prueba)",
+          "presentation": "1 L",
+          "price": "$3.990",
+          "price_value": 3990.0,
+          "store": "Tienda turbo de prueba Centro",
+          "store_id": 9301,
+          "vertical": "turbo"
+        }
+      ],
+      "prototype_vertical": "turbo",
+      "texto": "Ofertas para empezar",
+      "vertical": "turbo"
+    },
+    {
+      "products": [
+        {
+          "age_restricted": false,
+          "before": null,
+          "concept": "cafe",
+          "discount": null,
+          "entity_id": "91004",
+          "entity_type": "catalog_item",
+          "id": "cat-91004",
+          "img": "https://imagenes.prueba.invalid/productos/91004.png",
+          "name": "Café molido tostado 250 g (prueba)",
+          "presentation": "250 g",
+          "price": "$3.990",
+          "price_value": 3990.0,
+          "store": "Supermercado de prueba Centro",
+          "store_id": 9101,
+          "vertical": "supermercado"
+        },
+        {
+          "age_restricted": false,
+          "before": null,
+          "concept": "galletas",
+          "discount": null,
+          "entity_id": "91002",
+          "entity_type": "catalog_item",
+          "id": "cat-91002",
+          "img": "https://imagenes.prueba.invalid/productos/91002.png",
+          "name": "Galletas de vainilla 200 g (prueba)",
+          "presentation": "200 g",
+          "price": "$1.290",
+          "price_value": 1290.0,
+          "store": "Supermercado de prueba Centro",
+          "store_id": 9101,
+          "vertical": "supermercado"
+        },
+        {
+          "age_restricted": false,
+          "before": null,
+          "concept": "arroz-legumbres",
+          "discount": null,
+          "entity_id": "91006",
+          "entity_type": "catalog_item",
+          "id": "cat-91006",
+          "img": "https://imagenes.prueba.invalid/productos/91006.png",
+          "name": "Arroz grado 1 de 1 kg (prueba)",
+          "presentation": "1 kg",
+          "price": "$1.250",
+          "price_value": 1250.0,
+          "store": "Supermercado de prueba Norte",
+          "store_id": 9102,
+          "vertical": "supermercado"
+        }
+      ],
+      "prototype_vertical": "grocery",
+      "texto": "Lo más pedido aquí",
+      "vertical": "supermercado"
+    },
+    {
+      "products": [
+        {
+          "age_restricted": false,
+          "before": "$29.990",
+          "concept": "fragancias",
+          "discount": "-17%",
+          "entity_id": "96001",
+          "entity_type": "catalog_item",
+          "id": "cat-96001",
+          "img": "https://imagenes.prueba.invalid/productos/96001.png",
+          "name": "Perfume floral 100 ml (prueba)",
+          "presentation": "100 ml",
+          "price": "$24.990",
+          "price_value": 24990.0,
+          "store": "Tienda mall de prueba Centro",
+          "store_id": 9601,
+          "vertical": "mall"
+        }
+      ],
+      "prototype_vertical": "retail",
+      "texto": "Ofertas para empezar",
+      "vertical": "mall"
+    },
+    {
+      "products": [
+        {
+          "age_restricted": false,
+          "before": "$1.990",
+          "concept": "energizantes",
+          "discount": "-20%",
+          "entity_id": "92004",
+          "entity_type": "catalog_item",
+          "id": "cat-92004",
+          "img": "https://imagenes.prueba.invalid/productos/92004.png",
+          "name": "Bebida energética 250 cc (prueba)",
+          "presentation": "250 cc",
+          "price": "$1.590",
+          "price_value": 1590.0,
+          "store": "Tienda express de prueba Centro",
+          "store_id": 9201,
+          "vertical": "conveniencia"
+        },
+        {
+          "age_restricted": false,
+          "before": "$1.890",
+          "concept": "chocolates",
+          "discount": "-21%",
+          "entity_id": "92002",
+          "entity_type": "catalog_item",
+          "id": "cat-92002",
+          "img": "https://imagenes.prueba.invalid/productos/92002.png",
+          "name": "Chocolate con leche 100 g (prueba)",
+          "presentation": "100 g",
+          "price": "$1.490",
+          "price_value": 1490.0,
+          "store": "Tienda express de prueba Centro",
+          "store_id": 9201,
+          "vertical": "conveniencia"
+        }
+      ],
+      "prototype_vertical": "express",
+      "texto": "Ofertas para empezar",
+      "vertical": "conveniencia"
+    },
+    {
+      "products": [
+        {
+          "age_restricted": false,
+          "before": "$2.990",
+          "concept": "chocolates",
+          "discount": "-17%",
+          "entity_id": "97001",
+          "entity_type": "catalog_item",
+          "id": "cat-97001",
+          "img": "https://imagenes.prueba.invalid/productos/97001.png",
+          "name": "Chocolate amargo 70 % 100 g (prueba)",
+          "presentation": "100 g",
+          "price": "$2.490",
+          "price_value": 2490.0,
+          "store": "Chocolatería de prueba Centro",
+          "store_id": 9701,
+          "vertical": "chocolateria"
+        }
+      ],
+      "prototype_vertical": "chocolates",
+      "texto": "Ofertas para empezar",
+      "vertical": "chocolateria"
+    }
+  ],
+  "moment": "escalera",
+  "perfil": null,
+  "reason": {
+    "basis": [
+      {
+        "id": "ninguna→restaurantes",
+        "kind": "combinacion",
+        "source": "rappi"
+      },
+      {
+        "id": "restaurantes",
+        "kind": "populares",
+        "source": "catalogo"
+      },
+      {
+        "id": "restaurantes→restaurantes+turbo",
+        "kind": "combinacion",
+        "source": "rappi"
+      },
+      {
+        "id": "turbo",
+        "kind": "ofertas",
+        "source": "catalogo"
+      },
+      {
+        "id": "restaurantes+turbo→restaurantes+turbo+supermercado",
+        "kind": "combinacion",
+        "source": "rappi"
+      },
+      {
+        "id": "supermercado",
+        "kind": "lo_mas_pedido",
+        "source": "poblacion:synthetic"
+      },
+      {
+        "id": "restaurantes+turbo+supermercado→restaurantes+turbo+supermercado+mall",
+        "kind": "combinacion",
+        "source": "rappi+supuesto"
+      },
+      {
+        "id": "mall",
+        "kind": "ofertas",
+        "source": "catalogo"
+      },
+      {
+        "id": "restaurantes+turbo+supermercado+mall→restaurantes+turbo+supermercado+conveniencia+mall",
+        "kind": "combinacion",
+        "source": "rappi+supuesto"
+      },
+      {
+        "id": "conveniencia",
+        "kind": "ofertas",
+        "source": "catalogo"
+      },
+      {
+        "id": "restaurantes+turbo+supermercado+conveniencia+mall→restaurantes+turbo+supermercado+conveniencia+mall+chocolateria",
+        "kind": "combinacion",
+        "source": "rappi+supuesto"
+      },
+      {
+        "id": "chocolateria",
+        "kind": "ofertas",
+        "source": "catalogo"
+      }
+    ],
+    "text": "Todavía no conozco tus gustos, así que esto sigue la escalera de verticales: parte en restaurantes y sigue con Turbo, el súper, Rappi Mall, Express y chocolaterías. El orden sale de la tabla de combinaciones de Rappi: quien pide en más verticales suele volver más (es una correlación). Que sigan Rappi Mall, Express y chocolaterías es un supuesto propio."
+  },
+  "request_id": "contrato-agent-offer-escalera",
+  "text": "Mira lo que hay en otras verticales, paso a paso.",
+  "viaje": null
+}

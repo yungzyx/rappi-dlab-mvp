@@ -95,6 +95,12 @@ class ProfileContext(Clean):
     perfil: str | None = Field(default=None, min_length=1, max_length=64)
 
 
+class LadderContext(Clean):
+    """Sin datos: la escalera de verticales sale de los pedidos de la persona (los pasos del motor)."""
+
+    model_config = ConfigDict(extra="forbid")
+
+
 class OfferBase(Clean):
     user_id: str | None = Field(default=None, max_length=64)
     # La sesión de la app (la de sus eventos): con ella, una oferta retenida al grupo de control queda registrada en la
@@ -156,8 +162,23 @@ class ProfileIn(OfferBase):
     context: ProfileContext
 
 
+class LadderIn(OfferBase):
+    moment: Literal["escalera"]
+    context: LadderContext
+
+
 OfferIn = Annotated[
-    PlanIn | CartIn | CheckoutIn | NoResultIn | NextOrderIn | ToTryIn | RepeatIn | WinbackIn | OnTopIn | ProfileIn,
+    PlanIn
+    | CartIn
+    | CheckoutIn
+    | NoResultIn
+    | NextOrderIn
+    | ToTryIn
+    | RepeatIn
+    | WinbackIn
+    | OnTopIn
+    | ProfileIn
+    | LadderIn,
     Field(discriminator="moment"),
 ]
 
@@ -188,8 +209,10 @@ def offer(
     muestre o filtre.
     El momento `perfil` tiene su forma: `{ moment, text, perfil, escalera, viaje, reason, actions }` (la escalera de
     un perfil de gusto: `offers/profiles.py`; sus peldaños se buscan a la vez con las conexiones del pool que sobran,
-    `spare`, como `/search`). Una ocasión o un perfil que no existe, o una ocasión que el agente no arma (guagua,
-    enfermo), es un 422."""
+    `spare`, como `/search`). El momento `escalera` tiene la misma forma, con `perfil` y `viaje` nulos: la escalera de
+    verticales de quien no tiene perfil (los pasos del motor, `offers/engine.py: vertical_ladder`), que el buscador con
+    Mochi muestra en lugar de la del perfil. Una ocasión o un perfil que no existe, o una ocasión que el agente no arma
+    (guagua, enfermo), es un 422."""
     owner_of_body(request, body.user_id)
     context = body.context.model_dump()
     if body.moment == "ontop":
@@ -241,10 +264,11 @@ def _withheld(conn: Connection, body, found: Offer | ProfileOffer, request_id: s
     sesión, con lo que habría mostrado en `app_event_items` (concepto y vertical incluidos). En tratamiento la misma
     oferta queda, igual, como `offer_eligible` y se muestra: los dos grupos se cuentan con el mismo hecho del servidor,
     que no depende de lo que la app muestre o filtre (lo rechazado en la sesión, una Home tapada). Un plan, un perfil,
-    "¿Me falta algo?", "Muéstrame algo nuevo" y lo que la persona pide en el buscador (`surface` `agent`) no se anotan:
-    solo el tratamiento los puede pedir. Nada cambia con el experimento apagado. La misma oferta (origen, concepto y
-    vertical, la clave con que la app cuenta una mostrada) se anota una vez por sesión (mirando OFFERED_LOOKBACK
-    atrás): la Home la vuelve a pedir cada vez que queda arriba, y en tratamiento se cuenta una sola mostrada."""
+    "¿Me falta algo?", "Muéstrame algo nuevo", la escalera de verticales y lo que la persona pide en el buscador
+    (`surface` `agent`) no se anotan: solo el tratamiento los puede pedir. Nada cambia con el experimento apagado. La
+    misma oferta (origen, concepto y vertical, la clave con que la app cuenta una mostrada) se anota una vez por sesión
+    (mirando OFFERED_LOOKBACK atrás): la Home la vuelve a pedir cada vez que queda arriba, y en tratamiento se cuenta
+    una sola mostrada."""
     variant = offers_variant(conn, body.user_id)
     if variant is None:
         return False

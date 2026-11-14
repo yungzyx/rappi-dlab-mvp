@@ -13,6 +13,7 @@ import { trackOrder } from '../../api/orders'
 import { fixture, stubApi } from '../../test/api'
 import { askAbout } from '../../assistant/agentAsk'
 import { reloadToHome } from '../../state/reloadApp'
+import { setAgentEnabled } from '../../state/agentEnabled'
 
 const api = vi.hoisted(() => ({
   health: vi.fn(),
@@ -810,7 +811,11 @@ describe('Para ti y Descubre con Mochi', () => {
   })
 
   test('abrirlo dos veces no repite lo que pide al abrir; tras "Olvidar" lo vuelve a pedir', async () => {
-    const fetchMock = stubCatalog({ '/recommendations': rows(), 'GET /profile/*': { perfiles: [] } })
+    const fetchMock = stubCatalog({
+      '/recommendations': rows(),
+      'GET /profile/*': { perfiles: [] },
+      'POST /agent/offer': 204, // sin escalera de verticales: lo que responde se guarda como lo demás
+    })
     const calls = (part) => fetchMock.mock.calls.filter(([url]) => url.includes(part)).length
     const reopen = async () => {
       fireEvent.click(screen.getByRole('button', { name: 'Volver' }))
@@ -831,7 +836,11 @@ describe('Para ti y Descubre con Mochi', () => {
   })
 
   test('lo guardado al abrir dura un minuto: dentro de 60 s no lo repite; pasado el minuto, sí', async () => {
-    const fetchMock = stubCatalog({ '/recommendations': rows(), 'GET /profile/*': { perfiles: [] } })
+    const fetchMock = stubCatalog({
+      '/recommendations': rows(),
+      'GET /profile/*': { perfiles: [] },
+      'POST /agent/offer': 204, // sin escalera de verticales: lo que responde se guarda como lo demás
+    })
     const calls = (part) => fetchMock.mock.calls.filter(([url]) => url.includes(part)).length
     const reopen = async () => {
       fireEvent.click(screen.getByRole('button', { name: 'Volver' }))
@@ -1611,12 +1620,16 @@ describe('perfil de gusto', () => {
     expect(screen.queryByText('Para ti en otras verticales')).toBeNull()
   })
 
-  test('sin perfil activo, el panel queda como siempre', async () => {
-    const fetchMock = stubCatalog({ 'GET /profile/*': { perfiles: [] } })
+  test('sin perfil activo ni escalera de verticales, el panel queda como siempre', async () => {
+    const fetchMock = stubCatalog({ 'GET /profile/*': { perfiles: [] }, 'POST /agent/offer': 204 })
     await renderPanel()
     expect(screen.queryByRole('region', { name: 'Tu perfil' })).toBeNull()
     expect(screen.queryByText('Para ti en otras verticales')).toBeNull()
-    expect(fetchMock.mock.calls.some(([url]) => url.endsWith('/agent/offer'))).toBe(false)
+    // Sin perfil no se pide la escalera de un perfil: se pide la de verticales.
+    const moments = fetchMock.mock.calls
+      .filter(([url]) => url.endsWith('/agent/offer'))
+      .map(([, init]) => JSON.parse(init.body).moment)
+    expect(moments).toEqual(['escalera'])
     expect(offers()).toEqual([])
   })
 
@@ -1624,5 +1637,116 @@ describe('perfil de gusto', () => {
     stubCatalog({ 'GET /profile/*': 'offline' })
     await renderPanel()
     expect(screen.queryByRole('region', { name: 'Tu perfil' })).toBeNull()
+  })
+})
+
+describe('escalera de verticales (sin perfil de gusto)', () => {
+  const shown = () => tracked('suggestion_shown').filter((fields) => fields.origin === 'agent-escalera')
+  // Conceptos propios: lo mostrado se recuerda en la pestaña (una vez por concepto y origen).
+  const ladderReply = (tag) => {
+    const reply = fixture('agent-offer-escalera')
+    for (const step of reply.escalera)
+      for (const product of step.products) product.concept = `${product.concept}-${tag}`
+    return reply
+  }
+  const withoutTaste = (reply, routes = {}) =>
+    stubCatalog({
+      'GET /profile/*': (req) => (req.path.endsWith('/gustos') ? { perfiles: [] } : undefined),
+      'POST /agent/offer': (req) => (req.body.moment === 'escalera' ? reply : 204),
+      ...routes,
+    })
+
+  test('quien no tiene perfil ve "Para ti en otras verticales" desde la primera visita, de Restaurantes a Turbo y después Retail', async () => {
+    const push = vi.fn()
+    const reply = ladderReply('primera')
+    withoutTaste(reply)
+    await renderPanel({ push })
+
+    const ladder = screen.getByRole('region', { name: 'Para ti en otras verticales' })
+    const steps = [...ladder.querySelectorAll('.taste-step')].map((step) => step.getAttribute('aria-label'))
+    expect(steps.slice(0, 2)).toEqual(['1. Restaurantes', '2. Turbo'])
+    expect(steps).toHaveLength(reply.escalera.length) // sin idea para RappiTravel: no hay perfil que la traiga
+    expect(ladder.textContent).toContain(reply.escalera[0].products[0].name)
+    // Sin perfil no hay tarjeta de perfil: "Olvidar" y lo aprendido siguen donde siempre, y los atajos debajo.
+    expect(screen.queryByRole('region', { name: 'Tu perfil' })).toBeNull()
+    expect(screen.getByText('Puedo ayudarte a:')).toBeTruthy()
+    expect(
+      ladder.compareDocumentPosition(screen.getByText('Puedo ayudarte a:')) & Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy()
+    // Cada producto cuenta como sugerencia mostrada, con su propio origen (no el del perfil).
+    expect(shown().length).toBeGreaterThan(0)
+    expect(tracked('suggestion_shown').some((fields) => fields.origin === 'agent-perfil')).toBe(false)
+
+    fireEvent.click(screen.getByText('Ver Turbo ›'))
+    await runUntilIdle()
+    expect(push).toHaveBeenCalledWith(...routeForScreen('turbo'), undefined)
+    expect(tracked('vertical_open').at(-1)).toMatchObject({ origin: 'agent-escalera' })
+  })
+
+  test('el texto es honesto: saluda como siempre y su "¿Por qué?" dice que sale de la escalera de verticales', async () => {
+    withoutTaste(ladderReply('honesto'), { '/recommendations': fixture('recommendations') })
+    await renderPanel()
+
+    expect(bubbles()).toHaveLength(1)
+    expect(bubbles()[0]).toMatch(/Soy Mochi/)
+    // Sin "Para ti" en el saludo: la escalera va debajo y su primer peldaño ya muestra lo de restaurantes.
+    expect(document.querySelector('.agent-msg-products')).toBeNull()
+    const ladder = screen.getByRole('region', { name: 'Para ti en otras verticales' })
+    const said = () => document.querySelector('.agent-card').textContent.toLowerCase()
+    for (const words of ['te gusta', 'por tu gusto', 'tu perfil']) expect(said()).not.toContain(words)
+
+    const toggle = within(ladder).getByRole('button', { name: '¿Por qué?' })
+    expect(toggle.getAttribute('aria-expanded')).toBe('false')
+    fireEvent.click(toggle)
+    const why = ladder.querySelector('.offer-why-text').textContent
+    expect(why).toMatch(/^Todavía no conozco tus gustos, así que esto sigue la escalera de verticales/)
+    expect(why).toContain('tabla de combinaciones de Rappi')
+    expect(why).toContain('supuesto propio')
+    expect(tracked('offer_why_open').at(-1)).toMatchObject({ origin: 'agent-escalera' })
+    for (const words of ['te gusta', 'por tu gusto']) expect(said()).not.toContain(words)
+  })
+
+  test('con perfil se ve la escalera del perfil, sin "¿Por qué?" propio, y no se pide la de verticales', async () => {
+    const fetchMock = stubCatalog({
+      'GET /profile/*': (req) => (req.path.endsWith('/gustos') ? fixture('profile-gustos') : undefined),
+      'POST /agent/offer': (req) => (req.body.moment === 'perfil' ? fixture('agent-offer-perfil') : 204),
+    })
+    await renderPanel()
+    const ladder = screen.getByRole('region', { name: 'Para ti en otras verticales' })
+    expect(ladder.querySelector('.offer-why')).toBeNull()
+    const moments = fetchMock.mock.calls
+      .filter(([url]) => url.endsWith('/agent/offer'))
+      .map(([, init]) => JSON.parse(init.body).moment)
+    expect(moments).not.toContain('escalera')
+  })
+
+  test('"Algo para ti" sin perfil sigue siendo lo que Mochi recomienda, no la escalera', async () => {
+    withoutTaste(ladderReply('algo'))
+    api.ask.mockResolvedValue(apiAnswer('Te recomiendo esto'))
+    await renderPanel()
+    fireEvent.click(screen.getByRole('button', { name: '✨ Algo para ti' }))
+    await runUntilIdle()
+    expect(api.ask).toHaveBeenCalledWith(expect.objectContaining({ message: 'qué me recomiendas' }), expect.anything())
+  })
+
+  test('con Mochi apagado (el grupo de control) el buscador con Mochi no abre ni pide la escalera', async () => {
+    const fetchMock = withoutTaste(ladderReply('control'))
+    setAgentEnabled(false)
+    try {
+      await renderPanel()
+      expect(screen.queryByRole('region', { name: 'Para ti en otras verticales' })).toBeNull()
+      expect(fetchMock.mock.calls.some(([url]) => url.endsWith('/agent/offer'))).toBe(false)
+      expect(shown()).toEqual([])
+    } finally {
+      setAgentEnabled(true)
+    }
+  })
+
+  test('"Olvidar" la quita del panel', async () => {
+    withoutTaste(ladderReply('olvidar'))
+    await renderPanel()
+    expect(screen.getByRole('region', { name: 'Para ti en otras verticales' })).toBeTruthy()
+    await forget()
+    expect(screen.queryByRole('region', { name: 'Para ti en otras verticales' })).toBeNull()
   })
 })

@@ -512,6 +512,7 @@ OFFER_MOMENTS = (
     "volver",
     "ontop",
     "perfil",
+    "escalera",
 )
 OFFER_ORDER = (*OFFER_MOMENTS, "pregunta", "para_ti", "sin_momento")
 

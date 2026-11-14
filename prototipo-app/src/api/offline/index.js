@@ -63,6 +63,9 @@
 //   (index.js: askEvent). Los pesos, el tope diario, los límites de "Pedir por mí", la recompra y "volver" se comparan
 //   con el backend en parity.test.js
 // - rappi-ia/src/rappi_ia/offers/profiles.py ....... los perfiles de gusto activos (tastes.js)
+// - rappi-ia/src/rappi_ia/offers/engine.py (vertical_ladder) y motor/predict.py (ladder_steps) ... la escalera de
+//   verticales de quien no tiene perfil (offers.js: verticalLadder; motor.js: ladderSteps y firstVertical), con los
+//   peldaños grabados para una persona sin pedidos (`snapshot.escalera`)
 // - rappi-ia/src/rappi_ia/catalog/hours.py y catalog/restaurants.py (filtros, "Destacados", with_hours) ... abierto o
 //   cerrado según el horario publicado y los filtros de restaurantes (catalog.js); las búsquedas recientes de
 //   events/searches.py (index.js: searchesReply). Sin conexión no hay "Lo más buscado", "Lo que sea", comparar entre

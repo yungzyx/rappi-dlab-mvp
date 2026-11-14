@@ -612,3 +612,69 @@ describe('kitStores (engine.py: kit_stores)', () => {
     ])
   })
 })
+
+describe('la escalera de verticales sin conexión (engine.py: vertical_ladder)', () => {
+  const dish = product(20, {
+    name: 'Galleta de la casa',
+    concept: 'galletas',
+    vertical: 'restaurantes',
+    entity_type: 'menu_item',
+  })
+  const recordedLadder = {
+    moment: 'escalera',
+    text: 'Mira lo que hay en otras verticales, paso a paso.',
+    perfil: null,
+    viaje: null,
+    escalera: [
+      { vertical: 'restaurantes', prototype_vertical: 'restaurants', texto: 'Lo más pedido aquí', products: [dish] },
+      {
+        vertical: 'turbo',
+        prototype_vertical: 'turbo',
+        texto: 'Ofertas para empezar',
+        products: [turboSnack, turboToy],
+      },
+      { vertical: 'supermercado', prototype_vertical: 'grocery', texto: 'Ofertas para empezar', products: [coffee] },
+      { vertical: 'conveniencia', prototype_vertical: 'express', texto: 'Ofertas para empezar', products: [beer] },
+    ],
+    reason: {
+      text: 'grabado',
+      basis: [
+        { kind: 'combinacion', id: 'ninguna→restaurantes', source: 'rappi' },
+        { kind: 'lo_mas_pedido', id: 'restaurantes', source: 'poblacion:synthetic' },
+        { kind: 'ofertas', id: 'turbo', source: 'catalogo' },
+        { kind: 'ofertas', id: 'supermercado', source: 'catalogo' },
+      ],
+    },
+    actions: [],
+  }
+  const ladderOf = (s) => makeOffer(snapshotWith({ escalera: recordedLadder }), s, NOW, { moment: 'escalera' })
+
+  test('una persona nueva ve la escalera grabada en el orden del motor, con un "por qué" que no supone un gusto', () => {
+    const offer = ladderOf(state())
+    expect(offer.escalera.map((s) => s.vertical)).toEqual(['restaurantes', 'turbo', 'supermercado'])
+    // Lo que las guardias no ofrecen se va (la cerveza deja a Express sin productos: no es peldaño).
+    expect(offer.escalera.flatMap((s) => s.products).some((p) => p.age_restricted)).toBe(false)
+    expect(offer.reason.text).toBe(
+      'Todavía no conozco tus gustos, así que esto sigue la escalera de verticales: parte en restaurantes y sigue ' +
+        'con Turbo y el súper. El orden sale de la tabla de combinaciones de Rappi: quien pide en más verticales ' +
+        'suele volver más (es una correlación).',
+    )
+    expect(offer.reason.basis).toEqual([
+      { kind: 'combinacion', id: 'ninguna→restaurantes', source: 'rappi' },
+      { kind: 'lo_mas_pedido', id: 'restaurantes', source: 'poblacion:synthetic' },
+      { kind: 'combinacion', id: 'restaurantes→restaurantes+turbo', source: 'rappi' },
+      { kind: 'ofertas', id: 'turbo', source: 'catalogo' },
+      { kind: 'combinacion', id: 'restaurantes+turbo→restaurantes+turbo+supermercado', source: 'rappi' },
+      { kind: 'ofertas', id: 'supermercado', source: 'catalogo' },
+    ])
+    expect(offer.actions.map((a) => a.label)).toEqual(['Abrir restaurantes', 'Abrir Turbo', 'Abrir el súper'])
+  })
+
+  test('quien ya pide en restaurantes parte en Turbo; sin peldaños suficientes o sin muestra, no hay', () => {
+    const offer = ladderOf(state({ orders: [order('restaurantes')] }))
+    expect(offer.escalera.map((s) => s.vertical)).toEqual(['turbo', 'supermercado'])
+    expect(offer.reason.text).toMatch(/^Ya pides en restaurantes, así que esto sigue la escalera de verticales/)
+    expect(ladderOf(state({ orders: [order('restaurantes'), order('turbo')] }))).toBeNull() // queda un peldaño
+    expect(makeOffer(snapshotWith(), state(), NOW, { moment: 'escalera' })).toBeNull()
+  })
+})

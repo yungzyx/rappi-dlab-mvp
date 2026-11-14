@@ -232,6 +232,9 @@ async function agent(token, userId) {
   })
   // Sin pedidos, la vertical por probar de siempre (el súper, si tiene ofertas).
   const usual = await post('/agent/offer', { moment: 'vertical_por_probar', user_id: userId, context: {} })
+  // La escalera de verticales de alguien sin pedidos ni perfil: un peldaño por vertical, de donde la API simulada toma
+  // los de cada persona (src/api/offline/offers.js: verticalLadder).
+  const escalera = await post('/agent/offer', { moment: 'escalera', user_id: userId, context: {} })
   // "Qué me recomiendas" de alguien sin intereses: los ejemplos de siempre (con intereses, la API simulada busca los
   // suyos). Con una persona nueva: la de la muestra ya hizo preguntas (`_log_ask` las registra).
   const fresh = await session()
@@ -245,7 +248,8 @@ async function agent(token, userId) {
   } finally {
     await call(`/profile/${fresh.user_id}`, { method: 'DELETE', token: fresh.token })
   }
-  return { search, ask, followUps, help, plans, planOffers, noResult, recommendations, onTop, toTry: { usual } }
+  const toTry = { usual }
+  return { search, ask, followUps, help, plans, planOffers, noResult, recommendations, onTop, escalera, toTry }
 }
 
 /** Todos los productos de una respuesta (los objetos con entity_type, entity_id y precio). */

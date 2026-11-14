@@ -37,6 +37,7 @@ MOMENTS = {
     "volver": 'algo que dejó ("¿Volvemos a…?")',
     "ontop": "sumar de Turbo al pedido en curso",
     "perfil": "su perfil de gusto",
+    "escalera": "la escalera de verticales (sin perfil de gusto)",
     # La respuesta de Mochi no deja `suggestion_shown`: sí la idea de otra vertical que va debajo (sugerencia cruzada).
     "ask": "idea de otra vertical bajo su respuesta (no la respuesta)",
     "para-ti": '"Para ti" en su tarjeta (sus intereses o lo más pedido)',
@@ -60,6 +61,7 @@ BASIS = {
     "ofertas": "las ofertas del catálogo",
     "ontop": "sumar de Turbo al pedido en curso",
     "lo_mas_pedido": "lo más pedido",
+    "populares": "los platos populares del catálogo",
 }
 ACCEPTED, DISMISSED, EXPIRED, NO_ANSWER, WITHHELD = (
     "aceptada",

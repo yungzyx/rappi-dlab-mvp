@@ -59,9 +59,9 @@ from ..catalog.stores import BIGINT_MAX, IN_DEMO_CITY, demo_places, product_card
 from ..catalog.terms import store_terms
 from ..concepts.taxonomy import Concept, Occasion, Service, load_taxonomy
 from ..embeddings.base import MemoizedQueryEmbedder, TextEmbedder
-from ..motor.combos import SERVICES, Step, load_combos
+from ..motor.combos import NONE_COMBO, SERVICES, Step, load_combos
 from ..motor.model import TZ
-from ..motor.predict import step_signal, target_step
+from ..motor.predict import ladder_steps, step_signal, steps_signals, target_step
 from ..motor.recommend import CrossPick, cross_picks, latest_lambda
 from ..retrieval.hybrid import concepts_of, detect_concepts
 from ..text import contract_articles, normalize, tokens
@@ -87,8 +87,10 @@ from .profiles import (
     active_profiles,
     city_places,
     ladder,
+    liquor_store,
     load_destinations,
     load_profiles,
+    name_key,
     ordered_restaurants,
     person_city,
 )
@@ -192,6 +194,27 @@ REASON_BRAND = " Es {brand}, la marca que compras."  # se suma al porqué de un 
 # El momento `perfil`: "Por tu gusto por" y el `gusto` del perfil (offers/perfiles.toml); sin él, el nombre del perfil.
 PROFILE_TEXT = "Por tu gusto por {likes}, mira esto en otras verticales."
 REASON_PROFILE = 'Porque elegiste "{name}".'  # sin persona, o con un perfil que no es suyo
+# El momento `escalera` (la escalera de verticales de quien no tiene perfil): nunca "por tu gusto". {primera} es la
+# vertical donde parte, {siguientes} las demás y {tuyas} las que la persona ya usa; el texto sobre la tabla de Rappi es
+# una correlación y no lleva cifras.
+LADDER_TEXT = "Mira lo que hay en otras verticales, paso a paso."
+LADDER_STEP_TEXT = {
+    "lo_mas_pedido": "Lo más pedido aquí",
+    "ofertas": "Ofertas para empezar",
+    "populares": "Platos populares para empezar",
+}
+REASON_LADDER_NEW = (
+    "Todavía no conozco tus gustos, así que esto sigue la escalera de verticales: parte en {primera} y sigue con "
+    "{siguientes}."
+)
+REASON_LADDER_MINE = "Ya pides en {tuyas}, así que esto sigue la escalera de verticales desde ahí: {siguientes}."
+REASON_LADDER_OTHER = "Esto sigue la escalera de verticales: {siguientes}."
+REASON_LADDER_TABLE = (
+    " El orden sale de la tabla de combinaciones de Rappi: quien pide en más verticales suele volver más (es una "
+    "correlación)."
+)
+REASON_LADDER_ASSUMPTION = " Que sigan {verticales} es un supuesto propio."
+MIN_LADDER_STEPS = 2  # como la escalera de un perfil: con un solo peldaño no hay escalera
 TRIP_SERVICE = "rappitravel"  # el servicio de la taxonomía al que lleva el viaje (sin catálogo)
 TRIP_LABEL = "Idea para {service}"
 ONTOP_VERTICAL = "turbo"
@@ -246,18 +269,20 @@ class PlanOffer(Offer):
 @dataclass
 class ProfileOffer:
     """La oferta del momento `perfil`: la escalera de un perfil, de a un peldaño, y su viaje (una idea para
-    RappiTravel)."""
+    RappiTravel). El momento `escalera` tiene la misma forma, sin perfil (`profile` None) ni viaje: la escalera de
+    verticales del motor (`vertical_ladder`)."""
 
     text: str
-    profile: dict  # id, nombre y emoji; con persona, además su nivel y su "por qué"
+    profile: dict | None  # id, nombre y emoji; con persona, además su nivel y su "por qué"
     steps: list[dict]  # `LadderStep.to_dict()`
     trip: dict | None
     reason: dict
     actions: list[dict]
+    moment: str = "perfil"
 
     def to_dict(self) -> dict:
         return {
-            "moment": "perfil",
+            "moment": self.moment,
             "text": self.text,
             "perfil": self.profile,
             "escalera": self.steps,
@@ -354,6 +379,8 @@ def _moment_offer(
         return ontop_offer(conn, embedder, context.get("vertical"), context["items"], user_id)
     if moment == "perfil":
         return profile_offer(conn, embedder, context.get("perfil"), user_id, spare)
+    if moment == "escalera":
+        return vertical_ladder(conn, user_id)
     raise OfferError(f"Momento desconocido: {moment}")
 
 
@@ -1208,6 +1235,70 @@ def _trip(destination: Destination, travel: Service) -> dict:
         "etiqueta": TRIP_LABEL.format(service=travel.name),
         "route": [travel.route],
     }
+
+
+# ── escalera de verticales ───────────────────────────────────────────────────
+def vertical_ladder(conn: Connection, user_id: str | None) -> ProfileOffer | None:
+    """La escalera de verticales para quien todavía no tiene un perfil de gusto (el momento `escalera`): un peldaño por
+    vertical, en el orden de los pasos del motor desde su combinación (`motor.predict.ladder_steps`: sin pedidos,
+    Restaurantes, Turbo y después Retail), con lo que mejor la representa, como la vertical por probar: lo más pedido
+    ahí por la población (`most_ordered`) o, si no hay, sus ofertas (en restaurantes, los platos populares del
+    catálogo). Pasa las guardias de las ofertas (Farmacia y Licores nunca son peldaño), sin tiendas de licores y sin
+    repetir un nombre entre peldaños. El texto no supone un gusto: el "por qué" dice que sale de la escalera de
+    verticales y rotula el supuesto propio, y la `basis` lleva el paso de cada peldaño (`combinacion`) y de dónde salen
+    sus productos (`lo_mas_pedido`, `ofertas` o `populares`). None (204) con menos de `MIN_LADDER_STEPS` peldaños."""
+    population = config.MOTOR_POBLACION
+    steps = ladder_steps(conn, user_id, population)
+    city = person_city(conn, user_id)
+    kept: list[tuple[Step, dict, list[dict]]] = []
+    shown: set[str] = set()
+    for step in steps:
+        source, products = _ladder_products(conn, step.vertical, population, city)
+        products = [p for p in products if name_key(p["name"]) not in shown and not liquor_store(p.get("store"))]
+        if products:
+            kept.append((step, source, products))
+            shown |= {name_key(p["name"]) for p in products}
+    if len(kept) < MIN_LADDER_STEPS:
+        return None
+    combos = steps_signals(conn, [step for step, _, _ in kept], population)
+    basis = [signal for combo, (_, source, _) in zip(combos, kept, strict=True) for signal in (combo, source)]
+    shown_steps = [
+        {
+            "vertical": step.vertical,
+            "prototype_vertical": SCREEN_VERTICALS.get(step.vertical),
+            "texto": LADDER_STEP_TEXT[source["kind"]],
+            "products": products,
+        }
+        for step, source, products in kept
+    ]
+    actions = [_open_action(step.vertical) for step, _, _ in kept]
+    reason = _reason(_ladder_why([step for step, _, _ in kept]), basis)
+    return ProfileOffer(LADDER_TEXT, None, shown_steps, None, reason, actions, moment="escalera")
+
+
+def _ladder_products(conn: Connection, vertical: str, population: str, city: str) -> tuple[dict, list[dict]]:
+    """Lo que muestra un peldaño de la escalera de verticales y su señal: lo más pedido ahí por la población o, si no
+    hay, sus ofertas (en restaurantes, que no tiene ofertas, los platos populares del catálogo)."""
+    if products := most_ordered(conn, vertical, population, city):
+        return {"kind": "lo_mas_pedido", "id": vertical, "source": f"poblacion:{population}"}, products
+    kind = "populares" if vertical == "restaurantes" else "ofertas"
+    return {"kind": kind, "id": vertical, "source": "catalogo"}, _deals_or_dishes(conn, vertical)
+
+
+def _ladder_why(steps: list[Step]) -> str:
+    """El "por qué" de la escalera de verticales: de dónde sale (sin suponer un gusto), dónde parte y, si pesó, el
+    supuesto propio del rendimiento decreciente, con las verticales donde pesó."""
+    labels = [VERTICAL_LABELS[step.vertical] for step in steps]
+    mine = [VERTICAL_LABELS[m] for m in steps[0].current.split("+") if m in VERTICAL_LABELS and offerable_vertical(m)]
+    if steps[0].current == NONE_COMBO:
+        start = REASON_LADDER_NEW.format(primera=labels[0], siguientes=_join(labels[1:]))
+    elif mine:
+        start = REASON_LADDER_MINE.format(tuyas=_join(mine), siguientes=_join(labels))
+    else:
+        start = REASON_LADDER_OTHER.format(siguientes=_join(labels))
+    assumed = [VERTICAL_LABELS[step.vertical] for step in steps if step.used_assumption]
+    why = start + REASON_LADDER_TABLE + (REASON_LADDER_ASSUMPTION.format(verticales=_join(assumed)) if assumed else "")
+    return contract_articles(why)
 
 
 def _offerable_deals(conn: Connection, vertical: str) -> list[dict]:

@@ -244,6 +244,9 @@ CONTRACT: tuple[Example, ...] = (
     ),
     # La escalera de un perfil elegido, sin persona: lo que usa la demo.
     Example("agent-offer-perfil", "POST", "/agent/offer", {"moment": "perfil", "context": {"perfil": "asiatico"}}),
+    # La escalera de verticales de quien no tiene perfil ni pedidos (sin persona): la que el buscador con Mochi muestra
+    # desde la primera visita.
+    Example("agent-offer-escalera", "POST", "/agent/offer", {"moment": "escalera", "context": {}}),
     Example("profile-gustos", "GET", "/profile/u-gustos/gustos"),
     # El orden de los accesos de la Home: una persona que pide en farmacia (sube primero) y una sin historial.
     Example("profile-verticales", "GET", "/profile/u-verticales/verticales"),
