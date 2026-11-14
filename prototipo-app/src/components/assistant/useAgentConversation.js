@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
+import { emote } from '../../state/mochiMood'
 
 const MIN_TYPING_MS = 450
 const OFFLINE = 'Sin conexión'
@@ -47,7 +48,7 @@ export function useAgentConversation() {
   const botSays = useCallback((responseOrPromise, { cancellable = false } = {}) => {
     const typingId = nextId++
     const startedAt = Date.now()
-    setMood('think')
+    setMood('thinking')
     setMessages((prev) => [...prev, { id: typingId, from: 'bot', typing: true, cancellable }])
     return Promise.resolve(responseOrPromise).then(
       (response) =>
@@ -55,6 +56,9 @@ export function useAgentConversation() {
           const wait = Math.max(0, MIN_TYPING_MS - (Date.now() - startedAt))
           later(() => {
             setMood('talk')
+            // Mochi reacciona a lo que llegó: productos lo alegran; "Sin conexión" (con su "Reintentar") lo preocupa.
+            if (response?.retry) emote('worried')
+            else if (response?.products?.length > 0) emote('happy')
             // Id nuevo: si reutilizara el del indicador, React conservaría su estado y mostraría las tarjetas antes del texto.
             setMessages((prev) => [
               ...prev.filter((m) => m.id !== typingId),

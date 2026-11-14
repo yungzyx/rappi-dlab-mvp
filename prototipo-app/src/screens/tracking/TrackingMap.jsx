@@ -1,5 +1,6 @@
 import { useId } from 'react'
 import mascotPoses from '../../assets/mochi-poses.webp'
+import { useMochiMood } from '../../state/mochiMood'
 import { ROUTE, pointOnRoute } from './progress'
 
 const ROUTE_PATH = ROUTE.map(([x, y], i) => `${i === 0 ? 'M' : 'L'}${x} ${y}`).join(' ')
@@ -114,10 +115,15 @@ export default function TrackingMap({ progress, delivered, step, route = true, s
   )
 }
 
-/** Mochi como repartidor: su pose de la imagen de 2 × 2 poses y, en el tramo final, "¡Ya casi!". */
+/**
+ * Mochi como repartidor: su pose de la imagen de 2 × 2 poses y, en el tramo final, "¡Ya casi!". Con el pedido recién
+ * confirmado baila (la emoción `dance` de state/mochiMood.js): pose feliz y un balanceo corto.
+ */
 function AgentRider({ fill, pose }) {
+  const dancing = useMochiMood().emotion === 'dance'
+  const shown = dancing ? { ...pose, x: -1, y: 0 } : pose
   return (
-    <>
+    <g className={dancing ? 'tracking-mochi is-dancing' : 'tracking-mochi'}>
       <radialGradient id={fill} cx="0.45" cy="0.35" r="0.7">
         <stop offset="0" stopColor="#fff7ee" />
         <stop offset="1" stopColor="#ffe2ce" />
@@ -139,7 +145,7 @@ function AgentRider({ fill, pose }) {
         overflow="hidden"
       >
         {/* La imagen tiene 2 × 2 poses: se corre para que quede a la vista la de arriba a la izquierda o a la derecha */}
-        <image href={mascotPoses} x={pose.x} y={pose.y} width="2" height="2" preserveAspectRatio="none" />
+        <image href={mascotPoses} x={shown.x} y={shown.y} width="2" height="2" preserveAspectRatio="none" />
       </svg>
       {pose.almost && (
         <g className="tracking-almost" transform={`translate(${MARKER / 2} -14)`}>
@@ -149,7 +155,7 @@ function AgentRider({ fill, pose }) {
           </text>
         </g>
       )}
-    </>
+    </g>
   )
 }
 

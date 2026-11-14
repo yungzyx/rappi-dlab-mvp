@@ -6,6 +6,7 @@ import Mascot from '../../../components/assistant/Mascot'
 import { FLOATING_EVENT, floatingBottom } from '../../../components/floatingInset'
 import OfferWhy from '../../../components/assistant/OfferWhy'
 import { rectInPhone } from '../../../state/AssistantContext'
+import { emote, useMochiMood } from '../../../state/mochiMood'
 import { typedEnd } from '../../../utils/typed'
 
 const SIZE = 84 // ancho de la mascota de cuerpo entero (alto = 1,2 × ancho)
@@ -14,8 +15,9 @@ const EDGE = 14 // margen derecho
 const TOP_LIMIT = 118 // bajo la dirección: nunca tapa la barra de estado
 const BOTTOM_RESERVE = 104 // sobre la barra inferior; con "Ver carro" o "Pedido en curso", sobre ellas (floatingInset.js)
 const TYPE_MS = 16 // ms por letra al "hablar"
-// Mientras nadie le habla, el agente no se queda quieto: cada tanto mira, baila, saluda o se estira (en este orden).
-const FIDGETS = ['look', 'dance', 'wave', 'stretch', 'hop']
+// Mientras nadie le habla, el agente no se queda quieto: cada tanto mira, saluda o se estira (en este orden). Bailar y
+// saltar no van aquí: son emociones (state/mochiMood.js) y dicen algo (un pedido hecho, resultados que llegaron).
+const FIDGETS = ['look', 'wave', 'stretch']
 const FIDGET_MS = 6000
 const TUCK_MS = 700 // tras el último scroll, vuelve a asomarse
 const JUMP_MS = 900 // al tocarlo salta; vive aquí porque cada frase nueva vuelve a montar la mascota
@@ -152,6 +154,17 @@ const LiveAgent = forwardRef(function LiveAgent(
 
   useImperativeHandle(ref, () => ({ reposition: place, scrolled }), [place, scrolled])
 
+  // Una oferta nueva (trae su "¿Por qué?") lo sorprende: un saltito con un "!" antes de contarla.
+  const surprised = useRef(null) // la oferta que ya lo sorprendió: si vuelve (tras el menú), no otra vez
+  useEffect(() => {
+    if (!say?.why || away || surprised.current === say.text) return
+    surprised.current = say.text
+    emote('surprised')
+  }, [say, away])
+  const feeling = useMochiMood()
+  // Silenciado por hoy y sin nada que decir, dormita; mientras corre una emoción, sin gesto encima.
+  const busy = feeling.thinking || Boolean(feeling.emotion)
+
   useEffect(() => {
     if (say || away || reduceMotion) return undefined
     const timer = setInterval(() => {
@@ -161,11 +174,11 @@ const LiveAgent = forwardRef(function LiveAgent(
     return () => clearInterval(timer)
   }, [say, away, reduceMotion])
 
-  const mood = say ? (done ? (say.mood ?? 'idle') : 'talk') : 'idle'
+  const mood = say ? (done ? (say.mood ?? 'idle') : 'talk') : feeling.quiet ? 'sleepy' : 'idle'
   const style = spot ? { transform: `translate3d(${spot.x}px, ${spot.y}px, 0)` } : { opacity: 0 }
   // Cada frase trae su gesto (saludar, saltar, apuntar, girar); sin frase, el último gesto de espera. La llave nueva
   // vuelve a montar el envoltorio y la animación corre otra vez.
-  const gesture = say ? say.gesture : fidget?.name
+  const gesture = busy || (!say && feeling.quiet) ? null : say ? say.gesture : fidget?.name
   const gestureKey = say ? `say-${say.text}` : `fidget-${fidget?.key ?? 'none'}`
   // Sin nada que decir, se asoma desde el borde derecho en vez de tapar tarjetas y botones.
   const resting = !say && !entering && !away
@@ -254,7 +267,7 @@ const LiveAgent = forwardRef(function LiveAgent(
         >
           <span key={hopKey} className={hopKey ? 'live-hop' : undefined}>
             <span key={gestureKey} className={gesture ? `live-gesture live-gesture--${gesture}` : 'live-gesture'}>
-              <Mascot size={SIZE} mood={jumping ? 'jump' : mood} />
+              <Mascot size={SIZE} live mood={jumping ? 'jump' : mood} />
             </span>
           </span>
         </button>

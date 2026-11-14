@@ -139,6 +139,13 @@
   opacity: 0.85;
 }
 
+/* A la izquierda, la pestañita asoma desde ese borde: sus "z z" suben hacia la derecha */
+.agent-presence.is-left .mascot-fx--zz i {
+  left: auto;
+  right: -12%;
+  --zz-drift: 60%;
+}
+
 .agent-presence.is-left .agent-quiet-tab {
   margin-right: 0;
   margin-left: -32px;

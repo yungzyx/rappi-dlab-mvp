@@ -169,7 +169,7 @@ En el prototipo final no hay filas de sugerencias al entrar a una vertical ni en
 ### Mochi en los momentos clave
 
 - **Sin resultados:** si el buscador con Mochi no encuentra nada pero la consulta es de un tema conocido ("chela" → cerveza), Mochi dice "Aquí no hay 'chela', pero en Licores sí" y lleva ahí. Si no reconoce el tema, invita a buscar con otras palabras. Nunca ofrece Farmacia ni cosas de bebé por su cuenta.
-- **Pedido en camino:** en el mapa, Mochi está tímido mientras se prepara el pedido, de frente en camino y feliz con "¡Ya casi!" en el tramo final; al llegar, salta.
+- **Pedido en camino:** en el mapa, Mochi baila un momento con el pedido recién confirmado, está tímido mientras se prepara, de frente en camino y feliz con "¡Ya casi!" en el tramo final; al llegar, salta.
 - **¿Me falta algo?:** en el checkout, un botón "¿Me falta algo? Pídele a Mochi". Solo al tocarlo, Mochi sugiere UNA cosa (de otra vertical si la hay) con su razón ("Llevas 🍺 Cerveza → 🥩 Carnes"), "Agregar" y "Deshacer". Nada aparece por su cuenta.
 
 ### Mochi fuera de la Home
@@ -182,6 +182,23 @@ En el prototipo final, Mochi flota a un costado en las demás pantallas (no en l
 - **Preguntarle por un producto:** mantener presionada una tarjeta muestra "Preguntarle a Mochi" (abre el buscador con "¿Con qué acompaño …?"). En escritorio también se puede arrastrar la tarjeta hasta Mochi.
 - **Silencio:** "Silenciar por hoy" lo deja como una pestañita en el borde hasta mañana (tocarla lo despierta). Si se cierran dos globos seguidos, no habla por su cuenta el resto de la sesión. "Repetir escena" lo despierta.
 - **Ocultarlo:** "Ocultar a Mochi" (con una confirmación: "Mochi no volverá a aparecer. Puedes traerlo de vuelta en Cuenta.") lo saca de toda la app hasta que se encienda "Mostrar a Mochi" en Cuenta (también se puede ocultar ahí). Oculto no hay mascota, globos ni lo que propone solo (recompra, "¿Volvemos a…?", el plan del día, el OnTop, "¿Me falta algo?"), y la barra de la Home y la lupa abren el buscador de siempre, como en "Rappi hoy". Sobrevive a recargar; cambiar de persona en la demo, "Repetir escena" y "Borrar mis datos" lo traen de vuelta.
+
+### Las emociones de Mochi
+
+Mochi no dice más: reacciona con el cuerpo (una de sus 4 poses y un movimiento corto) y un adorno pequeño hecho con CSS, siempre por algo que pasó. Un bus de ánimo (`src/state/mochiMood.js`) lleva una emoción a la vez: vuelve sola a quieto, una más importante reemplaza a la que corre y las demás esperan 1,5 s después de la anterior. Los estados de fondo (pensando, con sueño) mandan sobre las emociones. Las disparan los eventos que la app ya registra (`observeMood`, desde `EventsContext`) y lo que ya saben los componentes:
+
+| Ánimo | Qué lo dispara | Cómo se ve |
+|---|---|---|
+| Pensando (`thinking`) | Una búsqueda o una respuesta del buscador con Mochi que tarda más de 300 ms; "Conectando…" | Pose pensativa, leve balanceo y tres puntos que laten sobre la cabeza |
+| Contento (`happy`) | Una búsqueda terminada con resultados; una respuesta de Mochi con productos | Pose feliz y un saltito |
+| Celebra (`celebrate`) | Agregar un producto de una sugerencia de Mochi o aceptar su oferta (`suggestion_accepted`) | Pose saltando y un estallido de chispas |
+| Baila (`dance`) | El pedido confirmado (también el que hace "Pedir por mí") | Balanceo con saltitos, entre la pose feliz y la saltando, 2,6 s; en el seguimiento, el repartidor |
+| Preocupado (`worried`) | Una búsqueda sin resultados o con error, "Sin conexión" en el buscador con Mochi o al abrir la app | Pose tímida, se encoge un poco y una gota de sudor |
+| Sorprendido (`surprised`) | Una oferta nueva en la Home (la primera vez que se muestra) | Pose de frente, un salto estirado y un "!" breve |
+| Con sueño (`sleepy`) | "Silenciar por hoy" (en la Home y en la pestañita de Mochi flotante) | Ojos cerrados, respira lento, cabecea y suben "z z" |
+| En reposo | Nada que contar | Respira y cada tanto mira a un lado y al otro, o sonríe un instante |
+
+Reaccionan las mascotas que acompañan a la persona (la de la Home, la flotante, la del buscador con Mochi y su fila "Pídele a Mochi") y el repartidor del seguimiento; las del checkout y la tarjeta "sin resultado" quedan como estaban. Mochi no aparece donde no estaba: oculto, en el grupo de control y en "Rappi hoy" no hay mascota que reaccione. La mascota sigue con `aria-hidden`, los adornos no reciben toques, nada parpadea más de 3 veces por segundo y todo es `transform` y `opacity` en CSS; con "reducir movimiento" solo cambia la pose. En la demo sin conexión reacciona igual, y el "Panel de la demo" tiene botones para ver cada emoción.
 
 ### La pregunta in-app
 

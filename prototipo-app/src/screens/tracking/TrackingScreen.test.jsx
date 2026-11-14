@@ -228,10 +228,14 @@ describe('TrackingScreen', () => {
     expect(document.querySelector('.tracking-almost')).toBeNull()
   })
 
-  test('en el prototipo final, preparando, Mochi está tímido', async () => {
+  test('en el prototipo final, recién pedido baila un momento y, preparando, está tímido', async () => {
     renderTracking()
     fireEvent.click(screen.getByText('pedir'))
     act(() => vi.advanceTimersByTime(1_000))
+    expect(document.querySelector('.tracking-mochi').classList).toContain('is-dancing') // pedido confirmado
+    expect(document.querySelector('.tracking-rider image').getAttribute('x')).toBe('-1') // pose feliz
+    act(() => vi.advanceTimersByTime(2_000))
+    expect(document.querySelector('.tracking-mochi').classList).not.toContain('is-dancing')
     expect(document.querySelector('.tracking-rider image').getAttribute('y')).toBe('-1')
   })
 

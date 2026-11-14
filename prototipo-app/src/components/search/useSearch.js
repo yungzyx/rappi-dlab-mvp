@@ -5,6 +5,7 @@ import { userId } from '../../api/user'
 import { useDemo } from '../../state/DemoContext'
 import { useAgentEnabled } from '../../state/agentEnabled'
 import { useEvents } from '../../state/EventsContext'
+import { emote, useMochiThinking } from '../../state/mochiMood'
 
 // De dónde salió el texto buscado (`payload.fuente`): escrito, una sugerencia (una idea, una búsqueda reciente
 // —`reciente`— o "Lo más buscado" —`lo-mas-buscado`—) o el aviso de la corrección ("buscar tal cual"). Equivale a
@@ -66,6 +67,13 @@ export function useSearch({ initial = '', vertical, only = false } = {}) {
     },
     [events, vertical],
   )
+
+  // Mochi piensa mientras espera la respuesta y se preocupa si no llega (antes de registrar la búsqueda: la que llega
+  // con resultados lo alegra, y no lo haría si siguiera pensando). Sin la mascota a la vista, no se ve nada.
+  useMochiThinking(loading)
+  useEffect(() => {
+    if (error) emote('worried')
+  }, [error])
 
   // La respuesta de `text` está lista cuando ya no carga y trae datos (con error o con menos de 2 letras no hay).
   const ready = data !== null && !loading

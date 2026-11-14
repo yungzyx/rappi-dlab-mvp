@@ -1,5 +1,6 @@
 import { act, cleanup, fireEvent, render } from '@testing-library/react'
 import { afterEach, describe, expect, test } from 'vitest'
+import { emote, setThinking } from '../../state/mochiMood'
 import Mascot from './Mascot'
 
 afterEach(cleanup)
@@ -23,7 +24,7 @@ describe('Mochi, la mascota', () => {
   })
 
   test('el estado elige la pose', () => {
-    expect(mascot({ mood: 'think' }).classList).toContain('mascot--think')
+    expect(mascot({ mood: 'thinking' }).classList).toContain('mascot--thinking')
     cleanup()
     expect(mascot().classList).toContain('mascot--idle')
   })
@@ -58,5 +59,61 @@ describe('Mochi, la mascota', () => {
     fireEvent.pointerDown(el)
     animationEnd(el, 'mascot-breathe')
     expect(el.classList).toContain('mascot--boop')
+  })
+})
+
+describe('Mochi con ánimo (state/mochiMood.js)', () => {
+  const fx = (el) => el.querySelector('.mascot-fx')?.className ?? null
+
+  test('la mascota que acompaña (`live`) muestra la emoción que corre, con su adorno; las demás, no', () => {
+    const { container } = render(
+      <>
+        <Mascot live />
+        <Mascot />
+      </>,
+    )
+    const [live, still] = container.children
+    act(() => emote('celebrate'))
+    expect(live.classList).toContain('mascot--celebrate')
+    expect(live.classList).toContain('is-feeling')
+    expect(fx(live)).toContain('mascot-fx--sparks')
+    expect(live.querySelectorAll('.mascot-fx i')).toHaveLength(8)
+    expect(still.classList).toContain('mascot--idle')
+    expect(fx(still)).toBeNull()
+  })
+
+  test('cada emoción tiene su adorno (sin texto) y "contento" y "bailar" solo se mueven', () => {
+    const cases = { worried: 'mascot-fx--drop', surprised: 'mascot-fx--bang', happy: null, dance: null }
+    for (const [emotion, adornment] of Object.entries(cases)) {
+      cleanup()
+      const el = mascot({ live: true, mood: emotion })
+      expect(el.classList).toContain(`mascot--${emotion}`)
+      expect(fx(el) && fx(el).split(' ')[1]).toBe(adornment)
+      expect(el.textContent).toBe('')
+    }
+  })
+
+  test('pensando manda sobre la emoción y sobre su propio ánimo; con tres puntos', () => {
+    const token = {}
+    const el = mascot({ live: true, mood: 'listen' })
+    act(() => setThinking(token, true))
+    expect(el.classList).toContain('mascot--thinking')
+    expect(el.querySelectorAll('.mascot-fx--dots i')).toHaveLength(3)
+    act(() => setThinking(token, false))
+    expect(el.classList).toContain('mascot--listen')
+  })
+
+  test('dormido ("z z") no muestra emociones', () => {
+    const el = mascot({ live: true, mood: 'sleepy', badge: true })
+    expect(fx(el)).toContain('mascot-fx--zz')
+    act(() => emote('dance'))
+    expect(el.classList).toContain('mascot--sleepy')
+  })
+
+  test('sigue fuera del lector de pantalla con cualquier ánimo', () => {
+    const el = mascot({ live: true })
+    act(() => emote('surprised'))
+    expect(el.getAttribute('aria-hidden')).toBe('true')
+    expect(el.querySelector('[tabindex], button')).toBeNull()
   })
 })

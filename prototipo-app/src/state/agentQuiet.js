@@ -2,6 +2,8 @@
 // cerró dos globos seguidos (dura lo que la pestaña). Una mascota que insiste molesta.
 
 export const QUIET_KEY = 'rappi-proto-mochi-silencio'
+/** Evento de ventana con que se avisa que se silenció o despertó (la mascota se duerme o despierta: mochiMood.js). */
+export const QUIET_EVENT = 'agent-silencio'
 const HUSH_AFTER_DISMISSALS = 2
 
 let dismissedInARow = 0
@@ -21,6 +23,7 @@ export function quietToday(today) {
   } catch {
     // Sin almacenamiento: el silencio no se guarda, el agente vuelve al recargar.
   }
+  globalThis.window?.dispatchEvent(new Event(QUIET_EVENT))
 }
 
 export function wake() {
@@ -30,6 +33,7 @@ export function wake() {
   } catch {
     // Nada guardado que borrar.
   }
+  globalThis.window?.dispatchEvent(new Event(QUIET_EVENT))
 }
 
 /** Cerró un globo sin usarlo. */

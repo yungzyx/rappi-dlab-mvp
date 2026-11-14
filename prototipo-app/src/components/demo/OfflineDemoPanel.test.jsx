@@ -1,7 +1,8 @@
-import { act, cleanup, fireEvent, render, screen } from '@testing-library/react'
+import { act, cleanup, fireEvent, render, renderHook, screen } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest'
 import { HIDDEN_KEY, isAgentHidden } from '../../state/agentHidden'
 import { DemoProvider } from '../../state/DemoContext'
+import { emote, useMochiMood } from '../../state/mochiMood'
 import OfflineDemoPanel from './OfflineDemoPanel'
 
 const events = vi.hoisted(() => ({ track: vi.fn(), flush: async () => {}, clear: () => {}, settled: async () => {} }))
@@ -63,6 +64,16 @@ describe('"Panel de la demo": Mochi', () => {
     localStorage.setItem(HIDDEN_KEY, '1')
     await openPanel()
     expect(screen.getByRole('button', { name: 'Mostrar a Mochi' })).toBeTruthy()
+  })
+
+  test('cada emoción se ve con su botón, aunque otra acabe de terminar', async () => {
+    await openPanel()
+    const mood = renderHook(() => useMochiMood()).result
+    act(() => emote('dance'))
+    fireEvent.click(screen.getByRole('button', { name: 'Contento' }))
+    expect(mood.current.emotion).toBe('happy')
+    fireEvent.click(screen.getByRole('button', { name: 'Piensa' }))
+    expect(mood.current).toMatchObject({ thinking: true, emotion: null })
   })
 
   test('en "Rappi hoy" no está: ahí no hay Mochi', async () => {

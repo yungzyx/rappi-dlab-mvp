@@ -42,6 +42,34 @@
   transition: transform 500ms linear;
 }
 
+/* Pedido confirmado: Mochi repartidor baila un momento (sin movimiento, solo cambia a la pose feliz) */
+@media (prefers-reduced-motion: no-preference) {
+  .tracking-mochi.is-dancing {
+    transform-box: fill-box;
+    transform-origin: 50% 100%;
+    animation: tracking-dance 1.3s ease-in-out 2;
+  }
+}
+
+@keyframes tracking-dance {
+  0%,
+  100% {
+    transform: translateY(0) rotate(0);
+  }
+  15% {
+    transform: translateY(-4px) rotate(-10deg);
+  }
+  30% {
+    transform: translateY(0) rotate(-4deg);
+  }
+  55% {
+    transform: translateY(-4px) rotate(10deg);
+  }
+  70% {
+    transform: translateY(0) rotate(4deg);
+  }
+}
+
 .tracking-home.is-arrived {
   transform-box: fill-box;
   transform-origin: center;
