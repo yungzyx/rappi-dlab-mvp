@@ -34,7 +34,8 @@ Sin datos personales: ni nombre, ni teléfono, ni nada que identifique a la pers
 | | ¿Salió? ¿Después de qué tarea? | ¿La vio? | ¿La entendió? (qué cree que le preguntaba) | Qué hizo |
 |---|---|---|---|---|
 | P1 "¿Encontraste lo que buscabas?" | ☐ no salió · tarea \_\_ | ☐ sí ☐ no | ☐ sí ☐ no · \_\_\_\_\_\_\_\_\_\_ (¿a qué búsqueda? \_\_\_\_\_\_) | ☐ Sí ☐ En parte ☐ No ☐ la cerró (×) ☐ se fue sin respuesta |
-| P3 "¿Confías en las sugerencias de Mochi?" | ☐ tras la tarea 4 (al irse la oferta) ☐ otra: tarea \_\_ ☐ no salió: ☐ ocultó a Mochi ☐ sin oferta con "¿Por qué?" ☐ cerró la P1 (×) | ☐ sí ☐ no | ☐ sí ☐ no · ¿Leyó la escala (1 "Nada", 5 "Mucho")? ☐ sí ☐ no | 1 · 2 · 3 · 4 · 5 ☐ la cerró (×) ☐ se fue sin respuesta |
+| P2 "¿Fue fácil encontrarlo?" (tras un Sí o un En parte a la P1) | ☐ salió tras la P1 ☐ no salió: respondió "No" a la P1 o la cerró | ☐ sí ☐ no | ☐ sí ☐ no · \_\_\_\_\_\_\_\_\_\_ | ☐ Sí ☐ No ☐ la cerró (×) ☐ se fue sin respuesta |
+| P3 "¿Confías en las sugerencias de Mochi?" | ☐ tras la tarea 4 (al irse la oferta) ☐ otra: tarea \_\_ ☐ no salió: ☐ ocultó a Mochi ☐ sin oferta con "¿Por qué?" ☐ cerró la P1 o la P2 (×) | ☐ sí ☐ no | ☐ sí ☐ no · ¿Leyó la escala (1 "Nada", 5 "Mucho")? ☐ sí ☐ no | 1 · 2 · 3 · 4 · 5 ☐ la cerró (×) ☐ se fue sin respuesta |
 
 Lo que dijo de la pregunta: \_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_
 

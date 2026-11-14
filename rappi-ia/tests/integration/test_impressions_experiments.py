@@ -1012,6 +1012,94 @@ def test_touching_mochi_counts_as_using_it(client, db):
     assert (control["poblacion"]["adopcion"]["usaron"], control["poblacion"]["adopcion"]["usaron_pct"]) == (3, 60.0)
 
 
+def asked(db, user_id, question, answer, days, trigger="busqueda"):
+    """La p2 o la p3 de la pregunta in-app, respondida hace `days` días."""
+    payload = {"question": question, "answer": answer, "trigger": trigger}
+    app_event(db, user_id, "survey_answer", days, payload=payload)
+
+
+def rated(db, user_id, cart, stars, days, source="prototype"):
+    """La calificación ("¿Cómo estuvo tu pedido?") del pedido del carro `cart`, hace `days` días."""
+    app_event(
+        db, user_id, "order_rated", days, source=source, cart_id=cart, surface="tracking", payload={"stars": stars}
+    )
+
+
+def seed_satisfaction(db):
+    """Sobre los dos grupos: la p2 tras el "Sí" de t1 y de c1, la p3 de t1 y las calificaciones de pedidos."""
+    asked(db, "t1", "p2", "si", days=10)
+    asked(db, "t1", "p3", 4, days=10, trigger="porque")
+    asked(db, "c1", "p2", "no", days=10)
+    rated(db, "t1", "c-a", 5, days=30)
+    rated(db, "t1", "c-b", 2, days=20)
+    rated(db, "t1", "c-b", 4, days=19)  # el mismo pedido otra vez: cuenta una, la última
+    rated(db, "c1", "c-c", 3, days=30)
+    rated(db, "c2", "c-d", 4, days=30)
+    rated(db, "t3", "c-e", 1, days=8)  # antes de su asignación (hace 5 días): sin grupo, solo en la población
+    rated(db, "u-sin", "c-f", 5, days=8)  # sin variante: solo en la población
+    rated(db, "s1", "c-g", 1, days=8, source="synthetic")  # otra fuente: no se mezcla
+
+
+def test_satisfaction_and_effort_are_measured_by_group_and_for_everyone(client, db):
+    seed_two_groups(db)
+    seed_satisfaction(db)
+    control = experiments_of(client, "prototype")["ofertas_control"]
+
+    satisfaction = control["satisfaccion"]
+    # "¿Fue fácil encontrarlo?": el % de "Sí" de la p2 por grupo, con la forma de la H3 (y su mismo mínimo).
+    assert satisfaction["facil"] == {
+        "variantes": [
+            {"variante": "tratamiento", "respondidas": 1, "si": 1, "si_pct": 100.0},
+            {"variante": "control", "respondidas": 1, "si": 0, "si_pct": 0.0},
+        ],
+        "diferencia": {"puntos": 100.0, "ic95": None, "p_una_cola": None},
+        "minimo": 100,
+        "concluyente": False,
+    }
+    # La p3 solo sale con Mochi: el control no tiene, y no se compara.
+    assert satisfaction["confia"] == {
+        "variantes": [
+            {"variante": "tratamiento", "respondidas": 1, "promedio": 4.0},
+            {"variante": "control", "respondidas": 0, "promedio": None},
+        ]
+    }
+    # Pedidos con 4 o 5 estrellas, uno por pedido y con la variante que la persona ya tenía al calificar.
+    assert satisfaction["pedidos"] == {
+        "variantes": [
+            {"variante": "tratamiento", "calificados": 2, "buenos": 2, "buenos_pct": 100.0},
+            {"variante": "control", "calificados": 2, "buenos": 1, "buenos_pct": 50.0},
+        ],
+        "diferencia": {"puntos": 50.0, "ic95": None, "p_una_cola": None},
+        "minimo": 100,
+        "concluyente": False,
+    }
+    # Toda la población de la fuente: también lo que no tiene variante.
+    assert control["poblacion"]["satisfaccion"] == {
+        "facil": {"respondidas": 2, "si": 1, "si_pct": 50.0},
+        "confia": {"respondidas": 1, "promedio": 4.0},
+        "pedidos": {"calificados": 6, "buenos": 4, "buenos_pct": 66.7},
+    }
+    assert experiments_of(client, "synthetic")["ofertas_control"]["poblacion"]["satisfaccion"]["pedidos"] == {
+        "calificados": 1,
+        "buenos": 0,
+        "buenos_pct": 0.0,
+    }
+
+
+def test_satisfaction_reads_with_its_interval_and_one_sided_test_from_the_minimum(client, db, monkeypatch):
+    seed_two_groups(db)
+    seed_satisfaction(db)
+    rated(db, "c1", "c-h", 2, days=25)  # control: 1 de 3 bien calificado
+    monkeypatch.setattr(queries, "MIN_SURVEY_ANSWERS", 1)
+    satisfaction = experiments_of(client, "prototype")["ofertas_control"]["satisfaccion"]
+
+    for metric in ("facil", "pedidos"):
+        assert satisfaction[metric]["concluyente"] is True and satisfaction[metric]["minimo"] == 1
+        difference = satisfaction[metric]["diferencia"]
+        assert difference["ic95"] is not None and 0 <= difference["p_una_cola"] <= 1
+    assert satisfaction["pedidos"]["diferencia"]["puntos"] == 66.7
+
+
 def test_the_hypotheses_read_with_their_interval_once_each_group_reaches_its_minimum(client, db, monkeypatch):
     """Con el mínimo alcanzado: la H2 con su diferencia relativa, el intervalo de la frecuencia y el de Restaurantes →
     Turbo; la H3 con su intervalo y la prueba a una cola."""
@@ -1052,6 +1140,11 @@ def test_without_groups_the_hypotheses_keep_their_shape_and_the_population(clien
         "dias": 30,
     }
     assert control["encuesta"]["diferencia"] is None and control["encuesta"]["concluyente"] is False
+    for metric in ("facil", "pedidos"):
+        assert control["satisfaccion"][metric]["diferencia"] is None
+        assert control["satisfaccion"][metric]["concluyente"] is False
+    assert [v["respondidas"] for v in control["satisfaccion"]["confia"]["variantes"]] == [0, 0]
+    assert control["poblacion"]["satisfaccion"]["pedidos"] == {"calificados": 0, "buenos": 0, "buenos_pct": None}
     assert [v["personas"] for v in control["adopcion"]["variantes"]] == [0, 0]
     assert control["retencion"]["minimo"] is None and control["retencion"]["referencia"] is None
     assert control["poblacion"]["rest_a_turbo"] == {"personas": 1, "con_turbo": 1, "pct": 100.0, "dias": 28}

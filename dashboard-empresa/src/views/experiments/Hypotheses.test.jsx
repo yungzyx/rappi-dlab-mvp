@@ -26,6 +26,46 @@ const POPULATION = {
   rest_a_turbo: { personas: 800, con_turbo: 96, pct: 12, dias: 28 },
   encuesta: { respondidas: 40, si: 30, si_pct: 75 },
   adopcion: { personas: 1500, usaron: 300, usaron_pct: 20, ocultos_pct: 2.5, silenciaron_pct: 4, dias: 30 },
+  satisfaccion: {
+    facil: { respondidas: 30, si: 24, si_pct: 80 },
+    confia: { respondidas: 12, promedio: 3.75 },
+    pedidos: { calificados: 50, buenos: 43, buenos_pct: 86 },
+  },
+}
+
+/** Satisfacción y esfuerzo por grupo (la p2 y los pedidos con la forma de la H3); `conclusive` con intervalo y p. */
+function satisfactionBlock({ conclusive = false, empty = false } = {}) {
+  const share = (rows, diff) => ({
+    variantes: rows,
+    diferencia: empty
+      ? null
+      : { puntos: diff, ic95: conclusive ? [1.5, 14.5] : null, p_una_cola: conclusive ? 0.01 : null },
+    minimo: 100,
+    concluyente: conclusive,
+  })
+  const n = (value) => (empty ? 0 : value)
+  return {
+    facil: share(
+      [
+        { variante: 'tratamiento', respondidas: n(110), si: n(88), si_pct: empty ? null : 80 },
+        { variante: 'control', respondidas: n(104), si: n(78), si_pct: empty ? null : 75 },
+      ],
+      5,
+    ),
+    confia: {
+      variantes: [
+        { variante: 'tratamiento', respondidas: n(40), promedio: empty ? null : 3.8 },
+        { variante: 'control', respondidas: 0, promedio: null },
+      ],
+    },
+    pedidos: share(
+      [
+        { variante: 'tratamiento', calificados: n(130), buenos: n(117), buenos_pct: empty ? null : 90 },
+        { variante: 'control', calificados: n(120), buenos: n(102), buenos_pct: empty ? null : 85 },
+      ],
+      5,
+    ),
+  }
 }
 
 /** El experimento `ofertas_control` con `people` personas por grupo (0: nadie asignado) y las hipótesis a medida. */
@@ -117,6 +157,7 @@ function offersControl({ people = [0, 0], controlPct = 0, conclusive = false, ..
         },
       ],
     },
+    satisfaccion: satisfactionBlock({ conclusive }),
     poblacion: POPULATION,
     ...overrides,
   }
@@ -143,9 +184,13 @@ describe('Las tres hipótesis', () => {
       'Las tres hipótesis',
       '¿Cuánto vale la meta?',
       'Adopción y apagado',
+      'Satisfacción y esfuerzo',
       'Experimentos del MVP',
     ])
-    const cards = screen.getAllByRole('article').map((article) => article.getAttribute('aria-labelledby'))
+    const hypotheses = screen.getByRole('heading', { name: 'Las tres hipótesis' }).closest('section')
+    const cards = within(hypotheses)
+      .getAllByRole('article')
+      .map((article) => article.getAttribute('aria-labelledby'))
     expect(cards).toEqual(['hipotesis-h1', 'hipotesis-h2', 'hipotesis-h3'])
     expect(card(/Retención M\+1/).textContent).toContain('Meta: +2 puntos sobre el control')
     expect(card(/Restaurantes → Turbo/).textContent).toContain('Meta: +10 % relativo sobre el control')
@@ -256,7 +301,118 @@ describe('Las tres hipótesis', () => {
     serveFixturesWith(respond('synthetic', old))
     await renderWithData(<ExperimentsView source="synthetic" />)
 
-    expect(screen.getAllByText('Esta respuesta no trae las hipótesis')).toHaveLength(2)
+    expect(screen.getAllByText('Esta respuesta no trae las hipótesis')).toHaveLength(3)
     expect(screen.getByRole('heading', { name: 'Experimentos del MVP' })).toBeTruthy()
+  })
+})
+
+describe('Satisfacción y esfuerzo', () => {
+  const section = () => screen.getByRole('heading', { name: 'Satisfacción y esfuerzo' }).closest('section')
+  const satisfactionCard = (name) => within(section()).getByRole('article', { name })
+  const NAMES = [/Encontró lo que buscaba/, /Fue fácil encontrarlo/, /Confía en Mochi/, /Pedidos bien calificados/]
+
+  beforeEach(() => {
+    window.history.replaceState(null, '', '/')
+    vi.spyOn(console, 'warn').mockImplementation(() => {})
+  })
+
+  afterEach(resetApi)
+
+  test('it sits under adoption, with the four cards in the order of the card in the app', async () => {
+    serveFixturesWith(respond('prototype', offersControl()))
+    await renderWithData(<ExperimentsView source="prototype" />)
+
+    const ids = within(section())
+      .getAllByRole('article')
+      .map((article) => article.getAttribute('aria-labelledby'))
+    expect(ids).toEqual(['satisfaccion-p1', 'satisfaccion-p2', 'satisfaccion-p3', 'satisfaccion-pedidos'])
+  })
+
+  test('without a control group it describes the whole source and says it measures no effect', async () => {
+    serveFixturesWith(respond('prototype', offersControl()))
+    await renderWithData(<ExperimentsView source="prototype" />)
+
+    for (const name of NAMES) {
+      expect(within(satisfactionCard(name)).getByText('Sin grupo de control: describe, no mide un efecto')).toBeTruthy()
+      expect(within(satisfactionCard(name)).queryByRole('table')).toBeNull()
+    }
+    expect(satisfactionCard(NAMES[0]).textContent).toContain('75,0%respondió "Sí" (de 40 respuestas)')
+    expect(satisfactionCard(NAMES[1]).textContent).toContain('80,0%respondió "Sí" (de 30 respuestas)')
+    expect(satisfactionCard(NAMES[2]).textContent).toContain('3,8de 5 en promedio (12 respuestas)')
+    expect(satisfactionCard(NAMES[3]).textContent).toContain('86,0%con 4 o 5 estrellas (de 50 pedidos calificados)')
+  })
+
+  test('with both groups under the minimum it compares them without an interval', async () => {
+    serveFixturesWith(respond('prototype', offersControl({ people: [40, 35], controlPct: 50 })))
+    await renderWithData(<ExperimentsView source="prototype" />)
+
+    const easy = within(satisfactionCard(NAMES[1])).getByRole('table', { name: 'Fue fácil encontrarlo por grupo' })
+    expect(cellsOf(easy)).toEqual([['80,0%110 respuestas'], ['75,0%104 respuestas'], ['+5,0 puntos']])
+    const orders = within(satisfactionCard(NAMES[3])).getByRole('table')
+    expect(cellsOf(orders)).toEqual([
+      ['90,0%130 pedidos calificados'],
+      ['85,0%120 pedidos calificados'],
+      ['+5,0 puntos'],
+    ])
+    expect(satisfactionCard(NAMES[3]).textContent).toContain(
+      '130 y 120 pedidos calificados; se lee desde 100 por grupo',
+    )
+    for (const name of [NAMES[0], NAMES[1], NAMES[3]]) {
+      expect(within(satisfactionCard(name)).getByText('No es concluyente')).toBeTruthy()
+      expect(within(satisfactionCard(name)).queryByText(/IC 95 %/)).toBeNull()
+    }
+    // La P3 es solo del tratamiento: su promedio, sin comparar.
+    const trust = satisfactionCard(NAMES[2])
+    expect(trust.textContent).toContain('3,8de 5 en promedio en tratamiento (40 respuestas)')
+    expect(within(trust).getByText('Solo en tratamiento: no tiene con qué compararse')).toBeTruthy()
+    expect(within(trust).queryByRole('table')).toBeNull()
+  })
+
+  test('once conclusive, the prototype reads each proportion with its interval and the one-sided test', async () => {
+    serveFixturesWith(respond('prototype', offersControl({ people: [40, 35], controlPct: 50, conclusive: true })))
+    await renderWithData(<ExperimentsView source="prototype" />)
+
+    for (const name of [NAMES[1], NAMES[3]]) {
+      expect(within(satisfactionCard(name)).getByText('Sube en tratamiento (p de una cola 0,010)')).toBeTruthy()
+      expect(satisfactionCard(name).textContent).toContain('IC 95 %: 1,5 a 14,5')
+    }
+  })
+
+  test('with simulated data there is no verdict nor interval, and it says why', async () => {
+    serveFixturesWith(respond('synthetic', offersControl({ people: [40, 35], controlPct: 50, conclusive: true })))
+    await renderWithData(<ExperimentsView source="synthetic" />)
+
+    for (const name of NAMES) {
+      expect(within(satisfactionCard(name)).getByText('Simulado: sin veredicto')).toBeTruthy()
+      expect(within(satisfactionCard(name)).queryByText(/IC 95 %/)).toBeNull()
+    }
+    expect(within(section()).getByText(/siguen supuestos del generador/)).toBeTruthy()
+  })
+
+  test('with empty groups nothing breaks: no difference and no answers yet', async () => {
+    serveFixturesWith(
+      respond(
+        'prototype',
+        offersControl({ people: [3, 2], controlPct: 50, satisfaccion: satisfactionBlock({ empty: true }) }),
+      ),
+    )
+    await renderWithData(<ExperimentsView source="prototype" />)
+
+    expect(cellsOf(within(satisfactionCard(NAMES[3])).getByRole('table'))).toEqual([
+      ['—0 pedidos calificados'],
+      ['—0 pedidos calificados'],
+      ['—'],
+    ])
+    expect(satisfactionCard(NAMES[2]).textContent).toContain('Nadie respondió todavía')
+  })
+
+  test('a response from before the satisfaction says so instead of breaking', async () => {
+    const old = offersControl()
+    delete old.satisfaccion
+    serveFixturesWith(respond('synthetic', old))
+    await renderWithData(<ExperimentsView source="synthetic" />)
+
+    expect(within(section()).getByText('Esta respuesta no trae la satisfacción')).toBeTruthy()
+    expect(within(card(/Retención M\+1/)).getByText(/Sin grupo de control/)).toBeTruthy() // lo demás sigue
   })
 })

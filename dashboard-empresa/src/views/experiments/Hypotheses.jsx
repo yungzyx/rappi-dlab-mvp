@@ -30,7 +30,7 @@ const ICONS = { good: 'up', bad: 'down', warn: 'warn' }
  * "IC 95 %: −1,2 a 3,4" de una diferencia, o nada si no lo trae (bajo el mínimo). Con los simulados tampoco: la
  * diferencia la pone un supuesto del generador y un intervalo la haría parecer un hallazgo.
  */
-function Interval({ ic95, source, decimals = 1 }) {
+export function Interval({ ic95, source, decimals = 1 }) {
   if (!ic95 || source === 'synthetic') return null
   return (
     <span className="cell-sub">
@@ -53,7 +53,7 @@ function Verdict({ tone, label }) {
  * Una hipótesis: su clave (H1…), el nombre, la meta y la pregunta; el cuerpo (cifras de la población o la tabla por
  * grupo); al pie, su estado y el tamaño de la muestra.
  */
-function HypothesisCard({ id, tag, title, goal, question, status, note, children }) {
+export function HypothesisCard({ id, tag, title, goal, question, status, note, children }) {
   return (
     <article className="hypothesis" aria-labelledby={id}>
       <header className="hypothesis-head">
@@ -72,7 +72,7 @@ function HypothesisCard({ id, tag, title, goal, question, status, note, children
 }
 
 /** Una cifra de la población con su unidad: lo que se ve sin grupo de control. */
-function Figure({ value, unit }) {
+export function Figure({ value, unit }) {
   return (
     <p className="hypothesis-figure">
       <strong>{value}</strong>
@@ -85,7 +85,7 @@ function Figure({ value, unit }) {
  * La comparación por grupo: una fila por grupo y la diferencia al final; `columns`: [{ header, value(variant), diff }].
  * Es una tabla de verdad (con su título para el lector de pantalla), angosta a propósito: cabe en la tarjeta del celular.
  */
-function GroupTable({ caption, columns }) {
+export function GroupTable({ caption, columns }) {
   return (
     <table className="hypothesis-table">
       <caption className="visually-hidden">{caption}</caption>
@@ -125,7 +125,7 @@ function GroupTable({ caption, columns }) {
   )
 }
 
-const valueWithN = (value, n, noun) => (
+export const valueWithN = (value, n, noun) => (
   <span className="cell-stack">
     {value}
     <span className="cell-sub">
@@ -336,7 +336,7 @@ function H3({ experiment, mode, source }) {
 }
 
 /** Sin la respuesta nueva (una foto grabada antes del 13-11), lo dice en vez de caerse. */
-function MissingHypotheses() {
+export function MissingHypotheses() {
   return (
     <EmptyState title="Esta respuesta no trae las hipótesis" inline>
       Se ven con la API al día o con una foto grabada desde el 13-11 (npm run panel:snapshot).

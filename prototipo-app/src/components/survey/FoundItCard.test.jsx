@@ -10,7 +10,7 @@ import { SURVEY_DAY_KEY, SURVEY_P3_DAY_KEY, observeEvent, resetSurvey } from '..
 import { tabStore } from '../../state/storage'
 import { today } from '../../utils/today'
 import OfferWhy from '../assistant/OfferWhy'
-import FoundItSurvey, { P1_TEXT, P3_TEXT } from './FoundItCard'
+import FoundItSurvey, { P1_TEXT, P2_TEXT, P3_TEXT } from './FoundItCard'
 import { SETTLE_MS, THANKS_MS } from './useFoundItSurvey'
 
 const events = vi.hoisted(() => ({ track: vi.fn(), flush: async () => {}, clear: () => {}, settled: async () => {} }))
@@ -55,6 +55,8 @@ const mount = () =>
 const tracked = (type) => events.track.mock.calls.filter(([kind]) => kind === type).map(([, fields]) => fields)
 const settle = () => act(() => vi.advanceTimersByTime(SETTLE_MS))
 const question = () => screen.queryByRole('heading', { name: P1_TEXT })
+const effort = () => screen.queryByRole('heading', { name: P2_TEXT })
+const tap = (name) => fireEvent.click(screen.getByRole('button', { name }))
 const searched = (requestId = 'req-1') => act(() => observeEvent({ type: 'search', request_id: requestId }))
 const touched = (type = 'view_item', requestId = 'req-1') => act(() => observeEvent({ type, request_id: requestId }))
 
@@ -90,11 +92,18 @@ describe('la pregunta in-app', () => {
       { surface: 'home', request_id: 'req-1', payload: { question: 'p1', trigger: 'busqueda', mochi: true } },
     ])
     fireEvent.click(screen.getByRole('button', { name: 'En parte' }))
+    expect(effort()).toBeTruthy() // la p2 sigue en la misma tarjeta
+    tap('No')
     expect(tracked('survey_answer')).toEqual([
       {
         surface: 'home',
         request_id: 'req-1',
         payload: { question: 'p1', trigger: 'busqueda', mochi: true, answer: 'en_parte' },
+      },
+      {
+        surface: 'home',
+        request_id: 'req-1',
+        payload: { question: 'p2', trigger: 'busqueda', mochi: true, answer: 'no' },
       },
     ])
     expect(screen.getByRole('status').textContent).toContain('¡Gracias!')
@@ -184,13 +193,14 @@ describe('la pregunta in-app', () => {
     mount()
     searchAndBack()
     settle()
-    fireEvent.click(screen.getByRole('button', { name: 'Sí' }))
+    tap('Sí')
+    tap('Sí') // la p2
     act(() => vi.advanceTimersByTime(THANKS_MS))
     localStorage.removeItem(SURVEY_DAY_KEY) // aunque fuera otro día, la misma sesión no se pregunta dos veces
     searchAndBack()
     act(() => vi.advanceTimersByTime(10 * SETTLE_MS))
     expect(question()).toBeNull()
-    expect(tracked('survey_shown')).toHaveLength(1)
+    expect(tracked('survey_shown').map((f) => f.payload.question)).toEqual(['p1', 'p2'])
   })
 
   test('once per day: a new session the same day is not asked, another day it is', () => {
@@ -215,15 +225,19 @@ describe('la p3', () => {
     whyOpened()
     searchAndBack()
     settle()
-    fireEvent.click(screen.getByRole('button', { name: 'Sí' }))
+    tap('Sí')
+    expect(screen.queryByRole('heading', { name: P3_TEXT })).toBeNull() // primero la p2
+    tap('Sí')
     expect(screen.getByRole('heading', { name: P3_TEXT })).toBeTruthy()
     fireEvent.click(screen.getByRole('button', { name: '4' }))
     expect(tracked('survey_shown').map((f) => f.payload)).toEqual([
       { question: 'p1', trigger: 'abandono', mochi: true },
+      { question: 'p2', trigger: 'abandono', mochi: true },
       { question: 'p3', trigger: 'porque', mochi: true },
     ])
     expect(tracked('survey_answer').map((f) => f.payload)).toEqual([
       { question: 'p1', trigger: 'abandono', mochi: true, answer: 'si' },
+      { question: 'p2', trigger: 'abandono', mochi: true, answer: 'si' },
       { question: 'p3', trigger: 'porque', mochi: true, answer: 4 },
     ])
     expect(screen.getByRole('status').textContent).toContain('¡Gracias!')
@@ -234,6 +248,7 @@ describe('la p3', () => {
     searchAndBack()
     settle()
     fireEvent.click(screen.getByRole('button', { name: 'No' }))
+    expect(effort()).toBeNull()
     expect(screen.queryByRole('heading', { name: P3_TEXT })).toBeNull()
     expect(tracked('survey_shown')).toHaveLength(1)
   })
@@ -249,8 +264,12 @@ describe('la p3', () => {
     searchAndBack()
     settle()
     expect(tracked('survey_shown')[0].payload).toEqual({ question: 'p1', trigger: 'abandono', mochi: false })
-    fireEvent.click(screen.getByRole('button', { name: 'Sí' }))
+    tap('Sí')
+    // La p2 no depende de Mochi: sale igual, sin Mochi a la vista.
+    expect(tracked('survey_shown')[1].payload).toEqual({ question: 'p2', trigger: 'abandono', mochi: false })
+    tap('Sí')
     expect(screen.queryByRole('heading', { name: P3_TEXT })).toBeNull()
+    expect(screen.getByRole('status').textContent).toContain('¡Gracias!')
   })
 })
 
@@ -271,7 +290,8 @@ describe('la p3 sola, cuando se va una oferta con su "¿Por qué?" abierto', () 
     mount()
     searchAndBack({ touch: 'view_item' })
     settle()
-    fireEvent.click(screen.getByRole('button', { name: 'Sí' })) // sin "¿Por qué?" todavía: solo la p1
+    tap('Sí') // sin "¿Por qué?" todavía: la p1 y la p2
+    tap('Sí')
     act(() => vi.advanceTimersByTime(THANKS_MS))
     expect(p3()).toBeNull()
 
@@ -285,14 +305,15 @@ describe('la p3 sola, cuando se va una oferta con su "¿Por qué?" abierto', () 
     expect(p3()).toBeTruthy()
     expect(tracked('survey_shown').map((f) => f.payload)).toEqual([
       { question: 'p1', trigger: 'busqueda', mochi: true },
+      { question: 'p2', trigger: 'busqueda', mochi: true },
       { question: 'p3', trigger: 'porque', mochi: true },
     ])
-    expect(tracked('survey_shown')[1]).toEqual({
+    expect(tracked('survey_shown')[2]).toEqual({
       surface: 'home',
       payload: { question: 'p3', trigger: 'porque', mochi: true },
     })
     fireEvent.click(screen.getByRole('button', { name: '5, mucho' }))
-    expect(tracked('survey_answer')[1].payload).toEqual({ question: 'p3', trigger: 'porque', mochi: true, answer: 5 })
+    expect(tracked('survey_answer')[2].payload).toEqual({ question: 'p3', trigger: 'porque', mochi: true, answer: 5 })
     expect(screen.getByRole('status').textContent).toContain('¡Gracias!')
     expect(localStorage.getItem(SURVEY_P3_DAY_KEY)).toBe(today())
   })
@@ -338,7 +359,8 @@ describe('la p3 sola, cuando se va una oferta con su "¿Por qué?" abierto', () 
     act(() => observeEvent({ type: 'offer_why_open', session_id: sessionId() }))
     searchAndBack()
     settle()
-    fireEvent.click(screen.getByRole('button', { name: 'Sí' }))
+    tap('Sí')
+    tap('No')
     expect(p3()).toBeNull()
     expect(screen.getByRole('status').textContent).toContain('¡Gracias!')
   })
@@ -376,10 +398,12 @@ describe('la p3 sola, cuando se va una oferta con su "¿Por qué?" abierto', () 
     settle()
     expect(question()).toBeTruthy()
     fireEvent.click(screen.getByRole('button', { name: 'En parte' }))
+    expect(effort()).toBeTruthy()
+    tap('Sí')
     expect(p3()).toBeTruthy()
     fireEvent.click(screen.getByRole('button', { name: '4' }))
     act(() => vi.advanceTimersByTime(THANKS_MS + 10 * SETTLE_MS))
-    expect(tracked('survey_shown').map((f) => f.payload.question)).toEqual(['p1', 'p3']) // no vuelve sola
+    expect(tracked('survey_shown').map((f) => f.payload.question)).toEqual(['p1', 'p2', 'p3']) // no vuelve sola
   })
 
   test('closing the p1 that the p3 would follow leaves both', async () => {
@@ -410,6 +434,92 @@ describe('la p3 sola, cuando se va una oferta con su "¿Por qué?" abierto', () 
     act(() => vi.advanceTimersByTime(10 * SETTLE_MS))
     expect(p3()).toBeNull()
     expect(tracked('survey_shown')).toEqual([])
+  })
+})
+
+describe('la p2, el esfuerzo', () => {
+  test.each([
+    ['Sí', 'si'],
+    ['En parte', 'en_parte'],
+  ])(
+    'after "%s" it asks "¿Fue fácil encontrarlo?" in the same card, with the trigger and search of the p1',
+    (label, id) => {
+      mount()
+      searchAndBack({ touch: 'cart_add' })
+      settle()
+      tap(label)
+      expect(question()).toBeNull()
+      expect(effort()).toBeTruthy()
+      expect(screen.getByRole('button', { name: 'Sí' })).toBeTruthy()
+      expect(screen.getByRole('button', { name: 'No' })).toBeTruthy()
+      expect(screen.queryByRole('button', { name: 'En parte' })).toBeNull()
+      expect(tracked('survey_shown')[1]).toEqual({
+        surface: 'home',
+        request_id: 'req-1',
+        payload: { question: 'p2', trigger: 'carro', mochi: true },
+      })
+      tap('Sí')
+      expect(tracked('survey_answer').map((f) => f.payload)).toEqual([
+        { question: 'p1', trigger: 'carro', mochi: true, answer: id },
+        { question: 'p2', trigger: 'carro', mochi: true, answer: 'si' },
+      ])
+      expect(screen.getByRole('status').textContent).toContain('¡Gracias!')
+    },
+  )
+
+  test('after "No" it does not ask if it was easy', () => {
+    mount()
+    searchAndBack()
+    settle()
+    tap('No')
+    expect(effort()).toBeNull()
+    expect(tracked('survey_shown').map((f) => f.payload.question)).toEqual(['p1'])
+    expect(screen.getByRole('status').textContent).toContain('¡Gracias!')
+  })
+
+  test('the same in the control group (Mochi off): it does not depend on Mochi', () => {
+    setAgentEnabled(false)
+    mount()
+    searchAndBack({ touch: 'view_item' })
+    settle()
+    tap('Sí')
+    expect(effort()).toBeTruthy()
+    tap('No')
+    expect(tracked('survey_answer').map((f) => f.payload)).toEqual([
+      { question: 'p1', trigger: 'busqueda', mochi: false, answer: 'si' },
+      { question: 'p2', trigger: 'busqueda', mochi: false, answer: 'no' },
+    ])
+  })
+
+  test('closing it with the × leaves a p2 dismissal, and the p3 does not follow nor show on its own', async () => {
+    mount()
+    act(() => observeEvent({ type: 'offer_why_open', session_id: sessionId() }))
+    searchAndBack()
+    settle()
+    tap('Sí')
+    tap('Cerrar sin responder')
+    expect(effort()).toBeNull()
+    expect(tracked('survey_dismissed')).toEqual([
+      { surface: 'home', request_id: 'req-1', payload: { question: 'p2', trigger: 'abandono', mochi: true } },
+    ])
+    act(() => vi.advanceTimersByTime(10 * SETTLE_MS))
+    expect(screen.queryByRole('heading', { name: P3_TEXT })).toBeNull()
+    expect(tracked('survey_shown').map((f) => f.payload.question)).toEqual(['p1', 'p2'])
+  })
+
+  test('it is part of the p1: no cap of its own, and leaving with it open does not bring it back', () => {
+    mount()
+    searchAndBack()
+    settle()
+    tap('En parte')
+    expect(localStorage.getItem(SURVEY_DAY_KEY)).toBe(today()) // el día lo marcó la p1
+    setView({ screen: 'restaurants', depth: 2 }) // se va con la p2 abierta: sin evento
+    expect(effort()).toBeNull()
+    setView({ screen: 'home', depth: 1 })
+    act(() => vi.advanceTimersByTime(10 * SETTLE_MS))
+    expect(effort()).toBeNull()
+    expect(tracked('survey_dismissed')).toEqual([])
+    expect(tracked('survey_shown').map((f) => f.payload.question)).toEqual(['p1', 'p2'])
   })
 })
 

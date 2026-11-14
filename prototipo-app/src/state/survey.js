@@ -2,8 +2,10 @@ import { useSyncExternalStore } from 'react'
 import { localStore, tabStore } from './storage'
 
 // La pregunta in-app de la H3 (docs/diseno-ia.md, "La pregunta de la H3"): "¿Encontraste lo que buscabas?" (p1) para
-// todos, con Mochi o sin él, y "¿Confías en las sugerencias de Mochi?" (p3) solo si la persona ve a Mochi, después de un
-// "¿Por qué?": sigue a la p1 si ya abrió uno en la sesión, o sale sola cuando se va la oferta cuyo "¿Por qué?" abrió.
+// todos, con Mochi o sin él; "¿Fue fácil encontrarlo?" (p2, el esfuerzo), también para todos, en la misma tarjeta tras
+// un "Sí" o un "En parte" a la p1 (es parte de la p1: no tiene topes propios), y "¿Confías en las sugerencias de Mochi?"
+// (p3) solo si la persona ve a Mochi, después de un "¿Por qué?": sigue a la p1 (o a la p2) si ya abrió uno en la sesión,
+// o sale sola cuando se va la oferta cuyo "¿Por qué?" abrió.
 // Aquí viven sus topes, el recorrido de búsqueda que hace aparecer la p1 y la oferta que se fue; la tarjeta es
 // components/survey/FoundItCard.jsx.
 //
@@ -24,6 +26,12 @@ export const P1_ANSWERS = [
   { id: 'en_parte', label: 'En parte' },
   { id: 'no', label: 'No' },
 ]
+export const P2_ANSWERS = [
+  { id: 'si', label: 'Sí' },
+  { id: 'no', label: 'No' },
+]
+/** Las respuestas de la p1 tras las que sigue la p2: con "No" no tiene sentido preguntar si fue fácil. */
+export const P2_AFTER = new Set(['si', 'en_parte'])
 export const P3_ANSWERS = [1, 2, 3, 4, 5]
 
 // Los toques que salen de una lista de resultados (los mismos que cuenta el panel: analytics/queries.py, SEARCH_CLICKS).

@@ -71,6 +71,31 @@ def test_the_three_events_are_saved_with_their_question_answer_and_search(client
     ]
 
 
+def test_the_p2_takes_yes_or_no_with_the_trigger_of_the_p1(client, db):
+    response = post(
+        client,
+        PERSON,
+        survey("survey_shown", question="p2", mochi=False),
+        survey(question="p2", answer="si", mochi=False),
+        survey("survey_shown", question="p2", trigger="abandono"),
+        survey(question="p2", answer="no", trigger="abandono"),
+        survey("survey_dismissed", question="p2", trigger="carro"),
+    )
+    assert response.status_code == 200 and response.json() == {"guardados": 5}
+    rows = db.execute(
+        """SELECT type, payload ->> 'answer', payload ->> 'trigger' FROM app_events
+           WHERE user_id = %s AND payload ->> 'question' = 'p2' ORDER BY event_id""",
+        (PERSON,),
+    ).fetchall()
+    assert rows == [
+        ("survey_shown", None, "busqueda"),
+        ("survey_answer", "si", "busqueda"),
+        ("survey_shown", None, "abandono"),
+        ("survey_answer", "no", "abandono"),
+        ("survey_dismissed", None, "carro"),
+    ]
+
+
 @pytest.mark.parametrize(
     "event",
     [
@@ -83,7 +108,10 @@ def test_the_three_events_are_saved_with_their_question_answer_and_search(client
         survey(question="p3", answer=True),  # True no es un 1
         survey(question="p3", answer=3.5),
         survey(question="p3", answer=[3]),
-        survey(question="p2"),  # la p2 no va
+        survey(question="p2", answer="en_parte"),  # la p2 es Sí o No
+        survey(question="p2", answer=1),
+        survey(question="p2", answer=None),
+        survey(question="p4"),
         survey("survey_shown", question=None),
         survey(trigger="checkout"),  # nunca sale en el pago
         survey("survey_dismissed", trigger=None),
@@ -137,6 +165,7 @@ EMPTY = {
     "si_pct": None,
     "en_parte_pct": None,
     "no_pct": None,
+    "p2": {"mostradas": 0, "respondidas": 0, "cerradas": 0, "si": 0, "no": 0, "si_pct": None},
     "p3": {"mostradas": 0, "respondidas": 0, "promedio": None},
 }
 
@@ -146,14 +175,21 @@ def test_the_survey_metric_counts_shown_answered_and_the_split_by_trigger_mochi_
         db,
         [
             *_answered("u1", "si"),
+            _event("u1", "survey_shown", question="p2", mochi=True, minutes=1),
+            _event("u1", "survey_answer", question="p2", answer="si", mochi=True, minutes=1),
             _event("u1", "survey_shown", question="p3", trigger="porque", mochi=True, minutes=2),
             _event("u1", "survey_answer", question="p3", answer=4, trigger="porque", mochi=True, minutes=3),
             *_answered("u2", "en_parte", trigger="carro"),
+            _event("u2", "survey_shown", question="p2", trigger="carro", mochi=True, minutes=1),
+            _event("u2", "survey_answer", question="p2", answer="no", trigger="carro", mochi=True, minutes=1),
             _event("u2", "survey_shown", question="p3", trigger="porque", mochi=True, minutes=2),
             _event("u2", "survey_answer", question="p3", answer=5, trigger="porque", mochi=True, minutes=3),
-            *_answered("u3", "no", trigger="abandono", mochi=False),
+            *_answered("u3", "no", trigger="abandono", mochi=False),  # tras un No, sin p2
             _event("u4", "survey_shown", trigger="abandono", mochi=False),
             _event("u4", "survey_dismissed", trigger="abandono", mochi=False, minutes=1),
+            *_answered("u6", "si", trigger="carro", mochi=False, minutes=5),
+            _event("u6", "survey_shown", question="p2", trigger="carro", mochi=False, minutes=7),
+            _event("u6", "survey_dismissed", question="p2", trigger="carro", mochi=False, minutes=8),
             _event("u5", "survey_shown"),  # sin responder ni cerrar, y sin decir si Mochi estaba
         ],
     )
@@ -168,17 +204,19 @@ def test_the_survey_metric_counts_shown_answered_and_the_split_by_trigger_mochi_
 
     assert result["total"] == {
         **EMPTY,
-        "mostradas": 5,
-        "respondidas": 3,
+        "mostradas": 6,
+        "respondidas": 4,
         "cerradas": 1,
-        "personas": 5,
-        "respuesta_pct": 60.0,
-        "si": 1,
+        "personas": 6,
+        "respuesta_pct": 66.7,
+        "si": 2,
         "en_parte": 1,
         "no": 1,
-        "si_pct": 33.3,
-        "en_parte_pct": 33.3,
-        "no_pct": 33.3,
+        "si_pct": 50.0,
+        "en_parte_pct": 25.0,
+        "no_pct": 25.0,
+        # La p2 no cuenta como una p1: sus mostradas, respondidas y cerradas van aparte (la de u6 se cerró).
+        "p2": {"mostradas": 3, "respondidas": 2, "cerradas": 1, "si": 1, "no": 1, "si_pct": 50.0},
         "p3": {"mostradas": 2, "respondidas": 2, "promedio": 4.5},
     }
     by_trigger = {row.pop("motivo"): row for row in result["por_motivo"]}
@@ -195,10 +233,18 @@ def test_the_survey_metric_counts_shown_answered_and_the_split_by_trigger_mochi_
         "en_parte_pct": 0.0,
         "no_pct": 100.0,
     }
+    assert by_trigger["carro"]["p2"] == {
+        "mostradas": 2,
+        "respondidas": 1,
+        "cerradas": 1,
+        "si": 0,
+        "no": 1,
+        "si_pct": 0.0,
+    }
     assert by_trigger["porque"]["p3"] == {"mostradas": 2, "respondidas": 2, "promedio": 4.5}
     assert by_trigger["porque"]["mostradas"] == 0  # la p3 no cuenta como una p1 mostrada
     assert [(row["mochi"], row["mostradas"], row["si"], row["no"]) for row in result["por_mochi"]] == [
-        (False, 2, 0, 1),
+        (False, 3, 1, 1),
         (True, 2, 1, 0),
     ]
     assert [(row["variante"], row["mostradas"], row["respondidas"]) for row in result["por_grupo"]] == [

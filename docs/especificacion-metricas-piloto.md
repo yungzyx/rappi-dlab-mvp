@@ -14,7 +14,7 @@ El piloto corre dentro de Rappi y lo calcula Rappi: el equipo del proyecto no ti
 6. [H2, Restaurantes → Turbo](#6-h2-restaurantes--turbo)
 7. [H2, frecuencia](#7-h2-frecuencia)
 8. [Suma una vertical nueva](#8-suma-una-vertical-nueva)
-9. [H3, "¿Encontraste lo que buscabas?"](#9-h3-encontraste-lo-que-buscabas)
+9. [H3, "¿Encontraste lo que buscabas?"](#9-h3-encontraste-lo-que-buscabas), con el esfuerzo (P2) y los pedidos bien calificados
 10. [Exposición (la parte expuesta)](#10-exposición-la-parte-expuesta)
 11. [Adopción](#11-adopción)
 12. [Apagado y silencio](#12-apagado-y-silencio)
@@ -36,6 +36,8 @@ Todas comparan "Mochi activo" (tratamiento) con "Mochi apagado" (control), por i
 | **H2, frecuencia** | Asignadas con sus 30 días cumplidos; y la cohorte de la H1 | Pedidos confirmados por persona en los 30 días desde la asignación; y en M+1 | Sin meta | Diferencia de promedios, IC de 95 % (Welch) | Con la H2 (los 30 días) y con la H1 (M+1) |
 | Suma una vertical nueva (secundaria) | La cohorte de la H1 | Un pedido confirmado en los 28 días desde la asignación, en una vertical sin pedidos confirmados antes | Sin meta, exploratoria | Dos proporciones, IC de 95 % | Con la H1 |
 | **H3, "¿Encontraste lo que buscabas?"** | Respuestas a la P1 después de la asignación | % de "Sí" sobre las respondidas | **Sin umbral** | Dos proporciones a **una cola** (la alternativa: más "Sí" con Mochi), p e IC de 95 % | Desde 100 respuestas por grupo |
+| Esfuerzo, "¿Fue fácil encontrarlo?" (secundaria) | Respuestas a la P2 después de la asignación | % de "Sí" sobre las respondidas | Sin umbral | Como la H3: dos proporciones a una cola, p e IC de 95 % | Con la H3, desde 100 respuestas por grupo |
+| Pedidos bien calificados (secundaria) | Pedidos calificados después de la asignación | % con 4 o 5 estrellas sobre los calificados | Sin umbral | Como la H3: dos proporciones a una cola, p e IC de 95 % | Con la H3, desde 100 pedidos calificados por grupo |
 | Exposición | La cohorte de la H1 | Una oferta retenible entre la asignación y el inicio de M+1 | Debe salir parecida en los dos grupos | Descriptiva: revisa la mecánica y pasa del efecto total al efecto entre expuestos | Con la H1 |
 | Adopción | Asignadas | Usó al asistente desde la asignación | Sin meta | Descriptiva (en control, 0 por diseño) | Después de las hipótesis |
 | Apagado y silencio | Asignadas | Lo tiene oculto (su último cambio) / lo silenció alguna vez | Sin meta: indicador de alerta | Descriptiva | Después de las hipótesis |
@@ -46,7 +48,7 @@ Todas comparan "Mochi activo" (tratamiento) con "Mochi apagado" (control), por i
 El que pidió Rappi ([plan-piloto.md](plan-piloto.md#orden-de-lectura)):
 
 1. **Retención, frecuencia y venta cruzada**: la H1 (retención M+1) y la H2 (Restaurantes → Turbo y frecuencia). Junto a ellas, la exposición (para pasar al efecto entre expuestos) y los resguardos.
-2. **"¿Encontraste lo que buscabas?"** (H3).
+2. **"¿Encontraste lo que buscabas?"** (H3). Junto a ella, como secundarias, el esfuerzo ("¿Fue fácil encontrarlo?") y los pedidos bien calificados.
 3. **Adopción y apagado**, al final. No son hipótesis: ocultar y silenciar son un indicador de alerta. Si suben, Mochi molesta aunque la retención no lo muestre todavía; no se usan para declarar un efecto.
 
 "Suma una vertical nueva" y las demás secundarias van al final, como exploratorias.
@@ -55,7 +57,7 @@ El que pidió Rappi ([plan-piloto.md](plan-piloto.md#orden-de-lectura)):
 
 ### Esquema mínimo supuesto
 
-Las consultas de la [sección 14](#14-las-consultas-de-referencia) suponen estas cinco tablas. Son genéricas y con nombres descriptivos: hay que adaptarlas a las tablas de Rappi (un `JOIN` o una vista por tabla suele bastar).
+Las consultas de la [sección 14](#14-las-consultas-de-referencia) suponen estas seis tablas. Son genéricas y con nombres descriptivos: hay que adaptarlas a las tablas de Rappi (un `JOIN` o una vista por tabla suele bastar).
 
 ```sql
 -- consulta: esquema
@@ -76,9 +78,16 @@ CREATE TABLE pedidos (
 CREATE TABLE respuestas_encuesta (
   respuesta_id  VARCHAR(64) PRIMARY KEY,
   user_id       VARCHAR(64) NOT NULL,
-  pregunta      VARCHAR(8)  NOT NULL,            -- 'p1' o 'p3'
-  respuesta     VARCHAR(16) NOT NULL,            -- p1: 'si', 'en_parte' o 'no'; p3: '1' a '5'
+  pregunta      VARCHAR(8)  NOT NULL,            -- 'p1', 'p2' o 'p3'
+  respuesta     VARCHAR(16) NOT NULL,            -- p1: 'si', 'en_parte' o 'no'; p2: 'si' o 'no'; p3: '1' a '5'
   respondida_en TIMESTAMP WITH TIME ZONE NOT NULL
+);
+
+CREATE TABLE calificaciones (
+  pedido_id     VARCHAR(64) PRIMARY KEY,         -- una por pedido: su última calificación
+  user_id       VARCHAR(64) NOT NULL,
+  estrellas     SMALLINT    NOT NULL,            -- 1 a 5, "¿Cómo estuvo tu pedido?"
+  calificada_en TIMESTAMP WITH TIME ZONE NOT NULL
 );
 
 CREATE TABLE eventos_asistente (
@@ -235,6 +244,26 @@ Secundaria y exploratoria ([plan-piloto.md](plan-piloto.md#secundarias)).
 - **Datos que necesita:** las respuestas, con su persona y su hora. Para la tasa de respuesta, también las veces que se mostró y que se cerró sin responder (en el MVP, `survey_shown` y `survey_dismissed`), que no cambian la H3.
 - **Errores típicos:** que la pregunta salga distinto en los dos grupos (otro texto, otro momento, otra frecuencia: la comparación deja de valer); no respetar el tope diario (quien responde mucho pesa más); contar respuestas de antes de la asignación. La prueba trata cada respuesta como independiente, aunque una persona puede responder varios días: es una aproximación que el plan acepta.
 
+### El esfuerzo: "¿Fue fácil encontrarlo?" (P2, secundaria)
+
+- **La pregunta:** la P2, "¿Fue fácil encontrarlo?", con Sí y No, en la misma tarjeta, justo después de responder la P1 con "Sí" o "En parte" (tras un "No" no sale). Igual en los dos grupos; no suma apariciones: tiene los topes de la P1. Desde el 14-11-2026 en el MVP (`survey_answer` con `payload.question = 'p2'`, el mismo motivo que la P1).
+- **Unidad y población:** la respuesta, como la H3: respuestas a la P2 de personas asignadas, dadas desde su asignación.
+- **Fórmula:** % de "Sí" = respuestas "Sí" / respuestas a la P2. Diferencia en puntos: tratamiento − control.
+- **Prueba:** la de la H3: dos proporciones a una cola (la alternativa: más "Sí" con Mochi), p e IC de 95 %, desde 100 respuestas por grupo. Sin umbral.
+- **Consulta:** `p2_facil`, columnas `respondidas` y `si`.
+- **Cómo leerla:** solo responde quien encontró algo (Sí o En parte a la P1). Si Mochi sube el "Sí" de la P1, entran a la P2 personas que antes no llegaban a ella: el % de "Sí" de la P2 mide el esfuerzo de quienes encontraron, no de todos. Por eso acompaña a la H3 y no la reemplaza.
+- **Errores típicos:** contar la P2 como una P1 más (inflaría las mostradas); preguntarla tras un "No"; contar como "No" a quien cerró la tarjeta.
+
+### Pedidos bien calificados (secundaria)
+
+- **Qué es:** "¿Cómo estuvo tu pedido?", de 1 a 5 estrellas en el seguimiento; bien calificado es 4 o 5 (en el MVP, más de `LOW_RATING`, 3, de `events/store.py`: con 3 o menos se pregunta qué salió mal y se pausa la recompra).
+- **Unidad y población:** el pedido calificado, con su última calificación, de personas asignadas y calificado desde la asignación. Un pedido cancelado no se califica (no llegó).
+- **Fórmula:** % bien calificados = pedidos con 4 o 5 estrellas / pedidos calificados. Diferencia en puntos: tratamiento − control.
+- **Prueba:** la de la H3: dos proporciones a una cola, p e IC de 95 %, desde 100 pedidos calificados por grupo. Sin umbral.
+- **Consulta:** `pedidos_calificados`, columnas `calificados` y `buenos`.
+- **Datos que necesita:** la calificación de cada pedido con su hora. En el MVP es el evento `order_rated` (`payload.stars`, el pedido en `cart_id` y su tienda), y en el modo propuesta también queda en `app_orders.rating`.
+- **Errores típicos:** contar cada calificación en vez de cada pedido (si se puede volver a calificar); usar el promedio de estrellas en vez de la parte bien calificada (pocos pedidos con 1 estrella lo mueven mucho); leerla como el efecto de Mochi en la entrega: Mochi no reparte, así que una diferencia dice más bien qué pidió cada grupo.
+
 ## 10. Exposición (la parte expuesta)
 
 - **Qué es:** la parte de la cohorte de la H1 que tuvo al menos una oferta retenible entre su asignación y el inicio de M+1. Una oferta retenible es una que la app pide sola, igual en los dos grupos, y que el servidor tiene para mostrar: la retiene en control y la entrega en tratamiento, y en los dos casos lo anota ([plan-piloto.md](plan-piloto.md#el-control-mochi-apagado)). Cuenta el hecho del servidor, no lo que la app alcanzó a mostrar.
@@ -277,7 +306,7 @@ El MVP no los mide por grupo; Rappi sí puede. Miran que Mochi no haga daño mie
 
 ## 14. Las consultas de referencia
 
-Seis consultas sobre el esquema de la [sección 3](#esquema-mínimo-supuesto). Las fechas son de ejemplo: se cambian el corte y los meses. Devuelven conteos por grupo; las diferencias, intervalos y p salen de las fórmulas de la [sección 4](#4-las-fórmulas-estadísticas).
+Ocho consultas sobre el esquema de la [sección 3](#esquema-mínimo-supuesto). Las fechas son de ejemplo: se cambian el corte y los meses. Devuelven conteos por grupo; las diferencias, intervalos y p salen de las fórmulas de la [sección 4](#4-las-fórmulas-estadísticas).
 
 ### `elegibles`: quién puede entrar al piloto del mes M
 
@@ -419,6 +448,42 @@ GROUP BY a.grupo
 ORDER BY a.grupo;
 ```
 
+### `p2_facil`: "¿Fue fácil encontrarlo?"
+
+```sql
+-- consulta: p2_facil
+WITH parametros (corte) AS (
+  VALUES (TIMESTAMP WITH TIME ZONE '2027-04-02 12:00:00-03:00')
+)
+SELECT a.grupo,
+       COUNT(*) AS respondidas,
+       SUM(CASE WHEN r.respuesta = 'si' THEN 1 ELSE 0 END) AS si
+FROM respuestas_encuesta r
+JOIN asignaciones a ON a.user_id = r.user_id AND a.asignado_en <= r.respondida_en
+CROSS JOIN parametros x
+WHERE r.pregunta = 'p2' AND r.respondida_en <= x.corte
+GROUP BY a.grupo
+ORDER BY a.grupo;
+```
+
+### `pedidos_calificados`: pedidos con 4 o 5 estrellas
+
+```sql
+-- consulta: pedidos_calificados
+WITH parametros (corte) AS (
+  VALUES (TIMESTAMP WITH TIME ZONE '2027-04-02 12:00:00-03:00')
+)
+SELECT a.grupo,
+       COUNT(*) AS calificados,
+       SUM(CASE WHEN c.estrellas >= 4 THEN 1 ELSE 0 END) AS buenos
+FROM calificaciones c
+JOIN asignaciones a ON a.user_id = c.user_id AND a.asignado_en <= c.calificada_en
+CROSS JOIN parametros x
+WHERE c.calificada_en <= x.corte
+GROUP BY a.grupo
+ORDER BY a.grupo;
+```
+
 ### `adopcion`: adopción, apagado y silencio
 
 ```sql
@@ -540,9 +605,10 @@ Con los hitos y metas de [plan-piloto.md](plan-piloto.md) y [prueba-usuarios.md]
 | Al leer | Cada grupo en su mínimo y el IC cruza el 0 | No se ve un efecto del tamaño de la meta: **ajustar** y volver a probar. No prueba que no haya un efecto menor |
 | Al leer | IC entero bajo 0 en la H1 o la H2 | **Detener**: con Mochi baja la retención o la venta cruzada |
 | Al leer | H3: p de una cola < 0,05 | Más personas encuentran lo que buscan con Mochi. Sin umbral: acompaña a la H1 y la H2, no decide sola |
+| Al leer | El esfuerzo (P2) o los pedidos bien calificados, con p de una cola < 0,05 o con el IC entero bajo 0 | Secundarias: describen la H3 y la experiencia; no deciden solas. Si bajan con Mochi, revisar qué propone y cuándo |
 | Al leer o durante, según lo que fijó Rappi | Ocultar o silenciar suben en tratamiento | Alerta: Mochi molesta aunque la retención no lo muestre. **Ajustar** (cuándo y cuánto habla). El plan no fija cuánto es demasiado |
 | Al leer o durante, según lo que fijó Rappi | Un resguardo empeora más de lo tolerado | **Ajustar** o **detener**, según la tolerancia que Rappi fijó antes de empezar |
 
 ## 18. Cómo se probaron estas consultas
 
-El 14-11-2026, sobre una base temporal propia (`mochi_spec_tmp`, PostgreSQL 17, borrada al final), con las cinco tablas del esquema y filas inventadas con casos borde: asignaciones a medianoche del fin de mes en hora de Chile, pedidos justo en el borde de cada ventana, pedidos cancelados, pedidos de Turbo anteriores a la asignación, clientes de Restaurantes de antes y de dentro de la ventana, una cohorte con M+1 sin terminar, ofertas de "Muéstrame algo nuevo" (que no cuentan), respuestas anteriores a la asignación y de la P3, ocultar y traer de vuelta en los dos órdenes, y personas que no cumplieron sus 28 o 30 días. Cada consulta se copió tal cual de este documento y su resultado se comparó con un cálculo independiente en Python sobre las mismas filas: coincidieron todas las columnas de las seis consultas. Las fórmulas de la [sección 4](#4-las-fórmulas-estadísticas), escritas aparte, dan lo mismo que `power.py`, y reproducen las tablas de tamaños de [plan-piloto.md](plan-piloto.md#qué-haría-falta-para-medirlo).
+El 14-11-2026, sobre una base temporal propia (`mochi_spec_tmp`, PostgreSQL 17, borrada al final), con las cinco tablas del esquema y filas inventadas con casos borde: asignaciones a medianoche del fin de mes en hora de Chile, pedidos justo en el borde de cada ventana, pedidos cancelados, pedidos de Turbo anteriores a la asignación, clientes de Restaurantes de antes y de dentro de la ventana, una cohorte con M+1 sin terminar, ofertas de "Muéstrame algo nuevo" (que no cuentan), respuestas anteriores a la asignación y de la P3, ocultar y traer de vuelta en los dos órdenes, y personas que no cumplieron sus 28 o 30 días. Cada consulta se copió tal cual de este documento y su resultado se comparó con un cálculo independiente en Python sobre las mismas filas: coincidieron todas las columnas de las seis consultas. El 14-11-2026, más tarde, `p2_facil` y `pedidos_calificados` se probaron igual, en tablas temporales (`CREATE TEMP TABLE`, que se van con la sesión) con respuestas de la P2 antes de la asignación y después del corte, de la P1 (que no cuentan), calificaciones de 3 y 4 estrellas (el borde), una anterior a la asignación y de personas sin grupo; coincidieron con lo esperado, contado a mano. Las fórmulas de la [sección 4](#4-las-fórmulas-estadísticas), escritas aparte, dan lo mismo que `power.py`, y reproducen las tablas de tamaños de [plan-piloto.md](plan-piloto.md#qué-haría-falta-para-medirlo).

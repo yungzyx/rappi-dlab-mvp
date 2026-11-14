@@ -95,6 +95,7 @@ TOUCHES = {
 # hizo aparecer (`payload.trigger`).
 SURVEY_QUESTIONS = {
     "p1": '"¿Encontraste lo que buscabas?"',
+    "p2": '"¿Fue fácil encontrarlo?"',
     "p3": '"¿Confías en las sugerencias de Mochi?"',
 }
 SURVEY_ANSWERS = {"si": "Sí", "en_parte": "En parte", "no": "No"}
@@ -455,8 +456,8 @@ def _surveys(p: Participant) -> list[str]:
     lines = [
         *title,
         f"Salió {len(shown)} {'vez' if len(shown) == 1 else 'veces'}. La p1 sale una vez por sesión y por día, al"
-        ' volver de una búsqueda; la p3 la sigue en la misma tarjeta solo con Mochi a la vista y un "¿Por qué?" abierto'
-        " en la sesión.",
+        ' volver de una búsqueda; la p2 la sigue en la misma tarjeta tras un "Sí" o un "En parte", y la p3, solo con'
+        ' Mochi a la vista y un "¿Por qué?" abierto en la sesión.',
         "",
         "| Hora | Pregunta | Qué la hizo aparecer | Mochi a la vista | Qué respondió |",
         "|---|---|---|---|---|",

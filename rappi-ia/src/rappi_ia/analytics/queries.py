@@ -12,7 +12,7 @@ from ..agent.verticals import MIN_ITEMS_ELSEWHERE, SHARES
 from ..catalog.hours import TZ
 from ..concepts.taxonomy import load_taxonomy
 from ..events import experiments as exp
-from ..events.store import EXPIRED_KIND, SURVEY_TYPES
+from ..events.store import EXPIRED_KIND, LOW_RATING, SURVEY_TYPES
 from ..motor.combos import OWN_SIGNALS_ONLY, expected_fine_retention, load_combos
 from ..offers.autonomy import ORIGIN as AUTO_ORDER_ORIGIN
 from ..offers.winback import reach
@@ -863,6 +863,11 @@ _SURVEY_COUNTS = """
     count(*) FILTER (WHERE type = 'survey_answer' AND question = 'p1' AND answer = 'si') AS si,
     count(*) FILTER (WHERE type = 'survey_answer' AND question = 'p1' AND answer = 'en_parte') AS en_parte,
     count(*) FILTER (WHERE type = 'survey_answer' AND question = 'p1' AND answer = 'no') AS no,
+    count(*) FILTER (WHERE type = 'survey_shown' AND question = 'p2') AS p2_mostradas,
+    count(*) FILTER (WHERE type = 'survey_answer' AND question = 'p2') AS p2_respondidas,
+    count(*) FILTER (WHERE type = 'survey_dismissed' AND question = 'p2') AS p2_cerradas,
+    count(*) FILTER (WHERE type = 'survey_answer' AND question = 'p2' AND answer = 'si') AS p2_si,
+    count(*) FILTER (WHERE type = 'survey_answer' AND question = 'p2' AND answer = 'no') AS p2_no,
     count(*) FILTER (WHERE type = 'survey_shown' AND question = 'p3') AS p3_mostradas,
     count(*) FILTER (WHERE type = 'survey_answer' AND question = 'p3') AS p3_respondidas,
     round(avg(CASE WHEN type = 'survey_answer' AND question = 'p3' AND answer ~ '^[1-5]$' THEN answer::int END), 2)
@@ -872,8 +877,10 @@ _SURVEY_COUNTS = """
 def survey(conn: Connection, source: str = "synthetic") -> dict:
     """La pregunta in-app de la H3 (`survey_*`, migración 057). De la p1 ("¿Encontraste lo que buscabas?"): mostradas,
     respondidas, cerradas sin responder, personas a las que se mostró, `respuesta_pct` (respondidas / mostradas) y el
-    reparto de Sí / En parte / No (sus `*_pct`, sobre las respondidas). De la p3 ("¿Confías en las sugerencias de
-    Mochi?", de 1 a 5): mostradas, respondidas y su promedio. Todo junto (`total`), por lo que la hizo aparecer
+    reparto de Sí / En parte / No (sus `*_pct`, sobre las respondidas). De la p2 ("¿Fue fácil encontrarlo?", Sí o No,
+    en la misma tarjeta tras un Sí o un En parte a la p1): mostradas, respondidas, cerradas, Sí, No y `si_pct` (sobre
+    sus respondidas). De la p3 ("¿Confías en las sugerencias de Mochi?", de 1 a 5): mostradas, respondidas y su
+    promedio. Todo junto (`total`), por lo que la hizo aparecer
     (`por_motivo`), según Mochi estuviera a la vista (`por_mochi`: la persona lo ocultó o estaba en "Rappi hoy"; lo
     elige la persona o quien presenta, así que describe, no mide un efecto) y por la variante de `ofertas_control` que
     la persona ya tenía al verla (`por_grupo`, vacío si nadie la tiene)."""
@@ -893,6 +900,14 @@ def survey(conn: Connection, source: str = "synthetic") -> dict:
             "respuesta_pct": pct(answered, shown),
             **{key: row[key] for key in ("si", "en_parte", "no")},
             **{f"{key}_pct": pct(row[key], answered) for key in ("si", "en_parte", "no")},
+            "p2": {
+                "mostradas": row["p2_mostradas"],
+                "respondidas": row["p2_respondidas"],
+                "cerradas": row["p2_cerradas"],
+                "si": row["p2_si"],
+                "no": row["p2_no"],
+                "si_pct": pct(row["p2_si"], row["p2_respondidas"]),
+            },
             "p3": {
                 "mostradas": row["p3_mostradas"],
                 "respondidas": row["p3_respondidas"],
@@ -1092,9 +1107,11 @@ def experiment_results(conn: Connection, source: str = "synthetic") -> dict:
                 by_variant, m1, variants, h1=item["retencion"]["concluyente"], h2=item["rest_a_turbo"]["concluyente"]
             )
             encuesta = survey(conn, source)
-            item["encuesta"] = _survey_by_variant(encuesta["por_grupo"], variants)
+            item["encuesta"] = _survey_share(encuesta["por_grupo"], variants)
             item["adopcion"] = _adoption(by_variant, variants)
-            item["poblacion"] = _population(conn, source, encuesta)
+            ratings = _order_ratings(conn, params)
+            item["satisfaccion"] = _satisfaction(encuesta["por_grupo"], ratings, variants)
+            item["poblacion"] = _population(conn, source, encuesta, ratings)
         result.append(item)
     return {"experimentos": result}
 
@@ -1367,12 +1384,27 @@ def _frequency(by_variant: dict, m1: dict, variants: list[dict], h1: bool, h2: b
     return {"variantes": rows, "diferencia": difference, "dias": FREQUENCY_DAYS}
 
 
-def _survey_by_variant(por_grupo: list[dict], variants: list[dict]) -> dict:
-    """H3: el % de "Sí" de la P1 por variante (las respuestas de `survey`, `por_grupo`: una persona responde como mucho
-    una por día), la diferencia con su IC de 95 % y la prueba de proporciones a una cola (H0: igual; la alternativa:
-    mayor con Mochi). Sin umbral; con menos de MIN_SURVEY_ANSWERS respuestas en un grupo, no es concluyente y van sin
-    intervalo ni p."""
-    answered = {row["variante"]: row for row in por_grupo}
+def _share_difference(groups: dict[str, tuple[int, int]]) -> tuple[dict | None, bool]:
+    """Tratamiento − control de una proporción (`groups`: variante → (sí, n)), en puntos, con su IC de 95 % y la prueba
+    a una cola (H0: igual; la alternativa: mayor con Mochi) solo si cada grupo tiene MIN_SURVEY_ANSWERS. Devuelve la
+    diferencia (None si un grupo está vacío) y si es concluyente."""
+    (xt, nt), (xc, nc) = groups[exp.TREATMENT], groups[exp.CONTROL]
+    conclusive = min(nt, nc) >= MIN_SURVEY_ANSWERS
+    if not (nt and nc):
+        return None, conclusive
+    diff, low, high = difference_ci((xt, nt), (xc, nc))
+    return {
+        "puntos": round(100 * diff, 1),
+        "ic95": [round(100 * low, 1), round(100 * high, 1)] if conclusive else None,
+        "p_una_cola": round(one_sided_p((xt, nt), (xc, nc)), 3) if conclusive else None,
+    }, conclusive
+
+
+def _survey_share(por_grupo: list[dict], variants: list[dict], question: str = "p1") -> dict:
+    """El % de "Sí" de la p1 (la H3) o de la p2 por variante (las respuestas de `survey`, `por_grupo`: una persona
+    responde como mucho una por día) y su diferencia (`_share_difference`). Sin umbral; con menos de
+    MIN_SURVEY_ANSWERS respuestas en un grupo, no es concluyente y va sin intervalo ni p."""
+    answered = {row["variante"]: (row if question == "p1" else row[question]) for row in por_grupo}
     groups = {
         v["variante"]: (
             answered.get(v["variante"], {}).get("si", 0),
@@ -1380,16 +1412,7 @@ def _survey_by_variant(por_grupo: list[dict], variants: list[dict]) -> dict:
         )
         for v in variants
     }
-    (xt, nt), (xc, nc) = groups[exp.TREATMENT], groups[exp.CONTROL]
-    conclusive = min(nt, nc) >= MIN_SURVEY_ANSWERS
-    difference = None
-    if nt and nc:
-        diff, low, high = difference_ci((xt, nt), (xc, nc))
-        difference = {
-            "puntos": round(100 * diff, 1),
-            "ic95": [round(100 * low, 1), round(100 * high, 1)] if conclusive else None,
-            "p_una_cola": round(one_sided_p((xt, nt), (xc, nc)), 3) if conclusive else None,
-        }
+    difference, conclusive = _share_difference(groups)
     return {
         "variantes": [
             {"variante": variant, "respondidas": n, "si": x, "si_pct": _pct(x, n)} for variant, (x, n) in groups.items()
@@ -1397,6 +1420,72 @@ def _survey_by_variant(por_grupo: list[dict], variants: list[dict]) -> dict:
         "diferencia": difference,
         "minimo": MIN_SURVEY_ANSWERS,
         "concluyente": conclusive,
+    }
+
+
+def _order_ratings(conn: Connection, params: dict) -> dict:
+    """Las calificaciones de pedidos ("¿Cómo estuvo tu pedido?", el evento `order_rated`) por la variante de
+    `ofertas_control` que la persona ya tenía al calificar (None: sin variante): `calificados` y `buenos` (más de
+    LOW_RATING estrellas, o sea 4 o 5). Un pedido cuenta una vez, con su última calificación (su carro y su tienda, o
+    su vertical). Del evento y no de `app_orders.rating`: este no guarda las de "Rappi hoy" ni las de un pedido sin
+    carro en la base, y el evento lleva la hora para la variante, como la encuesta."""
+    rows = _rows(
+        conn,
+        """WITH rated AS (
+               SELECT DISTINCT ON (e.user_id, e.cart_id, coalesce(e.payload ->> 'store_id', e.vertical))
+                      e.user_id, e.ts, (e.payload ->> 'stars')::int AS stars
+               FROM app_events e
+               WHERE e.source = %(source)s AND e.type = 'order_rated'
+                 AND jsonb_typeof(e.payload -> 'stars') = 'number'
+               ORDER BY e.user_id, e.cart_id, coalesce(e.payload ->> 'store_id', e.vertical), e.ts DESC
+           )
+           SELECT a.variant, count(*) AS calificados, count(*) FILTER (WHERE r.stars > %(low)s) AS buenos
+           FROM rated r
+           LEFT JOIN experiment_assignments a ON a.user_id = r.user_id AND a.source = %(source)s
+                AND a.experiment_id = %(offers)s AND a.assigned_at <= r.ts
+           GROUP BY 1""",
+        {**params, "low": LOW_RATING},
+    )
+    return {row.pop("variant"): row for row in rows}
+
+
+def _ratings_shape(rated: int, good: int) -> dict:
+    return {"calificados": rated, "buenos": good, "buenos_pct": _pct(good, rated)}
+
+
+def _satisfaction(por_grupo: list[dict], ratings: dict, variants: list[dict]) -> dict:
+    """Satisfacción y esfuerzo por variante, además del "Sí" de la P1 (la H3, en `encuesta`): `facil`, el % de "Sí" a
+    la p2 ("¿Fue fácil encontrarlo?"), con la forma de la H3; `confia`, el promedio de la p3 (de 1 a 5; solo hay en
+    tratamiento: el control no ve a Mochi, así que no se compara), y `pedidos`, el % de pedidos calificados con 4 o 5
+    estrellas (`_order_ratings`). La p2 y los pedidos llevan su diferencia con IC de 95 % y la prueba a una cola desde
+    MIN_SURVEY_ANSWERS por grupo (respuestas o pedidos calificados), como la H3; antes, no es concluyente."""
+    by_variant = {row["variante"]: row for row in por_grupo}
+    groups = {
+        v["variante"]: (
+            ratings.get(v["variante"], {}).get("buenos", 0),
+            ratings.get(v["variante"], {}).get("calificados", 0),
+        )
+        for v in variants
+    }
+    difference, conclusive = _share_difference(groups)
+    return {
+        "facil": _survey_share(por_grupo, variants, "p2"),
+        "confia": {
+            "variantes": [
+                {
+                    "variante": v["variante"],
+                    "respondidas": by_variant.get(v["variante"], {}).get("p3", {}).get("respondidas", 0),
+                    "promedio": by_variant.get(v["variante"], {}).get("p3", {}).get("promedio"),
+                }
+                for v in variants
+            ]
+        },
+        "pedidos": {
+            "variantes": [{"variante": variant, **_ratings_shape(n, x)} for variant, (x, n) in groups.items()],
+            "diferencia": difference,
+            "minimo": MIN_SURVEY_ANSWERS,
+            "concluyente": conclusive,
+        },
     }
 
 
@@ -1418,12 +1507,13 @@ def _adoption(by_variant: dict, variants: list[dict]) -> dict:
     return {"variantes": rows}
 
 
-def _population(conn: Connection, source: str, encuesta: dict) -> dict:
+def _population(conn: Connection, source: str, encuesta: dict, ratings: dict) -> dict:
     """Las mismas medidas en toda la población de la fuente, sin grupos: lo que el panel muestra con el control
     apagado. Describe, no mide un efecto. La retención M+1 es la del último mes completo (quienes pidieron en el mes
     anterior a ese y volvieron a pedir en él); la frecuencia, pedidos confirmados de 30 días por persona activa (la de
     `kpis`); Restaurantes → Turbo, de quienes pidieron en Restaurantes en los últimos 28 días, la parte que también
-    pidió en Turbo; la encuesta, el total de `survey`; la adopción, de las personas activas de 30 días, cuántas usaron
+    pidió en Turbo; la encuesta, el total de `survey`; la satisfacción, la p2, la p3 y los pedidos bien calificados
+    de todos (`_order_ratings`, con y sin variante); la adopción, de las personas activas de 30 días, cuántas usaron
     a Mochi, y el apagado, el de `presence`."""
     [row] = _rows(
         conn,
@@ -1485,6 +1575,13 @@ def _population(conn: Connection, source: str, encuesta: dict) -> dict:
             "dias": H2_DAYS,
         },
         "encuesta": {"respondidas": total["respondidas"], "si": total["si"], "si_pct": total["si_pct"]},
+        "satisfaccion": {
+            "facil": {key: total["p2"][key] for key in ("respondidas", "si", "si_pct")},
+            "confia": {key: total["p3"][key] for key in ("respondidas", "promedio")},
+            "pedidos": _ratings_shape(
+                sum(row["calificados"] for row in ratings.values()), sum(row["buenos"] for row in ratings.values())
+            ),
+        },
         "adopcion": {
             "personas": row["activas"],
             "usaron": row["usaron"],
