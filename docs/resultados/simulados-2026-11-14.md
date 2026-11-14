@@ -48,4 +48,20 @@ Cómo leerlo:
 
 ## El panel con la fuente "Simulados"
 
-Con los dos grupos con personas, "Las tres hipótesis" y "Adopción y apagado" muestran la tabla por grupo con "Simulado: sin veredicto", sin intervalo y con un aviso de que la diferencia entre los grupos la ponen supuestos del generador. El control queda en 0 en usar, ocultar y silenciar a Mochi por diseño. Las cifras de `rappi_staging` regenerado están en [capa-de-datos.md](../capa-de-datos.md#datos-simulados-y-datos-reales) solo como supuestos: lo que se ve en el panel es lo que se puso en el generador.
+`rappi_staging` se regeneró el 14-11-2026 a las 12:37 (hora de Chile) con `rappi-ia synth` (3.000 personas, 26 semanas hasta el 13-11, semilla 7), y después `rappi-ia segments --source synthetic` y `rappi-ia motor --source synthetic`. Las cifras que se ven salen de los supuestos de arriba, no de Mochi:
+
+| Qué | Tratamiento | Control |
+|---|---|---|
+| Personas | 1.489 | 1.511 |
+| H1, retención M+1 (cohorte con su mes siguiente) | 63,4 % de 1.141 | 62,5 % de 1.147 |
+| H2, pedidos por persona en 30 días | 1,80 | 1,74 |
+| H2, Restaurantes → Turbo en 28 días | 14,9 % de 778 | 10,9 % de 792 |
+| H3, "Sí" a "¿Encontraste lo que buscabas?" | 59,4 % de 1.563 respuestas | 54,8 % de 1.500 |
+| Usaron a Mochi · lo tienen oculto · lo silenciaron | 68,0 % · 2,5 % · 4,0 % | 0 · 0 · 0 |
+| Ofertas del carro mostradas · retenidas · aceptadas | 1.899 · 0 · 483 | 0 · 1.964 · 0 |
+
+Cada tarjeta dice "Simulado: sin veredicto", sin intervalo (la H3 llega a su mínimo de 100 respuestas, pero su intervalo no se muestra) y con un aviso arriba de que la diferencia la pone el generador. Restaurantes → Turbo sale más alto que los demás (+4,1 puntos) porque la mitad de las sugerencias del carro van a Turbo cuando Turbo vende el concepto (`TURBO_SUGGESTION`, un supuesto anterior); la retención, en cambio, apenas se mueve (+0,9 puntos), lejos del mínimo de la H1.
+
+El tratamiento también toca la mascota en el 10 % de sus sesiones (`agent_open`, migración 059); ese evento no enseña al motor ni toca los sorteos de la conducta, así que la medida del motor de arriba no cambia con él.
+
+La foto sin conexión del panel (`dashboard-empresa/src/fixtures/sin-conexion/`) sigue siendo la del 04-11-2026: rehacerla cambia las cifras que fijan las pruebas de varias vistas y queda para otro cambio.
