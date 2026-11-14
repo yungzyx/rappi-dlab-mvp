@@ -39,9 +39,10 @@ const GROUP_COLUMNS = [
 ]
 
 // En el grupo de control, además, las ofertas de los momentos que Mochi propone solo. Las personas con oferta tienen
-// una desde su asignación, sin tope (también en M+1), contada en los dos grupos con lo que anota la API: en control, la
-// oferta retenida (offer_withheld); en tratamiento, la misma oferta entregada (offer_eligible). La parte expuesta para
-// el efecto entre expuestos es la de la tabla de retención: misma cohorte y antes de M+1 (docs/plan-piloto.md).
+// una desde su asignación, sin tope (también en M+1), contada en los dos grupos con lo que anota la API de las que la
+// app pide igual en los dos (control las pide aunque no tenga a Mochi): en control, la oferta retenida
+// (offer_withheld); en tratamiento, la misma oferta entregada (offer_eligible). La parte expuesta para el efecto entre
+// expuestos es la de la tabla de retención: misma cohorte y antes de M+1 (docs/plan-piloto.md).
 const OFFER_COLUMNS = [
   {
     key: 'mostradas',
@@ -144,9 +145,9 @@ function NobodyYet({ experiment }) {
   if (experiment.id === 'ofertas_control' && experiment.control_pct === 0) {
     return (
       <EmptyState title="El grupo de control está apagado" inline>
-        Con OFFERS_CONTROL_PCT en 0 nadie tiene variante y {AGENT_NAME} no retiene ninguna oferta. Para medir el efecto
-        de sus ofertas, la API se levanta con OFFERS_CONTROL_PCT entre 1 y 50 (la parte de las personas que queda en
-        control).
+        Con OFFERS_CONTROL_PCT en 0 nadie tiene variante y {AGENT_NAME} está para todos. Para medir su efecto, la API se
+        levanta con OFFERS_CONTROL_PCT entre 1 y 50 (la parte de las personas que queda en control, con {AGENT_NAME}{' '}
+        apagado).
       </EmptyState>
     )
   }
@@ -215,8 +216,9 @@ function OfferedNote() {
   return (
     <p className="block-note" data-testid="expuestas-nota">
       Personas con oferta: con una oferta que {AGENT_NAME} propone solo desde su asignación, sin tope. Los dos grupos se
-      cuentan igual, con lo que anota la API: en control la oferta retenida y en tratamiento la misma oferta entregada,
-      la haya alcanzado a mostrar la app o no.
+      cuentan igual, con lo que anota la API de lo que la app pide en los dos (control la pide aunque no la vea): en
+      control la oferta retenida y en tratamiento la misma oferta entregada, la haya alcanzado a mostrar la app o no.
+      "Muéstrame algo nuevo" no cuenta: se pide en el menú de la mascota, que control no tiene.
     </p>
   )
 }
@@ -283,7 +285,12 @@ export function ExperimentsView({ source }) {
               <p>
                 Bajo el mínimo de cada una, la diferencia no es concluyente y va sin intervalo. El mínimo de la H1 es
                 para +2 puntos; el de +5 puntos, que pide unas seis veces menos personas, queda como referencia en el
-                plan de piloto. Hoy el control solo deja de ver las ofertas que {AGENT_NAME} propone solo.
+                plan de piloto.
+              </p>
+              <p>
+                El control es {AGENT_NAME} apagado: no ve la mascota, no recibe ofertas suyas y busca con el buscador de
+                siempre, sin sus tarjetas, planes, chips ni sugerencias. Conserva "Para ti" y el orden de la Home, que
+                Rappi ya tiene. La pregunta "¿Encontraste lo que buscabas?" le sale igual.
               </p>
             </>
           }
@@ -304,8 +311,9 @@ export function ExperimentsView({ source }) {
             <p>
               Usaron a {AGENT_NAME}: buscaron o preguntaron en su buscador o aceptaron una oferta suya desde la
               asignación (tocar la mascota no deja un evento propio). Oculto: su último cambio fue ocultarlo.
-              Silenciado: lo silenciaron por hoy alguna vez; no cuenta como ocultarlo. Sin grupos, las personas activas
-              de 30 días.
+              Silenciado: lo silenciaron por hoy alguna vez; no cuenta como ocultarlo. En control las tres quedan en 0
+              por diseño: tiene a {AGENT_NAME} apagado, sin mascota que ocultar ni buscador con {AGENT_NAME}. Sin
+              grupos, las personas activas de 30 días.
             </p>
           }
         />

@@ -122,6 +122,16 @@ describe('preguntarle a Mochi por un producto', () => {
     expect(probe.sheet.isOpen).toBe(true)
   })
 
+  test('con Mochi apagado (el grupo de control), mantener presionado no ofrece preguntarle', () => {
+    vi.useFakeTimers()
+    localStorage.setItem('rappi-proto-mochi-activo', '0')
+    renderCard()
+    expect(main().classList).not.toContain('is-askable')
+    hold()
+    expect(screen.queryByRole('button', { name: 'Preguntarle a Mochi' })).toBeNull()
+    expect(probe.sheet.isOpen).toBe(true)
+  })
+
   test('en "Rappi hoy" mantener presionado no hace nada (y el toque abre la hoja como siempre)', () => {
     vi.useFakeTimers()
     renderCard('actual')

@@ -111,7 +111,7 @@ describe('ExperimentsView', () => {
 
     expect(await screen.findByText('El grupo de control está apagado')).toBeTruthy()
     expect(screen.getByText(/Con OFFERS_CONTROL_PCT en 0 nadie tiene variante/)).toBeTruthy()
-    expect(screen.queryByRole('table', { name: 'Grupo de control de las ofertas de Mochi' })).toBeNull()
+    expect(screen.queryByRole('table', { name: 'Grupo de control: Mochi apagado' })).toBeNull()
     expect(screen.queryByTestId('tamano-grupos')).toBeNull()
   })
 
@@ -119,7 +119,7 @@ describe('ExperimentsView', () => {
     serveFixturesWith(withControl())
     await renderWithData(<ExperimentsView source="prototype" />)
 
-    const table = await screen.findByRole('table', { name: 'Grupo de control de las ofertas de Mochi' })
+    const table = await screen.findByRole('table', { name: 'Grupo de control: Mochi apagado' })
     expect(screen.getByRole('heading', { name: /Grupo de control/ }).textContent).toContain('al azar')
     expect(screen.getByTestId('tamano-grupos').textContent).toBe(
       'Grupos: 5 en tratamiento y 1 en control. Para medir +5 puntos de retención M+1 harían falta 7.836 en ' +
@@ -127,8 +127,8 @@ describe('ExperimentsView', () => {
         'supuesto). Con menos personas por grupo, la diferencia entre ellos no es concluyente.',
     )
     const [treated, control] = bodyRows(table)
-    expect(cells(treated)).toEqual(['Tratamiento (ve las ofertas)', '5', '480,0%', '1,5', '9', '0', '480,0%', '3', '6'])
-    expect(cells(control)).toEqual(['Control (no las ve)', '1', '00,0%', '—', '0', '2', '1100,0%', '0', '0'])
+    expect(cells(treated)).toEqual(['Tratamiento (con Mochi)', '5', '480,0%', '1,5', '9', '0', '480,0%', '3', '6'])
+    expect(cells(control)).toEqual(['Control (Mochi apagado)', '1', '00,0%', '—', '0', '2', '1100,0%', '0', '0'])
     expect(screen.getAllByText(NOT_EVIDENCE)).toHaveLength(3) // la población rotulada, en cada sección
   })
 
@@ -138,7 +138,7 @@ describe('ExperimentsView', () => {
     serveFixturesWith(withControl({ variantes: [treated, { ...control, ofertas: offers(0, 0, 0, 0) }] }))
     await renderWithData(<ExperimentsView source="prototype" />)
 
-    const table = await screen.findByRole('table', { name: 'Grupo de control de las ofertas de Mochi' })
+    const table = await screen.findByRole('table', { name: 'Grupo de control: Mochi apagado' })
     const note = screen.getByTestId('expuestas-nota').textContent
     expect(note).toContain('Los dos grupos se cuentan igual, con lo que anota la API')
     expect(note).not.toMatch(/no se comparan/)
@@ -155,8 +155,8 @@ describe('ExperimentsView', () => {
 
     const table = await screen.findByRole('table', { name: 'Retención M+1 por grupo' })
     const [treated, control, difference] = bodyRows(table)
-    expect(cells(treated)).toEqual(['Tratamiento (ve las ofertas)', '3', '266,7%', '33,3%', '66,7%'])
-    expect(cells(control)).toEqual(['Control (no las ve)', '1', '1100,0%', '100,0%', '0,0%'])
+    expect(cells(treated)).toEqual(['Tratamiento (con Mochi)', '3', '266,7%', '33,3%', '66,7%'])
+    expect(cells(control)).toEqual(['Control (Mochi apagado)', '1', '1100,0%', '100,0%', '0,0%'])
     expect(cells(difference)).toEqual(['Diferencia (tratamiento − control)', '—', '—', '−66,7 puntos', '+66,7 puntos'])
     // La parte expuesta es de la misma cohorte y antes de M+1: la que sirve para el efecto entre expuestos.
     expect(screen.getByTestId('expuestas-cohorte-nota').textContent).toMatch(

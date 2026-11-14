@@ -114,7 +114,7 @@ Todas van en `/etc/rappi/rappi.env`, salvo las que fija `docker-compose.yml` o l
 | `MVP_HOME_LAT` / `MVP_HOME_LNG` | api ("Cerca de ti", desde un punto de `PROFILE_CITY`: se cambian juntos) | `-33.4263` / `-70.6106` | — | no |
 | `PROFILE_CITY` | api (la ciudad de la demo: las listas de restaurantes y de tiendas, las tiendas de los productos que ofrece Mochi, la tienda que muestra la búsqueda cuando el producto también está en una de ella y lo que la búsqueda y Mochi ponen primero y los restaurantes de un perfil de gusto si la persona no tiene ciudad; tiene que estar en `stores.city`, si no la API avisa al arrancar y esas listas salen vacías, y se cambia junto con `MVP_HOME_LAT`/`MVP_HOME_LNG`) | `Santiago de Chile` | `Viña del Mar` | no |
 | `MOTOR_POBLACION` | api (la población de la que aprende el motor multivertical: `synthetic` o `prototype`; nunca se mezclan, y otro valor no deja arrancar) | `synthetic` (simulada: no es evidencia) | `prototype` | no |
-| `OFFERS_CONTROL_PCT` | api (el porcentaje de personas del grupo de control `ofertas_control`, de 0 a 50: no ven lo que Mochi propone solo y queda `offer_withheld`) | `0` (apagado) | `10` | no |
+| `OFFERS_CONTROL_PCT` | api (el porcentaje de personas del grupo de control `ofertas_control`, de 0 a 50: tienen a Mochi apagado y lo que la app pide sola queda `offer_withheld`) | `0` (apagado) | `10` | no |
 | `TEXT_EMBEDDING_MODEL` | api, jobs | `intfloat/multilingual-e5-base` | — | no |
 | `TEXT_EMBEDDING_REVISION` | api, jobs, y al construir la imagen | `d128750597153bb5987e10b1c3493a34e5a4502a` (con el modelo por defecto) | — | no |
 | `HF_HUB_OFFLINE` / `HF_HOME` | api, jobs (los fija la imagen) | `1` / `/opt/hf` | — | no |

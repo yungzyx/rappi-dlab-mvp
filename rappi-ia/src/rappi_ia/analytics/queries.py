@@ -969,17 +969,19 @@ EXPERIMENT_NOTES = {
         "no mide efecto."
     ),
     exp.OFFERS_CONTROL: (
-        "Al azar: un sorteo estable con el id de la persona. A control no se le muestran las ofertas que "
-        f"{config.AGENT_NAME} propone solo (quedan como retenidas). La diferencia entre los grupos mide el efecto de "
-        "esas ofertas cuando cada grupo llega al mínimo del plan de piloto (docs/plan-piloto.md); antes, no es "
-        "concluyente."
+        f"Al azar: un sorteo estable con el id de la persona. Control es {config.AGENT_NAME} apagado: sin la mascota, "
+        f"sin sus ofertas (las que la app pide sola quedan como retenidas) y con el buscador de siempre; conserva "
+        f'"Para ti" y el orden de la Home. La diferencia entre los grupos mide el efecto de {config.AGENT_NAME} cuando '
+        "cada grupo llega al mínimo del plan de piloto (docs/plan-piloto.md); antes, no es concluyente."
     ),
 }
 
 
 # Lo que anota la API cuando tiene una oferta retenible para alguien de `ofertas_control` (api/agent.py: `_withheld`),
 # con la misma regla en los dos grupos: `offer_withheld` en control (no la ve) y `offer_eligible` en tratamiento.
-# La parte expuesta se cuenta con ellos, no con lo que la app alcanzó a mostrar (`suggestion_shown`).
+# La parte expuesta se cuenta con ellos, no con lo que la app alcanzó a mostrar (`suggestion_shown`), y sin los del
+# buscador (`exp.ASKED_SURFACE`): la respuesta de Mochi retenida a una app vieja en control (`agent-ask`, api/app.py:
+# `_withheld_answer`) no tiene par en tratamiento.
 OFFERED_EVENTS = ("offer_withheld", "offer_eligible")
 
 
@@ -991,9 +993,10 @@ def experiment_results(conn: Connection, source: str = "synthetic") -> dict:
     ofertas de los momentos que Mochi propone solo (`exp.HOLDOUT_MOMENTS`): mostradas (`suggestion_shown`), retenidas
     (`offer_withheld`), aceptadas, personas con alguna y los pedidos confirmados después de la primera; y su
     `retencion` (`_offers_retention`). Las mostradas y aceptadas son las de fuera del buscador (`exp.ASKED_SURFACE`):
-    lo que la persona pide ahí lo ven los dos grupos, así que no cuenta ni como oferta ni como persona expuesta. Las
-    personas con alguna se cuentan en los dos grupos con lo que anota la API (OFFERED_EVENTS: `offer_withheld` en
-    control y `offer_eligible` en tratamiento), desde la asignación y sin tope."""
+    lo que la persona pide ahí no es algo que Mochi proponga solo, así que no cuenta ni como oferta ni como persona
+    expuesta. Las personas con alguna se cuentan en los dos grupos con lo que anota la API (OFFERED_EVENTS fuera del
+    buscador: `offer_withheld` en control y `offer_eligible` en tratamiento, solo de lo que la app pide igual en los
+    dos, `exp.EXPOSURE_MOMENTS`), desde la asignación y sin tope."""
     _check(source)
     params = {
         "source": source,
@@ -1033,7 +1036,7 @@ def experiment_results(conn: Connection, source: str = "synthetic") -> dict:
            seen AS (
                SELECT a.user_id, a.variant, e.type, e.ts FROM assigned a
                JOIN app_events e ON e.user_id = a.user_id AND e.source = %(source)s AND e.ts >= a.assigned_at
-               WHERE e.type = ANY(%(offered)s)
+               WHERE (e.type = ANY(%(offered)s) AND e.surface IS DISTINCT FROM %(asked)s)
                   OR (e.type IN ('suggestion_shown', 'suggestion_accepted')
                       AND coalesce(e.origin, e.payload ->> 'origen') = ANY(%(origins)s)
                       AND e.surface IS DISTINCT FROM %(asked)s)
@@ -1108,8 +1111,8 @@ def _offers_retention(conn: Connection, params: dict, variants: list[dict]) -> d
     `concluyente` es falso y la diferencia va sin su IC de 95 % (`ic95` nulo): con pocas personas, un grupo en 0 % o
     100 % lo encoge y parecería un efecto.
     `expuestas` (y `expuestas_pct`) es la parte expuesta de la misma cohorte: quien tuvo una oferta retenible
-    (OFFERED_EVENTS, el mismo hecho del servidor en los dos grupos) entre su asignación y el inicio de M+1. Sirve para
-    pasar del efecto por intención de tratar al efecto entre expuestos (docs/plan-piloto.md).
+    (OFFERED_EVENTS fuera del buscador, el mismo hecho del servidor en los dos grupos) entre su asignación y el inicio
+    de M+1. Sirve para pasar del efecto por intención de tratar al efecto entre expuestos (docs/plan-piloto.md).
     Devuelve también, por variante, los pedidos de M+1 por persona de la cohorte (promedio, varianza, personas): la
     frecuencia de la H2 en M+1 (`_frequency`)."""
     cohort = _rows(
@@ -1134,7 +1137,8 @@ def _offers_retention(conn: Connection, params: dict, variants: list[dict]) -> d
                                 AND b.ts < c.assigned_at))) AS suman_vertical,
                   count(*) FILTER (WHERE EXISTS (
                       SELECT 1 FROM app_events e WHERE e.user_id = c.user_id AND e.source = %(source)s
-                         AND e.type = ANY(%(offered)s) AND e.ts >= c.assigned_at
+                         AND e.type = ANY(%(offered)s) AND e.surface IS DISTINCT FROM %(asked)s
+                         AND e.ts >= c.assigned_at
                          AND e.ts AT TIME ZONE %(tz)s < c.month + interval '1 month')) AS expuestas
            FROM cohort c
            CROSS JOIN LATERAL (  -- sus pedidos confirmados en M+1: la retención (alguno) y la frecuencia (cuántos)
@@ -1208,7 +1212,8 @@ MIN_SURVEY_ANSWERS = 100
 H2_VERTICALS = ("restaurantes", "turbo")
 # Usar a Mochi: una búsqueda o pregunta en su buscador (`ask`, o `chat` de antes, fuera de "Rappi hoy") o aceptar una
 # oferta suya (`agent-<momento>`, o los nombres históricos `mochi-<momento>` y `chat`). Tocar la mascota no deja evento
-# propio: cuenta si de ahí sale una de estas.
+# propio: cuenta si de ahí sale una de estas. En el grupo de control es 0 por diseño: no tiene a Mochi (ni la mascota,
+# ni su buscador, ni sus ofertas) y lo que una app vieja le pregunte queda como búsqueda (`search`), no como `ask`.
 _USED_AGENT = """(
     (e.type IN ('ask', 'chat') AND e.payload ->> 'mode' IS DISTINCT FROM 'actual')
     OR (e.type = 'suggestion_accepted' AND (left(coalesce(e.origin, e.payload ->> 'origen'), 6) IN ('agent-', 'mochi-')

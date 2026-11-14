@@ -17,6 +17,7 @@ from rappi_ia.agent.rappi_agent import RappiAgent
 from rappi_ia.analytics import queries
 from rappi_ia.api import agent as api_agent
 from rappi_ia.api import app as api
+from rappi_ia.api import identity
 from rappi_ia.api.services import Services
 from rappi_ia.catalog.stores import product_detail
 from rappi_ia.delivery import PERSON_TABLES, unknown_person_tables
@@ -253,8 +254,96 @@ def test_the_session_mode_is_the_first_mode_and_sessions_echo_the_variants(clien
 
 def test_a_new_session_gets_its_offers_variant_when_the_experiment_is_on(client, db, monkeypatch):
     monkeypatch.setattr(config, "OFFERS_CONTROL_PCT", 50)
-    user_id = client.post("/session", json={}).json()["user_id"]
-    assert set(experiments.variants(db, user_id)) == {"ofertas_control"}
+    session = client.post("/session", json={}).json()
+    variant = experiments.variants(db, session["user_id"])[experiments.OFFERS_CONTROL]
+    assert session["agent_enabled"] is (variant != experiments.CONTROL)
+
+
+def mine(user_id):
+    """La cabecera con el token de esa persona: lo que manda la app al recargar (`GET /session`)."""
+    return {identity.TOKEN_HEADER: identity.sign(user_id)}
+
+
+def test_the_session_says_whether_mochi_is_on_also_after_reloading(client, db, monkeypatch):
+    """La app pide `GET /session` cada vez que abre con un token ya guardado: así sabe al recargar si la persona está
+    en el grupo de control ("Mochi apagado"), y quien ya tenía token antes de encender el experimento recibe ahí su
+    variante, estable aunque cambie el porcentaje. Sin token (o con uno ajeno a la API) es un 401: la app pide otra."""
+    monkeypatch.setattr(config, "OFFERS_CONTROL_PCT", 50)
+    assert client.get("/session").status_code == 401
+    assert client.get("/session", headers={identity.TOKEN_HEADER: "proto-0000000000000001.firma"}).status_code == 401
+    control, treated = user_in(experiments.CONTROL), user_in(experiments.TREATMENT)
+    assert client.get("/session", headers=mine(control)).json() == {"user_id": control, "agent_enabled": False}
+    assert client.get("/session", headers=mine(treated)).json() == {"user_id": treated, "agent_enabled": True}
+    assert experiments.variants(db, control) == {experiments.OFFERS_CONTROL: experiments.CONTROL}
+    monkeypatch.setattr(config, "OFFERS_CONTROL_PCT", 1)  # ya asignada, la variante no cambia
+    assert client.get("/session", headers=mine(control)).json()["agent_enabled"] is False
+    monkeypatch.setattr(config, "OFFERS_CONTROL_PCT", 0)  # apagado, Mochi vuelve para todos
+    assert client.get("/session", headers=mine(control)).json()["agent_enabled"] is True
+
+
+def test_with_the_control_at_zero_nothing_changes_for_anybody(client, db):
+    """Con OFFERS_CONTROL_PCT en 0 (producción y la prueba con usuarios): Mochi para todos, sus respuestas y ofertas de
+    siempre, sin asignar a nadie ni anotar nada del experimento, también para quien quedaría en control encendido."""
+    assert config.OFFERS_CONTROL_PCT == 0
+    would_be_control = user_in(experiments.CONTROL)
+    assert client.post("/session", json={}).json()["agent_enabled"] is True
+    assert client.get("/session", headers=mine(would_be_control)).json()["agent_enabled"] is True
+    answer = client.post("/agent/ask", json={"message": "cerveza", "user_id": would_be_control, "session_id": "s-0"})
+    assert answer.status_code == 200 and "x-agent-withheld" not in answer.headers and answer.json()["suggestion"]
+    cart = {"product": {"entity_type": "catalog_item", "entity_id": CHIPS}}
+    for moment, context, surface in (("carrito", cart, "home"), ("plan", {"occasion": "carrete"}, "home")):
+        body = {"moment": moment, "user_id": would_be_control, "session_id": "s-0", "surface": surface}
+        reply = client.post("/agent/offer", json={**body, "context": context})
+        assert reply.status_code == 200 and "x-offer-withheld" not in reply.headers
+    assert db.execute("SELECT count(*) FROM experiment_assignments").fetchone() == (0,)
+    types = db.execute("SELECT array_agg(DISTINCT type) FROM app_events").fetchone()[0]
+    assert types == ["ask"]
+
+
+def test_mochi_off_answers_the_usual_search_and_records_what_mochi_would_have_said(client, db, monkeypatch):
+    """`/agent/ask` para el grupo de control (una app vieja: la de hoy no le muestra ese buscador): la búsqueda de
+    siempre, sin texto de Mochi, plan, sugerencia cruzada ni acciones, con `X-Agent-Withheld: 1`. Lo que Mochi habría
+    dicho queda como `offer_withheld` en el buscador, que no cuenta en la parte expuesta, y la consulta como una
+    búsqueda: la adopción del control sigue en 0. "Para ti" (/recommendations) sí lo conserva."""
+    monkeypatch.setattr(config, "OFFERS_CONTROL_PCT", 50)
+    control, treated = user_in(experiments.CONTROL), user_in(experiments.TREATMENT)
+
+    def ask(user_id):
+        return client.post("/agent/ask", json={"message": "cerveza", "user_id": user_id, "session_id": "s-ask"})
+
+    mochi = ask(treated)
+    assert mochi.status_code == 200 and "x-agent-withheld" not in mochi.headers
+    suggestion = mochi.json()["suggestion"]
+    off = ask(control)
+    assert off.status_code == 200 and off.headers["x-agent-withheld"] == "1"
+    body = off.json()
+    assert set(body) == {"text", "products", "unmet", "corrected_query", "intent", "request_id"}
+    assert "Mochi" not in body["text"] and body["intent"]["kind"] == "buscar"
+    usual = client.get("/search", params={"q": "cerveza"}).json()
+    assert [p["entity_id"] for p in body["products"]] == [
+        p["entity_id"] for group in usual["groups"] for p in group["products"]
+    ]
+    rows = db.execute(
+        """SELECT e.user_id, e.type, e.surface, e.origin, e.payload, e.concept_id,
+                  array_remove(array_agg(i.entity_id ORDER BY i.position), NULL)
+           FROM app_events e LEFT JOIN app_event_items i USING (event_id)
+           WHERE e.type <> 'list_view' GROUP BY e.event_id ORDER BY e.user_id = %s, e.type""",
+        (control,),
+    ).fetchall()
+    assert [row[:2] for row in rows] == [(treated, "ask"), (control, "offer_withheld"), (control, "search")]
+    _, _, surface, origin, payload, concept, items = rows[1]
+    assert (surface, origin, concept) == ("agent", "agent-ask", suggestion["concept"])
+    assert payload["moment"] == "ask" and payload["variant"] == "control"
+    assert payload["retenido"][0] == "respuesta" and "sugerencia" in payload["retenido"]
+    assert items == [p["entity_id"] for p in suggestion["products"]]
+
+    groups = {v["variante"]: v for v in experiments_of(client, "prototype")[experiments.OFFERS_CONTROL]["variantes"]}
+    assert groups["control"]["ofertas"]["retenidas"] == 0 and groups["control"]["ofertas"]["personas_con_oferta"] == 0
+    adoption = experiments_of(client, "prototype")[experiments.OFFERS_CONTROL]["adopcion"]["variantes"]
+    assert {row["variante"]: row["usaron"] for row in adoption} == {"tratamiento": 1, "control": 0}
+    assert client.get("/recommendations", params={"user_id": control}).status_code == 200
+    blank = client.post("/agent/ask", json={"message": "   ", "user_id": control})
+    assert blank.status_code == 200 and blank.json()["products"] == [] and blank.json()["unmet"] is True
 
 
 def test_the_control_group_does_not_see_mochis_offer_and_it_is_recorded_as_counterfactual(client, db, monkeypatch):
@@ -276,36 +365,51 @@ def test_the_control_group_does_not_see_mochis_offer_and_it_is_recorded_as_count
     assert origin == "agent-carrito" and request_id and concept == shown.json()["reason"]["concept"]
     withheld = db.execute("SELECT entity_id FROM app_event_items WHERE event_id = %s ORDER BY position", (event_id,))
     assert [row[0] for row in withheld] == [p["entity_id"] for p in shown.json()["products"]]
-    # Lo que la persona pide (un plan) se muestra siempre, y sin sesión no se retiene nada.
-    assert ask(control, "plan", {"occasion": "carrete"}).status_code == 200
-    assert ask(control, session=None).status_code == 200
+    # Mochi apagado: tampoco un plan, y sin sesión también se retiene; ninguno de los dos se anota.
+    for reply in (ask(control, "plan", {"occasion": "carrete"}), ask(control, session=None)):
+        assert reply.status_code == 204 and reply.headers["x-offer-withheld"] == "1"
+    assert db.execute("SELECT count(*) FROM app_events WHERE type = 'offer_withheld'").fetchone() == (1,)
     assert experiments.variants(db, treated) == {"ofertas_control": "tratamiento"}
 
 
-def test_the_control_group_sees_what_the_person_asks_for_in_the_search_panel(client, db, monkeypatch):
-    """Desde el buscador ("¿Con qué acompaño…?", "Repite lo de siempre") la persona pide la oferta: se muestra. La misma
-    pedida sola por la app (la Home) se retiene, con su pantalla y la cabecera que lo dice."""
+def test_the_control_group_never_gets_an_offer_and_only_what_both_groups_ask_for_is_recorded(client, db, monkeypatch):
+    """Mochi apagado: a control la API no le entrega ninguna oferta, ni pedida desde el buscador ni "¿Me falta algo?"
+    del checkout. Solo se anota la que la app pide igual en los dos grupos (la Home, fuera del buscador), con su
+    pantalla y la cabecera que lo dice; lo demás solo lo puede pedir tratamiento y no se anota en ninguno."""
     monkeypatch.setattr(config, "OFFERS_CONTROL_PCT", 50)
     control = user_in(experiments.CONTROL)
     body = {"moment": "carrito", "user_id": control, "session_id": "s-of", "context": {"product": {
         "entity_type": "catalog_item", "entity_id": CHIPS}}}  # fmt: skip
 
     asked = client.post("/agent/offer", json={**body, "surface": "agent"})
-    assert asked.status_code == 200 and asked.json()["products"]
-    assert "x-offer-withheld" not in asked.headers
+    assert asked.status_code == 204 and asked.headers["x-offer-withheld"] == "1"
     assert db.execute("SELECT count(*) FROM app_events WHERE type = 'offer_withheld'").fetchone() == (0,)
 
     alone = client.post("/agent/offer", json={**body, "surface": "home"})
     assert alone.status_code == 204 and alone.headers["x-offer-withheld"] == "1"
     rows = db.execute("SELECT surface, origin FROM app_events WHERE type = 'offer_withheld'").fetchall()
     assert rows == [("home", "agent-carrito")]
-    # "¿Me falta algo?" del checkout solo se pide al tocarlo: también se muestra.
     checkout = {**body, "moment": "checkout", "surface": "checkout", "context": {"cart": [
         {"entity_type": "catalog_item", "entity_id": CHIPS}]}}  # fmt: skip
-    assert client.post("/agent/offer", json=checkout).status_code == 200
+    new = {**body, "moment": "vertical_por_probar", "surface": "home", "context": {}}
+    for reply in (client.post("/agent/offer", json=checkout), client.post("/agent/offer", json=new)):
+        assert reply.status_code == 204 and reply.headers["x-offer-withheld"] == "1"
     assert db.execute("SELECT count(*) FROM app_events WHERE type = 'offer_withheld'").fetchone() == (1,)
     # Una pantalla que no existe es un 422 (como en /events), no una retenida.
     assert client.post("/agent/offer", json={**body, "surface": "otra"}).status_code == 422
+
+
+def test_show_me_something_new_is_not_recorded_in_either_group(client, db, monkeypatch):
+    """La vertical por probar ("Muéstrame algo nuevo") se pide en el menú de la mascota, que el control no tiene: en
+    tratamiento se muestra, pero no se anota como `offer_eligible`, así la parte expuesta solo cuenta lo que los dos
+    grupos pueden recibir."""
+    monkeypatch.setattr(config, "OFFERS_CONTROL_PCT", 50)
+    body = {"moment": "vertical_por_probar", "user_id": user_in(experiments.TREATMENT), "session_id": "s-nuevo",
+            "surface": "home", "context": {}}  # fmt: skip
+    shown = client.post("/agent/offer", json=body)
+    assert shown.status_code == 200 and shown.json()["products"]
+    assert db.execute("SELECT count(*) FROM app_events WHERE type = 'offer_eligible'").fetchone() == (0,)
+    assert "vertical_por_probar" in experiments.HOLDOUT_MOMENTS - experiments.EXPOSURE_MOMENTS
 
 
 def test_the_same_withheld_offer_counts_once_per_session(client, db, monkeypatch):

@@ -48,6 +48,7 @@ import {
   tourSeen,
 } from '../../../state/liveMemory'
 import { isHushed, isQuiet, noteDismissed, noteEngaged, quietToday, wake } from '../../../state/agentQuiet'
+import { isAgentEnabled, useAgentEnabled } from '../../../state/agentEnabled'
 import { isAgentHidden, useAgentHidden } from '../../../state/agentHidden'
 import { moveText, moveWhy, useShortcutMove } from './shortcutMoves'
 import { today } from '../../../utils/today'
@@ -69,6 +70,10 @@ const T = { enter: 900, greet: 3400, greetHold: 6000 }
 // Silenciado por hoy (desde su menú, en la Home o flotante) o callado porque lo ignoraron: no habla por su cuenta; si lo tocan, sí.
 // Oculto ("Ocultar a Mochi"): no está, así que tampoco habla ni propone nada.
 const silent = () => isQuiet(today()) || isHushed() || isAgentHidden()
+// Apagado (el grupo de control, state/agentEnabled.js): no está ni habla, pero la Home pide igual lo que pide sola (la
+// oferta del carro, "¿Repetimos?" o "¿Volvemos a…?"): la API la retiene y la anota como en tratamiento, y la app no la
+// muestra (api/agent.js).
+const mute = () => silent() || !isAgentEnabled()
 // El origen de los eventos de "Mochi movió tus accesos".
 const MOVE_ORIGIN = 'agent-reorden'
 // Los accesos esperan a que Mochi llegue junto a ellos (su paso dura 680 ms en live.css) antes de deslizarse.
@@ -103,7 +108,8 @@ const buzz = () => navigator.vibrate?.(12)
  * Home del prototipo final: la barra abre el buscador con el agente. El agente de cuerpo entero vive en
  * la Home: saluda, acompaña el plan del día, al tocarlo abre su menú (con "Muéstrame algo nuevo", la vertical por
  * probar, "Silenciar por hoy" y "Ocultar") y, cuando el motor cambia el orden de los accesos, los mueve y dice por qué. Oculto ("Ocultar a
- * Mochi"), la Home queda sin él y con el buscador de siempre.
+ * Mochi") o apagado (el grupo de control), la Home queda sin él y con el buscador de siempre; el orden de los accesos
+ * sigue.
  */
 export default function LiveHomeFeed({ push, active = true }) {
   const toast = useToast()
@@ -113,7 +119,9 @@ export default function LiveHomeFeed({ push, active = true }) {
   const profile = useProfile()
   const events = useEvents()
   const verticalOrder = useVerticalOrder(active)
-  const hidden = useAgentHidden()
+  // Sin Mochi en la Home: oculto por la persona o apagado en el grupo de control.
+  const enabled = useAgentEnabled()
+  const hidden = useAgentHidden() || !enabled
   // La fila que se ve: el último orden que vio la persona hasta que la Home está a la vista (arriba y sin el buscador
   // encima); ahí, si cambió, se mueve. Un cambio con el buscador abierto se ve al cerrarlo.
   const assistant = useAssistant()
@@ -321,7 +329,7 @@ export default function LiveHomeFeed({ push, active = true }) {
     later(reduceMotion ? 0 : T.enter, () => {
       setPresent(true)
       setEntering(true)
-      if (!silent()) speak({ text: GREETING, mood: 'wave', gesture: 'greet' }, null, T.greetHold)
+      if (!mute()) speak({ text: GREETING, mood: 'wave', gesture: 'greet' }, null, T.greetHold)
     })
     later((reduceMotion ? 0 : T.enter) + T.greet, () => {
       setEntering(false)
@@ -332,7 +340,7 @@ export default function LiveHomeFeed({ push, active = true }) {
     // que llegó mientras saludaba (un cambio de orden) va cuando se cierra el saludo, o al terminar la guía.
     later((reduceMotion ? 0 : T.enter) + T.greetHold, () => {
       const free = !said.current || said.current.text === GREETING
-      if (free && !silent() && !tourSeen()) showTour(0)
+      if (free && !mute() && !tourSeen()) showTour(0)
       else live.current.drain()
     })
     return clearTimers
@@ -516,7 +524,7 @@ export default function LiveHomeFeed({ push, active = true }) {
   // sin explicación.
   const moveKey = shortcuts.move?.key
   useEffect(() => {
-    if (!moveKey || silent()) return
+    if (!moveKey || mute()) return
     rememberMove(shortcuts.move) // con la generación en que nació (useShortcutMove)
     drain()
     // Solo con cada cambio nuevo.

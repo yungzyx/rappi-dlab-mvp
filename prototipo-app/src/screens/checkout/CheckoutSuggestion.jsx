@@ -10,6 +10,7 @@ import { useAddToCart } from '../../hooks/useAddToCart'
 import { VERTICAL_NAMES } from '../../data/verticals'
 import { useCart } from '../../state/CartContext'
 import { useDemo } from '../../state/DemoContext'
+import { useAgentEnabled } from '../../state/agentEnabled'
 import { useAgentHidden } from '../../state/agentHidden'
 import { useEvents } from '../../state/EventsContext'
 import { useProfile } from '../../state/ProfileContext'
@@ -34,9 +35,10 @@ export default function CheckoutSuggestion() {
   const [complete, setComplete] = useState(null)
   const [added, setAdded] = useState(null)
   const hidden = useAgentHidden()
+  const enabled = useAgentEnabled()
 
-  // Con Mochi oculto no hay a quién pedirle.
-  if (!demo?.isFinal || hidden) return null
+  // Con Mochi oculto, o apagado en el grupo de control, no hay a quién pedirle.
+  if (!demo?.isFinal || hidden || !enabled) return null
   if (complete)
     return (
       <p className="checkout-ask" role="status">

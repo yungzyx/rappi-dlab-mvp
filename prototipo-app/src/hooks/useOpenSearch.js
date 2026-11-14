@@ -1,10 +1,11 @@
 import { useAssistant } from '../state/AssistantContext'
 import { useDemo } from '../state/DemoContext'
+import { useAgentEnabled } from '../state/agentEnabled'
 import { useAgentHidden } from '../state/agentHidden'
 
 /**
- * Abre el buscador que corresponde al modo de demo: en el prototipo final, el del agente; en "Rappi hoy" (o con Mochi
- * oculto), el plano.
+ * Abre el buscador que corresponde al modo de demo: en el prototipo final, el del agente; en "Rappi hoy", con Mochi
+ * oculto o en el grupo de control ("Mochi apagado"), el plano.
  * `vertical`: la de la pantalla desde la que se abre el buscador plano (el panel del agente toma la de la pantalla actual).
  * `query`: texto con el que arranca el buscador (una categoría de la vertical).
  */
@@ -12,8 +13,9 @@ export function useOpenSearch(push) {
   const assistant = useAssistant()
   const demo = useDemo()
   const hidden = useAgentHidden()
+  const enabled = useAgentEnabled()
   return (vertical, query) => {
-    if (demo.isFinal && !hidden) assistant.open(query ? { search: query } : {})
+    if (demo.isFinal && !hidden && enabled) assistant.open(query ? { search: query } : {})
     else push('search', { ...(query ? { query } : {}), ...(vertical ? { vertical } : {}) })
   }
 }

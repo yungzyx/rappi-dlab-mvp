@@ -2,6 +2,7 @@ import { afterEach, describe, expect, test, vi } from 'vitest'
 import { offer, plans, profileLadder } from './agent'
 import { fixture, stubApi } from '../test/api'
 import { userId } from './user'
+import { setAgentEnabled } from '../state/agentEnabled'
 
 afterEach(() => vi.unstubAllGlobals())
 
@@ -80,6 +81,17 @@ describe('agent', () => {
     expect(onWithheld).toHaveBeenCalledTimes(1)
     expect(await offer('volver', {}, { userId: 'u1', surface: 'home', onWithheld })).toBeNull()
     expect(onWithheld).toHaveBeenCalledTimes(1)
+  })
+
+  test('con Mochi apagado (el grupo de control) la oferta se pide igual, pero nunca se entrega a la app', async () => {
+    const calls = stubApi({ 'POST /agent/offer': fixture('agent-offer-carrito') })
+    setAgentEnabled(false)
+    const onWithheld = vi.fn()
+    expect(await offer('carrito', {}, { userId: 'u1', surface: 'home', onWithheld })).toBeNull()
+    expect(calls).toHaveBeenCalledTimes(1) // la API la anota como en tratamiento
+    expect(onWithheld).not.toHaveBeenCalled()
+    setAgentEnabled(true)
+    expect((await offer('carrito', {}, { userId: 'u1', surface: 'home' })).products.length).toBeGreaterThan(0)
   })
 
   test('las acciones traen la ruta de la pantalla de la app (Turbo tiene la suya) o ninguna si la vertical no se conoce', async () => {

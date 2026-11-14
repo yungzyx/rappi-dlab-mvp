@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { AGENT_NAME } from '../agent/name'
 import { API_URL, checkConnection, ensureSession } from '../api/client'
+import { isAgentEnabled } from '../state/agentEnabled'
 import Mascot from './assistant/Mascot'
 import './connection-gate.css'
 
@@ -56,17 +57,20 @@ export default function ConnectionGate({ children }) {
  * de conexión.
  */
 function ConnectionNotice({ status, onRetry }) {
+  // Con Mochi apagado (el grupo de control, lo que dijo la última sesión de este navegador): sin la mascota ni su nombre.
+  const agent = isAgentEnabled()
+  const withAgent = agent ? ` con ${AGENT_NAME}` : ''
   return (
     <main className="connection-gate">
       <div className="connection-card">
-        <Mascot size={96} mood="think" />
+        {agent && <Mascot size={96} mood="think" />}
         {/* El aviso existe siempre y solo cambia lo de adentro: los lectores de pantalla anuncian el cambio. */}
         <div className="connection-message" role="status">
           {status === 'checking' ? (
-            <p className="connection-checking">Conectando con {AGENT_NAME}…</p>
+            <p className="connection-checking">Conectando{withAgent}…</p>
           ) : (
             <>
-              <h1>Sin conexión con {AGENT_NAME}</h1>
+              <h1>Sin conexión{withAgent}</h1>
               {/* Las instrucciones de desarrollador y la dirección de la API no llegan al sitio desplegado. */}
               {import.meta.env.DEV || import.meta.env.VITE_DEMO === '1' ? (
                 <>

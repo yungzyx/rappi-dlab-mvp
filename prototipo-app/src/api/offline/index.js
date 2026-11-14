@@ -471,10 +471,15 @@ function answer(snapshot, { method, path, query, body }, now) {
       },
     }
   if (key === 'GET /live') return { body: { ok: true } }
+  // Sin conexión no hay grupo de control: Mochi está siempre (`agent_enabled`).
   if (key === 'POST /session') {
     const userId = body?.legacy_user_id || state.userId || `proto-${randomHex()}`
     updateState((s) => ({ ...s, userId }))
-    return { body: { user_id: userId, token: `offline.${userId}` } }
+    return { body: { user_id: userId, token: `offline.${userId}`, agent_enabled: true } }
+  }
+  if (key === 'GET /session') {
+    if (!state.userId) return { status: 401 }
+    return { body: { user_id: state.userId, agent_enabled: true } }
   }
   if (key === 'POST /catalog/availability') return { body: availability(snapshot, body?.lines ?? []) }
   if (key === 'GET /search') return { body: searchedWithPreferences(snapshot, state, search(snapshot, query), query) }

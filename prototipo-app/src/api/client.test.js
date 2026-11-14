@@ -18,6 +18,7 @@ import {
 } from './client'
 import { lineKey } from '../state/CartContext'
 import { fixture, stubApi } from '../test/api'
+import { isAgentEnabled, setAgentEnabled } from '../state/agentEnabled'
 import { userId, userToken } from './user'
 
 const API_PRODUCT = {
@@ -548,11 +549,47 @@ describe('sesión firmada', () => {
     expect(paths(api)).toEqual(['GET /profile/proto-ajeno'])
   })
 
-  test('con sesión, ensureSession no vuelve a pedirla', async () => {
+  test('con sesión, ensureSession no pide otra: la confirma con GET /session y guarda si Mochi está', async () => {
     signIn(OLD, `${OLD}.firma`)
-    const api = stubApi({})
+    const api = stubApi({ 'GET /session': { ...fixture('session-actual'), user_id: OLD, agent_enabled: false } })
     await ensureSession()
-    expect(api).not.toHaveBeenCalled()
+    expect(paths(api)).toEqual(['GET /session'])
+    expect(api.mock.calls[0][1].headers['X-User-Token']).toBe(`${OLD}.firma`)
+    expect(isAgentEnabled()).toBe(false) // el grupo de control: Mochi apagado
+    expect(userId()).toBe(OLD)
+  })
+
+  test('la sesión nueva trae si Mochi está; sin el dato (una API anterior), está', async () => {
+    const api = stubApi({ 'POST /session': { ...fixture('session'), agent_enabled: false } })
+    await ensureSession()
+    expect(isAgentEnabled()).toBe(false)
+    localStorage.removeItem('rappi-proto-token')
+    stubApi({ 'POST /session': { user_id: NEW, token: `${NEW}.firma` } })
+    await ensureSession()
+    expect(isAgentEnabled()).toBe(true)
+    expect(paths(api)).toEqual(['POST /session'])
+  })
+
+  test('un 401 al confirmar la sesión pide una nueva; una API sin GET /session deja a Mochi', async () => {
+    signIn(OLD, `${OLD}.de-otro-secreto`)
+    const api = stubApi({ 'GET /session': 401, 'POST /session': { user_id: NEW, token: `${NEW}.firma` } })
+    await ensureSession()
+    expect(paths(api)).toEqual(['GET /session', 'POST /session'])
+    expect(userId()).toBe(NEW)
+
+    setAgentEnabled(false)
+    stubApi({}) // 404
+    await ensureSession()
+    expect(isAgentEnabled()).toBe(true)
+  })
+
+  test('si confirmar la sesión falla por otra razón, sigue con lo que sabía', async () => {
+    signIn(OLD, `${OLD}.firma`)
+    setAgentEnabled(false)
+    stubApi({ 'GET /session': 'offline' })
+    await expect(ensureSession()).resolves.toBeUndefined()
+    expect(isAgentEnabled()).toBe(false)
+    expect(userToken()).toBe(`${OLD}.firma`)
   })
 })
 
