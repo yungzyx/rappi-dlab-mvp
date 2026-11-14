@@ -129,7 +129,7 @@ describe('ExperimentsView', () => {
     const [treated, control] = bodyRows(table)
     expect(cells(treated)).toEqual(['Tratamiento (ve las ofertas)', '5', '480,0%', '1,5', '9', '0', '480,0%', '3', '6'])
     expect(cells(control)).toEqual(['Control (no las ve)', '1', '00,0%', '—', '0', '2', '1100,0%', '0', '0'])
-    expect(screen.getByText(NOT_EVIDENCE)).toBeTruthy() // la población rotulada
+    expect(screen.getAllByText(NOT_EVIDENCE)).toHaveLength(3) // la población rotulada, en cada sección
   })
 
   test('the people with an offer are counted the same in both groups, and an empty group has no share', async () => {

@@ -1,0 +1,176 @@
+/* ---------- Las tres hipótesis: tres tarjetas de igual estructura, una al lado de la otra desde 960 px ---------- */
+.hypotheses {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--space-4);
+}
+
+/* Cuatro filas por tarjeta (cabecera, pregunta, cifras y pie). Con subgrid, las filas se alinean entre las tres: las
+   cifras y los estados quedan a la misma altura aunque un título ocupe dos líneas. */
+.hypothesis {
+  display: grid;
+  grid-template-rows: auto auto 1fr auto;
+  gap: var(--space-3);
+  min-width: 0;
+  padding: var(--space-4);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-m);
+  background: var(--surface);
+}
+
+@container (min-width: 960px) {
+  .hypotheses {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-rows: repeat(4, auto);
+  }
+
+  .hypothesis {
+    grid-row: span 4;
+    grid-template-rows: subgrid;
+  }
+}
+
+.hypothesis-head {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.hypothesis-tag {
+  font-size: var(--text-xs);
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  color: var(--ink-3);
+}
+
+.hypothesis-head h3 {
+  font-size: var(--text-base);
+  font-weight: 600;
+  letter-spacing: 0;
+  line-height: 1.35;
+}
+
+.hypothesis-goal {
+  font-size: var(--text-sm);
+  font-weight: 500;
+  color: var(--ink-2);
+}
+
+.hypothesis-question {
+  max-width: 60ch;
+  font-size: var(--text-sm);
+  color: var(--ink-3);
+}
+
+.hypothesis-body {
+  display: grid;
+  align-content: start;
+  gap: var(--space-3);
+  min-width: 0;
+}
+
+/* Sin grupos: la cifra de la población con su unidad, como las decisiones del Resumen */
+.hypothesis-figures {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(132px, 1fr));
+  gap: var(--space-3) var(--space-4);
+}
+
+.hypothesis-figure {
+  display: grid;
+  align-content: start;
+  gap: 2px;
+}
+
+.hypothesis-figure strong {
+  font-size: var(--text-figure);
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  line-height: 1.15;
+  font-variant-numeric: tabular-nums;
+}
+
+.hypothesis-figure span {
+  max-width: 34ch;
+  font-size: var(--text-xs);
+  color: var(--ink-2);
+}
+
+/* Por grupo: una tabla angosta (grupo | cifras), con la diferencia separada por una línea más fuerte */
+.hypothesis-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--text-sm);
+  font-variant-numeric: tabular-nums;
+}
+
+.hypothesis-table th,
+.hypothesis-table td {
+  padding: 6px 0;
+  border-bottom: 1px solid var(--line);
+  text-align: right;
+  vertical-align: top;
+}
+
+.hypothesis-table th + th,
+.hypothesis-table td {
+  padding-left: var(--space-3);
+}
+
+.hypothesis-table thead th {
+  font-size: var(--text-xs);
+  font-weight: 500;
+  color: var(--ink-3);
+}
+
+.hypothesis-table tbody th {
+  font-weight: 500;
+  text-align: left;
+  color: var(--ink-2);
+}
+
+.hypothesis-table td {
+  font-weight: 600;
+}
+
+.hypothesis-table .cell-stack {
+  justify-items: end;
+}
+
+.hypothesis-table .cell-sub {
+  font-weight: 400;
+}
+
+.hypothesis-diff th,
+.hypothesis-diff td {
+  border-top: 1px solid var(--line-strong);
+  border-bottom: 0;
+}
+
+.hypothesis-diff th {
+  color: var(--ink);
+}
+
+.hypothesis-foot {
+  display: grid;
+  align-content: end;
+  gap: var(--space-2);
+  padding-top: var(--space-3);
+  border-top: 1px solid var(--line);
+}
+
+.hypothesis-verdict {
+  align-items: flex-start;
+  font-size: var(--text-sm);
+  white-space: normal;
+}
+
+.hypothesis-verdict svg {
+  margin-top: 2px;
+}
+
+.hypothesis-note {
+  font-size: var(--text-xs);
+  line-height: 1.45;
+  color: var(--ink-3);
+}
