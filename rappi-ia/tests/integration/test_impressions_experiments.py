@@ -712,9 +712,11 @@ def test_the_control_group_reads_m1_retention_and_a_new_vertical_within_the_coho
             "retencion_m1": {"puntos": -66.7, "ic95": None},
             "suma_vertical": {"puntos": 66.7, "ic95": None},
         },
-        # +5 puntos sobre el 47 % de "solo Restaurantes", con el reparto de quienes tienen variante (2 de 5 en control).
-        "minimo": {"tratamiento": 1961, "control": 1308},
-        "efecto_minimo_puntos": 5,
+        # +2 puntos sobre el 47 % de "solo Restaurantes", con el reparto de quienes tienen variante (2 de 5 en control);
+        # +5, el mínimo de antes, como referencia.
+        "minimo": {"tratamiento": 12245, "control": 8163},
+        "referencia": {"efecto_puntos": 5, "tratamiento": 1961, "control": 1308},
+        "efecto_minimo_puntos": 2,
         "base_pct": 47.0,
         "concluyente": False,
     }
@@ -749,6 +751,179 @@ def test_the_retention_is_conclusive_once_each_group_reaches_the_minimum(client,
     assert retention["minimo"] == {"tratamiento": 2, "control": 1}
     assert retention["concluyente"] is True
     assert retention["diferencia"]["suma_vertical"] == {"puntos": 50.0, "ic95": [-19.3, 100.0]}  # ya con su intervalo
+
+
+# ── Panel: las tres hipótesis (H1 retención, H2 frecuencia y Restaurantes → Turbo, H3 la encuesta) ─────────────────
+def app_event(db, user_id, kind, days, source="prototype", **fields):
+    events.record(db, [events.Event(user_id, "s-hip", kind, ts=days_ago(days), **fields)], source=source)
+
+
+def answered(db, user_id, answer, days):
+    app_event(db, user_id, "survey_answer", days, payload={"question": "p1", "answer": answer, "trigger": "busqueda"})
+
+
+def seed_two_groups(db):
+    """Dos grupos de `ofertas_control` asignados hace 40 días (con sus 28 y 30 días ya cumplidos) y una persona recién
+    asignada, que todavía no cuenta en la frecuencia ni en Restaurantes → Turbo."""
+    offers = experiments.OFFERS_CONTROL
+    for user_id, variant, days in (
+        ("t1", "tratamiento", 40),
+        ("t2", "tratamiento", 40),
+        ("t3", "tratamiento", 5),
+        ("c1", "control", 40),
+        ("c2", "control", 40),
+    ):
+        assigned(db, user_id, {offers: variant}, days=days)
+    # t1: cliente de Restaurantes que pide Turbo en sus 28 días; 3 pedidos en sus 30; busca con Mochi; responde "Sí".
+    ordered(db, "t1", "restaurantes", days=35)
+    ordered(db, "t1", "turbo", days=30)
+    ordered(db, "t1", "restaurantes", days=20)
+    app_event(db, "t1", "ask", 20, surface="agent", payload={"mode": "propuesta"})
+    answered(db, "t1", "si", days=10)
+    # t2: no pide; silencia a Mochi y después lo oculta; responde "No".
+    app_event(db, "t2", "agent_visibility", 20, payload={"visible": True, "quiet": True})
+    app_event(db, "t2", "agent_visibility", 15, payload={"visible": False})
+    answered(db, "t2", "no", days=10)
+    # t3: recién asignada; pide Restaurantes y acepta una oferta de Mochi (usa a Mochi).
+    app_event(db, "t3", "suggestion_accepted", 4, surface="cart", origin="agent-carrito")
+    ordered(db, "t3", "restaurantes", days=3)
+    # c1: cliente de Restaurantes sin Turbo; 2 pedidos; oculta a Mochi y lo trae de vuelta; responde "Sí".
+    ordered(db, "c1", "restaurantes", days=35)
+    ordered(db, "c1", "restaurantes", days=25)
+    app_event(db, "c1", "agent_visibility", 30, payload={"visible": False})
+    app_event(db, "c1", "agent_visibility", 20, payload={"visible": True})
+    answered(db, "c1", "si", days=10)
+    # c2: solo Turbo (no es cliente de Restaurantes); busca en "Rappi hoy" (no es usar a Mochi).
+    ordered(db, "c2", "turbo", days=36)
+    app_event(db, "c2", "ask", 10, surface="agent", payload={"mode": "actual"})
+    # Lo simulado no entra en las cifras del prototipo.
+    assigned(db, "s1", {offers: "tratamiento"}, source="synthetic", days=40)
+    ordered(db, "s1", "turbo", days=30, source="synthetic")
+
+
+def test_the_three_hypotheses_are_measured_by_group(client, db):
+    seed_two_groups(db)
+    control = experiments_of(client, "prototype")["ofertas_control"]
+
+    # H2, frecuencia: pedidos en los 30 días desde la asignación, de quienes ya los cumplieron (t3 no).
+    frequency = control["frecuencia"]
+    assert [(v["variante"], v["personas_30d"], v["pedidos_30d"]) for v in frequency["variantes"]] == [
+        ("tratamiento", 2, 1.5),
+        ("control", 2, 1.5),
+    ]
+    assert frequency["dias"] == 30
+    assert frequency["diferencia"]["pedidos_30d"] == {"valor": 0.0, "ic95": None}  # bajo el mínimo, sin intervalo
+    # H2, Restaurantes → Turbo: de los clientes de Restaurantes, quién pide Turbo en sus 28 días.
+    assert control["rest_a_turbo"] == {
+        "variantes": [
+            {"variante": "tratamiento", "personas": 1, "con_turbo": 1, "pct": 100.0},
+            {"variante": "control", "personas": 1, "con_turbo": 0, "pct": 0.0},
+        ],
+        # Sin Turbo en control no hay tasa base: ni diferencia relativa ni mínimo.
+        "diferencia": {"puntos": 100.0, "relativa_pct": None, "ic95": None},
+        "meta_relativa_pct": 10,
+        "dias": 28,
+        "minimo": None,
+        "concluyente": False,
+    }
+    # H3: el % de "Sí" de la P1 por grupo, sin prueba ni intervalo bajo el mínimo.
+    assert control["encuesta"] == {
+        "variantes": [
+            {"variante": "tratamiento", "respondidas": 2, "si": 1, "si_pct": 50.0},
+            {"variante": "control", "respondidas": 1, "si": 1, "si_pct": 100.0},
+        ],
+        "diferencia": {"puntos": -50.0, "ic95": None, "p_una_cola": None},
+        "minimo": 100,
+        "concluyente": False,
+    }
+    # Adopción y apagado: usar a Mochi (buscar con él o aceptar una oferta suya; "Rappi hoy" no), oculto (el último
+    # cambio fue ocultarlo) y silenciado alguna vez (no cuenta como oculto).
+    assert control["adopcion"] == {
+        "variantes": [
+            {
+                "variante": "tratamiento",
+                "personas": 3,
+                "usaron": 2,
+                "ocultos": 1,
+                "silenciaron": 1,
+                "usaron_pct": 66.7,
+                "ocultos_pct": 33.3,
+                "silenciaron_pct": 33.3,
+            },
+            {
+                "variante": "control",
+                "personas": 2,
+                "usaron": 0,
+                "ocultos": 0,
+                "silenciaron": 0,
+                "usaron_pct": 0.0,
+                "ocultos_pct": 0.0,
+                "silenciaron_pct": 0.0,
+            },
+        ]
+    }
+    # Toda la población (lo que el panel muestra con el control apagado), hasta el último evento (hace 3 días).
+    population = control["poblacion"]
+    assert population["rest_a_turbo"] == {"personas": 3, "con_turbo": 1, "pct": 33.3, "dias": 28}
+    assert population["frecuencia"] == {"personas": 5, "pedidos": 4, "pedidos_por_persona": 0.8, "dias": 30}
+    assert population["encuesta"] == {"respondidas": 3, "si": 2, "si_pct": 66.7}
+    assert population["adopcion"] == {
+        "personas": 5,
+        "usaron": 2,
+        "usaron_pct": 40.0,
+        "ocultos_pct": 20.0,
+        "silenciaron_pct": 20.0,
+        "dias": 30,
+    }
+    assert set(population["retencion_m1"]) == {"mes", "mes_siguiente", "personas", "pct"}
+
+
+def test_the_hypotheses_read_with_their_interval_once_each_group_reaches_its_minimum(client, db, monkeypatch):
+    """Con el mínimo alcanzado: la H2 con su diferencia relativa, el intervalo de la frecuencia y el de Restaurantes →
+    Turbo; la H3 con su intervalo y la prueba a una cola."""
+    seed_two_groups(db)
+    ordered(db, "c1", "turbo", days=30)  # el control también pide Turbo: hay tasa base
+    assigned(db, "c3", {experiments.OFFERS_CONTROL: "control"}, days=40)
+    ordered(db, "c3", "restaurantes", days=30)  # otra clienta de Restaurantes en control, sin Turbo
+    monkeypatch.setattr(queries, "sample_size", lambda base, effect, share: (1, 1))
+    monkeypatch.setattr(queries, "MIN_SURVEY_ANSWERS", 1)
+    control = experiments_of(client, "prototype")["ofertas_control"]
+
+    h2 = control["rest_a_turbo"]
+    assert h2["minimo"] == {"tratamiento": 1, "control": 1} and h2["concluyente"] is True
+    assert h2["diferencia"] == {"puntos": 50.0, "relativa_pct": 100.0, "ic95": [-19.3, 100.0]}
+    assert control["frecuencia"]["diferencia"]["pedidos_30d"]["ic95"] is not None
+    h3 = control["encuesta"]
+    assert h3["concluyente"] is True
+    assert h3["diferencia"]["ic95"] == [-100.0, 19.3] and h3["diferencia"]["p_una_cola"] == 0.807
+
+
+def test_without_groups_the_hypotheses_keep_their_shape_and_the_population(client, db):
+    """Con OFFERS_CONTROL_PCT en 0 nadie tiene variante: cada hipótesis queda vacía por grupo, sin diferencia, y la
+    población completa sigue ahí para describir."""
+    ordered(db, "u-rest", "restaurantes", days=10)
+    ordered(db, "u-rest", "turbo", days=5)
+    control = experiments_of(client, "prototype")["ofertas_control"]
+    assert control["control_pct"] == 0
+    assert control["rest_a_turbo"]["variantes"] == [
+        {"variante": v, "personas": 0, "con_turbo": 0, "pct": None} for v in ("tratamiento", "control")
+    ]
+    assert control["rest_a_turbo"]["diferencia"] is None and control["rest_a_turbo"]["concluyente"] is False
+    assert control["frecuencia"] == {
+        "variantes": [
+            {"variante": v, "personas_30d": 0, "pedidos_30d": None, "personas_m1": 0, "pedidos_m1": None}
+            for v in ("tratamiento", "control")
+        ],
+        "diferencia": None,
+        "dias": 30,
+    }
+    assert control["encuesta"]["diferencia"] is None and control["encuesta"]["concluyente"] is False
+    assert [v["personas"] for v in control["adopcion"]["variantes"]] == [0, 0]
+    assert control["retencion"]["minimo"] is None and control["retencion"]["referencia"] is None
+    assert control["poblacion"]["rest_a_turbo"] == {"personas": 1, "con_turbo": 1, "pct": 100.0, "dias": 28}
+    # Una fuente sin ningún evento: todo en cero, nada se cae.
+    empty = experiments_of(client, "synthetic")["ofertas_control"]["poblacion"]
+    assert empty["frecuencia"]["pedidos_por_persona"] is None and empty["retencion_m1"]["pct"] is None
 
 
 def test_session_funnel_and_abandoned_carts(client, db):
@@ -818,8 +993,9 @@ def test_the_amplitude_bridge_uses_rappis_names_and_envelope(client, db):
 
 def test_the_amplitude_bridge_keeps_kind_and_visible(client, db):
     """Migración 055: una oferta que se fue sola (kind "expirada") se distingue en el puente de un rechazo, y
-    `agent_visibility` dice si ocultó a Mochi o lo trajo de vuelta (el false de jsonb no se pierde). KIND también sale
-    en la mostrada (VIEW_COMPONENT): para contar los "Después" no basta con KIND, hay que mirar el event_type."""
+    `agent_visibility` dice si ocultó a Mochi o lo trajo de vuelta (el false de jsonb no se pierde) y, desde la 058,
+    si lo silenció o volvió a hablar (QUIET). KIND también sale en la mostrada (VIEW_COMPONENT): para contar los
+    "Después" no basta con KIND, hay que mirar el event_type."""
     dismissed = {"type": "suggestion_dismissed", "session_id": "s-imp", "concept_id": "snacks-salados"}
     shown = {"type": "suggestion_shown", "session_id": "s-imp", "concept_id": "snacks-salados"}
     response = post(
@@ -830,6 +1006,8 @@ def test_the_amplitude_bridge_keeps_kind_and_visible(client, db):
         {**dismissed, "origin": "agent-volver", "client_event_id": str(uuid.uuid4()), "payload": {"kind": "volver"}},
         {"type": "agent_visibility", "session_id": "s-imp", "origin": "cuenta", "payload": {"visible": False}},
         {"type": "agent_visibility", "session_id": "s-imp", "origin": "cuenta", "payload": {"visible": True}},
+        {"type": "agent_visibility", "session_id": "s-imp", "payload": {"visible": True, "quiet": True}},
+        {"type": "agent_visibility", "session_id": "s-imp", "payload": {"visible": True, "quiet": False}},
         {**shown, "origin": "agent-volver", "client_event_id": str(uuid.uuid4()), "payload": {"kind": "volver"}},
         {**shown, "origin": "para-ti", "client_event_id": str(uuid.uuid4()), "payload": {"kind": "lo_mas_pedido"}},
     )
@@ -841,7 +1019,10 @@ def test_the_amplitude_bridge_keeps_kind_and_visible(client, db):
     kinds = [props.get("KIND") for name, props in rows if name == "MVP_SUGGESTION_DISMISSED"]
     assert kinds == ["expirada", None, "volver"]  # el rechazo no lleva KIND
     visible = [props.get("VISIBLE") for name, props in rows if name == "MVP_AGENT_VISIBILITY"]
-    assert visible == [False, True]
+    assert visible == [False, True, True, True]
+    # Migración 058: silenciar y volver a hablar se distinguen de traerlo de vuelta (QUIET); ocultar y mostrar, sin él.
+    quiet = [props.get("QUIET") for name, props in rows if name == "MVP_AGENT_VISIBILITY"]
+    assert quiet == [None, None, True, False]
     assert all("KIND" not in props for name, props in rows if name == "MVP_AGENT_VISIBILITY")
     shown_kinds = [props.get("KIND") for name, props in rows if name == "VIEW_COMPONENT"]
     assert shown_kinds == ["volver", "lo_mas_pedido"]

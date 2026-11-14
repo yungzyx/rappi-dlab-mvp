@@ -7,6 +7,7 @@ import { Panel } from '../../components/Panel.jsx'
 import { EmptyState } from '../../components/States.jsx'
 import { formatNumber, formatPct, formatPoints } from '../../lib/format.js'
 import { useAnalytics } from '../../lib/useAnalytics.js'
+import { Adoption, Hypotheses } from './Hypotheses.jsx'
 import { assignedPeople, cohortPeople, experimentLabel, offeredPct, orderedPct, variantLabel } from './experiments.js'
 
 // Las columnas de todos los experimentos: personas, con pedido y verticales por persona, desde que se asignó la variante.
@@ -156,7 +157,7 @@ function NobodyYet({ experiment }) {
   )
 }
 
-/** El tamaño de cada grupo y, si se sabe, el que pide el plan de piloto para medir +5 puntos de retención M+1. */
+/** El tamaño de cada grupo y, si se sabe, el que pide el plan de piloto para medir la meta de la H1 (+2 puntos). */
 function GroupSizes({ variants, retention }) {
   const sizes = variants.map((row) => `${formatNumber(row.personas)} en ${row.variante}`).join(' y ')
   const minimum = retention?.minimo
@@ -257,10 +258,64 @@ function Experiments({ source }) {
   return experimentos.map((experiment) => <Experiment key={experiment.id} experiment={experiment} />)
 }
 
-/** Los experimentos del MVP: cada persona con una variante estable, comparadas dentro de una sola población. */
+/**
+ * Los experimentos del MVP, en el orden del gerente: primero las tres hipótesis (retención, frecuencia y venta cruzada,
+ * y "¿Encontraste lo que buscabas?"), después la adopción y el apagado de Mochi y al final la mecánica de cada
+ * experimento (cada persona con una variante estable, comparadas dentro de una sola población).
+ */
 export function ExperimentsView({ source }) {
   return (
     <div className="view">
+      <section className="section" aria-labelledby="hipotesis">
+        <SectionHead
+          id="hipotesis"
+          title="Las tres hipótesis"
+          meta="Tratamiento contra el grupo de control de las ofertas"
+          source={source}
+          help={
+            <>
+              <p>
+                H1: retención M+1 (meta +2 puntos). H2: pedidos por persona en 30 días y, de los clientes de
+                Restaurantes, la parte que pide en Turbo en 28 días (meta +10 % relativo sobre el control). H3: el % de
+                "Sí" a "¿Encontraste lo que buscabas?", con la prueba a una cola y sin umbral. Todo cuenta desde la
+                asignación, por intención de tratar (docs/plan-piloto.md).
+              </p>
+              <p>
+                Bajo el mínimo de cada una, la diferencia no es concluyente y va sin intervalo. El mínimo de la H1 es
+                para +2 puntos; el de +5 puntos, que pide unas seis veces menos personas, queda como referencia en el
+                plan de piloto. Hoy el control solo deja de ver las ofertas que {AGENT_NAME} propone solo.
+              </p>
+            </>
+          }
+        />
+        <div className="block">
+          <Async>
+            <Hypotheses source={source} />
+          </Async>
+        </div>
+      </section>
+
+      <section className="section" aria-labelledby="adopcion">
+        <SectionHead
+          id="adopcion"
+          title="Adopción y apagado"
+          source={source}
+          help={
+            <p>
+              Usaron a {AGENT_NAME}: buscaron o preguntaron en su buscador o aceptaron una oferta suya desde la
+              asignación (tocar la mascota no deja un evento propio). Oculto: su último cambio fue ocultarlo.
+              Silenciado: lo silenciaron por hoy alguna vez; no cuenta como ocultarlo. Sin grupos, las personas activas
+              de 30 días.
+            </p>
+          }
+        />
+        <div className="block">
+          <Async>
+            <Adoption source={source} />
+          </Async>
+        </div>
+      </section>
+
       <section className="section" aria-labelledby="experimentos">
         <SectionHead
           id="experimentos"

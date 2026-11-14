@@ -96,4 +96,15 @@ describe('OverviewView', () => {
     // Del prototipo no hay respaldo: el bloque queda vacío y el aviso (con su Reintentar) va una sola vez arriba.
     expect(within(decision('¿Funciona lo que ofrece Mochi?')).getByText('Sin conexión con la API')).toBeTruthy()
   })
+
+  test('the first thing in the summary is a short link to the three hypotheses', async () => {
+    serveFixtures()
+    const onNavigate = vi.fn()
+    await renderWithData(<OverviewView source="synthetic" onNavigate={onNavigate} />)
+
+    const link = screen.getByRole('navigation', { name: 'Las tres hipótesis' })
+    expect(link.compareDocumentPosition(screen.getByRole('heading', { name: 'Cómo va' })) & 4).toBeTruthy()
+    fireEvent.click(within(link).getByRole('button', { name: /Ver las tres hipótesis/ }))
+    expect(onNavigate).toHaveBeenCalledWith('experimentos', 'hipotesis')
+  })
 })
