@@ -10,6 +10,26 @@ from rappi_ia.offers.profiles import load_destinations, load_profiles
 
 # (vertical, conceptos, palabras) de cada peldaño, en orden: la tabla de la especificación.
 LADDERS = {
+    # Lo mexicano del catálogo no tiene concepto propio: las palabras eligen lo mexicano de los conceptos de siempre.
+    "mexicano": [
+        ("restaurantes", ("mexicana",), ()),
+        (
+            "turbo",
+            ("panaderia", "golosinas", "verduras", "snacks-salados"),
+            ("tortillas mexicanas", "tortillas para burritos", "guacamole", "palta hass", "panchitos"),
+        ),
+        (
+            "conveniencia",
+            ("snacks-salados", "golosinas", "aceites-condimentos", "conservas"),
+            ("tortilla chips", "panchitos", "nacho", "guacamole", "sazonador para tacos", "jalapenos"),
+        ),
+        (
+            "supermercado",
+            ("panaderia", "conservas", "salsas", "frutas"),
+            ("tortillas mexicanas", "tortilla de maiz", "frijol", "pico de gallo", "tajin", "jalapeno", "palta hass"),
+        ),
+        ("mall", ("ferreteria", "cocina-menaje"), ("prensa para tortillas", "tortillero", "molcajete")),
+    ],
     "asiatico": [
         ("restaurantes", ("sushi", "asiatica"), ()),
         ("turbo", ("despensa-asiatica",), ()),
@@ -50,21 +70,32 @@ LADDERS = {
     ],
 }
 SEGMENTS = {
+    "mexicano": ("mexicana",),
     "asiatico": ("sushi", "asiatica", "japonesa", "china"),
     "cafe": ("cafetero", "cafe-de-especialidad"),
     "italiano": ("italiana", "pastas", "pizzero"),
     "mascotas": ("tiene-perro",),
     "carrete": ("fiestero",),
 }
-TRIPS = {"asiatico": "japon", "cafe": "colombia", "italiano": "italia", "mascotas": None, "carrete": None}
+TRIPS = {
+    "mexicano": "mexico",
+    "asiatico": "japon",
+    "cafe": "colombia",
+    "italiano": "italia",
+    "mascotas": None,
+    "carrete": None,
+}
 
 
-def test_the_five_profiles_load_and_the_asian_one_is_the_only_main():
+def test_the_six_profiles_load_and_the_mexican_one_is_the_only_main():
+    """Desde el 14-11-2026 el principal es el mexicano (el prototipo se presenta a Rappi México); el asiático sigue."""
     profiles = load_profiles()
-    assert list(profiles) == ["asiatico", "cafe", "italiano", "mascotas", "carrete"]
-    assert [p.id for p in profiles.values() if p.main] == ["asiatico"]
+    assert list(profiles) == ["mexicano", "asiatico", "cafe", "italiano", "mascotas", "carrete"]
+    assert [p.id for p in profiles.values() if p.main] == ["mexicano"]
+    mexican = profiles["mexicano"]
+    assert (mexican.name, mexican.emoji, mexican.min_level) == ("Amante de lo mexicano", "🌮", "medio")
     asian = profiles["asiatico"]
-    assert (asian.name, asian.emoji, asian.min_level) == ("Amante de lo asiático", "🥢", "medio")
+    assert (asian.name, asian.emoji, asian.main) == ("Amante de lo asiático", "🥢", False)
     assert all(p.min_level == "medio" for p in profiles.values())
 
 
@@ -158,7 +189,7 @@ def test_a_step_with_words_takes_them_at_the_start_of_a_word_and_avoids_what_it_
 
 def test_every_trip_is_a_question_with_two_sourced_facts():
     destinations = load_destinations()
-    assert list(destinations) == ["japon", "colombia", "italia"]
+    assert list(destinations) == ["japon", "colombia", "italia", "mexico"]
     for destination in destinations.values():
         assert destination.text.startswith("¿Y si un día vas a ") and destination.text.endswith("?")
         assert len(destination.facts) == 2, destination.id
@@ -222,6 +253,7 @@ def test_a_valid_profile_file_loads(tmp_path):
 def test_each_profile_says_what_the_person_likes():
     """La frase que sigue a "Por tu gusto por…" en el momento `perfil` y a "Veo que te gusta…" en el saludo."""
     assert {p.id: p.likes for p in load_profiles().values()} == {
+        "mexicano": "lo mexicano",
         "asiatico": "lo asiático",
         "cafe": "el café",
         "italiano": "lo italiano",
@@ -354,3 +386,17 @@ def test_a_city_is_its_comunas():
     assert city_places("Santiago") == santiago == city_places("santiago de chile")
     assert city_places("Viña del Mar") == {"vina del mar"}
     assert city_places("Concepcion") == city_places("Concepción") == {"concepcion"}
+
+
+def test_the_mexican_profile_never_offers_alcohol_and_speaks_neutral_spanish():
+    """Sin tequila ni mezcal: ningún peldaño nombra alcohol. Lo que dice Mochi del perfil (el `gusto` y el texto de cada
+    peldaño) va en español neutro para un público mexicano: sin chilenismos ("palta", "once", "carrete", "po")."""
+    mexican = load_profiles()["mexicano"]
+    concepts = load_taxonomy().concepts
+    for step in mexican.ladder:
+        assert all(is_offerable(concepts[c]) for c in step.concepts)
+        assert not {"tequila", "mezcal", "cerveza", "michelada"} & set(step.words + step.concepts)
+    said = " ".join([mexican.likes, *(step.text for step in mexican.ladder)]).lower()
+    for word in ("palta", "once", "carrete", " po ", "pucha", "cachai", "al tiro", "harto"):
+        assert word not in f" {said} ", word
+    assert load_destinations()["mexico"].text == "¿Y si un día vas a México?"
