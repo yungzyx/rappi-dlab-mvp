@@ -671,7 +671,75 @@ def test_the_conversation_goes_back_as_previous(client):
     assert client.post("/agent/ask", json={"message": "hola"}).json()["conversation"] is None
 
 
+def _mixers(db) -> None:
+    """Pisco y bebidas en la botillería; dos tónicas que la tienda marca +18 son lo más barato (como en `rappi_staging`,
+    donde "más barato" tras "tónica para el gin" mostraba dos Schweppes +18)."""
+    for pid, name, category, price in [
+        (300, "Pisco Mistral 35° 750 cc", "Pisco", 7990),
+        (301, "Pisco Capel Especial 40° 750 cc", "Pisco", 5990),
+        (302, "Coca-Cola Bebida Original 1,5 L", "Gaseosas", 1990),
+        (303, "Sprite Bebida Lima Limón 1,5 L", "Gaseosas", 1890),
+        (304, "Pepsi Bebida 1,5 L", "Gaseosas", 1790),
+        (307, "Fanta Bebida Naranja 1,5 L", "Gaseosas", 1690),
+        (308, "Bilz Bebida Frutal 1,5 L", "Gaseosas", 1590),
+        (309, "Pap Bebida Papaya 1,5 L", "Gaseosas", 1590),
+        (310, "Ginger Ale Bebida 1,5 L", "Gaseosas", 2190),
+        (311, "Limón Soda Bebida 1,5 L", "Gaseosas", 2090),
+        (312, "Kem Piña Bebida 1,5 L", "Gaseosas", 1490),
+        (305, "Schweppes Agua Tónica Bebida 310 ml", "Gaseosas", 990),
+        (306, "Schweppes Agua Tónica Bebida Zero 310 ml", "Gaseosas", 1090),
+    ]:
+        add_product(db, pid, name, 2, category)
+        add_price(db, 2, pid, price)
+    db.execute("UPDATE catalog_items SET age_restricted = true WHERE master_product_id IN (305, 306)")
+    db.commit()
+    build_search_documents(db)
+    build_concepts(db)
+    embed_search_documents(db, HashEmbedder())
+
+
+def _talk(client, *messages: str) -> list[dict]:
+    """Como la app desde Licores: cada chip con la pantalla y el `conversation` anterior, tal cual."""
+    replies: list[dict] = []
+    for message in messages:
+        previous = {"previous": replies[-1]["conversation"]} if replies else {}
+        response = client.post("/agent/ask", json={"message": message, "vertical": "liquor", **previous})
+        assert response.status_code == 200, response.text
+        replies.append(response.json())
+    return replies
+
+
+def test_a_follow_up_keeps_nothing_adult_when_alcohol_was_only_what_for(client, db):
+    """ "bebida para mezclar con pisco" muestra bebidas sin nada +18 (concepts/need.py); "más barato" y "otra opción"
+    perdían el para qué y mostraban las tónicas que la tienda marca +18, con el aviso de edad."""
+    _mixers(db)
+    replies = _talk(client, "bebida para mezclar con pisco", "más barato", "otra opción")
+    assert replies[0]["conversation"]["context"] == ["pisco"]
+    for reply in replies:
+        assert reply["products"] and {p["concept"] for p in reply["products"]} == {"gaseosas"}, reply["text"]
+        assert not any(p["age_restricted"] for p in reply["products"]) and not reply["age_notice"], reply["text"]
+        assert "mayores de 18" not in reply["text"]
+    assert replies[1]["intent"]["follow_up"] and replies[2]["intent"]["follow_up"]
+    assert replies[2]["conversation"]["context"] == ["pisco"]
+
+
+def test_a_follow_up_on_the_pisco_still_shows_the_pisco(client, db):
+    """El caso inverso: "pisco con bebida" pide el pisco, y "más barato" sigue con el pisco y su aviso +18."""
+    _mixers(db)
+    first, cheaper = _talk(client, "pisco con bebida", "más barato")
+    assert first["intent"]["concepts"] == ["pisco"] and first["conversation"]["context"] == ["gaseosas"]
+    assert cheaper["intent"]["follow_up"] and {p["concept"] for p in cheaper["products"]} == {"pisco"}
+    assert all(p["age_restricted"] for p in cheaper["products"]) and cheaper["age_notice"]
+    assert cheaper["products"][0]["name"] == "Pisco Capel Especial 40° 750 cc"
+
+
 def test_a_previous_turn_out_of_range_is_rejected(client):
-    for bad in ({"people": 999}, {"order": "gratis"}, {"price_max": -1}, {"product_ids": ["x"] * 49}):
+    for bad in (
+        {"people": 999},
+        {"order": "gratis"},
+        {"price_max": -1},
+        {"product_ids": ["x"] * 49},
+        {"context": ["pisco"] * 11},
+    ):
         previous = {"query": "cerveza", "concepts": ["cerveza"], **bad}
         assert client.post("/agent/ask", json={"message": "más", "previous": previous}).status_code == 422, bad
