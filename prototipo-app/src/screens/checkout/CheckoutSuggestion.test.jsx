@@ -224,4 +224,10 @@ describe('"¿Me falta algo?" en el checkout (solo si se pide)', () => {
     expect(screen.queryByRole('button', { name: ASK })).toBeNull()
     localStorage.removeItem('rappi-proto-mochi-oculto')
   })
+
+  test('con Mochi apagado (el grupo de control) tampoco', () => {
+    localStorage.setItem('rappi-proto-mochi-activo', '0')
+    renderCheckout()
+    expect(screen.queryByRole('button', { name: ASK })).toBeNull()
+  })
 })

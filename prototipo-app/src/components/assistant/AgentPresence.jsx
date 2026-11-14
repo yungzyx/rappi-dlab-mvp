@@ -6,6 +6,7 @@ import { useAssistant } from '../../state/AssistantContext'
 import { formatPrice, useCart } from '../../state/CartContext'
 import { useDemo } from '../../state/DemoContext'
 import { useEvents } from '../../state/EventsContext'
+import { useAgentEnabled } from '../../state/agentEnabled'
 import { useAgentHidden } from '../../state/agentHidden'
 import { openCartSheet } from '../../state/cartSheet'
 import { AGENT_CART_EVENT, REPLAY_EVENT } from '../../state/liveMemory'
@@ -55,6 +56,7 @@ export default function AgentPresence({ screen, homeTab, raised }) {
   const [quiet, setQuiet] = useState(() => isQuiet(today()))
   const [dragging, setDragging] = useState(false) // se arrastra un producto: el agente lo espera
   const agentHidden = useAgentHidden()
+  const agentEnabled = useAgentEnabled() // el grupo de control ("Mochi apagado") no tiene mascota
   const host = useRef(null)
   const body = useRef(null)
   const drag = useRef(null)
@@ -67,6 +69,7 @@ export default function AgentPresence({ screen, homeTab, raised }) {
   const hidden =
     !demo.isFinal ||
     agentHidden ||
+    !agentEnabled ||
     assistant.isOpen ||
     AGENT_HIDDEN_SCREENS.has(screen) ||
     (screen === 'home' && homeTab === 'home')

@@ -104,7 +104,8 @@ export function PopularStores({ onOpen }) {
  * Antes de los productos van las tiendas y los restaurantes que se llaman así (`onOpenStore`), cada bloque con "Ver
  * todos". Con `onSeeAll(vertical)`, "Ver todos" de un grupo de productos abre la búsqueda solo en esa vertical (si no,
  * muestra el resto ahí mismo). Sin resultados y con `onOpenFavor(texto)`, ofrece "Lo que sea": pedirlo con RappiFavor,
- * si las guardias de la API lo permiten (`data.whimAllowed`).
+ * si las guardias de la API lo permiten (`data.whimAllowed`). Con `agentOff` (el buscador de siempre del grupo de
+ * control, "Mochi apagado"), sin resultados pide igual la oferta de Mochi, que no se muestra (`HeldNoResult`).
  */
 export function SearchResults({
   query,
@@ -119,6 +120,7 @@ export function SearchResults({
   onSearchExact,
   onSeeAll,
   onOpenFavor,
+  agentOff = false,
 }) {
   if (error) return <OfflineNotice onRetry={onRetry} />
   if (!data)
@@ -167,6 +169,7 @@ export function SearchResults({
     ) : (
       <>
         <p className="search-empty">Sin resultados para "{text}".</p>
+        {agentOff && <HeldNoResult key={text} query={text} />}
         {offline}
         {whim}
       </>
@@ -293,6 +296,16 @@ function WhimOffer({ query, requestId, onOpenFavor }) {
       </button>
     </div>
   )
+}
+
+/**
+ * Mochi apagado (el grupo de control): la búsqueda sin resultado pide igual la oferta `sin_resultado`, como el buscador
+ * con Mochi (`AgentEmpty`), para que la API la anote igual en los dos grupos (aquí retenida). No muestra nada: con Mochi
+ * apagado, `offer` siempre es null.
+ */
+function HeldNoResult({ query }) {
+  useApi(() => offer('sin_resultado', { query }, { userId: userId(), surface: 'search' }).catch(() => null), [query])
+  return null
 }
 
 /**

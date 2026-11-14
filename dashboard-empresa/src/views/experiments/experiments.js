@@ -3,14 +3,14 @@ import { AGENT_NAME } from '../../lib/agentName.js'
 
 const EXPERIMENTS = {
   modo_app: 'Modo de la app',
-  ofertas_control: `Grupo de control de las ofertas de ${AGENT_NAME}`,
+  ofertas_control: `Grupo de control: ${AGENT_NAME} apagado`,
 }
 
 const VARIANTS = {
   propuesta: `Propuesta (con ${AGENT_NAME})`,
   actual: '"Rappi hoy"',
-  tratamiento: 'Tratamiento (ve las ofertas)',
-  control: 'Control (no las ve)',
+  tratamiento: `Tratamiento (con ${AGENT_NAME})`,
+  control: `Control (${AGENT_NAME} apagado)`,
 }
 
 export const experimentLabel = (id) => EXPERIMENTS[id] ?? id

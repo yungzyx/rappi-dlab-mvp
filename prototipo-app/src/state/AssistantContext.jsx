@@ -1,5 +1,6 @@
 import { createContext, useContext, useEffect, useMemo, useRef, useState } from 'react'
 import { useDemo } from './DemoContext'
+import { useAgentEnabled } from './agentEnabled'
 
 const AssistantContext = createContext(null)
 
@@ -17,8 +18,10 @@ export function AssistantProvider({ children }) {
   const [session, setSession] = useState(null)
   // El buscador con Mochi es del prototipo final: "Rappi hoy" tiene el buscador de siempre. Al pasar a "Rappi hoy" (el
   // interruptor o la tecla D) se cierra, y volver atrás no lo reabre ahí (mostraba el perfil de gusto y lo aprendido).
-  // Sin el proveedor del modo (tests de piezas sueltas) cuenta como el prototipo final.
-  const final = useDemo()?.isFinal ?? true
+  // Sin el proveedor del modo (tests de piezas sueltas) cuenta como el prototipo final. En el grupo de control ("Mochi
+  // apagado") tampoco se abre: nada de la app lo abre ahí, y si algo lo hiciera, se cierra al tiro.
+  const enabled = useAgentEnabled()
+  const final = (useDemo()?.isFinal ?? true) && enabled
   const finalRef = useRef(final)
   useEffect(() => {
     finalRef.current = final

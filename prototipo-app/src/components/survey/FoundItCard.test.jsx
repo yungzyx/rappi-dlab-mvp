@@ -5,6 +5,7 @@ import { AssistantProvider } from '../../state/AssistantContext'
 import { DemoProvider } from '../../state/DemoContext'
 import { sessionId } from '../../state/EventsContext'
 import { HIDDEN_KEY } from '../../state/agentHidden'
+import { setAgentEnabled } from '../../state/agentEnabled'
 import { SURVEY_DAY_KEY, observeEvent, resetSurvey } from '../../state/survey'
 import { tabStore } from '../../state/storage'
 import { today } from '../../utils/today'
@@ -230,6 +231,7 @@ describe('la p3', () => {
   test.each([
     ['Mochi oculto', () => localStorage.setItem(HIDDEN_KEY, '1')],
     ['"Rappi hoy"', () => localStorage.setItem('rappi-proto-demo-mode', 'actual')],
+    ['Mochi apagado (el grupo de control)', () => setAgentEnabled(false)],
   ])('with %s the p1 still shows, without Mochi, and the p3 does not', (_, setUp) => {
     setUp()
     mount()

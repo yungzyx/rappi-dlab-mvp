@@ -28,16 +28,17 @@ const cardTitle = (row) => {
 /**
  * "Descubre con el agente": tarjetas de /recommendations, cada una con un complemento de lo que le gusta a la persona en una
  * vertical que quizá aún no abre, o con lo más pedido en una vertical (`kind: 'lo_mas_pedido'`). `rows` son las filas de
- * la API (hasta 3); tocar una tarjeta abre su vertical (`onOpen(vertical, { row, position })`).
+ * la API (hasta 3); tocar una tarjeta abre su vertical (`onOpen(vertical, { row, position })`). `title`: en el buscador
+ * de siempre del grupo de control ("Mochi apagado") son "Para ti", sin el nombre de Mochi.
  */
-export default function DiscoverSection({ rows, onOpen }) {
+export default function DiscoverSection({ rows, onOpen, title = `Descubre con ${AGENT_NAME}` }) {
   const cards = rows.filter((row) => VERTICAL_NAMES[row.prototype_vertical])
   if (cards.length === 0) return null
 
   return (
     <section className="discover" aria-labelledby="discover-title">
       <h2 id="discover-title" className="search-heading">
-        Descubre con {AGENT_NAME}
+        {title}
       </h2>
 
       <div className="discover-cards">

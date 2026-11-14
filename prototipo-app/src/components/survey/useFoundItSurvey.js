@@ -4,6 +4,7 @@ import { useOpenDialogs } from '../../hooks/useDialog'
 import { useAssistant } from '../../state/AssistantContext'
 import { useDemo } from '../../state/DemoContext'
 import { sessionId, useEvents } from '../../state/EventsContext'
+import { useAgentEnabled } from '../../state/agentEnabled'
 import { useAgentHidden } from '../../state/agentHidden'
 import {
   canAsk,
@@ -46,14 +47,16 @@ export function useFoundItSurvey({ screen, depth }) {
   const demo = useDemo()
   const assistant = useAssistant()
   const agentHidden = useAgentHidden()
+  const agentEnabled = useAgentEnabled()
   const dialogs = useOpenDialogs()
   const journey = useSurveyJourney()
   const [card, setCard] = useState(null)
   const [origin, setOrigin] = useState(null) // la profundidad de la pila desde la que se buscó
   const [waiting, setWaiting] = useState(false) // Mochi dice algo o está el aviso de privacidad
   const searching = assistant?.isOpen === true || screen === 'search'
-  // Mochi a la vista: el prototipo final y no oculto (en silencio sigue a la vista, como una pestañita).
-  const mochi = demo?.isFinal !== false && !agentHidden
+  // Mochi a la vista: el prototipo final, no oculto y no apagado (el grupo de control). En silencio sigue a la vista,
+  // como una pestañita.
+  const mochi = demo?.isFinal !== false && !agentHidden && agentEnabled
 
   // Desde dónde se buscó: la pantalla bajo el buscador (el de Mochi se abre encima; el plano es una pantalla más).
   if (journey && origin === null) setOrigin(screen === 'search' ? depth - 1 : depth)

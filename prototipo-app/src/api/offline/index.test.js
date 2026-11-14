@@ -19,6 +19,13 @@ const call = (method, path, body, now) => {
 
 beforeEach(() => localStorage.clear())
 
+test('sin conexión no hay grupo de control: la sesión, nueva o al recargar, dice que Mochi está', () => {
+  expect(call('GET', '/session').status).toBe(401) // sin sesión todavía: la app pide una
+  const { body: session } = call('POST', '/session', {})
+  expect(session.agent_enabled).toBe(true)
+  expect(call('GET', '/session').body).toEqual({ user_id: session.user_id, agent_enabled: true })
+})
+
 test('la sesión, los eventos y los pedidos ordenan la Home; "Rappi hoy" no; "Olvidar" lo borra', () => {
   const { body: session } = call('POST', '/session', {})
   expect(session.user_id).toMatch(/^proto-/)
