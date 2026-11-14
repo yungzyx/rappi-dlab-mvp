@@ -35,7 +35,9 @@ SUPUESTOS (editables aquí):
   la tabla sin Favor y la retención M+1 de las filas con 100 meses o más, a menos de 0,1 de la de Rappi;
   rest+turbo+retail es la que más retiene y cada combinación de dos o más grupos retiene más que cada una de un solo
   grupo (docs/resultados/simulados-2026-10-17.md). Los pedidos por persona quedan bajo los de la tabla en las
-  combinaciones de varios grupos (los meses de alta y de salida son parciales).
+  combinaciones de varios grupos (los meses de alta y de salida son parciales). Con el grupo de control simulado (sin
+  sugerencias, combina menos) los factores se volvieron a ajustar el 14-11-2026: con las mismas 5 semillas, cada fila
+  queda a menos de 1,3 puntos de la tabla salvo "rest" en la semilla 11 (2,7) (docs/resultados/simulados-2026-11-14.md).
 - SUPUESTO EXPLÍCITO: la tabla es una correlación (quien pide mucho usa más grupos y además vuelve más), pero aquí se
   trata como efecto. Aceptar una sugerencia que la hace pedir en otro grupo cambia su combinación de verdad, y con ella
   su retención. Por construcción, el panel "confirma" que sumar grupos retiene: no es evidencia.
@@ -81,8 +83,22 @@ SUPUESTOS (editables aquí):
   queda sin resultado: no cambia la demanda no satisfecha, el surtido por concepto ni "Lo más buscado" (que solo
   cuenta lo que calza con el catálogo). Sale de un sorteo aparte por sesión (semilla, persona y sesión): no toca el de
   la conducta, y lo calibrado sigue igual.
-- Experimentos: toda persona simulada está en `modo_app = propuesta` (sus sesiones son de ese modo). El grupo de control
-  de las ofertas no se simula: su efecto saldría de un supuesto puesto aquí, y retener sugerencias movería lo calibrado.
+- Experimentos: toda persona simulada está en `modo_app = propuesta` (sus sesiones son de ese modo). Desde el
+  14-11-2026 también tiene variante en `ofertas_control`, con el mismo sorteo estable de la API (`experiments.bucket`)
+  y un porcentaje propio de los simulados (SYNTH_CONTROL_PCT, independiente de OFFERS_CONTROL_PCT). El control es
+  "Mochi apagado" (docs/plan-piloto.md): sin `ask` (lo que habría preguntado a Mochi queda como `search`), sin
+  sugerencias mostradas ni aceptadas, sin RappiTravel ni RappiFavor ofrecidos por Mochi; donde el tratamiento tiene una
+  oferta del carro (el momento `carrito`, origen `agent-carrito`) queda `offer_withheld`, y en tratamiento
+  `offer_eligible` antes de la sugerencia mostrada. Los sorteos de la conducta se hacen igual en los dos grupos (el
+  control los descarta), y los de la pregunta, ocultar y silenciar salen de un sorteo aparte por sesión (`exp`).
+  SUPUESTOS PROPIOS, no datos de Rappi ni resultados: la diferencia entre grupos la ponen dos cosas declaradas aquí.
+  (1) Lo que ya suponía el generador: la sugerencia aceptada lleva a pedir en otro grupo y la tabla de Rappi se trata
+  como efecto (arriba), así que sin sugerencias el control suma menos verticales, pide un poco menos y retiene algo
+  menos. (2) La pregunta in-app ("¿Encontraste lo que buscabas?", P1, en los dos grupos; la P3 solo en tratamiento,
+  tras un "¿Por qué?"): con Mochi a la vista, SURVEY_YES_LIFT puntos más de "Sí" (SURVEY_*). Una fracción chica del
+  tratamiento oculta a Mochi (MOCHI_HIDE, y lo trae de vuelta con MOCHI_BACK) o lo silencia por hoy (MOCHI_QUIET):
+  oculto, sus sesiones son como las del control; silenciado, la oferta del carro queda elegible pero no se muestra.
+  El panel muestra la mecánica por grupo, sin veredicto: lo que "mide" es lo que se puso aquí.
 """
 
 import io
@@ -109,6 +125,7 @@ from ..motor.combos import (
     load_combos,
 )
 from ..offers.guards import baby_in_name, is_offerable, offerable_vertical, unofferable_subverticals
+from .experiments import CONTROL, OFFERS_CONTROL, TREATMENT, bucket
 
 log = logging.getLogger(__name__)
 CHILE = timezone(timedelta(hours=-3))
@@ -388,19 +405,20 @@ _COMBOS = load_combos()
 _SHARES = {combo: row.pct_users for combo, row in _COMBOS.rappi.items() if combo != SERVICE_COMBO}
 # Cuánto se corrige el sorteo de cada arquetipo al darse de alta para que la mezcla de personas-mes (la que mide el
 # motor) se parezca a la de la tabla: quien combina grupos vive más meses, pasa meses en un solo grupo y las sugerencias
-# aceptadas llevan a quien solo pide en Restaurantes a combinar. Ajustado el 17-10-2026 con
-# `scripts/calibrar_simulados.py --base rappi_staging --ajustar --altas 12000 --hasta 2026-10-17` (semilla FIT_SEED =
-# 101) sobre el catálogo de rappi_staging de esa noche, mientras se reetiquetaban sus conceptos: la misma orden, más
-# tarde, dio factores algo distintos (rest+retail 0,15, turbo+retail 0,13), y con estos cada fila siguió a menos de
-# 1,2 puntos de la tabla (docs/resultados/simulados-2026-10-17.md).
+# aceptadas llevan a quien solo pide en Restaurantes a combinar (en el control no hay sugerencias: por eso, desde que
+# se simula el control, salen más altas de "rest+retail" y "turbo+retail" que antes). Ajustado el 14-11-2026, con el
+# grupo de control simulado, con `scripts/calibrar_simulados.py --base rappi_staging --ajustar --altas 12000 --hasta
+# 2026-11-14` (semilla FIT_SEED = 101) sobre el catálogo de rappi_staging de ese día; el generador sin control daba, con
+# la misma orden, los factores del 17-10-2026 (docs/resultados/simulados-2026-10-17.md y
+# docs/resultados/simulados-2026-11-14.md).
 ARCHETYPE_CALIBRATION: dict[str, float] = {
-    "rest": 1.15,
-    "turbo": 0.87,
-    "rest+turbo": 0.67,
-    "retail": 1.14,
-    "rest+retail": 0.20,
-    "rest+turbo+retail": 0.68,
-    "turbo+retail": 0.19,
+    "rest": 1.10,
+    "turbo": 0.71,
+    "rest+turbo": 0.95,
+    "retail": 0.78,
+    "rest+retail": 0.89,
+    "rest+turbo+retail": 0.78,
+    "turbo+retail": 0.54,
 }
 _DRAW = {combo: share * ARCHETYPE_CALIBRATION[combo] for combo, share in _SHARES.items()}
 ARCHETYPES: dict[str, float] = {combo: weight / sum(_DRAW.values()) for combo, weight in _DRAW.items()}
@@ -433,6 +451,23 @@ REFORMULATE_GAP_S = (20, 90)  # cuántos segundos antes fue esa otra búsqueda
 MODALITIES = (("texto", 1.0),)  # solo texto; se sigue sorteando para conservar la misma secuencia aleatoria
 PREFERRED_ATTRIBUTES = ("sin-gluten", "vegano", "alto-proteina", "con-descuento")
 PREFER_SHARE = 0.85  # con qué frecuencia elige un ítem con su atributo cuando el concepto tiene alguno
+# El grupo de control simulado ("Mochi apagado") y lo que lo distingue del tratamiento. SUPUESTOS PROPIOS, no datos de
+# Rappi ni resultados (ver SUPUESTOS, "Experimentos"): el panel los muestra por grupo, sin veredicto.
+SYNTH_CONTROL_PCT = 50  # % de las personas simuladas en control (bucket estable del id, como la API)
+OFFER_ORIGIN = "agent-carrito"  # la sugerencia del carro es la oferta del momento `carrito`, pedida desde la Home
+OFFER_SURFACE = "home"
+WHY_OPEN = 0.15  # sugerencias mostradas en que la persona abre su "¿Por qué?" (habilita la P3)
+SURVEY_SHOWN = 0.3  # sesiones con búsqueda en que sale "¿Encontraste lo que buscabas?" (una por sesión y por día)
+SURVEY_ANSWERED = 0.6  # de ellas, las que se responden (las otras se cierran sin responder)
+# Reparto de Sí / En parte / No de la P1 según cómo terminó la búsqueda: con algo al carro, con resultados y sin
+# tocarlos (abandono), o sin resultados (abandono).
+SURVEY_P1 = {"carro": (0.7, 0.22, 0.08), "con_resultados": (0.2, 0.35, 0.45), "sin_resultados": (0.03, 0.12, 0.85)}
+SURVEY_YES_LIFT = 0.04  # con Mochi a la vista, 4 puntos más de "Sí" (sacados de En parte y No en proporción)
+P3_ANSWERED = 0.7  # la P3 sigue a la P1 respondida: la parte que la responde
+P3_WEIGHTS = (0.05, 0.1, 0.25, 0.35, 0.25)  # "¿Confías en las sugerencias de Mochi?" de 1 a 5 (promedio ~3,65)
+MOCHI_HIDE = 0.004  # por sesión, en tratamiento: oculta a Mochi (en Cuenta) y sus sesiones siguientes son sin Mochi
+MOCHI_BACK = 0.08  # por sesión, con Mochi oculto: lo trae de vuelta
+MOCHI_QUIET = 0.008  # por sesión, en tratamiento y a la vista: lo silencia por hoy (la oferta del carro no se muestra)
 
 
 @dataclass
@@ -481,6 +516,30 @@ class UserState:
     orders_by_vertical: dict[str, list[datetime]] = field(default_factory=dict)
     recent_unmet: list[datetime] = field(default_factory=list)
     recent_abandon: list[datetime] = field(default_factory=list)
+    variant: str = TREATMENT  # en `ofertas_control`: tratamiento (con Mochi) o control (Mochi apagado)
+    hidden: bool = False  # en tratamiento, si ocultó a Mochi y no lo trajo de vuelta
+
+
+@dataclass
+class _Visit:
+    """Lo de Mochi y la pregunta in-app en una sesión: si está a la vista (tratamiento y no oculto) y silenciado hoy, y
+    el recorrido de búsqueda que hace salir la pregunta. Sus sorteos (`exp`) no tocan los de la conducta."""
+
+    exp: random.Random
+    mochi: bool
+    quiet: bool = False
+    last: datetime | None = None  # la hora del último evento de la sesión
+    searched: bool = False
+    request: str | None = None
+    results: int = 0
+    carted: bool = False
+    why: bool = False  # abrió el "¿Por qué?" de una oferta
+
+
+def draw_variant(user_id: str) -> str:
+    """La variante de la persona simulada en `ofertas_control`: el sorteo estable de la API (`experiments.bucket`) con
+    SYNTH_CONTROL_PCT, propio de los simulados."""
+    return CONTROL if bucket(user_id, OFFERS_CONTROL) < SYNTH_CONTROL_PCT else TREATMENT
 
 
 def load_catalog(conn: Connection, per_concept: int = 40) -> Catalog:
@@ -656,13 +715,15 @@ def generate(
     for n in range(users):
         persona = rng.choices(PERSONAS, weights=[p.share for p in PERSONAS])[0]
         archetype = draw_archetype(rng)
+        user_id = f"syn-{seed}-{n:05d}"
         state = UserState(
-            user_id=f"syn-{seed}-{n:05d}",
+            user_id=user_id,
             persona=persona,
             city=rng.choices(["Santiago", "Valparaíso", "Concepción", "Antofagasta"], [0.7, 0.12, 0.1, 0.08])[0],
             cadence=archetype_cadence(archetype, persona) * math.exp(rng.gauss(0, 0.35)),
             archetype=archetype,
             interests=effective_interests(persona, archetype, catalog),
+            variant=draw_variant(user_id),
         )
         signup = draw_signup(rng, start, weeks)
         _write(
@@ -676,7 +737,9 @@ def generate(
             draw_pro(seed, n, archetype),
         )
         _write(buffers["assignments"], state.user_id, MODE_EXPERIMENT, "propuesta", _iso(signup), "synthetic")
+        _write(buffers["assignments"], state.user_id, OFFERS_CONTROL, state.variant, _iso(signup), "synthetic")
         counts["usuarios"] += 1
+        counts[state.variant] = counts.get(state.variant, 0) + 1
         _simulate_user(rng, catalog, state, signup, end, start, buffers, counts, seed)
 
     _copy(conn, "app_users (user_id, source, segment, city, consent_notifications, created_at, pro)", buffers["users"])
@@ -718,8 +781,9 @@ def _simulate_user(
 def _session(rng, catalog: Catalog, s: UserState, ts: datetime, start: datetime, buffers, counts, seed=0) -> None:
     session_id = uuid.UUID(int=rng.getrandbits(128)).hex[:16]
     events = buffers["events"]
-    _write(buffers["sessions"], s.user_id, session_id, _iso(ts), "propuesta", "synthetic", SESSION_VARIANTS)
+    _write(buffers["sessions"], s.user_id, session_id, _iso(ts), "propuesta", "synthetic", session_variants(s.variant))
     seq = 0
+    visit = _Visit(random.Random(f"exp-{seed}-{s.user_id}-{session_id}"), mochi=False, last=ts)
 
     def emit(kind, when, at=None, **kw):
         # El sobre de la app (migración 043): id, hora y orden de cada evento en su sesión. El id sale de la persona, la
@@ -727,6 +791,7 @@ def _session(rng, catalog: Catalog, s: UserState, ts: datetime, start: datetime,
         # reservado (el list_view de la búsqueda se escribe al final, cuando se sabe qué se tocó en él).
         nonlocal seq
         order = seq if at is None else at
+        visit.last = max(visit.last, when)
         _write(
             events,
             s.user_id,
@@ -758,9 +823,12 @@ def _session(rng, catalog: Catalog, s: UserState, ts: datetime, start: datetime,
         counts["eventos"] += 1
 
     emit("app_open", ts)
+    _mochi_in_session(visit, s, emit, ts + timedelta(seconds=2))
     clock = ts + timedelta(seconds=rng.randint(5, 40))
     week = (ts - start).days / 7
 
+    # Sin Mochi (control u oculto) se sortea lo mismo que con él y se descarta lo que sería suyo: los sorteos de la
+    # conducta siguen el mismo orden en los dos grupos.
     wish = _maybe_wish(rng, week)
     if wish:  # un antojo que el catálogo no tiene: búsqueda sin resultado, se va sin comprar
         vertical, text, concept, _, _ = wish
@@ -774,27 +842,35 @@ def _session(rng, catalog: Catalog, s: UserState, ts: datetime, start: datetime,
             results=0,
             unmet=True,
         )
+        visit.searched = True
         s.recent_unmet.append(ts)
         if rng.random() < FAVOR_OFFER:  # el agente ofrece pedirlo con RappiFavor
             favor = {"servicio": "rappifavor"}
-            emit("service_shown", clock + timedelta(seconds=2), payload=favor)
-            if rng.random() < FAVOR_OPEN:
-                emit("service_opened", clock + timedelta(seconds=9), payload=favor)
+            opened = rng.random() < FAVOR_OPEN
+            if visit.mochi:
+                emit("service_shown", clock + timedelta(seconds=2), payload=favor)
+                if opened:
+                    emit("service_opened", clock + timedelta(seconds=9), payload=favor)
+        _survey(visit, emit)
         return
 
     if rng.random() < TRIP:  # habla de un viaje: RappiTravel (su gancho es de Farmacia y el agente no lo ofrece)
         travel = {"servicio": "rappitravel"}
-        emit("ask", clock, query="me voy de vacaciones", modality=_modality(rng), results=0)
-        emit("service_shown", clock + timedelta(seconds=2), payload=travel)
-        if rng.random() < TRAVEL_OPEN:
-            emit("service_opened", clock + timedelta(seconds=12), payload=travel)
+        modality = _modality(rng)
+        opened = rng.random() < TRAVEL_OPEN
+        if visit.mochi:  # se lo cuenta a Mochi; sin Mochi, abre la app y se va
+            emit("ask", clock, query="me voy de vacaciones", modality=modality, results=0)
+            emit("service_shown", clock + timedelta(seconds=2), payload=travel)
+            if opened:
+                emit("service_opened", clock + timedelta(seconds=12), payload=travel)
         return
 
     vertical = _pick_vertical(rng, s.interests)
     concept = _weighted(rng, s.interests[vertical])
     prefer = s.persona.prefer
     item = catalog.pick(rng, vertical, concept, prefer)
-    kind = "ask" if rng.random() < 0.3 else "search"
+    # Sin Mochi, lo que le habría preguntado lo busca en el buscador de siempre.
+    kind = "ask" if rng.random() < 0.3 and visit.mochi else "search"
     modality = _modality(rng)  # antes que los resultados: el mismo orden de sorteo de siempre
     results = 0 if item is None else rng.randint(4, 20)
     other = None
@@ -828,8 +904,10 @@ def _session(rng, catalog: Catalog, s: UserState, ts: datetime, start: datetime,
         surface="search" if kind == "search" else "agent",
         request=request,
     )
+    visit.searched, visit.request, visit.results = True, request, results
     if item is None:
         s.recent_unmet.append(ts)
+        _survey(visit, emit)
         return
     view = _ResultsView(
         random.Random(f"imp-{seed}-{s.user_id}-{session_id}"),
@@ -845,7 +923,9 @@ def _session(rng, catalog: Catalog, s: UserState, ts: datetime, start: datetime,
     view_seq = seq
     seq += 1  # su lugar en la sesión, justo después de la búsqueda
     try:
-        _shop(rng, catalog, s, ts, clock, buffers, counts, emit, session_id, vertical, concept, prefer, item, view)
+        _shop(
+            rng, catalog, s, ts, clock, buffers, counts, emit, session_id, vertical, concept, prefer, item, view, visit
+        )
     finally:
         emit(
             "list_view",
@@ -868,11 +948,15 @@ def _session(rng, catalog: Catalog, s: UserState, ts: datetime, start: datetime,
                 concept,
                 vertical,
             )
+    _survey(visit, emit)
 
 
-def _shop(rng, catalog, s, ts, clock, buffers, counts, emit, session_id, vertical, concept, prefer, item, view) -> None:
+def _shop(
+    rng, catalog, s, ts, clock, buffers, counts, emit, session_id, vertical, concept, prefer, item, view, visit
+) -> None:
     """Lo que sigue a una búsqueda con resultados: mirar, agregar, la sugerencia de Mochi y pagar (o abandonar). Lo que
-    se mira y se agrega sale de los resultados (`view`), con su lugar."""
+    se mira y se agrega sale de los resultados (`view`), con su lugar. La sugerencia es la oferta del carro: queda
+    elegible (tratamiento) o retenida (control) y se muestra solo con Mochi a la vista y sin silenciar (`visit`)."""
     if rng.random() < BROWSE_ONLY:
         return
     cart_id = uuid.UUID(int=rng.getrandbits(128)).hex[:12]
@@ -894,15 +978,38 @@ def _shop(rng, catalog, s, ts, clock, buffers, counts, emit, session_id, vertica
             **where,
         )
         lines.append((item, concept, False))
+    visit.carted = True
 
     suggestion = _suggestion(catalog, concept, vertical, rng) if rng.random() < SUGGESTION_SHOWN else None
     if suggestion:
         target, sug_vertical, weight = suggestion
         clock += timedelta(seconds=rng.randint(5, 30))
-        emit("suggestion_shown", clock, vertical=sug_vertical, concept=target)
-        if rng.random() < SUGGESTION_ACCEPT * (0.5 + weight):
-            sug_item = catalog.pick(rng, sug_vertical, target, offer=True)
-            emit("suggestion_accepted", clock + timedelta(seconds=4), vertical=sug_vertical, concept=target)
+        # La API anota la oferta del carro en los dos grupos (api/agent.py: `_withheld`), una por sesión.
+        offer = {
+            "vertical": sug_vertical,
+            "concept": target,
+            "surface": OFFER_SURFACE,
+            "origin": OFFER_ORIGIN,
+            "request": f"syn-{uuid.uuid5(SYNTHETIC_EVENTS, f'{s.user_id}|{session_id}|{OFFER_ORIGIN}').hex[:16]}",
+        }
+        emit(
+            "offer_eligible" if s.variant == TREATMENT else "offer_withheld",
+            clock,
+            results=1,
+            payload={"moment": "carrito", "experiment": OFFERS_CONTROL, "variant": s.variant},
+            **offer,
+        )
+        accepted = rng.random() < SUGGESTION_ACCEPT * (0.5 + weight)
+        sug_item = catalog.pick(rng, sug_vertical, target, offer=True) if accepted else None
+        if not visit.mochi or visit.quiet:  # sin Mochi o en silencio: elegible, pero no se muestra
+            suggestion = None
+        else:
+            emit("suggestion_shown", clock, **offer)
+            if visit.exp.random() < WHY_OPEN:
+                visit.why = True
+                emit("offer_why_open", clock + timedelta(seconds=2), **offer)
+        if suggestion and accepted:
+            emit("suggestion_accepted", clock + timedelta(seconds=4), **offer)
             if sug_item:
                 emit(
                     "cart_add",
@@ -916,8 +1023,8 @@ def _shop(rng, catalog, s, ts, clock, buffers, counts, emit, session_id, vertica
                 )
                 lines.append((sug_item, target, True))
                 s.cadence *= SUGGESTION_CADENCE_BOOST
-        else:
-            emit("suggestion_dismissed", clock + timedelta(seconds=3), vertical=sug_vertical, concept=target)
+        elif suggestion:
+            emit("suggestion_dismissed", clock + timedelta(seconds=3), **offer)
 
     clock += timedelta(seconds=rng.randint(20, 120))
     abandon = rng.random() < s.persona.abandon
@@ -958,7 +1065,62 @@ def _shop(rng, catalog, s, ts, clock, buffers, counts, emit, session_id, vertica
 
 
 MODE_EXPERIMENT = "modo_app"
-SESSION_VARIANTS = json.dumps({MODE_EXPERIMENT: "propuesta"})  # el eco de los experimentos en app_sessions
+
+
+def session_variants(variant: str) -> str:
+    """El eco de los experimentos de la persona en `app_sessions.variants`."""
+    return json.dumps({MODE_EXPERIMENT: "propuesta", OFFERS_CONTROL: variant})
+
+
+def _mochi_in_session(visit: _Visit, s: UserState, emit, when: datetime) -> None:
+    """Al abrir la app, en tratamiento: si oculta a Mochi (MOCHI_HIDE), lo trae de vuelta (MOCHI_BACK) o lo silencia
+    por hoy (MOCHI_QUIET), con los eventos de la app (`agent_visibility`). Deja en `visit` si está a la vista y en
+    silencio. En control no hay Mochi."""
+    if s.variant != TREATMENT:
+        return
+    exp = visit.exp
+    if s.hidden and exp.random() < MOCHI_BACK:
+        s.hidden = False
+        emit("agent_visibility", when, origin="cuenta", payload={"visible": True})
+    elif not s.hidden and exp.random() < MOCHI_HIDE:
+        s.hidden = True
+        emit("agent_visibility", when, origin="cuenta", payload={"visible": False})
+    visit.mochi = not s.hidden
+    if visit.mochi and exp.random() < MOCHI_QUIET:
+        visit.quiet = True
+        emit("agent_visibility", when, surface="home", origin="menu-mochi", payload={"visible": True, "quiet": True})
+
+
+def _survey(visit: _Visit, emit) -> None:
+    """La pregunta in-app al terminar una sesión con búsqueda (SURVEY_*), con los campos de la app: la P1 en los dos
+    grupos, con su motivo (algo al carro, o abandono); "Sí" sube SURVEY_YES_LIFT con Mochi a la vista. La P3 sigue a la
+    P1 respondida solo con Mochi a la vista y un "¿Por qué?" abierto en la sesión."""
+    exp = visit.exp
+    if not visit.searched or exp.random() >= SURVEY_SHOWN:
+        return
+    when = visit.last + timedelta(seconds=exp.randint(5, 60))
+    where = {"surface": "home", "request": visit.request}
+    p1 = {"question": "p1", "trigger": "carro" if visit.carted else "abandono", "mochi": visit.mochi}
+    emit("survey_shown", when, payload=p1, **where)
+    if exp.random() >= SURVEY_ANSWERED:
+        emit("survey_dismissed", when + timedelta(seconds=4), payload=p1, **where)
+        return
+    outcome = "carro" if visit.carted else "con_resultados" if visit.results else "sin_resultados"
+    yes, partly, no = SURVEY_P1[outcome]
+    if visit.mochi:
+        kept = 1 - SURVEY_YES_LIFT / (partly + no)
+        yes, partly, no = yes + SURVEY_YES_LIFT, partly * kept, no * kept
+    answer = exp.choices(("si", "en_parte", "no"), weights=(yes, partly, no))[0]
+    emit("survey_answer", when + timedelta(seconds=6), payload={**p1, "answer": answer}, **where)
+    if not (visit.mochi and visit.why):
+        return
+    p3 = {"question": "p3", "trigger": "porque", "mochi": True}
+    emit("survey_shown", when + timedelta(seconds=7), payload=p3, **where)
+    if exp.random() < P3_ANSWERED:
+        rating = exp.choices((1, 2, 3, 4, 5), weights=P3_WEIGHTS)[0]
+        emit("survey_answer", when + timedelta(seconds=12), payload={**p3, "answer": rating}, **where)
+    else:
+        emit("survey_dismissed", when + timedelta(seconds=10), payload=p3, **where)
 
 
 def _event_uuid(user_id: str, session_id: str, seq: int) -> uuid.UUID:

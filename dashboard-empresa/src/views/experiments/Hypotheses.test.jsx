@@ -230,14 +230,18 @@ describe('Las tres hipótesis', () => {
     expect(within(card(/Encontraste/)).getByText('No se sostiene que suba (p de una cola 0,060)')).toBeTruthy()
   })
 
-  test('with simulated data there is no verdict, even with both groups at their minimum', async () => {
+  test('with simulated data there is no verdict nor interval, even with both groups at their minimum', async () => {
     serveFixturesWith(respond('synthetic', offersControl({ people: [40, 35], controlPct: 50, conclusive: true })))
     await renderWithData(<ExperimentsView source="synthetic" />)
 
     for (const name of [/Retención M\+1/, /Restaurantes → Turbo/, /Encontraste/]) {
       expect(within(card(name)).getByText('Simulado: sin veredicto')).toBeTruthy()
+      // La diferencia sí se ve (es la mecánica), pero sin intervalo: la pone un supuesto del generador.
+      expect(within(card(name)).getByText('Diferencia')).toBeTruthy()
+      expect(within(card(name)).queryByText(/IC 95 %/)).toBeNull()
     }
     expect(screen.queryByText('Sube con el tratamiento')).toBeNull()
+    expect(screen.getByText(/salen de supuestos puestos a mano en el generador/)).toBeTruthy()
   })
 
   test('a saved response from before the hypotheses says so instead of breaking', async () => {

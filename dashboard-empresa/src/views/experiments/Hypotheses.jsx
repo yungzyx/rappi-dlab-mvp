@@ -26,9 +26,12 @@ const VARIANTS = [TREATMENT, CONTROL]
 const SHORT = { [TREATMENT]: 'Tratamiento', [CONTROL]: 'Control' }
 const ICONS = { good: 'up', bad: 'down', warn: 'warn' }
 
-/** "IC 95 %: −1,2 a 3,4" de una diferencia, o nada si no lo trae (bajo el mínimo). */
-function Interval({ ic95, decimals = 1 }) {
-  if (!ic95) return null
+/**
+ * "IC 95 %: −1,2 a 3,4" de una diferencia, o nada si no lo trae (bajo el mínimo). Con los simulados tampoco: la
+ * diferencia la pone un supuesto del generador y un intervalo la haría parecer un hallazgo.
+ */
+function Interval({ ic95, source, decimals = 1 }) {
+  if (!ic95 || source === 'synthetic') return null
   return (
     <span className="cell-sub">
       IC 95 %: {formatNumber(ic95[0], decimals)} a {formatNumber(ic95[1], decimals)}
@@ -177,7 +180,7 @@ function H1({ experiment, mode, source }) {
             diff: (
               <>
                 {formatPoints(difference?.puntos)}
-                <Interval ic95={difference?.ic95} />
+                <Interval ic95={difference?.ic95} source={source} />
               </>
             ),
           },
@@ -246,7 +249,7 @@ function H2({ experiment, mode, source }) {
             diff: (
               <>
                 {formatSigned(diff30?.valor)}
-                <Interval ic95={diff30?.ic95} decimals={2} />
+                <Interval ic95={diff30?.ic95} source={source} decimals={2} />
               </>
             ),
           },
@@ -262,7 +265,7 @@ function H2({ experiment, mode, source }) {
                 {rest?.relativa_pct !== null && rest?.relativa_pct !== undefined && (
                   <span className="cell-sub">{formatSigned(rest.relativa_pct, 1)} % relativo</span>
                 )}
-                <Interval ic95={rest?.ic95} />
+                <Interval ic95={rest?.ic95} source={source} />
               </>
             ),
           },
@@ -322,7 +325,7 @@ function H3({ experiment, mode, source }) {
             diff: (
               <>
                 {formatPoints(difference?.puntos)}
-                <Interval ic95={difference?.ic95} />
+                <Interval ic95={difference?.ic95} source={source} />
               </>
             ),
           },
@@ -353,6 +356,13 @@ export function Hypotheses({ source }) {
           {experiment.control_pct === 0
             ? 'El grupo de control está apagado (OFFERS_CONTROL_PCT en 0): cada tarjeta describe a toda la población. Para medir, la API se levanta con OFFERS_CONTROL_PCT entre 1 y 50.'
             : 'Un grupo todavía no tiene personas: cada tarjeta describe a toda la población hasta que los dos las tengan.'}
+        </Caveat>
+      )}
+      {mode === 'grupos' && source === 'synthetic' && (
+        <Caveat>
+          Datos simulados: el grupo de control y la diferencia entre los grupos salen de supuestos puestos a mano en el
+          generador (rappi-ia/src/rappi_ia/events/synth.py), no de un efecto medido. Muestran cómo se lee cada
+          hipótesis, sin veredicto ni intervalo.
         </Caveat>
       )}
       <div className="hypotheses" data-mode={mode}>
