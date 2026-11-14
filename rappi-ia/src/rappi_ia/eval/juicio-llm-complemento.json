@@ -202,6 +202,22 @@
    "juicio": "sirve"
   },
   {
+   "id": "P072bab4e6c",
+   "vertical": "mall",
+   "consulta": "regalo para mi polola",
+   "entity_type": "catalog_item",
+   "entity_id": "349166",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P073479ae7c",
+   "vertical": "supermercado",
+   "consulta": "algo dulce para el cafe de la tarde",
+   "entity_type": "catalog_item",
+   "entity_id": "1347862",
+   "juicio": "sirve"
+  },
+  {
    "id": "P07462cd17b",
    "vertical": "supermercado",
    "consulta": "huevos de campo",
@@ -1050,6 +1066,14 @@
    "juicio": "sirve"
   },
   {
+   "id": "P26c2bb5171",
+   "vertical": "licores",
+   "consulta": "bebida para mezclar con pisco",
+   "entity_type": "catalog_item",
+   "entity_id": "127870",
+   "juicio": "sirve"
+  },
+  {
    "id": "P27f5823b5f",
    "vertical": "conveniencia",
    "consulta": "algo para ver una película",
@@ -1082,11 +1106,27 @@
    "juicio": "sirve"
   },
   {
+   "id": "P2970bede84",
+   "vertical": "mall",
+   "consulta": "regalo para mi polola",
+   "entity_type": "catalog_item",
+   "entity_id": "349216",
+   "juicio": "sirve"
+  },
+  {
    "id": "P2981f3d711",
    "vertical": "mall",
    "consulta": "regalo para mi polola",
    "entity_type": "catalog_item",
    "entity_id": "1721272",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P2986f64c43",
+   "vertical": "supermercado",
+   "consulta": "algo dulce para el cafe de la tarde",
+   "entity_type": "catalog_item",
+   "entity_id": "294557",
    "juicio": "sirve"
   },
   {
@@ -1255,6 +1295,14 @@
    "consulta": "algo rico para almorzar",
    "entity_type": "menu_item",
    "entity_id": "714310",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P2d61f7eb6c",
+   "vertical": "supermercado",
+   "consulta": "algo dulce para el cafe de la tarde",
+   "entity_type": "catalog_item",
+   "entity_id": "1735386",
    "juicio": "sirve"
   },
   {
@@ -1472,6 +1520,14 @@
    "entity_type": "catalog_item",
    "entity_id": "130583",
    "juicio": "a medias"
+  },
+  {
+   "id": "P32e8455a8b",
+   "vertical": "supermercado",
+   "consulta": "algo dulce para el cafe de la tarde",
+   "entity_type": "catalog_item",
+   "entity_id": "132956",
+   "juicio": "sirve"
   },
   {
    "id": "P335588b63b",
@@ -1874,6 +1930,14 @@
    "juicio": "sirve"
   },
   {
+   "id": "P4003706fc7",
+   "vertical": "licores",
+   "consulta": "bebida para mezclar con pisco",
+   "entity_type": "catalog_item",
+   "entity_id": "1646633",
+   "juicio": "sirve"
+  },
+  {
    "id": "P400943b623",
    "vertical": "turbo",
    "consulta": "queso gauda laminado",
@@ -2063,6 +2127,14 @@
    "consulta": "cereal para ninos",
    "entity_type": "catalog_item",
    "entity_id": "276369",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P47e2806946",
+   "vertical": "mall",
+   "consulta": "regalo para mi polola",
+   "entity_type": "catalog_item",
+   "entity_id": "1356083",
    "juicio": "sirve"
   },
   {
@@ -2266,6 +2338,14 @@
    "juicio": "sirve"
   },
   {
+   "id": "P51fc1c5383",
+   "vertical": "conveniencia",
+   "consulta": "algo para ver una película",
+   "entity_type": "catalog_item",
+   "entity_id": "67278",
+   "juicio": "sirve"
+  },
+  {
    "id": "P52445cb2a1",
    "vertical": "licores",
    "consulta": "tequila",
@@ -2344,6 +2424,14 @@
    "entity_type": "catalog_item",
    "entity_id": "14906",
    "juicio": "a medias"
+  },
+  {
+   "id": "P546e629fc2",
+   "vertical": "conveniencia",
+   "consulta": "algo para ver una película",
+   "entity_type": "catalog_item",
+   "entity_id": "1218802",
+   "juicio": "sirve"
   },
   {
    "id": "P548aa7a5bc",
@@ -2658,6 +2746,14 @@
    "juicio": "a medias"
   },
   {
+   "id": "P5bb2e2a34e",
+   "vertical": "supermercado",
+   "consulta": "algo dulce para el cafe de la tarde",
+   "entity_type": "catalog_item",
+   "entity_id": "1296732",
+   "juicio": "sirve"
+  },
+  {
    "id": "P5c05c35198",
    "vertical": "farmacia",
    "consulta": "perfume de mujer",
@@ -2914,6 +3010,14 @@
    "juicio": "sirve"
   },
   {
+   "id": "P62aa2082f6",
+   "vertical": "mall",
+   "consulta": "regalo para mi polola",
+   "entity_type": "catalog_item",
+   "entity_id": "349255",
+   "juicio": "sirve"
+  },
+  {
    "id": "P62e1d2ebbe",
    "vertical": "conveniencia",
    "consulta": "vino tinto",
@@ -2968,6 +3072,14 @@
    "entity_type": "menu_item",
    "entity_id": "784075",
    "juicio": "a medias"
+  },
+  {
+   "id": "P639f2eaa32",
+   "vertical": "licores",
+   "consulta": "bebida para mezclar con pisco",
+   "entity_type": "catalog_item",
+   "entity_id": "40151",
+   "juicio": "sirve"
   },
   {
    "id": "P648e35fd2e",
@@ -3047,6 +3159,14 @@
    "consulta": "fideos spaghetti",
    "entity_type": "catalog_item",
    "entity_id": "115946",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P677508f001",
+   "vertical": "licores",
+   "consulta": "bebida para mezclar con pisco",
+   "entity_type": "catalog_item",
+   "entity_id": "106679",
    "juicio": "sirve"
   },
   {
@@ -3234,11 +3354,27 @@
    "juicio": "sirve"
   },
   {
+   "id": "P6cf6248e0a",
+   "vertical": "conveniencia",
+   "consulta": "algo para ver una película",
+   "entity_type": "catalog_item",
+   "entity_id": "1394148",
+   "juicio": "sirve"
+  },
+  {
    "id": "P6cf78ad633",
    "vertical": "licores",
    "consulta": "ron para mojitos",
    "entity_type": "catalog_item",
    "entity_id": "61144",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P6d23da1b83",
+   "vertical": "mall",
+   "consulta": "regalo para mi polola",
+   "entity_type": "catalog_item",
+   "entity_id": "1639219",
    "juicio": "sirve"
   },
   {
@@ -3335,6 +3471,14 @@
    "consulta": "algo para el carrete",
    "entity_type": "catalog_item",
    "entity_id": "504205",
+   "juicio": "sirve"
+  },
+  {
+   "id": "P70ecc22eae",
+   "vertical": "supermercado",
+   "consulta": "algo dulce para el cafe de la tarde",
+   "entity_type": "catalog_item",
+   "entity_id": "197113",
    "juicio": "sirve"
   },
   {
@@ -3882,6 +4026,14 @@
    "juicio": "a medias"
   },
   {
+   "id": "P830b49ec3d",
+   "vertical": "mall",
+   "consulta": "regalo para mi polola",
+   "entity_type": "catalog_item",
+   "entity_id": "349122",
+   "juicio": "sirve"
+  },
+  {
    "id": "P833f55d3b7",
    "vertical": "supermercado",
    "consulta": "panales para guagua",
@@ -4016,6 +4168,14 @@
    "entity_type": "catalog_item",
    "entity_id": "1544938",
    "juicio": "a medias"
+  },
+  {
+   "id": "P86babfa750",
+   "vertical": "supermercado",
+   "consulta": "algo dulce para el cafe de la tarde",
+   "entity_type": "catalog_item",
+   "entity_id": "1296742",
+   "juicio": "sirve"
   },
   {
    "id": "P879e41a963",
@@ -4170,6 +4330,14 @@
    "juicio": "a medias"
   },
   {
+   "id": "P8bde9ecf5a",
+   "vertical": "supermercado",
+   "consulta": "algo dulce para el cafe de la tarde",
+   "entity_type": "catalog_item",
+   "entity_id": "955619",
+   "juicio": "sirve"
+  },
+  {
    "id": "P8ca604a826",
    "vertical": "turbo",
    "consulta": "te verde",
@@ -4322,6 +4490,14 @@
    "juicio": "a medias"
   },
   {
+   "id": "P9154a56624",
+   "vertical": "licores",
+   "consulta": "bebida para mezclar con pisco",
+   "entity_type": "catalog_item",
+   "entity_id": "335785",
+   "juicio": "sirve"
+  },
+  {
    "id": "P919bf29b33",
    "vertical": "turbo",
    "consulta": "jugo de naranja",
@@ -4386,6 +4562,14 @@
    "juicio": "sirve"
   },
   {
+   "id": "P933f94cd07",
+   "vertical": "licores",
+   "consulta": "bebida para mezclar con pisco",
+   "entity_type": "catalog_item",
+   "entity_id": "1544843",
+   "juicio": "a medias"
+  },
+  {
    "id": "P934ee882bd",
    "vertical": "licores",
    "consulta": "papas fritas para picar",
@@ -4400,6 +4584,14 @@
    "entity_type": "catalog_item",
    "entity_id": "216464",
    "juicio": "a medias"
+  },
+  {
+   "id": "P938efbf2c0",
+   "vertical": "licores",
+   "consulta": "bebida para mezclar con pisco",
+   "entity_type": "catalog_item",
+   "entity_id": "67151",
+   "juicio": "sirve"
   },
   {
    "id": "P93f1b551c9",
@@ -4751,6 +4943,14 @@
    "consulta": "cepillo de dientes electrico",
    "entity_type": "catalog_item",
    "entity_id": "25596",
+   "juicio": "a medias"
+  },
+  {
+   "id": "P9f6d71b1dc",
+   "vertical": "licores",
+   "consulta": "bebida para mezclar con pisco",
+   "entity_type": "catalog_item",
+   "entity_id": "1544903",
    "juicio": "a medias"
   },
   {
@@ -5162,6 +5362,14 @@
    "juicio": "a medias"
   },
   {
+   "id": "Pac9ca2ce3f",
+   "vertical": "conveniencia",
+   "consulta": "algo para ver una película",
+   "entity_type": "catalog_item",
+   "entity_id": "123079",
+   "juicio": "sirve"
+  },
+  {
    "id": "Pad07e6cc87",
    "vertical": "farmacia",
    "consulta": "perfume de mujer",
@@ -5191,6 +5399,14 @@
    "consulta": "gelato de pistacho",
    "entity_type": "menu_item",
    "entity_id": "2092502148",
+   "juicio": "sirve"
+  },
+  {
+   "id": "Pad7f5f5dfd",
+   "vertical": "mall",
+   "consulta": "regalo para mi polola",
+   "entity_type": "catalog_item",
+   "entity_id": "349163",
    "juicio": "sirve"
   },
   {
@@ -5802,6 +6018,14 @@
    "juicio": "no sirve"
   },
   {
+   "id": "Pbfef59107d",
+   "vertical": "licores",
+   "consulta": "bebida para mezclar con pisco",
+   "entity_type": "catalog_item",
+   "entity_id": "304148",
+   "juicio": "a medias"
+  },
+  {
    "id": "Pc00e155d05",
    "vertical": "supermercado",
    "consulta": "papel higienico doble hoja",
@@ -6186,6 +6410,14 @@
    "juicio": "sirve"
   },
   {
+   "id": "Pcb4c52ea16",
+   "vertical": "supermercado",
+   "consulta": "algo dulce para el cafe de la tarde",
+   "entity_type": "catalog_item",
+   "entity_id": "1718661",
+   "juicio": "sirve"
+  },
+  {
    "id": "Pcb8205d23c",
    "vertical": "mall",
    "consulta": "carcasa para iphone",
@@ -6200,6 +6432,14 @@
    "entity_type": "catalog_item",
    "entity_id": "1374534",
    "juicio": "a medias"
+  },
+  {
+   "id": "Pcc0e75ad31",
+   "vertical": "supermercado",
+   "consulta": "algo dulce para el cafe de la tarde",
+   "entity_type": "catalog_item",
+   "entity_id": "266457",
+   "juicio": "sirve"
   },
   {
    "id": "Pcd6d54c69e",
@@ -6362,6 +6602,14 @@
    "juicio": "no sirve"
   },
   {
+   "id": "Pd2c8047814",
+   "vertical": "supermercado",
+   "consulta": "algo dulce para el cafe de la tarde",
+   "entity_type": "catalog_item",
+   "entity_id": "1296734",
+   "juicio": "sirve"
+  },
+  {
    "id": "Pd2dc53d44f",
    "vertical": "restaurantes",
    "consulta": "hamburguesa con papas",
@@ -6426,6 +6674,14 @@
    "juicio": "sirve"
   },
   {
+   "id": "Pd3ac344007",
+   "vertical": "supermercado",
+   "consulta": "algo dulce para el cafe de la tarde",
+   "entity_type": "catalog_item",
+   "entity_id": "1445822",
+   "juicio": "sirve"
+  },
+  {
    "id": "Pd3d4477f5c",
    "vertical": "licores",
    "consulta": "whisky etiqueta negra",
@@ -6479,6 +6735,14 @@
    "consulta": "algo dulce para un cumpleaños",
    "entity_type": "catalog_item",
    "entity_id": "626098",
+   "juicio": "sirve"
+  },
+  {
+   "id": "Pd66f6b9d5a",
+   "vertical": "supermercado",
+   "consulta": "algo dulce para el cafe de la tarde",
+   "entity_type": "catalog_item",
+   "entity_id": "101431",
    "juicio": "sirve"
   },
   {
@@ -6986,6 +7250,14 @@
    "juicio": "no sirve"
   },
   {
+   "id": "Pe978527bc1",
+   "vertical": "supermercado",
+   "consulta": "algo dulce para el cafe de la tarde",
+   "entity_type": "catalog_item",
+   "entity_id": "1273860",
+   "juicio": "sirve"
+  },
+  {
    "id": "Pe99a46fb55",
    "vertical": "licores",
    "consulta": "tequila",
@@ -7354,6 +7626,14 @@
    "juicio": "sirve"
   },
   {
+   "id": "Pf8b31e4576",
+   "vertical": "supermercado",
+   "consulta": "algo dulce para el cafe de la tarde",
+   "entity_type": "catalog_item",
+   "entity_id": "1719314",
+   "juicio": "sirve"
+  },
+  {
    "id": "Pf960b6f338",
    "vertical": "restaurantes",
    "consulta": "gelato de pistacho",
@@ -7480,6 +7760,14 @@
    "entity_type": "catalog_item",
    "entity_id": "883436",
    "juicio": "sirve"
+  },
+  {
+   "id": "Pfe084d3fff",
+   "vertical": "licores",
+   "consulta": "bebida para mezclar con pisco",
+   "entity_type": "catalog_item",
+   "entity_id": "244571",
+   "juicio": "a medias"
   },
   {
    "id": "Pfe36044292",

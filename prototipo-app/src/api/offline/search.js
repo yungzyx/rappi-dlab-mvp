@@ -102,7 +102,10 @@ function indexOf(meta) {
 }
 
 /** Los ids que nombran `words`, el más largo primero y sin solapes ("papas fritas" le gana a "papas"). */
-function keywordMatches(byFirst, words, avoid = {}) {
+const keywordMatches = (byFirst, words, avoid = {}) => keywordSpans(byFirst, words, avoid).map((m) => m.id)
+
+/** Como `keywordMatches`, con dónde está cada uno: { id, size, position } (concepts/matcher.py: Match). */
+function keywordSpans(byFirst, words, avoid = {}) {
   const forms = new Set(words.flatMap(candidatesOf))
   const found = new Map()
   words.forEach((word, position) => {
@@ -122,7 +125,7 @@ function keywordMatches(byFirst, words, avoid = {}) {
     const span = Array.from({ length: match.size }, (_, i) => match.position + i)
     if (span.some((i) => covered.has(i))) continue
     span.forEach((i) => covered.add(i))
-    result.push(match.id)
+    result.push(match)
   }
   return result
 }
@@ -141,6 +144,45 @@ export function detectConcepts(meta, q) {
   if (found.length || content.length !== 1) return found
   return keywordMatches(index.alone, content).slice(0, 1)
 }
+
+// Lo que separa lo pedido de su para qué (concepts/need.py: CONNECTORS).
+const CONNECTORS = ['para', 'con']
+
+/**
+ * "X para Y" o "X con Y" (concepts/need.py: read_need, en corto): lo nombrado después de un conector es solo el para
+ * qué si los complementos curados dicen que va con algo nombrado antes (meta.complements, en los dos sentidos).
+ * Devuelve { asked, words, sober }: los conceptos pedidos, las palabras de lo pedido (antes del conector) y si no va
+ * nada +18 (el para qué es alcohol y lo pedido no). null si nada es para qué. Sin conexión no se replica la ocasión como
+ * lo pedido ("algo dulce para el café": ahí sigue mandando lo nombrado) ni el texto de la arista; una muestra grabada
+ * sin `complements`, como siempre.
+ */
+function needOf(meta, q) {
+  const index = indexOf(meta)
+  const words = normalize(q).split(' ').filter(Boolean)
+  const spans = keywordSpans(index.keywords, words, index.avoid)
+  const goesWith = (a, b) => (meta.complements ?? {})[`${a}|${b}`] ?? 0
+  const connectors = words.flatMap((word, i) => (CONNECTORS.includes(word) ? [i] : []))
+  const context = new Map()
+  for (const y of spans)
+    for (const c of connectors.filter((c) => c < y.position)) {
+      const heads = spans.filter((h) => h.position + h.size <= c && h.id !== y.id)
+      if (heads.some((h) => goesWith(h.id, y.id) > 0)) {
+        if (!context.has(y.id)) context.set(y.id, c)
+        break
+      }
+    }
+  if (!context.size) return null
+  const asked = spans.filter((s) => !context.has(s.id)).map((s) => s.id)
+  const adult = (c) => isAdult(meta.concepts[c])
+  return {
+    asked,
+    words: words.slice(0, Math.min(...context.values())),
+    sober: [...context.keys()].some(adult) && !asked.some(adult),
+  }
+}
+
+/** Los conceptos pedidos: los que nombra la consulta, sin los de su para qué (retrieval/hybrid.py: query_need). */
+export const askedConcepts = (meta, q) => needOf(meta, q)?.asked ?? detectConcepts(meta, q)
 
 /** Si la consulta nombra una ocasión ("algo para el carrete": retrieval/hybrid.py, named_occasion). */
 const namesOccasion = (meta, q) => keywordMatches(indexOf(meta).occasions, normalize(q).split(' ')).length > 0
@@ -220,8 +262,16 @@ const namesIngredient = (name, forms) => {
   return forms.some((f) => inName.has(f))
 }
 
-/** Los productos de la muestra que calzan con `q`, del mejor al peor (cada uno una vez por vertical), con el foco. */
+/**
+ * Los productos de la muestra que calzan con `q`, del mejor al peor (cada uno una vez por vertical), con el foco. En
+ * "X para Y", solo X (`needOf`): "bebida para mezclar con pisco" busca bebidas, sin nada +18.
+ */
 export function matchProducts(snapshot, q) {
+  const need = needOf(snapshot.meta, q)
+  if (need) {
+    const asked = matchProducts(snapshot, need.words.join(' '))
+    return need.sober ? asked.filter((p) => !p.age_restricted) : asked
+  }
   const words = normalize(q)
     .split(' ')
     .filter((w) => w && !STOP.has(w))
@@ -254,7 +304,7 @@ const isAdult = (concept) => concept?.age_restricted ?? ADULT_GROUPS.includes(co
 function groupsOf(snapshot, q, found, current, limit) {
   const byVertical = new Map()
   for (const p of found) byVertical.set(p.vertical, [...(byVertical.get(p.vertical) ?? []), p])
-  const concepts = detectConcepts(snapshot.meta, q)
+  const concepts = askedConcepts(snapshot.meta, q)
   const adult = concepts.some((c) => isAdult(snapshot.meta.concepts[c]))
   const last = (vertical) => concepts.length > 0 && !adult && vertical === 'licores'
   const order = [...byVertical.keys()].sort(

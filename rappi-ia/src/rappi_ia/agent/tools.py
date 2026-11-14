@@ -13,7 +13,7 @@ from psycopg import Connection
 from rappi_scraper.storage.search import MIN_PRICE
 
 from .. import config
-from ..concepts.taxonomy import complement_queries, load_taxonomy
+from ..concepts.taxonomy import Occasion, complement_queries, load_taxonomy
 from ..embeddings.base import TextEmbedder
 from ..motor.combos import SERVICES
 from ..motor.predict import step_signal, target_step
@@ -36,14 +36,17 @@ from ..retrieval.hybrid import (
     _document_frequencies,
     _hydrate,
     _lexemes,
+    asked_text,
     named_occasion,
+    occasion_query,
     occasion_search,
+    query_need,
     retrieve,
     vertical_doc_count,
 )
 from ..retrieval.spelling import correct_query
 from ..text import FILLER_WORDS, LEAFLET_WARNINGS, normalize, tokens
-from .verticals import ranked_verticals
+from .verticals import MIN_ITEMS_ELSEWHERE, ranked_verticals
 
 
 def _sensitive() -> set[str]:
@@ -141,6 +144,7 @@ def search_products(
     adult_ok: bool = False,
     words: bool | None = None,
     correct: bool = False,
+    sober: bool = False,
 ) -> SearchOutcome:
     """Con `concepts=None`, los conceptos los detecta la búsqueda en la consulta (endpoint /search). Con `symptom` (o
     en farmacia) no se muestra lo que no tiene concepto: podría ser un medicamento sin categoría mapeada. Con `offer`,
@@ -150,27 +154,71 @@ def search_products(
     `words`: si a la consulta le queda alguna palabra (`retrieval.hybrid.has_words`), si quien llama ya lo sabe.
     Con `correct` (/search), si nada calza todas las palabras, corrige los errores de tipeo (`retrieval.spelling`) y
     vuelve a buscar: si así algo calza todas las palabras y hay productos, devuelve eso con `corrected_query`; si no, lo
-    de la consulta tal cual. Con `concepts=None`, una ocasión sin concepto nombrado ("algo para la once") se busca por
-    sus conceptos, como en la búsqueda agrupada (`retrieval.hybrid.occasion_search`), y no se corrige."""
-    occasion = occasion_search(query) if concepts is None else None
-    if occasion:
-        query, concepts, _ = occasion
-        words = None  # `words` era de la consulta escrita
+    de la consulta tal cual. Con `concepts=None` la consulta se lee sola (`read_query`): una ocasión sin concepto
+    nombrado ("algo para la once") se busca por los conceptos que esta vertical vende (`occasion_in`), como en la
+    búsqueda agrupada; "X para Y" busca X (`retrieval.hybrid.query_need`). Las dos no se corrigen: lo pedido ya se
+    entendió. `sober`: nada +18, porque el alcohol es solo el para qué de lo pedido ("bebida para mezclar con
+    pisco")."""
+    rewritten = False
+    if concepts is None:
+        query, concepts, occasion, sober = read_query(query, sober)
+        if occasion:
+            query, concepts = occasion_in(conn, vertical, concepts)
+        if rewritten := concepts is not None:
+            words = None  # `words` era de la consulta escrita
     found = _search_products(
-        conn, vertical, query, concepts, embedder, price_max, k, mode, symptom, offer, adult_ok, words
+        conn, vertical, query, concepts, embedder, price_max, k, mode, symptom, offer, adult_ok, words, sober
     )
-    if not correct or occasion or found.result.strict_lexical_matches:
+    if not correct or rewritten or found.result.strict_lexical_matches:
         return found
     fixed = correct_query(conn, query, vertical)
     if fixed is None:
         return found
-    again = _search_products(
-        conn, vertical, fixed, concepts, embedder, price_max, k, mode, symptom, offer, adult_ok, None
-    )
+    if concepts is None:  # lo corregido también se lee solo: "bebida para mezclar con piscco" busca la bebida
+        again = search_products(
+            conn, vertical, fixed, None, embedder, price_max, k, mode, symptom, offer, adult_ok, sober=sober
+        )
+    else:
+        again = _search_products(
+            conn, vertical, fixed, concepts, embedder, price_max, k, mode, symptom, offer, adult_ok, None, sober
+        )
     if not again.result.strict_lexical_matches or not again.products:
         return found
     again.corrected_query = fixed
     return again
+
+
+def read_query(query: str, sober: bool = False) -> tuple[str, list[str] | None, Occasion | None, bool]:
+    """Cómo se busca una consulta que llega sola (/search, de una vertical o agrupada): (consulta, conceptos, ocasión,
+    sin +18). Una ocasión sin concepto pedido, por sus conceptos (`retrieval.hybrid.occasion_search`); "X para Y" o
+    "X con Y", por lo pedido (`retrieval.hybrid.query_need`): "bebida para mezclar con pisco" busca "bebida" en
+    gaseosas, y si el alcohol es solo el para qué, sin nada +18 (Mochi no lo propone por su cuenta, y lo pedido es una
+    bebida). Si no, la consulta tal cual y conceptos None: los detecta la búsqueda."""
+    need = query_need(query)
+    if rewritten := occasion_search(query):
+        text, concepts, occasion = rewritten
+    elif need.context:
+        text, concepts, occasion = asked_text(query, need), [m.target for m in need.asked], None
+    else:
+        return query, None, None, sober
+    adult = {c.id for c in load_taxonomy().concepts.values() if c.age_restricted}
+    only_context = any(c in adult for c in need.context) and not any(c in adult for c in concepts)
+    return text, concepts, occasion, sober or only_context
+
+
+def occasion_in(conn: Connection, vertical: str, concepts: list[str]) -> tuple[str, list[str]]:
+    """(consulta, conceptos) de una ocasión en una vertical: solo los conceptos que la vertical vende de verdad
+    (MIN_ITEMS_ELSEWHERE productos o más, como Mochi en `_occasion_products`), en su orden; si ninguno, todos. Con
+    todos, "algo para ver una película" en Express buscaba también juegos de mesa y videojuegos, que tiene 11 y 8, y
+    un set de cocina de juguete con la categoría "Videojuegos" quedaba primero."""
+    items = dict(
+        conn.execute(
+            "SELECT concept_id, items FROM concept_assortment WHERE vertical = %s AND concept_id = ANY(%s)",
+            (vertical, concepts),
+        ).fetchall()
+    )
+    sold = [c for c in concepts if items.get(c, 0) >= MIN_ITEMS_ELSEWHERE] or concepts
+    return occasion_query(sold), sold
 
 
 # Los candidatos de una búsqueda que no es oferta, por cada producto pedido, si con los de siempre (2 por producto) se
@@ -179,7 +227,7 @@ CITY_POOL = 8
 
 
 def _search_products(
-    conn, vertical, query, concepts, embedder, price_max, k, mode, symptom, offer, adult_ok, words
+    conn, vertical, query, concepts, embedder, price_max, k, mode, symptom, offer, adult_ok, words, sober=False
 ) -> SearchOutcome:
     # Con dieta o alergias puestas (offers/preferences.py) se miran más candidatos: lo que sale no deja la respuesta
     # corta. Las favoritas solo ordenan lo que quedó.
@@ -197,7 +245,8 @@ def _search_products(
 
     def priced(hits) -> list[Product]:
         hits = _focus([h for h in hits if _allowed(h.concept_id, concepts, strict)], result, capped)
-        return _within_budget(_with_prices(conn, vertical, hits, offer, adult_ok), price_max)
+        products = _within_budget(_with_prices(conn, vertical, hits, offer, adult_ok), price_max)
+        return [p for p in products if not p.age_restricted] if sober else products
 
     found = priced(result.hits[:pool])
     here = len(_dedupe([p for p in found if p.in_city]))
@@ -222,6 +271,7 @@ def _search_products(
         # "El más barato" es de lo pedido: el mismo foco que con tope.
         candidates = _with_prices(conn, vertical, _focus(allowed, unfiltered, capped), offer, adult_ok)
         candidates = preferences.keep(candidates) if preferences else candidates
+        candidates = [p for p in candidates if not p.age_restricted] if sober else candidates
         priced = [p for p in candidates if p.price_value is not None]
         cheapest = min(priced, key=lambda p: p.price_value) if priced else None
     return SearchOutcome(result, products, cheapest, dropped=dropped)

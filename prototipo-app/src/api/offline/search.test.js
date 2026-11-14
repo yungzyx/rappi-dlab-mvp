@@ -84,6 +84,38 @@ describe('el foco de la búsqueda (agent/tools.py: _focus)', () => {
   })
 })
 
+describe('"X para Y" pide X (concepts/need.py: read_need)', () => {
+  const meta = {
+    ...META,
+    concepts: {
+      ...META.concepts,
+      gaseosas: { name: 'Bebidas gaseosas', group: 'bebidas', offerable: true, keywords: ['bebida', 'tonica'] },
+      pisco: { name: 'Pisco', group: 'alcohol', age_restricted: true, keywords: ['pisco'] },
+    },
+    complements: { 'pisco|gaseosas': 0.9, 'gaseosas|pisco': 0.9 },
+  }
+  const liquor = (id, name, concept, extra = {}) => product(id, { name, concept, vertical: 'licores', ...extra })
+  const cola = liquor(41, 'Coca-Cola Bebida 1.5 L', 'gaseosas')
+  const tonic = liquor(42, 'Agua Tónica Bebida', 'gaseosas', { age_restricted: true }) // la tienda la marca +18
+  const pisco = liquor(43, 'Pisco Mistral 35°', 'pisco', { age_restricted: true })
+  const pack = liquor(44, 'Pisco con Bebida 1.5 L', 'pisco', { age_restricted: true })
+  const store = { ...snapshot, meta, pool: [cola, tonic, pisco, pack] }
+
+  test('se buscan las bebidas, sin el pisco ni nada +18', () => {
+    expect(matchProducts(store, 'bebida para mezclar con pisco')).toEqual([cola])
+  })
+
+  test('quien pide el pisco lo recibe', () => {
+    expect(matchProducts(store, 'pisco con bebida')).toEqual(expect.arrayContaining([pisco, pack]))
+    expect(matchProducts(store, 'pisco con bebida')).not.toContain(cola)
+  })
+
+  test('con una muestra grabada sin las aristas, como siempre', () => {
+    const old = { ...store, meta: { ...meta, complements: undefined } }
+    expect(matchProducts(old, 'bebida para mezclar con pisco')).toEqual(expect.arrayContaining([pisco, pack]))
+  })
+})
+
 describe('Licores no encabeza lo que no es +18 (agent/verticals.py: liquor_last)', () => {
   const liquor = (id, name, concept, extra = {}) => product(id, { name, concept, vertical: 'licores', ...extra })
   const pool = [

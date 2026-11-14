@@ -35,6 +35,9 @@
 //   panel (personas.js: sampleOf)
 // - rappi-ia/src/rappi_ia/agent/tools.py ........... el foco de la búsqueda (_focus, en search.js) y el complemento
 //   alternado (_takes_second, en offers.js: complementOf)
+// - rappi-ia/src/rappi_ia/concepts/need.py y retrieval/hybrid.py (query_need) ... "X para Y" busca X, sin nada +18 si
+//   el para qué es alcohol (search.js: needOf, con las aristas en meta.complements); en corto: sin la ocasión como lo
+//   pedido ni el texto de la arista
 // - rappi-ia/src/rappi_ia/agent/verticals.py (liquor_last) ... Licores al final de los grupos de una búsqueda que no
 //   pide nada +18 (search.js: groupsOf; el +18 de cada concepto llega en meta.concepts)
 // - rappi-ia/src/rappi_ia/agent/rappi_agent.py ..... "qué me recomiendas" (search.js: recommend) y el texto del consejo

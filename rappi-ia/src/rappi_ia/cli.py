@@ -17,6 +17,7 @@ Flujo típico (después de cada `rappi refresh` del scraper):
     rappi-ia search "algo para el carrete" --vertical licores
     rappi-ia eval-search             # léxico vs vectorial vs híbrido + calibración de τ ("sin resultado")
     rappi-ia eval-typos              # errores de tipeo (eval/typos.json): cuántos recupera la corrección
+    rappi-ia eval-necesidades        # necesidades "X para Y" (eval/necesidades.json): se muestra X y no Y
     rappi-ia eval-graded --revisar   # el juez de tres niveles; falla si algo empeoró contra las últimas listas
     rappi-ia eval-mochi --revisar    # Mochi: revisiones automáticas y juicio de tres niveles; falla si algo empeoró
     rappi-ia eval-sample | eval-human   # muestra de pares para juzgar a mano / el juez automático contra esos juicios
@@ -444,6 +445,19 @@ def cmd_eval_typos(conn, args) -> None:
         typo_eval.run_grouped_negatives(conn, embedder),
     )
     out = config.DATA_DIR / "eval" / "tipeo.md"
+    out.parent.mkdir(parents=True, exist_ok=True)
+    out.write_text(report, encoding="utf-8")
+    print(report)
+    print(f"Reporte en {out}")
+
+
+def cmd_eval_needs(conn, args) -> None:
+    from .embeddings.models import text_embedder
+    from .eval import need_eval
+
+    conn.read_only = True  # solo lee, como eval-mochi
+    report = need_eval.render_markdown(need_eval.run_needs(conn, text_embedder(), need_eval.load_needs()))
+    out = config.DATA_DIR / "eval" / "necesidades.md"
     out.parent.mkdir(parents=True, exist_ok=True)
     out.write_text(report, encoding="utf-8")
     print(report)
@@ -920,6 +934,7 @@ COMMANDS = {
     "eval-search": cmd_eval_search,
     "eval-graded": cmd_eval_graded,
     "eval-typos": cmd_eval_typos,
+    "eval-necesidades": cmd_eval_needs,
     "eval-mochi": cmd_eval_mochi,
     "eval-sample": cmd_eval_sample,
     "eval-human": cmd_eval_human,
@@ -1020,6 +1035,10 @@ def build_parser() -> argparse.ArgumentParser:
         "listas guardadas (eval/tres-niveles-listas-*.json; `make eval-check`)",
     )
     sub.add_parser("eval-typos", help="errores de tipeo de src/rappi_ia/eval/typos.json y negativas de queries.json")
+    sub.add_parser(
+        "eval-necesidades",
+        help='necesidades "X para Y" de src/rappi_ia/eval/necesidades.json (/search, agrupada y Mochi)',
+    )
     em = sub.add_parser(
         "eval-mochi",
         help="Mochi en las necesidades, las preguntas libres, los primeros turnos y el set apartado: revisiones "

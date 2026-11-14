@@ -18,6 +18,7 @@ from rappi_scraper.storage.search import VERTICALS
 from ..catalog.cache import cached, cached_many
 from ..concepts.assign import concept_matcher
 from ..concepts.matcher import KeywordMatcher
+from ..concepts.need import Need, context_text, read_need
 from ..concepts.taxonomy import Occasion, load_taxonomy
 from ..embeddings.base import TextEmbedder, to_pgvector
 from ..text import FILLER_WORDS, normalize, tokens
@@ -182,12 +183,33 @@ def retrieve(
 
 
 def _query_concepts(query: str) -> list[str]:
-    return [m.target for m in _matcher().matches(query)]
+    """Los conceptos pedidos: sin los que solo dicen para qué es lo pedido (`query_need`)."""
+    return [m.target for m in query_need(query).asked]
 
 
 def detect_concepts(query: str) -> list[str]:
-    """Los conceptos que nombra la consulta (los mismos que usa `retrieve` cuando no se le dan)."""
-    return _query_concepts(query)
+    """Todos los conceptos que nombra la consulta, también los de su para qué ("pisco" en "bebida para mezclar con
+    pisco"): las guardias miran todo lo nombrado. Los que se buscan son los de `query_need` (`retrieve` sin
+    conceptos)."""
+    return [m.target for m in _matcher().matches(query)]
+
+
+def query_need(query: str) -> Need:
+    """Lo pedido en la consulta y su para qué (concepts/need.py): "bebida para mezclar con pisco" pide bebidas."""
+    taxonomy = load_taxonomy()
+    occasion = _occasion_matcher().best(query)
+    of_occasion = taxonomy.occasions[occasion.target].concepts if occasion else ()
+    return read_need(tokens(query), _matcher().matches(query), occasion, of_occasion)
+
+
+def asked_text(query: str, need: Need) -> str:
+    """Las palabras de lo pedido, sin su para qué ("bebida" en "bebida para mezclar con pisco": buscar "pisco" llenaba
+    los candidatos de piscos y no quedaban bebidas que mostrar), más cómo se nombra lo pedido cuando va con eso, si la
+    arista lo dice (`concepts.need.context_text`)."""
+    if need.end is None:
+        return query
+    head = " ".join(tokens(query)[: need.end])
+    return f"{head} {context_text([m.target for m in need.asked], list(need.context))}".strip()
 
 
 _MATCHER = None
@@ -203,14 +225,17 @@ def _matcher():
 _OCCASIONS = None
 
 
+def _occasion_matcher() -> KeywordMatcher:
+    global _OCCASIONS
+    if _OCCASIONS is None:
+        _OCCASIONS = KeywordMatcher((o.id, kw) for o in load_taxonomy().occasions.values() for kw in o.keywords)
+    return _OCCASIONS
+
+
 def named_occasion(q: str) -> Occasion | None:
     """La ocasión que nombra la consulta ("algo para el carrete"), con las keywords de taxonomy.toml."""
-    global _OCCASIONS
-    taxonomy = load_taxonomy()
-    if _OCCASIONS is None:
-        _OCCASIONS = KeywordMatcher((o.id, kw) for o in taxonomy.occasions.values() for kw in o.keywords)
-    match = _OCCASIONS.best(normalize(q))
-    return taxonomy.occasions[match.target] if match else None
+    match = _occasion_matcher().best(normalize(q))
+    return load_taxonomy().occasions[match.target] if match else None
 
 
 OCCASION_QUERY_CONCEPTS = 4  # los conceptos de la ocasión cuyos nombres arman la consulta que se busca
@@ -219,18 +244,26 @@ OCCASION_QUERY_CONCEPTS = 4  # los conceptos de la ocasión cuyos nombres arman 
 def occasion_search(q: str) -> tuple[str, list[str], Occasion] | None:
     """Cómo se busca una ocasión que la consulta nombra sin nombrar un concepto ("algo para la once"): por sus
     conceptos, sin los sensibles (una ocasión no los nombra), con una consulta hecha de los nombres de los primeros
-    OCCASION_QUERY_CONCEPTS. Devuelve (consulta, conceptos, ocasión), o None si la consulta nombra un concepto (manda
-    lo pedido) o ninguna ocasión. La usan la búsqueda agrupada y la de una vertical (agent/tools.search_products); el
-    agente arma la suya igual con lo que entiende (agent/rappi_agent._search_query)."""
-    if detect_concepts(q):
+    OCCASION_QUERY_CONCEPTS. Devuelve (consulta, conceptos, ocasión), o None si la consulta pide un concepto (manda
+    lo pedido) o no nombra una ocasión. Si lo nombrado es el para qué de la ocasión ("algo dulce para el café"), solo
+    sus conceptos que van con eso (`query_need`). La usan la búsqueda agrupada y la de una vertical
+    (agent/tools.search_products); el agente arma la suya igual con lo que entiende
+    (agent/rappi_agent._search_query)."""
+    need = query_need(q)
+    if need.asked:
         return None
     occasion = named_occasion(q)
     if occasion is None:
         return None
     taxonomy = load_taxonomy()
-    concepts = [c for c in occasion.concepts if not taxonomy.concepts[c].sensitive]
-    query = " ".join(taxonomy.concepts[c].name for c in concepts[:OCCASION_QUERY_CONCEPTS])
-    return query, concepts, occasion
+    concepts = [c for c in need.occasion_concepts or occasion.concepts if not taxonomy.concepts[c].sensitive]
+    return occasion_query(concepts), concepts, occasion
+
+
+def occasion_query(concepts: list[str]) -> str:
+    """La consulta con que se busca una ocasión: los nombres de sus primeros OCCASION_QUERY_CONCEPTS conceptos."""
+    taxonomy = load_taxonomy()
+    return " ".join(taxonomy.concepts[c].name for c in concepts[:OCCASION_QUERY_CONCEPTS])
 
 
 _PRICE = "price_min"  # columna generada desde metadata (migración 013), con índice (vertical, price_min)

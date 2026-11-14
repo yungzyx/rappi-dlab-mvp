@@ -19,6 +19,7 @@ from psycopg import Connection
 
 from ..concepts.assign import concept_matcher
 from ..concepts.matcher import KeywordMatcher, Match
+from ..concepts.need import Need, read_need
 from ..concepts.taxonomy import load_taxonomy
 from ..offers.guards import is_offerable
 from ..offers.preferences import Command, load_options, read_command
@@ -486,6 +487,7 @@ class Intent:
     people: int | None = None  # para cuántas personas ("asado de 6")
     dish: str | None = None  # ficha del glosario ("¿qué es un poke?")
     preference: Command | None = None  # lo que pidió sobre sus preferencias ("soy vegetariano")
+    context: list[str] = field(default_factory=list)  # lo nombrado que solo dice para qué ("pisco" en "bebida para…")
 
 
 class Understander:
@@ -562,6 +564,11 @@ class Understander:
         if refused:  # lo rechazado tampoco se busca
             body = " ".join(w for w in body_words if w)
             body_words = body.split()
+        # "bebida para mezclar con pisco": se pide la bebida; el pisco dice para qué (concepts/need.py). Se busca lo
+        # pedido ("bebida"), sin su para qué. Con algo rechazado no: las posiciones ya no son las de lo dicho.
+        need = None if refused else self._need(body_words, concept_matches)
+        if need:
+            concept_matches = list(need.asked)
         concepts = [m.target for m in concept_matches]
         refused_ids = {m.target for m in refused}
         if refused and not concepts and not occasion and not body:  # "no quiero cerveza": nada que buscar
@@ -597,10 +604,15 @@ class Understander:
         # "¿y para tomar?" después de un asado de 6: otro pedido, para la misma gente.
         if people is None and previous and normalized.split()[:1] == ["y"]:
             people = previous.get("people")
+        if need and need.occasion:  # "algo dulce para el café": de la ocasión, lo que va con el café
+            occasion = Match(need.occasion, "", 0, 0)
         if occasion and not concepts:
-            concepts = [c for c in self.taxonomy.occasions[occasion.target].concepts if c not in refused_ids]
+            of_occasion = need.occasion_concepts if need and need.occasion else None
+            of_occasion = of_occasion or self.taxonomy.occasions[occasion.target].concepts
+            concepts = [c for c in of_occasion if c not in refused_ids]
         kind = "ocasion" if occasion else "buscar"
         confidence = 0.9 if concept_matches else (0.7 if occasion else 0.3)
+        asked = " ".join(body_words[: need.end]) if need else body  # lo pedido, sin su para qué
         common = dict(
             occasion=_id(occasion),
             price_max=price_max,
@@ -608,8 +620,9 @@ class Understander:
             explicit_concepts=explicit,
             # la vertical nombrada no se busca ("en el super algo…" traía comida para gatos Super)
             # (lo rechazado no vuelve por el texto completo: "menos sushi" no busca sushi)
-            query=_without_mention(body, mention) or body or ("" if refused else normalized),
+            query=_without_mention(asked, mention) or asked or ("" if refused else normalized),
             symptom=symptom,
+            context=list(need.context) if need else [],
             **_price_order(said.split()),
         )
         # El orden por precio ya está en la intención: no se busca ("sushi barato" se corregía a "sushi barto").
@@ -637,6 +650,14 @@ class Understander:
         if len(pair) == 2 and "restaurantes" in pair and _comparable(conn, concepts[0], pair):
             return Intent("aclarar", text, None, concepts, options=pair, **common)
         return Intent(kind, text, options[0] if options else self._home(concepts[0]), concepts, **common)
+
+    def _need(self, words: list[str], matches: list[Match]) -> Need | None:
+        """Lo pedido y su para qué en "X para Y" (concepts/need.py), o None si nada de lo nombrado es para qué. X puede
+        ser la ocasión que se nombra antes del conector ("algo dulce")."""
+        occasion = self.occasions.best(" ".join(words))
+        of_occasion = self.taxonomy.occasions[occasion.target].concepts if occasion else ()
+        need = read_need(words, matches, occasion, of_occasion)
+        return need if need.context else None
 
     def _preference(self, text: str) -> Command | None:
         """ "soy vegetariano", "no como maní", "mi comida favorita es el sushi", "muéstrame mis preferencias": lo que la

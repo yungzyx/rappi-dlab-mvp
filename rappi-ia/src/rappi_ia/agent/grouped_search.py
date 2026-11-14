@@ -19,10 +19,10 @@ from psycopg import Error as DatabaseError
 from rappi_scraper.storage.search import VERTICALS
 
 from ..embeddings.base import MemoizedQueryEmbedder, TextEmbedder
-from ..retrieval.hybrid import UNNAMED_TAU, detect_concepts, has_words, occasion_search
+from ..retrieval.hybrid import UNNAMED_TAU, detect_concepts, has_words
 from ..retrieval.spelling import correct_query
 from .rappi_agent import PROTOTYPE_VERTICALS
-from .tools import Product, search_products
+from .tools import Product, occasion_in, read_query, search_products
 from .verticals import liquor_last, ranked_verticals
 
 TYPICAL_VERTICALS = 3  # con un concepto detectado, las verticales donde es más típico
@@ -183,10 +183,10 @@ def _search_grouped(
     spare: SpareConnector | None,
 ) -> tuple[GroupedResult, bool]:
     """El resultado y si alguna vertical calza todas las palabras."""
-    query, concepts, fixed = q, detect_concepts(q), None
-    if rewritten := occasion_search(q):
-        query, concepts, occasion = rewritten
-        fixed = occasion.vertical
+    # Una ocasión, por sus conceptos; "X para Y", por X (`read_query`). Si no, lo que nombra la consulta.
+    query, asked, occasion, sober = read_query(q)
+    concepts = detect_concepts(q) if asked is None else asked
+    fixed = occasion.vertical if occasion else None
     memo = MemoizedQueryEmbedder(embedder) if embedder is not None else None
     if memo is not None and mode != "lexico":
         memo.embed_queries([query])  # antes de abrir la transacción: ver `retrieve`
@@ -194,7 +194,13 @@ def _search_grouped(
     verticals = _verticals_to_search(conn, concepts, current, fixed)
 
     def search(connection: Connection, vertical: str):
-        return search_products(connection, vertical, query, concepts, memo, price_max, k=limit, mode=mode, words=words)
+        text, wanted, known = query, concepts, words
+        if occasion:  # en cada vertical, los conceptos de la ocasión que vende (`occasion_in`)
+            text, wanted = occasion_in(connection, vertical, concepts)
+            known = None if text != query else words
+        return search_products(
+            connection, vertical, text, wanted, memo, price_max, k=limit, mode=mode, words=known, sober=sober
+        )
 
     searched = list(zip(verticals, search_each(conn, verticals, search, spare), strict=True))
     strict = any(o.result.strict_lexical_matches for _, o in searched)

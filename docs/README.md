@@ -69,6 +69,7 @@ La página de la propuesta del panel (`dashboard-empresa/presentacion.html`) sir
 | La búsqueda con el juez de tres niveles y los cambios del 25-10-2026 | [resultados/busqueda-2026-10-25.md](resultados/busqueda-2026-10-25.md) |
 | El juicio LLM doble ciego de 200 pares (25-10-2026) | [resultados/juicio-llm-busqueda-2026-10-25.md](resultados/juicio-llm-busqueda-2026-10-25.md) |
 | El juicio de Claude (no humano) de 200 pares nuevos con la búsqueda actual (11-11-2026) | [resultados/juicio-claude-busqueda-2026-11-11.md](resultados/juicio-claude-busqueda-2026-11-11.md) |
+| Las búsquedas por necesidad "X para Y" y su set de 30 necesidades (13-11-2026) | [resultados/necesidades-2026-11-13.md](resultados/necesidades-2026-11-13.md) |
 | Las conversaciones con Mochi, antes y después (25-10-2026) | [resultados/mochi-conversacion-2026-10-25.md](resultados/mochi-conversacion-2026-10-25.md) |
 | Mochi medido en su primer turno (revisiones automáticas, un set apartado y el juez de tres niveles contra `/search`) y la búsqueda con los juicios nuevos (05-11-2026) | [resultados/mochi-2026-11-05.md](resultados/mochi-2026-11-05.md) |
 | Los reportes anteriores de la búsqueda, uno por fecha (con otros sets: no se comparan con los de arriba) | [resultados/](resultados/) (`busqueda-2026-09-30.md` a `busqueda-2026-10-06.md`) |
