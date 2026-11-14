@@ -259,6 +259,8 @@ class PreviousTurnIn(Clean):
     order: Literal["barato", "caro"] | None = None
     symptom: bool = False
     product_ids: list[Annotated[str, Field(max_length=64)]] = Field(default_factory=list, max_length=48)
+    # El para qué de lo pedido ("pisco" en "bebida para mezclar con pisco"): el seguimiento sigue sin nada +18.
+    context: list[Annotated[str, Field(max_length=64)]] = Field(default_factory=list, max_length=10)
 
 
 class AskIn(Clean):

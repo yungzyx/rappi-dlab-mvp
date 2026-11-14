@@ -37,8 +37,9 @@
 //   alternado (_takes_second, en offers.js: complementOf), y la especie de mascota (origin_species y says_species, en
 //   offers.js: complementOffer; las especies de concepts/complements.toml, copiadas a mano, que parity.test.js compara)
 // - rappi-ia/src/rappi_ia/concepts/need.py y retrieval/hybrid.py (query_need) ... "X para Y" busca X, sin nada +18 si
-//   el para qué es alcohol, y "X con Y", la frase entera salvo con alcohol (search.js: needOf, con las aristas en
-//   meta.complements); en corto: sin la ocasión como lo pedido ni el texto de la arista
+//   el para qué es alcohol (search.js: needOf, con las aristas en meta.complements), también en sus seguimientos
+//   (`context` del turno anterior, conversation.js: followUp), y "X con Y", la frase entera salvo con alcohol; en corto:
+//   sin la ocasión como lo pedido ni el texto de la arista
 // - rappi-ia/src/rappi_ia/agent/verticals.py (liquor_last) ... Licores al final de los grupos de una búsqueda que no
 //   pide nada +18 (search.js: groupsOf; el +18 de cada concepto llega en meta.concepts)
 // - rappi-ia/src/rappi_ia/agent/rappi_agent.py ..... "qué me recomiendas" (search.js: recommend) y el texto del consejo

@@ -2,7 +2,7 @@
 // agent/rappi_agent.py (_conversation y lo que va "sin", el orden por precio y "otra opción"). Primero, el seguimiento
 // grabado de la API real (los de eval/frases_usuarios/conversaciones.txt, `npm run demo:snapshot`); si no hay, se arma
 // sobre los productos de la muestra. Lo que no puede (remedios, o nada en la muestra que cumpla lo pedido) lo dice.
-import { namesQuery } from './search'
+import { namesQuery, soberFor } from './search'
 import { followKey, normalize } from './text'
 
 export { followKey }
@@ -169,6 +169,7 @@ const state = (fields) => ({
   order: null,
   symptom: false,
   product_ids: [],
+  context: [],
   ...fields,
 })
 
@@ -193,13 +194,20 @@ export function followUp(snapshot, body, refinement) {
   const people = refinement.people ?? previous.people ?? null
   const order = refinement.order ?? previous.order ?? null
   const seen = refinement.other ? new Set(previous.product_ids ?? []) : new Set()
+  // "más barato" tras "tónica para el gin": el para qué sigue siendo alcohol, así que tampoco ahora va nada +18.
+  const context = previous.context ?? []
+  const sober = soberFor(meta, context, concepts)
 
   const unique = new Map()
   for (const p of snapshot.pool)
     if (p.vertical === vertical && (concepts.length ? concepts.includes(p.concept) : namesQuery(meta, p.name, query)))
       unique.set(p.id, p)
   let found = [...unique.values()].filter(
-    (p) => keeps(p, without) && (priceMax == null || (p.price_value ?? Infinity) <= priceMax) && !seen.has(p.entity_id),
+    (p) =>
+      keeps(p, without) &&
+      (priceMax == null || (p.price_value ?? Infinity) <= priceMax) &&
+      !seen.has(p.entity_id) &&
+      !(sober && p.age_restricted),
   )
   const named = core(query) ? found.filter((p) => namesQuery(meta, p.name, core(query))) : []
   if (named.length >= MIN_NAMED) found = named
@@ -226,6 +234,7 @@ export function followUp(snapshot, body, refinement) {
     people,
     order,
     product_ids: (refinement.other ? [...seen, ...shown] : shown).slice(-MAX_SHOWN_IDS),
+    context,
   })
   const intent = { kind: occasion ? 'ocasion' : 'buscar', query, concepts, occasion: previous.occasion ?? null }
   return reply(text, products, vertical, { ...intent, price_max: priceMax, follow_up: true }, conversation, {
@@ -274,6 +283,7 @@ export function withConversation(answer, body) {
           price_max: intent.price_max ?? null,
           symptom: Boolean(intent.symptom),
           product_ids: answer.products.map((p) => p.entity_id),
+          context: intent.context ?? [],
         })
       : null
   }

@@ -26,7 +26,7 @@ Las secundarias (abajo) van al final, como exploratorias.
 
 ### Dónde corre
 
-El piloto corre **dentro de Rappi**, con su tráfico y en su app: el equipo del proyecto no tiene acceso a la base de Rappi, y la retención M+1, los pedidos y Restaurantes → Turbo de personas reales solo se pueden contar ahí. Lo que entrega el proyecto es la definición de cada métrica (las consultas de `rappi_ia/analytics/queries.py`), el reparto y el sorteo estable (`rappi_ia/events/experiments.py`), los eventos que hacen falta (incluida la pregunta in-app y `offer_withheld` / `offer_eligible` para la parte expuesta) y este análisis declarado. dlab-mvp.com solo comprueba que la mecánica funciona (ver "Qué hace hoy el MVP").
+El piloto corre **dentro de Rappi**, con su tráfico y en su app: el equipo del proyecto no tiene acceso a la base de Rappi, y la retención M+1, los pedidos y Restaurantes → Turbo de personas reales solo se pueden contar ahí. Lo que entrega el proyecto es la definición de cada métrica (las consultas de `rappi_ia/analytics/queries.py`, escritas para las tablas de Rappi en [especificacion-metricas-piloto.md](especificacion-metricas-piloto.md), con su SQL de referencia), el reparto y el sorteo estable (`rappi_ia/events/experiments.py`), los eventos que hacen falta (incluida la pregunta in-app y `offer_withheld` / `offer_eligible` para la parte expuesta) y este análisis declarado. dlab-mvp.com solo comprueba que la mecánica funciona (ver "Qué hace hoy el MVP").
 
 ### Secundarias
 
