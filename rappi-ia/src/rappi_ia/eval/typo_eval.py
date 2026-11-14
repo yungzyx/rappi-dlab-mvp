@@ -17,6 +17,9 @@ Y a Mochi (`/agent/ask`, en la vertical del caso): antes es su respuesta con la 
 mensaje; se recupera como /search. De las
 negativas se cuentan las que Mochi deja sin resultado y sin productos, antes y después: no son negativas para Mochi
 (lo que la vertical del caso no tiene, lo busca en otra), así que lo que importa es que la corrección no las cambie.
+
+Los `nombres` de typos.json son locales, tiendas y marcas que se buscan por su nombre ("suchi tacna", "cevicheo"): se
+cuentan los que siguen sin corregir en /search de su vertical, en la agrupada y en Mochi.
 """
 
 import json
@@ -80,8 +83,22 @@ class GroupedNegativeRun:
     corrected_query: str | None
 
 
+@dataclass
+class NameRun:
+    vertical: str
+    query: str
+    reason: str
+    corrected_query: str | None  # en /search de la vertical (None: no se corrigió, como debe ser)
+    grouped_corrected: str | None
+    mochi_corrected: str | None
+
+
 def load_typos(path: Path = TYPOS_FILE) -> list[dict]:
     return json.loads(path.read_text(encoding="utf-8"))["queries"]
+
+
+def load_names(path: Path = TYPOS_FILE) -> list[dict]:
+    return json.loads(path.read_text(encoding="utf-8")).get("nombres", [])
 
 
 def is_meant(name: str, meant: str) -> bool:
@@ -198,8 +215,33 @@ def run_grouped_negatives(conn: Connection, embedder: TextEmbedder | None) -> li
     return runs
 
 
+def run_names(conn: Connection, embedder: TextEmbedder | None, cases: list[dict]) -> list[NameRun]:
+    agent = RappiAgent(embedder)
+    runs = []
+    for case in cases:
+        vertical, query = case["vertical"], case["query"]
+        found = search_products(conn, vertical, query, None, embedder, k=K, correct=True)
+        grouped = search_grouped(conn, query, embedder, None, K)
+        mochi = agent.reply(conn, query, Context(vertical=vertical))
+        runs.append(
+            NameRun(
+                vertical,
+                query,
+                case["motivo"],
+                found.corrected_query,
+                grouped.corrected_query,
+                mochi.get("corrected_query"),
+            )
+        )
+        conn.rollback()
+    return runs
+
+
 def render_markdown(
-    typos: list[TypoRun], negatives: list[NegativeRun], grouped_negatives: list[GroupedNegativeRun]
+    typos: list[TypoRun],
+    negatives: list[NegativeRun],
+    grouped_negatives: list[GroupedNegativeRun],
+    names: list[NameRun] = (),
 ) -> str:
     measured = [r for r in typos if r.intended_shown]
     grouped = [r for r in typos if r.grouped_needed]
@@ -223,6 +265,9 @@ def render_markdown(
         f" sin corregir y {sum(r.mochi_after for r in measured)} corrigiendo; de las negativas deja sin resultado"
         f" {sum(r.mochi_before for r in negatives)} de {len(negatives)} sin corregir y"
         f" {sum(r.mochi_detected for r in negatives)} corrigiendo (las demás las busca en otra vertical)",
+        f"- Nombres que se buscan por su nombre, sin corregir: {sum(r.corrected_query is None for r in names)} de"
+        f" {len(names)} en /search, {sum(r.grouped_corrected is None for r in names)} en la agrupada y"
+        f" {sum(r.mochi_corrected is None for r in names)} en Mochi",
         "",
         "| Vertical | Escrito | Quiso | Antes | Después | Corregida | Agrupada antes | Agrupada después | Corregida"
         " (agrupada) | Mochi antes | Mochi después | Corregida (Mochi) | Se muestra | ms |",
@@ -262,4 +307,12 @@ def render_markdown(
         lines += ["", "## Negativas que dejan de estar sin resultado", ""]
         lines += [f'- {r.vertical} "{r.query}" → "{r.corrected_query}"' for r in changed]
         lines += [f'- agrupada "{r.query}" → "{r.corrected_query}"' for r in changed_grouped]
+    renamed = [r for r in names if r.corrected_query or r.grouped_corrected or r.mochi_corrected]
+    if renamed:
+        lines += ["", "## Nombres que se corrigen", ""]
+        lines += [
+            f'- {r.vertical} "{r.query}" ({r.reason}): /search "{r.corrected_query or "—"}", agrupada'
+            f' "{r.grouped_corrected or "—"}", Mochi "{r.mochi_corrected or "—"}"'
+            for r in renamed
+        ]
     return "\n".join(lines) + "\n"

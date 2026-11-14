@@ -156,10 +156,22 @@ def test_price_words_are_never_corrected(query, monkeypatch):
     """ "sushi barato" pasaba a "sushi barto" (una palabra de un solo plato): el orden por precio no es un error."""
     asked = []
 
-    def fixes(_conn, _vertical, words):
+    def fixes(_conn, _vertical, words, _matched=False):
         asked.extend(words)
         return {word: word[:-1] for word in words}  # cambiaría cualquier palabra que le pidan
 
     monkeypatch.setattr(spelling, "_fixes", fixes)
     assert spelling.correct_query(None, query, "restaurantes") is None
     assert not set(asked) & spelling.PRICE_WORDS
+
+
+def test_with_a_match_only_a_fixed_name_changes_the_query(monkeypatch):
+    """Con algo que ya calza (`matched`), sacar las muletillas no es una corrección, y el nombre no se corrige si la
+    consulta trae otra palabra de ese mismo nombre ("suchi tacna" busca el local)."""
+    monkeypatch.setattr(
+        spelling, "_fixes", lambda _c, _v, words, _m=False: {"suchi": "sushi"} if "suchi" in words else {}
+    )
+    monkeypatch.setattr(spelling, "name_words", lambda _c, word: frozenset({"suchi", "tacna", "antofagasta"}))
+    assert spelling.correct_query(None, "eh quiero un sushi", "restaurantes", matched=True) is None
+    assert spelling.correct_query(None, "hand roll suchi", "restaurantes", matched=True) == "hand roll sushi"
+    assert spelling.correct_query(None, "suchi tacna", "restaurantes", matched=True) is None
