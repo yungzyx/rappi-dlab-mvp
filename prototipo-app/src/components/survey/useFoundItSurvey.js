@@ -8,10 +8,15 @@ import { useAgentEnabled } from '../../state/agentEnabled'
 import { useAgentHidden } from '../../state/agentHidden'
 import {
   canAsk,
+  canAskP3,
+  clearP3,
   currentJourney,
   endJourney,
   markAsked,
+  markAskedP3,
+  pendingP3,
   surveyTrigger,
+  useP3Pending,
   useSurveyJourney,
   whyOpened,
 } from '../../state/survey'
@@ -38,6 +43,9 @@ const fields = (card, extra = {}) => ({
  * Home: una por sesión y una por día, nunca en el pago ni el seguimiento, ni con el buscador, una hoja o el aviso de
  * privacidad encima. No depende de que Mochi esté a la vista; si Mochi está diciendo algo (una oferta), espera, y si
  * empieza a decir algo con la pregunta abierta, ella se esconde hasta que termine.
+ * La p3, solo con Mochi a la vista: sigue a la p1 al responderla si la persona ya abrió un "¿Por qué?" en la sesión, o
+ * sale sola cuando se va una oferta cuyo "¿Por qué?" abrió (con las mismas esperas; si toca la p1, va primero). Una
+ * por día, aparte de la p1.
  * `screen` y `depth` son la pantalla de arriba de la pila y cuántas hay.
  * Devuelve `{ card, visible, answer, close }`: `card` es `{ question, trigger, requestId, screen, depth, mochi,
  * thanks }` o null.
@@ -50,6 +58,7 @@ export function useFoundItSurvey({ screen, depth }) {
   const agentEnabled = useAgentEnabled()
   const dialogs = useOpenDialogs()
   const journey = useSurveyJourney()
+  const whyLeft = useP3Pending()
   const [card, setCard] = useState(null)
   const [origin, setOrigin] = useState(null) // la profundidad de la pila desde la que se buscó
   const [waiting, setWaiting] = useState(false) // Mochi dice algo o está el aviso de privacidad
@@ -64,8 +73,9 @@ export function useFoundItSurvey({ screen, depth }) {
   // Se fue a otra pantalla o volvió a buscar con la pregunta abierta: siguió con lo suyo, la pregunta se va sin evento.
   if (card && (searching || screen !== card.screen || depth !== card.depth)) setCard(null)
 
-  // Mientras haya un recorrido o una pregunta, mira si Mochi está diciendo algo (o si está el aviso de privacidad).
-  const watching = Boolean(journey || card)
+  // Mientras haya un recorrido, una p3 pendiente o una pregunta, mira si Mochi está diciendo algo (o si está el aviso de
+  // privacidad).
+  const watching = Boolean(journey || card || whyLeft !== null)
   useEffect(() => {
     if (!watching) return undefined
     const root = document.querySelector('.phone') ?? document.body
@@ -76,15 +86,10 @@ export function useFoundItSurvey({ screen, depth }) {
     return () => observer.disconnect()
   }, [watching])
 
-  const due =
-    !card &&
-    Boolean(journey) &&
-    origin !== null &&
-    depth <= origin &&
-    !searching &&
-    !NEVER_ON.has(screen) &&
-    dialogs === 0 &&
-    !waiting
+  const free = !searching && !NEVER_ON.has(screen) && dialogs === 0 && !waiting
+  const due = !card && Boolean(journey) && origin !== null && depth <= origin && free
+  // La p3 sola, tras una oferta que se fue con su "¿Por qué?" abierto; si a la vez toca la p1, espera a que pase.
+  const dueP3 = !card && !due && whyLeft !== null && mochi && free
   useEffect(() => {
     if (!due) return undefined
     const timer = setTimeout(() => {
@@ -100,6 +105,20 @@ export function useFoundItSurvey({ screen, depth }) {
     return () => clearTimeout(timer)
   }, [due, screen, depth, mochi, events])
 
+  useEffect(() => {
+    if (!dueP3) return undefined
+    const timer = setTimeout(() => {
+      const fresh = pendingP3()
+      clearP3()
+      if (!fresh || !canAskP3(today())) return
+      markAskedP3(today())
+      const next = { question: 'p3', trigger: 'porque', requestId: null, screen, depth, mochi: true }
+      setCard(next)
+      events.track('survey_shown', fields(next))
+    }, SETTLE_MS)
+    return () => clearTimeout(timer)
+  }, [dueP3, screen, depth, events])
+
   // "¡Gracias!" se va solo.
   const thanks = card?.thanks === true
   useEffect(() => {
@@ -112,8 +131,11 @@ export function useFoundItSurvey({ screen, depth }) {
     (value) => {
       if (!card || card.thanks) return
       events.track('survey_answer', fields(card, { answer: value }))
-      // La p3 sigue a la p1 en la misma tarjeta: solo con Mochi a la vista y un "¿Por qué?" abierto en la sesión.
-      if (card.question === 'p1' && mochi && whyOpened(sessionId())) {
+      // La p3 sigue a la p1 en la misma tarjeta: solo con Mochi a la vista, un "¿Por qué?" abierto en la sesión y si la
+      // p3 no salió hoy. Así ya no sale sola por la misma oferta.
+      if (card.question === 'p1' && mochi && whyOpened(sessionId()) && canAskP3(today())) {
+        markAskedP3(today())
+        clearP3()
         const next = { ...card, question: 'p3', trigger: 'porque', mochi }
         setCard(next)
         events.track('survey_shown', fields(next))
@@ -125,8 +147,10 @@ export function useFoundItSurvey({ screen, depth }) {
   const close = useCallback(() => {
     if (!card) return
     if (!card.thanks) events.track('survey_dismissed', fields(card))
+    // Cerrar la p1 cuando la iba a seguir la p3 también la deja: no sale sola justo después.
+    if (card.question === 'p1' && !card.thanks && mochi && whyOpened(sessionId())) clearP3()
     setCard(null)
-  }, [card, events])
+  }, [card, events, mochi])
 
   return { card, visible: Boolean(card) && !waiting && dialogs === 0, answer, close }
 }

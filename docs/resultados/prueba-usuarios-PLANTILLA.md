@@ -59,7 +59,7 @@ Copiado del resumen de cada persona (`rappi-ia resumen-prueba`). La duración es
 | Ocultó a Mochi (y lo trajo de vuelta) | | | | | |
 | Lo silenció por hoy (y lo volvió a hacer hablar) | | | | | |
 | Pregunta in-app: P1 (qué la hizo aparecer, respuesta o "cerrada" / "sin respuesta") | | | | | |
-| Pregunta in-app: P3 (nota de 1 a 5, "cerrada", "sin respuesta" o "no salió") | | | | | |
+| Pregunta in-app: P3 (nota de 1 a 5, "cerrada", "sin respuesta" o, si no salió tras la tarea 4, "no salió" y por qué) | | | | | |
 | Pedidos (cancelados) | | | | | |
 
 ## Las ofertas y su "¿Por qué?"
@@ -74,7 +74,7 @@ Una fila por oferta que la persona miró en las tareas 3 y 4. El texto del "¿Po
 
 La hace la app sola ([prueba-usuarios.md](../prueba-usuarios.md#la-pregunta-in-app-dentro-del-recorrido)). Lo que respondió sale del resumen; si la vio y la entendió, de la hoja del observador. Con 5 personas y sin grupo de control, sus respuestas describen si se entiende, no miden la H3.
 
-| | P1: ¿salió?, ¿después de qué tarea? | ¿La vio? ¿La entendió? (qué creyó que le preguntaban) | Respuesta | P3: ¿salió? | ¿La entendió? | Respuesta |
+| | P1: ¿salió?, ¿después de qué tarea? | ¿La vio? ¿La entendió? (qué creyó que le preguntaban) | Respuesta | P3: ¿salió tras la tarea 4? (si no, por qué) | ¿La entendió? | Respuesta |
 |---|---|---|---|---|---|---|
 | P1 | … | … | … | … | … | … |
 

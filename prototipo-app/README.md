@@ -185,7 +185,7 @@ En el prototipo final, Mochi flota a un costado en las demás pantallas (no en l
 
 ### La pregunta in-app
 
-Tras una búsqueda, al volver a la Home o a donde se empezó, una tarjeta pregunta "¿Encontraste lo que buscabas?" con Sí, En parte y No, con Mochi a la vista o sin él. Si además se abrió un "¿Por qué?" en la sesión, sigue "¿Confías en las sugerencias de Mochi?" de 1 a 5. Una por sesión y una por día, nunca en el checkout ni el seguimiento, espera a que Mochi termine de hablar y se cierra sin responder (eventos `survey_shown`, `survey_answer` y `survey_dismissed`; [diseño](../docs/diseno-ia.md#la-pregunta-de-la-h3)).
+Tras una búsqueda, al volver a la Home o a donde se empezó, una tarjeta pregunta "¿Encontraste lo que buscabas?" con Sí, En parte y No, con Mochi a la vista o sin él. Con Mochi a la vista, "¿Confías en las sugerencias de Mochi?" (1 a 5) sale después de un "¿Por qué?": sola, cuando se va la oferta cuyo "¿Por qué?" se abrió, o a continuación de la primera si ya se había abierto uno en la sesión; una por día. La primera, una por sesión y una por día, nunca en el checkout ni el seguimiento, espera a que Mochi termine de hablar y se cierra sin responder (eventos `survey_shown`, `survey_answer` y `survey_dismissed`; [diseño](../docs/diseno-ia.md#la-pregunta-de-la-h3)).
 
 <img src="docs/screenshots/23-pregunta-in-app.jpg" width="240" alt="Home con la tarjeta &quot;¿Encontraste lo que buscabas?&quot; y los chips Sí, En parte y No">
 
