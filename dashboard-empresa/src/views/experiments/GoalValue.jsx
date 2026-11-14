@@ -98,8 +98,9 @@ function Summary({ h1, h2, goals }) {
   if (!h1.missing) {
     parts.push(
       <span key="h1">
-        +{goals.puntos} puntos de retención dejan entre <strong>{amount(h1.prudente.marginYear)}</strong> y{' '}
-        <strong>{amount(h1.techo.marginYear)}</strong> de margen el primer año
+        +{goals.puntos} puntos de retención dejan entre <strong>{amount(h1.prudente.marginYear)}</strong> (prudente) y{' '}
+        <strong>{amount(h1.techo.marginYear)}</strong> (techo, +{goals.puntos} % compuesto al mes) de margen el primer
+        año
       </span>,
     )
   }
@@ -129,13 +130,14 @@ function H1Help() {
   return (
     <>
       <p>
-        Retenidos de más cada mes = usuarios activos × cobertura × puntos ÷ 100. Pedidos = retenidos × pedidos por
+        Retenidos de más el primer mes = usuarios activos × cobertura × puntos ÷ 100. Pedidos = retenidos × pedidos por
         usuario. Margen = pedidos × valor del pedido × margen %.
       </p>
       <p>
-        Techo: cada mes se suman los retenidos de más y ninguno se va; en el mes k hay k × retenidos. Prudente: se suman
-        y después se van a la tasa normal de fuga (1 − retención base, r); en el mes k hay retenidos × (1 − rᵏ) ÷ (1 −
-        r). El primer año suma los meses 1 a 12.
+        Techo: +puntos % de usuarios cada mes, compuesto, y nadie se va; en el mes k hay usuarios activos × cobertura ×
+        ((1 + puntos ÷ 100)ᵏ − 1) de más (con +2, el 26,8 % de los usuarios en el mes 12, no el 24 % de sumar 2 por
+        mes). Prudente: cada mes se suman los retenidos del primer mes y después se van a la tasa normal de fuga (1 −
+        retención base, r); en el mes k hay retenidos × (1 − rᵏ) ÷ (1 − r). El primer año suma los meses 1 a 12.
       </p>
       <p>
         Recupera la inversión: el primer mes en que el margen acumulado, menos el costo mensual de cada mes, paga el
@@ -163,14 +165,18 @@ function H2Help() {
 function H1Result({ h1, goals, costs }) {
   if (h1.missing) return <Missing keys={h1.missing} />
   const readings = [
-    { key: 'techo', label: 'Techo', note: 'nadie se va' },
+    { key: 'techo', label: 'Techo', note: `+${goals.puntos} % compuesto al mes, nadie se va` },
     { key: 'prudente', label: 'Prudente', note: `se va el ${formatPct(h1.churn, 0)} al mes` },
   ]
   return (
     <>
       <Stats
         items={[
-          { label: 'Retenidos de más', value: amount(h1.retained), note: `cada mes, de ${amount(h1.people)} usuarios` },
+          {
+            label: 'Retenidos de más',
+            value: amount(h1.retained),
+            note: `el primer mes, de ${amount(h1.people)} usuarios`,
+          },
           { label: 'Pedidos de más', value: amount(h1.orders), note: 'el primer mes' },
           { label: 'Margen de más', value: amount(h1.margin), note: 'el primer mes' },
         ]}
