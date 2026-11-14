@@ -48,11 +48,12 @@ describe('GoalValue', () => {
     render(<GoalValue />)
     fillInvented()
     expect(summary()).toBe(
-      'Con tus supuestos, +2 puntos de retención dejan entre 88.002 y 312.000 de margen el primer año; ' +
+      'Con tus supuestos, +2 puntos de retención dejan entre 88.002 (prudente) y 336.066 (techo, +2 % compuesto al mes) ' +
+        'de margen el primer año; ' +
         '+10 % en Restaurantes → Turbo deja 24.000.',
     )
     const rows = screen.getAllByRole('row').map((row) => row.textContent)
-    expect(rows).toContain('Techonadie se va24.000312.000')
+    expect(rows).toContain('Techo+2 % compuesto al mes, nadie se va26.824336.066')
     expect(rows.some((row) => row.startsWith('Prudentese va el 50% al mes'))).toBe(true)
     expect(screen.getByText('Clientes nuevos en Turbo').closest('div').textContent).toContain('2.000')
     expect(screen.queryByText('Recupera la inversión')).toBeNull()
@@ -64,7 +65,7 @@ describe('GoalValue', () => {
     type('Costo de implementación (una vez)', '50.000')
     type('Costo de operar, al mes', '1.000')
     const rows = screen.getAllByRole('row').map((row) => row.textContent)
-    expect(rows).toContain('Techonadie se va24.000312.000Mes 5')
+    expect(rows).toContain('Techo+2 % compuesto al mes, nadie se va26.824336.066Mes 5')
     expect(rows.some((row) => row.endsWith('Mes 9'))).toBe(true)
     expect(screen.getByText(/^Recupera la inversión: no se recupera en 36 meses/)).toBeTruthy()
   })
@@ -100,7 +101,7 @@ describe('GoalValue', () => {
     })
     render(<GoalValue />)
     fillInvented()
-    expect(summary()).toMatch(/312\.000/)
+    expect(summary()).toMatch(/336\.066/)
   })
 
   test('nothing leaves the browser: no network calls', () => {

@@ -15,9 +15,15 @@ const INVENTED = {
 
 // El cálculo independiente: fórmulas cerradas, sin la simulación mes a mes del módulo.
 const r = 0.5
-const perMonth = 100000 * 0.02 // retenidos de más cada mes
+const perMonth = 100000 * 0.02 // retenidos de más el primer mes
 const monthlyMargin = (people) => people * 2 * 10 * 0.1
-const ceilingAt = (k) => k * perMonth
+const ceilingAt = (k) => 100000 * (1.02 ** k - 1) // +2 % de usuarios cada mes, compuesto
+// El techo otra vez, contado de otro modo: la base de usuarios crece 2 % cada mes y se resta la de partida.
+const ceilingByMonth = Array.from({ length: HORIZON }, (_, i) => {
+  let active = 100000
+  for (let month = 0; month <= i; month += 1) active += active * 0.02
+  return active - 100000
+})
 const prudentAt = (k) => (perMonth * (1 - r ** k)) / (1 - r)
 const firstYear = (at) => Array.from({ length: 12 }, (_, i) => monthlyMargin(at(i + 1))).reduce((a, b) => a + b, 0)
 const firstPayback = (at, investment, cost) => {
@@ -65,13 +71,25 @@ describe('goalValue', () => {
     expect(h1.retained).toBeCloseTo(2000)
     expect(h1.orders).toBeCloseTo(4000)
     expect(h1.margin).toBeCloseTo(4000)
-    expect(h1.techo.retainedAtYear).toBeCloseTo(ceilingAt(12)) // 24.000
+    expect(h1.techo.retainedAtYear).toBeCloseTo(ceilingAt(12)) // 26,8 % de 100.000, no 24.000
+    expect(h1.techo.retainedAtYear).toBeCloseTo(ceilingByMonth[11])
+    expect(h1.techo.retainedAtYear).toBeCloseTo(26824.18, 1)
     expect(h1.prudente.retainedAtYear).toBeCloseTo(prudentAt(12))
-    expect(h1.techo.marginYear).toBeCloseTo(firstYear(ceilingAt)) // 78 × 4.000 = 312.000
-    expect(h1.techo.marginYear).toBeCloseTo(312000)
+    expect(h1.techo.marginYear).toBeCloseTo(firstYear(ceilingAt))
+    expect(h1.techo.marginYear).toBeCloseTo(firstYear((k) => ceilingByMonth[k - 1]))
+    expect(h1.techo.marginYear).toBeCloseTo(336066.3, 0)
     expect(h1.prudente.marginYear).toBeCloseTo(firstYear(prudentAt)) // 8.000 × (11 + 0,5^12)
     expect(h1.prudente.marginYear).toBeCloseTo(88001.953125)
     expect(h1.techo.payback).toBeNull() // sin costos no hay "recupera"
+  })
+
+  test('the ceiling compounds every month of the horizon, and its first month is the plain retained', () => {
+    const extra = extraActive(2000, 1.02)
+    expect(extra[0]).toBeCloseTo(2000)
+    extra.forEach((people, i) => {
+      expect(people).toBeCloseTo(ceilingAt(i + 1), 6)
+      expect(people).toBeCloseTo(ceilingByMonth[i], 6)
+    })
   })
 
   test('H2: extra Turbo clients with one order a month each', () => {
@@ -102,7 +120,7 @@ describe('goalValue', () => {
     const { h1, h2 } = goalValue({ ...INVENTED, cobertura: '25' })
     expect(h1.people).toBeCloseTo(25000)
     expect(h1.retained).toBeCloseTo(500)
-    expect(h1.techo.marginYear).toBeCloseTo(312000 / 4)
+    expect(h1.techo.marginYear).toBeCloseTo(firstYear(ceilingAt) / 4)
     expect(h2.clients).toBeCloseTo(500)
   })
 
@@ -126,7 +144,7 @@ describe('goalValue', () => {
     expect(h1.retained).toBeCloseTo(2000)
     const flat = goalValue({ ...INVENTED, retencion: '100', puntos: '0' }).h1
     expect(flat.margin).toBe(0)
-    // Con r = 1 la lectura prudente es la del techo: nadie se va.
+    // Con r = 1 la lectura prudente suma los retenidos de más y nadie se va (sin componer).
     expect(extraActive(10, 1)).toEqual(Array.from({ length: HORIZON }, (_, i) => 10 * (i + 1)))
   })
 
