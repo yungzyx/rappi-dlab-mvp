@@ -276,8 +276,9 @@ export function MochiView({ source, tab }) {
               source={source}
               help={
                 <p>
-                  Oculto es quien lo ocultó y no lo trajo de vuelta en Cuenta. Si muchas personas lo ocultan,{' '}
-                  {AGENT_NAME} molesta: hay que revisar cada cuánto habla y propone.
+                  Oculto es quien lo ocultó y no lo trajo de vuelta en Cuenta. Silenciar por hoy es más suave: sigue a
+                  la vista, pero no habla solo hasta mañana. Si muchas personas lo ocultan o lo silencian, {AGENT_NAME}{' '}
+                  molesta: hay que revisar cada cuánto habla y propone.
                 </p>
               }
             />

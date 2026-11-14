@@ -112,6 +112,24 @@ test('la calificación queda con su carro y el pedido guarda el suyo: con eso se
   expect(saved.events.find((e) => e.type === 'order_rated')).toMatchObject({ cart_id: 'c-1', payload: { stars: 2 } })
 })
 
+test('acepta los eventos de la pregunta in-app (survey_shown, survey_answer y survey_dismissed)', () => {
+  const asked = (type, payload) => ({
+    type,
+    request_id: 'offline-1',
+    payload: { question: 'p1', trigger: 'carro', ...payload },
+  })
+  const reply = call('POST', '/events', {
+    user_id: 'u',
+    events: [asked('survey_shown'), asked('survey_answer', { answer: 'si' }), asked('survey_dismissed')],
+  })
+  expect(reply.body).toEqual({ guardados: 3 })
+  expect(readState().events.map((e) => [e.type, e.payload.answer])).toEqual([
+    ['survey_shown', undefined],
+    ['survey_answer', 'si'],
+    ['survey_dismissed', undefined],
+  ])
+})
+
 test('order_cancelled cancela el pedido de su carro y su tienda (en los dos modos); el otro de la compra sigue', () => {
   const placed = (vertical, store) =>
     call('POST', '/orders', {

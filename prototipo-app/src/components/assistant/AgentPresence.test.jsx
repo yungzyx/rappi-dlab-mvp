@@ -206,15 +206,25 @@ describe('Mochi flotante', () => {
     expect(screen.queryByRole('group', { name: 'Opciones de Mochi' })).toBeNull()
   })
 
-  test('"Silenciar por hoy" lo deja como pestañita y tocarla lo despierta', async () => {
+  test('"Silenciar por hoy" lo deja como pestañita y tocarla lo despierta; los dos quedan medidos', async () => {
     const { container } = mountTree()
     fireEvent.click(agentButton())
+    events.track.mockClear()
     fireEvent.click(screen.getByRole('button', { name: 'Silenciar por hoy' }))
     expect(container.querySelector('.agent-presence').classList).toContain('is-quiet')
+    // Silenciarlo no es ocultarlo: sigue visible (`visible: true`) y `quiet` dice que se calló.
+    expect(events.track.mock.calls).toEqual([
+      ['agent_visibility', { surface: 'agent', origin: 'menu-mochi', payload: { visible: true, quiet: true } }],
+    ])
     const tab = screen.getByRole('button', { name: 'Mochi está en silencio: tocar para despertarlo' })
     fireEvent.click(tab)
     expect(container.querySelector('.agent-presence').classList).not.toContain('is-quiet')
     expect(agentButton()).toBeTruthy()
+    expect(events.track).toHaveBeenLastCalledWith('agent_visibility', {
+      surface: 'agent',
+      origin: 'pestana-silencio',
+      payload: { visible: true, quiet: false },
+    })
   })
 
   test('silenciado o despertado desde la Home, al salir de ella lo respeta', async () => {

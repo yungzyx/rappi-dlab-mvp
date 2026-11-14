@@ -106,3 +106,8 @@ def test_the_rotated_copy_adds_up_the_watchdog_and_the_sessions(tmp_path):
     summary = log_summary.read_logs([tmp_path / "api.log", tmp_path / "api.log.1"], date(2026, 11, 3))
 
     assert (summary.upkeep, summary.upkeep_slow, summary.new_sessions) == (3, 2, 2)
+
+
+def test_silences_and_hides_go_right_after_what_matters():
+    summary = log_summary.Summary(date(2026, 11, 3), new_people=0, silenced=2, hidden=1)
+    assert log_summary.render(summary).splitlines()[2] == "Mochi: silenciado por hoy 2 veces · ocultado 1 vez"

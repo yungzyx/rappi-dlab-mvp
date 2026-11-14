@@ -51,6 +51,11 @@ EVENT_TYPES = {
     # Se abrió el "¿Por qué?" de una oferta (migración 053): su origen, el concepto de la razón en `concept_id` y los
     # tipos de su `basis` en `payload.basis` (nunca el texto). No enseña al motor.
     "offer_why_open",
+    # La pregunta in-app de la H3 (migración 057): mostrada, respondida o cerrada sin responder. `payload.question`,
+    # `payload.trigger` y, en la respuesta, `payload.answer` (SURVEY_*); la búsqueda que la originó, en `request_id`.
+    "survey_shown",
+    "survey_answer",
+    "survey_dismissed",
 }
 # El `payload.kind` de un `suggestion_dismissed` cuya oferta se fue sola del globo de la Home, sin que la persona tocara
 # nada: no es un rechazo (ni en el panel ni para el "volver"), solo la distingue de "sin respuesta".
@@ -64,6 +69,12 @@ ITEM_ENTITY_TYPES = frozenset({"catalog_item", "menu_item", "store", "vertical"}
 MAX_EVENT_ITEMS = 20
 QUERY_RETENTION_DAYS = 90
 IMPRESSION_RETENTION_DAYS = 90  # los elementos de las impresiones se borran como el texto de las consultas
+# La pregunta in-app de la H3 (docs/diseno-ia.md): sus eventos, sus preguntas con las respuestas que aceptan (la p1,
+# "¿Encontraste lo que buscabas?", y la p3, "¿Confías en las sugerencias de Mochi?" de 1 a 5) y lo que la hizo aparecer.
+# Solo códigos: una pregunta, una respuesta o un motivo fuera de la lista rechazan el lote.
+SURVEY_TYPES = frozenset({"survey_shown", "survey_answer", "survey_dismissed"})
+SURVEY_ANSWERS = {"p1": frozenset({"si", "en_parte", "no"}), "p3": frozenset({1, 2, 3, 4, 5})}
+SURVEY_TRIGGERS = frozenset({"busqueda", "carro", "abandono", "porque"})
 # "¿Qué problema tuvo el pedido?" (con 3 estrellas o menos): los motivos que la app puede mandar en `order_rated`.
 RATING_REASONS = frozenset({"tarde", "faltante", "mal_estado", "equivocado", "repartidor", "otro"})
 LOW_RATING = 3  # 3 estrellas o menos es una calificación mala: pausa la recompra y el "volver" (offers/winback.py)
@@ -270,6 +281,8 @@ def record(conn: Connection, events: list[Event], source: str = "prototype", ses
         raise ValueError(f"Superficie desconocida: {surface}")
     for e in events:
         _check_items(e)
+        if e.type in SURVEY_TYPES:
+            _check_survey(e)
     ratings = [(e, _rating(e)) for e in events if e.type == "order_rated"]
     cancellations = [e for e in events if e.type == "order_cancelled" and _check_cancellation(e)]
     for user_id in dict.fromkeys(e.user_id for e in events):
@@ -388,6 +401,20 @@ def _record_items(conn: Connection, saved: list[tuple[int, Event]], known: set[s
                    VALUES (%s, %s, %s, %s, %s, %s) ON CONFLICT (event_id, position) DO NOTHING""",
                 rows,
             )
+
+
+def _check_survey(e: Event) -> None:
+    """Un evento de la pregunta in-app dice qué pregunta (`payload.question`) y por qué salió (`payload.trigger`), y la
+    respuesta trae una de las de su pregunta (`payload.answer`: `si`, `en_parte` o `no` en la p1; un entero de 1 a 5 en
+    la p3). Uno que no cumple rechaza el lote, como un tipo desconocido."""
+    question, trigger, answer = (e.payload.get(key) for key in ("question", "trigger", "answer"))
+    if not isinstance(question, str) or question not in SURVEY_ANSWERS:
+        raise ValueError(f"Pregunta desconocida: {question!r}")
+    if not isinstance(trigger, str) or trigger not in SURVEY_TRIGGERS:
+        raise ValueError(f"Motivo de la pregunta desconocido: {trigger!r}")
+    # `type`, no `isinstance`: True no es un 1, ni 3.0 un 3 (y una lista no se puede buscar en el conjunto).
+    if e.type == "survey_answer" and not (type(answer) in (str, int) and answer in SURVEY_ANSWERS[question]):
+        raise ValueError(f"Respuesta fuera de la lista: {answer!r}")
 
 
 def _rating(e: Event) -> tuple[int, list[str]]:

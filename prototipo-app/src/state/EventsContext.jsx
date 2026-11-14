@@ -4,6 +4,7 @@ import { beaconEvents, health, sendEvents } from '../api/client'
 import { randomId, randomUuid, userId } from '../api/user'
 import { useDemo } from './DemoContext'
 import { tabStore } from './storage'
+import { observeEvent } from './survey'
 
 // Eventos de uso para el panel de la empresa (búsquedas, carrito, sugerencias, pedidos). Se envían en lotes a
 // rappi-ia; sin API esperan en la cola (con tope) hasta que contesta, y un lote que falla en el camino vuelve a la cola:
@@ -183,6 +184,7 @@ export function EventsProvider({ children }) {
     }
     queue.current.push(event)
     if (queue.current.length > MAX_QUEUE) queue.current.shift()
+    observeEvent(event, now) // la pregunta in-app sigue las búsquedas y sus toques (state/survey.js)
   }, [])
 
   useEffect(() => {
