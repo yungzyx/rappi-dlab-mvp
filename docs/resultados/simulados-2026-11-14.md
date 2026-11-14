@@ -64,4 +64,14 @@ Cada tarjeta dice "Simulado: sin veredicto", sin intervalo (la H3 llega a su mí
 
 El tratamiento también toca la mascota en el 10 % de sus sesiones (`agent_open`, migración 059); ese evento no enseña al motor ni toca los sorteos de la conducta, así que la medida del motor de arriba no cambia con él.
 
+`rappi_staging` se volvió a generar el 14-11-2026 a las 17:39 (hora de Chile), con la misma orden, para ver "Satisfacción y esfuerzo" con el generador que suma la P2 y las calificaciones de pedidos (`P2_*` y `ORDER_*`, supuestos propios). Esos sorteos son aparte de los de la conducta: los grupos (1.489 y 1.511), la H3 y Restaurantes → Turbo salen iguales a los de la tabla de arriba. Lo nuevo, sin veredicto:
+
+| Qué | Tratamiento | Control |
+|---|---|---|
+| "Sí" a "¿Fue fácil encontrarlo?" | 70,9 % de 1.067 respuestas | 68,0 % de 1.017 |
+| "¿Confías en las sugerencias de Mochi?" (1 a 5) | 3,76 de 33 respuestas | no se pregunta |
+| Pedidos calificados con 4 o 5 estrellas | 86,1 % de 2.042 | 85,8 % de 1.886 |
+
+La diferencia de la P2 (+2,9 puntos) sale solo de los 4 puntos de "Sí" de la P1 (con más "Sí", más P2 tras un "Sí", que es más fácil); la de los pedidos es ruido de un supuesto igual en los dos grupos.
+
 La foto sin conexión del panel (`dashboard-empresa/src/fixtures/sin-conexion/`) sigue siendo la del 04-11-2026: rehacerla cambia las cifras que fijan las pruebas de varias vistas y queda para otro cambio.

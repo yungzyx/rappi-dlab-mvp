@@ -1,11 +1,14 @@
 import { useId } from 'react'
 import { AGENT_NAME } from '../../agent/name'
-import { P1_ANSWERS, P3_ANSWERS } from '../../state/survey'
+import { P1_ANSWERS, P2_ANSWERS, P3_ANSWERS } from '../../state/survey'
 import { useFoundItSurvey } from './useFoundItSurvey'
 import './found-it.css'
 
 export const P1_TEXT = '¿Encontraste lo que buscabas?'
+export const P2_TEXT = '¿Fue fácil encontrarlo?'
 export const P3_TEXT = `¿Confías en las sugerencias de ${AGENT_NAME}?`
+const TEXTS = { p1: P1_TEXT, p2: P2_TEXT, p3: P3_TEXT }
+const CHOICES = { p1: P1_ANSWERS, p2: P2_ANSWERS }
 
 /**
  * La tarjeta de la pregunta in-app: el texto, sus respuestas como chips de un toque (sin texto libre) y una × para
@@ -27,7 +30,7 @@ export function FoundItCard({ question, thanks = false, raised = false, onAnswer
     <section className={classes.join(' ')} aria-labelledby={titleId}>
       <div className="found-it-head">
         <h2 id={titleId} className="found-it-title">
-          {p3 ? P3_TEXT : P1_TEXT}
+          {TEXTS[question]}
         </h2>
         <button type="button" className="found-it-close tap" aria-label="Cerrar sin responder" onClick={onClose}>
           ×
@@ -46,7 +49,7 @@ export function FoundItCard({ question, thanks = false, raised = false, onAnswer
                 {value}
               </button>
             ))
-          : P1_ANSWERS.map((option) => (
+          : CHOICES[question].map((option) => (
               <button key={option.id} type="button" className="found-it-chip tap" onClick={() => onAnswer(option.id)}>
                 {option.label}
               </button>

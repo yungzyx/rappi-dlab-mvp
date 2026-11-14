@@ -9,6 +9,7 @@ import { formatNumber, formatPct, formatPoints } from '../../lib/format.js'
 import { useAnalytics } from '../../lib/useAnalytics.js'
 import { GoalValue } from './GoalValue.jsx'
 import { Adoption, Hypotheses } from './Hypotheses.jsx'
+import { Satisfaction } from './Satisfaction.jsx'
 import { assignedPeople, cohortPeople, experimentLabel, offeredPct, orderedPct, variantLabel } from './experiments.js'
 
 // Las columnas de todos los experimentos: personas, con pedido y verticales por persona, desde que se asignó la variante.
@@ -263,7 +264,7 @@ function Experiments({ source }) {
 
 /**
  * Los experimentos del MVP, en el orden del gerente: primero las tres hipótesis (retención, frecuencia y venta cruzada,
- * y "¿Encontraste lo que buscabas?") y cuánto vale su meta con los supuestos de quien presenta, después la adopción y el apagado de Mochi y al final la mecánica de cada
+ * y "¿Encontraste lo que buscabas?") y cuánto vale su meta con los supuestos de quien presenta, después la adopción y el apagado de Mochi, la satisfacción y el esfuerzo, y al final la mecánica de cada
  * experimento (cada persona con una variante estable, comparadas dentro de una sola población).
  */
 export function ExperimentsView({ source }) {
@@ -349,6 +350,34 @@ export function ExperimentsView({ source }) {
         <div className="block">
           <Async>
             <Adoption source={source} />
+          </Async>
+        </div>
+      </section>
+
+      <section className="section" aria-labelledby="satisfaccion">
+        <SectionHead
+          id="satisfaccion"
+          title="Satisfacción y esfuerzo"
+          meta="Lo que responde la gente en la app"
+          source={source}
+          help={
+            <>
+              <p>
+                La tarjeta de la app pregunta "¿Encontraste lo que buscabas?" (Sí, En parte o No) y, tras un Sí o un En
+                parte, "¿Fue fácil encontrarlo?" (Sí o No), igual con {AGENT_NAME} y sin él. "¿Confías en las
+                sugerencias de {AGENT_NAME}?" (de 1 a 5) sale solo con {AGENT_NAME} a la vista, después de un "¿Por
+                qué?". En el seguimiento, "¿Cómo estuvo tu pedido?" se califica con estrellas: bien calificado es 4 o 5.
+              </p>
+              <p>
+                Por grupo, cada proporción se lee como la H3: desde 100 respuestas (o pedidos calificados) por grupo,
+                con su intervalo y la prueba a una cola; antes, no es concluyente. Sin grupos, toda la fuente.
+              </p>
+            </>
+          }
+        />
+        <div className="block">
+          <Async>
+            <Satisfaction source={source} />
           </Async>
         </div>
       </section>

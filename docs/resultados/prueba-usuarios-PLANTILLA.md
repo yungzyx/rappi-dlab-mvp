@@ -59,6 +59,7 @@ Copiado del resumen de cada persona (`rappi-ia resumen-prueba`). La duración es
 | Ocultó a Mochi (y lo trajo de vuelta) | | | | | |
 | Lo silenció por hoy (y lo volvió a hacer hablar) | | | | | |
 | Pregunta in-app: P1 (qué la hizo aparecer, respuesta o "cerrada" / "sin respuesta") | | | | | |
+| Pregunta in-app: P2, "¿Fue fácil encontrarlo?" (Sí, No, "cerrada", "sin respuesta" o "no salió": la P1 fue "No" o se cerró) | | | | | |
 | Pregunta in-app: P3 (nota de 1 a 5, "cerrada", "sin respuesta" o, si no salió tras la tarea 4, "no salió" y por qué) | | | | | |
 | Pedidos (cancelados) | | | | | |
 
@@ -74,9 +75,9 @@ Una fila por oferta que la persona miró en las tareas 3 y 4. El texto del "¿Po
 
 La hace la app sola ([prueba-usuarios.md](../prueba-usuarios.md#la-pregunta-in-app-dentro-del-recorrido)). Lo que respondió sale del resumen; si la vio y la entendió, de la hoja del observador. Con 5 personas y sin grupo de control, sus respuestas describen si se entiende, no miden la H3.
 
-| | P1: ¿salió?, ¿después de qué tarea? | ¿La vio? ¿La entendió? (qué creyó que le preguntaban) | Respuesta | P3: ¿salió tras la tarea 4? (si no, por qué) | ¿La entendió? | Respuesta |
-|---|---|---|---|---|---|---|
-| P1 | … | … | … | … | … | … |
+| | P1: ¿salió?, ¿después de qué tarea? | ¿La vio? ¿La entendió? (qué creyó que le preguntaban) | Respuesta | P2: ¿salió? ¿La entendió? | Respuesta | P3: ¿salió tras la tarea 4? (si no, por qué) | ¿La entendió? | Respuesta |
+|---|---|---|---|---|---|---|---|---|
+| P1 | … | … | … | … | … | … | … | … |
 
 ## Cuestionario
 
@@ -115,6 +116,7 @@ Los de [prueba-usuarios.md](../prueba-usuarios.md#criterios-fijados-antes-de-la-
 | ¿Se puede ocultar y traer de vuelta? | En la tarea 5 no lo trae de vuelta sin ayuda | 1 de 5 | | | Mover o rotular "Mostrar a Mochi" |
 | ¿Se entiende la corrección del tipeo? | En la tarea 1 no ve "Mostrando resultados para…", o marca 1 o 2 en la afirmación 5 | 2 de 5 | | | Revisar el aviso de la corrección en los resultados |
 | ¿Se entiende la P1? | Entre quienes la tuvieron en pantalla: no la vio, o no sabe decir qué le preguntaba, o cree que pregunta por otra cosa | 2 de quienes la tuvieron (anotar "n de m") | | | Revisar el texto o el momento de la tarjeta antes del piloto |
+| ¿Se entiende la P2? | Entre quienes la tuvieron en pantalla: no sabe decir qué le preguntaba, o cree que pregunta por la app y no por lo que buscó | 2 de quienes la tuvieron (anotar "n de m") | | | Revisar el texto de la P2 |
 | ¿Se entiende la P3? | Entre quienes la tuvieron en pantalla: no sabe decir qué le preguntaba o cómo se lee la escala | 2 de quienes la tuvieron (anotar "n de m") | | | Revisar el texto o la escala de la P3 |
 | ¿Lleva a mirar otra vertical? | No abre otra vertical por un acceso de la Home ni por una oferta de Mochi (recorrido del resumen) | 4 de 5 | | | Revisar, antes de una prueba más grande, si la oferta de vertical por probar aparece y se entiende; no se concluye nada de efecto ni de retención |
 

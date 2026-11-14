@@ -51,8 +51,9 @@ EVENT_TYPES = {
     # Se abrió el "¿Por qué?" de una oferta (migración 053): su origen, el concepto de la razón en `concept_id` y los
     # tipos de su `basis` en `payload.basis` (nunca el texto). No enseña al motor.
     "offer_why_open",
-    # La pregunta in-app de la H3 (migración 057): mostrada, respondida o cerrada sin responder. `payload.question`,
-    # `payload.trigger` y, en la respuesta, `payload.answer` (SURVEY_*); la búsqueda que la originó, en `request_id`.
+    # La pregunta in-app de la H3 (migración 057): mostrada, respondida o cerrada sin responder. `payload.question`
+    # (p1, p2 o p3), `payload.trigger` y, en la respuesta, `payload.answer` (SURVEY_*); la búsqueda que la originó, en
+    # `request_id`.
     "survey_shown",
     "survey_answer",
     "survey_dismissed",
@@ -74,10 +75,15 @@ MAX_EVENT_ITEMS = 20
 QUERY_RETENTION_DAYS = 90
 IMPRESSION_RETENTION_DAYS = 90  # los elementos de las impresiones se borran como el texto de las consultas
 # La pregunta in-app de la H3 (docs/diseno-ia.md): sus eventos, sus preguntas con las respuestas que aceptan (la p1,
-# "¿Encontraste lo que buscabas?", y la p3, "¿Confías en las sugerencias de Mochi?" de 1 a 5) y lo que la hizo aparecer.
-# Solo códigos: una pregunta, una respuesta o un motivo fuera de la lista rechazan el lote.
+# "¿Encontraste lo que buscabas?"; la p2, "¿Fue fácil encontrarlo?", Sí o No tras un Sí o un En parte a la p1, y la p3,
+# "¿Confías en las sugerencias de Mochi?" de 1 a 5) y lo que la hizo aparecer. Solo códigos: una pregunta, una respuesta
+# o un motivo fuera de la lista rechazan el lote.
 SURVEY_TYPES = frozenset({"survey_shown", "survey_answer", "survey_dismissed"})
-SURVEY_ANSWERS = {"p1": frozenset({"si", "en_parte", "no"}), "p3": frozenset({1, 2, 3, 4, 5})}
+SURVEY_ANSWERS = {
+    "p1": frozenset({"si", "en_parte", "no"}),
+    "p2": frozenset({"si", "no"}),
+    "p3": frozenset({1, 2, 3, 4, 5}),
+}
 SURVEY_TRIGGERS = frozenset({"busqueda", "carro", "abandono", "porque"})
 # "¿Qué problema tuvo el pedido?" (con 3 estrellas o menos): los motivos que la app puede mandar en `order_rated`.
 RATING_REASONS = frozenset({"tarde", "faltante", "mal_estado", "equivocado", "repartidor", "otro"})
@@ -409,8 +415,8 @@ def _record_items(conn: Connection, saved: list[tuple[int, Event]], known: set[s
 
 def _check_survey(e: Event) -> None:
     """Un evento de la pregunta in-app dice qué pregunta (`payload.question`) y por qué salió (`payload.trigger`), y la
-    respuesta trae una de las de su pregunta (`payload.answer`: `si`, `en_parte` o `no` en la p1; un entero de 1 a 5 en
-    la p3). Uno que no cumple rechaza el lote, como un tipo desconocido."""
+    respuesta trae una de las de su pregunta (`payload.answer`: `si`, `en_parte` o `no` en la p1; `si` o `no` en la p2;
+    un entero de 1 a 5 en la p3). Uno que no cumple rechaza el lote, como un tipo desconocido."""
     question, trigger, answer = (e.payload.get(key) for key in ("question", "trigger", "answer"))
     if not isinstance(question, str) or question not in SURVEY_ANSWERS:
         raise ValueError(f"Pregunta desconocida: {question!r}")

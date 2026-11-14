@@ -119,6 +119,22 @@
             "mes_siguiente": "2026-10",
             "pct": null,
             "personas": 0
+          },
+          "satisfaccion": {
+            "confia": {
+              "promedio": null,
+              "respondidas": 0
+            },
+            "facil": {
+              "respondidas": 0,
+              "si": 0,
+              "si_pct": null
+            },
+            "pedidos": {
+              "buenos": 0,
+              "buenos_pct": null,
+              "calificados": 0
+            }
           }
         },
         "rest_a_turbo": {
@@ -167,6 +183,60 @@
               "variante": "control"
             }
           ]
+        },
+        "satisfaccion": {
+          "confia": {
+            "variantes": [
+              {
+                "promedio": null,
+                "respondidas": 0,
+                "variante": "tratamiento"
+              },
+              {
+                "promedio": null,
+                "respondidas": 0,
+                "variante": "control"
+              }
+            ]
+          },
+          "facil": {
+            "concluyente": false,
+            "diferencia": null,
+            "minimo": 100,
+            "variantes": [
+              {
+                "respondidas": 0,
+                "si": 0,
+                "si_pct": null,
+                "variante": "tratamiento"
+              },
+              {
+                "respondidas": 0,
+                "si": 0,
+                "si_pct": null,
+                "variante": "control"
+              }
+            ]
+          },
+          "pedidos": {
+            "concluyente": false,
+            "diferencia": null,
+            "minimo": 100,
+            "variantes": [
+              {
+                "buenos": 0,
+                "buenos_pct": null,
+                "calificados": 0,
+                "variante": "tratamiento"
+              },
+              {
+                "buenos": 0,
+                "buenos_pct": null,
+                "calificados": 0,
+                "variante": "control"
+              }
+            ]
+          }
         },
         "variantes": [
           {

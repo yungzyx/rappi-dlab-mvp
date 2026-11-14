@@ -30,6 +30,30 @@
   }
 }
 
+/* Satisfacción y esfuerzo: cuatro tarjetas como las de las hipótesis, de a dos desde 640 px y en una fila desde 1200 px */
+@container (min-width: 640px) {
+  .hypotheses--four {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .hypotheses--four .hypothesis {
+    grid-row: span 4;
+    grid-template-rows: subgrid;
+  }
+}
+
+@container (min-width: 960px) {
+  .hypotheses--four {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@container (min-width: 1200px) {
+  .hypotheses--four {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
 .hypothesis-head {
   display: grid;
   gap: 2px;

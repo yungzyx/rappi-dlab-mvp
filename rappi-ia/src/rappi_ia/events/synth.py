@@ -95,10 +95,13 @@ SUPUESTOS (editables aquí):
   (1) Lo que ya suponía el generador: la sugerencia aceptada lleva a pedir en otro grupo y la tabla de Rappi se trata
   como efecto (arriba), así que sin sugerencias el control suma menos verticales, pide un poco menos y retiene algo
   menos. (2) La pregunta in-app ("¿Encontraste lo que buscabas?", P1, en los dos grupos; la P3 solo en tratamiento,
-  tras un "¿Por qué?"): con Mochi a la vista, SURVEY_YES_LIFT puntos más de "Sí" (SURVEY_*). Una fracción chica del
-  tratamiento oculta a Mochi (MOCHI_HIDE, y lo trae de vuelta con MOCHI_BACK) o lo silencia por hoy (MOCHI_QUIET), y
-  con Mochi a la vista toca la mascota en una parte de las sesiones (MOCHI_OPEN, `agent_open`; cuenta como usarlo):
-  oculto, sus sesiones son como las del control; silenciado, la oferta del carro queda elegible pero no se muestra.
+  tras un "¿Por qué?"): con Mochi a la vista, SURVEY_YES_LIFT puntos más de "Sí" (SURVEY_*). La P2 ("¿Fue fácil
+  encontrarlo?", Sí / No) sigue a un "Sí" o un "En parte" de la P1 en los dos grupos, con su "Sí" según esa respuesta
+  (P2_*), sin efecto propio de Mochi. Parte de los pedidos se califica en el seguimiento (`order_rated`, ORDER_*), igual
+  en los dos grupos y solo como evento. Una fracción chica del tratamiento oculta a Mochi (MOCHI_HIDE, y lo trae de
+  vuelta con MOCHI_BACK) o lo silencia por hoy (MOCHI_QUIET), y con Mochi a la vista toca la mascota en una parte de
+  las sesiones (MOCHI_OPEN, `agent_open`; cuenta como usarlo): oculto, sus sesiones son como las del control;
+  silenciado, la oferta del carro queda elegible pero no se muestra.
   El panel muestra la mecánica por grupo, sin veredicto: lo que "mide" es lo que se puso aquí.
 """
 
@@ -127,6 +130,7 @@ from ..motor.combos import (
 )
 from ..offers.guards import baby_in_name, is_offerable, offerable_vertical, unofferable_subverticals
 from .experiments import CONTROL, OFFERS_CONTROL, TREATMENT, bucket
+from .store import LOW_RATING, RATING_REASONS
 
 log = logging.getLogger(__name__)
 CHILE = timezone(timedelta(hours=-3))
@@ -464,6 +468,11 @@ SURVEY_ANSWERED = 0.6  # de ellas, las que se responden (las otras se cierran si
 # tocarlos (abandono), o sin resultados (abandono).
 SURVEY_P1 = {"carro": (0.7, 0.22, 0.08), "con_resultados": (0.2, 0.35, 0.45), "sin_resultados": (0.03, 0.12, 0.85)}
 SURVEY_YES_LIFT = 0.04  # con Mochi a la vista, 4 puntos más de "Sí" (sacados de En parte y No en proporción)
+# La P2, "¿Fue fácil encontrarlo?" (Sí / No), sigue a un "Sí" o un "En parte" de la P1 en la misma tarjeta. La parte que
+# la responde y su "Sí" según lo que se respondió a la P1. Igual en los dos grupos: con Mochi solo cambia la P1
+# (SURVEY_YES_LIFT), y por ella, cuántas veces sale la P2 tras un "Sí".
+P2_ANSWERED = 0.85
+P2_YES = {"si": 0.8, "en_parte": 0.45}
 P3_ANSWERED = 0.7  # la P3 sigue a la P1 respondida: la parte que la responde
 P3_WEIGHTS = (0.05, 0.1, 0.25, 0.35, 0.25)  # "¿Confías en las sugerencias de Mochi?" de 1 a 5 (promedio ~3,65)
 MOCHI_HIDE = 0.004  # por sesión, en tratamiento: oculta a Mochi (en Cuenta) y sus sesiones siguientes son sin Mochi
@@ -472,6 +481,13 @@ MOCHI_QUIET = 0.008  # por sesión, en tratamiento y a la vista: lo silencia por
 MOCHI_OPEN = (
     0.1  # por sesión, en tratamiento y a la vista: toca la mascota y abre su menú (`agent_open`, migración 059)
 )
+# "¿Cómo estuvo tu pedido?" en el seguimiento (`order_rated`): la parte de los pedidos que se califica, cuánto después y
+# el reparto de 1 a 5 estrellas (85 % con 4 o 5). Igual en los dos grupos: Mochi no cambia cómo llega un pedido. Con
+# 3 estrellas o menos, un motivo de RATING_REASONS. Solo el evento: no escribe `app_orders.rating`, así la calificación
+# simulada no pausa la recompra ni el "volver" (offers/winback.py) y lo demás de los simulados no cambia.
+ORDER_RATED = 0.4
+ORDER_RATED_AFTER_MIN = (35, 90)
+ORDER_STARS = (0.04, 0.04, 0.07, 0.25, 0.6)
 
 
 @dataclass
@@ -538,6 +554,7 @@ class _Visit:
     results: int = 0
     carted: bool = False
     why: bool = False  # abrió el "¿Por qué?" de una oferta
+    orders: list = field(default_factory=list)  # los pedidos de la sesión (hora, vertical, carro), para calificarlos
 
 
 def draw_variant(user_id: str) -> str:
@@ -953,6 +970,7 @@ def _session(rng, catalog: Catalog, s: UserState, ts: datetime, start: datetime,
                 vertical,
             )
     _survey(visit, emit)
+    _rate_orders(visit, emit)
 
 
 def _shop(
@@ -1064,6 +1082,7 @@ def _shop(
             "synthetic",
         )
         emit("order_placed", when, vertical=order_vertical, cart=cart_id, value=round(total))
+        visit.orders.append((when, order_vertical, cart_id))
         counts["pedidos"] += 1
         s.orders_by_vertical.setdefault(order_vertical, []).append(ts)
 
@@ -1118,6 +1137,15 @@ def _survey(visit: _Visit, emit) -> None:
         yes, partly, no = yes + SURVEY_YES_LIFT, partly * kept, no * kept
     answer = exp.choices(("si", "en_parte", "no"), weights=(yes, partly, no))[0]
     emit("survey_answer", when + timedelta(seconds=6), payload={**p1, "answer": answer}, **where)
+    if answer in P2_YES:
+        p2 = {**p1, "question": "p2"}
+        emit("survey_shown", when + timedelta(seconds=7), payload=p2, **where)
+        if exp.random() >= P2_ANSWERED:
+            emit("survey_dismissed", when + timedelta(seconds=10), payload=p2, **where)
+            return  # cerrar la tarjeta en la P2 se lleva la P3
+        easy = "si" if exp.random() < P2_YES[answer] else "no"
+        emit("survey_answer", when + timedelta(seconds=10), payload={**p2, "answer": easy}, **where)
+        when += timedelta(seconds=4)
     if not (visit.mochi and visit.why):
         return
     p3 = {"question": "p3", "trigger": "porque", "mochi": True}
@@ -1127,6 +1155,27 @@ def _survey(visit: _Visit, emit) -> None:
         emit("survey_answer", when + timedelta(seconds=12), payload={**p3, "answer": rating}, **where)
     else:
         emit("survey_dismissed", when + timedelta(seconds=10), payload=p3, **where)
+
+
+def _rate_orders(visit: _Visit, emit) -> None:
+    """La calificación de "¿Cómo estuvo tu pedido?" en el seguimiento: parte de los pedidos de la sesión se califica
+    (ORDER_*), un rato después de pedirlo, con los campos de la app (TrackingScreen.jsx: el carro, la vertical, las
+    estrellas y, con 3 o menos, un motivo). Va después de la pregunta in-app: llega con el pedido, no corre su hora."""
+    exp = visit.exp
+    for placed, vertical, cart in visit.orders:
+        if exp.random() >= ORDER_RATED:
+            continue
+        stars = exp.choices((1, 2, 3, 4, 5), weights=ORDER_STARS)[0]
+        reasons = [exp.choice(sorted(RATING_REASONS))] if stars <= LOW_RATING else []
+        when = placed + timedelta(minutes=exp.randint(*ORDER_RATED_AFTER_MIN))
+        emit(
+            "order_rated",
+            when,
+            surface="tracking",
+            vertical=vertical,
+            cart=cart,
+            payload={"stars": stars, "reasons": reasons},
+        )
 
 
 def _event_uuid(user_id: str, session_id: str, seq: int) -> uuid.UUID:

@@ -101,10 +101,12 @@ def test_the_control_group_has_no_mochi_events_and_its_cart_offers_are_withheld(
     withheld = [e for e in events if e["type"] == "offer_withheld"]
     assert {(e["origin"], e["surface"]) for e in withheld} == {(synth.OFFER_ORIGIN, synth.OFFER_SURFACE)}
     assert {e["payload"]["variant"] for e in withheld} == {experiments.CONTROL}
-    # La pregunta in-app sale también sin Mochi: solo la P1, sin Mochi a la vista.
+    # La pregunta in-app sale también sin Mochi: la P1 y la P2 (tras un Sí o un En parte), sin Mochi a la vista.
     surveys = [e for e in events if e["type"].startswith("survey_")]
-    assert surveys and {e["payload"]["question"] for e in surveys} == {"p1"}
+    assert surveys and {e["payload"]["question"] for e in surveys} == {"p1", "p2"}
     assert {e["payload"]["mochi"] for e in surveys} == {False}
+    # Los pedidos también se califican sin Mochi.
+    assert types["order_rated"] > 0
 
 
 def test_the_treatment_group_has_mochi_its_cart_offers_are_eligible_and_p3_follows_a_why():
@@ -183,3 +185,62 @@ def test_with_mochi_in_sight_yes_goes_up_by_the_declared_assumption():
 
     lift = yes_share(True) - yes_share(False)
     assert lift == pytest.approx(synth.SURVEY_YES_LIFT, abs=0.02)
+
+
+def _one_survey(visit: synth._Visit) -> list[tuple[str, dict]]:
+    out: list[tuple[str, dict]] = []
+
+    def emit(kind, when, **kw):
+        out.append((kind, kw.get("payload", {})))
+
+    synth._survey(visit, emit)
+    return out
+
+
+def test_the_p2_follows_a_yes_or_partly_of_the_p1_with_its_trigger_and_never_a_no():
+    after = Counter()
+    for n in range(3000):
+        visit = synth._Visit(random.Random(n), mochi=n % 2 == 0, last=START, searched=True, carted=n % 3 == 0)
+        out = _one_survey(visit)
+        p1 = next((p for kind, p in out if kind == "survey_answer" and p["question"] == "p1"), None)
+        p2 = [(kind, p) for kind, p in out if p["question"] == "p2"]
+        if p1 is None:
+            assert not p2  # sin responder la P1, no hay P2
+            continue
+        if p1["answer"] == "no":
+            assert not p2
+            continue
+        after[p1["answer"]] += 1
+        assert p2[0] == ("survey_shown", {"question": "p2", "trigger": p1["trigger"], "mochi": p1["mochi"]})
+        assert p2[1][0] in ("survey_answer", "survey_dismissed")
+        if p2[1][0] == "survey_answer":
+            assert p2[1][1]["answer"] in ("si", "no")
+        else:  # cerrar la tarjeta en la P2 se lleva la P3
+            assert not [kind for kind, p in out if p["question"] == "p3"]
+        # El orden en la tarjeta: P1 → P2 → P3.
+        questions = [p["question"] for kind, p in out if kind == "survey_shown"]
+        assert questions == sorted(questions)
+    assert after["si"] and after["en_parte"]
+
+
+def test_easy_yes_follows_the_declared_assumption_by_p1_answer():
+    easy = {"si": Counter(), "en_parte": Counter()}
+    for n in range(20000):
+        out = _one_survey(synth._Visit(random.Random(n), mochi=False, last=START, searched=True, carted=True))
+        answers = {p["question"]: p["answer"] for kind, p in out if kind == "survey_answer"}
+        if "p2" in answers:
+            easy[answers["p1"]][answers["p2"]] += 1
+    for p1, share in synth.P2_YES.items():
+        assert easy[p1]["si"] / sum(easy[p1].values()) == pytest.approx(share, abs=0.03)
+
+
+def test_rated_orders_follow_the_declared_assumption_and_carry_the_apps_fields():
+    events = _events(_simulate(experiments.TREATMENT, users=60)["events"])
+    placed = [e for e in events if e["type"] == "order_placed"]
+    ratings = [e for e in events if e["type"] == "order_rated"]
+    assert len(ratings) / len(placed) == pytest.approx(synth.ORDER_RATED, abs=0.08)
+    assert {e["surface"] for e in ratings} == {"tracking"}
+    for e in ratings:
+        stars, reasons = e["payload"]["stars"], e["payload"]["reasons"]
+        assert stars in (1, 2, 3, 4, 5)
+        assert (len(reasons) == 1 and reasons[0] in synth.RATING_REASONS) if stars <= 3 else reasons == []
