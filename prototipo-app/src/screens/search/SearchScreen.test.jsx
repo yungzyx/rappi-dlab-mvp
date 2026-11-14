@@ -7,6 +7,8 @@ import { CartProvider } from '../../state/CartContext'
 import { DemoProvider } from '../../state/DemoContext'
 import { ProductSheetProvider } from '../../state/ProductSheetContext'
 import { ProfileProvider } from '../../state/ProfileContext'
+import { setAgentEnabled } from '../../state/agentEnabled'
+import { routeForScreen } from '../../data/verticals'
 import SearchScreen from './SearchScreen'
 
 const events = vi.hoisted(() => ({ track: vi.fn(), flush: async () => {}, clear: () => {}, settled: async () => {} }))
@@ -216,6 +218,50 @@ describe('SearchScreen', () => {
     expect(
       new URL(today.fetchMock.mock.calls.find(([u]) => u.includes('/search'))[0]).searchParams.has('user_id'),
     ).toBe(false)
+  })
+
+  describe('con Mochi apagado (el grupo de control)', () => {
+    beforeEach(() => setAgentEnabled(false))
+    // El 204 de una oferta retenida al grupo de control (api/agent.py).
+    const withheld = () => new Response(null, { status: 204, headers: { 'X-Offer-Withheld': '1' } })
+    const offers = (fetchMock) =>
+      fetchMock.mock.calls.filter(([u]) => u.endsWith('/agent/offer')).map(([, init]) => JSON.parse(init.body))
+
+    test('es la búsqueda de siempre: sin la persona (su dieta no filtra) y sin Mochi cuando no hay nada', async () => {
+      const { input, fetchMock } = setup({}, { 'POST /agent/offer': withheld })
+      await type(input, 'xyzzy')
+      expect(screen.getByText('Sin resultados para "xyzzy".')).toBeTruthy()
+      expect(document.querySelector('.mascot, .search-agent')).toBeNull()
+      const searched = new URL(fetchMock.mock.calls.find(([u]) => u.includes('/search'))[0]).searchParams
+      expect(searched.has('user_id')).toBe(false)
+      // La oferta sin resultado se pide igual, como en el buscador con Mochi: la API la retiene y la anota.
+      expect(offers(fetchMock)).toEqual([
+        expect.objectContaining({ moment: 'sin_resultado', surface: 'search', context: { query: 'xyzzy' } }),
+      ])
+    })
+
+    test('antes de escribir suma "Para ti" (/recommendations) sin el nombre de Mochi; tocar una abre su vertical', async () => {
+      const { push } = setup({}, { '/recommendations': fixture('recommendations') })
+      await advance(0)
+      expect(screen.getByRole('heading', { name: 'Para ti' })).toBeTruthy()
+      expect(screen.queryByText(/Mochi/)).toBeNull()
+      fireEvent.click(screen.getAllByRole('button', { name: /Explorar/ })[0])
+      expect(push).toHaveBeenCalledWith(...routeForScreen('express'))
+      expect(events.track).toHaveBeenCalledWith(
+        'vertical_open',
+        expect.objectContaining({ vertical: 'conveniencia', surface: 'search', origin: 'para-ti', position: 0 }),
+      )
+    })
+
+    test('con Mochi (oculto por la persona) este buscador no suma "Para ti" ni pide la oferta sin resultado', async () => {
+      setAgentEnabled(true)
+      const { input, fetchMock } = setup({}, { '/recommendations': fixture('recommendations') })
+      await type(input, 'xyzzy')
+      expect(offers(fetchMock)).toEqual([])
+      fireEvent.change(input, { target: { value: '' } })
+      await advance(0)
+      expect(screen.queryByRole('heading', { name: 'Para ti' })).toBeNull()
+    })
   })
 
   test('una consulta que viene en los parámetros (una categoría) se busca de inmediato', async () => {

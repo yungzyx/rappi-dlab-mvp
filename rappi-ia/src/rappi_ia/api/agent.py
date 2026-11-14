@@ -15,7 +15,7 @@ from .. import config
 from ..agent.grouped_search import SpareConnector
 from ..events import experiments
 from ..events import store as events
-from ..events.experiments import HOLDOUT_MOMENTS
+from ..events.experiments import EXPOSURE_MOMENTS
 from ..offers import autonomy, preferences
 from ..offers.engine import Offer, OfferError, PlanOffer, ProfileOffer, home_occasions, kit_stores, make_offer
 from ..offers.personal import user_interests
@@ -29,6 +29,7 @@ router = APIRouter(prefix="/agent", tags=["agent"])
 
 MAX_LINES = 100  # como un pedido (OrderIn)
 WITHHELD_HEADER = "X-Offer-Withheld"  # en el 204 de una oferta retenida al grupo de control
+AGENT_WITHHELD_HEADER = "X-Agent-Withheld"  # en /agent/ask del grupo de control: respondió la búsqueda de siempre
 # Hasta dónde mira atrás la cuenta de una oferta ya anotada en la sesión (`_withheld`): la sesión de la app expira tras
 # 30 minutos sin actividad, así que con esto basta y la consulta usa el índice (user_id, ts) de `app_events`.
 OFFERED_LOOKBACK = "24 hours"
@@ -97,11 +98,11 @@ class ProfileContext(Clean):
 class OfferBase(Clean):
     user_id: str | None = Field(default=None, max_length=64)
     # La sesión de la app (la de sus eventos): con ella, una oferta retenida al grupo de control queda registrada en la
-    # sesión donde se habría visto. Sin ella, la persona no entra al grupo de control.
+    # sesión donde se habría visto. Sin ella se retiene igual, pero no se anota.
     session_id: str | None = Field(default=None, max_length=64)
     # Dónde la pide la app (la pantalla de su `placement`). Desde el buscador (`agent`: un chip, "Repite lo de siempre",
-    # "¿Con qué acompaño…?") la pide la persona, y al grupo de control no se le retiene. Sin ella (una app anterior),
-    # se retiene como antes.
+    # "¿Con qué acompaño…?") la pide la persona: no se anota en ningún grupo (el control no tiene ese buscador). Sin
+    # ella (una app anterior), se anota como antes.
     surface: Literal[tuple(sorted(events.SURFACES))] | None = None  # type: ignore[valid-type]
 
 
@@ -178,12 +179,13 @@ def offer(
     El momento `ontop` suma `plazo_min` (el plazo para sumar sus productos al pedido en curso, un supuesto), y el
     `plan`, `stores`: sus tiendas, un pedido cada una, con lo que suma el kit y si llega a la compra mínima del
     catálogo (`below_min`, `missing`).
-    Grupo de control (`ofertas_control`, con OFFERS_CONTROL_PCT): a quien está en `control`, una oferta de los momentos
-    que Mochi propone solo (HOLDOUT_MOMENTS, fuera del buscador: `surface` distinta de `agent`) no se le muestra (204
-    con `X-Offer-Withheld: 1`) y queda como impresión contrafactual (`offer_withheld`, con lo que habría mostrado; una
-    por sesión, origen, concepto y vertical); hace falta `user_id` y `session_id`. En `tratamiento` la misma oferta se
-    muestra y queda como `offer_eligible`, con la misma clave: los dos grupos se cuentan con un hecho del servidor,
-    antes de lo que la app muestre o filtre.
+    Grupo de control (`ofertas_control`, con OFFERS_CONTROL_PCT): es "Mochi apagado", y a quien está en `control` la
+    API nunca le entrega una oferta, de ningún momento ni pantalla (204 con `X-Offer-Withheld: 1`). Las de los momentos
+    que la app pide sola, igual en los dos grupos (EXPOSURE_MOMENTS, fuera del buscador: `surface` distinta de
+    `agent`), quedan además como impresión contrafactual (`offer_withheld`, con lo que habría mostrado; una por sesión,
+    origen, concepto y vertical; hace falta `session_id`). En `tratamiento` la misma oferta se muestra y queda como
+    `offer_eligible`, con la misma clave: los dos grupos se cuentan con un hecho del servidor, antes de lo que la app
+    muestre o filtre.
     El momento `perfil` tiene su forma: `{ moment, text, perfil, escalera, viaje, reason, actions }` (la escalera de
     un perfil de gusto: `offers/profiles.py`; sus peldaños se buscan a la vez con las conexiones del pool que sobran,
     `spare`, como `/search`). Una ocasión o un perfil que no existe, o una ocasión que el agente no arma (guagua,
@@ -214,32 +216,46 @@ def offer(
     return {**found.to_dict(), "request_id": request_id}
 
 
+def offers_variant(conn: Connection, user_id: str | None) -> str | None:
+    """La variante de la persona en `ofertas_control` (la asigna si aún no tenía), o None sin persona, con el
+    experimento apagado (sin tocar la base) o con un id de otra población, que no entra."""
+    if not user_id or config.OFFERS_CONTROL_PCT <= 0:
+        return None
+    try:
+        events.ensure_user(conn, user_id)  # la asignación exige su fila en `app_users`
+    except ValueError:  # un id de otra población (simulada)
+        return None
+    variant = experiments.offers_variant(conn, user_id)
+    conn.commit()
+    return variant
+
+
+def agent_enabled(conn: Connection, user_id: str | None) -> bool:
+    """`agent_enabled` de `/session`: falso solo para quien está en el grupo de control ("Mochi apagado")."""
+    return offers_variant(conn, user_id) != experiments.CONTROL
+
+
 def _withheld(conn: Connection, body, found: Offer | ProfileOffer, request_id: str | None) -> bool:
-    """Si la oferta se retiene (la persona está en el grupo de control): entonces queda registrada como `offer_withheld`
-    en su sesión, con lo que habría mostrado en `app_event_items` (concepto y vertical incluidos), y la respuesta es un
-    204 como el de un momento sin oferta. En tratamiento la misma oferta queda, igual, como `offer_eligible` y se
-    muestra: los dos grupos se cuentan con el mismo hecho del servidor, que no depende de lo que la app muestre o filtre
-    (lo rechazado en la sesión, una Home tapada). Un plan o un perfil nunca se retienen ni se anotan, ni lo que la
-    persona pide en el buscador (`surface` `agent`), ni una oferta sin persona o sin sesión, ni nada con el experimento
-    apagado. La misma oferta (origen, concepto y vertical, la clave con que la app cuenta una mostrada) se anota una vez
-    por sesión (mirando OFFERED_LOOKBACK atrás): la Home la vuelve a pedir cada vez que queda arriba, y en tratamiento
-    se cuenta una sola mostrada."""
+    """Si la oferta se retiene (la persona está en el grupo de control, "Mochi apagado"): la respuesta es un 204 como el
+    de un momento sin oferta, sea cual sea el momento o la pantalla. Las de los momentos que la app pide igual en los
+    dos grupos (EXPOSURE_MOMENTS fuera del buscador, con sesión) quedan además registradas como `offer_withheld` en su
+    sesión, con lo que habría mostrado en `app_event_items` (concepto y vertical incluidos). En tratamiento la misma
+    oferta queda, igual, como `offer_eligible` y se muestra: los dos grupos se cuentan con el mismo hecho del servidor,
+    que no depende de lo que la app muestre o filtre (lo rechazado en la sesión, una Home tapada). Un plan, un perfil,
+    "¿Me falta algo?", "Muéstrame algo nuevo" y lo que la persona pide en el buscador (`surface` `agent`) no se anotan:
+    solo el tratamiento los puede pedir. Nada cambia con el experimento apagado. La misma oferta (origen, concepto y
+    vertical, la clave con que la app cuenta una mostrada) se anota una vez por sesión (mirando OFFERED_LOOKBACK
+    atrás): la Home la vuelve a pedir cada vez que queda arriba, y en tratamiento se cuenta una sola mostrada."""
+    variant = offers_variant(conn, body.user_id)
+    if variant is None:
+        return False
     if (
-        body.moment not in HOLDOUT_MOMENTS
+        body.moment not in EXPOSURE_MOMENTS
         or body.surface == experiments.ASKED_SURFACE
-        or not body.user_id
         or not body.session_id
         or isinstance(found, ProfileOffer)
     ):
-        return False
-    try:
-        events.ensure_user(conn, body.user_id)
-    except ValueError:  # un id de otra población (simulada): no entra al experimento
-        return False
-    variant = experiments.offers_variant(conn, body.user_id)
-    if variant is None:
-        conn.commit()
-        return False
+        return variant == experiments.CONTROL
     kind = "offer_withheld" if variant == experiments.CONTROL else "offer_eligible"
     concept = found.reason.get("concept")
     origin = f"agent-{body.moment}"

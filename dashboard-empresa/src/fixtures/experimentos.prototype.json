@@ -87,7 +87,7 @@
           ]
         },
         "id": "ofertas_control",
-        "nota": "Al azar: un sorteo estable con el id de la persona. A control no se le muestran las ofertas que Mochi propone solo (quedan como retenidas). La diferencia entre los grupos mide el efecto de esas ofertas cuando cada grupo llega al mínimo del plan de piloto (docs/plan-piloto.md); antes, no es concluyente.",
+        "nota": "Al azar: un sorteo estable con el id de la persona. Control es Mochi apagado: sin la mascota, sin sus ofertas (las que la app pide sola quedan como retenidas) y con el buscador de siempre; conserva \"Para ti\" y el orden de la Home. La diferencia entre los grupos mide el efecto de Mochi cuando cada grupo llega al mínimo del plan de piloto (docs/plan-piloto.md); antes, no es concluyente.",
         "poblacion": {
           "adopcion": {
             "dias": 30,
@@ -200,7 +200,7 @@
     ]
   },
   "guardado": {
-    "fecha": "2026-11-13",
+    "fecha": "2026-11-14",
     "origen": "make contract · recorrido corto sobre el catálogo de prueba inventado"
   },
   "source": "prototype"

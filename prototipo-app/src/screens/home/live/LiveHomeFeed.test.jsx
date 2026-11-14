@@ -2382,7 +2382,7 @@ describe('Home del prototipo final', () => {
       )
       memory.session.played = true
       memory.session.lastAdded = LOOSE_CART
-      stubAgent({
+      const mock = stubAgent({
         'GET /profile/*': fixture('profile-verticales'),
         'POST /agent/offer': (req) => (req.body.moment === 'recompra' ? fixture('agent-offer-recompra') : 204),
       })
@@ -2393,7 +2393,7 @@ describe('Home del prototipo final', () => {
       expect(container.querySelector('.smart-bar')).toBeNull()
       expect(container.querySelector('.live-block--plan')).toBeNull()
       expect(container.querySelector('.live-block--recompra')).toBeNull()
-      expect(allOfferRequests()).toEqual([]) // ni la recompra ni el comentario del carro
+      expect(allOfferRequests(mock)).toEqual([]) // ni la recompra ni el comentario del carro
       expect(container.querySelector('.home-shortcut').textContent).toBe('Farmacia')
       expect(container.querySelector('.home-shortcut.is-moved')).toBeNull()
       expect(tracked('vertical_reorder_shown', 'agent-reorden')).toEqual([])
@@ -2402,6 +2402,58 @@ describe('Home del prototipo final', () => {
       expect(push).toHaveBeenLastCalledWith('search')
       fireEvent.click(screen.getByRole('button', { name: 'Buscar' })) // el de la barra inferior
       expect(push).toHaveBeenLastCalledWith('search', {})
+    })
+  })
+
+  describe('Mochi apagado (grupo de control)', () => {
+    // El 204 de una oferta retenida al grupo de control (api/agent.py).
+    const withheld = () => new Response(null, { status: 204, headers: { 'X-Offer-Withheld': '1' } })
+    const offControl = (offers) => {
+      localStorage.setItem('rappi-proto-mochi-activo', '0') // lo que dijo la API con la sesión (agent_enabled)
+      localStorage.setItem('rappi-proto-user', 'proto-control')
+      localStorage.setItem(
+        'rappi-proto-accesos-vistos',
+        JSON.stringify({
+          user: 'proto-control',
+          order: ['supermercado', 'farmacia', 'mall', 'licores', 'conveniencia', 'chocolateria'],
+        }),
+      )
+      memory.session.played = true
+      memory.session.lastAdded = LOOSE_CART
+      return stubAgent({ 'GET /profile/*': fixture('profile-verticales'), 'POST /agent/offer': offers })
+    }
+    const shownOffers = () => events.track.mock.calls.filter(([type]) => type === 'suggestion_shown')
+
+    test('sin mascota ni propuestas, con el buscador de siempre y el orden de la Home; pide igual lo que pide sola', async () => {
+      const mock = offControl(withheld)
+      const push = vi.fn()
+      const { container } = await renderHome({ push })
+      await advance(5000)
+      expect(container.querySelector('.live-agent')).toBeNull()
+      expect(container.querySelector('.smart-bar')).toBeNull()
+      expect(container.querySelector('.live-block--plan')).toBeNull()
+      expect(container.querySelector('.live-block--recompra')).toBeNull()
+      // La recompra y el comentario del carro se piden como en tratamiento: la API los retiene y los anota (y con la
+      // recompra retenida no pide "¿Volvemos a…?", como tratamiento, que la habría mostrado).
+      expect(allOfferRequests(mock).map((body) => body.moment)).toEqual(['carrito', 'recompra'])
+      expect(shownOffers()).toEqual([])
+      // El orden de los accesos se conserva, sin que Mochi lo explique.
+      expect(container.querySelector('.home-shortcut').textContent).toBe('Farmacia')
+      expect(tracked('vertical_reorder_shown', 'agent-reorden')).toEqual([])
+
+      fireEvent.click(container.querySelector('.home-top .search-bar'))
+      expect(push).toHaveBeenLastCalledWith('search')
+      fireEvent.click(screen.getByRole('button', { name: 'Buscar' })) // el de la barra inferior
+      expect(push).toHaveBeenLastCalledWith('search', {})
+    })
+
+    test('una oferta que la API igual entregue (el grupo se apagó con la app abierta) no se muestra', async () => {
+      offControl((req) => fixture(req.body.moment === 'recompra' ? 'agent-offer-recompra' : 'agent-offer-carrito'))
+      const { container } = await renderHome()
+      await advance(5000)
+      expect(container.querySelector('.live-block--recompra')).toBeNull()
+      expect(container.querySelector('.live-bubble')).toBeNull()
+      expect(shownOffers()).toEqual([])
     })
   })
 })

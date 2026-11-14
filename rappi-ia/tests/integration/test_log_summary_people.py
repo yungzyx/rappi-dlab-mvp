@@ -40,3 +40,36 @@ def test_agent_changes_count_silences_apart_from_hides_that_chilean_day(db):
     events.record(db, [change("syn-x", {"visible": True, "quiet": True})], source="synthetic")
 
     assert log_summary.agent_changes(db, date(2026, 11, 3)) == (2, 1)
+
+
+def test_survey_counts_are_the_prototype_ones_of_that_chilean_day(db):
+    day = datetime(2026, 11, 3, 12, 0, tzinfo=TZ)
+
+    def survey(user, kind, question, ts=day, **extra):
+        payload = {"question": question, "trigger": "carro", **extra}
+        return events.Event(user, "s1", kind, ts=ts, payload=payload)
+
+    events.record(
+        db,
+        [
+            survey("proto-a", "survey_shown", "p1"),
+            survey("proto-a", "survey_answer", "p1", answer="si"),
+            survey("proto-a", "survey_shown", "p3"),
+            survey("proto-a", "survey_answer", "p3", answer=5),
+            survey("proto-b", "survey_shown", "p1"),
+            survey("proto-b", "survey_answer", "p1", answer="en_parte"),
+            survey("proto-c", "survey_shown", "p1"),
+            survey("proto-c", "survey_dismissed", "p1"),
+            survey("proto-d", "survey_shown", "p1", ts=datetime(2026, 11, 4, 0, 1, tzinfo=TZ)),  # otro día
+        ],
+    )
+    events.record(db, [survey("syn-x", "survey_answer", "p1", answer="no")], source="synthetic")
+
+    assert log_summary.survey_counts(db, date(2026, 11, 3)) == {
+        "mostrada": 3,
+        "si": 1,
+        "en_parte": 1,
+        "no": 0,
+        "cerrada": 1,
+        "p3": 1,
+    }

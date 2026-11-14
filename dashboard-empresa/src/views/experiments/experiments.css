@@ -174,3 +174,154 @@
   line-height: 1.45;
   color: var(--ink-3);
 }
+
+/* ---------- ¿Cuánto vale la meta?: los supuestos y, al lado desde 960 px, lo que valen las dos metas ---------- */
+.goal {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--space-4);
+  align-items: start;
+}
+
+@container (min-width: 960px) {
+  .goal {
+    grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+  }
+}
+
+.goal-form {
+  display: grid;
+  gap: var(--space-5);
+}
+
+.goal-group {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(176px, 1fr));
+  gap: var(--space-3);
+  min-width: 0;
+  border: 0;
+}
+
+.goal-group legend {
+  margin-bottom: var(--space-2);
+  font-size: var(--text-xs);
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  color: var(--ink-3);
+}
+
+.goal-field {
+  display: grid;
+  align-content: start;
+  gap: var(--space-1);
+  min-width: 0;
+}
+
+.goal-field label {
+  font-size: var(--text-sm);
+  font-weight: 500;
+  color: var(--ink-2);
+}
+
+/* La entrada y su unidad en una sola caja; el foco se ve en la caja entera */
+.goal-input {
+  display: flex;
+  align-items: stretch;
+  height: 40px;
+  overflow: hidden;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius-s);
+  background: var(--surface);
+}
+
+.goal-input:focus-within {
+  outline: 2px solid var(--focus);
+  outline-offset: 1px;
+}
+
+.goal-input:has([aria-invalid='true']) {
+  border-color: var(--bad);
+}
+
+/* 16 px: en el teléfono, menos hace que el navegador acerque la página al escribir */
+.goal-input input {
+  flex: 1;
+  min-width: 0;
+  padding: 0 10px;
+  border: 0;
+  font: inherit;
+  font-size: 1rem;
+  font-variant-numeric: tabular-nums;
+  color: var(--ink);
+  background: none;
+}
+
+.goal-input input::placeholder {
+  color: var(--ink-3);
+}
+
+.goal-input input:focus-visible {
+  outline: none;
+}
+
+.goal-unit {
+  display: flex;
+  align-items: center;
+  padding: 0 10px;
+  border-left: 1px solid var(--line);
+  font-size: var(--text-xs);
+  white-space: nowrap;
+  color: var(--ink-3);
+  background: var(--surface-sunken);
+}
+
+.goal-error {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  font-size: var(--text-xs);
+  font-weight: 500;
+  color: var(--bad-ink);
+}
+
+.goal-error svg {
+  flex: none;
+  width: 14px;
+  height: 14px;
+  margin-top: 1px;
+  color: var(--bad);
+}
+
+.goal-results {
+  display: grid;
+  gap: var(--space-4);
+  min-width: 0;
+}
+
+/* Lo que se lee en 10 segundos: el margen del primer año de cada meta, arriba de todo */
+.goal-summary {
+  grid-column: 1 / -1;
+  max-width: 64ch;
+  font-size: var(--text-md);
+  line-height: 1.5;
+  color: var(--ink-2);
+}
+
+.goal-summary strong {
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  color: var(--ink);
+}
+
+.goal-table {
+  min-width: 0;
+}
+
+.goal-table thead th:first-child,
+.goal-table tbody th {
+  text-align: left;
+}
+
+.goal-table tbody th .cell-stack {
+  justify-items: start;
+}

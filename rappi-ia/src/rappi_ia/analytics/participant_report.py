@@ -4,7 +4,7 @@ Solo lee, y solo personas del prototipo (`source = 'prototype'`): una simulada n
 "¿Por qué?" de cada oferta los eventos traen de qué sale (los tipos de su `basis`, en `payload.basis`, desde la
 migración 053) y cuándo se abrió (`offer_why_open`), no su texto: puede traer lo que la persona escribió. Lo que la app
 no guarda no sale aquí y lo anota el moderador: el texto exacto del "¿Por qué?" y los rechazos que no dejan
-`suggestion_dismissed`.
+`suggestion_dismissed`. La pregunta in-app de la H3 sale con lo que la hizo aparecer y lo que respondió (`survey_*`).
 """
 
 import re
@@ -91,6 +91,20 @@ TOUCHES = {
     "order": "pidió",
 }
 
+# La pregunta in-app de la H3 (`survey_*`, prototipo-app/src/state/survey.js): sus textos, sus respuestas y lo que la
+# hizo aparecer (`payload.trigger`).
+SURVEY_QUESTIONS = {
+    "p1": '"¿Encontraste lo que buscabas?"',
+    "p3": '"¿Confías en las sugerencias de Mochi?"',
+}
+SURVEY_ANSWERS = {"si": "Sí", "en_parte": "En parte", "no": "No"}
+SURVEY_TRIGGERS = {
+    "busqueda": "tocó un resultado de su búsqueda",
+    "carro": "agregó al carro desde su búsqueda",
+    "abandono": "buscó y no tocó ningún resultado",
+    "porque": 'siguió a la p1: abrió un "¿Por qué?" en la sesión',
+}
+
 
 @dataclass
 class Participant:
@@ -107,6 +121,7 @@ class Participant:
     services: list[dict]
     visibility: list[dict]
     orders: list[dict]
+    surveys: list[dict]
 
 
 def parse_since(text: str) -> datetime:
@@ -215,6 +230,7 @@ def load_participant(conn: Connection, user_id: str) -> Participant:
         services=_events(conn, user_id, ("service_opened",)),
         visibility=_events(conn, user_id, ("agent_visibility",)),
         orders=orders,
+        surveys=_events(conn, user_id, ("survey_shown", "survey_answer", "survey_dismissed")),
     )
 
 
@@ -415,6 +431,47 @@ def _why_lines(p: Participant) -> list[str]:
     return lines
 
 
+def _survey_outcome(events: list[dict], i: int) -> str:
+    """Lo que pasó con la pregunta mostrada en `events[i]`: su respuesta, "la cerró sin responder" o, si se fue sola
+    porque la persona siguió con lo suyo (no deja evento), "sin respuesta registrada"."""
+    question = events[i]["payload"].get("question")
+    for x in events[i + 1 :]:
+        if x["payload"].get("question") != question:
+            continue
+        if x["type"] == "survey_shown":
+            break
+        if x["type"] == "survey_dismissed":
+            return "la cerró sin responder"
+        answer = x["payload"].get("answer")
+        return SURVEY_ANSWERS.get(answer, f"{answer} de 5" if question == "p3" else str(answer))
+    return NO_ANSWER
+
+
+def _surveys(p: Participant) -> list[str]:
+    title = ["## Pregunta in-app", ""]
+    shown = [i for i, e in enumerate(p.surveys) if e["type"] == "survey_shown"]
+    if not shown:
+        return [*title, "La pregunta no salió (sin eventos `survey_shown`)."]
+    lines = [
+        *title,
+        f"Salió {len(shown)} {'vez' if len(shown) == 1 else 'veces'}. La p1 sale una vez por sesión y por día, al"
+        ' volver de una búsqueda; la p3 la sigue en la misma tarjeta solo con Mochi a la vista y un "¿Por qué?" abierto'
+        " en la sesión.",
+        "",
+        "| Hora | Pregunta | Qué la hizo aparecer | Mochi a la vista | Qué respondió |",
+        "|---|---|---|---|---|",
+    ]
+    for i in shown:
+        e = p.surveys[i]
+        question, trigger, mochi = (e["payload"].get(k) for k in ("question", "trigger", "mochi"))
+        seen = "sí" if mochi is True else "no" if mochi is False else "sin dato"
+        lines.append(
+            f"| {_time(e['at'])} | {SURVEY_QUESTIONS.get(question, question)} "
+            f"| {SURVEY_TRIGGERS.get(trigger, trigger)} | {seen} | {_survey_outcome(p.surveys, i)} |"
+        )
+    return lines
+
+
 def _path(e: dict) -> str:
     """Por qué camino llegó, según el origen del evento: Mochi (una oferta `agent-<momento>` o el "Para ti" de su
     tarjeta, no el de una tienda), el buscador, un acceso de la Home u otro (pantalla y origen tal cual)."""
@@ -569,7 +626,17 @@ def render(p: Participant) -> str:
         "",
         f"Experimentos: {variants}.",
     ]
-    for section in (_sessions, _searches, _offer_lines, _why_lines, _journey, _verticals, _visibility, _orders):
+    for section in (
+        _sessions,
+        _searches,
+        _surveys,
+        _offer_lines,
+        _why_lines,
+        _journey,
+        _verticals,
+        _visibility,
+        _orders,
+    ):
         lines += ["", *section(p)]
     return "\n".join(lines) + "\n"
 

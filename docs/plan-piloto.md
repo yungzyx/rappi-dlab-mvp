@@ -4,31 +4,77 @@ La propuesta para medir con Rappi el efecto de las ofertas de Mochi: qué se mid
 
 La tabla de combinaciones de Rappi muestra que quien combina verticales retiene más, pero es una correlación ([contexto-y-problema.md](contexto-y-problema.md)). Para saber si Mochi causa algo hace falta un grupo de control al azar: el experimento `ofertas_control`, que ya está en el MVP y viene apagado ([capa-de-datos.md](capa-de-datos.md#impresiones-experimentos-y-vistas-derivadas)).
 
-## Qué se mide
+## Las tres hipótesis
 
-- **Métrica primaria: la retención M+1 de quien usa una sola vertical.** Es la parte de las personas que recibieron su variante en el mes M y tienen algún pedido confirmado en el mes M+1, como la calcula el panel (`_offers_retention` en `rappi_ia/analytics/queries.py`). Se parece a la de la tabla de Rappi, pero queda un mes más lejos del mes que define a la persona (ver "Población").
-- **Las otras dos hipótesis**, que el panel muestra junto a la retención (la H1) en "Las tres hipótesis" de Experimentos:
-  - **H2, frecuencia y Restaurantes → Turbo.** Los pedidos confirmados por persona en los 30 días desde la asignación y en M+1, y de los clientes de Restaurantes, la parte que pide en Turbo en los 28 días desde la asignación. Meta: +10 % relativo sobre el control en Restaurantes → Turbo.
-  - **H3, "¿Encontraste lo que buscabas?".** El % de "Sí" a la pregunta de la app ([diseno-ia.md](diseno-ia.md#la-pregunta-de-la-h3)), con la prueba de proporciones a una cola (H0: igual en los dos grupos; la alternativa: mayor en tratamiento) y su intervalo, sin umbral.
-- **Secundarias:**
-  - la parte que **suma una vertical nueva en 28 días**, es decir, que pide en una vertical en la que no había pedido antes de recibir su variante;
-  - la **aceptación de las ofertas por momento** (carro, checkout, vertical por probar, recompra, etc.), que el panel ya muestra en la pestaña "Mochi y búsquedas".
+Cada una compara a quienes tienen a Mochi ("Mochi activo", tratamiento) con el control, "Mochi apagado" (ver "El control: Mochi apagado"). Las metas son las que planteó el gerente de Rappi el 12-11-2026.
+
+| Hipótesis | Métrica | Meta | Cómo se prueba |
+|---|---|---|---|
+| **H1, retención** | La retención M+1 de quien usa una sola vertical: la parte de las personas que recibieron su variante en el mes M y tienen algún pedido confirmado en M+1, como la calcula el panel (`_offers_retention` en `rappi_ia/analytics/queries.py`). Se parece a la de la tabla de Rappi, pero queda un mes más lejos del mes que define a la persona (ver "Población"). Es la primaria | **+2 puntos** sobre el control | Dos proporciones a dos colas, con su intervalo de 95 % |
+| **H2, frecuencia y venta cruzada** | De los clientes de Restaurantes, la parte que pide en Turbo en los 28 días desde la asignación; junto a ella, los pedidos confirmados por persona en los 30 días desde la asignación y en M+1 | **Restaurantes → Turbo, +10 % relativo** sobre el control (la tasa del tratamiento, 1,1 veces la del control); la frecuencia, sin meta propia | Restaurantes → Turbo: dos proporciones a dos colas; la frecuencia: diferencia de promedios con su intervalo (Welch) |
+| **H3, "¿Encontraste lo que buscabas?"** | El % de "Sí" a la pregunta de la app ([diseno-ia.md](diseno-ia.md#la-pregunta-de-la-h3)), que sale igual en los dos grupos | **Sin umbral previo** | Dos proporciones a **una cola**: H0, igual en los dos grupos; la alternativa, mayor con Mochi. Con su p y su intervalo |
+
+El panel las muestra en ese orden en "Las tres hipótesis" de Experimentos (ver "Qué hace hoy el MVP").
+
+### Orden de lectura
+
+1. **Retención, frecuencia y venta cruzada** (H1 y H2): lo que Rappi quiere saber primero es si con Mochi activo las personas vuelven, piden más seguido y cruzan de Restaurantes a Turbo.
+2. **"¿Encontraste lo que buscabas?"** (H3).
+3. **Adopción y apagado, después:** cuántas personas de tratamiento usan a Mochi, y cuántas lo ocultan o lo silencian por hoy. No son hipótesis: ocultar y silenciar son un **indicador de alerta**. Si suben, Mochi molesta, aunque la retención no lo muestre todavía; no se usan para declarar un efecto.
+
+Las secundarias (abajo) van al final, como exploratorias.
+
+### Dónde corre
+
+El piloto corre **dentro de Rappi**, con su tráfico y en su app: el equipo del proyecto no tiene acceso a la base de Rappi, y la retención M+1, los pedidos y Restaurantes → Turbo de personas reales solo se pueden contar ahí. Lo que entrega el proyecto es la definición de cada métrica (las consultas de `rappi_ia/analytics/queries.py`), el reparto y el sorteo estable (`rappi_ia/events/experiments.py`), los eventos que hacen falta (incluida la pregunta in-app y `offer_withheld` / `offer_eligible` para la parte expuesta) y este análisis declarado. dlab-mvp.com solo comprueba que la mecánica funciona (ver "Qué hace hoy el MVP").
+
+### Secundarias
+
+- la parte que **suma una vertical nueva en 28 días**, es decir, que pide en una vertical en la que no había pedido antes de recibir su variante;
+- la **aceptación de las ofertas por momento** (carro, checkout, vertical por probar, recompra, etc.), que el panel ya muestra en la pestaña "Mochi y búsquedas".
 
 ## En quiénes, con qué reparto y cuánto dura
 
 - **Población:** personas que en el mes anterior a su asignación (M−1) pidieron en una sola vertical. Quien ya combina verticales tiene otra retención base y queda fuera. Cada persona recibe su variante una sola vez, con el sorteo estable de su id (`rappi_ia/events/experiments.py`).
 - **Desfase con la tabla de Rappi:** la tabla mide algún pedido en M0+1 de quien pidió solo en una vertical en M0, un mes después del mes que define a la persona. El piloto define a la persona en M−1, la asigna durante M y mide M+1: dos meses después. Se deja así porque el panel toma el mes de asignación como M y mide el mes siguiente, y porque definir a la persona con sus pedidos del mismo mes en que ya ve ofertas mezclaría la población con el efecto. Por eso el 47 % de la tabla (a un mes) no es la base de esta métrica: la base hay que pedírsela a Rappi con esta definición (algún pedido en M0+2 de quien pidió solo en una vertical en M0).
-- **Reparto:** `OFFERS_CONTROL_PCT` es la parte de las personas que queda en control. Hoy, a ellas no se les muestran las ofertas que la app pide a Mochi sin que la persona las pida (`HOLDOUT_MOMENTS`): el comentario del carro y la recompra, "¿Volvemos a…?" y la vertical por probar ("Muéstrame algo nuevo", en el menú que abre tocar a Mochi en la Home), la de una búsqueda sin resultado y el próximo pedido y el OnTop del seguimiento. Cada una queda registrada como `offer_withheld`, una vez por sesión, y en tratamiento la misma oferta, que la API sí entrega, queda como `offer_eligible`, con la misma regla. Sí ven lo que piden: un plan, un perfil de gusto, "¿Me falta algo?" del checkout y lo que piden en el buscador ("Repite lo de siempre", "¿Con qué acompaño…?", "¿Qué puedo probar?"). También ven "Para ti", la sugerencia cruzada de las respuestas de Mochi y el orden de la Home, que el control hoy no retiene: si el piloto los retiene es una decisión pendiente, y cambia lo que mide. Con **10** (10 % en control y 90 % con ofertas) son menos las personas sin ofertas, pero el total crece. Con **50** (50/50) la prueba es la más chica.
+- **Reparto:** `OFFERS_CONTROL_PCT` es la parte de las personas que queda en control, y el control es **"Mochi apagado"** (desde el 14-11-2026; ver "El control: Mochi apagado"): no ve la mascota, no recibe ofertas de Mochi y su buscador es la búsqueda de siempre. Conserva "Para ti" y el orden de la Home, que Rappi ya tiene: lo que se compara es Mochi frente a la app sin Mochi, no frente a una app sin personalización. Con **10** (10 % en control y 90 % con Mochi) son menos las personas sin Mochi, pero el total crece. Con **50** (50/50) la prueba es la más chica.
 - **Duración:** un mes de asignación (M) y su mes siguiente completo (M+1), o sea unos dos meses. Si en un mes no se llega al tamaño de la tabla, se asigna un segundo mes y la prueba dura unos tres.
+
+## El control: Mochi apagado
+
+Lo pidió el gerente de Rappi el 12-11-2026: comparar "Mochi activo" contra "Mochi apagado". Antes, el control solo dejaba de ver las ofertas que Mochi propone solo y seguía viendo la mascota y el buscador con Mochi. Desde el 14-11-2026, una persona en control:
+
+- **No ve a Mochi:** ni la mascota en la Home ni flotante, ni su saludo, guía, plan del día o "¿Repetimos?"; tampoco "¿Me falta algo?" en el checkout ni "Preguntarle a Mochi" en un producto. En Cuenta no está la fila para ocultarlo o traerlo, ni "Repetir escena".
+- **Busca con el buscador de siempre** (el de `/search`, el mismo que ve quien oculta a Mochi): sin tarjetas, planes, chips ni la sugerencia cruzada de sus respuestas, y sin las preferencias que la persona le haya dicho a Mochi. Antes de escribir suma "Para ti" (las filas de `/recommendations`, sin el nombre de Mochi).
+- **No recibe ninguna oferta de Mochi:** la API responde 204 con `X-Offer-Withheld: 1` en cualquier momento y pantalla, y `/agent/ask` le responde la búsqueda de siempre, con `X-Agent-Withheld: 1`.
+- **Conserva** "Para ti", el orden de la Home y la pregunta "¿Encontraste lo que buscabas?", que le sale igual que en tratamiento (la P3, "¿Confías en las sugerencias de Mochi?", no).
+
+**Cómo lo sabe la app.** `POST /session` devuelve `agent_enabled` (falso en control) y la app lo guarda con la sesión; cada vez que abre con una sesión ya guardada la confirma con `GET /session`, que devuelve lo mismo. Así lo sabe también al recargar y con la identidad renovada (un 401 pide una sesión nueva, que trae el suyo), y quien ya tenía sesión cuando se enciende el control recibe ahí su variante. Con `OFFERS_CONTROL_PCT` en 0, `agent_enabled` es verdadero para todos y la API no toca la base para decirlo. No es "Ocultar a Mochi": eso lo decide la persona y el panel lo cuenta aparte (oculto, silenciado). La demo sin conexión no tiene grupo de control.
+
+**La exposición se sigue contando igual en los dos grupos.** La app en control pide las mismas ofertas que pide sola en tratamiento (la oferta del carro y "¿Repetimos?" o "¿Volvemos a…?" en la Home, la búsqueda sin resultado, el OnTop y el próximo pedido del seguimiento) aunque no tenga dónde mostrarlas: la API las retiene, las anota como `offer_withheld` y la app nunca muestra una, aunque la API la entregue. "Muéstrame algo nuevo" se pide en el menú de la mascota, que el control no tiene: desde este cambio no se anota en ningún grupo (`EXPOSURE_MOMENTS` en `rappi_ia/events/experiments.py`). Si una app vieja de alguien en control le pregunta a Mochi, la respuesta retenida queda como `offer_withheld` de origen `agent-ask` en el buscador, que no cuenta en la parte expuesta (no tiene par en tratamiento), y la consulta como una búsqueda: la adopción del control queda en 0 por diseño.
+
+**Límites (lo mínimo coherente con "Mochi apagado"; no se borra nada de la persona):**
+
+- **"Pedir por mí":** el permiso (`agent_autonomy`) se conserva, pero Mochi no puede pedir: solo lo hace desde su buscador (que el control no tiene; `/agent/ask` no arma el autopedido) o desde "¿Repetimos?" (retenido). `POST /orders` no rechaza un autopedido de alguien en control: solo lo mandaría una app que lo armó antes de que se encendiera el control. En "Mis pedidos" siguen los pedidos que Mochi hizo antes.
+- **Perfil de gusto y planes:** los segmentos se siguen calculando, pero el perfil, su escalera y los planes solo se muestran en el buscador con Mochi y en la Home con Mochi, y la API los retiene (`perfil` y `plan`).
+- **Preferencias (dieta, alergias, favoritas):** se conservan y no filtran el buscador de siempre (la app no manda la persona a `/search`), pero "Para ti" (`/recommendations`) sí las aplica, como hoy. Solo las tiene quien se las dijo a Mochi antes de quedar en control, y en control no hay dónde verlas o cambiarlas (salvo "Borrar mis datos").
+- **El repartidor del mapa de seguimiento** sigue con la imagen de Mochi, como en "Rappi hoy" y con Mochi oculto: es el ícono del repartidor en el prototipo, no algo que Mochi proponga.
+- **Al primer ingreso**, antes de que responda la sesión, la pantalla de espera muestra a Mochi; desde la segunda vez, con Mochi apagado guardado, no. Si el control se enciende o se apaga con la app abierta, lo que se ve cambia al abrirla de nuevo; mientras tanto la app no muestra ninguna oferta que la API entregue.
+- **Lo que mide la parte expuesta:** las ofertas que la app pide sola. Con Mochi apagado, el efecto por intención de tratar incluye también la mascota y el buscador con Mochi, que no exponen a nadie en esa cuenta: dividir por la parte expuesta supone cero efecto en quien no tuvo una oferta, y eso ahora es más fuerte que antes.
+- **La prueba con 5 personas** sigue con el control en 0: `deploy/macos/chequeo-sesion.sh` no da "Listo para la sesión" si no lo está ([prueba-usuarios.md](prueba-usuarios.md)).
 
 ## Análisis declarado antes de empezar
 
 - Prueba de dos proporciones (aproximación normal), α = 0,05 a dos colas, potencia 0,8. La H3 se lee con la misma prueba a una cola (la alternativa es que suba con Mochi), sin umbral; la frecuencia, con la diferencia de promedios y su intervalo (Welch).
-- **Por intención de tratar:** cuenta a todas las personas asignadas, hayan visto una oferta o no. Si solo una parte llega a un momento con oferta, el efecto se diluye y hace falta más gente que en la tabla. La conversión: efecto total ≈ parte expuesta × efecto entre expuestos. Si la mitad de las personas llega a una oferta, +4 puntos entre ellas son unos +2 en total, la fila de +2 puntos de la tabla; y como el tamaño crece con 1/δ², exponer a la mitad pide unas cuatro veces más personas. La parte expuesta se mide en el piloto, no se supone: las personas de la misma cohorte de la retención M+1 con una oferta retenible entre su asignación y el inicio de M+1, contadas igual en los dos grupos con lo que anota la API (`offer_withheld` en control, `offer_eligible` en tratamiento; lo que piden en el buscador lo ven los dos grupos y no expone a nadie). Como cuenta a las personas con al menos una, la que las expone es la primera, y hasta ella los dos grupos vivieron lo mismo: la parte expuesta debería salir parecida en los dos, y si no, algo falla. Con ella se pasa del efecto por intención de tratar al efecto entre expuestos: la diferencia dividida por la parte expuesta, suponiendo que en quien no tuvo una oferta el efecto es cero.
+- **Por intención de tratar:** cuenta a todas las personas asignadas, hayan visto una oferta o no. Si solo una parte llega a un momento con oferta, el efecto se diluye y hace falta más gente que en la tabla. La conversión: efecto total ≈ parte expuesta × efecto entre expuestos. Si la mitad de las personas llega a una oferta, +4 puntos entre ellas son unos +2 en total, la fila de +2 puntos de la tabla; y como el tamaño crece con 1/δ², exponer a la mitad pide unas cuatro veces más personas. La parte expuesta se mide en el piloto, no se supone: las personas de la misma cohorte de la retención M+1 con una oferta retenible entre su asignación y el inicio de M+1, contadas igual en los dos grupos con lo que anota la API (`offer_withheld` en control, `offer_eligible` en tratamiento, solo de lo que la app pide igual en los dos; lo que la persona le pide a Mochi solo lo puede pedir tratamiento y no expone a nadie en esta cuenta). Como cuenta a las personas con al menos una, la que las expone es la primera, y hasta ella los dos grupos vivieron lo mismo: la parte expuesta debería salir parecida en los dos, y si no, algo falla. Con ella se pasa del efecto por intención de tratar al efecto entre expuestos: la diferencia dividida por la parte expuesta, suponiendo que en quien no tuvo una oferta el efecto es cero.
 - **Cuándo se lee:** una sola vez, cuando termina el M+1 de la última cohorte asignada. Mirar a medio camino y parar cuando aparece algo aumenta los falsos positivos.
 - Las métricas secundarias se informan con su intervalo de 95 %, como exploratorias.
 
 ## Qué haría falta para medirlo
+
+Los tamaños salen de `sample_size` en `rappi-ia/src/rappi_ia/analytics/power.py` (la fórmula, abajo), que prueban los tests de `tests/unit/test_power.py`. Son personas asignadas, por intención de tratar: si solo una parte llega a una oferta, hacen falta más (ver "Análisis declarado antes de empezar").
+
+### H1, retención M+1
 
 La tabla parte de una base de 47 % de retención M+1, la de la fila "solo Restaurantes" de la tabla de Rappi (Chile, cohortes de enero a junio de 2026). **Es un supuesto:** la población del piloto puede tener otra base, y esa fila mide a un mes, no a dos (ver "Desfase con la tabla de Rappi"). El efecto mínimo es cuánto sube la retención del grupo con ofertas sobre la del grupo de control.
 
@@ -44,7 +90,23 @@ N = [z₀,₉₇₅ · √(p̄(1 − p̄)(1/k + 1/(1 − k))) + z₀,₈ · √(
 
 donde z₀,₉₇₅ = 1,960 y z₀,₈ = 0,842. Cada grupo se redondea hacia arriba (⌈k·N⌉ y ⌈(1 − k)·N⌉), así que el total puede quedar una persona sobre ⌈N⌉. El cálculo está en `rappi-ia/src/rappi_ia/analytics/power.py` y lo prueban los tests de `tests/unit/test_power.py`.
 
-La fila "solo Restaurantes" de la tabla de Rappi reúne 739 mil personas, así que para Rappi el tamaño no es el límite. El efecto mínimo que vale la pena medir se decide con Rappi; la tabla muestra las tres opciones.
+La fila "solo Restaurantes" de la tabla de Rappi reúne 739 mil personas, así que para Rappi el tamaño no es el límite. La meta es +2 puntos; las filas de +1 y +5 quedan como referencia.
+
+### H2, Restaurantes → Turbo
+
+La meta es relativa (+10 % sobre el control), así que el tamaño depende de la tasa del control, que no está en el repositorio: es un dato de Rappi y se le pide con la definición de la H2 (de quienes piden en Restaurantes, la parte que pide en Turbo en 28 días). La tabla la muestra con tres tasas supuestas, solo para ver el orden de magnitud. Cuentan solo los clientes de Restaurantes de cada grupo.
+
+| Tasa del control (supuesta) | Meta (+10 % relativo) | Con 10 % en control: en control | en tratamiento | total | Con 50/50: por grupo | total |
+|---|---|---:|---:|---:|---:|---:|
+| 10 % | 10 → 11 % | 8.302 | 74.718 | 83.020 | 14.751 | 29.502 |
+| 20 % | 20 → 22 % | 3.656 | 32.897 | 36.553 | 6.510 | 13.020 |
+| 30 % | 30 → 33 % | 2.107 | 18.956 | 21.063 | 3.763 | 7.526 |
+
+Con una tasa más baja, +10 % relativo es una diferencia más chica en puntos y pide más personas: con 10 % pide más que la H1 con +2 puntos (54.432 con 10 % en control); con 20 o 30 %, menos. El panel calcula el mínimo con la tasa del control que observa (`H2_RELATIVE_GOAL` en `power.py`). La frecuencia no tiene meta ni tamaño propio: se informa con su intervalo.
+
+### H3, "¿Encontraste lo que buscabas?"
+
+Sin umbral previo no hay un efecto mínimo con que calcular un tamaño: la H3 se lee con las respuestas que haya. El panel no la lee antes de 100 respuestas por grupo (un supuesto propio, no un cálculo de potencia) y cuenta respuestas, no personas: cada una responde a lo más una por día, y solo quien busca. Si Rappi quiere un tamaño para la H3, hay que fijar antes de empezar el efecto mínimo y la tasa de "Sí" esperada en el control.
 
 ## Qué hace hoy el MVP
 
@@ -52,7 +114,7 @@ La fila "solo Restaurantes" de la tabla de Rappi reúne 739 mil personas, así q
   - **H1, retención M+1** (meta +2 puntos): la de cada grupo en la cohorte con su mes siguiente completo y la diferencia en puntos.
   - **H2, frecuencia y Restaurantes → Turbo** (meta +10 % relativo): los pedidos por persona en los 30 días desde la asignación (solo quien ya los cumplió; en M+1, en una línea aparte) y, de quienes tienen un pedido de Restaurantes antes de que terminen sus 28 días, la parte que pide en Turbo en esos 28 días, con la diferencia en puntos y relativa. Su mínimo es el de +10 % relativo con la tasa del control como base (la de Rappi no va en el repositorio). En el piloto la población se define antes de asignar; en el prototipo, que asigna en la primera sesión, el pedido de Restaurantes puede caer dentro de la ventana.
   - **H3, "¿Encontraste lo que buscabas?"** (sin umbral): el % de "Sí" por grupo, la diferencia con su intervalo de 95 % y el p de la prueba a una cola, desde 100 respuestas por grupo (un supuesto propio); antes, "no es concluyente". Cuenta respuestas, no personas: una persona responde una por día como mucho.
-  - **Adopción y apagado**: por grupo, quienes usaron a Mochi desde su asignación (buscaron o preguntaron en su buscador, o aceptaron una oferta suya; tocar la mascota no deja un evento propio), quienes lo tienen oculto y quienes lo silenciaron por hoy.
+  - **Adopción y apagado**: por grupo, quienes usaron a Mochi desde su asignación (buscaron o preguntaron en su buscador, o aceptaron una oferta suya; tocar la mascota no deja un evento propio), quienes lo tienen oculto y quienes lo silenciaron por hoy. En control las tres quedan en 0 por diseño: tiene a Mochi apagado.
   - Sin los dos grupos con personas (con el control apagado), cada tarjeta muestra la población completa de la fuente, rotulada "Sin grupo de control: describe, no mide un efecto". Con los datos simulados no hay veredicto.
 - Para la retención M+1 y la parte que suma una vertical nueva en 28 días, cuenta solo la cohorte que ya tiene su mes siguiente completo y agrega la diferencia y el n de cada grupo. Mientras un grupo esté bajo el mínimo para +2 puntos, la meta de la H1 (calculado con el reparto real de quienes tienen variante; el de +5 puntos, que pide unas seis veces menos personas, queda como referencia), la lectura queda en "no es concluyente" y la diferencia va sin intervalo: con pocas personas, un grupo en 0 % o 100 % encoge el de 95 % y parecería un efecto. Con cada grupo en su mínimo, la diferencia lleva su intervalo de 95 %. El panel calcula sobre todas las personas con variante: el filtro de la población lo hace el piloto cuando decide a quién asignar. Junto a la retención, por grupo, va la parte expuesta de esa misma cohorte ("Expuestas antes de M+1", la de "Por intención de tratar"). La tabla de las ofertas muestra además las personas con oferta desde la asignación, sin tope (incluye el mes M+1): sirve para ver la mecánica, no para la conversión. Las dos se cuentan igual en los dos grupos, con lo que anota la API cada vez que tiene una oferta retenible (`offer_withheld` en control y `offer_eligible` en tratamiento, una vez por sesión, origen, concepto y vertical), la haya alcanzado a mostrar la app o no. Las ofertas mostradas (`suggestion_shown`) y aceptadas siguen siendo las que anota la app en tratamiento.
 - En dlab-mvp.com, el grupo de control solo sirve para comprobar que la mecánica funciona: que asigna, retiene las ofertas, registra `offer_withheld` y el panel lo lee. No sirve para sacar conclusiones. Las personas del prototipo con eventos por semana, desde el 21-09-2026, fueron 6, 3, 36, 2, 5, 5 y 1, muy lejos incluso de las 1.569 por grupo que pide +5 puntos con 50/50. No se enciende durante la prueba con usuarios ([prueba-usuarios.md](prueba-usuarios.md#7-qué-se-puede-concluir-con-5-personas-y-qué-no)).

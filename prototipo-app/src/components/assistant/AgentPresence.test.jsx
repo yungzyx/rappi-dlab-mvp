@@ -10,6 +10,7 @@ import { OPEN_CART_EVENT } from '../../state/cartSheet'
 import { AGENT_CART_EVENT, resetLive } from '../../state/liveMemory'
 import { QUIET_KEY, resetQuiet } from '../../state/agentQuiet'
 import { HIDDEN_KEY } from '../../state/agentHidden'
+import { setAgentEnabled } from '../../state/agentEnabled'
 import { ProfileProvider } from '../../state/ProfileContext'
 import { today } from '../../utils/today'
 import AgentPresence, { SIDE_KEY } from './AgentPresence'
@@ -267,6 +268,16 @@ describe('Mochi flotante', () => {
     added(BEER)
     expect(again.container.querySelector('.agent-presence')).toBeNull()
     expect(bubble()).toBeNull()
+  })
+
+  test('en el grupo de control (Mochi apagado) no flota, y "Repetir escena" no lo trae', async () => {
+    setAgentEnabled(false)
+    mountTree()
+    expect(agentButton()).toBeNull()
+    act(() => resetLive())
+    expect(agentButton()).toBeNull()
+    act(() => setAgentEnabled(true)) // la API lo volvió a encender (el grupo de control se apagó)
+    expect(agentButton()).toBeTruthy()
   })
 
   test('"Repetir escena" trae de vuelta a Mochi oculto, como a una persona nueva', async () => {
