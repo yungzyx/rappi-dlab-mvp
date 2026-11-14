@@ -155,11 +155,12 @@ def search_products(
     `words`: si a la consulta le queda alguna palabra (`retrieval.hybrid.has_words`), si quien llama ya lo sabe.
     Con `correct` (/search), si nada calza todas las palabras, corrige los errores de tipeo (`retrieval.spelling`) y
     vuelve a buscar: si así algo calza todas las palabras y hay productos, devuelve eso con `corrected_query`; si no, lo
-    de la consulta tal cual. Con `concepts=None` la consulta se lee sola (`read_query`): una ocasión sin concepto
-    nombrado ("algo para la once") se busca por los conceptos que esta vertical vende (`occasion_in`), como en la
-    búsqueda agrupada; "X para Y" busca X (`retrieval.hybrid.query_need`). Las dos no se corrigen: lo pedido ya se
-    entendió. `sober`: nada +18, porque el alcohol es solo el para qué de lo pedido ("bebida para mezclar con
-    pisco")."""
+    de la consulta tal cual. Si algo calza, solo corrige un nombre de local, tienda o marca que suena igual a una
+    palabra con muchísimo más uso ("suchi", por "Suchi Tacna": `spelling.correct_query(..., matched=True)`). Con
+    `concepts=None` la consulta se lee sola (`read_query`): una ocasión sin concepto nombrado ("algo para la once") se
+    busca por los conceptos que esta vertical vende (`occasion_in`), como en la búsqueda agrupada; "X para Y" busca X
+    (`retrieval.hybrid.query_need`). Las dos no se corrigen: lo pedido ya se entendió. `sober`: nada +18, porque el
+    alcohol es solo el para qué de lo pedido ("bebida para mezclar con pisco")."""
     rewritten = False
     if concepts is None:
         query, concepts, occasion, sober = read_query(query, sober)
@@ -170,9 +171,9 @@ def search_products(
     found = _search_products(
         conn, vertical, query, concepts, embedder, price_max, k, mode, symptom, offer, adult_ok, words, sober
     )
-    if not correct or rewritten or found.result.strict_lexical_matches:
+    if not correct or rewritten:
         return found
-    fixed = correct_query(conn, query, vertical)
+    fixed = correct_query(conn, query, vertical, matched=bool(found.result.strict_lexical_matches))
     if fixed is None:
         return found
     if concepts is None:  # lo corregido también se lee solo: "bebida para mezclar con piscco" busca la bebida
