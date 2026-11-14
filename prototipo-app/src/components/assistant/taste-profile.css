@@ -149,6 +149,11 @@
   color: var(--ink-2);
 }
 
+/* El "¿Por qué?" de la escalera de verticales, bajo el título y su línea, a lo ancho. */
+.taste-ladder-head .offer-why {
+  grid-column: 1 / -1;
+}
+
 .taste-dots {
   grid-row: 1;
   grid-column: 2;

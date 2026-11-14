@@ -15,6 +15,7 @@ from rappi_ia.motor.combos import (
     fine_churn_factor,
     fine_key,
     fine_of,
+    first_vertical,
     group_counts,
     load_combos,
     next_fine_step,
@@ -305,3 +306,10 @@ def test_the_margin_does_not_reorder_inside_a_group():
     }
     step = next_fine_step("restaurantes+turbo", ["supermercado", "conveniencia"], learned_coarse, learned_fine)
     assert (step.vertical, step.used_assumption) == ("conveniencia", False)
+
+
+def test_without_orders_the_first_step_is_where_most_people_start_in_rappis_table():
+    """La escalera de verticales sin pedidos parte en el grupo de un solo grupo con más usuarios de la tabla (rest)."""
+    assert first_vertical(["supermercado", "turbo", "restaurantes", "mall"]) == "restaurantes"
+    assert first_vertical(["mall", "turbo"]) == "turbo"  # sin restaurantes, el grupo que sigue en la tabla
+    assert first_vertical([]) is None

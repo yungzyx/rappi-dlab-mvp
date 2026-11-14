@@ -456,7 +456,7 @@ def ladder(
     for step, stores_known, (products, stores) in zip(profile.ladder, known, found, strict=True):
         if chosen := _step_products(step, products, stores, stores_known, shown, places):
             steps.append(LadderStep(step, chosen))
-            shown |= {_name_key(p.name) for p in chosen}
+            shown |= {name_key(p.name) for p in chosen}
     return steps if len(steps) >= MIN_STEPS else []
 
 
@@ -512,10 +512,10 @@ def _step_products(
     places = {stores[store_id][0] for store_id in known if store_id in stores}
     by_concept: dict[str, list[Product]] = {c: [] for c in step.concepts}
     for product in sorted(found, key=lambda p: p.img is None):  # estable: sigue el orden de la búsqueda
-        if product.concept not in by_concept or not step.fits(product.name) or _name_key(product.name) in shown:
+        if product.concept not in by_concept or not step.fits(product.name) or name_key(product.name) in shown:
             continue
         place, liquor, comuna = stores.get(product.store_id, (("local", product.store_id), False, ""))
-        if liquor or _liquor_store(product.store):
+        if liquor or liquor_store(product.store):
             continue
         if product.entity_type == "menu_item":
             if place in places or comuna not in city:
@@ -540,17 +540,17 @@ def _stores(conn: Connection, store_ids: set[int]) -> StoreInfo:
     return {
         store_id: (
             ("cadena", brand_id) if brand_id is not None else ("local", store_id),
-            _liquor_store(name, brand),
+            liquor_store(name, brand),
             normalize(city or ""),
         )
         for store_id, brand_id, name, brand, city in rows
     }
 
 
-def _liquor_store(*names: str | None) -> bool:
+def liquor_store(*names: str | None) -> bool:
     return any(word in normalize(name) for name in names if name for word in LIQUOR_STORE_WORDS)
 
 
-def _name_key(name: str) -> str:
+def name_key(name: str) -> str:
     """Un nombre como lo compara la búsqueda al quitar repetidos (`agent.tools._dedupe`)."""
     return " ".join(name.lower().split())

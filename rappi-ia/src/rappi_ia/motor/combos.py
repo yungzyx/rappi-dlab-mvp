@@ -310,6 +310,18 @@ def expected_fine_retention(
     return _fine_expectation(fine, learned_coarse, learned_fine)[0]
 
 
+def first_vertical(candidates: Sequence[str]) -> str | None:
+    """El primer peldaño de quien no tiene pedidos: la primera vertical de `candidates` del grupo con el que más
+    personas parten según la tabla de Rappi (la combinación de un solo grupo con más usuarios: `rest`), o del siguiente
+    si de ese no hay ninguna. `None` sin candidatos."""
+    combos = load_combos()
+    singles = sorted((g for g in GROUP_ORDER if g in combos.rappi), key=lambda g: -combos.rappi[g].users)
+    for group in singles:
+        if found := next((v for v in candidates if combos.group_of.get(v) == group), None):
+            return found
+    return None
+
+
 def next_fine_step(
     fine: str,
     candidates: Sequence[str],

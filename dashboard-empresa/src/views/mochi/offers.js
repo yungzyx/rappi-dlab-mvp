@@ -16,6 +16,7 @@ const MOMENTS = {
   volver: 'Volver a pedir',
   ontop: 'OnTop de Turbo',
   perfil: 'Perfil de gusto',
+  escalera: 'Escalera de verticales',
   pregunta: 'Pregunta',
   para_ti: 'Para ti',
   sin_momento: 'Sin momento',
@@ -35,6 +36,7 @@ const MOMENT_HINTS = {
   volver: '"¿Volvemos a…?" a algo que dejó de pedir',
   ontop: '"Turbo: suma esto antes de…" mientras llega otro pedido',
   perfil: 'Los peldaños de su perfil de gusto',
+  escalera: 'Los peldaños de la escalera de verticales, a quien aún no tiene perfil de gusto',
   pregunta: `Al preguntarle a ${AGENT_NAME}`,
   para_ti: 'En "Para ti", al abrir el buscador',
   sin_momento: 'Sin registro de dónde se hizo',
@@ -47,8 +49,9 @@ export const momentHint = (moment) => MOMENT_HINTS[moment] ?? null
 export const REJECTABLE_MOMENTS = new Set(['carrito', 'vertical_por_probar', 'recompra', 'volver'])
 
 // Los momentos con un botón que abre una vertical ("Ver …" en el carro, "Abrir …" en la vertical por probar, "Ver en …"
-// sin resultado, los peldaños del perfil de gusto): ahí se cuentan las abiertas. En los demás, como el rechazo, "—".
-export const OPENABLE_MOMENTS = new Set(['carrito', 'vertical_por_probar', 'sin_resultado', 'perfil'])
+// sin resultado, los peldaños del perfil de gusto y de la escalera de verticales): ahí se cuentan las abiertas. En los
+// demás, como el rechazo, "—".
+export const OPENABLE_MOMENTS = new Set(['carrito', 'vertical_por_probar', 'sin_resultado', 'perfil', 'escalera'])
 
 const sum = (rows, key) => rows.reduce((total, row) => total + (row[key] ?? 0), 0)
 

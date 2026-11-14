@@ -92,6 +92,10 @@ print(
                 "fine_order": list(FINE_ORDER),
                 "service_keys": list(SERVICES),
                 "own_signals_only": sorted(OWN_SIGNALS_ONLY),
+                # Los grupos en el orden en que parte la escalera sin pedidos (combos.py: first_vertical).
+                "first_groups": sorted(
+                    (g for g in combos.groups if g in combos.rappi), key=lambda g: -combos.rappi[g].users
+                ),
             },
             "profiles": {
                 p.id: {

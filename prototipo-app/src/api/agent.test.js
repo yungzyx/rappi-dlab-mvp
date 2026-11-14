@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, test, vi } from 'vitest'
-import { offer, plans, profileLadder } from './agent'
+import { offer, plans, profileLadder, verticalLadder } from './agent'
 import { fixture, stubApi } from '../test/api'
 import { userId } from './user'
 import { setAgentEnabled } from '../state/agentEnabled'
@@ -37,6 +37,34 @@ describe('agent', () => {
     const positions = ladder.steps.flatMap((step) => step.products.map((p) => p.placement.position))
     expect(positions).toEqual([...positions.keys()])
     expect(ladder.steps[1].products[0].placement).toMatchObject({ origin: 'agent-perfil', position: 2 })
+  })
+
+  test('la escalera de verticales (sin perfil) se pide desde el buscador y sus productos son de agent-escalera', async () => {
+    const calls = stubApi({ 'POST /agent/offer': fixture('agent-offer-escalera') })
+    const ladder = await verticalLadder()
+    expect(JSON.parse(calls.mock.calls[0][1].body)).toMatchObject({
+      moment: 'escalera',
+      user_id: userId(),
+      surface: 'agent',
+      context: {},
+    })
+    expect(ladder).toMatchObject({ origin: 'agent-escalera', profile: null, trip: null })
+    expect(ladder.steps.map((step) => step.backendVertical).slice(0, 2)).toEqual(['restaurantes', 'turbo'])
+    const products = ladder.steps.flatMap((step) => step.products)
+    expect(products.length).toBeGreaterThan(0)
+    expect(products.every((p) => p.suggestionOrigin === 'agent-escalera')).toBe(true)
+    expect(products.every((p) => p.placement.origin === 'agent-escalera')).toBe(true)
+    expect(ladder.reason.text).toMatch(/^Todavía no conozco tus gustos/)
+  })
+
+  test('con Mochi apagado (el grupo de control) no hay escalera de verticales, aunque la API la entregue', async () => {
+    stubApi({ 'POST /agent/offer': fixture('agent-offer-escalera') })
+    setAgentEnabled(false)
+    try {
+      expect(await verticalLadder()).toBeNull()
+    } finally {
+      setAgentEnabled(true)
+    }
   })
 
   test('las ofertas usan /agent/offer y el origen agent-<momento>', async () => {

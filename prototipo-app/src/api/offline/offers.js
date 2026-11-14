@@ -1,7 +1,7 @@
 // `POST /agent/offer` sin conexión (offers/engine.py simplificado): la vertical por probar con la escalera del motor,
 // "¿Repetimos?", "¿Volvemos a…?" (sin lo de un pedido mal calificado: winback.js, paused), los complementos del carro,
 // del checkout y del próximo pedido, el OnTop de Turbo y las respuestas grabadas (kits de una ocasión, sin resultado). Todo lo que se ofrece pasa por `offerableProduct` (offers/guards.py).
-import { OFFER_BLOCKED_VERTICALS, contractArticles, stepSignal, targetStep } from './motor'
+import { NONE_COMBO, OFFER_BLOCKED_VERTICALS, contractArticles, ladderSteps, stepSignal, targetStep } from './motor'
 import { alcoholInName, babyInName } from './guards'
 import { entityKey } from './snapshot'
 import { isConfirmed } from './state'
@@ -516,6 +516,8 @@ export function makeOffer(snapshot, state, now, { moment, context = {} }) {
       return complementOffer(snapshot, moment, context.items ?? [], state.userId)
     case 'ontop':
       return onTopOffer(snapshot, context)
+    case 'escalera':
+      return verticalLadder(snapshot, state, now)
     case 'plan':
       return guardedPlan(snapshot.planOffers[context.occasion])
     case 'sin_resultado':
@@ -543,6 +545,71 @@ export function kitStores(products, recorded = []) {
     const missing = minimum == null ? null : Math.max(0, minimum - entry.subtotal)
     return { ...entry, min_order: minimum, missing, below_min: Boolean(missing) }
   })
+}
+
+// engine.py: los textos del momento `escalera` (la escalera de verticales de quien no tiene perfil).
+const REASON_LADDER_NEW =
+  'Todavía no conozco tus gustos, así que esto sigue la escalera de verticales: parte en {primera} y sigue con ' +
+  '{siguientes}.'
+const REASON_LADDER_MINE = 'Ya pides en {tuyas}, así que esto sigue la escalera de verticales desde ahí: {siguientes}.'
+const REASON_LADDER_OTHER = 'Esto sigue la escalera de verticales: {siguientes}.'
+const REASON_LADDER_TABLE =
+  ' El orden sale de la tabla de combinaciones de Rappi: quien pide en más verticales suele volver más (es una ' +
+  'correlación).'
+const REASON_LADDER_ASSUMPTION = ' Que sigan {verticales} es un supuesto propio.'
+const MIN_LADDER_STEPS = 2
+const joinAnd = (items) => (items.length === 1 ? items[0] : `${items.slice(0, -1).join(', ')} y ${items.at(-1)}`)
+
+/**
+ * La escalera de verticales (engine.py: vertical_ladder): los pasos del motor de esta persona (motor.js: ladderSteps)
+ * con los peldaños que grabó la muestra de la API real para una persona sin pedidos (`snapshot.escalera`, uno por
+ * vertical, con su texto y la señal de dónde salen sus productos), pasados otra vez por las guardias. El "por qué" se
+ * arma aquí, como allá: sin suponer un gusto y con el supuesto propio rotulado. null con menos de dos peldaños o sin
+ * escalera grabada.
+ */
+export function verticalLadder(snapshot, state, now) {
+  const recorded = snapshot.escalera
+  if (!recorded) return null
+  const { combos, concepts, guards, vertical_labels: labels } = snapshot.meta
+  const kept = []
+  for (const step of ladderSteps(combos, state, now)) {
+    const shown = recorded.escalera.find((s) => s.vertical === step.vertical)
+    const products = (shown?.products ?? []).filter((p) => offerableProduct(p, concepts, guards))
+    if (!products.length) continue
+    const source = recorded.reason.basis.find((b) => b.kind !== 'combinacion' && b.id === step.vertical)
+    kept.push({ step, shown: { ...clone(shown), products: clone(products) }, source })
+  }
+  if (kept.length < MIN_LADDER_STEPS) return null
+  const label = (vertical) => labels[vertical] ?? vertical
+  const names = kept.map(({ step }) => label(step.vertical))
+  const first = kept[0].step
+  const mine = first.current
+    .split('+')
+    .filter((m) => labels[m] && !OFFER_BLOCKED_VERTICALS.includes(m))
+    .map(label)
+  const start =
+    first.current === NONE_COMBO
+      ? fill(REASON_LADDER_NEW, { primera: names[0], siguientes: joinAnd(names.slice(1)) })
+      : mine.length
+        ? fill(REASON_LADDER_MINE, { tuyas: joinAnd(mine), siguientes: joinAnd(names) })
+        : fill(REASON_LADDER_OTHER, { siguientes: joinAnd(names) })
+  const assumed = kept.filter(({ step }) => step.usedAssumption).map(({ step }) => label(step.vertical))
+  const why =
+    start +
+    REASON_LADDER_TABLE +
+    (assumed.length ? fill(REASON_LADDER_ASSUMPTION, { verticales: joinAnd(assumed) }) : '')
+  return {
+    ...clone(recorded),
+    escalera: kept.map(({ shown }) => shown),
+    reason: {
+      text: contractArticles(why),
+      basis: kept.flatMap(({ step, source }) => [stepSignal(combos, step), ...(source ? [source] : [])]),
+    },
+    actions: kept.map(({ step }) => ({
+      label: `Abrir ${label(step.vertical)}`,
+      route: [snapshot.meta.screen_verticals[step.vertical]],
+    })),
+  }
 }
 
 /** Un kit grabado ya pasó las guardias del backend (el de un carrete puede traer alcohol, con su marca +18). */

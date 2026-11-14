@@ -240,6 +240,42 @@ export function targetStep(combos, state, now) {
   return nextFineStep(combos, fine, candidates)
 }
 
+/**
+ * Sin pedidos, el primer peldaño (combos.py: first_vertical): la primera de `candidates` del grupo con el que más
+ * personas parten según la tabla de Rappi (`combos.first_groups`, que graba la muestra; sin él, rest, turbo, retail).
+ */
+export function firstVertical(combos, candidates) {
+  for (const group of combos.first_groups ?? Object.keys(combos.groups)) {
+    const found = candidates.find((v) => groupOf(combos, v) === group)
+    if (found) return found
+  }
+  return null
+}
+
+/**
+ * La escalera de verticales (predict.py: ladder_steps): el paso de la persona y los que siguen sobre la combinación
+ * que deja cada uno, solo verticales del catálogo que el agente ofrece, en su orden de afinidad. Sin pedidos, parte en
+ * `firstVertical` con `current` "ninguna".
+ */
+export function ladderSteps(combos, state, now) {
+  let fine = currentFine(combos, state, now)
+  const candidates = rankVerticals(affinity(signalsOf(state), now))
+    .map((s) => s.vertical)
+    .filter((v) => !OFFER_BLOCKED_VERTICALS.includes(v) && !combos.own_signals_only.includes(v))
+  const steps = []
+  if (fine === NONE_COMBO) {
+    const first = firstVertical(combos, candidates)
+    if (!first) return []
+    fine = fineKey(combos, [first])
+    steps.push({ vertical: first, current: NONE_COMBO, target: fine, gain: 0, usedAssumption: false })
+  }
+  for (let step = nextFineStep(combos, fine, candidates); step; step = nextFineStep(combos, fine, candidates)) {
+    steps.push(step)
+    fine = step.target
+  }
+  return steps
+}
+
 /** La señal `combinacion` de la `basis` (predict.py: step_signal), sin nombrar Farmacia ni Licores. */
 export function stepSignal(combos, step) {
   const nameable = (fine) =>

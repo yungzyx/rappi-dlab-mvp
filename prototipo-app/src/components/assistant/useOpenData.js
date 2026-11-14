@@ -1,5 +1,5 @@
 import { useRef, useState } from 'react'
-import { profileLadder, tasteProfiles } from '../../api/agent'
+import { profileLadder, tasteProfiles, verticalLadder } from '../../api/agent'
 import { profile as remoteProfile, recommendations } from '../../api/client'
 import { noteShown } from '../../api/suggestions'
 import { userId } from '../../api/user'
@@ -30,18 +30,21 @@ function onOpen(key, name, load) {
 }
 
 /**
- * El perfil de gusto principal de la persona (`GET /profile/{id}/gustos`) con su escalera (el momento `perfil`), o
- * null si no tiene o no hay escalera: entonces el panel queda como siempre (también si la API no contesta).
+ * El perfil de gusto principal de la persona (`GET /profile/{id}/gustos`) con su escalera (el momento `perfil`). Sin
+ * perfil, la escalera de verticales (el momento `escalera`, `profile` null): todos ven "Para ti en otras verticales"
+ * desde la primera visita. null si no hay escalera: entonces el panel queda como siempre (también si la API no
+ * contesta).
  */
 async function loadTaste() {
   const [main] = await tasteProfiles()
-  const ladder = main ? await profileLadder(main.id) : null
-  return ladder?.steps.length ? { profile: main, ladder } : null
+  const ladder = main ? await profileLadder(main.id) : await verticalLadder()
+  return ladder?.steps.length ? { profile: main ?? null, ladder } : null
 }
 
 /**
  * Lo que el buscador con Mochi pide al abrir: lo aprendido (`learnedRemote`), las filas de "Descubre" (`discoverRows`) y
- * el perfil de gusto con su escalera (`taste`; sin perfil, null). `load()` lo pide (o lo toma de la caché) y devuelve
+ * el perfil de gusto con su escalera (`taste`; sin perfil, la escalera de verticales con `profile` null; sin escalera,
+ * null). `load()` lo pide (o lo toma de la caché) y devuelve
  * las promesas que espera el saludo; `forget()` lo borra al "Olvidar", y lo que llegue después de borrar se ignora.
  */
 export function useOpenData() {
@@ -51,7 +54,8 @@ export function useOpenData() {
   const generation = useRef(0) // sube al "Olvidar": un perfil remoto pedido antes ya no vale
   const [learnedRemote, setLearnedRemote] = useState(null)
   const [discoverRows, setDiscoverRows] = useState([])
-  // El perfil de gusto de la persona y su escalera (`{ profile, ladder }`); sin perfil, null y el panel de siempre.
+  // El perfil de gusto de la persona y su escalera (`{ profile, ladder }`); sin perfil, `profile` null y la escalera de
+  // verticales; sin escalera, null y el panel de siempre.
   const [taste, setTaste] = useState(null)
 
   /**
@@ -62,7 +66,7 @@ export function useOpenData() {
     setTaste(found)
     for (const step of found?.ladder.steps ?? [])
       noteShown(events.track, step.products, {
-        origin: 'agent-perfil',
+        origin: found.ladder.origin,
         reason: found.ladder.reason,
         generation: profile.resets,
       })

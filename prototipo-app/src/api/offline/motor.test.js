@@ -1,5 +1,13 @@
 import { describe, expect, test } from 'vitest'
-import { currentFine, fineExpectation, homeVerticals, stepSignal, targetStep } from './motor'
+import {
+  currentFine,
+  fineExpectation,
+  firstVertical,
+  homeVerticals,
+  ladderSteps,
+  stepSignal,
+  targetStep,
+} from './motor'
 import { COMBOS, CONCEPTS, LABELS } from '../../test/offlineMeta'
 
 const NOW = Date.UTC(2026, 9, 17, 15)
@@ -188,5 +196,36 @@ describe('la escalera fina (motor/combos.py, predict.py)', () => {
     expect(value).toBeCloseTo(1 - 0.07 * 0.9 * 0.95, 10)
     expect(used).toBe(true)
     expect(fineExpectation(COMBOS, 'travel')).toEqual([null, false])
+  })
+})
+
+describe('la escalera de verticales (predict.py: ladder_steps)', () => {
+  const ladder = (s) => ladderSteps(COMBOS, s, NOW)
+
+  test('sin pedidos parte en Restaurantes, sigue con Turbo y después Retail, sin Farmacia ni Licores', () => {
+    const steps = ladder(state())
+    expect(steps.map((s) => s.vertical)).toEqual([
+      'restaurantes',
+      'turbo',
+      'supermercado',
+      'mall',
+      'conveniencia',
+      'chocolateria',
+    ])
+    expect(steps[0]).toMatchObject({ current: 'ninguna', target: 'restaurantes', usedAssumption: false })
+    expect(stepSignal(COMBOS, steps[0]).id).toBe('ninguna→restaurantes')
+    expect(steps.map((s) => s.usedAssumption)).toEqual([false, false, false, true, true, true])
+  })
+
+  test('con pedidos parte después de lo que ya usa', () => {
+    expect(ladder(state({ orders: [order('restaurantes')] }))[0]).toMatchObject({ vertical: 'turbo' })
+    const all = ['restaurantes', 'turbo', 'supermercado', 'conveniencia', 'mall', 'chocolateria'].map((v) => order(v))
+    expect(ladder(state({ orders: all }))).toEqual([])
+  })
+
+  test('el primer grupo sale de la muestra (`first_groups`) y, sin él, del orden de los grupos', () => {
+    expect(firstVertical(COMBOS, ['mall', 'turbo'])).toBe('turbo')
+    expect(firstVertical({ ...COMBOS, first_groups: ['retail', 'rest'] }, ['restaurantes', 'mall'])).toBe('mall')
+    expect(firstVertical(COMBOS, [])).toBeNull()
   })
 })

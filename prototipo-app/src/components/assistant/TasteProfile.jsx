@@ -9,6 +9,7 @@ import AddButton from '../AddButton'
 import { Dots } from '../Carousel'
 import HScroll from '../HScroll'
 import Img from '../Img'
+import OfferWhy from './OfferWhy'
 import './taste-profile.css'
 
 // Las mismas ilustraciones de los accesos de la Home para cada vertical (RappiTravel tiene id propio en los accesos).
@@ -154,10 +155,12 @@ function TripStep({ trip, onOpenTravel }) {
 }
 
 /**
- * "Para ti en otras verticales": la escalera del perfil (el momento `perfil` de la API), un peldaño por vertical, de lo
- * más cercano a lo más lejano, y al final la idea para RappiTravel. `ladder` es el de `profileLadder`.
+ * "Para ti en otras verticales": la escalera del perfil (el momento `perfil` de la API) o, sin perfil, la de verticales
+ * (el momento `escalera`), un peldaño por vertical, de lo más cercano a lo más lejano, y al final la idea para
+ * RappiTravel si la trae. `ladder` es el de `profileLadder` o `verticalLadder`. `why` (la `reason` de la escalera de
+ * verticales) suma su "¿Por qué?" bajo el título; la del perfil no lo lleva: lo dice la tarjeta del perfil.
  */
-export function LadderRail({ ladder, onOpenVertical, onOpenTravel, onOpenProduct }) {
+export function LadderRail({ ladder, why = null, onOpenVertical, onOpenTravel, onOpenProduct }) {
   const [current, setCurrent] = useState(0)
   const cards = [
     ...ladder.steps.map((step) => ({ key: step.backendVertical, step })),
@@ -179,6 +182,7 @@ export function LadderRail({ ladder, onOpenVertical, onOpenTravel, onOpenProduct
           De lo más cercano a lo más lejano · {current + 1} de {cards.length}
         </small>
         <Dots count={cards.length} active={current} className="taste-dots" />
+        {why && <OfferWhy reason={why} origin={ladder.origin} />}
       </div>
       <HScroll className="taste-rail" onScroll={onScroll}>
         {cards.map(({ key, step, trip }, i) => {
