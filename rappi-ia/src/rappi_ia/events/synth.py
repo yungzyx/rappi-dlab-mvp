@@ -96,7 +96,8 @@ SUPUESTOS (editables aquí):
   como efecto (arriba), así que sin sugerencias el control suma menos verticales, pide un poco menos y retiene algo
   menos. (2) La pregunta in-app ("¿Encontraste lo que buscabas?", P1, en los dos grupos; la P3 solo en tratamiento,
   tras un "¿Por qué?"): con Mochi a la vista, SURVEY_YES_LIFT puntos más de "Sí" (SURVEY_*). Una fracción chica del
-  tratamiento oculta a Mochi (MOCHI_HIDE, y lo trae de vuelta con MOCHI_BACK) o lo silencia por hoy (MOCHI_QUIET):
+  tratamiento oculta a Mochi (MOCHI_HIDE, y lo trae de vuelta con MOCHI_BACK) o lo silencia por hoy (MOCHI_QUIET), y
+  con Mochi a la vista toca la mascota en una parte de las sesiones (MOCHI_OPEN, `agent_open`; cuenta como usarlo):
   oculto, sus sesiones son como las del control; silenciado, la oferta del carro queda elegible pero no se muestra.
   El panel muestra la mecánica por grupo, sin veredicto: lo que "mide" es lo que se puso aquí.
 """
@@ -468,6 +469,9 @@ P3_WEIGHTS = (0.05, 0.1, 0.25, 0.35, 0.25)  # "¿Confías en las sugerencias de 
 MOCHI_HIDE = 0.004  # por sesión, en tratamiento: oculta a Mochi (en Cuenta) y sus sesiones siguientes son sin Mochi
 MOCHI_BACK = 0.08  # por sesión, con Mochi oculto: lo trae de vuelta
 MOCHI_QUIET = 0.008  # por sesión, en tratamiento y a la vista: lo silencia por hoy (la oferta del carro no se muestra)
+MOCHI_OPEN = (
+    0.1  # por sesión, en tratamiento y a la vista: toca la mascota y abre su menú (`agent_open`, migración 059)
+)
 
 
 @dataclass
@@ -1073,9 +1077,9 @@ def session_variants(variant: str) -> str:
 
 
 def _mochi_in_session(visit: _Visit, s: UserState, emit, when: datetime) -> None:
-    """Al abrir la app, en tratamiento: si oculta a Mochi (MOCHI_HIDE), lo trae de vuelta (MOCHI_BACK) o lo silencia
-    por hoy (MOCHI_QUIET), con los eventos de la app (`agent_visibility`). Deja en `visit` si está a la vista y en
-    silencio. En control no hay Mochi."""
+    """Al abrir la app, en tratamiento: si oculta a Mochi (MOCHI_HIDE), lo trae de vuelta (MOCHI_BACK), toca la mascota
+    (MOCHI_OPEN, `agent_open`) o lo silencia por hoy (MOCHI_QUIET), con los eventos de la app (`agent_visibility`).
+    Deja en `visit` si está a la vista y en silencio. En control no hay Mochi."""
     if s.variant != TREATMENT:
         return
     exp = visit.exp
@@ -1086,6 +1090,8 @@ def _mochi_in_session(visit: _Visit, s: UserState, emit, when: datetime) -> None
         s.hidden = True
         emit("agent_visibility", when, origin="cuenta", payload={"visible": False})
     visit.mochi = not s.hidden
+    if visit.mochi and exp.random() < MOCHI_OPEN:
+        emit("agent_open", when, surface="home", origin="mascota-home")
     if visit.mochi and exp.random() < MOCHI_QUIET:
         visit.quiet = True
         emit("agent_visibility", when, surface="home", origin="menu-mochi", payload={"visible": True, "quiet": True})

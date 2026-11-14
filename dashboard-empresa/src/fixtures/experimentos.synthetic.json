@@ -52,14 +52,14 @@
           "diferencia": {
             "ic95": null,
             "p_una_cola": null,
-            "puntos": 13.6
+            "puntos": -14.1
           },
           "minimo": 100,
           "variantes": [
             {
-              "respondidas": 12,
-              "si": 6,
-              "si_pct": 50.0,
+              "respondidas": 9,
+              "si": 2,
+              "si_pct": 22.2,
               "variante": "tratamiento"
             },
             {
@@ -111,9 +111,9 @@
             "usaron_pct": 27.6
           },
           "encuesta": {
-            "respondidas": 23,
-            "si": 10,
-            "si_pct": 43.5
+            "respondidas": 20,
+            "si": 6,
+            "si_pct": 30.0
           },
           "frecuencia": {
             "dias": 30,

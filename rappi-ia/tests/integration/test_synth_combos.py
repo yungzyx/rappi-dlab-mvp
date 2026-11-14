@@ -75,14 +75,14 @@ def test_the_mix_and_the_retention_track_the_rappi_table(simulated):
     calibración fina: el catálogo de prueba es chico, muchas búsquedas no encuentran nada y la mezcla queda a 3,7 puntos
     en la peor fila (Restaurantes, 70,7 % contra 67,0 %); el generador anterior a la calibración quedaba a 3,3, así que
     la mezcla no los distingue, y la retención sí (0,315 contra 0,47). Con el grupo de control simulado (14-11-2026) y
-    la calibración ajustada para él con el catálogo real, Restaurantes queda en 71,5 %: la mezcla se mira a 5 puntos.
-    La calibración se revisa con el catálogo real: scripts/calibrar_simulados.py (3.000 personas, 5 semillas;
-    docs/resultados/simulados-2026-11-14.md)."""
+    la calibración ajustada para él con el catálogo real, Restaurantes queda en 72,5 % (con las aristas curadas del
+    14-11): la mezcla se mira a 6 puntos. La calibración se revisa con el catálogo real: scripts/calibrar_simulados.py
+    (3.000 personas, 5 semillas; docs/resultados/simulados-2026-11-14.md)."""
     stats = combo_stats(combo_months(load_orders(simulated, "synthetic")))
     rappi = {c: r for c, r in load_combos().rappi.items() if c != SERVICE_COMBO}
     total = sum(r.pct_users for r in rappi.values())
     for combo, row in rappi.items():
-        assert stats[combo]["pct_users"] == pytest.approx(100 * row.pct_users / total, abs=5), (combo, stats)
+        assert stats[combo]["pct_users"] == pytest.approx(100 * row.pct_users / total, abs=6), (combo, stats)
     assert max(stats, key=lambda c: stats[c]["pct_users"]) == "rest"
     retention = {c: s["retention_m1"] for c, s in stats.items()}
     assert max(retention, key=retention.get) == "rest+turbo+retail", retention

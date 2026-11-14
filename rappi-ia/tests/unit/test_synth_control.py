@@ -27,6 +27,7 @@ MOCHI_EVENTS = {
     "service_shown",
     "service_opened",
     "agent_visibility",
+    "agent_open",
 }
 
 
@@ -111,6 +112,7 @@ def test_the_treatment_group_has_mochi_its_cart_offers_are_eligible_and_p3_follo
     types = Counter(e["type"] for e in events)
 
     assert types["ask"] > 0 and types["offer_eligible"] > 0 and types["suggestion_shown"] > 0
+    assert types["agent_open"] > 0
     assert types["offer_withheld"] == 0
     shown = [e for e in events if e["type"].startswith("suggestion_")]
     assert {e["origin"] for e in shown} == {synth.OFFER_ORIGIN}

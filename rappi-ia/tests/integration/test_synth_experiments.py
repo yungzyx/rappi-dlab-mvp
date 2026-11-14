@@ -67,6 +67,7 @@ def test_the_control_group_has_no_mochi_events_in_the_base(db, simulated):
         ).fetchall()
     )
     mochi = {"ask", "suggestion_shown", "suggestion_accepted", "offer_eligible", "service_shown", "agent_visibility"}
+    mochi.add("agent_open")
     assert not mochi & set(by_type)
     assert by_type.get("offer_withheld", 0) > 0 and by_type.get("survey_answer", 0) > 0
 
