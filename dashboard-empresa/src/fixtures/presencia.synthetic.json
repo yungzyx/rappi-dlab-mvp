@@ -2,17 +2,17 @@
   "data": {
     "explicaciones": 0,
     "explicaciones_personas": 0,
-    "ocultadas": 0,
-    "ocultos": 0,
-    "ocultos_pct": 0.0,
-    "personas_activas": 26,
+    "ocultadas": 1,
+    "ocultos": 1,
+    "ocultos_pct": 3.4,
+    "personas_activas": 29,
     "silenciadas": 0,
     "silenciaron": 0,
     "silenciaron_pct": 0.0,
     "volvieron": 0
   },
   "guardado": {
-    "fecha": "2026-11-13",
+    "fecha": "2026-11-14",
     "origen": "make contract · simulación chica con semilla fija (40 personas, 8 semanas)"
   },
   "source": "synthetic"

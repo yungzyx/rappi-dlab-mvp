@@ -1,16 +1,16 @@
 {
   "data": [
     {
-      "agregaron": 47,
+      "agregaron": 64,
       "modo": "propuesta",
-      "pidieron": 30,
-      "sesiones": 101,
-      "tocaron": 47,
-      "vieron": 55
+      "pidieron": 43,
+      "sesiones": 117,
+      "tocaron": 64,
+      "vieron": 75
     }
   ],
   "guardado": {
-    "fecha": "2026-10-25",
+    "fecha": "2026-11-14",
     "origen": "make contract · simulación chica con semilla fija (40 personas, 8 semanas)"
   },
   "source": "synthetic"

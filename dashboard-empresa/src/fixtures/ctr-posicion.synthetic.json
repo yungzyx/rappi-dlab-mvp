@@ -2,73 +2,73 @@
   "data": {
     "listas": [
       {
-        "clics": 45,
-        "ctr": 0.1965,
-        "impresiones": 229,
+        "clics": 71,
+        "ctr": 0.1711,
+        "impresiones": 415,
         "lista": "resultados",
         "pantalla": "search"
       },
       {
-        "clics": 14,
-        "ctr": 0.1505,
-        "impresiones": 93,
+        "clics": 6,
+        "ctr": 0.1667,
+        "impresiones": 36,
         "lista": "agent-ask",
         "pantalla": "agent"
       }
     ],
     "posiciones": [
       {
-        "clics": 16,
-        "ctr": 0.2909,
-        "impresiones": 55,
+        "clics": 26,
+        "ctr": 0.3467,
+        "impresiones": 75,
         "posicion": 0
       },
       {
-        "clics": 17,
-        "ctr": 0.3091,
-        "impresiones": 55,
+        "clics": 19,
+        "ctr": 0.2533,
+        "impresiones": 75,
         "posicion": 1
       },
       {
-        "clics": 8,
-        "ctr": 0.1455,
-        "impresiones": 55,
+        "clics": 9,
+        "ctr": 0.12,
+        "impresiones": 75,
         "posicion": 2
       },
       {
-        "clics": 10,
-        "ctr": 0.1818,
-        "impresiones": 55,
+        "clics": 11,
+        "ctr": 0.1467,
+        "impresiones": 75,
         "posicion": 3
       },
       {
-        "clics": 2,
-        "ctr": 0.0465,
-        "impresiones": 43,
+        "clics": 6,
+        "ctr": 0.0984,
+        "impresiones": 61,
         "posicion": 4
       },
       {
-        "clics": 3,
-        "ctr": 0.0909,
-        "impresiones": 33,
+        "clics": 4,
+        "ctr": 0.0889,
+        "impresiones": 45,
         "posicion": 5
       },
       {
         "clics": 2,
-        "ctr": 0.1111,
-        "impresiones": 18,
+        "ctr": 0.0667,
+        "impresiones": 30,
         "posicion": 6
       },
       {
-        "clics": 1,
-        "ctr": 0.125,
-        "impresiones": 8,
+        "clics": 0,
+        "ctr": 0.0,
+        "impresiones": 15,
         "posicion": 7
       }
     ]
   },
   "guardado": {
-    "fecha": "2026-10-25",
+    "fecha": "2026-11-14",
     "origen": "make contract · simulación chica con semilla fija (40 personas, 8 semanas)"
   },
   "source": "synthetic"

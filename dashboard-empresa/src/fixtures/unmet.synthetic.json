@@ -1,50 +1,55 @@
 {
   "data": {
     "abandono": {
-      "abandonadas": 26,
-      "abandono_pct": 40.0,
-      "busquedas": 65,
-      "con_clic": 35,
+      "abandonadas": 34,
+      "abandono_pct": 35.8,
+      "busquedas": 95,
+      "con_clic": 59,
       "plazo_minutos": 2,
-      "rescatadas": 4
+      "rescatadas": 2
     },
-    "busquedas": 98,
-    "personas": 29,
+    "busquedas": 117,
+    "personas": 32,
     "por_vertical": [
       {
-        "concepto": "🧽 Limpieza",
-        "sin_resultado": 5,
-        "vertical": "supermercado"
+        "concepto": "🥡 Comida asiática",
+        "sin_resultado": 6,
+        "vertical": "restaurantes"
       },
       {
-        "concepto": "🍦 Helados",
+        "concepto": "🍘 Snacks asiáticos",
+        "sin_resultado": 6,
+        "vertical": "turbo"
+      },
+      {
+        "concepto": "🍝 Pastas",
         "sin_resultado": 4,
         "vertical": "restaurantes"
       },
       {
-        "concepto": "🥗 Ensaladas y bowls",
-        "sin_resultado": 3,
-        "vertical": "restaurantes"
-      },
-      {
-        "concepto": "🇵🇪 Comida peruana",
-        "sin_resultado": 3,
-        "vertical": "restaurantes"
-      },
-      {
         "concepto": "🍗 Pollo frito y asado",
-        "sin_resultado": 3,
+        "sin_resultado": 4,
         "vertical": "restaurantes"
       },
       {
-        "concepto": "🐈 Alimento para gatos",
+        "concepto": "🥛 Leche y yogur",
         "sin_resultado": 3,
         "vertical": "supermercado"
       },
       {
-        "concepto": "🍞 Pan",
+        "concepto": "🧽 Limpieza",
         "sin_resultado": 3,
         "vertical": "supermercado"
+      },
+      {
+        "concepto": "🥞 Desayunos y brunch",
+        "sin_resultado": 2,
+        "vertical": "restaurantes"
+      },
+      {
+        "concepto": "🥗 Ensaladas y bowls",
+        "sin_resultado": 2,
+        "vertical": "restaurantes"
       },
       {
         "concepto": "🌮 Comida mexicana",
@@ -52,27 +57,22 @@
         "vertical": "restaurantes"
       },
       {
-        "concepto": "🍝 Pastas",
+        "concepto": null,
         "sin_resultado": 2,
+        "vertical": "supermercado"
+      },
+      {
+        "concepto": "🥙 Comida árabe",
+        "sin_resultado": 1,
         "vertical": "restaurantes"
       },
       {
-        "concepto": "🐕 Alimento para perros",
-        "sin_resultado": 2,
-        "vertical": "supermercado"
-      },
-      {
-        "concepto": "🥛 Leche y yogur",
-        "sin_resultado": 2,
-        "vertical": "supermercado"
-      },
-      {
-        "concepto": "☕ Café",
+        "concepto": "🍦 Helados",
         "sin_resultado": 1,
-        "vertical": "conveniencia"
+        "vertical": "restaurantes"
       },
       {
-        "concepto": "🥡 Comida asiática",
+        "concepto": "🇵🇪 Comida peruana",
         "sin_resultado": 1,
         "vertical": "restaurantes"
       },
@@ -82,12 +82,7 @@
         "vertical": "supermercado"
       },
       {
-        "concepto": "🥣 Cereales y avena",
-        "sin_resultado": 1,
-        "vertical": "supermercado"
-      },
-      {
-        "concepto": "🍫 Chocolates",
+        "concepto": "🐕 Alimento para perros",
         "sin_resultado": 1,
         "vertical": "supermercado"
       },
@@ -95,17 +90,12 @@
         "concepto": "🍎 Frutas",
         "sin_resultado": 1,
         "vertical": "supermercado"
-      },
-      {
-        "concepto": null,
-        "sin_resultado": 1,
-        "vertical": "supermercado"
       }
     ],
-    "sin_resultado": 39
+    "sin_resultado": 40
   },
   "guardado": {
-    "fecha": "2026-11-04",
+    "fecha": "2026-11-14",
     "origen": "make contract · simulación chica con semilla fija (40 personas, 8 semanas)"
   },
   "source": "synthetic"

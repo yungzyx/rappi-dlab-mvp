@@ -4,104 +4,90 @@
       {
         "combo": "restaurantes",
         "esperada": 0.47,
-        "meses_usuario": 11,
+        "meses_usuario": 27,
         "retencion_m1": null,
-        "retencion_n": 2
+        "retencion_n": 6
       },
       {
         "combo": "restaurantes+turbo",
         "esperada": 0.82,
-        "meses_usuario": 3,
+        "meses_usuario": 2,
+        "retencion_m1": null,
+        "retencion_n": 0
+      },
+      {
+        "combo": "restaurantes+conveniencia",
+        "esperada": 0.76,
+        "meses_usuario": 1,
+        "retencion_m1": null,
+        "retencion_n": 1
+      },
+      {
+        "combo": "restaurantes+turbo+supermercado",
+        "esperada": 0.93,
+        "meses_usuario": 1,
         "retencion_m1": null,
         "retencion_n": 0
       },
       {
         "combo": "turbo",
         "esperada": 0.5,
-        "meses_usuario": 3,
-        "retencion_m1": null,
-        "retencion_n": 0
-      },
-      {
-        "combo": "chocolateria",
-        "esperada": 0.41,
         "meses_usuario": 1,
         "retencion_m1": null,
         "retencion_n": 0
-      },
-      {
-        "combo": "restaurantes+turbo+conveniencia",
-        "esperada": 0.93,
-        "meses_usuario": 1,
-        "retencion_m1": null,
-        "retencion_n": 0
-      },
-      {
-        "combo": "restaurantes+turbo+licores",
-        "esperada": 0.93,
-        "meses_usuario": 1,
-        "retencion_m1": null,
-        "retencion_n": 0
-      },
-      {
-        "combo": "supermercado+chocolateria",
-        "esperada": 0.469,
-        "meses_usuario": 1,
-        "retencion_m1": null,
-        "retencion_n": 1
       }
     ],
     "nota": "Simulado: no es evidencia",
     "propio": [
       {
         "combo": "rest",
-        "gasto_por_usuario": 18780.0,
-        "meses_usuario": 11,
-        "pct_pedidos": 35.294117,
-        "pct_usuarios": 52.38095,
-        "pedidos_por_usuario": 1.0909091,
+        "gasto_por_usuario": 18828.88888888889,
+        "meses_usuario": 27,
+        "pct_pedidos": 66.666664,
+        "pct_usuarios": 84.375,
+        "pedidos_por_usuario": 1.1111112,
         "retencion_m1": null,
-        "retencion_n": 2
+        "retencion_n": 6
       },
       {
         "combo": "rest+turbo",
-        "gasto_por_usuario": 38673.333333333336,
-        "meses_usuario": 3,
-        "pct_pedidos": 23.529411,
-        "pct_usuarios": 14.285714,
-        "pedidos_por_usuario": 2.6666667,
+        "gasto_por_usuario": 14665.0,
+        "meses_usuario": 2,
+        "pct_pedidos": 8.888889,
+        "pct_usuarios": 6.25,
+        "pedidos_por_usuario": 2.0,
+        "retencion_m1": null,
+        "retencion_n": 0
+      },
+      {
+        "combo": "rest+retail",
+        "gasto_por_usuario": 18460.0,
+        "meses_usuario": 1,
+        "pct_pedidos": 4.4444447,
+        "pct_usuarios": 3.125,
+        "pedidos_por_usuario": 2.0,
+        "retencion_m1": null,
+        "retencion_n": 1
+      },
+      {
+        "combo": "rest+turbo+retail",
+        "gasto_por_usuario": 120220.0,
+        "meses_usuario": 1,
+        "pct_pedidos": 17.777779,
+        "pct_usuarios": 3.125,
+        "pedidos_por_usuario": 8.0,
         "retencion_m1": null,
         "retencion_n": 0
       },
       {
         "combo": "turbo",
-        "gasto_por_usuario": 3146.6666666666665,
-        "meses_usuario": 3,
-        "pct_pedidos": 8.823529,
-        "pct_usuarios": 14.285714,
+        "gasto_por_usuario": 2490.0,
+        "meses_usuario": 1,
+        "pct_pedidos": 2.2222223,
+        "pct_usuarios": 3.125,
         "pedidos_por_usuario": 1.0,
         "retencion_m1": null,
         "retencion_n": 0
-      },
-      {
-        "combo": "rest+turbo+retail",
-        "gasto_por_usuario": 27390.0,
-        "meses_usuario": 2,
-        "pct_pedidos": 23.529411,
-        "pct_usuarios": 9.523809,
-        "pedidos_por_usuario": 4.0,
-        "retencion_m1": null,
-        "retencion_n": 0
-      },
-      {
-        "combo": "retail",
-        "gasto_por_usuario": 21465.0,
-        "meses_usuario": 2,
-        "pct_pedidos": 8.823529,
-        "pct_usuarios": 9.523809,
-        "pedidos_por_usuario": 1.5,
-        "retencion_m1": null,
-        "retencion_n": 1
       }
     ],
     "rappi": {
@@ -198,7 +184,7 @@
     }
   },
   "guardado": {
-    "fecha": "2026-10-17",
+    "fecha": "2026-11-14",
     "origen": "make contract · simulación chica con semilla fija (40 personas, 8 semanas)"
   },
   "source": "synthetic"

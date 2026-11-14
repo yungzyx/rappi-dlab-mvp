@@ -8,6 +8,7 @@ from datetime import date, timedelta
 
 import pytest
 
+from rappi_ia.analytics.queries import MIN_COMBO_RETENTION_N
 from rappi_ia.demo.seed import seed_demo
 from rappi_ia.events.synth import generate
 from rappi_ia.motor.combos import SERVICE_COMBO, combo_of_verticals, load_combos
@@ -73,17 +74,21 @@ def test_the_mix_and_the_retention_track_the_rappi_table(simulated):
     más que cada una de un solo grupo. Esta prueba cuida la retención y las regresiones gruesas de la mezcla, no la
     calibración fina: el catálogo de prueba es chico, muchas búsquedas no encuentran nada y la mezcla queda a 3,7 puntos
     en la peor fila (Restaurantes, 70,7 % contra 67,0 %); el generador anterior a la calibración quedaba a 3,3, así que
-    la mezcla (a 4 puntos, Restaurantes la mayor) no los distingue, y la retención sí (0,315 contra 0,47). La
-    calibración se revisa con el catálogo real: scripts/calibrar_simulados.py (3.000 personas, 5 semillas: cada fila a
-    menos de 2 puntos)."""
+    la mezcla no los distingue, y la retención sí (0,315 contra 0,47). Con el grupo de control simulado (14-11-2026) y
+    la calibración ajustada para él con el catálogo real, Restaurantes queda en 71,5 %: la mezcla se mira a 5 puntos.
+    La calibración se revisa con el catálogo real: scripts/calibrar_simulados.py (3.000 personas, 5 semillas;
+    docs/resultados/simulados-2026-11-14.md)."""
     stats = combo_stats(combo_months(load_orders(simulated, "synthetic")))
     rappi = {c: r for c, r in load_combos().rappi.items() if c != SERVICE_COMBO}
     total = sum(r.pct_users for r in rappi.values())
     for combo, row in rappi.items():
-        assert stats[combo]["pct_users"] == pytest.approx(100 * row.pct_users / total, abs=4), (combo, stats)
+        assert stats[combo]["pct_users"] == pytest.approx(100 * row.pct_users / total, abs=5), (combo, stats)
     assert max(stats, key=lambda c: stats[c]["pct_users"]) == "rest"
     retention = {c: s["retention_m1"] for c, s in stats.items()}
     assert max(retention, key=retention.get) == "rest+turbo+retail", retention
     single = [retention[c] for c in ("rest", "turbo", "retail")]
-    assert min(r for c, r in retention.items() if "+" in c) > max(single), retention
+    # Solo las combinaciones con los meses que el panel pide para mostrar su retención (MIN_COMBO_RETENTION_N): con el
+    # control simulado hay más altas "turbo+retail", pero en el catálogo de prueba siguen siendo pocas y ruidosas.
+    shown = {c: r for c, r in retention.items() if stats[c]["retention_n"] >= MIN_COMBO_RETENTION_N}
+    assert min(r for c, r in shown.items() if "+" in c) > max(single), (retention, stats)
     assert retention["rest"] == pytest.approx(rappi["rest"].retention_m1, abs=0.1)

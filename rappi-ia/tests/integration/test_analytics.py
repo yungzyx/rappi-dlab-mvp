@@ -17,6 +17,7 @@ from rappi_ia.concepts.taxonomy import load_taxonomy
 from rappi_ia.db import connect
 from rappi_ia.demo.seed import seed_demo
 from rappi_ia.events import store as events
+from rappi_ia.events import synth
 from rappi_ia.events.synth import generate
 
 T0 = datetime(2026, 9, 1, 12, tzinfo=UTC)
@@ -521,9 +522,12 @@ def test_services_count_offers_openings_and_accepted_hooks(db):
     assert (favor["ofrecido"], favor["abierto"], favor["desde_home"]) == (1, 0, 1)
 
 
-def test_synthetic_sessions_also_use_the_services(simulated):
-    """Sin eventos de servicios, la fila de RappiTravel y RappiFavor del panel quedaba en cero con datos simulados."""
+def test_synthetic_sessions_also_use_the_services(simulated, monkeypatch):
+    """Sin eventos de servicios, la fila de RappiTravel y RappiFavor del panel quedaba en cero con datos simulados. Los
+    ofrece Mochi: el grupo de control simulado no los ve, así que aquí todos están en tratamiento."""
     db, _ = simulated
+    monkeypatch.setattr(synth, "SYNTH_CONTROL_PCT", 0)
+    generate(db, users=120, weeks=20, seed=3, until=date(2026, 9, 27))
     rows = {r["servicio"]: r for r in queries.services(db, "synthetic")}
     travel, favor = rows["rappitravel"], rows["rappifavor"]
     assert travel["ofrecido"] > travel["abierto"] > 0
