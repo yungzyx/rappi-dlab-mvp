@@ -5,7 +5,7 @@ que #129 dejó sin resultado en la base real: "nutela", "cuchuflis", "cervezaaaa
 import pytest
 from rappi_scraper.storage.search import build_search_documents
 
-from conftest import add_product
+from conftest import add_dish, add_product, add_store
 from rappi_ia.agent.grouped_search import search_grouped
 from rappi_ia.agent.tools import search_products
 from rappi_ia.concepts.pipeline import build_concepts
@@ -119,3 +119,68 @@ def test_the_correction_keeps_what_the_person_wrote_where_it_was_right(catalog):
     assert spelling.correct_query(db, "pasajes", "turbo") is None
     # Una ocasión pide lo que su nombre no dice: "polola" no se cambia por la palabra más parecida del catálogo.
     assert spelling.correct_query(db, "regalo para mi polola", "mall") is None
+
+
+@pytest.fixture
+def names(db, monkeypatch):
+    """Un local de otra ciudad que se llama "Suchi Tacna" (un plato), entre 300 platos de sushi: "suchi" calza su plato
+    y es un nombre que suena igual a "sushi". "Zushi Bar" trae su nombre también en un plato ("Zushi especial"): es una
+    palabra del menú, no solo un nombre. NAME_RATIO baja a 100 para no sembrar miles de platos."""
+    monkeypatch.setattr(spelling, "NAME_RATIO", 100)
+    seed_demo(db)
+    add_store(db, 9901, "restaurantes", "Suchi Tacna - Antofagasta", city="Antofagasta")
+    add_store(db, 9902, "restaurantes", "Mil Rolls - Providencia")
+    add_store(db, 9903, "restaurantes", "Zushi Bar - Ñuñoa")
+    dishes = [(99100, "Hand roll de salmón", 9901, "Rolls"), (99101, "Zushi especial", 9903, "Rolls")]
+    dishes += [(99200 + i, f"Sushi roll de la casa {i}", 9902, "Sushi") for i in range(300)]
+    for item_id, name, store_id, section in dishes:
+        add_dish(db, item_id, name, store_id, section)
+        db.execute(
+            """INSERT INTO menu_price_snapshots (run_id, item_id, price)
+               SELECT max(run_id), %s, 4990 FROM scrape_runs WHERE kind = 'restaurants'""",
+            (item_id,),
+        )
+    db.commit()
+    build_search_documents(db)
+    build_concepts(db)
+    embedder = HashEmbedder()
+    embed_search_documents(db, embedder)
+    return db, embedder
+
+
+def test_a_name_that_sounds_like_a_common_word_is_corrected_even_if_it_matches(names):
+    db, embedder = names
+
+    plain = search_products(db, "restaurantes", "suchi", None, embedder)
+    assert plain.result.strict_lexical_matches  # el plato de "Suchi Tacna"
+
+    outcome = search_products(db, "restaurantes", "suchi", None, embedder, correct=True)
+    assert outcome.corrected_query == "sushi" and outcome.products
+    assert all("Sushi" in p.name for p in outcome.products[:3])
+
+    grouped = search_grouped(db, "suchi", embedder, None, 6)
+    assert grouped.corrected_query == "sushi" and not grouped.unmet
+    assert search_grouped(db, "suchi", embedder, None, 6, correct=False).corrected_query is None  # "tal cual"
+
+
+def test_a_name_searched_by_name_is_not_corrected(names):
+    """Con otra palabra del nombre ("suchi tacna") se busca el local, y una palabra que también está en un plato
+    ("zushi") no es solo un nombre."""
+    db, embedder = names
+
+    for query in ("suchi tacna", "zushi"):
+        assert search_products(db, "restaurantes", query, None, embedder, correct=True).corrected_query is None
+        assert search_grouped(db, query, embedder, None, 6).corrected_query is None
+    assert spelling.name_words(db, "zushi") is None
+    assert spelling.name_words(db, "suchi") >= {"suchi", "tacna"}
+
+
+def test_the_common_word_needs_name_ratio_times_more_documents(names, monkeypatch):
+    """Con 300 documentos de sushi contra 2 de "Suchi Tacna" (su plato y el local), bajo NAME_RATIO (1000) el nombre se
+    queda, como "cakao" (la chocolatería) frente a "cacao" en la base real. Turbo no tiene "suchi": nada que corregir
+    ahí."""
+    db, _ = names
+    assert spelling.correct_query(db, "suchi", "restaurantes", matched=True) == "sushi"
+    monkeypatch.setattr(spelling, "NAME_RATIO", 1000)
+    assert spelling.correct_query(db, "suchi", None, matched=True) is None
+    assert spelling.correct_query(db, "suchi", "turbo", matched=True) is None

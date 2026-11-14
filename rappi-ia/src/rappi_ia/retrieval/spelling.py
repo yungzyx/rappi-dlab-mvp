@@ -1,10 +1,10 @@
 """Corrección de errores de tipeo con el vocabulario del catálogo (`search_vocabulary`, migración 041).
 
-Solo se usa cuando nada de la vertical calza todas las palabras de la consulta (agent/tools.search_products, y
+Se usa cuando nada de la vertical calza todas las palabras de la consulta (agent/tools.search_products, y
 agent/grouped_search si ninguna vertical calza): se corrige la consulta y se vuelve a buscar con las reglas de siempre,
-y lo corregido se muestra solo si algún documento calza todas sus palabras. Lo que hoy calza no cambia, y una
-negativa no deja de serlo por una palabra cambiada que lleva a otra cosa ("pasaje … punta arenas" → "masaje … punta
-avenas" no calza). Palabra por palabra:
+y lo corregido se muestra solo si algún documento calza todas sus palabras. Una negativa no deja de serlo por una
+palabra cambiada que lleva a otra cosa ("pasaje … punta arenas" → "masaje … punta avenas" no calza). Lo que calza
+cambia solo por un nombre (`matched`, abajo). Palabra por palabra:
 
 - se saltan las muletillas, "hola" y las palabras de pedido del inicio ("eh", "quiero", "una") y la cortesía del final
   ("porfa", "gracias"), como las limpia el agente, si queda una consulta corta (hasta SHORT_QUERY palabras): "eh
@@ -35,6 +35,15 @@ avenas" no calza). Palabra por palabra:
 
 La palabra corregida se muestra como la escribe el catálogo (`search_vocabulary.display`: "pañales", no "panales").
 
+Cuando algo ya calza (`matched`), solo se corrige una palabra que el catálogo trae nada más que en el nombre de un
+local, una tienda o una marca (`name_words`), si su corrección de siempre es una letra que suena igual
+(`SOUND_ALIKE`) y, en cada vertical donde está, la candidata está en NAME_RATIO veces más documentos: "suchi" calza los
+16 platos de "Suchi Tacna", un local de otra ciudad, y quien lo escribe busca "sushi" (45 mil documentos, 2.813 veces
+más). Un nombre que cambia, agrega o quita letras es un nombre buscado a propósito ("Burgery", "Cevicheo",
+"Wiphone"), y uno que suena igual a una palabra con menos uso en su vertical también ("Cakao", la chocolatería, frente
+a "cacao": 566 veces; "Todo Likores", 165): esos no cambian. La respuesta dice qué se buscó y la app ofrece buscar lo
+escrito tal cual (`correct=false`).
+
 Sin diccionario, una palabra que el catálogo casi no tiene puede ser real ("tengo resaca" → "tengo reseca"): la
 respuesta dice qué se buscó y la app ofrece buscar lo escrito tal cual (docs/resultados/busqueda-2026-10-24.md).
 
@@ -58,6 +67,13 @@ SHORT_RATIO = 100  # la candidata de una palabra de SHORT_LENGTH letras está en
 SOUND_ALIKE = (frozenset("csz"), frozenset("bv"), frozenset("gj"), frozenset("ckq"), frozenset("iy"))
 LONG_WORD = 9  # desde aquí se aceptan dos ediciones ("cancelar" → "canela" no)
 KNOWN_DOCS = 20  # en tantos documentos del catálogo (todas las verticales), la palabra es real: no se corrige
+# Con algo que ya calza, la candidata está en tantas veces más documentos que el nombre en cada vertical donde él está
+# ("suchi" → "sushi" en Restaurantes: 2.813). Supuesto propio, medido con los nombres del catálogo del 14-11-2026: el
+# siguiente que suena igual es "cakao" → "cacao" (566 en el súper), una chocolatería que se busca por su nombre.
+NAME_RATIO = 1000
+# Lo que en un documento de búsqueda es un nombre (rappi_scraper/storage/search.py): la marca de un producto o de una
+# tienda, el local de un plato y la ciudad. En el documento de una tienda, también su primer pedazo (el nombre).
+NAME_LABELS = ("Marca: ", "Restaurante: ", "Ciudad: ")
 DOCS_RATIO = 10  # la palabra corregida está en al menos 10 veces más documentos de la vertical que la escrita
 CANDIDATES = 50  # candidatas por trigramas (`%` de pg_trgm, similitud ≥ 0,3) que se miden con `edit_distance`
 SKIP_WORDS = frozenset(REQUEST_WORDS | MUTTER_WORDS | {"hola", "holi", "hey", "wena", "alo", "ola"})
@@ -181,9 +197,12 @@ def _ranked_short(word: str, own_docs: int, candidates: list[tuple[str, int]]) -
     return [*near] if len(near) == 1 and sound_alike(word, *near) else []
 
 
-def correct_query(conn: Connection, query: str, vertical: str | None) -> str | None:
+def correct_query(conn: Connection, query: str, vertical: str | None, matched: bool = False) -> str | None:
     """La consulta corregida con el vocabulario de `vertical` (con None, el de todas), o None si no hay nada que
-    corregir. Las palabras que estaban bien quedan como se escribieron; las muletillas salen."""
+    corregir. Las palabras que estaban bien quedan como se escribieron; las muletillas salen. Con `matched` (algo ya
+    calza todas las palabras), solo se corrige un nombre que suena igual a una palabra con muchísimo más uso
+    (`_name_fix`), y no si la consulta trae otra palabra de ese mismo nombre ("suchi tacna" busca el local); sin eso no
+    hay nada que corregir aunque sobre una muletilla."""
     if named_occasion(query) is not None:
         return None
     words = query_words(query)
@@ -193,25 +212,74 @@ def correct_query(conn: Connection, query: str, vertical: str | None) -> str | N
     kept = [w for w in words if not w.skip]
     if all(w.word in FILLER_WORDS for w in kept):
         return None
-    fixes = _fixes(conn, vertical, [w.word for w in kept if not detect_concepts(w.word) and w.word not in PRICE_WORDS])
+    candidates = [w.word for w in kept if not detect_concepts(w.word) and w.word not in PRICE_WORDS]
+    fixes = _fixes(conn, vertical, candidates, matched)
+    if matched:  # el resto del nombre también escrito: se busca el local, la tienda o la marca
+        others = {w.word for w in kept}
+        fixes = {w: fix for w, fix in fixes.items() if not (others - {w}) & (name_words(conn, w) or set())}
     corrected = [fixes.get(w.word) or w.surface for w in kept]
-    if len(kept) == len(words) and not any(w.word in fixes for w in kept):
+    if (matched or len(kept) == len(words)) and not any(w.word in fixes for w in kept):
         return None
     return " ".join(corrected)
 
 
-def _fixes(conn: Connection, vertical: str | None, words: list[str]) -> dict[str, str]:
+def _fixes(conn: Connection, vertical: str | None, words: list[str], matched: bool = False) -> dict[str, str]:
     """La corrección de cada palabra que tiene una (de la caché del catálogo: cambia solo con él)."""
+    fixer = _name_fix if matched else _fix
 
     def compute(missing: list[str]) -> dict[str, str | None]:
-        return {word: _fix(conn, vertical, word) for word in missing}
+        return {word: fixer(conn, vertical, word) for word in missing}
 
-    found = cached_many(f"spelling:{vertical or '*'}", conn, list(dict.fromkeys(words)), compute)
+    prefix = f"spelling{'-name' if matched else ''}:{vertical or '*'}"
+    found = cached_many(prefix, conn, list(dict.fromkeys(words)), compute)
     return {word: fix for word, fix in found.items() if fix}
 
 
 def _fix(conn: Connection, vertical: str | None, word: str) -> str | None:
     """Cómo se muestra la palabra por la que se cambia `word`, o None."""
+    chosen = _choice(conn, vertical, word)
+    return _display(conn, vertical, chosen) if chosen else None
+
+
+def _name_fix(conn: Connection, vertical: str | None, word: str) -> str | None:
+    """Como `_fix`, para una palabra que ya calza: solo si el catálogo la trae nada más que en nombres
+    (`name_words`), su corrección es una letra que suena igual y, en cada vertical donde está (o en `vertical`), la
+    candidata está en NAME_RATIO veces más documentos."""
+    own = _docs_by_vertical(conn, vertical, word)
+    chosen = _choice(conn, vertical, word) if own else None  # ya mira que sea rara en el catálogo y sin números
+    if chosen is None or not sound_alike(word, chosen):
+        return None
+    theirs = _docs_by_vertical(conn, vertical, chosen)
+    if any(theirs.get(v, 0) < NAME_RATIO * docs for v, docs in own.items()):
+        return None
+    return _display(conn, vertical, chosen) if name_words(conn, word) is not None else None
+
+
+def name_words(conn: Connection, word: str) -> frozenset[str] | None:
+    """Si los documentos del catálogo que traen `word` (sin tildes, palabra entera) la traen solo en un nombre
+    (NAME_LABELS, o el primer pedazo del documento de una tienda), las palabras de esos nombres; si no, o si ninguno la
+    trae, None. Un pedazo se corta en ". ", como los arma rappi_scraper/storage/search.py: si un nombre trae ". ", lo
+    de después cuenta como texto, y la palabra no se corrige."""
+    rows = conn.execute(
+        """SELECT entity_type, content FROM search_documents
+           WHERE tsv_unaccent @@ to_tsquery('spanish', %(word)s)
+             AND es_unaccent(lower(content)) ~ ('\\m' || %(word)s || '\\M')""",
+        {"word": word},
+    ).fetchall()
+    named: set[str] = set()
+    for entity_type, content in rows:
+        for i, piece in enumerate(content.split(". ")):
+            said = {normalize(w).replace(" ", "") for w in _WORD.findall(piece.lower())}
+            if word not in said:
+                continue
+            if not (piece.startswith(NAME_LABELS) or (entity_type == "store" and i == 0)):
+                return None
+            named |= said
+    return frozenset(named) if named else None
+
+
+def _choice(conn: Connection, vertical: str | None, word: str) -> str | None:
+    """La palabra del vocabulario por la que se cambia `word`, o None."""
     if any(ch.isdigit() for ch in word):  # "3000" no es "30", ni "500g" "50g"
         return None
     known = _docs(conn, None, [word]).get(word, 0)  # en todo el catálogo
@@ -221,12 +289,12 @@ def _fix(conn: Connection, vertical: str | None, word: str) -> str | None:
     floor = max(1, DOCS_RATIO * own)
     repeated = [(docs, form) for form, docs in _docs(conn, vertical, repeat_forms(word)).items() if docs >= floor]
     if repeated:
-        return _display(conn, vertical, max(repeated)[1])
+        return max(repeated)[1]
     singles = _docs(conn, vertical, single_forms(word))
     if len(word) < MIN_LENGTH:  # una palabra corta pierde una letra doble o, con SHORT_LENGTH letras, cambia una
         fit = [(docs, form) for form, docs in singles.items() if docs >= floor]
         if fit or len(word) < SHORT_LENGTH:
-            return _display(conn, vertical, max(fit)[1]) if fit else None
+            return max(fit)[1] if fit else None
         rows = list(_docs(conn, vertical, one_edit_forms(word)).items())  # todas: la candidata tiene que ser la única
     else:
         rows = conn.execute(
@@ -241,8 +309,7 @@ def _fix(conn: Connection, vertical: str | None, word: str) -> str | None:
     ranked = _ranked(word, own, rows)
     if not ranked:
         return None
-    chosen = choose(word, own, rows, _excluded(conn, word, ranked))
-    return _display(conn, vertical, chosen) if chosen else None
+    return choose(word, own, rows, _excluded(conn, word, ranked))
 
 
 def _excluded(conn: Connection, word: str, candidates: list[str]) -> frozenset[str]:
@@ -264,6 +331,16 @@ def _display(conn: Connection, vertical: str | None, word: str) -> str:
         (word, vertical, vertical),
     ).fetchone()
     return row[0] if row else word
+
+
+def _docs_by_vertical(conn: Connection, vertical: str | None, word: str) -> dict[str, int]:
+    """En cuántos documentos de cada vertical (o solo de `vertical`) está `word`."""
+    return dict(
+        conn.execute(
+            "SELECT vertical, docs FROM search_vocabulary WHERE word = %s AND (%s::text IS NULL OR vertical = %s)",
+            (word, vertical, vertical),
+        ).fetchall()
+    )
 
 
 def _docs(conn: Connection, vertical: str | None, words: list[str]) -> dict[str, int]:

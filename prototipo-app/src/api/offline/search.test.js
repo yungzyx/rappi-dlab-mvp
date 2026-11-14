@@ -108,11 +108,37 @@ describe('"X para Y" pide X (concepts/need.py: read_need)', () => {
   test('quien pide el pisco lo recibe', () => {
     expect(matchProducts(store, 'pisco con bebida')).toEqual(expect.arrayContaining([pisco, pack]))
     expect(matchProducts(store, 'pisco con bebida')).not.toContain(cola)
+    expect(matchProducts(store, 'pisco con bebida')[0]).toBe(pack) // con "con", la frase entera: el pack primero
   })
 
   test('con una muestra grabada sin las aristas, como siempre', () => {
     const old = { ...store, meta: { ...meta, complements: undefined } }
     expect(matchProducts(old, 'bebida para mezclar con pisco')).toEqual(expect.arrayContaining([pisco, pack]))
+  })
+
+  // Pedir y refinar dos veces con los chips: el para qué viaja en `conversation.context`.
+  const turns = (...messages) => {
+    const replies = []
+    for (const message of messages)
+      replies.push(ask(store, { message, previous: replies.at(-1)?.conversation, mode: 'propuesta' }))
+    return replies
+  }
+
+  test('"más barato" y "otra opción" tras "bebida para mezclar con pisco": nada +18 en ningún turno', () => {
+    const replies = turns('bebida para mezclar con pisco', 'más barato', 'otra opción')
+    expect(replies[0].conversation.context).toEqual(['pisco'])
+    for (const reply of replies) {
+      expect(reply.products.filter((p) => p.age_restricted)).toEqual([])
+      expect(reply.age_notice).toBe(false)
+    }
+    expect(replies[1].products).toEqual([cola])
+    expect(replies[1].conversation.context).toEqual(['pisco'])
+  })
+
+  test('"pisco con bebida" y "más barato" sigue con el pisco y su aviso +18', () => {
+    const [, cheaper] = turns('pisco con bebida', 'más barato')
+    expect(cheaper.products).toEqual(expect.arrayContaining([pisco, pack]))
+    expect(cheaper.age_notice).toBe(true)
   })
 })
 

@@ -162,9 +162,10 @@ def search_grouped(
     las verticales se buscan a la vez (`search_each`); el resultado es el mismo que en serie. Con `correct`, si ninguna
     vertical calza todas las palabras, corrige una vez los errores de tipeo con el vocabulario de todas las verticales
     (`retrieval.spelling`) y vuelve a buscar: si así hay grupos y alguna vertical calza todas las palabras, los devuelve
-    con `corrected_query`."""
+    con `corrected_query`. Si alguna calza, solo corrige un nombre que suena igual a una palabra con muchísimo más uso
+    (`spelling.correct_query(..., matched=True)`: "suchi")."""
     found, strict = _search_grouped(conn, q, embedder, current, limit, price_max, mode, spare)
-    if not correct or strict or (fixed := correct_query(conn, q, None)) is None:
+    if not correct or (fixed := correct_query(conn, q, None, matched=bool(strict))) is None:
         return found
     again, strict = _search_grouped(conn, fixed, embedder, current, limit, price_max, mode, spare)
     if not again.groups or not strict:
