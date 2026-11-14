@@ -9,27 +9,10 @@ import { addEvents, readState, writeState } from './state'
 const DAY_MS = 86_400_000
 const ALL_CATALOG = ['restaurantes', 'turbo', 'supermercado', 'conveniencia', 'mall', 'chocolateria']
 
-// "¿Volvemos a…?" necesita semanas de historial: un plato pedido cada 7 días hasta hace 24 (y pedidos recientes en
-// otras verticales), o Turbo en 3 días hasta hace 40 mientras sigue pidiendo en restaurantes (offers/winback.py).
-const HABIT_CONCEPTS = ['sushi', 'pizza', 'hamburguesa', 'empanadas']
-const STOPPED_DISH = [
-  ...[45, 38, 31, 24].map((days) => ['restaurantes', days, 'habito']),
-  ['turbo', 3],
-  ['supermercado', 1],
-]
-const STOPPED_TURBO = [
-  ['turbo', 60],
-  ['turbo', 50],
-  ['turbo', 40],
-  ['restaurantes', 6],
-  ['restaurantes', 2],
-]
-
 /**
- * Las personas del panel: con qué verticales pidió (`orders`, uno cada dos días, o `plan`: `[vertical, hace cuántos
- * días, clave]`, donde la misma clave repite el producto), qué abrió (`opens`) o qué perfil de gusto tiene. `pro`: si es
- * Rappi Pro (el checkout lo usa). Es coherente con lo que pide, como en los simulados (events/synth.py, PRO_SHARE): quien
- * combina verticales o pide seguido es Pro; la nueva y quien pide en una sola, no.
+ * Las personas del panel: con qué verticales pidió (`orders`, uno cada dos días), qué abrió (`opens`) o qué perfil de
+ * gusto tiene. `pro`: si es Rappi Pro (el checkout lo usa). Es coherente con lo que pide, como en los simulados
+ * (events/synth.py, PRO_SHARE): quien combina verticales o pide seguido es Pro; la nueva y quien pide en una sola, no.
  */
 export function personas(snapshot) {
   const tastes = Object.entries(snapshot.meta.profiles ?? {})
@@ -53,14 +36,6 @@ export function personas(snapshot) {
       opens: Array.from({ length: 6 }, () => 'farmacia'),
       pro: false,
     },
-    {
-      id: 'volver-plato',
-      label: 'Dejó de pedir su plato de siempre',
-      plan: STOPPED_DISH,
-      habit: HABIT_CONCEPTS,
-      pro: true,
-    },
-    { id: 'volver-turbo', label: 'Dejó Turbo hace 40 días', plan: STOPPED_TURBO, pro: false },
     ...tastes,
   ]
 }
@@ -88,11 +63,11 @@ function sectionOf(snapshot, dish) {
 /**
  * Un producto de la muestra para un pedido de esa vertical: el primero con concepto que el agente puede ofrecer, de un
  * concepto que la persona no pidió ya (`used`): si no, dos pedidos del mismo concepto ya serían un "¿Repetimos?". Mejor
- * de una tienda que la muestra tiene, y de los conceptos de `prefer` si hay. Primero lo que se puede destacar
- * (`featuredProduct`: lo pedido vuelve en "¿Repetimos?" y "¿Volvemos a…?") y, en las verticales de comida, la comida:
- * la persona no pide un vaso de cotillón ni un agregado de $1.300.
+ * de una tienda que la muestra tiene. Primero lo que se puede destacar (`featuredProduct`: lo pedido vuelve en
+ * "¿Repetimos?") y, en las verticales de comida, la comida: la persona no pide un vaso de cotillón ni un agregado de
+ * $1.300.
  */
-function sampleOf(snapshot, vertical, used, prefer = []) {
+function sampleOf(snapshot, vertical, used) {
   const { concepts, featured, guards } = snapshot.meta
   const ofVertical = snapshot.pool.filter((p) => p.vertical === vertical && p.concept && p.store_id)
   const fresh = ofVertical.filter((p) => !used.has(p.concept))
@@ -101,12 +76,7 @@ function sampleOf(snapshot, vertical, used, prefer = []) {
     (FOOD_VERTICALS.includes(vertical) && !FOOD_GROUPS.includes(concepts[p.concept]?.group) ? 1 : 0)
   const good = fresh.filter((p) => offerableProduct(p, concepts, guards)).sort((a, b) => rank(a) - rank(b))
   const shown = good.filter((p) => inSample(snapshot, p))
-  const found =
-    prefer.map((c) => shown.find((p) => p.concept === c)).find(Boolean) ??
-    shown[0] ??
-    good[0] ??
-    fresh[0] ??
-    ofVertical[0]
+  const found = shown[0] ?? good[0] ?? fresh[0] ?? ofVertical[0]
   if (found) used.add(found.concept)
   return found
 }
@@ -128,18 +98,12 @@ const orderOf = (product, ts, i) => ({
   ],
 })
 
-/** El historial de una persona (`{ orders, events }`): sus pedidos (uno cada dos días, salvo con `plan`) y toques. */
+/** El historial de una persona (`{ orders, events }`): sus pedidos (uno cada dos días) y toques. */
 export function personaHistory(snapshot, persona, now = Date.now()) {
   const used = new Set()
-  const byKey = new Map()
   const plan = persona.taste
     ? snapshot.tastes[persona.taste].seed.map((product, i, all) => [product, (all.length - i) * 2])
-    : (persona.plan ?? (persona.orders ?? []).map((vertical, i, all) => [vertical, (all.length - i) * 2])).map(
-        ([vertical, days, key]) => {
-          if (key && !byKey.has(key)) byKey.set(key, sampleOf(snapshot, vertical, used, persona.habit))
-          return [key ? byKey.get(key) : sampleOf(snapshot, vertical, used), days]
-        },
-      )
+    : (persona.orders ?? []).map((vertical, i, all) => [sampleOf(snapshot, vertical, used), (all.length - i) * 2])
   const orders = plan
     .filter(([product]) => product)
     .map(([product, days], i) => orderOf(product, now - days * DAY_MS, i))

@@ -193,7 +193,7 @@ const HOME_ORDERS = 3
 const HOME_TICK_MS = 2000
 
 /**
- * "Pídelo de nuevo" en la Home de "Rappi hoy" (en el prototipo final la Home tiene "¿Repetimos?"): los últimos pedidos
+ * "Pídelo de nuevo" en la Home de "Rappi hoy" (en el prototipo final, repetir se pide en el buscador con Mochi): los últimos pedidos
  * entregados que se pueden volver a pedir, cada uno con su botón. Sin ninguno, no se ve. La Home queda montada bajo el
  * seguimiento: mientras haya un pedido en curso, revisa cada 2 s si ya se entregó.
  */

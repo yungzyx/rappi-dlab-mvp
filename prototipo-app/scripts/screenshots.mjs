@@ -7,8 +7,7 @@
 // `SCREENSHOTS_ALLOW_WRITES=1`, y se corre sobre una copia (`DATABASE_URL=postgresql:///rappi_staging make mvp`),
 // nunca sobre `rappi`.
 // La conversación (45, 46 y 48) se pide en el buscador y se refina con los chips "Más barato" y "Sin carne".
-// "¿Repetimos?" necesita tres compras con ritmo: esa oferta sale del fixture del contrato, con un café real del catálogo.
-import { mkdirSync, readFileSync } from 'node:fs'
+import { mkdirSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { chromium } from 'playwright-core'
 import { createServer } from 'vite'
@@ -22,7 +21,6 @@ const BASE = `http://localhost:${PORT}/`
 // La app del servidor Vite de abajo lee la misma variable (import.meta.env.VITE_API_URL).
 const API = (process.env.VITE_API_URL ?? 'http://localhost:8000').replace(/\/+$/, '')
 const API_HEALTH = `${API}/health`
-const REPEAT_FIXTURE = `${ROOT}src/api/fixtures/agent-offer-recompra.json`
 
 const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms))
 
@@ -284,47 +282,6 @@ async function run(page) {
   )
   await tap('.live-bubble .offer-why-toggle')
   await shot('22-vertical-por-probar')
-
-  // "¿Repetimos?": la recompra del fixture del contrato, con un café molido real del catálogo. Con otra persona, sin
-  // pedido en curso: la barra flotante del pedido de Chocolates tapaba "Ver producto" y "Después".
-  await reset()
-  await wait(4200) // el saludo de Mochi
-  const repeat = await repeatOffer()
-  await page.route('**/agent/offer', async (route) => {
-    if (route.request().postDataJSON()?.moment !== 'recompra') return route.continue()
-    const response = await route.fetch() // la API real (204 para esta persona): sus cabeceras CORS
-    await route.fulfill({ response, status: 200, json: repeat })
-  })
-  await tab('Ofertas')
-  await tab('Inicio') // al volver a estar arriba, la Home pide la recompra
-  const block = page.locator('.live-card--repeat')
-  await block.waitFor()
-  // La Home baja hasta que los dos accesos grandes quedan justo bajo la barra de estado: se ven los accesos y el bloque.
-  await page.locator('.home-tile--restaurants').evaluate((tile) => {
-    let scroller = tile.parentElement
-    while (scroller && scroller.scrollHeight <= scroller.clientHeight) scroller = scroller.parentElement
-    const phone = tile.closest('.phone').getBoundingClientRect()
-    scroller.scrollTop += tile.getBoundingClientRect().top - phone.top - 36
-  })
-  // La foto del producto es diferida (loading="lazy"): carga recién al quedar a la vista.
-  await block
-    .locator('img')
-    .first()
-    .evaluate((img) => img.complete || new Promise((done) => (img.onload = img.onerror = done)))
-  await shot('21-recompra')
-}
-
-async function repeatOffer() {
-  const fixture = JSON.parse(readFileSync(REPEAT_FIXTURE, 'utf8'))
-  const params = new URLSearchParams({ q: 'café molido', vertical: fixture.vertical, limit: '10' })
-  const { products } = await (await fetch(`${API}/search?${params}`)).json()
-  const product = products.find((p) => p.img && !p.age_restricted)
-  if (!product) throw new Error('No hay café molido en el catálogo para "¿Repetimos?"')
-  return {
-    ...fixture,
-    products: [product],
-    actions: fixture.actions.map((action) => ({ ...action, store_id: product.store_id })),
-  }
 }
 
 function requireWritesAllowed() {

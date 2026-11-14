@@ -210,8 +210,7 @@ def offer(
         return Response(status_code=204)
     request_id = served_request_id()
     if _withheld(conn, body, found, request_id):
-        # Para la app: no es que no haya oferta. La Home no pide "¿Volvemos a…?" en lugar de una recompra retenida,
-        # que en tratamiento se habría mostrado.
+        # Para la app: no es que no haya oferta.
         return Response(status_code=204, headers={WITHHELD_HEADER: "1"})
     return {**found.to_dict(), "request_id": request_id}
 
