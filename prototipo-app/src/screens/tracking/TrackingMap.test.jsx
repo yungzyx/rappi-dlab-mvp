@@ -1,5 +1,6 @@
-import { cleanup, render } from '@testing-library/react'
+import { act, cleanup, render } from '@testing-library/react'
 import { afterEach, expect, test } from 'vitest'
+import { emote } from '../../state/mochiMood'
 import TrackingMap from './TrackingMap'
 
 afterEach(cleanup)
@@ -44,4 +45,14 @@ test('sin el agente ("Rappi hoy" o Mochi apagado), un repartidor neutro: sin la 
 
 test('entregado, feliz y sin "¡Ya casi!"', () => {
   expect(pose({ progress: 1, step: 3, delivered: true })).toEqual({ x: '-1', y: '0', almost: false })
+})
+
+test('con el pedido recién confirmado, Mochi repartidor baila con su pose feliz; el neutro, no', () => {
+  const { container } = render(<TrackingMap progress={0} step={1} delivered={false} />)
+  act(() => emote('dance'))
+  expect(container.querySelector('.tracking-mochi').classList).toContain('is-dancing')
+  expect(container.querySelector('.tracking-rider image').getAttribute('x')).toBe('-1')
+  cleanup()
+  const neutral = render(<TrackingMap progress={0} step={1} delivered={false} agent={false} />).container
+  expect(neutral.querySelector('.tracking-mochi')).toBeNull()
 })

@@ -1,11 +1,14 @@
-/* Mochi: una imagen con 4 poses en 2 × 2 (frontal, feliz / tímido, saltando); el estado elige cuál se ve.
-   El movimiento solo usa transform/opacity, que corren en la GPU; los cambios de pose mueven el fondo. */
+/* Mochi: una imagen con 4 poses en 2 × 2 (frontal, feliz / tímido, saltando); el ánimo elige cuál se ve.
+   El movimiento solo usa transform/opacity, que corren en la GPU; los cambios de pose mueven el fondo (de golpe, sin
+   transición). Los adornos de cada ánimo (puntos, chispas, gota, "!", "z z") son CSS, no tapan nada que se toque
+   (pointer-events: none) y, con menos movimiento, no se muestran: solo cambia la pose. */
 .mascot {
   display: block;
   position: relative;
   flex: none;
   isolation: isolate;
   --mascot-look: 0deg;
+  --mascot-size: 56px;
 }
 
 /* La pose es cuadrada y se apoya abajo: de cuerpo entero la caja mide 1,2 × el ancho */
@@ -52,23 +55,158 @@
 }
 
 /* ----- Poses ----- */
-.mascot.mascot--wave .mascot-sprite {
-  background-position: 100% 0;
+.mascot.mascot--wave .mascot-sprite,
+.mascot.mascot--happy .mascot-sprite,
+.mascot.mascot--dance .mascot-sprite,
+.mascot.mascot--sleepy .mascot-sprite {
+  background-position: 100% 0; /* feliz, ojos cerrados */
 }
 
-.mascot.mascot--think .mascot-sprite,
-.mascot.mascot--listen .mascot-sprite {
-  background-position: 0 100%;
+.mascot.mascot--thinking .mascot-sprite,
+.mascot.mascot--listen .mascot-sprite,
+.mascot.mascot--worried .mascot-sprite {
+  background-position: 0 100%; /* tímido, mirando hacia arriba */
 }
 
-.mascot.mascot--jump .mascot-sprite {
-  background-position: 100% 100%;
+.mascot.mascot--jump .mascot-sprite,
+.mascot.mascot--celebrate .mascot-sprite {
+  background-position: 100% 100%; /* saltando */
 }
+
+/* Sorprendido: de frente, con los ojos bien abiertos (la pose de base) */
 
 @media (hover: hover) {
-  .mascot:hover .mascot-sprite {
+  .mascot:not(.is-feeling):hover .mascot-sprite {
     background-position: 100% 0;
   }
+}
+
+/* ----- Adornos ----- */
+.mascot-fx {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.mascot-fx i {
+  position: absolute;
+  display: block;
+  opacity: 0;
+}
+
+/* Pensando: tres puntos sobre la cabeza */
+.mascot-fx--dots {
+  inset: 0 6% auto auto;
+  display: flex;
+  gap: calc(var(--mascot-size) * 0.045);
+  height: calc(var(--mascot-size) * 0.1);
+  align-items: center;
+}
+
+.mascot-fx--dots i {
+  position: static;
+  width: calc(var(--mascot-size) * 0.075);
+  height: calc(var(--mascot-size) * 0.075);
+  min-width: 4px;
+  min-height: 4px;
+  border-radius: 50%;
+  background: var(--agent-orange, #f0532b);
+  opacity: 0.35;
+}
+
+.mascot--badge .mascot-fx--dots {
+  top: -14%;
+  right: -10%;
+}
+
+/* Celebra: un estallido de chispas desde el cuerpo */
+.mascot-fx--sparks i {
+  left: 50%;
+  top: 50%;
+  width: calc(var(--mascot-size) * 0.05);
+  height: calc(var(--mascot-size) * 0.14);
+  margin: calc(var(--mascot-size) * -0.07) 0 0 calc(var(--mascot-size) * -0.025);
+  border-radius: 99px;
+  background: var(--agent-orange, #f0532b);
+  transform: rotate(var(--spark-turn)) translateY(calc(var(--mascot-size) * -0.3));
+}
+
+.mascot-fx--sparks i:nth-child(even) {
+  background: var(--orange-bolt, #f39a2b);
+  height: calc(var(--mascot-size) * 0.09);
+}
+
+/* Preocupado: una gota de sudor junto a la cabeza */
+.mascot-fx--drop i {
+  right: 12%;
+  top: 26%;
+  width: calc(var(--mascot-size) * 0.11);
+  height: calc(var(--mascot-size) * 0.11);
+  border-radius: 0 50% 50%;
+  background: linear-gradient(135deg, #d6efff, #7fc3ec);
+  box-shadow: 0 0 0 1px rgb(255 255 255 / 70%);
+  transform: rotate(45deg);
+}
+
+.mascot--badge .mascot-fx--drop i {
+  top: 4%;
+  right: -2%;
+}
+
+/* Sorprendido: un "!" breve (un trazo y un punto) */
+.mascot-fx--bang i {
+  right: 4%;
+  top: 0;
+  width: calc(var(--mascot-size) * 0.07);
+  height: calc(var(--mascot-size) * 0.17);
+  border-radius: 99px;
+  background: var(--agent-orange, #f0532b);
+  transform-origin: 50% 100%;
+}
+
+.mascot-fx--bang i::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  bottom: calc(var(--mascot-size) * -0.1);
+  width: 100%;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: inherit;
+}
+
+.mascot--badge .mascot-fx--bang i {
+  top: -22%;
+  right: -12%;
+}
+
+/* Con sueño: "z z" que suben hacia adentro de la pantalla (en reposo, Mochi asoma desde el borde derecho; a la
+   izquierda, agent-presence.css los da vuelta). Con un halo blanco, para leerse también sobre una foto oscura. */
+.mascot-fx--zz i {
+  left: 4%;
+  top: 24%;
+  font:
+    italic 800 max(10px, calc(var(--mascot-size) * 0.17)) / 1 system-ui,
+    sans-serif;
+  color: #6b7385;
+  text-shadow:
+    0 0 3px #fff,
+    0 0 1px #fff;
+  --zz-drift: -60%;
+}
+
+.mascot-fx--zz i::before {
+  content: 'z';
+}
+
+.mascot-fx--zz i + i {
+  font-size: max(8px, calc(var(--mascot-size) * 0.13));
+}
+
+.mascot--badge .mascot-fx--zz i {
+  top: -12%;
+  left: -12%;
 }
 
 /* ----- Movimiento ----- */
@@ -81,16 +219,20 @@
     animation: mascot-shadow 4.2s ease-in-out infinite;
   }
 
-  /* Quieto, cada tanto sonríe un instante */
+  /* En reposo respira y, cada tanto, mira a un lado y al otro; aparte, sonríe un instante (cierra los ojos) */
+  .mascot.mascot--idle .mascot-body {
+    animation: mascot-idle 16s ease-in-out infinite;
+  }
+
   .mascot.mascot--idle .mascot-sprite {
-    animation: mascot-expression 9s step-end infinite;
+    animation: mascot-expression 11s step-end infinite;
   }
 
   .mascot.mascot--wave .mascot-body {
     animation: mascot-wave 3.8s ease-in-out infinite;
   }
 
-  .mascot.mascot--think .mascot-body {
+  .mascot.mascot--thinking .mascot-body {
     animation: mascot-think 2.6s ease-in-out infinite;
   }
 
@@ -106,12 +248,78 @@
     animation: mascot-boop 0.8s cubic-bezier(0.2, 0.8, 0.3, 1) 1;
   }
 
+  /* Emociones breves: corren una vez (el bus de ánimo las termina y vuelve a quieto) */
+  .mascot.mascot--happy .mascot-body {
+    animation: mascot-hop 0.7s cubic-bezier(0.2, 0.8, 0.3, 1) 1;
+  }
+
+  .mascot.mascot--celebrate .mascot-body {
+    animation: mascot-boop 0.8s cubic-bezier(0.2, 0.8, 0.3, 1) 1;
+  }
+
+  .mascot.mascot--dance .mascot-body {
+    animation: mascot-dance 1.3s ease-in-out 2;
+  }
+
+  .mascot.mascot--dance .mascot-sprite {
+    animation: mascot-dance-pose 1.3s step-end 2;
+  }
+
+  .mascot.mascot--worried .mascot-body {
+    animation: mascot-shrink 1.8s ease-in-out 1;
+  }
+
+  .mascot.mascot--surprised .mascot-body {
+    animation: mascot-startle 0.9s cubic-bezier(0.2, 0.8, 0.3, 1) 1;
+  }
+
+  .mascot.mascot--sleepy .mascot-body {
+    animation: mascot-doze 5.6s ease-in-out infinite;
+  }
+
+  .mascot.mascot--sleepy .mascot-shadow {
+    animation-duration: 5.6s;
+  }
+
+  /* Los adornos */
+  .mascot-fx--dots i {
+    animation: mascot-dot 1.2s ease-in-out infinite;
+  }
+
+  .mascot-fx--dots i:nth-child(2) {
+    animation-delay: 0.2s;
+  }
+
+  .mascot-fx--dots i:nth-child(3) {
+    animation-delay: 0.4s;
+  }
+
+  .mascot-fx--sparks i {
+    animation: mascot-spark 0.75s cubic-bezier(0.2, 0.7, 0.3, 1) 0.15s 1;
+  }
+
+  .mascot-fx--drop i {
+    animation: mascot-drop 1.8s ease-in 1;
+  }
+
+  .mascot-fx--bang i {
+    animation: mascot-bang 1.1s cubic-bezier(0.34, 1.56, 0.64, 1) 1;
+  }
+
+  .mascot-fx--zz i {
+    animation: mascot-z 2.8s ease-out infinite;
+  }
+
+  .mascot-fx--zz i + i {
+    animation-delay: 1.4s;
+  }
+
   @media (hover: hover) {
-    .mascot:hover .mascot-body {
+    .mascot:not(.is-feeling):hover .mascot-body {
       animation: mascot-greet 0.7s ease-in-out 1;
     }
 
-    .mascot:hover .mascot-sprite {
+    .mascot:not(.is-feeling):hover .mascot-sprite {
       animation: none;
     }
   }
@@ -127,11 +335,15 @@
   }
 }
 
-/* Sin movimiento tampoco se inclina hacia el mouse */
+/* Sin movimiento tampoco se inclina hacia el mouse, ni hay adornos: solo cambia la pose */
 @media (prefers-reduced-motion: reduce) {
   .mascot-sprite {
     transform: none;
     transition: none;
+  }
+
+  .mascot-fx {
+    display: none;
   }
 }
 
@@ -142,6 +354,30 @@
   }
   50% {
     transform: translateY(-2%) scale(1.025, 0.99);
+  }
+}
+
+/* Cuatro respiraciones; en la tercera mira a la izquierda y a la derecha */
+@keyframes mascot-idle {
+  0%,
+  25%,
+  50%,
+  75%,
+  100% {
+    transform: translateY(0) scale(1);
+  }
+  12.5%,
+  37.5%,
+  87.5% {
+    transform: translateY(-2%) scale(1.025, 0.99);
+  }
+  56%,
+  60% {
+    transform: translateX(-3%) rotate(-5deg);
+  }
+  65%,
+  69% {
+    transform: translateX(3%) rotate(5deg);
   }
 }
 
@@ -159,11 +395,11 @@
 
 @keyframes mascot-expression {
   0%,
-  93%,
+  94%,
   100% {
     background-position: 0 0;
   }
-  94% {
+  95% {
     background-position: 100% 0;
   }
 }
@@ -243,5 +479,168 @@
   }
   75% {
     transform: translateY(0) scale(1.06, 0.94) rotate(4deg);
+  }
+}
+
+/* Contento: un saltito y vuelve a quieto */
+@keyframes mascot-hop {
+  0%,
+  100% {
+    transform: translateY(0) scale(1);
+  }
+  20% {
+    transform: translateY(3%) scale(1.06, 0.92);
+  }
+  50% {
+    transform: translateY(-10%) scale(0.97, 1.04);
+  }
+  78% {
+    transform: translateY(0) scale(1.03, 0.97);
+  }
+}
+
+/* Baile: se balancea a un lado y al otro con un saltito en cada paso */
+@keyframes mascot-dance {
+  0%,
+  100% {
+    transform: translateY(0) rotate(0);
+  }
+  15% {
+    transform: translateY(-7%) rotate(-9deg);
+  }
+  30% {
+    transform: translateY(0) rotate(-4deg) scale(1.04, 0.96);
+  }
+  55% {
+    transform: translateY(-7%) rotate(9deg);
+  }
+  70% {
+    transform: translateY(0) rotate(4deg) scale(1.04, 0.96);
+  }
+}
+
+/* Dos cambios de pose por paso (menos de 2 por segundo): feliz y saltando */
+@keyframes mascot-dance-pose {
+  0%,
+  100% {
+    background-position: 100% 0;
+  }
+  50% {
+    background-position: 100% 100%;
+  }
+}
+
+/* Preocupado: se encoge un poco, se queda así y vuelve */
+@keyframes mascot-shrink {
+  0%,
+  100% {
+    transform: translateY(0) scale(1);
+  }
+  18%,
+  80% {
+    transform: translateY(3%) scale(0.93, 0.9);
+  }
+  50% {
+    transform: translateY(3%) scale(0.93, 0.9) rotate(-3deg);
+  }
+}
+
+/* Sorprendido: se agacha un instante y da un salto estirado */
+@keyframes mascot-startle {
+  0%,
+  100% {
+    transform: translateY(0) scale(1);
+  }
+  14% {
+    transform: translateY(2%) scale(1.05, 0.93);
+  }
+  38% {
+    transform: translateY(-13%) scale(0.94, 1.09);
+  }
+  70% {
+    transform: translateY(0) scale(1.02, 0.98);
+  }
+}
+
+/* Con sueño: respira lento y cabecea */
+@keyframes mascot-doze {
+  0%,
+  100% {
+    transform: rotate(-4deg) translateY(0) scale(1);
+  }
+  50% {
+    transform: rotate(-7deg) translateY(1%) scale(1.03, 0.98);
+  }
+}
+
+@keyframes mascot-dot {
+  0%,
+  100% {
+    opacity: 0.3;
+    transform: translateY(0);
+  }
+  40% {
+    opacity: 1;
+    transform: translateY(-35%);
+  }
+}
+
+@keyframes mascot-spark {
+  0% {
+    opacity: 0;
+    transform: rotate(var(--spark-turn)) translateY(calc(var(--mascot-size) * -0.28)) scale(0.4);
+  }
+  25% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: rotate(var(--spark-turn)) translateY(calc(var(--mascot-size) * -0.52)) scale(1, 0.6);
+  }
+}
+
+@keyframes mascot-drop {
+  0% {
+    opacity: 0;
+    transform: translateY(-20%) rotate(45deg) scale(0.6);
+  }
+  20%,
+  65% {
+    opacity: 1;
+    transform: translateY(0) rotate(45deg) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(80%) rotate(45deg) scale(0.9);
+  }
+}
+
+@keyframes mascot-bang {
+  0% {
+    opacity: 0;
+    transform: scale(0.3) rotate(-12deg);
+  }
+  22%,
+  75% {
+    opacity: 1;
+    transform: scale(1) rotate(8deg);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(1) rotate(8deg);
+  }
+}
+
+@keyframes mascot-z {
+  0% {
+    opacity: 0;
+    transform: translate(0, 0) scale(0.6);
+  }
+  30% {
+    opacity: 0.9;
+  }
+  100% {
+    opacity: 0;
+    transform: translate(var(--zz-drift), -140%) scale(1.1);
   }
 }

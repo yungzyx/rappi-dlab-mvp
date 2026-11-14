@@ -21,7 +21,7 @@ export default function AskAgentRow({ query, question = false, hintId, onAsk }) 
       onClick={onAsk}
     >
       <span className="agent-ask-mascot" aria-hidden="true">
-        <Mascot size={34} />
+        <Mascot size={34} live />
       </span>
       <span className="agent-ask-text">
         <strong>Pídele a {AGENT_NAME}</strong>

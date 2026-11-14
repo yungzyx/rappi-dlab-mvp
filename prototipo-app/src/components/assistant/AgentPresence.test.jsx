@@ -11,6 +11,7 @@ import { AGENT_CART_EVENT, resetLive } from '../../state/liveMemory'
 import { QUIET_KEY, resetQuiet } from '../../state/agentQuiet'
 import { HIDDEN_KEY } from '../../state/agentHidden'
 import { setAgentEnabled } from '../../state/agentEnabled'
+import { emote } from '../../state/mochiMood'
 import { ProfileProvider } from '../../state/ProfileContext'
 import { today } from '../../utils/today'
 import AgentPresence, { SIDE_KEY } from './AgentPresence'
@@ -392,5 +393,46 @@ describe('Mochi no tapa los "+"', () => {
     mountTree()
     act(() => vi.advanceTimersByTime(200))
     expect(host().style.getPropertyValue('--tuck-lift')).toBe('48px')
+  })
+})
+
+describe('Mochi con ánimo', () => {
+  test('flotando reacciona: celebra lo que se acepta de él', () => {
+    const { container } = mountTree()
+    act(() => emote('celebrate'))
+    expect(container.querySelector('.agent-presence-body .mascot').classList).toContain('mascot--celebrate')
+  })
+
+  test('silenciado, la pestañita dormita con sus "z z" y no celebra', () => {
+    localStorage.setItem(QUIET_KEY, today())
+    const { container } = mountTree()
+    const mascot = () => container.querySelector('.agent-quiet-tab .mascot')
+    expect(mascot().classList).toContain('mascot--sleepy')
+    expect(mascot().querySelector('.mascot-fx--zz')).toBeTruthy()
+    act(() => emote('dance'))
+    expect(mascot().classList).toContain('mascot--sleepy')
+  })
+
+  test('una emoción no lo hace aparecer donde no está: "Rappi hoy", Mochi apagado, oculto o el checkout', () => {
+    const cases = [
+      () => localStorage.setItem('rappi-proto-demo-mode', 'actual'),
+      () => setAgentEnabled(false),
+      () => localStorage.setItem(HIDDEN_KEY, '1'),
+    ]
+    for (const prepare of cases) {
+      cleanup()
+      localStorage.clear()
+      localStorage.setItem('rappi-proto-demo-mode', 'final')
+      setAgentEnabled(true)
+      prepare()
+      const { container } = mountTree()
+      act(() => emote('dance'))
+      expect(container.querySelector('.mascot')).toBeNull()
+    }
+    cleanup()
+    setAgentEnabled(true)
+    const { container } = mountTree({ screen: 'checkout' })
+    act(() => emote('celebrate'))
+    expect(container.querySelector('.mascot')).toBeNull()
   })
 })

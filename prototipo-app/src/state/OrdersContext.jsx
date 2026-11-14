@@ -2,6 +2,7 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useRef, use
 import { DELAY, DEMO_DELAY_EVENT, delayCompensation } from '../screens/tracking/delay'
 import { flowFor, isAhead, isDelivered, secondsSince } from '../screens/tracking/progress'
 import { addCredits, markCoupon } from './credits'
+import { emote } from './mochiMood'
 import { loadStored, saveStored } from './storage'
 
 // Pedidos hechos en la demo, uno por tienda (como en la API: un carro con dos tiendas son dos pedidos, con el mismo
@@ -68,6 +69,7 @@ export function OrdersProvider({ children }) {
       const now = Date.now()
       const created = list.map((order, i) => ({ ...order, id: `order-${now}${i ? `-${i}` : ''}`, placedAt: now }))
       save((prev) => [...created, ...prev].slice(0, MAX_ORDERS))
+      emote('dance') // pedido confirmado: Mochi baila (en el seguimiento, el repartidor)
       return created.map((order) => order.id)
     },
     [save],

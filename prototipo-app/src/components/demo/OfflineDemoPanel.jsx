@@ -14,6 +14,7 @@ import { DEMO_DELAY_EVENT } from '../../screens/tracking/delay'
 import { setAgentHidden, useAgentHidden } from '../../state/agentHidden'
 import { useDemo } from '../../state/DemoContext'
 import { useEvents } from '../../state/EventsContext'
+import { emote, resetMochiMood, setThinking } from '../../state/mochiMood'
 import './offline-demo-panel.css'
 
 // Los 6 accesos chicos que ordena la Home (motor/home.py), con su nombre en la fila de accesos.
@@ -26,11 +27,35 @@ const VISITS = [
   ['chocolateria', 'Chocolates'],
 ]
 
+// Las emociones de Mochi para verlas sin esperar lo que las dispara (state/mochiMood.js), y cuánto piensa al probarlo.
+const EMOTION_BUTTONS = [
+  ['happy', 'Contento'],
+  ['surprised', 'Sorprendido'],
+  ['worried', 'Preocupado'],
+  ['celebrate', 'Celebra'],
+  ['dance', 'Baila'],
+]
+const THINK_PREVIEW_MS = 2500
+
+/** Muestra una emoción ya, sin el enfriamiento de la anterior. */
+const preview = (name) => {
+  resetMochiMood()
+  emote(name)
+}
+
+/** Mochi piensa un momento, como mientras espera una respuesta. */
+const previewThinking = () => {
+  resetMochiMood()
+  const token = {}
+  setThinking(token, true)
+  setTimeout(() => setThinking(token, false), THINK_PREVIEW_MS)
+}
+
 /**
  * "Panel de la demo" de "Prototipo MVP.html" (solo el build sin conexión): elegir una persona con su historial, sumar
  * visitas a los accesos para ver cómo se reordena la Home, leer en qué paso de la escalera está la persona, atrasar el
  * pedido en curso (el mensaje proactivo y, en Turbo, la garantía de ejemplo con Créditos) y, en el prototipo final,
- * ocultar a Mochi o traerlo de vuelta (como su menú y Cuenta, pero sin confirmar).
+ * ocultar a Mochi o traerlo de vuelta (como su menú y Cuenta, pero sin confirmar) y ver cada una de sus emociones.
  */
 export default function OfflineDemoPanel() {
   const [open, setOpen] = useState(false)
@@ -127,6 +152,19 @@ export default function OfflineDemoPanel() {
                 <button type="button" onClick={toggleAgent}>
                   {agentHidden ? `Mostrar a ${AGENT_NAME}` : `Ocultar a ${AGENT_NAME}`}
                 </button>
+              </div>
+              <p className="offline-demo-help">
+                Sus emociones, sin esperar lo que las dispara (silenciado por hoy, dormita y no muestra ninguna):
+              </p>
+              <div className="offline-demo-buttons">
+                <button type="button" onClick={previewThinking}>
+                  Piensa
+                </button>
+                {EMOTION_BUTTONS.map(([name, label]) => (
+                  <button key={name} type="button" onClick={() => preview(name)}>
+                    {label}
+                  </button>
+                ))}
               </div>
             </>
           )}
