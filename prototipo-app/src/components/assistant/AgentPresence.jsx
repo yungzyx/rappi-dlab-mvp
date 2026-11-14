@@ -246,7 +246,7 @@ export default function AgentPresence({ screen, homeTab, raised }) {
             })
           }}
         >
-          <Mascot size={40} badge />
+          <Mascot size={40} badge live mood="sleepy" />
         </button>
       </div>
     )
@@ -347,7 +347,7 @@ export default function AgentPresence({ screen, homeTab, raised }) {
           assistant.open({ query: askAbout(product), product })
         }}
       >
-        <Mascot size={SIZE} mood={jumping ? 'jump' : menu ? 'listen' : 'idle'} />
+        <Mascot size={SIZE} live mood={jumping ? 'jump' : menu ? 'listen' : 'idle'} />
       </button>
     </div>
   )

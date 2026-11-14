@@ -3,6 +3,7 @@ import { version } from '../../package.json'
 import { beaconEvents, health, sendEvents } from '../api/client'
 import { randomId, randomUuid, userId } from '../api/user'
 import { useDemo } from './DemoContext'
+import { observeMood } from './mochiMood'
 import { tabStore } from './storage'
 import { observeEvent } from './survey'
 
@@ -185,6 +186,7 @@ export function EventsProvider({ children }) {
     queue.current.push(event)
     if (queue.current.length > MAX_QUEUE) queue.current.shift()
     observeEvent(event, now) // la pregunta in-app sigue las búsquedas y sus toques (state/survey.js)
+    observeMood(event) // y Mochi reacciona a lo que pasa (state/mochiMood.js)
   }, [])
 
   useEffect(() => {

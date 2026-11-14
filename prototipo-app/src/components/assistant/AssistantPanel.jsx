@@ -504,7 +504,7 @@ export default function AssistantPanel({ push, vertical, depth = 1 }) {
             >
               <header className="agent-card-head">
                 <span className="agent-card-mascot">
-                  <Mascot size={44} badge mood={conversation.mood} />
+                  <Mascot size={44} badge live mood={conversation.mood} />
                 </span>
                 <span>
                   <strong>{AGENT_NAME}</strong>

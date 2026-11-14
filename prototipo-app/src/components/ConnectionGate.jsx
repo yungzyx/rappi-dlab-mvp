@@ -66,7 +66,8 @@ function ConnectionNotice({ status, onRetry }) {
   return (
     <main className="connection-gate">
       <div className="connection-card">
-        {agent && <Mascot size={96} mood="think" />}
+        {/* Conectando, piensa; sin conexión, se preocupa (su gota de sudor). */}
+        {agent && <Mascot size={96} mood={status === 'offline' ? 'worried' : 'thinking'} />}
         {/* El aviso existe siempre y solo cambia lo de adentro: los lectores de pantalla anuncian el cambio. */}
         <div className="connection-message" role="status">
           {status === 'checking' ? (

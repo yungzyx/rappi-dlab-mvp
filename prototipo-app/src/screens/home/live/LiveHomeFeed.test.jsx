@@ -1,4 +1,4 @@
-import { act, cleanup, fireEvent, render, screen, within } from '@testing-library/react'
+import { act, cleanup, fireEvent, render, renderHook, screen, within } from '@testing-library/react'
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, test, vi } from 'vitest'
 import { fixture, stubApi } from '../../../test/api'
 import { routeForScreen } from '../../../data/verticals'
@@ -1280,6 +1280,27 @@ describe('Home del prototipo final', () => {
       })
     })
 
+    test('la oferta nueva lo sorprende, una vez: si vuelve tras cerrar el menú, no otra', async () => {
+      const mood = await import('../../../state/mochiMood')
+      const seen = []
+      renderHook(() => {
+        const { emotion, id } = mood.useMochiMood()
+        if (emotion && !seen.some((s) => s.id === id)) seen.push({ emotion, id })
+      })
+      memory.session.played = true
+      memory.session.lastAdded = LOOSE_CART
+      const { container } = await renderHome()
+      await advance(4000)
+      expect(container.querySelector('.live-layer [role="status"]').textContent).toBe(
+        fixture('agent-offer-carrito').text,
+      )
+      expect(seen.map((s) => s.emotion)).toEqual(['surprised'])
+      fireEvent.click(mochi())
+      fireEvent.keyDown(document, { key: 'Escape' })
+      await advance(3000)
+      expect(seen.map((s) => s.emotion)).toEqual(['surprised'])
+    })
+
     test('abrirlo sobre la oferta del carro y cerrarlo sin elegir: la oferta vuelve (y, si se va sola, queda expirada)', async () => {
       memory.session.played = true
       memory.session.lastAdded = LOOSE_CART
@@ -1318,6 +1339,8 @@ describe('Home del prototipo final', () => {
       })
       expect(menu()).toBeNull()
       expect(container.querySelector('.live-agent')).toBeTruthy() // sigue a la vista
+      const pose = () => container.querySelector('.live-agent .mascot').classList
+      expect(pose()).toContain('mascot--sleepy') // y dormita, con sus "z z"
       expect(status()).toBe('') // la oferta que estaba debajo no vuelve, y queda como expirada
       expect(tracked('suggestion_dismissed', 'agent-carrito')).toEqual([
         ['suggestion_dismissed', expect.objectContaining({ payload: { kind: 'expirada' } })],
@@ -1339,6 +1362,7 @@ describe('Home del prototipo final', () => {
         payload: { visible: true, quiet: false },
       })
       expect(menu()).toBeNull()
+      expect(pose()).not.toContain('mascot--sleepy')
     })
 
     test('silenciarlo desde el menú no explica un cambio de orden pendiente', async () => {
