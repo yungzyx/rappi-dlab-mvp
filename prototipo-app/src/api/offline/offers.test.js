@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'vitest'
-import { complementOf, kitStores, makeOffer, offerableProduct, onTopOffer } from './offers'
+import { complementOf, kitStores, makeOffer, offerableProduct, onTopOffer, originSpecies, saysSpecies } from './offers'
 import { decodeSnapshot } from './snapshot'
 import { CONCEPTS, META, product, recordedStep } from '../../test/offlineMeta'
 
@@ -385,6 +385,75 @@ describe('complemento alternado (agent/tools.py: _takes_second)', () => {
       context: { product: { entity_type: coffee.entity_type, entity_id: coffee.entity_id } },
     })
     expect(made.products).toEqual([turboSnack])
+  })
+})
+
+describe('mascotas: nada de la otra especie (agent/tools.py: suggest_complement)', () => {
+  const pet = (n, name, concept) => product(n, { name, concept, vertical: 'supermercado' })
+  const catFood = pet(20, 'Alimento Húmedo para Gatos', 'alimento-gato')
+  const dogFood = pet(21, 'Alimento Húmedo para Perros', 'alimento-perro')
+  const litter = pet(22, 'Arena Aglutinante Café Moka', 'accesorios-mascota')
+  const leash = pet(23, 'Correa para Perro', 'accesorios-mascota')
+  const trainer = pet(24, 'Educador Sanitario Perro', 'accesorios-mascota')
+  const scratcher = pet(25, 'Rascador para Gatos', 'accesorios-mascota')
+  const conceptOf = (name, emoji) => ({ name, emoji, group: 'mascotas', offerable: true, keywords: [] })
+  const meta = {
+    ...META,
+    concepts: {
+      ...META.concepts,
+      'alimento-gato': conceptOf('Alimento para gatos', '🐈'),
+      'alimento-perro': conceptOf('Alimento para perros', '🐕'),
+      'accesorios-mascota': conceptOf('Accesorios para mascotas', '🦴'),
+    },
+  }
+  const recorded = (from, to, products) => ({
+    moment: 'carrito',
+    text: '',
+    products,
+    vertical: 'supermercado',
+    prototype_vertical: 'grocery',
+    reason: { concept: to, from_concept: from, text: '', basis: [] },
+    actions: [],
+  })
+  const pool = [catFood, dogFood, litter, leash, trainer, scratcher]
+  // Como la grabó una API de antes: el accesorio de perro en la comida de gato, y la arena con comida de perro.
+  const snapshot = {
+    ...snapshotWith({
+      complements: {
+        'alimento-gato': recorded('alimento-gato', 'accesorios-mascota', [trainer, scratcher]),
+        'accesorios-mascota': recorded('accesorios-mascota', 'alimento-gato', [catFood]),
+      },
+      complementsAlt: { 'accesorios-mascota': recorded('accesorios-mascota', 'alimento-perro', [dogFood]) },
+    }),
+    meta,
+    pool,
+    byEntity: new Map(pool.map((p) => [`${p.entity_type}:${p.entity_id}`, p])),
+  }
+  const cart = (item, userId = null) =>
+    makeOffer(snapshot, { ...state(), userId }, NOW, {
+      moment: 'carrito',
+      context: { product: { entity_type: item.entity_type, entity_id: item.entity_id } },
+    })
+  const people = Array.from({ length: 40 }, (_, i) => `proto-${i}`)
+
+  test('el nombre dice la especie; la de origen es una sola o ninguna', () => {
+    expect([saysSpecies('Educador Sanitario Perro', 'gato'), saysSpecies('Educador Sanitario Perro', 'perro')]).toEqual(
+      [false, true],
+    )
+    expect(saysSpecies('Turbo Clean Arena Aglutinante', 'gato')).toBe(true)
+    expect(originSpecies(['alimento-gato'])).toBe('gato')
+    expect(originSpecies(['accesorios-mascota'], ['Arena Aglutinante'])).toBe('gato')
+    expect(originSpecies(['accesorios-mascota'], ['Shampoo para Perros y Gatos'])).toBe(null)
+  })
+
+  test('con comida de gato, el accesorio de perro no sale', () => {
+    expect(cart(catFood).products.map((p) => p.name)).toEqual(['Rascador para Gatos'])
+  })
+
+  test('la arena es de gato: a nadie le toca la comida de perro; la correa es de perro: la de gato no sale', () => {
+    expect(new Set(people.map((id) => cart(litter, id).reason.concept))).toEqual(new Set(['alimento-gato']))
+    const leashOffers = people.map((id) => cart(leash, id))
+    expect(new Set(leashOffers.map((o) => o.reason.concept))).toEqual(new Set(['alimento-perro']))
   })
 })
 

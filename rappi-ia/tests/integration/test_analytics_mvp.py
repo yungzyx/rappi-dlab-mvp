@@ -455,6 +455,9 @@ def test_presence_counts_who_has_the_agent_hidden_now_and_the_home_explanations(
         "ocultos_pct": 50.0,
         "ocultadas": 4,
         "volvieron": 2,
+        "silenciadas": 0,
+        "silenciaron": 0,
+        "silenciaron_pct": 0.0,
         "explicaciones": 3,
         "explicaciones_personas": 2,
     }
@@ -464,8 +467,53 @@ def test_presence_counts_who_has_the_agent_hidden_now_and_the_home_explanations(
         "ocultos_pct": 100.0,
         "ocultadas": 1,
         "volvieron": 0,
+        "silenciadas": 0,
+        "silenciaron": 0,
+        "silenciaron_pct": 0.0,
         "explicaciones": 1,
         "explicaciones_personas": 1,
+    }
+
+
+def _quiet(user, quiet, days_ago):
+    """ "Silenciar por hoy" (`quiet: true`) o "Volver a hablar" (`quiet: false`): Mochi sigue a la vista."""
+    return events.Event(
+        user,
+        "s1",
+        "agent_visibility",
+        ts=NOW - timedelta(days=days_ago),
+        origin="menu-mochi",
+        payload={"visible": True, "quiet": quiet},
+    )
+
+
+def test_presence_counts_silences_apart_from_hiding(db):
+    events.record(
+        db,
+        [
+            _quiet("u1", True, 3),
+            _quiet("u1", False, 2),  # lo despertó: no es "lo trajo de vuelta"
+            _quiet("u1", True, 1),
+            _quiet("u2", True, 1),  # solo lo silenció: no está oculto
+            _visibility("u3", False, 2),
+            _quiet("u3", True, 1),  # un silencio después de ocultarlo no lo deja a la vista
+            events.Event("u4", "s1", "app_open", ts=NOW),
+            _quiet("u5", True, 60),  # fuera de los 30 días: no cuenta
+            events.Event("u5", "s1", "app_open", ts=NOW),
+        ],
+    )
+
+    assert queries.presence(db, "prototype") == {
+        "personas_activas": 5,
+        "ocultos": 1,
+        "ocultos_pct": 20.0,
+        "ocultadas": 1,
+        "volvieron": 0,
+        "silenciadas": 4,
+        "silenciaron": 3,
+        "silenciaron_pct": 60.0,
+        "explicaciones": 0,
+        "explicaciones_personas": 0,
     }
 
 
@@ -488,6 +536,9 @@ def test_presence_without_events_is_all_zero_and_no_rate(db):
             "ocultos_pct": None,
             "ocultadas": 0,
             "volvieron": 0,
+            "silenciadas": 0,
+            "silenciaron": 0,
+            "silenciaron_pct": None,
             "explicaciones": 0,
             "explicaciones_personas": 0,
         },

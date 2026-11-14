@@ -875,7 +875,11 @@ def test_every_event_type_says_if_rappi_has_it(db):
         "agent_visibility",
         "offer_why_open",
         "offer_eligible",
+        "survey_shown",
+        "survey_answer",
+        "survey_dismissed",
     }
+    assert rows["survey_answer"] == ("MVP_SURVEY_ANSWER", False)
     assert rows["offer_eligible"] == ("MVP_OFFER_ELIGIBLE", False)
     assert rows["order_cancelled"] == ("MVP_ORDER_CANCELLED", False)
     assert rows["vertical_reorder_shown"] == ("MVP_VERTICAL_REORDER_SHOWN", False)

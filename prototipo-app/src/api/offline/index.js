@@ -34,7 +34,8 @@
 //   offers/destacado.toml, llegan en meta.featured) y, con engine.py (_typical_first), lo que piden las personas del
 //   panel (personas.js: sampleOf)
 // - rappi-ia/src/rappi_ia/agent/tools.py ........... el foco de la búsqueda (_focus, en search.js) y el complemento
-//   alternado (_takes_second, en offers.js: complementOf)
+//   alternado (_takes_second, en offers.js: complementOf), y la especie de mascota (origin_species y says_species, en
+//   offers.js: complementOffer; las especies de concepts/complements.toml, copiadas a mano, que parity.test.js compara)
 // - rappi-ia/src/rappi_ia/concepts/need.py y retrieval/hybrid.py (query_need) ... "X para Y" busca X, sin nada +18 si
 //   el para qué es alcohol (search.js: needOf, con las aristas en meta.complements); en corto: sin la ocasión como lo
 //   pedido ni el texto de la arista

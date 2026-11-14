@@ -5,6 +5,7 @@ import { useAddToCart } from '../../hooks/useAddToCart'
 import { useAssistant } from '../../state/AssistantContext'
 import { formatPrice, useCart } from '../../state/CartContext'
 import { useDemo } from '../../state/DemoContext'
+import { useEvents } from '../../state/EventsContext'
 import { useAgentHidden } from '../../state/agentHidden'
 import { openCartSheet } from '../../state/cartSheet'
 import { AGENT_CART_EVENT, REPLAY_EVENT } from '../../state/liveMemory'
@@ -43,6 +44,7 @@ export default function AgentPresence({ screen, homeTab, raised }) {
   const demo = useDemo()
   const assistant = useAssistant()
   const cart = useCart()
+  const events = useEvents()
   const { remove } = useAddToCart()
   const [added, setAdded] = useState(null) // lo último agregado, mientras dura su globo
   const [menu, setMenu] = useState(false)
@@ -209,6 +211,11 @@ export default function AgentPresence({ screen, homeTab, raised }) {
     if (id === 'quiet') {
       quietToday(today())
       setQuiet(true)
+      events.track('agent_visibility', {
+        surface: 'agent',
+        origin: 'menu-mochi',
+        payload: { visible: true, quiet: true },
+      })
     }
   }
 
@@ -229,6 +236,11 @@ export default function AgentPresence({ screen, homeTab, raised }) {
           onClick={() => {
             wake()
             setQuiet(false)
+            events.track('agent_visibility', {
+              surface: 'agent',
+              origin: 'pestana-silencio',
+              payload: { visible: true, quiet: false },
+            })
           }}
         >
           <Mascot size={40} badge />

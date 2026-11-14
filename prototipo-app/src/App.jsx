@@ -8,6 +8,7 @@ import ErrorBoundary from './components/ErrorBoundary'
 import PrivacyNotice from './components/PrivacyNotice'
 import AgentPresence from './components/assistant/AgentPresence'
 import ProductSheet from './components/ProductSheet'
+import FoundItSurvey from './components/survey/FoundItCard'
 import StatusBar from './components/StatusBar'
 import { ToastProvider } from './components/Toast'
 import HomeScreen from './screens/home/HomeScreen'
@@ -142,6 +143,12 @@ export default function App() {
                               <AgentPresence
                                 screen={current.name}
                                 homeTab={homeTab}
+                                raised={SCREENS_WITH_NAV.has(current.name)}
+                              />
+                              {/* La pregunta in-app de la H3: con Mochi y sin él (state/survey.js) */}
+                              <FoundItSurvey
+                                screen={current.name}
+                                depth={stack.length}
                                 raised={SCREENS_WITH_NAV.has(current.name)}
                               />
                               <AssistantPanel push={push} vertical={vertical} depth={stack.length} />

@@ -458,7 +458,7 @@ def prototype_journey(client) -> None:
             "results": 0,
             "unmet": search["unmet"],
         },
-        # Mochi explica por qué movió un acceso de la Home, y después la persona lo oculta.
+        # Mochi explica por qué movió un acceso de la Home; la persona lo silencia por hoy y después lo oculta.
         {
             "type": "vertical_reorder_shown",
             "session_id": "s-panel",
@@ -466,6 +466,12 @@ def prototype_journey(client) -> None:
             "position": 0,
             "origin": "agent-reorden",
             "payload": {"antes": 2},
+        },
+        {
+            "type": "agent_visibility",
+            "session_id": "s-panel",
+            "origin": "menu-mochi",
+            "payload": {"visible": True, "quiet": True},
         },
         {"type": "agent_visibility", "session_id": "s-panel", "origin": "menu-mochi", "payload": {"visible": False}},
     ]

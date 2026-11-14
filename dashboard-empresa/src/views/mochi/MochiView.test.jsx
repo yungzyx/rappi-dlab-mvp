@@ -132,7 +132,7 @@ describe('MochiView', () => {
     expect(screen.queryByText(/datos simulados/i)).toBeNull()
   })
 
-  test('who hid Mochi now, out of the active people, who brought him back and the Home explanations', async () => {
+  test('who hid or silenced Mochi, out of the active people, who brought him back and the Home explanations', async () => {
     serveFixturesWith({
       presencia: {
         source: 'prototype',
@@ -142,6 +142,9 @@ describe('MochiView', () => {
           ocultos_pct: 25,
           ocultadas: 3,
           volvieron: 1,
+          silenciadas: 4,
+          silenciaron: 3,
+          silenciaron_pct: 37.5,
           explicaciones: 5,
           explicaciones_personas: 4,
         },
@@ -152,40 +155,47 @@ describe('MochiView', () => {
     const section = (await screen.findByRole('heading', { name: '¿Mochi molesta?' })).closest('section')
     const figure = (label) => within(section).getByText(label).parentElement.textContent
     expect(figure('Ocultaron a Mochi')).toBe('Ocultaron a Mochi225,0% de 8 personas activas; lo ocultaron 3 veces')
+    expect(figure('Lo silenciaron por hoy')).toBe(
+      'Lo silenciaron por hoy337,5% de 8 personas activas; lo silenciaron 4 veces',
+    )
     expect(figure('Lo volvieron a mostrar')).toBe('Lo volvieron a mostrar1persona, desde Cuenta')
     expect(figure('Mochi explicó el orden de la Home')).toContain('5 vecesa 4 personas')
     expect(within(section).getByText(/la app no anota "¿Por qué\?" ni "Entendido"/)).toBeTruthy()
-    expect(within(section).getByText(/Si muchas personas lo ocultan, Mochi molesta/)).toBeTruthy()
+    expect(within(section).getByText(/Si muchas personas lo ocultan o lo silencian, Mochi molesta/)).toBeTruthy()
   })
 
-  test('the recorded prototype journey: one person hid him and he explained the Home once', async () => {
+  test('the recorded prototype journey: one person silenced him, then hid him, and he explained the Home once', async () => {
     serveFixtures()
     await renderWithData(<MochiView source="prototype" />)
 
     const section = (await screen.findByRole('heading', { name: '¿Mochi molesta?' })).closest('section')
     expect(within(section).getByText('10,0% de 10 personas activas; lo ocultaron 1 vez')).toBeTruthy()
+    expect(within(section).getByText('10,0% de 10 personas activas; lo silenciaron 1 vez')).toBeTruthy()
     expect(within(section).getByText('1 vez')).toBeTruthy()
   })
 
-  test('without hides nor explanations, an empty state (and the simulator does not record them)', async () => {
+  test('without hides, silences nor explanations, an empty state (and the simulator does not record them)', async () => {
     const none = {
       personas_activas: 6,
       ocultos: 0,
       ocultos_pct: 0,
       ocultadas: 0,
       volvieron: 0,
+      silenciadas: 0,
+      silenciaron: 0,
+      silenciaron_pct: 0,
       explicaciones: 0,
       explicaciones_personas: 0,
     }
     serveFixturesWith({ presencia: { source: 'prototype', data: none } })
     await renderWithData(<MochiView source="prototype" />)
-    expect(await screen.findByText('Nadie ocultó a Mochi ni lo vio mover la Home')).toBeTruthy()
+    expect(await screen.findByText('Nadie ocultó ni silenció a Mochi, ni lo vio mover la Home')).toBeTruthy()
     expect(screen.queryByText('Ocultaron a Mochi')).toBeNull()
 
     resetApi()
     serveFixtures()
     await renderWithData(<MochiView source="synthetic" />)
-    expect(await screen.findByText('Los datos simulados no registran ocultar a Mochi')).toBeTruthy()
+    expect(await screen.findByText('Los datos simulados no registran ocultar ni silenciar a Mochi')).toBeTruthy()
   })
 
   test('lists: CTR by position and the session funnel, each step out of all sessions', async () => {

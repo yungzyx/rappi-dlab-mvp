@@ -57,6 +57,7 @@
   --z-panel: 38; /* buscador con Mochi */
   --z-cart: 39; /* sobre el panel: el carrito se ve y se abre desde ahí */
   --z-status: 40;
+  --z-survey: 44; /* la pregunta in-app: sobre el carrito y Mochi, bajo el aviso de privacidad y las hojas */
   --z-privacy: 45; /* aviso de la primera visita: sobre el buscador, el carrito y la barra de estado; bajo las hojas */
   --z-sheet: 60;
   --z-toast: 70; /* sobre las hojas: el aviso de "+ Add new address" sale dentro de una */
