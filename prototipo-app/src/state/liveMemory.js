@@ -4,8 +4,6 @@ import { isAgentHidden as isAgentHiddenNow, setAgentHidden } from './agentHidden
 import { resetQuiet } from './agentQuiet'
 import { clearRefused } from './EventsContext'
 
-// `repeatLater`: tocaron "Después" en "¿Repetimos?" o en "¿Volvemos a…?"; no vuelven en lo que dura la pestaña.
-// `winback`: la respuesta de "¿Volvemos a…?" (`{ generation, offer }`, offer null si no hubo), pedida una vez.
 // `pendingMove`: el cambio de orden de los accesos que Mochi aún no explica (sobrevive a cambiar de pestaña: el orden
 // nuevo ya quedó como visto).
 // `lastAdded` y `pendingMove` también sobreviven a recargar la página (en el celular, tirar la pantalla hacia abajo
@@ -37,8 +35,6 @@ export const session = {
   ...readPending(),
   plan: null,
   planPrompted: false,
-  repeatLater: false,
-  winback: null,
 }
 
 /** Lo último agregado al carro en el prototipo final (fuera de la Home): el agente lo comenta al volver. */
@@ -96,8 +92,6 @@ export function resetLive() {
     pendingMove: null,
     plan: null,
     planPrompted: false,
-    repeatLater: false,
-    winback: null,
   })
   savePending()
   clearRefused()
