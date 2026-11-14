@@ -7,6 +7,7 @@ import { Panel } from '../../components/Panel.jsx'
 import { EmptyState } from '../../components/States.jsx'
 import { formatNumber, formatPct, formatPoints } from '../../lib/format.js'
 import { useAnalytics } from '../../lib/useAnalytics.js'
+import { GoalValue } from './GoalValue.jsx'
 import { Adoption, Hypotheses } from './Hypotheses.jsx'
 import { assignedPeople, cohortPeople, experimentLabel, offeredPct, orderedPct, variantLabel } from './experiments.js'
 
@@ -262,7 +263,7 @@ function Experiments({ source }) {
 
 /**
  * Los experimentos del MVP, en el orden del gerente: primero las tres hipótesis (retención, frecuencia y venta cruzada,
- * y "¿Encontraste lo que buscabas?"), después la adopción y el apagado de Mochi y al final la mecánica de cada
+ * y "¿Encontraste lo que buscabas?") y cuánto vale su meta con los supuestos de quien presenta, después la adopción y el apagado de Mochi y al final la mecánica de cada
  * experimento (cada persona con una variante estable, comparadas dentro de una sola población).
  */
 export function ExperimentsView({ source }) {
@@ -299,6 +300,34 @@ export function ExperimentsView({ source }) {
           <Async>
             <Hypotheses source={source} />
           </Async>
+        </div>
+      </section>
+
+      <section className="section" aria-labelledby="valor-meta">
+        <SectionHead
+          id="valor-meta"
+          title="¿Cuánto vale la meta?"
+          meta="La H1 y la H2 en margen, con tus números"
+          help={
+            <>
+              <p>
+                El método: margen de más = pedidos de más × valor promedio del pedido × margen por pedido, mes a mes,
+                con y sin el proyecto. La fórmula de cada meta está en su ayuda.
+              </p>
+              <p>
+                Los campos parten vacíos: el panel no trae cifras de Rappi. Lo que escribes no va a la API ni sale del
+                navegador; queda en esta pestaña hasta que la cierras o tocas "Borrar". Separador decimal: coma.
+              </p>
+            </>
+          }
+        >
+          <Caveat>Con tus supuestos: no son datos del panel ni evidencia.</Caveat>
+          <Caveat>
+            Correlación no es efecto: la meta solo vale lo que dice esta cuenta si el grupo de control la confirma.
+          </Caveat>
+        </SectionHead>
+        <div className="block">
+          <GoalValue />
         </div>
       </section>
 

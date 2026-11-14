@@ -36,8 +36,8 @@ En cada celda: sola, con ayuda o no, y entre paréntesis el tiempo aproximado (p
 | 1. Buscar con un error de tipeo | | | | | | … |
 | 2. "Algo para la once" | | | | | | … |
 | 3. Agrega algo al carro y vuelve al inicio | | | | | | … |
-| 4. "¿Por qué?" y decidir | | | | | | … |
-| 5. Ocultar a Mochi y traerlo de vuelta | | | | | | … |
+| 4. "¿Por qué?" (encontrarlo sin que se lo nombren) y decidir | | | | | | … |
+| 5. Ocultar a Mochi y traerlo de vuelta (anotar si eligió "Ocultar" o "Silenciar por hoy") | | | | | | … |
 | 6. Pedir hasta el seguimiento | | | | | | … |
 
 ## Lo que dejó cada sesión (de los resúmenes)
@@ -57,6 +57,9 @@ Copiado del resumen de cada persona (`rappi-ia resumen-prueba`). La duración es
 | Verticales con pedido | | | | | |
 | ¿Abrió o pidió en otra vertical que la primera? ¿Por qué camino? (acceso de la Home, oferta de Mochi, buscador; del "Recorrido por verticales") | | | | | |
 | Ocultó a Mochi (y lo trajo de vuelta) | | | | | |
+| Lo silenció por hoy (y lo volvió a hacer hablar) | | | | | |
+| Pregunta in-app: P1 (qué la hizo aparecer, respuesta o "cerrada" / "sin respuesta") | | | | | |
+| Pregunta in-app: P3 (nota de 1 a 5, "cerrada", "sin respuesta" o "no salió") | | | | | |
 | Pedidos (cancelados) | | | | | |
 
 ## Las ofertas y su "¿Por qué?"
@@ -66,6 +69,14 @@ Una fila por oferta que la persona miró en las tareas 3 y 4. El texto del "¿Po
 | | Momento y concepto (del resumen) | Lo que la persona creyó antes de leer | Texto del "¿Por qué?" | ¿Coincide? ¿Le pareció razonable? | ¿La aceptó? Su motivo |
 |---|---|---|---|---|---|
 | P1 | … | … | … | … | … |
+
+## La pregunta in-app
+
+La hace la app sola ([prueba-usuarios.md](../prueba-usuarios.md#la-pregunta-in-app-dentro-del-recorrido)). Lo que respondió sale del resumen; si la vio y la entendió, de la hoja del observador. Con 5 personas y sin grupo de control, sus respuestas describen si se entiende, no miden la H3.
+
+| | P1: ¿salió?, ¿después de qué tarea? | ¿La vio? ¿La entendió? (qué creyó que le preguntaban) | Respuesta | P3: ¿salió? | ¿La entendió? | Respuesta |
+|---|---|---|---|---|---|---|
+| P1 | … | … | … | … | … | … |
 
 ## Cuestionario
 
@@ -90,17 +101,21 @@ Preguntas abiertas, con las palabras de cada persona (citas cortas):
 
 ## Criterios
 
-Los de [prueba-usuarios.md](../prueba-usuarios.md#criterios-fijados-antes-de-la-primera-sesión), con el umbral fijado antes de la primera sesión: no se cambia aquí. "n de 5 observado" cuenta a quienes mostraron la señal; si llega al umbral, se dispara el cambio.
+Los de [prueba-usuarios.md](../prueba-usuarios.md#criterios-fijados-antes-de-la-primera-sesión), con el umbral fijado antes de la primera sesión: no se cambia aquí. "n de 5 observado" cuenta a quienes mostraron la señal; si llega al umbral, se dispara el cambio. En "¿Se nota la oferta?" y en las dos de la pregunta in-app el denominador es quienes la tuvieron en pantalla (anotar "n de m").
+
+**Para seguir al piloto (Hito 0):** ☐ sí ☐ no. Pasa si 3 de 5 o más entienden el "¿Por qué?" (la primera fila no llega al umbral) y a lo más 1 se molesta con Mochi (la de "¿Mochi estorba?" no llega).
 
 | Pregunta | Señal | Umbral | n de 5 observado | ¿Llega al umbral? (se dispara el cambio) | Cambio que se dispara |
 |---|---|---|---|---|---|
 | ¿Se entiende el "¿Por qué?"? | En la tarea 4, lo que creía antes de leer no coincide con el texto, o dice que no lo entiende; o marca 1 o 2 en la afirmación 1 | 3 de 5 | | | Reescribir la plantilla del texto del "¿Por qué?" de ese momento |
-| ¿Se nota la oferta? | Entre quienes tuvieron la oferta en la Home (momento "carrito" en el resumen): en la tarea 3 no la vio o se fue sola. A quien la Home no se la mostró no se cuenta: va a "Problemas encontrados" | 2 de quienes la tuvieron en la Home (anotar "n de m") | | | Revisar dónde y cuánto rato se muestra el globo con oferta en la Home |
+| ¿Se nota la oferta? | Entre quienes tuvieron la oferta en la Home (momento "carrito" en el resumen): en la tarea 3 no la vio o se fue sola. A quien la Home no se la mostró no se cuenta (ni en el umbral ni en el denominador): va a "Problemas encontrados" | 2 de quienes la tuvieron en la Home (anotar "n de m") | | | Revisar dónde y cuánto rato se muestra el globo con oferta en la Home |
 | ¿Se entiende qué pasa al aceptarla? | En la tarea 4 se sorprende de lo que pasó al tocar el "+" de un producto o "Ver …", o dice que no sabía que el "+" lo agregaba al carro | 2 de 5 | | | Cambiar cómo se ve o se rotula el "+" de los productos del globo |
 | ¿Se puede rechazar sin problema? | No encuentra "Ahora no" o "Después", o pide ayuda para decir que no | 2 de 5 | | | Hacer más visible el botón de rechazar |
 | ¿Mochi estorba? | Marca 4 o 5 en la afirmación 3, o lo cuenta en la pregunta abierta 2 | 2 de 5 | | | Revisar cuántas veces y cuándo habla Mochi en la Home |
 | ¿Se puede ocultar y traer de vuelta? | En la tarea 5 no lo trae de vuelta sin ayuda | 1 de 5 | | | Mover o rotular "Mostrar a Mochi" |
 | ¿Se entiende la corrección del tipeo? | En la tarea 1 no ve "Mostrando resultados para…", o marca 1 o 2 en la afirmación 5 | 2 de 5 | | | Revisar el aviso de la corrección en los resultados |
+| ¿Se entiende la P1? | Entre quienes la tuvieron en pantalla: no la vio, o no sabe decir qué le preguntaba, o cree que pregunta por otra cosa | 2 de quienes la tuvieron (anotar "n de m") | | | Revisar el texto o el momento de la tarjeta antes del piloto |
+| ¿Se entiende la P3? | Entre quienes la tuvieron en pantalla: no sabe decir qué le preguntaba o cómo se lee la escala | 2 de quienes la tuvieron (anotar "n de m") | | | Revisar el texto o la escala de la P3 |
 | ¿Lleva a mirar otra vertical? | No abre otra vertical por un acceso de la Home ni por una oferta de Mochi (recorrido del resumen) | 4 de 5 | | | Revisar, antes de una prueba más grande, si la oferta de vertical por probar aparece y se entiende; no se concluye nada de efecto ni de retención |
 
 ## Problemas encontrados

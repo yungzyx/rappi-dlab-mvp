@@ -27,7 +27,7 @@ Flujo típico (después de cada `rappi refresh` del scraper):
     rappi-ia analytics               # resumen de métricas del panel (frecuencia, abandono, oportunidades…)
     rappi-ia resumen-prueba proto-…  # prueba con usuarios: un Markdown por persona del prototipo (o --desde AAAA-MM-DD)
     rappi-ia olvidar proto-…         # borra personas del prototipo por id, como "Borrar mis datos" (pide confirmación)
-    rappi-ia resumen-api --log …     # la API de ayer: rutas, lentas, 5xx, personas nuevas y Mochi silenciado u oculto
+    rappi-ia resumen-api --log …     # la API de ayer: rutas, lentas, 5xx, personas nuevas, Mochi y la encuesta
     rappi-ia purge                   # borra consultas e impresiones de más de 90 días y personas sin actividad
     rappi-ia multivertical           # mapa multivertical (docs/mapas/)
     rappi-ia seed-demo               # catálogo de prueba inventado, SOLO en la base DATABASE_URL_TEST (_test)
@@ -692,6 +692,7 @@ def cmd_resumen_api(conn, args) -> None:
     summary = log_summary.read_logs([Path(p) for p in args.log], day)
     summary.new_people = log_summary.new_people(conn, day)
     summary.silenced, summary.hidden = log_summary.agent_changes(conn, day)
+    summary.survey = log_summary.survey_counts(conn, day)
     print(log_summary.render(summary), end="")
 
 

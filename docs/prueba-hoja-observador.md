@@ -1,6 +1,6 @@
 # Hoja del observador
 
-Una hoja impresa por participante de la [prueba con usuarios](prueba-usuarios.md) (secciones 4 a 6). La llena el observador en vivo; el moderador no escribe. Lo que la app no guarda va aquí: la creencia antes de leer el "¿Por qué?", el texto del "¿Por qué?", el botón que tocó y lo que la persona dijo.
+Una hoja impresa por participante de la [prueba con usuarios](prueba-usuarios.md) (secciones 4 a 6). La llena el observador en vivo; el moderador no escribe. Lo que la app no guarda va aquí: la creencia antes de leer el "¿Por qué?", el texto del "¿Por qué?", el botón que tocó, si vio y entendió la pregunta in-app, y lo que la persona dijo.
 
 Sin datos personales: ni nombre, ni teléfono, ni nada que identifique a la persona; solo P1 a P5. Una vez llenada, la hoja se guarda fuera de git, junto a los resúmenes (`~/prueba-usuarios/`), nunca en el repositorio.
 
@@ -16,9 +16,9 @@ Sin datos personales: ni nombre, ni teléfono, ni nada que identifique a la pers
 |---|---|---|---|
 | 1. Doritos ("doritoz") | ☐ sola ☐ con ayuda ☐ no | \_\_ min | ¿Vio "Mostrando resultados para…"? ☐ sí ☐ no |
 | 2. Algo para la once, a Mochi | ☐ sola ☐ con ayuda ☐ no | \_\_ min | |
-| 3. Carro y vuelta al inicio | ☐ sola ☐ con ayuda ☐ no | \_\_ min | Agregó desde: ☐ el buscador ☐ una tienda · ¿Vio la oferta en la Home? ☐ sí ☐ no |
-| 4. "¿Por qué?" y decidir | ☐ sola ☐ con ayuda ☐ no | \_\_ min | |
-| 5. Ocultar a Mochi y traerlo | ☐ sola ☐ con ayuda ☐ no | \_\_ min | ¿Ocultar? ☐ solo ☐ ayuda ☐ silenció en vez de ocultar · ¿Traerlo? ☐ solo ☐ ayuda |
+| 3. Carro y vuelta al inicio | ☐ sola ☐ con ayuda ☐ no | \_\_ min | Agregó desde: ☐ el buscador ☐ una tienda · La oferta en la Home: ☐ salió y la vio ☐ salió y no la vio ☐ no salió en la Home (no cuenta para "¿Se nota la oferta?") |
+| 4. "¿Por qué?" y decidir | ☐ sola ☐ con ayuda ☐ no | \_\_ min | ¿Encontró el "¿Por qué?"? ☐ sola ☐ se lo señalaron ☐ no lo abrió |
+| 5. Ocultar a Mochi y traerlo | ☐ sola ☐ con ayuda ☐ no | \_\_ min | Eligió: ☐ "Ocultar" ☐ "Silenciar por hoy" ☐ ayuda · ¿Cree que lo escondió? ☐ sí ☐ no · ¿Traerlo? ☐ "Mostrar a Mochi" (Cuenta) ☐ "Volver a hablar" o la pestañita ☐ ayuda |
 | 6. Pedido hasta el seguimiento | ☐ sola ☐ con ayuda ☐ no | \_\_ min | |
 
 **Tareas 3 y 4, la oferta.** Dónde apareció: ☐ en la Home, en el globo con productos y "+" ☐ en el checkout, con "¿Me falta algo?" ☐ no apareció. El globo "Moví … al primer lugar…" no es la oferta: si sale, ☐ la persona lo tomó por la oferta. Qué ofrecía: \_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_
@@ -28,6 +28,15 @@ Sin datos personales: ni nombre, ni teléfono, ni nada que identifique a la pers
 - ¿Coincide con lo que creía? ☐ sí ☐ en parte ☐ no ☐ le sorprendió
 - Botón que tocó: ☐ el "+" de un producto del globo, o "Agregar" en el checkout (lo agregó) ☐ "Ver …" ☐ "Abrir …" ☐ "Ahora no" ☐ "Después" ☐ ninguno: se fue sola (en la Home) ☐ no la agregó (en el checkout: no se va sola ni tiene botón para rechazar)
 - Su decisión y su motivo, con sus palabras: \_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_
+
+**La pregunta in-app** (la hace la app sola: el moderador no la anuncia; después, "¿Qué te preguntó la app recién?" y, si respondió, "¿Por qué elegiste eso?"):
+
+| | ¿Salió? ¿Después de qué tarea? | ¿La vio? | ¿La entendió? (qué cree que le preguntaba) | Qué hizo |
+|---|---|---|---|---|
+| P1 "¿Encontraste lo que buscabas?" | ☐ no salió · tarea \_\_ | ☐ sí ☐ no | ☐ sí ☐ no · \_\_\_\_\_\_\_\_\_\_ (¿a qué búsqueda? \_\_\_\_\_\_) | ☐ Sí ☐ En parte ☐ No ☐ la cerró (×) ☐ se fue sin respuesta |
+| P3 "¿Confías en las sugerencias de Mochi?" | ☐ no salió · tarea \_\_ | ☐ sí ☐ no | ☐ sí ☐ no · ¿Leyó la escala (1 "Nada", 5 "Mucho")? ☐ sí ☐ no | 1 · 2 · 3 · 4 · 5 ☐ la cerró (×) ☐ se fue sin respuesta |
+
+Lo que dijo de la pregunta: \_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_
 
 **Después de la tarea 6.** ¿Algo le llamó la atención? \_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_
 
