@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 # Respaldo de la base `rappi` (pg_dump -Fc) en TUNEL_DIR/respaldos. Lo corre launchd cada noche; actualizar.sh lo
-# llama con el prefijo "pre-migracion" antes de migrar. Guarda los RESPALDOS_A_GUARDAR más nuevos de cada prefijo.
+# llama con el prefijo "pre-migracion" antes de migrar. Cuando el respaldo terminó bien, retencion.sh borra los
+# antiguos de los dos tipos (RESPALDOS_NOCTURNOS_A_GUARDAR y RESPALDOS_PRE_MIGRACION_A_GUARDAR; con
+# RESPALDOS_A_PAPELERA=1, a la Papelera).
 # shellcheck source=deploy/macos/comun.sh
 . "$(dirname "$0")/comun.sh"
 prefijo=${1:-nocturno}
@@ -8,13 +10,9 @@ base=${RESPALDO_BASE:-rappi}
 destino="$RESPALDOS_DIR/${prefijo}_${base}_$(date +%Y%m%d-%H%M%S).dump"
 trap 'rm -f "$destino.tmp"' EXIT  # si pg_dump o la revisión fallan, no deja un .tmp de ~2 GB
 
-# Hace falta el doble de lo que pesa el último respaldo libre en disco: si no, avisa y no respalda.
-# shellcheck disable=SC2012 # los nombres los arma este script (sin espacios ni saltos de línea)
-ultimo=$(ls -t "$RESPALDOS_DIR"/*.dump 2>/dev/null | head -1 || true)
-necesita_kb=$(( ${ultimo:+$(du -k "$ultimo" | cut -f1)}+0 ))
-libre_kb=$(df -k "$RESPALDOS_DIR" | awk 'NR==2 {print $4}')
-if [ "$libre_kb" -lt $(( necesita_kb * 2 + 5242880 )) ]; then
-  avisar "Respaldo omitido: poco espacio en disco ($(( libre_kb / 1048576 )) GB libres)"
+# Hace falta el doble de lo que pesa el último respaldo libre en disco, más 5 GB: si no, avisa y no respalda.
+if ! falta=$(disco_para_respaldo); then
+  avisar "Respaldo omitido: $falta"
   exit 1
 fi
 
@@ -23,8 +21,11 @@ pg_restore --list "$destino.tmp" > /dev/null   # el archivo se puede leer entero
 mv "$destino.tmp" "$destino"
 log "respaldo listo: $destino ($(du -h "$destino" | cut -f1))"
 
-# shellcheck disable=SC2012 # ídem
-ls -t "$RESPALDOS_DIR/${prefijo}_${base}_"*.dump 2>/dev/null | tail -n +$(( ${RESPALDOS_A_GUARDAR:-3} + 1 )) | while read -r viejo; do
-  rm -f "$viejo"
-  log "respaldo antiguo borrado: $viejo"
-done
+# Recién aquí, con el respaldo nuevo en su lugar: si algo de lo anterior falló, set -e ya cortó el script.
+codigo=0
+"$(dirname "$0")/retencion.sh" "$destino" || codigo=$?
+case $codigo in
+  0) ;;
+  3) avisar "Respaldos antiguos en $RESPALDOS_DIR/para-borrar (no hay trash): siguen ocupando disco" ;;
+  *) avisar "Retención de respaldos omitida (código $codigo): ver el registro del respaldo" ;;
+esac
