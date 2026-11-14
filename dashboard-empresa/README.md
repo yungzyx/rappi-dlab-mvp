@@ -73,6 +73,8 @@ Desde 1200 px, la barra lateral lleva la marca y el tema, la fuente de usuarios 
 
 Sin subpestañas: primero cómo va, después qué decidir, con la serie semanal al lado.
 
+Arriba de todo, una línea con el enlace a "Las tres hipótesis" de Experimentos: lo primero que se mira.
+
 **Qué decidir:** las cuatro preguntas como una lista, una fila por pregunta. Cada una trae su procedencia, la cifra que se mira primero, su contexto (una comparación o la tendencia de 4 semanas), una acción sugerida que sale de los datos y el enlace a su detalle:
 
 - **Venta cruzada** (dato de Rappi): la combinación donde están más usuarios (hoy, solo Restaurantes) y cuánto más vuelve quien suma el grupo siguiente. Acción: que Mochi lo ofrezca como "vertical por probar" y medirlo contra un grupo de control.
@@ -116,10 +118,14 @@ Para RappiAds. Tres subpestañas: Ofertas (`seccion` sin valor, con "¿Mochi mol
 
 ### 4. Experimentos
 
-Desde el 31-10. Los experimentos del MVP (`/analytics/experimentos`, migración 047), con la fuente elegida: las poblaciones nunca se mezclan. Una tabla por experimento, con sus variantes: personas asignadas, cuántas tienen pedido (y su %) y las verticales por persona con pedido, todo desde que se asignó la variante. Cada experimento dice si es al azar y cómo leerlo:
+Desde el 31-10. Los experimentos del MVP (`/analytics/experimentos`, migración 047), con la fuente elegida: las poblaciones nunca se mezclan. Desde el 13-11, en el orden que pidió Rappi: primero las tres hipótesis del piloto, después la adopción y el apagado de Mochi y al final la mecánica (el detalle, en [docs/plan-piloto.md](../docs/plan-piloto.md#qué-hace-hoy-el-mvp)).
+
+- **Las tres hipótesis** (`hipotesis`, `views/experiments/Hypotheses.jsx`): tres tarjetas de igual estructura, una al lado de la otra desde 960 px de sección y una debajo de la otra más angosto. **H1, retención M+1** (meta +2 puntos), **H2, frecuencia y Restaurantes → Turbo** (pedidos por persona en 30 días y, de los clientes de Restaurantes, la parte que pide en Turbo en 28 días; meta +10 % relativo sobre el control) y **H3, "¿Encontraste lo que buscabas?"** (el % de "Sí", sin umbral: la diferencia con su intervalo y la prueba a una cola). Con los dos grupos con personas, cada tarjeta trae una tabla corta (tratamiento, control y la diferencia), su estado ("No es concluyente" bajo el mínimo; con el mínimo, lo que dice el intervalo, o el p de una cola en la H3; con los simulados, "Simulado: sin veredicto") y el tamaño de la muestra. Sin grupos (con `OFFERS_CONTROL_PCT` en 0, lo de hoy), el valor de toda la población de la fuente, rotulado "Sin grupo de control: describe, no mide un efecto", y cómo encender el control. Una respuesta sin las hipótesis (una foto grabada antes del 13-11) lo dice en vez de caerse.
+- **Adopción y apagado** (`adopcion`): por grupo, quienes usaron a Mochi desde su asignación (buscaron o preguntaron en su buscador, o aceptaron una oferta suya), quienes lo tienen oculto y quienes lo silenciaron por hoy; sin grupos, el % de las personas activas de 30 días.
+- **La mecánica** (`experimentos`): una tabla por experimento, con sus variantes: personas asignadas, cuántas tienen pedido (y su %) y las verticales por persona con pedido, todo desde que se asignó la variante. Cada experimento dice si es al azar y cómo leerlo:
 
 - **Modo de la app** (propuesta o "Rappi hoy"): lo elige quien presenta la demo, así que lleva el rótulo "describe, no mide efecto".
-- **Grupo de control de las ofertas de Mochi** (al azar, con `OFFERS_CONTROL_PCT`): además, las ofertas de los momentos que Mochi propone solo (mostradas al tratamiento, retenidas al control), las personas expuestas (con una oferta desde su asignación, y su % del grupo; en control cuenta las retenidas y en tratamiento las mostradas, así que no se comparan uno a uno), las aceptadas y los pedidos después de la primera oferta. Arriba de la tabla, el tamaño de cada grupo junto al que haría falta para medir +5 puntos de retención M+1, y el aviso de que con menos personas la diferencia no es concluyente. Debajo, en la cohorte con su mes siguiente completo, la retención M+1 y la parte que suma una vertical nueva en 28 días, por grupo y con la diferencia entre ellos; el intervalo de 95 % aparece solo cuando cada grupo llega a ese mínimo ([plan de piloto](../docs/plan-piloto.md)). Con `OFFERS_CONTROL_PCT` en 0 (lo de siempre) nadie tiene variante: un estado vacío dice que está apagado y cómo encenderlo.
+- **Grupo de control de las ofertas de Mochi** (al azar, con `OFFERS_CONTROL_PCT`): además, las ofertas de los momentos que Mochi propone solo (mostradas al tratamiento, retenidas al control), las personas expuestas (con una oferta desde su asignación, y su % del grupo; en control cuenta las retenidas y en tratamiento las mostradas, así que no se comparan uno a uno), las aceptadas y los pedidos después de la primera oferta. Arriba de la tabla, el tamaño de cada grupo junto al que haría falta para medir +2 puntos de retención M+1 (la meta de la H1; el de +5, como referencia en la ayuda), y el aviso de que con menos personas la diferencia no es concluyente. Debajo, en la cohorte con su mes siguiente completo, la retención M+1 y la parte que suma una vertical nueva en 28 días, por grupo y con la diferencia entre ellos; el intervalo de 95 % aparece solo cuando cada grupo llega a ese mínimo ([plan de piloto](../docs/plan-piloto.md)). Con `OFFERS_CONTROL_PCT` en 0 (lo de siempre) nadie tiene variante: un estado vacío dice que está apagado y cómo encenderlo.
 
 El simulador pone a todas sus personas en la propuesta y no simula el grupo de control.
 
@@ -176,7 +182,7 @@ src/
 │   ├── overview/           Resumen: las 4 decisiones (decisions.js) y cómo va (weekly.js)
 │   ├── customers/          Retención y venta cruzada: la escalera (ladder.js) y el rescate (audiences.js)
 │   ├── mochi/              Mochi y búsquedas: ofertas (offers.js), motor (motor.js) y demanda (demand.js)
-│   └── experiments/        Experimentos: una tabla por experimento (etiquetas en experiments.js)
+│   └── experiments/        Experimentos: las tres hipótesis y la adopción (Hypotheses.jsx, hypotheses.js) y una tabla por experimento (etiquetas en experiments.js)
 ├── demo/                   "Ver cómo funciona" (solo en el panel en un solo HTML): el recorrido (tour.js) y su tarjeta
 ├── fixtures/               respuestas de ejemplo de la API para los tests; sin-conexion/, las que se ven sin la API
 ├── styles/                 tokens, estilos globales y shared.css (marca y pie, compartidos con la presentación)

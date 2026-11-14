@@ -16,7 +16,15 @@ from ..events.store import EXPIRED_KIND, SURVEY_TYPES
 from ..motor.combos import OWN_SIGNALS_ONLY, expected_fine_retention, load_combos
 from ..offers.autonomy import ORIGIN as AUTO_ORDER_ORIGIN
 from ..offers.winback import reach
-from .power import PILOT_MIN_EFFECT, difference_ci, sample_size
+from .power import (
+    H2_RELATIVE_GOAL,
+    PILOT_MIN_EFFECT,
+    REFERENCE_EFFECT,
+    difference_ci,
+    mean_difference_ci,
+    one_sided_p,
+    sample_size,
+)
 
 SOURCES = ("synthetic", "prototype")
 ACTIVE_DAYS = 30
@@ -1074,7 +1082,16 @@ def experiment_results(conn: Connection, source: str = "synthetic") -> dict:
         }
         if e["experiment_id"] == exp.OFFERS_CONTROL:
             item["control_pct"] = config.OFFERS_CONTROL_PCT
-            item["retencion"] = _offers_retention(conn, params, variants)
+            item["retencion"], m1 = _offers_retention(conn, params, variants)
+            by_variant = _hypotheses_by_variant(conn, params)
+            item["rest_a_turbo"] = _rest_to_turbo(by_variant, variants)
+            item["frecuencia"] = _frequency(
+                by_variant, m1, variants, h1=item["retencion"]["concluyente"], h2=item["rest_a_turbo"]["concluyente"]
+            )
+            encuesta = survey(conn, source)
+            item["encuesta"] = _survey_by_variant(encuesta["por_grupo"], variants)
+            item["adopcion"] = _adoption(by_variant, variants)
+            item["poblacion"] = _population(conn, source, encuesta)
         result.append(item)
     return {"experimentos": result}
 
@@ -1085,13 +1102,16 @@ def _offers_retention(conn: Connection, params: dict, variants: list[dict]) -> d
     la parte con algún pedido confirmado en M+1 (como la M+1 de la tabla de Rappi), y `suma_vertical_pct`, la parte que
     pide en los 28 días desde la asignación en una vertical en la que no había pedido antes (M+1 termina al menos 28
     días después de cualquier día de M: la misma cohorte vale para las dos). `diferencia` es tratamiento − control en
-    puntos. `minimo` son las personas que pide cada grupo para un efecto de +5 puntos sobre la M+1 de "solo
-    Restaurantes" de la tabla de Rappi (un supuesto), con el reparto de quienes tienen variante; bajo ese mínimo,
+    puntos. `minimo` son las personas que pide cada grupo para la meta de la H1, +2 puntos sobre la M+1 de "solo
+    Restaurantes" de la tabla de Rappi (un supuesto), con el reparto de quienes tienen variante (`referencia`, las de +5
+    puntos, el mínimo de antes); bajo ese mínimo,
     `concluyente` es falso y la diferencia va sin su IC de 95 % (`ic95` nulo): con pocas personas, un grupo en 0 % o
     100 % lo encoge y parecería un efecto.
     `expuestas` (y `expuestas_pct`) es la parte expuesta de la misma cohorte: quien tuvo una oferta retenible
     (OFFERED_EVENTS, el mismo hecho del servidor en los dos grupos) entre su asignación y el inicio de M+1. Sirve para
-    pasar del efecto por intención de tratar al efecto entre expuestos (docs/plan-piloto.md)."""
+    pasar del efecto por intención de tratar al efecto entre expuestos (docs/plan-piloto.md).
+    Devuelve también, por variante, los pedidos de M+1 por persona de la cohorte (promedio, varianza, personas): la
+    frecuencia de la H2 en M+1 (`_frequency`)."""
     cohort = _rows(
         conn,
         f"""WITH cohort AS (
@@ -1104,10 +1124,8 @@ def _offers_retention(conn: Connection, params: dict, variants: list[dict]) -> d
                SELECT user_id, vertical, ts FROM app_orders WHERE source = %(source)s AND status = 'confirmado'
            )
            SELECT c.variant, count(*) AS personas,
-                  count(*) FILTER (WHERE EXISTS (
-                      SELECT 1 FROM confirmed o WHERE o.user_id = c.user_id
-                         AND o.ts AT TIME ZONE %(tz)s >= c.month + interval '1 month'
-                         AND o.ts AT TIME ZONE %(tz)s < c.month + interval '2 months')) AS retenidas,
+                  count(*) FILTER (WHERE m1.pedidos > 0) AS retenidas,
+                  avg(m1.pedidos) AS pedidos_m1, var_samp(m1.pedidos) AS pedidos_m1_var,
                   count(*) FILTER (WHERE EXISTS (
                       SELECT 1 FROM confirmed o WHERE o.user_id = c.user_id
                          AND o.ts >= c.assigned_at AND o.ts < c.assigned_at + interval '28 days'
@@ -1119,6 +1137,11 @@ def _offers_retention(conn: Connection, params: dict, variants: list[dict]) -> d
                          AND e.type = ANY(%(offered)s) AND e.ts >= c.assigned_at
                          AND e.ts AT TIME ZONE %(tz)s < c.month + interval '1 month')) AS expuestas
            FROM cohort c
+           CROSS JOIN LATERAL (  -- sus pedidos confirmados en M+1: la retención (alguno) y la frecuencia (cuántos)
+               SELECT count(*) AS pedidos FROM confirmed o WHERE o.user_id = c.user_id
+                  AND o.ts AT TIME ZONE %(tz)s >= c.month + interval '1 month'
+                  AND o.ts AT TIME ZONE %(tz)s < c.month + interval '2 months'
+           ) m1
            WHERE c.month + interval '2 months' <= {_AS_OF} AT TIME ZONE %(tz)s
            GROUP BY 1""",
         {**params, "tz": TZ.key},
@@ -1134,19 +1157,16 @@ def _offers_retention(conn: Connection, params: dict, variants: list[dict]) -> d
             "retenidas": row.get("retenidas", 0),
             "suman_vertical": row.get("suman_vertical", 0),
             "expuestas": row.get("expuestas", 0),
+            "pedidos_m1": (row.get("pedidos_m1"), row.get("pedidos_m1_var"), n),
         }
 
-    def pct(part: int, n: int) -> float | None:
-        return round(100 * part / n, 1) if n else None
-
-    assigned = {v["variante"]: v["personas"] for v in variants}
-    minimum = None
+    share = _control_share(variants)
     base = load_combos().rappi["rest"].retention_m1
-    if assigned[exp.TREATMENT] and assigned[exp.CONTROL]:
-        share = assigned[exp.CONTROL] / (assigned[exp.TREATMENT] + assigned[exp.CONTROL])
-        need_control, need_treated = sample_size(base, PILOT_MIN_EFFECT, share)
-        minimum = {exp.TREATMENT: need_treated, exp.CONTROL: need_control}
-    conclusive = minimum is not None and all(groups[variant]["personas"] >= need for variant, need in minimum.items())
+    minimum = reference = None
+    if share is not None:
+        minimum = _minimum(base, PILOT_MIN_EFFECT, share)
+        reference = {"efecto_puntos": round(100 * REFERENCE_EFFECT), **_minimum(base, REFERENCE_EFFECT, share)}
+    conclusive = _reaches(minimum, {v: g["personas"] for v, g in groups.items()})
     treated, control = groups[exp.TREATMENT], groups[exp.CONTROL]
     difference = None
     if treated["personas"] and control["personas"]:
@@ -1155,23 +1175,317 @@ def _offers_retention(conn: Connection, params: dict, variants: list[dict]) -> d
             diff, low, high = difference_ci((treated[key], treated["personas"]), (control[key], control["personas"]))
             ci = [round(100 * low, 1), round(100 * high, 1)] if conclusive else None
             difference[metric] = {"puntos": round(100 * diff, 1), "ic95": ci}
-    return {
+    retention = {
         "variantes": [
             {
                 "variante": g["variante"],
                 "personas": g["personas"],
-                "retencion_m1_pct": pct(g["retenidas"], g["personas"]),
-                "suma_vertical_pct": pct(g["suman_vertical"], g["personas"]),
+                "retencion_m1_pct": _pct(g["retenidas"], g["personas"]),
+                "suma_vertical_pct": _pct(g["suman_vertical"], g["personas"]),
                 "expuestas": g["expuestas"],
-                "expuestas_pct": pct(g["expuestas"], g["personas"]),
+                "expuestas_pct": _pct(g["expuestas"], g["personas"]),
             }
             for g in groups.values()
         ],
         "diferencia": difference,
         "minimo": minimum,
+        "referencia": reference,
         "efecto_minimo_puntos": round(100 * PILOT_MIN_EFFECT),
         "base_pct": round(100 * base, 1),
         "concluyente": conclusive,
+    }
+    return retention, {variant: g["pedidos_m1"] for variant, g in groups.items()}
+
+
+# Las tres hipótesis del piloto (docs/plan-piloto.md), en el orden del gerente: H1 la retención M+1 (`retencion`), H2 la
+# frecuencia y Restaurantes → Turbo, H3 "¿Encontraste lo que buscabas?"; después, la adopción y el apagado.
+H2_DAYS = 28  # la ventana de Restaurantes → Turbo desde la asignación (la de "suma una vertical")
+FREQUENCY_DAYS = 30  # la de la frecuencia desde la asignación
+# Respuestas a la P1 que pide cada grupo para leer la H3 con su prueba e intervalo. Un supuesto propio (la H3 no tiene
+# umbral que dé un tamaño): con 100 por grupo el intervalo de 95 % de la diferencia ya no pasa de ±14 puntos y la
+# aproximación normal vale. Con menos, "no es concluyente".
+MIN_SURVEY_ANSWERS = 100
+H2_VERTICALS = ("restaurantes", "turbo")
+# Usar a Mochi: una búsqueda o pregunta en su buscador (`ask`, o `chat` de antes, fuera de "Rappi hoy") o aceptar una
+# oferta suya (`agent-<momento>`, o los nombres históricos `mochi-<momento>` y `chat`). Tocar la mascota no deja evento
+# propio: cuenta si de ahí sale una de estas.
+_USED_AGENT = """(
+    (e.type IN ('ask', 'chat') AND e.payload ->> 'mode' IS DISTINCT FROM 'actual')
+    OR (e.type = 'suggestion_accepted' AND (left(coalesce(e.origin, e.payload ->> 'origen'), 6) IN ('agent-', 'mochi-')
+                                           OR coalesce(e.origin, e.payload ->> 'origen') = 'chat')))"""
+
+
+def _pct(part: int, n: int) -> float | None:
+    return round(100 * part / n, 1) if n else None
+
+
+def _control_share(variants: list[dict]) -> float | None:
+    """La parte en control de quienes tienen variante, o None si un grupo está vacío."""
+    assigned = {v["variante"]: v["personas"] for v in variants}
+    if not (assigned.get(exp.TREATMENT) and assigned.get(exp.CONTROL)):
+        return None
+    return assigned[exp.CONTROL] / (assigned[exp.TREATMENT] + assigned[exp.CONTROL])
+
+
+def _minimum(base: float, effect: float, share: float) -> dict:
+    need_control, need_treated = sample_size(base, effect, share)
+    return {exp.TREATMENT: need_treated, exp.CONTROL: need_control}
+
+
+def _reaches(minimum: dict | None, people: dict) -> bool:
+    return minimum is not None and all(people.get(variant, 0) >= need for variant, need in minimum.items())
+
+
+def _hypotheses_by_variant(conn: Connection, params: dict) -> dict:
+    """Por variante de `ofertas_control`, desde la asignación: la frecuencia de los 30 días (de quienes ya los
+    cumplieron), Restaurantes → Turbo en 28 días (de quienes ya los cumplieron y tienen un pedido de Restaurantes antes
+    de que terminen) y la adopción y el apagado (quienes usaron a Mochi, quienes lo tienen oculto y quienes lo
+    silenciaron alguna vez)."""
+    rows = _rows(
+        conn,
+        f"""WITH confirmed AS NOT MATERIALIZED (
+                SELECT user_id, vertical, ts FROM app_orders WHERE source = %(source)s AND status = 'confirmado'
+            ),
+            per_person AS (
+                SELECT a.variant,
+                       a.assigned_at + interval '{FREQUENCY_DAYS} days' <= {_AS_OF} AS full_frequency,
+                       a.assigned_at + interval '{H2_DAYS} days' <= {_AS_OF} AS full_h2,
+                       (SELECT count(*) FROM confirmed o WHERE o.user_id = a.user_id AND o.ts >= a.assigned_at
+                          AND o.ts < a.assigned_at + interval '{FREQUENCY_DAYS} days') AS pedidos,
+                       EXISTS (SELECT 1 FROM confirmed o WHERE o.user_id = a.user_id AND o.vertical = %(rest)s
+                                 AND o.ts < a.assigned_at + interval '{H2_DAYS} days') AS restaurantes,
+                       EXISTS (SELECT 1 FROM confirmed o WHERE o.user_id = a.user_id AND o.vertical = %(turbo)s
+                                 AND o.ts >= a.assigned_at
+                                 AND o.ts < a.assigned_at + interval '{H2_DAYS} days') AS turbo,
+                       EXISTS (SELECT 1 FROM app_events e WHERE e.user_id = a.user_id AND e.source = %(source)s
+                                 AND e.ts >= a.assigned_at AND {_USED_AGENT}) AS uso,
+                       (SELECT NOT (v.payload ->> 'visible')::boolean FROM app_events v
+                        WHERE v.user_id = a.user_id AND v.source = %(source)s AND v.type = 'agent_visibility'
+                          AND jsonb_typeof(v.payload -> 'visible') = 'boolean' AND NOT v.payload ? 'quiet'
+                          AND v.ts >= a.assigned_at
+                        ORDER BY v.ts DESC LIMIT 1) AS oculto,
+                       EXISTS (SELECT 1 FROM app_events q WHERE q.user_id = a.user_id AND q.source = %(source)s
+                                 AND q.type = 'agent_visibility' AND q.payload -> 'quiet' = 'true'::jsonb
+                                 AND q.ts >= a.assigned_at) AS silencio
+                FROM experiment_assignments a
+                WHERE a.source = %(source)s AND a.experiment_id = %(offers)s
+            )
+            SELECT variant, count(*) AS personas,
+                   count(*) FILTER (WHERE full_frequency) AS personas_30d,
+                   avg(pedidos) FILTER (WHERE full_frequency) AS pedidos_30d,
+                   var_samp(pedidos) FILTER (WHERE full_frequency) AS pedidos_30d_var,
+                   count(*) FILTER (WHERE full_h2 AND restaurantes) AS clientes_restaurantes,
+                   count(*) FILTER (WHERE full_h2 AND restaurantes AND turbo) AS con_turbo,
+                   count(*) FILTER (WHERE uso) AS usaron,
+                   count(*) FILTER (WHERE oculto) AS ocultos,
+                   count(*) FILTER (WHERE silencio) AS silenciaron
+            FROM per_person GROUP BY 1""",
+        {**params, "rest": H2_VERTICALS[0], "turbo": H2_VERTICALS[1]},
+    )
+    return {row.pop("variant"): row for row in rows}
+
+
+def _mean_difference(treated: tuple, control: tuple, conclusive: bool) -> dict | None:
+    """Tratamiento − control de un promedio por persona, con su IC de 95 % solo si `conclusive`."""
+    if not (treated[2] and control[2]):
+        return None
+    diff, low, high = mean_difference_ci(*((mean, var or 0.0, n) for mean, var, n in (treated, control)))
+    return {"valor": round(diff, 2), "ic95": [round(low, 2), round(high, 2)] if conclusive else None}
+
+
+def _rest_to_turbo(by_variant: dict, variants: list[dict]) -> dict:
+    """H2, Restaurantes → Turbo: de quienes tienen un pedido de Restaurantes antes de que terminen sus 28 días desde la
+    asignación (y ya los cumplieron), la parte con un pedido de Turbo en esos 28 días. La diferencia va en puntos y
+    relativa al control (la meta es +10 % relativo). `minimo`: las personas que pide cada grupo para +10 % relativo con
+    la tasa del control como base (la de Rappi no va en el repositorio), con el reparto de quienes tienen variante; sin
+    tasa del control (o en 0 %), no hay mínimo y no es concluyente."""
+    groups = {
+        v["variante"]: (
+            by_variant.get(v["variante"], {}).get("con_turbo", 0),
+            by_variant.get(v["variante"], {}).get("clientes_restaurantes", 0),
+        )
+        for v in variants
+    }
+    (xt, nt), (xc, nc) = groups[exp.TREATMENT], groups[exp.CONTROL]
+    share = _control_share(variants)
+    minimum = None
+    if share is not None and xc and xc / nc * (1 + H2_RELATIVE_GOAL) < 1:
+        minimum = _minimum(xc / nc, xc / nc * H2_RELATIVE_GOAL, share)
+    conclusive = _reaches(minimum, {variant: n for variant, (_, n) in groups.items()})
+    difference = None
+    if nt and nc:
+        diff, low, high = difference_ci((xt, nt), (xc, nc))
+        difference = {
+            "puntos": round(100 * diff, 1),
+            "relativa_pct": round(100 * diff / (xc / nc), 1) if xc else None,
+            "ic95": [round(100 * low, 1), round(100 * high, 1)] if conclusive else None,
+        }
+    return {
+        "variantes": [
+            {"variante": variant, "personas": n, "con_turbo": x, "pct": _pct(x, n)}
+            for variant, (x, n) in groups.items()
+        ],
+        "diferencia": difference,
+        "meta_relativa_pct": round(100 * H2_RELATIVE_GOAL),
+        "dias": H2_DAYS,
+        "minimo": minimum,
+        "concluyente": conclusive,
+    }
+
+
+def _frequency(by_variant: dict, m1: dict, variants: list[dict], h1: bool, h2: bool) -> dict:
+    """H2, frecuencia: pedidos confirmados por persona en los 30 días desde la asignación (de quienes ya los
+    cumplieron) y en M+1 (la cohorte de la retención). La diferencia lleva su IC de 95 % cuando la H2 (los 30 días) o
+    la H1 (M+1, la misma cohorte) llegan a su mínimo."""
+    rows, stats30 = [], {}
+    for v in variants:
+        variant = v["variante"]
+        row = by_variant.get(variant, {})
+        stats30[variant] = (row.get("pedidos_30d"), row.get("pedidos_30d_var"), row.get("personas_30d", 0))
+        mean_m1, _, n_m1 = m1[variant]
+        rows.append(
+            {
+                "variante": variant,
+                "personas_30d": stats30[variant][2],
+                "pedidos_30d": None if stats30[variant][0] is None else round(stats30[variant][0], 2),
+                "personas_m1": n_m1,
+                "pedidos_m1": None if mean_m1 is None else round(mean_m1, 2),
+            }
+        )
+    difference = None
+    d30 = _mean_difference(stats30[exp.TREATMENT], stats30[exp.CONTROL], h2)
+    dm1 = _mean_difference(m1[exp.TREATMENT], m1[exp.CONTROL], h1)
+    if d30 or dm1:
+        difference = {"pedidos_30d": d30, "pedidos_m1": dm1}
+    return {"variantes": rows, "diferencia": difference, "dias": FREQUENCY_DAYS}
+
+
+def _survey_by_variant(por_grupo: list[dict], variants: list[dict]) -> dict:
+    """H3: el % de "Sí" de la P1 por variante (las respuestas de `survey`, `por_grupo`: una persona responde como mucho
+    una por día), la diferencia con su IC de 95 % y la prueba de proporciones a una cola (H0: igual; la alternativa:
+    mayor con Mochi). Sin umbral; con menos de MIN_SURVEY_ANSWERS respuestas en un grupo, no es concluyente y van sin
+    intervalo ni p."""
+    answered = {row["variante"]: row for row in por_grupo}
+    groups = {
+        v["variante"]: (
+            answered.get(v["variante"], {}).get("si", 0),
+            answered.get(v["variante"], {}).get("respondidas", 0),
+        )
+        for v in variants
+    }
+    (xt, nt), (xc, nc) = groups[exp.TREATMENT], groups[exp.CONTROL]
+    conclusive = min(nt, nc) >= MIN_SURVEY_ANSWERS
+    difference = None
+    if nt and nc:
+        diff, low, high = difference_ci((xt, nt), (xc, nc))
+        difference = {
+            "puntos": round(100 * diff, 1),
+            "ic95": [round(100 * low, 1), round(100 * high, 1)] if conclusive else None,
+            "p_una_cola": round(one_sided_p((xt, nt), (xc, nc)), 3) if conclusive else None,
+        }
+    return {
+        "variantes": [
+            {"variante": variant, "respondidas": n, "si": x, "si_pct": _pct(x, n)} for variant, (x, n) in groups.items()
+        ],
+        "diferencia": difference,
+        "minimo": MIN_SURVEY_ANSWERS,
+        "concluyente": conclusive,
+    }
+
+
+def _adoption(by_variant: dict, variants: list[dict]) -> dict:
+    """Adopción y apagado por variante: quienes usaron a Mochi desde su asignación (`_USED_AGENT`), quienes lo tienen
+    oculto (su último ocultar o mostrar desde la asignación fue ocultar) y quienes lo silenciaron por hoy alguna vez."""
+    rows = []
+    for v in variants:
+        row = by_variant.get(v["variante"], {})
+        n = row.get("personas", 0)
+        rows.append(
+            {
+                "variante": v["variante"],
+                "personas": n,
+                **{key: row.get(key, 0) for key in ("usaron", "ocultos", "silenciaron")},
+                **{f"{key}_pct": _pct(row.get(key, 0), n) for key in ("usaron", "ocultos", "silenciaron")},
+            }
+        )
+    return {"variantes": rows}
+
+
+def _population(conn: Connection, source: str, encuesta: dict) -> dict:
+    """Las mismas medidas en toda la población de la fuente, sin grupos: lo que el panel muestra con el control
+    apagado. Describe, no mide un efecto. La retención M+1 es la del último mes completo (quienes pidieron en el mes
+    anterior a ese y volvieron a pedir en él); la frecuencia, pedidos confirmados de 30 días por persona activa (la de
+    `kpis`); Restaurantes → Turbo, de quienes pidieron en Restaurantes en los últimos 28 días, la parte que también
+    pidió en Turbo; la encuesta, el total de `survey`; la adopción, de las personas activas de 30 días, cuántas usaron
+    a Mochi, y el apagado, el de `presence`."""
+    [row] = _rows(
+        conn,
+        f"""WITH confirmed AS (
+                SELECT user_id, vertical, ts FROM app_orders WHERE source = %(source)s AND status = 'confirmado'
+            ),
+            last_month AS (  -- el último mes completo antes del último evento (hora de Chile)
+                SELECT date_trunc('month', {_AS_OF} AT TIME ZONE %(tz)s) - interval '1 month' AS start
+            ),
+            in_month AS (
+                SELECT DISTINCT user_id FROM confirmed, last_month
+                WHERE ts AT TIME ZONE %(tz)s >= start - interval '1 month' AND ts AT TIME ZONE %(tz)s < start
+            ),
+            next_month AS (
+                SELECT DISTINCT user_id FROM confirmed, last_month
+                WHERE ts AT TIME ZONE %(tz)s >= start AND ts AT TIME ZONE %(tz)s < start + interval '1 month'
+            ),
+            active AS (
+                SELECT DISTINCT user_id FROM app_events
+                WHERE source = %(source)s AND ts > {_AS_OF} - interval '{ACTIVE_DAYS} days'
+            ),
+            used AS (
+                SELECT DISTINCT user_id FROM app_events e
+                WHERE source = %(source)s AND ts > {_AS_OF} - interval '{ACTIVE_DAYS} days' AND {_USED_AGENT}
+            ),
+            recent AS (SELECT * FROM confirmed WHERE ts > {_AS_OF} - interval '{H2_DAYS} days'),
+            rest AS (SELECT DISTINCT user_id FROM recent WHERE vertical = %(rest)s)
+            SELECT to_char((SELECT start FROM last_month) - interval '1 month', 'YYYY-MM') AS mes,
+                   to_char((SELECT start FROM last_month), 'YYYY-MM') AS mes_siguiente,
+                   (SELECT count(*) FROM in_month) AS personas_mes,
+                   (SELECT count(*) FROM in_month WHERE user_id IN (SELECT user_id FROM next_month)) AS retenidas,
+                   (SELECT count(*) FROM active) AS activas,
+                   (SELECT count(*) FROM confirmed WHERE ts > {_AS_OF} - interval '{ACTIVE_DAYS} days') AS pedidos,
+                   (SELECT count(*) FROM used WHERE user_id IN (SELECT user_id FROM active)) AS usaron,
+                   (SELECT count(*) FROM rest) AS clientes_restaurantes,
+                   (SELECT count(*) FROM rest WHERE user_id IN (
+                        SELECT user_id FROM recent WHERE vertical = %(turbo)s)) AS con_turbo""",
+        {"source": source, "tz": TZ.key, "rest": H2_VERTICALS[0], "turbo": H2_VERTICALS[1]},
+    )
+    shown = presence(conn, source)
+    total = encuesta["total"]
+    return {
+        "retencion_m1": {
+            "mes": row["mes"],
+            "mes_siguiente": row["mes_siguiente"],
+            "personas": row["personas_mes"],
+            "pct": _pct(row["retenidas"], row["personas_mes"]),
+        },
+        "frecuencia": {
+            "personas": row["activas"],
+            "pedidos": row["pedidos"],
+            "pedidos_por_persona": round(row["pedidos"] / row["activas"], 2) if row["activas"] else None,
+            "dias": ACTIVE_DAYS,
+        },
+        "rest_a_turbo": {
+            "personas": row["clientes_restaurantes"],
+            "con_turbo": row["con_turbo"],
+            "pct": _pct(row["con_turbo"], row["clientes_restaurantes"]),
+            "dias": H2_DAYS,
+        },
+        "encuesta": {"respondidas": total["respondidas"], "si": total["si"], "si_pct": total["si_pct"]},
+        "adopcion": {
+            "personas": row["activas"],
+            "usaron": row["usaron"],
+            "usaron_pct": _pct(row["usaron"], row["activas"]),
+            "ocultos_pct": shown["ocultos_pct"],
+            "silenciaron_pct": shown["silenciaron_pct"],
+            "dias": ACTIVE_DAYS,
+        },
     }
 
 

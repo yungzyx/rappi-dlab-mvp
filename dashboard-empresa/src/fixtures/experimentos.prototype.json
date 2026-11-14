@@ -21,16 +21,134 @@
         ]
       },
       {
+        "adopcion": {
+          "variantes": [
+            {
+              "ocultos": 0,
+              "ocultos_pct": null,
+              "personas": 0,
+              "silenciaron": 0,
+              "silenciaron_pct": null,
+              "usaron": 0,
+              "usaron_pct": null,
+              "variante": "tratamiento"
+            },
+            {
+              "ocultos": 0,
+              "ocultos_pct": null,
+              "personas": 0,
+              "silenciaron": 0,
+              "silenciaron_pct": null,
+              "usaron": 0,
+              "usaron_pct": null,
+              "variante": "control"
+            }
+          ]
+        },
         "al_azar": true,
         "control_pct": 0,
+        "encuesta": {
+          "concluyente": false,
+          "diferencia": null,
+          "minimo": 100,
+          "variantes": [
+            {
+              "respondidas": 0,
+              "si": 0,
+              "si_pct": null,
+              "variante": "tratamiento"
+            },
+            {
+              "respondidas": 0,
+              "si": 0,
+              "si_pct": null,
+              "variante": "control"
+            }
+          ]
+        },
+        "frecuencia": {
+          "dias": 30,
+          "diferencia": null,
+          "variantes": [
+            {
+              "pedidos_30d": null,
+              "pedidos_m1": null,
+              "personas_30d": 0,
+              "personas_m1": 0,
+              "variante": "tratamiento"
+            },
+            {
+              "pedidos_30d": null,
+              "pedidos_m1": null,
+              "personas_30d": 0,
+              "personas_m1": 0,
+              "variante": "control"
+            }
+          ]
+        },
         "id": "ofertas_control",
         "nota": "Al azar: un sorteo estable con el id de la persona. A control no se le muestran las ofertas que Mochi propone solo (quedan como retenidas). La diferencia entre los grupos mide el efecto de esas ofertas cuando cada grupo llega al mínimo del plan de piloto (docs/plan-piloto.md); antes, no es concluyente.",
+        "poblacion": {
+          "adopcion": {
+            "dias": 30,
+            "ocultos_pct": 10.0,
+            "personas": 10,
+            "silenciaron_pct": 10.0,
+            "usaron": 1,
+            "usaron_pct": 10.0
+          },
+          "encuesta": {
+            "respondidas": 0,
+            "si": 0,
+            "si_pct": null
+          },
+          "frecuencia": {
+            "dias": 30,
+            "pedidos": 22,
+            "pedidos_por_persona": 2.2,
+            "personas": 10
+          },
+          "rest_a_turbo": {
+            "con_turbo": 2,
+            "dias": 28,
+            "pct": 66.7,
+            "personas": 3
+          },
+          "retencion_m1": {
+            "mes": "2026-09",
+            "mes_siguiente": "2026-10",
+            "pct": null,
+            "personas": 0
+          }
+        },
+        "rest_a_turbo": {
+          "concluyente": false,
+          "dias": 28,
+          "diferencia": null,
+          "meta_relativa_pct": 10,
+          "minimo": null,
+          "variantes": [
+            {
+              "con_turbo": 0,
+              "pct": null,
+              "personas": 0,
+              "variante": "tratamiento"
+            },
+            {
+              "con_turbo": 0,
+              "pct": null,
+              "personas": 0,
+              "variante": "control"
+            }
+          ]
+        },
         "retencion": {
           "base_pct": 47.0,
           "concluyente": false,
           "diferencia": null,
-          "efecto_minimo_puntos": 5,
+          "efecto_minimo_puntos": 2,
           "minimo": null,
+          "referencia": null,
           "variantes": [
             {
               "expuestas": 0,
@@ -82,7 +200,7 @@
     ]
   },
   "guardado": {
-    "fecha": "2026-11-11",
+    "fecha": "2026-11-13",
     "origen": "make contract · recorrido corto sobre el catálogo de prueba inventado"
   },
   "source": "prototype"

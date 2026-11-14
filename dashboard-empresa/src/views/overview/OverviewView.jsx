@@ -1,5 +1,6 @@
 import { AGENT_NAME } from '../../lib/agentName.js'
 import { Async } from '../../components/Async.jsx'
+import { Icon } from '../../components/Icon.jsx'
 import { SectionHead } from '../../components/SectionHead.jsx'
 import { useAnalytics, useAnalyticsMany } from '../../lib/useAnalytics.js'
 import { DecisionBody, DecisionCard } from './DecisionCard.jsx'
@@ -37,6 +38,16 @@ function Demand({ source }) {
 export function OverviewView({ source, onNavigate }) {
   return (
     <div className="view">
+      <nav className="hypotheses-link" aria-label="Las tres hipótesis">
+        <p>
+          <strong>Primero, las tres hipótesis.</strong> Retención, frecuencia y venta cruzada con {AGENT_NAME}, y
+          "¿Encontraste lo que buscabas?", contra el grupo de control.
+        </p>
+        <button type="button" className="text-button" onClick={() => onNavigate('experimentos', 'hipotesis')}>
+          Ver las tres hipótesis
+          <Icon name="arrowRight" />
+        </button>
+      </nav>
       <section className="section" aria-labelledby="como-va">
         <SectionHead
           id="como-va"

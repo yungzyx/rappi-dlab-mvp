@@ -60,26 +60,148 @@
               "variante": "tratamiento",
               "personas": 0,
               "retencion_m1_pct": null,
-              "suma_vertical_pct": null
+              "suma_vertical_pct": null,
+              "expuestas": 0,
+              "expuestas_pct": null
             },
             {
               "variante": "control",
               "personas": 0,
               "retencion_m1_pct": null,
-              "suma_vertical_pct": null
+              "suma_vertical_pct": null,
+              "expuestas": 0,
+              "expuestas_pct": null
             }
           ],
           "diferencia": null,
           "minimo": null,
-          "efecto_minimo_puntos": 5,
+          "referencia": null,
+          "efecto_minimo_puntos": 2,
           "base_pct": 47.0,
           "concluyente": false
+        },
+        "rest_a_turbo": {
+          "variantes": [
+            {
+              "variante": "tratamiento",
+              "personas": 0,
+              "con_turbo": 0,
+              "pct": null
+            },
+            {
+              "variante": "control",
+              "personas": 0,
+              "con_turbo": 0,
+              "pct": null
+            }
+          ],
+          "diferencia": null,
+          "meta_relativa_pct": 10,
+          "dias": 28,
+          "minimo": null,
+          "concluyente": false
+        },
+        "frecuencia": {
+          "variantes": [
+            {
+              "variante": "tratamiento",
+              "personas_30d": 0,
+              "pedidos_30d": null,
+              "personas_m1": 0,
+              "pedidos_m1": null
+            },
+            {
+              "variante": "control",
+              "personas_30d": 0,
+              "pedidos_30d": null,
+              "personas_m1": 0,
+              "pedidos_m1": null
+            }
+          ],
+          "diferencia": null,
+          "dias": 30
+        },
+        "encuesta": {
+          "variantes": [
+            {
+              "variante": "tratamiento",
+              "respondidas": 0,
+              "si": 0,
+              "si_pct": null
+            },
+            {
+              "variante": "control",
+              "respondidas": 0,
+              "si": 0,
+              "si_pct": null
+            }
+          ],
+          "diferencia": null,
+          "minimo": 100,
+          "concluyente": false
+        },
+        "adopcion": {
+          "variantes": [
+            {
+              "variante": "tratamiento",
+              "personas": 0,
+              "usaron": 0,
+              "ocultos": 0,
+              "silenciaron": 0,
+              "usaron_pct": null,
+              "ocultos_pct": null,
+              "silenciaron_pct": null
+            },
+            {
+              "variante": "control",
+              "personas": 0,
+              "usaron": 0,
+              "ocultos": 0,
+              "silenciaron": 0,
+              "usaron_pct": null,
+              "ocultos_pct": null,
+              "silenciaron_pct": null
+            }
+          ]
+        },
+        "poblacion": {
+          "retencion_m1": {
+            "mes": "2026-09",
+            "mes_siguiente": "2026-10",
+            "personas": 942,
+            "pct": 48.1
+          },
+          "frecuencia": {
+            "personas": 1334,
+            "pedidos": 1995,
+            "pedidos_por_persona": 1.5,
+            "dias": 30
+          },
+          "rest_a_turbo": {
+            "personas": 692,
+            "con_turbo": 104,
+            "pct": 15.0,
+            "dias": 28
+          },
+          "encuesta": {
+            "respondidas": 0,
+            "si": 0,
+            "si_pct": null
+          },
+          "adopcion": {
+            "personas": 1334,
+            "usaron": 593,
+            "usaron_pct": 44.5,
+            "ocultos_pct": 0.0,
+            "silenciaron_pct": 0.0,
+            "dias": 30
+          }
         }
       }
     ]
   },
   "guardado": {
     "origen": "npm run panel:snapshot · usuarios simulados de rappi_staging",
-    "fecha": "2026-11-04"
+    "fecha": "2026-11-13"
   }
 }
