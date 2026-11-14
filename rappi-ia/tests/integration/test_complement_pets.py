@@ -17,9 +17,9 @@ from rappi_ia.embeddings.base import HashEmbedder
 from rappi_ia.embeddings.text_store import embed_search_documents
 
 CATEGORY = "Mascotas (prueba)"  # sin mapeo: el concepto sale del nombre
-TRAINER = "Educador Sanitario Perro (prueba)"
+TRAINER = "Pipeta Educador Sanitario Perro (prueba)"  # "pipeta": accesorios, no alimento
 CAT_THINGS = ["Arena Sanitaria para Gatos (prueba)", "Rascador para Gatos con Pelota (prueba)"]
-DOG_THINGS = ["Juguete Cuerda para Perro (prueba)", "Cama para Perro Mediana (prueba)"]
+DOG_THINGS = ["Cama para Perro Grande (prueba)", "Cama para Perro Mediana (prueba)"]
 CAT_FOOD = ["Alimento Húmedo para Gatos Adulto (prueba)", "Alimento Seco para Gato Salmón (prueba)"]
 DOG_FOOD = ["Alimento Húmedo para Perros Adulto (prueba)", "Alimento Seco para Perro Carne (prueba)"]
 LITTER = "Arena Sanitaria Aglutinante Café Moka (prueba)"
