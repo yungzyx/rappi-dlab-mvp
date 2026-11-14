@@ -7,6 +7,7 @@ import { AssistantProvider, useAssistant } from '../../state/AssistantContext'
 import { CartProvider } from '../../state/CartContext'
 import { DemoProvider } from '../../state/DemoContext'
 import { QUIET_KEY, noteDismissed, resetQuiet } from '../../state/agentQuiet'
+import { setAgentEnabled } from '../../state/agentEnabled'
 import { OrdersProvider, useOrders } from '../../state/OrdersContext'
 import { ProfileProvider } from '../../state/ProfileContext'
 import { today } from '../../utils/today'
@@ -211,15 +212,19 @@ describe('TrackingScreen', () => {
     expect(screen.queryByRole('button', { name: NEXT_CARD })).toBeNull()
   })
 
-  test('en "Rappi hoy" el mapa queda como antes: Mochi de frente y sin "¡Ya casi!"', async () => {
-    localStorage.setItem('rappi-proto-demo-mode', 'actual')
+  // "Rappi hoy" no tiene a Mochi, y el grupo de control ("Mochi apagado") tampoco: reparte un repartidor neutro.
+  test.each([
+    ['en "Rappi hoy"', () => localStorage.setItem('rappi-proto-demo-mode', 'actual')],
+    ['con Mochi apagado (grupo de control)', () => setAgentEnabled(false)],
+  ])('%s el repartidor del mapa es neutro: sin Mochi ni "¡Ya casi!"', async (_, setUp) => {
+    setUp()
     renderTracking()
     fireEvent.click(screen.getByText('pedir'))
-    const image = () => document.querySelector('.tracking-rider image')
     act(() => vi.advanceTimersByTime(1_000)) // preparando
-    expect(image().getAttribute('y')).toBe('0')
+    expect(document.querySelector('.tracking-rider [data-rider="neutral"]')).toBeTruthy()
+    expect(document.querySelector('.tracking-rider image')).toBeNull()
     act(() => vi.advanceTimersByTime(17_500)) // tramo final de la ruta
-    expect(image().getAttribute('x')).toBe('0')
+    expect(document.querySelector('.tracking-rider image')).toBeNull()
     expect(document.querySelector('.tracking-almost')).toBeNull()
   })
 

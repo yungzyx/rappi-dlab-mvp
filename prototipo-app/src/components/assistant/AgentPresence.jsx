@@ -276,7 +276,9 @@ export default function AgentPresence({ screen, homeTab, raised }) {
       return
     }
     drag.current = null
-    setMenu((open) => !open)
+    // Abrir el menú deja un `agent_open` (cuenta como usar a Mochi en el panel), una vez por apertura; cerrarlo no.
+    if (!menu) events.track('agent_open', { surface: 'agent', origin: 'mascota-flotante' })
+    setMenu(!menu)
   }
 
   // Con el menú abierto o un producto arrastrándose hacia él, sale entero.

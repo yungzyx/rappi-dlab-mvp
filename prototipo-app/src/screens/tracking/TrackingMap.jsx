@@ -20,11 +20,12 @@ function poseFor({ step, progress, delivered }) {
 }
 
 /**
- * Mapa ilustrado (no es un mapa real): cuadras, parque, río, la ruta y el agente avanzando por ella. `route = false`:
- * sin ruta (un pedido programado que todavía no sale). `store`: el marcador de la tienda, 'restaurant' (cubiertos) o
- * 'shop' (una bolsa: súper, farmacia, Turbo y las demás tiendas).
+ * Mapa ilustrado (no es un mapa real): cuadras, parque, río, la ruta y el repartidor avanzando por ella. `route =
+ * false`: sin ruta (un pedido programado que todavía no sale). `store`: el marcador de la tienda, 'restaurant'
+ * (cubiertos) o 'shop' (una bolsa: súper, farmacia, Turbo y las demás tiendas). `agent`: el repartidor es Mochi, con su
+ * pose y su "¡Ya casi!"; si no (en "Rappi hoy" y con Mochi apagado, el grupo de control), un repartidor neutro en moto.
  */
-export default function TrackingMap({ progress, delivered, step, route = true, store = 'restaurant' }) {
+export default function TrackingMap({ progress, delivered, step, route = true, store = 'restaurant', agent = true }) {
   const [x, y] = pointOnRoute(progress)
   const [homeX, homeY] = ROUTE[ROUTE.length - 1]
   const [storeX, storeY] = ROUTE[0]
@@ -103,42 +104,67 @@ export default function TrackingMap({ progress, delivered, step, route = true, s
         <path d="M-7 1 0 -6 7 1V8H-7Z" fill="#fff" />
       </g>
 
-      {/* El agente como repartidor: la transición CSS suaviza el salto entre ticks. Va en SVG puro (no el componente,
-          que es HTML): Safari dibuja mal el HTML animado dentro de un foreignObject. Su pose sigue el pedido. */}
+      {/* El repartidor: la transición CSS suaviza el salto entre ticks. Va en SVG puro (no el componente, que es
+          HTML): Safari dibuja mal el HTML animado dentro de un foreignObject. Con el agente, su pose sigue el pedido. */}
       <g className="tracking-rider" style={{ transform: `translate(${x - MARKER / 2}px, ${y - MARKER / 2 - 8}px)` }}>
         <ellipse cx={MARKER / 2} cy={MARKER + 4} rx="12" ry="3" fill="#000" opacity="0.15" />
-        <radialGradient id={badgeFill} cx="0.45" cy="0.35" r="0.7">
-          <stop offset="0" stopColor="#fff7ee" />
-          <stop offset="1" stopColor="#ffe2ce" />
-        </radialGradient>
-        <circle
-          cx={MARKER / 2}
-          cy={MARKER / 2}
-          r={MARKER / 2 - 1}
-          fill={`url(#${badgeFill})`}
-          stroke="#fff4eb"
-          strokeWidth="2"
-        />
-        <svg
-          x={-POSE_OVERFLOW}
-          y={-POSE_OVERFLOW}
-          width={MARKER + 2 * POSE_OVERFLOW}
-          height={MARKER + 2 * POSE_OVERFLOW}
-          viewBox="0 0 1 1"
-          overflow="hidden"
-        >
-          {/* La imagen tiene 2 × 2 poses: se corre para que quede a la vista la de arriba a la izquierda o a la derecha */}
-          <image href={mascotPoses} x={pose.x} y={pose.y} width="2" height="2" preserveAspectRatio="none" />
-        </svg>
-        {pose.almost && (
-          <g className="tracking-almost" transform={`translate(${MARKER / 2} -14)`}>
-            <rect x="-30" y="-12" width="60" height="20" rx="10" fill="#fff" stroke="#ffcdb8" />
-            <text y="2" textAnchor="middle" fontSize="10" fontWeight="700" fill="#1f1f1f">
-              ¡Ya casi!
-            </text>
-          </g>
-        )}
+        {agent ? <AgentRider fill={badgeFill} pose={pose} /> : <NeutralRider />}
       </g>
     </svg>
+  )
+}
+
+/** Mochi como repartidor: su pose de la imagen de 2 × 2 poses y, en el tramo final, "¡Ya casi!". */
+function AgentRider({ fill, pose }) {
+  return (
+    <>
+      <radialGradient id={fill} cx="0.45" cy="0.35" r="0.7">
+        <stop offset="0" stopColor="#fff7ee" />
+        <stop offset="1" stopColor="#ffe2ce" />
+      </radialGradient>
+      <circle
+        cx={MARKER / 2}
+        cy={MARKER / 2}
+        r={MARKER / 2 - 1}
+        fill={`url(#${fill})`}
+        stroke="#fff4eb"
+        strokeWidth="2"
+      />
+      <svg
+        x={-POSE_OVERFLOW}
+        y={-POSE_OVERFLOW}
+        width={MARKER + 2 * POSE_OVERFLOW}
+        height={MARKER + 2 * POSE_OVERFLOW}
+        viewBox="0 0 1 1"
+        overflow="hidden"
+      >
+        {/* La imagen tiene 2 × 2 poses: se corre para que quede a la vista la de arriba a la izquierda o a la derecha */}
+        <image href={mascotPoses} x={pose.x} y={pose.y} width="2" height="2" preserveAspectRatio="none" />
+      </svg>
+      {pose.almost && (
+        <g className="tracking-almost" transform={`translate(${MARKER / 2} -14)`}>
+          <rect x="-30" y="-12" width="60" height="20" rx="10" fill="#fff" stroke="#ffcdb8" />
+          <text y="2" textAnchor="middle" fontSize="10" fontWeight="700" fill="#1f1f1f">
+            ¡Ya casi!
+          </text>
+        </g>
+      )}
+    </>
+  )
+}
+
+/** Un repartidor neutro, sin mascota: una moto con su caja de reparto en un círculo oscuro, como el de la casa. */
+function NeutralRider() {
+  const c = MARKER / 2
+  return (
+    <g data-rider="neutral">
+      <circle cx={c} cy={c} r={c - 1} fill="#1f1f1f" stroke="#fff" strokeWidth="2" />
+      <g fill="none" stroke="#fff" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+        <circle cx={c - 7} cy={c + 6} r="3.2" />
+        <circle cx={c + 8} cy={c + 6} r="3.2" />
+        <path d={`M${c - 7} ${c + 6}h7l4 -9h3M${c + 4} ${c - 3}l4 9`} />
+        <rect x={c - 11} y={c - 8} width="8" height="7" rx="1.5" />
+      </g>
+    </g>
   )
 }

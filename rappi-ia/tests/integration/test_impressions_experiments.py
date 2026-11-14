@@ -28,6 +28,7 @@ from rappi_ia.events import catalog_context, experiments, synth
 from rappi_ia.events import store as events
 from rappi_ia.events.synth import generate
 from rappi_ia.motor.build import refresh_user_conn
+from rappi_ia.motor.data import EVENT_KINDS
 from rappi_ia.motor.model import TZ
 
 CHIPS = "91001"  # papas fritas del súper Centro (9101) del catálogo de prueba
@@ -982,6 +983,35 @@ def test_the_three_hypotheses_are_measured_by_group(client, db):
     assert set(population["retencion_m1"]) == {"mes", "mes_siguiente", "personas", "pct"}
 
 
+def test_touching_mochi_counts_as_using_it(client, db):
+    """Migración 059: abrir el menú de Mochi tocando la mascota (`agent_open`) queda guardado con su superficie y su
+    origen, sale en el puente como MVP_AGENT_OPEN, cuenta como usar a Mochi en la adopción (antes, solo buscar con él o
+    aceptar una oferta suya) y no enseña al motor."""
+    seed_two_groups(db)
+    # t2 no buscaba con Mochi ni aceptaba sus ofertas: solo lo tocó, en la Home y flotante.
+    response = post(
+        client,
+        "t2",
+        {"type": "agent_open", "session_id": "s-hip", "surface": "home", "origin": "mascota-home"},
+        {"type": "agent_open", "session_id": "s-hip", "surface": "agent", "origin": "mascota-flotante"},
+    )
+    assert response.status_code == 200, response.text
+    rows = db.execute(
+        """SELECT event_type, event_properties FROM capa.v_eventos_amplitude
+           WHERE user_id = 't2' AND evento_mvp = 'agent_open' ORDER BY event_id"""
+    ).fetchall()
+    assert [(name, props["CONTEXT"], props["SOURCE"]) for name, props in rows] == [
+        ("MVP_AGENT_OPEN", "home", "mascota-home"),
+        ("MVP_AGENT_OPEN", "agent", "mascota-flotante"),
+    ]
+    assert "agent_open" not in EVENT_KINDS
+
+    control = experiments_of(client, "prototype")["ofertas_control"]
+    used = {row["variante"]: (row["usaron"], row["usaron_pct"]) for row in control["adopcion"]["variantes"]}
+    assert used == {"tratamiento": (3, 100.0), "control": (0, 0.0)}  # antes, 2 de 3
+    assert (control["poblacion"]["adopcion"]["usaron"], control["poblacion"]["adopcion"]["usaron_pct"]) == (3, 60.0)
+
+
 def test_the_hypotheses_read_with_their_interval_once_each_group_reaches_its_minimum(client, db, monkeypatch):
     """Con el mínimo alcanzado: la H2 con su diferencia relativa, el intervalo de la frecuencia y el de Restaurantes →
     Turbo; la H3 con su intervalo y la prueba a una cola."""
@@ -1163,6 +1193,7 @@ def test_every_event_type_says_if_rappi_has_it(db):
         "survey_shown",
         "survey_answer",
         "survey_dismissed",
+        "agent_open",
     }
     assert rows["survey_answer"] == ("MVP_SURVEY_ANSWER", False)
     assert rows["offer_eligible"] == ("MVP_OFFER_ELIGIBLE", False)
@@ -1170,6 +1201,7 @@ def test_every_event_type_says_if_rappi_has_it(db):
     assert rows["vertical_reorder_shown"] == ("MVP_VERTICAL_REORDER_SHOWN", False)
     assert rows["agent_visibility"] == ("MVP_AGENT_VISIBILITY", False)
     assert rows["offer_why_open"] == ("MVP_OFFER_WHY_OPEN", False)
+    assert rows["agent_open"] == ("MVP_AGENT_OPEN", False)
 
 
 def test_the_synthetic_population_has_impressions_positions_and_its_mode(db):

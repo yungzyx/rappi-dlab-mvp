@@ -1240,6 +1240,9 @@ describe('Home del prototipo final', () => {
       expect(options).toEqual(['Muéstrame algo nuevo', 'Buscar con Mochi', 'Silenciar por hoy', 'Ocultar a Mochi'])
       expect(mochi().getAttribute('aria-expanded')).toBe('true')
       expect(offerRequests()).toEqual([])
+      // Abrirlo deja un `agent_open` (usar a Mochi en el panel); cerrarlo no.
+      const opens = () => events.track.mock.calls.filter(([type]) => type === 'agent_open')
+      expect(opens()).toEqual([['agent_open', { surface: 'home', origin: 'mascota-home' }]])
       fireEvent.click(mochi())
       expect(menu()).toBeNull()
 
@@ -1252,6 +1255,7 @@ describe('Home del prototipo final', () => {
       expect(menu()).toBeNull()
       await advance(30000)
       expect(offerRequests()).toEqual([])
+      expect(opens()).toHaveLength(3) // una por apertura, no por cada render
     })
 
     test('"Ocultar a Mochi" pide confirmar y lo oculta desde la Home', async () => {
