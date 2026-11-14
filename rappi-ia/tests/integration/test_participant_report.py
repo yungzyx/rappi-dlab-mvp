@@ -221,6 +221,55 @@ def test_a_repeated_offer_is_accepted_once_and_a_withheld_one_is_marked(db, tmp_
     assert "| Sushi | Restaurantes | retenida (grupo de control) |" in text
 
 
+def test_the_in_app_question_says_what_brought_it_and_what_was_answered(db, tmp_path, test_url, monkeypatch):
+    """La pregunta in-app de la H3: la p1 con su motivo y su respuesta, y la p3 que la siguió con su nota; en otra
+    sesión, una p1 cerrada sin responder y otra que se fue sola (no deja evento)."""
+    e = events.Event
+    user = "proto-eeee"
+
+    def ask(session, kind, minute, question, trigger, **extra):
+        payload = {"question": question, "trigger": trigger, "mochi": True, **extra}
+        return e(user, session, kind, ts=_at(minute), surface="home", payload=payload)
+
+    events.record(
+        db,
+        [
+            ask("s1", "survey_shown", 1, "p1", "carro"),
+            ask("s1", "survey_answer", 1.1, "p1", "carro", answer="en_parte"),
+            ask("s1", "survey_shown", 1.2, "p3", "porque"),
+            ask("s1", "survey_answer", 1.3, "p3", "porque", answer=4),
+            ask("s2", "survey_shown", 40, "p1", "abandono", mochi=False),
+            ask("s2", "survey_dismissed", 40.5, "p1", "abandono", mochi=False),
+            ask("s3", "survey_shown", 80, "p1", "busqueda"),
+        ],
+        session=ONCE,
+    )
+    db.commit()
+    monkeypatch.setenv("DATABASE_URL", test_url)
+
+    _run(tmp_path, user)
+
+    text = (tmp_path / f"{user}.md").read_text(encoding="utf-8")
+    assert "## Pregunta in-app" in text
+    assert "Salió 4 veces." in text
+    assert (
+        '| 03-11 15:01 | "¿Encontraste lo que buscabas?" | agregó al carro desde su búsqueda | sí | En parte |' in text
+    )
+    assert (
+        '| "¿Confías en las sugerencias de Mochi?" | siguió a la p1: abrió un "¿Por qué?" en la sesión | sí | 4 de 5 |'
+        in text
+    )
+    assert "| buscó y no tocó ningún resultado | no | la cerró sin responder |" in text
+    assert "| tocó un resultado de su búsqueda | sí | sin respuesta registrada |" in text
+
+
+def test_without_the_in_app_question_the_summary_says_so(seeded, tmp_path):
+    _run(tmp_path, "proto-aaaa")
+
+    text = (tmp_path / "proto-aaaa.md").read_text(encoding="utf-8")
+    assert "La pregunta no salió (sin eventos `survey_shown`)." in text
+
+
 def test_the_journey_says_how_each_vertical_was_reached_without_vertical_open(db, tmp_path, test_url, monkeypatch):
     """Sin ningún `vertical_open` (lo de casi todas las personas): vio un producto de Express desde el buscador y, desde
     el "Para ti" de Mochi, vio y agregó al carro un plato de Restaurantes. El recorrido dice las dos y sus caminos,
@@ -388,6 +437,7 @@ def test_the_idea_under_a_mochi_answer_is_not_presented_as_the_answer():
             services=[],
             visibility=[],
             orders=[],
+            surveys=[],
         )
         return "\n".join(report._offer_lines(p))
 
