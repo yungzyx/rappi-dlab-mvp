@@ -19,6 +19,7 @@ import { useDemo } from '../../state/DemoContext'
 import { useEvents } from '../../state/EventsContext'
 import { isHushed, isQuiet } from '../../state/agentQuiet'
 import { isAgentHidden } from '../../state/agentHidden'
+import { useAgentEnabled } from '../../state/agentEnabled'
 import { useOrders } from '../../state/OrdersContext'
 import { useProfile } from '../../state/ProfileContext'
 import { today } from '../../utils/today'
@@ -70,6 +71,7 @@ export const RATING_REASONS = [
 export default function TrackingScreen({ back, reset, push, params }) {
   const orders = useOrders()
   const demo = useDemo()
+  const agentEnabled = useAgentEnabled()
   const order = orders.find(params.orderId)
   const [now, setNow] = useState(() => Date.now())
 
@@ -126,8 +128,10 @@ export default function TrackingScreen({ back, reset, push, params }) {
   return (
     <div className="screen tracking">
       <div className="tracking-map-wrap">
-        {/* La pose (tímido antes del viaje) y "¡Ya casi!" son del prototipo final; "Rappi hoy" queda como antes. */}
+        {/* Mochi reparte solo en el prototipo final y si la persona lo tiene: en "Rappi hoy" y con Mochi apagado (el grupo
+            de control), un repartidor neutro. La pose (tímido antes del viaje) y "¡Ya casi!" son de Mochi. */}
         <TrackingMap
+          agent={demo.isFinal && agentEnabled}
           progress={ahead ? 0 : rideProgress(seconds)}
           delivered={delivered}
           step={demo.isFinal ? (riding || delivered ? 2 : 1) : undefined}

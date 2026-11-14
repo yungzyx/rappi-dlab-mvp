@@ -34,6 +34,14 @@ test('al final de la ruta, Mochi está feliz y dice "¡Ya casi!"', () => {
   expect(pose({ progress: 0.9, step: 2, delivered: false })).toEqual({ x: '-1', y: '0', almost: true })
 })
 
+test('sin el agente ("Rappi hoy" o Mochi apagado), un repartidor neutro: sin la imagen de Mochi ni "¡Ya casi!"', () => {
+  const { container } = render(<TrackingMap progress={0.9} step={2} delivered={false} agent={false} />)
+  const el = container.querySelector('.tracking-rider')
+  expect(el.querySelector('[data-rider="neutral"]')).toBeTruthy()
+  expect(el.querySelector('image')).toBeNull()
+  expect(container.textContent).not.toContain('¡Ya casi!')
+})
+
 test('entregado, feliz y sin "¡Ya casi!"', () => {
   expect(pose({ progress: 1, step: 3, delivered: true })).toEqual({ x: '-1', y: '0', almost: false })
 })
