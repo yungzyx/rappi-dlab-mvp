@@ -3,7 +3,8 @@
 // en lugar de los enlaces (src/api/offline/snapshot.js). Así el HTML no pide nada a la red al abrirse.
 //
 // Las miniaturas las achica el propio CDN de Rappi (`?d=…&e=webp&q=…`), que redondea el tamaño pedido hacia arriba a
-// los suyos: `d=100x100` da la más chica, de 128 px, y con calidad 25 una foto de producto pesa ~1,4 kB. Las tiendas y
+// los suyos: `d=100x100` da la más chica, de 128 px, y con calidad 15 una foto de producto pesa ~1,3 kB (con 25, ~1,4
+// kB: con el perfil mexicano el HTML pasaba de 15 MB; a ese tamaño no se nota la diferencia). Las tiendas y
 // restaurantes (portadas y logos, que se ven más grandes) piden `d=128x128`, que da 256 px. Se bajan pocas a la vez y quedan en .demo-cache/fotos/ (fuera de git): un armado siguiente solo baja
 // las nuevas. Una foto que no se puede bajar no entra (la app muestra el cuadro gris de siempre).
 import { createHash } from 'node:crypto'
@@ -15,7 +16,7 @@ const CACHE = `${ROOT}.demo-cache/fotos/`
 const PREFIX = 'https://images.rappi.cl/'
 // Los campos que traen fotos (los productos, `img`; las tiendas, `logo`; los restaurantes, `cover`).
 const STORE_FIELDS = new Set(['logo', 'cover'])
-const SIZES = { product: 'd=100x100&e=webp&q=25', store: 'd=128x128&e=webp&q=50' }
+const SIZES = { product: 'd=100x100&e=webp&q=15', store: 'd=128x128&e=webp&q=50' }
 const AT_ONCE = 4
 const PAUSE_MS = 100
 const MAX_PHOTO_BYTES = 200_000
