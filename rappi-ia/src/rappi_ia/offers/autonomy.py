@@ -29,11 +29,12 @@ from ..catalog.stores import BIGINT_MAX, line_prices, product_card
 from ..catalog.terms import store_terms
 from ..concepts.taxonomy import load_taxonomy
 from ..text import normalize
+from . import preferences as prefs
 from .guards import (
+    DISH_SECTIONS_SQL,
     OFFER_BLOCKED_VERTICALS,
-    alcohol_in_description,
+    alcohol_dish,
     alcohol_in_name,
-    alcohol_section,
     baby_in_name,
     is_offerable,
     unofferable_subverticals,
@@ -204,10 +205,10 @@ SELECT ci.master_product_id::text, ci.name, NULLIF(ci.image_url, ''), ci.present
 FROM catalog_items ci
 LEFT JOIN item_concepts ic ON ic.entity_type = 'catalog_item' AND ic.entity_id = ci.master_product_id::text
 WHERE ci.master_product_id = ANY(%s)"""
-_MENU_ITEMS = """
-SELECT mi.item_id::text, mi.name, NULLIF(mi.image_url, ''), ic.concept_id, ms.name, clean_html(mi.description)
+_MENU_ITEMS = f"""
+SELECT mi.item_id::text, mi.name, NULLIF(mi.image_url, ''), ic.concept_id, {DISH_SECTIONS_SQL},
+       clean_html(mi.description)
 FROM menu_items mi
-LEFT JOIN menu_sections ms ON ms.store_id = mi.store_id AND ms.section_id = mi.section_id
 LEFT JOIN item_concepts ic ON ic.entity_type = 'menu_item' AND ic.entity_id = mi.item_id::text
 WHERE mi.item_id = ANY(%s)"""
 
@@ -219,7 +220,8 @@ def _valid(entity_id: str) -> bool:
 def usual(conn: Connection, user_id: str, store: dict) -> Usual | None:
     """Lo de siempre en `store` (`find_ordered_store`): las líneas de su último pedido ahí (modo propuesta), cada una
     con su producto y el precio de hoy en esa tienda (`line_prices`, como "Pídelo de nuevo"). Lo que ya no está a la
-    venta queda en `missing`. None si nunca pidió ahí."""
+    venta queda en `missing`. Lo que su dieta o sus alergias sacan (`preferences.Preferences.keeps`, la regla de lo que
+    Mochi muestra) no entra: ni al plan ni a lo que `check_order` acepta. None si nunca pidió ahí."""
     rows = conn.execute(
         """SELECT o.order_id, l.entity_type, l.entity_id, l.qty
            FROM app_order_lines l JOIN app_orders o USING (order_id)
@@ -239,6 +241,7 @@ def usual(conn: Connection, user_id: str, store: dict) -> Usual | None:
     prices = line_prices(conn, lines)
     details = _details(conn, [line for line in lines if _valid(line["entity_id"])])
     taxonomy = load_taxonomy()
+    mine = prefs.load(conn, user_id)
     out = Usual(store, order_id, [])
     for (_, kind, entity_id, qty), price in zip(rows, prices, strict=True):
         detail = details.get((kind, entity_id))
@@ -248,13 +251,15 @@ def usual(conn: Connection, user_id: str, store: dict) -> Usual | None:
         name, image, presentation, adult, concept, alcohol = detail[1:]
         row = (entity_id, name, price, None, image, presentation, adult or alcohol, concept)
         product = product_card(row, store["vertical"], store["name"], store["id"], taxonomy, kind).to_dict()
+        if not mine.keeps(product):
+            continue
         out.lines.append({"product": product, "qty": int(qty)})
     return out
 
 
 def _details(conn: Connection, lines: list[dict]) -> dict[tuple[str, str], tuple]:
     """(tipo, id) → (id, nombre, imagen, presentación, +18, concepto, alcohol). En un plato, "alcohol" es lo que las
-    guardias leen en su sección o su descripción (un plato no trae marca +18)."""
+    guardias leen en sus secciones (todas: `DISH_SECTIONS_SQL`) o su descripción (un plato no trae marca +18)."""
     out: dict[tuple[str, str], tuple] = {}
     catalog = [int(line["entity_id"]) for line in lines if line["entity_type"] == "catalog_item"]
     dishes = [int(line["entity_id"]) for line in lines if line["entity_type"] == "menu_item"]
@@ -262,8 +267,8 @@ def _details(conn: Connection, lines: list[dict]) -> dict[tuple[str, str], tuple
         for id_, name, image, presentation, adult, concept in conn.execute(_CATALOG_ITEMS, (catalog,)):
             out[("catalog_item", id_)] = (id_, name, image, presentation, bool(adult), concept, False)
     if dishes:
-        for id_, name, image, concept, section, description in conn.execute(_MENU_ITEMS, (dishes,)):
-            alcohol = alcohol_section(section) or alcohol_in_description(description, concept, section)
+        for id_, name, image, concept, sections, description in conn.execute(_MENU_ITEMS, (dishes,)):
+            alcohol = alcohol_dish(sections, description, concept)
             out[("menu_item", id_)] = (id_, name, image, None, False, concept, alcohol)
     return out
 

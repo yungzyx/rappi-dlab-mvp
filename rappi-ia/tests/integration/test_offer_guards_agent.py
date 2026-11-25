@@ -492,6 +492,32 @@ def test_vertical_to_try_never_offers_a_popular_dish_from_a_drinks_section(demo)
     assert "Tiramisú individual (prueba)" not in {d["name"] for d in _popular_dishes(db)}
 
 
+def test_the_guards_see_every_section_of_a_dish(demo):
+    """Un plato que Rappi repite en "Cócteles" y en "Más vendidos" (la última, `section_id`) guarda "Cócteles" en
+    `extra_section_ids` (migración 040): ni la búsqueda de ofertas, ni "Lo más pedido", ni los platos populares lo
+    ofrecen."""
+    from rappi_ia.offers.engine import _popular_dishes, _priced_in_vertical
+
+    db, embedder = demo
+    name = "Tiramisú individual (prueba)"
+
+    def offered():
+        return {p.name for p in search_products(db, "restaurantes", "tiramisu", [], embedder, offer=True).products}
+
+    assert name in offered() and name in {d["name"] for d in _popular_dishes(db)}
+    assert set(_priced_in_vertical(db, "restaurantes", ["98004"])) == {"98004"}
+    db.execute(
+        """INSERT INTO menu_sections (store_id, section_id, name, position)
+           VALUES (9801, 98, 'Cócteles', 98), (9801, 99, 'Más vendidos', 0)"""
+    )
+    db.execute("UPDATE menu_items SET section_id = 99, extra_section_ids = '{98}' WHERE item_id = 98004")
+    cache.clear()
+
+    assert name not in offered()
+    assert name not in {d["name"] for d in _popular_dishes(db)}
+    assert _priced_in_vertical(db, "restaurantes", ["98004"]) == {}
+
+
 def test_popular_dishes_come_from_the_catalog_cache(demo):
     """Buscar los platos populares recorre todos los platos: se guardan hasta una corrida nueva (o su TTL)."""
     from rappi_ia.offers.engine import _popular_dishes

@@ -7,6 +7,7 @@
 import { restaurantHours } from './catalog'
 import { OFFER_BLOCKED_VERTICALS } from './motor'
 import { autoOrderBlocked } from './offers'
+import { applied } from './preferences'
 import { isConfirmed, updateState } from './state'
 import { normalize } from './text'
 import { paused } from './winback'
@@ -125,7 +126,10 @@ function findStore(snapshot, state, said) {
   })
 }
 
-/** Lo de siempre en la tienda: las líneas de su último pedido ahí, con los productos de la muestra. */
+/**
+ * Lo de siempre en la tienda: las líneas de su último pedido ahí, con los productos de la muestra, sin lo que sacan su
+ * dieta y sus alergias (ni en el plan ni en lo que se acepta).
+ */
 function usual(snapshot, state, store) {
   const order = [...state.orders]
     .reverse()
@@ -133,10 +137,11 @@ function usual(snapshot, state, store) {
   if (!order) return null
   const lines = []
   const missing = []
+  const { keep } = applied(snapshot.meta, state.preferences ?? [])
   for (const line of order.lines.filter((l) => l.store_id === store.id)) {
     const product = productOf(snapshot, line)
     if (product?.price_value == null) missing.push(product?.name ?? 'un producto')
-    else lines.push({ product, qty: line.qty ?? 1 })
+    else if (keep([product]).length) lines.push({ product, qty: line.qty ?? 1 })
   }
   return { store, lines, missing, subtotal: lines.reduce((sum, l) => sum + l.product.price_value * l.qty, 0) }
 }

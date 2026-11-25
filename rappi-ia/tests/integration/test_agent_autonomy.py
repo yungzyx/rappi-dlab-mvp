@@ -232,6 +232,51 @@ def test_not_alone_after_a_bad_rating_of_that_store(client, db):
     assert rejected.status_code == 409 and rejected.json()["detail"]["codigo"] == "calificacion"
 
 
+def test_never_orders_what_their_allergies_or_diet_rule_out(client, db):
+    """Pidió una pizza y un "Pollo con maní", y después guardó la alergia al maní: lo de siempre sale sin el plato con
+    maní (la regla de lo que Mochi muestra, `Preferences.keeps`), y la API no lo acepta aunque la app lo mande. Si no
+    queda nada, lo dice como cuando ya no se vende."""
+    db.execute("UPDATE menu_items SET name = 'Pollo con maní (prueba)' WHERE item_id = 98002")
+    pizza = {"entity_type": "menu_item", "entity_id": "98001", "qty": 1}
+    peanut = {"entity_type": "menu_item", "entity_id": "98002", "qty": 1}
+    order(client, 9801, "restaurantes", pizza, peanut)
+    allow(client, [9801], cap=50_000)
+    assert len(say(client, "lo de siempre en la pizzeria")["autopedido"]["lineas"]) == 2
+    say(client, "tengo alergia al maní")
+
+    plan = say(client, "lo de siempre en la pizzeria")["autopedido"]
+
+    assert plan["modo"] == "pedir"
+    assert [line["product"]["entity_id"] for line in plan["lineas"]] == ["98001"] and plan["subtotal"] == 12990
+    rejected = order(client, 9801, "restaurantes", pizza, peanut, cart="c-auto", autopedido={})
+    assert rejected.status_code == 409 and rejected.json()["detail"]["codigo"] == "distinto"
+    assert order(client, 9801, "restaurantes", pizza, cart="c-auto", autopedido={}).status_code == 200
+
+    order(client, 9801, "restaurantes", peanut, cart="c-3")  # su último pedido ahí: solo el plato con maní
+    reply = say(client, "lo de siempre en la pizzeria")
+    assert "autopedido" not in reply and "ya no está a la venta" in reply["text"]
+
+
+def test_never_orders_a_dish_whose_other_section_is_a_drinks_one(client, db):
+    """Un plato que Rappi repite en "Cócteles" y en "Más vendidos" (la última, `section_id`) guarda "Cócteles" en
+    `extra_section_ids` (migración 040): la guardia mira todas sus secciones."""
+    pizza = {"entity_type": "menu_item", "entity_id": "98001", "qty": 1}
+    order(client, 9801, "restaurantes", pizza)
+    allow(client, [9801])
+    assert say(client, "lo de siempre en la pizzeria")["autopedido"]["modo"] == "pedir"
+    db.execute(
+        """INSERT INTO menu_sections (store_id, section_id, name, position)
+           VALUES (9801, 98, 'Cócteles', 98), (9801, 99, 'Más vendidos', 0)"""
+    )
+    db.execute("UPDATE menu_items SET section_id = 99, extra_section_ids = '{98}' WHERE item_id = 98001")
+
+    plan = say(client, "lo de siempre en la pizzeria")["autopedido"]
+
+    assert plan["modo"] == "revisar" and plan["codigo"] == "guardia"
+    rejected = order(client, 9801, "restaurantes", pizza, cart="c-auto", autopedido={})
+    assert rejected.status_code == 409 and rejected.json()["detail"]["codigo"] == "guardia"
+
+
 def test_only_the_usual_and_undo_sends_nothing(client, db):
     order(client, CENTRO, "supermercado", COFFEE)
     allow(client, [CENTRO])

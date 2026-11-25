@@ -4,10 +4,10 @@ vegetariano" o "mi tienda favorita es…" llega por el buscador, también se ent
 `agent_preferences` (migración 045); las opciones de dieta y alergias, en offers/preferencias.toml.
 
 Reglas:
-- La dieta y las alergias solo filtran lo que el agente muestra (respuestas, sugerencias y ofertas), por el nombre del
-  producto y solo en lo que es comida. Nunca son la razón (`reason`) de una oferta y no entran a segmentos, perfiles de
-  gusto, el motor ni el panel de negocio: una alergia es un dato de salud. Como el filtro mira el nombre, el agente lo
-  dice cuando muestra comida (`notice`).
+- La dieta y las alergias solo filtran lo que el agente muestra (respuestas, sugerencias y ofertas) y lo que pide solo
+  ("Pedir por mí", offers/autonomy.py), por el nombre del producto y solo en lo que es comida. Nunca son la razón
+  (`reason`) de una oferta y no entran a segmentos, perfiles de gusto, el motor ni el panel de negocio: una alergia es
+  un dato de salud. Como el filtro mira el nombre, el agente lo dice cuando muestra comida (`notice`).
 - Las cocinas y tiendas favoritas solo ordenan lo que ya se iba a mostrar: no agregan productos ni eligen una vertical,
   así que Licores y Farmacia siguen subiendo solo por señales propias de la persona.
 - Solo en "Propuesta": "Rappi hoy" no las guarda ni las usa.

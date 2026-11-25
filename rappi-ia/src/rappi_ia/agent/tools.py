@@ -20,9 +20,9 @@ from ..motor.combos import SERVICES
 from ..motor.predict import step_signal, target_step
 from ..motor.recommend import RECENT_DAYS, CrossPick, cross_picks, latest_lambda
 from ..offers.guards import (
-    alcohol_in_description,
+    DISH_SECTIONS_SQL,
+    alcohol_dish,
     alcohol_in_name,
-    alcohol_section,
     baby_in_name,
     is_offerable,
     is_plannable,
@@ -960,20 +960,19 @@ def _with_prices(conn: Connection, vertical: str, hits, offer: bool = False, adu
             prices[("catalog_item", pid)] = (name, price, real, store, age, store_id, presentation, here)
     if menu_ids:
         dish_concepts = {h.entity_id: h.concept_id for h in hits if h.entity_type == "menu_item"}
-        for iid, name, price, real, store, store_id, section, description, here in conn.execute(
-            f"""SELECT mi.item_id::text, mi.name, mp.price, mp.real_price, s.name, mi.store_id, ms.name,
+        for iid, name, price, real, store, store_id, sections, description, here in conn.execute(
+            f"""SELECT mi.item_id::text, mi.name, mp.price, mp.real_price, s.name, mi.store_id, {DISH_SECTIONS_SQL},
                       CASE WHEN %(offer)s THEN clean_html(mi.description) END, {IN_DEMO_CITY}
                FROM menu_items mi
                JOIN stores s USING (store_id)
                LEFT JOIN latest_menu_prices mp ON mp.item_id = mi.item_id
-               LEFT JOIN menu_sections ms ON ms.store_id = mi.store_id AND ms.section_id = mi.section_id
                WHERE mi.item_id = ANY(%(ids)s::bigint[])""",
             {"offer": offer, "ids": menu_ids, "places": places},  # la descripción solo hace falta en una oferta
         ):
             # En una oferta, un plato de una sección de tragos, o sin concepto o de bebida y con una descripción (o, sin
-            # concepto, una sección de botellas o vinos) que nombra alcohol, cuenta como +18 (offers/guards.py).
-            unknown = alcohol_in_description(description, dish_concepts[iid], section) if offer else False
-            adult = offer and (alcohol_section(section) or unknown)
+            # concepto, una sección de botellas o vinos) que nombra alcohol, cuenta como +18 (offers/guards.py). Todas
+            # sus secciones: también las de `extra_section_ids`.
+            adult = offer and alcohol_dish(sections, description, dish_concepts[iid])
             prices[("menu_item", iid)] = (name, price, real, store, adult, store_id, None, here)
     taxonomy = load_taxonomy()
     products = []

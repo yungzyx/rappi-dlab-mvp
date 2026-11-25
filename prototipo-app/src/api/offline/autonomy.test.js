@@ -24,10 +24,20 @@ const combo = product(4, {
   store_id: 21,
   vertical: 'restaurantes',
 })
+// Un plato con maní del mismo restaurante: con la alergia guardada, no se pide.
+const peanut = product(5, {
+  entity_type: 'menu_item',
+  name: 'Pollo con maní',
+  concept: null,
+  price_value: 7990,
+  store: 'Sushi de prueba',
+  store_id: 21,
+  vertical: 'restaurantes',
+})
 const snapshot = {
   meta: META,
-  documents: 4,
-  pool: [coffee, beer, cookies, combo],
+  documents: 5,
+  pool: [coffee, beer, cookies, combo, peanut],
   byEntity: new Map(),
   catalog: { home: {}, restaurants: { rating: [] }, deals: {}, verticalStores: {}, stores: {}, menus: {} },
   recommendations: { rows: [] },
@@ -116,6 +126,20 @@ describe('pedir por mí sin conexión', () => {
     call('POST', '/orders', { user_id: 'u', vertical: 'restaurantes', mode: 'propuesta', lines: [dish], cart_id: 'c' })
     allow([21])
     expect(say('pide lo de siempre en sushi de prueba').autopedido).toMatchObject({ modo: 'pedir' })
+  })
+
+  test('lo de siempre sale sin lo que sacan sus alergias, y el pedido con eso no pasa', () => {
+    const dish = (p) => ({ entity_type: 'menu_item', entity_id: p.entity_id, store_id: 21, qty: 1 })
+    const dishes = (...lines) => ({ user_id: 'u', vertical: 'restaurantes', mode: 'propuesta', lines, cart_id: 'c' })
+    call('POST', '/orders', dishes(dish(combo), dish(peanut)))
+    allow([21])
+    call('PUT', '/profile/u/preferencias', { preferencias: [{ tipo: 'alergia', valor: 'mani' }] })
+
+    const plan = say('pide lo de siempre en sushi de prueba').autopedido
+    expect(plan).toMatchObject({ modo: 'pedir', subtotal: 8990 })
+    expect(plan.lineas.map((l) => l.product.name)).toEqual([combo.name])
+    const auto = { ...dishes(dish(combo), dish(peanut)), autopedido: {} }
+    expect(call('POST', '/orders', auto)).toMatchObject({ status: 409, body: { detail: { codigo: 'distinto' } } })
   })
 
   test('la recompra de una tienda con permiso trae "Pide lo de siempre por mí"', () => {
