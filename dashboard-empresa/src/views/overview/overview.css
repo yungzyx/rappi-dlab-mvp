@@ -1,175 +1,89 @@
-/* ---------- El enlace a las tres hipótesis: una línea, lo primero que se ve al entrar ---------- */
+/* ---------- El enlace a las tres hipótesis: lo primero que se ve al entrar, un vidrio con la luz de la marca ---------- */
 .hypotheses-link {
+  position: relative;
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
-  gap: var(--space-2) var(--space-4);
-  padding: var(--space-3) var(--space-4);
-  border: 1px solid var(--line);
-  border-radius: var(--radius-m);
-  background: var(--surface);
-  font-size: var(--text-sm);
+  gap: var(--space-3) var(--space-5);
+  padding: var(--space-5) var(--space-5) var(--space-5) var(--space-6);
+  overflow: hidden;
+  border-radius: var(--radius-l);
+  background:
+    radial-gradient(28rem 12rem at 0% 0%, var(--brand-wash), transparent 70%),
+    radial-gradient(22rem 10rem at 100% 100%, var(--brand-wash), transparent 70%), var(--surface);
+  box-shadow: var(--glass);
+  -webkit-backdrop-filter: var(--glass-blur);
+  backdrop-filter: var(--glass-blur);
+  font-size: var(--text-base);
   color: var(--ink-2);
+}
+
+/* El filo naranja de la izquierda */
+.hypotheses-link::before {
+  content: '';
+  position: absolute;
+  inset: 18px auto 18px 12px;
+  width: 4px;
+  border-radius: 4px;
+  background: var(--brand-glow);
+  box-shadow: var(--brand-shadow);
 }
 
 .hypotheses-link p {
   flex: 1 1 32ch;
-  max-width: 88ch;
+  max-width: 80ch;
 }
 
 .hypotheses-link strong {
-  font-weight: 600;
+  display: block;
+  margin-bottom: 2px;
+  font-size: 1.1875rem;
+  font-weight: 700;
+  letter-spacing: -0.025em;
+  line-height: 1.3;
   color: var(--ink);
 }
 
-/* ---------- Qué decidir: una lista de 4 preguntas, cada fila con su cifra, su lectura y su enlace ---------- */
-.decisions {
+/* ---------- Cómo va: los 5 indicadores en mosaico y, a su lado, la serie semanal ---------- */
+.pulse-board {
   display: grid;
-  grid-template-columns: minmax(220px, 1fr) minmax(180px, 0.8fr) minmax(0, 2fr) auto;
-  column-gap: var(--space-5);
-  overflow: hidden;
-  border: 1px solid var(--line);
-  border-radius: var(--radius-m);
-  background: var(--surface);
-}
-
-/* Subgrid: las filas comparten columnas, así cifras, textos y botones quedan alineados de una fila a otra */
-.decision {
-  display: grid;
-  grid-column: 1 / -1;
-  grid-template-columns: subgrid;
-  align-items: start;
-  row-gap: var(--space-3);
-  padding: var(--space-4);
-  border-bottom: 1px solid var(--line);
-}
-
-.decision:last-child {
-  border-bottom: 0;
-}
-
-.decision-head {
-  display: grid;
-  gap: var(--space-2);
-  justify-items: start;
-  min-width: 0;
-}
-
-.decision-head h3 {
-  font-size: var(--text-base);
-  font-weight: 600;
-  letter-spacing: 0;
-  line-height: 1.35;
-}
-
-.decision-provenance {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: var(--space-1) var(--space-2);
-}
-
-.decision-body {
-  display: grid;
-  grid-column: 2 / 4;
-  grid-template-columns: subgrid;
-  row-gap: var(--space-2);
-  min-width: 0;
-}
-
-/* Sin cifra, sin datos o mientras carga: el texto ocupa las dos columnas */
-.decision-body > .decision-detail:only-child,
-.decision-body > .decision-empty,
-.decision-body > .state {
-  grid-column: 1 / -1;
-}
-
-.decision-metric {
-  display: grid;
-  align-content: start;
-  gap: var(--space-2);
-  min-width: 0;
-}
-
-.decision-figure {
-  display: grid;
-  gap: 2px;
-}
-
-.decision-figure strong {
-  font-size: var(--text-figure);
-  font-weight: 600;
-  letter-spacing: -0.01em;
-  line-height: 1.15;
-  font-variant-numeric: tabular-nums;
-}
-
-.decision-figure span {
-  max-width: 32ch;
-  font-size: var(--text-xs);
-  color: var(--ink-2);
-}
-
-.decision-metric .delta {
-  flex-wrap: wrap;
-  align-self: start;
-}
-
-.decision-detail {
-  display: grid;
-  align-content: start;
+  grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
   gap: var(--space-3);
-  min-width: 0;
+  align-items: stretch;
 }
 
-.decision-context {
-  max-width: 72ch;
-  font-size: var(--text-sm);
-  color: var(--ink-2);
+/* La serie ocupa el alto del mosaico: su cabecera no se estira, lo que sobra queda bajo el gráfico */
+.pulse-board > .panel {
+  grid-template-rows: auto minmax(0, 1fr);
 }
 
-.decision-action {
-  display: grid;
-  gap: 2px;
-  max-width: 72ch;
-  padding-left: var(--space-3);
-  border-left: 2px solid var(--line-strong);
-  font-size: var(--text-sm);
-  color: var(--ink);
-}
-
-.decision-action span {
-  font-size: var(--text-xs);
-  font-weight: 600;
-  color: var(--ink-2);
-}
-
-.decision-link {
-  justify-self: end;
-}
-
-/* ---------- Cómo va: una tira de 5 indicadores de igual altura ---------- */
 .pulse {
   display: grid;
-  grid-template-columns: repeat(5, minmax(0, 1fr));
-  gap: 1px;
-  overflow: hidden;
-  border: 1px solid var(--line);
-  border-radius: var(--radius-m);
-  background: var(--line);
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-3);
 }
 
-/* Cuatro filas fijas en cada celda: rótulo (hasta dos líneas), cifra, cambio o unidad y la ranura (tendencia, barra o
-   nota). Así cifras, cambios y tendencias quedan en la misma línea en todas las celdas. */
+/* El quinto indicador cierra el mosaico a todo el ancho */
+.pulse-tile:last-child:nth-child(odd) {
+  grid-column: 1 / -1;
+}
+
+/* Cuatro filas fijas en cada vidrio: rótulo (hasta dos líneas), cifra, cambio o unidad y la ranura (tendencia, barra o
+   nota). Así cifras, cambios y tendencias quedan en la misma línea en todos. */
 .pulse-tile {
+  position: relative;
   display: grid;
-  grid-template-rows: 34px 32px minmax(20px, auto) minmax(32px, auto);
+  grid-template-rows: 34px 40px minmax(20px, auto) minmax(32px, auto);
   row-gap: var(--space-1);
   align-content: start;
   min-width: 0;
-  padding: 14px var(--space-4);
+  padding: var(--space-4) var(--space-5);
+  border-radius: var(--radius-m);
   background: var(--surface);
+  box-shadow: var(--glass);
+  -webkit-backdrop-filter: var(--glass-blur);
+  backdrop-filter: var(--glass-blur);
 }
 
 .pulse-tile h3 {
@@ -184,9 +98,9 @@
 .pulse-value {
   align-self: center;
   font-size: var(--text-kpi);
-  font-weight: 600;
-  letter-spacing: -0.01em;
-  line-height: 1.25;
+  font-weight: 700;
+  letter-spacing: -0.035em;
+  line-height: 1.2;
   font-variant-numeric: tabular-nums;
 }
 
@@ -232,77 +146,141 @@
   text-overflow: ellipsis;
 }
 
-/* La tarjeta de la serie semanal, junto a las decisiones desde 1280 px (más angosto, debajo y a todo el ancho). Su borde
-   de arriba calza con el de la lista (bajo el título "Qué decidir") y queda fija al bajar. */
-.overview-pair {
-  align-items: start;
+/* ---------- Qué decidir: 4 preguntas, cada una en su vidrio, con su cifra, su lectura y su enlace ---------- */
+.decisions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-3);
 }
 
-@media (max-width: 1279px) {
-  .overview-pair {
+.decision {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-rows: auto 1fr;
+  gap: var(--space-4);
+  align-content: start;
+  padding: var(--space-5);
+  border-radius: var(--radius-m);
+  background: var(--surface);
+  box-shadow: var(--glass);
+  -webkit-backdrop-filter: var(--glass-blur);
+  backdrop-filter: var(--glass-blur);
+}
+
+.decision-head {
+  display: grid;
+  gap: var(--space-2);
+  justify-items: start;
+  min-width: 0;
+}
+
+.decision-head h3 {
+  font-size: 1.0625rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1.3;
+}
+
+.decision-provenance {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-1) var(--space-2);
+}
+
+.decision-link {
+  grid-column: 2;
+  grid-row: 1;
+  justify-self: end;
+}
+
+.decision-body {
+  display: grid;
+  grid-column: 1 / -1;
+  grid-row: 2;
+  grid-template-columns: minmax(130px, 0.75fr) minmax(0, 2fr);
+  gap: var(--space-2) var(--space-5);
+  align-content: start;
+  min-width: 0;
+}
+
+/* Sin cifra, sin datos o mientras carga: el texto ocupa las dos columnas */
+.decision-body > .decision-detail:only-child,
+.decision-body > .decision-empty,
+.decision-body > .state {
+  grid-column: 1 / -1;
+}
+
+.decision-metric {
+  display: grid;
+  align-content: start;
+  gap: var(--space-2);
+  min-width: 0;
+}
+
+.decision-figure {
+  display: grid;
+  gap: var(--space-1);
+}
+
+.decision-figure strong {
+  font-size: var(--text-figure);
+  font-weight: 700;
+  letter-spacing: -0.04em;
+  line-height: 1.05;
+  font-variant-numeric: tabular-nums;
+}
+
+.decision-figure span {
+  max-width: 32ch;
+  font-size: var(--text-xs);
+  color: var(--ink-2);
+}
+
+.decision-metric .delta {
+  flex-wrap: wrap;
+  align-self: start;
+}
+
+.decision-detail {
+  display: grid;
+  align-content: start;
+  gap: var(--space-3);
+  min-width: 0;
+}
+
+.decision-context {
+  max-width: 72ch;
+  font-size: var(--text-sm);
+  color: var(--ink-2);
+}
+
+/* La acción: un recuadro con la luz de la marca */
+.decision-action {
+  display: grid;
+  gap: 2px;
+  max-width: 72ch;
+  padding: 10px var(--space-3);
+  border-left: 3px solid var(--brand);
+  border-radius: 4px 12px 12px 4px;
+  font-size: var(--text-sm);
+  color: var(--ink);
+  background: var(--brand-wash);
+}
+
+.decision-action span {
+  font-size: var(--text-xs);
+  font-weight: 600;
+  color: var(--brand-ink);
+}
+
+/* Con poco ancho: la serie baja y los indicadores vuelven a una tira; las decisiones, una por fila */
+@container (max-width: 940px) {
+  .pulse-board {
     grid-template-columns: minmax(0, 1fr);
   }
-}
 
-@media (min-width: 1280px) {
-  .overview-pair > .weekly-panel {
-    position: sticky;
-    top: calc(var(--top-h, 36px) + var(--space-4));
-    margin-top: calc(var(--text-title) * 1.3 + var(--space-4));
-  }
-}
-
-@container (max-width: 1060px) {
-  .decisions {
-    display: block;
-  }
-
-  .decision {
-    grid-template-columns: minmax(0, 1fr) auto;
-    gap: var(--space-3) var(--space-4);
-  }
-
-  .decision-head {
-    grid-template-columns: auto auto;
-    justify-content: start;
-    align-items: center;
-    column-gap: var(--space-3);
-  }
-
-  .decision-body {
-    grid-column: 1 / -1;
-    grid-row: 2;
-    grid-template-columns: minmax(160px, 0.8fr) minmax(0, 2.2fr);
-    column-gap: var(--space-5);
-  }
-
-  .decision-link {
-    grid-column: 2;
-    grid-row: 1;
-  }
-}
-
-@container (max-width: 600px) {
-  .decision {
-    grid-template-columns: minmax(0, 1fr);
-  }
-
-  .decision-head {
-    grid-template-columns: minmax(0, 1fr);
-  }
-
-  .decision-body {
-    grid-template-columns: minmax(0, 1fr);
-  }
-
-  .decision-link {
-    grid-column: 1;
-    grid-row: 3;
-    justify-self: start;
-  }
-}
-
-@container (max-width: 860px) {
   .pulse {
     grid-template-columns: repeat(6, minmax(0, 1fr));
   }
@@ -313,6 +291,28 @@
 
   .pulse-tile:nth-child(n + 4) {
     grid-column: span 3;
+  }
+
+  .decisions {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@container (max-width: 600px) {
+  .decision {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: none;
+  }
+
+  .decision-body {
+    grid-row: auto;
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .decision-link {
+    grid-column: 1;
+    grid-row: 3;
+    justify-self: start;
   }
 }
 

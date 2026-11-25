@@ -40,7 +40,7 @@ h2,
 h3,
 h4 {
   font-weight: 600;
-  letter-spacing: -0.015em;
+  letter-spacing: -0.02em;
   line-height: 1.2;
   text-wrap: balance;
 }
@@ -106,8 +106,8 @@ abbr {
 
 .section-head h2 {
   font-size: var(--text-title);
-  font-weight: 600;
-  letter-spacing: -0.01em;
+  font-weight: 700;
+  letter-spacing: -0.025em;
   line-height: 1.3;
 }
 
@@ -189,23 +189,24 @@ abbr {
 
 /* Selector nativo (el indicador de la serie semanal) */
 .select {
-  height: 28px;
-  padding: 0 28px 0 10px;
-  border: 1px solid var(--line-strong);
-  border-radius: var(--radius-s);
+  height: 32px;
+  padding: 0 32px 0 14px;
+  border: 0;
+  border-radius: 999px;
+  box-shadow: var(--glass);
   font: inherit;
   font-size: var(--text-sm);
   font-weight: 500;
   color: var(--ink);
-  background: var(--surface)
-    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' fill='none' stroke='%2371717a' stroke-width='1.5'%3E%3Cpath d='m1 1 4 4 4-4'/%3E%3C/svg%3E")
-    no-repeat right 10px center;
+  background: var(--glass-bright)
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' fill='none' stroke='%23857c79' stroke-width='1.5'%3E%3Cpath d='m1 1 4 4 4-4'/%3E%3C/svg%3E")
+    no-repeat right 14px center;
   appearance: none;
   cursor: pointer;
 }
 
 .select:hover {
-  background-color: var(--surface-sunken);
+  background-color: light-dark(#ffffff, rgba(255, 255, 255, 0.16));
 }
 
 /* Nota bajo un bloque (fuente, definición, límite) */
@@ -327,7 +328,7 @@ abbr {
   gap: var(--space-1);
   justify-items: start;
   padding: var(--space-3) var(--space-4);
-  border-radius: var(--radius-s);
+  border-radius: 14px;
   background: var(--surface-sunken);
   color: var(--ink-2);
   font-size: var(--text-sm);
@@ -389,33 +390,53 @@ abbr {
   font-weight: 500;
 }
 
-/* ---------- Botones: un solo estilo secundario ---------- */
+/* ---------- Botones: una cápsula de vidrio; los que llevan a otra vista (`--go`), en el naranja de la marca ---------- */
 .link-button,
 .text-button {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  height: 28px;
-  padding: 0 10px;
-  border-radius: var(--radius-s);
+  height: 32px;
+  padding: 0 14px;
+  border-radius: 999px;
   font-size: var(--text-sm);
   font-weight: 500;
   line-height: 1;
   white-space: nowrap;
   color: var(--ink);
-  background: var(--surface);
-  box-shadow: inset 0 0 0 1px var(--line-strong);
-  transition: background var(--duration-fast);
+  background: var(--glass-bright);
+  box-shadow: var(--glass);
+  transition:
+    background var(--duration-fast),
+    box-shadow var(--duration-fast),
+    transform var(--duration-fast);
 }
 
 .link-button:hover,
 .text-button:hover {
-  background: var(--surface-sunken);
+  background: light-dark(#ffffff, rgba(255, 255, 255, 0.16));
 }
 
 .link-button:active,
 .text-button:active {
-  transform: translateY(1px);
+  transform: scale(0.97);
+}
+
+.text-button--go {
+  font-weight: 600;
+  color: var(--on-brand);
+  background: var(--brand-solid);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.35),
+    var(--brand-shadow);
+}
+
+.text-button--go:hover {
+  background: linear-gradient(135deg, #e03d14, #c4330c);
+}
+
+.text-button--go svg {
+  color: inherit;
 }
 
 .link-button svg,

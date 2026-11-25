@@ -2,48 +2,72 @@
  * Tokens del panel. Cada color trae su par claro/oscuro con light-dark(): el tema sigue al sistema
  * (prefers-color-scheme) salvo que el usuario lo fije con el botón (data-theme en <html>).
  *
- * Lenguaje propio, sin sistema de diseño externo. Se toman prestadas tres convenciones: la densidad de tabla de Carbon
- * (filas de 36 px, cabecera de 32), el "entorno de datos" fijo tipo "Test mode" de Stripe (la franja de procedencia) y
- * la navegación lateral de Linear.
+ * Lenguaje: vidrio líquido. Las superficies son translúcidas y flotan sobre un fondo de luz naranja (`.app::before`,
+ * shell.css); cada una desenfoca lo que tiene detrás, lleva un brillo fino arriba y una sombra suave. Se conservan dos
+ * convenciones: la densidad de tabla de Carbon (filas de 36 px, cabecera de 32) y la navegación lateral de Linear. El
+ * "entorno de datos" (simulados o del prototipo) va en una etiqueta bajo el título de cada página.
  *
  * Reglas semánticas:
- *  - neutros fríos (zinc) para todo lo que no tiene juicio: texto, líneas, barras de tabla, botones;
- *  - un solo acento, el naranja-rojo Rappi, racionado: marca, vista activa, punto "después" de la escalera, foco y
- *    resaltado de la demostración. No es link, botón ni magnitud;
+ *  - neutros cálidos y translúcidos para lo que no tiene juicio: texto, líneas, barras de tabla;
+ *  - el naranja-rojo Rappi es la marca: el logo, la luz del fondo, la vista activa, los botones que llevan a otra vista,
+ *    la serie destacada de un gráfico, el punto "después" de la escalera y el foco. No es magnitud ni estado;
  *  - el carmesí es el único rojo con juicio (empeora, riesgo), siempre con ícono y texto;
- *  - el ámbar liso marca lo simulado, con borde punteado y texto (nunca solo por color).
- * Contrastes: texto >= 4,5:1 y marcas >= 3:1 con su fondo, en los dos temas.
- * Forma: badge y chip 4 px, controles 6 px, paneles 8 px, flotantes 12 px. Sin píldoras ni sombras en paneles.
+ *  - el ámbar es la etiqueta de procedencia (simulado o del prototipo), con borde punteado y texto (nunca solo por color).
+ * Contrastes: texto >= 4,5:1 y marcas >= 3:1 con su fondo, en los dos temas, medido sobre el vidrio encima de la parte
+ * más intensa del fondo. El texto blanco va sobre `--brand-solid` (más oscuro que `--brand`), no sobre `--brand`.
+ * Forma: badge y chip 6 px, controles en cápsula, vidrios 20 px, flotantes 24 px.
+ * Sin transparencia (`prefers-reduced-transparency`) o sin `backdrop-filter`, el vidrio se vuelve opaco (shell.css).
  */
 :root {
   color-scheme: light dark;
 
-  /* Superficies y tinta */
-  --page: light-dark(#ffffff, #111113);
-  --chrome: light-dark(#fafafa, #0c0c0e); /* barra superior y navegación */
-  --surface: light-dark(#ffffff, #161618);
-  --surface-sunken: light-dark(#f4f4f5, #1f1f23); /* cabecera de tabla, hover, chips, estados */
-  --surface-raised: light-dark(#ffffff, #212126); /* flotantes */
-  --ink: light-dark(#18181b, #ededef);
-  --ink-2: light-dark(#52525b, #b4b4bb);
-  --ink-3: light-dark(#66666e, #8f8f99);
-  --line: light-dark(#e4e4e7, #27272a);
-  --line-strong: light-dark(#d4d4d8, #3f3f46);
-  --hairline: light-dark(rgba(24, 24, 27, 0.08), rgba(255, 255, 255, 0.1));
+  /* Superficies (translúcidas: van sobre el fondo de luz) y tinta */
+  --page: light-dark(#fbf5f1, #0c0a0d);
+  --chrome: light-dark(rgba(255, 255, 255, 0.56), rgba(26, 22, 28, 0.6)); /* barra superior y navegación */
+  --surface: light-dark(rgba(255, 255, 255, 0.5), rgba(38, 33, 40, 0.5));
+  --surface-sunken: light-dark(
+    rgba(70, 35, 20, 0.055),
+    rgba(255, 255, 255, 0.07)
+  ); /* cabecera de tabla, hover, chips, estados */
+  --surface-raised: light-dark(rgba(255, 255, 255, 0.9), rgba(40, 35, 43, 0.92)); /* flotantes */
+  --ink: light-dark(#1b1614, #f1edee);
+  --ink-2: light-dark(#4f4744, #bdb6b9);
+  --ink-3: light-dark(#655c59, #9d9599);
+  --line: light-dark(rgba(60, 28, 14, 0.1), rgba(255, 255, 255, 0.09));
+  --line-strong: light-dark(rgba(60, 28, 14, 0.18), rgba(255, 255, 255, 0.17));
+  --hairline: light-dark(rgba(60, 28, 14, 0.08), rgba(255, 255, 255, 0.1));
   --focus: light-dark(#d43a17, #ff7a5c);
 
   /* Acento Rappi (racionado) */
   --brand: light-dark(#ff441f, #ff5a38);
-  --brand-ink: light-dark(#c8360f, #ff8a70);
-  --brand-wash: light-dark(rgba(255, 68, 31, 0.1), rgba(255, 90, 56, 0.16));
+  --brand-ink: light-dark(#ad2c09, #ff8a70);
+  --brand-wash: light-dark(rgba(255, 68, 31, 0.11), rgba(255, 90, 56, 0.18));
   --on-brand: #ffffff;
+
+  /* Vidrio: el material de todas las superficies */
+  --glass-blur: blur(22px) saturate(175%);
+  --glass-bright: light-dark(rgba(255, 255, 255, 0.82), rgba(255, 255, 255, 0.11)); /* lo elegido, sobre un vidrio */
+  --glass-edge:
+    inset 0 1px 0 0 light-dark(rgba(255, 255, 255, 0.95), rgba(255, 255, 255, 0.16)),
+    inset 0 0 0 1px light-dark(rgba(255, 255, 255, 0.6), rgba(255, 255, 255, 0.07)),
+    0 0 0 1px light-dark(rgba(110, 45, 20, 0.07), rgba(0, 0, 0, 0.2));
+  --glass-shadow:
+    0 1px 1px light-dark(rgba(110, 45, 20, 0.05), rgba(0, 0, 0, 0.35)),
+    0 16px 36px -14px light-dark(rgba(110, 45, 20, 0.26), rgba(0, 0, 0, 0.65));
+  --glass: var(--glass-edge), var(--glass-shadow);
+  --opaque: light-dark(#ffffff, #1b181d); /* el vidrio sin transparencia */
+
+  /* Marca con luz: el degradado de los íconos y la sombra naranja; `--brand-solid` lleva texto blanco (>= 4,5:1) */
+  --brand-glow: linear-gradient(135deg, #ff7a4d, #ff441f 55%, #f2330d);
+  --brand-solid: linear-gradient(135deg, #d83a12, #bd310b);
+  --brand-shadow: 0 8px 18px -6px rgba(255, 68, 31, 0.55);
 
   /* Datos */
   --data: var(--brand); /* solo la serie destacada */
   --data-bar: light-dark(#52525b, #a1a1aa); /* barras de magnitud en tablas */
   --deemph: light-dark(#8a8a8a, #6b6b6b); /* contexto: chispas, "hoy" en la escalera */
-  --series-1: light-dark(#27272a, #d4d4d8); /* gráficos: serie principal (línea y barra) */
-  --series-2: light-dark(#85858f, #6f6f7a); /* gráficos: segunda serie */
+  --series-1: var(--brand); /* gráficos: serie principal (línea y barra), en el naranja de la marca */
+  --series-2: light-dark(#3f3836, #8f878b); /* gráficos: segunda serie, neutra (en claro, 3:1 con la primera) */
   --chart-grid: var(--line);
   --chart-axis: var(--ink-3);
 
@@ -71,9 +95,9 @@
   --text-base: 0.875rem; /* 14: cuerpo */
   --text-md: 1rem; /* la presentación */
   --text-lg: 1.1875rem; /* la presentación */
-  --text-title: 1.125rem; /* 18: título de sección */
-  --text-kpi: 1.5rem; /* 24: cifra de un indicador */
-  --text-figure: 1.75rem; /* 28: cifra de una decisión */
+  --text-title: 1.3125rem; /* 21: título de sección */
+  --text-kpi: 1.875rem; /* 30: cifra de un indicador */
+  --text-figure: 2.25rem; /* 36: cifra de una decisión */
 
   /* Espacio, forma y layout */
   --space-1: 4px;
@@ -86,16 +110,16 @@
   --section-gap: 40px;
   --pad: clamp(16px, 2.2vw, 32px);
   --gutter: clamp(16px, 3.4vw, 40px); /* la presentación */
-  --radius-xs: 4px; /* badges y chips */
-  --radius-s: 6px; /* botones, selector, ítems de navegación */
-  --radius-m: 8px; /* paneles y tiras de indicadores */
-  --radius-l: 12px; /* flotantes */
-  --sidenav-w: 232px;
+  --radius-xs: 6px; /* badges y chips */
+  --radius-s: 10px; /* botones, selector, ítems de navegación */
+  --radius-m: 20px; /* vidrios: paneles, tarjetas e indicadores */
+  --radius-l: 24px; /* flotantes */
+  --sidenav-w: 252px;
   --nav-h: 44px; /* la tira de vistas, bajo 1200 px */
-  --panel-max: 1200px;
+  --panel-max: 1280px;
   --content-max: 1320px; /* la presentación */
   --row-h: 36px;
-  --shadow-float: 0 8px 24px light-dark(rgba(24, 24, 27, 0.12), rgba(0, 0, 0, 0.5));
+  --shadow-float: 0 18px 48px -12px light-dark(rgba(110, 45, 20, 0.28), rgba(0, 0, 0, 0.7));
 
   /* Movimiento */
   --ease-out: cubic-bezier(0.16, 1, 0.3, 1);

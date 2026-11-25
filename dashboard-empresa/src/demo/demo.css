@@ -36,9 +36,11 @@
   gap: var(--space-3);
   width: min(360px, calc(100vw - 2 * var(--space-4)));
   padding: var(--space-4);
-  border: 1px solid var(--line);
   border-radius: var(--radius-l);
   background: var(--surface-raised);
+  box-shadow: var(--glass-edge), var(--shadow-float);
+  -webkit-backdrop-filter: var(--glass-blur);
+  backdrop-filter: var(--glass-blur);
 }
 
 .demo-tour-head {

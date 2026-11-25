@@ -32,8 +32,8 @@ function Demand({ source }) {
 }
 
 /**
- * La vista principal: cómo va el negocio (5 indicadores y la serie semanal) y las 4 preguntas que hay que decidir, cada
- * una con enlace a su detalle.
+ * La vista principal: cómo va el negocio (5 indicadores y, a su lado, la serie semanal) y las 4 preguntas que hay que
+ * decidir, cada una en su tarjeta con enlace a su detalle.
  */
 export function OverviewView({ source, onNavigate }) {
   return (
@@ -43,7 +43,11 @@ export function OverviewView({ source, onNavigate }) {
           <strong>Primero, las tres hipótesis.</strong> Retención, frecuencia y venta cruzada con {AGENT_NAME}, y
           "¿Encontraste lo que buscabas?", contra el grupo de control.
         </p>
-        <button type="button" className="text-button" onClick={() => onNavigate('experimentos', 'hipotesis')}>
+        <button
+          type="button"
+          className="text-button text-button--go"
+          onClick={() => onNavigate('experimentos', 'hipotesis')}
+        >
           Ver las tres hipótesis
           <Icon name="arrowRight" />
         </button>
@@ -62,67 +66,67 @@ export function OverviewView({ source, onNavigate }) {
             </p>
           }
         />
-        <Async>
-          <Pulse source={source} />
-        </Async>
+        <div className="pulse-board">
+          <Async>
+            <Pulse source={source} />
+          </Async>
+          <Async>
+            <WeeklyChart source={source} />
+          </Async>
+        </div>
       </section>
 
-      <div className="pair pair--7-5 overview-pair">
-        <section className="section" aria-labelledby="que-decidir">
-          <SectionHead
-            id="que-decidir"
-            title="Qué decidir"
-            help={
-              <p>
-                Cada pregunta trae su cifra, su comparación y una acción cuando los datos la sostienen. Solo la del dato
-                de Rappi es una sugerencia; con datos simulados es un ejemplo de la mecánica y con los del prototipo,
-                algo para revisar. Ninguna se escala sin un grupo de control.
-              </p>
-            }
-          />
-          <div className="decisions">
-            <DecisionCard
-              id="decision-venta-cruzada"
-              question="¿Dónde está la venta cruzada?"
-              badge="rappi"
-              linkLabel="Ver la escalera"
-              onOpen={() => onNavigate('clientes', 'venta-cruzada')}
-            >
-              <CrossSell />
-            </DecisionCard>
-            <DecisionCard
-              id="decision-perdiendo"
-              question="¿A quién estamos perdiendo?"
-              badge={source}
-              linkLabel="Ver a quién y qué le ofrecemos"
-              onOpen={() => onNavigate('clientes', 'perdiendo')}
-            >
-              <Churn source={source} />
-            </DecisionCard>
-            <DecisionCard
-              id="decision-mochi"
-              question={`¿Funciona lo que ofrece ${AGENT_NAME}?`}
-              badge={source}
-              linkLabel="Ver las ofertas"
-              onOpen={() => onNavigate('mochi', 'ofertas')}
-            >
-              <Mochi source={source} />
-            </DecisionCard>
-            <DecisionCard
-              id="decision-busquedas"
-              question="¿Qué buscan y no encuentran?"
-              badge={source}
-              linkLabel="Ver las búsquedas"
-              onOpen={() => onNavigate('mochi', 'busquedas')}
-            >
-              <Demand source={source} />
-            </DecisionCard>
-          </div>
-        </section>
-        <Async>
-          <WeeklyChart source={source} />
-        </Async>
-      </div>
+      <section className="section" aria-labelledby="que-decidir">
+        <SectionHead
+          id="que-decidir"
+          title="Qué decidir"
+          help={
+            <p>
+              Cada pregunta trae su cifra, su comparación y una acción cuando los datos la sostienen. Solo la del dato
+              de Rappi es una sugerencia; con datos simulados es un ejemplo de la mecánica y con los del prototipo, algo
+              para revisar. Ninguna se escala sin un grupo de control.
+            </p>
+          }
+        />
+        <div className="decisions">
+          <DecisionCard
+            id="decision-venta-cruzada"
+            question="¿Dónde está la venta cruzada?"
+            badge="rappi"
+            linkLabel="Ver la escalera"
+            onOpen={() => onNavigate('clientes', 'venta-cruzada')}
+          >
+            <CrossSell />
+          </DecisionCard>
+          <DecisionCard
+            id="decision-perdiendo"
+            question="¿A quién estamos perdiendo?"
+            badge={source}
+            linkLabel="Ver a quién y qué le ofrecemos"
+            onOpen={() => onNavigate('clientes', 'perdiendo')}
+          >
+            <Churn source={source} />
+          </DecisionCard>
+          <DecisionCard
+            id="decision-mochi"
+            question={`¿Funciona lo que ofrece ${AGENT_NAME}?`}
+            badge={source}
+            linkLabel="Ver las ofertas"
+            onOpen={() => onNavigate('mochi', 'ofertas')}
+          >
+            <Mochi source={source} />
+          </DecisionCard>
+          <DecisionCard
+            id="decision-busquedas"
+            question="¿Qué buscan y no encuentran?"
+            badge={source}
+            linkLabel="Ver las búsquedas"
+            onOpen={() => onNavigate('mochi', 'busquedas')}
+          >
+            <Demand source={source} />
+          </DecisionCard>
+        </div>
+      </section>
     </div>
   )
 }

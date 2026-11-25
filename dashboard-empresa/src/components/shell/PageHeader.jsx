@@ -4,6 +4,7 @@ import { formatDate } from '../../lib/format.js'
 import { useAnalytics } from '../../lib/useAnalytics.js'
 import { Async } from '../Async.jsx'
 import { Icon } from '../Icon.jsx'
+import { ProvenanceChip } from './ProvenanceBanner.jsx'
 import { SubNav } from './SubNav.jsx'
 
 const Sep = () => (
@@ -53,8 +54,8 @@ function dataStatus({ source, fallbacks, prototypeOffline }) {
 }
 
 /**
- * Cabecera de la página: el nombre de la vista, de cuándo son los datos (y los precios del catálogo), "Actualizar" y,
- * si la vista tiene más de una, sus subpestañas.
+ * Cabecera de la página: el nombre de la vista, la procedencia de los datos (que no son evidencia), de cuándo son (y los
+ * precios del catálogo), "Actualizar" y, si la vista tiene más de una, sus subpestañas.
  */
 export function PageHeader({ title, source, reloadKey, fallbacks, prototypeOffline, onRefresh, tabs, tab, onTab }) {
   const status = dataStatus({ source, fallbacks, prototypeOffline })
@@ -63,6 +64,7 @@ export function PageHeader({ title, source, reloadKey, fallbacks, prototypeOffli
       <div className="page-head-row">
         <div className="page-head-text">
           <h1 className="page-title">{title}</h1>
+          <ProvenanceChip source={source} />
           <p className="page-meta">
             <span className={`data-status data-status--${status.kind}`}>{status.label}</span>
             <Sep />

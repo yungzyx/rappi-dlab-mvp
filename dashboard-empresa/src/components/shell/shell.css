@@ -1,12 +1,56 @@
 /*
  * Armazón del panel. El scroll es del documento (la presentación lo desplaza con scrollBy y las capturas son de página
  * completa): lo fijo va con sticky.
- * Desde 1200 px: barra lateral fija (marca y tema, fuente, vistas) y, a su derecha, la franja de procedencia fija sobre
- * el contenido. Más angosto, la barra lateral se deshace (display: contents): la marca y la fuente arriba, las vistas
- * como tira fija y la franja fija bajo ella.
+ * Todo flota sobre el fondo de luz (`.app::before`): desde 1200 px, la barra lateral es un vidrio fijo separado de los
+ * bordes (marca y tema, fuente, vistas). Más angosto, la barra lateral se deshace (display: contents): la marca y la
+ * fuente arriba y las vistas como tira de vidrio fija. La procedencia de los datos va bajo el título de cada página.
  */
 .app {
+  position: relative;
+  isolation: isolate;
   min-height: 100dvh;
+}
+
+/* El fondo de luz: manchas del naranja de Rappi (y una fría, para que el vidrio tenga qué refractar) sobre el color de
+   la página. Ocupa la página entera y no se mueve: el vidrio de encima lo desenfoca. */
+.app::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background:
+    radial-gradient(
+      52rem 34rem at 4% -6%,
+      light-dark(rgba(255, 68, 31, 0.36), rgba(255, 68, 31, 0.34)),
+      transparent 62%
+    ),
+    radial-gradient(
+      40rem 30rem at 96% 4%,
+      light-dark(rgba(255, 140, 70, 0.42), rgba(214, 74, 24, 0.24)),
+      transparent 64%
+    ),
+    radial-gradient(
+      44rem 38rem at 104% 46%,
+      light-dark(rgba(255, 110, 60, 0.3), rgba(255, 78, 36, 0.16)),
+      transparent 62%
+    ),
+    radial-gradient(
+      40rem 36rem at 30% 62%,
+      light-dark(rgba(255, 176, 120, 0.4), rgba(120, 60, 160, 0.14)),
+      transparent 64%
+    ),
+    radial-gradient(
+      46rem 30rem at 82% 100%,
+      light-dark(rgba(255, 96, 52, 0.3), rgba(255, 78, 36, 0.2)),
+      transparent 62%
+    ),
+    radial-gradient(
+      38rem 26rem at 12% 100%,
+      light-dark(rgba(255, 160, 110, 0.38), rgba(190, 60, 30, 0.16)),
+      transparent 64%
+    ),
+    var(--page);
+  pointer-events: none;
 }
 
 /* ---------- Marca y tema ---------- */
@@ -20,13 +64,23 @@
 .brand {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: var(--space-3);
   min-width: 0;
+}
+
+/* El logo de Rappi, en el color de la marca */
+.brand-logo {
+  flex: none;
+  width: auto;
+  height: 26px;
+  fill: var(--brand);
+  filter: drop-shadow(0 4px 10px rgba(255, 68, 31, 0.28));
 }
 
 .brand-name {
   font-size: var(--text-base);
   font-weight: 600;
+  letter-spacing: -0.01em;
   line-height: 1.25;
 }
 
@@ -40,22 +94,25 @@
   display: grid;
   flex: none;
   place-items: center;
-  width: 28px;
-  height: 28px;
-  border-radius: var(--radius-s);
+  width: 32px;
+  height: 32px;
+  border-radius: 999px;
   color: var(--ink-2);
+  background: var(--surface-sunken);
   transition:
     color var(--duration-fast),
-    background var(--duration-fast);
+    background var(--duration-fast),
+    box-shadow var(--duration-fast);
 }
 
 .icon-button:hover {
   color: var(--ink);
-  background: var(--surface-sunken);
+  background: var(--glass-bright);
+  box-shadow: var(--glass);
 }
 
 .icon-button:active {
-  transform: translateY(1px);
+  transform: scale(0.96);
 }
 
 .icon-button svg {
@@ -77,16 +134,16 @@
   padding: 0;
   font-size: var(--text-xs);
   font-weight: 500;
-  line-height: 28px;
+  line-height: 32px;
   color: var(--ink-3);
   white-space: nowrap;
 }
 
 .segmented-options {
   display: flex;
-  height: 28px;
-  padding: 2px;
-  border-radius: var(--radius-s);
+  height: 34px;
+  padding: 3px;
+  border-radius: 999px;
   background: var(--surface-sunken);
   box-shadow: inset 0 0 0 1px var(--hairline);
 }
@@ -108,14 +165,15 @@
   align-items: center;
   justify-content: center;
   height: 100%;
-  padding: 0 10px;
-  border-radius: 4px;
+  padding: 0 14px;
+  border-radius: 999px;
   font-size: var(--text-sm);
   font-weight: 500;
   color: var(--ink-2);
   transition:
     background var(--duration-fast),
-    color var(--duration-fast);
+    color var(--duration-fast),
+    box-shadow var(--duration-fast);
 }
 
 .segmented-option:hover span {
@@ -125,8 +183,8 @@
 .segmented-option input:checked + span {
   color: var(--ink);
   font-weight: 600;
-  background: var(--surface);
-  box-shadow: 0 0 0 1px var(--line-strong);
+  background: var(--glass-bright);
+  box-shadow: var(--glass);
 }
 
 .segmented-option input:focus-visible + span {
@@ -135,10 +193,6 @@
 }
 
 /* ---------- Vistas ---------- */
-.sidenav {
-  background: var(--chrome);
-}
-
 .tabs {
   display: flex;
   gap: var(--space-1);
@@ -156,14 +210,23 @@
   white-space: nowrap;
   transition:
     color var(--duration-fast),
-    background var(--duration-fast);
+    background var(--duration-fast),
+    box-shadow var(--duration-fast);
 }
 
+/* El ícono de cada vista va en una ficha; la de la vista activa se enciende con el naranja de la marca */
 .tab-icon {
   flex: none;
-  width: 16px;
-  height: 16px;
-  color: var(--ink-3);
+  width: 28px;
+  height: 28px;
+  padding: 6px;
+  border-radius: 9px;
+  color: var(--ink-2);
+  background: var(--surface-sunken);
+  transition:
+    color var(--duration-fast),
+    background var(--duration-fast),
+    box-shadow var(--duration-fast);
 }
 
 .tab::after {
@@ -183,11 +246,11 @@
 }
 
 .tab[aria-selected='true'] .tab-icon {
-  color: var(--ink);
-}
-
-.tab[aria-selected='true']::after {
-  opacity: 1;
+  color: var(--on-brand);
+  background: var(--brand-glow);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.45),
+    var(--brand-shadow);
 }
 
 .tab:focus-visible {
@@ -198,33 +261,63 @@
   display: none;
 }
 
-/* ---------- Franja de procedencia (permanente y fija) y avisos de conexión ---------- */
-.app-top {
-  position: sticky;
-  z-index: 20;
+/* ---------- Procedencia (bajo el título, siempre a la vista) y avisos de conexión ---------- */
+/* La etiqueta de procedencia: el único ámbar de la página, con borde punteado, ícono y texto (nunca solo por color) */
+.provenance {
+  position: relative;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px var(--space-2);
+  font-size: var(--text-xs);
+}
+
+.provenance-chip {
+  display: inline-flex;
+  align-items: flex-start;
+  gap: 6px;
+  padding: 3px 10px;
+  border: 1px dashed color-mix(in srgb, var(--sim-edge) 70%, transparent);
+  border-radius: 999px;
+  line-height: 1.45;
+  color: var(--sim-ink);
+  background: color-mix(in srgb, var(--sim-bg) 82%, transparent);
+}
+
+.provenance-chip svg {
+  flex: none;
+  width: 12px;
+  height: 12px;
+  margin-top: 3px;
+}
+
+.provenance-chip strong {
+  font-weight: 600;
+}
+
+.provenance .help-panel {
+  width: min(420px, 100%);
+}
+
+/* Los avisos de conexión: cápsulas de vidrio arriba del contenido */
+.notices {
+  padding-top: var(--space-3);
 }
 
 .provenance-row {
-  border-bottom: 1px solid var(--line);
-  color: var(--ink);
-  background: var(--surface-sunken);
-}
-
-.provenance-row--synthetic {
-  border-bottom-color: color-mix(in srgb, var(--sim-edge) 45%, transparent);
-  color: var(--sim-ink);
-  background: var(--sim-bg);
-}
-
-.provenance-row--demo {
-  border-bottom-color: color-mix(in srgb, var(--sim-edge) 45%, transparent);
-  color: var(--sim-ink);
-  background: var(--sim-bg);
-}
-
-.provenance-row--offline {
+  width: min(100% - 2 * var(--pad), var(--panel-max) - 2 * var(--pad));
+  margin-inline: auto;
+  border: 1px solid var(--line);
+  border-radius: 16px;
   color: var(--ink-2);
   background: var(--chrome);
+  box-shadow: var(--glass-shadow);
+  -webkit-backdrop-filter: var(--glass-blur);
+  backdrop-filter: var(--glass-blur);
+}
+
+.provenance-row + .provenance-row {
+  margin-top: var(--space-2);
 }
 
 .provenance-inner {
@@ -232,7 +325,7 @@
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: 7px var(--pad);
+  padding: 8px var(--space-4);
   font-size: 0.78125rem;
   line-height: 1.45;
 }
@@ -260,18 +353,6 @@
   flex: none;
 }
 
-/* "¿Qué es real?": su panel se abre bajo la franja, alineado a la derecha */
-.provenance-inner .help {
-  flex: none;
-}
-
-.provenance-inner .help-panel {
-  right: var(--pad);
-  left: auto;
-  width: min(420px, calc(100% - 2 * var(--pad)));
-  color: var(--ink-2);
-}
-
 /* ---------- Contenido ---------- */
 .app-main {
   min-width: 0;
@@ -281,13 +362,13 @@
   width: 100%;
   max-width: var(--panel-max);
   margin-inline: auto;
-  padding: var(--space-5) var(--pad) var(--space-7);
+  padding: var(--space-6) var(--pad) var(--space-7);
 }
 
 /* ---------- Cabecera de página: título, estado de los datos, "Actualizar" y subpestañas ---------- */
 .page-head {
   display: grid;
-  gap: var(--space-4);
+  gap: var(--space-5);
   margin-bottom: var(--space-6);
 }
 
@@ -300,15 +381,15 @@
 
 .page-head-text {
   display: grid;
-  gap: var(--space-1);
+  gap: var(--space-2);
   min-width: 0;
 }
 
 .page-title {
-  font-size: 1.25rem;
-  font-weight: 600;
-  letter-spacing: -0.01em;
-  line-height: 1.3;
+  font-size: clamp(1.625rem, 1.3rem + 1.1vw, 2.125rem);
+  font-weight: 700;
+  letter-spacing: -0.035em;
+  line-height: 1.1;
 }
 
 .page-meta {
@@ -341,79 +422,83 @@
   gap: var(--space-2);
 }
 
-/* Estado de los datos: el único punto de color de estado de la página */
+/* Estado de los datos: el único punto de color de estado de la página, con su halo */
 .data-status {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
+  gap: 7px;
   font-weight: 500;
   color: var(--ink-2);
 }
 
 .data-status::before {
   content: '';
-  width: 6px;
-  height: 6px;
-  border-radius: 1px;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
   background: var(--good);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--good) 22%, transparent);
 }
 
 .data-status--saved::before {
   background: var(--warn);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--warn) 26%, transparent);
 }
 
 .data-status--offline::before {
   background: var(--bad);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--bad) 22%, transparent);
 }
 
 .data-status--snapshot::before {
   background: var(--ink-3);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--ink-3) 22%, transparent);
 }
 
-/* ---------- Subpestañas de una vista ---------- */
-.subnav {
-  border-bottom: 1px solid var(--line);
-}
-
+/* ---------- Subpestañas de una vista: una cápsula de vidrio con la elegida encendida ---------- */
 .subnav ul {
-  display: flex;
-  gap: var(--space-4);
-  margin-inline: -4px;
+  display: inline-flex;
+  gap: 2px;
+  padding: 4px;
+  border-radius: 999px;
   list-style: none;
+  background: var(--surface);
+  box-shadow: var(--glass);
+  -webkit-backdrop-filter: var(--glass-blur);
+  backdrop-filter: var(--glass-blur);
 }
 
 .subnav button {
   position: relative;
-  height: 36px;
-  padding: 0 4px;
+  height: 34px;
+  padding: 0 var(--space-4);
+  border-radius: 999px;
   font-size: 0.84375rem;
   font-weight: 500;
   color: var(--ink-2);
   white-space: nowrap;
-  transition: color var(--duration-fast);
+  transition:
+    color var(--duration-fast),
+    background var(--duration-fast),
+    box-shadow var(--duration-fast);
 }
 
 .subnav button:hover {
   color: var(--ink);
+  background: var(--surface-sunken);
 }
 
 .subnav button[aria-current='page'] {
-  color: var(--ink);
+  color: var(--on-brand);
   font-weight: 600;
-}
-
-/* Subrayado de la activa, pegado al borde inferior (tapa la línea de la fila) */
-.subnav button[aria-current='page']::after {
-  content: '';
-  position: absolute;
-  inset: auto 4px -1px;
-  height: 2px;
-  border-radius: 2px 2px 0 0;
-  background: var(--ink);
+  background: var(--brand-solid);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.35),
+    var(--brand-shadow);
 }
 
 .subnav button:focus-visible {
-  outline-offset: -2px;
+  outline-offset: 2px;
 }
 
 /* ---------- Pie ---------- */
@@ -428,34 +513,44 @@
   padding: var(--space-5) var(--pad) var(--space-7);
 }
 
-/* ---------- Desde 1200 px: barra lateral ---------- */
+/* ---------- Desde 1200 px: barra lateral de vidrio, separada de los bordes ---------- */
 @media (min-width: 1200px) {
-  /* El fondo y el borde de la columna van en .app: la barra fija mide un alto de ventana y la página, más */
   .app {
     display: grid;
-    grid-template-columns: var(--sidenav-w) minmax(0, 1fr);
-    background: linear-gradient(
-      90deg,
-      var(--chrome) calc(var(--sidenav-w) - 1px),
-      var(--line) calc(var(--sidenav-w) - 1px) var(--sidenav-w),
-      transparent var(--sidenav-w)
-    );
+    grid-template-columns: calc(var(--sidenav-w) + 12px) minmax(0, 1fr);
   }
 
   .sidebar {
     position: sticky;
-    top: 0;
+    top: 12px;
     display: flex;
     flex-direction: column;
     gap: var(--space-5);
-    height: 100dvh;
-    padding: var(--space-4) var(--space-3);
+    height: calc(100dvh - 24px);
+    margin: 12px 0 12px 12px;
+    padding: var(--space-5) var(--space-3) var(--space-4);
     overflow-y: auto;
+    border-radius: 28px;
+    background: var(--chrome);
+    box-shadow: var(--glass);
+    -webkit-backdrop-filter: var(--glass-blur);
+    backdrop-filter: var(--glass-blur);
   }
 
+  /* El logo arriba y, debajo, qué es el panel; el tema, en la esquina */
   .masthead {
     align-items: flex-start;
-    padding-left: 6px;
+    padding-inline: var(--space-2) 2px;
+  }
+
+  .brand {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--space-3);
+  }
+
+  .brand-logo {
+    height: 30px;
   }
 
   /* La fuente: el rótulo arriba y las dos opciones a todo el ancho */
@@ -470,7 +565,7 @@
 
   .app-source .segmented-legend {
     float: none;
-    padding-left: 4px;
+    padding-left: var(--space-2);
     line-height: 1.3;
   }
 
@@ -480,27 +575,25 @@
 
   .tabs {
     flex-direction: column;
-    gap: 2px;
+    gap: var(--space-1);
   }
 
   .tab {
-    height: 32px;
-    padding: 0 8px;
-    border-radius: var(--radius-s);
+    height: 44px;
+    padding: 0 var(--space-2);
+    border-radius: 16px;
     font-size: var(--text-sm);
     text-align: left;
   }
 
-  .tab:hover,
-  .tab[aria-selected='true'] {
+  .tab:hover {
     background: var(--surface-sunken);
   }
 
-  /* El acento: una barra de 2 px a la izquierda de la vista activa */
-  .tab::after {
-    inset: 8px auto 8px 0;
-    width: 2px;
-    border-radius: 0 2px 2px 0;
+  /* La vista activa: un vidrio más claro, levantado sobre la barra */
+  .tab[aria-selected='true'] {
+    background: var(--glass-bright);
+    box-shadow: var(--glass);
   }
 
   .tab-long {
@@ -508,29 +601,23 @@
     text-overflow: ellipsis;
   }
 
-  .app-top {
-    top: 0;
-  }
-
   h2[id] {
-    scroll-margin-top: calc(var(--top-h, 36px) + 16px);
+    scroll-margin-top: var(--space-4);
   }
 }
 
-/* ---------- Bajo 1200 px: la marca y la fuente arriba, las vistas en una tira fija ---------- */
+/* ---------- Bajo 1200 px: la marca y la fuente arriba, las vistas en una tira de vidrio fija ---------- */
 @media (max-width: 1199px) {
   .sidebar {
     display: contents;
   }
 
   .masthead {
-    padding: var(--space-3) var(--pad) var(--space-2);
-    background: var(--chrome);
+    padding: var(--space-4) var(--pad) var(--space-3);
   }
 
   .app-source {
     padding: 0 var(--pad) var(--space-3);
-    background: var(--chrome);
   }
 
   .sidenav {
@@ -539,6 +626,9 @@
     z-index: 21;
     height: var(--nav-h);
     border-block: 1px solid var(--line);
+    background: var(--chrome);
+    -webkit-backdrop-filter: var(--glass-blur);
+    backdrop-filter: var(--glass-blur);
   }
 
   .tabs {
@@ -558,17 +648,19 @@
     padding: 0 8px;
   }
 
+  /* El acento: una línea naranja bajo la vista activa */
   .tab::after {
     inset: auto 8px -1px;
-    height: 2px;
+    height: 3px;
+    border-radius: 3px 3px 0 0;
+  }
+
+  .tab[aria-selected='true']::after {
+    opacity: 1;
   }
 
   .tab-icon {
     display: none;
-  }
-
-  .app-top {
-    top: var(--nav-h);
   }
 
   .provenance-inner {
@@ -584,7 +676,7 @@
   }
 
   h2[id] {
-    scroll-margin-top: calc(var(--nav-h) + var(--top-h, 48px) + 12px);
+    scroll-margin-top: calc(var(--nav-h) + 12px);
   }
 }
 
@@ -613,17 +705,14 @@
 
 @media (max-width: 759px) {
   .subnav {
+    margin-inline: calc(-1 * var(--pad));
+    padding: 4px var(--pad) 14px;
     overflow-x: auto;
     scrollbar-width: none;
-    mask-image: linear-gradient(90deg, #000 calc(100% - 28px), transparent);
   }
 
   .subnav::-webkit-scrollbar {
     display: none;
-  }
-
-  .subnav ul {
-    padding-right: var(--space-5);
   }
 }
 
@@ -648,5 +737,25 @@
 
   .tab-short {
     display: inline;
+  }
+}
+
+/* ---------- Sin transparencia: el vidrio se vuelve opaco ---------- */
+/* Quien pide menos transparencia al sistema, o un navegador sin `backdrop-filter`, ve las mismas superficies sin
+   desenfoque y con el color pleno: el texto nunca queda sobre el fondo de luz sin un vidrio que lo aclare. */
+@media (prefers-reduced-transparency: reduce) {
+  :root {
+    --chrome: var(--opaque);
+    --surface: var(--opaque);
+    --surface-raised: var(--opaque);
+    --glass-blur: none;
+  }
+}
+
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  :root {
+    --chrome: var(--opaque);
+    --surface: var(--opaque);
+    --surface-raised: var(--opaque);
   }
 }
