@@ -167,6 +167,7 @@ def search_grouped(
     found, strict = _search_grouped(conn, q, embedder, current, limit, price_max, mode, spare)
     if not correct or (fixed := correct_query(conn, q, None, matched=bool(strict))) is None:
         return found
+    conn.commit()  # lo leído (la búsqueda y el corrector) no queda abierto mientras se calcula el vector de `fixed`
     again, strict = _search_grouped(conn, fixed, embedder, current, limit, price_max, mode, spare)
     if not again.groups or not strict:
         return found

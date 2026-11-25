@@ -176,6 +176,7 @@ def search_products(
     fixed = correct_query(conn, query, vertical, matched=bool(found.result.strict_lexical_matches))
     if fixed is None:
         return found
+    conn.commit()  # lo leído (la búsqueda y el corrector) no queda abierto mientras se calcula el vector de `fixed`
     if concepts is None:  # lo corregido también se lee solo: "bebida para mezclar con piscco" busca la bebida
         again = search_products(
             conn, vertical, fixed, None, embedder, price_max, k, mode, symptom, offer, adult_ok, sober=sober
