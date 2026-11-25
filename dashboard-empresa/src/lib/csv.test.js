@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'vitest'
-import { csvFileName, tableToCsv } from './csv.js'
+import { csvFileName, tablesToCsv, tableToCsv } from './csv.js'
 
 const table = (html) => {
   const element = document.createElement('table')
@@ -30,6 +30,23 @@ describe('tableToCsv', () => {
   test('a cell with the separator, a quote or a line break goes quoted', () => {
     const csv = tableToCsv(table('<tbody><tr><td>Restaurantes; Turbo</td><td>"Volvemos a…"</td></tr></tbody>'))
     expect(csv).toBe('"Restaurantes; Turbo";"""Volvemos a…"""')
+  })
+})
+
+describe('tablesToCsv', () => {
+  test('one table: the same as tableToCsv', () => {
+    const one = table('<caption>Grupos</caption><tbody><tr><td>control</td><td>12</td></tr></tbody>')
+    expect(tablesToCsv([one])).toBe('control;12')
+  })
+
+  test('several tables: all of them, in order, each under its caption and a blank line apart', () => {
+    const groups = table('<caption>Grupos</caption><tbody><tr><td>control</td><td>12</td></tr></tbody>')
+    const retention = table(
+      '<caption>Retención M+1 por grupo</caption><tbody><tr><td>control</td><td>48,1%</td></tr></tbody>',
+    )
+    expect(tablesToCsv([groups, retention])).toBe(
+      'Grupos\r\ncontrol;12\r\n\r\nRetención M+1 por grupo\r\ncontrol;48,1%',
+    )
   })
 })
 

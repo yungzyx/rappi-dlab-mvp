@@ -29,6 +29,20 @@ export function tableToCsv(table) {
     .join('\r\n')
 }
 
+/**
+ * El CSV de todas las tablas de un bloque. Con una, igual que `tableToCsv`; con varias, cada una precedida por su
+ * título (el `<caption>`) y separada de la siguiente por una línea vacía, en el orden en que se ven.
+ */
+export function tablesToCsv(tables) {
+  if (tables.length === 1) return tableToCsv(tables[0])
+  return tables
+    .map((table) => {
+      const title = table.caption?.textContent.trim()
+      return title ? `${quote(title)}\r\n${tableToCsv(table)}` : tableToCsv(table)
+    })
+    .join('\r\n\r\n')
+}
+
 /** Un nombre de archivo a partir de un título: "Serie semanal" → "serie-semanal.csv". */
 export function csvFileName(title) {
   const slug = title

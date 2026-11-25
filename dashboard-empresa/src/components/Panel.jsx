@@ -1,12 +1,12 @@
-import { csvFileName, downloadCsv, tableToCsv } from '../lib/csv.js'
+import { csvFileName, downloadCsv, tablesToCsv } from '../lib/csv.js'
 import { Help } from './Help.jsx'
 import { Icon } from './Icon.jsx'
 import { ProvenanceBadge } from './ProvenanceBadge.jsx'
 
-/** Descarga la tabla del panel donde está el botón, tal como se ve. */
+/** Descarga las tablas del panel donde está el botón, tal como se ven (todas, si tiene más de una). */
 function exportTable(event, name) {
-  const table = event.currentTarget.closest('.panel')?.querySelector('table')
-  if (table) downloadCsv(csvFileName(name), tableToCsv(table))
+  const tables = [...(event.currentTarget.closest('.panel')?.querySelectorAll('table') ?? [])]
+  if (tables.length) downloadCsv(csvFileName(name), tablesToCsv(tables))
 }
 
 /**
