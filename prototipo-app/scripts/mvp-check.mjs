@@ -344,9 +344,15 @@ async function checkCombo(page) {
     await page.waitForTimeout(1000)
   }
   await step(page, 'ver la oferta de Mochi con su "¿Por qué?"', () => why.first().waitFor({ timeout: 2000 }))
-  const proposal = await step(page, 'leer la oferta de Mochi', () =>
-    page.locator('.agent-msg-bot .agent-msg-bubble').last().innerText(),
-  )
+  // El texto llega escrito de a poco: se lee cuando termina (los extras de la respuesta dejan de estar pendientes).
+  const offer = page
+    .locator('.agent-msg-bot')
+    .filter({ has: page.locator('.agent-msg-extras:not(.is-pending)') })
+    .last()
+  const proposal = await step(page, 'leer la oferta de Mochi', async () => {
+    await offer.waitFor({ timeout: 10_000 })
+    return offer.locator('.agent-msg-bubble').innerText()
+  })
   if (!/Turbo/.test(proposal)) throw new Error(`pidió en Restaurantes y Mochi propuso "${proposal}", no Turbo`)
   await step(page, 'abrir el "¿Por qué?"', () => why.first().click())
   const reason = await step(page, 'leer la razón', async () => {
