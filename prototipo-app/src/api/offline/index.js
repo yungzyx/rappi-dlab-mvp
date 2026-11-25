@@ -531,6 +531,9 @@ function answer(snapshot, { method, path, query, body }, now) {
     return key === 'POST /events' ? { body: { guardados: sent.length } } : { status: 204, body: null }
   }
   if (key === 'POST /orders') {
+    // Un reenvío con la misma clave devuelve el pedido ya guardado (api/app.py: post_order).
+    const saved = body?.client_order_id && state.orders.find((o) => o.client_order_id === body.client_order_id)
+    if (saved) return { body: { order_id: saved.order_id, lineas_omitidas: 0 } }
     const vertical = backendVertical(body?.vertical)
     if (!ORDER_VERTICALS.includes(vertical) || !body?.lines?.length)
       return { status: 400, body: { detail: `Vertical desconocido: ${body?.vertical}` } }
@@ -551,6 +554,7 @@ function answer(snapshot, { method, path, query, body }, now) {
       vertical,
       mode: body.mode ?? 'propuesta',
       cart_id: body.cart_id ?? null,
+      ...(body.client_order_id ? { client_order_id: body.client_order_id } : {}),
       lines: body.lines,
       ...(auto ? { origin: auto.origin, basis: auto.basis } : {}),
     }

@@ -45,6 +45,15 @@ export function addEvents(events) {
 /** ¿Cuenta como compra? Un pedido cancelado (`order_cancelled`, migración 050) no: ni recompra, ni motor, ni perfiles. */
 export const isConfirmed = (order) => order.status !== 'cancelado'
 
+// ¿Ese `order_cancelled` es de ese pedido? El de su carro y su tienda (`payload.store_id`) o, sin tienda, su vertical.
+const hits = (order, e) =>
+  e.type === 'order_cancelled' &&
+  Boolean(e.cart_id) &&
+  order.cart_id === e.cart_id &&
+  (e.payload?.store_id != null
+    ? order.lines.some((line) => Number(line.store_id) === Number(e.payload.store_id))
+    : !e.vertical || order.vertical === e.vertical)
+
 /**
  * Los pedidos que cancela un `order_cancelled` (events/store.py: _record_cancellations, en los dos modos): los de su
  * carro y su tienda (`payload.store_id`) o, sin tienda, su vertical.
@@ -52,11 +61,6 @@ export const isConfirmed = (order) => order.status !== 'cancelado'
 export function cancelOrders(events) {
   const cancels = events.filter((e) => e.type === 'order_cancelled' && e.cart_id)
   if (!cancels.length) return readState()
-  const hits = (order, e) =>
-    order.cart_id === e.cart_id &&
-    (e.payload?.store_id != null
-      ? order.lines.some((line) => Number(line.store_id) === Number(e.payload.store_id))
-      : !e.vertical || order.vertical === e.vertical)
   return updateState((state) => ({
     ...state,
     orders: state.orders.map((order) =>
@@ -65,8 +69,12 @@ export function cancelOrders(events) {
   }))
 }
 
+/** Guarda un pedido; si su cancelación llegó antes (events/store.py: _EARLIER_CANCELLATION), queda cancelado. */
 export function addOrder(order) {
-  return updateState((state) => ({ ...state, orders: [...state.orders, order] }))
+  return updateState((state) => {
+    const cancelled = state.events.some((e) => hits(order, e))
+    return { ...state, orders: [...state.orders, cancelled ? { ...order, status: 'cancelado' } : order] }
+  })
 }
 
 /** "Olvidar": lo que la API simulada sabe de la persona. */

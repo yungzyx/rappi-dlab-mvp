@@ -95,6 +95,16 @@ describe('pedidos para el panel', () => {
     expect(turbo.vertical).toBe('turbo')
   })
 
+  test('cada pedido lleva su clave, otra en cada pedido: un reenvío del mismo cuerpo no es otra compra', () => {
+    const items = [
+      { product: { ...beer(), storeId: 1 }, qty: 1 },
+      { product: { ...beer(), storeId: 2 }, qty: 1 },
+    ]
+    const keys = [...buildOrders(items, ctx), ...buildOrders(items, ctx)].map((order) => order.client_order_id)
+    keys.forEach((key) => expect(key).toMatch(/^[A-Za-z0-9._-]{1,64}$/)) // el patrón de la API (OrderIn)
+    expect(new Set(keys).size).toBe(4)
+  })
+
   test('el concepto de un producto es el que trae de la API; sin él, no se inventa uno', () => {
     expect(conceptOf(beer())).toBe('cerveza')
     expect(conceptOf({ name: 'Cerveza sin concepto' })).toBeUndefined()
