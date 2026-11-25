@@ -5,19 +5,27 @@ from argparse import Namespace
 import pytest
 from psycopg.pq import TransactionStatus
 
-from conftest import FakeClient
-from rappi_scraper import cli
+from conftest import AISLE_MARK, FakeClient, astro_island
+from rappi_scraper import cli, config
 from rappi_scraper.pipeline import discover, stores
 from rappi_scraper.pipeline.queue import PossibleBlock
 from rappi_scraper.pipeline.restaurants import process_restaurant_jobs
 from rappi_scraper.pipeline.stores import process_store_jobs
-from rappi_scraper.scraping.next_data import extract_next_data
+from rappi_scraper.scraping.astro import Page
 from rappi_scraper.storage import repository
 from rappi_scraper.storage.db import migrate
 from rappi_scraper.storage.search import build_search_documents
 
 LIDER = "/tiendas/900025946-lider"
-LACTEOS = f"{LIDER}/lacteos-y-huevos"  # pasillo 14406; su primer sub-pasillo es yogurt (14521)
+AISLES = "/tiendas/market/lider/900025946-lider" + AISLE_MARK  # los pasillos enlazados desde la portada de Lider
+LACTEOS = f"{AISLES}14406"  # el primer pasillo; su primer sub-pasillo es yogurt (14521)
+FRUTAS = f"{AISLES}14405"  # el segundo
+
+
+@pytest.fixture
+def tolerant(monkeypatch):
+    """Con los 10 pasillos de la portada, uno omitido ya pasa el 5 %: estos tests miran qué pasa con lo omitido."""
+    monkeypatch.setattr(config, "SKIPPED_PAGES_MAX", 0.2)
 
 
 def _store_job(key, *paths, verticals=("supermercado",)):
@@ -61,11 +69,14 @@ def test_store_seen_only_in_filters_moves_to_turbo_once_its_page_says_so(db):
     lider = "/tiendas/900025946-lider"
 
     class TurboPage(FakeClient):
-        def get_next_data(self, path):
-            data = super().get_next_data(path)
-            if path == lider:
-                data["props"]["pageProps"]["storeContext"].update(store_type="turbo_x", sub_group="Turbo")
-            return data
+        def get_page(self, path):
+            page = super().get_page(path)
+            if path == lider:  # el buscador y el evento de la tienda van primero: son los que se leen
+                overlay = astro_island("SearchBarOverlay", {"storeId": 900025946, "storeType": "turbo_x"})
+                event = '<div data-analytics="{&quot;event_name&quot;:&quot;VIEW_STORE_TYPE&quot;,'
+                event += '&quot;event_properties&quot;:{&quot;VERTICAL_SUB_GROUP&quot;:&quot;Turbo&quot;}}"></div>'
+                page = Page(page.path, overlay + event + page.html)
+            return page
 
     # Lo que deja el descubrimiento: la tienda sin formato, en el vertical del listado y con su filtro.
     repository.upsert_store(db, {"store_id": 900025946, "name": "Lider", "store_type": "", "path": lider})
@@ -131,40 +142,32 @@ def test_store_job_fails_when_no_branch_available(db):
     assert _statuses(db) == {"type:x": "failed"}
 
 
-@pytest.mark.parametrize(
-    ("bad_path", "next_path", "skipped_aisle"),
-    [
-        (LACTEOS, f"{LIDER}/snacks-y-dulces", 14406),
-        (f"{LACTEOS}/yogurt", f"{LACTEOS}/leche", 14521),
-    ],
-    ids=["pasillo", "sub-pasillo"],
-)
-def test_page_without_storefront_skips_only_that_aisle(db, bad_path, next_path, skipped_aisle):
-    # Rappi a veces entrega un pasillo o sub-pasillo sin fallback['storefront/...'] (27-09-2026): se omite esa
-    # página y la tienda sigue, en vez de perder todo lo recorrido.
+def test_page_without_sub_aisles_skips_only_that_aisle(db, tolerant):
+    # Rappi a veces entregaba otra página en lugar de un pasillo (27-09-2026, un listado): se omite esa página y la
+    # tienda sigue, en vez de perder todo lo recorrido.
     run = repository.start_run(db, "stores", {})
     repository.add_jobs(db, run, [_store_job("type:lider", LIDER)])
-    client = FakeClient({bad_path: "listing_market"})  # página real sin storefront
+    client = FakeClient({LACTEOS: "listing_market"})  # página real sin sub-pasillos
 
     process_store_jobs(db, client, run)
 
-    # sigue con la página hermana siguiente, no corta el recorrido
-    assert client.requested.index(next_path) > client.requested.index(bad_path)
+    # sigue con el pasillo siguiente, no corta el recorrido
+    assert client.requested.index(FRUTAS) > client.requested.index(LACTEOS)
     status, result = db.execute("SELECT status, result FROM scrape_jobs WHERE job_key = 'type:lider'").fetchone()
-    assert (status, result["paginas_omitidas"], result["pasillos_omitidos"]) == ("done", 1, [skipped_aisle])
+    assert (status, result["paginas_omitidas"], result["pasillos_omitidos"]) == ("done", 1, [14406])
     assert result["paginas_intentadas"] == len(client.requested) - 1  # todas menos la portada
     assert db.execute("SELECT count(*) FROM store_products").fetchone()[0] > 0
 
 
-def test_one_broken_aisle_page_is_skipped_not_fatal(db):
+def test_one_broken_aisle_page_is_skipped_not_fatal(db, tolerant):
     """Un pasillo con el JSON cortado (json.loads → ValueError) tumbaba toda la tienda tras recorrerla."""
 
     class BrokenAisle(FakeClient):
-        def get_next_data(self, path):
+        def get_page(self, path):
             if path == LACTEOS:
                 self.requested.append(path)
-                return extract_next_data('<script id="__NEXT_DATA__" type="application/json">{"props":</script>')
-            return super().get_next_data(path)
+                return Page(path, '<astro-island component-url="/_astro/DynamicListAisle.a.js" props="{&quot;co">')
+            return super().get_page(path)
 
     run = repository.start_run(db, "stores", {})
     repository.add_jobs(db, run, [_store_job("type:lider", LIDER)])
@@ -198,7 +201,7 @@ def _finish_store_job(db, run: int) -> None:
     repository.mark_job(db, run, "type:lider", "done", {"store_id": 900025946, "store_type": "lider"}, None)
 
 
-def test_skipped_aisle_keeps_its_offers_current(db):
+def test_skipped_aisle_keeps_its_offers_current(db, tolerant):
     """La corrida 2 no pudo leer Lácteos: sus productos siguen en la búsqueda (con su último precio) hasta la próxima
     corrida, en vez de desaparecer una semana. Lo que no salió en un pasillo que sí se leyó deja de estar vigente."""
     _, (in_skipped, in_read) = _seed_previous_run(db)
@@ -230,7 +233,7 @@ def _seed_run(db, products: dict[str, int]) -> None:
     repository.finish_run(db, run)
 
 
-def test_skipped_aisle_only_rescues_offers_from_the_previous_run(db):
+def test_skipped_aisle_only_rescues_offers_from_the_previous_run(db, tolerant):
     """Un producto que la corrida 2 ya no encontró (con su pasillo leído sin problemas) no vuelve con el precio de hace
     meses porque la corrida 3 se saltó ese pasillo; uno que sí estaba en la corrida 2 se mantiene."""
     _seed_run(db, {"x7001": 14406, "x7003": 14411})  # corrida 1: x7001 en Lácteos
@@ -253,14 +256,14 @@ def test_too_many_skipped_pages_fails_job(db):
     run = repository.start_run(db, "stores", {})
     repository.add_jobs(db, run, [_store_job("type:lider", LIDER)])
 
-    process_store_jobs(db, FakeClient(failing={LACTEOS}), run, max_aisles=2)  # 1 de 12 páginas: 8 %
+    process_store_jobs(db, FakeClient(failing={LACTEOS}), run, max_aisles=2)  # 1 de 2 páginas
     build_search_documents(db)
 
     status, error, attempts, result = db.execute(
         "SELECT status, error, attempts, result FROM scrape_jobs WHERE run_id = %s", (run,)
     ).fetchone()
     assert (status, error, attempts) == ("failed", "demasiadas páginas omitidas", 2)
-    assert (result["paginas_omitidas"], result["paginas_intentadas"]) == (1, 12)
+    assert (result["paginas_omitidas"], result["paginas_intentadas"]) == (1, 2)
     assert db.execute("SELECT count(*) FROM price_snapshots WHERE run_id = %s", (run,)).fetchone()[0] == 0
     ids = {r[0] for r in db.execute("SELECT entity_id FROM search_documents WHERE entity_type = 'catalog_item'")}
     assert {in_skipped, in_read} <= ids  # la corrida 1 sigue vigente
@@ -270,10 +273,10 @@ def test_possible_block_from_the_client_stops_the_store_job(db):
     """El cliente detecta el bloqueo por request: ni el pasillo ni la tienda lo atrapan, y el job sigue pendiente."""
 
     class Blocking(FakeClient):
-        def get_next_data(self, path):
+        def get_page(self, path):
             if path == LACTEOS:
                 raise PossibleBlock("posible bloqueo: 20 respuestas seguidas de rechazo")
-            return super().get_next_data(path)
+            return super().get_page(path)
 
     run = repository.start_run(db, "stores", {})
     repository.add_jobs(db, run, [_store_job("type:lider", LIDER)])
@@ -303,23 +306,23 @@ def test_first_handler_runs_outside_transaction(db, monkeypatch):
 
 
 def test_branch_that_redirects_mid_crawl_falls_back_to_next_branch(db):
-    # Un pasillo que redirige al listado (/tiendas/tipo/...) dice que la sucursal dejó de despachar a esa ubicación:
+    # Un pasillo que redirige a un listado de tiendas dice que la sucursal dejó de despachar a esa ubicación:
     # no se guarda su catálogo a medias, se prueba la siguiente sucursal.
     run = repository.start_run(db, "stores", {})
     repository.add_jobs(db, run, [_store_job("type:x", "/tiendas/900025946-lider", "/tiendas/2-otra")])
-    client = FakeClient({"/tiendas/2-otra": "store_mall"}, unavailable={"/tiendas/900025946-lider/lacteos-y-huevos"})
+    client = FakeClient({"/tiendas/2-otra": "store_small"}, unavailable={LACTEOS})
 
     process_store_jobs(db, client, run, max_aisles=1)
 
     status, result = db.execute("SELECT status, result FROM scrape_jobs WHERE job_key = 'type:x'").fetchone()
-    assert (status, result["store_id"]) == ("done", 900099813)
+    assert (status, result["store_id"]) == ("done", 900090302)
     assert db.execute("SELECT count(*) FROM store_products WHERE store_id = 900025946").fetchone()[0] == 0
 
 
 def test_branch_that_redirects_mid_crawl_fails_when_no_other_branch(db):
     run = repository.start_run(db, "stores", {})
     repository.add_jobs(db, run, [_store_job("type:lider", "/tiendas/900025946-lider")])
-    client = FakeClient(unavailable={"/tiendas/900025946-lider/lacteos-y-huevos"})
+    client = FakeClient(unavailable={LACTEOS})
 
     process_store_jobs(db, client, run, max_aisles=1)
 
@@ -333,8 +336,7 @@ def test_store_fails_when_no_aisle_can_be_read(db):
     # no lleva números para que el reporte agrupe todas las tiendas con este error.
     run = repository.start_run(db, "stores", {})
     repository.add_jobs(db, run, [_store_job("type:lider", "/tiendas/900025946-lider")])
-    lider = "/tiendas/900025946-lider"
-    client = FakeClient({f"{lider}/lacteos-y-huevos": "listing_market", f"{lider}/snacks-y-dulces": "listing_market"})
+    client = FakeClient({LACTEOS: "listing_market", FRUTAS: "listing_market"})
 
     process_store_jobs(db, client, run, max_aisles=2)
 
@@ -366,7 +368,29 @@ def test_restaurant_branches_of_same_brand_are_scraped_once(db):
 
     assert _statuses(db) == {"rest:1": "done", "rest:2": "skipped"}
     assert repository.brands_done(db, run) == {3607}
-    assert db.execute("SELECT count(*) FROM menu_price_snapshots").fetchone()[0] == 61
+    assert db.execute("SELECT count(*) FROM menu_price_snapshots").fetchone()[0] == 7
+
+
+def test_each_restaurant_is_asked_for_from_its_saved_location(db):
+    """Fuera de la zona del local el menú sale "No disponible": cada sucursal se pide desde sus coordenadas guardadas, y
+    una sin coordenadas, sin ubicación."""
+    repository.upsert_store(db, {"store_id": 1, "name": "R1", "city": "Temuco", "lat": -38.7, "lng": -72.6})
+    run = repository.start_run(db, "restaurants", {})
+    job = {"verticals": ["restaurantes"], "candidates": [{"store_id": 1, "path": "/restaurantes/1"}]}
+    other = {"verticals": ["restaurantes"], "candidates": [{"store_id": 2, "path": "/restaurantes/2"}]}
+    repository.add_jobs(
+        db,
+        run,
+        [
+            {"job_key": "rest:1", "job_type": "restaurant", "payload": job},
+            {"job_key": "rest:2", "job_type": "restaurant", "payload": other},
+        ],
+    )
+    client = FakeClient({"/restaurantes/1": "restaurant", "/restaurantes/2": "restaurant"})
+
+    process_restaurant_jobs(db, client, run)
+
+    assert client.locations == [(-38.7, -72.6, "Temuco"), None]
 
 
 def test_restaurant_that_no_longer_exists_is_skipped_not_failed(db):
@@ -382,25 +406,36 @@ def test_restaurant_that_no_longer_exists_is_skipped_not_failed(db):
     assert (status, result["reason"]) == ("skipped", "ya no existe en Rappi")
 
 
-def test_discover_restaurants_retries_failed_chains_and_skips_their_branches(db, monkeypatch):
-    chain_url = "https://www.rappi.cl/restaurantes/delivery/1833-vapiano"
+def test_discover_restaurants_groups_branches_by_name_without_asking_for_pages(db, monkeypatch):
+    """La página de una cadena ya no lista sus sucursales (sin ubicación redirige al inicio de sesión): salen del
+    sitemap de restaurantes, por el nombre en la URL, y no quedan además como independientes. Una cadena sin
+    sucursales en el sitemap no tiene job."""
     sitemaps = {
-        discover.CHAIN_SITEMAP: [chain_url],
+        discover.CHAIN_SITEMAP: [
+            "https://www.rappi.cl/restaurantes/delivery/1833-vapiano",
+            "https://www.rappi.cl/restaurantes/delivery/9999-sin-sucursales",
+        ],
         discover.PARTNER_SITEMAP: [
-            "https://www.rappi.cl/restaurantes/900021447-vapiano",  # sucursal de la cadena
+            "https://www.rappi.cl/restaurantes/900021447-vapiano",  # sucursales de la cadena
+            "https://www.rappi.cl/restaurantes/900021448-vapiano",
             "https://www.rappi.cl/restaurantes/555-independiente",
         ],
     }
     monkeypatch.setattr(discover, "_sitemap_urls", lambda client, url: sitemaps[url])
-    client = FakeClient(
-        {"/restaurantes/delivery/1833-vapiano": "brand_chain"}, failing_once={"/restaurantes/delivery/1833-vapiano"}
-    )
+    client = FakeClient()
     run = repository.start_run(db, "restaurants", {})
 
     n_jobs = discover.discover_restaurants(db, client, run)
 
     assert n_jobs == 2
     assert set(_statuses(db)) == {"chain:1833", "rest:555"}
+    assert client.requested == []
+    payload = db.execute("SELECT payload FROM scrape_jobs WHERE job_key = 'chain:1833'").fetchone()[0]
+    assert [c["path"] for c in payload["candidates"]] == [
+        "/restaurantes/900021447-vapiano",
+        "/restaurantes/900021448-vapiano",
+    ]
+    assert (payload["brand_id"], payload["name"]) == (1833, "vapiano")
 
 
 @pytest.mark.parametrize("vertical", ["mall", "supermercado"])

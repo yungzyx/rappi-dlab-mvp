@@ -1,7 +1,8 @@
 import pytest
 
+from conftest import astro_island
 from rappi_scraper.pricing import discount_pct
-from rappi_scraper.scraping.next_data import ParseError, extract_next_data
+from rappi_scraper.scraping.astro import Page, ParseError, components, content_islands, island_error
 from rappi_scraper.scraping.store_parser import (
     parse_aisles,
     parse_products,
@@ -11,32 +12,29 @@ from rappi_scraper.scraping.store_parser import (
 )
 
 
-def test_extract_next_data_raises_when_script_missing():
-    with pytest.raises(ParseError):
-        extract_next_data("<html><body>sin datos</body></html>")
+def test_props_are_revived_from_astro_serialization():
+    """Astro manda cada valor como [tipo, valor]: 0 un valor (y los de un objeto, serializados igual), 1 una lista."""
+    props = '{"a":[0,{"b":[1,[[0,1],[0,{"c":[0,null]}]]]}],"n":[0]}'.replace('"', "&quot;")
+    page = Page("", f'<astro-island uid="1" component-url="/_astro/X.Ab1.js" props="{props}"></astro-island>')
+    assert components(page, "X") == [{"a": {"b": [1, {"c": None}]}, "n": None}]  # [0] es undefined
+    nested = {"a": {"b": [1, {"c": None}]}}
+    assert components(Page("", astro_island("X", nested)), "X") == [nested]
+    assert components(page, "Y") == []
 
 
-def test_broken_next_data_is_parse_error():
-    """Una página cortada es un error de esa página (se omite), no uno que tumba la tienda entera."""
-    with pytest.raises(ParseError):
-        extract_next_data('<script id="__NEXT_DATA__" type="application/json">{"a":</script>')
+def test_content_islands_skip_the_header_ones_and_unescape_the_path():
+    html = (
+        "fetch('/_server-islands/UserAvatarContent?e=default&p=a&s=')"
+        "fetch('/_server-islands/StoreContent?e=default&amp;p=b%2F&s=')"
+        "fetch('/_server-islands/StoreContent?e=default&amp;p=b%2F&s=')"  # el mismo, otra vez (precarga)
+    )
+    assert content_islands(html) == [("StoreContent", "/_server-islands/StoreContent?e=default&p=b%2F&s=")]
 
 
-def test_next_data_any_attribute_order():
-    html = '<script type="application/json" nonce="x1" id="__NEXT_DATA__">{"a": 1}</script>'
-    assert extract_next_data(html) == {"a": 1}
-
-
-def test_unexpected_shapes_are_parse_errors(page):
-    store = page("store")
-    tree = store["props"]["pageProps"]["fallback"]
-    storefront = next(v for k, v in tree.items() if k.startswith("storefront/"))
-    storefront["aisles_tree_response"]["data"]["components"][0]["resource"].pop("name")
-    with pytest.raises(ParseError):
-        parse_aisles(store)
-    storefront["aisles_tree_response"]["data"]["components"] = 7  # un tipo inesperado
-    with pytest.raises(ParseError):
-        parse_aisles(store)
+def test_island_error_page_gives_code_and_message():
+    error = '<div data-analytics="{&quot;event_name&quot;:&quot;VIEW_ERROR_PAGE&quot;,&quot;event_properties&quot;:{&quot;ERROR_CODE&quot;:&quot;404&quot;,&quot;ERROR_MESSAGE&quot;:&quot;Location not found&quot;}}"></div>'  # noqa: E501
+    assert island_error(error) == ("404", "Location not found")
+    assert island_error("<astro-island></astro-island>") is None
 
 
 def test_parse_store_returns_store_info_and_canonical_path(page):
@@ -44,57 +42,67 @@ def test_parse_store_returns_store_info_and_canonical_path(page):
     assert store["store_id"] == 900025946
     assert store["name"] == "Lider"
     assert store["path"] == "/tiendas/900025946-lider"
-    assert store["address"]
+    assert (store["brand_id"], store["brand_name"]) == (12216, "Lider")
+    assert (store["store_type"], store["sub_group"]) == ("lider", "Super")
+    assert store["lat"] < -33 and store["lng"] < -70
+    assert store["city"] == store["address"] == ""  # no vienen: no pisan lo guardado
 
 
-def test_parse_store_includes_brand_and_subvertical(page):
-    store = parse_store(page("store_mall"))
-    assert store["brand_id"] == 64116
-    assert store["store_type"] == "accesoriosnyr_mt_enc"
-    assert store["sub_group"] == "Tecnologia"
+def test_a_page_without_store_data_is_parse_error(page):
+    with pytest.raises(ParseError, match="sin datos de la tienda"):
+        parse_store(page("listing_market"))
 
 
-def test_parse_aisles_lists_aisles_with_ids_urls_and_counts(page):
+def test_parse_aisles_lists_the_linked_aisles_with_their_pages(page):
     aisles = parse_aisles(page("store"))
-    assert len(aisles) == 19
-    assert all(a["aisle_id"] for a in aisles)
-    lacteos = next(a for a in aisles if a["friendly_url"] == "lacteos-y-huevos")
-    assert lacteos["name"] == "Lácteos y Huevos"
-    assert lacteos["product_count"] > 0
+    assert len(aisles) == 10
+    lacteos = aisles[0]
+    assert lacteos == {
+        "aisle_id": 14406,
+        "name": "Lácteos y Huevos",
+        "friendly_url": "lacteos-y-huevos",
+        "product_count": None,
+        "path": "/tiendas/market/lider/900025946-lider/sub_aisles?aisle_id=14406",
+    }
 
 
-def test_parse_sub_aisles_includes_non_rendered_ones_with_generated_slug(page):
+def test_a_store_without_aisle_links_has_no_aisles(page):
+    assert parse_aisles(page("store_small")) == []
+    assert len(parse_products(page("store_small"))) == 2
+
+
+def test_parse_sub_aisles_comes_with_their_products(page):
     subs = parse_sub_aisles(page("aisle"))
-    urls = {s["friendly_url"] for s in subs}
-    assert len(subs) == 10
-    assert {"yogurt", "leche", "leche-saborizada"} <= urls  # renderizados
-    assert "mantequillas-y-margarinas" in urls  # generado desde el nombre
-    assert next(s for s in subs if s["name"] == "Yogurt")["product_count"] == 313
+    assert [(s["aisle_id"], s["friendly_url"]) for s in subs] == [
+        (14521, "yogurt"),
+        (14516, "leche"),
+        (14512, "cremas"),
+    ]
+    assert all(len(s["products"]) == 2 for s in subs)
 
 
-def test_parse_products_on_sub_aisle_page(page):
-    products = parse_products(page("subaisle"))
-    assert len(products) == 24
+def test_products_keep_the_keys_of_the_previous_page(page):
+    """`save_products` y `store_products.raw` leen las claves de antes: snake_case, precio normal en `real_price`."""
+    products = parse_products(page("store"))
+    assert len(products) == 4
     assert all(p["product_id"] and p["store_id"] == 900025946 for p in products)
+    milk = next(p for p in products if p["name"] == "Colun Leche Entera Natural")
+    assert (milk["price"], milk["real_price"], milk["in_stock"]) == (930, 1100, True)
+    assert milk["master_product_id"] == 196743 and milk["category_id"] == 110
+    assert milk["image_url"] == milk["image_url"].split("?")[0]  # sin los parámetros de tamaño
+    assert milk["id"] == f"900025946_{milk['product_id']}"
+    promo = next(p for p in products if p["have_complex_discounts"])
+    assert promo["complex_discounts"][0]["label"].startswith("-")
 
 
-def test_parse_products_on_aisle_page(page):
-    assert len(parse_products(page("aisle"))) == 45
-
-
-def test_missing_storefront_error_names_the_page_received(page):
-    # listing_market: Rappi devolvió el listado del vertical en vez del pasillo (como en farmacia/primeros-auxilios)
-    with pytest.raises(ParseError) as exc:
-        parse_aisles(page("listing_market"))
-    assert str(exc.value) == "No se encontró fallback['storefront/...'] (claves: cpgs-catalog)"
-
-
-def test_missing_storefront_error_lists_key_prefixes_without_ids():
-    # sin ids ni repetidos: el reporte agrupa los errores por texto
-    fallback = {"store_information/900025946": {}, "store_information/1": {}, '@"cpgs-catalog","market",0,': {}}
-    with pytest.raises(ParseError) as exc:
-        parse_products({"props": {"pageProps": {"fallback": fallback}}})
-    assert str(exc.value).endswith("(claves: cpgs-catalog, store_information)")
+def test_unexpected_shapes_are_parse_errors():
+    item = {"type": "cpg_product_item", "id": 1}  # sin storeId
+    page = Page("", astro_island("DynamicListAisle", {"component": {"id": 1, "title": "X", "items": [item]}}))
+    with pytest.raises(ParseError):
+        parse_products(page)
+    page = Page("", astro_island("DynamicListAisle", {"component": {"id": 1, "items": []}}))  # sin título
+    with pytest.raises(ParseError):
+        parse_sub_aisles(page)
 
 
 @pytest.mark.parametrize(

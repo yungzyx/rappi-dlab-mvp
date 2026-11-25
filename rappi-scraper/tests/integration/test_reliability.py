@@ -252,7 +252,7 @@ def test_restaurant_report_and_written_files(db, tmp_path):
 
     report, path = write_run_report(db, run, reports_dir=tmp_path)
 
-    assert report["totals"] == {"restaurantes": 1, "platos": 61, "platos_nuevos": 61}
+    assert report["totals"] == {"restaurantes": 1, "platos": 7, "platos_nuevos": 7}
     assert all(c["ok"] for c in report["checks"])
     assert path == tmp_path / f"run_{run}_restaurants.md"
     assert "✓ Todas las validaciones" in path.read_text(encoding="utf-8")

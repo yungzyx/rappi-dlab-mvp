@@ -91,27 +91,26 @@ def test_blocked_sitemap_uses_the_list_of_the_last_finished_run(db):
     assert fallback["restaurantes"] == 3 and "403" in fallback["error"]
 
 
-def test_a_blocked_partner_sitemap_keeps_the_new_chains_and_adds_the_rest(db):
-    """El de cadenas responde (su parte -1 da 403 tras una -0 lejos del tope: es el final) y el de independientes no."""
+def test_a_blocked_partner_sitemap_uses_the_whole_previous_list(db):
+    """El de cadenas responde (su parte -1 da 403 tras una -0 lejos del tope: es el final) y el de restaurantes no. Las
+    sucursales de las cadenas salen de ese sitemap: sin él, la cola entera es la de la corrida anterior."""
     previous = _previous_run(
         db,
         [
-            (_job("chain:1833", "/restaurantes/viejo"), "done", {}),
+            (_job("chain:1833", "/restaurantes/900021447-vapiano"), "done", {}),
             (_job("rest:555", "/restaurantes/555-independiente"), "done", {}),
         ],
     )
     run = repository.start_run(db, "restaurants", {})
-    client = SitemapClient(
-        {"/restaurantes/delivery/1833-vapiano": "brand_chain"}, sitemaps={discover.CHAIN_SITEMAP.format(0): [CHAIN_URL]}
-    )
+    client = SitemapClient(sitemaps={discover.CHAIN_SITEMAP.format(0): [CHAIN_URL]})
 
     n_jobs = discover.discover_restaurants(db, client, run)
 
     assert n_jobs == 2
     assert set(_keys(db, run)) == {"chain:1833", "rest:555"}
     chain = db.execute("SELECT payload FROM scrape_jobs WHERE run_id = %s AND job_key = 'chain:1833'", (run,))
-    assert chain.fetchone()[0]["candidates"][0]["path"] != "/restaurantes/viejo"  # la cadena recién descubierta queda
-    assert repository.run_params(db, run)[FALLBACK_LIST]["restaurantes"] == 1
+    assert chain.fetchone()[0]["candidates"][0]["path"] == "/restaurantes/900021447-vapiano"
+    assert repository.run_params(db, run)[FALLBACK_LIST]["restaurantes"] == 2
     assert repository.run_params(db, run)[FALLBACK_LIST]["corrida"] == previous
 
 
@@ -270,24 +269,6 @@ def test_the_fallback_respects_the_discovery_limits(db):
 
     assert n_jobs == 3
     assert set(_keys(db, run)) == {"chain:0", "rest:0", "rest:1"}
-
-
-def test_a_blocked_partner_sitemap_skips_old_independents_that_are_branches_of_todays_chains(db):
-    """Vapiano (cadena 1833) lista hoy la sucursal 900021447: su job suelto de la lista anterior no se copia."""
-    _previous_run(
-        db,
-        [
-            (_job("rest:900021447", "/restaurantes/900021447-vapiano"), "done", {}),
-            (_job("rest:555", "/restaurantes/555-independiente"), "done", {}),
-        ],
-    )
-    run = repository.start_run(db, "restaurants", REFRESH)
-    client = SitemapClient(
-        {"/restaurantes/delivery/1833-vapiano": "brand_chain"}, sitemaps={discover.CHAIN_SITEMAP.format(0): [CHAIN_URL]}
-    )
-
-    assert discover.discover_restaurants(db, client, run) == 2
-    assert set(_keys(db, run)) == {"chain:1833", "rest:555"}
 
 
 def test_a_possible_block_while_reading_a_sitemap_still_exits_4(db, monkeypatch, tmp_path):

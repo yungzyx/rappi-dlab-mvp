@@ -1,84 +1,90 @@
-"""Parser de la página de un restaurante (`/restaurantes/<id>-<slug>`): datos, cocinas y menú."""
+"""Parser de la página de un restaurante (`/restaurantes/<id>-<slug>`): datos y menú.
+
+El menú son los carruseles `DynamicListRestaurantProductsCarousel`: uno por sección del menú (id positivo) y, arriba,
+"Populares" (-3) y "Para Ti" (-13, armado para quien mira). Si la ubicación de despacho está fuera de la zona del
+local, la página trae el menú entero en un solo carrusel "No disponible" (-404), sin secciones: no se toma, y el
+restaurante sale sin platos (el pipeline prueba otra sucursal). Los datos del local vienen en el evento VIEW_STORE. La
+página nueva no trae dirección, coordenadas, horarios, cocinas ni la descripción de cada plato (está en la página del
+plato): esos campos quedan vacíos y no pisan lo guardado.
+"""
 
 from ..pricing import discount_pct
-from .next_data import ParseError, page_props, parse_errors
+from .astro import Page, ParseError, analytics, canonical_path, components, json_ld, parse_errors
 
-IMAGE_BASE_URL = "https://images.rappi.cl/products/"
-
-
-def _restaurant_block(next_data: dict) -> dict:
-    fallback = page_props(next_data).get("fallback") or {}
-    for key, value in fallback.items():
-        if key.startswith('@"restaurant/') and isinstance(value, dict):
-            return value
-    raise ParseError("Página sin fallback['@\"restaurant/...']")
+POPULAR_CAROUSEL = -3  # "Populares": marca los platos populares; no es una sección del menú
 
 
-def _section_id(corridor: dict, position: int) -> int:
-    """El pasillo del menú no trae ID propio; se toma el `corridorId` de sus platos."""
-    for product in corridor.get("products") or []:
-        if product.get("corridorId"):
-            return int(product["corridorId"])
-    return -(position + 1)  # sección sin platos: ID sintético estable dentro del restaurante
+def _image(url: str | None) -> str:
+    return (url or "").split("?", 1)[0]
 
 
 @parse_errors
-def parse_restaurant(next_data: dict) -> dict:
-    r = _restaurant_block(next_data)
-    location = r.get("location") or [None, None]  # viene como [lng, lat]
-    rating = r.get("ratingData") or {}
-    cuisines = sorted({t.strip() for t in (r.get("tags") or []) if t and t.strip()})
+def parse_restaurant(page: Page) -> dict:
+    view = analytics(page, "VIEW_STORE")
+    if not view.get("STORE_ID"):
+        raise ParseError("Página de restaurante sin datos del local (VIEW_STORE)")
+    carousels = [props["component"] for props in components(page, "DynamicListRestaurantProductsCarousel")]
+    popular = {
+        int(entry["product"]["id"])
+        for carousel in carousels
+        if carousel.get("id") == POPULAR_CAROUSEL
+        for entry in carousel.get("items") or []
+    }
 
     sections, items = [], {}
-    for position, corridor in enumerate(r.get("corridors") or []):
-        section_id = _section_id(corridor, position)
-        sections.append({"section_id": section_id, "name": corridor.get("name") or "", "position": position})
-        for p in corridor.get("products") or []:
-            price, real_price = p.get("price"), p.get("realPrice")
+    for carousel in (c for c in carousels if int(c["id"]) > 0):
+        section_id = int(carousel["id"])
+        sections.append({"section_id": section_id, "name": carousel.get("title") or "", "position": len(sections)})
+        for entry in carousel.get("items") or []:
+            p = entry["product"]
+            pricing = p.get("pricing") or {}
+            price = pricing.get("currentPrice")
+            real_price = pricing.get("originalPrice") or price
             item = {
                 "item_id": int(p["id"]),
                 "section_id": section_id,
                 "extra_section_ids": [],
-                "name": (p.get("name") or "").strip(),
-                "description": (p.get("description") or "").strip(),
-                "image_url": IMAGE_BASE_URL + p["image"] if p.get("image") else "",
-                "is_popular": bool(p.get("isPopular")),
+                "name": (p.get("title") or "").strip(),
+                "description": "",
+                "image_url": _image(p.get("imageURL")),
+                "is_popular": int(p["id"]) in popular,
                 "has_toppings": bool(p.get("hasToppings")),
                 "price": price,
                 "real_price": real_price,
                 "discount_pct": discount_pct(price, real_price),
-                "is_available": bool(p.get("isAvailable")),
+                "is_available": bool(p.get("isEnabled")),
             }
-            # Rappi repite el plato en "Más vendidos" y en su sección: queda uno, con los datos de la última aparición
-            # y las demás secciones en extra_section_ids (migración 040).
+            # Un plato en dos secciones: queda uno, con los datos de la última aparición y las demás secciones en
+            # extra_section_ids (migración 040).
             if earlier := items.get(item["item_id"]):
                 seen = [*earlier["extra_section_ids"], earlier["section_id"]]
                 item["extra_section_ids"] = [s for s in seen if s != section_id]
-                item["is_popular"] = item["is_popular"] or earlier["is_popular"]
             items[item["item_id"]] = item
 
+    ld = json_ld(page, "Restaurant")
+    store_id = int(view["STORE_ID"])
     return {
         "store": {
-            "store_id": int(r["id"]),
-            "name": r.get("name") or "",
-            "brand_id": r.get("brandId"),
-            "brand_name": r.get("brandName") or r.get("name") or "",
-            "store_type": r.get("storeType") or "restaurant",
-            "city": r.get("city") or "",
-            "address": r.get("address") or "",
-            "lat": location[1],
-            "lng": location[0],
-            "path": page_props(next_data).get("canonicalPath") or f"/restaurantes/{r['id']}",
+            "store_id": store_id,
+            "name": view.get("STORE_NAME") or ld.get("name") or "",
+            "brand_id": view.get("BRAND_ID"),
+            "brand_name": view.get("BRAND_NAME") or view.get("STORE_NAME") or "",
+            "store_type": view.get("STORE_TYPE") or "restaurant",
+            "city": "",
+            "address": "",
+            "lat": None,
+            "lng": None,
+            "path": canonical_path(page) or f"/restaurantes/{store_id}",
         },
         "details": {
-            "rating": rating.get("score") or r.get("rating") or None,
-            "review_count": rating.get("total_reviews"),
-            "delivery_cost": r.get("deliveryPrice"),
-            "eta": r.get("eta") or "",
-            "schedules": r.get("schedules") or [],
-            "tags": r.get("tags") or [],
+            "rating": view.get("RATING") or None,
+            "review_count": view.get("RATINGS_AMOUNT"),
+            "delivery_cost": view.get("SHIPPING_COST"),
+            "eta": view.get("ETA") or "",
+            "schedules": None,  # no viene: no pisa los horarios guardados
+            "tags": [],
         },
-        "cuisines": cuisines,
+        "cuisines": [],
         "sections": sections,
         "items": list(items.values()),
     }

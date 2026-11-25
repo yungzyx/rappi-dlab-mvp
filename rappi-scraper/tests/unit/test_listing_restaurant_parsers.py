@@ -1,102 +1,102 @@
 import pytest
 
-from conftest import restaurant_block, with_top_section
-from rappi_scraper.scraping.listing_parser import parse_brand_chain, parse_vertical_listing
-from rappi_scraper.scraping.next_data import ParseError
+from conftest import menu_sections, with_section
+from rappi_scraper.scraping.astro import Page, ParseError
+from rappi_scraper.scraping.listing_parser import parse_vertical_listing
 from rappi_scraper.scraping.restaurant_parser import parse_restaurant
 
 
-def test_mall_listing_merges_groups_and_filter_only_stores(page):
-    stores = parse_vertical_listing(page("listing_mall"))
-    by_id = {s["store_id"]: s for s in stores}
-    assert len(stores) == len(by_id) > 196  # sin duplicados, incluye tiendas solo de filtros
-
-    casaideas = by_id[900101525]
-    assert casaideas["store_type"] == "casaideas_multitiendas_enc"
-    assert casaideas["subvertical"] == "Hogar"
-    assert casaideas["path"] == "/tiendas/900101525-casaideas-multitiendas-enc"
-
-    filter_only = [s for s in stores if not s["store_type"]]
-    assert filter_only, "Moda/Vapes traen tiendas que no están en ningún grupo"
-    assert all(s["filters"] and s["path"] == f"/tiendas/{s['store_id']}" for s in filter_only)
-
-
-def test_market_listing_has_landing_classification(page):
+def test_listing_lists_each_store_once_with_its_group(page):
     stores = parse_vertical_listing(page("listing_market"))
-    classes = {s["landing_classification"] for s in stores if s["landing_classification"]}
-    assert "supermercado" in classes
-    assert any(s["subvertical"] == "Turbo" for s in stores)
+    by_id = {s["store_id"]: s for s in stores}
+    assert len(stores) == len(by_id) == 5  # Lider sale en los dos grupos
+    lider = by_id[900025946]
+    assert (lider["store_type"], lider["landing_classification"]) == ("lider", "Mercados")
+    assert lider["path"] == "/tiendas/900025946-lider"
+    assert any(s["store_type"].startswith("turbo") for s in stores)
 
 
-def test_parse_brand_chain_lists_branches(page):
-    chain = parse_brand_chain(page("brand_chain"))
-    assert chain["brand_id"] == 1833
-    assert chain["name"] == "Vapiano"
-    assert len(chain["stores"]) == 2
-    assert chain["stores"][0]["path"].startswith("/restaurantes/")
+def test_a_page_without_listing_has_no_stores(page):
+    assert parse_vertical_listing(page("store")) == []
 
 
 def test_parse_restaurant_menu_and_details(page):
     r = parse_restaurant(page("restaurant"))
     assert r["store"]["store_id"] == 384
-    assert r["store"]["brand_id"] == 3607
-    assert r["store"]["lat"] < -33 and r["store"]["lng"] < -70  # location viene como [lng, lat]
-    assert r["cuisines"] == ["Internacional"]
-    assert len(r["sections"]) == 9
-    assert len(r["items"]) == 61
+    assert (r["store"]["brand_id"], r["store"]["brand_name"]) == (3607, "Rincón Venezolano")
+    assert r["store"]["path"] == "/restaurantes/384-rincon-venezolano"
+    assert r["store"]["lat"] is None and r["store"]["address"] == ""  # no vienen: no pisan lo guardado
+    assert r["details"]["rating"] == 4.4 and r["details"]["review_count"] == 168
+    assert r["details"]["schedules"] is None and r["cuisines"] == []
+    assert [s["name"] for s in r["sections"]] == ["Hamburguesas", "Combos", "Promociones"]  # sin Populares ni Para Ti
+    assert len(r["items"]) == 7
     section_ids = {s["section_id"] for s in r["sections"]}
     assert all(i["section_id"] in section_ids for i in r["items"])
-    assert all(i["image_url"].startswith("https://images.rappi.cl/") for i in r["items"] if i["image_url"])
+    assert all(i["image_url"].startswith("https://images.rappi.cl/") and "?" not in i["image_url"] for i in r["items"])
+    assert all(i["real_price"] == i["price"] and i["discount_pct"] == 0 for i in r["items"])
 
 
-def test_a_dish_in_mas_vendidos_and_in_its_own_section_keeps_both(page):
-    """Un plato en "Más vendidos" y en "Hamburguesas" es un solo ítem: queda en su sección (la última en el menú, como
-    antes) y recuerda las otras en `extra_section_ids`. Antes venía dos veces y al guardarse ganaba la última."""
+def test_a_dish_in_populares_is_popular(page):
     data = page("restaurant")
-    burgers = next(c for c in restaurant_block(data)["corridors"] if c["name"] == "Hamburguesas")
-    data = with_top_section(data, burgers["products"][:2])
+    [popular] = next(s for s in menu_sections(data) if s["title"] == "Populares")["items"]
+
+    by_id = {i["item_id"]: i for i in parse_restaurant(data)["items"]}
+
+    assert by_id[popular["product"]["id"]]["is_popular"] is True
+    assert sum(i["is_popular"] for i in by_id.values()) == 1
+
+
+def test_a_dish_in_two_sections_keeps_both(page):
+    """Un plato en dos secciones es un solo ítem: queda en la última del menú y recuerda las otras en
+    `extra_section_ids` (migración 040)."""
+    data = page("restaurant")
+    burgers = next(s for s in menu_sections(data) if s["title"] == "Hamburguesas")["items"]
+    data = with_section(data, 99999, "Lo más pedido", burgers[:2], first=True)
 
     r = parse_restaurant(data)
 
-    assert [s["name"] for s in r["sections"]][:2] == ["Más vendidos", "Combos"]
-    assert r["sections"][0]["section_id"] == 99999
-    assert len(r["items"]) == 61  # sin repetidos
+    assert [s["name"] for s in r["sections"]][:2] == ["Lo más pedido", "Hamburguesas"]
+    assert len(r["items"]) == 7  # sin repetidos
     by_id = {i["item_id"]: i for i in r["items"]}
-    for product in burgers["products"][:2]:
-        dish = by_id[product["id"]]
-        assert dish["section_id"] == 13278
-        assert dish["extra_section_ids"] == [99999]
+    for entry in burgers[:2]:
+        dish = by_id[entry["product"]["id"]]
+        assert (dish["section_id"], dish["extra_section_ids"]) == (13278, [99999])
     assert sum(1 for i in r["items"] if i["extra_section_ids"]) == 2
 
 
-def test_a_dish_marked_popular_in_any_section_is_popular(page):
+def test_a_discounted_dish_keeps_its_normal_price(page):
     data = page("restaurant")
-    burgers = next(c for c in restaurant_block(data)["corridors"] if c["name"] == "Hamburguesas")
-    data = with_top_section(data, [{**burgers["products"][0], "isPopular": True}])
+    [entry, *_] = next(s for s in menu_sections(data) if s["title"] == "Combos")["items"]
+    product = {**entry["product"], "id": 1, "pricing": {"currentPrice": 7500, "originalPrice": 10000}}
+    data = with_section(data, 77, "Ofertas", [{"product": product}])
 
-    [dish] = [i for i in parse_restaurant(data)["items"] if i["item_id"] == burgers["products"][0]["id"]]
+    [dish] = [i for i in parse_restaurant(data)["items"] if i["item_id"] == 1]
 
-    assert dish["is_popular"] is True  # la última aparición (en "Hamburguesas") no lo marca
+    assert (dish["price"], dish["real_price"], dish["discount_pct"]) == (7500, 10000, 25.0)
 
 
-def test_a_menu_without_repeated_dishes_does_not_change(page):
-    """Sin platos repetidos (el fixture tal cual): un ítem por plato, en el orden del menú y sin otras secciones."""
+def test_a_menu_out_of_coverage_has_no_dishes(page):
+    """Con la ubicación fuera de la zona del local, la página trae todo el menú en "No disponible" (-404), sin
+    secciones: no se toma (el pipeline prueba otra sucursal), pero el local se lee igual."""
     data = page("restaurant")
-    products = [p for c in restaurant_block(data)["corridors"] for p in c["products"]]
+    entries = [e for s in menu_sections(data) for e in s["items"]]
+    view = next(line for line in data.html.splitlines() if line.startswith("<div data-analytics"))
+    out_of_coverage = with_section(Page(data.path, view), -404, "No disponible", entries)
 
-    r = parse_restaurant(data)
+    r = parse_restaurant(out_of_coverage)
 
-    assert [(i["item_id"], i["section_id"]) for i in r["items"]] == [(p["id"], p["corridorId"]) for p in products]
-    assert all(i["extra_section_ids"] == [] for i in r["items"])
+    assert r["store"]["store_id"] == 384
+    assert r["items"] == [] and r["sections"] == []
 
 
 def test_restaurant_with_unexpected_shape_is_parse_error(page):
     """Un plato sin id (KeyError) o con un id raro (ValueError) es un error de página: se prueba otra sucursal."""
-    data = page("restaurant")
-    block = next(v for k, v in data["props"]["pageProps"]["fallback"].items() if k.startswith('@"restaurant/'))
-    block["corridors"][0]["products"][0].pop("id")
     with pytest.raises(ParseError):
-        parse_restaurant(data)
-    block["corridors"][0]["products"][0]["id"] = "no-es-numero"
+        parse_restaurant(with_section(page("restaurant"), 5, "X", [{"product": {"title": "sin id"}}]))
     with pytest.raises(ParseError):
-        parse_restaurant(data)
+        parse_restaurant(with_section(page("restaurant"), 5, "X", [{"product": {"id": "no-es-numero"}}]))
+
+
+def test_a_page_without_the_restaurant_data_is_parse_error(page):
+    with pytest.raises(ParseError, match="VIEW_STORE"):
+        parse_restaurant(page("store"))

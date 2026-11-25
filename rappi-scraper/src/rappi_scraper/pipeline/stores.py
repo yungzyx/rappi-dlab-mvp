@@ -1,12 +1,12 @@
-"""Procesa los jobs de tiendas: tienda → pasillos → sub-pasillos, y guarda todo en Postgres."""
+"""Procesa los jobs de tiendas: portada → pasillos (cada uno con sus sub-pasillos), y guarda todo en Postgres."""
 
 import logging
 
 from psycopg import Connection
 
 from .. import config
+from ..scraping.astro import Page, ParseError
 from ..scraping.client import PAGE_ERRORS, RappiClient, StoreUnavailable
-from ..scraping.next_data import ParseError
 from ..scraping.store_parser import parse_aisles, parse_products, parse_store, parse_sub_aisles
 from ..storage import repository
 from .discover import canonical_vertical
@@ -26,53 +26,42 @@ def _tag(products: list[dict], aisle_id=None, sub_aisle_id=None) -> dict[str, di
     }
 
 
-def crawl_store(client: RappiClient, store_data: dict, max_aisles: int | None = None) -> dict:
-    """Recorre pasillos y sub-pasillos a partir de la página de la tienda ya descargada.
+def crawl_store(client: RappiClient, store_page: Page, max_aisles: int | None = None) -> dict:
+    """Recorre los pasillos a partir de la portada de la tienda ya descargada. Cada página de pasillo trae sus
+    sub-pasillos con sus productos (los sub-pasillos ya no tienen página propia).
 
-    Una página de pasillo o sub-pasillo ilegible se omite y se anota (`skipped_aisles`, con el id del pasillo o
-    sub-pasillo); si no se pudo leer ningún pasillo, lanza ParseError para que el job quede fallido en vez de "hecho"
-    solo con la portada. Un pasillo que redirige al listado (StoreUnavailable) no se atrapa aquí: es la sucursal la que
-    dejó de despachar. Tampoco un posible bloqueo (PossibleBlock), que detiene la corrida."""
-    store = parse_store(store_data)
-    products = _tag(parse_products(store_data))
+    Una página de pasillo ilegible se omite y se anota (`skipped_aisles`, con el id del pasillo); si no se pudo leer
+    ningún pasillo, lanza ParseError para que el job quede fallido en vez de "hecho" solo con la portada. Un pasillo que
+    redirige a un listado (StoreUnavailable) no se atrapa aquí: es la sucursal la que dejó de despachar. Tampoco un
+    posible bloqueo (PossibleBlock), que detiene la corrida."""
+    store = parse_store(store_page)
+    products = _tag(parse_products(store_page))
     aisles = []
-    store_aisles = parse_aisles(store_data)[:max_aisles]
+    store_aisles = parse_aisles(store_page)[:max_aisles]
     skipped_aisles: list[int] = []
     attempted_pages = aisles_read = 0
 
     for aisle in store_aisles:
         aisles.append({**aisle, "parent_aisle_id": None})
-        aisle_path = f"{store['path']}/{aisle['friendly_url']}"
         attempted_pages += 1
-        try:  # leer la página también va aquí: puede llegar sin fallback['storefront/...'] (ParseError)
-            aisle_data = client.get_next_data(aisle_path)
-            aisle_products, sub_aisles = parse_products(aisle_data), parse_sub_aisles(aisle_data)
+        try:  # leer la página también va aquí: puede llegar sin sus islas o con otra forma (ParseError)
+            sub_aisles = parse_sub_aisles(client.get_page(aisle["path"]))
         except PAGE_ERRORS as exc:
-            log.warning("  pasillo omitido %s: %s", aisle_path, exc)
+            log.warning("  pasillo omitido %s: %s", aisle["path"], exc)
             skipped_aisles.append(aisle["aisle_id"])
             continue
         aisles_read += 1
-        products.update(_tag(aisle_products, aisle["aisle_id"]))
-
         for sub in sub_aisles:
             aisles.append({**sub, "parent_aisle_id": aisle["aisle_id"]})
-            sub_path = f"{aisle_path}/{sub['friendly_url']}"
-            attempted_pages += 1
-            try:
-                sub_products = parse_products(client.get_next_data(sub_path))
-            except PAGE_ERRORS as exc:
-                log.warning("  sub-pasillo omitido %s: %s", sub_path, exc)
-                skipped_aisles.append(sub["aisle_id"])
-                continue
-            products.update(_tag(sub_products, aisle["aisle_id"], sub["aisle_id"]))
+            products.update(_tag(sub["products"], aisle["aisle_id"], sub["aisle_id"]))
 
     if store_aisles and not aisles_read:  # sin números en el mensaje: el reporte agrupa los errores por texto
         log.warning("  ningún pasillo se pudo leer (%d omitidos)", len(skipped_aisles))
         raise ParseError("ningún pasillo se pudo leer")
-    context = store_data["props"]["pageProps"].get("storeContext")
     return {
         "store": store,
-        "context": context,
+        # La página nueva no trae el contexto de la tienda (mínimo, envío, horario): `stores.raw` conserva el último.
+        "context": None,
         "aisles": aisles,
         "products": list(products.values()),
         "skipped_aisles": skipped_aisles,
@@ -125,8 +114,8 @@ def _run_store_job(
     for cand in payload["candidates"][: config.MAX_BRANCH_ATTEMPTS]:
         client.set_location(cand["lat"], cand["lng"], cand["city"], cand["city"])
         try:
-            store_data = client.get_next_data(cand["path"])
-            store_type = parse_store(store_data)["store_type"]
+            store_page = client.get_page(cand["path"])
+            store_type = parse_store(store_page)["store_type"]
         except StoreUnavailable:
             log.info("  %s no disponible, probando otra", cand["store_id"])
             continue
@@ -137,7 +126,7 @@ def _run_store_job(
         if store_type and store_type in done_types:
             return "skipped", {"store_type": store_type, "reason": "marca ya scrapeada"}, None
         try:
-            crawl = crawl_store(client, store_data, max_aisles)
+            crawl = crawl_store(client, store_page, max_aisles)
         except StoreUnavailable as exc:  # un pasillo redirigió al listado: no guardar un catálogo a medias
             log.info("  %s dejó de estar disponible (%s), probando otra", cand["store_id"], exc)
             error = GONE_MID_CRAWL

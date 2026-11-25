@@ -1,4 +1,9 @@
-"""Procesa los jobs de restaurantes: una sucursal por cadena y cada restaurante independiente."""
+"""Procesa los jobs de restaurantes: una sucursal por cadena y cada restaurante independiente.
+
+Desde el sitio en Astro (25-11-2026) el menú de un restaurante solo sale por secciones si la ubicación de despacho está
+en su zona; si no, la página lo muestra entero como "No disponible" (`STATUS` OUT_OF_COVERAGE) y el parser no lo toma.
+Por eso cada sucursal se pide con la ubicación en sus coordenadas guardadas; una que no tiene, sin ubicación (rappi.cl
+usa entonces el centro de Santiago)."""
 
 import logging
 
@@ -19,27 +24,39 @@ def process_restaurant_jobs(conn: Connection, client: RappiClient, run_id: int, 
     jobs = repository.pending_jobs(conn, run_id, "restaurant")[:limit]
     log.info("%d jobs de restaurantes pendientes", len(jobs))
     done_brands = repository.brands_done(conn, run_id)
+    store_ids = [c["store_id"] for job in jobs for c in job["payload"]["candidates"] if c.get("store_id")]
+    locations = repository.store_locations(conn, store_ids)
     conn.commit()  # sin esto, la lectura queda "idle in transaction" durante todo el primer job
     process_with_retry(
         conn,
         run_id,
         jobs,
-        lambda job: _run_restaurant_job(conn, client, run_id, job["payload"], done_brands),
+        lambda job: _run_restaurant_job(conn, client, run_id, job["payload"], done_brands, locations),
         log_every=LOG_EVERY_N_JOBS,
     )
 
 
 def _run_restaurant_job(
-    conn: Connection, client: RappiClient, run_id: int, payload: dict, done_brands: set[int]
+    conn: Connection,
+    client: RappiClient,
+    run_id: int,
+    payload: dict,
+    done_brands: set[int],
+    locations: dict[int, tuple[float, float, str]],
 ) -> tuple[str, dict | None, str | None]:
-    """Guarda la primera sucursal con menú. Si la marca ya se guardó en la corrida, se salta
-    (pasa con sucursales de cadenas cuya página de cadena no se pudo leer al descubrir)."""
+    """Guarda la primera sucursal con menú. Si la marca ya se guardó en la corrida, se salta (pasa con un restaurante
+    independiente que resultó ser de una cadena ya bajada)."""
     error = NO_BRANCH_WITH_MENU
     candidates = payload["candidates"][: config.MAX_BRANCH_ATTEMPTS]
     gone = 0
     for cand in candidates:
+        if location := locations.get(cand.get("store_id")):
+            lat, lng, city = location
+            client.set_location(lat, lng, city, city)
+        else:
+            client.clear_location()
         try:
-            parsed = parse_restaurant(client.get_next_data(cand["path"]))
+            parsed = parse_restaurant(client.get_page(cand["path"]))
         except RestaurantGone:
             gone += 1
             continue

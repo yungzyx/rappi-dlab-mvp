@@ -53,13 +53,14 @@ TIMEOUT_SECONDS = _env_float("RAPPI_TIMEOUT", 30)
 MAX_RETRIES = int(_env_float("RAPPI_MAX_RETRIES", 3))
 RETRY_BACKOFF_SECONDS = _env_float("RAPPI_RETRY_BACKOFF", 10)
 RETRY_AFTER_MAX_S = 900
-# Requests seguidos rechazados (403, 429 o página de desafío sin __NEXT_DATA__): la descarga se detiene (PossibleBlock)
-# sin esperar a que fallen jobs enteros, que con 19 pasillos y 3 intentos por página tardaban casi una hora.
+# Requests seguidos rechazados (403, 429 o página de desafío sin islas de contenido): la descarga se detiene
+# (PossibleBlock) sin esperar a que fallen jobs enteros, que con 19 pasillos y 3 intentos por página tardaban casi una
+# hora.
 BLOCK_STREAK_REQUESTS = 20
 
 # Si una sucursal no está disponible, cuántas otras de la misma marca probar.
 MAX_BRANCH_ATTEMPTS = 3
-# Fracción máxima de páginas (pasillos y sub-pasillos) omitidas para dar una tienda por bajada. Más que esto y el job
+# Fracción máxima de páginas de pasillo omitidas para dar una tienda por bajada. Más que esto y el job
 # falla: un catálogo a medias pasaría a ser la corrida vigente del formato y escondería lo que no se leyó.
 SKIPPED_PAGES_MAX = 0.05
 
@@ -73,8 +74,20 @@ MAX_CONSECUTIVE_FAILURES = 10
 # no un bloqueo: quedan 'failed' y la corrida sigue.
 MAX_BLOCKED_JOB_ATTEMPTS = MAX_JOB_ATTEMPTS + 2
 
-# Rappi redirige aquí cuando la tienda no despacha a la ubicación configurada.
+# Rappi redirige a un listado de tiendas cuando la tienda no despacha a la ubicación configurada: antes a
+# /tiendas/tipo/<vertical>; desde el sitio en Astro (25-11-2026) esas rutas redirigen a los listados nuevos.
 UNAVAILABLE_PATH_PREFIX = "/tiendas/tipo/"
+STORE_LISTING_PATHS = frozenset(
+    {
+        "/tiendas/supermercado",
+        "/tiendas/farmacia",
+        "/tiendas/turbo",
+        "/tiendas/express",
+        "/tiendas/rappi-mall",
+        "/tiendas/licores",
+        "/tiendas/kioscos",
+    }
+)
 # Rappi redirige a /restaurantes?restaurantNotFound=true cuando el restaurante ya no existe (cerró o se dio de baja).
 RESTAURANT_NOT_FOUND_QUERY = "restaurantNotFound=true"
 

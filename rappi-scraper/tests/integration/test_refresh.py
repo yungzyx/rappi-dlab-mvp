@@ -368,7 +368,7 @@ def test_refresh_stops_with_7_when_robots_txt_forbids_a_page(db, monkeypatch, tm
     repository.add_jobs(db, run, [{**STORE_JOB, "job_key": f"type:{i:02}"} for i in range(3)])
 
     class Forbidden(FakeClient):
-        def get_next_data(self, path):
+        def get_page(self, path):
             self.requested.append(path)
             raise RobotsDisallowed(f"robots.txt de www.rappi.cl no permite {path} a rappi-dlab-scraper")
 
