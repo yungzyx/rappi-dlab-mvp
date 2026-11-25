@@ -37,6 +37,17 @@ La sesión de la CLI dura una hora: `oci session refresh --profile RAPPI` la ren
 - **`ignore_changes` en la imagen y el cloud-init:** una imagen nueva de Ubuntu no recrea la máquina (con la base adentro); se actualiza con `apt` (`unattended-upgrades` queda activo).
 - **SSH solo desde `admin_cidrs`:** la web es lo único abierto a internet, y está detrás de la puerta de Caddy. Si cambia la IP de quien administra, se actualiza la variable y `terraform apply` (no hace falta SSH para eso).
 
+## Límite de la cuenta
+
+No todas las cuentas tienen 4 OCPU y 24 GB de A1: la de este proyecto tiene 2 OCPU y 12 GB (OCI responde "400-LimitExceeded" al pedir más). Para ver el de una cuenta:
+
+```bash
+oci limits value list -c <tenancy_ocid> --service-name compute --name standard-a1-core-regional-count \
+  --profile RAPPI --auth security_token --region sa-santiago-1
+```
+
+Con un límite menor, `ocpus` y `memory_gb` van en `terraform.tfvars` (ver el ejemplo); `reintentar-capacidad.sh` ya prueba 2 OCPU y 12 GB cuando la forma completa choca con el límite.
+
 ## Estado
 
-Sin probar contra una máquina real: al 25-11-2026 `terraform validate` pasa, pero OCI no tuvo capacidad para la A1 en `sa-santiago-1` y el servidor no se llegó a crear. La red y el presupuesto sí se crearon. El primer `terraform apply` que saque la máquina es también la primera prueba del `cloud-init.yaml`.
+Sin probar contra una máquina real: al 25-11-2026 `terraform validate` pasa, pero OCI no tuvo capacidad para la A1 en `sa-santiago-1` y el servidor no se llegó a crear (el reintento sigue con 2 OCPU y 12 GB, el límite de la cuenta). La red y el presupuesto sí se crearon. El primer `terraform apply` que saque la máquina es también la primera prueba del `cloud-init.yaml`.
