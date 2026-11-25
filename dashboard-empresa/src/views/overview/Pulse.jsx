@@ -15,6 +15,8 @@ const SPARK_WEEKS = 12
 const MIN_SPARK_WEEKS = 5
 // Con menos semanas completas con dato no hay línea que dibujar: se muestra la tabla.
 const MIN_CHART_WEEKS = 2
+// Los períodos que ofrece la serie semanal, en semanas (además de todo el período).
+const PERIODS = [4, 12, 26]
 const series = (key) => WEEKLY_SERIES.find((item) => item.key === key)
 
 /**
@@ -107,14 +109,16 @@ export function Pulse({ source }) {
 }
 
 /**
- * La serie semanal completa, una serie a la vez: un selector, la línea y su tabla (siempre en el DOM; a la vista con
- * "Ver tabla"). Con menos de 2 semanas completas no hay línea: la tabla directamente.
+ * La serie semanal, una serie a la vez: un selector de indicador y otro de período (todo, o las últimas 4, 12 o 26
+ * semanas), la línea y su tabla (siempre completa y en el DOM; a la vista con "Ver tabla"). Con menos de 2 semanas completas no hay línea: la tabla directamente.
  */
 export function WeeklyChart({ source }) {
   const [rows, kpis] = useAnalyticsMany(['weekly', 'kpis'], source)
   const [key, setKey] = useState(WEEKLY_SERIES[0].key)
+  const [weeks, setWeeks] = useState(0) // 0: todo el período
   const item = series(key)
   const { points } = weeklySeries(rows, item, kpis.as_of)
+  const shown = weeks ? points.slice(-weeks) : points
   const table = <WeeklyTable rows={rows} asOf={kpis.as_of} />
   if (points.filter((point) => !point.partial && point.value !== null).length < MIN_CHART_WEEKS) {
     return (
@@ -135,6 +139,17 @@ export function WeeklyChart({ source }) {
           </option>
         ))}
       </select>
+      <label className="visually-hidden" htmlFor="periodo">
+        Período
+      </label>
+      <select id="periodo" className="select" value={weeks} onChange={(event) => setWeeks(Number(event.target.value))}>
+        <option value={0}>Todo el período</option>
+        {PERIODS.filter((option) => option < points.length).map((option) => (
+          <option key={option} value={option}>
+            Últimas {option} semanas
+          </option>
+        ))}
+      </select>
     </div>
   )
   return (
@@ -144,7 +159,7 @@ export function WeeklyChart({ source }) {
       legend={picker}
       chart={
         <LineChart
-          points={points}
+          points={shown}
           format={item.format}
           tickFormat={item.rate ? (value) => formatPct(value, 0) : formatNumber}
           label={item.title}

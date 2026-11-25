@@ -26,7 +26,10 @@ export const VIEWS = [
     label: 'Resumen',
     icon: 'dashboard',
     View: OverviewView,
-    tabs: [{ id: 'resumen', label: 'Resumen', sections: ['como-va', 'que-decidir'] }],
+    tabs: [
+      { id: 'resumen', label: 'Resumen', sections: ['que-cambio', 'como-va', 'que-decidir'] },
+      { id: 'verticales', label: 'Por vertical', sections: ['por-vertical'] },
+    ],
   },
   {
     id: 'clientes',
@@ -38,6 +41,7 @@ export const VIEWS = [
       { id: 'venta-cruzada', label: 'Venta cruzada', sections: ['venta-cruzada'] },
       { id: 'pro', label: 'Pro y sin Pro', sections: ['pro'] },
       { id: 'perdiendo', label: 'En riesgo', sections: ['perdiendo'] },
+      { id: 'audiencias', label: 'Audiencias', sections: ['audiencias'] },
     ],
   },
   {

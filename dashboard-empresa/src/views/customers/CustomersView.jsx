@@ -7,6 +7,7 @@ import { Stats } from '../../components/Stats.jsx'
 import { BarRows } from '../../components/charts/BarRows.jsx'
 import { formatNumber, formatPct } from '../../lib/format.js'
 import { useAnalytics } from '../../lib/useAnalytics.js'
+import { Audiences } from './Audiences.jsx'
 import { Churn } from './Churn.jsx'
 import { ProSplit } from './ProSplit.jsx'
 import { RetentionLadder, startLabel } from './RetentionLadder.jsx'
@@ -85,8 +86,9 @@ function UsersAndOrders() {
 }
 
 /**
- * Gerencia: dónde está la venta cruzada (la tabla de Rappi), Pro frente a sin Pro y a quién estamos perdiendo (la fuente
- * elegida). Con `tab` (la subpestaña), solo esa sección; sin `tab`, las tres.
+ * Gerencia: dónde está la venta cruzada (la tabla de Rappi), Pro frente a sin Pro, a quién estamos perdiendo (la fuente
+ * elegida) y las audiencias para campañas (un diseño, aún sin datos). Con `tab` (la subpestaña), solo esa sección; sin
+ * `tab`, todas.
  */
 export function CustomersView({ source, tab }) {
   const show = (id) => !tab || tab === id
@@ -159,6 +161,24 @@ export function CustomersView({ source, tab }) {
           <Async>
             <Churn source={source} />
           </Async>
+        </section>
+      )}
+
+      {show('audiencias') && (
+        <section className="section" aria-labelledby="audiencias">
+          <SectionHead
+            id="audiencias"
+            title="Audiencias para campañas"
+            source="design"
+            help={
+              <p>
+                Una audiencia es un grupo de personas que cumple una regla (por ejemplo, pide solo en Restaurantes y ya
+                tiene el hábito). Sirve para decidir a quién se le ofrece qué, en RappiAds o en una campaña propia, y
+                para medirlo después contra un grupo de control.
+              </p>
+            }
+          />
+          <Audiences />
         </section>
       )}
     </div>

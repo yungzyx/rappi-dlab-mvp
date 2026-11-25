@@ -3,9 +3,12 @@ import { Async } from '../../components/Async.jsx'
 import { Icon } from '../../components/Icon.jsx'
 import { SectionHead } from '../../components/SectionHead.jsx'
 import { useAnalytics, useAnalyticsMany } from '../../lib/useAnalytics.js'
+import { Changes } from './Changes.jsx'
 import { DecisionBody, DecisionCard } from './DecisionCard.jsx'
 import { churnDecision, crossSellDecision, demandDecision, mochiDecision } from './decisions.js'
+import { PilotStatus } from './PilotStatus.jsx'
 import { Pulse, WeeklyChart } from './Pulse.jsx'
+import { Verticals } from './Verticals.jsx'
 import './overview.css'
 
 // La tabla de Rappi viene en /analytics/combos con cualquier fuente: se lee con la simulada, que tiene respaldo sin
@@ -32,10 +35,31 @@ function Demand({ source }) {
 }
 
 /**
- * La vista principal: cómo va el negocio (5 indicadores y, a su lado, la serie semanal) y las 4 preguntas que hay que
- * decidir, cada una en su tarjeta con enlace a su detalle.
+ * La vista principal: el estado del piloto, qué cambió (lo que mirar primero), cómo va el negocio (5 indicadores y, a
+ * su lado, la serie semanal) y las 4 preguntas que hay que decidir, cada una en su tarjeta con enlace a su detalle. En
+ * la subpestaña "Por vertical", la ficha de las verticales (un diseño, aún sin datos).
  */
-export function OverviewView({ source, onNavigate }) {
+export function OverviewView({ source, tab, onNavigate }) {
+  if (tab === 'verticales') {
+    return (
+      <div className="view">
+        <section className="section" aria-labelledby="por-vertical">
+          <SectionHead
+            id="por-vertical"
+            title="Por vertical"
+            source="design"
+            help={
+              <p>
+                Las mismas cifras del Resumen, una fila por vertical: sirve para decidir dónde poner el esfuerzo (la que
+                pierde más carros, la que no tiene lo que buscan, la que ya trae gente que combina).
+              </p>
+            }
+          />
+          <Verticals />
+        </section>
+      </div>
+    )
+  }
   return (
     <div className="view">
       <nav className="hypotheses-link" aria-label="Las tres hipótesis">
@@ -51,7 +75,29 @@ export function OverviewView({ source, onNavigate }) {
           Ver las tres hipótesis
           <Icon name="arrowRight" />
         </button>
+        <Async fallback={null} errorFallback={<></>}>
+          <PilotStatus source={source} />
+        </Async>
       </nav>
+      <section className="section" aria-labelledby="que-cambio">
+        <SectionHead
+          id="que-cambio"
+          title="Qué cambió"
+          meta="Lo que más se movió, para mirar primero"
+          source={source}
+          help={
+            <p>
+              Hasta 4 cambios, de más a menos urgente: primero lo que empeora, después lo que mejora y al final la
+              demanda que crece (en gris, porque no es bueno ni malo). Un indicador semanal entra si se movió 5 % o más
+              (1 punto, si es una tasa) frente a hace 4 semanas; una búsqueda o un concepto, si creció 20 % o más. No
+              son cifras nuevas: son las del panel, ordenadas.
+            </p>
+          }
+        />
+        <Async>
+          <Changes source={source} onNavigate={onNavigate} />
+        </Async>
+      </section>
       <section className="section" aria-labelledby="como-va">
         <SectionHead
           id="como-va"
