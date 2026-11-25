@@ -1,0 +1,26 @@
+{
+  "data": {
+    "bajo_el_minimo": 3,
+    "dias": 30,
+    "dias_combinacion": 60,
+    "minimo_casos": 10,
+    "minimo_personas": 20,
+    "verticales": [
+      {
+        "abandono_carrito_pct": 30.2,
+        "cambio_pedidos_pct": 233.0,
+        "cambio_personas_pct": 125.0,
+        "combinan_pct": 19.0,
+        "pedidos_30d": 30,
+        "personas_30d": 18,
+        "sin_resultado_pct": 20.0,
+        "vertical": "restaurantes"
+      }
+    ]
+  },
+  "guardado": {
+    "fecha": "2026-11-25",
+    "origen": "make contract · simulación chica con semilla fija (40 personas, 8 semanas)"
+  },
+  "source": "synthetic"
+}

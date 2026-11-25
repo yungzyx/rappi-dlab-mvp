@@ -1,0 +1,15 @@
+{
+  "data": {
+    "bajo_el_minimo": 7,
+    "dias": 30,
+    "dias_combinacion": 60,
+    "minimo_casos": 10,
+    "minimo_personas": 20,
+    "verticales": []
+  },
+  "guardado": {
+    "fecha": "2026-11-25",
+    "origen": "make contract · recorrido corto sobre el catálogo de prueba inventado"
+  },
+  "source": "prototype"
+}

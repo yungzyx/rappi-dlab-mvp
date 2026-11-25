@@ -87,7 +87,7 @@ function UsersAndOrders() {
 
 /**
  * Gerencia: dónde está la venta cruzada (la tabla de Rappi), Pro frente a sin Pro, a quién estamos perdiendo (la fuente
- * elegida) y las audiencias para campañas (un diseño, aún sin datos). Con `tab` (la subpestaña), solo esa sección; sin
+ * elegida) y las audiencias para campañas. Con `tab` (la subpestaña), solo esa sección; sin
  * `tab`, todas.
  */
 export function CustomersView({ source, tab }) {
@@ -169,7 +169,7 @@ export function CustomersView({ source, tab }) {
           <SectionHead
             id="audiencias"
             title="Audiencias para campañas"
-            source="design"
+            source={source}
             help={
               <p>
                 Una audiencia es un grupo de personas que cumple una regla (por ejemplo, pide solo en Restaurantes y ya
@@ -178,7 +178,9 @@ export function CustomersView({ source, tab }) {
               </p>
             }
           />
-          <Audiences />
+          <Async>
+            <Audiences source={source} />
+          </Async>
         </section>
       )}
     </div>

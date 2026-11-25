@@ -30,6 +30,22 @@ describe('pilotProgress', () => {
     expect(rows[0]).toMatchObject({ share: null, need: null, done: false })
   })
 
+  test('with the assignment pace, the weeks left count against the people already assigned', () => {
+    const paced = (pace, variantes = groups(900, 100)) =>
+      pilotProgress(experiment({ ritmo: { por_semana: pace }, variantes })).rows
+    const [h1, h2, h3] = paced({ tratamiento: 500, control: 50 })
+    // H1: al tratamiento le falta asignar 6.936 a 500 por semana (13,9) y al control 771 a 50 (15,4): manda el control.
+    expect(h1.weeks).toBe(16)
+    expect(h2.weeks).toBeNull() // ya llegó
+    expect(h3.weeks).toBeNull() // avanza con respuestas, no con asignaciones
+    // Ya están asignadas las que pide el mínimo, aunque todavía no cumplen su plazo: no falta asignar a nadie.
+    expect(paced({ tratamiento: 500, control: 50 }, groups(9000, 1000))[0]).toMatchObject({ weeks: 0, done: false })
+    // A un grupo al que le falta no le entra nadie, o no hay ritmo: no se puede estimar.
+    expect(paced({ tratamiento: 500, control: 0 })[0].weeks).toBeNull()
+    expect(paced(null)[0].weeks).toBeNull()
+    expect(pilotProgress(experiment()).rows[0].weeks).toBeNull() // una respuesta sin `ritmo`
+  })
+
   test('with the control group off, or one group empty, there is nothing to measure', () => {
     expect(pilotProgress(experiment({ control_pct: 0 })).on).toBe(false)
     expect(pilotProgress(experiment({ variantes: groups(900, 0) })).on).toBe(false)

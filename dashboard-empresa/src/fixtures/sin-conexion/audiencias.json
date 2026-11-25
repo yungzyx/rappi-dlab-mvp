@@ -1,0 +1,53 @@
+{
+  "source": "synthetic",
+  "data": {
+    "audiencias": [
+      {
+        "id": "solo-restaurantes-con-habito",
+        "nombre": "Solo Restaurantes, con hábito",
+        "regla": "Pidió solo en Restaurantes en 60 días y lleva 2 o más compras en 30",
+        "ofrecer": "Turbo, su vertical por probar",
+        "personas": 178,
+        "aceptan_avisos": 68
+      },
+      {
+        "id": "en-riesgo-con-concepto",
+        "nombre": "En riesgo, con algo que pedía",
+        "regla": "Pasó el doble de su ritmo sin pedir (mínimo 21 días) y pidió algo que Mochi puede volver a ofrecer",
+        "ofrecer": "\"¿Volvemos a…?\" con ese concepto",
+        "personas": 267,
+        "aceptan_avisos": 102
+      },
+      {
+        "id": "probo-turbo-una-vez",
+        "nombre": "Probó Turbo una vez",
+        "regla": "Un solo pedido en Turbo en 60 días y alguno en Restaurantes",
+        "ofrecer": "Repetir en Turbo lo que pidió",
+        "personas": 63,
+        "aceptan_avisos": 28
+      },
+      {
+        "id": "pro-una-vertical",
+        "nombre": "Pro que no combina",
+        "regla": "Es Pro y pidió en una sola vertical en 60 días (que no sea Farmacia ni Licores)",
+        "ofrecer": "Una segunda vertical con su beneficio Pro",
+        "personas": 416,
+        "aceptan_avisos": 152
+      },
+      {
+        "id": "combina-3-o-mas",
+        "nombre": "Ya combina 3 o más",
+        "regla": "Pidió en 3 o más verticales en 60 días",
+        "ofrecer": "Nada nuevo: no molestar",
+        "personas": 96,
+        "aceptan_avisos": 41
+      }
+    ],
+    "bajo_el_minimo": 0,
+    "minimo_personas": 20
+  },
+  "guardado": {
+    "origen": "npm run panel:snapshot · usuarios simulados de rappi_staging",
+    "fecha": "2026-11-25"
+  }
+}

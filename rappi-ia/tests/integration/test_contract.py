@@ -50,6 +50,8 @@ PANEL_METRICS = (
     "pro",
     "presencia",
     "experimentos",
+    "verticales",
+    "audiencias",
 )
 # Las métricas de /analytics que guarda `npm run fixtures` (dashboard-empresa/scripts/update-fixtures.mjs).
 PANEL_SHAPE = ("kpis", "weekly", "opportunities", "trends", "at-risk", "suggestions", "services", "assortment")

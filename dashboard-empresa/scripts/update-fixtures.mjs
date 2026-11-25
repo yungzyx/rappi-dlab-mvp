@@ -27,6 +27,8 @@ const CONTRACT = new Set([
   'pro',
   'presencia',
   'experimentos',
+  'verticales',
+  'audiencias',
 ])
 
 if (!existsSync(SNAPSHOT)) {

@@ -19,4 +19,6 @@ export const PANEL_METRICS = [
   'pro',
   'presencia',
   'experimentos',
+  'verticales',
+  'audiencias',
 ]

@@ -37,7 +37,7 @@ function Demand({ source }) {
 /**
  * La vista principal: el estado del piloto, qué cambió (lo que mirar primero), cómo va el negocio (5 indicadores y, a
  * su lado, la serie semanal) y las 4 preguntas que hay que decidir, cada una en su tarjeta con enlace a su detalle. En
- * la subpestaña "Por vertical", la ficha de las verticales (un diseño, aún sin datos).
+ * la subpestaña "Por vertical", la ficha de las verticales.
  */
 export function OverviewView({ source, tab, onNavigate }) {
   if (tab === 'verticales') {
@@ -47,7 +47,7 @@ export function OverviewView({ source, tab, onNavigate }) {
           <SectionHead
             id="por-vertical"
             title="Por vertical"
-            source="design"
+            source={source}
             help={
               <p>
                 Las mismas cifras del Resumen, una fila por vertical: sirve para decidir dónde poner el esfuerzo (la que
@@ -55,7 +55,9 @@ export function OverviewView({ source, tab, onNavigate }) {
               </p>
             }
           />
-          <Verticals />
+          <Async>
+            <Verticals source={source} />
+          </Async>
         </section>
       </div>
     )
