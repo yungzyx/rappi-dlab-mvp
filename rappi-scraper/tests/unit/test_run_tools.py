@@ -1,3 +1,4 @@
+import contextlib
 from argparse import Namespace
 
 import pytest
@@ -8,6 +9,7 @@ from rappi_scraper.keep_awake import keep_awake
 from rappi_scraper.pipeline.progress import Progress
 from rappi_scraper.pipeline.queue import PossibleBlock
 from rappi_scraper.reporting import render_markdown
+from rappi_scraper.scraping.client import RobotsDisallowed
 
 
 class _Clock:
@@ -172,3 +174,47 @@ def test_manual_scrape_commands_leave_the_report_and_a_clear_message_on_a_block(
     with pytest.raises(SystemExit, match="Descarga detenida: posible bloqueo"):
         getattr(cli, command)(None, args)
     assert reports == [(7, kind, "posible bloqueo: 10 fallos consecutivos (último: 403)")]
+
+
+@pytest.mark.parametrize("command", ["cmd_scrape_stores", "cmd_scrape_restaurants"])
+def test_manual_scrape_commands_exit_with_7_when_robots_txt_forbids_a_page(monkeypatch, capsys, command):
+    """Como `refresh`: salían con 1 (SystemExit con texto) y la tarea semanal no los distinguía de otro error."""
+
+    def forbidden(*args, **kwargs):
+        raise RobotsDisallowed("robots.txt de www.rappi.cl no permite /x a rappi-dlab-scraper")
+
+    monkeypatch.setattr(cli, "process_store_jobs", forbidden)
+    monkeypatch.setattr(cli, "process_restaurant_jobs", forbidden)
+    monkeypatch.setattr(cli, "RappiClient", lambda: None)
+    monkeypatch.setattr(cli.repository, "open_run", lambda conn, k: 7)
+    monkeypatch.setattr(cli, "finish_and_report", lambda *args, **kwargs: ({}, None))
+    monkeypatch.setattr(cli, "render_markdown", lambda report: "")
+
+    with pytest.raises(SystemExit) as stop:
+        getattr(cli, command)(None, Namespace(vertical=None, limit=None, max_aisles=None))
+
+    assert stop.value.code == cli.ROBOTS_EXIT == 7
+    assert (
+        "Descarga detenida: robots.txt de www.rappi.cl no permite /x a rappi-dlab-scraper. La corrida quedó abierta"
+        in capsys.readouterr().err
+    )
+
+
+def test_discover_exits_with_7_when_robots_txt_forbids_a_page(monkeypatch, capsys):
+    def forbidden(conn, args):
+        raise RobotsDisallowed("robots.txt de www.rappi.cl no permite /tiendas a rappi-dlab-scraper")
+
+    monkeypatch.setitem(cli.COMMANDS, "discover", forbidden)
+    monkeypatch.setattr(cli, "file_lock", contextlib.nullcontext)
+    monkeypatch.setattr(cli, "database_lock", contextlib.nullcontext)
+    monkeypatch.setattr(cli, "keep_awake", contextlib.nullcontext)
+    monkeypatch.setattr(cli, "connect", contextlib.nullcontext)
+    monkeypatch.setattr(cli, "_setup_logging", lambda command: None)
+
+    with pytest.raises(SystemExit) as stop:
+        cli.main(["discover"])
+
+    assert stop.value.code == 7
+    assert "Descarga detenida: robots.txt de www.rappi.cl no permite /tiendas a rappi-dlab-scraper." in (
+        capsys.readouterr().err
+    )
