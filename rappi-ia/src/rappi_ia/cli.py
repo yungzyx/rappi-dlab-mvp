@@ -557,7 +557,7 @@ def cmd_eval_human(conn, args) -> None:
 
     from .eval import judgments, sheets
 
-    if args.desde_base:
+    if getattr(args, "desde_base", False):  # los tests la llaman sin args
         human, origin = _judgments_in_db(conn, args.juez)
         _search_sheet_report(human, Counter(), origin)
         return
