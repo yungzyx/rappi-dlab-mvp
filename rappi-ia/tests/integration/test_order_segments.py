@@ -212,6 +212,39 @@ def test_one_users_metrics_match_the_whole_source(db):
         assert segments.user_metrics(db, "prototype", user, now=now) == {user: whole[user]}
 
 
+def test_rappi_hoy_orders_do_not_count_in_order_metrics(db):
+    """Los pedidos y los carros de "Rappi hoy" (`mode = 'actual'`) no cambian ninguna métrica de pedidos: ese modo no
+    enseña. Con 6 pedidos así en 90 días, antes la persona quedaba "Leal" (y activa, multivertical, sin reactivar, con
+    ticket creciente, menos abandono y más gasto)."""
+    seed_taxonomy(db, load_taxonomy())
+    now = datetime(2026, 10, 7, 15, 0, tzinfo=UTC)
+
+    def order(user, cart, ago, vertical="supermercado", total=1000, mode="propuesta"):
+        ts = now - timedelta(days=ago)
+        payload = {"mode": "actual"} if mode == "actual" else {}
+        add = events.Event(user, cart, "cart_add", ts=ts, vertical=vertical, cart_id=cart, payload=payload)
+        events.record(db, [add])
+        if total:
+            line = {**_line(), "unit_price": total}
+            events.record_order(db, user, cart, cart, vertical, [line], ts=ts, mode=mode)
+
+    for user in ("u-solo", "u-hoy"):
+        for i, ago in enumerate((85, 80, 5)):
+            order(user, f"c-{user}-{i}", ago)
+        order(user, f"c-{user}-sin-pagar", 4, total=0)
+    hoy = ("restaurantes", "turbo", "farmacia", "restaurantes", "turbo", "farmacia")
+    for i, (ago, vertical) in enumerate(zip((60, 40, 20, 4, 2, 1), hoy, strict=True)):
+        order("u-hoy", f"c-u-hoy-actual-{i}", ago, vertical, total=9000, mode="actual")
+    db.commit()
+
+    metrics = segments.user_metrics(db, "prototype", now=now)
+
+    assert metrics["u-hoy"] == metrics["u-solo"]
+    assert metrics["u-hoy"]["pedidos_90d"] == 3 and metrics["u-hoy"]["reactivado"] == 1
+    segments.build_segments(db, "prototype", now=now)
+    assert "leal" not in _segments(db, "u-hoy")
+
+
 class SpyConnection:
     """Anota el SQL de cada consulta."""
 

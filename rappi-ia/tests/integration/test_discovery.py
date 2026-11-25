@@ -266,11 +266,19 @@ def test_store_for_you_endpoint_is_only_for_its_owner(client):
 # ── Antes de escribir: recientes y lo más buscado ───────────────────────────
 
 
-def searches(user_id: str, *queries: str, ago_days: int = 1, unmet: bool = False):
+def searches(user_id: str, *queries: str, ago_days: int = 1, unmet: bool = False, mode: str = "propuesta"):
     when = datetime.now(TZ) - timedelta(days=ago_days)
+    payload = {"mode": "actual"} if mode == "actual" else {}
     return [
         events.Event(
-            user_id, "s", "search", ts=when + timedelta(minutes=i), query=q, results=0 if unmet else 5, unmet=unmet
+            user_id,
+            "s",
+            "search",
+            ts=when + timedelta(minutes=i),
+            query=q,
+            results=0 if unmet else 5,
+            unmet=unmet,
+            payload=payload,
         )
         for i, q in enumerate(queries)
     ]
@@ -290,6 +298,14 @@ def test_top_searches_use_one_population_with_enough_people(seeded):
     for n in range(TOP_MIN_PEOPLE):
         events.record(seeded, searches(f"p-{n}", "helado"))  # del prototipo: otra población
     assert top_searches(seeded, "synthetic") == ["papas fritas"]  # la cerveza no se propone sola
+    assert top_searches(seeded, "prototype") == ["helado"]
+
+
+def test_rappi_hoy_searches_do_not_count_in_top_searches(seeded):
+    """Lo que se busca en "Rappi hoy" (`payload.mode = 'actual'`) no llega a "Lo más buscado": ese modo no enseña."""
+    for n in range(TOP_MIN_PEOPLE):
+        events.record(seeded, searches(f"p-{n}", "helado"))
+        events.record(seeded, searches(f"p-{n}", "papas fritas", mode="actual"))
     assert top_searches(seeded, "prototype") == ["helado"]
 
 

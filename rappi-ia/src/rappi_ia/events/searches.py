@@ -4,6 +4,7 @@
   eventos y el texto de las consultas se borra a los QUERY_RETENTION_DAYS (events/store.py).
 - Lo más buscado: lo que más personas buscaron y encontraron en los últimos TOP_WINDOW_DAYS días, solo de la población
   que se declara (`config.MOTOR_POBLACION`): `synthetic` y `prototype` nunca se mezclan, y la respuesta dice cuál es.
+  Lo buscado en "Rappi hoy" (`payload.mode = 'actual'`) no cuenta: ese modo no enseña.
   Una búsqueda entra solo si la hicieron al menos TOP_MIN_PEOPLE personas (nadie ve lo que escribió una sola), si
   encuentra algo en el catálogo (lo revisa la API, no se cree el `results` de la app) y si no es algo que la app no
   propone por su cuenta (`offers/guards.py`: alcohol, salud, bebé, lo sensible).
@@ -46,6 +47,7 @@ SELECT query, people FROM (
     WHERE type = 'search' AND source = %(population)s AND ts >= now() - make_interval(days => %(days)s)
       AND query IS NOT NULL AND btrim(query) <> '' AND query NOT LIKE %(redacted)s
       AND unmet IS NOT TRUE AND coalesce(results, 0) > 0
+      AND payload ->> 'mode' IS DISTINCT FROM 'actual'  -- "Rappi hoy" no enseña
     GROUP BY lower(btrim(query))
     HAVING count(DISTINCT user_id) >= %(min_people)s
     ORDER BY people DESC, 1
