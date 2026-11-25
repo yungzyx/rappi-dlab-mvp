@@ -120,6 +120,6 @@ Estado al 01-11-2026:
 
 - **¿Quién lo usaría y dónde?** (equipos internos de Rappi, usuarios finales, análisis de mercado). Define la interfaz y las condiciones de uso de los datos.
 - **¿Sumar una vertical retiene?** La tabla de Rappi muestra que quien combina verticales vuelve más, pero no si sumarle una a alguien lo hace volver. Con eventos reales se puede medir qué hace un mismo usuario en distintos verticales y si las sugerencias cruzadas suben la frecuencia, y con pedidos reales el motor aprende de la población real en vez de la simulada (`MOTOR_POBLACION`). Eso se valida con un grupo de control ([diseno-ia.md §5](diseno-ia.md#5-panel-para-la-empresa-vale-la-pena)).
-- **¿Mejora de verdad el refuerzo por concepto?** Hay que juzgar a mano la planilla de 200 pares (`rappi-ia jev-planillas`, ver [jev.md](jev.md)) y medirlo con `rappi-ia eval-human`.
+- **¿Mejora de verdad el refuerzo por concepto?** Hay que juzgar a mano los 200 pares (en "Juzgar la búsqueda" del panel o en la planilla de `rappi-ia jev-planillas`, ver [jev.md](jev.md)) y medirlo con `rappi-ia eval-human`.
 
 Las preguntas ya resueltas (modelos, áreas iniciales, taxonomía, datos simulados) están en [decisiones.md](decisiones.md).

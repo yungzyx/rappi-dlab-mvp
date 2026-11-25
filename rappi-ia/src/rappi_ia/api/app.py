@@ -36,6 +36,7 @@ from ..catalog.stores import line_stores, search_stores
 from ..concepts.taxonomy import load_taxonomy
 from ..db import pending_migrations
 from ..embeddings.base import TextEmbedder
+from ..eval import human_judgments
 from ..events import experiments
 from ..events import store as events
 from ..events.searches import recent_searches, top_searches
@@ -1053,6 +1054,53 @@ analytics_router = APIRouter(prefix="/analytics", dependencies=[Depends(ANALYTIC
 @analytics_router.get("/catalog")
 def analytics_catalog(conn: Connection = Depends(get_analytics_conn)) -> dict:
     return {"source": "catalogo_real", "data": queries.catalog_health(conn)}
+
+
+# "Juzgar la búsqueda": la muestra de pares a ciegas (sin método ni posición) y el juicio de quien juzga, que se guarda
+# en search_judgments (eval/human_judgments.py). `juez` es un rótulo como "J1", nunca un nombre.
+Judge = Annotated[str, Query(pattern=human_judgments.JUDGE.pattern)]
+
+
+class JudgmentIn(Clean):
+    nivel: Literal[0, 1, 2]  # 2 "sirve", 1 "a medias", 0 "no sirve"
+    juez: str = Field(default="", pattern=human_judgments.JUDGE.pattern)
+
+
+@analytics_router.get("/juicio-busqueda/pares")
+def judging_pairs(juez: Judge = "", conn: Connection = Depends(get_analytics_conn)) -> dict:
+    return human_judgments.pairs_to_judge(conn, juez)
+
+
+@analytics_router.get("/juicio-busqueda/avance")
+def judging_progress(juez: Judge = "", conn: Connection = Depends(get_analytics_conn)) -> dict:
+    return human_judgments.progress(conn, juez)
+
+
+@analytics_router.put("/juicio-busqueda/pares/{pair_id}")
+def judge_pair(
+    body: JudgmentIn, pair_id: str = Path(pattern=r"^P[0-9a-f]{10}$"), conn: Connection = Depends(get_analytics_conn)
+) -> dict:
+    """Guarda (o reemplaza) el juicio y devuelve el avance de ese juez."""
+    try:
+        human_judgments.save(conn, pair_id, body.nivel, body.juez)
+    except human_judgments.UnknownPair:
+        raise HTTPException(404, "Ese par no es de la muestra") from None
+    conn.commit()
+    return human_judgments.progress(conn, body.juez)
+
+
+@analytics_router.get("/audiencias/{audience_id}")
+def analytics_audience(
+    audience_id: str,
+    source: Literal["synthetic", "prototype"] = "synthetic",
+    conn: Connection = Depends(get_analytics_conn),
+) -> dict:
+    """Los ids seudónimos de una audiencia, para llevarla a una campaña. 404 si no existe o no llega al mínimo de
+    personas: una audiencia que el panel no muestra tampoco se entrega."""
+    members = queries.audience_members(conn, audience_id, source)
+    if members is None:
+        raise HTTPException(404, f"Audiencia desconocida o bajo el mínimo de personas: {audience_id}")
+    return {"source": source, "data": members}
 
 
 @analytics_router.get("/{name}")

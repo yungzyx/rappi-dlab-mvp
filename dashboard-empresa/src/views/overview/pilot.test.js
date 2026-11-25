@@ -37,13 +37,29 @@ describe('pilotProgress', () => {
     // H1: al tratamiento le falta asignar 6.936 a 500 por semana (13,9) y al control 771 a 50 (15,4): manda el control.
     expect(h1.weeks).toBe(16)
     expect(h2.weeks).toBeNull() // ya llegó
-    expect(h3.weeks).toBeNull() // avanza con respuestas, no con asignaciones
+    expect(h3.weeks).toBeNull() // avanza con respuestas, no con asignaciones: sin su ritmo, no se estima
     // Ya están asignadas las que pide el mínimo, aunque todavía no cumplen su plazo: no falta asignar a nadie.
     expect(paced({ tratamiento: 500, control: 50 }, groups(9000, 1000))[0]).toMatchObject({ weeks: 0, done: false })
     // A un grupo al que le falta no le entra nadie, o no hay ritmo: no se puede estimar.
     expect(paced({ tratamiento: 500, control: 0 })[0].weeks).toBeNull()
     expect(paced(null)[0].weeks).toBeNull()
     expect(pilotProgress(experiment()).rows[0].weeks).toBeNull() // una respuesta sin `ritmo`
+  })
+
+  test('the H3 counts its weeks with the pace of answers, against the answers it already has', () => {
+    const answers = (pace) => pilotProgress(experiment({ ritmo_encuesta: { por_semana: pace } })).rows[2]
+    // Al tratamiento le faltan 40 respuestas a 20 por semana (2) y al control 75 a 10 (7,5): manda el control.
+    expect(answers({ tratamiento: 20, control: 10 })).toMatchObject({ id: 'H3', weeks: 8, done: false })
+    expect(answers({ tratamiento: 20, control: 0 }).weeks).toBeNull() // al control no le llega ninguna
+    expect(answers(null).weeks).toBeNull()
+    // Ya con las respuestas que pide, no hay nada que estimar.
+    const done = pilotProgress(
+      experiment({
+        encuesta: { variantes: groups(120, 100, 'respondidas'), minimo: 100 },
+        ritmo_encuesta: { por_semana: { tratamiento: 20, control: 10 } },
+      }),
+    ).rows[2]
+    expect(done).toMatchObject({ done: true, weeks: null })
   })
 
   test('with the control group off, or one group empty, there is nothing to measure', () => {

@@ -512,35 +512,65 @@ def cmd_eval_sample(conn, args) -> None:
     print(f"{len(sample)} pares ({diff} donde el refuerzo cambia el top 10) en {judgments.SAMPLE_FILE}")
 
 
+def _search_sheet_report(human: dict[str, int], counts: Counter, origin: str) -> int:
+    """Imprime los juicios de personas de la muestra de búsqueda contra el juez por concepto. Devuelve cuántos pares
+    de la muestra tienen juicio."""
+    import json
+
+    from .eval import judgments, sheets
+
+    pairs = json.loads(sheets.SEARCH_IDS_FILE.read_text(encoding="utf-8"))["pares"]
+    report = judgments.sheet_report(pairs, human)
+    print(
+        f"{origin}: {report['juzgados']} de {len(pairs)} pares juzgados"
+        f" ({report['sin_juicio']} sin juicio, {counts['invalidas']} inválidas, {counts['vacias']} vacías,"
+        f' {report["desconocidos"]} desconocidos, {report["a_medias"]} "a medias")'
+    )
+    if report["juzgados"]:
+        print(
+            f"Personas vs juez por concepto: acuerdo {report['acuerdo']} · κ {report['kappa']}"
+            f' ("sirve" contra el resto) · κ ponderado {report["kappa_ponderado"]} (tres valores)'
+        )
+    for stratum, row in report["por_estrato"].items():
+        print(f"  {stratum}: {row['n']} pares, acuerdo {row['acuerdo']}")
+    return report["juzgados"]
+
+
+def _judgments_in_db(conn, judge: str | None) -> tuple[dict[str, int], str]:
+    """Los juicios de "Juzgar la búsqueda" (tabla search_judgments) de un juez. Sin `--juez`, el único que hay."""
+    from .eval import human_judgments
+
+    judges = human_judgments.judges(conn)
+    if judge is None:
+        if len(judges) > 1:
+            names = ", ".join(name or '""' for name in judges)
+            raise SystemExit(f"Hay juicios de {len(judges)} jueces en la base ({names}): elige uno con --juez.")
+        judge = judges[0] if judges else ""
+    human = human_judgments.load(conn, judge)
+    if not human:
+        raise SystemExit(f'Todavía no hay juicios en la base del juez "{judge}" ("Juzgar la búsqueda" del panel).')
+    return human, f'Juicios en la base (juez "{judge}")'
+
+
 def cmd_eval_human(conn, args) -> None:
     import json
 
     from .eval import judgments, sheets
 
+    if getattr(args, "desde_base", False):  # los tests la llaman sin args
+        human, origin = _judgments_in_db(conn, args.juez)
+        _search_sheet_report(human, Counter(), origin)
+        return
     sheet = sheets.sheet_dir() / sheets.SEARCH_SHEET
     if sheet.exists() and sheets.SEARCH_IDS_FILE.exists():
         counts: Counter = Counter()
         human = sheets.read_search_sheet(sheet, counts)
         if human or counts["invalidas"]:
-            pairs = json.loads(sheets.SEARCH_IDS_FILE.read_text(encoding="utf-8"))["pares"]
-            report = judgments.sheet_report(pairs, human)
-            print(
-                f"Planilla de búsqueda: {report['juzgados']} de {len(pairs)} pares juzgados"
-                f" ({report['sin_juicio']} sin juicio, {counts['invalidas']} inválidas, {counts['vacias']} vacías,"
-                f' {report["desconocidos"]} desconocidos, {report["a_medias"]} "a medias")'
-            )
-            if report["juzgados"]:
-                print(
-                    f"Personas vs juez por concepto: acuerdo {report['acuerdo']} · κ {report['kappa']}"
-                    f' ("sirve" contra el resto) · κ ponderado {report["kappa_ponderado"]} (tres valores)'
-                )
-            else:
+            if not _search_sheet_report(human, counts, "Planilla de búsqueda"):
                 print(
                     "Ningún juicio coincide con un par de la muestra: revisa que `juicio` use solo los valores"
                     " permitidos (sirve, a medias, no sirve) y que no hayas cambiado la columna `id`."
                 )
-            for stratum, row in report["por_estrato"].items():
-                print(f"  {stratum}: {row['n']} pares, acuerdo {row['acuerdo']}")
             if not judgments.JUDGMENTS_FILE.exists():
                 return
     if not judgments.JUDGMENTS_FILE.exists():
@@ -1059,7 +1089,15 @@ def build_parser() -> argparse.ArgumentParser:
         "`make eval-check`)",
     )
     sub.add_parser("eval-sample", help="muestra de ~200 pares (consulta, producto) para juzgar a mano")
-    sub.add_parser("eval-human", help="juez automático y refuerzo por concepto contra los juicios a mano, y κ")
+    human_cmd = sub.add_parser(
+        "eval-human", help="juez automático y refuerzo por concepto contra los juicios a mano, y κ"
+    )
+    human_cmd.add_argument(
+        "--desde-base",
+        action="store_true",
+        help='los juicios de "Juzgar la búsqueda" del panel (tabla search_judgments) en lugar de la planilla CSV',
+    )
+    human_cmd.add_argument("--juez", help='con --desde-base, el rótulo del juez ("J1"); sin él, el único que hay')
     sheets_cmd = sub.add_parser("jev-planillas", help="planillas CSV para juzgar a mano la búsqueda y las categorías")
     sheets_cmd.add_argument("--forzar", action="store_true", help="reemplaza planillas que ya tienen juicios")
     sheets_cmd.add_argument(
