@@ -181,6 +181,16 @@ def brands_done(conn: Connection, run_id: int) -> set[int]:
     return {r[0] for r in rows if r[0]}
 
 
+def store_locations(conn: Connection, store_ids: list[int]) -> dict[int, tuple[float, float, str]]:
+    """(lat, lng, ciudad) guardados de esas tiendas o restaurantes, los que tengan coordenadas."""
+    rows = conn.execute(
+        "SELECT store_id, lat, lng, coalesce(city, '') FROM stores "
+        "WHERE store_id = ANY(%s) AND lat IS NOT NULL AND lng IS NOT NULL",
+        (store_ids,),
+    ).fetchall()
+    return {store_id: (float(lat), float(lng), city) for store_id, lat, lng, city in rows}
+
+
 # ---------------------------------------------------------------- tiendas
 
 
@@ -359,6 +369,20 @@ def save_products(conn: Connection, run_id: int, store_id: int, products: list[d
             _int_or_none(p.get("stock")),
         )
 
+    # La página en Astro trae el id de la categoría pero no su nombre: una categoría que no está guardada queda sin
+    # poner (y el catálogo conserva la que tenía) en vez de romper la llave hacia `categories`.
+    referenced = {item[7] for item in items.values() if item[7]} - categories.keys()
+    if referenced:
+        known = {
+            row[0]
+            for row in conn.execute(
+                "SELECT category_id FROM categories WHERE category_id = ANY(%s)", (list(referenced),)
+            ).fetchall()
+        }
+        items = {
+            key: (*item[:7], None, *item[8:]) if item[7] in referenced - known else item for key, item in items.items()
+        }
+
     with conn.cursor() as cur:
         cur.executemany(
             "INSERT INTO categories (category_id, name) VALUES (%s, %s) "
@@ -374,7 +398,7 @@ def save_products(conn: Connection, run_id: int, store_id: int, products: list[d
                 name = EXCLUDED.name,
                 description  = COALESCE(NULLIF(EXCLUDED.description, ''), catalog_items.description),
                 presentation = COALESCE(NULLIF(EXCLUDED.presentation, ''), catalog_items.presentation),
-                quantity = EXCLUDED.quantity, unit_type = EXCLUDED.unit_type,
+                quantity = COALESCE(EXCLUDED.quantity, catalog_items.quantity), unit_type = EXCLUDED.unit_type,
                 trademark    = COALESCE(NULLIF(EXCLUDED.trademark, ''), catalog_items.trademark),
                 category_id  = COALESCE(EXCLUDED.category_id, catalog_items.category_id),
                 image_url    = COALESCE(NULLIF(EXCLUDED.image_url, ''), catalog_items.image_url),
@@ -427,8 +451,10 @@ def save_restaurant(conn: Connection, run_id: int, parsed: dict) -> int:
         INSERT INTO restaurant_details (store_id, rating, review_count, delivery_cost, eta, schedules, tags)
         VALUES (%s, %s, %s, %s, %s, %s, %s)
         ON CONFLICT (store_id) DO UPDATE SET rating = EXCLUDED.rating, review_count = EXCLUDED.review_count,
-            delivery_cost = EXCLUDED.delivery_cost, eta = EXCLUDED.eta, schedules = EXCLUDED.schedules,
-            tags = EXCLUDED.tags
+            delivery_cost = EXCLUDED.delivery_cost, eta = EXCLUDED.eta,
+            -- La página en Astro no trae horarios ni etiquetas: lo que no viene no borra lo guardado.
+            schedules = COALESCE(EXCLUDED.schedules, restaurant_details.schedules),
+            tags = CASE WHEN cardinality(EXCLUDED.tags) > 0 THEN EXCLUDED.tags ELSE restaurant_details.tags END
         """,
         (
             store_id,
@@ -436,7 +462,7 @@ def save_restaurant(conn: Connection, run_id: int, parsed: dict) -> int:
             details["review_count"],
             details["delivery_cost"],
             details["eta"],
-            Jsonb(details["schedules"]),
+            Jsonb(details["schedules"]) if details["schedules"] is not None else None,
             details["tags"],
         ),
     )
@@ -464,7 +490,8 @@ def save_restaurant(conn: Connection, run_id: int, parsed: dict) -> int:
                     %(image_url)s, %(is_popular)s, %(has_toppings)s)
             ON CONFLICT (store_id, rappi_item_id) DO UPDATE SET
                 section_id = EXCLUDED.section_id, extra_section_ids = EXCLUDED.extra_section_ids, name = EXCLUDED.name,
-                description = EXCLUDED.description, image_url = EXCLUDED.image_url,
+                description = COALESCE(NULLIF(EXCLUDED.description, ''), menu_items.description),
+                image_url = EXCLUDED.image_url,
                 is_popular = EXCLUDED.is_popular, has_toppings = EXCLUDED.has_toppings, last_seen = now()
             RETURNING item_id
             """,

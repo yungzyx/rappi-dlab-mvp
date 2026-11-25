@@ -2,7 +2,7 @@
 
 Descarga el catálogo público de Rappi Chile de **todos los verticales** (productos, menús, tiendas y precios) y lo guarda en **Postgres + pgvector**. Con esa base arma los documentos de búsqueda por vertical que usa [`rappi-ia`](../rappi-ia/) para la búsqueda híbrida y el asistente Mochi.
 
-**Fuentes:** solo páginas públicas de rappi.cl (el JSON `__NEXT_DATA__` que trae cada página), los sitemaps públicos de restaurantes y el JSON público de metadatos de tiendas. No usa APIs internas ni login, se presenta con su propio nombre y respeta robots.txt. Ver [Uso responsable](#uso-responsable).
+**Fuentes:** solo páginas públicas de rappi.cl (cada página y las islas de servidor que pide al cargarse; ver [Cómo se leen las páginas](#cómo-se-leen-las-páginas)), los sitemaps públicos de restaurantes y el JSON público de metadatos de tiendas. No usa APIs internas ni login, se presenta con su propio nombre y respeta robots.txt. Ver [Uso responsable](#uso-responsable).
 
 ![Flujo del scraper: descubrir, descargar, guardar y armar la búsqueda](../docs/diagramas/scraper-flujo.png)
 
@@ -70,15 +70,28 @@ La primera descarga completa (24–27-09-2026) tomó **unos 3 días para las tie
 
 Resultados de cada descarga y detalle por vertical en [README.md#resultados](../README.md#resultados).
 
+## Cómo se leen las páginas
+
+Desde el 25-11-2026 rappi.cl está hecho con Astro (antes, Next.js, y el scraper leía el JSON `__NEXT_DATA__` de cada página). La página que se pide trae poco: el JSON-LD con el nombre, la marca y las coordenadas, y dónde están sus "islas de servidor" (`/_server-islands/<Nombre>?e=…&p=…`), fragmentos de HTML que el navegador pide después con las cookies que dejó la página. Esas islas traen el catálogo, en los `props` de sus componentes `<astro-island>` (JSON escapado, cada valor como `[tipo, valor]`) y en sus eventos de analítica (`data-analytics`). `client.get_page` baja la página y sus islas de contenido en la misma sesión (no las de la cabecera), cada una con robots.txt revisado antes, y los parsers leen todo junto (`scraping/astro.py`).
+
+| Página | Isla | Qué trae |
+|---|---|---|
+| Portada de tienda `/tiendas/<id>-<slug>` | `StoreContent` | Formato, marca y sub-grupo; algunos pasillos con sus primeros 15 productos; los enlaces a unos 10 pasillos |
+| Pasillo `/tiendas/<vertical>/<formato>/<id>-<slug>/sub_aisles?aisle_id=<id>` | `AisleDetailContent` | Los primeros 5 sub-pasillos, con sus primeros 15 productos (los sub-pasillos ya no tienen página) |
+| Restaurante `/restaurantes/<id>-<slug>` | `SingleRestaurantDetail` | El menú completo por secciones, "Populares", y nota, reseñas, envío y demora del local |
+| Listado `/tiendas/tipo/<v>` (redirige a `/tiendas/supermercado`, …) | `CPGStoresContent` | Las primeras filas de tiendas, con su formato |
+
+Lo demás (más pasillos, sub-pasillos y tiendas al bajar en la página) el navegador lo pide a `/api/…`, que robots.txt no permite: no se pide. Los productos se guardan con las mismas claves de antes (`product_id`, `real_price`, `in_stock`…). Sin nombre de categoría, cantidad ni stock, y en restaurantes sin dirección, coordenadas, horarios, cocinas ni descripción de los platos: esos campos quedan como estaban guardados (y vacíos para lo nuevo), y la tienda conserva su último contexto (`stores.raw`: mínimo, envío, si estaba abierta). La página de una cadena ya no lista sus sucursales (redirige a una según la ubicación y, sin ubicación, al inicio de sesión), así que no se pide: las sucursales salen de cruzar los sitemaps por el nombre en la URL (`/restaurantes/delivery/1833-vapiano` con `/restaurantes/900021447-vapiano`).
+
 ## Páginas ilegibles y sucursales no disponibles
 
-Una tienda se recorre así: portada → pasillos → sub-pasillos. Cuando algo falla a mitad del recorrido:
+Una tienda se recorre así: portada → pasillos (cada uno con sus sub-pasillos). Cuando algo falla a mitad del recorrido:
 
-- **Página ilegible:** una página de pasillo o sub-pasillo que no se puede leer (error de red, página inexistente, JSON cortado o con otra forma, página sin datos de catálogo) se omite y queda en el resultado del job (`pasillos_omitidos`, `paginas_omitidas`, `paginas_intentadas`). La tienda queda hecha con el resto, y las ofertas de esos pasillos que estaban en la bajada anterior de su formato siguen vigentes en la búsqueda con ese precio (solo si esa bajada fue de la misma sucursal). Si se omite más del 5 % de las páginas, el job falla (pasa por el reintento) y no se guarda: la corrida anterior sigue siendo la del formato. El reporte muestra el % de páginas omitidas.
+- **Página ilegible:** una página de pasillo que no se puede leer (error de red, página inexistente, isla que responde con su página de error, JSON cortado o con otra forma, página sin sub-pasillos) se omite y queda en el resultado del job (`pasillos_omitidos`, `paginas_omitidas`, `paginas_intentadas`). La tienda queda hecha con el resto, y las ofertas de esos pasillos que estaban en la bajada anterior de su formato siguen vigentes en la búsqueda con ese precio (solo si esa bajada fue de la misma sucursal). Si se omite más del 5 % de las páginas (con unos 10 pasillos por tienda, basta uno), el job falla (pasa por el reintento) y no se guarda: la corrida anterior sigue siendo la del formato. El reporte muestra el % de páginas omitidas.
 - **Ningún pasillo legible:** si no se pudo leer ningún pasillo, la tienda falla (`ningún pasillo se pudo leer`) en vez de quedar "hecha" solo con la portada.
-- **Sucursal que deja de despachar:** si un pasillo redirige al listado de tiendas, no se guarda un catálogo a medias: se prueba la siguiente sucursal de la misma marca (hasta 3). Lo mismo si redirige la portada de la sucursal.
+- **Sucursal que deja de despachar:** si un pasillo redirige a un listado de tiendas (`/tiendas/tipo/…` o los nuevos, como `/tiendas/supermercado`), no se guarda un catálogo a medias: se prueba la siguiente sucursal de la misma marca (hasta 3). Lo mismo si redirige la portada de la sucursal.
 - **Restaurante dado de baja:** si Rappi redirige a `restaurantNotFound`, el job queda omitido ("ya no existe en Rappi").
-- **Mensajes de error útiles:** cuando llega una página sin datos de catálogo, el error dice qué página llegó en su lugar.
+- **Página de desafío:** una página sin islas de contenido, o una isla sin componentes, cuenta para el detector de bloqueos como un 403; una isla que responde con su error también, salvo un 404 ("Location not found"), que es una respuesta del sitio.
 
 ## Actualización semanal automática
 
@@ -86,7 +99,7 @@ Una tienda se recorre así: portada → pasillos → sub-pasillos. Cuando algo f
 
 - **Retomar:** si una actualización se cortó con las tiendas ya terminadas, retoma en los restaurantes sin volver a bajar tiendas. Con `--resume-only` solo retoma las corridas abiertas (las que reabrió `retry-failed`) y nunca empieza una nueva.
 - **Respaldo:** se escribe a un `.part`, se valida con `pg_restore --list` y recién entonces rota. Si falla, se conservan los anteriores y la actualización sigue, pero `rappi refresh` termina con código 3 (la tarea semanal lo anota como "respaldo fallido" y corre igual la capa de IA). La clave de la base va a `pg_dump` por `PGPASSWORD`, nunca en sus argumentos.
-- **Sitemap de restaurantes caído o bloqueado:** si un sitemap no responde (un 403, un 429, una caída, un archivo ilegible), la corrida de restaurantes no se pierde: completa su cola con la lista de la última corrida de restaurantes terminada que empezó `rappi refresh` (no una de `discover` a mano; lo que se descubrió entonces, se haya bajado o no, sin los que ya no existían en Rappi) y baja esos menús y precios con los mismos jobs, pausas y detección de bloqueos de siempre (un bloqueo en la descarga sale con 4, como siempre). Si el que falló fue el de independientes, las cadenas recién descubiertas quedan y se suman los independientes de esa lista, salvo los que hoy son sucursales de esas cadenas. `--max-chains` y `--max-independents` también limitan la lista copiada. El log y el reporte lo dicen ("⚠ sitemap bloqueado o caído: se usó la lista de la corrida N (X restaurantes)", con el error) y restaurantes nuevos no entran esa semana. Si la corrida termina, la próxima actualización vuelve a descubrir; si se detuvo por un bloqueo, la próxima la retoma con la misma lista. Un 403 a una parte numerada (-1, -2…) después de una parte que no llegó a las 50.000 URLs se toma como el final del sitemap, no como un error, con un aviso en el log (si fuera un bloqueo a mitad del sitemap, faltarían las partes siguientes): el 18-10 rappi.cl respondió 403, y no 404, a la parte -1 de cadenas (con la -0 muy lejos del tope), y lo más probable es que esa parte no exista.
+- **Sitemap de restaurantes caído o bloqueado:** si un sitemap no responde (un 403, un 429, una caída, un archivo ilegible), la corrida de restaurantes no se pierde: completa su cola con la lista de la última corrida de restaurantes terminada que empezó `rappi refresh` (no una de `discover` a mano; lo que se descubrió entonces, se haya bajado o no, sin los que ya no existían en Rappi) y baja esos menús y precios con los mismos jobs, pausas y detección de bloqueos de siempre (un bloqueo en la descarga sale con 4, como siempre). Como las sucursales de las cadenas salen de cruzar los dos sitemaps, si falla cualquiera de los dos la cola entera es la de esa lista. `--max-chains` y `--max-independents` también limitan la lista copiada. El log y el reporte lo dicen ("⚠ sitemap bloqueado o caído: se usó la lista de la corrida N (X restaurantes)", con el error) y restaurantes nuevos no entran esa semana. Si la corrida termina, la próxima actualización vuelve a descubrir; si se detuvo por un bloqueo, la próxima la retoma con la misma lista. Un 403 a una parte numerada (-1, -2…) después de una parte que no llegó a las 50.000 URLs se toma como el final del sitemap, no como un error, con un aviso en el log (si fuera un bloqueo a mitad del sitemap, faltarían las partes siguientes): el 18-10 rappi.cl respondió 403, y no 404, a la parte -1 de cadenas (con la -0 muy lejos del tope), y lo más probable es que esa parte no exista.
 - **Códigos de salida:** 4 = posible bloqueo (la corrida queda abierta, salvo si fue al descubrir, y la tarea semanal anota "detenida: posible bloqueo"); 7 = robots.txt no permite una página o no respondió (igual que el 4: se detiene y anota "detenida: robots.txt no permite una página o no respondió"; mientras robots.txt no cambie, la próxima se detiene en la misma página); 5 = falló el descubrimiento de restaurantes y no había una corrida anterior terminada de la que usar la lista: tiendas, búsqueda y respaldo sí se hicieron, la corrida de restaurantes queda cerrada como fallida con el error en su reporte, y la tarea semanal anota "restaurantes sin actualizar" y corre igual la capa de IA; 6 = eso y además el respaldo fallido (se anotan los dos). Con la lista anterior la corrida termina bien y sale con 0 (o 3 si falló el respaldo): el aviso queda en el reporte y, para la tarea semanal, `rappi refresh` deja la marca fija `restaurantes_con_lista_anterior` en el archivo de `RAPPI_REFRESH_NOTES` y `ultimo-estado.txt` anota "restaurantes con la lista de la corrida anterior".
 - **Migraciones:** la tarea semanal aplica las pendientes (`rappi migrate`) antes de descargar, para que una migración que trajo un `git pull` no haga fallar la descarga al final.
 - **Capa de IA:** la tarea semanal (`scripts/refresh-semanal.sh`) la corre los domingos a las 03:00 y, si la descarga terminó bien (aunque hayan fallado el respaldo o los restaurantes: códigos 3, 5 y 6) y `../rappi-ia` está instalado, sigue con `make -C ../rappi-ia post-refresh` (los pasos, en [rappi-ia/README.md](../rappi-ia/README.md#correr)).
@@ -148,9 +161,9 @@ rappi-scraper/
 │   ├── scraping/                 todo lo que habla con rappi.cl
 │   │   ├── client.py               HTTP con pausas, reintentos, robots.txt y ubicación de despacho
 │   │   ├── robots.py               reglas de robots.txt por sitio, con caché de 24 horas
-│   │   ├── next_data.py            lectura del JSON __NEXT_DATA__
+│   │   ├── astro.py                lectura de las páginas en Astro y sus islas
 │   │   ├── store_parser.py         tienda, pasillos, sub-pasillos y productos
-│   │   ├── listing_parser.py       listados por vertical y cadenas de restaurantes
+│   │   ├── listing_parser.py       listados por vertical
 │   │   ├── restaurant_parser.py    restaurante y menú
 │   │   └── store_metadata.py       JSON público de metadatos de tiendas, con coordenadas
 │   ├── pipeline/                 orquestación de las corridas
@@ -220,7 +233,7 @@ make format       # aplica el formato
 
 ## Limitaciones
 
-- **Cobertura parcial en tiendas:** las páginas públicas muestran como máximo 24 productos por sub-pasillo (el resto lo carga el navegador por otra vía). La cobertura real (obtenidos vs declarados) se ve en la vista `v_coverage`. Los restaurantes sí traen el menú completo.
+- **Cobertura parcial en tiendas:** desde el 25-11-2026 las páginas públicas muestran unos 10 pasillos por tienda, 5 sub-pasillos por pasillo y 15 productos por sub-pasillo (antes, todos los pasillos y sub-pasillos con hasta 24 productos); el resto lo carga el navegador desde /api, que robots.txt no permite. Lo mismo los listados: solo sus primeras filas de tiendas. La cobertura real (obtenidos vs declarados) se ve en la vista `v_coverage`. Los restaurantes sí traen el menú completo.
 - **`ean` casi siempre vacío:** Rappi no lo publica. Para comparar el mismo producto entre cadenas se usa `master_product_id`.
 - **Jumbo y Tottus:** en septiembre de 2026 sus sucursales redirigían (inactivas en Rappi).
 - **Cambios en el sitio:** si cambia el frontend de rappi.cl hay que ajustar `scraping/*_parser.py`. Los tests usan páginas reales guardadas en `tests/fixtures/`: si los tests pasan pero el scraper falla con las páginas actuales, la estructura cambió; guarda una página nueva y los tests muestran qué.

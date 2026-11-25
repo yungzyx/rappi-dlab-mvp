@@ -3,7 +3,7 @@ import csv
 import pytest
 from psycopg import errors
 
-from conftest import FakeClient, restaurant_block, with_top_section
+from conftest import FakeClient, menu_sections, with_section
 from rappi_scraper.pipeline.restaurants import process_restaurant_jobs
 from rappi_scraper.scraping.restaurant_parser import parse_restaurant
 from rappi_scraper.storage import repository
@@ -129,11 +129,11 @@ def test_search_is_isolated_per_vertical(db, page):
     counts = build_search_documents(db)
     db.commit()
 
-    assert counts["catalog_item"] == 1 and counts["menu_item"] == 61
+    assert counts["catalog_item"] == 1 and counts["menu_item"] == 7
     assert search(db, "supermercado", "pañales")
     assert search(db, "restaurantes", "pañales") == []
-    assert search(db, "restaurantes", "arepa")
-    assert search(db, "supermercado", "arepa") == []
+    assert search(db, "restaurantes", "hamburguesa")
+    assert search(db, "supermercado", "hamburguesa") == []
     assert _count(db, "SELECT count(*) FROM search_documents WHERE vertical IS NULL") == 0
 
 
@@ -291,7 +291,7 @@ def test_a_dish_the_restaurant_no_longer_offers_leaves_the_search(db, page):
     build_search_documents(db)
 
     dishes = {r[0] for r in db.execute("SELECT entity_id FROM search_documents WHERE entity_type = 'menu_item'")}
-    assert len(dishes) == 60 and str(parsed["items"][0]["item_id"]) not in dishes
+    assert len(dishes) == 6 and str(parsed["items"][0]["item_id"]) not in dishes
 
 
 # Los platos de una sección, también los que están en otra (como lo leería "lo más pedido", #106).
@@ -305,13 +305,13 @@ WHERE ms.name = %s ORDER BY 1"""
 def test_a_dish_in_mas_vendidos_and_in_its_own_section_is_saved_in_both(db, page):
     """Antes el plato quedaba solo en la última sección y "Más vendidos" quedaba vacía (24 de 66 en `rappi`, 21-10)."""
     data = page("restaurant")
-    products = next(c for c in restaurant_block(data)["corridors"] if c["name"] == "Hamburguesas")["products"]
-    burgers = [p["id"] for p in products]
+    entries = next(s for s in menu_sections(data) if s["title"] == "Hamburguesas")["items"]
+    burgers = [e["product"]["id"] for e in entries]
     run = repository.start_run(db, "restaurants", {})
 
-    repository.save_restaurant(db, run, parse_restaurant(with_top_section(data, products[:2])))
+    repository.save_restaurant(db, run, parse_restaurant(with_section(data, 99999, "Más vendidos", entries[:2], True)))
 
-    assert _count(db, "SELECT count(*) FROM menu_items") == 61
+    assert _count(db, "SELECT count(*) FROM menu_items") == 7
     assert [r[0] for r in db.execute(SECTION_DISHES, ("Más vendidos",))] == sorted(burgers[:2])
     assert [r[0] for r in db.execute(SECTION_DISHES, ("Hamburguesas",))] == sorted(burgers)
 
@@ -334,7 +334,7 @@ def test_two_restaurants_sharing_a_rappi_dish_id_keep_their_own_dish_and_price(d
     db.commit()
 
     counts = dict(db.execute("SELECT store_id, count(*) FROM menu_items GROUP BY 1").fetchall())
-    assert counts == {first: 61, first + 1: 61}
+    assert counts == {first: 7, first + 1: 7}
     rappi_id = parsed["items"][0]["item_id"]
     prices = dict(
         db.execute(
@@ -347,9 +347,9 @@ def test_two_restaurants_sharing_a_rappi_dish_id_keep_their_own_dish_and_price(d
 
     # Volver a guardarlo no duplica: cada local conserva su plato.
     repository.save_restaurant(db, run, other)
-    assert _count(db, "SELECT count(*) FROM menu_items") == 122
+    assert _count(db, "SELECT count(*) FROM menu_items") == 14
     build_search_documents(db)
-    assert _count(db, "SELECT count(*) FROM search_documents WHERE entity_type = 'menu_item'") == 122
+    assert _count(db, "SELECT count(*) FROM search_documents WHERE entity_type = 'menu_item'") == 14
 
 
 def test_a_restaurant_that_no_longer_exists_leaves_the_search(db):

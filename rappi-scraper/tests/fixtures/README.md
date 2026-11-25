@@ -1,21 +1,18 @@
 # Fixtures de los tests
 
-Páginas públicas de rappi.cl guardadas el 26-09-2026 **solo para probar los parsers** del scraper.
+Páginas públicas de rappi.cl guardadas el 25-11-2026, con el sitio ya en Astro, **solo para probar los parsers** del scraper.
 
-- Están reducidas al bloque `<script id="__NEXT_DATA__">`, que es lo único que leen los tests: no incluyen el resto del HTML, ni CSS, JS o trackers de la página.
+- Cada archivo es la página y sus islas de contenido (lo que devuelve `RappiClient.get_page`), reducidas a lo que leen los parsers: el JSON-LD, los eventos de analítica, los enlaces a los pasillos y unos pocos componentes `<astro-island>` con 2 o 3 productos o platos cada uno. Sin el resto del HTML, CSS, JS ni trackers.
 - No son un respaldo del catálogo: son una página de muestra por tipo.
-- Los tests las cargan con `load_page(nombre)` en [`../conftest.py`](../conftest.py), que extrae el JSON de `__NEXT_DATA__`. `FakeClient` sirve `store`, `aisle` y `subaisle` según la profundidad de la ruta pedida, y simula tiendas caídas, errores pasajeros y un sitio que bloquea (`blocked`: 403 a todo).
+- Los tests las cargan con `load_page(nombre)` en [`../conftest.py`](../conftest.py). `FakeClient` sirve `aisle` para las rutas de pasillo (`…/sub_aisles?aisle_id=N`) y `store` para las demás, y simula tiendas caídas, errores pasajeros y un sitio que bloquea (`blocked`: 403 a todo). `with_section` le suma una sección al menú de un restaurante.
 - Si Rappi cambia la estructura de sus páginas y los tests siguen pasando con estas, pero el scraper falla con páginas nuevas, hay que guardar una página actual del mismo tipo (reducida igual) y ajustar `src/rappi_scraper/scraping/*_parser.py` (ruta desde `rappi-scraper/`).
 
-| Archivo | Tipo de página | Ruta de Next.js (campo `page`) |
+| Archivo | Página | Isla |
 |---|---|---|
-| `store.html` | Portada de una tienda de supermercado, con sus pasillos | `/ssg/[friendly_url]` |
-| `store_mall.html` | Portada de una tienda de Rappi Mall | `/ssg/[friendly_url]` |
-| `aisle.html` | Pasillo de una tienda (lácteos y huevos), con sus sub-pasillos | `/ssg/[friendly_url]/[aisle_friendly_url]` |
-| `subaisle.html` | Sub-pasillo de una tienda (yogurt), con sus productos | `/ssg/[friendly_url]/[aisle_friendly_url]/[subaisle_friendly_url]` |
-| `listing_market.html` | Listado de tiendas del tipo market (`/tiendas/tipo/market`) | `/store/tipo/[parent_store_friendly_url]` |
-| `listing_mall.html` | Listado de tiendas de Rappi Mall (`/tiendas/tipo/rappimall-parent`) | `/store/tipo/[parent_store_friendly_url]` |
-| `restaurant.html` | Página de un restaurante, con su menú | `/restaurantes/ssg/[id]` |
-| `brand_chain.html` | Página de una cadena de restaurantes, con sus sucursales | `/brands/[brand]` |
+| `store.html` | Portada de Lider (900025946): sus 10 pasillos enlazados y 2 bloques de productos | `StoreContent` |
+| `store_small.html` | Portada de una tienda sin pasillos enlazados (900090302) | `StoreContent` |
+| `aisle.html` | Pasillo Lácteos y Huevos de Lider, con 3 sub-pasillos | `AisleDetailContent` |
+| `restaurant.html` | Restaurante Rincón Venezolano (384): "Para Ti", "Populares" y 3 secciones del menú | `SingleRestaurantDetail` |
+| `listing_market.html` | Listado de supermercados (`/tiendas/tipo/market`, que redirige a `/tiendas/supermercado`): 2 grupos | `CPGStoresContent` |
 
-`robots.txt` es el de `https://www.rappi.cl/robots.txt` tal como estaba el 24-10-2026. `tests/unit/test_robots.py` comprueba con él que todo lo que pide el scraper está permitido; si Rappi lo cambia, se guarda el nuevo aquí y el test dice si algo dejó de estarlo.
+`robots.txt` es el de `https://www.rappi.cl/robots.txt` tal como estaba el 25-11-2026. `tests/unit/test_robots.py` comprueba con él que todo lo que pide el scraper (también las islas) está permitido; si Rappi lo cambia, se guarda el nuevo aquí y el test dice si algo dejó de estarlo.

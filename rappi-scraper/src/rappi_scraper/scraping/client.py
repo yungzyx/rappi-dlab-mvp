@@ -14,14 +14,14 @@ from urllib.parse import quote, urljoin, urlparse
 import requests
 
 from .. import config
-from .next_data import MissingNextData, ParseError, extract_next_data
+from .astro import MissingContent, Page, ParseError, content_islands, has_components, island_error
 from .robots import RobotsPolicy
 
 log = logging.getLogger(__name__)
 
 
 class StoreUnavailable(Exception):
-    """Rappi redirigió al listado de tiendas: la sucursal no despacha a la ubicación actual."""
+    """Rappi redirigió una tienda a un listado de tiendas: la sucursal no despacha a la ubicación actual."""
 
 
 class RestaurantGone(Exception):
@@ -89,6 +89,18 @@ def location_cookie(lat: float, lng: float, city: str, address: str) -> str:
     return base64.b64encode(quote(json.dumps(payload)).encode()).decode()
 
 
+def _is_listing(path: str) -> bool:
+    return path.startswith(config.UNAVAILABLE_PATH_PREFIX) or path.rstrip("/") in config.STORE_LISTING_PATHS
+
+
+def _text(response: requests.Response) -> str:
+    """El cuerpo como texto. Sin charset, requests decodifica text/html como Latin-1 y rompe las ñ y las tildes;
+    rappi.cl sirve UTF-8."""
+    if response.encoding is None or response.encoding.lower() == "iso-8859-1":
+        response.encoding = "utf-8"
+    return response.text
+
+
 class RappiClient:
     """Cliente de rappi.cl. `TIMEOUT_SECONDS` es por operación de socket (conectar, cada lectura), no un plazo total:
     una respuesta que gotea bytes sin parar no tiene tope. Se acepta así: las páginas de Rappi llegan enteras o se
@@ -108,6 +120,7 @@ class RappiClient:
             log.warning("Sin RAPPI_UA_CONTACT: el User-Agent dice quién descarga, pero no a quién escribirle")
 
     def set_location(self, lat: float, lng: float, city: str, address: str) -> None:
+        self.clear_location()  # rappi.cl devuelve la suya en cada página: con dos, no se sabe cuál lee
         self._session.cookies.set(
             "currentLocation",
             location_cookie(lat, lng, city, address),
@@ -115,9 +128,10 @@ class RappiClient:
         )
 
     def clear_location(self) -> None:
-        """Quita la ubicación de despacho (las páginas de cadena solo listan sucursales cercanas a ella)."""
-        with contextlib.suppress(KeyError):  # no había ubicación
-            self._session.cookies.clear(domain="www.rappi.cl", path="/", name="currentLocation")
+        """Quita la ubicación de despacho, también la que deja rappi.cl en cada página."""
+        for cookie in [c for c in self._session.cookies if c.name == "currentLocation"]:
+            with contextlib.suppress(KeyError):
+                self._session.cookies.clear(cookie.domain, cookie.path, cookie.name)
 
     def get_content(self, url: str) -> bytes:
         """Descarga una URL y devuelve el cuerpo en bytes (p. ej. sitemaps .xml.gz)."""
@@ -131,28 +145,40 @@ class RappiClient:
         self._blocked_streak = 0
         return data
 
-    def get_next_data(self, path: str) -> dict:
-        """Descarga una página de rappi.cl y devuelve su __NEXT_DATA__."""
+    def get_page(self, path: str) -> Page:
+        """Descarga una página de rappi.cl y sus islas de contenido (en la misma sesión: las islas leen las cookies que
+        deja la página). Una página sin islas, o una isla sin componentes, cuenta para el detector de bloqueos, igual
+        que un 403; una isla que responde con su página de error es un ParseError de esa página."""
         response = self._request(config.BASE_URL + path)
         final = urlparse(response.url)
-        if final.path.startswith(config.UNAVAILABLE_PATH_PREFIX) and not path.startswith(
-            config.UNAVAILABLE_PATH_PREFIX
-        ):
+        if _is_listing(final.path) and not _is_listing(urlparse(path).path):
             self._blocked_streak = 0
             raise StoreUnavailable(f"{path} redirigió a {final.path}")
         if config.RESTAURANT_NOT_FOUND_QUERY in final.query:
             self._blocked_streak = 0
             raise RestaurantGone(f"{path} ya no existe en Rappi")
-        # Sin charset, requests decodifica text/html como Latin-1 y rompe las ñ y las tildes; rappi.cl sirve UTF-8.
-        if response.encoding is None or response.encoding.lower() == "iso-8859-1":
-            response.encoding = "utf-8"
-        try:
-            data = extract_next_data(response.text)
-        except MissingNextData:
-            self._count_rejection(path, "página sin __NEXT_DATA__")
-            raise
+        page_html = _text(response)
+        islands = content_islands(page_html)
+        if not islands:
+            self._count_rejection(path, "página sin islas de contenido")
+            raise MissingContent("La página no trae islas de contenido (/_server-islands/...)")
+        parts = [page_html]
+        for name, island_path in islands:
+            island_html = _text(self._request(config.BASE_URL + island_path))
+            error = island_error(island_html)
+            if error:
+                code, message = error
+                if code == "404":  # el sitio respondió: no es un rechazo
+                    self._blocked_streak = 0
+                else:
+                    self._count_rejection(path, f"la isla {name} respondió {code}")
+                raise ParseError(f"La isla {name} respondió {code}: {message}")
+            if not has_components(island_html):
+                self._count_rejection(path, f"la isla {name} llegó sin componentes")
+                raise MissingContent(f"La isla {name} llegó sin componentes")
+            parts.append(island_html)
         self._blocked_streak = 0
-        return data
+        return Page(final.path, "\n".join(parts))
 
     def _count_rejection(self, url: str, reason: str) -> None:
         self._blocked_streak += 1

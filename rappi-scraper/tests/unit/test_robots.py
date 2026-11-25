@@ -54,31 +54,35 @@ def test_project_and_contact_come_from_the_environment():
     assert ua.startswith("otro-equipo/") and "(+https://example.cl/bot; " in ua
 
 
-# ---------------------------------------------------------------- el robots.txt de rappi.cl (24-10-2026)
+# ---------------------------------------------------------------- el robots.txt de rappi.cl (25-11-2026)
 
 
 def test_everything_the_scraper_asks_rappi_cl_for_is_allowed():
-    """Listados, sitemaps de restaurantes, tiendas, pasillos, sub-pasillos y restaurantes (rutas como las de los
-    fixtures). Si un robots.txt nuevo prohíbe alguna, el scraper se detendría ahí: este test lo avisa antes."""
+    """Listados (y adónde redirigen), sitemaps de restaurantes, tiendas, pasillos, restaurantes, cadenas y las islas de
+    servidor que piden esas páginas (rutas como las de los fixtures). Si un robots.txt nuevo prohíbe alguna, el scraper
+    se detendría ahí: este test lo avisa antes."""
     rules = Protego.parse(RAPPI_ROBOTS)
     paths = [
         *VERTICAL_LISTINGS.values(),
+        *config.STORE_LISTING_PATHS,
         "/tiendas/900017335-lider-hiper-tobalaba",
-        "/tiendas/900017335-lider-hiper-tobalaba/lacteos-y-huevos",
-        "/tiendas/900017335-lider-hiper-tobalaba/lacteos-y-huevos/yogurt",
+        "/tiendas/market/lider/900025946-lider/sub_aisles?aisle_id=14406",
         "/restaurantes/384-rincon-venezolano",
         "/restaurantes/delivery/1833-vapiano",
+        "/_server-islands/StoreContent?e=default&p=235A32B3%2F01&s=",
+        "/_server-islands/AisleDetailContent?e=default&p=x&s=",
+        "/_server-islands/SingleRestaurantDetail?e=default&p=x&s=",
+        "/_server-islands/CPGStoresContent?e=default&p=x&s=",
     ]
     urls = [config.BASE_URL + p for p in paths] + [CHAIN_SITEMAP.format(0), PARTNER_SITEMAP.format(3)]
     assert [u for u in urls if not rules.can_fetch(u, AGENT)] == []
 
 
 def test_what_rappi_cl_forbids_stays_forbidden():
+    """Entre otras, /api: de ahí carga el navegador el resto de pasillos y listados, y el scraper no lo pide."""
     rules = Protego.parse(RAPPI_ROBOTS)
-    for path in ("/login", "/checkout", "/api/ms/x", "/tiendas/900-farmacias-san-pablo-centro", "/x(route:carro)"):
+    for path in ("/login", "/checkout", "/api/dynamic/context/content", "/search?query=leche", "/basket"):
         assert not rules.can_fetch(config.BASE_URL + path, AGENT), path
-    # GPTBot tiene prohibido todo; el scraper no es GPTBot y no se rige por ese grupo.
-    assert not rules.can_fetch(config.BASE_URL + "/tiendas/tipo/market", "GPTBot")
 
 
 # ---------------------------------------------------------------- la política, sin red

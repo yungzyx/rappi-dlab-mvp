@@ -4,6 +4,11 @@ Crea los jobs de la corrida. Modo catálogo: un job por formato de tienda (`stor
 que identifica marca + formato, p. ej. 'lider' o 'casaideas_multitiendas_enc') y un job
 por cadena de restaurantes; los restaurantes independientes van uno por uno. Si el sitemap
 de restaurantes no responde, se usa la lista de la última corrida terminada.
+
+Desde el sitio en Astro (25-11-2026) la página de una cadena ya no lista sus sucursales: redirige a una según la
+ubicación, y sin ubicación, al inicio de sesión. No se pide. Las sucursales salen de los sitemaps: un restaurante del
+sitemap de restaurantes con el mismo nombre en la URL que una cadena del de cadenas (`/restaurantes/900021447-vapiano` y
+`/restaurantes/delivery/1833-vapiano`) se toma como sucursal de esa cadena.
 """
 
 import gzip
@@ -17,7 +22,7 @@ from psycopg import Connection
 from .. import config
 from ..reporting import FALLBACK_LIST, fallback_message
 from ..scraping.client import PAGE_ERRORS, PageNotFound, RappiClient, StoreUnavailable
-from ..scraping.listing_parser import parse_brand_chain, parse_vertical_listing
+from ..scraping.listing_parser import parse_vertical_listing
 from ..scraping.store_metadata import normalize_stores
 from ..storage import repository
 
@@ -43,6 +48,7 @@ SITEMAP_MAX_URLS = 50_000  # máximo de URLs por parte (protocolo de sitemaps): 
 # Un sitemap que no se pudo bajar o leer. PossibleBlock no está: un bloqueo sigue deteniendo la corrida (código 4).
 SITEMAP_ERRORS = (*PAGE_ERRORS, gzip.BadGzipFile, EOFError, UnicodeDecodeError)
 _RESTAURANT_ID_RE = re.compile(r"/restaurantes/(\d+)")
+_URL_ID_SLUG_RE = re.compile(r"/(\d+)-([^/?#]+)/?$")
 
 
 FAILED_LISTINGS = "listados_fallidos"  # clave en scrape_runs.params
@@ -103,7 +109,7 @@ def discover_stores(
         client.set_location(city["lat"], city["lng"], city["city"], city["city"])
         for vertical in wanted:
             try:
-                listing = parse_vertical_listing(client.get_next_data(VERTICAL_LISTINGS[vertical]))
+                listing = parse_vertical_listing(client.get_page(VERTICAL_LISTINGS[vertical]))
             except (*PAGE_ERRORS, StoreUnavailable) as exc:
                 log.warning("Listado %s en %s falló: %s", vertical, city["city"], exc)
                 failed.append([city["city"], vertical])
@@ -199,24 +205,28 @@ def _sitemap_urls(client: RappiClient, template: str) -> list[str]:
     return urls
 
 
-def _add_chain_job(conn: Connection, run_id: int, chain: dict, jobs: list, chain_store_ids: set) -> None:
-    repository.upsert_brand(conn, chain["brand_id"], chain["name"], "restaurant")
-    chain_store_ids.update(s["store_id"] for s in chain["stores"])
-    if not chain["stores"]:
-        conn.commit()
-        return
-    job = {
-        "job_key": f"chain:{chain['brand_id']}",
+def _id_and_slug(url: str) -> tuple[int, str] | None:
+    """(id, nombre) de una URL de restaurante o de cadena: `…/1833-vapiano` -> (1833, 'vapiano')."""
+    match = _URL_ID_SLUG_RE.search(url)
+    return (int(match.group(1)), match.group(2)) if match else None
+
+
+def _chain_job(chain_url: str, branches: list[tuple[int, str]]) -> dict | None:
+    """El job de una cadena, con sus sucursales del sitemap como candidatas; sin sucursales, ninguno."""
+    parsed = _id_and_slug(chain_url)
+    if not parsed or not branches:
+        return None
+    brand_id, slug = parsed
+    return {
+        "job_key": f"chain:{brand_id}",
         "job_type": "restaurant",
         "payload": {
             "verticals": ["restaurantes"],
-            "brand_id": chain["brand_id"],
-            "name": chain["name"],
-            "candidates": [{"store_id": s["store_id"], "path": s["path"]} for s in chain["stores"][:MAX_CANDIDATES]],
+            "brand_id": brand_id,
+            "name": slug,
+            "candidates": [{"store_id": store_id, "path": path} for store_id, path in branches[:MAX_CANDIDATES]],
         },
     }
-    jobs.append(job)
-    repository.add_jobs(conn, run_id, [job])  # se guarda al tiro (y hace commit)
 
 
 def discover_restaurants(
@@ -226,33 +236,39 @@ def discover_restaurants(
     max_chains: int | None = None,
     max_independents: int | None = None,
 ) -> int:
-    """Un job por cadena (con sus sucursales como candidatas) y uno por restaurante independiente. Si un sitemap no
-    responde, completa la cola con la lista de la última corrida terminada (`_use_previous_list`)."""
-    # Sin ubicación la página de cadena lista todas sus sucursales; con ubicación, solo las cercanas.
+    """Un job por cadena (con sus sucursales como candidatas) y uno por restaurante independiente, todo desde los
+    sitemaps (sin bajar páginas). Las sucursales de una cadena salen de cruzar los dos sitemaps: si alguno no responde,
+    la cola sale entera de la última corrida terminada (`_use_previous_list`)."""
     client.clear_location()
-    jobs, chain_store_ids = [], set()
     try:
         chain_urls = _sitemap_urls(client, CHAIN_SITEMAP)[:max_chains]
+        partner_urls = _sitemap_urls(client, PARTNER_SITEMAP)
     except SITEMAP_ERRORS as exc:
         return _use_previous_list(conn, run_id, exc, max_chains, max_independents)
-    failed = []
-    # Segunda pasada solo con las que fallaron (suelen ser errores transitorios de Rappi).
-    for attempt, urls in enumerate((chain_urls, failed)):
-        for chain_url in list(urls):
-            try:
-                chain = parse_brand_chain(client.get_next_data(chain_url.replace(config.BASE_URL, "")))
-            except (*PAGE_ERRORS, StoreUnavailable) as exc:
-                log.warning("Cadena %s falló (intento %d): %s", chain_url, attempt + 1, exc)
-                if attempt == 0:
-                    failed.append(chain_url)
-                continue
-            _add_chain_job(conn, run_id, chain, jobs, chain_store_ids)
-    log.info("%d cadenas, %d sucursales en cadenas", len(jobs), len(chain_store_ids))
 
-    try:
-        partner_urls = _sitemap_urls(client, PARTNER_SITEMAP)
-    except SITEMAP_ERRORS as exc:  # las cadenas recién descubiertas quedan; los independientes, de la lista anterior
-        return len(jobs) + _use_previous_list(conn, run_id, exc, 0, max_independents, skip_store_ids=chain_store_ids)
+    by_slug: dict[str, list[tuple[int, str]]] = defaultdict(list)
+    for url in partner_urls:
+        parsed = _id_and_slug(url)
+        if parsed and _RESTAURANT_ID_RE.search(url):
+            by_slug[parsed[1]].append((parsed[0], url.replace(config.BASE_URL, "")))
+    jobs, chain_store_ids, without_branches = [], set(), 0
+    for chain_url in chain_urls:
+        parsed = _id_and_slug(chain_url)
+        branches = by_slug.get(parsed[1], []) if parsed else []
+        job = _chain_job(chain_url, branches)
+        if job is None:
+            without_branches += 1
+            continue
+        jobs.append(job)
+        chain_store_ids.update(store_id for store_id, _ in branches)
+    repository.add_jobs(conn, run_id, jobs)
+    log.info(
+        "%d cadenas, %d sucursales en cadenas (%d cadenas sin sucursales en el sitemap)",
+        len(jobs),
+        len(chain_store_ids),
+        without_branches,
+    )
+
     independents = []
     for url in partner_urls:
         match = _RESTAURANT_ID_RE.search(url)
@@ -280,13 +296,11 @@ def _use_previous_list(
     exc: Exception,
     max_chains: int | None,
     max_independents: int | None,
-    skip_store_ids: set[int] = frozenset(),
 ) -> int:
     """El sitemap no respondió (bloqueo o caída): la cola se completa con los jobs de la última corrida de restaurantes
     terminada por `refresh` (lo que se descubrió entonces, se haya bajado o no; sin los que ya no existían en Rappi), y
     se descargan con los mismos jobs, pausas y detección de bloqueos de siempre. Lo que ya estaba en la cola no se toca.
-    Los topes valen como al descubrir (`max_chains=0`: sin cadenas, porque ya se descubrieron hoy), y un independiente
-    que hoy es sucursal de una cadena (`skip_store_ids`) no entra. La próxima corrida nueva vuelve a descubrir. Sin una
+    Los topes valen como al descubrir. La próxima corrida nueva vuelve a descubrir. Sin una
     corrida anterior, sube SitemapUnavailable (la corrida queda fallida, como antes)."""
     error = f"{type(exc).__name__}: {exc}"
     source = repository.last_done_run_with_jobs(conn, "restaurants", run_id)
@@ -296,8 +310,7 @@ def _use_previous_list(
         ) from exc
     previous_jobs = repository.run_jobs(conn, source, "restaurant", skip_reason=repository.GONE_REASON)
     chains = [j for j in previous_jobs if j["job_key"].startswith("chain:")][:max_chains]
-    skipped_keys = {f"rest:{store_id}" for store_id in skip_store_ids}
-    others = [j for j in previous_jobs if not j["job_key"].startswith("chain:") and j["job_key"] not in skipped_keys]
+    others = [j for j in previous_jobs if not j["job_key"].startswith("chain:")]
     previous = repository.run_params(conn, source).get(FALLBACK_LIST)
     # Los jobs y la nota se guardan juntos (set_run_param hace el commit): una corrida con la lista copiada lleva la
     # nota aunque se corte justo después.
