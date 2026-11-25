@@ -70,6 +70,9 @@ def _flag(name: str, default: bool) -> bool:
 # producción: ahí el panel y el esquema no son parte del producto. Cada uno se enciende o apaga con su variable.
 API_ENABLE_ANALYTICS = _flag("API_ENABLE_ANALYTICS", not API_PRODUCTION)
 API_DOCS = _flag("API_DOCS", not API_PRODUCTION)
+# Reclamar un id viejo de la app sin token (`POST /session` con `legacy_user_id`, api/identity.py: claim_legacy): basta
+# conocer el id. Encendido en local; en producción solo con API_LEGACY_CLAIM=1 (docs/despliegue.md).
+API_LEGACY_CLAIM = _flag("API_LEGACY_CLAIM", not API_PRODUCTION)
 
 # Nivel de los registros de la API (DEBUG, INFO, WARNING, ERROR).
 LOG_LEVEL = os.environ.get("LOG_LEVEL", "INFO").upper()

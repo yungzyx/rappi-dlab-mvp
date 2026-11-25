@@ -126,8 +126,9 @@ def owner_of_body(request: Request, user_id: str | None) -> None:
 # ── Sesiones ─────────────────────────────────────────────────────────────────
 def claim_legacy(conn: Connection, legacy_user_id: str | None) -> str | None:
     """El id viejo de este navegador, si tiene el formato del prototipo, existe con `source = 'prototype'` y nunca
-    recibió token: se marca (lo reclama una sola vez). Si no, None."""
-    if legacy_user_id is None or not PROTOTYPE_ID.fullmatch(legacy_user_id):
+    recibió token: se marca (lo reclama una sola vez). Si no, None. Basta conocer el id para reclamarlo: en producción
+    viene apagado (`API_LEGACY_CLAIM`)."""
+    if not config.API_LEGACY_CLAIM or legacy_user_id is None or not PROTOTYPE_ID.fullmatch(legacy_user_id):
         return None
     row = conn.execute(
         """UPDATE app_users SET token_issued_at = now()

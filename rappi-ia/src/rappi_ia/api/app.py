@@ -776,9 +776,10 @@ def new_session(body: SessionIn, request: Request, conn: Connection = Depends(ge
 def current_session(request: Request, conn: Connection = Depends(get_conn)) -> dict:
     """La sesión que ya tiene este navegador (la de su X-User-Token; sin él o con uno que no es de esta API, 401): su id
     y `agent_enabled`. La app la pide cada vez que abre, así sabe si la persona está en el grupo de control también al
-    recargar, y quien ya tenía token recibe aquí su variante si el experimento se encendió después."""
+    recargar, y quien ya tenía token recibe aquí su variante si el experimento se encendió después. El token de una
+    persona borrada ya no sirve: 401, y la app pide una sesión nueva."""
     user_id = identity.current_user(request)
-    if user_id is None:
+    if user_id is None or events.is_forgotten(conn, user_id):
         raise HTTPException(401, identity.NO_SESSION)
     return {"user_id": user_id, "agent_enabled": agent_enabled(conn, user_id)}
 
