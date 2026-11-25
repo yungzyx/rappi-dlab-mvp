@@ -24,7 +24,7 @@
 //     mueve la Home (hacen falta dos días distintos: motor/home.py, MIN_USE_DAYS);
 //   con --combo: combinación de verticales. Una persona nueva pide en Restaurantes (Home → Restaurantes → primer
 //     restaurante → agregar un plato → pagar), vuelve a la Home, toca a Mochi y elige "Muéstrame algo nuevo" en su menú:
-//     la oferta es de Turbo (el siguiente peldaño de la escalera desde Restaurantes, según la tabla de Rappi) y su
+//     el buscador con Mochi se abre con la oferta, que es de Turbo (el siguiente peldaño de la escalera desde Restaurantes, según la tabla de Rappi) y su
 //     "¿Por qué?" muestra la razón. Solo se mira la vertical y que haya una razón: el texto exacto depende de lo que haya
 //     aprendido el motor;
 //   con --expect-offline: la API está detenida y la app muestra "Sin conexión" (con el agente si ya tenía sesión);
@@ -285,14 +285,15 @@ async function checkFollow(page) {
   return 'preguntó "¿tienen pizza?", tocó "Más barato" (la más barata primero) y "Otra opción" (sin repetir)'
 }
 
-/** Cuánto se espera a que Mochi termine de saludar y responda a un toque. */
+/** Cuánto se espera a que Mochi termine de entrar a escena, responda a un toque y llegue su oferta. */
 const COMBO_WAIT_MS = 25_000
 
 /**
- * Combinación de verticales: pide en Restaurantes y, al volver a la Home, Mochi propone Turbo con su "¿Por qué?".
+ * Combinación de verticales: pide en Restaurantes y, al volver a la Home, Mochi propone Turbo con su "¿Por qué?" (en el
+ * buscador con Mochi, como tarjeta: desde el 25-11-2026 no la muestra en un globo).
  * Los textos son los de la app (Restaurantes, Ver carro, Hacer pedido, "¿Por qué?"). Tras pagar se recarga la app y se
  * vuelve al inicio: la Home se monta de nuevo con la misma persona (su identificador queda en el navegador) y Mochi
- * saluda; tocarlo antes de que termine no hace nada, así que se vuelve a tocar hasta que responda.
+ * entra a escena; tocarlo antes de que termine no hace nada, así que se vuelve a tocar hasta que responda.
  */
 async function checkCombo(page) {
   await checkOnline(page)
@@ -333,19 +334,25 @@ async function checkCombo(page) {
     await home.waitFor()
   })
   const why = page.getByRole('button', { name: '¿Por qué?' })
-  // Tocar a Mochi abre su menú; "Muéstrame algo nuevo" pide la vertical por probar.
+  // Tocar a Mochi abre su menú; "Muéstrame algo nuevo" abre el buscador con la vertical por probar.
   const mochi = page.getByRole('button', { name: `${AGENT_NAME}: ayuda y opciones` })
   const askNew = page.getByRole('button', { name: 'Muéstrame algo nuevo' })
   const deadline = Date.now() + COMBO_WAIT_MS
   while ((await why.count()) === 0 && Date.now() < deadline) {
     if (await askNew.isVisible()) await askNew.click({ timeout: 2000 }).catch(() => {})
-    else await mochi.click({ timeout: 2000 }).catch(() => {}) // aún entra a escena o saluda
+    else await mochi.click({ timeout: 2000 }).catch(() => {}) // aún entra a escena
     await page.waitForTimeout(1000)
   }
   await step(page, 'ver la oferta de Mochi con su "¿Por qué?"', () => why.first().waitFor({ timeout: 2000 }))
-  const proposal = await step(page, 'leer la oferta de Mochi', () =>
-    page.locator('.live-bubble p[aria-hidden="true"]').first().innerText(),
-  )
+  // El texto llega escrito de a poco: se lee cuando termina (los extras de la respuesta dejan de estar pendientes).
+  const offer = page
+    .locator('.agent-msg-bot')
+    .filter({ has: page.locator('.agent-msg-extras:not(.is-pending)') })
+    .last()
+  const proposal = await step(page, 'leer la oferta de Mochi', async () => {
+    await offer.waitFor({ timeout: 10_000 })
+    return offer.locator('.agent-msg-bubble').innerText()
+  })
   if (!/Turbo/.test(proposal)) throw new Error(`pidió en Restaurantes y Mochi propuso "${proposal}", no Turbo`)
   await step(page, 'abrir el "¿Por qué?"', () => why.first().click())
   const reason = await step(page, 'leer la razón', async () => {

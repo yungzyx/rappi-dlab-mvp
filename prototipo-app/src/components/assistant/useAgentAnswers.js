@@ -143,7 +143,13 @@ export function useAgentAnswers({ vertical, offline, checkAutoOrder, later }) {
       return {
         text: made.text,
         products: made.products,
-        actions: made.actions,
+        // Abrir la vertical de la oferta ("Abrir …", "Ver …") cuenta como abrirla, con el origen de la oferta, igual que
+        // en la Home (el panel cuenta las abiertas por momento).
+        actions: made.actions.map((action) =>
+          action.route && !action.service
+            ? { ...action, opens: { vertical: made.backendVertical, origin: `agent-${moment}` } }
+            : action,
+        ),
         offerReason: made.reason,
         offerOrigin: `agent-${moment}`,
         ...shown,

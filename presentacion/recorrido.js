@@ -116,14 +116,12 @@ function proxy(className, text, onClick) {
 }
 
 /* "+1 visita" mueve los accesos de la Home y Mochi lo explica: para que se vea, cierra el buscador (una persona elegida
-   a mano lo deja abierto) y termina la guía de la primera vez si está a la vista (si no, Mochi lo explica al terminarla) */
+   a mano lo deja abierto) */
 function showHome() {
   const doc = appDoc();
   if (!doc) return;
   const back = doc.querySelector(".agent-search button.search-back");
   if (back) back.click();
-  const guide = [...doc.querySelectorAll(".live-bubble button.live-chip")].find((b) => /^(Saltar|Listo)$/.test(b.textContent.trim()));
-  if (guide) guide.click();
 }
 
 /* Un perfil de gusto se muestra como ficha: su emoji grande y el nombre corto ("🥢 Amante de lo asiático" → "Asiático").
@@ -677,8 +675,6 @@ const CHAPTERS = [
     title: "1 · La Home que aprende",
     steps: [
       ...persona("Restaurantes + Turbo + Súper", "Una persona que pide en Restaurantes, Turbo y Súper."),
-      { say: "Mochi vive en la Home y se presenta.", click: { sel: "button.live-chip", text: "Siguiente" }, timeout: 14000, after: 1800 },
-      { say: "Mochi vive en la Home y se presenta.", click: { sel: "button.live-chip", text: "Listo" }, timeout: 8000, after: 1200 },
       { say: "Los accesos se ordenan por lo que más usa: Súper va primero.", point: { sel: ".home-shortcut" }, after: 1800 },
       ...simulate("Rappi Mall", "Simula visitas a Rappi Mall desde el panel de la demo."),
       ...simulate("Rappi Mall", "Simula visitas a Rappi Mall desde el panel de la demo."),
@@ -686,10 +682,10 @@ const CHAPTERS = [
       { say: "La Home se reordena en vivo: Rappi Mall sube.", point: { sel: ".home-shortcut", text: "Rappi Mall" }, after: 1800 },
       { say: '"Entendido".', click: { sel: "button.live-chip", text: "Entendido" }, timeout: 3000, after: 600 },
       { say: "Toca a Mochi: abre su menú, con \"Ocultar\" al final.", click: { sel: ".live-agent-body" }, after: 1400 },
-      { say: "Le pide a Mochi algo nuevo para probar.", click: { sel: "button.agent-action", text: "Muéstrame algo nuevo" }, timeout: 3000, after: 2600 },
-      { say: "Mochi propone la vertical que sigue en su escalera. ¿Por qué?", click: { sel: ".live-bubble .offer-why-toggle" }, timeout: 6000, after: 2600 },
-      { say: 'Por ahora, "Después".', click: { sel: "button.live-chip", text: "Después" }, after: 600 },
-      closeSurvey('Por ahora, "Después".'),
+      { say: "Le pide a Mochi algo nuevo para probar: lo propone en su buscador.", click: { sel: "button.agent-action", text: "Muéstrame algo nuevo" }, timeout: 3000, after: 2600 },
+      { say: "Mochi propone la vertical que sigue en su escalera. ¿Por qué?", click: { sel: ".agent-msg-extras .offer-why-toggle" }, timeout: 6000, after: 2600 },
+      backHome("Por ahora, vuelve a la Home."),
+      closeSurvey("Por ahora, vuelve a la Home."),
     ],
   },
   {

@@ -233,16 +233,7 @@
   transform-origin: 50% 95%; /* desde los pies */
 }
 
-/* Saludo de entrada: llega, da un saltito y levanta los brazos */
-.live-gesture--greet {
-  animation: live-hello-body 1.7s var(--live-glide) 0.75s;
-}
-
 /* Los gestos con brazos (saludar, señalar, bailar, estirarse) ponen la pose feliz de Mochi; mirar, la tímida */
-.live-agent .live-gesture--greet .mascot .mascot-sprite {
-  animation: live-pose-happy 1.5s step-end 0.75s;
-}
-
 .live-agent .live-gesture--wave .mascot .mascot-sprite {
   animation: live-pose-happy 1.5s step-end;
 }
@@ -289,25 +280,6 @@
 
 .live-gesture--stretch {
   animation: live-stretch 1.3s var(--live-glide);
-}
-
-@keyframes live-hello-body {
-  0%,
-  100% {
-    transform: none;
-  }
-  15% {
-    transform: translateY(-14px) scale(0.96, 1.05);
-  }
-  28% {
-    transform: translateY(0) scale(1.06, 0.94);
-  }
-  40% {
-    transform: rotate(-6deg);
-  }
-  70% {
-    transform: rotate(4deg);
-  }
 }
 
 /* Al tocarlo o al celebrar, el salto gana sobre la pose del gesto */

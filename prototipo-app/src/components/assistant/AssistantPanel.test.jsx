@@ -1029,6 +1029,15 @@ describe('"¿Qué puedo probar?" (una oferta pedida desde fuera)', () => {
     expect(bubbles()).toContain(made.text)
     fireEvent.click(screen.getByRole('button', { name: new RegExp('^' + made.actions[0].label) }))
     expect(push).toHaveBeenCalledWith(...routeForScreen(made.actions[0].route[0]))
+    // Abrir su vertical cuenta como abrirla desde la oferta (el panel cuenta las abiertas por momento).
+    expect(tracked('vertical_open')).toEqual([
+      {
+        vertical: made.vertical,
+        surface: 'agent',
+        origin: 'agent-vertical_por_probar',
+        request_id: 'contrato-agent-offer-vertical-por-probar',
+      },
+    ])
   })
 
   test('el paso a RappiFavor no trae productos: su texto, su acción a su pantalla y el servicio ofrecido y abierto', async () => {
@@ -1056,6 +1065,7 @@ describe('"¿Qué puedo probar?" (una oferta pedida desde fuera)', () => {
         payload: { servicio: 'rappifavor' },
       }),
     ])
+    expect(tracked('vertical_open')).toEqual([]) // un servicio no es una vertical: ya deja service_opened
     expect(push).toHaveBeenCalledWith('favor', undefined)
   })
 
