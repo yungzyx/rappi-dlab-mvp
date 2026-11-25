@@ -52,6 +52,7 @@ PANEL_METRICS = (
     "experimentos",
     "verticales",
     "audiencias",
+    "guardias",
 )
 # Las métricas de /analytics que guarda `npm run fixtures` (dashboard-empresa/scripts/update-fixtures.mjs).
 PANEL_SHAPE = ("kpis", "weekly", "opportunities", "trends", "at-risk", "suggestions", "services", "assortment")
@@ -506,6 +507,9 @@ def test_panel_examples_are_up_to_date(client, db, name, source):
     if name == "motor" or (name in ("combos", "volver") and source == "synthetic"):
         build_motor(db, source)
         db.execute("UPDATE layer_runs SET finished_at = '2026-10-04 12:00+00' WHERE layer = 'motor'")  # la fecha varía
+        db.commit()
+    if name == "guardias":  # el contador de las guardias guarda el día de hoy
+        db.execute("UPDATE guard_blocks SET day = '2026-10-04'")
         db.commit()
     example = Example(f"{name}.{source}", "GET", f"/analytics/{name}?source={source}")
     reply = client.request(example.method, example.path)

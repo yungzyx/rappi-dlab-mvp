@@ -1,0 +1,20 @@
+{
+  "source": "synthetic",
+  "data": {
+    "total": 0,
+    "motivos": [
+      { "motivo": "alcohol", "candidatos": 0 },
+      { "motivo": "mas18", "candidatos": 0 },
+      { "motivo": "farmacia", "candidatos": 0 },
+      { "motivo": "bebe", "candidatos": 0 },
+      { "motivo": "salud", "candidatos": 0 }
+    ],
+    "momentos": [],
+    "desde": null,
+    "hasta": null
+  },
+  "guardado": {
+    "origen": "a mano · los usuarios simulados no pasan por las guardias: el contador siempre está vacío",
+    "fecha": "2026-11-25"
+  }
+}

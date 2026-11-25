@@ -429,7 +429,7 @@ uvicorn toma la IP de `X-Forwarded-For` (`--proxy-headers --forwarded-allow-ips=
 
 ### Roles de la base
 
-- **`rappi_api`** (la API): solo `CONNECT` en la base; lee todo (`public` y `capa`) y escribe solo los datos de las personas (sesión, eventos y lo que dejaron a la vista, sesiones de la app, variantes de los experimentos, pedidos, preferencias y permiso de "Pedir por mí", segmentos, y la afinidad y la recompra que recalcula tras un pedido o "Olvidar") y `segment_defs` (el recálculo de segmentos tras un pedido la vuelve a sembrar si cambiaron las reglas). La lista de tablas, con sus secuencias, está una sola vez en [`grants.sql`](../deploy/db/grants.sql): es la fuente única, y un test de `deploy-migrate` falla si una tabla de personas que la API escribe (`PERSON_TABLES` de `rappi_ia/delivery.py`) no está ahí. No es dueña de ninguna tabla ni puede crear objetos. Los permisos los aplica `migrate` en cada despliegue (idempotente).
+- **`rappi_api`** (la API): solo `CONNECT` en la base; lee todo (`public` y `capa`) y escribe solo los datos de las personas (sesión, eventos y lo que dejaron a la vista, sesiones de la app, variantes de los experimentos, pedidos, preferencias y permiso de "Pedir por mí", segmentos, y la afinidad y la recompra que recalcula tras un pedido o "Olvidar") y `segment_defs` (el recálculo de segmentos tras un pedido la vuelve a sembrar si cambiaron las reglas), más el contador agregado de las guardias de ofertas (`guard_blocks`, sin persona ni producto). La lista de tablas, con sus secuencias, está una sola vez en [`grants.sql`](../deploy/db/grants.sql): es la fuente única, y un test de `deploy-migrate` falla si una tabla de personas que la API escribe (`PERSON_TABLES` de `rappi_ia/delivery.py`) no está ahí. No es dueña de ninguna tabla ni puede crear objetos. Los permisos los aplica `migrate` en cada despliegue (idempotente).
 - **`rappi_owner`** (migrate y jobs): dueño de la base y de las tablas; migra, restaura y corre los trabajos. No es superusuario.
 - **`postgres`** (superusuario): solo el contenedor `db` (roles, extensiones, crear y borrar bases).
 
@@ -453,6 +453,7 @@ Una clave nueva en el archivo va también en la lista `x-sin-claves-…` que cor
 |---|---|---|
 | La persona del prototipo: id seudónimo, fecha de alta y de su sesión | `app_users` | hasta "Borrar mis datos" o 180 días sin actividad (`PROTOTYPE_USER_RETENTION_DAYS`) |
 | El SHA-256 del id de una persona borrada, para que su token deje de servir | `forgotten_users` | sin plazo (una fila por persona borrada) |
+| Lo que las guardias sacaron de las ofertas de Mochi, contado por día, momento y motivo (sin persona ni producto) | `guard_blocks` | sin plazo (una fila por día, momento y motivo) |
 | Eventos de uso, con el texto de búsquedas y preguntas (datos personales redactados antes de guardar: RUT, teléfonos, correos, direcciones, tarjetas) | `app_events` | el texto, 90 días; el evento, lo que dure la persona |
 | Pedidos (líneas, tienda, vertical; sin dirección), segmentos, afinidad por vertical y recompra | `app_orders`, `app_order_lines`, `user_segments`, `user_vertical_affinity`, `replenishment` | lo que dure la persona (se borran en cascada) |
 | Registros de la API (sin ids, sin IP, sin query) | Docker | 5 × 10 MB por contenedor |

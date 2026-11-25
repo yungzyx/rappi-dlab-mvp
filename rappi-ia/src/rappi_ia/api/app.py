@@ -44,7 +44,7 @@ from ..layers.segments import recalculate_user_segments
 from ..motor.build import refresh_user, refresh_user_conn
 from ..motor.home import home_verticals
 from ..motor.predict import next_verticals
-from ..offers import autonomy, preferences
+from ..offers import autonomy, blocked, preferences
 from ..offers.engine import most_ordered
 from ..offers.guards import is_offerable, offerable_vertical, whim_allowed
 from ..offers.profiles import active_profiles, person_city
@@ -437,6 +437,11 @@ def health(conn: Connection = Depends(get_conn), svc: Services = Depends(get_ser
     return {"ok": True, "documentos": documents, "capacidades": svc.capabilities}
 
 
+# Los momentos con que el contador de las guardias (offers/blocked.py) anota lo que no son momentos de /agent/offer:
+# los del panel de ofertas (analytics/queries.py: OFFER_ORDER).
+ASK_MOMENT, FOR_YOU_MOMENT = "pregunta", "para_ti"
+
+
 @app.post("/agent/ask", dependencies=[Depends(ASK_CAP)])
 def ask(
     body: AskIn, request: Request, conn: Connection = Depends(get_conn), svc: Services = Depends(get_services)
@@ -454,9 +459,12 @@ def ask(
     if control:
         ctx = replace(ctx, agent_enabled=False)
     try:
-        response = svc.agent.reply(conn, body.message, ctx)
+        with blocked.counting() as counts:
+            response = svc.agent.reply(conn, body.message, ctx)
     except ValueError as exc:
         raise rejected(exc, body.user_id) from exc
+    blocked.save(conn, ASK_MOMENT, counts)  # lo que las guardias sacaron de lo que Mochi suma solo a su respuesta
+    conn.commit()
     response = {**response, "request_id": served_request_id()}
     if control:
         return _withheld_answer(conn, svc, body, response)
@@ -660,8 +668,10 @@ def recommendations(
     # sensible, así que esos intereses no son fuente de una fila (como en `RappiAgent._top_interest`). El perfil los
     # conserva.
     sources = [c for c in interests if c in taxonomy.concepts and is_offerable(taxonomy.concepts[c])]
-    with preferences.applied(mine):
+    with preferences.applied(mine), blocked.counting() as counts:
         found = _complements(conn, sources, backend_vertical(vertical), svc.embedder, limit, spare)
+    blocked.save(conn, FOR_YOU_MOMENT, counts)  # lo que las guardias sacaron, sin persona ni producto
+    conn.commit()
     rows = []
     for concept, suggestion in found:
         interest = taxonomy.concepts[concept]
@@ -1044,6 +1054,7 @@ ANALYTICS = {
     "experimentos": queries.experiment_results,
     "verticales": queries.verticals,
     "audiencias": queries.audiences,
+    "guardias": queries.guard_blocks,
 }
 
 

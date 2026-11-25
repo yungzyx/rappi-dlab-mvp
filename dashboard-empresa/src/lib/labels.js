@@ -53,6 +53,7 @@ export const ENDPOINTS = {
   experimentos: 'experimentos del MVP',
   verticales: 'ficha por vertical',
   audiencias: 'audiencias para campañas',
+  guardias: `lo que ${AGENT_NAME} no ofreció`,
 }
 
 const MAX_LISTED = 3

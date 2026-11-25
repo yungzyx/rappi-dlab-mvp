@@ -16,7 +16,7 @@ from ..agent.grouped_search import SpareConnector
 from ..events import experiments
 from ..events import store as events
 from ..events.experiments import EXPOSURE_MOMENTS
-from ..offers import autonomy, preferences
+from ..offers import autonomy, blocked, preferences
 from ..offers.engine import Offer, OfferError, PlanOffer, ProfileOffer, home_occasions, kit_stores, make_offer
 from ..offers.personal import user_interests
 from .deps import Clean, backend_vertical, get_conn, get_services, get_spare_connector
@@ -220,10 +220,12 @@ def offer(
     mine = preferences.load(conn, body.user_id)  # su dieta y alergias filtran; sus favoritas ordenan
     conn.commit()  # esa lectura no queda abierta mientras la oferta calcula sus vectores (como en `/search`)
     try:
-        with preferences.applied(mine):
+        with preferences.applied(mine), blocked.counting() as counts:
             found = make_offer(conn, svc.embedder, body.moment, context, body.user_id, spare)
     except OfferError as exc:
         raise HTTPException(422, str(exc)) from exc
+    blocked.save(conn, body.moment, counts)  # lo que las guardias sacaron, sin persona ni producto
+    conn.commit()
     found = _with_preferences(found, mine)
     if isinstance(found, PlanOffer) and mine:  # lo que su dieta sacó del kit ya no suma en su tienda
         found = replace(found, stores=kit_stores(conn, found.products))

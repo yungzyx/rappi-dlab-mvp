@@ -12,6 +12,7 @@ import { formatNumber, formatPct, formatSignedPct } from '../../lib/format.js'
 import { verticalLabel } from '../../lib/labels.js'
 import { useAnalytics, useAnalyticsMany } from '../../lib/useAnalytics.js'
 import { thinAssortment } from './demand.js'
+import { GuardBlocks } from './GuardBlocks.jsx'
 import { JudgeSearch } from './JudgeSearch.jsx'
 import { CtrByPosition, SessionFunnel } from './ListsAndFunnel.jsx'
 import { MotorCheck } from './MotorCheck.jsx'
@@ -217,8 +218,8 @@ function Thin({ source }) {
 
 /**
  * RappiAds: qué ofrece Mochi, en qué momento y con qué resultado, y qué busca la gente que no encuentra. Con `tab` (la
- * subpestaña), solo sus secciones ("ofertas" lleva también "¿Mochi molesta?"); sin `tab`, todas menos "Juzgar la
- * búsqueda", que es una herramienta y solo aparece en su subpestaña.
+ * subpestaña), solo sus secciones ("ofertas" lleva también "¿Mochi molesta?" y "Lo que Mochi no ofreció"); sin `tab`,
+ * todas menos "Juzgar la búsqueda", que es una herramienta y solo aparece en su subpestaña.
  */
 export function MochiView({ source, tab }) {
   const show = (id) => !tab || tab === id
@@ -287,6 +288,24 @@ export function MochiView({ source, tab }) {
             />
             <Async>
               <AgentPresence source={source} />
+            </Async>
+          </section>
+
+          <section className="section" aria-labelledby="guardias">
+            <SectionHead
+              id="guardias"
+              title={`Lo que ${AGENT_NAME} no ofreció`}
+              source={source}
+              help={
+                <p>
+                  Las guardias de ofertas sacan lo que {AGENT_NAME} nunca propone por su cuenta: alcohol, +18, Farmacia,
+                  bebé y salud. Quien lo pide por su nombre sí lo encuentra: las guardias son de lo que se ofrece, no de
+                  lo que se busca. Muestra que {AGENT_NAME} es seguro para la marca.
+                </p>
+              }
+            />
+            <Async>
+              <GuardBlocks source={source} />
             </Async>
           </section>
         </>

@@ -65,17 +65,21 @@ from ..motor.predict import ladder_steps, step_signal, steps_signals, target_ste
 from ..motor.recommend import CrossPick, cross_picks, latest_lambda
 from ..retrieval.hybrid import concepts_of, detect_concepts
 from ..text import contract_articles, normalize, tokens
+from .blocked import count as count_blocked
 from .featured import featured, one_per_concept, side_dish
 from .guards import (
     DISH_SECTIONS_SQL,
     alcohol_dish,
     alcohol_in_name,
     baby_in_name,
+    concept_reason,
     is_offerable,
     is_plannable,
     offerable_vertical,
+    offerable_verticals,
     plannable_occasion,
     plannable_vertical,
+    subvertical_reason,
     unofferable_subverticals,
 )
 from .personal import Interests, Signal, bought_brands, user_interests
@@ -644,7 +648,7 @@ def where_is_it(conn: Connection, embedder: TextEmbedder | None, query: str) -> 
         concept = concepts.get(concept_id)
         if concept is None or not is_offerable(concept):
             continue
-        for vertical in [v for v in ranked_verticals(conn, [concept_id]) if offerable_vertical(v)][:FALLBACK_VERTICALS]:
+        for vertical in offerable_verticals(ranked_verticals(conn, [concept_id]))[:FALLBACK_VERTICALS]:
             outcome = search_products(
                 conn, vertical, concept.name, [concept_id], embedder, k=SHOWN_PRODUCTS, offer=True
             )
@@ -1318,21 +1322,30 @@ def _offerable_products(conn: Connection, products: list[dict]) -> list[dict]:
     `entity_type` es del catálogo (las ofertas de `deals` lo son)."""
     concepts = load_taxonomy().concepts
     blocked = {
-        store_id
-        for (store_id,) in conn.execute(
-            "SELECT store_id FROM store_verticals WHERE store_id = ANY(%s) AND subvertical = ANY(%s)",
+        store_id: subvertical
+        for store_id, subvertical in conn.execute(
+            "SELECT store_id, min(subvertical) FROM store_verticals WHERE store_id = ANY(%s) AND subvertical = ANY(%s)"
+            " GROUP BY store_id",
             ([p["store_id"] for p in products if p["store_id"]], unofferable_subverticals()),
         )
     }
-    return [
-        p
-        for p in products
-        if not p["age_restricted"]
-        and not alcohol_in_name(p.get("entity_type", "catalog_item"), p["name"], p["concept"])
-        and not baby_in_name(p.get("entity_type", "catalog_item"), p["name"])
-        and p["store_id"] not in blocked
-        and (p["concept"] not in concepts or is_offerable(concepts[p["concept"]]))
-    ]
+    kept = []
+    for p in products:
+        kind = p.get("entity_type", "catalog_item")
+        concept = concepts.get(p["concept"])
+        if alcohol_in_name(kind, p["name"], p["concept"]):  # cada sacado cuenta en el contador, con su motivo
+            count_blocked("alcohol")
+        elif p["age_restricted"]:
+            count_blocked((concept and concept_reason(concept)) or "mas18")
+        elif baby_in_name(kind, p["name"]):
+            count_blocked("bebe")
+        elif p["store_id"] in blocked:
+            count_blocked(subvertical_reason(blocked[p["store_id"]]))
+        elif concept is not None and not is_offerable(concept):
+            count_blocked(concept_reason(concept))
+        else:
+            kept.append(p)
+    return kept
 
 
 # La oferta vigente más barata de cada producto del catálogo pedido (id y vertical) en una tienda de la ciudad de la

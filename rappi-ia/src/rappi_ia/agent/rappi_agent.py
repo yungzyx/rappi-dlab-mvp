@@ -36,7 +36,7 @@ from ..embeddings.base import MemoizedQueryEmbedder, TextEmbedder
 from ..events.store import ensure_user
 from ..offers import autonomy
 from ..offers import preferences as prefs
-from ..offers.guards import is_offerable, offerable_vertical, unofferable_subverticals
+from ..offers.guards import is_offerable, offerable_vertical, offerable_verticals, unofferable_subverticals
 from ..retrieval.spelling import correct_query
 from ..text import normalize, tokens
 from .compose import Draft, TemplateComposer
@@ -1174,7 +1174,7 @@ def _listed_text(items: list[tuple[str, str]]) -> str:
 
 def _ranked_for(conn: Connection, concept_ids: list[str]) -> list[str]:
     """Las verticales donde Mochi puede proponer esos conceptos, de la más típica a la menos."""
-    return [v for v in ranked_verticals(conn, concept_ids) if offerable_vertical(v)]
+    return offerable_verticals(ranked_verticals(conn, concept_ids))
 
 
 def _offerable_elsewhere(conn: Connection, verticals: list[dict]) -> list[dict]:
