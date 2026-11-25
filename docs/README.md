@@ -88,6 +88,7 @@ La página de la propuesta del panel (`dashboard-empresa/presentacion.html`) sir
 | Instalar el proyecto, cargar la base y dejarlo actualizándose cada semana | [instalacion.md](instalacion.md) | 10 min de lectura |
 | Levantar el MVP (`make mvp`), probarlo (`make mvp-check`) y qué hacer con "Sin conexión con Mochi" | [instalacion.md §5](instalacion.md#5-el-mvp) | 5 min |
 | Desplegar el MVP en un servidor (Docker Compose, Caddy con TLS y puerta, respaldos con restic) | [despliegue.md](despliegue.md) | 20 min |
+| Crear el servidor en Oracle Cloud (Always Free) con Terraform, antes de desplegar | [infra/oci/README.md](../infra/oci/README.md) | 5 min |
 | Publicar la demo desde un Mac, sin servidor: Cloudflare Tunnel y la misma puerta | [deploy/macos/README.md](../deploy/macos/README.md) | 10 min |
 | Consultar la base con SQL | [sql/README.md](sql/README.md) y [consultas.sql](sql/consultas.sql) | 5 min |
 | Probar a Mochi (API) como usuario y dejar cada fallo como test | [probar-agente.md](probar-agente.md) | 3 min |

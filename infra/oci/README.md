@@ -36,3 +36,7 @@ La sesión de la CLI dura una hora: `oci session refresh --profile RAPPI` la ren
 - **IP reservada:** el DNS (o el nombre sslip.io) no cambia si se recrea la máquina.
 - **`ignore_changes` en la imagen y el cloud-init:** una imagen nueva de Ubuntu no recrea la máquina (con la base adentro); se actualiza con `apt` (`unattended-upgrades` queda activo).
 - **SSH solo desde `admin_cidrs`:** la web es lo único abierto a internet, y está detrás de la puerta de Caddy. Si cambia la IP de quien administra, se actualiza la variable y `terraform apply` (no hace falta SSH para eso).
+
+## Estado
+
+Sin probar contra una máquina real: al 25-11-2026 `terraform validate` pasa, pero OCI no tuvo capacidad para la A1 en `sa-santiago-1` y el servidor no se llegó a crear. La red y el presupuesto sí se crearon. El primer `terraform apply` que saque la máquina es también la primera prueba del `cloud-init.yaml`.
