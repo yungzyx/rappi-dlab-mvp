@@ -27,7 +27,7 @@ Qué es el proyecto y cómo correrlo: [README.md](README.md). Cómo contribuir (
 ## Scraper
 
 - Solo páginas públicas, una descarga a la vez contra rappi.cl: los comandos que descargan comparten el candado `rappi-scraper/data/scraper.lock` y el candado 72002 de Postgres. La tarea semanal (`make schedule`) va en un solo equipo; en el servidor, `rappi-refresh.timer` viene apagado.
-- User-Agent propio (`rappi-dlab-scraper/<versión>`; `RAPPI_UA_PROJECT`, `RAPPI_UA_CONTACT`) y robots.txt consultado antes de cada página y redirección (`scraping/robots.py`). Una página no permitida detiene la descarga (código 7), no se salta.
+- User-Agent propio (`rappi-dlab-scraper/<versión>`; `RAPPI_UA_PROJECT`, `RAPPI_UA_CONTACT`) y robots.txt consultado antes de cada página y redirección (`scraping/robots.py`). Una página no permitida que hace falta detiene la descarga (código 7), no se salta. Una redirección al inicio de sesión (`/login`, p. ej. `logout=guest_limit`: el tope de páginas de invitado) no se pide ni es el 7: detiene la descarga como posible bloqueo (código 4, `client.LoginRequired`). Nunca se reinicia la sesión ni se cambia de equipo o red para seguir.
 - `rappi refresh` sale con 3 (respaldo fallido), 4 (posible bloqueo), 5 (restaurantes sin actualizar), 6 (5 y 3) o 7 (robots.txt); la tarea semanal anota cada caso y, salvo con 4 y 7, corre igual `make post-refresh`. Detalle en [rappi-scraper/README.md](rappi-scraper/README.md).
 - Búsqueda por texto: la columna `tsv` ignora tildes y mantiene ñ y ü a propósito (año ≠ ano); la búsqueda léxica de rappi-ia usa `tsv_unaccent`, que también quita la ñ.
 
