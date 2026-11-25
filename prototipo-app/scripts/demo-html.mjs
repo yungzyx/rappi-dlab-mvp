@@ -6,7 +6,7 @@
 import { copyFileSync, existsSync, readFileSync, writeFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { build } from 'vite'
-import { embedPhotos } from './demo-photos.mjs'
+import { embedPhotos, PhotosStopped } from './demo-photos.mjs'
 
 const ROOT = fileURLToPath(new URL('..', import.meta.url))
 const DIST = `${ROOT}dist-demo/`
@@ -22,7 +22,11 @@ if (!existsSync(SNAPSHOT)) {
 }
 
 console.log('Fotos de la muestra…')
-const photos = await embedPhotos(SNAPSHOT, PHOTOS)
+const photos = await embedPhotos(SNAPSHOT, PHOTOS).catch((error) => {
+  if (!(error instanceof PhotosStopped)) throw error
+  console.error(error.message)
+  process.exit(error.exitCode)
+})
 const mb = (bytes) => `${(bytes / 1e6).toFixed(1)} MB`
 console.log(`  ${photos.embedded} fotos adentro (${mb(photos.bytes)}); ${photos.missing} sin bajar, con el cuadro gris`)
 
