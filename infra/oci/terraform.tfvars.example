@@ -1,0 +1,3 @@
+tenancy_ocid = "ocid1.tenancy.oc1..xxxxxxxx"   # línea tenancy= del perfil en ~/.oci/config
+admin_cidrs  = ["203.0.113.10/32"]             # tu IP pública, para SSH
+# budget_alert_email = "tu@correo.cl"           # opcional: alerta si la cuenta gasta

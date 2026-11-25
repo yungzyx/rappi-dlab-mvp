@@ -144,7 +144,7 @@ Todos los comandos van **como root** (o con `sudo`), en **bash**, desde la carpe
 
 ### 3.1 Servidor y código
 
-1. Docker Engine con el plugin compose (`docker compose version`) y git.
+1. Docker Engine con el plugin compose (`docker compose version`) y git. Para crear la máquina en Oracle Cloud con eso ya instalado: [infra/oci/README.md](../infra/oci/README.md) (Terraform, todavía sin probar contra una máquina real).
 2. Firewall: abiertos 22/tcp, 80/tcp, 443/tcp y 443/udp. Nada más: solo Caddy publica puertos.
 3. El DNS de `DOMAIN` ya apunta al servidor (Caddy pide el certificado al arrancar).
 4. El código en `/opt/rappi` (el repositorio es privado: `gh repo clone yungzyx/rappi-dlab-mvp /opt/rappi`, o con una deploy key). Otra carpeta sirve, pero hay que cambiar `WorkingDirectory` en las unidades de systemd ([§3.9](#39-respaldos-y-timers)).
