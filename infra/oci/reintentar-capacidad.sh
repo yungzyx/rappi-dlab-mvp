@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Reintenta crear la máquina A1 cuando OCI responde «Out of host capacity» (común en las cuentas Always Free).
-# Prueba primero la forma completa (4 OCPU, 24 GB) y, si no hay, una de 2 OCPU y 12 GB que después se agranda con
-# `terraform apply -var ocpus=4 -var memory_gb=24`. Renueva la sesión de la CLI en cada vuelta (dura una hora y se
+# Prueba primero la forma completa (4 OCPU, 24 GB) y, si no hay o la cuenta tiene un límite menor ("LimitExceeded": hay
+# cuentas con 2 OCPU y 12 GB), una de 2 OCPU y 12 GB que después se agranda con `terraform apply -var ocpus=4 -var memory_gb=24`. Renueva la sesión de la CLI en cada vuelta (dura una hora y se
 # puede renovar hasta 24 h). Uso: ./reintentar-capacidad.sh [minutos entre intentos, 5] [horas máximas, 23]
 # El perfil de la CLI es OCI_PROFILE (por defecto RAPPI): el script renueva ese y se lo pasa a Terraform, por
 # encima del `oci_profile` de terraform.tfvars, para que los dos usen la misma sesión.
@@ -32,7 +32,7 @@ while [ "$(date +%s)" -lt "$FIN" ]; do
       terraform output -no-color
       exit 0
     fi
-    if ! grep -q "Out of host capacity" ultimo-intento.log; then
+    if ! grep -qE "Out of host capacity|LimitExceeded" ultimo-intento.log; then
       echo "$(date '+%F %T') intento $intento: error distinto de capacidad, se detiene (ver ultimo-intento.log)"
       tail -20 ultimo-intento.log
       exit 1
