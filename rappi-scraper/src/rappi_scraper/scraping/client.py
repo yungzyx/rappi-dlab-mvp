@@ -9,7 +9,7 @@ import random
 import time
 from datetime import UTC, datetime
 from email.utils import parsedate_to_datetime
-from urllib.parse import quote, urljoin, urlparse
+from urllib.parse import parse_qs, quote, urljoin, urlparse
 
 import requests
 
@@ -44,6 +44,13 @@ class DownloadStopped(Exception):
 
 class PossibleBlock(DownloadStopped):
     """rappi.cl podría estar bloqueando la descarga: demasiados requests (o jobs) seguidos rechazados."""
+
+
+class LoginRequired(PossibleBlock):
+    """rappi.cl redirigió al inicio de sesión: con `logout=guest_limit`, la sesión de invitado llegó a su tope de
+    páginas (10 el 25-11-2026). No es una sucursal no disponible: desde ahí toda página pide iniciar sesión. Ni se pide
+    /login ni se reinicia la sesión para seguir (sería saltarse el límite): la descarga se detiene como ante un posible
+    bloqueo (código 4) y la corrida queda abierta."""
 
 
 class RobotsDisallowed(DownloadStopped):
@@ -87,6 +94,15 @@ def location_cookie(lat: float, lng: float, city: str, address: str) -> str:
         "active": True,
     }
     return base64.b64encode(quote(json.dumps(payload)).encode()).decode()
+
+
+def _refuse_login(url: str) -> None:
+    target = urlparse(url)
+    if target.path.rstrip("/") != config.LOGIN_PATH:
+        return
+    reason = (parse_qs(target.query).get("logout") or ["sin motivo"])[0]
+    detail = "límite de páginas para invitados" if reason == "guest_limit" else f"logout={reason}"
+    raise LoginRequired(f"rappi.cl redirigió al inicio de sesión ({detail}): no se pide esa página")
 
 
 def _is_listing(path: str) -> bool:
@@ -214,6 +230,7 @@ class RappiClient:
                 return response
             url = urljoin(response.url, response.headers["Location"])
             response.close()
+            _refuse_login(url)  # antes de robots.txt: no es una página que haga falta, es el sitio diciendo que no
             if check_robots:
                 self._check_robots(url)
             response = self._session.get(url, timeout=config.TIMEOUT_SECONDS, allow_redirects=False)
