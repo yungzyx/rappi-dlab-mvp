@@ -5,7 +5,7 @@ import { PageHeader } from './components/shell/PageHeader.jsx'
 import { ConnectionNotices } from './components/shell/ProvenanceBanner.jsx'
 import { SourceSwitch } from './components/shell/SourceSwitch.jsx'
 import { Tabs } from './components/shell/Tabs.jsx'
-import { API_URL, refreshSource, retryConnection, SNAPSHOT_INFO } from './lib/api.js'
+import { API_URL, LIVE_API, refreshSource, retryConnection, SNAPSHOT_INFO } from './lib/api.js'
 import { formatDate } from './lib/format.js'
 import { useFallbacks, usePrototypeOffline } from './lib/useAnalytics.js'
 import { useMediaQuery } from './lib/useMediaQuery.js'
@@ -54,6 +54,8 @@ export const VIEWS = [
       { id: 'ofertas', label: 'Ofertas', sections: ['ofertas', 'presencia'] },
       { id: 'listas', label: 'Listas y embudo', sections: ['listas'] },
       { id: 'busquedas', label: 'Búsquedas', sections: ['busquedas'] },
+      // Escribe en la base: solo con una API detrás (en el HTML suelto no aparece).
+      ...(LIVE_API ? [{ id: 'juzgar', label: 'Juzgar la búsqueda', sections: ['juzgar'] }] : []),
     ],
   },
   {

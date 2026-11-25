@@ -1,0 +1,308 @@
+/* "Juzgar la búsqueda": un par a la vez en un vidrio, con tres botones grandes. Solo tokens del panel (tokens.css). */
+
+.judge,
+.judge-form {
+  display: grid;
+  gap: var(--space-4);
+  max-width: 760px;
+}
+
+/* ---------- El rótulo del juez ---------- */
+.judge-form {
+  grid-template-columns: minmax(0, 220px) auto;
+  align-items: center;
+  column-gap: var(--space-3);
+  row-gap: var(--space-2);
+}
+
+.judge-form label {
+  grid-column: 1 / -1;
+  font-size: var(--text-sm);
+  font-weight: 500;
+}
+
+.judge-form input {
+  height: 44px;
+  padding: 0 var(--space-4);
+  border: 0;
+  border-radius: 999px;
+  font: inherit;
+  color: var(--ink);
+  background: var(--glass-bright);
+  box-shadow: var(--glass);
+}
+
+.judge-form input[aria-invalid='true'] {
+  outline: 2px solid var(--bad);
+}
+
+.judge-form-help {
+  grid-column: 1 / -1;
+  grid-row: 3;
+  font-size: var(--text-sm);
+  color: var(--ink-2);
+}
+
+.judge-form-help--bad {
+  color: var(--bad-ink);
+}
+
+.judge-form .text-button {
+  height: 44px;
+  padding: 0 var(--space-5);
+}
+
+.judge-form .text-button:disabled,
+.judge-nav .text-button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+/* ---------- Avance ---------- */
+.judge-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.judge-who {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--text-sm);
+  color: var(--ink-2);
+}
+
+.judge-who strong {
+  color: var(--ink);
+  font-weight: 600;
+}
+
+.judge-progress {
+  display: grid;
+  gap: var(--space-1);
+  min-width: min(260px, 100%);
+  font-size: var(--text-sm);
+  color: var(--ink-2);
+  font-variant-numeric: tabular-nums;
+}
+
+.judge-progress progress {
+  width: 100%;
+  height: 8px;
+  border: 0;
+  border-radius: 999px;
+  overflow: hidden;
+  appearance: none;
+  background: var(--surface-sunken);
+}
+
+.judge-progress progress::-webkit-progress-bar {
+  background: var(--surface-sunken);
+}
+
+.judge-progress progress::-webkit-progress-value {
+  border-radius: 999px;
+  background: var(--brand-glow);
+}
+
+.judge-progress progress::-moz-progress-bar {
+  border-radius: 999px;
+  background: var(--brand-glow);
+}
+
+.judge-note {
+  font-size: var(--text-sm);
+  color: var(--ink-2);
+}
+
+/* ---------- El par ---------- */
+.judge-card .panel-body {
+  display: grid;
+  gap: var(--space-5);
+  padding: var(--space-5);
+}
+
+.judge-count {
+  font-size: var(--text-xs);
+  color: var(--ink-3);
+  font-variant-numeric: tabular-nums;
+}
+
+.judge-pair {
+  display: grid;
+  gap: var(--space-3);
+}
+
+.judge-query-label,
+.judge-result-label {
+  font-size: var(--text-sm);
+  color: var(--ink-2);
+}
+
+.judge-query-label strong {
+  color: var(--ink);
+  font-weight: 600;
+}
+
+.judge-query {
+  font-size: var(--text-figure);
+  font-weight: 600;
+  line-height: 1.15;
+  letter-spacing: -0.01em;
+  overflow-wrap: anywhere;
+}
+
+.judge-result {
+  display: flex;
+  gap: var(--space-4);
+  align-items: center;
+  padding: var(--space-4);
+  border-radius: var(--radius-m);
+  background: var(--surface-sunken);
+}
+
+.judge-photo {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 96px;
+  height: 96px;
+  overflow: hidden;
+  border-radius: var(--radius-s);
+  font-size: var(--text-xs);
+  color: var(--ink-3);
+  background: var(--opaque);
+}
+
+.judge-photo img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.judge-result-text {
+  display: grid;
+  gap: var(--space-1);
+  min-width: 0;
+}
+
+.judge-name {
+  font-size: var(--text-md);
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+.judge-meta {
+  font-size: var(--text-sm);
+  color: var(--ink-2);
+}
+
+/* ---------- Los tres botones: grandes, con su tecla y qué quiere decir ---------- */
+.judge-verdicts {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--space-3);
+}
+
+.judge-verdict {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-content: start;
+  gap: var(--space-2);
+  min-height: 96px;
+  padding: var(--space-4);
+  border-radius: var(--radius-m);
+  text-align: left;
+  color: var(--ink);
+  background: var(--glass-bright);
+  box-shadow: var(--glass);
+  transition:
+    background var(--duration-fast),
+    box-shadow var(--duration-fast),
+    transform var(--duration-fast);
+}
+
+.judge-verdict:hover:not(:disabled) {
+  background: light-dark(#ffffff, rgba(255, 255, 255, 0.16));
+}
+
+.judge-verdict:active:not(:disabled) {
+  transform: scale(0.98);
+}
+
+.judge-verdict:disabled {
+  cursor: progress;
+  opacity: 0.7;
+}
+
+.judge-verdict-label {
+  font-size: var(--text-md);
+  font-weight: 600;
+}
+
+.judge-verdict kbd {
+  display: grid;
+  place-items: center;
+  min-width: 24px;
+  height: 24px;
+  padding: 0 6px;
+  border-radius: var(--radius-xs);
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  color: var(--ink-2);
+  background: var(--surface-sunken);
+  box-shadow: inset 0 -1px 0 var(--line-strong);
+}
+
+.judge-verdict-hint {
+  grid-column: 1 / -1;
+  font-size: var(--text-sm);
+  color: var(--ink-2);
+}
+
+/* El juicio vigente: el borde de la marca y un tilde, no solo un color */
+.judge-verdict[aria-pressed='true'] {
+  background: var(--brand-wash);
+  box-shadow:
+    inset 0 0 0 2px var(--brand),
+    var(--glass-shadow);
+}
+
+.judge-verdict[aria-pressed='true'] .judge-verdict-label::before {
+  content: '✓ ';
+  color: var(--brand-ink);
+}
+
+.judge-error {
+  font-size: var(--text-sm);
+  font-weight: 500;
+  color: var(--bad-ink);
+}
+
+.judge-nav {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.judge-nav .text-button {
+  height: 44px;
+  padding: 0 var(--space-5);
+}
+
+@media (max-width: 640px) {
+  .judge-verdicts {
+    grid-template-columns: 1fr;
+  }
+
+  .judge-verdict {
+    min-height: 0;
+  }
+
+  .judge-query {
+    font-size: var(--text-kpi);
+  }
+}
