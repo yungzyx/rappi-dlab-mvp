@@ -261,6 +261,40 @@
           ],
           "semanas_promedio": 4
         },
+        "ritmo_encuesta": {
+          "por_semana": {
+            "control": 2.5,
+            "tratamiento": 1.5
+          },
+          "semanas": [
+            {
+              "control": 0,
+              "semana": "2026-08-24",
+              "tratamiento": 2
+            },
+            {
+              "control": 1,
+              "semana": "2026-08-31",
+              "tratamiento": 2
+            },
+            {
+              "control": 4,
+              "semana": "2026-09-07",
+              "tratamiento": 1
+            },
+            {
+              "control": 2,
+              "semana": "2026-09-14",
+              "tratamiento": 2
+            },
+            {
+              "control": 3,
+              "semana": "2026-09-21",
+              "tratamiento": 1
+            }
+          ],
+          "semanas_promedio": 4
+        },
         "satisfaccion": {
           "confia": {
             "variantes": [

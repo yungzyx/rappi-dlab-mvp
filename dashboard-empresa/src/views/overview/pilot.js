@@ -1,6 +1,6 @@
-// Estado del piloto: cuánto lleva cada hipótesis del mínimo de personas que pide el plan de piloto para poder
-// concluir y, con el ritmo de asignación, cuánto falta. Sale del experimento `ofertas_control` de
-// /analytics/experimentos (los mínimos y el ritmo los calcula la API).
+// Estado del piloto: cuánto lleva cada hipótesis del mínimo de personas (o de respuestas, en la H3) que pide el plan de
+// piloto para poder concluir y, con su ritmo, cuánto falta. Sale del experimento `ofertas_control` de
+// /analytics/experimentos (los mínimos y los ritmos, `ritmo` y `ritmo_encuesta`, los calcula la API).
 import { CONTROL, hypothesesMode, TREATMENT } from '../experiments/hypotheses.js'
 
 const GROUPS = [TREATMENT, CONTROL]
@@ -49,10 +49,11 @@ function progress(id, title, rows, key, minimum, pace, assigned) {
 
 /**
  * { on, rows }: `on` es falso si el grupo de control está apagado o un grupo no tiene personas (no hay qué medir).
- * `rows`: H1, H2 y H3, cada una con cuántas personas lleva cada grupo (`have`), cuántas pide el plan (`need`, o null
- * si todavía no se puede calcular), la parte cubierta por el grupo que va más atrás (`share`, 0 a 1), si llegó y, si
- * no, las semanas de asignación que faltan como piso (`weeks`: 0 si ya están asignadas las que hacen falta y solo
- * queda esperar su plazo; null si no se puede estimar).
+ * `rows`: H1, H2 y H3, cada una con cuántas personas (respuestas, en la H3) lleva cada grupo (`have`), cuántas pide el
+ * plan (`need`, o null si todavía no se puede calcular), la parte cubierta por el grupo que va más atrás (`share`, 0 a
+ * 1), si llegó y, si no, las semanas que faltan como piso (`weeks`: 0 si ya están asignadas las que hacen falta y solo
+ * queda esperar su plazo; null si no se puede estimar). En la H1 y la H2 son semanas de asignación; en la H3, de
+ * respuestas, que cuentan apenas llegan (sin plazo que esperar).
  */
 export function pilotProgress(experiment) {
   const on = experiment.control_pct > 0 && hypothesesMode(experiment) === 'grupos'
@@ -60,13 +61,24 @@ export function pilotProgress(experiment) {
   // Personas asignadas por semana a cada grupo (una foto grabada antes del 25-11 no lo trae) y las ya asignadas.
   const pace = experiment.ritmo?.por_semana ?? null
   const assigned = peopleOf(experiment.variantes, 'personas')
+  // Respuestas a la p1 por semana a cada grupo (una foto grabada antes del 25-11 no lo trae).
+  const surveyPace = experiment.ritmo_encuesta?.por_semana ?? null
+  const answered = peopleOf(encuesta?.variantes ?? [], 'respondidas')
   return {
     on,
     rows: [
       progress('H1', 'Retención M+1', retencion?.variantes, 'personas', retencion?.minimo, pace, assigned),
       progress('H2', 'Restaurantes → Turbo', turbo?.variantes, 'personas', turbo?.minimo, pace, assigned),
-      // La H3 avanza con respuestas, no con asignaciones: sin ritmo propio, no se estima.
-      progress('H3', '"¿Encontraste lo que buscabas?"', encuesta?.variantes, 'respondidas', encuesta?.minimo, null),
+      // La H3 avanza con respuestas, no con asignaciones: su ritmo es el de las respuestas.
+      progress(
+        'H3',
+        '"¿Encontraste lo que buscabas?"',
+        encuesta?.variantes,
+        'respondidas',
+        encuesta?.minimo,
+        surveyPace,
+        answered,
+      ),
     ],
   }
 }

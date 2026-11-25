@@ -189,6 +189,11 @@
           "semanas": [],
           "semanas_promedio": 4
         },
+        "ritmo_encuesta": {
+          "por_semana": null,
+          "semanas": [],
+          "semanas_promedio": 4
+        },
         "satisfaccion": {
           "confia": {
             "variantes": [

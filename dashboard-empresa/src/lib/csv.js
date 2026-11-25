@@ -2,8 +2,8 @@
 // y BOM, que es como una planilla en español abre los decimales con coma y los acentos.
 const SEPARATOR = ';'
 
-/** El texto de una celda: sus trozos de texto en orden, sin lo decorativo (`aria-hidden`) ni lo que es solo para el
- * lector de pantalla (el juicio de un cambio ya va en su signo). */
+/** El texto de una celda: sus trozos de texto en orden, sin lo decorativo (`aria-hidden`), lo que es solo para el
+ * lector de pantalla (el juicio de un cambio ya va en su signo) ni las acciones de una fila (`data-no-csv`). */
 function cellText(cell) {
   const parts = []
   const walk = (node) => {
@@ -14,6 +14,7 @@ function cellText(cell) {
     }
     if (node.nodeType !== 1) return
     if (node.getAttribute('aria-hidden') === 'true' || node.classList.contains('visually-hidden')) return
+    if (node.hasAttribute('data-no-csv')) return
     node.childNodes.forEach(walk)
   }
   walk(cell)
@@ -27,6 +28,11 @@ export function tableToCsv(table) {
   return [...table.querySelectorAll('tr')]
     .map((row) => [...row.querySelectorAll('th, td')].map((cell) => quote(cellText(cell))).join(SEPARATOR))
     .join('\r\n')
+}
+
+/** El CSV de filas que no están en pantalla (`rows`: una lista de textos por fila, encabezados primero). */
+export function rowsToCsv(rows) {
+  return rows.map((row) => row.map((cell) => quote(String(cell))).join(SEPARATOR)).join('\r\n')
 }
 
 /**

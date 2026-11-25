@@ -27,13 +27,15 @@ function pending(row, experiment) {
     return `Ya hay asignadas tantas personas como pide el mínimo: falta que pase su plazo (${wait(row, experiment)}).${caveat}`
   }
   const weeks = `${formatNumber(row.weeks)} ${row.weeks === 1 ? 'semana más' : 'semanas más'}`
+  // La H3 cuenta respuestas, que valen apenas llegan: no hay plazo que esperar.
+  if (row.id === 'H3') return `Al ritmo de respuestas de hoy, al menos ${weeks}.`
   return `Al ritmo de asignación de hoy, al menos ${weeks} de asignación, y después ${wait(row, experiment)}.`
 }
 
 /**
  * Estado del piloto, junto al enlace a las tres hipótesis: cuánto lleva cada una del mínimo de personas que pide el plan
- * para poder concluir y, si la API trae el ritmo de asignación, cuántas semanas faltan como piso (`pilot.js`). Con el
- * grupo de control apagado, lo dice: no hay qué medir todavía.
+ * para poder concluir y, si la API trae su ritmo (de asignación o de respuestas), cuántas semanas faltan como piso
+ * (`pilot.js`). Con el grupo de control apagado, lo dice: no hay qué medir todavía.
  */
 export function PilotStatus({ source }) {
   const experiment = offersExperiment(useAnalytics('experimentos', source))

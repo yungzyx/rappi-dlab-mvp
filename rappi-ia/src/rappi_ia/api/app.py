@@ -1055,6 +1055,20 @@ def analytics_catalog(conn: Connection = Depends(get_analytics_conn)) -> dict:
     return {"source": "catalogo_real", "data": queries.catalog_health(conn)}
 
 
+@analytics_router.get("/audiencias/{audience_id}")
+def analytics_audience(
+    audience_id: str,
+    source: Literal["synthetic", "prototype"] = "synthetic",
+    conn: Connection = Depends(get_analytics_conn),
+) -> dict:
+    """Los ids seudónimos de una audiencia, para llevarla a una campaña. 404 si no existe o no llega al mínimo de
+    personas: una audiencia que el panel no muestra tampoco se entrega."""
+    members = queries.audience_members(conn, audience_id, source)
+    if members is None:
+        raise HTTPException(404, f"Audiencia desconocida o bajo el mínimo de personas: {audience_id}")
+    return {"source": source, "data": members}
+
+
 @analytics_router.get("/{name}")
 def analytics(
     name: str, source: Literal["synthetic", "prototype"] = "synthetic", conn: Connection = Depends(get_analytics_conn)
