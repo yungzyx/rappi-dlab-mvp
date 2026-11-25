@@ -1,7 +1,6 @@
 import { act, cleanup, fireEvent, render, renderHook, screen, within } from '@testing-library/react'
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, test, vi } from 'vitest'
 import { fixture, stubApi } from '../../../test/api'
-import { routeForScreen } from '../../../data/verticals'
 import { today } from '../../../utils/today'
 import { kitAddedText } from './LiveBlocks'
 
@@ -21,8 +20,7 @@ beforeEach(async () => {
   events.track.mockClear()
   vi.resetModules()
   localStorage.setItem('rappi-proto-demo-mode', 'final')
-  localStorage.setItem('rappi-proto-guia-vista', '1') // como quien ya vio la guía (sus tests la quitan)
-  localStorage.setItem('rappi-proto-privacy-seen', '1') // y el aviso de privacidad (su test lo quita)
+  localStorage.setItem('rappi-proto-privacy-seen', '1') // como quien ya vio el aviso de privacidad (su test lo quita)
   await import('../../../state/EventsContext')
   const demo = await import('../../../state/DemoContext')
   const profile = await import('../../../state/ProfileContext')
@@ -64,8 +62,6 @@ const OFFER_FIXTURES = {
   carrito: 'agent-offer-carrito',
   vertical_por_probar: 'agent-offer-vertical-por-probar',
 }
-// Lo que dice Mochi al tocarlo: la burbuja no lleva productos, así que no promete "mira estas ofertas" como el texto de la API.
-const POKE_LINE = '¿Y si pruebas algo de Súper?'
 const stubAgent = (routes = {}) =>
   stubApi({
     '/agent/plans': fixture('agent-plans'),
@@ -84,7 +80,7 @@ const LOOSE_CART = {
   entityType: 'catalog_item',
   entityId: '94001',
 }
-// Tocar a Mochi abre su menú; "Muéstrame algo nuevo" pide la vertical por probar.
+// Tocar a Mochi abre su menú; "Muéstrame algo nuevo" abre el buscador con la vertical por probar.
 const askSomethingNew = () => {
   fireEvent.click(screen.getByRole('button', { name: 'Mochi: ayuda y opciones' }))
   fireEvent.click(screen.getByRole('button', { name: 'Muéstrame algo nuevo' }))
@@ -150,25 +146,28 @@ describe('Home del prototipo final', () => {
     expect(screen.getByTestId('assistant').textContent).toBe('abierto')
   })
 
-  test('con el aviso de privacidad abierto, Mochi espera a que se cierre para saludar', async () => {
+  test('con el aviso de privacidad abierto, Mochi espera a que se cierre para entrar', async () => {
     localStorage.removeItem('rappi-proto-privacy-seen')
-    const { container } = await renderHome()
+    await renderHome()
     await advance(900 + 3000)
-    expect(container.querySelector('.live-bubble')).toBeNull()
+    expect(screen.queryByRole('button', { name: 'Mochi: ayuda y opciones' })).toBeNull()
     localStorage.setItem('rappi-proto-privacy-seen', '1')
     act(() => window.dispatchEvent(new Event('rappi-privacy-closed')))
     await advance(900 + 1000)
-    expect(container.querySelector('.live-bubble p').textContent).toMatch(/^¡Hola! Ahora vivo en tu Home/)
+    expect(screen.getByRole('button', { name: 'Mochi: ayuda y opciones' })).toBeTruthy()
   })
 
-  test('Mochi entra y saluda sin sugerir productos ni reordenar ni oscurecer la Home', async () => {
+  test('Mochi entra sin decir nada: sin saludo ni guía, sin sugerir productos ni reordenar ni oscurecer la Home', async () => {
     const { container } = await renderHome()
     expect(blockOrder(container)).toEqual(['essentials', 'promos', 'turbo', 'plan', 'nearby', 'lower'])
 
-    await advance(900 + 1000) // entra y empieza a saludar
-    expect(container.querySelector('.live-bubble p').textContent).toMatch(/^¡Hola! Ahora vivo en tu Home/)
+    await advance(900 + 1000) // entró
+    expect(screen.getByRole('button', { name: 'Mochi: ayuda y opciones' })).toBeTruthy()
+    expect(container.querySelector('.live-bubble')).toBeNull()
 
-    await advance(12000) // nada sube ni se oscurece después del saludo
+    await advance(12000) // nada sube, se oscurece ni aparece después
+    expect(container.querySelector('.live-bubble')).toBeNull()
+    expect(container.querySelector('.live-layer [role="status"]').textContent).toBe('')
     expect(blockOrder(container)).toEqual(['essentials', 'promos', 'turbo', 'plan', 'nearby', 'lower'])
     expect(screen.queryByText(/^Tu rincón de/)).toBeNull()
     expect(screen.queryByText(/^Nuevo para ti:/)).toBeNull()
@@ -177,16 +176,16 @@ describe('Home del prototipo final', () => {
   })
 
   test('el globo mide desde la primera letra lo que medirá al terminar: lo que falta va invisible', async () => {
+    memory.session.played = true
+    memory.session.lastAdded = LOOSE_CART
     const { container } = await renderHome()
-    await advance(900 + 200) // entra y empieza a saludar
+    await advance(200) // llegó la oferta del carro y empezó a escribir
     const said = container.querySelector('.live-bubble p')
     const rest = () => said.querySelector('.live-bubble-rest')
     expect(said.textContent.length).toBeGreaterThan(0)
-    expect(said.textContent + rest().dataset.rest).toBe(
-      '¡Hola! Ahora vivo en tu Home 👋 Toca una idea o prueba una vertical nueva.',
-    )
+    expect(said.textContent + rest().dataset.rest).toBe(fixture('agent-offer-carrito').text)
 
-    await advance(2000) // terminó de escribir
+    await advance(4000) // terminó de escribir
     expect(rest()).toBeNull()
   })
 
@@ -280,7 +279,7 @@ describe('Home del prototipo final', () => {
       expect(screen.queryByText('Para ti')).toBeNull()
     })
 
-    test('the offer has ¿Por qué?: el kit, el comentario del carrito y la vertical por probar', async () => {
+    test('the offer has ¿Por qué?: el kit y el comentario del carrito', async () => {
       // El kit de la ocasión.
       await renderHome()
       await advance(100)
@@ -299,17 +298,6 @@ describe('Home del prototipo final', () => {
       const bubble = home.container.querySelector('.live-bubble')
       fireEvent.click(within(bubble).getByRole('button', { name: '¿Por qué?' }))
       expect(within(bubble).getByText(fixture('agent-offer-carrito').reason.text)).toBeTruthy()
-
-      // La vertical por probar, con el texto que arma la Home.
-      cleanup()
-      memory.session.lastAdded = null
-      const poked = await renderHome()
-      await advance(900 + 3400)
-      askSomethingNew()
-      await advance(3000)
-      const talk = poked.container.querySelector('.live-bubble')
-      fireEvent.click(within(talk).getByRole('button', { name: '¿Por qué?' }))
-      expect(within(talk).getByText(fixture('agent-offer-vertical-por-probar').reason.text)).toBeTruthy()
     })
 
     test('the offer bubble stays while ¿Por qué? is open and goes away 30 s after it closes', async () => {
@@ -395,19 +383,6 @@ describe('Home del prototipo final', () => {
           },
         ],
       ])
-
-      // La vertical por probar, igual.
-      cleanup()
-      memory.session.lastAdded = null
-      const poked = await renderHome()
-      await advance(900 + 3400)
-      askSomethingNew()
-      await advance(3000)
-      expect(poked.container.querySelector('.live-bubble')).not.toBeNull()
-      await advance(30_500)
-      expect(tracked('suggestion_dismissed', 'agent-vertical_por_probar')).toEqual([
-        ['suggestion_dismissed', expect.objectContaining({ payload: { kind: 'expirada' } })],
-      ])
     })
 
     test('a bubble that is replaced or closed by a button does not count as gone by itself', async () => {
@@ -433,7 +408,7 @@ describe('Home del prototipo final', () => {
     test('si el servidor no arma el kit (204) o no contesta, el chip no se queda marcado y Mochi no dice nada', async () => {
       stubAgent({ 'POST /agent/offer': 204 })
       const { container } = await renderHome()
-      await advance(900 + 3400 + 6000)
+      await advance(900 + 1000)
       fireEvent.click(screen.getByRole('radio', { name: 'Carrete' }))
       await advance(3000)
       expect(screen.getByRole('radio', { name: 'Carrete' }).getAttribute('aria-checked')).toBe('false')
@@ -695,82 +670,33 @@ describe('Home del prototipo final', () => {
       expect(memory.session.lastAdded).not.toBeNull()
     })
 
-    test('"Después" en la vertical por probar registra el rechazo con el concepto de la mostrada', async () => {
-      const { container } = await renderHome()
-      await advance(900 + 3400)
+    test('"Muéstrame algo nuevo" abre el buscador con la vertical por probar: no la pide la Home ni sale en un globo', async () => {
+      let assistant
+      function Probe() {
+        assistant = useAssistant()
+        return null
+      }
+      const { container } = render(
+        <Providers>
+          <div className="phone">
+            <div className="screen-wrap">
+              <HomeScreen push={vi.fn()} tab="home" setTab={vi.fn()} />
+            </div>
+          </div>
+          <Probe />
+        </Providers>,
+      )
+      await advance(900 + 1000)
       askSomethingNew()
       await advance(3000)
-      fireEvent.click(within(container.querySelector('.live-bubble')).getByRole('button', { name: 'Después' }))
-      const [[, shown]] = tracked('suggestion_shown', 'agent-vertical_por_probar')
-      expect(tracked('suggestion_dismissed', 'agent-vertical_por_probar')).toEqual([
-        [
-          'suggestion_dismissed',
-          {
-            concept_id: shown.concept_id,
-            vertical: shown.vertical,
-            surface: 'home',
-            origin: 'agent-vertical_por_probar',
-            request_id: 'contrato-agent-offer-vertical-por-probar',
-          },
-        ],
-      ])
-    })
-
-    test('tocar a Mochi propone la vertical por probar que dice la API, sin contexto', async () => {
-      const push = vi.fn()
-      const made = fixture('agent-offer-vertical-por-probar')
-      const { container } = await renderHome({ push })
-      await advance(900 + 3400)
-      askSomethingNew()
-      await advance(3000)
-      expect(offerRequests()).toEqual([{ moment: 'vertical_por_probar', user_id: expect.any(String), context: {} }])
-      expect(container.querySelector('.live-bubble p').textContent).toBe(POKE_LINE)
-      expect(tracked('suggestion_shown', 'agent-vertical_por_probar').length).toBeLessThanOrEqual(1)
-      expect(screen.queryByRole('button', { name: /Jugar/ })).toBeNull()
-      fireEvent.click(screen.getByRole('button', { name: made.actions[0].label }))
-      expect(push).toHaveBeenLastCalledWith(...routeForScreen(made.actions[0].route[0]))
-      expect(tracked('vertical_open', 'agent-vertical_por_probar')).toEqual([
-        [
-          'vertical_open',
-          {
-            vertical: made.vertical,
-            surface: 'home',
-            origin: 'agent-vertical_por_probar',
-            request_id: 'contrato-agent-offer-vertical-por-probar',
-          },
-        ],
-      ])
-    })
-
-    test('si el paso es RappiFavor, Mochi lo presenta y su botón abre su pantalla y lo registra', async () => {
-      const push = vi.fn()
-      const made = fixture('agent-offer-vertical-por-probar-servicio')
-      stubAgent({ 'POST /agent/offer': (req) => (req.body.moment === 'vertical_por_probar' ? made : 204) })
-      const { container } = await renderHome({ push })
-      await advance(900 + 3400)
-      askSomethingNew()
-      await advance(3000)
-      expect(container.querySelector('.live-bubble p').textContent).toBe(made.text)
-      const service = (type) => events.track.mock.calls.filter(([name]) => name === type).map(([, fields]) => fields)
-      const offered = { surface: 'home', origin: 'agent-vertical_por_probar' }
-      expect(service('service_shown')).toEqual([
-        expect.objectContaining({ ...offered, payload: { servicio: 'rappifavor' } }),
-      ])
-      fireEvent.click(screen.getByRole('button', { name: 'Abrir RappiFavor' }))
-      expect(service('service_opened')).toEqual([
-        expect.objectContaining({ ...offered, payload: { servicio: 'rappifavor' } }),
-      ])
-      expect(service('vertical_open')).toEqual([]) // un servicio no es una vertical: ya deja service_opened
-      expect(push).toHaveBeenLastCalledWith('favor')
-    })
-
-    test('tocar a Mochi sin nada que ofrecer (204) calla', async () => {
-      stubAgent({ 'POST /agent/offer': 204 })
-      const { container } = await renderHome()
-      await advance(900 + 3400 + 6000)
-      askSomethingNew()
-      await advance(3000)
-      expect(status(container)).toBe('')
+      expect(assistant.isOpen).toBe(true)
+      expect(assistant.session).toMatchObject({
+        query: 'Muéstrame algo nuevo para probar',
+        offer: { moment: 'vertical_por_probar', context: {} },
+      })
+      expect(offerRequests()).toEqual([]) // la pide el buscador (useAgentAnswers), no la Home
+      expect(container.querySelector('.live-bubble')).toBeNull()
+      expect(tracked('suggestion_shown', 'agent-vertical_por_probar')).toEqual([])
     })
 
     test('Mochi en silencio no pide ofertas', async () => {
@@ -815,7 +741,7 @@ describe('Home del prototipo final', () => {
 
   test('la Home queda montada bajo la vertical abierta: al volver a estar arriba, comenta lo agregado', async () => {
     const { container, rerender } = await renderHome()
-    await advance(900 + 3400 + 6000) // saluda y se calla
+    await advance(900 + 1000) // ya entró
     rerender(homeTree({ active: false })) // se abrió una tienda encima
     memory.session.lastAdded = LOOSE_CART
     rerender(homeTree({ active: true })) // volvió
@@ -825,7 +751,7 @@ describe('Home del prototipo final', () => {
 
   test('al tocar a Mochi salta (aunque empiece a hablar) y después vuelve a su pose', async () => {
     const { container } = await renderHome()
-    await advance(900 + 3400)
+    await advance(900 + 1000)
     const body = screen.getByRole('button', { name: 'Mochi: ayuda y opciones' })
     fireEvent.pointerDown(body)
     fireEvent.click(body)
@@ -841,7 +767,7 @@ describe('Home del prototipo final', () => {
 
     test('tocarlo abre el mismo menú que fuera de la Home, sin pedir ofertas; otro toque, Escape o tocar fuera lo cierran', async () => {
       const { container } = await renderHome()
-      await advance(900 + 3400 + 6000)
+      await advance(900 + 1000)
       fireEvent.click(mochi())
       const options = within(menu())
         .getAllByRole('button')
@@ -869,7 +795,7 @@ describe('Home del prototipo final', () => {
 
     test('"Ocultar a Mochi" pide confirmar y lo oculta desde la Home', async () => {
       const { container } = await renderHome()
-      await advance(900 + 3400 + 6000)
+      await advance(900 + 1000)
       fireEvent.click(mochi())
       fireEvent.click(screen.getByRole('button', { name: 'Ocultar a Mochi' }))
       expect(screen.getByRole('group', { name: 'Ocultar a Mochi' }).textContent).toContain(
@@ -1042,7 +968,7 @@ describe('Home del prototipo final', () => {
           </Filled>
         </Providers>,
       )
-      await advance(900 + 3400 + 6000)
+      await advance(900 + 1000)
       act(() => hooks.add({ ...LOOSE_CART, price: '$1.000' }))
       fireEvent.click(mochi())
       expect(screen.getByRole('button', { name: 'Revisar mi carro · $1.000' })).toBeTruthy()
@@ -1072,186 +998,71 @@ describe('Home del prototipo final', () => {
       expect(offerRequests()).toEqual([]) // en silencio no pide la oferta
     })
 
-    test('entra sin saludar, pero si lo tocan responde', async () => {
+    test('entra sin decir nada, pero si lo tocan abre su menú', async () => {
       quietToday()
       const { container } = await renderHome()
-      await advance(900 + 3400)
+      await advance(900 + 1000)
       expect(status(container)).toBe('')
-      askSomethingNew()
-      await advance(3000)
-      expect(status(container)).toBe(POKE_LINE)
+      fireEvent.click(screen.getByRole('button', { name: 'Mochi: ayuda y opciones' }))
+      expect(screen.getByRole('group', { name: 'Opciones de Mochi' })).toBeTruthy()
     })
   })
 
-  test('"Después" cuenta como ignorarlo: a la segunda, Mochi se calla', async () => {
+  test('"Ahora no" cuenta como ignorarlo: a la segunda seguida, Mochi se calla', async () => {
     const quiet = await import('../../../state/agentQuiet')
-    await renderHome()
-    await advance(900 + 3400 + 6000)
-    for (let i = 0; i < 2; i++) {
-      askSomethingNew()
-      await advance(3000)
-      fireEvent.click(screen.getByRole('button', { name: 'Después' }))
-      await advance(500)
-    }
+    // Cada oferta de otro concepto: una rechazada no vuelve en la sesión.
+    let n = 0
+    stubAgent({
+      'POST /agent/offer': (req) => {
+        if (req.body.moment !== 'carrito') return 204
+        const made = fixture('agent-offer-carrito')
+        return { ...made, reason: { ...made.reason, concept: `snacks-${++n}` } }
+      },
+    })
+    memory.session.played = true
+    memory.session.lastAdded = LOOSE_CART
+    const { rerender } = await renderHome()
+    await advance(4000)
+    fireEvent.click(screen.getByRole('button', { name: 'Ahora no' }))
+    expect(quiet.isHushed()).toBe(false)
+    rerender(homeTree({ active: false }))
+    memory.session.lastAdded = LOOSE_CART
+    rerender(homeTree({ active: true }))
+    await advance(4000)
+    fireEvent.click(screen.getByRole('button', { name: 'Ahora no' }))
     expect(quiet.isHushed()).toBe(true)
   })
 
-  describe('guía de la primera vez', () => {
-    beforeEach(() => localStorage.removeItem('rappi-proto-guia-vista'))
-    const status = (container) => container.querySelector('.live-layer [role="status"]').textContent
-    const at = (container) => container.querySelector('.live-agent').dataset.at
-    const AFTER_GREETING = 900 + 6000 + 3000 // entra, saluda y termina de escribir el primer paso
-    const next = async (name) => {
-      fireEvent.click(screen.getByRole('button', { name }))
-      await advance(3000)
-    }
-
-    test('la primera vez, después del saludo, Mochi muestra el buscador y qué pasa al tocarlo', async () => {
-      const { container } = await renderHome()
-      await advance(AFTER_GREETING)
-      expect(status(container)).toMatch(/^Arriba está mi buscador/)
-      // Mochi no tiene chat: ni la guía ni el saludo invitan a escribirle (26-10).
-      expect(status(container)).not.toMatch(/pídeme|dime|escríbeme|cuéntame|pregúntame/i)
-      expect(at(container)).toBe('essentials')
-      await next('Siguiente')
-      expect(status(container)).toMatch(/si me tocas/)
-      await next('Listo')
-      expect(status(container)).toBe('')
-      expect(localStorage.getItem(memory.TOUR_KEY)).toBeTruthy()
-    })
-
-    test('"Saltar" la termina y no vuelve', async () => {
-      const { container } = await renderHome()
-      await advance(AFTER_GREETING)
-      await next('Saltar')
-      expect(status(container)).toBe('')
-      cleanup()
-      memory.session.played = false
-      const again = await renderHome()
-      await advance(AFTER_GREETING + 6000)
-      expect(status(again.container)).not.toMatch(/buscador|si me tocas/)
-    })
-
-    test('la segunda visita no la muestra', async () => {
-      localStorage.setItem(memory.TOUR_KEY, '1')
-      const { container } = await renderHome()
-      await advance(AFTER_GREETING)
-      expect(status(container)).not.toMatch(/^Arriba está mi buscador/)
-    })
-
-    test('"Repetir escena" la vuelve a mostrar', async () => {
-      localStorage.setItem(memory.TOUR_KEY, '1')
-      const { container } = await renderHome()
-      await advance(AFTER_GREETING)
-      act(() => memory.resetLive())
-      await advance(AFTER_GREETING)
-      expect(status(container)).toMatch(/^Arriba está mi buscador/)
-    })
-
-    test('si tocan a Mochi en medio, la guía termina (vista) y Mochi sigue comentando lo agregado al volver', async () => {
-      const { container, rerender } = await renderHome()
-      await advance(AFTER_GREETING)
-      askSomethingNew()
-      await advance(3000)
-      expect(status(container)).toBe(POKE_LINE)
-      expect(localStorage.getItem(memory.TOUR_KEY)).toBeTruthy()
-      rerender(homeTree({ active: false }))
-      memory.session.lastAdded = LOOSE_CART
-      rerender(homeTree({ active: true }))
-      await advance(4000)
-      expect(status(container)).toBe(fixture('agent-offer-carrito').text)
-    })
-
-    test('no pisa lo que la persona pidió tocando a Mochi justo antes', async () => {
-      const { container } = await renderHome()
-      await advance(900 + 3400 + 700)
-      askSomethingNew()
-      await advance(5000)
-      expect(status(container)).toBe(POKE_LINE)
-    })
-
-    test('el plan del día no interrumpe la guía', async () => {
-      let seePlan
-      globalThis.IntersectionObserver = class {
-        constructor(callback) {
-          seePlan = callback
-        }
-        observe() {}
-        disconnect() {}
-      }
-      try {
-        const { container } = await renderHome()
-        await advance(AFTER_GREETING)
-        act(() => seePlan([{ isIntersecting: true }]))
-        await advance(1000)
-        expect(status(container)).toMatch(/^Arriba está mi buscador/)
-      } finally {
-        delete globalThis.IntersectionObserver
-      }
-    })
-
-    test('al terminar la guía, Mochi muestra lo pendiente de "al volver"', async () => {
-      const { container, rerender } = await renderHome()
-      await advance(AFTER_GREETING)
-      rerender(homeTree({ active: false })) // se abrió algo encima en medio de la guía
-      memory.session.lastAdded = LOOSE_CART
-      rerender(homeTree({ active: true }))
-      await advance(2000)
-      expect(status(container)).toMatch(/^Arriba está mi buscador/) // la guía sigue
-      await next('Siguiente')
-      await next('Listo')
-      await advance(4000)
-      expect(status(container)).toBe(fixture('agent-offer-carrito').text)
-    })
-
-    test('con "reducir movimiento" también funciona', async () => {
-      const original = window.matchMedia
-      window.matchMedia = () => ({ matches: true, addEventListener() {}, removeEventListener() {} })
-      try {
-        const { container } = await renderHome()
-        await advance(6000 + 3000)
-        expect(status(container)).toMatch(/^Arriba está mi buscador/)
-      } finally {
-        window.matchMedia = original
-      }
-    })
-  })
-
-  test('tocar a Mochi después del saludo propone una vertical por probar', async () => {
-    const { container } = await renderHome()
-    await advance(900 + 3400)
-    askSomethingNew()
-    await advance(3000) // termina de escribir
-    expect(container.querySelector('.live-bubble p').textContent).toBe(POKE_LINE)
-  })
-
   test('"¿Por qué?" y los botones del globo ocupan su lugar mientras escribe, sin verse hasta terminar', async () => {
+    memory.session.played = true
+    memory.session.lastAdded = LOOSE_CART
     const { container } = await renderHome()
-    await advance(900 + 3400)
-    askSomethingNew()
-    await advance(400) // llegó la oferta y empezó a escribir
+    await advance(400) // llegó la oferta del carro y empezó a escribir
     const more = () => container.querySelector('.live-bubble-more')
     expect(container.querySelector('.live-bubble-rest')).not.toBeNull()
     expect(more().classList.contains('is-pending')).toBe(true)
     expect(more().getAttribute('aria-hidden')).toBe('true')
     expect(within(more()).getAllByRole('button', { hidden: true }).length).toBeGreaterThan(0)
 
-    await advance(3000) // termina de escribir
+    await advance(4000) // termina de escribir
     expect(more().classList.contains('is-pending')).toBe(false)
     expect(within(more()).getByRole('button', { name: '¿Por qué?' })).toBeTruthy()
   })
 
-  test('"Repetir escena" vuelve a saludar', async () => {
+  test('"Repetir escena" lo vuelve a hacer entrar, sin decir nada', async () => {
     const { container } = await renderHome()
-    await advance(900 + 3400 + 6000)
-    act(() => memory.resetLive())
     await advance(900 + 1000)
-    expect(container.querySelector('.live-bubble p').textContent).toMatch(/^¡Hola! Ahora vivo en tu Home/)
+    act(() => memory.resetLive())
+    await advance(100)
+    expect(screen.queryByRole('button', { name: 'Mochi: ayuda y opciones' })).toBeNull() // salió de escena
+    await advance(900 + 1000)
+    expect(screen.getByRole('button', { name: 'Mochi: ayuda y opciones' })).toBeTruthy()
+    expect(container.querySelector('.live-bubble')).toBeNull()
   })
 
   test('en reposo se asoma desde el borde y, al hacer scroll, se esconde hasta que se para', async () => {
     const { container } = await renderHome()
-    await advance(900 + 3400 + 6000) // terminó de saludar
+    await advance(900 + 1000) // ya entró
     const live = container.querySelector('.live-agent')
     expect(live.classList.contains('is-resting')).toBe(true)
     fireEvent.scroll(container.querySelector('.home--live'))
@@ -1699,13 +1510,12 @@ describe('Home del prototipo final', () => {
       expect(tracked('vertical_reorder_shown', 'agent-reorden')).toHaveLength(1)
     })
 
-    test('si otro globo reemplaza al del carro (tocar a Mochi), "Moví…" sale cuando ese se cierra', async () => {
+    test('si otro globo reemplaza al del carro (el del kit elegido), "Moví…" sale cuando ese se cierra', async () => {
       const { container } = await cartOverMove()
-      askSomethingNew()
-      await advance(3000)
-      expect(said(container)).toBe(POKE_LINE)
-      fireEvent.click(screen.getByRole('button', { name: 'Después' }))
+      fireEvent.click(screen.getByRole('radio', { name: 'Carrete' }))
       await advance(500)
+      expect(said(container)).toMatch(/^🎉 Tu kit "Carrete"/)
+      await advance(4500) // el globo del kit se va solo
       expect(said(container)).toBe(LINE)
     })
 
@@ -1816,24 +1626,6 @@ describe('Home del prototipo final', () => {
       expect(memory.session.lastAdded).toBeNull()
     })
 
-    test('si tocar a Mochi termina la guía con algo agregado pendiente, la oferta va antes que "Moví…"', async () => {
-      localStorage.removeItem('rappi-proto-guia-vista')
-      remember(FIXED)
-      stubAgent({ 'GET /profile/*': fixture('profile-verticales') })
-      memory.session.lastAdded = LOOSE_CART
-      const { container } = await renderHome()
-      await advance(900 + 6000 + 3000) // saluda; el orden cambió mientras tanto; empieza la guía
-      expect(said(container)).toMatch(/^Arriba está mi buscador/)
-      askSomethingNew()
-      await advance(3000)
-      expect(said(container)).toBe(POKE_LINE)
-      fireEvent.click(screen.getByRole('button', { name: 'Después' }))
-      await advance(4000)
-      expect(said(container)).toBe(CARRITO)
-      await advance(30000) // se va sola (un segundo "Después" seguido callaría a Mochi)
-      expect(said(container)).toBe(LINE)
-    })
-
     test('"Moví…" a la vista, agregar en el buscador y cerrarlo: al tocar "Entendido" sale la oferta del carro', async () => {
       memory.session.played = true
       remember(FIXED)
@@ -1883,26 +1675,25 @@ describe('Home del prototipo final', () => {
       expect(said(container)).toBe(LINE)
     })
 
-    test('si la Home abre tapada (se recargó en otra pantalla), el saludo se va al volver y sale la oferta', async () => {
+    test('si la Home abre tapada (se recargó en otra pantalla), al volver sale la oferta', async () => {
       memory.session.lastAdded = LOOSE_CART
       const { container, rerender } = await renderHome({ active: false })
-      await advance(8000) // saluda con otra pantalla encima
+      await advance(8000) // entra con otra pantalla encima
+      expect(said(container)).toBe('')
       rerender(homeTree({ active: true }))
-      await advance(500)
-      expect(said(container)).toMatch(/^¡Hola!/) // el saludo, que esperaba, ahora cuenta
-      await advance(10000)
+      await advance(4000)
       expect(said(container)).toBe(CARRITO)
     })
 
-    test('salir de la Home durante el saludo y volver antes de que termine: la oferta y "Moví…" salen igual', async () => {
+    test('salir de la Home mientras Mochi entra y volver antes de que termine: la oferta y "Moví…" salen igual', async () => {
       remember(FIXED)
       stubAgent({ 'GET /profile/*': fixture('profile-verticales') })
       memory.session.lastAdded = LOOSE_CART
       const { container, rerender } = await renderHome()
-      await advance(1500) // entró y saluda; el orden nuevo quedó pendiente
+      await advance(1000) // está entrando; el orden nuevo quedó pendiente
       rerender(homeTree({ active: false })) // abrió algo
       await advance(500)
-      rerender(homeTree({ active: true })) // volvió antes de que el saludo terminara
+      rerender(homeTree({ active: true })) // volvió antes de que terminara de entrar
       await advance(4000)
       expect(said(container)).toBe(CARRITO)
       fireEvent.click(screen.getByRole('button', { name: 'Ahora no' }))
@@ -1923,13 +1714,12 @@ describe('Home del prototipo final', () => {
       })
       const { container } = await renderHome()
       await advance(500) // la oferta del carro en camino; el orden nuevo, pendiente
-      askSomethingNew()
-      await advance(4000) // llegó el 204
-      expect(said(container)).toBe(POKE_LINE)
+      fireEvent.click(screen.getByRole('radio', { name: 'Carrete' })) // el globo del kit
+      await advance(3500) // llegó el 204
+      expect(said(container)).toMatch(/^🎉 Tu kit "Carrete"/)
       expect(memory.session.lastAdded).toBeNull()
       expect(tracked('vertical_reorder_shown', 'agent-reorden')).toEqual([])
-      fireEvent.click(screen.getByRole('button', { name: 'Después' }))
-      await advance(500)
+      await advance(1500) // el globo del kit se va solo
       expect(said(container)).toBe(LINE)
     })
 
@@ -1956,14 +1746,14 @@ describe('Home del prototipo final', () => {
       }
     })
 
-    test('recién abierta, primero saluda y después explica el cambio', async () => {
+    test('recién abierta, entra y después explica el cambio', async () => {
       remember(FIXED)
       stubAgent({ 'GET /profile/*': fixture('profile-verticales') })
       const { container } = await renderHome()
       await advance(1500)
       expect(tiles(container)[0]).toBe('Farmacia') // la fila ya se movió
-      expect(said(container)).toMatch(/^¡Hola!/)
-      await advance(6000)
+      expect(said(container)).toBe('') // aún entra
+      await advance(1000)
       expect(said(container)).toBe(LINE)
     })
 

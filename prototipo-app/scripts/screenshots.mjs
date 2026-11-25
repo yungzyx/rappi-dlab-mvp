@@ -108,10 +108,9 @@ async function run(page) {
     await home.waitFor()
   }
   const reset = async () => {
-    // Como quien ya vio la guía de la primera vez y el aviso de privacidad: taparían las capturas de la Home.
+    // Como quien ya vio el aviso de privacidad: taparía las capturas de la Home.
     await page.evaluate(() => {
       localStorage.clear()
-      localStorage.setItem('rappi-proto-guia-vista', '1')
       localStorage.setItem('rappi-proto-privacy-seen', '1')
     })
     await page.goto(`${BASE}?r=${Date.now()}`)
@@ -271,16 +270,12 @@ async function run(page) {
   // Mochi explica qué acceso movió (03 lo muestra). "Entendido" lo cierra: si no, su "¿Por qué?" es el que se abre.
   await moved.click()
   await settle(400)
-  // Tocar a Mochi en la Home abre su menú; "Muéstrame algo nuevo" pide a la API la vertical donde la persona aún no
-  // pide. El globo escribe letra por letra: se espera la pregunta entera antes de abrir su "¿Por qué?".
+  // Tocar a Mochi en la Home abre su menú; "Muéstrame algo nuevo" abre el buscador con la vertical donde la persona aún
+  // no pide (la pide a la API), como tarjeta. Su "¿Por qué?" se ve recién cuando termina de escribir.
   await tap('.live-agent-body')
   await tap('button.agent-action', 'Muéstrame algo nuevo')
-  await page.waitForFunction(
-    () => /¿Y si pruebas algo de [^?]+\?/.test(document.querySelector('.live-bubble')?.textContent ?? ''),
-    null,
-    { timeout: 15000 },
-  )
-  await tap('.live-bubble .offer-why-toggle')
+  await page.waitForSelector('.agent-msg-extras:not(.is-pending) .offer-why-toggle', { timeout: 15000 })
+  await tap('.agent-msg-extras .offer-why-toggle')
   await shot('22-vertical-por-probar')
 }
 

@@ -55,25 +55,6 @@ export function rememberMove(move) {
   savePending()
 }
 
-/** La guía de la primera vez (2 pasos tras el saludo) ya se vio o se saltó: se recuerda en el navegador. */
-export const TOUR_KEY = 'rappi-proto-guia-vista'
-
-export function tourSeen() {
-  try {
-    return localStorage.getItem(TOUR_KEY) !== null
-  } catch {
-    return true // sin almacenamiento, mejor no repetirla en cada visita
-  }
-}
-
-export function markTourSeen() {
-  try {
-    localStorage.setItem(TOUR_KEY, '1')
-  } catch {
-    // Sin almacenamiento: vale lo que dura la pestaña (la guía ya terminó).
-  }
-}
-
 /** Evento de ventana con que se avisa al agente flotante que algo se agregó al carro (detalle: `{ product }`). */
 export const AGENT_CART_EVENT = 'agent-carrito'
 
@@ -98,11 +79,6 @@ export function resetLive() {
   resetQuiet()
   const wasHidden = isAgentHiddenNow()
   if (wasHidden) setAgentHidden(false)
-  try {
-    localStorage.removeItem(TOUR_KEY)
-  } catch {
-    // Nada guardado que borrar.
-  }
   window.dispatchEvent(new Event(REPLAY_EVENT))
   return wasHidden
 }

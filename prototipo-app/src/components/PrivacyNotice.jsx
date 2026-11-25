@@ -4,7 +4,7 @@ import './privacy-notice.css'
 // El aviso se muestra una vez por navegador; la clave se borra con "Borrar mis datos" (lleva el prefijo rappi-proto-).
 const SEEN_KEY = 'rappi-proto-privacy-seen'
 
-/** Lo avisa al cerrarse: la Home espera para saludar y empezar la guía (si no, el aviso tapaba a Mochi). */
+/** Lo avisa al cerrarse: la Home espera para que Mochi entre a escena (si no, el aviso lo taparía). */
 export const PRIVACY_CLOSED_EVENT = 'rappi-privacy-closed'
 
 /** ¿Todavía se va a mostrar (o se está mostrando) el aviso? */

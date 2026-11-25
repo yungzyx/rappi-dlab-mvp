@@ -2,14 +2,7 @@ import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react
 import { AGENT_NAME } from '../../../agent/name'
 import { offer, plans as fetchPlans } from '../../../api/agent'
 import { envelope } from '../../../api/attribution'
-import {
-  EXPIRED,
-  noteDismissal,
-  noteOfferDismissal,
-  noteOfferShown,
-  noteShown,
-  wasRefused,
-} from '../../../api/suggestions'
+import { EXPIRED, noteOfferDismissal, noteOfferShown, noteShown, wasRefused } from '../../../api/suggestions'
 import { userId } from '../../../api/user'
 import DemoDisclaimer from '../../../components/DemoDisclaimer'
 import PlainSearchBar from '../../../components/PlainSearchBar'
@@ -17,7 +10,7 @@ import { PRIVACY_CLOSED_EVENT, privacyPending } from '../../../components/Privac
 import SmartBar from '../../../components/assistant/SmartBar'
 import { useToast } from '../../../components/Toast'
 import { ChevronDown } from '../../../components/Icons'
-import { VERTICAL_NAMES, routeForScreen, screenForBackend } from '../../../data/verticals'
+import { routeForScreen } from '../../../data/verticals'
 import { useReducedMotion } from '../../../hooks/useReducedMotion'
 import { useScrollState } from '../../../hooks/useScrollState'
 import { useAddress } from '../../../state/AddressContext'
@@ -35,15 +28,7 @@ import '../home.css'
 import { useVerticalOrder } from '../useVerticalOrder'
 import LiveAgent from './LiveAgent'
 import { PlanBlock, kitAddedText, openItem } from './LiveBlocks'
-import {
-  AGENT_CART_EVENT,
-  REPLAY_EVENT,
-  forgetAdded,
-  markTourSeen,
-  rememberMove,
-  session,
-  tourSeen,
-} from '../../../state/liveMemory'
+import { AGENT_CART_EVENT, REPLAY_EVENT, forgetAdded, rememberMove, session } from '../../../state/liveMemory'
 import { isHushed, isQuiet, noteDismissed, noteEngaged, quietToday, wake } from '../../../state/agentQuiet'
 import { isAgentEnabled, useAgentEnabled } from '../../../state/agentEnabled'
 import { isAgentHidden, useAgentHidden } from '../../../state/agentHidden'
@@ -54,7 +39,9 @@ import './live.css'
 // Las secciones de la Home de hoy. Desde el 14-11-2026 no lleva "¿Repetimos?" ni "¿Volvemos a…?" (no saturar la Home):
 // la recompra se pide en el buscador con Mochi ("Repite lo de siempre").
 const ORDER = ['essentials', 'promos', 'turbo', 'plan', 'nearby', 'lower']
-const T = { enter: 900, greet: 3400, greetHold: 6000 }
+// Al llegar, Mochi entra a escena (900 ms en live.css) y recién después responde a un toque. No saluda ni guía: desde el
+// 25-11-2026 Mochi no muestra globos por su cuenta (docs/decisiones.md).
+const T = { enter: 900, arrive: 900 }
 // Silenciado por hoy (desde su menú, en la Home o flotante) o callado porque lo ignoraron: no habla por su cuenta; si lo tocan, sí.
 // Oculto ("Ocultar a Mochi"): no está, así que tampoco habla ni propone nada.
 const silent = () => isQuiet(today()) || isHushed() || isAgentHidden()
@@ -66,23 +53,11 @@ const MOVE_ORIGIN = 'agent-reorden'
 // Los accesos esperan a que Mochi llegue junto a ellos (su paso dura 680 ms en live.css) antes de deslizarse.
 const GLIDE_DELAY = 550
 
-// Guía de la primera vez, tras el saludo: el buscador y qué pasa al tocarlo. Se ve una vez ("Repetir escena" la repite).
-const TOUR = [
-  {
-    text: 'Arriba está mi buscador: búscame lo que quieras o toca una de sus ideas 🔎',
-    at: 'essentials',
-    gesture: 'point',
-  },
-  { text: 'Y si me tocas, abro mi menú: algo nuevo para probar u ocultarme ✨', at: 'essentials', gesture: 'hop' },
-]
-
-const GREETING = '¡Hola! Ahora vivo en tu Home 👋 Toca una idea o prueba una vertical nueva.'
-
 const HOME_PLANS = 5 // la Home muestra solo los primeros planes del servidor (once, carrete, asado, panorama, regalo)
 
 const ACTIONS_HOLD = 12000 // un globo con botones se va solo después de esto (no queda tapando la Home)
-// Un globo con una oferta (el comentario del carro, la vertical por probar) da más tiempo para leerla y decidir; si se
-// va solo, queda anotado que se fue sola (no es un rechazo).
+// Un globo con una oferta (el comentario del carro) da más tiempo para leerla y decidir; si se va solo, queda anotado
+// que se fue sola (no es un rechazo).
 const OFFER_HOLD = 30000
 // Si la oferta del carro no llega (la API tardó más que su tope o falló), se vuelve a pedir una vez, en segundo plano,
 // si la Home sigue a la vista y libre: sin eso, lo agregado esperaba a que la persona saliera y volviera.
@@ -93,8 +68,8 @@ const buzz = () => navigator.vibrate?.(12)
 
 /**
  * Home del prototipo final: la barra abre el buscador con el agente. El agente de cuerpo entero vive en
- * la Home: saluda, acompaña el plan del día, al tocarlo abre su menú (con "Muéstrame algo nuevo", la vertical por
- * probar, "Silenciar por hoy" y "Ocultar") y, cuando el motor cambia el orden de los accesos, los mueve y dice por qué. Oculto ("Ocultar a
+ * la Home: acompaña el plan del día, al tocarlo abre su menú (con "Muéstrame algo nuevo", que abre el buscador con la
+ * vertical por probar, "Silenciar por hoy" y "Ocultar") y, cuando el motor cambia el orden de los accesos, los mueve y dice por qué. Oculto ("Ocultar a
  * Mochi") o apagado (el grupo de control), la Home queda sin él y con el buscador de siempre; el orden de los accesos
  * sigue.
  */
@@ -121,7 +96,7 @@ export default function LiveHomeFeed({ push, active = true }) {
   const shortcuts = useShortcutMove(verticalOrder, { active: active && !searching, resets: profile.resets })
   const reduceMotion = useReducedMotion()
   const [replays, setReplays] = useState(0)
-  const [privacyClosed, setPrivacyClosed] = useState(0) // sube al cerrarse el aviso de privacidad: recién ahí saluda
+  const [privacyClosed, setPrivacyClosed] = useState(0) // sube al cerrarse el aviso de privacidad: recién ahí entra
 
   const [plans, setPlans] = useState([]) // las ocasiones que el agente sabe armar (GET /agent/plans)
   const [plan, setPlan] = useState(() => session.plan?.id ?? null) // la ocasión elegida
@@ -141,7 +116,6 @@ export default function LiveHomeFeed({ push, active = true }) {
   const hideTimer = useRef(null)
   const run = useRef(0) // cambia al repetir la escena o al salir: lo que estaba esperando ya no sigue
   const planRun = useRef(0) // cambia en cada ocasión elegida: el kit de una anterior ya no vale
-  const poking = useRef(false) // ya se pidió la vertical por probar: otro toque no pide otra
   const [{ scrolled }, onScroll] = useScrollState()
 
   const later = useCallback((ms, fn) => timers.current.push(setTimeout(fn, ms)), [])
@@ -158,9 +132,8 @@ export default function LiveHomeFeed({ push, active = true }) {
     [clearTimers],
   )
 
-  // El globo a la vista y si es de la guía de la primera vez (se leen en timers y efectos, no en el render).
+  // El globo a la vista (se lee en timers y efectos, no en el render).
   const said = useRef(null)
-  const touring = useRef(false)
   const holdFor = useRef(0) // cuánto dura el globo actual (0: se queda hasta que algo lo reemplace)
   const paused = useRef(new Set()) // lo que detiene su cuenta: "¿Por qué?" abierto, puntero o teclado encima
 
@@ -184,12 +157,6 @@ export default function LiveHomeFeed({ push, active = true }) {
   /** El agente dice algo (o se calla con `null`); con `holdMs` el globo se va solo. Cada frase reemplaza a la anterior. */
   const speak = useCallback(
     (next, at = null, holdMs = 0) => {
-      // Cualquier otro globo que reemplace a la guía la termina: queda vista y no vuelve.
-      if (touring.current && !next?.tour) {
-        touring.current = false
-        markTourSeen()
-      }
-      if (next?.tour) touring.current = true
       if (next) spoken.current += 1
       said.current = next
       holdFor.current = next && holdMs ? holdMs : 0
@@ -275,32 +242,10 @@ export default function LiveHomeFeed({ push, active = true }) {
     })
   }
 
-  // La guía: cada paso espera a que la persona siga; "Saltar" o "Listo" la terminan para siempre (speak la marca
-  // vista) y entonces el agente muestra lo que quedó pendiente de "al volver".
-  const endTour = () => speak(null)
-  const showTour = (step) => {
-    const last = step === TOUR.length - 1
-    speak(
-      {
-        tour: true,
-        text: TOUR[step].text,
-        mood: 'wave',
-        gesture: TOUR[step].gesture,
-        actions: last
-          ? [{ label: 'Listo', onClick: endTour }]
-          : [
-              { label: 'Siguiente', onClick: () => showTour(step + 1) },
-              { label: 'Saltar', onClick: endTour },
-            ],
-      },
-      TOUR[step].at,
-    )
-  }
-
   const openFromBlock = (product) => openItem(product, push)
 
-  // Primera vez en la Home: entra y saluda. No sugiere nada ni mueve la Home. Con el aviso de privacidad abierto (la
-  // primera visita), espera a que se cierre: el aviso tapaba el saludo y la guía.
+  // Primera vez en la Home: entra a escena, sin decir nada. No sugiere nada ni mueve la Home. Con el aviso de privacidad
+  // abierto (la primera visita), espera a que se cierre: el aviso lo taparía al entrar.
   useEffect(() => {
     if (session.played) return undefined
     clearTimers()
@@ -312,19 +257,11 @@ export default function LiveHomeFeed({ push, active = true }) {
     later(reduceMotion ? 0 : T.enter, () => {
       setPresent(true)
       setEntering(true)
-      if (!mute()) speak({ text: GREETING, mood: 'wave', gesture: 'greet' }, null, T.greetHold)
     })
-    later((reduceMotion ? 0 : T.enter) + T.greet, () => {
+    later(reduceMotion ? 0 : T.enter + T.arrive, () => {
       setEntering(false)
       session.played = true
-      live.current.drain() // lo que llegó mientras saludaba, si salió y volvió antes de que terminara
-    })
-    // Cuando el saludo termina, la primera vez: la guía (en silencio, no; ni encima de algo que la persona pidió). Lo
-    // que llegó mientras saludaba (un cambio de orden) va cuando se cierra el saludo, o al terminar la guía.
-    later((reduceMotion ? 0 : T.enter) + T.greetHold, () => {
-      const free = !said.current || said.current.text === GREETING
-      if (free && !mute() && !tourSeen()) showTour(0)
-      else live.current.drain()
+      live.current.drain() // lo que llegó mientras entraba (un cambio de orden, lo agregado fuera)
     })
     return clearTimers
     // Solo al montar (o al repetir la escena, o al cerrarse el aviso de privacidad).
@@ -369,7 +306,7 @@ export default function LiveHomeFeed({ push, active = true }) {
       if (same) forgetAdded()
       return live.current.drain()
     }
-    if (live.current.covered || said.current || touring.current || silent()) return
+    if (live.current.covered || said.current || silent()) return
     if (same) forgetAdded()
     noteOfferShown(events.track, made, { generation: profile.resets })
     const see = made.actions.find((action) => action.route)
@@ -417,9 +354,9 @@ export default function LiveHomeFeed({ push, active = true }) {
   }
 
   /**
-   * Lo que Mochi tiene pendiente, cuando la Home queda libre (arriba, sin nada encima, ya saludó, sin guía, sin globo
-   * y sin una oferta en camino): primero la oferta del carro de lo agregado fuera de la Home y después el cambio de
-   * orden de los accesos. Corre al volver a la Home, al destaparla, al terminar la guía y al cerrarse cualquier globo.
+   * Lo que Mochi tiene pendiente, cuando la Home queda libre (arriba, sin nada encima, ya entró, sin globo y sin una
+   * oferta en camino): primero la oferta del carro de lo agregado fuera de la Home y después el cambio de orden de los
+   * accesos. Corre al volver a la Home, al destaparla, al terminar de entrar y al cerrarse cualquier globo.
    * Con `cart: false` (la oferta acaba de fallar) solo el cambio de orden. En silencio, lo pendiente se olvida.
    */
   const drain = ({ cart = true } = {}) => {
@@ -430,7 +367,7 @@ export default function LiveHomeFeed({ push, active = true }) {
       rememberMove(null)
       return
     }
-    if (touring.current || said.current || waiting.current === run.current || poking.current) return
+    if (said.current || waiting.current === run.current) return
     if (cart && session.lastAdded) commentOn(session.lastAdded)
     else if (session.pendingMove) explainMove()
   }
@@ -479,11 +416,10 @@ export default function LiveHomeFeed({ push, active = true }) {
   }, [covered, holdBubble])
 
   // Con otra pantalla encima, lo que Mochi esperaba (una oferta, un kit) ya no corresponde: se calla y no habla después.
-  // La guía no: sigue donde quedó cuando la Home vuelve a estar arriba.
   useEffect(() => {
     if (active) return
     run.current += 1
-    if (!touring.current) speak(null)
+    if (said.current) speak(null)
   }, [active, speak])
 
   useEffect(() => {
@@ -533,7 +469,7 @@ export default function LiveHomeFeed({ push, active = true }) {
     if (!hasPlans || !element || typeof IntersectionObserver === 'undefined') return undefined
     const observer = new IntersectionObserver(
       ([entry]) => {
-        if (!entry.isIntersecting || session.planPrompted || !session.played || silent() || touring.current) return
+        if (!entry.isIntersecting || session.planPrompted || !session.played || silent()) return
         // Tampoco con la Home tapada ni encima de la oferta del carro (en camino o a la vista).
         if (live.current.covered || waiting.current === run.current || said.current?.cart || said.current?.menu) return
         session.planPrompted = true
@@ -621,13 +557,13 @@ export default function LiveHomeFeed({ push, active = true }) {
   }
 
   // Tocar a Mochi abre su menú, el mismo que fuera de la Home (AgentMenu, con "Ocultar a Mochi" al final); otro toque lo
-  // cierra. Aquí no se mueve de lado (eso es de Mochi flotante), y "Muéstrame algo nuevo" pide la vertical por probar.
-  // "Silenciar por hoy" es el mismo silencio de Mochi flotante (sigue a la vista y responde si lo tocan, pero no habla
-  // por su cuenta hasta mañana); silenciado, la opción es "Volver a hablar". Mientras saluda, tocarlo no cambia de tema.
-  // Si el menú se abre sobre una oferta (el globo del carro, la vertical por probar), al cerrarlo sin pedir algo nuevo
-  // la oferta vuelve: no se pierde sin registrar nada. Oculto o silenciado (desde el menú), la oferta queda como
-  // expirada, no vuelve nada y lo pendiente se olvida (`drain` en silencio). Cada apertura del menú deja un
-  // `agent_open` (cuenta como usar a Mochi en el panel); cerrarlo no.
+  // cierra. Aquí no se mueve de lado (eso es de Mochi flotante), y "Muéstrame algo nuevo" abre el buscador con la
+  // vertical por probar. "Silenciar por hoy" es el mismo silencio de Mochi flotante (sigue a la vista y responde si lo
+  // tocan, pero no habla por su cuenta hasta mañana); silenciado, la opción es "Volver a hablar". Mientras entra a
+  // escena, tocarlo no hace nada. Si el menú se abre sobre una oferta (el globo del carro), al cerrarlo la oferta vuelve:
+  // no se pierde sin registrar nada. Oculto o silenciado (desde el menú), la oferta queda como expirada, no vuelve nada
+  // y lo pendiente se olvida (`drain` en silencio). Cada apertura del menú deja un `agent_open` (cuenta como usar a
+  // Mochi en el panel); cerrarlo no.
   const poke = () => {
     if (!session.played) return
     if (said.current?.menu) return said.current.menu.onClose()
@@ -647,10 +583,8 @@ export default function LiveHomeFeed({ push, active = true }) {
     ]
     speak({ menu: { actions, onRun: (id) => runMenu(id, close), onClose: close }, mood: 'listen' })
   }
-  // Pedir algo nuevo no cuenta como usar a Mochi: su "Después" sigue contando para callarlo (como antes, al tocarlo).
-  // Las demás opciones tapan la Home (el buscador, la hoja del carro): la oferta que había vuelve y espera debajo.
+  // Las opciones tapan la Home (el buscador, la hoja del carro): la oferta que había vuelve y espera debajo.
   const runMenu = (id, close) => {
-    if (id === 'new') return suggestNew()
     // Silenciar y despertar quedan medidos como ocultar (`agent_visibility`), pero con `quiet`: no es ocultarlo.
     if (id === 'quiet') {
       quietToday(today())
@@ -671,80 +605,14 @@ export default function LiveHomeFeed({ push, active = true }) {
     close()
     noteEngaged()
     if (id === 'search') assistant.open()
+    // "Muéstrame algo nuevo": la vertical que la persona aún no prueba (la elige la API, según sus pedidos) sale en el
+    // buscador como tarjeta, como "¿Qué puedo probar?" de Mochi flotante; ya no en un globo ("¿Y si pruebas…?").
+    if (id === 'new')
+      assistant.open({
+        query: 'Muéstrame algo nuevo para probar',
+        offer: { moment: 'vertical_por_probar', context: {} },
+      })
     if (id === 'cart') openCartSheet()
-  }
-
-  // "Muéstrame algo nuevo": la API propone la vertical que la persona aún no prueba (según sus pedidos), con sus ofertas.
-  // Mientras llega, lo pendiente (la oferta del carro, "Moví…") espera: `drain` no corre con `poking`.
-  const suggestNew = async () => {
-    if (poking.current) return
-    poking.current = true
-    speak(null) // cierra el menú
-    const mine = run.current
-    const seen = spoken.current
-    let made = null
-    try {
-      made = await offer('vertical_por_probar', {}, { userId: userId(), surface: 'home' })
-    } catch {
-      // Sin respuesta, el agente no dice nada.
-    } finally {
-      poking.current = false
-    }
-    // Sin nada que proponer (204) el agente no dice nada. Con la Home tapada, o si apareció otro globo mientras llegaba,
-    // lo pedido se descarta (ni se muestra ni se cuenta). Sin globo, sigue lo pendiente.
-    if (mine !== run.current || !made || live.current.covered || spoken.current !== seen) return live.current.drain()
-    noteShown(events.track, made.products, {
-      origin: `agent-${made.moment}`,
-      reason: made.reason,
-      generation: profile.resets,
-    })
-    const open = made.actions.find((action) => action.route)
-    // Si el paso es un servicio sin catálogo (RappiFavor, RappiTravel), se anota ofrecido y, al abrirlo, abierto: así
-    // la escalera sigue.
-    const offered = envelope({ surface: 'home', origin: `agent-${made.moment}`, requestId: made.requestId })
-    if (open?.service) events.track('service_shown', { ...offered, payload: { servicio: open.service } })
-    // La burbuja no lleva productos: no promete "mira estas ofertas" (eso lo dice el texto de la API, que sí los muestra).
-    const name = VERTICAL_NAMES[screenForBackend(made.backendVertical)]
-    speak(
-      {
-        text: name ? `¿Y si pruebas algo de ${name}?` : made.text,
-        why: made.reason,
-        whyOrigin: `agent-${made.moment}`,
-        mood: 'wave',
-        gesture: 'hop',
-        onExpire: () =>
-          noteDismissal(events.track, made.products, {
-            origin: `agent-${made.moment}`,
-            generation: profile.resets,
-            kind: EXPIRED,
-          }),
-        actions: [
-          ...(open
-            ? [
-                {
-                  label: open.label,
-                  onClick: () => {
-                    if (open.service)
-                      events.track('service_opened', { ...offered, payload: { servicio: open.service } })
-                    else openOffer(made)
-                    visit(made.vertical, open.route)
-                  },
-                },
-              ]
-            : []),
-          {
-            label: 'Después',
-            onClick: () => {
-              noteDismissed()
-              noteDismissal(events.track, made.products, { origin: `agent-${made.moment}`, generation: profile.resets })
-              speak(null)
-            },
-          },
-        ],
-      },
-      null,
-      OFFER_HOLD,
-    )
   }
 
   /**

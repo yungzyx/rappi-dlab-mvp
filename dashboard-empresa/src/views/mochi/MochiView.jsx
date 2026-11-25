@@ -77,9 +77,9 @@ function Moments({ source }) {
       help={
         <>
           <p>
-            Rechazada: tocar "Ahora no" (Carro) o "Después" (Vertical por probar y, mientras estuvieron en la Home,
-            hasta el 14-11-2026, Recompra y Volver a pedir). Los otros momentos no tienen ese botón y muestran una raya.
-            Una oferta que no se toca no es un rechazo: no se cuenta.
+            Rechazada: tocar "Ahora no" (Carro) o "Después" (mientras estuvieron en un globo de la Home: Vertical por
+            probar hasta el 25-11-2026, y Recompra y Volver a pedir hasta el 14-11-2026). Los otros momentos no tienen
+            ese botón y muestran una raya. Una oferta que no se toca no es un rechazo: no se cuenta.
           </p>
           <p>
             Abierta: tocar el botón que abre su vertical ("Ver …", "Abrir …"); dice que la persona fue a mirar, no que
