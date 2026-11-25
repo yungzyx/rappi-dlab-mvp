@@ -8,6 +8,8 @@ const KINDS = {
   synthetic: { className: 'badge--quiet', icon: 'flask', label: 'Simulado' },
   prototype: { className: 'badge--quiet', icon: 'flask', label: 'Prototipo · no es evidencia' },
   rappi: { className: 'badge--real', icon: 'check', label: 'Dato de Rappi' },
+  // Un bloque diseñado que todavía no tiene su ruta en la API: sus filas son de ejemplo, no salen de la base.
+  design: { className: 'badge--simulated', icon: 'flask', label: 'Diseño · filas de ejemplo' },
 }
 
 /** Mientras corre "Ver cómo funciona" (solo en el HTML suelto), lo del prototipo dice además que trae eventos de ejemplo. */

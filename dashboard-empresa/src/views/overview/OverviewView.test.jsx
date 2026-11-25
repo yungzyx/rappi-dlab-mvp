@@ -66,6 +66,44 @@ describe('OverviewView', () => {
     expect(screen.getByRole('img', { name: /^Pedidos: / })).toBeTruthy()
   })
 
+  test('what changed: the changes to look at first, worst first, each linking to its detail', async () => {
+    serveFixtures()
+    const onNavigate = vi.fn()
+    await renderWithData(<OverviewView source="synthetic" onNavigate={onNavigate} />)
+
+    const list = screen.getByRole('heading', { name: 'Qué cambió' }).closest('section').querySelector('.changes')
+    const titles = [...list.querySelectorAll('.change-title')].map((node) => node.textContent)
+    expect(titles).toEqual([
+      'Búsquedas sin resultado',
+      'Pedidos',
+      '🥢 Despensa asiática: la demanda crece',
+      '🇵🇪 Comida peruana: lo buscan y no lo encuentran',
+    ])
+    expect(within(list).getByText('+1,9 puntos')).toBeTruthy()
+    // Personas activas (−3 %) y el abandono (+0,3 puntos) no se movieron lo suficiente.
+    expect(within(list).queryByText('Personas activas')).toBeNull()
+
+    fireEvent.click(within(list).getByRole('button', { name: 'Ver el detalle: Búsquedas sin resultado' }))
+    expect(onNavigate).toHaveBeenCalledWith('mochi', 'busquedas')
+  })
+
+  test('the pilot status says the control group is off when it is', async () => {
+    serveFixtures()
+    await renderWithData(<OverviewView source="synthetic" onNavigate={() => {}} />)
+    const hero = screen.getByRole('navigation', { name: 'Las tres hipótesis' })
+    expect(within(hero).getByText(/el grupo de control está apagado, todavía no hay qué medir/)).toBeTruthy()
+  })
+
+  test('"Por vertical" is a design with example rows: it says so and offers no download', async () => {
+    serveFixtures()
+    await renderWithData(<OverviewView source="synthetic" tab="verticales" onNavigate={() => {}} />)
+    expect(screen.getByRole('heading', { name: 'Por vertical' })).toBeTruthy()
+    expect(screen.getByText('Diseño, aún sin datos.')).toBeTruthy()
+    expect(screen.getAllByText('Diseño · filas de ejemplo').length).toBeGreaterThan(0)
+    expect(screen.getByText('/analytics/verticales')).toBeTruthy()
+    expect(screen.queryByRole('button', { name: /Descargar CSV/ })).toBeNull()
+  })
+
   test('with the prototype each card from it carries the MVP label, and Rappi data does not', async () => {
     serveFixtures()
     await renderWithData(<OverviewView source="prototype" onNavigate={() => {}} />)
@@ -78,8 +116,8 @@ describe('OverviewView', () => {
     ]) {
       expect(within(decision(name)).getByText(NOT_EVIDENCE)).toBeTruthy()
     }
-    // y una en "Cómo va"
-    expect(screen.getAllByText(NOT_EVIDENCE)).toHaveLength(4)
+    // y una en "Qué cambió" y otra en "Cómo va"
+    expect(screen.getAllByText(NOT_EVIDENCE)).toHaveLength(5)
     expect(
       within(decision('¿Funciona lo que ofrece Mochi?')).getByText('la tasa aparece desde 10 mostradas.', {
         exact: false,

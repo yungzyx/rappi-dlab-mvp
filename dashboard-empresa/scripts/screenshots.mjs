@@ -18,9 +18,11 @@ const LOAD_TIMEOUT_MS = 45_000 // margen para una base fría (hoy /analytics/wee
 // Cada vista y sus subpestañas (?seccion=; la primera no lo lleva). Los 6 nombres que usa el README no cambian.
 const VIEWS = [
   { file: '1-resumen', query: 'vista=resumen' },
+  { file: '1-resumen-verticales', query: 'vista=resumen&seccion=verticales' },
   { file: '2-clientes', query: 'vista=clientes' },
   { file: '2-clientes-pro', query: 'vista=clientes&seccion=pro' },
   { file: '2-clientes-en-riesgo', query: 'vista=clientes&seccion=perdiendo' },
+  { file: '2-clientes-audiencias', query: 'vista=clientes&seccion=audiencias' },
   { file: '3-mochi', query: 'vista=mochi' },
   { file: '3-mochi-listas', query: 'vista=mochi&seccion=listas' },
   { file: '3-mochi-busquedas', query: 'vista=mochi&seccion=busquedas' },

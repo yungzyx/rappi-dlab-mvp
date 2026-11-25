@@ -329,3 +329,173 @@
     grid-column: 1 / -1;
   }
 }
+
+/* ---------- Estado del piloto: dentro del vidrio de las tres hipótesis, a todo su ancho ---------- */
+.hypotheses-link .pilot,
+.hypotheses-link .pilot-off {
+  flex: 1 1 100%;
+  max-width: none;
+  padding-top: var(--space-4);
+  border-top: 1px solid var(--line);
+}
+
+.pilot {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--space-4) var(--space-5);
+}
+
+.pilot > div {
+  display: grid;
+  align-content: start;
+  gap: 6px;
+  min-width: 0;
+}
+
+.pilot dt {
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.pilot dd {
+  display: grid;
+  gap: 6px;
+}
+
+.pilot-id {
+  margin-right: 2px;
+  padding: 1px 7px;
+  border-radius: 999px;
+  font-size: var(--text-xs);
+  font-weight: 700;
+  color: var(--brand-ink);
+  background: var(--brand-wash);
+}
+
+.pilot-note {
+  max-width: none;
+  font-size: var(--text-xs);
+  color: var(--ink-2);
+}
+
+.pilot-off {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-2);
+  font-size: var(--text-sm);
+}
+
+.pilot-off svg {
+  flex: none;
+  width: 14px;
+  height: 14px;
+  margin-top: 3px;
+  color: var(--ink-3);
+}
+
+.hypotheses-link .pilot-off strong {
+  display: inline;
+  margin: 0;
+  font-size: inherit;
+  font-weight: 600;
+  letter-spacing: 0;
+}
+
+/* ---------- Qué cambió: hasta 4 vidrios, cada uno con su marca de dirección, su cifra y cuánto se movió ---------- */
+.changes {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+  gap: var(--space-3);
+  list-style: none;
+}
+
+.change {
+  position: relative;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: var(--space-2) var(--space-3);
+  align-content: start;
+  padding: var(--space-4);
+  border-radius: var(--radius-m);
+  background: var(--surface);
+  box-shadow: var(--glass);
+  -webkit-backdrop-filter: var(--glass-blur);
+  backdrop-filter: var(--glass-blur);
+}
+
+/* La marca: la flecha del cambio en una ficha, con el color de su juicio (y gris si no lo tiene) */
+.change-mark {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 10px;
+  color: var(--ink-2);
+  background: var(--surface-sunken);
+}
+
+.change-mark svg {
+  width: 16px;
+  height: 16px;
+}
+
+.change--bad .change-mark {
+  color: var(--bad-ink);
+  background: var(--bad-wash);
+}
+
+.change--good .change-mark {
+  color: var(--good-ink);
+  background: color-mix(in srgb, var(--good) 14%, transparent);
+}
+
+.change-text {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.change-title {
+  font-size: var(--text-sm);
+  font-weight: 500;
+  line-height: 1.35;
+  color: var(--ink-2);
+}
+
+.change-figure {
+  font-size: 1.375rem;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  line-height: 1.25;
+}
+
+.change-detail {
+  font-size: var(--text-xs);
+  color: var(--ink-3);
+}
+
+.change-delta {
+  font-weight: 600;
+  color: var(--ink-2);
+}
+
+.change--bad .change-delta {
+  color: var(--bad-ink);
+}
+
+.change--good .change-delta {
+  color: var(--good-ink);
+}
+
+.change-link {
+  grid-column: 2;
+  justify-self: start;
+  margin-top: var(--space-1);
+}
+
+@container (max-width: 700px) {
+  .pilot {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
