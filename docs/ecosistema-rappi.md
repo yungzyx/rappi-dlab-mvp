@@ -149,7 +149,7 @@ Este proyecto trabaja solo con el contenido público de Rappi Chile. Otras apps 
 ## 5. Próximos pasos
 
 1. **Mejorar la capa 2:** etiquetar con un LLM (o con Jev, el modelo de juicios tipados de TypeSafe) los ítems de baja confianza, revisar a mano los de mayor tráfico (la precisión ya se midió sobre el catálogo completo con una muestra versionada el 06-10-2026: [resultados](resultados/capas-precision-2026-10-06-nueva-muestra.md)).
-2. **Evaluación de búsqueda:** juzgar a mano la planilla de 200 pares (`rappi-ia jev-planillas`, ver [jev.md](jev.md)) y medirlo con `rappi-ia eval-human`, para saber si el refuerzo por concepto mejora de verdad.
+2. **Evaluación de búsqueda:** juzgar a mano los 200 pares (en "Juzgar la búsqueda" del panel o en la planilla de `rappi-ia jev-planillas`, ver [jev.md](jev.md)) y medirlo con `rappi-ia eval-human`, para saber si el refuerzo por concepto mejora de verdad.
 3. **Geografía H3** en `stores`, cuando una vista la necesite.
 4. **Con datos internos de Rappi:** medir el silo y validar las palancas del panel con un grupo de control.
 
