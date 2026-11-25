@@ -446,12 +446,16 @@ def ask(
         previous = body.previous.model_dump()
         previous["vertical"] = backend_vertical(previous["vertical"])
         ctx = replace(ctx, previous=previous)
+    # La variante antes que Mochi: en control, su respuesta es solo la impresión contrafactual y no guarda nada.
+    control = offers_variant(conn, body.user_id) == experiments.CONTROL
+    if control:
+        ctx = replace(ctx, agent_enabled=False)
     try:
         response = svc.agent.reply(conn, body.message, ctx)
     except ValueError as exc:
         raise rejected(exc, body.user_id) from exc
     response = {**response, "request_id": served_request_id()}
-    if offers_variant(conn, body.user_id) == experiments.CONTROL:
+    if control:
         return _withheld_answer(conn, svc, body, response)
     _log_ask(conn, body.user_id, body.session_id, body.message, response, "texto", body.mode)
     return response
@@ -475,7 +479,9 @@ def _withheld_answer(conn: Connection, svc: Services, body: AskIn, answer: dict)
     `agent`), con la sugerencia cruzada en sus elementos y lo retenido en `payload.retenido`. La app en control no llama
     aquí (su buscador es el de siempre): solo una app vieja u otro cliente, así que esa impresión no cuenta en la parte
     expuesta, que se cuenta con lo que la app pide igual en los dos grupos. Queda como una búsqueda (`search`), no como
-    una pregunta a Mochi (`ask`): para el control no lo fue, y la adopción no la cuenta."""
+    una pregunta a Mochi (`ask`): para el control no lo fue, y la adopción no la cuenta. Si Mochi lo habría leído como
+    una preferencia ("tengo alergia al maní"), no se guarda (`Context.agent_enabled`) y la búsqueda queda sin el texto,
+    como la pregunta a Mochi (`_log_ask`)."""
     _note_withheld_answer(conn, body, answer)
     conn.commit()  # el vector de la consulta se calcula sin una lectura abierta (como en `/search`)
     query = body.message.strip()[:200]
@@ -494,7 +500,8 @@ def _withheld_answer(conn: Connection, svc: Services, body: AskIn, answer: dict)
         "intent": {"kind": "buscar", "concepts": concepts[:1]},
         "request_id": answer["request_id"],
     }
-    _log_ask(conn, body.user_id, body.session_id, body.message, plain, "texto", body.mode, kind="search")
+    private = answer.get("intent", {}).get("kind") == "preferencia"
+    _log_ask(conn, body.user_id, body.session_id, body.message, plain, "texto", body.mode, "search", private)
     return JSONResponse(plain, headers={AGENT_WITHHELD_HEADER: "1"})
 
 
@@ -1088,30 +1095,31 @@ def _searchable(conn: Connection, vertical: str | None) -> str | None:
     return None
 
 
-def _log_ask(conn, user_id, session_id, text, response, modality, mode, kind="ask") -> None:
+def _log_ask(conn, user_id, session_id, text, response, modality, mode, kind="ask", private=False) -> None:
     """Registra la consulta (redactada) para tendencias y demanda no satisfecha. En "Rappi hoy" no se aprende. `kind` es
-    `ask` (una pregunta a Mochi) o `search` (la búsqueda de siempre que responde al grupo de control)."""
+    `ask` (una pregunta a Mochi) o `search` (la búsqueda de siempre que responde al grupo de control). `private`: lo
+    escrito es una preferencia aunque `response` no lo diga (la búsqueda del grupo de control)."""
     if not user_id or not session_id:
         return
     concepts = response.get("intent", {}).get("concepts") or []
     # Lo que dice de sí misma ("no como maní") no queda como consulta: una alergia es un dato de salud y no va a las
     # tendencias, la demanda ni el panel.
-    private = response.get("intent", {}).get("kind") == "preferencia"
+    private = private or response.get("intent", {}).get("kind") == "preferencia"
     event = events.Event(
         user_id=user_id,
         session_id=session_id,
         type=kind,
         vertical=response.get("vertical"),
-        concept_id=concepts[0] if concepts and mode == "propuesta" else None,
+        concept_id=concepts[0] if concepts and mode == "propuesta" and not private else None,
         query=None if private else text,
         modality=modality,
         results=len(response.get("products", [])),
-        unmet=bool(response.get("unmet")),
+        unmet=bool(response.get("unmet")) and not private,
         # Como en la búsqueda, lo que se buscó si Mochi corrigió un error de tipeo.
         payload={
             "mode": mode,
             "intent": response.get("intent", {}).get("kind"),
-            **({"corregida": response["corrected_query"]} if response.get("corrected_query") else {}),
+            **({"corregida": response["corrected_query"]} if response.get("corrected_query") and not private else {}),
         },
         surface="agent",
         request_id=response.get("request_id"),

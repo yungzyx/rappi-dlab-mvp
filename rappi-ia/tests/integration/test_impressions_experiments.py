@@ -347,6 +347,26 @@ def test_mochi_off_answers_the_usual_search_and_records_what_mochi_would_have_sa
     assert blank.status_code == 200 and blank.json()["products"] == [] and blank.json()["unmet"] is True
 
 
+def test_mochi_off_never_saves_a_preference_nor_keeps_its_text(client, db, monkeypatch):
+    """En control, "tengo alergia al maní" no se guarda (Mochi no respondió) y la búsqueda que lo respondió queda sin el
+    texto, como la pregunta a Mochi: una alergia es un dato de salud."""
+    monkeypatch.setattr(config, "OFFERS_CONTROL_PCT", 50)
+    control = user_in(experiments.CONTROL)
+
+    body = {"message": "tengo alergia al maní", "user_id": control, "session_id": "s-pref"}
+    off = client.post("/agent/ask", json=body)
+
+    assert off.status_code == 200 and off.headers["x-agent-withheld"] == "1"
+    assert db.execute("SELECT count(*) FROM agent_preferences WHERE user_id = %s", (control,)).fetchone()[0] == 0
+    rows = db.execute(
+        "SELECT type, query, concept_id, payload FROM app_events WHERE user_id = %s AND type <> 'list_view'",
+        (control,),
+    ).fetchall()
+    assert "search" in {row[0] for row in rows}
+    assert all(query is None and "corregida" not in (payload or {}) for _, query, _, payload in rows)
+    assert [concept for kind, _, concept, _ in rows if kind == "search"] == [None]
+
+
 def test_the_control_group_does_not_see_mochis_offer_and_it_is_recorded_as_counterfactual(client, db, monkeypatch):
     monkeypatch.setattr(config, "OFFERS_CONTROL_PCT", 50)
     cart = {"product": {"entity_type": "catalog_item", "entity_id": CHIPS}}

@@ -82,6 +82,9 @@ class Context:
     user_id: str | None = None  # en "Propuesta", sus compras cruzadas y su combinación ordenan el complemento
     preferences: prefs.Preferences | None = None  # en "Propuesta", su dieta y alergias filtran y sus favoritas ordenan
     cross_today: int = 0  # sugerencias cruzadas que ya vio hoy (events.cross_suggestions_today)
+    # Falso en el grupo de control ("Mochi apagado"): la respuesta solo se calcula como impresión contrafactual
+    # (api/app.py: `_withheld_answer`), así que no guarda preferencias.
+    agent_enabled: bool = True
 
 
 # Tope diario de sugerencias cruzadas por persona (regla 3): supuesto propio, para que Mochi no insista. Lo que la
@@ -741,7 +744,7 @@ class RappiAgent:
         `_log_ask`): una alergia es un dato de salud."""
         command = intent.preference
         response = _base(intent, PREFERENCES_TODAY if ctx.mode != "propuesta" else PREFERENCES_NO_USER)
-        if ctx.mode != "propuesta" or not ctx.user_id:
+        if ctx.mode != "propuesta" or not ctx.user_id or not ctx.agent_enabled:
             return response
         items = list(command.items)
         if command.store:

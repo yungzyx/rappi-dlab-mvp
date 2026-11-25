@@ -252,6 +252,21 @@ def alcohol_section(section: str | None) -> bool:
     return bool(section) and _MENU_ALCOHOL_SECTIONS.best(section) is not None
 
 
+# Los nombres de todas las secciones del menú de un plato (`mi`, una fila de menu_items): la suya (`section_id`, la
+# última donde aparece) y las de `extra_section_ids` (migración 040). Un plato de "Cócteles" que también está en "Más
+# vendidos" guarda "Cócteles" en `extra_section_ids`: las guardias tienen que verlas todas (`alcohol_dish`).
+DISH_SECTIONS_SQL = """ARRAY(SELECT ms.name FROM menu_sections ms WHERE ms.store_id = mi.store_id
+       AND (ms.section_id = mi.section_id OR ms.section_id = ANY(mi.extra_section_ids)))"""
+
+
+def alcohol_dish(sections: list[str], description: str | None, concept_id: str | None) -> bool:
+    """Si un plato cuenta como alcohol por alguna de sus secciones del menú (`DISH_SECTIONS_SQL`: `alcohol_section`) o
+    por su descripción (`alcohol_in_description`, con cada sección)."""
+    return any(alcohol_section(section) for section in sections) or any(
+        alcohol_in_description(description, concept_id, section) for section in sections or [None]
+    )
+
+
 def alcohol_in_description(description: str | None, concept_id: str | None, section: str | None = None) -> bool:
     """Si la descripción de un plato sin concepto o con uno de bebida nombra alcohol (`MENU_ALCOHOL_DESCRIPTION_WORDS`)
     o, sin concepto, su sección es de botellas, vinos o destilados (`UNKNOWN_DISH_SECTION_WORDS`). Con un concepto de

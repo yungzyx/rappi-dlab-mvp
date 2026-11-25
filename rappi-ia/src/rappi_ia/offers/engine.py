@@ -67,9 +67,9 @@ from ..retrieval.hybrid import concepts_of, detect_concepts
 from ..text import contract_articles, normalize, tokens
 from .featured import featured, one_per_concept, side_dish
 from .guards import (
-    alcohol_in_description,
+    DISH_SECTIONS_SQL,
+    alcohol_dish,
     alcohol_in_name,
-    alcohol_section,
     baby_in_name,
     is_offerable,
     is_plannable,
@@ -881,13 +881,12 @@ WHERE sp.master_product_id = ANY(%(ids)s) AND l.current AND l.in_stock IS NOT FA
   AND EXISTS (SELECT 1 FROM v_store_verticals v WHERE v.store_id = sp.store_id AND v.vertical = %(vertical)s)
 ORDER BY sp.master_product_id, l.price, sp.store_id"""
 # Los platos con su último precio (`latest_menu_prices`), la sección del menú donde están y su descripción.
-_TOP_DISHES = """
+_TOP_DISHES = f"""
 SELECT mi.item_id::text, mi.name, mp.price, mp.real_price, s.name, s.store_id, NULLIF(mi.image_url, ''),
-       ic.concept_id, ms.name, clean_html(mi.description)
+       ic.concept_id, {DISH_SECTIONS_SQL}, clean_html(mi.description)
 FROM menu_items mi
 JOIN stores s ON s.store_id = mi.store_id
 JOIN latest_menu_prices mp ON mp.item_id = mi.item_id
-LEFT JOIN menu_sections ms ON ms.store_id = mi.store_id AND ms.section_id = mi.section_id
 LEFT JOIN item_concepts ic ON ic.entity_type = 'menu_item' AND ic.entity_id = mi.item_id::text
 WHERE mi.item_id = ANY(%(ids)s)"""
 
@@ -934,10 +933,10 @@ def _priced_in_vertical(conn: Connection, vertical: str, ids: list[str]) -> dict
             row = (id_, name, price, real, image, presentation, adult, concept)
             found[id_] = product_card(row, vertical, store, store_id, taxonomy)
     else:
-        for id_, name, price, real, store, store_id, image, concept, section, description in conn.execute(
+        for id_, name, price, real, store, store_id, image, concept, sections, description in conn.execute(
             _TOP_DISHES, params
         ):
-            if not (alcohol_section(section) or alcohol_in_description(description, concept, section)):
+            if not alcohol_dish(sections, description, concept):
                 row = (id_, name, price, real, image, None, False, concept)
                 found[id_] = product_card(row, vertical, store, store_id, taxonomy, kind)
     return {i: p for i, p in found.items() if p.price_value is not None}
@@ -1487,8 +1486,8 @@ def _typical_first(found: list[dict], vertical: str, typical: dict[str, str]) ->
 
 def _popular_dishes(conn: Connection) -> list[dict]:
     """Los platos populares (`is_popular`) de los conceptos que más se piden hechos en restaurantes, uno por concepto y
-    solo de los que el agente puede proponer, sin un nombre que diga alcohol, ni de una sección de tragos, ni de bebida
-    con una descripción que lo nombre (`alcohol_in_name`, `alcohol_section`, `alcohol_in_description`), con foto, sin
+    solo de los que el agente puede proponer, sin un nombre que diga alcohol, ni de una sección de tragos (cualquiera de
+    las suyas), ni de bebida con una descripción que lo nombre (`alcohol_in_name`, `alcohol_dish`), con foto, sin
     relleno (`side_dish`) y de un local de la ciudad de la demo (`config.PROFILE_CITY`: la lista es una sola para
     todos). Restaurantes no tiene ofertas ni otro dato de pedidos. Es dato del catálogo y no de la persona: sale de su
     caché (catalog/cache.py), porque buscarlos recorre todos los platos."""
@@ -1507,8 +1506,9 @@ def _find_popular_dishes(conn: Connection) -> list[dict]:
     ]
     places = city_places(config.PROFILE_CITY)
     dishes: dict[str, str] = {}
-    for concept_id, item_id, name, section, description, comuna, price in conn.execute(
-        """SELECT ic.concept_id, mi.item_id::text, mi.name, ms.name, clean_html(mi.description), s.city, mp.price
+    for concept_id, item_id, name, section, sections, description, comuna, price in conn.execute(
+        f"""SELECT ic.concept_id, mi.item_id::text, mi.name, ms.name, {DISH_SECTIONS_SQL}, clean_html(mi.description),
+                  s.city, mp.price
            FROM menu_items mi
            JOIN stores s ON s.store_id = mi.store_id
            LEFT JOIN latest_menu_prices mp ON mp.item_id = mi.item_id
@@ -1518,9 +1518,9 @@ def _find_popular_dishes(conn: Connection) -> list[dict]:
            ORDER BY ic.concept_id, mi.item_id""",
         (ranked,),
     ):
-        if concept_id in dishes or alcohol_in_name("menu_item", name, concept_id) or alcohol_section(section):
+        if concept_id in dishes or alcohol_in_name("menu_item", name, concept_id):
             continue
-        if alcohol_in_description(description, concept_id, section):
+        if alcohol_dish(sections, description, concept_id):  # todas sus secciones, no solo `section_id`
             continue
         if side_dish(name, section, price) or normalize(comuna or "") not in places:
             continue
