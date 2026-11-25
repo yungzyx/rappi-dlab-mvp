@@ -37,6 +37,9 @@ const savedResponses =
 /** De cuándo y de qué base son las respuestas grabadas (`{ fecha, base }`), o null con la API en vivo. */
 export const SNAPSHOT_INFO = snapshot?.grabado ?? null
 
+/** Si hay una API detrás: en el HTML suelto no la hay, y nada se escribe (ni "Juzgar la búsqueda" aparece). */
+export const LIVE_API = !snapshot
+
 // "Ver cómo funciona" (src/demo/): respuestas de ejemplo que pisan a las grabadas mientras dura la demostración.
 let demoResponses = {}
 

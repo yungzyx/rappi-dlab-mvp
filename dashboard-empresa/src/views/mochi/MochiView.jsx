@@ -12,6 +12,7 @@ import { formatNumber, formatPct, formatSignedPct } from '../../lib/format.js'
 import { verticalLabel } from '../../lib/labels.js'
 import { useAnalytics, useAnalyticsMany } from '../../lib/useAnalytics.js'
 import { thinAssortment } from './demand.js'
+import { JudgeSearch } from './JudgeSearch.jsx'
 import { CtrByPosition, SessionFunnel } from './ListsAndFunnel.jsx'
 import { MotorCheck } from './MotorCheck.jsx'
 import { OffersByMoment } from './OffersByMoment.jsx'
@@ -216,7 +217,8 @@ function Thin({ source }) {
 
 /**
  * RappiAds: qué ofrece Mochi, en qué momento y con qué resultado, y qué busca la gente que no encuentra. Con `tab` (la
- * subpestaña), solo sus secciones ("ofertas" lleva también "¿Mochi molesta?"); sin `tab`, todas.
+ * subpestaña), solo sus secciones ("ofertas" lleva también "¿Mochi molesta?"); sin `tab`, todas menos "Juzgar la
+ * búsqueda", que es una herramienta y solo aparece en su subpestaña.
  */
 export function MochiView({ source, tab }) {
   const show = (id) => !tab || tab === id
@@ -364,6 +366,8 @@ export function MochiView({ source, tab }) {
           </div>
         </section>
       )}
+
+      {tab === 'juzgar' && <JudgeSearch />}
     </div>
   )
 }
