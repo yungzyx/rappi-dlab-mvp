@@ -100,7 +100,7 @@ DEMO_HTML_COPY="$HOME/Desktop/Prototipo MVP.html" npm run demo:html
 
 `demo:snapshot` muestra la API que va a usar antes de escribir nada y se niega con el puerto 8000 (la API de `make mvp`, sobre `rappi`) o con un host que no sea de este equipo; `SNAPSHOT_ALLOW_MAIN_API=1` lo permite, solo si esa API corre sobre una copia.
 
-`demo:html` baja primero una miniatura de cada foto de la muestra (~5.200) del CDN de Rappi, 4 a la vez y con pausa: la primera vez tarda unos 30 minutos; después quedan en `.demo-cache/` y solo baja las nuevas. Las mete en el HTML como data URI (`src/api/offline/photos.json`); una foto que no se puede bajar queda con el cuadro gris. Con la muestra ya grabada, `npm run demo:html` basta para volver a armar el HTML tras un cambio en la app.
+`demo:html` baja primero una miniatura de cada foto de la muestra (~5.200) del CDN de Rappi con las reglas del scraper (`scripts/demo-photos-gate.py`, con el Python de `rappi-scraper/.venv`): de a una y con pausa, con su User-Agent, con robots.txt de `images.rappi.cl` revisado antes (si no permite una foto, no baja ninguna y sale con 7) y con sus candados de descarga tomados (`rappi-scraper/data/scraper.lock` y el de la base; si otra descarga los tiene, avisa y sale). La primera vez tarda más de una hora; después quedan en `.demo-cache/` y solo baja las nuevas (sin nada nuevo, no pide nada ni toma los candados). Las mete en el HTML como data URI (`src/api/offline/photos.json`); una foto que no se puede bajar queda con el cuadro gris. Con la muestra ya grabada, `npm run demo:html` basta para volver a armar el HTML tras un cambio en la app.
 
 ## Modo demo: Rappi hoy y Prototipo final
 

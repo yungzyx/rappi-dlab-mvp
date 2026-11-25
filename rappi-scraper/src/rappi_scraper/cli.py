@@ -21,6 +21,7 @@ import sys
 import time
 from datetime import datetime
 from pathlib import Path
+from typing import NoReturn
 
 from . import config
 from .keep_awake import keep_awake
@@ -63,7 +64,7 @@ RESTAURANTS_FAILED_EXIT = 5
 # 6: las dos cosas, restaurantes sin actualizar y respaldo fallido: la tarea semanal anota ambas y sigue.
 RESTAURANTS_AND_BACKUP_FAILED_EXIT = 6
 # 7: robots.txt no permite una página (o no respondió); como con el 4, la corrida queda abierta y la tarea semanal se
-# detiene ahí, hasta que alguien revise la regla.
+# detiene ahí, hasta que alguien revise la regla. `discover` y los `scrape-*` también salen con 7.
 ROBOTS_EXIT = 7
 # Avisos que no cambian el código de salida: si la variable trae una ruta, `refresh` escribe ahí una marca fija por
 # línea, y refresh-semanal.sh la anota en ultimo-estado.txt. La única por ahora: los restaurantes se bajaron con la
@@ -137,6 +138,14 @@ def _finish_and_report(conn, run_id: int, kind: str) -> None:
     print(render_markdown(report))
 
 
+def _stop(message: str, exc: DownloadStopped) -> NoReturn:
+    """Sale con `message`; si fue robots.txt, con ROBOTS_EXIT, como `refresh` (si no, con 1)."""
+    if isinstance(exc, RobotsDisallowed):
+        print(message, file=sys.stderr)
+        raise SystemExit(ROBOTS_EXIT) from exc
+    raise SystemExit(message) from exc
+
+
 def _scrape_or_stop(conn, run_id: int, kind: str, process) -> None:
     """Como `refresh`: ante un posible bloqueo o robots.txt deja el reporte con la alerta y un mensaje claro, no una
     traza."""
@@ -145,9 +154,7 @@ def _scrape_or_stop(conn, run_id: int, kind: str, process) -> None:
     except DownloadStopped as exc:
         report, _ = finish_and_report(conn, run_id, kind, alert=str(exc))
         print(render_markdown(report))
-        raise SystemExit(
-            f"Descarga detenida: {exc}. La corrida quedó abierta: retómala con el mismo comando más tarde."
-        ) from exc
+        _stop(f"Descarga detenida: {exc}. La corrida quedó abierta: retómala con el mismo comando más tarde.", exc)
     _finish_and_report(conn, run_id, kind)
 
 
@@ -381,7 +388,7 @@ def main(argv: list[str] | None = None) -> None:
     except (DownloadInProgress, PendingMigrations) as exc:
         raise SystemExit(str(exc)) from exc
     except DownloadStopped as exc:  # al descubrir, fuera de `refresh`: un mensaje y no una traza
-        raise SystemExit(f"Descarga detenida: {exc}.") from exc
+        _stop(f"Descarga detenida: {exc}.", exc)
     except KeyboardInterrupt:
         log.warning("Interrumpido. Lo avanzado quedó guardado: retoma con el mismo comando.")
         sys.exit(130)

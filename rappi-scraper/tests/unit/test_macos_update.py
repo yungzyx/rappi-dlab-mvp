@@ -710,3 +710,62 @@ def test_the_external_copy_does_nothing_unless_configured_and_checks_what_it_cop
     again = demo.run("respaldo-externo.sh")
     assert again.returncode == 0 and "Copia externa al día" in again.stdout
     assert _tree(folder) == {"nocturno_rappi_20261101-033000.dump", newest.name}  # el origen no cambia
+
+
+def _postgres(demo: Demo, role: bool = True, up: bool = True) -> None:
+    """`psql` falso: con `up=False` Postgres no responde; si no, el rol de la API existe según `role`."""
+    _write_fake(
+        demo.bin / "psql",
+        f'echo "$*" >> {demo.rec}/psql.txt\n'
+        + ("" if up else 'echo "could not connect to server" >&2; exit 2\n')
+        + ('case "$*" in *pg_roles*) echo 1;; esac' if role else "exit 0"),
+    )
+    demo.python(f'echo "PGUSER=${{PGUSER:-}} $*" >> {demo.rec}/python.txt')
+
+
+def test_the_api_starts_with_its_own_role(demo):
+    _postgres(demo)
+
+    result = demo.run("api.sh")
+
+    assert result.returncode == 0, result.stdout + result.stderr
+    assert demo.recorded("python")[0].startswith("PGUSER=rappi_api -m uvicorn rappi_ia.api.app:app")
+
+
+def test_without_its_role_the_api_does_not_start_unless_told_to(demo):
+    """Antes arrancaba con el usuario del Mac, que puede tocar el catálogo y el esquema."""
+    _postgres(demo, role=False)
+
+    refused = demo.run("api.sh")
+
+    assert refused.returncode == 1
+    assert demo.recorded("python") == []
+    assert "Sin el rol rappi_api la API no arranca" in demo.recorded("osascript")[-1]
+    assert "deploy/macos/rol-api.sh" in demo.recorded("osascript")[-1]
+
+    with (demo.tunel / "tunel.env").open("a") as env:
+        env.write("API_SIN_ROL=1\n")
+    allowed = demo.run("api.sh")
+
+    assert allowed.returncode == 0, allowed.stdout + allowed.stderr
+    assert "API_SIN_ROL=1" in allowed.stdout
+    assert demo.recorded("python")[0].startswith("PGUSER= -m uvicorn")
+
+
+def test_the_install_creates_the_api_role_before_starting_the_services(demo):
+    _write_fake(demo.bin / "plutil", "exit 0")
+    _postgres(demo, up=False)
+
+    failed = demo.run("instalar.sh")
+
+    assert failed.returncode == 1
+    assert "Postgres no responde" in failed.stderr
+    assert demo.recorded("launchctl") == []  # los servicios de antes siguen arriba
+
+    _postgres(demo, role=False)
+    installed = demo.run("instalar.sh")
+
+    assert installed.returncode == 0, installed.stdout + installed.stderr
+    assert "CREATE ROLE rappi_api LOGIN" in "\n".join(demo.recorded("psql"))
+    assert any("deploy-migrate --sin-respaldo" in line for line in demo.recorded("python"))
+    assert any(line.startswith("bootstrap") and line.endswith("test.api.plist") for line in demo.recorded("launchctl"))

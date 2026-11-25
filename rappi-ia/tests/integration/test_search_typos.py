@@ -3,6 +3,7 @@ buscar con las reglas de siempre (retrieval/spelling.py). Sobre el catálogo de 
 que #129 dejó sin resultado en la base real: "nutela", "cuchuflis", "cervezaaaa" y "eh quiero este una coca"."""
 
 import pytest
+from psycopg.pq import TransactionStatus
 from rappi_scraper.storage.search import build_search_documents
 
 from conftest import add_dish, add_product, add_store
@@ -104,6 +105,29 @@ def test_the_grouped_search_corrects_once_when_nothing_was_found(catalog):
 
     negative = search_grouped(db, "sofá de tres cuerpos", embedder, None, 6)
     assert negative.unmet and negative.corrected_query is None
+
+
+def test_the_corrected_search_computes_its_vector_without_an_open_read(catalog):
+    """La segunda búsqueda calculaba el vector de lo corregido con la lectura del corrector (y la de la primera
+    búsqueda) abierta: con el modelo frío, Postgres corta la conexión a los 10 s (api/deps.py)."""
+    db, _ = catalog
+    seen = []
+
+    class Watching(HashEmbedder):
+        def embed_queries(self, texts):
+            seen.append((texts[0], db.info.transaction_status))
+            return super().embed_queries(texts)
+
+    db.commit()
+    grouped = search_grouped(db, "cervezaaaa", Watching(), None, 6)
+    assert grouped.corrected_query == "cerveza"
+    assert seen == [("cervezaaaa", TransactionStatus.IDLE), ("cerveza", TransactionStatus.IDLE)]
+
+    db.commit()
+    seen.clear()  # lo mismo con una vertical (`/search?vertical=`)
+    found = search_products(db, "supermercado", "nutela", None, Watching(), correct=True)
+    assert found.corrected_query == "nutella"
+    assert seen[-1] == ("nutella", TransactionStatus.IDLE)
 
 
 def test_the_correction_keeps_what_the_person_wrote_where_it_was_right(catalog):

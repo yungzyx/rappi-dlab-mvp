@@ -53,6 +53,10 @@ if [ "${1:-}" != "--quitar" ]; then
     HF_HUB_OFFLINE=0 "$REPO_DIR/rappi-ia/.venv/bin/python" -c "$modelo"
   fi
   log "Modelo de texto en la caché"
+  # El rol de la API, que api.sh exige (salvo API_SIN_ROL=1): lo crea si falta y le vuelve a dar sus permisos. Si
+  # Postgres no responde o hay migraciones pendientes, rol-api.sh lo dice y la instalación se detiene aquí, con los
+  # servicios de antes arriba.
+  [ "${API_SIN_ROL:-}" = 1 ] || "$DIR/rol-api.sh" --sin-reiniciar
 fi
 
 quitar
