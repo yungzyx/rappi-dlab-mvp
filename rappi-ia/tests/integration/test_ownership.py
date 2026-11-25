@@ -9,6 +9,7 @@ from contextlib import contextmanager
 import pytest
 from fastapi.testclient import TestClient
 
+from rappi_ia import config
 from rappi_ia.agent.compose import TemplateComposer
 from rappi_ia.agent.rappi_agent import RappiAgent
 from rappi_ia.api import app as api
@@ -17,6 +18,7 @@ from rappi_ia.api.limits import RateLimit
 from rappi_ia.api.services import Services
 from rappi_ia.demo.seed import seed_demo
 from rappi_ia.embeddings.base import HashEmbedder
+from rappi_ia.events.store import purge_inactive_users
 
 LEGACY = "proto-0123456789abcdef"
 NEW_ID = re.compile(r"proto-[0-9a-f]{16}")
@@ -220,6 +222,19 @@ def test_legacy_id_claimed_once(client, db):
     assert issued == [("proto-fedcba9876543210",), ("u-viejo",)]
 
 
+def test_legacy_claim_can_be_turned_off(client, db, monkeypatch):
+    """Apagado (`API_LEGACY_CLAIM=0`, el defecto en producción), conocer un id viejo sin token no basta: la sesión es
+    de una persona nueva y el id viejo sigue sin reclamar."""
+    db.execute("INSERT INTO app_users (user_id, source) VALUES (%s, 'prototype')", (LEGACY,))
+    db.commit()
+    monkeypatch.setattr(config, "API_LEGACY_CLAIM", False)
+
+    user_id, _ = session(client, LEGACY)
+
+    assert user_id != LEGACY and NEW_ID.fullmatch(user_id)
+    assert db.execute("SELECT token_issued_at FROM app_users WHERE user_id = %s", (LEGACY,)).fetchone() == (None,)
+
+
 def test_new_users_per_ip_cap_is_429(client, monkeypatch):
     # Un cliente que no es este equipo (el TestClient llega como "testclient"): el tope de la API, con 2 por día
     monkeypatch.setattr(api, "NEW_USERS", RateLimit(None, per_minute=2, writes_per_minute=0, window_s=86_400))
@@ -267,3 +282,43 @@ def test_anonymous_ask_still_works(client, db):
     assert client.get("/agent/plans").status_code == 200
     assert client.post("/agent/offer", json={"moment": "plan", "context": {"occasion": "carrete"}}).status_code == 200
     assert db.execute("SELECT count(*) FROM app_users").fetchone()[0] == 0
+
+
+def test_forgotten_id_is_not_recreated(client, db):
+    """Tras "Borrar mis datos", un lote atrasado o una pestaña vieja con el token de esa persona no la vuelve a crear:
+    401, como sin sesión (la app pide una nueva), y el id no se reclama. Lo borrado se guarda como hash, nunca el id."""
+    alice, as_alice = session(client)
+    assert client.post("/events", json={"user_id": alice, "events": APP_OPEN}, headers=as_alice).status_code == 200
+    assert client.delete(f"/profile/{alice}", headers=as_alice).status_code == 200
+
+    late = client.post("/events", json={"user_id": alice, "events": APP_OPEN}, headers=as_alice)
+    assert (late.status_code, late.json()) == (401, {"detail": "Falta la sesión"})
+    order = {
+        "user_id": alice,
+        "session_id": "s1",
+        "cart_id": "c1",
+        "vertical": "supermercado",
+        "lines": [{"entity_type": "catalog_item", "entity_id": "91001"}],
+    }
+    assert client.post("/orders", json=order, headers=as_alice).status_code == 401
+    ask = {"message": "cerveza", "user_id": alice, "session_id": "s1"}
+    assert client.post("/agent/ask", json=ask, headers=as_alice).status_code == 200  # responde, pero no la anota
+    assert client.get("/session", headers=as_alice).status_code == 401
+    assert session(client, alice)[0] != alice
+    assert db.execute("SELECT count(*) FROM app_users WHERE user_id = %s", (alice,)).fetchone() == (0,)
+    assert events_of(db, alice) == 0
+    assert db.execute("SELECT count(*) FROM forgotten_users").fetchone() == (1,)
+
+
+def test_purged_id_is_not_recreated(client, db):
+    """La purga de inactivos también deja el id fuera: su token, en una pestaña que quedó abierta, ya no sirve."""
+    alice, as_alice = session(client)
+    db.execute("UPDATE app_users SET created_at = now() - interval '200 days' WHERE user_id = %s", (alice,))
+    assert purge_inactive_users(db, 180) == 1
+    db.commit()
+
+    reply = client.post("/events", json={"user_id": alice, "events": APP_OPEN}, headers=as_alice)
+
+    assert reply.status_code == 401
+    assert client.get("/session", headers=as_alice).status_code == 401
+    assert db.execute("SELECT count(*) FROM app_users WHERE user_id = %s", (alice,)).fetchone() == (0,)

@@ -4,6 +4,7 @@ Privacidad (docs/diseno-ia.md §2): las consultas se guardan con datos personale
 90 días; los conceptos sensibles no entran al perfil; "Olvidar" borra los eventos, no solo el perfil.
 """
 
+import hashlib
 import re
 import uuid
 from dataclasses import dataclass, field
@@ -235,10 +236,34 @@ class SessionInfo:
     entry: str | None = None
 
 
+class ForgottenUser(ValueError):
+    """El id es de una persona borrada: no se vuelve a crear (la API responde 401, como sin sesión)."""
+
+
+def _id_hash(user_id: str) -> bytes:
+    """Cómo se guarda una persona borrada en `forgotten_users` (migración 061): el SHA-256 de su id, nunca el id."""
+    return hashlib.sha256(user_id.encode()).digest()
+
+
+def is_forgotten(conn: Connection, user_id: str) -> bool:
+    """Si `user_id` es de una persona borrada ("Borrar mis datos", olvidar o la purga de inactivos)."""
+    return conn.execute("SELECT 1 FROM forgotten_users WHERE id_hash = %s", (_id_hash(user_id),)).fetchone() is not None
+
+
+def _remember_forgotten(conn: Connection, user_ids: list[str]) -> None:
+    conn.cursor().executemany(
+        "INSERT INTO forgotten_users (id_hash) VALUES (%s) ON CONFLICT DO NOTHING",
+        [(_id_hash(user_id),) for user_id in user_ids],
+    )
+
+
 def ensure_user(conn: Connection, user_id: str, source: str = "prototype", **extra) -> None:
     """Crea el usuario si no existe. Un id de otra fuente no se puede usar: con la API abierta a la red, el prototipo
     podía colgarles eventos a los usuarios simulados (ids correlativos). Una persona del prototipo que se crea aquí
-    llegó con su token (la API lo exige): queda con `token_issued_at`, así nadie la reclama como id viejo."""
+    llegó con su token (la API lo exige): queda con `token_issued_at`, así nadie la reclama como id viejo. Una persona
+    borrada no vuelve (`ForgottenUser`): su token firmado sigue siendo válido, y un lote atrasado la recrearía."""
+    if is_forgotten(conn, user_id):
+        raise ForgottenUser("La persona fue borrada")
     row = conn.execute(
         """INSERT INTO app_users (user_id, source, segment, city, consent_notifications, token_issued_at)
            VALUES (%s, %s, %s, %s, %s, CASE WHEN %s = 'prototype' THEN now() END)
@@ -709,6 +734,7 @@ def forget(conn: Connection, user_id: str, concept_id: str | None = None) -> int
         events = conn.execute("SELECT count(*) FROM app_events WHERE user_id = %s", (user_id,)).fetchone()[0]
         orders = conn.execute("SELECT count(*) FROM app_orders WHERE user_id = %s", (user_id,)).fetchone()[0]
         conn.execute("DELETE FROM app_users WHERE user_id = %s", (user_id,))
+        _remember_forgotten(conn, [user_id])
         return events + orders
     deleted = conn.execute(
         "DELETE FROM app_events WHERE user_id = %s AND concept_id = %s", (user_id, concept_id)
@@ -749,15 +775,18 @@ def forget(conn: Connection, user_id: str, concept_id: str | None = None) -> int
 def purge_inactive_users(conn: Connection, days: int) -> int:
     """Borra a las personas del prototipo sin actividad en `days` días: sin eventos ni pedidos en
     ese tiempo, y creadas antes (con sus eventos, pedidos y segmentos, en cascada). Los usuarios simulados no se tocan.
-    Devuelve cuántas."""
-    return conn.execute(
+    Como con "Borrar mis datos", sus ids no vuelven (`forgotten_users`). Devuelve cuántas."""
+    gone = conn.execute(
         """WITH cutoff AS (SELECT now() - make_interval(days => %s) AS ts)
            DELETE FROM app_users u USING cutoff
            WHERE u.source = 'prototype' AND u.created_at < cutoff.ts
              AND NOT EXISTS (SELECT 1 FROM app_events e WHERE e.user_id = u.user_id AND e.ts >= cutoff.ts)
-             AND NOT EXISTS (SELECT 1 FROM app_orders o WHERE o.user_id = u.user_id AND o.ts >= cutoff.ts)""",
+             AND NOT EXISTS (SELECT 1 FROM app_orders o WHERE o.user_id = u.user_id AND o.ts >= cutoff.ts)
+           RETURNING u.user_id""",
         (days,),
-    ).rowcount
+    ).fetchall()
+    _remember_forgotten(conn, [user_id for (user_id,) in gone])
+    return len(gone)
 
 
 def purge_old_queries(conn: Connection, days: int = QUERY_RETENTION_DAYS) -> int:

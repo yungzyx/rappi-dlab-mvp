@@ -307,8 +307,8 @@ def test_not_in_rappi_today(client):
 
 
 def test_it_goes_with_forget_and_the_purge(client, db):
-    def saved():
-        return db.execute("SELECT count(*) FROM agent_autonomy WHERE user_id = %s", (USER,)).fetchone()[0]
+    def saved(user=USER):
+        return db.execute("SELECT count(*) FROM agent_autonomy WHERE user_id = %s", (user,)).fetchone()[0]
 
     order(client, CENTRO, "supermercado", COFFEE)
     allow(client, [CENTRO])
@@ -316,13 +316,14 @@ def test_it_goes_with_forget_and_the_purge(client, db):
     assert saved() == 1  # olvidar un concepto no apaga el permiso
     assert client.delete(f"/profile/{USER}").status_code == 200
     assert saved() == 0
-    order(client, CENTRO, "supermercado", COFFEE)
-    allow(client, [CENTRO])
-    db.execute("UPDATE app_users SET created_at = now() - interval '400 days' WHERE user_id = %s", (USER,))
-    db.execute("UPDATE app_events SET ts = now() - interval '400 days' WHERE user_id = %s", (USER,))
-    db.execute("UPDATE app_orders SET ts = now() - interval '400 days' WHERE user_id = %s", (USER,))
+    other = "u-autonomia-2"  # la persona borrada no vuelve: la purga se prueba con otra
+    order(client, CENTRO, "supermercado", COFFEE, user=other)
+    allow(client, [CENTRO], user=other)
+    db.execute("UPDATE app_users SET created_at = now() - interval '400 days' WHERE user_id = %s", (other,))
+    db.execute("UPDATE app_events SET ts = now() - interval '400 days' WHERE user_id = %s", (other,))
+    db.execute("UPDATE app_orders SET ts = now() - interval '400 days' WHERE user_id = %s", (other,))
     assert events.purge_inactive_users(db, 30) == 1
-    assert saved() == 0
+    assert saved(other) == 0
 
 
 def test_populations_never_mix(client, db):

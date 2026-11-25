@@ -18,6 +18,7 @@ ENV_VARS = (
     "API_CORS_ORIGINS",
     "API_RATE_PER_MIN",
     "API_RATE_WRITE_PER_MIN",
+    "API_LEGACY_CLAIM",
 )
 PUBLIC_ORIGIN = "https://demo.example.cl"
 
@@ -182,3 +183,14 @@ def test_production_limits_every_ip(load_api):
 
     assert (limits["per_minute"], limits["writes_per_minute"]) == (30, 10)
     assert limits["exempt"] == ()
+
+
+def test_legacy_claim_is_off_in_production_unless_turned_on(load_api):
+    """Reclamar un id viejo sin token (`POST /session` con `legacy_user_id`) sigue en local; en producción solo con
+    `API_LEGACY_CLAIM=1`."""
+    load_api()
+    assert config.API_LEGACY_CLAIM
+    load_api(API_ENV="production", API_CORS_ORIGINS=PUBLIC_ORIGIN)
+    assert not config.API_LEGACY_CLAIM
+    load_api(API_ENV="production", API_CORS_ORIGINS=PUBLIC_ORIGIN, API_LEGACY_CLAIM="1")
+    assert config.API_LEGACY_CLAIM
