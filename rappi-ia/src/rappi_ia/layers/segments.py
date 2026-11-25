@@ -509,13 +509,16 @@ def load_signals(conn: Connection, source: str, user_id: str | None = None) -> d
 
 
 # `{only}` es el filtro por persona (vacío para toda la fuente): va dentro de cada consulta, donde se leen sus filas.
+# "Rappi hoy" no enseña: las métricas de pedidos solo leen pedidos `mode = 'propuesta'` (y los carros, sin
+# `payload.mode = 'actual'`).
 _ORDERS_90 = (
-    "FROM app_orders o WHERE o.source = %(source)s AND o.status = 'confirmado'"
+    "FROM app_orders o WHERE o.source = %(source)s AND o.mode = 'propuesta' AND o.status = 'confirmado'"
     " AND o.ts >= %(now)s - interval '90 days'{only}"
 )
 _METRIC_SQL = {
     "dias_sin_pedido": """SELECT user_id, extract(epoch FROM %(now)s - max(ts)) / 86400 FROM app_orders
-                          WHERE source = %(source)s AND status = 'confirmado'{only} GROUP BY 1""",
+                          WHERE source = %(source)s AND mode = 'propuesta' AND status = 'confirmado'{only}
+                          GROUP BY 1""",
     "dias_desde_alta": """SELECT u.user_id,
                                  greatest(0, extract(epoch FROM %(now)s - least(u.created_at, min(e.ts))) / 86400)
                           FROM app_users u JOIN app_events e ON e.user_id = u.user_id
@@ -525,10 +528,12 @@ _METRIC_SQL = {
     "tasa_abandono": """SELECT s.user_id, 1 - count(o.cart_id)::float / count(*)
                         FROM (SELECT DISTINCT user_id, cart_id FROM app_events
                               WHERE source = %(source)s AND type = 'cart_add' AND cart_id IS NOT NULL
+                                AND payload ->> 'mode' IS DISTINCT FROM 'actual'
                                 AND ts >= %(now)s - interval '90 days'{only}) s
                         -- un carro con dos tiendas son dos pedidos y sigue siendo un carro pagado; uno cancelado no
                         LEFT JOIN (SELECT DISTINCT user_id, cart_id FROM app_orders
-                                   WHERE source = %(source)s AND status = 'confirmado'{only}) o
+                                   WHERE source = %(source)s AND mode = 'propuesta'
+                                     AND status = 'confirmado'{only}) o
                                ON o.user_id = s.user_id AND o.cart_id = s.cart_id
                         GROUP BY 1 HAVING count(*) >= %(min_carts)s""",
     "aceptacion_sugerencias": """SELECT user_id, count(*) FILTER (WHERE type = 'suggestion_accepted')::float
@@ -543,7 +548,8 @@ _METRIC_SQL = {
                      FROM (SELECT user_id, ts, ts - lag(ts) OVER w AS gap,
                                   row_number() OVER (PARTITION BY user_id ORDER BY ts DESC, order_id DESC) AS rn
                            FROM app_orders
-                           WHERE source = %(source)s AND status = 'confirmado' AND ts <= %(now)s{only}
+                           WHERE source = %(source)s AND mode = 'propuesta' AND status = 'confirmado'
+                             AND ts <= %(now)s{only}
                            WINDOW w AS (PARTITION BY user_id ORDER BY ts, order_id)) t
                      WHERE rn = 1 AND gap IS NOT NULL""",
     "concentracion_marca": """SELECT user_id, max(n)::float / sum(n) FROM (
@@ -567,7 +573,7 @@ _METRIC_SQL = {
     "ticket_creciente": """SELECT user_id, avg(total) FILTER (WHERE ts >= %(now)s - interval '45 days')
                                          / avg(total) FILTER (WHERE ts < %(now)s - interval '45 days')
                            FROM app_orders
-                           WHERE source = %(source)s AND status = 'confirmado'
+                           WHERE source = %(source)s AND mode = 'propuesta' AND status = 'confirmado'
                              AND ts >= %(now)s - interval '90 days'{only}
                            GROUP BY 1 HAVING count(*) FILTER (WHERE ts >= %(now)s - interval '45 days') >= 2
                                          AND count(*) FILTER (WHERE ts < %(now)s - interval '45 days') >= 2""",

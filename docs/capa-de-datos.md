@@ -86,7 +86,7 @@ ORDER BY users DESC LIMIT 10;
 3. `canonical`: el mismo producto entre ids y verticales.
 4. `attributes`: atributos (usan medidas y marcas).
 5. `relations`: grafo de conocimiento.
-6. `segments`: segmentos de cada persona, una vez por fuente (`synthetic` y `prototype`), con la foto semanal.
+6. `segments`: segmentos de cada persona, una vez por fuente (`synthetic` y `prototype`), con la foto semanal. Lo hecho en "Rappi hoy" no entra: las señales y las métricas de pedidos (días sin pedido, pedidos, gasto y verticales de 90 días, reactivación, ticket y abandono) leen solo pedidos `mode = 'propuesta'` y eventos sin `payload.mode = 'actual'`.
 7. `motor`: el motor multivertical, una vez por fuente (ver abajo). También se evalúa por fechas y escribe `data/eval/motor-{fuente}.md`.
 
 Cada paso corre en una transacción, es **idempotente** (correrlo dos veces deja lo mismo) y deja una fila en `layer_runs` (las capas, solo si terminan: una que falla se deshace con su transacción y no deja fila; el motor, en cambio, deja también su corrida en curso y la que falla, marcada `failed`) con la versión de las reglas (la fecha más una huella de su contenido: dos corridas con la misma huella usaron exactamente las mismas reglas). `make layer-report` genera `data/eval/capas.md`: cobertura por atributo y vertical, fuentes, medidas dudosas, marcas, canónicos, distribución de segmentos y una muestra de 20 ítems por atributo para revisar a ojo.
