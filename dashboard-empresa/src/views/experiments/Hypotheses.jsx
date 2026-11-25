@@ -6,6 +6,7 @@ import { EmptyState } from '../../components/States.jsx'
 import { Stats } from '../../components/Stats.jsx'
 import { formatNumber, formatPct, formatPoints } from '../../lib/format.js'
 import { useAnalytics } from '../../lib/useAnalytics.js'
+import { pilotProgress } from '../overview/pilot.js'
 import { cohortPeople, variantLabel } from './experiments.js'
 import {
   byVariant,
@@ -307,11 +308,17 @@ function H3({ experiment, mode, source }) {
   }
   const difference = survey.diferencia
   const answers = Object.fromEntries(survey.variantes.map((row) => [row.variante, row.respondidas]))
+  // Cuánto falta, con el ritmo de respuestas de las últimas semanas (el mismo cálculo del estado del piloto).
+  const weeks = pilotProgress(experiment).rows.find((row) => row.id === 'H3').weeks
+  const pace =
+    weeks === null
+      ? ''
+      : ` Al ritmo de respuestas de hoy, faltan al menos ${formatNumber(weeks)} ${weeks === 1 ? 'semana' : 'semanas'}.`
   return (
     <HypothesisCard
       {...common}
       status={surveyVerdict({ mode, source, survey })}
-      note={`${pairOf(answers)} respuestas; se lee desde ${formatNumber(survey.minimo)} por grupo, con la prueba a una cola.`}
+      note={`${pairOf(answers)} respuestas; se lee desde ${formatNumber(survey.minimo)} por grupo, con la prueba a una cola.${pace}`}
     >
       <GroupTable
         caption='"Sí" a "¿Encontraste lo que buscabas?" por grupo'

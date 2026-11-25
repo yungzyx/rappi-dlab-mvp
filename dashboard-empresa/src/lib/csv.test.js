@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'vitest'
-import { csvFileName, tablesToCsv, tableToCsv } from './csv.js'
+import { csvFileName, rowsToCsv, tablesToCsv, tableToCsv } from './csv.js'
 
 const table = (html) => {
   const element = document.createElement('table')
@@ -56,4 +56,24 @@ describe('csvFileName', () => {
     expect(csvFileName('¿Qué buscan?')).toBe('que-buscan.csv')
     expect(csvFileName('…')).toBe('tabla.csv')
   })
+})
+
+describe('rowsToCsv', () => {
+  test('rows that are not on screen, with the same separator and quoting as a table', () => {
+    expect(
+      rowsToCsv([
+        ['Usuario', 'Acepta avisos'],
+        ['u-1a2b3c4d', 'Sí'],
+        ['u-"x";y', 'No'],
+      ]),
+    ).toBe('Usuario;Acepta avisos\r\nu-1a2b3c4d;Sí\r\n"u-""x"";y";No')
+  })
+})
+
+test('the actions of a row are not data: they stay out of the CSV', () => {
+  const csv = tableToCsv(
+    table(`<tr><th>Audiencia</th><th>Lista</th></tr>
+           <tr><td>Probó Turbo</td><td><span data-no-csv><button>CSV</button><span>Copiada</span></span></td></tr>`),
+  )
+  expect(csv).toBe('Audiencia;Lista\r\nProbó Turbo;')
 })
