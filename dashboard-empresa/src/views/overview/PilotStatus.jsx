@@ -17,11 +17,14 @@ const wait = (row, experiment) =>
 
 /**
  * Cuánto falta, como piso: las semanas de asignación y después el plazo; o, si ya están asignadas tantas personas como
- * pide el mínimo, solo el plazo (no todas cuentan para la hipótesis: por eso sigue siendo un piso).
+ * pide el mínimo, solo el plazo. En la H2 no todas cuentan (solo quien pide en Restaurantes) y el texto lo dice.
  */
 function pending(row, experiment) {
   if (row.weeks === 0) {
-    return `Ya hay asignadas tantas personas como pide el mínimo: cuentan cuando pasa su plazo (${wait(row, experiment)}).`
+    // En la H2 no toda persona asignada cuenta (solo quien pide en Restaurantes): puede faltar asignar a más.
+    const caveat =
+      row.id === 'H2' ? ' De ellas cuentan solo quienes piden en Restaurantes: pueden hacer falta más.' : ''
+    return `Ya hay asignadas tantas personas como pide el mínimo: falta que pase su plazo (${wait(row, experiment)}).${caveat}`
   }
   const weeks = `${formatNumber(row.weeks)} ${row.weeks === 1 ? 'semana más' : 'semanas más'}`
   return `Al ritmo de asignación de hoy, al menos ${weeks} de asignación, y después ${wait(row, experiment)}.`
