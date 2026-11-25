@@ -15,7 +15,7 @@ from ..events import experiments as exp
 from ..events.store import EXPIRED_KIND, LOW_RATING, SURVEY_TYPES
 from ..motor.combos import OWN_SIGNALS_ONLY, expected_fine_retention, load_combos
 from ..offers.autonomy import ORIGIN as AUTO_ORDER_ORIGIN
-from ..offers.guards import OFFER_BLOCKED_VERTICALS
+from ..offers.guards import OFFER_BLOCKED_VERTICALS, is_offerable
 from ..offers.winback import reach
 from .power import (
     H2_RELATIVE_GOAL,
@@ -1964,7 +1964,7 @@ AUDIENCES = (
     {
         "id": "en-riesgo-con-concepto",
         "nombre": "En riesgo, con algo que pedía",
-        "regla": "Pasó el doble de su ritmo sin pedir (mínimo 21 días) y tiene un concepto no sensible en sus pedidos",
+        "regla": "Pasó el doble de su ritmo sin pedir (mínimo 21 días) y pidió algo que Mochi puede volver a ofrecer",
         "ofrecer": '"¿Volvemos a…?" con ese concepto',
     },
     {
@@ -1991,8 +1991,10 @@ AUDIENCES = (
 def audiences(conn: Connection, source: str = "synthetic") -> dict:
     """Audiencias para campañas: grupos de personas que cumplen una regla (`AUDIENCES`), con cuántas son y cuántas
     aceptan avisos (`consent_notifications`: fuera de la app solo se les escribe a ellas). Una persona puede estar en
-    más de una. Ninguna regla usa un concepto sensible ni se define por Farmacia o Licores; una audiencia con menos de
-    MIN_GROUP_USERS personas no sale (privacidad) y cuenta en `bajo_el_minimo`. Solo pedidos confirmados."""
+    más de una. Ninguna regla usa un concepto sensible ni se define por Farmacia o Licores; el concepto de "en riesgo"
+    es uno que Mochi puede ofrecer (`guards.is_offerable`: sin alcohol, +18, bebé ni salud) y pedido fuera de las
+    verticales bloqueadas. Una audiencia con menos de MIN_GROUP_USERS personas no sale (privacidad) y cuenta en
+    `bajo_el_minimo`. Solo pedidos confirmados."""
     _check(source)
     sizes = _rows(
         conn,
@@ -2011,10 +2013,10 @@ def audiences(conn: Connection, source: str = "synthetic") -> dict:
                 SELECT DISTINCT user_id FROM app_orders
                 WHERE source = %(source)s AND status = 'confirmado' AND vertical = 'restaurantes'
             ),
-            with_concept AS (
-                SELECT DISTINCT o.user_id FROM app_order_lines l
-                JOIN app_orders o USING (order_id) JOIN concepts c ON c.concept_id = l.concept_id
-                WHERE o.source = %(source)s AND o.status = 'confirmado' AND NOT c.sensitive
+            with_concept AS (  -- algo que Mochi puede volver a ofrecer: pasa las guardias, fuera de lo bloqueado
+                SELECT DISTINCT o.user_id FROM app_order_lines l JOIN app_orders o USING (order_id)
+                WHERE o.source = %(source)s AND o.status = 'confirmado'
+                  AND l.concept_id = ANY(%(offerable)s) AND o.vertical <> ALL(%(blocked)s)
             ),
             members AS (
                 SELECT 'solo-restaurantes-con-habito' AS id, user_id FROM recent
@@ -2035,7 +2037,11 @@ def audiences(conn: Connection, source: str = "synthetic") -> dict:
             SELECT m.id, count(*) AS personas, count(*) FILTER (WHERE u.consent_notifications) AS aceptan_avisos
             FROM members m JOIN app_users u ON u.user_id = m.user_id AND u.source = %(source)s
             GROUP BY m.id""",
-        {"source": source, "blocked": list(OFFER_BLOCKED_VERTICALS)},
+        {
+            "source": source,
+            "blocked": list(OFFER_BLOCKED_VERTICALS),
+            "offerable": [c.id for c in load_taxonomy().concepts.values() if is_offerable(c)],
+        },
     )
     by_id = {row["id"]: row for row in sizes}
     shown = [

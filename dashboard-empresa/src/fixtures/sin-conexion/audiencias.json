@@ -13,7 +13,7 @@
       {
         "id": "en-riesgo-con-concepto",
         "nombre": "En riesgo, con algo que pedía",
-        "regla": "Pasó el doble de su ritmo sin pedir (mínimo 21 días) y tiene un concepto no sensible en sus pedidos",
+        "regla": "Pasó el doble de su ritmo sin pedir (mínimo 21 días) y pidió algo que Mochi puede volver a ofrecer",
         "ofrecer": "\"¿Volvemos a…?\" con ese concepto",
         "personas": 267,
         "aceptan_avisos": 102

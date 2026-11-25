@@ -35,7 +35,7 @@ Para responder "¿cuándo?", el experimento `ofertas_control` trae `ritmo` (`_as
 - `semanas`: personas asignadas por semana (lunes), solo semanas completas al corte de la fuente; una semana sin nadie va en 0.
 - `por_semana`: el promedio de las últimas 4 semanas completas, o `null` con menos de 2.
 
-El frente divide lo que le falta a cada grupo por su ritmo y muestra lo que tarda el más lento, como piso ("al menos 16 semanas más"). Es un piso porque no toda persona asignada cuenta para cada hipótesis: la H2 mira solo a quien pide en Restaurantes, y la H1 necesita además el mes siguiente completo. Si a un grupo que no llegó no le entra nadie, no se estima.
+El frente divide las personas que a cada grupo le falta asignar por su ritmo y muestra lo que tarda el más lento, como piso ("al menos 16 semanas más de asignación, y después el mes siguiente completo"). Cuenta contra las personas ya asignadas, no contra las que ya cumplieron su plazo: una persona asignada que todavía no madura va a contar sin que entre nadie más. Si ya hay asignadas tantas como pide el mínimo, dice que solo falta su plazo (el mes siguiente completo en la H1, 28 días en la H2). Es un piso porque no toda persona asignada cuenta para cada hipótesis: la H2 mira solo a quien pide en Restaurantes. Si a un grupo al que le falta no le entra nadie, no se estima.
 
 **Pendiente:** la H3 avanza con respuestas a la pregunta de la app, no con asignaciones. Estimarla pide su propia serie (respuestas por semana y grupo) y hoy no se muestra.
 
@@ -100,7 +100,7 @@ Las cinco reglas:
 | Audiencia | Regla | Qué ofrecer |
 |---|---|---|
 | Solo Restaurantes, con hábito | Solo Restaurantes en 60 días y 2 o más compras en 30 | Turbo, su vertical por probar |
-| En riesgo, con algo que pedía | El doble de su ritmo sin pedir (mínimo 21 días) y un concepto no sensible en sus pedidos | "¿Volvemos a…?" con ese concepto |
+| En riesgo, con algo que pedía | El doble de su ritmo sin pedir (mínimo 21 días) y algo que Mochi puede volver a ofrecer | "¿Volvemos a…?" con ese concepto |
 | Probó Turbo una vez | Un solo pedido en Turbo en 60 días y alguno en Restaurantes | Repetir en Turbo lo que pidió |
 | Pro que no combina | Pro y una sola vertical en 60 días (que no sea Farmacia ni Licores) | Una segunda vertical con su beneficio Pro |
 | Ya combina 3 o más | 3 o más verticales en 60 días | Nada nuevo: no molestar |
@@ -108,7 +108,7 @@ Las cinco reglas:
 Reglas que cumple el backend:
 
 - **Población declarada.** `source` es `synthetic` o `prototype` y nunca se mezclan.
-- **Nada sensible.** Ninguna regla usa un concepto sensible ni se define por Farmacia o Licores.
+- **Nada sensible.** Ninguna regla usa un concepto sensible ni se define por Farmacia o Licores. El concepto de "en riesgo" tiene que pasar las guardias de ofertas (`guards.is_offerable`: sin alcohol, +18, bebé ni salud) y haberse pedido fuera de las verticales bloqueadas: quien solo pidió cerveza, o solo en Farmacia, no entra.
 - **Lo que se ofrece es fijo por audiencia** y nunca es de una vertical bloqueada por las guardias (`offers/guards.py`; un test lo revisa). El paso "con Turbo" es el de la tabla de Rappi para quien solo pide en Restaurantes.
 - **Mínimo de personas.** Una audiencia con menos de 20 personas no sale (como "Pro y sin Pro"); `bajo_el_minimo` dice cuántas.
 - **Consentimiento.** `aceptan_avisos` cuenta a quienes aceptaron avisos: fuera de la app solo se les escribe a ellas.

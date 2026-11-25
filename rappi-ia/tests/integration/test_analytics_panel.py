@@ -13,9 +13,10 @@ T0 = datetime(2026, 9, 1, 12, tzinfo=UTC)  # martes
 LINE = {"entity_type": "catalog_item", "entity_id": "1", "concept_id": "snacks-salados", "unit_price": 1000}
 
 
-def _order(db, user, day, vertical, cart=None):
+def _order(db, user, day, vertical, cart=None, concept=None):
     cart = cart or f"c-{user}-{day}-{vertical}"
-    events.record_order(db, user, f"s-{day}", cart, vertical, [LINE], ts=T0 + timedelta(days=day))
+    line = LINE if concept is None else {**LINE, "concept_id": concept}
+    events.record_order(db, user, f"s-{day}", cart, vertical, [line], ts=T0 + timedelta(days=day))
     return cart
 
 
@@ -110,6 +111,11 @@ def test_audiences_follow_their_rules_and_count_who_accepts_notifications(db, mo
         _order(db, "combina", day, vertical)
     for day in (50, 60, 70):
         _order(db, "riesgo", day, "supermercado")  # ritmo de 10 días y 30 sin pedir: en riesgo
+        # En riesgo también, pero con nada que Mochi pueda volver a ofrecer: cerveza (+18), en Licores o en el súper,
+        # y algo ofrecible pero pedido en Farmacia.
+        _order(db, "riesgo-licores", day, "licores", concept="cerveza")
+        _order(db, "riesgo-cerveza", day, "supermercado", concept="cerveza")
+        _order(db, "riesgo-farmacia", day, "farmacia")
     _cut(db, 100)
     db.execute("UPDATE app_users SET pro = true WHERE user_id IN ('pro', 'pro-licores')")
     db.execute("UPDATE app_users SET consent_notifications = true WHERE user_id IN ('habito', 'riesgo')")
@@ -122,7 +128,7 @@ def test_audiences_follow_their_rules_and_count_who_accepts_notifications(db, mo
     shown = queries.audiences(db, "prototype")
     assert [(a["id"], a["personas"], a["aceptan_avisos"]) for a in shown["audiencias"]] == [
         ("solo-restaurantes-con-habito", 1, 1),
-        ("en-riesgo-con-concepto", 1, 1),
+        ("en-riesgo-con-concepto", 1, 1),  # solo "riesgo": los otros tres no tienen qué ofrecerles
         ("probo-turbo-una-vez", 2, 0),  # "probo" y "combina": los dos con un solo pedido en Turbo
         ("pro-una-vertical", 1, 0),
         ("combina-3-o-mas", 1, 0),
@@ -130,6 +136,13 @@ def test_audiences_follow_their_rules_and_count_who_accepts_notifications(db, mo
     assert shown["bajo_el_minimo"] == 0
     assert all(a["nombre"] and a["regla"] and a["ofrecer"] for a in shown["audiencias"])
     assert queries.audiences(db, "synthetic")["audiencias"] == []  # nunca mezcla fuentes
+
+
+def test_the_at_risk_audience_only_uses_what_mochi_may_offer():
+    """Las guardias de ofertas mandan: ni alcohol, ni +18, ni bebé, ni salud entran como "algo que pedía"."""
+    taxonomy = load_taxonomy().concepts
+    assert not queries.is_offerable(taxonomy["cerveza"])
+    assert queries.is_offerable(taxonomy["snacks-salados"])
 
 
 def test_no_audience_offers_a_blocked_vertical():

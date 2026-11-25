@@ -12,14 +12,17 @@ const peopleOf = (rows, key) =>
 const needOf = (minimum) => (typeof minimum === 'number' ? { [TREATMENT]: minimum, [CONTROL]: minimum } : minimum)
 
 /**
- * Las semanas que faltan, como piso: lo que le falta a cada grupo dividido por las personas que le entran por semana
- * (`pace`), y manda el que más tarda. null sin mínimo, sin ritmo o si a un grupo que no llegó no le entra nadie. Es un
- * piso porque no toda persona asignada cuenta para la hipótesis (la H2 mira solo a quien pide en Restaurantes).
+ * Las semanas de asignación que faltan, como piso: las personas que a cada grupo le falta asignar (el mínimo menos las
+ * ya asignadas, `assigned`) divididas por las que le entran por semana (`pace`); manda el que más tarda. Cuenta contra
+ * las asignadas y no contra las que ya cumplieron su plazo (`have`): una persona asignada que todavía no madura va a
+ * contar sin que entre nadie más. 0 si ya están asignadas tantas como pide el mínimo (falta solo que pase su plazo);
+ * null sin mínimo, sin ritmo o si a un grupo al que le falta no le entra nadie. Es un piso porque no toda persona
+ * asignada cuenta para la hipótesis (la H2 mira solo a quien pide en Restaurantes).
  */
-function weeksLeft(have, need, pace) {
+function weeksLeft(assigned, need, pace) {
   if (!need || !pace) return null
   const each = GROUPS.map((group) => {
-    const missing = need[group] - have[group]
+    const missing = need[group] - assigned[group]
     if (missing <= 0) return 0
     return pace[group] > 0 ? missing / pace[group] : Infinity
   })
@@ -27,7 +30,7 @@ function weeksLeft(have, need, pace) {
   return Number.isFinite(slowest) ? Math.ceil(slowest) : null
 }
 
-function progress(id, title, rows, key, minimum, pace) {
+function progress(id, title, rows, key, minimum, pace, assigned) {
   const have = peopleOf(rows ?? [], key)
   const need = minimum === null || minimum === undefined ? null : needOf(minimum)
   // El grupo que va más atrás manda: los dos tienen que llegar.
@@ -40,7 +43,7 @@ function progress(id, title, rows, key, minimum, pace) {
     need,
     share: share === null ? null : Math.min(1, share),
     done,
-    weeks: done ? null : weeksLeft(have, need, pace),
+    weeks: done ? null : weeksLeft(assigned, need, pace),
   }
 }
 
@@ -48,18 +51,20 @@ function progress(id, title, rows, key, minimum, pace) {
  * { on, rows }: `on` es falso si el grupo de control está apagado o un grupo no tiene personas (no hay qué medir).
  * `rows`: H1, H2 y H3, cada una con cuántas personas lleva cada grupo (`have`), cuántas pide el plan (`need`, o null
  * si todavía no se puede calcular), la parte cubierta por el grupo que va más atrás (`share`, 0 a 1), si llegó y, si
- * no, las semanas que faltan como piso al ritmo de asignación (`weeks`, o null si no se puede estimar).
+ * no, las semanas de asignación que faltan como piso (`weeks`: 0 si ya están asignadas las que hacen falta y solo
+ * queda esperar su plazo; null si no se puede estimar).
  */
 export function pilotProgress(experiment) {
   const on = experiment.control_pct > 0 && hypothesesMode(experiment) === 'grupos'
   const { retencion, rest_a_turbo: turbo, encuesta } = experiment
-  // Personas asignadas por semana a cada grupo (una foto grabada antes del 25-11 no lo trae).
+  // Personas asignadas por semana a cada grupo (una foto grabada antes del 25-11 no lo trae) y las ya asignadas.
   const pace = experiment.ritmo?.por_semana ?? null
+  const assigned = peopleOf(experiment.variantes, 'personas')
   return {
     on,
     rows: [
-      progress('H1', 'Retención M+1', retencion?.variantes, 'personas', retencion?.minimo, pace),
-      progress('H2', 'Restaurantes → Turbo', turbo?.variantes, 'personas', turbo?.minimo, pace),
+      progress('H1', 'Retención M+1', retencion?.variantes, 'personas', retencion?.minimo, pace, assigned),
+      progress('H2', 'Restaurantes → Turbo', turbo?.variantes, 'personas', turbo?.minimo, pace, assigned),
       // La H3 avanza con respuestas, no con asignaciones: sin ritmo propio, no se estima.
       progress('H3', '"¿Encontraste lo que buscabas?"', encuesta?.variantes, 'respondidas', encuesta?.minimo, null),
     ],

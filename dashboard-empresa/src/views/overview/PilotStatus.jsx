@@ -11,6 +11,22 @@ function behind({ have, need }) {
   return `${formatNumber(have[group])} de ${formatNumber(need[group])} en ${group}`
 }
 
+/** El plazo que tiene que pasar para que una persona asignada cuente en la hipótesis. */
+const wait = (row, experiment) =>
+  row.id === 'H1' ? 'el mes siguiente completo' : `${formatNumber(experiment.rest_a_turbo.dias)} días`
+
+/**
+ * Cuánto falta, como piso: las semanas de asignación y después el plazo; o, si ya están asignadas tantas personas como
+ * pide el mínimo, solo el plazo (no todas cuentan para la hipótesis: por eso sigue siendo un piso).
+ */
+function pending(row, experiment) {
+  if (row.weeks === 0) {
+    return `Ya hay asignadas tantas personas como pide el mínimo: cuentan cuando pasa su plazo (${wait(row, experiment)}).`
+  }
+  const weeks = `${formatNumber(row.weeks)} ${row.weeks === 1 ? 'semana más' : 'semanas más'}`
+  return `Al ritmo de asignación de hoy, al menos ${weeks} de asignación, y después ${wait(row, experiment)}.`
+}
+
 /**
  * Estado del piloto, junto al enlace a las tres hipótesis: cuánto lleva cada una del mínimo de personas que pide el plan
  * para poder concluir y, si la API trae el ritmo de asignación, cuántas semanas faltan como piso (`pilot.js`). Con el
@@ -46,13 +62,7 @@ export function PilotStatus({ source }) {
                 {row.done ? 'Llegó al mínimo para concluir' : `${formatPct(row.share * 100, 0)} del mínimo`}
                 {!row.done && ` · ${behind(row)}`}
               </span>
-              {row.weeks !== null && (
-                <span className="pilot-note">
-                  Al ritmo de asignación de hoy, al menos {formatNumber(row.weeks)}{' '}
-                  {row.weeks === 1 ? 'semana más' : 'semanas más'}
-                  {row.id === 'H1' && ', y después el mes siguiente completo'}.
-                </span>
-              )}
+              {row.weeks !== null && <span className="pilot-note">{pending(row, experiment)}</span>}
             </dd>
           )}
         </div>
