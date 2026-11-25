@@ -1,0 +1,35 @@
+{
+  "data": {
+    "desde": null,
+    "hasta": null,
+    "momentos": [],
+    "motivos": [
+      {
+        "candidatos": 0,
+        "motivo": "alcohol"
+      },
+      {
+        "candidatos": 0,
+        "motivo": "mas18"
+      },
+      {
+        "candidatos": 0,
+        "motivo": "farmacia"
+      },
+      {
+        "candidatos": 0,
+        "motivo": "bebe"
+      },
+      {
+        "candidatos": 0,
+        "motivo": "salud"
+      }
+    ],
+    "total": 0
+  },
+  "guardado": {
+    "fecha": "2026-11-25",
+    "origen": "make contract · recorrido corto sobre el catálogo de prueba inventado"
+  },
+  "source": "prototype"
+}

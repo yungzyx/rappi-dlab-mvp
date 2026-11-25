@@ -1,6 +1,6 @@
 # Elementos nuevos del panel de negocio: diseño
 
-Fecha: 25-11-2026. El panel gana cinco elementos pensados para decidir, no para describir. Los cinco funcionan con datos de la API: tres con lo que ya entregaba y dos con rutas nuevas (`/analytics/verticales` y `/analytics/audiencias`, con la lista de cada audiencia en `/analytics/audiencias/{id}`), más el ritmo de asignación y el de respuestas del piloto en `/analytics/experimentos`. El frente está en `dashboard-empresa/` y el backend en `rappi-ia/src/rappi_ia/analytics/queries.py`.
+Fecha: 25-11-2026. El panel gana cinco elementos pensados para decidir, no para describir, y un sexto que muestra lo que Mochi no ofrece (§5). Los cinco funcionan con datos de la API: tres con lo que ya entregaba y dos con rutas nuevas (`/analytics/verticales` y `/analytics/audiencias`, con la lista de cada audiencia en `/analytics/audiencias/{id}`), más el ritmo de asignación y el de respuestas del piloto en `/analytics/experimentos`. El frente está en `dashboard-empresa/` y el backend en `rappi-ia/src/rappi_ia/analytics/queries.py`.
 
 > Cómo se hizo: primero el frente, con audiencias y ficha por vertical como diseño con filas de ejemplo rotuladas ([#173](https://github.com/yungzyx/rappi-dlab-mvp/pull/173)); después las rutas, y el panel dejó las filas de ejemplo.
 
@@ -134,9 +134,34 @@ Reglas que cumple el backend:
 - En el panel, cada fila de la tabla tiene "CSV" (baja `Usuario;Acepta avisos`) y "Copiar" (el mismo CSV al portapapeles); la lista se pide a la API al tocar, sin caché ni datos guardados. El CSV de la tabla no lleva esos botones (`data-no-csv`).
 - En el panel de un solo HTML no hay lista: la foto no graba listas de personas, porque el archivo se comparte suelto. La tabla no ofrece los botones y lo dice al pie.
 
-## 5. Lo que Mochi no ofreció (sin hacer)
+## 5. Lo que Mochi no ofreció: `/analytics/guardias`
 
-Cuántas veces las guardias frenaron una oferta (alcohol, +18, Farmacia, bebé, salud), por motivo. Sirve para mostrar que Mochi es seguro para la marca. Hoy esos bloqueos no se cuentan: `offers/guards.py` filtra y no deja evento. Haría falta un contador agregado por motivo y momento (sin persona ni producto) y una ruta `/analytics/guardias`.
+Cuántos candidatos sacaron las guardias de ofertas (`offers/guards.py`) al armar lo que Mochi propone por su cuenta, por motivo y por momento. Sirve para mostrar que Mochi es seguro para la marca. Está en "Mochi y búsquedas" → "Ofertas", debajo de "¿Mochi molesta?".
+
+**Qué se cuenta** (`offers/blocked.py`, migración 062):
+
+- Un candidato es un producto que salió de una búsqueda o de las ofertas del catálogo y que una guardia sacó (`agent/tools.py: _with_prices` con `offer=True` y `engine._offerable_products`), o una vertical bloqueada donde Mochi iba a buscar un concepto (`guards.offerable_verticals`). Se cuentan candidatos, no ofertas: el mismo producto buscado dos veces cuenta dos.
+- Motivos (`guards.GUARD_REASONS`): `alcohol` (Licores, los conceptos de alcohol y lo que dice trago en su nombre, su sección o su descripción), `mas18` (tabaco, vapeo, bienestar sexual y lo que la tienda marca +18), `farmacia` (la vertical y las tiendas que Rappi rotula Farmacia), `bebe` y `salud`. Hoy todo concepto sensible es de salud, tabaco o adultos, así que cae en su motivo.
+- Momentos: el de `POST /agent/offer`, `pregunta` (lo que Mochi suma solo a una respuesta de `/agent/ask`) y `para_ti` (`/recommendations`).
+- **Qué no se cuenta.** Lo que se descarta antes por la historia de la persona (una recompra de Farmacia, un interés en vino) diría algo de ella. Lo que la persona pide por su nombre no pasa por las guardias. Lo que ya está filtrado en la caché del catálogo no vuelve a contarse, y lo que la consulta SQL saca por la tienda (`_OFFER_STORES`) tampoco: no se ve producto por producto. Los trabajos, los tests y las evaluaciones no cuentan: solo la API, mientras arma una respuesta (`blocked.counting`).
+
+**Tabla `guard_blocks`:** día (hora de Chile), población, momento, motivo y candidatos; una fila por combinación, que la API suma (`INSERT … ON CONFLICT`). No tiene persona ni producto. El rol `rappi_api` puede escribirla (`deploy/db/grants.sql`). No viaja en `make dump-entrega` con lo del prototipo (`PERSON_TABLES`: `source = 'synthetic'`), igual que los conteos del motor en `layer_runs`.
+
+```json
+{
+  "total": 7,
+  "motivos": [{ "motivo": "alcohol", "candidatos": 5 }, { "motivo": "mas18", "candidatos": 0 }],
+  "momentos": [
+    { "momento": "carrito", "candidatos": 4, "motivos": { "alcohol": 3, "mas18": 0, "farmacia": 0, "bebe": 1, "salud": 0 } }
+  ],
+  "desde": "2026-11-20",
+  "hasta": "2026-11-22"
+}
+```
+
+- `motivos` trae siempre los cinco, en su orden (en 0 los que no tienen nada). `momentos`, en el orden del panel de ofertas (`OFFER_ORDER`), con uno desconocido al final.
+- Desde que se cuenta, sin ventana: `desde` y `hasta` son el primer y el último día con algo (`null` sin nada).
+- **Población.** Solo la API escribe, siempre con `prototype`. El generador de simulados no pasa por las guardias, así que con `synthetic` no hay nada, y el panel lo dice en vez de mostrar un cero. Con el prototipo, la sección lleva el rótulo "Prototipo · no es evidencia".
 
 ## 6. Lo que sale del frente, en detalle
 
@@ -149,3 +174,4 @@ Cuántas veces las guardias frenaron una oferta (alcohol, +18, Farmacia, bebé, 
 - Los ejemplos `verticales.*.json` y `audiencias.*.json` de `dashboard-empresa/src/fixtures/` los escribe `make contract` (están en `PANEL_METRICS` de `tests/integration/test_contract.py`).
 - Sus respuestas para el modo sin conexión (`src/fixtures/sin-conexion/`) salen de una copia de la base, como las demás. Una foto grabada antes del 25-11 no trae `personas_antes` ni `ritmo_encuesta`: el panel muestra "—" en el cambio y no estima la H3.
 - La lista de una audiencia (`/analytics/audiencias/{id}`) no se graba: ni en `sin-conexion/` ni en la foto del panel de un solo HTML.
+- `guardias.*.json` también lo escribe `make contract` (con el día fijo: el contador guarda el de hoy). Su respuesta sin conexión (`sin-conexion/guardias.json`) es la de los simulados, siempre vacía.

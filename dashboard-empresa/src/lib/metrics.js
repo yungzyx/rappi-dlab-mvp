@@ -21,4 +21,5 @@ export const PANEL_METRICS = [
   'experimentos',
   'verticales',
   'audiencias',
+  'guardias',
 ]

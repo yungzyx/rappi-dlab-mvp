@@ -49,6 +49,9 @@ PERSON_TABLES = {
     "agent_autonomy": f"source = 'synthetic' AND {_USERS}",
     # Las personas del prototipo borradas (migración 061; el hash de su id): ninguna es simulada.
     "forgotten_users": "false",
+    # El contador de las guardias (migración 062): sin persona ni producto, pero lo del prototipo sale de su uso y no
+    # viaja, como los conteos del motor en `layer_runs`.
+    "guard_blocks": "source = 'synthetic'",
     "app_orders": _ORDERS,
     "app_order_lines": f"order_id IN (SELECT order_id FROM public.app_orders WHERE {_ORDERS})",
     "user_segments": _USERS,  # su `source` es la regla que asignó el segmento, no la población

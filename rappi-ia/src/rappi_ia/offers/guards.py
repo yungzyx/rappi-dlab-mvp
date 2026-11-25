@@ -284,6 +284,49 @@ def offerable_vertical(vertical: str) -> bool:
     return vertical not in OFFER_BLOCKED_VERTICALS
 
 
+def offerable_verticals(verticals: list[str]) -> list[str]:
+    """Las verticales de la lista que el agente puede proponer (`offerable_vertical`), en su orden. Cada una que saca
+    cuenta en el contador de las guardias (`offers/blocked.py`)."""
+    from .blocked import count  # import diferido: blocked importa este módulo
+
+    kept = []
+    for vertical in verticals:
+        if offerable_vertical(vertical):
+            kept.append(vertical)
+        else:
+            count(vertical_reason(vertical))
+    return kept
+
+
+# Por qué una guardia sacó algo, para el contador agregado (`offers/blocked.py`, migración 062): el alcohol (Licores,
+# los conceptos de alcohol y lo que dice alcohol en su nombre, su sección o su descripción), lo demás +18 (tabaco,
+# vapeo, bienestar sexual y lo que la tienda marca +18), Farmacia (la vertical y las tiendas que Rappi rotula así),
+# bebé y salud. Lo sensible cae en su grupo: hoy todo concepto sensible es de salud, tabaco o adultos.
+GUARD_REASONS = ("alcohol", "mas18", "farmacia", "bebe", "salud")
+_BLOCKED_VERTICAL_REASONS = {"licores": "alcohol", "farmacia": "farmacia"}
+_BLOCKED_SUBVERTICAL_REASONS = {"Farmacia": "farmacia", "Sex shop": "mas18", "Smoking shop": "mas18"}
+
+
+def concept_reason(concept: Concept) -> str | None:
+    """Por qué el agente no propone este concepto por su cuenta (`is_offerable`), o None si lo propone."""
+    group = concept.parent or concept.id
+    if group == "alcohol":
+        return "alcohol"
+    if group in OFFER_BLOCKED_GROUPS:
+        return group
+    return "mas18" if concept.age_restricted or concept.sensitive else None
+
+
+def vertical_reason(vertical: str) -> str | None:
+    """Por qué el agente no propone productos de esta vertical, o None si los propone."""
+    return _BLOCKED_VERTICAL_REASONS.get(vertical)
+
+
+def subvertical_reason(subvertical: str) -> str | None:
+    """Por qué el agente no propone productos de una tienda con este rótulo de Rappi, o None si los propone."""
+    return _BLOCKED_SUBVERTICAL_REASONS.get(subvertical)
+
+
 def unofferable_subverticals() -> list[str]:
     """Los subverticales de tienda (store_verticals.subvertical) de los que el agente no propone, sea cual sea su
     vertical: los mismos que la Home no empuja (`catalog.stores.NOT_PUSHED_SUBVERTICALS`)."""

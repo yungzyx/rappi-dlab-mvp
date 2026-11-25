@@ -19,11 +19,13 @@ from ..embeddings.base import TextEmbedder
 from ..motor.combos import SERVICES
 from ..motor.predict import step_signal, target_step
 from ..motor.recommend import RECENT_DAYS, CrossPick, cross_picks, latest_lambda
+from ..offers.blocked import count as count_blocked
 from ..offers.guards import (
     DISH_SECTIONS_SQL,
     alcohol_dish,
     alcohol_in_name,
     baby_in_name,
+    concept_reason,
     is_offerable,
     is_plannable,
     offerable_vertical,
@@ -982,16 +984,23 @@ def _with_prices(conn: Connection, vertical: str, hits, offer: bool = False, adu
         if found is None:  # sin precio vigente en el vertical (agotado o sin stock): no se ofrece
             continue
         name, price, real, store, age, store_id, presentation, here = found
-        # En una oferta, un nombre que dice alcohol cuenta como +18 aunque la tienda no lo marque (offers/guards.py).
-        age = age or (offer and alcohol_in_name(hit.entity_type, name, hit.concept_id))
-        if offer and age and not adult_ok:  # +18 aunque su concepto sea corriente: el catálogo lo marca
-            continue
-        if offer and baby_in_name(hit.entity_type, name):  # de bebé aunque su concepto sea corriente: ni en un kit
-            continue
         concept = taxonomy.concepts.get(hit.concept_id) if hit.concept_id else None
+        # En una oferta, un nombre que dice alcohol cuenta como +18 aunque la tienda no lo marque (offers/guards.py).
+        named = offer and alcohol_in_name(hit.entity_type, name, hit.concept_id)
+        if offer and (age or named) and not adult_ok:  # +18 aunque su concepto sea corriente: el catálogo lo marca
+            # Un plato es +18 por su sección o su descripción de trago; un producto, por su nombre, su concepto o la
+            # marca de la tienda (alcohol o no: no lo dice).
+            alcohol = named or hit.entity_type == "menu_item"
+            count_blocked("alcohol" if alcohol else (concept and concept_reason(concept)) or "mas18")
+            continue
+        age = age or named
+        if offer and baby_in_name(hit.entity_type, name):  # de bebé aunque su concepto sea corriente: ni en un kit
+            count_blocked("bebe")
+            continue
         # En una oferta, tampoco un concepto que el agente no propone (+18 salvo en un kit elegido, salud, bebé, lo
         # sensible), como engine._offerable_products: no depende de que quien llama filtre por concepto.
         if offer and concept and ((concept.age_restricted and not adult_ok) or not is_plannable(concept)):
+            count_blocked(concept_reason(concept))
             continue
         prefix = "cat" if hit.entity_type == "catalog_item" else "menu"
         products.append(

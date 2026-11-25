@@ -15,8 +15,9 @@ GRANT SELECT ON ALL TABLES IN SCHEMA public, capa TO {api_role};
 -- Escribir: solo los datos de las personas del prototipo (sesión, eventos y sus elementos vistos, sesiones de la app,
 -- variantes de los experimentos, pedidos, preferencias y permiso para pedir con el agente, segmentos, afinidad por
 -- vertical y recompra, y el hash de las personas borradas), las definiciones de segmentos, que el recálculo después
--- de un pedido vuelve a sembrar si cambiaron las reglas, y el juicio a mano de la búsqueda ("Juzgar la búsqueda" del
--- panel, bajo /analytics: no son datos de personas). La lista está una sola vez: de ella salen el permiso de escribir y el de usar las secuencias
+-- de un pedido vuelve a sembrar si cambiaron las reglas, el juicio a mano de la búsqueda ("Juzgar la búsqueda" del
+-- panel, bajo /analytics: no son datos de personas) y el contador agregado de las guardias de ofertas (sin persona ni
+-- producto). La lista está una sola vez: de ella salen el permiso de escribir y el de usar las secuencias
 -- de esas tablas (p. ej. app_events.event_id), para poder insertar. Al sumar una tabla que escribe la API, va aquí
 -- (el test de deploy-migrate lo revisa contra PERSON_TABLES de rappi_ia/delivery.py).
 DO $$
@@ -24,7 +25,8 @@ DECLARE
     api_tables regclass[] := ARRAY[
         'app_users', 'app_events', 'app_event_items', 'app_sessions', 'experiment_assignments', 'app_orders',
         'app_order_lines', 'agent_preferences', 'agent_autonomy', 'user_segments', 'user_segment_history',
-        'segment_defs', 'user_vertical_affinity', 'replenishment', 'forgotten_users', 'search_judgments'
+        'segment_defs', 'user_vertical_affinity', 'replenishment', 'forgotten_users', 'search_judgments',
+        'guard_blocks'
     ]::regclass[];
     tbl regclass;
     seq regclass;

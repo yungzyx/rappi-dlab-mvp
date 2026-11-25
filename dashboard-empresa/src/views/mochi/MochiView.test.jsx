@@ -129,7 +129,7 @@ describe('MochiView', () => {
     serveFixtures()
     await renderWithData(<MochiView source="prototype" />)
 
-    expect(screen.getAllByText(NOT_EVIDENCE)).toHaveLength(4) // ofertas, si molesta, listas y búsquedas
+    expect(screen.getAllByText(NOT_EVIDENCE)).toHaveLength(5) // ofertas, si molesta, guardias, listas y búsquedas
     expect(screen.queryByText(/datos simulados/i)).toBeNull()
   })
 
@@ -423,5 +423,45 @@ describe('MochiView', () => {
     )
     expect(await screen.findByRole('table', { name: 'Ofertas del agente por momento' })).toBeTruthy()
     expect(screen.queryByRole('table', { name: 'Sugerencias entre verticales' })).toBeNull()
+  })
+  test('what Mochi did not offer: by reason and by moment, labelled as prototype use', async () => {
+    const reasons = (alcohol, mas18, farmacia, bebe, salud) => ({ alcohol, mas18, farmacia, bebe, salud })
+    serveFixturesWith({
+      guardias: {
+        source: 'prototype',
+        data: {
+          total: 7,
+          motivos: Object.entries(reasons(5, 0, 1, 1, 0)).map(([motivo, candidatos]) => ({ motivo, candidatos })),
+          momentos: [
+            { momento: 'carrito', candidatos: 4, motivos: reasons(3, 0, 0, 1, 0) },
+            { momento: 'pregunta', candidatos: 3, motivos: reasons(2, 0, 1, 0, 0) },
+          ],
+          desde: '2026-11-20',
+          hasta: '2026-11-22',
+        },
+      },
+    })
+    await renderWithData(<MochiView source="prototype" tab="ofertas" />)
+
+    const section = screen.getByRole('region', { name: 'Lo que Mochi no ofreció' })
+    expect(within(section).getByText(NOT_EVIDENCE)).toBeTruthy()
+    expect(within(section).getByText('Del 20-11-2026 al 22-11-2026')).toBeTruthy()
+    const table = within(section).getByRole('table', { name: 'Lo que las guardias sacaron, por momento' })
+    const headers = within(table)
+      .getAllByRole('columnheader')
+      .map((cell) => cell.textContent)
+    expect(headers).toEqual(['Momento', 'Total', 'Alcohol', '+18', 'Farmacia', 'Bebé', 'Salud'])
+    const [cart, question] = bodyRows(table)
+    expect(cells(cart).slice(1)).toEqual(['4', '3', '0', '0', '1', '0'])
+    expect(within(question).getByText('Pregunta')).toBeTruthy()
+    expect(within(section).getByText(/no ofertas: el mismo producto buscado dos veces cuenta dos/)).toBeTruthy()
+  })
+
+  test('what Mochi did not offer: the simulated data never go through the guards, and it says so', async () => {
+    serveFixtures()
+    await renderWithData(<MochiView source="synthetic" tab="ofertas" />)
+    const section = screen.getByRole('region', { name: 'Lo que Mochi no ofreció' })
+    expect(within(section).getByText('Los datos simulados no pasan por las guardias')).toBeTruthy()
+    expect(within(section).queryByRole('table')).toBeNull()
   })
 })

@@ -15,7 +15,7 @@ from ..events import experiments as exp
 from ..events.store import EXPIRED_KIND, LOW_RATING, SURVEY_TYPES
 from ..motor.combos import OWN_SIGNALS_ONLY, expected_fine_retention, load_combos
 from ..offers.autonomy import ORIGIN as AUTO_ORDER_ORIGIN
-from ..offers.guards import OFFER_BLOCKED_VERTICALS, is_offerable
+from ..offers.guards import GUARD_REASONS, OFFER_BLOCKED_VERTICALS, is_offerable
 from ..offers.winback import reach
 from .power import (
     H2_RELATIVE_GOAL,
@@ -2158,3 +2158,36 @@ def audience_members(conn: Connection, audience_id: str, source: str = "syntheti
     if len(people) < MIN_GROUP_USERS:
         return None
     return {"id": audience["id"], "nombre": audience["nombre"], "personas": people}
+
+
+def guard_blocks(conn: Connection, source: str = "synthetic") -> dict:
+    """Lo que Mochi no ofreció: cuántos candidatos sacaron las guardias de ofertas (`guard_blocks`, migración 062:
+    offers/blocked.py) desde que se cuentan, en total, por motivo (los cinco de `guards.GUARD_REASONS`, en su orden y
+    con los que no tienen nada en 0) y por momento (en el orden de OFFER_ORDER; uno desconocido al final), con su
+    reparto por motivo. `desde` y `hasta` son el primer y el último día con algo (None sin nada). Sin persona ni
+    producto: no hace falta mínimo de personas. Solo la API lo escribe, con la población `prototype`: con los
+    simulados no hay nada (el generador no pasa por las guardias)."""
+    _check(source)
+    rows = _rows(
+        conn,
+        """SELECT moment, reason, sum(blocked)::int AS n, min(day) AS desde, max(day) AS hasta
+           FROM guard_blocks WHERE source = %(source)s GROUP BY 1, 2""",
+        {"source": source},
+    )
+    by_reason = dict.fromkeys(GUARD_REASONS, 0)
+    by_moment: dict[str, dict] = {}
+    for row in rows:
+        by_reason[row["reason"]] += row["n"]
+        moment = by_moment.setdefault(
+            row["moment"], {"momento": row["moment"], "candidatos": 0, "motivos": dict.fromkeys(GUARD_REASONS, 0)}
+        )
+        moment["candidatos"] += row["n"]
+        moment["motivos"][row["reason"]] += row["n"]
+    order = {moment: i for i, moment in enumerate(OFFER_ORDER)}
+    return {
+        "total": sum(by_reason.values()),
+        "motivos": [{"motivo": reason, "candidatos": n} for reason, n in by_reason.items()],
+        "momentos": sorted(by_moment.values(), key=lambda m: (order.get(m["momento"], len(order)), m["momento"])),
+        "desde": min((row["desde"] for row in rows), default=None),
+        "hasta": max((row["hasta"] for row in rows), default=None),
+    }

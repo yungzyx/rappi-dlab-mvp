@@ -51,7 +51,7 @@ export const VIEWS = [
     icon: 'search',
     View: MochiView,
     tabs: [
-      { id: 'ofertas', label: 'Ofertas', sections: ['ofertas', 'presencia'] },
+      { id: 'ofertas', label: 'Ofertas', sections: ['ofertas', 'presencia', 'guardias'] },
       { id: 'listas', label: 'Listas y embudo', sections: ['listas'] },
       { id: 'busquedas', label: 'Búsquedas', sections: ['busquedas'] },
       // Escribe en la base: solo con una API detrás (en el HTML suelto no aparece).
