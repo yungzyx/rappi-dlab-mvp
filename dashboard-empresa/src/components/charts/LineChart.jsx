@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useId, useState } from 'react'
 import { formatShortDate } from '../../lib/format.js'
 import { nearestIndex, niceMax, scaleLinear } from './geometry.js'
 import { useElementWidth } from './useElementWidth.js'
@@ -39,15 +39,17 @@ function monthTicks(points, x) {
  * Una serie semanal en línea (SVG, con el ancho de su contenedor). Eje Y desde 0, tres guías, un rótulo por mes y un
  * punto en la última semana completa; el tramo hacia una semana parcial va punteado y su punto, hueco. Arriba, la lectura
  * de una semana: la última completa o la más cercana al puntero. Decorativo para el lector de pantalla: `label` lo
- * resume y la tabla equivalente va aparte. `points`: [{ date, value, partial }]; `format`, el de la lectura;
- * `tickFormat`, el del eje (por defecto, `format`).
+ * resume y la tabla equivalente va aparte. Bajo la línea continua, un velo del color de la serie (si no tiene huecos).
+ * `points`: [{ date, value, partial }]; `format`, el de la lectura; `tickFormat`, el del eje (por defecto, `format`);
+ * `tall`, el alto en px cuando el gráfico tiene espacio (por defecto 220; en angosto siempre 180).
  */
-export function LineChart({ points, format, tickFormat = format, label }) {
+export function LineChart({ points, format, tickFormat = format, label, tall = 220 }) {
   const [ref, width] = useElementWidth()
   const [hover, setHover] = useState(null)
+  const veil = useId()
   const complete = points.filter((point) => !point.partial)
   const lastIndex = points.findLastIndex((point) => !point.partial && known(point))
-  const height = width && width < 420 ? 180 : 220
+  const height = width && width < 420 ? 180 : tall
   const x0 = MARGIN.left
   const x1 = Math.max(x0 + 1, width - MARGIN.right)
   const top = niceMax(Math.max(0, ...points.filter(known).map((point) => point.value)))
@@ -63,6 +65,12 @@ export function LineChart({ points, format, tickFormat = format, label }) {
     partialIndex > 0 && known(points[partialIndex]) && known(points[partialIndex - 1])
       ? `M${x(partialIndex - 1).toFixed(1)},${y(points[partialIndex - 1].value).toFixed(1)}L${x(partialIndex).toFixed(1)},${y(points[partialIndex].value).toFixed(1)}`
       : ''
+
+  // El velo bajo la línea continua: solo si no tiene huecos (con un hueco, el relleno mentiría).
+  const filled = solid.length > 1 && solid.every(known)
+  const area = filled
+    ? `${pathOf(solid, x, y)}L${x(solid.length - 1).toFixed(1)},${y(0).toFixed(1)}L${x(0).toFixed(1)},${y(0).toFixed(1)}Z`
+    : ''
 
   const onPointerMove = (event) => {
     const box = event.currentTarget.getBoundingClientRect()
@@ -92,6 +100,12 @@ export function LineChart({ points, format, tickFormat = format, label }) {
       >
         {width > 0 && (
           <svg width={width} height={height} aria-hidden="true">
+            <defs>
+              <linearGradient id={veil} x1="0" x2="0" y1="0" y2="1">
+                <stop className="chart-veil-top" offset="0" />
+                <stop className="chart-veil-bottom" offset="1" />
+              </linearGradient>
+            </defs>
             {[0, top / 2, top].map((tick) => (
               <g key={tick}>
                 <line className="chart-grid" x1={x0} x2={x1} y1={y(tick)} y2={y(tick)} />
@@ -112,6 +126,7 @@ export function LineChart({ points, format, tickFormat = format, label }) {
               </text>
             ))}
             {hover !== null && <line className="chart-guide" x1={x(hover)} x2={x(hover)} y1={MARGIN.top} y2={y(0)} />}
+            {area && <path className="chart-area" d={area} fill={`url(#${veil})`} />}
             <path className="chart-line" d={pathOf(solid, x, y)} />
             {dashed && <path className="chart-line chart-line--partial" d={dashed} />}
             {partialIndex !== -1 && known(points[partialIndex]) && (

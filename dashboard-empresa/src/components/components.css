@@ -2,9 +2,16 @@
 .panel {
   display: grid;
   min-width: 0;
-  border: 1px solid var(--line);
   border-radius: var(--radius-m);
   background: var(--surface);
+  box-shadow: var(--glass);
+  -webkit-backdrop-filter: var(--glass-blur);
+  backdrop-filter: var(--glass-blur);
+}
+
+/* Cada vidrio es su propia capa: con una ayuda abierta sube, para que el vidrio siguiente no la tape */
+:is(.panel, .stats > div, .pulse-tile, .decision):has(.help[open]) {
+  z-index: 5;
 }
 
 .panel-head {
@@ -13,8 +20,8 @@
   flex-wrap: wrap;
   align-items: center;
   gap: var(--space-2);
-  min-height: 44px;
-  padding: var(--space-2) var(--space-4);
+  min-height: 52px;
+  padding: var(--space-3) var(--space-5);
   border-bottom: 1px solid var(--line);
 }
 
@@ -51,7 +58,7 @@
 }
 
 .panel-body > :not(.table-wrap, .chart-table, .visually-hidden) {
-  margin-inline: var(--space-4);
+  margin-inline: var(--space-5);
 }
 
 .panel-body > :is(.table-wrap, .chart-table):first-child {
@@ -60,6 +67,17 @@
 
 .panel-body > :is(.table-wrap, .chart-table):last-child {
   margin-bottom: calc(-1 * var(--space-3));
+}
+
+/* Una tabla a sangre sigue las esquinas del vidrio */
+.panel-body:first-child > :is(.table-wrap, .chart-table):first-child {
+  border-top-left-radius: var(--radius-m);
+  border-top-right-radius: var(--radius-m);
+}
+
+.panel-body:last-child > :is(.table-wrap, .chart-table):last-child {
+  border-bottom-right-radius: var(--radius-m);
+  border-bottom-left-radius: var(--radius-m);
 }
 
 /* Una tabla entre notas (lo que la explica, "Ver las 30") queda separada por líneas */
@@ -80,7 +98,7 @@
 .panel-foot {
   display: grid;
   gap: var(--space-1);
-  padding: 10px var(--space-4);
+  padding: var(--space-3) var(--space-5);
   border-top: 1px solid var(--line);
   font-size: var(--text-xs);
   color: var(--ink-3);
@@ -97,13 +115,20 @@
 .table-wrap {
   min-width: 0;
   overflow-x: auto;
-  border: 1px solid var(--line);
   border-radius: var(--radius-m);
+  background: var(--surface);
+  box-shadow: var(--glass);
+  -webkit-backdrop-filter: var(--glass-blur);
+  backdrop-filter: var(--glass-blur);
 }
 
 .panel .table-wrap {
   border: 0;
   border-radius: 0;
+  background: none;
+  box-shadow: none;
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
 }
 
 .data-table {
@@ -141,12 +166,12 @@
 
 .data-table th:first-child,
 .data-table td:first-child {
-  padding-left: var(--space-4);
+  padding-left: var(--space-5);
 }
 
 .data-table th:last-child,
 .data-table td:last-child {
-  padding-right: var(--space-4);
+  padding-right: var(--space-5);
 }
 
 /* Separador fuerte entre grupos de filas (p. ej. donde cambia el estado o se cruza un umbral) */
@@ -286,8 +311,21 @@
   display: block;
   width: var(--w);
   height: 100%;
-  border-radius: 2px;
+  border-radius: 3px;
   background: var(--data-bar);
+}
+
+/* Una proporción de 0 a 100, en el naranja de la marca y con su pista (el quinto indicador de "Cómo va") */
+.meter--brand {
+  height: 8px;
+  border-radius: 999px;
+  background: var(--surface-sunken);
+}
+
+.meter--brand > span {
+  border-radius: 999px;
+  background: var(--brand-glow);
+  box-shadow: var(--brand-shadow);
 }
 
 /* ---------- Cambio (delta) y alternador gráfico/tabla ---------- */
@@ -337,23 +375,23 @@
   margin-top: 2px;
 }
 
-/* ---------- Tira de indicadores: un contenedor, celdas separadas por líneas de 1 px ---------- */
+/* ---------- Tira de indicadores: un vidrio por indicador ---------- */
 .stats {
   display: grid;
-  gap: 1px;
-  overflow: hidden;
-  border: 1px solid var(--line);
-  border-radius: var(--radius-m);
-  background: var(--line);
+  gap: var(--space-3);
 }
 
 .stats > div {
   display: grid;
   align-content: start;
-  gap: 2px;
+  gap: var(--space-1);
   min-width: 0;
-  padding: 14px var(--space-4);
+  padding: var(--space-4) var(--space-5);
+  border-radius: var(--radius-m);
   background: var(--surface);
+  box-shadow: var(--glass);
+  -webkit-backdrop-filter: var(--glass-blur);
+  backdrop-filter: var(--glass-blur);
 }
 
 .stats > div {
@@ -372,9 +410,9 @@
 
 .stats dd {
   font-size: var(--text-kpi);
-  font-weight: 600;
-  letter-spacing: -0.01em;
-  line-height: 1.25;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  line-height: 1.2;
   font-variant-numeric: tabular-nums;
 }
 
@@ -420,7 +458,7 @@
   place-items: center;
   width: 24px;
   height: 24px;
-  border-radius: var(--radius-s);
+  border-radius: 999px;
   list-style: none;
   cursor: pointer;
   color: var(--ink-3);
@@ -478,9 +516,13 @@
   white-space: normal;
   color: var(--ink-2);
   background: var(--surface-raised);
-  border: 1px solid var(--line-strong);
-  border-radius: var(--radius-l);
-  box-shadow: var(--shadow-float);
+  border-radius: var(--radius-m);
+  box-shadow:
+    var(--glass-edge),
+    0 0 0 1px var(--line),
+    var(--shadow-float);
+  -webkit-backdrop-filter: var(--glass-blur);
+  backdrop-filter: var(--glass-blur);
 }
 
 /* En el rótulo de una cifra, el botón no agranda la fila */
@@ -523,16 +565,16 @@
   align-items: center;
   gap: 6px;
   justify-self: start;
-  height: 28px;
-  padding: 0 10px;
-  border-radius: var(--radius-s);
+  height: 32px;
+  padding: 0 14px;
+  border-radius: 999px;
   list-style: none;
   cursor: pointer;
   font-size: var(--text-sm);
   font-weight: 500;
   color: var(--ink);
-  background: var(--surface);
-  box-shadow: inset 0 0 0 1px var(--line-strong);
+  background: var(--glass-bright);
+  box-shadow: var(--glass);
   transition: background var(--duration-fast);
 }
 
@@ -566,7 +608,7 @@
 }
 
 .panel-foot .disclosure .table-wrap {
-  margin-inline: calc(-1 * var(--space-4));
-  border-width: 1px 0;
+  margin-inline: calc(-1 * var(--space-5));
+  border-block: 1px solid var(--line);
   border-radius: 0;
 }

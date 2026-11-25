@@ -22,7 +22,7 @@
 /* El último punto en tinta, con anillo del color de la superficie: el naranja se leería como "empeora" */
 .sparkline-dot {
   fill: var(--ink-2);
-  stroke: var(--surface);
+  stroke: var(--opaque);
   stroke-width: 2;
 }
 
@@ -81,10 +81,26 @@
   fill: var(--chart-axis);
 }
 
+/* El velo bajo la línea: el color de la serie, que se apaga hacia el eje */
+.chart-veil-top {
+  stop-color: var(--series-1);
+  stop-opacity: 0.26;
+}
+
+.chart-veil-bottom {
+  stop-color: var(--series-1);
+  stop-opacity: 0;
+}
+
+.chart-area {
+  stroke: none;
+}
+
 .chart-line {
   fill: none;
   stroke: var(--series-1);
-  stroke-width: 1.5;
+  stroke-width: 2;
+  filter: drop-shadow(0 4px 6px rgba(255, 68, 31, 0.3));
   stroke-linejoin: round;
   stroke-linecap: round;
 }
@@ -95,18 +111,18 @@
 
 .chart-dot {
   fill: var(--series-1);
-  stroke: var(--surface);
+  stroke: var(--opaque);
   stroke-width: 2;
 }
 
 .chart-dot--partial {
-  fill: var(--surface);
+  fill: var(--opaque);
   stroke: var(--series-1);
   stroke-width: 1.5;
 }
 
 .chart-dot--hover {
-  fill: var(--surface);
+  fill: var(--opaque);
   stroke: var(--series-1);
   stroke-width: 2;
 }
