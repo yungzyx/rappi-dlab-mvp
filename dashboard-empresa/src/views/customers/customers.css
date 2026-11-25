@@ -191,3 +191,11 @@
     background: GrayText;
   }
 }
+
+/* ---------- Audiencias: bajar o copiar la lista de una, con lo que pasó al lado ---------- */
+.audience-export {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+}

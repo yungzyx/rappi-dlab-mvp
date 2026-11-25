@@ -2,6 +2,7 @@
   "data": {
     "audiencias": [],
     "bajo_el_minimo": 5,
+    "dias_cambio": 28,
     "minimo_personas": 20
   },
   "guardado": {

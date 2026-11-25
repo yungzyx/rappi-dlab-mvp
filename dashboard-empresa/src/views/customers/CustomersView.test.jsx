@@ -202,10 +202,23 @@ describe('CustomersView', () => {
               ofrecer: 'Turbo, su vertical por probar',
               personas: 178,
               aceptan_avisos: 68,
+              personas_antes: 160,
+              cambio_personas_pct: 11,
+            },
+            {
+              id: 'combina-3-o-mas',
+              nombre: 'Ya combina 3 o más',
+              regla: 'Pidió en 3 o más verticales en 60 días',
+              ofrecer: 'Nada nuevo: no molestar',
+              personas: 25,
+              aceptan_avisos: 5,
+              personas_antes: null,
+              cambio_personas_pct: null,
             },
           ],
           bajo_el_minimo: 2,
           minimo_personas: 20,
+          dias_cambio: 28,
         },
       },
     })
@@ -218,8 +231,73 @@ describe('CustomersView', () => {
     expect(within(row).getByText('178')).toBeTruthy()
     expect(within(row).getByText('68 de 178')).toBeTruthy()
     expect(within(row).getByText('Turbo, su vertical por probar')).toBeTruthy()
+    expect(within(row).getByText('+11%')).toBeTruthy() // contra 4 semanas antes, sin juicio
+    expect(within(row).getByText('antes 160')).toBeTruthy()
+    expect(within(row).queryByText(/mejora|empeora/)).toBeNull()
+    const [, , small] = screen.getAllByRole('row')
+    expect(within(small).getByText('Hace 4 semanas no llegaba a 20')).toBeTruthy()
     expect(screen.getByText('2 audiencias no llegan a 20 personas y no se muestran.')).toBeTruthy()
     expect(screen.getByText(/Fuera de la app solo se le escribe a quien aceptó avisos/)).toBeTruthy()
+  })
+
+  test('an audience list is copied as CSV from the API: pseudonymous ids and who accepts notifications', async () => {
+    const audience = {
+      id: 'probo-turbo-una-vez',
+      nombre: 'Probó Turbo una vez',
+      regla: 'Un solo pedido en Turbo en 60 días y alguno en Restaurantes',
+      ofrecer: 'Repetir en Turbo lo que pidió',
+      personas: 20,
+      aceptan_avisos: 1,
+      personas_antes: null,
+      cambio_personas_pct: null,
+    }
+    serveFixturesWith({
+      audiencias: {
+        source: 'prototype',
+        data: { audiencias: [audience], bajo_el_minimo: 4, minimo_personas: 20, dias_cambio: 28 },
+      },
+      'audiencias/probo-turbo-una-vez': {
+        source: 'prototype',
+        data: {
+          id: 'probo-turbo-una-vez',
+          nombre: 'Probó Turbo una vez',
+          personas: [
+            { usuario: 'u-0a1b2c3d', acepta_avisos: true },
+            { usuario: 'u-4e5f6a7b', acepta_avisos: false },
+          ],
+        },
+      },
+    })
+    const writeText = vi.fn(async () => {})
+    vi.stubGlobal('navigator', { ...navigator, clipboard: { writeText } })
+    await renderWithData(<CustomersView source="prototype" tab="audiencias" />)
+
+    await act(async () =>
+      fireEvent.click(screen.getByRole('button', { name: 'Copiar la lista de Probó Turbo una vez' })),
+    )
+    expect(writeText).toHaveBeenCalledWith('Usuario;Acepta avisos\r\nu-0a1b2c3d;Sí\r\nu-4e5f6a7b;No')
+    expect(screen.getByRole('status').textContent).toBe('Copiada')
+    expect(fetch).toHaveBeenCalledWith(
+      expect.stringContaining('/analytics/audiencias/probo-turbo-una-vez?source=prototype'),
+      expect.anything(),
+    )
+  })
+
+  test('an audience list that the API does not give says so, without breaking the table', async () => {
+    serveFixturesWith({
+      audiencias: {
+        source: 'prototype',
+        data: {
+          audiencias: [{ id: 'x', nombre: 'X', regla: '', ofrecer: '', personas: 20, aceptan_avisos: 0 }],
+          bajo_el_minimo: 4,
+          minimo_personas: 20,
+        },
+      },
+    })
+    await renderWithData(<CustomersView source="prototype" tab="audiencias" />)
+    expect(screen.getAllByRole('row')[1].textContent).toContain('—') // una foto sin el cambio
+    await act(async () => fireEvent.click(screen.getByRole('button', { name: 'Descargar la lista de X en CSV' })))
+    expect(screen.getByRole('status').textContent).toBe('No se pudo: la lista sale de la API en marcha.')
   })
 
   test('audiences say so when none reaches the minimum', async () => {

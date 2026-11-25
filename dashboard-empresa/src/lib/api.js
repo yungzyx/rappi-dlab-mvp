@@ -136,6 +136,23 @@ export function loadAnalytics(name, source) {
   return cache.get(request.key)
 }
 
+/**
+ * Si el panel puede bajar listas de personas (los ids seudónimos de una audiencia). En el HTML suelto no: no tiene API
+ * y la foto no las graba, porque el archivo se comparte suelto.
+ */
+export const CAN_LIST_PEOPLE = !snapshot
+
+/**
+ * Los ids seudónimos de una audiencia (/analytics/audiencias/{id}): `{ id, nombre, personas: [{ usuario,
+ * acepta_avisos }] }`. Siempre de la API en vivo, sin caché ni datos guardados: es para llevarla a una campaña.
+ */
+export async function loadAudienceMembers(id, source) {
+  if (!CAN_LIST_PEOPLE) throw new Error('Este archivo no trae las listas de personas.')
+  if (!SOURCES.includes(source)) throw new Error(`Fuente desconocida: ${source}`)
+  const path = `/analytics/audiencias/${encodeURIComponent(id)}?source=${source}`
+  return fetchLive({ path, expected: source, name: 'audiencias' })
+}
+
 function notify() {
   listeners.forEach((listener) => listener())
 }

@@ -91,12 +91,16 @@ cart_status AS (
     WHERE c.units > 0 OR o.cart_id IS NOT NULL
 )"""
 
-# Ritmo por usuario: mediana de días entre pedidos (180 días); con 2 pedidos, el único intervalo acotado a [7, 30].
-_RHYTHM = f"""
+
+def _rhythm(cut: str = _AS_OF, until: str = "") -> str:
+    """Ritmo por usuario: mediana de días entre pedidos (180 días); con 2 pedidos, el único intervalo acotado a [7, 30].
+    `cut` es la fecha de corte en SQL (la de la fuente) y `until`, lo que se agrega a cada lectura de `app_orders` para
+    mirar otra fecha (`AND ts <= …`: lo pedido después no existía todavía)."""
+    return f"""
 user_orders AS (  -- por día con pedidos: dos pedidos del mismo carro (dos verticales) no son "ritmo 0"
     SELECT user_id, day AS ts, lag(day) OVER (PARTITION BY user_id ORDER BY day) AS prev
     FROM (SELECT DISTINCT user_id, date_trunc('day', ts) AS day FROM app_orders
-          WHERE source = %(source)s AND status = 'confirmado' AND ts > {_AS_OF} - interval '180 days') d
+          WHERE source = %(source)s AND status = 'confirmado' AND ts > {cut} - interval '180 days' {until}) d
 ),
 rhythm AS (
     SELECT user_id, count(*) + 1 AS orders,
@@ -106,17 +110,20 @@ rhythm AS (
 ),
 last_order AS (  -- compras, no pedidos: un carro dividido en dos verticales es una sola compra
     SELECT user_id, count(DISTINCT coalesce(cart_id, order_id)) AS orders, max(ts) AS last_ts
-    FROM app_orders WHERE source = %(source)s AND status = 'confirmado' GROUP BY user_id
+    FROM app_orders WHERE source = %(source)s AND status = 'confirmado' {until} GROUP BY user_id
 ),
 risk AS (
     SELECT l.user_id, l.orders, r.days AS rhythm,
-           extract(epoch FROM {_AS_OF} - l.last_ts) / 86400 AS since,
+           extract(epoch FROM {cut} - l.last_ts) / 86400 AS since,
            CASE WHEN l.orders < 2 THEN 'sin_segunda_compra'
-                WHEN extract(epoch FROM {_AS_OF} - l.last_ts) / 86400 > greatest(3 * r.days, 45) THEN 'perdido'
-                WHEN extract(epoch FROM {_AS_OF} - l.last_ts) / 86400 > greatest(2 * r.days, 21) THEN 'en_riesgo'
+                WHEN extract(epoch FROM {cut} - l.last_ts) / 86400 > greatest(3 * r.days, 45) THEN 'perdido'
+                WHEN extract(epoch FROM {cut} - l.last_ts) / 86400 > greatest(2 * r.days, 21) THEN 'en_riesgo'
                 ELSE 'activo' END AS status
     FROM last_order l LEFT JOIN rhythm r USING (user_id)
 )"""
+
+
+_RHYTHM = _rhythm()
 
 # Un `order_placed` (el evento `e`) cuyo pedido se canceló no cuenta: el evento queda, pero el pedido no ocurrió
 # (migración 050). Los simulados no traen `payload.order_id` ni se cancelan, así que siguen contando.
@@ -849,7 +856,7 @@ def presence(conn: Connection, source: str = "synthetic") -> dict:
 # La pregunta in-app de la H3 (migración 057): cada evento con su pregunta, su respuesta, su motivo, si Mochi estaba a
 # la vista (`payload.mochi`, de la app; nulo si no lo dice) y la variante de `ofertas_control` que la persona ya tenía.
 _SURVEY_EVENTS = """
-    SELECT e.user_id, e.type, e.payload ->> 'question' AS question, e.payload ->> 'answer' AS answer,
+    SELECT e.user_id, e.ts, e.type, e.payload ->> 'question' AS question, e.payload ->> 'answer' AS answer,
            e.payload ->> 'trigger' AS trigger,
            CASE WHEN jsonb_typeof(e.payload -> 'mochi') = 'boolean' THEN (e.payload ->> 'mochi')::boolean END AS mochi,
            a.variant
@@ -1115,6 +1122,7 @@ def experiment_results(conn: Connection, source: str = "synthetic") -> dict:
             item["satisfaccion"] = _satisfaction(encuesta["por_grupo"], ratings, variants)
             item["poblacion"] = _population(conn, source, encuesta, ratings)
             item["ritmo"] = _assignment_pace(conn, params, e["variants"])
+            item["ritmo_encuesta"] = _survey_pace(conn, params, e["variants"])
         result.append(item)
     return {"experimentos": result}
 
@@ -1123,26 +1131,20 @@ PACE_WEEKS = 4  # semanas completas con que se promedia el ritmo de asignación
 MIN_PACE_WEEKS = 2  # con menos, no hay ritmo que decir
 
 
-def _assignment_pace(conn: Connection, params: dict, variants: list[str]) -> dict:
-    """A qué ritmo entran personas a cada grupo de `ofertas_control`: las asignadas por semana (lunes, solo semanas
-    completas al corte de la fuente, con las semanas sin nadie en 0) y su promedio por semana en las últimas PACE_WEEKS.
-    Con eso el panel estima cuánto falta para llegar al mínimo de cada hipótesis. `por_semana` es None con menos de
-    MIN_PACE_WEEKS semanas completas desde la primera asignación."""
+def _weekly_pace(conn: Connection, params: dict, variants: list[str], counted: str) -> dict:
+    """Lo que entra por semana a cada grupo (`counted`: un SELECT de `week`, `variant` y `n`, con `week` el lunes de la
+    semana y solo semanas completas al corte de la fuente) desde la primera semana con algo, con las semanas sin nada
+    en 0, y su promedio por semana en las últimas PACE_WEEKS. `por_semana` es None con menos de MIN_PACE_WEEKS semanas
+    completas."""
     rows = _rows(
         conn,
-        f"""WITH weeks AS (
-               SELECT date_trunc('week', assigned_at) AS week, variant, count(*) AS personas
-               FROM experiment_assignments
-               WHERE source = %(source)s AND experiment_id = %(offers)s
-                 AND date_trunc('week', assigned_at) < date_trunc('week', {_AS_OF})
-               GROUP BY 1, 2
-           ),
+        f"""WITH weeks AS ({counted}),
            span AS (
                SELECT generate_series(min(week), date_trunc('week', {_AS_OF}) - interval '7 days', interval '7 days')
                           AS week
                FROM weeks
            )
-           SELECT s.week::date AS semana, w.variant, w.personas
+           SELECT s.week::date AS semana, w.variant, w.n
            FROM span s LEFT JOIN weeks w USING (week) ORDER BY s.week""",
         params,
     )
@@ -1150,7 +1152,7 @@ def _assignment_pace(conn: Connection, params: dict, variants: list[str]) -> dic
     for row in rows:
         week = weeks.setdefault(row["semana"], {"semana": row["semana"], **dict.fromkeys(variants, 0)})
         if row["variant"] in week:
-            week[row["variant"]] = row["personas"]
+            week[row["variant"]] = row["n"]
     series = list(weeks.values())
     recent = series[-PACE_WEEKS:]
     pace = (
@@ -1159,6 +1161,37 @@ def _assignment_pace(conn: Connection, params: dict, variants: list[str]) -> dic
         else None
     )
     return {"semanas": series, "por_semana": pace, "semanas_promedio": PACE_WEEKS}
+
+
+def _assignment_pace(conn: Connection, params: dict, variants: list[str]) -> dict:
+    """A qué ritmo entran personas a cada grupo de `ofertas_control`: las asignadas por semana (`_weekly_pace`). Con eso
+    el panel estima cuánto falta para llegar al mínimo de la H1 y la H2."""
+    return _weekly_pace(
+        conn,
+        params,
+        variants,
+        f"""SELECT date_trunc('week', assigned_at) AS week, variant, count(*) AS n
+            FROM experiment_assignments
+            WHERE source = %(source)s AND experiment_id = %(offers)s
+              AND date_trunc('week', assigned_at) < date_trunc('week', {_AS_OF})
+            GROUP BY 1, 2""",
+    )
+
+
+def _survey_pace(conn: Connection, params: dict, variants: list[str]) -> dict:
+    """A qué ritmo llegan respuestas a la p1 de cada grupo de `ofertas_control` (la H3 se lee desde MIN_SURVEY_ANSWERS
+    por grupo): las respondidas por semana (`_weekly_pace`), con la variante que la persona ya tenía al responder, las
+    mismas que cuenta `encuesta`."""
+    return _weekly_pace(
+        conn,
+        {**params, "types": ["survey_answer"]},
+        variants,
+        f"""SELECT date_trunc('week', ts) AS week, variant, count(*) AS n
+            FROM ({_SURVEY_EVENTS}) s
+            WHERE question = 'p1' AND variant IS NOT NULL
+              AND date_trunc('week', ts) < date_trunc('week', {_AS_OF})
+            GROUP BY 1, 2""",
+    )
 
 
 def _offers_retention(conn: Connection, params: dict, variants: list[dict]) -> dict:
@@ -1988,35 +2021,36 @@ AUDIENCES = (
 )
 
 
-def audiences(conn: Connection, source: str = "synthetic") -> dict:
-    """Audiencias para campañas: grupos de personas que cumplen una regla (`AUDIENCES`), con cuántas son y cuántas
-    aceptan avisos (`consent_notifications`: fuera de la app solo se les escribe a ellas). Una persona puede estar en
-    más de una. Ninguna regla usa un concepto sensible ni se define por Farmacia o Licores; el concepto de "en riesgo"
-    es uno que Mochi puede ofrecer (`guards.is_offerable`: sin alcohol, +18, bebé ni salud) y pedido fuera de las
-    verticales bloqueadas. Una audiencia con menos de MIN_GROUP_USERS personas no sale (privacidad) y cuenta en
-    `bajo_el_minimo`. Solo pedidos confirmados."""
-    _check(source)
-    sizes = _rows(
-        conn,
-        f"""WITH {_RHYTHM.strip()},
+AUDIENCE_CHANGE_DAYS = 28  # el cambio de tamaño de cada audiencia: contra 4 semanas antes
+_BEFORE = f"({_AS_OF} - interval '{AUDIENCE_CHANGE_DAYS} days')"
+
+
+def _audience_members(cut: str = _AS_OF, past: bool = False) -> str:
+    """Las personas de cada audiencia (`AUDIENCES`) a la fecha de corte `cut` (SQL; por defecto, la de la fuente):
+    `WITH … members(id, user_id)`. Con `past`, una fecha anterior: lo pedido después del corte no cuenta. Ninguna
+    regla usa un concepto sensible ni se define por Farmacia o Licores; el concepto de "en riesgo" es uno que Mochi
+    puede ofrecer (`guards.is_offerable`: sin alcohol, +18, bebé ni salud) y pedido fuera de las verticales bloqueadas.
+    Solo pedidos confirmados. Pide `source`, `blocked` y `offerable` (`_audience_params`)."""
+    until, until_o = (f"AND ts <= {cut}", f"AND o.ts <= {cut}") if past else ("", "")
+    return f"""WITH {_rhythm(cut, until).strip()},
             recent AS (  -- lo pedido en los últimos {MULTI_VERTICAL_DAYS} días, por persona
                 SELECT user_id, count(DISTINCT vertical) AS verticales, min(vertical) AS unica,
                        count(DISTINCT coalesce(cart_id, order_id))
-                           FILTER (WHERE ts > {_AS_OF} - interval '{ACTIVE_DAYS} days') AS compras_30d,
+                           FILTER (WHERE ts > {cut} - interval '{ACTIVE_DAYS} days') AS compras_30d,
                        count(*) FILTER (WHERE vertical = 'turbo') AS pedidos_turbo
                 FROM app_orders
                 WHERE source = %(source)s AND status = 'confirmado'
-                  AND ts > {_AS_OF} - interval '{MULTI_VERTICAL_DAYS} days'
+                  AND ts > {cut} - interval '{MULTI_VERTICAL_DAYS} days' {until}
                 GROUP BY user_id
             ),
             restaurants AS (
                 SELECT DISTINCT user_id FROM app_orders
-                WHERE source = %(source)s AND status = 'confirmado' AND vertical = 'restaurantes'
+                WHERE source = %(source)s AND status = 'confirmado' AND vertical = 'restaurantes' {until}
             ),
             with_concept AS (  -- algo que Mochi puede volver a ofrecer: pasa las guardias, fuera de lo bloqueado
                 SELECT DISTINCT o.user_id FROM app_order_lines l JOIN app_orders o USING (order_id)
                 WHERE o.source = %(source)s AND o.status = 'confirmado'
-                  AND l.concept_id = ANY(%(offerable)s) AND o.vertical <> ALL(%(blocked)s)
+                  AND l.concept_id = ANY(%(offerable)s) AND o.vertical <> ALL(%(blocked)s) {until_o}
             ),
             members AS (
                 SELECT 'solo-restaurantes-con-habito' AS id, user_id FROM recent
@@ -2033,28 +2067,94 @@ def audiences(conn: Connection, source: str = "synthetic") -> dict:
                 WHERE u.pro AND r.verticales = 1 AND r.unica <> ALL(%(blocked)s)
                 UNION ALL
                 SELECT 'combina-3-o-mas', user_id FROM recent WHERE verticales >= 3
-            )
+            )"""
+
+
+def _audience_params(source: str) -> dict:
+    return {
+        "source": source,
+        "blocked": list(OFFER_BLOCKED_VERTICALS),
+        "offerable": [c.id for c in load_taxonomy().concepts.values() if is_offerable(c)],
+    }
+
+
+def _audience_sizes(conn: Connection, source: str) -> dict[str, dict]:
+    """Por audiencia: sus personas hoy, cuántas aceptan avisos y sus personas AUDIENCE_CHANGE_DAYS días antes (con lo
+    pedido hasta entonces y el corte movido; ser Pro y aceptar avisos son de hoy: no tienen historia)."""
+    params = _audience_params(source)
+    now = _rows(
+        conn,
+        f"""{_audience_members()}
             SELECT m.id, count(*) AS personas, count(*) FILTER (WHERE u.consent_notifications) AS aceptan_avisos
             FROM members m JOIN app_users u ON u.user_id = m.user_id AND u.source = %(source)s
             GROUP BY m.id""",
-        {
-            "source": source,
-            "blocked": list(OFFER_BLOCKED_VERTICALS),
-            "offerable": [c.id for c in load_taxonomy().concepts.values() if is_offerable(c)],
-        },
+        params,
     )
-    by_id = {row["id"]: row for row in sizes}
-    shown = [
-        {
-            **audience,
-            "personas": by_id[audience["id"]]["personas"],
-            "aceptan_avisos": by_id[audience["id"]]["aceptan_avisos"],
-        }
-        for audience in AUDIENCES
-        if by_id.get(audience["id"], {}).get("personas", 0) >= MIN_GROUP_USERS
-    ]
+    before = _rows(
+        conn,
+        f"""{_audience_members(_BEFORE, past=True)}
+            SELECT m.id, count(*) AS personas
+            FROM members m JOIN app_users u ON u.user_id = m.user_id AND u.source = %(source)s
+            GROUP BY m.id""",
+        params,
+    )
+    sizes = {row["id"]: {**row, "antes": 0} for row in now}
+    for row in before:
+        sizes.setdefault(row["id"], {"id": row["id"], "personas": 0, "aceptan_avisos": 0})["antes"] = row["personas"]
+    return sizes
+
+
+def audiences(conn: Connection, source: str = "synthetic") -> dict:
+    """Audiencias para campañas: grupos de personas que cumplen una regla (`AUDIENCES`, `_audience_members`), con
+    cuántas son y cuántas aceptan avisos (`consent_notifications`: fuera de la app solo se les escribe a ellas). Una
+    persona puede estar en más de una. Una audiencia con menos de MIN_GROUP_USERS personas no sale (privacidad) y cuenta
+    en `bajo_el_minimo`.
+
+    `personas_antes` son las de AUDIENCE_CHANGE_DAYS días antes del corte, con la misma regla y lo pedido hasta
+    entonces, y `cambio_personas_pct` su cambio en %. Los dos van en None si entonces no llegaba al mínimo: su tamaño
+    diría demasiado de pocas personas (y, sin historia que llegue tan atrás, es así)."""
+    _check(source)
+    sizes = _audience_sizes(conn, source)
+    shown = []
+    for audience in AUDIENCES:
+        size = sizes.get(audience["id"])
+        if not size or size["personas"] < MIN_GROUP_USERS:
+            continue
+        before = size["antes"] if size["antes"] >= MIN_GROUP_USERS else None
+        shown.append(
+            {
+                **audience,
+                "personas": size["personas"],
+                "aceptan_avisos": size["aceptan_avisos"],
+                "personas_antes": before,
+                "cambio_personas_pct": round(100 * (size["personas"] - before) / before) if before else None,
+            }
+        )
     return {
         "audiencias": shown,
         "bajo_el_minimo": len(AUDIENCES) - len(shown),
         "minimo_personas": MIN_GROUP_USERS,
+        "dias_cambio": AUDIENCE_CHANGE_DAYS,
     }
+
+
+def audience_members(conn: Connection, audience_id: str, source: str = "synthetic") -> dict | None:
+    """Las personas de una audiencia, para llevarla a una campaña: su id seudónimo (el mismo de `at_risk`) y si acepta
+    avisos (fuera de la app solo se les escribe a ellas), ordenadas por id. None si la audiencia no existe o no llega a
+    MIN_GROUP_USERS personas: una que no se muestra tampoco se entrega."""
+    _check(source)
+    audience = next((a for a in AUDIENCES if a["id"] == audience_id), None)
+    if audience is None:
+        return None
+    people = _rows(
+        conn,
+        f"""{_audience_members()}
+            SELECT 'u-' || left(md5(u.user_id), 8) AS usuario, u.consent_notifications AS acepta_avisos
+            FROM members m JOIN app_users u ON u.user_id = m.user_id AND u.source = %(source)s
+            WHERE m.id = %(audience)s
+            ORDER BY 1""",
+        {**_audience_params(source), "audience": audience_id},
+    )
+    if len(people) < MIN_GROUP_USERS:
+        return None
+    return {"id": audience["id"], "nombre": audience["nombre"], "personas": people}

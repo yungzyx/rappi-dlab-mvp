@@ -269,6 +269,28 @@ describe('Las tres hipótesis', () => {
     expect(adoption.textContent).toContain('Lo silenciaron por hoy')
   })
 
+  test('under its minimum, the H3 says how many weeks of answers are left at the current pace', async () => {
+    const encuesta = {
+      variantes: [
+        { variante: 'tratamiento', respondidas: 60, si: 42, si_pct: 70 },
+        { variante: 'control', respondidas: 25, si: 15, si_pct: 60 },
+      ],
+      diferencia: { puntos: 10, ic95: null, p_una_cola: null },
+      minimo: 100,
+      concluyente: false,
+    }
+    const ritmo_encuesta = { semanas: [], por_semana: { tratamiento: 20, control: 10 }, semanas_promedio: 4 }
+    serveFixturesWith(
+      respond('prototype', offersControl({ people: [40, 35], controlPct: 50, encuesta, ritmo_encuesta })),
+    )
+    await renderWithData(<ExperimentsView source="prototype" />)
+
+    // Al control le faltan 75 respuestas a 10 por semana: manda sobre las 2 del tratamiento.
+    expect(card(/Encontraste/).textContent).toContain(
+      '60 y 25 respuestas; se lee desde 100 por grupo, con la prueba a una cola. Al ritmo de respuestas de hoy, faltan al menos 8 semanas.',
+    )
+  })
+
   test('once conclusive, the prototype reads each card with its interval and the one-sided test', async () => {
     serveFixturesWith(respond('prototype', offersControl({ people: [40, 35], controlPct: 50, conclusive: true })))
     await renderWithData(<ExperimentsView source="prototype" />)
