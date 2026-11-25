@@ -32,7 +32,7 @@ from ..agent.rappi_agent import PROTOTYPE_VERTICALS, Context
 from ..agent.tools import VERTICAL_LABELS, Suggestion, search_products, suggest_complement
 from ..analytics import queries
 from ..catalog.restaurants import search_restaurants
-from ..catalog.stores import search_stores
+from ..catalog.stores import line_stores, search_stores
 from ..concepts.taxonomy import load_taxonomy
 from ..db import pending_migrations
 from ..embeddings.base import TextEmbedder
@@ -381,6 +381,8 @@ class OrderIn(Clean):
     scheduled_for: datetime | None = None
     # Tipo de entrega (sus montos son supuestos de la app): básica, sin prisa o prioritaria.
     delivery_type: Literal["basica", "sin_prisa", "prioritaria"] | None = None
+    # La clave del pedido en la app: un reenvío con la misma devuelve el pedido ya guardado (migración 060).
+    client_order_id: str | None = Field(default=None, pattern=r"^[A-Za-z0-9._-]{1,64}$")
 
     @field_validator("scheduled_for")
     @classmethod
@@ -937,20 +939,21 @@ def post_order(
 ) -> dict:
     """Guarda el pedido con el precio del catálogo en la tienda de cada línea (las que no tienen precio vigente quedan
     fuera y se cuentan en `lineas_omitidas`) y, ya respondido, recalcula los segmentos y el motor (afinidad y recompra)
-    de esa persona (solo lo suyo, con otra conexión del pool, ya devuelta la del pedido)."""
+    de esa persona (solo lo suyo, con otra conexión del pool, ya devuelta la del pedido). Un reenvío con la misma
+    `client_order_id` devuelve el pedido ya guardado."""
     owner_of_body(request, body.user_id)
+    if body.client_order_id and (saved := events.saved_order(conn, body.user_id, body.client_order_id)):
+        return {"order_id": saved[0], "lineas_omitidas": max(len(body.lines) - saved[1], 0)}
     vertical = backend_vertical(body.vertical)
     if vertical is None:  # un pedido es de una tienda: sin vertical del catálogo no se puede guardar
         raise HTTPException(400, f"Vertical desconocido: {body.vertical}")
-    # Un pedido es de una tienda: un carro con dos restaurantes son dos pedidos (la app manda uno por tienda).
-    if len({line.store_id for line in body.lines if line.store_id is not None}) > 1:
-        raise HTTPException(400, "Un pedido es de una sola tienda")
     if body.autopedido and body.scheduled_for is not None:  # "Pedir por mí" pide para ahora, nunca programa
         raise HTTPException(400, "Un pedido de Mochi no se programa")
     if body.scheduled_for is not None and not _schedulable(body.scheduled_for):
         raise HTTPException(400, "Solo se programa para hoy o mañana")
+    ordered = _one_store([line.model_dump() for line in body.lines], conn)
     placed = _auto_order(conn, body) if body.autopedido else None
-    lines, skipped = events.catalog_prices(conn, [line.model_dump() for line in body.lines])
+    lines, skipped = events.catalog_prices(conn, ordered)
     if not lines:  # sin decir cuál: la respuesta no sirve para sondear el catálogo
         raise HTTPException(400, "Producto no disponible")
     try:
@@ -967,6 +970,7 @@ def post_order(
             placed=placed,
             scheduled_for=body.scheduled_for,
             delivery_type=body.delivery_type,
+            client_order_id=body.client_order_id,
         )
     except ValueError as exc:  # un usuario de otra fuente (simulado)
         raise rejected(exc, body.user_id) from exc
@@ -976,6 +980,16 @@ def post_order(
     background.add_task(recalculate_user_segments, connector, body.user_id)
     background.add_task(refresh_user, connector, body.user_id)
     return {"order_id": order_id, "lineas_omitidas": skipped}
+
+
+def _one_store(lines: list[dict], conn: Connection) -> list[dict]:
+    """Un pedido es de una tienda: un carro con dos restaurantes son dos pedidos (la app manda uno por tienda). La
+    tienda de cada línea la dice el servidor (`line_stores`: la que trae o, en un plato, su restaurante), no solo la
+    que manda el cliente; con dos, un 400. Cada plato queda con su restaurante."""
+    stores = line_stores(conn, lines)
+    if len(set(stores) - {None}) > 1:
+        raise HTTPException(400, "Un pedido es de una sola tienda")
+    return [{**line, "store_id": store} for line, store in zip(lines, stores, strict=True)]
 
 
 SCHEDULE_AHEAD = timedelta(days=2)  # la app ofrece franjas de hoy y de mañana

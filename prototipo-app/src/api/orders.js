@@ -1,6 +1,7 @@
 // Pedidos del prototipo → rappi-ia: un pedido por tienda (como en Rappi: dos restaurantes son dos pedidos).
 import { parsePrice } from '../state/CartContext'
 import { placementFields } from './attribution'
+import { randomUuid } from './user'
 
 // Los pedidos que van en camino al servidor (`POST /orders` y lo que lo precede): "Olvidar" los espera antes de borrar el
 // perfil, porque uno que llegue después lo recrearía.
@@ -106,7 +107,9 @@ export function basketsOf(items) {
  * catálogo sigue en el carrito de la demo, pero no se envía: la API rechazaría el pedido completo. En "Rappi hoy"
  * (`mode: 'actual'`) la app no aprende: el pedido va marcado y sin conceptos, como los eventos de ese modo. `pro`: si la
  * persona es Rappi Pro en la app (el backend lo guarda en la persona); sin él, el pedido no lo dice. `scheduledFor` (ms):
- * el inicio de la franja si se programó; `deliveryType`: basica, sin_prisa o prioritaria (sin él, un retiro).
+ * el inicio de la franja si se programó; `deliveryType`: basica, sin_prisa o prioritaria (sin él, un retiro). Cada
+ * pedido lleva su clave (`client_order_id`): si la respuesta se pierde y el mismo pedido se reenvía, la API devuelve el
+ * que ya guardó en vez de contar otra compra.
  */
 export function buildOrders(items, { userId, sessionId, cartId, mode = 'propuesta', pro, scheduledFor, deliveryType }) {
   const orders = []
@@ -117,6 +120,7 @@ export function buildOrders(items, { userId, sessionId, cartId, mode = 'propuest
         user_id: userId,
         session_id: sessionId,
         cart_id: cartId,
+        client_order_id: randomUuid(),
         vertical: basket.vertical,
         mode,
         ...(pro == null ? {} : { pro }),

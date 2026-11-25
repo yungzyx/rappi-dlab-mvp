@@ -42,13 +42,14 @@ def client(db):
     api.app.dependency_overrides.clear()
 
 
-def _order(client, user, cart, mode=None, lines=None, vertical="grocery", **line):
+def _order(client, user, cart, mode=None, lines=None, vertical="grocery", key=None, **line):
     body = {
         "user_id": user,
         "session_id": f"s-{cart}",
         "cart_id": cart,
         "vertical": vertical,
         "lines": lines or [{"entity_type": "catalog_item", "entity_id": CHIPS, "concept_id": "snacks-salados", **line}],
+        **({"client_order_id": key} if key is not None else {}),
     }
     return client.post("/orders", json=body if mode is None else {**body, "mode": mode})
 
@@ -115,6 +116,53 @@ def test_an_order_is_one_store(client, db):
     assert mixed.status_code == 400 and mixed.json() == {"detail": "Un pedido es de una sola tienda"}
     assert db.execute("SELECT count(*) FROM app_orders").fetchone()[0] == 0
     assert _order(client, "u1", "c1", lines=[{**item, "store_id": 9102}, item]).status_code == 200
+
+
+def test_two_restaurants_without_store_are_not_one_order(client, db):
+    """La tienda de un plato la dice el servidor (su restaurante), no solo el `store_id` que manda el cliente: dos
+    platos de dos restaurantes sin tienda son un 400, como con tienda, y no un pedido cotizado en dos lugares."""
+    dishes = [client.get(f"/catalog/products/menu_item/{dish}").json() for dish in (PIZZA, "98010")]
+    assert dishes[0]["store_id"] != dishes[1]["store_id"]
+    lines = [{"entity_type": "menu_item", "entity_id": dish["entity_id"]} for dish in dishes]
+
+    for sent in (lines, [lines[0], {**lines[1], "store_id": dishes[1]["store_id"]}]):
+        mixed = _order(client, "u1", "c1", vertical="restaurants", lines=sent)
+        assert mixed.status_code == 400 and mixed.json() == {"detail": "Un pedido es de una sola tienda"}
+    assert db.execute("SELECT count(*) FROM app_orders").fetchone()[0] == 0
+
+    # Uno solo, sin tienda, sí: queda guardado con su restaurante.
+    assert _order(client, "u1", "c1", vertical="restaurants", lines=lines[:1]).status_code == 200
+    assert db.execute("SELECT store_id FROM app_order_lines").fetchone() == (dishes[0]["store_id"],)
+
+
+def test_a_resent_order_is_saved_once(client, db):
+    """La respuesta se perdió en el camino y la app reenvía el mismo pedido (la misma `client_order_id`): devuelve el
+    que ya estaba, sin otra compra ni otro `order_placed`. Otra clave, u otra persona con la misma, es otro pedido."""
+    first = _order(client, "u1", "c1", key="k-1")
+    again = _order(client, "u1", "c1", key="k-1")
+    assert first.status_code == again.status_code == 200
+    assert again.json() == first.json()
+    assert db.execute("SELECT count(*) FROM app_orders").fetchone()[0] == 1
+    assert db.execute("SELECT count(*) FROM app_events WHERE type = 'order_placed'").fetchone()[0] == 1
+
+    assert _order(client, "u1", "c1", key="k-2").json()["order_id"] != first.json()["order_id"]
+    assert _order(client, "u2", "c1", key="k-1").json()["order_id"] != first.json()["order_id"]
+    assert db.execute("SELECT count(*) FROM app_orders").fetchone()[0] == 3
+
+
+def test_a_resend_that_races_the_first_order_does_not_save_another(client, db):
+    """Si el reenvío pasa la revisión antes de que el primero quede guardado, el INSERT no crea otro pedido."""
+    line = {"entity_type": "catalog_item", "entity_id": CHIPS, "store_id": 9101, "unit_price": 1}
+    first = events.record_order(db, "u1", "s", "c1", "supermercado", [line], client_order_id="k-1")
+    again = events.record_order(db, "u1", "s", "c1", "supermercado", [line], client_order_id="k-1")
+    assert again == first
+    assert db.execute("SELECT count(*) FROM app_order_lines").fetchone()[0] == 1
+    assert db.execute("SELECT count(*) FROM app_events WHERE type = 'order_placed'").fetchone()[0] == 1
+
+
+@pytest.mark.parametrize("key", ["", "con espacio", "x" * 65])
+def test_an_invalid_order_key_is_rejected(client, db, key):
+    assert _order(client, "u1", "c1", key=key).status_code == 422
 
 
 def test_two_restaurants_in_one_cart_are_two_orders(client, db):

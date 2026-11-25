@@ -174,6 +174,25 @@ test('order_cancelled cancela el pedido de su carro y su tienda (en los dos modo
   ])
 })
 
+test('una cancelación que llegó antes que su pedido lo deja cancelado; un reenvío con la misma clave no es otro', () => {
+  const cancel = { type: 'order_cancelled', cart_id: 'c-3', payload: { reason: 'ya_no', stage: 'antes_de_tienda' } }
+  call('POST', '/events', { user_id: 'u', events: [{ ...cancel, payload: { ...cancel.payload, store_id: 1 } }] })
+  const order = (store, key) => ({
+    user_id: 'u',
+    cart_id: 'c-3',
+    vertical: 'supermercado',
+    client_order_id: key,
+    lines: [{ entity_type: 'catalog_item', entity_id: '1', store_id: store }],
+  })
+  const first = call('POST', '/orders', order(1, 'k-1'))
+  expect(call('POST', '/orders', order(1, 'k-1')).body.order_id).toBe(first.body.order_id)
+  call('POST', '/orders', order(2, 'k-2'))
+  expect(readState().orders.map((o) => [o.client_order_id, o.status ?? 'confirmado'])).toEqual([
+    ['k-1', 'cancelado'],
+    ['k-2', 'confirmado'],
+  ])
+})
+
 test('/catalog/terms sin conexión: el envío de los restaurantes grabados y null en lo demás; un pedido es de una tienda', () => {
   const sample = {
     ...snapshot,

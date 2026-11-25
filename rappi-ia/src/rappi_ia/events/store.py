@@ -546,24 +546,43 @@ def record_order(
     placed: dict | None = None,
     scheduled_for: datetime | None = None,
     delivery_type: str | None = None,
+    client_order_id: str | None = None,
 ) -> str:
     """Pedido + líneas (producto o plato) + evento `order_placed`. Los precios de `lines` se guardan tal cual: la API
     los pone antes con `catalog_prices`. Un pedido en modo `actual` ("Rappi hoy") no entra al perfil. `pro`: si la
     persona es Rappi Pro según la app (`app_users.pro`); `None` no lo cambia. `placed`: el sobre del `order_placed`
     (`surface`, `origin`, `request_id`) y lo que suma a su payload (`payload`), como en un pedido que Mochi hizo solo
     (offers/autonomy.py). `scheduled_for`: el inicio de la franja si se programó; `delivery_type`: basica, sin_prisa o
-    prioritaria. Cada línea puede traer su preferencia de sustitución (`substitution`)."""
+    prioritaria. Cada línea puede traer su preferencia de sustitución (`substitution`). `client_order_id`: la clave
+    del pedido en la app; si esa persona ya tiene un pedido con ella (un reenvío), devuelve ese y no guarda nada. Una
+    cancelación que llegó antes que el pedido (`_EARLIER_CANCELLATION`) lo deja cancelado."""
     order_id = f"ord-{uuid.uuid4().hex[:12]}"
     total = sum(float(line.get("unit_price") or 0) * int(line.get("qty", 1)) for line in lines)
     ensure_user(conn, user_id, source)
     if pro is not None:
         conn.execute("UPDATE app_users SET pro = %s WHERE user_id = %s", (pro, user_id))
-    conn.execute(
+    # Dos envíos a la vez con la misma clave: el segundo espera al primero y no inserta nada.
+    if not conn.execute(
         """INSERT INTO app_orders (order_id, user_id, session_id, cart_id, ts, vertical, total, source, mode,
-                                   scheduled_for, delivery_type)
-           VALUES (%s, %s, %s, %s, coalesce(%s, now()), %s, %s, %s, %s, %s, %s)""",
-        (order_id, user_id, session_id, cart_id, ts, vertical, total, source, mode, scheduled_for, delivery_type),
-    )
+                                   scheduled_for, delivery_type, client_order_id)
+           VALUES (%s, %s, %s, %s, coalesce(%s, now()), %s, %s, %s, %s, %s, %s, %s)
+           ON CONFLICT (user_id, client_order_id) DO NOTHING RETURNING order_id""",
+        (
+            order_id,
+            user_id,
+            session_id,
+            cart_id,
+            ts,
+            vertical,
+            total,
+            source,
+            mode,
+            scheduled_for,
+            delivery_type,
+            client_order_id,
+        ),
+    ).fetchone():
+        return saved_order(conn, user_id, client_order_id)[0]
     known = _known_concepts(conn)
     with conn.cursor() as cur:
         cur.executemany(
@@ -604,7 +623,34 @@ def record_order(
         ],
         source,
     )
+    conn.execute(_EARLIER_CANCELLATION, {"order": order_id, "user": user_id, "cart": cart_id, "vertical": vertical})
     return order_id
+
+
+# Una cancelación que llegó antes que su pedido (la app abre el seguimiento mientras el pedido va en camino) no tuvo
+# qué cancelar, pero quedó en `app_events`: el pedido se guarda cancelado. Es `_ORDER_OF_EVENT` al revés: la del carro
+# del pedido con una de sus tiendas o, sin tienda, con su vertical o sin vertical. La hora no queda antes del pedido.
+_EARLIER_CANCELLATION = """
+UPDATE app_orders o
+SET status = 'cancelado', cancelled_at = greatest(c.ts, o.ts), cancel_reason = c.payload ->> 'reason'
+FROM (SELECT e.ts, e.payload FROM app_events e
+      WHERE e.user_id = %(user)s AND e.cart_id = %(cart)s AND e.type = 'order_cancelled'
+        AND CASE WHEN e.payload ->> 'store_id' IS NOT NULL
+                 THEN EXISTS (SELECT 1 FROM app_order_lines l
+                              WHERE l.order_id = %(order)s AND l.store_id = (e.payload ->> 'store_id')::bigint)
+                 ELSE e.vertical IS NULL OR e.vertical = %(vertical)s END
+      ORDER BY e.ts LIMIT 1) c
+WHERE o.order_id = %(order)s"""
+
+
+def saved_order(conn: Connection, user_id: str, client_order_id: str) -> tuple[str, int] | None:
+    """El pedido que esa persona ya guardó con esa clave de la app (`client_order_id`) y cuántas líneas guardó, o
+    None."""
+    return conn.execute(
+        """SELECT o.order_id, (SELECT count(*) FROM app_order_lines l WHERE l.order_id = o.order_id)
+           FROM app_orders o WHERE o.user_id = %s AND o.client_order_id = %s""",
+        (user_id, client_order_id),
+    ).fetchone()
 
 
 def catalog_prices(conn: Connection, lines: list[dict]) -> tuple[list[dict], int]:

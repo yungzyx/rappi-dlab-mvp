@@ -276,6 +276,35 @@ def test_a_slot_without_zone_is_utc_whatever_the_zone_of_the_session(client, db)
     assert db.execute("SELECT scheduled_for FROM app_orders").fetchone() == (slot,)
 
 
+def test_a_cancellation_that_arrives_before_its_order_cancels_it(client, db):
+    """La app abre el seguimiento mientras el pedido va en camino: si la cancelación llega primero, no tiene qué
+    cancelar, pero el pedido se guarda cancelado (y la hora de cancelar no queda antes del pedido). Una de otra tienda o
+    de otro carro no lo toca."""
+    assert cancel(client, "c-p", reason="demora", store_id=TURBO_CENTRO).status_code == 200
+    assert cancel(client, "c-otro", store_id=SUPER_CENTRO).status_code == 200
+    assert client.post("/orders", json=order_body()).status_code == 200
+    assert statuses(db, "c-p") == {"supermercado": "confirmado"}
+
+    assert cancel(client, "c-q", reason="demora", store_id=SUPER_CENTRO).status_code == 200
+    assert client.post("/orders", json={**order_body(), "cart_id": "c-q"}).status_code == 200
+
+    assert statuses(db, "c-q") == {"supermercado": "cancelado"}
+    reason, cancelled, placed = db.execute(
+        "SELECT cancel_reason, cancelled_at, ts FROM app_orders WHERE cart_id = 'c-q'"
+    ).fetchone()
+    assert reason == "demora" and cancelled >= placed
+
+
+def test_a_cancellation_without_store_before_its_order_goes_by_vertical(client, db):
+    cancel(client, "c-p", vertical="turbo")
+    assert client.post("/orders", json=order_body()).status_code == 200
+    assert statuses(db, "c-p") == {"supermercado": "confirmado"}
+
+    cancel(client, "c-q", vertical="supermercado")
+    assert client.post("/orders", json={**order_body(), "cart_id": "c-q"}).status_code == 200
+    assert statuses(db, "c-q") == {"supermercado": "cancelado"}
+
+
 def test_an_order_for_now_has_no_slot(client, db):
     assert client.post("/orders", json=order_body()).status_code == 200
     assert db.execute("SELECT scheduled_for, delivery_type FROM app_orders").fetchone() == (None, None)

@@ -334,6 +334,32 @@ def line_prices(conn: Connection, lines: list[dict]) -> list[float | None]:
     ]
 
 
+def line_stores(conn: Connection, lines: list[dict]) -> list[int | None]:
+    """La tienda de cada línea de un pedido, en su orden: la que trae (`store_id`) o, en un plato sin tienda, su
+    restaurante (un plato es de uno solo), con una sola consulta. Un producto del catálogo sin tienda, o un plato que no
+    existe, da `None`."""
+    dishes = [_dish_without_store(line) for line in lines]
+    wanted = [dish for dish in dishes if dish is not None]
+    restaurant = (
+        dict(conn.execute("SELECT item_id, store_id FROM menu_items WHERE item_id = ANY(%s)", (wanted,)).fetchall())
+        if wanted
+        else {}
+    )
+    return [
+        line.get("store_id") if dish is None else restaurant.get(dish) for line, dish in zip(lines, dishes, strict=True)
+    ]
+
+
+def _dish_without_store(line: dict) -> int | None:
+    """El id de un plato que llega sin tienda, o None (no es un plato, trae tienda o el id no es un número)."""
+    entity_id = line["entity_id"]
+    if line["entity_type"] != "menu_item" or line.get("store_id") is not None:
+        return None
+    if not (entity_id.isascii() and entity_id.isdigit()) or int(entity_id) > BIGINT_MAX:
+        return None
+    return int(entity_id)
+
+
 def vertical_stores(conn: Connection, vertical: str, limit: int = 30) -> list[dict]:
     """Una tarjeta por formato de tienda del vertical, solo de la ciudad de la demo (`demo_places`), de más a menos
     ofertas vigentes; las cerradas en la descarga al final. Restaurantes no entra: sus locales no venden productos del
