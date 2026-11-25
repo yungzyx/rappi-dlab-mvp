@@ -8,21 +8,23 @@ const REAL =
   'Son reales la tabla de combinaciones de verticales que compartió Rappi (lleva el rótulo "Dato de Rappi") y los ' +
   'ítems del catálogo (muestra pública de rappi.cl).'
 
-// En una línea: la fuente elegida y que no es evidencia. La frase del prototipo va en su propio span: `make mvp-check`
-// la busca tal cual. Qué es real, a demanda.
+// En pocas palabras: la fuente elegida y que no es evidencia. La frase del prototipo va en su propio span: los tests la
+// buscan tal cual. Qué es real, a demanda.
 const MESSAGES = {
   synthetic: {
     text: (
       <>
-        <strong>Datos simulados:</strong> <span>muestran la mecánica del panel, no son evidencia</span>.
+        <strong>Datos simulados:</strong> <span>no son evidencia</span>
       </>
     ),
-    real: `${REAL} Usuarios, pedidos, búsquedas y ofertas los crea un generador con semilla.`,
+    real:
+      `Muestran la mecánica del panel. ${REAL} Usuarios, pedidos, búsquedas y ofertas los crea un generador con ` +
+      'semilla.',
   },
   prototype: {
     text: (
       <>
-        <strong>Datos del prototipo:</strong> <span>uso del MVP, pocas personas: no es evidencia</span>.
+        <strong>Datos del prototipo:</strong> <span>uso del MVP, pocas personas: no es evidencia</span>
       </>
     ),
     real:
@@ -32,38 +34,35 @@ const MESSAGES = {
 }
 
 /**
- * Aviso permanente de procedencia, fijo arriba del contenido (nunca se oculta): el único elemento ámbar de la página.
- * Mientras corre "Ver cómo funciona", una segunda fila dice que las cifras traen eventos de ejemplo.
+ * La procedencia de los datos, siempre a la vista bajo el título de la página: una etiqueta ámbar (el único ámbar de
+ * la página) y "¿Qué es real?". Mientras corre "Ver cómo funciona", una segunda etiqueta dice que las cifras traen
+ * eventos de ejemplo.
  */
-export function ProvenanceBanner({ source }) {
+export function ProvenanceChip({ source }) {
   const { text, real } = MESSAGES[source]
   return (
     <div className="provenance" role="note" aria-label="Procedencia de los datos">
-      <div className={`provenance-row provenance-row--${source}`}>
-        <div className="provenance-inner">
-          <Icon name="flask" />
-          <p>{text}</p>
-          <Help label="Qué es real" text="¿Qué es real?">
-            <p>{real}</p>
-          </Help>
-        </div>
-      </div>
+      <p className="provenance-chip">
+        <Icon name="flask" />
+        <span>{text}</span>
+      </p>
       {isDemoActive() && (
-        <div className="provenance-row provenance-row--demo">
-          <div className="provenance-inner">
-            <Icon name="flask" />
-            <p>
-              <strong>Demostración:</strong> las cifras traen eventos de ejemplo, no son datos reales.
-            </p>
-          </div>
-        </div>
+        <p className="provenance-chip">
+          <Icon name="flask" />
+          <span>
+            <strong>Demostración:</strong> las cifras traen eventos de ejemplo, no son datos reales.
+          </span>
+        </p>
       )}
+      <Help label="Qué es real" text="¿Qué es real?">
+        <p>{real}</p>
+      </Help>
     </div>
   )
 }
 
 /**
- * Los avisos de conexión, bajo la franja (no fijos): la foto sin conexión y, si alguna consulta cayó a los datos
+ * Los avisos de conexión, arriba del contenido (no fijos): la foto sin conexión y, si alguna consulta cayó a los datos
  * guardados, cuál y por qué. Con el prototipo sin la API (`prototypeOffline`), el único aviso de error de la página,
  * con su Reintentar.
  */

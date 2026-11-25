@@ -2,9 +2,8 @@
  * Armazón del panel. El scroll es del documento (la presentación lo desplaza con scrollBy y las capturas son de página
  * completa): lo fijo va con sticky.
  * Todo flota sobre el fondo de luz (`.app::before`): desde 1200 px, la barra lateral es un vidrio fijo separado de los
- * bordes (marca y tema, fuente, vistas) y, a su derecha, la franja de procedencia es una cápsula fija sobre el
- * contenido. Más angosto, la barra lateral se deshace (display: contents): la marca y la fuente arriba, las vistas como
- * tira de vidrio fija y la franja fija bajo ella.
+ * bordes (marca y tema, fuente, vistas). Más angosto, la barra lateral se deshace (display: contents): la marca y la
+ * fuente arriba y las vistas como tira de vidrio fija. La procedencia de los datos va bajo el título de cada página.
  */
 .app {
   position: relative;
@@ -262,11 +261,47 @@
   display: none;
 }
 
-/* ---------- Franja de procedencia (permanente y fija) y avisos de conexión: cápsulas de vidrio ---------- */
-.app-top {
-  position: sticky;
-  z-index: 20;
-  padding-top: 10px;
+/* ---------- Procedencia (bajo el título, siempre a la vista) y avisos de conexión ---------- */
+/* La etiqueta de procedencia: el único ámbar de la página, con borde punteado, ícono y texto (nunca solo por color) */
+.provenance {
+  position: relative;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px var(--space-2);
+  font-size: var(--text-xs);
+}
+
+.provenance-chip {
+  display: inline-flex;
+  align-items: flex-start;
+  gap: 6px;
+  padding: 3px 10px;
+  border: 1px dashed color-mix(in srgb, var(--sim-edge) 70%, transparent);
+  border-radius: 999px;
+  line-height: 1.45;
+  color: var(--sim-ink);
+  background: color-mix(in srgb, var(--sim-bg) 82%, transparent);
+}
+
+.provenance-chip svg {
+  flex: none;
+  width: 12px;
+  height: 12px;
+  margin-top: 3px;
+}
+
+.provenance-chip strong {
+  font-weight: 600;
+}
+
+.provenance .help-panel {
+  width: min(420px, 100%);
+}
+
+/* Los avisos de conexión: cápsulas de vidrio arriba del contenido */
+.notices {
+  padding-top: var(--space-3);
 }
 
 .provenance-row {
@@ -274,27 +309,15 @@
   margin-inline: auto;
   border: 1px solid var(--line);
   border-radius: 16px;
-  color: var(--ink);
+  color: var(--ink-2);
   background: var(--chrome);
   box-shadow: var(--glass-shadow);
   -webkit-backdrop-filter: var(--glass-blur);
   backdrop-filter: var(--glass-blur);
 }
 
-.provenance-row + .provenance-row,
-.app-top + .provenance-row {
+.provenance-row + .provenance-row {
   margin-top: var(--space-2);
-}
-
-.provenance-row--synthetic,
-.provenance-row--demo {
-  border: 1px dashed color-mix(in srgb, var(--sim-edge) 70%, transparent);
-  color: var(--sim-ink);
-  background: color-mix(in srgb, var(--sim-bg) 82%, transparent);
-}
-
-.provenance-row--offline {
-  color: var(--ink-2);
 }
 
 .provenance-inner {
@@ -328,18 +351,6 @@
 
 .provenance-inner .link-button {
   flex: none;
-}
-
-/* "¿Qué es real?": su panel se abre bajo la franja, alineado a la derecha */
-.provenance-inner .help {
-  flex: none;
-}
-
-.provenance-inner .help-panel {
-  right: 0;
-  left: auto;
-  width: min(420px, 100%);
-  color: var(--ink-2);
 }
 
 /* ---------- Contenido ---------- */
@@ -590,12 +601,8 @@
     text-overflow: ellipsis;
   }
 
-  .app-top {
-    top: 0;
-  }
-
   h2[id] {
-    scroll-margin-top: calc(var(--top-h, 46px) + 16px);
+    scroll-margin-top: var(--space-4);
   }
 }
 
@@ -656,10 +663,6 @@
     display: none;
   }
 
-  .app-top {
-    top: var(--nav-h);
-  }
-
   .provenance-inner {
     align-items: flex-start;
   }
@@ -673,7 +676,7 @@
   }
 
   h2[id] {
-    scroll-margin-top: calc(var(--nav-h) + var(--top-h, 58px) + 12px);
+    scroll-margin-top: calc(var(--nav-h) + 12px);
   }
 }
 

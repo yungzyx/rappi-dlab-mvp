@@ -1,7 +1,7 @@
 import { isDemoActive } from '../lib/api.js'
 import { Icon } from './Icon.jsx'
 
-// Procedencia de cada bloque. Lo simulado y lo del prototipo, un rótulo gris discreto (la franja fija de arriba ya dice
+// Procedencia de cada bloque. Lo simulado y lo del prototipo, un rótulo gris discreto (la etiqueta bajo el título ya dice
 // que no es evidencia); lo real, sólido: donde conviven, lo real es lo único que resalta. Nunca solo por color.
 // "Dato de Rappi" es la tabla de combinaciones que compartió Rappi (cohortes ene a jun 2026): real, pero agregada.
 const KINDS = {

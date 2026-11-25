@@ -2,7 +2,7 @@ import { AGENT_NAME } from './lib/agentName.js'
 import { lazy, Suspense, useEffect, useRef, useState } from 'react'
 import { Header } from './components/shell/Header.jsx'
 import { PageHeader } from './components/shell/PageHeader.jsx'
-import { ConnectionNotices, ProvenanceBanner } from './components/shell/ProvenanceBanner.jsx'
+import { ConnectionNotices } from './components/shell/ProvenanceBanner.jsx'
 import { SourceSwitch } from './components/shell/SourceSwitch.jsx'
 import { Tabs } from './components/shell/Tabs.jsx'
 import { API_URL, refreshSource, retryConnection, SNAPSHOT_INFO } from './lib/api.js'
@@ -79,28 +79,15 @@ export default function App() {
   const prototypeOffline = usePrototypeOffline()
   const [reloadKey, setReloadKey] = useState(0)
   const main = useRef(null)
-  const top = useRef(null)
   const nav = useRef(null)
   const anchor = useRef(null)
-  // Desde 1200 px: barra lateral con la marca, la fuente y las vistas, y la franja de procedencia fija arriba del
-  // contenido; más angosto, las vistas son una tira fija arriba y la franja queda fija bajo ella.
+  // Desde 1200 px: barra lateral con la marca, la fuente y las vistas; más angosto, las vistas son una tira fija arriba.
   const wide = useMediaQuery('(min-width: 1200px)')
   const { View, label, tabs } = VIEWS.find((item) => item.id === view)
 
-  // La altura de la franja de procedencia (en angosto ocupa dos líneas), para el CSS.
-  useEffect(() => {
-    const element = top.current
-    if (!element || typeof ResizeObserver === 'undefined') return undefined
-    const observer = new ResizeObserver(() =>
-      document.documentElement.style.setProperty('--top-h', `${element.offsetHeight}px`),
-    )
-    observer.observe(element)
-    return () => observer.disconnect()
-  }, [])
-
   /** Vuelve al comienzo del contenido (bajo lo que queda fijo arriba) si se está más abajo. */
   const toContentStart = () => {
-    const fixed = wide ? top.current.offsetHeight : nav.current.offsetHeight + top.current.offsetHeight
+    const fixed = wide ? 0 : nav.current.offsetHeight
     const start = main.current.getBoundingClientRect().top + window.scrollY - fixed
     if (window.scrollY > start) window.scrollTo({ top: start })
   }
@@ -180,9 +167,6 @@ export default function App() {
         </div>
       </div>
       <div className="app-main">
-        <div className="app-top" ref={top}>
-          <ProvenanceBanner source={source} />
-        </div>
         <ConnectionNotices source={source} fallbacks={fallbacks} prototypeOffline={prototypeOffline} onRetry={retry} />
         <main ref={main} id={`panel-${view}`} role="tabpanel" aria-labelledby={`tab-${view}`} className="app-content">
           <PageHeader

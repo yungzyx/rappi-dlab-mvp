@@ -3,16 +3,16 @@
  * (prefers-color-scheme) salvo que el usuario lo fije con el botón (data-theme en <html>).
  *
  * Lenguaje: vidrio líquido. Las superficies son translúcidas y flotan sobre un fondo de luz naranja (`.app::before`,
- * shell.css); cada una desenfoca lo que tiene detrás, lleva un brillo fino arriba y una sombra suave. Se conservan tres
- * convenciones: la densidad de tabla de Carbon (filas de 36 px, cabecera de 32), el "entorno de datos" fijo tipo "Test
- * mode" de Stripe (la franja de procedencia) y la navegación lateral de Linear.
+ * shell.css); cada una desenfoca lo que tiene detrás, lleva un brillo fino arriba y una sombra suave. Se conservan dos
+ * convenciones: la densidad de tabla de Carbon (filas de 36 px, cabecera de 32) y la navegación lateral de Linear. El
+ * "entorno de datos" (simulados o del prototipo) va en una etiqueta bajo el título de cada página.
  *
  * Reglas semánticas:
  *  - neutros cálidos y translúcidos para lo que no tiene juicio: texto, líneas, barras de tabla;
  *  - el naranja-rojo Rappi es la marca: el logo, la luz del fondo, la vista activa, los botones que llevan a otra vista,
  *    la serie destacada de un gráfico, el punto "después" de la escalera y el foco. No es magnitud ni estado;
  *  - el carmesí es el único rojo con juicio (empeora, riesgo), siempre con ícono y texto;
- *  - el ámbar marca lo simulado, con borde punteado y texto (nunca solo por color).
+ *  - el ámbar es la etiqueta de procedencia (simulado o del prototipo), con borde punteado y texto (nunca solo por color).
  * Contrastes: texto >= 4,5:1 y marcas >= 3:1 con su fondo, en los dos temas, medido sobre el vidrio encima de la parte
  * más intensa del fondo. El texto blanco va sobre `--brand-solid` (más oscuro que `--brand`), no sobre `--brand`.
  * Forma: badge y chip 6 px, controles en cápsula, vidrios 20 px, flotantes 24 px.
