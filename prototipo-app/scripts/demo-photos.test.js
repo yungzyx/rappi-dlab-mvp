@@ -33,7 +33,8 @@ function fakeGate(answer) {
 }
 
 const webp = () => new Response(new Uint8Array([1, 2, 3]), { headers: { 'content-type': 'image/webp' } })
-const run = (python) => embedPhotos(join(dir, 'snapshot.json'), join(dir, 'photos.json'), { cache: `${dir}/cache/`, python })
+const run = (python) =>
+  embedPhotos(join(dir, 'snapshot.json'), join(dir, 'photos.json'), { cache: `${dir}/cache/`, python })
 
 describe('embedPhotos', () => {
   it('baja de a una, con el User-Agent del scraper, y suelta los candados al terminar', async () => {
@@ -58,7 +59,10 @@ describe('embedPhotos', () => {
   })
 
   it('con todo en la caché no toma los candados ni pide nada', async () => {
-    vi.stubGlobal('fetch', vi.fn(async () => webp()))
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async () => webp()),
+    )
     await run(fakeGate({ user_agent: 'ua' }))
     rmSync(join(dir, 'asked.json'))
     vi.stubGlobal('fetch', vi.fn())
