@@ -41,13 +41,4 @@ describe('Panel', () => {
     expect(await blobs[0].text()).toBe('Semana del;Pedidos\r\n26 oct;448')
     click.mockRestore()
   })
-
-  test('`noExport` leaves the download out (a block with example rows)', () => {
-    render(
-      <Panel title="Audiencias (ejemplo)" noExport>
-        {table}
-      </Panel>,
-    )
-    expect(screen.queryByRole('button', { name: /Descargar CSV/ })).toBeNull()
-  })
 })

@@ -217,6 +217,50 @@
             }
           ]
         },
+        "ritmo": {
+          "por_semana": {
+            "control": 2.8,
+            "tratamiento": 2.2
+          },
+          "semanas": [
+            {
+              "control": 1,
+              "semana": "2026-08-10",
+              "tratamiento": 1
+            },
+            {
+              "control": 5,
+              "semana": "2026-08-17",
+              "tratamiento": 3
+            },
+            {
+              "control": 3,
+              "semana": "2026-08-24",
+              "tratamiento": 2
+            },
+            {
+              "control": 4,
+              "semana": "2026-08-31",
+              "tratamiento": 2
+            },
+            {
+              "control": 4,
+              "semana": "2026-09-07",
+              "tratamiento": 5
+            },
+            {
+              "control": 1,
+              "semana": "2026-09-14",
+              "tratamiento": 0
+            },
+            {
+              "control": 2,
+              "semana": "2026-09-21",
+              "tratamiento": 2
+            }
+          ],
+          "semanas_promedio": 4
+        },
         "satisfaccion": {
           "confia": {
             "variantes": [
@@ -311,7 +355,7 @@
     ]
   },
   "guardado": {
-    "fecha": "2026-11-14",
+    "fecha": "2026-11-25",
     "origen": "make contract · simulación chica con semilla fija (40 personas, 8 semanas)"
   },
   "source": "synthetic"

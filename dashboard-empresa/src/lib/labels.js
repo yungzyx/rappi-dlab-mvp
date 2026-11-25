@@ -51,6 +51,8 @@ export const ENDPOINTS = {
   'ctr-posicion': 'CTR por posición',
   'embudo-sesion': 'embudo por sesión',
   experimentos: 'experimentos del MVP',
+  verticales: 'ficha por vertical',
+  audiencias: 'audiencias para campañas',
 }
 
 const MAX_LISTED = 3

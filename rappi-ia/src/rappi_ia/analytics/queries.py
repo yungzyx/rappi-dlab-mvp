@@ -15,6 +15,7 @@ from ..events import experiments as exp
 from ..events.store import EXPIRED_KIND, LOW_RATING, SURVEY_TYPES
 from ..motor.combos import OWN_SIGNALS_ONLY, expected_fine_retention, load_combos
 from ..offers.autonomy import ORIGIN as AUTO_ORDER_ORIGIN
+from ..offers.guards import OFFER_BLOCKED_VERTICALS
 from ..offers.winback import reach
 from .power import (
     H2_RELATIVE_GOAL,
@@ -1113,8 +1114,51 @@ def experiment_results(conn: Connection, source: str = "synthetic") -> dict:
             ratings = _order_ratings(conn, params)
             item["satisfaccion"] = _satisfaction(encuesta["por_grupo"], ratings, variants)
             item["poblacion"] = _population(conn, source, encuesta, ratings)
+            item["ritmo"] = _assignment_pace(conn, params, e["variants"])
         result.append(item)
     return {"experimentos": result}
+
+
+PACE_WEEKS = 4  # semanas completas con que se promedia el ritmo de asignación
+MIN_PACE_WEEKS = 2  # con menos, no hay ritmo que decir
+
+
+def _assignment_pace(conn: Connection, params: dict, variants: list[str]) -> dict:
+    """A qué ritmo entran personas a cada grupo de `ofertas_control`: las asignadas por semana (lunes, solo semanas
+    completas al corte de la fuente, con las semanas sin nadie en 0) y su promedio por semana en las últimas PACE_WEEKS.
+    Con eso el panel estima cuánto falta para llegar al mínimo de cada hipótesis. `por_semana` es None con menos de
+    MIN_PACE_WEEKS semanas completas desde la primera asignación."""
+    rows = _rows(
+        conn,
+        f"""WITH weeks AS (
+               SELECT date_trunc('week', assigned_at) AS week, variant, count(*) AS personas
+               FROM experiment_assignments
+               WHERE source = %(source)s AND experiment_id = %(offers)s
+                 AND date_trunc('week', assigned_at) < date_trunc('week', {_AS_OF})
+               GROUP BY 1, 2
+           ),
+           span AS (
+               SELECT generate_series(min(week), date_trunc('week', {_AS_OF}) - interval '7 days', interval '7 days')
+                          AS week
+               FROM weeks
+           )
+           SELECT s.week::date AS semana, w.variant, w.personas
+           FROM span s LEFT JOIN weeks w USING (week) ORDER BY s.week""",
+        params,
+    )
+    weeks: dict = {}
+    for row in rows:
+        week = weeks.setdefault(row["semana"], {"semana": row["semana"], **dict.fromkeys(variants, 0)})
+        if row["variant"] in week:
+            week[row["variant"]] = row["personas"]
+    series = list(weeks.values())
+    recent = series[-PACE_WEEKS:]
+    pace = (
+        {variant: round(sum(week[variant] for week in recent) / len(recent), 1) for variant in variants}
+        if len(series) >= MIN_PACE_WEEKS
+        else None
+    )
+    return {"semanas": series, "por_semana": pace, "semanas_promedio": PACE_WEEKS}
 
 
 def _offers_retention(conn: Connection, params: dict, variants: list[dict]) -> dict:
@@ -1805,3 +1849,206 @@ def assortment_vs_demand(conn: Connection, source: str = "synthetic", limit: int
            ORDER BY usuarios_por_item DESC NULLS FIRST, d.usuarios DESC LIMIT %(limit)s""",
         {"source": source, "limit": limit},
     )
+
+
+MIN_RATE_CASES = 10  # casos mínimos en el denominador para mostrar una tasa (la regla del panel)
+
+
+def verticals(conn: Connection, source: str = "synthetic") -> dict:
+    """La ficha por vertical: las verticales lado a lado, con las mismas definiciones de `kpis`.
+
+    Por vertical con pedidos confirmados en los últimos MULTI_VERTICAL_DAYS días: personas con pedido y pedidos de los
+    últimos ACTIVE_DAYS días, con su cambio contra los ACTIVE_DAYS anteriores (en %; None si antes no hubo); abandono de
+    carrito (los carros con algo agregado en esa vertical y actividad en ACTIVE_DAYS días: el abandono es del carro
+    entero, como en `kpis`); búsquedas y preguntas sin resultado en esa vertical (ACTIVE_DAYS días, sin conceptos
+    sensibles), y cuántas de las personas que pidieron ahí en MULTI_VERTICAL_DAYS días pidieron además en otra. Una
+    tasa con menos de MIN_RATE_CASES casos en su denominador va en None. Los pedidos cancelados no cuentan.
+
+    Una vertical con menos de MIN_GROUP_USERS personas en MULTI_VERTICAL_DAYS días no sale (privacidad: con pocas
+    personas, Farmacia o Licores dirían demasiado) y cuenta en `bajo_el_minimo`. Son cifras agregadas, sin concepto ni
+    persona. La fecha de corte es la de la fuente (`kpis.as_of`)."""
+    _check(source)
+    params = {"source": source, "min_cases": MIN_RATE_CASES, "min_users": MIN_GROUP_USERS}
+    rows = _rows(
+        conn,
+        f"""WITH orders AS (
+               SELECT user_id, vertical, ts FROM app_orders
+               WHERE source = %(source)s AND status = 'confirmado' AND vertical IS NOT NULL
+                 AND ts > {_AS_OF} - interval '{MULTI_VERTICAL_DAYS} days'
+           ),
+           recent AS (
+               SELECT vertical, count(DISTINCT user_id) AS personas, count(*) AS pedidos FROM orders
+               WHERE ts > {_AS_OF} - interval '{ACTIVE_DAYS} days' GROUP BY 1
+           ),
+           before AS (
+               SELECT vertical, count(DISTINCT user_id) AS personas, count(*) AS pedidos FROM orders
+               WHERE ts <= {_AS_OF} - interval '{ACTIVE_DAYS} days' GROUP BY 1
+           ),
+           per_user AS (SELECT user_id, count(DISTINCT vertical) AS verticals FROM orders GROUP BY 1),
+           mix AS (
+               SELECT o.vertical, count(DISTINCT o.user_id) AS personas,
+                      count(DISTINCT o.user_id) FILTER (WHERE p.verticals >= 2) AS combinan
+               FROM orders o JOIN per_user p USING (user_id) GROUP BY 1
+           ),
+           {_CARTS.strip()},
+           carts AS (
+               SELECT v.vertical, count(*) AS carros, count(*) FILTER (WHERE s.is_abandoned) AS abandonados
+               FROM cart_status s
+               JOIN (SELECT DISTINCT cart_id, vertical FROM app_events
+                     WHERE source = %(source)s AND type = 'cart_add' AND cart_id IS NOT NULL
+                       AND vertical IS NOT NULL) v USING (cart_id)
+               WHERE s.last_cart_ts > {_AS_OF} - interval '{ACTIVE_DAYS} days'
+               GROUP BY 1
+           ),
+           searches AS (
+               SELECT e.vertical, count(*) AS total, count(*) FILTER (WHERE e.unmet) AS sin_resultado
+               FROM app_events e LEFT JOIN concepts c ON c.concept_id = e.concept_id
+               WHERE e.source = %(source)s AND e.type IN ('search', 'chat', 'ask') AND e.unmet IS NOT NULL
+                 AND e.vertical IS NOT NULL AND c.sensitive IS NOT TRUE
+                 AND e.ts > {_AS_OF} - interval '{ACTIVE_DAYS} days'
+               GROUP BY 1
+           )
+           SELECT m.vertical,
+                  coalesce(r.personas, 0) AS personas_30d,
+                  coalesce(r.pedidos, 0) AS pedidos_30d,
+                  CASE WHEN b.personas > 0
+                       THEN round(100.0 * (coalesce(r.personas, 0) - b.personas) / b.personas, 0) END
+                      AS cambio_personas_pct,
+                  CASE WHEN b.pedidos > 0
+                       THEN round(100.0 * (coalesce(r.pedidos, 0) - b.pedidos) / b.pedidos, 0) END
+                      AS cambio_pedidos_pct,
+                  CASE WHEN c.carros >= %(min_cases)s THEN round(100.0 * c.abandonados / c.carros, 1) END
+                      AS abandono_carrito_pct,
+                  CASE WHEN s.total >= %(min_cases)s THEN round(100.0 * s.sin_resultado / s.total, 1) END
+                      AS sin_resultado_pct,
+                  CASE WHEN m.personas >= %(min_cases)s THEN round(100.0 * m.combinan / m.personas, 1) END
+                      AS combinan_pct
+           FROM mix m
+           LEFT JOIN recent r USING (vertical)
+           LEFT JOIN before b USING (vertical)
+           LEFT JOIN carts c USING (vertical)
+           LEFT JOIN searches s USING (vertical)
+           WHERE m.personas >= %(min_users)s
+           ORDER BY 2 DESC, m.vertical COLLATE "C" """,
+        params,
+    )
+    [cut] = _rows(
+        conn,
+        f"""SELECT (SELECT count(*) FROM (
+                        SELECT vertical FROM app_orders
+                        WHERE source = %(source)s AND status = 'confirmado' AND vertical IS NOT NULL
+                          AND ts > {_AS_OF} - interval '{MULTI_VERTICAL_DAYS} days'
+                        GROUP BY vertical HAVING count(DISTINCT user_id) < %(min_users)s) small) AS bajo_el_minimo""",
+        params,
+    )
+    return {
+        "verticales": rows,
+        "bajo_el_minimo": cut["bajo_el_minimo"],
+        "minimo_personas": MIN_GROUP_USERS,
+        "dias": ACTIVE_DAYS,
+        "dias_combinacion": MULTI_VERTICAL_DAYS,
+        "minimo_casos": MIN_RATE_CASES,
+    }
+
+
+# Las audiencias del panel, en el orden en que se muestran: su regla (lo que calcula `audiences`) y qué ofrecerles. Lo
+# que se ofrece es fijo por audiencia y nunca es de una vertical bloqueada (offers/guards.py): el paso "con Turbo" es el
+# de la tabla de Rappi para quien solo pide en Restaurantes.
+AUDIENCES = (
+    {
+        "id": "solo-restaurantes-con-habito",
+        "nombre": "Solo Restaurantes, con hábito",
+        "regla": f"Pidió solo en Restaurantes en {MULTI_VERTICAL_DAYS} días y lleva 2 o más compras en {ACTIVE_DAYS}",
+        "ofrecer": "Turbo, su vertical por probar",
+    },
+    {
+        "id": "en-riesgo-con-concepto",
+        "nombre": "En riesgo, con algo que pedía",
+        "regla": "Pasó el doble de su ritmo sin pedir (mínimo 21 días) y tiene un concepto no sensible en sus pedidos",
+        "ofrecer": '"¿Volvemos a…?" con ese concepto',
+    },
+    {
+        "id": "probo-turbo-una-vez",
+        "nombre": "Probó Turbo una vez",
+        "regla": f"Un solo pedido en Turbo en {MULTI_VERTICAL_DAYS} días y alguno en Restaurantes",
+        "ofrecer": "Repetir en Turbo lo que pidió",
+    },
+    {
+        "id": "pro-una-vertical",
+        "nombre": "Pro que no combina",
+        "regla": f"Es Pro y pidió en una sola vertical en {MULTI_VERTICAL_DAYS} días (que no sea Farmacia ni Licores)",
+        "ofrecer": "Una segunda vertical con su beneficio Pro",
+    },
+    {
+        "id": "combina-3-o-mas",
+        "nombre": "Ya combina 3 o más",
+        "regla": f"Pidió en 3 o más verticales en {MULTI_VERTICAL_DAYS} días",
+        "ofrecer": "Nada nuevo: no molestar",
+    },
+)
+
+
+def audiences(conn: Connection, source: str = "synthetic") -> dict:
+    """Audiencias para campañas: grupos de personas que cumplen una regla (`AUDIENCES`), con cuántas son y cuántas
+    aceptan avisos (`consent_notifications`: fuera de la app solo se les escribe a ellas). Una persona puede estar en
+    más de una. Ninguna regla usa un concepto sensible ni se define por Farmacia o Licores; una audiencia con menos de
+    MIN_GROUP_USERS personas no sale (privacidad) y cuenta en `bajo_el_minimo`. Solo pedidos confirmados."""
+    _check(source)
+    sizes = _rows(
+        conn,
+        f"""WITH {_RHYTHM.strip()},
+            recent AS (  -- lo pedido en los últimos {MULTI_VERTICAL_DAYS} días, por persona
+                SELECT user_id, count(DISTINCT vertical) AS verticales, min(vertical) AS unica,
+                       count(DISTINCT coalesce(cart_id, order_id))
+                           FILTER (WHERE ts > {_AS_OF} - interval '{ACTIVE_DAYS} days') AS compras_30d,
+                       count(*) FILTER (WHERE vertical = 'turbo') AS pedidos_turbo
+                FROM app_orders
+                WHERE source = %(source)s AND status = 'confirmado'
+                  AND ts > {_AS_OF} - interval '{MULTI_VERTICAL_DAYS} days'
+                GROUP BY user_id
+            ),
+            restaurants AS (
+                SELECT DISTINCT user_id FROM app_orders
+                WHERE source = %(source)s AND status = 'confirmado' AND vertical = 'restaurantes'
+            ),
+            with_concept AS (
+                SELECT DISTINCT o.user_id FROM app_order_lines l
+                JOIN app_orders o USING (order_id) JOIN concepts c ON c.concept_id = l.concept_id
+                WHERE o.source = %(source)s AND o.status = 'confirmado' AND NOT c.sensitive
+            ),
+            members AS (
+                SELECT 'solo-restaurantes-con-habito' AS id, user_id FROM recent
+                WHERE verticales = 1 AND unica = 'restaurantes' AND compras_30d >= 2
+                UNION ALL
+                SELECT 'en-riesgo-con-concepto', r.user_id FROM risk r JOIN with_concept USING (user_id)
+                WHERE r.status = 'en_riesgo'
+                UNION ALL
+                SELECT 'probo-turbo-una-vez', user_id FROM recent JOIN restaurants USING (user_id)
+                WHERE pedidos_turbo = 1
+                UNION ALL
+                SELECT 'pro-una-vertical', r.user_id FROM recent r
+                JOIN app_users u ON u.user_id = r.user_id AND u.source = %(source)s
+                WHERE u.pro AND r.verticales = 1 AND r.unica <> ALL(%(blocked)s)
+                UNION ALL
+                SELECT 'combina-3-o-mas', user_id FROM recent WHERE verticales >= 3
+            )
+            SELECT m.id, count(*) AS personas, count(*) FILTER (WHERE u.consent_notifications) AS aceptan_avisos
+            FROM members m JOIN app_users u ON u.user_id = m.user_id AND u.source = %(source)s
+            GROUP BY m.id""",
+        {"source": source, "blocked": list(OFFER_BLOCKED_VERTICALS)},
+    )
+    by_id = {row["id"]: row for row in sizes}
+    shown = [
+        {
+            **audience,
+            "personas": by_id[audience["id"]]["personas"],
+            "aceptan_avisos": by_id[audience["id"]]["aceptan_avisos"],
+        }
+        for audience in AUDIENCES
+        if by_id.get(audience["id"], {}).get("personas", 0) >= MIN_GROUP_USERS
+    ]
+    return {
+        "audiencias": shown,
+        "bajo_el_minimo": len(AUDIENCES) - len(shown),
+        "minimo_personas": MIN_GROUP_USERS,
+    }

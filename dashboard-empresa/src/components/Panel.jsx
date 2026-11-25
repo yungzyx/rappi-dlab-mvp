@@ -13,9 +13,9 @@ function exportTable(event, name) {
  * Un bloque con borde: cabecera con su título, su ayuda (`help`), acciones y procedencia (si los hay); cuerpo (con
  * `meta`, una línea que lo sitúa, primero; las tablas van a sangre) y pie opcional. `helpLabel`: el nombre de la ayuda
  * cuando el título no es solo texto. Si el panel tiene una tabla, su cabecera ofrece bajarla en CSV (el botón está
- * siempre y el CSS lo muestra solo con una tabla dentro); `noExport` lo quita (un bloque con filas de ejemplo).
+ * siempre y el CSS lo muestra solo con una tabla dentro).
  */
-export function Panel({ title, help, helpLabel, meta, source, actions, foot, className, noExport, children }) {
+export function Panel({ title, help, helpLabel, meta, source, actions, foot, className, children }) {
   const name = typeof title === 'string' ? title : helpLabel
   return (
     <div className={className ? `panel ${className}` : 'panel'}>
@@ -25,17 +25,15 @@ export function Panel({ title, help, helpLabel, meta, source, actions, foot, cla
           {help && <Help label={name}>{help}</Help>}
           <div className="panel-head-end">
             {actions}
-            {!noExport && (
-              <button
-                type="button"
-                className="text-button csv-button"
-                aria-label={`Descargar CSV de ${name ?? 'la tabla'}`}
-                onClick={(event) => exportTable(event, name ?? 'tabla')}
-              >
-                <Icon name="download" />
-                CSV
-              </button>
-            )}
+            <button
+              type="button"
+              className="text-button csv-button"
+              aria-label={`Descargar CSV de ${name ?? 'la tabla'}`}
+              onClick={(event) => exportTable(event, name ?? 'tabla')}
+            >
+              <Icon name="download" />
+              CSV
+            </button>
             {source && <ProvenanceBadge kind={source} />}
           </div>
         </div>

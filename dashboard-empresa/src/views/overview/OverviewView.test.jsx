@@ -94,14 +94,59 @@ describe('OverviewView', () => {
     expect(within(hero).getByText(/el grupo de control está apagado, todavía no hay qué medir/)).toBeTruthy()
   })
 
-  test('"Por vertical" is a design with example rows: it says so and offers no download', async () => {
-    serveFixtures()
+  test('"Por vertical": the verticals side by side, with their change and the ones left out', async () => {
+    serveFixturesWith({
+      verticales: {
+        source: 'synthetic',
+        data: {
+          verticales: [
+            {
+              vertical: 'restaurantes',
+              personas_30d: 756,
+              pedidos_30d: 1271,
+              cambio_personas_pct: -4,
+              cambio_pedidos_pct: null,
+              abandono_carrito_pct: 28.1,
+              sin_resultado_pct: 27.1,
+              combinan_pct: 22.3,
+            },
+            {
+              vertical: 'turbo',
+              personas_30d: 203,
+              pedidos_30d: 394,
+              cambio_personas_pct: 5,
+              cambio_pedidos_pct: -4,
+              abandono_carrito_pct: null,
+              sin_resultado_pct: null,
+              combinan_pct: 64.9,
+            },
+          ],
+          bajo_el_minimo: 1,
+          minimo_personas: 20,
+          dias: 30,
+          dias_combinacion: 60,
+          minimo_casos: 10,
+        },
+      },
+    })
     await renderWithData(<OverviewView source="synthetic" tab="verticales" onNavigate={() => {}} />)
+
     expect(screen.getByRole('heading', { name: 'Por vertical' })).toBeTruthy()
-    expect(screen.getByText('Diseño, aún sin datos.')).toBeTruthy()
-    expect(screen.getAllByText('Diseño · filas de ejemplo').length).toBeGreaterThan(0)
-    expect(screen.getByText('/analytics/verticales')).toBeTruthy()
-    expect(screen.queryByRole('button', { name: /Descargar CSV/ })).toBeNull()
+    const [, restaurants, turbo] = screen.getAllByRole('row')
+    expect(within(restaurants).getByText('Restaurantes')).toBeTruthy()
+    expect(within(restaurants).getByText('756')).toBeTruthy()
+    expect(within(restaurants).getByText('−4%')).toBeTruthy()
+    expect(within(restaurants).getByText('28,1%')).toBeTruthy()
+    expect(within(turbo).getByText('+5%')).toBeTruthy()
+    expect(within(turbo).getAllByText('—')).toHaveLength(2) // sin casos suficientes para esas dos tasas
+    expect(screen.getByText('1 vertical no llega a 20 personas y no se muestra.')).toBeTruthy()
+    expect(screen.getByRole('button', { name: 'Descargar CSV de Verticales lado a lado' })).toBeTruthy()
+  })
+
+  test('"Por vertical" says so when no vertical reaches the minimum', async () => {
+    serveFixtures() // el recorrido corto del prototipo: nadie llega al mínimo
+    await renderWithData(<OverviewView source="prototype" tab="verticales" onNavigate={() => {}} />)
+    expect(screen.getByText('Ninguna vertical llega al mínimo')).toBeTruthy()
   })
 
   test('with the prototype each card from it carries the MVP label, and Rappi data does not', async () => {

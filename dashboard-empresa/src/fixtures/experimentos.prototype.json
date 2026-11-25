@@ -184,6 +184,11 @@
             }
           ]
         },
+        "ritmo": {
+          "por_semana": null,
+          "semanas": [],
+          "semanas_promedio": 4
+        },
         "satisfaccion": {
           "confia": {
             "variantes": [
@@ -270,7 +275,7 @@
     ]
   },
   "guardado": {
-    "fecha": "2026-11-14",
+    "fecha": "2026-11-25",
     "origen": "make contract · recorrido corto sobre el catálogo de prueba inventado"
   },
   "source": "prototype"

@@ -1,0 +1,66 @@
+{
+  "source": "synthetic",
+  "data": {
+    "verticales": [
+      {
+        "vertical": "restaurantes",
+        "personas_30d": 756,
+        "pedidos_30d": 1271,
+        "cambio_personas_pct": -4.0,
+        "cambio_pedidos_pct": -6.0,
+        "abandono_carrito_pct": 28.1,
+        "sin_resultado_pct": 27.1,
+        "combinan_pct": 22.3
+      },
+      {
+        "vertical": "turbo",
+        "personas_30d": 203,
+        "pedidos_30d": 394,
+        "cambio_personas_pct": 5.0,
+        "cambio_pedidos_pct": -4.0,
+        "abandono_carrito_pct": 25.1,
+        "sin_resultado_pct": 0.0,
+        "combinan_pct": 64.9
+      },
+      {
+        "vertical": "supermercado",
+        "personas_30d": 103,
+        "pedidos_30d": 177,
+        "cambio_personas_pct": 18.0,
+        "cambio_pedidos_pct": 20.0,
+        "abandono_carrito_pct": 21.9,
+        "sin_resultado_pct": 23.1,
+        "combinan_pct": 74.2
+      },
+      {
+        "vertical": "conveniencia",
+        "personas_30d": 72,
+        "pedidos_30d": 99,
+        "cambio_personas_pct": 7.0,
+        "cambio_pedidos_pct": 6.0,
+        "abandono_carrito_pct": 28.8,
+        "sin_resultado_pct": 0.0,
+        "combinan_pct": 88.5
+      },
+      {
+        "vertical": "licores",
+        "personas_30d": 18,
+        "pedidos_30d": 26,
+        "cambio_personas_pct": 29.0,
+        "cambio_pedidos_pct": 24.0,
+        "abandono_carrito_pct": 29.7,
+        "sin_resultado_pct": 0.0,
+        "combinan_pct": 81.5
+      }
+    ],
+    "bajo_el_minimo": 3,
+    "minimo_personas": 20,
+    "dias": 30,
+    "dias_combinacion": 60,
+    "minimo_casos": 10
+  },
+  "guardado": {
+    "origen": "npm run panel:snapshot · usuarios simulados de rappi_staging",
+    "fecha": "2026-11-25"
+  }
+}

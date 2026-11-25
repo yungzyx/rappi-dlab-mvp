@@ -188,4 +188,43 @@ describe('CustomersView', () => {
     expect(within(pro).getByText(NOT_EVIDENCE)).toBeTruthy()
     expect(within(pro).queryByText(/lo sortea el generador/)).toBeNull()
   })
+
+  test('audiences: each with its rule, its size, who accepts notifications and what to offer', async () => {
+    serveFixturesWith({
+      audiencias: {
+        source: 'synthetic',
+        data: {
+          audiencias: [
+            {
+              id: 'solo-restaurantes-con-habito',
+              nombre: 'Solo Restaurantes, con hábito',
+              regla: 'Pidió solo en Restaurantes en 60 días y lleva 2 o más compras en 30',
+              ofrecer: 'Turbo, su vertical por probar',
+              personas: 178,
+              aceptan_avisos: 68,
+            },
+          ],
+          bajo_el_minimo: 2,
+          minimo_personas: 20,
+        },
+      },
+    })
+    await renderWithData(<CustomersView source="synthetic" tab="audiencias" />)
+
+    expect(screen.getByRole('heading', { name: 'Audiencias para campañas' })).toBeTruthy()
+    const [, row] = screen.getAllByRole('row')
+    expect(within(row).getByText('Solo Restaurantes, con hábito')).toBeTruthy()
+    expect(within(row).getByText('Pidió solo en Restaurantes en 60 días y lleva 2 o más compras en 30')).toBeTruthy()
+    expect(within(row).getByText('178')).toBeTruthy()
+    expect(within(row).getByText('68 de 178')).toBeTruthy()
+    expect(within(row).getByText('Turbo, su vertical por probar')).toBeTruthy()
+    expect(screen.getByText('2 audiencias no llegan a 20 personas y no se muestran.')).toBeTruthy()
+    expect(screen.getByText(/Fuera de la app solo se le escribe a quien aceptó avisos/)).toBeTruthy()
+  })
+
+  test('audiences say so when none reaches the minimum', async () => {
+    serveFixtures() // la simulación chica: ninguna audiencia llega a 20 personas
+    await renderWithData(<CustomersView source="synthetic" tab="audiencias" />)
+    expect(screen.getByText('Ninguna audiencia llega al mínimo')).toBeTruthy()
+  })
 })

@@ -39,7 +39,7 @@ Las especificaciones con que se construyeron las piezas grandes. Cada una dice a
 | [Perfiles de gusto](diseno/2026-10-14-perfiles-de-gusto-design.md) | 14-10-2026 | Escaleras de verticales por gusto (el sushi como narrativa), en datos |
 | [Motor multivertical y Home dinámica](diseno/2026-10-16-motor-multivertical-design.md) | 16-10-2026 | Afinidad, transiciones, combinaciones, compra cruzada, tendencias y recompra (migración 036), con la tabla de Rappi completa |
 | [Conversar con Mochi](diseno/2026-10-25-mochi-conversacion-design.md) | 25-10-2026 | Seguir la conversación ("más barato", "sin carne", "para 10 personas"): el estado que viaja con la app y cómo se combina con lo nuevo. Desde el 26-10, con chips y sin campo para escribirle |
-| [Elementos nuevos del panel](diseno/2026-11-25-panel-elementos-nuevos-design.md) | 25-11-2026 | Qué cambió, estado del piloto, CSV y período (funcionan), y audiencias y ficha por vertical (diseño con filas de ejemplo): las rutas que le faltan a la API |
+| [Elementos nuevos del panel](diseno/2026-11-25-panel-elementos-nuevos-design.md) | 25-11-2026 | Qué cambió, estado del piloto con su ritmo, CSV y período, y las rutas `/analytics/verticales` y `/analytics/audiencias` |
 
 Las migraciones 022 a 026, 036 y 037 citan en su primera línea rutas `docs/superpowers/...` que ya no existen en el repositorio (las migraciones aplicadas no se editan). Equivalen a esto: `docs/superpowers/specs/<fecha>-….md` es `docs/diseno/<fecha>-….md` (el mismo archivo, en [diseno/](diseno/)), y el plan de la escalera fina que cita la 037 (`docs/superpowers/plans/2026-10-16-etapa-7-escalera-fina.md`) quedó resumido en [capa-de-datos.md](capa-de-datos.md#la-escalera-fina).
 

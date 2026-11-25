@@ -13,7 +13,8 @@ function behind({ have, need }) {
 
 /**
  * Estado del piloto, junto al enlace a las tres hipótesis: cuánto lleva cada una del mínimo de personas que pide el plan
- * para poder concluir (`pilot.js`). Con el grupo de control apagado, lo dice: no hay qué medir todavía.
+ * para poder concluir y, si la API trae el ritmo de asignación, cuántas semanas faltan como piso (`pilot.js`). Con el
+ * grupo de control apagado, lo dice: no hay qué medir todavía.
  */
 export function PilotStatus({ source }) {
   const experiment = offersExperiment(useAnalytics('experimentos', source))
@@ -45,6 +46,13 @@ export function PilotStatus({ source }) {
                 {row.done ? 'Llegó al mínimo para concluir' : `${formatPct(row.share * 100, 0)} del mínimo`}
                 {!row.done && ` · ${behind(row)}`}
               </span>
+              {row.weeks !== null && (
+                <span className="pilot-note">
+                  Al ritmo de asignación de hoy, al menos {formatNumber(row.weeks)}{' '}
+                  {row.weeks === 1 ? 'semana más' : 'semanas más'}
+                  {row.id === 'H1' && ', y después el mes siguiente completo'}.
+                </span>
+              )}
             </dd>
           )}
         </div>
