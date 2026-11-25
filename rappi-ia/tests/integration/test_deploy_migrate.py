@@ -282,6 +282,9 @@ def test_grants_file_lets_the_api_role_write_only_its_tables(db):
         "INSERT INTO agent_autonomy (user_id, store_ids, max_total, source) VALUES ('proto-permisos', ARRAY[1], 20000,"
         " 'prototype')"
     )
+    conn.execute(  # el juicio a mano de la búsqueda (migración 063), desde el panel
+        "INSERT INTO search_judgments (pair_id, judge, level) VALUES ('P0123456789', 'J1', 2)"
+    )
     conn.execute("SELECT count(*) FROM capa.combo_stats")
     for forbidden in (
         "INSERT INTO combo_steps (data_source, from_combo, to_combo, users, prob) VALUES ('synthetic', 'a', 'b', 1, 1)",
