@@ -232,11 +232,13 @@ def test_they_go_with_the_person(client, db):
     assert stored(db) == [("dieta", "vegano")]
     assert client.delete(f"/profile/{USER}").status_code == 200
     assert stored(db) == []
-    say(client, "soy vegano")
-    db.execute("UPDATE app_users SET created_at = now() - interval '400 days' WHERE user_id = %s", (USER,))
-    db.execute("UPDATE app_events SET ts = now() - interval '400 days' WHERE user_id = %s", (USER,))
+    other = "u-prefs-2"  # la persona borrada no vuelve: la purga se prueba con otra
+    say(client, "soy vegano", user=other)
+    assert stored(db, other) == [("dieta", "vegano")]
+    db.execute("UPDATE app_users SET created_at = now() - interval '400 days' WHERE user_id = %s", (other,))
+    db.execute("UPDATE app_events SET ts = now() - interval '400 days' WHERE user_id = %s", (other,))
     assert events.purge_inactive_users(db, 30) == 1
-    assert stored(db) == []
+    assert stored(db, other) == []
 
 
 def test_a_simulated_person_cannot_set_them(client, db):

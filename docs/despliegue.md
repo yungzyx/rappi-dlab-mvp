@@ -95,6 +95,7 @@ Todas van en `/etc/rappi/rappi.env`, salvo las que fija `docker-compose.yml` o l
 | `API_REQUIRE_SEMANTIC` | api (lo fija compose) | `1`: sin el modelo, `/health` da 503 | — | no |
 | `API_ENABLE_ANALYTICS` | api | `0` en producción | `1` (con `WITH_PANEL=1`) | no |
 | `API_DOCS` | api (`/docs`, `/redoc`, `/openapi.json`) | `0` en producción | `1` | no |
+| `API_LEGACY_CLAIM` | api (`POST /session` reclama un id viejo sin token, [§7](#identidad-firmada)) | `0` en producción | `1` solo para traer personas de una instalación anterior | no |
 | `API_WORKERS` | api (uvicorn) | `1` | `1` | no |
 | `API_POOL_MIN` / `API_POOL_MAX` | api (conexiones por worker) | `2` / `10` | `2` / `10` | no |
 | `API_POOL_TIMEOUT_S` | api (espera por una conexión; luego 503) | `3` | `3` | no |
@@ -416,7 +417,8 @@ Caché: `/assets/*` (con huella en el nombre) `private, max-age=31536000, immuta
 
 - La app pide una sesión con `POST /session` y recibe un id seudónimo (`proto-…`) y su token, firmado con `API_SECRET` (HMAC-SHA256). Lo manda en la cabecera `X-User-Token`.
 - Toda ruta con datos de una persona (`/profile/{user_id}`, un `user_id` en la query o el cuerpo) exige el token de ese id: sin token, 401 (la app pide una sesión nueva); con el de otro, 403. Sin `user_id`, la ruta sigue anónima.
-- **Ids anteriores:** un navegador que ya tenía un id `proto-…` lo manda como `legacy_user_id` y lo recibe firmado. Cada id se reclama **una sola vez y el primero gana**: quien vio un id en un registro antiguo podría reclamarlo antes que su dueño. Solo afecta a bases con personas `prototype` de antes del despliegue (por ejemplo, las de un dump completo de una instalación local; el respaldo de entrega no las trae).
+- **Ids anteriores:** un navegador que ya tenía un id `proto-…` lo manda como `legacy_user_id` y, solo con `API_LEGACY_CLAIM=1`, lo recibe firmado. En producción viene apagado: sin la variable, ese navegador recibe un id nuevo. Encendido, cada id se reclama **una sola vez y el primero gana**: basta conocer el id, y quien lo vio en un registro antiguo podría reclamarlo antes que su dueño. Solo sirve con una base con personas `prototype` de antes del despliegue (por ejemplo, las de un dump completo de una instalación local; el respaldo de entrega no las trae): encenderlo para eso y apagarlo después.
+- **Personas borradas:** "Borrar mis datos", `rappi-ia olvidar` y la purga de 180 días guardan el SHA-256 del id en `forgotten_users` (nunca el id). Su token sigue firmado, pero ya no sirve: un evento atrasado o una pestaña vieja recibe 401 y la app pide una sesión nueva; el id no se vuelve a crear.
 - **Cambiar `API_SECRET`** invalida todos los tokens: cada persona recibe un id nuevo y su historial anterior queda huérfano hasta que la purga de 180 días lo borra.
 - **Personas nuevas por IP:** `POST /session` crea a lo más 20 personas nuevas por IP al día (429 después). En una demo con muchos teléfonos en el mismo wifi o detrás de un NAT, todos comparten la IP pública y el 21.º ve "Sin conexión": para un evento, subir `API_NEW_USERS_PER_IP_DAY` (o `0`, sin tope) y `$COMPOSE up -d api`. Lo mismo vale para `API_RATE_PER_MIN` y `API_RATE_WRITE_PER_MIN`.
 - Los contadores por IP viven en la memoria del proceso: se reinician al reiniciar la API y, con `API_WORKERS > 1`, cada worker lleva su cuenta (el tope efectivo se multiplica).
@@ -450,6 +452,7 @@ Una clave nueva en el archivo va también en la lista `x-sin-claves-…` que cor
 | Qué | Dónde | Cuánto tiempo |
 |---|---|---|
 | La persona del prototipo: id seudónimo, fecha de alta y de su sesión | `app_users` | hasta "Borrar mis datos" o 180 días sin actividad (`PROTOTYPE_USER_RETENTION_DAYS`) |
+| El SHA-256 del id de una persona borrada, para que su token deje de servir | `forgotten_users` | sin plazo (una fila por persona borrada) |
 | Eventos de uso, con el texto de búsquedas y preguntas (datos personales redactados antes de guardar: RUT, teléfonos, correos, direcciones, tarjetas) | `app_events` | el texto, 90 días; el evento, lo que dure la persona |
 | Pedidos (líneas, tienda, vertical; sin dirección), segmentos, afinidad por vertical y recompra | `app_orders`, `app_order_lines`, `user_segments`, `user_vertical_affinity`, `replenishment` | lo que dure la persona (se borran en cascada) |
 | Registros de la API (sin ids, sin IP, sin query) | Docker | 5 × 10 MB por contenedor |

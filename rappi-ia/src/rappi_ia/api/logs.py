@@ -14,6 +14,9 @@ import uuid
 from fastapi import HTTPException
 from starlette.requests import Request
 
+from ..events.store import ForgottenUser
+from .identity import NO_SESSION
+
 FORMAT = "%(asctime)s %(levelname)s %(name)s [%(request_id)s] %(message)s"
 NO_REQUEST = "-"
 NO_ROUTE = "<sin ruta>"  # un 404: la ruta que pidieron puede traer cualquier cosa, así que no se registra
@@ -76,7 +79,10 @@ def route_template(source) -> str:
 def rejected(exc: Exception, *private: str) -> HTTPException:
     """400 genérico para una entrada que la capa de datos rechazó (un `ValueError`). Su mensaje puede nombrar a la
     persona ("El usuario X es de otra fuente") y servir de sonda para ver qué ids existen: al cliente no le llega; al
-    log sí, con los valores de `private` (ids) cambiados por `<id>`."""
+    log sí, con los valores de `private` (ids) cambiados por `<id>`. Una persona borrada (`ForgottenUser`) es un 401,
+    como sin sesión: la app pide una nueva."""
+    if isinstance(exc, ForgottenUser):
+        return HTTPException(401, NO_SESSION)
     detail = str(exc)
     for value in filter(None, private):
         detail = detail.replace(value, "<id>")
