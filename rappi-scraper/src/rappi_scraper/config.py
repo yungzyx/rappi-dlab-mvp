@@ -88,6 +88,9 @@ STORE_LISTING_PATHS = frozenset(
         "/tiendas/kioscos",
     }
 )
+# Adonde redirige rappi.cl cuando pide iniciar sesión (p. ej. `/login?url_redirect=…&logout=guest_limit`, al llegar
+# la sesión de invitado a su tope de páginas): la descarga se detiene sin pedirla (`client.LoginRequired`).
+LOGIN_PATH = "/login"
 # Rappi redirige a /restaurantes?restaurantNotFound=true cuando el restaurante ya no existe (cerró o se dio de baja).
 RESTAURANT_NOT_FOUND_QUERY = "restaurantNotFound=true"
 

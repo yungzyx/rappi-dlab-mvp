@@ -12,6 +12,7 @@ from rappi_scraper.pipeline.queue import PossibleBlock
 from rappi_scraper.pipeline.restaurants import process_restaurant_jobs
 from rappi_scraper.pipeline.stores import process_store_jobs
 from rappi_scraper.scraping.astro import Page
+from rappi_scraper.scraping.client import LoginRequired
 from rappi_scraper.storage import repository
 from rappi_scraper.storage.db import migrate
 from rappi_scraper.storage.search import build_search_documents
@@ -391,6 +392,39 @@ def test_each_restaurant_is_asked_for_from_its_saved_location(db):
     process_restaurant_jobs(db, client, run)
 
     assert client.locations == [(-38.7, -72.6, "Temuco"), None]
+
+
+def test_the_login_page_stops_the_restaurants_instead_of_skipping_branches(db):
+    """Al llegar al tope de páginas de invitado, rappi.cl manda toda página al inicio de sesión (corrida 12): saltar
+    la sucursal y seguir pediría el resto de la cola en vano. Se detiene; lo bajado queda y lo demás, pendiente."""
+
+    class GuestLimit(FakeClient):
+        def get_page(self, path):
+            if path == "/restaurantes/2":
+                raise LoginRequired("rappi.cl redirigió al inicio de sesión (límite de páginas para invitados)")
+            return super().get_page(path)
+
+    run = repository.start_run(db, "restaurants", {})
+    repository.add_jobs(
+        db,
+        run,
+        [
+            {
+                "job_key": f"rest:{i}",
+                "job_type": "restaurant",
+                "payload": {
+                    "verticals": ["restaurantes"],
+                    "candidates": [{"store_id": i, "path": f"/restaurantes/{i}"}],
+                },
+            }
+            for i in (1, 2, 3)
+        ],
+    )
+
+    with pytest.raises(PossibleBlock):
+        process_restaurant_jobs(db, GuestLimit({"/restaurantes/1": "restaurant"}), run)
+
+    assert _statuses(db) == {"rest:1": "done", "rest:2": "pending", "rest:3": "pending"}
 
 
 def test_restaurant_that_no_longer_exists_is_skipped_not_failed(db):

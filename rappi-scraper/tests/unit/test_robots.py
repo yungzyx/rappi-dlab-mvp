@@ -17,7 +17,7 @@ from conftest import FIXTURES_DIR
 from rappi_scraper import config
 from rappi_scraper.pipeline.discover import CHAIN_SITEMAP, PARTNER_SITEMAP, VERTICAL_LISTINGS
 from rappi_scraper.scraping import client as client_module
-from rappi_scraper.scraping.client import DownloadStopped, RappiClient, RobotsDisallowed
+from rappi_scraper.scraping.client import DownloadStopped, LoginRequired, PossibleBlock, RappiClient, RobotsDisallowed
 from rappi_scraper.scraping.robots import CACHE_SECONDS, RETRY_SECONDS, RobotsPolicy
 
 AGENT = "rappi-dlab-scraper"
@@ -154,7 +154,8 @@ def test_no_robots_txt_means_no_rules_and_an_unreachable_one_means_nothing_is_al
 
 
 class _FakeSite(BaseHTTPRequestHandler):
-    """robots.txt según `robots` (texto o código HTTP); /redirige va a /privado; todo lo demás responde 200."""
+    """robots.txt según `robots` (texto o código HTTP); /redirige va a /privado; /tope-invitado va al inicio de sesión
+    como rappi.cl tras 10 páginas de invitado (25-11-2026); todo lo demás responde 200."""
 
     robots: str | int = "User-agent: *\nDisallow: /privado\n"
     requested: list[str] = []
@@ -168,6 +169,10 @@ class _FakeSite(BaseHTTPRequestHandler):
         elif self.path == "/redirige":
             self.send_response(302)
             self.send_header("Location", "/privado/pagina")
+            self.end_headers()
+        elif self.path == "/tope-invitado":
+            self.send_response(302)
+            self.send_header("Location", "/login?url_redirect=%2Ftope-invitado&logout=guest_limit")
             self.end_headers()
         else:
             self._send(200, b"{}")
@@ -254,3 +259,15 @@ def test_a_robots_txt_that_does_not_answer_stops_the_download(site):
     with pytest.raises(RobotsDisallowed, match="no respondió"):
         client.get_json(base + "/uno")
     assert requested == ["/robots.txt"] * config.MAX_RETRIES  # los reintentos de siempre; la página, nunca
+
+
+def test_a_redirect_to_login_is_a_block_and_login_is_never_asked_for(site):
+    """rappi.cl manda al inicio de sesión cuando la sesión de invitado llega a su tope de páginas (corrida 12, 25-11):
+    no es una página que el scraper necesite (no es el 7 de robots.txt) ni una sucursal no disponible (desde ahí toda
+    página pide sesión). Se detiene como un posible bloqueo, sin pedir /login, aunque robots.txt lo prohíba."""
+    client, base, requested = site
+    _FakeSite.robots = "User-agent: *\nDisallow: /login\n"
+    with pytest.raises(LoginRequired, match="límite de páginas para invitados") as stopped:
+        client.get_json(base + "/tope-invitado")
+    assert isinstance(stopped.value, PossibleBlock) and not isinstance(stopped.value, RobotsDisallowed)
+    assert requested == ["/robots.txt", "/tope-invitado"]
