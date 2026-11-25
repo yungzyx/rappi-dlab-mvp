@@ -3,6 +3,8 @@
 # Prueba primero la forma completa (4 OCPU, 24 GB) y, si no hay, una de 2 OCPU y 12 GB que después se agranda con
 # `terraform apply -var ocpus=4 -var memory_gb=24`. Renueva la sesión de la CLI en cada vuelta (dura una hora y se
 # puede renovar hasta 24 h). Uso: ./reintentar-capacidad.sh [minutos entre intentos, 5] [horas máximas, 23]
+# El perfil de la CLI es OCI_PROFILE (por defecto RAPPI): el script renueva ese y se lo pasa a Terraform, por
+# encima del `oci_profile` de terraform.tfvars, para que los dos usen la misma sesión.
 set -uo pipefail
 cd "$(dirname "$0")" || exit 1
 PROFILE=${OCI_PROFILE:-RAPPI}
@@ -16,7 +18,8 @@ avisar() { # registro y notificación de macOS (si existe osascript)
 }
 
 probar() { # $1 OCPU, $2 GB
-  terraform apply -input=false -auto-approve -no-color -var "ocpus=$1" -var "memory_gb=$2" > ultimo-intento.log 2>&1
+  terraform apply -input=false -auto-approve -no-color -var "oci_profile=$PROFILE" -var "ocpus=$1" -var "memory_gb=$2" \
+    > ultimo-intento.log 2>&1
 }
 
 while [ "$(date +%s)" -lt "$FIN" ]; do
