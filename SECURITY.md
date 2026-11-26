@@ -20,6 +20,7 @@ Si encuentras una clave o un secreto en el repositorio o en su historial, avísa
 ## Lo que ya se sabe (no hace falta reportarlo)
 
 - **En local, la API no tiene puerta de acceso.** `make mvp` escucha solo en el equipo local; con `LAN=1` o `make serve-lan` se abre a la red, y eso se hace solo en una red de confianza. En un servidor, todo el sitio va detrás de la puerta de Caddy ([docs/despliegue.md](docs/despliegue.md)).
+- **Sin su propia credencial, el panel abre con la clave de la puerta.** Esa clave es la que se reparte a quienes prueban la app, y con ella también se entra a `/panel` y a `/api/analytics`: métricas, audiencias con ids seudónimos del prototipo y los juicios de la búsqueda, que se pueden escribir. Para una prueba con personas, el panel va apagado (`WITH_PANEL=0` y `API_ENABLE_ANALYTICS=0`) o con su propia credencial: `PANEL_AUTH_USER` y `PANEL_AUTH_HASH` en el archivo de entorno ([deploy/.env.example](deploy/.env.example)) o, en la demo desde un Mac, en `tunel.env` ([deploy/macos/env.example](deploy/macos/env.example)).
 - **Los tokens de sesión no vencen.** El token firma el id seudónimo de cada persona con `API_SECRET`; rotar `API_SECRET` invalida a todas las personas. Basta para una demo cerrada.
 - **No hay cuentas ni pagos reales.** El pago y el seguimiento del pedido son simulados.
 

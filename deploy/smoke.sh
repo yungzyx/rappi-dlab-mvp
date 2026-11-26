@@ -11,7 +11,9 @@
 # Corre desde cualquier carpeta, en el servidor (usa `docker compose`). Con un host localhost acepta la CA interna de
 # Caddy (curl -k). COMPOSE cambia el comando de compose (por defecto, el de deploy/ con deploy/.env).
 # Con WITH_PANEL=1 (el panel construido y API_ENABLE_ANALYTICS=1) revisa además que /panel/, sus archivos y
-# /api/analytics/kpis respondan 200 con credenciales.
+# /api/analytics/kpis respondan 200 con credenciales. Si el panel tiene su propia credencial (PANEL_AUTH_USER, del
+# entorno o del contenedor de Caddy), su clave en claro va en PANEL_AUTH_PASSWORD: con ella responden 200 y con la de
+# la puerta, 401.
 set -uo pipefail
 
 url="${1:?Uso: deploy/smoke.sh https://el-dominio}"
@@ -103,6 +105,23 @@ fi
 
 if [ "${WITH_PANEL:-0}" = 1 ]; then
   echo "Panel"
+  panel_user="${PANEL_AUTH_USER:-$("${compose[@]}" exec -T web printenv PANEL_AUTH_USER 2>/dev/null)}"
+  if [ -n "$panel_user" ]; then
+    # Su credencial propia: la de la puerta (la de quienes prueban la app) no abre el panel ni /api/analytics.
+    if [ -z "${PANEL_AUTH_PASSWORD:-}" ]; then
+      fail "el panel tiene su credencial ($panel_user): falta su clave en claro en PANEL_AUTH_PASSWORD"
+    fi
+    for path in /panel/ /api/analytics/kpis; do
+      code=$(authed -o /dev/null -w '%{http_code}' "$url$path")
+      if [ "$code" = 401 ]; then
+        pass "$path con la clave de la puerta: 401"
+      else
+        fail "$path con la clave de la puerta dio $code (se esperaba 401: el panel tiene su credencial)"
+      fi
+    done
+    user=$panel_user
+    BASIC_AUTH_PASSWORD=${PANEL_AUTH_PASSWORD:-}
+  fi
   panel=$(authed -w '\n%{http_code}' "$url/panel/")
   code="${panel##*$'\n'}"
   panel_index="${panel%$'\n'*}"

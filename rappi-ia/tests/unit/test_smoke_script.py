@@ -28,7 +28,7 @@ SITE_HEADERS = [
 FAKE_CURL = """
 import json, os, sys
 site = json.load(open(os.environ["FAKE_SITE"]))
-args, out, fmt, dump, authed, url, i = sys.argv[1:], None, None, False, False, None, 0
+args, out, fmt, dump, authed, who, url, i = sys.argv[1:], None, None, False, False, None, None, 0
 while i < len(args):
     arg = args[i]
     if arg in ("-o", "-w", "-D", "-K"):
@@ -36,13 +36,17 @@ while i < len(args):
         if arg == "-o": out = value
         if arg == "-w": fmt = value
         if arg == "-D": dump = True
-        if arg == "-K": authed = "user" in sys.stdin.read()
+        if arg == "-K":
+            creds = sys.stdin.read()
+            authed = "user" in creds
+            who = creds.split('"')[1].split(":")[0] if authed else None
         i += 2
         continue
     if not arg.startswith("-"): url = arg
     i += 1
 path = "/" + url.split("://", 1)[1].partition("/")[2]
 page = site.get(path, {"body": "", "headers": []}) if authed else {"body": "", "headers": [], "code": 401}
+if authed and page.get("only", who) != who: page = {"body": "", "headers": [], "code": 401}
 code = str(page.get("code", 200))
 if dump: sys.stdout.write("HTTP/2 " + code + "\\r\\n" + "".join(h + "\\r\\n" for h in page["headers"]) + "\\r\\n")
 if out is None: sys.stdout.write(page["body"])
@@ -101,12 +105,14 @@ def _site(entry_js: str) -> dict:
     }
 
 
-def _smoke(tmp_path: Path, entry_js: str = f'x("{NOTICE}")', **stack) -> subprocess.CompletedProcess:
+def _smoke(
+    tmp_path: Path, entry_js: str = f'x("{NOTICE}")', site: dict | None = None, env: dict | None = None, **stack
+) -> subprocess.CompletedProcess:
     bin_dir = tmp_path / "bin"
     bin_dir.mkdir()
     _fake(bin_dir / "curl", FAKE_CURL)
     compose = _fake(tmp_path / "fake-compose", FAKE_COMPOSE)
-    (tmp_path / "site.json").write_text(json.dumps(_site(entry_js)), encoding="utf-8")
+    (tmp_path / "site.json").write_text(json.dumps({**_site(entry_js), **(site or {})}), encoding="utf-8")
     (tmp_path / "stack.json").write_text(json.dumps({"running": ["api", "db", "web"], **stack}), encoding="utf-8")
     env = {
         **os.environ,
@@ -116,6 +122,7 @@ def _smoke(tmp_path: Path, entry_js: str = f'x("{NOTICE}")', **stack) -> subproc
         "FAKE_STACK": str(tmp_path / "stack.json"),
         "BASIC_AUTH_USER": "demo",
         "BASIC_AUTH_PASSWORD": "clave-de-prueba",
+        **(env or {}),
     }
     return subprocess.run(["bash", str(SMOKE), "https://ejemplo.test"], env=env, capture_output=True, text=True)
 
@@ -165,3 +172,47 @@ def test_caddy_may_have_the_gate(tmp_path):
 
     assert result.returncode == 0, result.stdout + result.stderr
     assert "jobs sin la puerta de acceso" in result.stdout
+
+
+def _panel(only: str | None = None) -> dict:
+    """El panel construido y /api/analytics; con `only`, solo los abre ese usuario (los demás reciben 401)."""
+    pages = {
+        "/panel/": {"body": '<script type="module" src="/panel/assets/index-p.js"></script>', "headers": []},
+        "/panel/assets/index-p.js": {"body": "x", "headers": []},
+        "/api/analytics/kpis": {"body": '{"data":{}}', "headers": []},
+    }
+    return {path: {**page, **({"only": only} if only else {})} for path, page in pages.items()}
+
+
+PANEL_ENV = {"WITH_PANEL": "1", "PANEL_AUTH_USER": "panel", "PANEL_AUTH_PASSWORD": "clave-del-panel"}
+
+
+def test_the_panel_behind_the_shared_gate_passes_as_before(tmp_path):
+    result = _smoke(tmp_path, site=_panel(), env={"WITH_PANEL": "1"})
+
+    assert result.returncode == 0, result.stdout + result.stderr
+    assert "/api/analytics/kpis: 200" in result.stdout
+
+
+def test_the_panel_with_its_own_credential_passes_only_with_it(tmp_path):
+    """Con PANEL_AUTH_* el panel y /api/analytics piden su credencial: la de la puerta, que tienen quienes prueban la
+    app, ya no los abre."""
+    result = _smoke(tmp_path, site=_panel(only="panel"), env=PANEL_ENV)
+
+    assert result.returncode == 0, result.stdout + result.stderr
+    assert "/api/analytics/kpis con la clave de la puerta: 401" in result.stdout
+    assert "/api/analytics/kpis: 200" in result.stdout
+
+
+def test_a_panel_credential_that_the_gate_also_opens_fails(tmp_path):
+    result = _smoke(tmp_path, site=_panel(), env=PANEL_ENV)
+
+    assert result.returncode == 1
+    assert "/panel/ con la clave de la puerta dio 200" in result.stderr
+
+
+def test_a_panel_credential_without_its_password_fails(tmp_path):
+    result = _smoke(tmp_path, site=_panel(only="panel"), env={"WITH_PANEL": "1", "PANEL_AUTH_USER": "panel"})
+
+    assert result.returncode == 1
+    assert "falta su clave en claro en PANEL_AUTH_PASSWORD" in result.stderr

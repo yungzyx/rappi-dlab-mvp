@@ -44,8 +44,23 @@ http://:{$CADDY_PORT} {
 	bind 127.0.0.1
 	encode zstd gzip
 
-	basic_auth {
+	# La puerta y la credencial propia del panel (opcional), como en deploy/Caddyfile: con PANEL_AUTH_USER y
+	# PANEL_AUTH_HASH en tunel.env, /panel y /api/analytics piden esa y no la de la puerta; sin ellas, como antes.
+	@puerta {
+		not {
+			path /panel /panel/* /api/analytics /api/analytics/*
+			expression `{env.PANEL_AUTH_HASH} != ""`
+		}
+	}
+	basic_auth @puerta {
 		{$BASIC_AUTH_USER} {$BASIC_AUTH_HASH}
+	}
+	@panel_aparte {
+		path /panel /panel/* /api/analytics /api/analytics/*
+		expression `{env.PANEL_AUTH_HASH} != ""`
+	}
+	basic_auth @panel_aparte bcrypt panel {
+		{$PANEL_AUTH_USER} {$PANEL_AUTH_HASH}
 	}
 
 	request_body {

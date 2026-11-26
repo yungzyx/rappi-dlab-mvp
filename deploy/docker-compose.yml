@@ -40,10 +40,12 @@ x-sin-claves-de-la-app: &sin-claves-de-la-app
   ANTHROPIC_API_KEY: ""
   TYPESAFE_API_KEY: ""
 
-# El usuario y el hash de la puerta de acceso: solo para Caddy (web).
+# El usuario y el hash de la puerta de acceso (y los del panel): solo para Caddy (web).
 x-sin-puerta: &sin-puerta
   BASIC_AUTH_USER: ""
   BASIC_AUTH_HASH: ""
+  PANEL_AUTH_USER: ""
+  PANEL_AUTH_HASH: ""
 
 # restic y las credenciales de su almacenamiento (S3, B2): solo para el servicio jobs.
 x-sin-claves-de-respaldo: &sin-claves-de-respaldo
@@ -141,6 +143,9 @@ services:
       DOMAIN: ${DOMAIN:?Falta DOMAIN en el archivo de entorno}
       BASIC_AUTH_USER: ${BASIC_AUTH_USER:?Falta BASIC_AUTH_USER en el archivo de entorno}
       BASIC_AUTH_HASH: ${BASIC_AUTH_HASH:?Falta BASIC_AUTH_HASH en el archivo de entorno}
+      # La credencial propia del panel (opcional; vacía, el panel queda detrás de la misma puerta): ver el Caddyfile.
+      PANEL_AUTH_USER: ${PANEL_AUTH_USER:-}
+      PANEL_AUTH_HASH: ${PANEL_AUTH_HASH:-}
     # Corre sin root (Dockerfile.web): de las capacidades solo le queda la de abrir los puertos 80 y 443.
     cap_drop: [ALL]
     cap_add: [NET_BIND_SERVICE]
