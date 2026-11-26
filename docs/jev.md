@@ -8,7 +8,7 @@ Jev es **opcional y fuera de línea**. Solo trabaja dentro de `make post-refresh
 
 | Rol | Qué hace | Dónde se ve |
 |---|---|---|
-| **Etiquetar categorías** | Propone el concepto de las categorías nuevas del catálogo (las que ningún mapeo revisado cubre). Si está muy seguro lo aplica (`category_map` con método `jev`); si duda, la deja en una cola de revisión; si dice "ninguno" o la categoría mezcla cosas, no hace nada. Un concepto sensible o +18 nunca se asigna solo a una categoría cuyo resto dice lo contrario: va a revisión. | `make jev-categorias`, antes de `make concepts`; cola en `data/concepts/revision-jev.csv` |
+| **Etiquetar categorías** | Propone el concepto de las categorías nuevas del catálogo (las que ningún mapeo revisado cubre). Si está muy seguro lo aplica (`category_map` con método `jev`); si duda, la deja en una cola de revisión; si dice "ninguno" o la categoría mezcla cosas, no hace nada. Un concepto sensible o +18 nunca se asigna en automático a una categoría cuyo resto dice lo contrario: pasa a revisión. | `make jev-categorias`, antes de `make concepts`; cola en `data/concepts/revision-jev.csv` |
 | **Juzgar la búsqueda** | Suma un tercer juez (junto al juez por concepto y las personas) en el reporte `make eval`: dice si cada resultado sirve para la consulta. Sus juicios se guardan en `eval_judgments` con la versión del modelo: la segunda corrida no vuelve a preguntar lo mismo. | `data/eval/busqueda.md` |
 
 ## Qué datos salen
@@ -22,7 +22,7 @@ Solo datos públicos del catálogo y el set de evaluación:
 
 ## Costo
 
-Centavos de dólar por corrida. TypeSafe cobra por tokens de entrada (`JEV_PRICE_PER_MTOK_INPUT` en `rappi-ia/.env.example` guarda el precio con que el piloto estima el costo; confírmalo en tu cuenta). Cada corrida tiene un tope de llamadas, `JEV_MAX_REQUESTS` (3000 por defecto, los reintentos cuentan): si se llega, el resto queda para la semana siguiente y el comando lo avisa. La primera corrida del juez es la más cara, porque la caché empieza vacía.
+Centavos de dólar por corrida. TypeSafe cobra por tokens de entrada (`JEV_PRICE_PER_MTOK_INPUT` en `rappi-ia/.env.example` guarda el precio con que el piloto estima el costo; confírmalo en tu cuenta). Cada corrida tiene un tope de llamadas, `JEV_MAX_REQUESTS` (3000 por defecto, los reintentos cuentan): si se alcanza ese tope, el resto queda para la semana siguiente y el comando avisa. La primera corrida del juez es la más cara, porque la caché empieza vacía.
 
 ## Cómo activarlo, paso a paso
 
@@ -58,7 +58,7 @@ Centavos de dólar por corrida. TypeSafe cobra por tokens de entrada (`JEV_PRICE
 
 ## Qué pasa si falta algo
 
-Los dos pasos terminan siempre con código 0 y dicen en una línea por qué no hicieron nada:
+Ambos pasos terminan siempre con código 0 y explican en una línea por qué no hicieron nada si ocurre alguno de estos casos:
 
 - sin `TYPESAFE_API_KEY`;
 - sin `jev-adopcion.json`, o con el rol en `false`;
