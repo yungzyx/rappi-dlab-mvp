@@ -390,7 +390,7 @@ export default function AssistantPanel({ push, vertical, depth = 1 }) {
     if (product.storeId == null) return
     go('store', { store: storeOfProduct(product), item: product })
   }
-  // Con perfil de gusto (en la propuesta), arriba van el perfil, el saludo y la escalera, como en el Comité 2; lo demás
+  // Con perfil de gusto (en la propuesta), arriba van el perfil, el saludo y la escalera; lo demás
   // (el autopedido fijo, los atajos con "Mis preferencias" y "Pedir por mí", las ideas y el aviso de IA), debajo.
   const withProfile = Boolean(taste?.profile && demo.isFinal)
   // La escalera: la del perfil o, sin perfil, la de verticales (el momento `escalera`), que va bajo la respuesta con su

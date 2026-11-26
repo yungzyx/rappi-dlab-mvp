@@ -13,7 +13,7 @@ import { STOPPED } from './useAgentConversation'
 const FOR_YOU_WAIT_MS = 3000 // lo que el saludo espera lo que se pide al abrir; después sale con lo que haya de "Para ti"
 
 const GREETING = `¡Hola! Soy ${AGENT_NAME}, tu asistente de compras 🧡 Toca una idea o busca lo que quieras.`
-// Con un perfil de gusto, como en el Comité 2: lo que le gusta (`gusto` del perfil) y la escalera justo debajo.
+// Con un perfil de gusto: lo que le gusta (`gusto` del perfil) y la escalera justo debajo.
 const PROFILE_GREETING = (profile) =>
   `¡Hola de nuevo! 🧡 Veo que te gusta ${profile.gusto} ${profile.emoji} Te armé ideas en otras verticales 👇`
 const NOTHING_TO_PAIR = 'No se me ocurre nada para acompañar eso'
