@@ -151,7 +151,12 @@ describe('Home de "Rappi hoy"', () => {
   test('dice de qué fecha son los precios del catálogo, y nada si la API no lo dice', async () => {
     const dated = { ...fixture('catalog-home'), catalogo: { desde: '2026-09-24', hasta: '2026-10-18', verticales: {} } }
     renderHome(homeRoutes({ '/catalog/home': dated }))
-    expect(await screen.findByText('Precios de Rappi Chile del 24-09 al 18-10')).toBeTruthy()
+    // En el detalle del aviso, que se abre al tocar su única línea.
+    const prices = await screen.findByText('Precios de Rappi Chile del 24-09 al 18-10')
+    expect(prices.closest('details').open).toBe(false)
+    expect(prices.closest('details').querySelector('summary').textContent).toBe(
+      'Prototipo dLab con Rappi · demo, no es la app oficial',
+    )
     cleanup()
 
     const undated = fixture('catalog-home')
