@@ -116,6 +116,23 @@ describe('goalValue', () => {
     expect(goalValue({ ...INVENTED, operacion: '1.000' }).h2.payback).toBe(1)
   })
 
+  test('an invalid cost suspends the payback instead of counting as zero', () => {
+    // H2: 2.000 de margen al mes; con 4.000 de inversión y 1.000 al mes se recupera en el mes 4.
+    expect(goalValue({ ...INVENTED, inversion: '4.000', operacion: '1.000' }).h2.payback).toBe(4)
+    for (const costs of [
+      { inversion: '4.000', operacion: '-1.000' },
+      { inversion: '4.000', operacion: 'mil' },
+      { inversion: '-4.000', operacion: '1.000' },
+    ]) {
+      const result = goalValue({ ...INVENTED, ...costs })
+      expect(Object.keys(result.errors)).toHaveLength(1)
+      expect(result.costs).toBe(false) // sin "Recupera la inversión" hasta corregir el campo
+      expect(result.h2.payback).toBeNull()
+      expect(result.h1.techo.payback).toBeNull()
+      expect(result.h2.margin).toBe(2000) // el margen no depende de los costos
+    }
+  })
+
   test('partial coverage scales both hypotheses', () => {
     const { h1, h2 } = goalValue({ ...INVENTED, cobertura: '25' })
     expect(h1.people).toBeCloseTo(25000)
