@@ -4,6 +4,7 @@ import { afterAll, afterEach, beforeAll, describe, expect, test, vi } from 'vite
 import { placeList } from '../../api/attribution'
 import { forgetCatalogDates, forgetStockChecks } from '../../api/catalog'
 import { toPrototypeProduct } from '../../api/client'
+import { catalogRoute } from '../../api/offline/catalog'
 import { fixture, stubApi } from '../../test/api'
 import { ToastProvider } from '../../components/Toast'
 import { AssistantProvider } from '../../state/AssistantContext'
@@ -224,6 +225,33 @@ describe('restaurante', () => {
     stubCatalog()
     openStore({ store: PIZZERIA })
     expect(await screen.findByText('Bebida cola 500 cc (prueba)')).toBeTruthy()
+  })
+})
+
+describe('demo sin conexión: una tienda cuya página la muestra no grabó', () => {
+  // Lo que responde la API simulada (src/api/offline/catalog.js) con los productos que la muestra trae de ella.
+  const SAMPLE = {
+    catalog: { stores: {}, menus: {} },
+    pool: [
+      {
+        ...fixture('catalog-store').products[0],
+        store: 'Súper de la muestra',
+        store_id: 4242,
+      },
+      { ...fixture('catalog-menu').sections[0].items[0], store: 'Sushi de la muestra', store_id: 4343 },
+    ],
+  }
+  const offline = (req) => catalogRoute(SAMPLE, 'GET', req.path, req.query).body
+
+  test.each([
+    ['una tienda', { id: 4242, name: 'Súper de la muestra', vertical: 'grocery' }, 0],
+    ['un restaurante', { id: 4343, name: 'Sushi de la muestra', vertical: 'restaurants' }, 1],
+  ])('%s se abre con lo que la muestra trae, sin "no está en el catálogo"', async (_, store, row) => {
+    stubApi({ '/catalog/stores/*': offline, '/catalog/restaurants/*': offline })
+    openStore({ store })
+    expect(await screen.findByText(SAMPLE.pool[row].name)).toBeTruthy()
+    expect(screen.getAllByText('En la muestra de la demo').length).toBeGreaterThan(0) // su pasillo o su sección
+    expect(screen.queryByText('Esta tienda no está en el catálogo')).toBeNull()
   })
 })
 

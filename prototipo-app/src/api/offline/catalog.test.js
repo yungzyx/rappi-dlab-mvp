@@ -73,3 +73,43 @@ test('las búsquedas recientes salen de los eventos de este navegador, sin "Lo m
   expect(reply.mas_buscado).toEqual([])
   expect(reply.request_id).toMatch(/^offline-/)
 })
+
+test('una tienda o un restaurante cuya página no se grabó se abre con los productos que la muestra trae de él', () => {
+  const item = (type, id, store, extra = {}) => ({
+    id: `${type === 'menu_item' ? 'menu' : 'cat'}-${id}`,
+    entity_type: type,
+    entity_id: String(id),
+    name: `Producto ${id}`,
+    vertical: type === 'menu_item' ? 'restaurantes' : 'supermercado',
+    price: '$1.000',
+    store: type === 'menu_item' ? 'Sushi de prueba' : 'Súper de prueba',
+    store_id: store,
+    img: `foto-${id}.webp`,
+    ...extra,
+  })
+  const snapshot = {
+    catalog: { stores: {}, menus: {} },
+    pool: [
+      item('catalog_item', 1, 77),
+      item('catalog_item', 1, 77),
+      item('catalog_item', 2, 77),
+      item('menu_item', 3, 88),
+    ],
+  }
+  const get = (path) => catalogRoute(snapshot, 'GET', path, new URLSearchParams())
+
+  const shop = get('/catalog/stores/77').body
+  expect(shop.store).toMatchObject({ id: 77, name: 'Súper de prueba', vertical: 'supermercado' })
+  expect(shop.aisles).toEqual([{ id: 0, name: 'En la muestra de la demo', products: 2 }])
+  expect(shop.products.map((p) => p.entity_id)).toEqual(['1', '2'])
+  expect(shop.has_more).toBe(false)
+
+  const menu = get('/catalog/restaurants/88/menu').body
+  expect(menu.restaurant).toMatchObject({ id: 88, name: 'Sushi de prueba', cover: 'foto-3.webp' })
+  expect(menu.sections).toEqual([{ name: 'En la muestra de la demo', items: [snapshot.pool[3]] }])
+
+  // Sin nada de ella en la muestra sigue siendo un 404, y un plato no abre una tienda (ni al revés).
+  expect(get('/catalog/stores/99').status).toBe(404)
+  expect(get('/catalog/stores/88').status).toBe(404)
+  expect(get('/catalog/restaurants/77/menu').status).toBe(404)
+})
