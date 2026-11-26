@@ -32,25 +32,54 @@ function pending(row, experiment) {
   return `Al ritmo de asignación de hoy, al menos ${weeks} de asignación, y después ${wait(row, experiment)}.`
 }
 
+/** Una línea en lugar del avance: por qué no hay qué mostrar. */
+function PilotNote({ children }) {
+  return (
+    <p className="pilot-off">
+      <Icon name="info" />
+      <span>
+        <strong>Estado del piloto:</strong> {children}
+      </span>
+    </p>
+  )
+}
+
 /**
  * Estado del piloto, junto al enlace a las tres hipótesis: cuánto lleva cada una del mínimo de personas que pide el plan
  * para poder concluir y, si la API trae su ritmo (de asignación o de respuestas), cuántas semanas faltan como piso
- * (`pilot.js`). Con el grupo de control apagado, lo dice: no hay qué medir todavía.
+ * (`pilot.js`). Con los simulados no hay piloto: sus grupos y sus diferencias los pone el generador (lo mismo que dicen
+ * las hipótesis, "Simulado: sin veredicto"). Sin personas en un grupo, lo dice: no hay qué medir todavía. Con el control
+ * apagado y grupos de antes, el avance de esos grupos, con una línea que dice que no entra nadie.
  */
 export function PilotStatus({ source }) {
   const experiment = offersExperiment(useAnalytics('experimentos', source))
   if (!experiment || !hasHypotheses(experiment)) return null
-  const { on, rows } = pilotProgress(experiment)
+  if (source === 'synthetic') {
+    return <PilotNote>los grupos simulados no son un piloto: su avance se ve con el uso del MVP (Prototipo).</PilotNote>
+  }
+  const { on, assigning, rows } = pilotProgress(experiment)
   if (!on) {
     return (
-      <p className="pilot-off">
-        <Icon name="info" />
-        <span>
-          <strong>Estado del piloto:</strong> el grupo de control está apagado, todavía no hay qué medir.
-        </span>
-      </p>
+      <PilotNote>
+        {assigning
+          ? 'un grupo todavía no tiene personas, todavía no hay qué medir.'
+          : 'el grupo de control está apagado, todavía no hay qué medir.'}
+      </PilotNote>
     )
   }
+  return (
+    <>
+      {!assigning && (
+        <PilotNote>
+          no entran personas nuevas, el grupo de control está apagado. El avance es el de quienes ya tienen grupo.
+        </PilotNote>
+      )}
+      <PilotProgress rows={rows} experiment={experiment} />
+    </>
+  )
+}
+
+function PilotProgress({ rows, experiment }) {
   return (
     <dl className="pilot" aria-label="Estado del piloto: avance hacia el mínimo de personas de cada hipótesis">
       {rows.map((row) => (
