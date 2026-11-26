@@ -381,7 +381,11 @@ def record(conn: Connection, events: list[Event], source: str = "prototype", ses
     saved = sum(event_id is not None for event_id in ids)
     _record_items(conn, [(event_id, e) for event_id, e in zip(ids, events, strict=True) if event_id and e.items], known)
     _record_sessions(conn, starts, source, session or SessionInfo())
-    _record_ratings(conn, [(e, stars, reasons, _client_ts(e, now) or e.ts or now) for e, (stars, reasons) in ratings])
+    entered = {id(e) for event_id, e in zip(ids, events, strict=True) if event_id}  # un reintento no vuelve a calificar
+    _record_ratings(
+        conn,
+        [(e, stars, reasons, _client_ts(e, now) or e.ts or now) for e, (stars, reasons) in ratings if id(e) in entered],
+    )
     _record_cancellations(conn, [(e, _client_ts(e, now) or e.ts or now) for e in cancellations])
     return saved
 
@@ -488,9 +492,9 @@ def _order_of_event(e: Event) -> dict:
 
 
 def _record_ratings(conn: Connection, ratings: list[tuple[Event, int, list[str], datetime]]) -> None:
-    """Cada calificación queda en el pedido de su carro y su tienda (`_ORDER_OF_EVENT`). Las de "Rappi hoy"
-    (`payload.mode = 'actual'`) no: ese modo no enseña, y la calificación pausa la recompra. Un pedido cancelado no se
-    califica: no llegó."""
+    """Cada calificación queda en el pedido de su carro y su tienda (`_ORDER_OF_EVENT`), salvo que ya tenga una más
+    nueva. Las de "Rappi hoy" (`payload.mode = 'actual'`) no: ese modo no enseña, y la calificación pausa la recompra.
+    Un pedido cancelado no se califica: no llegó."""
     rows = [
         {"stars": stars, "reasons": reasons, "at": rated_at, **_order_of_event(e)}
         for e, stars, reasons, rated_at in ratings
@@ -500,7 +504,7 @@ def _record_ratings(conn: Connection, ratings: list[tuple[Event, int, list[str],
         with conn.cursor() as cur:
             cur.executemany(
                 f"""UPDATE app_orders SET rating = %(stars)s, rating_reasons = %(reasons)s, rated_at = %(at)s
-                    WHERE status = 'confirmado' AND {_ORDER_OF_EVENT}""",
+                    WHERE status = 'confirmado' AND (rated_at IS NULL OR rated_at <= %(at)s) AND {_ORDER_OF_EVENT}""",
                 rows,
             )
 
