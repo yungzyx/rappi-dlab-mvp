@@ -25,7 +25,9 @@ x-logging: &logging
 # El archivo de entorno lleva las claves de todos los servicios. Cada uno recibe solo las suyas: las demás se vacían
 # aquí (`environment` gana sobre `env_file`). Si alguien leyera el entorno de la API no tendría la clave del dueño de
 # las tablas, la del superusuario ni las de los respaldos. Caddy, el único expuesto a internet, ni siquiera lee el
-# archivo: recibe solo DOMAIN y la puerta. Una clave nueva en el archivo va también en la lista que corresponde.
+# archivo: recibe solo DOMAIN y la puerta, que los demás reciben vacía (deploy/smoke.sh lo revisa). jobs, los comandos
+# del operador, recibe además API_SECRET (`rappi-ia token`). Una clave nueva en el archivo va también en la lista que
+# corresponde.
 x-sin-claves-de-base: &sin-claves-de-base
   POSTGRES_PASSWORD: ""
   RAPPI_OWNER_PASSWORD: ""
@@ -37,6 +39,11 @@ x-sin-claves-de-la-app: &sin-claves-de-la-app
   API_SECRET: ""
   ANTHROPIC_API_KEY: ""
   TYPESAFE_API_KEY: ""
+
+# El usuario y el hash de la puerta de acceso: solo para Caddy (web).
+x-sin-puerta: &sin-puerta
+  BASIC_AUTH_USER: ""
+  BASIC_AUTH_HASH: ""
 
 # restic y las credenciales de su almacenamiento (S3, B2): solo para el servicio jobs.
 x-sin-claves-de-respaldo: &sin-claves-de-respaldo
@@ -60,9 +67,12 @@ services:
       # Solo la primera vez (volumen vacío): crea rappi_owner y rappi_api y las extensiones.
       - ./db/init-roles.sh:/docker-entrypoint-initdb.d/10-init-roles.sh:ro
     environment:
-      <<: [*sin-claves-de-la-app, *sin-claves-de-respaldo]
+      <<: [*sin-claves-de-la-app, *sin-claves-de-respaldo, *sin-puerta]
+    # Por TCP, como la buscan los demás servicios: en un volumen nuevo, la imagen corre primero un servidor provisional
+    # que solo escucha en el socket (para init-roles.sh) y lo apaga antes de abrir el puerto; por el socket, la base
+    # podía figurar sana en ese intervalo.
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres -d \"$${POSTGRES_DB:-rappi}\""]
+      test: ["CMD-SHELL", "pg_isready -h 127.0.0.1 -U postgres -d \"$${POSTGRES_DB:-rappi}\""]
       interval: 5s
       timeout: 5s
       retries: 20
@@ -78,7 +88,7 @@ services:
       target: jobs
     command: ["rappi-ia", "deploy-migrate"]
     environment:
-      <<: [*sin-claves-de-base, *sin-claves-de-la-app, *sin-claves-de-respaldo]
+      <<: [*sin-claves-de-base, *sin-claves-de-la-app, *sin-claves-de-respaldo, *sin-puerta]
       DATABASE_URL: ${DATABASE_URL_OWNER:?Falta DATABASE_URL_OWNER en el archivo de entorno}
       DB_API_ROLE: rappi_api
       TZ: America/Santiago  # el nombre del respaldo de antes de migrar, en la hora de los timers
@@ -98,7 +108,7 @@ services:
       dockerfile: deploy/Dockerfile.api
       target: api
     environment:
-      <<: [*sin-claves-de-base, *sin-claves-de-respaldo]
+      <<: [*sin-claves-de-base, *sin-claves-de-respaldo, *sin-puerta]
       TYPESAFE_API_KEY: ""  # Jev solo corre en jobs
       DATABASE_URL: ${DATABASE_URL_API:?Falta DATABASE_URL_API en el archivo de entorno}
       API_ENV: production
@@ -160,7 +170,8 @@ services:
       dockerfile: deploy/Dockerfile.api
       target: jobs
     environment:
-      <<: *sin-claves-de-base
+      <<: [*sin-claves-de-base, *sin-puerta]
+      ANTHROPIC_API_KEY: ""  # solo la API redacta con Claude; ningún trabajo la usa
       DATABASE_URL: ${DATABASE_URL_OWNER:?Falta DATABASE_URL_OWNER en el archivo de entorno}
       # La tarea semanal no migra (sin respaldo): solo revisa; las migraciones las aplica el servicio migrate.
       API_ENV: production

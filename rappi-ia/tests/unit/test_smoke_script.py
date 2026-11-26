@@ -72,6 +72,9 @@ if "psql -U postgres" in script:
 if "cambiar-esto" in script:
     print(stack.get("left", {}).get(service, ""), end="")
     sys.exit(0)
+if "_AUTH_" in script:
+    print(stack.get("gate", {}).get(service, ""), end="")
+    sys.exit(0)
 sys.exit(f"falso: no sé qué hacer con {args}")
 """
 
@@ -146,3 +149,19 @@ def test_an_environment_that_cannot_be_read_fails(tmp_path, service):
 
     assert result.returncode == 1
     assert f"no se pudo leer el entorno de {service}" in result.stderr
+
+
+@pytest.mark.parametrize("service", ["api", "db", "jobs"])
+def test_the_gate_reaching_a_service_other_than_caddy_fails(tmp_path, service):
+    """El usuario y el hash de la puerta (y los del panel) son de Caddy: los demás servicios los reciben vacíos."""
+    result = _smoke(tmp_path, gate={service: "BASIC_AUTH_HASH "})
+
+    assert result.returncode == 1
+    assert f"{service} recibe la puerta de acceso: BASIC_AUTH_HASH" in result.stderr
+
+
+def test_caddy_may_have_the_gate(tmp_path):
+    result = _smoke(tmp_path, gate={"web": "BASIC_AUTH_HASH BASIC_AUTH_USER "})
+
+    assert result.returncode == 0, result.stdout + result.stderr
+    assert "jobs sin la puerta de acceso" in result.stdout

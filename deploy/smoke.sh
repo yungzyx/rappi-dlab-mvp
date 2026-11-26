@@ -2,7 +2,8 @@
 # Prueba de humo del stack desplegado: deploy/smoke.sh https://el-dominio
 # Revisa la puerta de acceso, la API lista (con la búsqueda semántica), las cabeceras de seguridad, que lo servido no
 # apunte a :8000 ni cargue nada que la CSP bloquee, que la app lleve el aviso de demo, que rappi_api no pueda
-# borrar tablas, que ningún servicio (jobs incluido) tenga valores de ejemplo y que todo el stack esté sano.
+# borrar tablas, que ningún servicio (jobs incluido) tenga valores de ejemplo, que la puerta solo llegue a Caddy y que
+# todo el stack esté sano.
 # Sale con 0 o dice qué falló.
 #
 # Necesita la clave de la puerta en claro en BASIC_AUTH_PASSWORD (no se guarda en el servidor; se pasa a curl por la
@@ -164,10 +165,24 @@ check_env() {  # check_env <servicio> <comando de compose que corre un comando e
     pass "$service sin \"cambiar-esto\""
   fi
 }
+# El usuario y el hash de la puerta (y los del panel) son de Caddy (web): los demás servicios los reciben vacíos.
+check_gate() {  # check_gate <servicio> <comando de compose que corre un comando en ese servicio...>
+  local service=$1 left
+  shift
+  if ! left=$("$@" sh -c 'env | grep -E "^(BASIC|PANEL)_AUTH_(USER|HASH)=." | cut -d= -f1' </dev/null 2>/dev/null); then
+    fail "no se pudo leer el entorno de $service"
+  elif [ -n "$left" ]; then
+    fail "$service recibe la puerta de acceso: $(tr '\n' ' ' <<<"$left")"
+  else
+    pass "$service sin la puerta de acceso"
+  fi
+}
 while read -r service; do
   check_env "$service" "${compose[@]}" exec -T "$service"
+  [ "$service" = web ] || check_gate "$service" "${compose[@]}" exec -T "$service"
 done < <("${compose[@]}" ps --format '{{.Service}}')
 check_env jobs "${compose[@]}" run --rm --no-deps -T jobs
+check_gate jobs "${compose[@]}" run --rm --no-deps -T jobs
 
 echo "Stack"
 ps=$("${compose[@]}" ps --format '{{.Service}} {{.Status}}')
