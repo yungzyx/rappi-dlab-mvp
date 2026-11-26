@@ -18,7 +18,7 @@ from ..events import store as events
 from ..events.experiments import EXPOSURE_MOMENTS
 from ..offers import autonomy, blocked, preferences
 from ..offers.engine import Offer, OfferError, PlanOffer, ProfileOffer, home_occasions, kit_stores, make_offer
-from ..offers.personal import user_interests
+from ..offers.personal import Interests, user_interests
 from .deps import Clean, backend_vertical, get_conn, get_services, get_spare_connector
 from .identity import owner_in_query, owner_of_body
 from .limits import concurrency_cap
@@ -30,6 +30,7 @@ router = APIRouter(prefix="/agent", tags=["agent"])
 MAX_LINES = 100  # como un pedido (OrderIn)
 WITHHELD_HEADER = "X-Offer-Withheld"  # en el 204 de una oferta retenida al grupo de control
 AGENT_WITHHELD_HEADER = "X-Agent-Withheld"  # en /agent/ask del grupo de control: respondió la búsqueda de siempre
+MOCHI_OFF = "Mochi está apagado para esta persona (grupo de control)"  # lo que el grupo de control no puede cambiar
 # Hasta dónde mira atrás la cuenta de una oferta ya anotada en la sesión (`_withheld`): la sesión de la app expira tras
 # 30 minutos sin actividad, así que con esto basta y la consulta usa el índice (user_id, ts) de `app_events`.
 OFFERED_LOOKBACK = "24 hours"
@@ -260,6 +261,12 @@ def agent_enabled(conn: Connection, user_id: str | None) -> bool:
     return offers_variant(conn, user_id) != experiments.CONTROL
 
 
+def mochi_off(conn: Connection, user_id: str | None) -> bool:
+    """Si la persona está en el grupo de control ("Mochi apagado"): la API no le entrega nada de Mochi (sus planes, sus
+    perfiles de gusto) ni guarda lo que le diría a Mochi (sus preferencias, "Pedir por mí", un autopedido)."""
+    return offers_variant(conn, user_id) == experiments.CONTROL
+
+
 def _withheld(conn: Connection, body, found: Offer | ProfileOffer, request_id: str | None) -> bool:
     """Si la oferta se retiene (la persona está en el grupo de control, "Mochi apagado"): la respuesta es un 204 como el
     de un momento sin oferta, sea cual sea el momento o la pantalla. Las de los momentos que la app pide igual en los
@@ -359,5 +366,7 @@ def plans(
     user_id: Annotated[str | None, Query(max_length=64)] = None, conn: Connection = Depends(get_conn)
 ) -> list[dict]:
     """Las ocasiones que el agente arma como kit, para la Home: `[{ id, name, emoji }]`. Con `user_id` de alguien del
-    prototipo, las que coinciden con lo que le gusta van primero y traen su `reason` (`text` y `basis`)."""
-    return home_occasions(conn, user_interests(conn, user_id))
+    prototipo, las que coinciden con lo que le gusta van primero y traen su `reason` (`text` y `basis`); en el grupo de
+    control ("Mochi apagado"), las de siempre, sin razón."""
+    interests = Interests.empty() if mochi_off(conn, user_id) else user_interests(conn, user_id)
+    return home_occasions(conn, interests)

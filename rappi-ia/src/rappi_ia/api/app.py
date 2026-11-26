@@ -51,7 +51,7 @@ from ..offers.profiles import active_profiles, person_city
 from ..retrieval.hybrid import MODES, detect_concepts
 from ..text import contract_articles
 from . import deps, identity, prewarm
-from .agent import AGENT_WITHHELD_HEADER, WITHHELD_HEADER, agent_enabled, offers_variant
+from .agent import AGENT_WITHHELD_HEADER, MOCHI_OFF, WITHHELD_HEADER, agent_enabled, mochi_off, offers_variant
 from .agent import router as agent_router
 from .autonomy import router as autonomy_router
 from .catalog import router as catalog_router
@@ -815,7 +815,10 @@ def tastes(user_id: ShortPath, conn: Connection = Depends(get_conn)) -> dict:
     """Los perfiles de gusto de la persona (`offers/profiles.py`): `{ perfiles: [{ id, nombre, emoji, gusto, nivel,
     principal, por_que, basis, conceptos }] }`, el principal primero; la lista va vacía sin perfiles. `gusto` completa
     "Veo que te gusta…" ("lo asiático") y `conceptos` da el nombre y el emoji de lo que cuenta el "por qué" (`pedidos` y
-    `busquedas` de la `basis`). "Olvidar" borra o recalcula sus segmentos, y el perfil se va con ellos."""
+    `busquedas` de la `basis`). "Olvidar" borra o recalcula sus segmentos, y el perfil se va con ellos. Los perfiles son
+    de Mochi: el grupo de control ("Mochi apagado") no tiene."""
+    if mochi_off(conn, user_id):
+        return {"perfiles": []}
     return {"perfiles": [profile.to_dict() for profile in active_profiles(conn, user_id)]}
 
 
@@ -1126,9 +1129,12 @@ def analytics(
 
 # ── Auxiliares ───────────────────────────────────────────────────────────────
 def _auto_order(conn: Connection, body: OrderIn) -> dict:
-    """Un pedido que Mochi hizo solo, ya cerrada la ventana de deshacer: solo en la propuesta y si sigue siendo lo de
-    siempre y pasa cada límite (`autonomy.check_order`). Si no, un 409 con el motivo (`detail.motivo`): la app lo deja
-    para revisar antes. Devuelve el sobre de su `order_placed`: origen `agent-autopedido` y la `basis`."""
+    """Un pedido que Mochi hizo solo, ya cerrada la ventana de deshacer: solo en la propuesta, fuera del grupo de
+    control ("Mochi apagado": uno que la app tenía pendiente de antes no se guarda) y si sigue siendo lo de siempre y
+    pasa cada límite (`autonomy.check_order`). Si no, un 409 con el motivo (`detail.motivo`): la app lo deja para
+    revisar antes. Devuelve el sobre de su `order_placed`: origen `agent-autopedido` y la `basis`."""
+    if mochi_off(conn, body.user_id):
+        raise HTTPException(409, {"codigo": "mochi_apagado", "motivo": MOCHI_OFF})
     stores = {line.store_id for line in body.lines}
     decision, why = (
         autonomy.check_order(conn, body.user_id, next(iter(stores)), [line.model_dump() for line in body.lines])
