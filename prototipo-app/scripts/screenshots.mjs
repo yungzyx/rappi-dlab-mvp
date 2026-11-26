@@ -1,14 +1,19 @@
 // Genera las capturas de docs/screenshots recorriendo la app como un usuario (npm run screenshots).
 // Usa el Chrome instalado (playwright-core, sin descargar navegadores; CHROME_PATH apunta a otro ejecutable y
 // PLAYWRIGHT_CHANNEL a otro canal, p. ej. chrome-beta) y un servidor Vite propio en el 5199.
-// La app no abre sin la API: antes de capturar hay que tener el MVP corriendo (`make mvp`), o una API propia en otro
-// puerto (`VITE_API_URL`, la misma variable que lee la app). El recorrido paga dos compras (una en Ofertas y otra en
-// Chocolates, para la Home dinámica) y deja pedidos y eventos en la base de la API: por eso no corre sin
-// `SCREENSHOTS_ALLOW_WRITES=1`, y se corre sobre una copia (`DATABASE_URL=postgresql:///rappi_staging make mvp`),
-// nunca sobre `rappi`.
+// La app no abre sin la API: antes de capturar hay que levantar una API propia sobre una copia de la base, en otro
+// puerto (por defecto http://127.0.0.1:8020; `VITE_API_URL` elige otra, y la app del servidor de abajo la usa):
+//   cd rappi-ia && DATABASE_URL=postgresql:///rappi_staging .venv/bin/python -m rappi_ia migrate
+//   DATABASE_URL=postgresql:///rappi_staging HF_HUB_OFFLINE=1 \
+//     .venv/bin/python -m uvicorn rappi_ia.api.app:app --host 127.0.0.1 --port 8020
+//   SCREENSHOTS_ALLOW_WRITES=1 npm run screenshots
+// El recorrido paga dos compras (una en Ofertas y otra en Chocolates, para la Home dinámica) y deja pedidos y eventos en
+// la base de la API: por eso no corre sin `SCREENSHOTS_ALLOW_WRITES=1`, y se niega a usar el puerto 8000 (la API de
+// `make mvp`, sobre `rappi`) o un host que no sea de este equipo, salvo con SCREENSHOTS_ALLOW_MAIN_API=1 (como
+// demo-snapshot.mjs).
 // La conversación (45, 46 y 48) se pide en el buscador y se refina con los chips "Más barato" y "Sin carne".
 import { mkdirSync } from 'node:fs'
-import { fileURLToPath } from 'node:url'
+import { fileURLToPath, pathToFileURL } from 'node:url'
 import { chromium } from 'playwright-core'
 import { createServer } from 'vite'
 
@@ -18,9 +23,27 @@ const CHROME_PATH = process.env.CHROME_PATH
 const CHROME_CHANNEL = process.env.PLAYWRIGHT_CHANNEL || 'chrome'
 const PORT = 5199
 const BASE = `http://localhost:${PORT}/`
-// La app del servidor Vite de abajo lee la misma variable (import.meta.env.VITE_API_URL).
-const API = (process.env.VITE_API_URL ?? 'http://localhost:8000').replace(/\/+$/, '')
+export const DEFAULT_API = 'http://127.0.0.1:8020'
+// La app del servidor Vite de abajo lee la misma variable (import.meta.env.VITE_API_URL): main() se la pasa.
+const API = (process.env.VITE_API_URL ?? DEFAULT_API).replace(/\/+$/, '')
 const API_HEALTH = `${API}/health`
+
+// El puerto de `make mvp` / `make serve` (la API sobre `rappi`) y los hosts de este equipo.
+const MAIN_API_PORT = '8000'
+const LOOPBACK = new Set(['127.0.0.1', 'localhost', '[::1]', '::1'])
+
+/** Por qué no se capturan contra `api` (null si se puede): ni el puerto 8000 ni un host que no sea de este equipo. */
+export function unsafeApi(api, env = process.env) {
+  if (env.SCREENSHOTS_ALLOW_MAIN_API === '1') return null
+  const target = new URL(api)
+  const port = target.port || (target.protocol === 'https:' ? '443' : '80')
+  if (port !== MAIN_API_PORT && LOOPBACK.has(target.hostname)) return null
+  return (
+    `No capturo contra ${api}: el puerto ${MAIN_API_PORT} es la API del MVP (base \`rappi\`) y solo se aceptan hosts ` +
+    'de este equipo. Levanta una API sobre `rappi_staging` en otro puerto (ver el inicio de scripts/screenshots.mjs); ' +
+    'si de verdad es una copia, SCREENSHOTS_ALLOW_MAIN_API=1 lo permite.'
+  )
+}
 
 const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms))
 
@@ -121,7 +144,7 @@ async function run(page) {
   await reset()
 
   // --- Portada: modo demo y la Home en ambos modos (arranca en el prototipo final) ---
-  await wait(4200) // Mochi entra a los 0,9 s y termina de escribir su saludo
+  await wait(4200) // Mochi entra a escena a los 0,9 s y la Home termina de cargar
   await shot('00-modo-demo', { full: true })
   await shot('01-home-final')
   await page.keyboard.press('d')
@@ -237,7 +260,7 @@ async function run(page) {
   // --- La Home que aprende: otra persona pide una vez en Chocolates. Un pedido basta para mover el acceso ("Porque
   // pediste en…"); entrar varias veces el mismo día no lo mueve (motor/home.py: MIN_USE_DAYS) ---
   await reset()
-  await wait(4200) // el saludo de Mochi
+  await wait(4200) // como en la portada: Mochi entra y la Home termina de cargar
   await shortcut('Chocolates')
   // El primer producto de las filas de la vertical: la primera tienda puede tener todo agotado.
   const product = page.locator('.vertical-product-row .product-card .add-button').first()
@@ -283,24 +306,32 @@ function requireWritesAllowed() {
   if (process.env.SCREENSHOTS_ALLOW_WRITES === '1') return
   console.error(
     'Las capturas pagan dos compras y dejan pedidos y eventos en la base que usa la API.\n' +
-      'Apunta la API a una copia, nunca a `rappi`: `DATABASE_URL=postgresql:///rappi_staging make mvp`,\n' +
-      'y después corre `SCREENSHOTS_ALLOW_WRITES=1 npm run screenshots`.',
+      'Levanta una API sobre una copia (`rappi_staging`) en otro puerto, nunca sobre `rappi` (ver el inicio de\n' +
+      'scripts/screenshots.mjs), y después corre `SCREENSHOTS_ALLOW_WRITES=1 npm run screenshots`.',
   )
+  process.exit(1)
+}
+
+function requireSafeApi() {
+  console.log(`API de las capturas: ${API}`)
+  const problem = unsafeApi(API)
+  if (!problem) return
+  console.error(problem)
   process.exit(1)
 }
 
 async function requireApi() {
   const response = await fetch(API_HEALTH, { signal: AbortSignal.timeout(3000) }).catch(() => null)
   if (response?.ok) return
-  console.error(
-    'Las capturas necesitan el MVP corriendo sobre una copia: `DATABASE_URL=postgresql:///rappi_staging make mvp`',
-  )
+  console.error(`Las capturas necesitan una API sobre una copia en ${API} (ver el inicio de scripts/screenshots.mjs).`)
   process.exit(1)
 }
 
 async function main() {
   requireWritesAllowed()
+  requireSafeApi()
   await requireApi()
+  process.env.VITE_API_URL = API
   mkdirSync(OUT, { recursive: true })
 
   const server = await createServer({ root: ROOT, server: { port: PORT, strictPort: true }, logLevel: 'error' })
@@ -317,7 +348,9 @@ async function main() {
   }
 }
 
-main().catch((error) => {
-  console.error(error)
-  process.exitCode = 1
-})
+// Solo como script (`npm run screenshots`): los tests importan las guardias sin correr el recorrido.
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href)
+  main().catch((error) => {
+    console.error(error)
+    process.exitCode = 1
+  })

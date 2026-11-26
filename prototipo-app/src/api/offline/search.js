@@ -360,8 +360,8 @@ export function search(snapshot, query) {
     }
   }
   if (recorded && !current) return recorded
-  // Desde una pantalla, una corrección grabada con la vertical de la pantalla primero (como la API con `current`).
-  if (recorded?.corrected_query)
+  // Desde una pantalla, lo grabado (corregido o no) con la vertical de la pantalla primero (como la API con `current`).
+  if (recorded)
     return {
       ...recorded,
       groups: [...recorded.groups].sort((a, b) => (b.vertical === current) - (a.vertical === current)),
@@ -564,8 +564,10 @@ function smallTalk(snapshot, message, mode, interests) {
   )
     kind = 'gracias'
   if (!kind) return null
-  const interest = mode === 'actual' ? null : snapshot.meta.concepts[interests?.[0]]?.label?.toLowerCase()
-  return smallTalkReply(kind, mode, interest)
+  // El primer interés que Mochi puede proponer (rappi_agent.py: _top_interest), con su etiqueta (emoji y nombre).
+  const top = mode === 'actual' ? null : interests?.find((c) => snapshot.meta.concepts[c]?.offerable)
+  const concept = top && snapshot.meta.concepts[top]
+  return smallTalkReply(kind, mode, concept ? `${concept.emoji} ${concept.name}`.toLowerCase() : null)
 }
 
 const smallTalkReply = (kind, mode, interest = null) =>

@@ -92,6 +92,13 @@ describe('searchAll', () => {
     expect(result.groups[0].products).toHaveLength(2)
   })
 
+  test('con vertical y sin coincidencias no devuelve un grupo vacío (el buscador diría solo "Súper")', async () => {
+    stubApi({ '/search': { vertical: 'supermercado', products: [], unmet: true, unmet_reason: 'sin coincidencia' } })
+    const result = await searchAll('xyzzy', { vertical: 'grocery' })
+    expect(result.groups).toEqual([])
+    expect(result.unmet).toBe(true)
+  })
+
   test('sin API lanza un ApiError', async () => {
     stubApi({ '/search': 'offline' })
     await expect(searchAll('cerveza')).rejects.toBeInstanceOf(ApiError)

@@ -84,10 +84,17 @@ async function openGate(sources, python) {
   throw new PhotosStopped(answer.busy ?? 'No pude revisar las reglas del scraper: no bajo las fotos', 1)
 }
 
-/** Baja la miniatura `source` a `file`; null si no se pudo. */
+/**
+ * Baja la miniatura `source` a `file`; null si no se pudo. Una redirección no se sigue (queda sin bajar): robots.txt se
+ * revisó para `source`, no para el destino (como el scraper, que revisa cada redirección antes de pedirla).
+ */
 async function download(source, file, userAgent) {
   try {
-    const response = await fetch(source, { headers: { 'User-Agent': userAgent }, signal: AbortSignal.timeout(20_000) })
+    const response = await fetch(source, {
+      headers: { 'User-Agent': userAgent },
+      redirect: 'manual',
+      signal: AbortSignal.timeout(20_000),
+    })
     const type = response.headers.get('content-type') ?? ''
     if (!response.ok || !type.startsWith('image/webp')) return null
     const bytes = Buffer.from(await response.arrayBuffer())

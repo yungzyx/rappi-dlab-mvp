@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { homeVerticals } from '../../api/client'
+import { ordersSettled } from '../../api/orders'
 import { userId } from '../../api/user'
 import { useApi } from '../../api/useApi'
 import { useEvents } from '../../state/EventsContext'
@@ -8,8 +9,9 @@ import { useProfile } from '../../state/ProfileContext'
 /**
  * El orden de los 6 verticales de la Home del prototipo final, según lo que más usa la persona (`GET /profile/{id}/verticales`).
  * Pide al montar y cada vez que la Home vuelve a estar arriba (`active`: queda montada bajo las pantallas que se abren
- * encima). Al volver, antes de pedir manda los eventos en cola (los toques a los accesos), para que el orden ya los
- * cuente. La respuesta de una petición anterior no pisa a la última, y mientras llega la nueva se mantiene el orden que
+ * encima). Al volver, antes de pedir manda los eventos en cola (los toques a los accesos) y espera los pedidos que
+ * siguen en camino (volver del seguimiento antes de que la API confirme el pedido), para que el orden ya los cuente. La
+ * respuesta de una petición anterior no pisa a la última, y mientras llega la nueva se mantiene el orden que
  * había. Tras "Olvidar" (cambian las `resets`) queda el orden fijo y no pide: el buscador olvida antes de que el
  * servidor borre, y pedir ahí traía el orden de antes (la Home parpadeaba hasta recargarse). Si el borrado sale bien la
  * app se recarga; si falla, pide al volver de otra pantalla (cerrar el buscador no cuenta: se abre sobre la Home).
@@ -30,6 +32,7 @@ export function useVerticalOrder(active = true) {
     ;(async () => {
       await events.flush()
       await events.settled() // un lote que ya había salido (el envío cada 5 s) también debe llegar antes
+      await ordersSettled()
       if (current) setReturns((n) => n + 1)
     })()
     return () => {

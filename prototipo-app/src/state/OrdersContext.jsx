@@ -110,8 +110,10 @@ export function OrdersProvider({ children }) {
     [update],
   )
 
-  // "Atrasar el pedido en curso" del "Panel de la demo" (solo en "Prototipo MVP.html"): en otros builds nadie lo manda.
+  // "Atrasar el pedido en curso" del "Panel de la demo": solo en "Prototipo MVP.html". En los demás builds Vite pliega
+  // la condición y el oyente no entra al bundle.
   useEffect(() => {
+    if (import.meta.env.VITE_OFFLINE_DEMO !== '1') return undefined
     const onDelay = () => {
       const now = Date.now()
       const target = delayable(current.current, now)

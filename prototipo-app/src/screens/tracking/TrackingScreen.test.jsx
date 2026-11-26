@@ -8,6 +8,7 @@ import { CartProvider } from '../../state/CartContext'
 import { DemoProvider } from '../../state/DemoContext'
 import { QUIET_KEY, noteDismissed, resetQuiet } from '../../state/agentQuiet'
 import { setAgentEnabled } from '../../state/agentEnabled'
+import { setAgentHidden } from '../../state/agentHidden'
 import { OrdersProvider, useOrders } from '../../state/OrdersContext'
 import { ProfileProvider } from '../../state/ProfileContext'
 import { today } from '../../utils/today'
@@ -212,10 +213,12 @@ describe('TrackingScreen', () => {
     expect(screen.queryByRole('button', { name: NEXT_CARD })).toBeNull()
   })
 
-  // "Rappi hoy" no tiene a Mochi, y el grupo de control ("Mochi apagado") tampoco: reparte un repartidor neutro.
+  // "Rappi hoy" no tiene a Mochi, y el grupo de control ("Mochi apagado") tampoco; oculto, tampoco: reparte un
+  // repartidor neutro.
   test.each([
     ['en "Rappi hoy"', () => localStorage.setItem('rappi-proto-demo-mode', 'actual')],
     ['con Mochi apagado (grupo de control)', () => setAgentEnabled(false)],
+    ['con Mochi oculto', () => setAgentHidden(true)],
   ])('%s el repartidor del mapa es neutro: sin Mochi ni "¡Ya casi!"', async (_, setUp) => {
     setUp()
     renderTracking()
@@ -275,6 +278,22 @@ describe('TrackingScreen', () => {
     expect(ontop.textContent).toContain('Plazo y envío de ejemplo')
     await act(() => vi.advanceTimersByTimeAsync(21_000))
     expect(screen.queryByRole('region', { name: 'Turbo: suma a tu pedido' })).toBeNull()
+  })
+
+  test('ocultar a Mochi con el seguimiento abierto saca su mascota, el OnTop y "¿Y ahora…?"', async () => {
+    renderTracking()
+    fireEvent.click(screen.getByText('pedir'))
+    await act(() => vi.advanceTimersByTimeAsync(500))
+    expect(screen.getByRole('region', { name: 'Turbo: suma a tu pedido' })).toBeTruthy()
+    act(() => setAgentHidden(true))
+    expect(screen.queryByRole('region', { name: 'Turbo: suma a tu pedido' })).toBeNull()
+    expect(document.querySelector('.tracking-rider [data-rider="neutral"]')).toBeTruthy()
+
+    act(() => setAgentHidden(false))
+    await act(() => vi.advanceTimersByTimeAsync(21_000))
+    expect(screen.getByRole('button', { name: NEXT_CARD })).toBeTruthy()
+    act(() => setAgentHidden(true))
+    expect(screen.queryByRole('button', { name: NEXT_CARD })).toBeNull()
   })
 
   test('sin OnTop en "Rappi hoy", con Mochi en silencio ni en un pedido de Turbo', async () => {

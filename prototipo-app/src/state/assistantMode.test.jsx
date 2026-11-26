@@ -44,3 +44,28 @@ test('al pasar a "Rappi hoy" el buscador con Mochi se cierra, y volver atrás no
   act(() => window.dispatchEvent(new PopStateEvent('popstate', { state: { assistant: true } })))
   expect(screen.getByText('abierto')).toBeTruthy()
 })
+
+test('después de "Borrar mis datos", volver a la entrada del buscador de la persona anterior no lo reabre', () => {
+  localStorage.setItem('rappi-proto-user', 'proto-antes')
+  render(
+    <DemoProvider>
+      <AssistantProvider>
+        <Probe />
+      </AssistantProvider>
+    </DemoProvider>,
+  )
+  fireEvent.click(screen.getByText('abrir'))
+  const before = { ...window.history.state, assistantSearch: 'regalo para ana@correo.cl' }
+  cleanup()
+
+  localStorage.setItem('rappi-proto-user', 'proto-despues')
+  render(
+    <DemoProvider>
+      <AssistantProvider>
+        <Probe />
+      </AssistantProvider>
+    </DemoProvider>,
+  )
+  act(() => window.dispatchEvent(new PopStateEvent('popstate', { state: before })))
+  expect(screen.getByText('cerrado')).toBeTruthy()
+})

@@ -108,6 +108,7 @@ describe('useSearchApi', () => {
     act(() => result.current.retry())
     await advance(0)
     expect(result.current.error).toBeNull()
-    expect(result.current.data).toMatchObject({ unmet: true, groups: [{ backendVertical: 'licores', products: [] }] })
+    // Sin coincidencias, ningún grupo (no un grupo vacío de Licores).
+    expect(result.current.data).toMatchObject({ unmet: true, groups: [] })
   })
 })

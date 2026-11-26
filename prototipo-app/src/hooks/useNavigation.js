@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
+import { storedUserId } from '../api/user'
 
 const INITIAL = { stack: [{ name: 'home', params: {} }], homeTab: 'home' }
 
@@ -20,11 +21,20 @@ function navFromHash(hash) {
   return { ...INITIAL, stack: [...INITIAL.stack, ...screens] }
 }
 
-// history.state solo acepta datos clonables: el viaje por JSON descarta funciones o componentes que se cuelen.
-const toState = (nav, extra = {}) => ({ nav: JSON.parse(JSON.stringify(nav)), ...extra })
+// history.state solo acepta datos clonables: el viaje por JSON descarta funciones o componentes que se cuelen. Cada
+// entrada dice de quién es (`who`, el id de la sesión).
+const toState = (nav, extra = {}) => ({ ...extra, nav: JSON.parse(JSON.stringify(nav)), who: storedUserId() })
+
+/**
+ * ¿La entrada del historial es de la persona de ahora? "Borrar mis datos" no puede vaciar el historial del navegador:
+ * las entradas de antes (con lo que se buscó en sus parámetros o en `assistantSearch`) quedan detrás, y volver a ellas
+ * no debe recuperar nada de la persona anterior.
+ */
+export const ownEntry = (state) => (state?.who ?? null) === (storedUserId() ?? null)
 
 function readInitial() {
-  return window.history.state?.nav ?? navFromHash(window.location.hash)
+  const { state } = window.history
+  return (ownEntry(state) && state?.nav) || navFromHash(window.location.hash)
 }
 
 /**
@@ -50,11 +60,13 @@ export function useNavigation() {
     window.history.replaceState(toState(navRef.current), '', hashFor(navRef.current))
 
     const onPopState = (event) => {
-      let next = event.state?.nav
+      const own = ownEntry(event.state)
+      let next = own ? event.state?.nav : undefined
       if (!next) {
-        // Hash escrito a mano (sin estado nuestro): se lee la ruta y se deja una entrada limpia.
+        // Hash escrito a mano (sin estado nuestro) o una entrada de otra persona: se lee la ruta y se deja una entrada
+        // limpia (de la otra persona no queda nada).
         next = navFromHash(window.location.hash)
-        window.history.replaceState(toState(next, event.state ?? {}), '', hashFor(next))
+        window.history.replaceState(toState(next, own ? (event.state ?? {}) : {}), '', hashFor(next))
       }
       // Si el retroceso vino del gesto de Safari, el navegador ya animó: no repetir la animación.
       setDirection(backIsOurs.current ? 'pop' : 'none')

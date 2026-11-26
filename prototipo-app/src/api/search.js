@@ -21,7 +21,8 @@ const groupOf = (backendVertical, prototypeVertical, products) => ({
  * producto lleva su lugar en los resultados (`placement`, ver attribution.js).
  * - Sin `vertical`, busca en las verticales que corresponden a la consulta (más `current`, la de la pantalla) y
  *   devuelve un grupo por vertical, en el orden de la API. `limit` es por grupo.
- * - Con `vertical` (id del prototipo o código del backend), busca solo ahí y devuelve un único grupo.
+ * - Con `vertical` (id del prototipo o código del backend), busca solo ahí y devuelve un único grupo (ninguno si no
+ *   encontró nada).
  * - Si nada calzaba, la API corrige los errores de tipeo y busca de nuevo: `correctedQuery` es lo que buscó (null si
  *   no corrigió). Con `exact`, busca `q` tal cual.
  * - Sin `vertical`, también las tiendas y los restaurantes que se llaman así o son de esa cocina (`places: { stores,
@@ -41,9 +42,13 @@ export async function searchAll(q, { vertical, current, limit, exact, userId } =
   if (userId) params.set('user_id', userId)
   const response = await request(`/search?${params}`, { timeout: SEARCH_TIMEOUT_MS })
   const requestId = response.request_id ?? null
-  const found = response.groups
-    ? response.groups.map((g) => groupOf(g.vertical, g.prototype_vertical, g.products))
-    : [groupOf(response.vertical, null, response.products ?? [])]
+  // Un grupo sin productos no se devuelve: la búsqueda en una vertical sin coincidencias es "sin resultados", no un
+  // encabezado solo.
+  const found = (
+    response.groups
+      ? response.groups.map((g) => groupOf(g.vertical, g.prototype_vertical, g.products))
+      : [groupOf(response.vertical, null, response.products ?? [])]
+  ).filter((group) => group.products.length > 0)
   // Cada producto con su lugar en los resultados: la posición cuenta de corrido, grupo tras grupo, como se muestran.
   let start = 0
   const groups = found.map((group) => {

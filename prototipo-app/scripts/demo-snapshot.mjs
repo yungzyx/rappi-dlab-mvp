@@ -14,15 +14,16 @@
 import { execFileSync } from 'node:child_process'
 import { createHash } from 'node:crypto'
 import { readFileSync, writeFileSync } from 'node:fs'
-import { fileURLToPath } from 'node:url'
-import { followKey } from '../src/api/offline/text.js'
+import { fileURLToPath, pathToFileURL } from 'node:url'
+import { followKey, normalize } from '../src/api/offline/text.js'
 
 const ROOT = fileURLToPath(new URL('..', import.meta.url))
 const OUT = `${ROOT}src/api/offline/snapshot.json`
 const API = (process.env.DEMO_API_URL || 'http://127.0.0.1:8020').replace(/\/+$/, '')
 const PYTHON = `${ROOT}../rappi-ia/.venv/bin/python`
 
-// Cuánto se lleva la muestra: lo justo para recorrer la demo sin que el archivo pase de ~3 MB.
+// Cuánto se lleva la muestra: lo justo para recorrer la demo sin que el HTML pase de su tope (15 MB: MAX_BYTES de
+// scripts/demo-html.mjs; la muestra del 25-11-2026 pesa ~2,1 MB y el HTML con sus fotos, ~14,1 MB).
 const STORE_VERTICALS = ['supermercado', 'farmacia', 'mall', 'licores', 'conveniencia', 'chocolateria', 'turbo']
 const STORES_PER_VERTICAL = 3
 const AISLES_PER_STORE = 4
@@ -127,14 +128,8 @@ async function call(path, { method = 'GET', body, token, allow = [] } = {}) {
 
 const session = () => call('/session', { method: 'POST', body: {} })
 
-/** Clave de una consulta o pregunta: sin tildes (salvo la ñ, que también se quita), emojis ni signos. */
-export const normalize = (text) =>
-  text
-    .normalize('NFD')
-    .replace(/\p{M}/gu, '')
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, ' ')
-    .trim()
+// La clave de cada consulta o pregunta grabada es `normalize` de src/api/offline/text.js, la misma con que la API
+// simulada las busca.
 
 async function catalog(token) {
   const get = (path, allow) => call(path, { token, allow })
@@ -425,14 +420,15 @@ async function tastes(snapshot) {
 
 // Un producto va como una fila con estos campos, en este orden (src/api/offline/snapshot.js la vuelve a armar): sin
 // las claves repetidas, sin `id` (es `cat-` o `menu-` más `entity_id`) y con las fotos de images.rappi.cl abreviadas.
+// `available` y `stock` dicen si está agotado en su tienda (client.js: toPrototypeProduct, `soldOut`).
 const PRODUCT_FIELDS = [
   ...['entity_type', 'entity_id', 'name', 'vertical', 'concept', 'price', 'price_value', 'before', 'discount'],
-  ...['store', 'store_id', 'img', 'age_restricted', 'presentation'],
+  ...['store', 'store_id', 'img', 'age_restricted', 'presentation', 'available', 'stock'],
 ]
 const IMG_PREFIX = 'https://images.rappi.cl/products/'
 
 /** Los productos repetidos van una sola vez en `products`; en las respuestas quedan como `{ "$p": índice }`. */
-function intern(snapshot) {
+export function intern(snapshot) {
   const products = []
   const index = new Map()
   const row = (p) =>
@@ -498,7 +494,9 @@ async function main() {
   }
 }
 
-main().catch((error) => {
-  console.error(error)
-  process.exitCode = 1
-})
+// Solo como script (`npm run demo:snapshot`): los tests importan sus funciones sin tomar la muestra.
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href)
+  main().catch((error) => {
+    console.error(error)
+    process.exitCode = 1
+  })

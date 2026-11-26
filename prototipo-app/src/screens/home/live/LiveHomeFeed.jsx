@@ -39,8 +39,10 @@ import './live.css'
 // Las secciones de la Home de hoy. Desde el 14-11-2026 no lleva "¿Repetimos?" ni "¿Volvemos a…?" (no saturar la Home):
 // la recompra se pide en el buscador con Mochi ("Repite lo de siempre").
 const ORDER = ['essentials', 'promos', 'turbo', 'plan', 'nearby', 'lower']
-// Al llegar, Mochi entra a escena (900 ms en live.css) y recién después responde a un toque. No saluda ni guía: desde el
-// 25-11-2026 Mochi no muestra globos por su cuenta (docs/decisiones.md).
+// Al llegar, Mochi entra a escena (900 ms en live.css) y recién después responde a un toque. Desde el 25-11-2026 no
+// saluda, no guía ni propone una vertical en un globo (docs/decisiones.md). Sus globos en la Home son "¿Qué plan tienes
+// hoy?" (el plan entra en pantalla), lo que dice del kit elegido, "Moví…" (cambia el orden de los accesos) y la oferta
+// del carro al volver.
 const T = { enter: 900, arrive: 900 }
 // Silenciado por hoy (desde su menú, en la Home o flotante) o callado porque lo ignoraron: no habla por su cuenta; si lo tocan, sí.
 // Oculto ("Ocultar a Mochi"): no está, así que tampoco habla ni propone nada.

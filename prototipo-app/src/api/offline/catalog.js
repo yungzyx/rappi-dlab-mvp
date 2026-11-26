@@ -1,9 +1,12 @@
-// `/catalog/*` sin conexión (api/catalog.py): las listas y páginas grabadas en la muestra. Lo que la muestra no tiene
-// responde 404, como un producto o una tienda que no está en el catálogo.
+// `/catalog/*` sin conexión (api/catalog.py): las listas y páginas grabadas en la muestra. Muchos productos grabados
+// (de búsquedas, preguntas y ofertas) son de tiendas o restaurantes cuya página no se grabó: esa página se abre con lo
+// que la muestra trae de ellos (sampleShop). Lo que la muestra no tiene responde 404, como un producto o una tienda que
+// no está en el catálogo.
 import { entityKey } from './snapshot'
 import { backendVertical } from './search'
 
 const NOT_FOUND = { status: 404, body: { detail: 'No está en la muestra de la demo sin conexión' } }
+const SAMPLE_SECTION = 'En la muestra de la demo'
 const minutes = (eta) => Number.parseInt(eta, 10) || Number.POSITIVE_INFINITY
 const pesos = (fee) => Number(String(fee ?? '').replace(/\D/g, '')) || 0
 const SORTS = {
@@ -56,13 +59,15 @@ export function catalogRoute(snapshot, method, path, query) {
   if (path === '/catalog/restaurants') {
     const sort = query.get('sort') || 'rating'
     const cuisine = query.get('cuisine')
-    const key = cuisine ? `rating|${cuisine}` : sort
-    let list = catalog.restaurants[key]
+    // Las de una cocina están grabadas por nota: con otro orden se ordena una copia antes de cortar.
+    const recorded = catalog.restaurants[cuisine ? `rating|${cuisine}` : sort]
+    let list = recorded
     if (!list && cuisine)
       list = catalog.restaurants.rating.filter((r) =>
         r.cuisines?.some((c) => c.toLowerCase() === cuisine.toLowerCase()),
       )
-    if (!list) list = [...catalog.restaurants.rating].sort(SORTS[sort] ?? (() => 0))
+    if (!list) list = catalog.restaurants.rating
+    if (!(recorded && (!cuisine || sort === 'rating'))) list = [...list].sort(SORTS[sort] ?? (() => 0))
     return { body: filtered(list, query).slice(0, limitOf(query, 30)) }
   }
   if (path === '/catalog/deals') {
@@ -81,7 +86,7 @@ export function catalogRoute(snapshot, method, path, query) {
   match = /^\/catalog\/stores\/(\d+)$/.exec(path)
   if (match) {
     const shop = catalog.stores[match[1]]
-    if (!shop) return NOT_FOUND
+    if (!shop) return sampleShop(snapshot, 'catalog_item', match[1]) ?? NOT_FOUND
     const page = Number(query.get('page')) || 1
     const chosen = shop.pages[query.get('aisle')] ?? shop.pages[shop.aisles[0]?.id]
     // Solo la primera página de cada pasillo está en la muestra: "Ver más" no aparece.
@@ -99,7 +104,7 @@ export function catalogRoute(snapshot, method, path, query) {
   match = /^\/catalog\/restaurants\/(\d+)\/menu$/.exec(path)
   if (match) {
     const found = catalog.menus[match[1]]
-    return found ? { body: found } : NOT_FOUND
+    return found ? { body: found } : (sampleShop(snapshot, 'menu_item', match[1]) ?? NOT_FOUND)
   }
   match = /^\/catalog\/products\/([^/]+)\/([^/]+)$/.exec(path)
   if (match) {
@@ -107,6 +112,41 @@ export function catalogRoute(snapshot, method, path, query) {
     return product ? { body: product } : NOT_FOUND
   }
   return undefined
+}
+
+/**
+ * La página de una tienda (`catalog_item`) o del menú de un restaurante (`menu_item`) que la muestra no grabó, con los
+ * productos que sí trae de ella (sin repetir), en un solo pasillo o sección rotulado "En la muestra de la demo". Sin
+ * foto, tiempo ni nota: la muestra no los tiene. Sin ningún producto suyo, undefined (un 404).
+ */
+function sampleShop(snapshot, type, id) {
+  const seen = new Set()
+  const products = (snapshot.pool ?? []).filter((p) => {
+    if (p.entity_type !== type || String(p.store_id) !== id || seen.has(p.entity_id)) return false
+    seen.add(p.entity_id)
+    return true
+  })
+  if (!products.length) return undefined
+  const [first] = products
+  const card = { id: Number(id), name: first.store, hours: null }
+  if (type === 'menu_item')
+    return {
+      body: {
+        restaurant: { ...card, cover: first.img ?? null, cuisines: [], promo: false },
+        sections: [{ name: SAMPLE_SECTION, items: products }],
+      },
+    }
+  const aisle = { id: 0, name: SAMPLE_SECTION, products: products.length }
+  return {
+    body: {
+      store: { ...card, vertical: first.vertical, logo: null, promos: [] },
+      aisles: [aisle],
+      aisle,
+      products,
+      page: 1,
+      has_more: false,
+    },
+  }
 }
 
 /**

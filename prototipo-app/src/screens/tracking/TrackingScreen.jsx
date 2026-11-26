@@ -18,7 +18,7 @@ import { formatPrice, useCart } from '../../state/CartContext'
 import { useDemo } from '../../state/DemoContext'
 import { useEvents } from '../../state/EventsContext'
 import { isHushed, isQuiet } from '../../state/agentQuiet'
-import { isAgentHidden } from '../../state/agentHidden'
+import { isAgentHidden, useAgentHidden } from '../../state/agentHidden'
 import { useAgentEnabled } from '../../state/agentEnabled'
 import { useOrders } from '../../state/OrdersContext'
 import { useProfile } from '../../state/ProfileContext'
@@ -72,6 +72,7 @@ export default function TrackingScreen({ back, reset, push, params }) {
   const orders = useOrders()
   const demo = useDemo()
   const agentEnabled = useAgentEnabled()
+  const agentHidden = useAgentHidden()
   const order = orders.find(params.orderId)
   const [now, setNow] = useState(() => Date.now())
 
@@ -128,10 +129,10 @@ export default function TrackingScreen({ back, reset, push, params }) {
   return (
     <div className="screen tracking">
       <div className="tracking-map-wrap">
-        {/* Mochi reparte solo en el prototipo final y si la persona lo tiene: en "Rappi hoy" y con Mochi apagado (el grupo
-            de control), un repartidor neutro. La pose (tímido antes del viaje) y "¡Ya casi!" son de Mochi. */}
+        {/* Mochi reparte solo en el prototipo final y si la persona lo tiene: en "Rappi hoy", con Mochi apagado (el grupo
+            de control) u oculto, un repartidor neutro. La pose (tímido antes del viaje) y "¡Ya casi!" son de Mochi. */}
         <TrackingMap
-          agent={demo.isFinal && agentEnabled}
+          agent={demo.isFinal && agentEnabled && !agentHidden}
           progress={ahead ? 0 : rideProgress(seconds)}
           delivered={delivered}
           step={demo.isFinal ? (riding || delivered ? 2 : 1) : undefined}
@@ -340,6 +341,7 @@ function OnTop({ order, flow, now, push }) {
   const events = useEvents()
   const profile = useProfile()
   const cart = useCart()
+  const hidden = useAgentHidden()
   const [made, setMade] = useState(null)
   const vertical =
     flow.id === 'restaurants' ? 'restaurants' : order.items.map((item) => item.vertical).find((v) => v && v !== 'turbo')
@@ -363,7 +365,8 @@ function OnTop({ order, flow, now, push }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [order.id])
 
-  if (!made) return null
+  // Ocultar a Mochi con la oferta ya a la vista también la saca.
+  if (!made || hidden) return null
   const deadline = order.placedAt + (made.windowMin ?? 15) * 60_000
   if (now > deadline) return null
   return (
@@ -390,6 +393,7 @@ function OnTop({ order, flow, now, push }) {
 
 function Delivered({ order, push }) {
   const demo = useDemo()
+  const hidden = useAgentHidden()
   const assistant = useAssistant()
   const events = useEvents()
   const profile = useProfile()
@@ -429,7 +433,7 @@ function Delivered({ order, push }) {
       <div className="tracking-reorder">
         <ReorderButton order={order} surface="tracking" onDone={() => push?.('checkout')} />
       </div>
-      {demo.isFinal && next && !bad && (
+      {demo.isFinal && next && !bad && !hidden && (
         <>
           <button
             type="button"

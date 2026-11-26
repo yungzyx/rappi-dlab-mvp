@@ -217,7 +217,24 @@ export const sendEvents = (userId, events, session) =>
     body: { user_id: userId, events, ...(session ? { session } : {}) },
     timeout: 5000,
   })
-export const sendOrder = (order) => request('/orders', { method: 'POST', body: order, timeout: 5000 })
+
+// Un pedido que no llegó (sin red, sin respuesta a tiempo, la API ocupada o con un error suyo) se reenvía igual, con su
+// `client_order_id`: si sí había llegado, la API devuelve el que ya guardó. Lo que la API rechaza (400, 409) no.
+const ORDER_RETRY_MS = [1000, 2000, 4000]
+const retryableOrder = (error) =>
+  error?.kind === 'offline' || error?.kind === 'timeout' || error?.status === 429 || error?.status >= 500
+
+/** `POST /orders`, con hasta tres reintentos del mismo cuerpo si el fallo es pasajero; si no llega, el último error. */
+export async function sendOrder(order) {
+  for (let attempt = 0; ; attempt += 1) {
+    try {
+      return await request('/orders', { method: 'POST', body: order, timeout: 5000 })
+    } catch (error) {
+      if (attempt >= ORDER_RETRY_MS.length || !retryableOrder(error)) throw error
+      await new Promise((resolve) => setTimeout(resolve, ORDER_RETRY_MS[attempt]))
+    }
+  }
+}
 
 /**
  * Al cerrar la pestaña: envío que el navegador completa aunque la página se descargue. Va como text/plain a

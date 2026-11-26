@@ -210,6 +210,28 @@ describe('un error de tipeo grabado (demo-snapshot.mjs: eval/typos.json)', () =>
     expect(reply.groups.map((g) => g.vertical)).toEqual(['supermercado', 'licores'])
   })
 
+  test('desde una pantalla (`current`) sale también la búsqueda grabada sin corrección, con su vertical primero', () => {
+    const fruit = product(8, { name: 'Cerveza de fruta', concept: 'cerveza', vertical: 'supermercado' })
+    const place = { id: 77, name: 'Botillería grabada' }
+    const recorded = {
+      query: 'cerveza',
+      groups: [
+        { vertical: 'licores', prototype_vertical: 'liquor', products: [beer] },
+        { vertical: 'supermercado', prototype_vertical: 'grocery', products: [fruit] },
+      ],
+      places: { stores: [place], restaurants: [] },
+      unmet: false,
+      unmet_reason: null,
+      corrected_query: null,
+    }
+    const reply = search(
+      { ...snapshot, search: { cerveza: recorded } },
+      new URLSearchParams('q=cerveza&current=grocery'),
+    )
+    expect(reply.groups.map((g) => g.vertical)).toEqual(['supermercado', 'licores'])
+    expect(reply.places.stores).toEqual([place]) // lo de la búsqueda real, no lo que calza por palabras
+  })
+
   test('"Buscar tal cual" (correct=false) no repite la corrección: busca lo escrito en la muestra', () => {
     const exact = search(typed, new URLSearchParams('q=cervesa&correct=false'))
     expect(exact.corrected_query).toBeNull()
@@ -304,6 +326,13 @@ describe('la ayuda, el resumen y el último pedido (rappi_agent.py: _small_talk)
     const laugh = said('jajaja')
     expect(laugh).toMatchObject({ intent: { kind: 'vacio' }, actions: HELP_ACTIONS })
     expect(laugh.unmet).toBeFalsy()
+  })
+
+  test('el saludo nombra el primer interés que Mochi puede proponer (rappi_agent.py: _top_interest)', () => {
+    const greet = (interests, mode = 'propuesta') => ask(snapshot, { message: 'hola', mode }, { interests }).text
+    expect(greet(['cerveza', 'cafe'])).toMatch(/Veo tu interés en ☕ café\./) // la cerveza no la propone
+    expect(greet(['cerveza'])).not.toMatch(/Veo tu interés/)
+    expect(greet(['cafe'], 'actual')).not.toMatch(/Veo tu interés/) // "Rappi hoy" no aprende
   })
 
   test('la cuenta, el pago o hablar con alguien no son una búsqueda (understand.py: APP_QUESTIONS)', () => {

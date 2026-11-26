@@ -64,6 +64,7 @@ export default function TravelScreen({ back }) {
           <input
             type="search"
             placeholder="¿A dónde te llevamos hoy?"
+            aria-label="¿A dónde te llevamos hoy?"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
           />

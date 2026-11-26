@@ -66,6 +66,15 @@ describe('SearchScreen', () => {
     await advance(250)
   }
 
+  test('el campo tiene nombre para un lector de pantalla (no solo el placeholder), también en una vertical', () => {
+    expect(setup().input.getAttribute('aria-label')).toBe('¿Qué quieres hoy?')
+    cleanup()
+    render(<SearchScreen back={() => {}} push={vi.fn()} params={{ vertical: 'grocery', only: true }} />, {
+      wrapper: Providers,
+    })
+    expect(screen.getByPlaceholderText('Buscar en Súper').getAttribute('aria-label')).toBe('Buscar en Súper')
+  })
+
   test('escribir "cerveza" muestra los grupos de la API con Licores primero', async () => {
     const { input } = setup()
     await type(input, 'cerveza')

@@ -1520,7 +1520,7 @@ describe('perfil de gusto', () => {
       ...routes,
     })
 
-  test('como en el Comité 2: Mochi, el perfil, el saludo con su gusto y la escalera, todo en la tarjeta', async () => {
+  test('con perfil de gusto: Mochi, el perfil, el saludo con su gusto y la escalera, todo en la tarjeta', async () => {
     withTaste()
     await renderPanel()
 
