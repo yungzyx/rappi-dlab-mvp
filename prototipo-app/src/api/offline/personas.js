@@ -151,7 +151,7 @@ export function personaHistory(snapshot, persona, now = Date.now()) {
 
 // Lo que la app guarda en este navegador y sobrevive al cambiar de persona: la sesión, el modo y los avisos ya vistos.
 const KEEP = ['rappi-proto-user', 'rappi-proto-token', 'rappi-proto-demo-mode', 'rappi-proto-privacy-seen']
-const KEEP_TOO = ['rappi-proto-guia-vista', 'rappi-proto-address']
+const KEEP_TOO = ['rappi-proto-address']
 
 /** Cambia a la persona: borra el carro, los pedidos y lo demás de la app, siembra su historial y vuelve a la Home. */
 export function switchPersona(snapshot, persona) {

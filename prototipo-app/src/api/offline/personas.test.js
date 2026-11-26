@@ -192,7 +192,6 @@ test('cambiar de persona conserva la sesión, el modo y los avisos vistos, y bor
     'rappi-proto-token',
     'rappi-proto-demo-mode',
     'rappi-proto-privacy-seen',
-    'rappi-proto-guia-vista',
     'rappi-proto-address',
   ]
   for (const key of [...kept, 'rappi-proto-cart', 'rappi-proto-orders', 'otra-app']) localStorage.setItem(key, '1')

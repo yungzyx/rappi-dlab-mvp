@@ -144,7 +144,7 @@ async function run(page) {
   await reset()
 
   // --- Portada: modo demo y la Home en ambos modos (arranca en el prototipo final) ---
-  await wait(4200) // Mochi entra a los 0,9 s y termina de escribir su saludo
+  await wait(4200) // Mochi entra a escena a los 0,9 s y la Home termina de cargar
   await shot('00-modo-demo', { full: true })
   await shot('01-home-final')
   await page.keyboard.press('d')
@@ -260,7 +260,7 @@ async function run(page) {
   // --- La Home que aprende: otra persona pide una vez en Chocolates. Un pedido basta para mover el acceso ("Porque
   // pediste en…"); entrar varias veces el mismo día no lo mueve (motor/home.py: MIN_USE_DAYS) ---
   await reset()
-  await wait(4200) // el saludo de Mochi
+  await wait(4200) // como en la portada: Mochi entra y la Home termina de cargar
   await shortcut('Chocolates')
   // El primer producto de las filas de la vertical: la primera tienda puede tener todo agotado.
   const product = page.locator('.vertical-product-row .product-card .add-button').first()

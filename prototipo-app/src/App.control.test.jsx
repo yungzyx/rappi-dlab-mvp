@@ -32,7 +32,6 @@ beforeEach(() => {
   })
   localStorage.setItem('rappi-proto-demo-mode', 'final')
   localStorage.setItem('rappi-proto-privacy-seen', '1')
-  localStorage.setItem('rappi-proto-guia-vista', '1')
   localStorage.setItem('rappi-proto-mochi-activo', '0') // lo que dijo la API con la sesión: el grupo de control
   window.history.replaceState(null, '', '/')
 })
