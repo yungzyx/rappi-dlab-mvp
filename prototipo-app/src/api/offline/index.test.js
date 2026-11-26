@@ -312,3 +312,41 @@ test('el concepto de una búsqueda sale del texto (el corregido si lo hay), no d
   })
   expect(readState().events.map((e) => e.concept_id)).toEqual(['cafe', 'galletas', null])
 })
+
+test('las consultas se guardan redactadas (también la corregida) y lo redactado no vuelve en las recientes', () => {
+  const id = call('POST', '/session', {}).body.user_id
+  call('POST', '/events', {
+    user_id: id,
+    events: [
+      { type: 'search', query: 'cafe' },
+      { type: 'search', query: 'cafe para juan@correo.cl', payload: { corregida: 'café para juan@correo.cl' } },
+    ],
+  })
+  const [, stored] = readState().events
+  expect(stored.query).toBe('cafe para [correo]')
+  expect(stored.payload.corregida).toBe('café para [correo]')
+  expect(call('GET', `/profile/${id}/busquedas`).body.recientes).toEqual(['cafe'])
+})
+
+test('un concepto sensible no entra al perfil de intereses (events/store.py: profile), aunque la muestra no lo marque', () => {
+  // La muestra grabada antes de esta regla no trae la marca `sensitive` de los conceptos.
+  const meta = {
+    ...META,
+    concepts: {
+      ...META.concepts,
+      'salud-sexual': { name: 'Salud sexual', emoji: '🩺', group: 'salud', offerable: false },
+    },
+  }
+  const sensitive = { ...snapshot, meta }
+  const post = (body) => route(sensitive, { method: 'POST', path: '/events', query: null, body })
+  const get = (path) => route(sensitive, { method: 'GET', path, query: new URLSearchParams() })
+  const id = call('POST', '/session', {}).body.user_id
+  post({
+    user_id: id,
+    events: [
+      { type: 'view_item', concept_id: 'salud-sexual' },
+      { type: 'view_item', concept_id: 'cafe' },
+    ],
+  })
+  expect(get(`/profile/${id}`).body.interests.map((i) => i.concept)).toEqual(['cafe'])
+})

@@ -2,7 +2,7 @@
 import { readFileSync } from 'node:fs'
 import { describe, expect, test } from 'vitest'
 import { LIMITS } from './autonomy'
-import { DAILY_CROSS_CAP, INTEREST_HALF_LIFE_DAYS, INTEREST_WEIGHTS } from './index'
+import { DAILY_CROSS_CAP, INTEREST_HALF_LIFE_DAYS, INTEREST_WEIGHTS, SENSITIVE_CONCEPTS } from './index'
 import { DEFAULT_ORDER, MIN_USE_DAYS, OWN_CONCEPT_GROUPS } from './motor'
 import { PET_SPECIES } from './offers'
 
@@ -17,6 +17,7 @@ const WINBACK_PY = backend('offers/winback.py')
 const MODEL_PY = backend('motor/model.py')
 const HOME_PY = backend('motor/home.py')
 const COMPLEMENTS_TOML = backend('concepts/complements.toml')
+const TAXONOMY_TOML = backend('concepts/taxonomy.toml')
 const WINBACK_JS = read('./winback.js')
 const MOTOR_JS = read('./motor.js')
 
@@ -60,6 +61,13 @@ describe('la demo sin conexión tiene las constantes del backend', () => {
     const { chat: _chat, ...weights } = pyWeights(STORE_PY, 'WEIGHTS')
     expect(INTEREST_WEIGHTS).toEqual(weights)
     expect(INTEREST_HALF_LIFE_DAYS).toBe(constant(STORE_PY, 'HALF_LIFE_DAYS'))
+  })
+
+  test('los conceptos sensibles, que no entran al perfil de intereses (concepts/taxonomy.toml: sensitive = true)', () => {
+    const sensitive = TAXONOMY_TOML.split(/^\[\[concept\]\]$/m)
+      .filter((block) => /^sensitive = true$/m.test(block))
+      .map((block) => block.match(/^id = "([^"]+)"$/m)[1])
+    expect([...SENSITIVE_CONCEPTS].sort()).toEqual(sensitive.sort())
   })
 
   test('el tope diario de sugerencias cruzadas (agent/rappi_agent.py: DAILY_CROSS_CAP)', () => {

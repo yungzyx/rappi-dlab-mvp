@@ -55,8 +55,9 @@
 // No se replica la corrección de errores de tipeo (retrieval/spelling.py, también en rappi_agent.py: _misspelled): sin
 // conexión, lo mal escrito se responde como lo escrito, salvo lo grabado (las de eval/typos.json y las de la
 // presentación, en scripts/demo-snapshot.mjs: TYPOS), que sale con la corrección de la API.
-// - rappi-ia/src/rappi_ia/events/store.py .......... el perfil de intereses (index.js: interests) y el sobre de cada
-//   evento (index.js: storedEvent; el origen, en `origin` o, en los eventos de antes, `payload.origen`); las impresiones
+// - rappi-ia/src/rappi_ia/events/store.py .......... el perfil de intereses, sin los conceptos sensibles (index.js:
+//   interests, SENSITIVE_CONCEPTS), y el sobre de cada evento (index.js: storedEvent; el origen, en `origin` o, en los
+//   eventos de antes, `payload.origen`; la consulta y la corregida, redactadas: redact.js); las impresiones
 //   (`list_view`) no se guardan, y sin conexión no hay grupo de control de las ofertas (OFFERS_CONTROL_PCT)
 // - rappi-ia/src/rappi_ia/api/app.py (_search_concept y _log_ask) ... el concepto de una búsqueda lo deduce el servidor
 //   del texto, corregido si lo hay (index.js: searchConcept), y cada pregunta a Mochi guarda un `ask` con el suyo
@@ -105,6 +106,7 @@ import { contractArticles, homeVerticals } from './motor'
 import { kitStores, makeOffer } from './offers'
 import { applied, cleaned, CUISINES, describe, findStore, options, readCommand, withoutOf } from './preferences'
 import { ask, backendVertical, detectConcepts, search } from './search'
+import { redact } from './redact'
 import { loadSnapshot } from './snapshot'
 import { addEvents, addOrder, cancelOrders, clearState, readState, updateState } from './state'
 import { startingHistory } from './personas'
@@ -123,6 +125,15 @@ export const INTEREST_WEIGHTS = {
   ask: 1,
 }
 export const INTEREST_HALF_LIFE_DAYS = 14
+// concepts/taxonomy.toml (`sensitive = true`): no entran al perfil. La muestra no trae la marca (parity.test.js la compara).
+export const SENSITIVE_CONCEPTS = new Set([
+  'medicamentos',
+  'salud-sexual',
+  'cigarrillos',
+  'vapeo',
+  'accesorios-fumador',
+  'bienestar-sexual',
+])
 const TOP_REASON = 'Lo más pedido estas semanas en {vertical}'
 
 const json = (status, body) =>
@@ -153,9 +164,13 @@ const storedEvent = (snapshot, event, now) => ({
   entity_type: event.entity_type ?? null,
   entity_id: event.entity_id ?? null,
   cart_id: event.cart_id ?? null,
-  query: event.query ?? null,
+  // La consulta y la búsqueda corregida, con los datos personales tapados (events/store.py: redact).
+  query: redact(event.query ?? null),
   origin: event.origin ?? event.payload?.origen ?? null,
-  payload: event.payload ?? {},
+  payload:
+    typeof event.payload?.corregida === 'string'
+      ? { ...event.payload, corregida: redact(event.payload.corregida) }
+      : (event.payload ?? {}),
 })
 
 // agent/rappi_agent.py: DAILY_CROSS_CAP. Cuenta las sugerencias de las respuestas (`agent-ask`) que vio hoy, en Santiago.
@@ -194,7 +209,8 @@ const SERVED = new Set([
 export function interests(snapshot, state, now) {
   const scores = {}
   const add = (concept, type, ts) => {
-    if (!concept || !(type in INTEREST_WEIGHTS) || !snapshot.meta.concepts[concept]) return
+    if (!concept || !(type in INTEREST_WEIGHTS) || !snapshot.meta.concepts[concept] || SENSITIVE_CONCEPTS.has(concept))
+      return
     scores[concept] =
       (scores[concept] ?? 0) +
       INTEREST_WEIGHTS[type] * 0.5 ** (Math.max(now - ts, 0) / DAY_MS / INTEREST_HALF_LIFE_DAYS)
@@ -258,15 +274,16 @@ export function availability(snapshot, lines) {
 }
 
 /**
- * Antes de escribir (events/searches.py): las búsquedas recientes de este navegador, sin repetir. Sin conexión no hay
- * población de la que sacar "Lo más buscado": va vacío y sin población declarada.
+ * Antes de escribir (events/searches.py): las búsquedas recientes de este navegador, sin repetir y sin las que traen un
+ * dato personal tapado ("[correo]"). Sin conexión no hay población de la que sacar "Lo más buscado": va vacío y sin
+ * población declarada.
  */
 function searchesReply(state) {
   const seen = new Set()
   const recent = []
   for (const event of [...state.events].reverse()) {
     const text = event.type === 'search' ? event.query?.trim() : ''
-    if (!text || seen.has(text.toLowerCase())) continue
+    if (!text || /\[.*\]/.test(text) || seen.has(text.toLowerCase())) continue
     seen.add(text.toLowerCase())
     recent.push(text)
     if (recent.length === 6) break
