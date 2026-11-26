@@ -13,8 +13,11 @@ export const VERDICTS = [
   { level: 0, label: 'No sirve', hint: 'No tiene que ver con lo que pedía.' },
 ]
 
-/** Un rótulo como "J1": letras, números, - y _, hasta 16 (lo mismo que la tabla). Vacío vale. */
-export const JUDGE_PATTERN = /^[A-Za-z0-9_-]{0,16}$/
+/**
+ * Un rótulo como "J1": letras, números, - y _, de 1 a 16. La tabla acepta también el vacío (el de `rappi-ia
+ * eval-human`), pero en el panel dos personas sin rótulo se pisarían los juicios sin saberlo.
+ */
+export const JUDGE_PATTERN = /^[A-Za-z0-9_-]{1,16}$/
 
 export class JudgingError extends Error {}
 

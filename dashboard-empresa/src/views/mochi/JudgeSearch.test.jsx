@@ -64,6 +64,10 @@ describe('JudgeSearch', () => {
     expect(screen.getByText(/1 de los 4 pares de la muestra no se pueden juzgar/)).toBeTruthy()
     // La tarjeta y los botones: nada del método, la posición ni otro juez (la ayuda sí lo menciona, para decirlo).
     expect(document.querySelector('.judge-card').textContent).not.toMatch(/posici|híbrido|léxic|LLM|concepto/i)
+    // El servidor la arma con el catálogo de hoy, no con la tarjeta que se vio entonces: lo dice.
+    expect(document.querySelector('.judge-result-label').textContent).toBe(
+      'y le mostramos (como está hoy en el catálogo)',
+    )
   })
 
   test('the buttons and the keys 2/1/0 save and move to the next unjudged pair', async () => {
@@ -106,6 +110,53 @@ describe('JudgeSearch', () => {
     await act(async () => fireEvent.click(screen.getByRole('button', { name: 'Empezar' })))
     expect(screen.getByText('"ramitas"')).toBeTruthy()
     expect(window.localStorage.getItem('panel-juez-busqueda')).toBe('J1')
+  })
+
+  test('an empty label does not start: two people without one would overwrite each other', async () => {
+    window.localStorage.setItem('panel-juez-busqueda', '') // guardado antes, cuando el vacío valía
+    const saved = serveJudging()
+    await renderWithData(<JudgeSearch />)
+
+    const input = screen.getByLabelText('Rótulo del juez')
+    expect(input.value).toBe('')
+    expect(screen.getByRole('button', { name: 'Empezar' }).disabled).toBe(true)
+    fireEvent.change(input, { target: { value: '   ' } })
+    expect(screen.getByRole('button', { name: 'Empezar' }).disabled).toBe(true)
+    await act(async () => fireEvent.submit(input.closest('form')))
+    expect(screen.queryByText('"ramitas"')).toBeNull()
+    expect(saved).toEqual([])
+  })
+
+  test('while a judgment is saving, the pair stays put: no moving away, and a late answer lands on it', async () => {
+    const pending = []
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async (url, options = {}) => {
+        if (options.method !== 'PUT') return { ok: true, status: 200, json: async () => PAIRS }
+        return new Promise((resolve) => pending.push(resolve))
+      }),
+    )
+    await renderWithData(<JudgeSearch />)
+
+    await act(async () => fireEvent.click(screen.getByRole('button', { name: /^Sirve/ })))
+    expect(screen.getByText('"ramitas"')).toBeTruthy()
+    expect(screen.getByRole('button', { name: 'Anterior' }).disabled).toBe(true)
+    expect(screen.getByRole('button', { name: 'Saltar' }).disabled).toBe(true)
+    await act(async () => fireEvent.click(screen.getByRole('button', { name: 'Anterior' })))
+    expect(screen.getByText('"ramitas"')).toBeTruthy()
+
+    // Falla tarde: el error queda junto al par que se estaba guardando, y se puede volver a moverse.
+    await act(async () => pending.shift()({ ok: false, status: 500, json: async () => ({}) }))
+    expect(screen.getByText('"ramitas"')).toBeTruthy()
+    expect(screen.getByRole('alert').textContent).toBe('No se guardó: La API respondió 500.')
+    expect(screen.getByRole('button', { name: 'Saltar' }).disabled).toBe(false)
+
+    // Guarda tarde: avanza desde ese par al siguiente sin juicio.
+    await act(async () => fireEvent.click(screen.getByRole('button', { name: /^Sirve/ })))
+    await act(async () => fireEvent.click(screen.getByRole('button', { name: 'Saltar' })))
+    await act(async () => pending.shift()({ ok: true, status: 200, json: async () => ({ juzgados: 2 }) }))
+    expect(screen.getByText('"gaseosa"')).toBeTruthy()
+    expect(screen.getByText('2 de 3 pares juzgados')).toBeTruthy()
   })
 
   test('without the analytics routes it says so', async () => {
