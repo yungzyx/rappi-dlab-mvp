@@ -16,6 +16,9 @@ rappi-scraper/data/
 *.dump
 *.sql.gz
 *.backup
+# Y los que quedan a medias (respaldos cortados, `.part` del scraper y `.tmp` del Mac)
+*.dump.part
+*.dump.tmp
 
 # La presentación armada (make presentacion): lleva la muestra del catálogo y sus fotos, no se versiona
 presentacion/dist/
@@ -24,7 +27,6 @@ presentacion/dist/
 docs/diagramas/*.visual-check.*
 
 # Carpetas y archivos locales de herramientas de desarrollo (no se versionan; no se ignora .claude/ entero)
-Proyecto/
 .superpowers/
 .claude/settings.local.json
 .claude/launch.json
@@ -34,6 +36,8 @@ Proyecto/
 infra/**/.terraform/
 infra/**/*.tfstate
 infra/**/*.tfstate.*
-infra/**/terraform.tfvars
+infra/**/*.tfvars
+infra/**/*.tfvars.json
 infra/**/plan.out
+infra/**/*.tfplan
 infra/**/ultimo-intento.log
