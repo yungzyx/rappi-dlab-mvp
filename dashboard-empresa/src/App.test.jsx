@@ -65,6 +65,9 @@ describe('App', () => {
         for (const section of tab.sections) {
           expect(document.getElementById(section)?.tagName, `${id}/${tab.id}#${section}`).toBe('H2')
         }
+        // Y al revés: cada sección que se ve está en su lista (la usa `?seccion=` para llegar a ella).
+        const shown = [...document.querySelectorAll('main .section-head h2[id]')].map((heading) => heading.id)
+        expect(shown, `${id}/${tab.id}`).toEqual(tab.sections)
         const nav = screen.queryByRole('navigation', { name: 'Secciones de esta vista' })
         if (tabs.length > 1) {
           const buttons = within(nav).getAllByRole('button')

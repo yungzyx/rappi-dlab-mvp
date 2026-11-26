@@ -64,7 +64,11 @@ export const VIEWS = [
     icon: 'columns',
     View: ExperimentsView,
     tabs: [
-      { id: 'experimentos', label: 'Experimentos', sections: ['hipotesis', 'valor-meta', 'adopcion', 'experimentos'] },
+      {
+        id: 'experimentos',
+        label: 'Experimentos',
+        sections: ['hipotesis', 'valor-meta', 'adopcion', 'satisfaccion', 'experimentos'],
+      },
     ],
   },
 ]
