@@ -59,11 +59,15 @@ const DEMO_ENV = {
   'import.meta.env.VITE_DEMO': JSON.stringify('1'),
 }
 
+// En los demás builds y en desarrollo la marca queda fija apagada: un VITE_OFFLINE_DEMO=1 heredado del entorno o de un
+// .env no mete la API simulada en dist/. Los tests (modo test) la cambian con vi.stubEnv.
+const NO_OFFLINE = { 'import.meta.env.VITE_OFFLINE_DEMO': JSON.stringify('') }
+
 export default defineConfig(({ mode }) => ({
   plugins: [react(), agentName, ...(mode === 'demo' ? [] : [appManifest])],
   server: { port: 5174 },
   base: mode === 'demo' ? './' : '/',
-  define: mode === 'demo' ? DEMO_ENV : {},
+  define: mode === 'demo' ? DEMO_ENV : mode === 'test' ? {} : NO_OFFLINE,
   // Sin imágenes embebidas en base64: los recortes pequeños inflaban el JS a ~500 kB.
   build: mode === 'demo' ? DEMO_BUILD : { assetsInlineLimit: 0 },
   // Hora de Chile en las pruebas: "silenciar por hoy" usa la fecha local (CI corre en UTC).
