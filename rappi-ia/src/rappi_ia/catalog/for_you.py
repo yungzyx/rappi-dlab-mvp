@@ -1,10 +1,12 @@
 """ "Para ti" dentro de una tienda: lo que esa tienda tiene vigente de los conceptos que más le interesan a la persona.
 
 Es una recomendación que la persona no pidió, así que pasa por las guardias de las ofertas (`offers/guards.py`): nada
-de Farmacia ni Licores, de una tienda Farmacia, Sex shop o Smoking shop, +18, bebé, salud ni un concepto sensible. El
-interés es el perfil de la persona (`events.store.profile`, con decaimiento de 14 días); sin interés que calce no hay
-pestaña. Como "Para ti" de la Home, es de Mochi: su dieta y sus alergias (`offers/preferences.py`) sacan lo que no
-puede comer (sin reordenar: manda el interés). Solo lo pide la propuesta: "Rappi hoy" no enseña.
+de Farmacia ni Licores, de una tienda Farmacia, Sex shop o Smoking shop, +18, bebé, salud ni un concepto sensible; en un
+restaurante, tampoco un plato de una sección de tragos (cualquiera de las suyas) ni una bebida cuya descripción nombra
+alcohol (`alcohol_dish`, como las otras ofertas de platos). El interés es el perfil de la persona
+(`events.store.profile`, con decaimiento de 14 días); sin interés que calce no hay pestaña. Como "Para ti" de la Home,
+es de Mochi: su dieta y sus alergias (`offers/preferences.py`) sacan lo que no puede comer (sin reordenar: manda el
+interés). Solo lo pide la propuesta: "Rappi hoy" no enseña.
 """
 
 from psycopg import Connection
@@ -13,8 +15,9 @@ from rappi_scraper.storage.search import MIN_PRICE
 from ..concepts.taxonomy import load_taxonomy
 from ..events import store as events
 from ..offers import preferences
+from ..offers.blocked import count as count_blocked
 from ..offers.engine import _offerable_products
-from ..offers.guards import is_offerable, offerable_vertical
+from ..offers.guards import DISH_SECTIONS_SQL, alcohol_dish, is_offerable, offerable_vertical
 from .stores import BIGINT_MAX, OWN_VERTICAL, product_card
 
 FOR_YOU_PRODUCTS = 8
@@ -38,9 +41,11 @@ WHERE sp.store_id = %(store_id)s AND ic.concept_id = ANY(%(concepts)s)
   AND l.current AND l.in_stock IS NOT FALSE AND l.price >= %(min_price)s
 ORDER BY ci.master_product_id, l.price"""
 
-# Los platos con precio de un restaurante de esos conceptos.
-_DISHES = """
-SELECT mi.item_id::text, mi.name, p.price, p.real_price, NULLIF(mi.image_url, ''), NULL, false, ic.concept_id
+# Los platos con precio de un restaurante de esos conceptos, con todas sus secciones y su descripción (las guardias de
+# los platos: `alcohol_dish`).
+_DISHES = f"""
+SELECT mi.item_id::text, mi.name, p.price, p.real_price, NULLIF(mi.image_url, ''), NULL, false, ic.concept_id,
+       {DISH_SECTIONS_SQL}, clean_html(mi.description)
 FROM menu_items mi
 JOIN latest_menu_prices p ON p.item_id = mi.item_id
 JOIN item_concepts ic ON ic.entity_type = 'menu_item' AND ic.entity_id = mi.item_id::text
@@ -68,6 +73,14 @@ def store_for_you(conn: Connection, store_id: int, user_id: str) -> dict:
     rows = conn.execute(
         _DISHES if restaurant else _PRODUCTS, {"store_id": store_id, "concepts": interests, "min_price": MIN_PRICE}
     ).fetchall()
+    if restaurant:  # un plato de una sección de tragos o que en su descripción nombra alcohol no se ofrece
+        kept = []
+        for row in rows:
+            if alcohol_dish(row[8], row[9], row[7]):
+                count_blocked("alcohol")  # cuenta en el contador de las guardias, como en las otras ofertas
+            else:
+                kept.append(row[:8])
+        rows = kept
     entity_type = "menu_item" if restaurant else "catalog_item"
     cards = [product_card(row, vertical, name, store_id, taxonomy, entity_type).to_dict() for row in rows]
     cards = [c for c in _offerable_products(conn, cards) if c["price_value"] is not None]
