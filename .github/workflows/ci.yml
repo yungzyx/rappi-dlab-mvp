@@ -254,7 +254,7 @@ jobs:
 
       # shellcheck ya viene en las imágenes de ubuntu-latest.
       - name: shellcheck
-        run: shellcheck -x scripts/*.sh rappi-scraper/scripts/*.sh rappi-ia/scripts/*.sh deploy/*.sh deploy/db/*.sh deploy/scripts/*.sh deploy/macos/*.sh
+        run: shellcheck -x scripts/*.sh rappi-scraper/scripts/*.sh rappi-ia/scripts/*.sh deploy/*.sh deploy/db/*.sh deploy/scripts/*.sh deploy/macos/*.sh infra/oci/*.sh
 
       - name: Enlaces relativos de los .md (archivos y anclas) y tablas sin cortar
         run: python3 scripts/check-doc-links.py
