@@ -16,6 +16,9 @@ if (!existsSync(SNAPSHOT)) {
   process.exit(1)
 }
 
+// Una foto armada con los ejemplos de los tests (npm run panel:snapshot:fixtures) lo dice también en el título.
+const fromExamples = JSON.parse(readFileSync(SNAPSHOT, 'utf8')).grabado?.origen === 'ejemplos'
+
 await build({ root: ROOT, mode: 'panel-html', logLevel: 'warn' })
 
 let html = readFileSync(`${DIST}index.html`, 'utf8')
@@ -49,7 +52,10 @@ html = html
     const icon = readFileSync(`${ROOT}public/favicon.svg`).toString('base64')
     return `<link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,${icon}" />`
   })
-  .replace(/<title>[^<]*<\/title>/, '<title>Panel de negocio (foto sin conexión)</title>')
+  .replace(
+    /<title>[^<]*<\/title>/,
+    `<title>Panel de negocio (${fromExamples ? 'ejemplos de los tests' : 'foto sin conexión'})</title>`,
+  )
 
 for (const marker of ['src="./', 'href="./', 'src="/', 'href="/', 'tema.js'])
   if (html.includes(marker)) throw new Error(`El HTML todavía apunta a un archivo aparte ("${marker}")`)

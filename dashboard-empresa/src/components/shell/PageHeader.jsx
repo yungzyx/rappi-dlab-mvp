@@ -1,5 +1,5 @@
 import { use } from 'react'
-import { loadCatalogDates, SNAPSHOT_INFO } from '../../lib/api.js'
+import { loadCatalogDates, SNAPSHOT_FROM_EXAMPLES, SNAPSHOT_INFO } from '../../lib/api.js'
 import { formatDate } from '../../lib/format.js'
 import { useAnalytics } from '../../lib/useAnalytics.js'
 import { Async } from '../Async.jsx'
@@ -47,7 +47,7 @@ function CatalogDates() {
  * (la foto grabada, el prototipo sin la API, los bloques con datos guardados); el detalle va en los avisos de arriba.
  */
 function dataStatus({ source, fallbacks, prototypeOffline }) {
-  if (SNAPSHOT_INFO) return { kind: 'snapshot', label: 'Foto grabada' }
+  if (SNAPSHOT_INFO) return { kind: 'snapshot', label: SNAPSHOT_FROM_EXAMPLES ? 'Foto de ejemplos' : 'Foto grabada' }
   if (source === 'prototype' && prototypeOffline) return { kind: 'offline', label: 'API sin conexión' }
   if (fallbacks.length > 0) return { kind: 'saved', label: 'Datos guardados' }
   return { kind: 'live', label: 'API en vivo' }

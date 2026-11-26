@@ -37,6 +37,9 @@ const savedResponses =
 /** De cuándo y de qué base son las respuestas grabadas (`{ fecha, base }`), o null con la API en vivo. */
 export const SNAPSHOT_INFO = snapshot?.grabado ?? null
 
+/** Si la foto se armó con los ejemplos de los tests (npm run panel:snapshot:fixtures) y no se grabó desde una base. */
+export const SNAPSHOT_FROM_EXAMPLES = SNAPSHOT_INFO?.origen === 'ejemplos'
+
 /** Si hay una API detrás: en el HTML suelto no la hay, y nada se escribe (ni "Juzgar la búsqueda" aparece). */
 export const LIVE_API = !snapshot
 

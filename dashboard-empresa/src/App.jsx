@@ -5,7 +5,7 @@ import { PageHeader } from './components/shell/PageHeader.jsx'
 import { ConnectionNotices } from './components/shell/ProvenanceBanner.jsx'
 import { SourceSwitch } from './components/shell/SourceSwitch.jsx'
 import { Tabs } from './components/shell/Tabs.jsx'
-import { API_URL, LIVE_API, refreshSource, retryConnection, SNAPSHOT_INFO } from './lib/api.js'
+import { API_URL, LIVE_API, refreshSource, retryConnection, SNAPSHOT_FROM_EXAMPLES, SNAPSHOT_INFO } from './lib/api.js'
 import { formatDate } from './lib/format.js'
 import { useFallbacks, usePrototypeOffline } from './lib/useAnalytics.js'
 import { useMediaQuery } from './lib/useMediaQuery.js'
@@ -190,7 +190,13 @@ export default function App() {
         </main>
         <footer className="site-footer">
           <div className="site-footer-inner">
-            {SNAPSHOT_INFO ? (
+            {SNAPSHOT_FROM_EXAMPLES ? (
+              <p>
+                Definiciones de cada métrica: <span className="mono">docs/diseno-ia.md §5</span>. Respuestas de ejemplo
+                de los tests (src/fixtures), armadas el {formatDate(SNAPSHOT_INFO.fecha)}: no se grabaron desde una
+                base.
+              </p>
+            ) : SNAPSHOT_INFO ? (
               // El archivo suelto no lleva la presentación ni habla con una API.
               <p>
                 Definiciones de cada métrica: <span className="mono">docs/diseno-ia.md §5</span>. Datos grabados el{' '}
