@@ -105,6 +105,27 @@ describe('CustomersView', () => {
     expect(cells).toEqual(['🍕 Pizza', '2', '1', '1 de 2'])
   })
 
+  test('a shared file without the ids of the prototype: the audiences, and no list of people', async () => {
+    serveFixturesWith({
+      kpis: { source: 'prototype', data: { en_riesgo: 1, perdidos: 1 } },
+      'at-risk': {
+        source: 'prototype',
+        data: [
+          { estado: 'en_riesgo', concepto_top: '🍕 Pizza', consiente_avisos: true },
+          { estado: 'perdido', concepto_top: '🍕 Pizza', consiente_avisos: false },
+        ],
+      },
+    })
+    await renderWithData(<CustomersView source="prototype" />)
+
+    const losing = section('A quién estamos perdiendo')
+    const audiences = within(losing).getByRole('table', { name: 'Personas en riesgo o perdidas por lo que más pedían' })
+    expect(within(audiences).getByText('🍕 Pizza')).toBeTruthy()
+    expect(within(losing).queryByText('Ver la lista de personas (id seudónimo)')).toBeNull()
+    expect(within(losing).queryByRole('table', { name: 'Personas en riesgo o perdidas', hidden: true })).toBeNull()
+    expect(within(losing).getByText(/Este archivo no trae la lista de personas del prototipo/)).toBeTruthy()
+  })
+
   test('with the prototype: nobody at risk yet, with the MVP label', async () => {
     serveFixtures()
     await renderWithData(<CustomersView source="prototype" />)

@@ -2,10 +2,12 @@ import { existsSync, readFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
+import { shareableSnapshot } from './src/lib/shareable.js'
 
 // El panel en un solo HTML (`vite build --mode panel-html`, ver scripts/panel-html.mjs) lee las respuestas grabadas por
 // `npm run panel:snapshot` en vez de la API. Llegan por un módulo virtual: en la app normal (dev, build y tests) vale
-// null, así las respuestas grabadas nunca entran en dist/.
+// null, así las respuestas grabadas nunca entran en dist/. Entran sin datos por persona del prototipo
+// (src/lib/shareable.js): el archivo se comparte suelto.
 const SNAPSHOT_ID = 'virtual:panel-snapshot'
 const SNAPSHOT_FILE = fileURLToPath(new URL('./snapshot/panel.json', import.meta.url))
 
@@ -17,7 +19,7 @@ function panelSnapshot(mode) {
       if (id !== `\0${SNAPSHOT_ID}`) return null
       if (mode !== 'panel-html') return 'export default null'
       if (!existsSync(SNAPSHOT_FILE)) this.error('Falta snapshot/panel.json: corre antes `npm run panel:snapshot`.')
-      return `export default ${readFileSync(SNAPSHOT_FILE, 'utf8')}`
+      return `export default ${JSON.stringify(shareableSnapshot(JSON.parse(readFileSync(SNAPSHOT_FILE, 'utf8'))))}`
     },
   }
 }
