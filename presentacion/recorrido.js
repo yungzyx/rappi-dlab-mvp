@@ -65,13 +65,27 @@ function openBiz() {
   if (!bizFrame.firstChild) {
     const el = document.createElement("iframe");
     el.title = "Panel de negocio";
-    el.onload = () => watchUser(el);
+    el.onload = () => { watchUser(el); escapeCloses(el); };
     el.srcdoc = PROTOS.panel;
     bizFrame.appendChild(el);
   }
   biz.hidden = false;
 }
 function closeBiz() { biz.hidden = true; }
+
+/* Con el foco dentro del panel, las teclas quedan en su documento: Escape también lo cierra desde ahí, salvo que el
+   panel lo use para cerrar algo suyo (una ayuda abierta o "Ver cómo funciona"). El foco vuelve al botón que lo abrió. */
+function escapeCloses(iframe) {
+  const win = iframe.contentWindow;
+  if (!win) return;
+  win.addEventListener("keydown", (e) => {
+    if (e.key !== "Escape" || biz.hidden) return;
+    if (iframe.contentDocument.querySelector("details.help[open], .demo-tour")) return;
+    byUser(e);
+    closeBiz();
+    bizOpen.focus();
+  }, true);
+}
 
 bizOpen.addEventListener("click", (e) => { byUser(e); openBiz(); });
 document.getElementById("biz-close").addEventListener("click", (e) => { byUser(e); closeBiz(); });
