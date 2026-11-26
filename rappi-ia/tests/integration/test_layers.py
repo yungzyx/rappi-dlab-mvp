@@ -651,6 +651,43 @@ def test_two_users_sharing_a_session_id_are_not_one_session(db, monkeypatch):
     assert _edges(db, "co_busqueda") == {}
 
 
+def test_the_relations_run_only_counts_what_was_not_learned_from_the_prototype(db, monkeypatch):
+    """La corrida de `relations` va en la entrega (`layer_runs`): su conteo de `co_busqueda` es el de las aristas que
+    viajan, sin las aprendidas de las personas del prototipo."""
+    from rappi_ia.layers import graph as graph_layer
+
+    monkeypatch.setattr(graph_layer, "MIN_SESSIONS", 1)
+    monkeypatch.setattr(graph_layer, "MIN_USERS", 1)
+    build_concepts(db)
+    pair = [("p", "s1", "search", "cerveza"), ("p", "s1", "search", "pizza"), ("q", "s2", "search", "vino")]
+    _co_search_events(db, pair, source="prototype")
+
+    counts = build_relations(db)
+
+    assert _edges(db, "co_busqueda", data_source="prototype")  # se aprenden igual
+    assert counts["co_busqueda"] == 0
+    assert db.execute("SELECT counts ->> 'co_busqueda' FROM layer_runs WHERE layer = 'relations'").fetchone() == ("0",)
+
+
+def test_co_search_does_not_learn_from_rappi_hoy_even_with_a_concept(db, monkeypatch):
+    """Un evento de "Rappi hoy" con concepto (uno guardado antes, o de un cliente que lo mandó) no arma aristas."""
+    from rappi_ia.layers import graph as graph_layer
+
+    monkeypatch.setattr(graph_layer, "MIN_SESSIONS", 1)
+    monkeypatch.setattr(graph_layer, "MIN_USERS", 1)
+    build_concepts(db)
+    _co_search_events(
+        db, [("a", "s1", "search", "cerveza"), ("a", "s1", "view_item", "pizza"), ("b", "s2", "search", "vino")]
+    )
+    build_relations(db)
+    assert ("concept", "cerveza", "concept", "pizza") in _edges(db, "co_busqueda")  # en la propuesta, sí
+    db.execute("""UPDATE app_events SET payload = '{"mode": "actual"}' WHERE user_id = 'a'""")
+
+    build_relations(db)
+
+    assert _edges(db, "co_busqueda") == {}
+
+
 def test_se_vende_en_does_not_let_restaurant_dishes_drown_the_catalog_verticals(db, monkeypatch):
     from rappi_ia.layers import graph as graph_layer
 
@@ -1034,6 +1071,30 @@ def test_events_from_rappi_hoy_mode_never_become_signals(db):
     assert load_signals(db, "prototype") == {}
     build_segments(db, "prototype", now=SEG_NOW)
     assert "embarazo" not in _segments(db, "u-hoy") and "compra-sin-gluten" not in _segments(db, "u-hoy")
+
+
+def test_distinct_concepts_metric_does_not_count_rappi_hoy(db):
+    """`conceptos_distintos_90d` (la usa una regla de segmento) no cuenta lo de "Rappi hoy": ni un evento guardado con
+    concepto en ese modo (de antes, o de un cliente que lo mandó) ni un pedido de ese modo."""
+    _gluten_catalog(db)
+    _buy(db, "u-cuenta", 10, 2, source="prototype")  # galletas, en la propuesta
+    events_store.record_order(
+        db, "u-cuenta", "s-hoy", "c-hoy", "supermercado",
+        [{"entity_type": "catalog_item", "entity_id": "11", "unit_price": 2000}],
+        source="prototype", ts=SEG_NOW - timedelta(days=1), mode="actual",
+    )  # fmt: skip
+    db.execute(  # una línea guardada con concepto antes de que "Rappi hoy" se lo quitara
+        "UPDATE app_order_lines l SET concept_id = 'cerveza' FROM app_orders o"
+        " WHERE o.order_id = l.order_id AND o.mode = 'actual'"
+    )
+    db.execute(
+        """INSERT INTO app_events (user_id, session_id, ts, type, concept_id, payload, source)
+           VALUES ('u-cuenta', 's-hoy', %s, 'view_item', 'vino', '{"mode": "actual"}', 'prototype')""",
+        (SEG_NOW - timedelta(days=1),),
+    )
+    db.commit()
+
+    assert user_metrics(db, "prototype", "u-cuenta", now=SEG_NOW)["u-cuenta"]["conceptos_distintos_90d"] == 1
 
 
 def test_one_checkout_is_one_occasion_however_many_items_it_has(db):

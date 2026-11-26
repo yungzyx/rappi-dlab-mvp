@@ -68,26 +68,27 @@ def _check(source: str) -> None:
 _AS_OF = "(SELECT max(ts) FROM app_events WHERE source = %(source)s)"
 
 # Carros (docs/diseno-ia.md §5): con al menos un producto (agregados − quitados > 0, o con pedido); abandonado si su
-# último evento de carro (agregar, quitar o ir a pagar) fue hace más de 24 h y no tiene pedido. Una vez por carro.
+# último evento de carro (agregar, quitar o ir a pagar) fue hace más de 24 h y no tiene pedido. Una vez por carro. Un
+# carro es de una persona (el cliente elige su id: dos personas pueden repetirlo).
 _CARTS = f"""
 cart_events AS (  -- unidades: payload.qty si es un número (vaciar el carro saca la línea entera), si no 1
-    SELECT cart_id, max(ts) AS last_cart_ts,
+    SELECT user_id, cart_id, max(ts) AS last_cart_ts,
            coalesce(sum(qty) FILTER (WHERE type = 'cart_add'), 0)
              - coalesce(sum(qty) FILTER (WHERE type = 'cart_remove'), 0) AS units
-    FROM (SELECT cart_id, ts, type,
+    FROM (SELECT user_id, cart_id, ts, type,
                  CASE WHEN jsonb_typeof(payload -> 'qty') = 'number'
                       THEN least(greatest((payload ->> 'qty')::numeric, 0), 99) ELSE 1 END AS qty
           FROM app_events
           WHERE source = %(source)s AND type IN ('cart_add', 'cart_remove', 'checkout_start') AND cart_id IS NOT NULL) e
-    GROUP BY cart_id
+    GROUP BY user_id, cart_id
 ),
 cart_status AS (
-    SELECT c.cart_id, c.last_cart_ts,
+    SELECT c.user_id, c.cart_id, c.last_cart_ts,
            o.cart_id IS NULL AND c.last_cart_ts < {_AS_OF} - interval '24 hours' AS is_abandoned
     FROM cart_events c
     -- un pedido cancelado no cuenta como pedido (migración 051): su carro vuelve a poder quedar abandonado
-    LEFT JOIN (SELECT DISTINCT cart_id FROM app_orders WHERE source = %(source)s AND status = 'confirmado') o
-           ON o.cart_id = c.cart_id
+    LEFT JOIN (SELECT DISTINCT user_id, cart_id FROM app_orders WHERE source = %(source)s AND status = 'confirmado') o
+           ON o.user_id = c.user_id AND o.cart_id = c.cart_id
     WHERE c.units > 0 OR o.cart_id IS NOT NULL
 )"""
 
@@ -130,16 +131,17 @@ _RHYTHM = _rhythm()
 _NOT_CANCELLED = """NOT (e.type = 'order_placed' AND EXISTS (
         SELECT 1 FROM app_orders x WHERE x.order_id = e.payload ->> 'order_id' AND x.status = 'cancelado'))"""
 
-# Embudo (ver funnel()): una fila por sesión y vertical; la entrada se mira en toda la sesión.
+# Embudo (ver funnel()): una fila por sesión y vertical; la entrada se mira en toda la sesión. Una sesión es de una
+# persona, `(user_id, session_id)` como en `app_sessions`: el cliente elige el id, dos personas pueden repetirlo.
 _FUNNEL = f"""
 entry AS (  -- buscó, chateó, navegó, aceptó una sugerencia o agregó desde una lista (el "+" solo manda cart_add),
             -- en cualquier vertical (o sin vertical)
-    SELECT DISTINCT session_id FROM app_events
+    SELECT DISTINCT user_id, session_id FROM app_events
     WHERE source = %(source)s
       AND type IN ('search', 'chat', 'ask', 'view_store', 'view_item', 'suggestion_accepted', 'cart_add')
 ),
 funnel_steps AS (
-    SELECT session_id, vertical, session_id IN (SELECT session_id FROM entry) AS busca,
+    SELECT user_id, session_id, vertical, (user_id, session_id) IN (SELECT user_id, session_id FROM entry) AS busca,
            bool_or(type = 'cart_add') AS carro,
            bool_or(type = 'checkout_start') AS pago,
            bool_or(type = 'order_placed') AS pedido
@@ -147,7 +149,7 @@ funnel_steps AS (
     WHERE source = %(source)s AND vertical IS NOT NULL
       AND type NOT IN ('suggestion_shown', 'suggestion_dismissed', 'list_view', 'offer_withheld', 'offer_eligible')
       AND {_NOT_CANCELLED}
-    GROUP BY 1, 2
+    GROUP BY 1, 2, 3
 )"""
 
 
@@ -196,9 +198,9 @@ def kpis(conn: Connection, source: str = "synthetic") -> dict:
                    round(100.0 * (SELECT unmet FROM searches) / nullif((SELECT total FROM searches), 0), 1)
                        AS busquedas_sin_resultado_pct,
                    -- titular del embudo: cada sesión una vez, aunque la sugerencia cruzada la ponga en dos verticales
-                   round(100.0 * (SELECT count(DISTINCT session_id) FROM funnel_steps
+                   round(100.0 * (SELECT count(DISTINCT (user_id, session_id)) FROM funnel_steps
                                   WHERE busca AND carro AND pago AND pedido)
-                         / nullif((SELECT count(DISTINCT session_id) FROM funnel_steps WHERE busca), 0), 1)
+                         / nullif((SELECT count(DISTINCT (user_id, session_id)) FROM funnel_steps WHERE busca), 0), 1)
                        AS conversion_sesiones_pct""",
         {"source": source},
     )
@@ -1807,21 +1809,6 @@ WHERE p.both_n >= %(min_support)s AND p.both_n::float / pa.n / (pb.n / users.n) 
 """
 
 
-def learn_edges(conn: Connection, source: str = "synthetic") -> int:
-    """Guarda aristas aprendidas (method 'coocurrencia', data_source = source). El agente ignora las 'synthetic'."""
-    _check(source)
-    conn.execute("DELETE FROM concept_edges WHERE method = 'coocurrencia' AND data_source = %s", (source,))
-    rows = _rows(conn, _AFFINITY_SQL, {"source": source, "min_support": MIN_SUPPORT})
-    with conn.cursor() as cur:
-        cur.executemany(
-            """INSERT INTO concept_edges (from_concept, to_concept, method, weight, support, data_source)
-               VALUES (%s, %s, 'coocurrencia', %s, %s, %s)""",
-            [(r["desde"], r["hacia"], min(1.0, r["confianza"]), r["usuarios"], source) for r in rows],
-        )
-    conn.commit()
-    return len(rows)
-
-
 def catalog_health(conn: Connection) -> dict:
     """Muestra pública REAL del catálogo: cobertura, calidad y precios (no depende de datos simulados)."""
     coverage = _rows(
@@ -1927,9 +1914,9 @@ def verticals(conn: Connection, source: str = "synthetic") -> dict:
            carts AS (
                SELECT v.vertical, count(*) AS carros, count(*) FILTER (WHERE s.is_abandoned) AS abandonados
                FROM cart_status s
-               JOIN (SELECT DISTINCT cart_id, vertical FROM app_events
+               JOIN (SELECT DISTINCT user_id, cart_id, vertical FROM app_events
                      WHERE source = %(source)s AND type = 'cart_add' AND cart_id IS NOT NULL
-                       AND vertical IS NOT NULL) v USING (cart_id)
+                       AND vertical IS NOT NULL) v USING (user_id, cart_id)
                WHERE s.last_cart_ts > {_AS_OF} - interval '{ACTIVE_DAYS} days'
                GROUP BY 1
            ),

@@ -62,7 +62,7 @@ FAMILIES = (
     *("momentos", "valor", "relacion", "servicios", "geografia"),
 )
 LEVELS = ("bajo", "medio", "alto")
-MODALITIES = frozenset({"texto", "voz", "foto"})
+MODALITIES = frozenset({"texto"})  # la API solo recibe texto (`EventIn.modality`)
 # Se nombran por lo que la persona compra, nunca por la condición que se les supone; las vistas `capa` no exponen
 # sus filas por usuario y sus agregados exigen k ≥ 5.
 SENSITIVE_SEGMENTS = frozenset(
@@ -563,11 +563,12 @@ _METRIC_SQL = {
     "conceptos_distintos_90d": """SELECT user_id, count(DISTINCT concept_id) FROM (
                                      SELECT o.user_id, l.concept_id
                                      FROM app_order_lines l JOIN app_orders o USING (order_id)
-                                     WHERE o.source = %(source)s AND o.status = 'confirmado'
+                                     WHERE o.source = %(source)s AND o.mode = 'propuesta' AND o.status = 'confirmado'
                                        AND o.ts >= %(now)s - interval '90 days'{only}
                                      UNION ALL
                                      SELECT user_id, concept_id FROM app_events
                                      WHERE source = %(source)s AND type IN ('view_item', 'cart_add', 'search')
+                                       AND payload ->> 'mode' IS DISTINCT FROM 'actual'
                                        AND ts >= %(now)s - interval '90 days'{only}) t
                                   WHERE concept_id IS NOT NULL GROUP BY 1""",
     "ticket_creciente": """SELECT user_id, avg(total) FILTER (WHERE ts >= %(now)s - interval '45 days')
@@ -657,12 +658,12 @@ def build_segments(
 ) -> dict:
     """Recalcula los segmentos de las personas de una fuente (o de una sola) y guarda la foto de la semana. Reemplaza
     las filas `regla` de ese alcance; lo `curado` no se toca y las otras fuentes tampoco. Solo la corrida de toda la
-    fuente queda en `layer_runs`: la de una persona corre después de cada pedido y sumaba una fila por pedido (sus
-    filas quedan sin `run_id`)."""
+    fuente queda en `layer_runs`, con su fuente (`counts.fuente`: la del prototipo no viaja en `dump-entrega`): la de
+    una persona corre después de cada pedido y sumaba una fila por pedido (sus filas quedan sin `run_id`)."""
     now = now or datetime.now(LOCAL_TZ)
     version, rules = load_segment_rules()
     version = rules_version(version, RULES_FILE, Path(__file__))
-    run = start_layer_run(conn, "segments", version) if user_id is None else None
+    run = start_layer_run(conn, "segments", version, {"fuente": source}) if user_id is None else None
     if user_id is None or not _definitions_current(conn, version, rules):
         _seed_definitions(conn, version, rules)
     signals = load_signals(conn, source, user_id)
@@ -697,6 +698,7 @@ def build_segments(
             [(params["week"], u, m.segment_id, m.score, m.level) for u, m in rows],
         )
     counts = {
+        "fuente": source,
         "usuarios": len(users),
         "con_segmento": sum(1 for memberships in found.values() if memberships),
         "filas": len(rows),

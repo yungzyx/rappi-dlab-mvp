@@ -118,6 +118,56 @@ def test_an_order_is_one_store(client, db):
     assert _order(client, "u1", "c1", lines=[{**item, "store_id": 9102}, item]).status_code == 200
 
 
+def test_two_products_without_store_sold_in_two_stores_are_not_one_order(client, db):
+    """Sin `store_id` en ninguna línea, la tienda de un producto es la de su ficha (la oferta más barata, la que pone su
+    precio): un café que solo vende el súper y un helado que solo vende Turbo son dos tiendas, un 400, y no un pedido
+    cotizado en dos lugares sin ninguna tienda guardada."""
+    coffee, ice_cream = ({"entity_type": "catalog_item", "entity_id": i} for i in ("91004", "93001"))
+
+    mixed = _order(client, "u1", "c1", lines=[coffee, ice_cream])
+
+    assert mixed.status_code == 400 and mixed.json() == {"detail": "Un pedido es de una sola tienda"}
+    assert _order(client, "u1", "c2", lines=[coffee]).status_code == 200
+    assert db.execute("SELECT store_id FROM app_order_lines").fetchall() == [(9101,)]  # queda con la de su ficha
+
+
+def test_a_line_without_store_is_priced_at_the_store_of_the_order(client, db):
+    """Con la tienda del pedido conocida (otra línea la trae), la línea sin tienda va en esa: con su precio de ahí, o
+    fuera (`lineas_omitidas`) si ahí no se vende. Nunca con el precio de otra tienda."""
+    cookies = {"entity_type": "catalog_item", "entity_id": COOKIES}
+    ice_cream = {"entity_type": "catalog_item", "entity_id": "93001"}  # solo en Turbo
+
+    reply = _order(client, "u1", "c1", lines=[{**cookies, "store_id": 9102}, cookies, ice_cream])
+
+    assert reply.status_code == 200 and reply.json()["lineas_omitidas"] == 1
+    lines = db.execute("SELECT entity_id, unit_price, store_id FROM app_order_lines ORDER BY line_no").fetchall()
+    assert [(e, float(p), s) for e, p, s in lines] == [(COOKIES, 1350, 9102), (COOKIES, 1350, 9102)]
+
+
+def test_the_order_keeps_the_vertical_and_concepts_of_the_catalog(client, db):
+    """La vertical del pedido es una de su tienda (la que manda la app si la tienda es de esa, porque una tienda puede
+    ser de dos; si no, la suya) y el concepto de cada línea es el del catálogo (`item_concepts`): lo que se guarda
+    alimenta el motor, los segmentos y el panel, y no se le cree al cliente."""
+    chips_concept = db.execute(
+        "SELECT concept_id FROM item_concepts WHERE entity_type = 'catalog_item' AND entity_id = %s", (CHIPS,)
+    ).fetchone()[0]
+    wrong = _order(client, "u1", "c1", vertical="liquor", concept_id="cerveza")
+    assert wrong.status_code == 200, wrong.text
+    assert db.execute("SELECT vertical FROM app_orders").fetchone() == ("supermercado",)
+    assert [concept for _, _, concept in _lines(db, wrong.json()["order_id"])] == [chips_concept]
+
+    db.execute("INSERT INTO store_verticals (store_id, vertical) VALUES (9101, 'turbo')")  # el súper también es Turbo
+    both = _order(client, "u1", "c2", vertical="turbo", lines=[
+        {"entity_type": "catalog_item", "entity_id": CHIPS, "store_id": 9101}
+    ])  # fmt: skip
+    assert both.status_code == 200, both.text
+    assert db.execute("SELECT vertical FROM app_orders WHERE cart_id = 'c2'").fetchone() == ("turbo",)
+
+    dish = _order(client, "u1", "c3", vertical="grocery", lines=[{"entity_type": "menu_item", "entity_id": PIZZA}])
+    assert dish.status_code == 200, dish.text
+    assert db.execute("SELECT vertical FROM app_orders WHERE cart_id = 'c3'").fetchone() == ("restaurantes",)
+
+
 def test_two_restaurants_without_store_are_not_one_order(client, db):
     """La tienda de un plato la dice el servidor (su restaurante), no solo el `store_id` que manda el cliente: dos
     platos de dos restaurantes sin tienda son un 400, como con tienda, y no un pedido cotizado en dos lugares."""
@@ -217,7 +267,7 @@ def test_lines_without_a_current_price_are_skipped(client, db, caplog):
     lines = [
         {"entity_type": "catalog_item", "entity_id": CHIPS, "qty": 2},
         {"entity_type": "catalog_item", "entity_id": NO_STOCK},
-        {"entity_type": "catalog_item", "entity_id": COOKIES, "store_id": 9501},  # esa tienda no las vende
+        {"entity_type": "catalog_item", "entity_id": "93001", "store_id": 9101},  # el helado: ese súper no lo vende
     ]
     with caplog.at_level("WARNING"):
         reply = _order(client, "u1", "c1", lines=lines)

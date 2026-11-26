@@ -300,14 +300,16 @@ def _derive_from_catalog(conn: Connection, run: int) -> dict:
 
 
 def _learn_co_search(conn: Connection, run: int) -> dict:
-    """P(B | A) entre sesiones que buscan, preguntan o miran A, por fuente de datos; sin conceptos sensibles. Una
-    sesión es (persona, id de sesión): el cliente elige el id, dos personas pueden repetirlo. No guarda a nadie: el
-    resultado son conceptos, con cuántas sesiones y cuántas personas distintas lo respaldan."""
-    learned = conn.execute(
+    """P(B | A) entre sesiones que buscan, preguntan o miran A, por fuente de datos; sin conceptos sensibles ni lo de
+    "Rappi hoy" (`payload.mode = 'actual'`: no enseña, aunque un evento guardado traiga concepto). Una sesión es
+    (persona, id de sesión): el cliente elige el id, dos personas pueden repetirlo. No guarda a nadie: el resultado son
+    conceptos, con cuántas sesiones y cuántas personas distintas lo respaldan. El conteo de la corrida (`layer_runs`,
+    que va en `dump-entrega`) es el de las aristas que no salen del prototipo; las de él quedan solo en el registro."""
+    shared, prototype = conn.execute(
         """WITH used AS (
                SELECT DISTINCT e.source, e.user_id, e.session_id, e.concept_id
                FROM app_events e JOIN concepts c ON c.concept_id = e.concept_id
-               WHERE e.type = ANY(%s) AND NOT c.sensitive),
+               WHERE e.type = ANY(%s) AND NOT c.sensitive AND coalesce(e.payload ->> 'mode', '') <> 'actual'),
            per_concept AS (SELECT source, concept_id, count(*) AS n FROM used GROUP BY 1, 2),
            sessions AS (SELECT source, count(DISTINCT (user_id, session_id))::real AS n FROM used GROUP BY 1),
            pairs AS (
@@ -315,17 +317,22 @@ def _learn_co_search(conn: Connection, run: int) -> dict:
                       count(DISTINCT a.user_id) AS both_users
                FROM used a JOIN used b ON a.source = b.source AND a.user_id = b.user_id
                                        AND a.session_id = b.session_id AND a.concept_id <> b.concept_id
-               GROUP BY 1, 2, 3)
-           INSERT INTO knowledge_edges (from_kind, from_id, relation, to_kind, to_id, weight, method, data_source,
-                                        support, evidence, run_id)
-           SELECT 'concept', p.a, 'co_busqueda', 'concept', p.b, least(1.0, p.both_n::real / pa.n), 'coocurrencia',
-                  p.source, p.both_n, 'app_events', %s
-           FROM pairs p
-           JOIN per_concept pa ON pa.source = p.source AND pa.concept_id = p.a
-           JOIN per_concept pb ON pb.source = p.source AND pb.concept_id = p.b
-           JOIN sessions s ON s.source = p.source
-           WHERE p.both_n >= %s AND p.both_users >= %s AND p.both_n::real / pa.n / (pb.n / s.n) > 1
-           ON CONFLICT DO NOTHING""",
+               GROUP BY 1, 2, 3),
+           learned AS (
+               INSERT INTO knowledge_edges (from_kind, from_id, relation, to_kind, to_id, weight, method, data_source,
+                                            support, evidence, run_id)
+               SELECT 'concept', p.a, 'co_busqueda', 'concept', p.b, least(1.0, p.both_n::real / pa.n), 'coocurrencia',
+                      p.source, p.both_n, 'app_events', %s
+               FROM pairs p
+               JOIN per_concept pa ON pa.source = p.source AND pa.concept_id = p.a
+               JOIN per_concept pb ON pb.source = p.source AND pb.concept_id = p.b
+               JOIN sessions s ON s.source = p.source
+               WHERE p.both_n >= %s AND p.both_users >= %s AND p.both_n::real / pa.n / (pb.n / s.n) > 1
+               ON CONFLICT DO NOTHING
+               RETURNING data_source)
+           SELECT count(*) FILTER (WHERE data_source <> 'prototype'), count(*) FILTER (WHERE data_source = 'prototype')
+           FROM learned""",
         (list(SEARCH_TYPES), run, MIN_SESSIONS, MIN_USERS),
-    ).rowcount
-    return {"co_busqueda": learned}
+    ).fetchone()
+    log.info("Aristas co_busqueda del prototipo (no van en la corrida): %d", prototype)
+    return {"co_busqueda": shared}

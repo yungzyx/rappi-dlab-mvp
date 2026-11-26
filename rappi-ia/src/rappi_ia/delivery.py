@@ -37,8 +37,13 @@ _ORDERS = f"source = 'synthetic' AND {_USERS}"
 # `session_id` o `data_source`, o que apunte a una de las de personas, tiene que estar aquí: si no, `dump-entrega` se
 # niega (`unknown_person_tables`).
 PERSON_TABLES = {
-    # El registro de las corridas de las capas: las del motor sobre el prototipo guardan sus conteos y pesos.
-    "layer_runs": "coalesce(counts->>'fuente', '') <> 'prototype'",
+    # El registro de las corridas de las capas: las del motor y los segmentos sobre el prototipo guardan sus conteos
+    # (y el motor, sus pesos) y dicen su fuente (`counts.fuente`). Una de segmentos de antes, sin fuente, va solo si la
+    # usan los segmentos de una persona simulada (sin ella no se restaura su clave foránea); si no, no se sabe de quién
+    # es.
+    "layer_runs": "coalesce(counts->>'fuente', '') <> 'prototype' AND (layer <> 'segments'"
+    " OR counts->>'fuente' IS NOT NULL"
+    f" OR run_id IN (SELECT run_id FROM public.user_segments WHERE run_id IS NOT NULL AND {_USERS}))",
     "app_users": "source = 'synthetic'",
     "app_events": f"source = 'synthetic' AND {_USERS}",
     "app_sessions": f"source = 'synthetic' AND {_USERS}",

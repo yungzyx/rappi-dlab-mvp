@@ -36,10 +36,17 @@ EXTRA_PRODUCTS = [
 MILK_CHOCOLATE, DARK_CHOCOLATE = 92002, 97001
 SWEET_BRAND = ("marca-dulce", "Dulces Sur")
 COFFEE = "91004"  # en el carro, su complemento natural son las galletas (arista curada café → galletas)
+CHOCOLATE_SHOP, SUPERMARKET = 9701, 9101  # un pedido es de una tienda, y la app manda la de cada línea
 
 
-def _line(product, concept, price):
-    return {"entity_type": "catalog_item", "entity_id": str(product), "concept_id": concept, "unit_price": price}
+def _line(product, concept, price, store_id):
+    return {
+        "entity_type": "catalog_item",
+        "entity_id": str(product),
+        "concept_id": concept,
+        "unit_price": price,
+        "store_id": store_id,
+    }
 
 
 @dataclass
@@ -115,13 +122,19 @@ def prepare_people(db: Connection, monkeypatch) -> Iterator[People]:
             SWEET,
             session,
             "chocolateria",
-            _line(DARK_CHOCOLATE if n == 2 else MILK_CHOCOLATE, "chocolates", 2490),
-            _line(OAT_COOKIES, "galletas", 1890),
+            _line(DARK_CHOCOLATE if n == 2 else MILK_CHOCOLATE, "chocolates", 2490, CHOCOLATE_SHOP),
+            _line(OAT_COOKIES, "galletas", 1890, CHOCOLATE_SHOP),
         )
         session = f"s-asado-{n}"
         search_and_add(GRILL, session, "carnes", "carne para el asado", BEEF, "supermercado")
         search_and_add(GRILL, session, "carbon", "carbón", CHARCOAL, "supermercado")
-        order(GRILL, session, "supermercado", _line(BEEF, "carnes", 9990), _line(CHARCOAL, "carbon", 3990))
+        order(
+            GRILL,
+            session,
+            "supermercado",
+            _line(BEEF, "carnes", 9990, SUPERMARKET),
+            _line(CHARCOAL, "carbon", 3990, SUPERMARKET),
+        )
 
     yield People(client, {"chocolates", "galletas"}, {"carnes", "carbon"}, str(OAT_COOKIES))
     api.app.dependency_overrides.clear()

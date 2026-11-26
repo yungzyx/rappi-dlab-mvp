@@ -197,6 +197,21 @@ def test_check_only_migrate_stops_on_pending_and_points_to_the_deploy(db, pendin
     assert not _applied(db, PROBE)
 
 
+def test_plain_migrate_refuses_in_production_and_points_to_deploy_migrate(db, pending, monkeypatch):
+    """Con API_ENV=production (el contenedor `jobs`, o un `.env` de servidor) `rappi-ia migrate` no aplica nada: migrar
+    ahí sin el respaldo ni los permisos del rol de la API es lo que `deploy-migrate` evita. Revisar sí puede."""
+    monkeypatch.setattr(cli.config, "API_PRODUCTION", True)
+
+    with pytest.raises(SystemExit) as stopped:
+        cli.cmd_migrate(db, cli.build_parser().parse_args(["migrate"]))
+
+    assert "deploy-migrate" in stopped.value.code and "API_ENV=production" in stopped.value.code
+    assert not _applied(db, PROBE)
+    with pytest.raises(SystemExit) as checked:  # --solo-revisar sigue revisando (post-refresh en producción)
+        cli.cmd_migrate(db, cli.build_parser().parse_args(["migrate", "--solo-revisar"]))
+    assert PROBE in checked.value.code
+
+
 def test_check_only_migrate_passes_when_up_to_date(db, capsys):
     cli.cmd_migrate(db, cli.build_parser().parse_args(["migrate", "--solo-revisar"]))
 

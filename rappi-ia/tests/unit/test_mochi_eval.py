@@ -316,3 +316,17 @@ def test_the_held_out_set_says_it_is_not_for_tuning_and_has_about_forty_phrases(
     assert "no se usa para ajustar" in document["nota"]
     assert 35 <= len(document["queries"]) <= 50
     assert all(q["vertical"] in (None, *mochi_eval.VERTICAL_LABELS) for q in document["queries"])
+
+
+def test_the_cases_of_eval_mochi_go_in_the_package():
+    """`eval-mochi` lee los JSON de la carpeta y dos TXT de `frases_usuarios/` (no es un paquete): instalado desde una
+    wheel, sin ellos en `package-data` no arrancaba. Los patrones se leen como setuptools: relativos a la carpeta."""
+    import tomllib
+
+    from rappi_ia.config import PROJECT_ROOT
+    from rappi_ia.eval import search_eval
+
+    patterns = tomllib.loads((PROJECT_ROOT / "pyproject.toml").read_text())["tool"]["setuptools"]["package-data"]
+    shipped = {path for pattern in patterns["rappi_ia.eval"] for path in mochi_eval.EVAL_DIR.glob(pattern)}
+    needed = {mochi_eval.FREE_FILE, mochi_eval.CONVERSATIONS_FILE, mochi_eval.HELDOUT_FILE, search_eval.QUERIES_FILE}
+    assert needed <= shipped

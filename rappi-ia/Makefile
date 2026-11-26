@@ -111,11 +111,14 @@ serve-lan: $(SERVE_PREP)  ## API en la red local (iPhone). Sin puerta de acceso 
 	$(HF_OFFLINE) API_ALLOW_LAN=1 $(PY) -m uvicorn rappi_ia.api.app:app --no-access-log --host 0.0.0.0 --port 8000
 
 # Las frases del guion (docs/demo.md) sin user_id: no se registran. Frío, "una hamburguesa" tarda 2 a 5 s; caliente, 0,3 s.
+# Cada llamada lleva --fail: una API que responde un error (un 503 mientras falta una migración) no queda "caliente".
 API ?= http://localhost:8000
 DEMO_PHRASES := "sushi" "una hamburguesa" "vino tinto" "algo para el carrete" "tengo fiebre" \
 	"me voy de vacaciones a la playa" "se me quedaron las llaves en la oficina"
-ANALYTICS := kpis weekly opportunities trends funnel cohorts rhythm at-risk suggestions services multi-vertical \
-	affinity assortment
+# Las métricas del panel: las de `ANALYTICS` en api/app.py, en su orden (un test revisa que sean las mismas).
+ANALYTICS := kpis weekly opportunities trends funnel cohorts rhythm at-risk suggestions services offers volver unmet \
+	multi-vertical pro affinity assortment combos motor home presencia encuesta ctr-posicion embudo-sesion \
+	experimentos verticales audiencias guardias
 # Los perfiles de gusto (sus `id` en offers/perfiles.toml): la escalera de cada uno, sin persona. En frío, la primera
 # tardaba 4 a 5 s (el tope de la app para una oferta es 5 s); caliente, unos 0,2 a 0,3 s.
 PROFILES := $(shell sed -n 's/^id = "\(.*\)"$$/\1/p' src/rappi_ia/offers/perfiles.toml)
@@ -129,19 +132,23 @@ CATALOG_LISTS := /catalog/home /catalog/deals "/catalog/restaurants?sort=rating&
 warm-catalog:  ## Calienta solo las listas del catálogo de la API (Home, ofertas, restaurantes y tiendas de cada vertical)
 	@for path in $(CATALOG_LISTS) $$($(PY) -c 'from rappi_scraper.storage.search import VERTICALS; \
 	  print(" ".join(f"/catalog/verticals/{v}/stores" for v in VERTICALS))'); do \
-	  curl -s -o /dev/null -w "  %{http_code}  %{time_total}s  $$path\n" "$(API)$$path" || exit 1; done
+	  curl -s --fail -o /dev/null -w "  %{http_code}  %{time_total}s  $$path\n" "$(API)$$path" || exit 1; done
 
+# Sin /analytics (API_ENABLE_ANALYTICS=0, lo de producción), lo dice y calienta lo demás.
 warm: warm-catalog  ## Calienta la API antes de una demo (con la API ya corriendo; repetirlo tras un rato sin uso)
 	@for q in $(DEMO_PHRASES); do \
-	  curl -s -o /dev/null -w "  %{http_code}  %{time_total}s  $$q\n" -X POST $(API)/agent/ask -H 'Content-Type: application/json' \
-	    -d "{\"message\": \"$$q\"}" || exit 1; done
+	  curl -s --fail -o /dev/null -w "  %{http_code}  %{time_total}s  $$q\n" -X POST $(API)/agent/ask \
+	    -H 'Content-Type: application/json' -d "{\"message\": \"$$q\"}" || exit 1; done
 	@for p in $(PROFILES); do \
-	  curl -s -o /dev/null -w "  %{http_code}  %{time_total}s  perfil $$p\n" -X POST $(API)/agent/offer \
+	  curl -s --fail -o /dev/null -w "  %{http_code}  %{time_total}s  perfil $$p\n" -X POST $(API)/agent/offer \
 	    -H 'Content-Type: application/json' -d "{\"moment\": \"perfil\", \"context\": {\"perfil\": \"$$p\"}}" \
 	    || exit 1; done
-	@for m in $(ANALYTICS); do for s in synthetic prototype; do \
-	  curl -s -o /dev/null $(API)/analytics/$$m?source=$$s; done; done
-	@curl -s -o /dev/null $(API)/analytics/catalog && echo "Lista: API caliente."
+	@if curl -s --fail -o /dev/null $(API)/analytics/catalog; then \
+	  failed=0; for m in $(ANALYTICS); do for s in synthetic prototype; do \
+	    curl -s --fail -o /dev/null "$(API)/analytics/$$m?source=$$s" || { echo "  falló /analytics/$$m?source=$$s"; failed=1; }; \
+	  done; done; [ $$failed = 0 ] || exit 1; \
+	else echo "  /analytics no responde (apagado con API_ENABLE_ANALYTICS=0): el panel no se calienta"; fi
+	@echo "Lista: API caliente."
 
 FRASES ?=
 probar-agente:  ## Prueba al agente con las frases de usuarios (con la API corriendo; ver docs/probar-agente.md)

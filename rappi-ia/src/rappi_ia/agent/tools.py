@@ -965,17 +965,19 @@ def _with_prices(conn: Connection, vertical: str, hits, offer: bool = False, adu
         dish_concepts = {h.entity_id: h.concept_id for h in hits if h.entity_type == "menu_item"}
         for iid, name, price, real, store, store_id, sections, description, here in conn.execute(
             f"""SELECT mi.item_id::text, mi.name, mp.price, mp.real_price, s.name, mi.store_id, {DISH_SECTIONS_SQL},
-                      CASE WHEN %(offer)s THEN clean_html(mi.description) END, {IN_DEMO_CITY}
+                      clean_html(mi.description), {IN_DEMO_CITY}
                FROM menu_items mi
                JOIN stores s USING (store_id)
                LEFT JOIN latest_menu_prices mp ON mp.item_id = mi.item_id
                WHERE mi.item_id = ANY(%(ids)s::bigint[])""",
-            {"offer": offer, "ids": menu_ids, "places": places},  # la descripción solo hace falta en una oferta
+            {"ids": menu_ids, "places": places},
         ):
-            # En una oferta, un plato de una sección de tragos, o sin concepto o de bebida y con una descripción (o, sin
-            # concepto, una sección de botellas o vinos) que nombra alcohol, cuenta como +18 (offers/guards.py). Todas
-            # sus secciones: también las de `extra_section_ids`.
-            adult = offer and alcohol_dish(sections, description, dish_concepts[iid])
+            # Un plato de una sección de tragos, o sin concepto o de bebida y con una descripción (o, sin concepto, una
+            # sección de botellas o vinos) que nombra alcohol, cuenta como +18 (offers/guards.py): una oferta lo saca y
+            # lo que pide la persona lo muestra con la marca (y sin él si el alcohol era solo el para qué: `sober`).
+            # Todas sus secciones: también las de `extra_section_ids`. El nombre no: lo que solo nombra el alcohol
+            # ("bife al vino") sale igual en la búsqueda (`alcohol_in_name`, abajo, solo en una oferta).
+            adult = alcohol_dish(sections, description, dish_concepts[iid])
             prices[("menu_item", iid)] = (name, price, real, store, adult, store_id, None, here)
     taxonomy = load_taxonomy()
     products = []

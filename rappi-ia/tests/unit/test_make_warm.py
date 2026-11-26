@@ -41,3 +41,28 @@ def test_warm_reads_the_catalog_lists_of_the_home():
         check=True,
     ).stdout.split()
     assert listed == [f"/catalog/verticals/{v}/stores" for v in VERTICALS]
+
+
+def _warm() -> str:
+    return subprocess.run(
+        ["make", "-n", "-C", str(PROJECT_ROOT), "warm", f"PY={sys.executable}"],
+        capture_output=True,
+        text=True,
+        check=True,
+    ).stdout
+
+
+def test_warm_fails_on_an_http_error():
+    """`curl -s` da por bien un 503: cada llamada que calienta lleva `--fail`, así una API que responde errores no
+    termina en "Lista: API caliente"."""
+    calls = [line for line in _warm().splitlines() if "curl " in line]
+    assert calls and all("--fail" in line for line in calls), calls
+
+
+def test_warm_reads_every_metric_of_the_panel():
+    """Las métricas que calienta son todas las del panel (`ANALYTICS` de la API), no una lista que se quedó atrás."""
+    from rappi_ia.api.app import ANALYTICS
+
+    warm = _warm()
+    loop = warm[warm.index("for m in ") + len("for m in ") :]
+    assert loop[: loop.index("; do")].split() == list(ANALYTICS)

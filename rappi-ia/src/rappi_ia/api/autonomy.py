@@ -12,6 +12,7 @@ from pydantic import Field
 
 from ..events.store import ensure_user
 from ..offers import autonomy
+from .agent import MOCHI_OFF, mochi_off
 from .deps import Clean, get_conn
 from .identity import owner_in_path
 from .logs import rejected
@@ -36,11 +37,14 @@ def get_autonomy(user_id: ShortPath, conn: Connection = Depends(get_conn)) -> di
 @router.put("/{user_id}/autonomia", dependencies=[Depends(owner_in_path)])
 def put_autonomy(user_id: ShortPath, body: AutonomyIn, conn: Connection = Depends(get_conn)) -> dict:
     """Enciende o cambia "Pedir por mí" con las tiendas (de las que ya pidió) y el tope por pedido. Responde como el
-    GET; una tienda que no puede elegir es un 422."""
+    GET; una tienda que no puede elegir es un 422, y el grupo de control ("Mochi apagado") no lo enciende (403;
+    apagarlo, sí)."""
     try:
         ensure_user(conn, user_id)
     except ValueError as exc:  # una persona simulada: su permiso no se toca desde la app
         raise rejected(exc, user_id) from exc
+    if mochi_off(conn, user_id):
+        raise HTTPException(403, MOCHI_OFF)
     try:
         autonomy.save(conn, user_id, body.tiendas, body.tope)
     except autonomy.AutonomyError as exc:

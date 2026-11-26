@@ -74,6 +74,14 @@ log = logging.getLogger("rappi_ia")
 BUSY_TABLE = "Una tabla está ocupada; la migración no se aplicó. Intenta de nuevo en unos minutos."
 
 
+# Con API_ENV=production, `migrate` no aplica nada: en un servidor migra solo el paso del despliegue (deploy-migrate),
+# que respalda antes y da los permisos del rol de la API.
+PRODUCTION_MIGRATE = (
+    "Con API_ENV=production, `rappi-ia migrate` no migra (no respalda ni da los permisos del rol de la API). "
+    f"{APPLIED_BY_DEPLOY[0].upper()}{APPLIED_BY_DEPLOY[1:]}; ese paso corre `rappi-ia deploy-migrate`."
+)
+
+
 def cmd_migrate(conn, args) -> None:
     if args.solo_revisar:  # post-refresh en producción: las aplica el despliegue, que respalda antes
         try:
@@ -82,6 +90,8 @@ def cmd_migrate(conn, args) -> None:
             raise SystemExit(str(exc)) from exc
         print("Migraciones al día.")
         return
+    if config.API_PRODUCTION:
+        raise SystemExit(PRODUCTION_MIGRATE)
     try:
         applied = migrate(conn)
     except psycopg.errors.LockNotAvailable as exc:
@@ -686,13 +696,11 @@ def cmd_purge(conn, args) -> None:
 def cmd_synth(conn, args) -> None:
     from datetime import date
 
-    from .analytics.queries import learn_edges
     from .events.synth import DEFAULT_USERS, generate
 
     until = date.fromisoformat(args.hasta) if args.hasta else None
     users = DEFAULT_USERS if args.usuarios is None else args.usuarios
     print(generate(conn, users=users, weeks=args.semanas, seed=args.semilla, until=until))
-    print(f"Aristas aprendidas (simuladas, el agente no las usa): {learn_edges(conn, 'synthetic')}")
 
 
 def cmd_analytics(conn, args) -> None:
@@ -982,7 +990,9 @@ def build_parser() -> argparse.ArgumentParser:
     )
     parser.add_argument("-v", "--verbose", action="store_true", help="log detallado")
     sub = parser.add_subparsers(dest="command", required=True)
-    mg = sub.add_parser("migrate", help="aplica migraciones pendientes (las de rappi-scraper)")
+    mg = sub.add_parser(
+        "migrate", help="aplica migraciones pendientes (las de rappi-scraper); con API_ENV=production, deploy-migrate"
+    )
     mg.add_argument(
         "--solo-revisar",
         action="store_true",

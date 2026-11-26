@@ -30,7 +30,7 @@ where = ["src"]
 
 [tool.setuptools.package-data]
 "rappi_ia.concepts" = ["*.toml", "*.csv"]
-"rappi_ia.eval" = ["*.json"]
+"rappi_ia.eval" = ["*.json", "frases_usuarios/*.txt"]
 "rappi_ia.offers" = ["*.toml"]
 "rappi_ia.agent" = ["*.toml"]
 "rappi_ia.motor" = ["*.toml"]

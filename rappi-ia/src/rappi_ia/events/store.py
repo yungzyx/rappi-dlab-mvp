@@ -261,7 +261,8 @@ def ensure_user(conn: Connection, user_id: str, source: str = "prototype", **ext
     """Crea el usuario si no existe. Un id de otra fuente no se puede usar: con la API abierta a la red, el prototipo
     podía colgarles eventos a los usuarios simulados (ids correlativos). Una persona del prototipo que se crea aquí
     llegó con su token (la API lo exige): queda con `token_issued_at`, así nadie la reclama como id viejo. Una persona
-    borrada no vuelve (`ForgottenUser`): su token firmado sigue siendo válido, y un lote atrasado la recrearía."""
+    borrada no vuelve (`ForgottenUser`): su token firmado sigue siendo válido, y un lote atrasado la recrearía. Se mira
+    antes y después del alta: si el borrado tenía tomada la fila, el alta lo espera, y recién después se ve su hash."""
     if is_forgotten(conn, user_id):
         raise ForgottenUser("La persona fue borrada")
     row = conn.execute(
@@ -271,6 +272,8 @@ def ensure_user(conn: Connection, user_id: str, source: str = "prototype", **ext
            RETURNING source""",
         (user_id, source, extra.get("segment"), extra.get("city"), extra.get("consent", False), source),
     ).fetchone()
+    if is_forgotten(conn, user_id):  # quien llama deshace la transacción, con el alta
+        raise ForgottenUser("La persona fue borrada")
     if row[0] != source:
         raise ValueError(f"El usuario {user_id} es de otra fuente")
 
@@ -301,13 +304,14 @@ def _client_ts(e: Event, now: datetime) -> datetime | None:
 
 
 def record(conn: Connection, events: list[Event], source: str = "prototype", session: SessionInfo | None = None) -> int:
-    """Guarda eventos válidos (tipo conocido, concepto existente) y devuelve cuántos entraron. Cada persona del lote se
-    crea una sola vez (un lote de la app trae hasta 200 eventos de una misma persona). Un evento con `client_event_id`
-    que ya estaba (un lote reintentado) no entra otra vez. Cada sesión del lote queda en `app_sessions` con su primer
-    evento (y `session`, lo que la app cuenta de ella: su modo es también la variante de `modo_app` de la persona, si
-    aún no tenía). Los elementos de un `list_view`, `offer_withheld` u `offer_eligible` van a `app_event_items`, y
-    `view_store`, `view_item` y `cart_add` llevan el catálogo tal como estaba (`payload.catalogo`,
-    events/catalog_context.py)."""
+    """Guarda eventos válidos (tipo conocido, concepto existente) y devuelve cuántos entraron. Los de "Rappi hoy"
+    (`payload.mode = 'actual'`) van sin concepto, aunque el cliente lo mande: ese modo no enseña. Cada persona del lote
+    se crea una sola vez (un lote de la app trae hasta 200 eventos de una misma persona). Un evento con
+    `client_event_id` que ya estaba (un lote reintentado) no entra otra vez. Cada sesión del lote queda en
+    `app_sessions` con su primer evento (y `session`, lo que la app cuenta de ella: su modo es también la variante de
+    `modo_app` de la persona, si aún no tenía). Los elementos de un `list_view`, `offer_withheld` u `offer_eligible` van
+    a `app_event_items`, y `view_store`, `view_item` y `cart_add` llevan el catálogo tal como estaba
+    (`payload.catalogo`, events/catalog_context.py)."""
     unknown = next((e.type for e in events if e.type not in EVENT_TYPES), None)
     if unknown is not None:
         raise ValueError(f"Tipo de evento desconocido: {unknown}")
@@ -338,7 +342,7 @@ def record(conn: Connection, events: list[Event], source: str = "prototype", ses
                 e.ts,
                 e.type,
                 e.vertical,
-                e.concept_id if e.concept_id in known else None,
+                e.concept_id if e.concept_id in known and e.payload.get("mode") != "actual" else None,
                 e.entity_type,
                 e.entity_id,
                 e.cart_id,
@@ -380,7 +384,11 @@ def record(conn: Connection, events: list[Event], source: str = "prototype", ses
     saved = sum(event_id is not None for event_id in ids)
     _record_items(conn, [(event_id, e) for event_id, e in zip(ids, events, strict=True) if event_id and e.items], known)
     _record_sessions(conn, starts, source, session or SessionInfo())
-    _record_ratings(conn, [(e, stars, reasons, _client_ts(e, now) or e.ts or now) for e, (stars, reasons) in ratings])
+    entered = {id(e) for event_id, e in zip(ids, events, strict=True) if event_id}  # un reintento no vuelve a calificar
+    _record_ratings(
+        conn,
+        [(e, stars, reasons, _client_ts(e, now) or e.ts or now) for e, (stars, reasons) in ratings if id(e) in entered],
+    )
     _record_cancellations(conn, [(e, _client_ts(e, now) or e.ts or now) for e in cancellations])
     return saved
 
@@ -487,9 +495,9 @@ def _order_of_event(e: Event) -> dict:
 
 
 def _record_ratings(conn: Connection, ratings: list[tuple[Event, int, list[str], datetime]]) -> None:
-    """Cada calificación queda en el pedido de su carro y su tienda (`_ORDER_OF_EVENT`). Las de "Rappi hoy"
-    (`payload.mode = 'actual'`) no: ese modo no enseña, y la calificación pausa la recompra. Un pedido cancelado no se
-    califica: no llegó."""
+    """Cada calificación queda en el pedido de su carro y su tienda (`_ORDER_OF_EVENT`), salvo que ya tenga una más
+    nueva. Las de "Rappi hoy" (`payload.mode = 'actual'`) no: ese modo no enseña, y la calificación pausa la recompra.
+    Un pedido cancelado no se califica: no llegó."""
     rows = [
         {"stars": stars, "reasons": reasons, "at": rated_at, **_order_of_event(e)}
         for e, stars, reasons, rated_at in ratings
@@ -499,7 +507,7 @@ def _record_ratings(conn: Connection, ratings: list[tuple[Event, int, list[str],
         with conn.cursor() as cur:
             cur.executemany(
                 f"""UPDATE app_orders SET rating = %(stars)s, rating_reasons = %(reasons)s, rated_at = %(at)s
-                    WHERE status = 'confirmado' AND {_ORDER_OF_EVENT}""",
+                    WHERE status = 'confirmado' AND (rated_at IS NULL OR rated_at <= %(at)s) AND {_ORDER_OF_EVENT}""",
                 rows,
             )
 

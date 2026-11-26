@@ -309,12 +309,18 @@ def client(db):
         for c in ("chocolates", "carnes")
     ]
     assert test_client.post("/events", json={"user_id": "u-afin", "events": liked}).status_code == 200
-    # Ya pidió en el súper, en restaurantes y en Turbo (unas papas, sin concepto, así no cambian sus gustos): con los
-    # tres grupos el motor sigue dentro de Retail. Las verticales que le faltan suman lo mismo y desempata su predicción
-    # (`next_verticals`, que no ve sus gustos: sus `cart_add` no traen vertical), así que el paso es el Mall.
+    # Ya pidió en el súper, en restaurantes y en Turbo (unas papas y una pizza, cada pedido en una tienda de esa
+    # vertical: la vertical del pedido es una de su tienda): con los tres grupos el motor sigue dentro de Retail. Las
+    # verticales que le faltan suman lo mismo y desempata su predicción (`next_verticals`, que no ve sus gustos: sus
+    # `cart_add` no traen vertical), así que el paso es el Mall.
     chips = {"entity_type": "catalog_item", "entity_id": "91001"}
-    for vertical in ("supermercado", "restaurants", "turbo"):
-        afin_order = {"user_id": "u-afin", "session_id": "s-afin", "cart_id": f"c-afin-{vertical}", "lines": [chips]}
+    tried = {
+        "supermercado": {**chips, "store_id": 9101},
+        "restaurants": {"entity_type": "menu_item", "entity_id": "98002"},
+        "turbo": {**chips, "store_id": 9301},
+    }
+    for vertical, line in tried.items():
+        afin_order = {"user_id": "u-afin", "session_id": "s-afin", "cart_id": f"c-afin-{vertical}", "lines": [line]}
         assert test_client.post("/orders", json={**afin_order, "vertical": vertical}).status_code == 200
     # Una persona con un perfil de gusto (lo asiático), para `profile-gustos`: busca ramen y pide sushi dos veces. Cada
     # pedido recalcula sus segmentos. La búsqueda no dice si encontró algo (`unmet`): no cambia el uso del MVP.

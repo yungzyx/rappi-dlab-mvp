@@ -2,6 +2,7 @@
 `app_event_items`, las variantes de `experiments` (`modo_app` y el grupo de control de las ofertas, con su impresión
 contrafactual `offer_withheld`), `payload.catalogo` en las vistas y el carro, y las vistas de `capa` que los leen."""
 
+import types
 import uuid
 from dataclasses import replace
 from datetime import UTC, date, datetime, timedelta
@@ -20,6 +21,7 @@ from rappi_ia.api import app as api
 from rappi_ia.api import identity
 from rappi_ia.api.services import Services
 from rappi_ia.catalog.stores import product_detail
+from rappi_ia.concepts.taxonomy import load_taxonomy
 from rappi_ia.delivery import PERSON_TABLES, unknown_person_tables
 from rappi_ia.demo.seed import seed_demo
 from rappi_ia.embeddings.base import HashEmbedder
@@ -365,6 +367,33 @@ def test_mochi_off_never_saves_a_preference_nor_keeps_its_text(client, db, monke
     assert "search" in {row[0] for row in rows}
     assert all(query is None and "corregida" not in (payload or {}) for _, query, _, payload in rows)
     assert [concept for kind, _, concept, _ in rows if kind == "search"] == [None]
+
+
+def test_mochi_off_gets_no_personal_plans_tastes_nor_saved_preferences(client, db, monkeypatch):
+    """Lo de Mochi que no es una oferta tampoco llega al grupo de control: las ocasiones salen en el orden de la Home,
+    sin "Por tu interés en…"; sin perfiles de gusto; y sus preferencias no se guardan (borrarlas, sí)."""
+    monkeypatch.setattr(config, "OFFERS_CONTROL_PCT", 50)
+    control, treated = user_in(experiments.CONTROL), user_in(experiments.TREATMENT)
+    generic = client.get("/agent/plans").json()
+    occasion = load_taxonomy().occasions[generic[-1]["id"]]  # la última de la Home: con interés, sube
+    concept = next(c for c in occasion.concepts if not load_taxonomy().concepts[c].sensitive)
+    for user in (control, treated):
+        events.record(db, [events.Event(user, "s1", "cart_add", concept_id=concept, entity_type="catalog_item")])
+    fake = types.SimpleNamespace(to_dict=lambda: {"id": "perfil-de-prueba"})
+    monkeypatch.setattr(api, "active_profiles", lambda conn, user_id: [fake])
+
+    def plans(user_id):
+        return client.get("/agent/plans", params={"user_id": user_id}).json()
+
+    assert any("reason" in plan for plan in plans(treated)) and plans(treated) != generic
+    assert plans(control) == generic
+    assert client.get(f"/profile/{treated}/gustos").json()["perfiles"] == [{"id": "perfil-de-prueba"}]
+    assert client.get(f"/profile/{control}/gustos").json()["perfiles"] == []
+    said = {"preferencias": [{"tipo": "dieta", "valor": "vegetariano"}]}
+    assert client.put(f"/profile/{control}/preferencias", json=said).status_code == 403
+    assert db.execute("SELECT count(*) FROM agent_preferences WHERE user_id = %s", (control,)).fetchone()[0] == 0
+    assert client.put(f"/profile/{control}/preferencias", json={"preferencias": []}).status_code == 200
+    assert client.put(f"/profile/{treated}/preferencias", json=said).status_code == 200
 
 
 def test_the_control_group_does_not_see_mochis_offer_and_it_is_recorded_as_counterfactual(client, db, monkeypatch):

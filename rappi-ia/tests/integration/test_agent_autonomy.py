@@ -11,7 +11,7 @@ import psycopg
 import pytest
 
 from owner_client import OwnerClient
-from rappi_ia import delivery
+from rappi_ia import config, delivery
 from rappi_ia.agent.compose import TemplateComposer
 from rappi_ia.agent.rappi_agent import RappiAgent
 from rappi_ia.analytics import queries
@@ -126,6 +126,22 @@ def test_with_permission_it_orders_alone_and_the_order_says_so(client, db):
     assert {"kind": "tope", "id": "20000", "source": "persona"} in payload["basis"]
     # El panel los cuenta aparte de las ofertas aceptadas.
     assert queries.offers(db, "prototype")["autopedidos"] == {"pedidos": 1, "personas": 1}
+
+
+def test_mochi_off_cannot_turn_it_on_nor_order_alone(client, db, monkeypatch):
+    """El grupo de control ("Mochi apagado") no tiene "Pedir por mí": no lo enciende, y el autopedido que la app tenía
+    pendiente de antes de quedar en control no se guarda (409, como un límite que no pasa). Apagarlo sí se puede."""
+    order(client, CENTRO, "supermercado", COFFEE)
+    allow(client, [CENTRO])  # con el experimento apagado
+    monkeypatch.setattr(config, "OFFERS_CONTROL_PCT", 100)  # todos en control
+
+    rejected = order(client, CENTRO, "supermercado", COFFEE, cart="c-auto", autopedido={})
+    assert rejected.status_code == 409 and rejected.json()["detail"]["codigo"] == "mochi_apagado"
+    assert orders_of(db) == 1
+    again = client.put(f"/profile/{USER}/autonomia", json={"tiendas": [CENTRO], "tope": 20_000})
+    assert again.status_code == 403
+    assert client.delete(f"/profile/{USER}/autonomia").json()["modo"] == "revisar"
+    assert order(client, CENTRO, "supermercado", COFFEE, cart="c-a-mano").status_code == 200  # pedir a mano, sí
 
 
 def test_never_over_the_cap(client, db):

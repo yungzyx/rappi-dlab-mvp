@@ -254,6 +254,52 @@ def test_store_for_you_leaves_out_what_the_person_cannot_eat(seeded):
     assert store_for_you(seeded, EXPRESS_CENTRO, "p-leche")["products"] == []
 
 
+def _dish(conn, item_id, name, section_id, concept, description=None, extra_sections=()):
+    """Un plato del local de sushi con su precio y su concepto (el `run_id` de los precios de `seed_demo`)."""
+    conn.execute(
+        """INSERT INTO menu_items (item_id, rappi_item_id, store_id, section_id, name, description, image_url,
+                                   extra_section_ids)
+           VALUES (%s, %s, %s, %s, %s, %s, 'https://imagenes.prueba.invalid/platos/x.png', %s)""",
+        (item_id, item_id, SUSHI, section_id, name, description, list(extra_sections)),
+    )
+    conn.execute(
+        """INSERT INTO menu_price_snapshots (run_id, item_id, price, is_available)
+           SELECT max(run_id), %s, 3990, true FROM menu_price_snapshots""",
+        (item_id,),
+    )
+    conn.execute(
+        """INSERT INTO item_concepts (entity_type, entity_id, concept_id, method, confidence)
+           VALUES ('menu_item', %s, %s, 'curado', 1)""",
+        (str(item_id), concept),
+    )
+
+
+def test_store_for_you_in_a_restaurant_leaves_out_drinks_by_section_or_description(seeded):
+    """ "Para ti" de un local pasa las guardias de los platos como las otras ofertas (`alcohol_dish`): ni un plato de
+    una sección de tragos, también si es una de `extra_section_ids`, ni una bebida cuya descripción nombra alcohol,
+    aunque su nombre y su concepto no lo digan."""
+    seeded.execute(
+        "INSERT INTO menu_sections (store_id, section_id, name, position) VALUES (%s, 90, 'Cervezas japonesas', 9)",
+        (SUSHI,),
+    )
+    _dish(seeded, 98901, "Sake dry (prueba)", 1, "sushi", extra_sections=[90])  # en "Rolls" y en "Cervezas…"
+    # en "Bebidas" (sección 3 del local)
+    _dish(seeded, 98902, "Gautama Jack (prueba)", 3, "gaseosas", "Ron havana dorado con bebida cola")
+    _dish(seeded, 98903, "Bebida naranja (prueba)", 3, "gaseosas", "Bebida de naranja 350 cc")
+    events.record(
+        seeded,
+        [
+            events.Event("p-sake", "s1", "cart_add", concept_id=concept, entity_type="menu_item")
+            for concept in ("sushi", "gaseosas")
+        ],
+    )
+
+    picks = [p["entity_id"] for p in store_for_you(seeded, SUSHI, "p-sake")["products"]]
+
+    assert "98903" in picks  # la bebida sin alcohol sí
+    assert "98901" not in picks and "98902" not in picks
+
+
 def test_store_for_you_endpoint_is_only_for_its_owner(client):
     body = client.get(f"/catalog/stores/{EXPRESS_CENTRO}/para-ti", params={"user_id": "p-nueva"}).json()
     assert body["products"] == [] and body["request_id"]

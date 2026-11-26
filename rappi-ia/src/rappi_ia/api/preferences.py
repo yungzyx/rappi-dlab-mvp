@@ -7,12 +7,13 @@ y cambiarlas (una lista vacía las borra), eligiendo entre opciones. Si "soy veg
 
 from typing import Annotated, Literal
 
-from fastapi import APIRouter, Depends, Path
+from fastapi import APIRouter, Depends, HTTPException, Path
 from psycopg import Connection
 from pydantic import Field
 
 from ..events.store import ensure_user
 from ..offers import preferences
+from .agent import MOCHI_OFF, mochi_off
 from .deps import Clean, get_conn
 from .identity import owner_in_path
 from .logs import rejected
@@ -48,7 +49,8 @@ def get_preferences(user_id: ShortPath, conn: Connection = Depends(get_conn)) ->
 @router.put("/{user_id}/preferencias", dependencies=[Depends(owner_in_path)])
 def put_preferences(user_id: ShortPath, body: PreferencesIn, conn: Connection = Depends(get_conn)) -> dict:
     """Reemplaza sus preferencias por las de `preferencias` (lo que dejó marcado en el panel). Lo que no es una opción
-    se ignora; una tienda solo queda si ya la tenía o es una del catálogo. Responde como el GET."""
+    se ignora; una tienda solo queda si ya la tenía o es una del catálogo. Responde como el GET. El grupo de control
+    ("Mochi apagado") no guarda preferencias (403; borrarlas, con una lista vacía, sí)."""
     mine = set(preferences.saved(conn, user_id))
     items = []
     for item in body.preferencias:
@@ -64,6 +66,8 @@ def put_preferences(user_id: ShortPath, body: PreferencesIn, conn: Connection = 
             ensure_user(conn, user_id)
         except ValueError as exc:  # una persona simulada: sus preferencias no se tocan desde la app
             raise rejected(exc, user_id) from exc
+        if mochi_off(conn, user_id):
+            raise HTTPException(403, MOCHI_OFF)
     preferences.replace_all(conn, user_id, items)
     conn.commit()
     return _reply(conn, user_id)

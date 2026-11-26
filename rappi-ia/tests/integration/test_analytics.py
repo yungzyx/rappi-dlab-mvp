@@ -186,26 +186,6 @@ def test_cart_abandonment_follows_the_definition(db):
     assert weekly[date(2026, 9, 7)] == 100.0  # c-perdido y c-qty-rara (los vaciados no cuentan)
 
 
-def test_same_pair_can_be_learned_from_both_sources(db, monkeypatch):
-    seed_taxonomy(db, load_taxonomy())
-    db.execute(
-        """INSERT INTO concept_edges (from_concept, to_concept, method, weight, support, data_source)
-           VALUES ('cerveza', 'snacks-salados', 'coocurrencia', 0.5, 40, 'synthetic')"""
-    )
-    for user, concepts in [("u1", ["cerveza", "snacks-salados"]), ("u2", ["cerveza", "snacks-salados"])]:
-        for i, concept in enumerate(concepts):
-            _order(db, user, i, concept=concept)
-    _order(db, "u3", 0, concept="lacteos")
-    monkeypatch.setattr(queries, "MIN_SUPPORT", 1)
-
-    assert queries.learn_edges(db, "prototype") >= 1  # antes: UniqueViolation con la arista simulada
-    sources = db.execute(
-        """SELECT data_source FROM concept_edges
-           WHERE from_concept = 'cerveza' AND to_concept = 'snacks-salados' ORDER BY 1"""
-    ).fetchall()
-    assert sources == [("prototype",), ("synthetic",)]
-
-
 def test_catalog_coverage_compares_the_same_stores_and_units(db):
     add_store(db, 1, "licores", "Botillería con pasillos")
     add_store(db, 2, "licores", "Botillería sin pasillos")
@@ -331,6 +311,32 @@ def test_adding_from_a_list_without_searching_also_enters_the_funnel(db):
     assert funnel == [{"vertical": "supermercado", "buscan": 1, "agregan": 1, "pagan": 1, "piden": 1}]
     orders = db.execute("SELECT count(*) FROM app_orders WHERE source = 'prototype'").fetchone()[0]
     assert sum(r["piden"] for r in funnel) == orders
+
+
+def test_two_people_with_the_same_session_and_cart_ids_are_not_one_visit(db):
+    """La sesión y el carro son de una persona (`(user_id, session_id)` en `app_sessions`): si dos usan el mismo id
+    (lo elige el cliente), la búsqueda de una y el pedido de la otra no son un recorrido completo, ni el pedido de una
+    paga el carro de la otra."""
+    seed_taxonomy(db, load_taxonomy())
+    line = [{"entity_type": "catalog_item", "entity_id": "1", "concept_id": "cerveza", "unit_price": 1000}]
+    events.record(
+        db,
+        [
+            events.Event("u-busca", "s-comun", "search", ts=T0, vertical="licores", query="cerveza"),
+            events.Event("u-busca", "s-comun", "cart_add", ts=T0, vertical="licores", cart_id="c-comun"),
+            events.Event("u-pide", "s-comun", "checkout_start", ts=T0, vertical="licores", cart_id="c-comun"),
+            events.Event("u-pide", "s-otra", "search", ts=T0 + timedelta(days=3), query="x"),  # la fecha de corte
+        ],
+    )
+    events.record_order(db, "u-pide", "s-comun", "c-comun", "licores", line, ts=T0)
+    db.commit()
+
+    funnel = {r["vertical"]: r for r in queries.funnel(db, "prototype")}
+    kpis = queries.kpis(db, "prototype")
+
+    assert funnel["licores"] == {"vertical": "licores", "buscan": 1, "agregan": 1, "pagan": 0, "piden": 0}
+    assert kpis["conversion_sesiones_pct"] == 0.0
+    assert kpis["abandono_carrito_pct"] == 50.0  # dos carros: el de u-busca quedó sin pagar, el de u-pide no
 
 
 def test_session_conversion_counts_each_session_once(db):
@@ -637,9 +643,13 @@ def test_synthetic_events_are_text_only_and_the_agent_ones_are_ask(simulated):
 
 
 def test_learned_synthetic_edges_are_never_used_by_the_agent(simulated):
+    """Las aristas `coocurrencia` simuladas que guardaba `rappi-ia synth` (ya no se escriben; una base de antes las
+    tiene) no alcanzan para que el agente sugiera algo."""
     db, _ = simulated
-    n = queries.learn_edges(db, "synthetic")
-    assert n == db.execute("SELECT count(*) FROM concept_edges WHERE method = 'coocurrencia'").fetchone()[0]
+    db.execute(
+        """INSERT INTO concept_edges (from_concept, to_concept, method, weight, support, data_source)
+           VALUES ('cerveza', 'snacks-salados', 'coocurrencia', 0.9, 400, 'synthetic')"""
+    )
     db.execute("DELETE FROM concept_edges WHERE method = 'curado'")
     db.commit()
     # Sin aristas curadas, las aprendidas de datos simulados no alcanzan para sugerir nada.

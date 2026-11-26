@@ -106,6 +106,28 @@ def test_a_rating_in_rappi_hoy_is_kept_as_an_event_but_teaches_nothing(client, d
     assert db.execute("SELECT count(*) FROM app_events WHERE type = 'order_rated'").fetchone()[0] == 1
 
 
+def test_a_resent_rating_does_not_touch_the_order_again(client, db):
+    """El mismo `order_rated` reenviado (la misma `client_event_id`: un lote reintentado) no entra otra vez: no vuelve
+    a mover la hora de la calificación ni pisa una calificación que llegó después."""
+    cart = bought(db, "supermercado", "cafe", COFFEE, 1)
+
+    def rated(stars, event_id):
+        payload = {"stars": stars, "reasons": []}
+        event = {"type": "order_rated", "session_id": "s-rate", "cart_id": cart, "client_event_id": event_id,
+                 "payload": payload}  # fmt: skip
+        return client.post("/events", json={"user_id": USER, "events": [event]}).json()
+
+    assert rated(2, "11111111-1111-4111-8111-111111111111") == {"guardados": 1}
+    first = rating_of(db, cart)
+    assert rated(5, "22222222-2222-4222-8222-222222222222") == {"guardados": 1}
+    later = rating_of(db, cart)
+    assert later[0] == 5 and later[2] >= first[2]
+
+    assert rated(2, "11111111-1111-4111-8111-111111111111") == {"guardados": 0}  # el primero, reintentado
+
+    assert rating_of(db, cart) == later
+
+
 @pytest.mark.parametrize(
     "payload",
     [
