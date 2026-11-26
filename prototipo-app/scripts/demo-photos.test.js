@@ -88,4 +88,19 @@ describe('embedPhotos', () => {
     expect(error.message).toContain('robots.txt de images.rappi.cl no permite')
     expect(fetch).not.toHaveBeenCalled()
   })
+
+  it('no sigue una redirección: robots.txt solo se revisó para la dirección pedida (la foto queda sin bajar)', async () => {
+    // Como fetch de Node: con `redirect: 'manual'` entrega el 302; si no, lo sigue y trae la foto de otro lado.
+    const fetchMock = vi.fn(async (url, init) =>
+      url.startsWith(PHOTO) && init.redirect !== 'manual'
+        ? webp()
+        : url.startsWith(PHOTO)
+          ? new Response(null, { status: 302, headers: { location: 'https://otro.invalid/a.webp' } })
+          : webp(),
+    )
+    vi.stubGlobal('fetch', fetchMock)
+    const result = await run(fakeGate({ user_agent: 'ua' }))
+    expect(result).toMatchObject({ embedded: 1, missing: 1 })
+    expect(fetchMock.mock.calls.every(([, init]) => init.redirect === 'manual')).toBe(true)
+  })
 })
