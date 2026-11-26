@@ -26,7 +26,6 @@ os.chmod(tmp, 0o600)
 os.replace(tmp, ruta)
 EOF
 
-rm -f "$TUNEL_DIR/credenciales.txt"  # la clave anterior ya no sirve
 reiniciar caddy
 for _ in $(seq 1 15); do
   [ "$(curl -s -o /dev/null -w '%{http_code}' --max-time 3 "http://127.0.0.1:$CADDY_PORT/")" = 401 ] && break

@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 # Tarea semanal (domingos 03:00): descarga y capa de IA, en orden. En macOS la programa launchd (`make schedule`); en
 # un servidor Linux, el timer de systemd deploy/systemd/rappi-refresh.timer, dentro del contenedor jobs.
-#   1. rappi migrate (migraciones pendientes, p. ej. tras un git pull; en producción solo las revisa) y rappi refresh:
-#      tiendas, restaurantes, búsqueda, reportes y respaldo.
+#   1. rappi migrate (migraciones pendientes, p. ej. tras un git pull; en producción solo las revisa, y nunca las de
+#      una rama sin fusionar) y rappi refresh: tiendas, restaurantes, búsqueda, reportes y respaldo.
 #   2. Si rappi-ia está instalado al lado: conceptos, embeddings, evaluación, datos simulados y purga.
 # La evaluación no guarda τ (eval/thresholds.json está en git: recalibrar es a mano, con `make eval GUARDAR_TAU=1`).
 # Las opciones pasan a `rappi refresh`: tras `retry-failed`, `refresh-semanal.sh --resume-only` retoma solo lo reencolado.
@@ -125,7 +125,19 @@ fi
 # Antes de descargar: una migración pendiente haría fallar el refresh al final (tras un día de descarga), y el
 # `migrate` de post-refresh nunca llegaría a correr. En producción (API_ENV=production) no migra sin respaldo: solo
 # revisa, y si falta una se detiene (las aplica el despliegue: `docker compose run --rm migrate`, que respalda antes).
-if [ "${API_ENV:-}" = production ]; then "$RAPPI_BIN" migrate --solo-revisar; else "$RAPPI_BIN" migrate; fi
+# Si no, con rappi-ia instalado al lado, primero su guardia (como `make mvp` y `make serve`): no aplica a la base real
+# las migraciones de una rama sin fusionar (se registran por nombre: una que se edite después ya no se vuelve a aplicar).
+if [ "${API_ENV:-}" = production ]; then
+  "$RAPPI_BIN" migrate --solo-revisar
+else
+  if [ -x ../rappi-ia/.venv/bin/python ]; then
+    ../rappi-ia/.venv/bin/python -m rappi_ia check-migrations || {
+      nota="no migró: hay migraciones de una rama sin fusionar"
+      exit 1
+    }
+  fi
+  "$RAPPI_BIN" migrate
+fi
 # Código 3: todo terminó salvo el respaldo (quedan los anteriores). Código 5: los restaurantes no se actualizaron
 # (tiendas, búsqueda y respaldo sí; con el sitemap caído y una corrida anterior se usa su lista y sale con 0). Código
 # 6: las dos cosas. En los tres la capa de IA corre igual, pero queda anotado. Código 4: posible bloqueo de rappi.cl;

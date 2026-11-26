@@ -2,11 +2,17 @@
 avisan (vigilante, purga, resumen y respaldo), corridos de verdad con /bin/bash (el 3.2 de macOS; en el CI de Ubuntu,
 bash 5) sobre un clon con git real y `make`, `caddy`, `launchctl`, `osascript`, `curl` y `brew` falsos en el PATH."""
 
+import http.server
+import json
 import os
 import re
+import runpy
 import shutil
 import subprocess
+import sys
+import threading
 import time
+import urllib.request
 from pathlib import Path
 
 import pytest
@@ -22,9 +28,10 @@ def _write_fake(path: Path, body: str) -> None:
 
 class Demo:
     """Un origin bare, una copia de trabajo para empujarle commits y el clon que se sirve (REPO_DIR), con TUNEL_DIR y
-    los falsos: `make` anota cómo lo llamaron y falla mientras exista `make-falla`; `caddy validate` sale con lo que
-    diga `caddy-falla`; `launchctl`, `osascript` y `curl` anotan (`curl` falla con las URL de `curl-falla` y, con
-    `-w`, responde 401, lo de la puerta de Caddy); `sleep` no hace nada."""
+    los falsos: `make` anota cómo lo llamaron y falla mientras exista `make-falla`; `caddy validate` anota el archivo
+    que valida y sale con lo que diga `caddy-falla`; `launchctl`, `osascript` y `curl` anotan (`curl` falla con las URL
+    de `curl-falla` y, con `-w`, responde 401, lo de la puerta de Caddy); `sleep` no hace nada. Los servicios de launchd
+    ya están instalados (el plist de la API en ~/Library/LaunchAgents)."""
 
     def __init__(self, tmp_path: Path):
         self.tmp = tmp_path
@@ -60,6 +67,9 @@ class Demo:
         )
         _write_fake(self.bin / "trash", f'mkdir -p {tmp_path}/papelera && mv "$@" {tmp_path}/papelera/')
         _write_fake(self.bin / "launchctl", f'echo "$*" >> {self.rec}/launchctl.txt')
+        self.api_plist = tmp_path / "Library" / "LaunchAgents" / "test.api.plist"
+        self.api_plist.parent.mkdir(parents=True)
+        self.api_plist.write_text("<plist/>\n")
         _write_fake(self.bin / "osascript", f'echo "$*" >> {self.rec}/osascript.txt')
         _write_fake(
             self.bin / "curl",
@@ -68,7 +78,11 @@ class Demo:
             'case " $* " in *" -w "*) printf 401;; esac',
         )
         _write_fake(self.bin / "sleep", "exit 0")
-        _write_fake(self.bin / "caddy", f'echo "$*" >> {self.rec}/caddy.txt; [ ! -e {tmp_path}/caddy-falla ]')
+        _write_fake(
+            self.bin / "caddy",
+            f'echo "$*" >> {self.rec}/caddy.txt; cat "$3" > {self.rec}/caddy-validado.txt\n'
+            f"[ ! -e {tmp_path}/caddy-falla ]",
+        )
         _write_fake(
             self.bin / "make",
             f'echo "$*" >> {self.rec}/make.txt\n[ ! -e {tmp_path}/make-falla ] || exit 2\n'
@@ -160,20 +174,52 @@ def test_a_new_caddyfile_restarts_caddy_after_validating_it(demo):
     result = demo.run()
 
     assert result.returncode == 0, result.stdout + result.stderr
-    assert demo.recorded("caddy") == ["validate --config deploy/macos/Caddyfile --adapter caddyfile"]
+    assert demo.recorded("caddy") == [f"validate --config {demo.tunel}/Caddyfile.nuevo --adapter caddyfile"]
+    assert demo.recorded("caddy-validado") == [":8080 {}"]  # el de origin/main, antes de traerlo
     uid = os.getuid()
     assert demo.recorded("launchctl") == [f"kickstart -k gui/{uid}/test.caddy", f"kickstart -k gui/{uid}/test.api"]
 
 
-def test_a_caddyfile_that_does_not_validate_keeps_the_old_one(demo):
+def test_a_caddyfile_that_does_not_validate_stops_the_update_until_it_is_fixed(demo):
+    """Antes avisaba y seguía: reiniciaba la API y anotaba el commit como desplegado, así que la vuelta siguiente decía
+    "Al día" y la copia que se sirve quedaba con un Caddyfile que Caddy rechazaría al reiniciarse por otra razón. Ahora
+    se valida antes de traer los cambios: no se despliega nada, Caddy (y la copia que lee) y la API siguen con lo
+    anterior, y cada vuelta lo vuelve a probar y avisa hasta que main lo arregle."""
+    first = demo.git("rev-parse", "HEAD", cwd=demo.repo)
     demo.commit("deploy/macos/Caddyfile", "esto no es un Caddyfile\n")
     (demo.tmp / "caddy-falla").touch()
 
     result = demo.run()
 
+    assert result.returncode == 1
+    assert "El Caddyfile nuevo no valida: no despliego" in result.stdout
+    assert demo.recorded("make") == [] and demo.recorded("launchctl") == []
+    assert demo.git("rev-parse", "HEAD", cwd=demo.repo) == first == demo.deployed()
+    assert not (demo.tunel / "Caddyfile.nuevo").exists()
+    assert demo.run().returncode == 1
+    assert len(demo.recorded("caddy")) == 2
+
+    (demo.tmp / "caddy-falla").unlink()
+    fixed = demo.commit("deploy/macos/Caddyfile", ":8080 {}\n")
+    result = demo.run()
+
     assert result.returncode == 0, result.stdout + result.stderr
-    assert "El Caddyfile nuevo no valida: Caddy sigue con el anterior" in result.stdout
-    assert demo.recorded("launchctl") == [f"kickstart -k gui/{os.getuid()}/test.api"]
+    assert demo.deployed() == fixed
+    assert f"kickstart -k gui/{os.getuid()}/test.caddy" in demo.recorded("launchctl")
+
+
+def test_the_first_install_publishes_where_caddy_serves_and_leaves_the_start_to_the_installer(demo):
+    """En un Mac recién configurado comun.sh deja `srv/` vacío: el build quedaba en `srv/srv.nuevo/`, fuera de lo que
+    sirve Caddy, y el reinicio de la API fallaba porque sus servicios los registra instalar.sh, el paso siguiente."""
+    shutil.rmtree(demo.tunel / "srv")
+    demo.api_plist.unlink()
+
+    result = demo.run("actualizar.sh", "--forzar")
+
+    assert result.returncode == 0, result.stdout + result.stderr
+    assert sorted(path.name for path in (demo.tunel / "srv").iterdir()) == ["app", "panel"]
+    assert "los arranca deploy/macos/instalar.sh" in result.stdout
+    assert demo.recorded("launchctl") == []
 
 
 def test_a_new_tunnel_script_restarts_it_only_with_a_fixed_url(demo):
@@ -767,5 +813,92 @@ def test_the_install_creates_the_api_role_before_starting_the_services(demo):
 
     assert installed.returncode == 0, installed.stdout + installed.stderr
     assert "CREATE ROLE rappi_api LOGIN" in "\n".join(demo.recorded("psql"))
-    assert any("deploy-migrate --sin-respaldo" in line for line in demo.recorded("python"))
+    # Sin --sin-respaldo: si entre su revisión y este paso llegara una migración (un despliegue a la vez),
+    # deploy-migrate respalda antes de aplicarla. Sin pendientes, solo da los permisos.
+    deploy_migrate = [line for line in demo.recorded("python") if "deploy-migrate" in line]
+    assert deploy_migrate == ["PGUSER= -m rappi_ia deploy-migrate"]
     assert any(line.startswith("bootstrap") and line.endswith("test.api.plist") for line in demo.recorded("launchctl"))
+
+
+@pytest.fixture
+def fake_api():
+    """Una API de mentira en 127.0.0.1: `POST /session` da una persona nueva (p-1, p-2…); lo demás responde {}."""
+    created = []
+
+    class Handler(http.server.BaseHTTPRequestHandler):
+        def _reply(self, body: dict) -> None:
+            data = json.dumps(body).encode()
+            self.send_response(200)
+            self.send_header("Content-Type", "application/json")
+            self.send_header("Content-Length", str(len(data)))
+            self.end_headers()
+            self.wfile.write(data)
+
+        def do_GET(self):
+            self._reply({})
+
+        def do_POST(self):
+            self.rfile.read(int(self.headers.get("Content-Length") or 0))
+            if self.path == "/session":
+                created.append(f"p-{len(created) + 1}")
+                self._reply({"token": "t", "user_id": created[-1]})
+            else:
+                self._reply({})
+
+        def log_message(self, *args):
+            pass
+
+    server = http.server.ThreadingHTTPServer(("127.0.0.1", 0), Handler)
+    threading.Thread(target=server.serve_forever, daemon=True).start()
+    yield f"http://127.0.0.1:{server.server_address[1]}", created
+    server.shutdown()
+
+
+def _load_test(monkeypatch, *args: str) -> None:
+    real_sleep = time.sleep
+    monkeypatch.setattr(time, "sleep", lambda seconds: real_sleep(min(seconds, 0.05)))  # las pausas de 1 a 3 s
+    monkeypatch.setattr(sys, "argv", ["prueba-carga.py", *args])
+    runpy.run_path(str(SCRIPTS / "prueba-carga.py"), run_name="__main__")
+
+
+def test_the_load_test_has_no_default_api(monkeypatch):
+    """Escribe en la base de la API a la que apunta (una persona `prototype` por cada simulada): antes, sin argumentos,
+    iba a la de la demo (127.0.0.1:8100) sobre la base real. Sin red: si volviera a tener una API por defecto, el test
+    falla sin pedirle nada."""
+
+    def no_network(*args, **kwargs):
+        pytest.fail("prueba-carga.py se conectó a una API sin que se la dieran")
+
+    monkeypatch.setattr(urllib.request, "urlopen", no_network)
+    with pytest.raises(SystemExit) as refused:
+        _load_test(monkeypatch)
+
+    assert "Uso:" in str(refused.value.code) and "8100" not in str(refused.value.code)
+
+
+def test_the_load_test_prints_the_people_it_created_and_how_to_forget_them(monkeypatch, capsys, fake_api):
+    api, created = fake_api
+
+    _load_test(monkeypatch, api, "3", "1")
+
+    out = capsys.readouterr().out
+    assert sorted(created) == ["p-1", "p-2", "p-3"]
+    assert re.search(r"rappi-ia olvidar p-\d p-\d p-\d", out)
+    assert all(person in out for person in created)
+
+
+def test_the_nightly_purge_runs_before_the_backup(demo):
+    """Como en el servidor (purga 04:00, respaldo 04:15): el respaldo nocturno ya no lleva lo que la purga borra. Antes,
+    en el Mac, el respaldo (03:30) iba antes que la purga (04:15)."""
+    _write_fake(demo.bin / "plutil", "exit 0")
+    _postgres(demo)
+
+    assert demo.run("instalar.sh").returncode == 0
+
+    def when(service: str) -> tuple[int, int]:
+        plist = (demo.tmp / "Library" / "LaunchAgents" / f"test.{service}.plist").read_text()
+        hour = re.search(r"<key>Hour</key><integer>(\d+)</integer>", plist)
+        minute = re.search(r"<key>Minute</key><integer>(\d+)</integer>", plist)
+        return int(hour.group(1)), int(minute.group(1))
+
+    assert when("purga") < when("respaldo")

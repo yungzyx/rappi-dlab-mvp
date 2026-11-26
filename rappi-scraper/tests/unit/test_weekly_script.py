@@ -421,6 +421,28 @@ def test_migrations_are_applied_before_downloading(tmp_path, shell):
     assert _calls(project) == ["migrate", "refresh"]
 
 
+def test_migrations_from_an_unmerged_branch_are_not_applied(tmp_path, shell):
+    """Como `make mvp` y `make serve`: con rappi-ia al lado, la tarea semanal no aplica a la base real las migraciones
+    de una rama sin fusionar (`rappi-ia check-migrations`; se registran por nombre, y una que se edite después ya no se
+    vuelve a aplicar). Sin pendientes de una rama, sigue como antes."""
+    project = _project(tmp_path, 'echo "$*" >> calls.txt', ai_layer=True)
+    ia_python = tmp_path / "rappi-ia" / ".venv" / "bin" / "python"
+    _write_fake(ia_python, 'echo "ia $*" >> calls.txt')
+
+    result = _run(project, shell)
+
+    assert result.returncode == 0, result.stderr
+    assert _calls(project)[:3] == ["ia -m rappi_ia check-migrations", "migrate", "refresh"]
+
+    (project / "calls.txt").unlink()
+    _write_fake(ia_python, 'echo "ia $*" >> calls.txt; [[ $* != *check-migrations* ]]')
+    refused = _run(project, shell)
+
+    assert refused.returncode == 1
+    assert _calls(project) == ["ia -m rappi_ia check-migrations"]
+    assert _status_lines(project)[-1].endswith("exit=1 (no migró: hay migraciones de una rama sin fusionar)")
+
+
 def test_in_production_migrations_are_only_checked(tmp_path, shell):
     """En el servidor (API_ENV=production) la tarea semanal no migra sin respaldo: solo revisa que no falte ninguna. Las
     aplica el despliegue (`docker compose run --rm migrate`), que respalda antes."""

@@ -3,8 +3,8 @@
 #   api, caddy y tunel   siempre arriba (launchd los reinicia si se caen y los arranca al iniciar sesión)
 #   vigilante            cada 5 minutos
 #   actualizar           cada 15 minutos: si main cambió, la demo se actualiza sola (despliegue continuo)
-#   respaldo             cada noche a las 03:30
-#   purga                cada día a las 04:15
+#   purga                cada día a las 04:00
+#   respaldo             cada noche a las 04:15, después de la purga (como en el servidor: no lleva lo purgado)
 #   resumen              cada mañana a las 08:00: el resumen de la API del día anterior
 # Uso: deploy/macos/instalar.sh            (desinstalar: deploy/macos/instalar.sh --quitar)
 # shellcheck source=deploy/macos/comun.sh
@@ -70,8 +70,8 @@ plist tunel "$siempre"
 # Sin RunAtLoad: la primera revisión a los 5 minutos, cuando la API ya cargó el modelo.
 plist vigilante '<key>StartInterval</key><integer>300</integer>'
 plist actualizar '<key>StartInterval</key><integer>900</integer>'
-plist respaldo '<key>StartCalendarInterval</key><dict><key>Hour</key><integer>3</integer><key>Minute</key><integer>30</integer></dict>'
-plist purga '<key>StartCalendarInterval</key><dict><key>Hour</key><integer>4</integer><key>Minute</key><integer>15</integer></dict>'
+plist purga '<key>StartCalendarInterval</key><dict><key>Hour</key><integer>4</integer><key>Minute</key><integer>0</integer></dict>'
+plist respaldo '<key>StartCalendarInterval</key><dict><key>Hour</key><integer>4</integer><key>Minute</key><integer>15</integer></dict>'
 plist resumen '<key>StartCalendarInterval</key><dict><key>Hour</key><integer>8</integer><key>Minute</key><integer>0</integer></dict>'
 
 for s in "${servicios[@]}"; do

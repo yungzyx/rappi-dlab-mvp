@@ -8,6 +8,16 @@ set -euo pipefail
 
 : "${RAPPI_OWNER_PASSWORD:?Falta RAPPI_OWNER_PASSWORD en el archivo de entorno (deploy/.env.example)}"
 : "${RAPPI_API_PASSWORD:?Falta RAPPI_API_PASSWORD en el archivo de entorno (deploy/.env.example)}"
+# El valor de ejemplo tampoco: el volumen se inicializa una sola vez, y corregir después el archivo no cambia la clave de
+# los roles ya creados. La base queda a medio crear (sin roles): se borra su volumen, nuevo y sin datos, y se vuelve a
+# levantar.
+for var in POSTGRES_PASSWORD RAPPI_OWNER_PASSWORD RAPPI_API_PASSWORD; do
+  if [ "${!var}" = cambiar-esto ]; then
+    echo "init-roles: $var sigue con el valor de ejemplo (\"cambiar-esto\"): cámbiala en el archivo de entorno," \
+      "borra el volumen de la base (docker volume rm rappi_pgdata) y vuelve a levantarla." >&2
+    exit 1
+  fi
+done
 
 psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<'SQL'
 \getenv owner_password RAPPI_OWNER_PASSWORD

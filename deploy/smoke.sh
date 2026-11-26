@@ -2,7 +2,8 @@
 # Prueba de humo del stack desplegado: deploy/smoke.sh https://el-dominio
 # Revisa la puerta de acceso, la API lista (con la búsqueda semántica), las cabeceras de seguridad, que lo servido no
 # apunte a :8000 ni cargue nada que la CSP bloquee, que la app lleve el aviso de demo, que rappi_api no pueda
-# borrar tablas, que ningún servicio (jobs incluido) tenga valores de ejemplo y que todo el stack esté sano.
+# borrar tablas, que ningún servicio (jobs incluido) tenga valores de ejemplo, que la puerta solo llegue a Caddy y que
+# todo el stack esté sano.
 # Sale con 0 o dice qué falló.
 #
 # Necesita la clave de la puerta en claro en BASIC_AUTH_PASSWORD (no se guarda en el servidor; se pasa a curl por la
@@ -10,7 +11,9 @@
 # Corre desde cualquier carpeta, en el servidor (usa `docker compose`). Con un host localhost acepta la CA interna de
 # Caddy (curl -k). COMPOSE cambia el comando de compose (por defecto, el de deploy/ con deploy/.env).
 # Con WITH_PANEL=1 (el panel construido y API_ENABLE_ANALYTICS=1) revisa además que /panel/, sus archivos y
-# /api/analytics/kpis respondan 200 con credenciales.
+# /api/analytics/kpis respondan 200 con credenciales. Si el panel tiene su propia credencial (PANEL_AUTH_USER, del
+# entorno o del contenedor de Caddy), su clave en claro va en PANEL_AUTH_PASSWORD: con ella responden 200 y con la de
+# la puerta, 401.
 set -uo pipefail
 
 url="${1:?Uso: deploy/smoke.sh https://el-dominio}"
@@ -102,6 +105,23 @@ fi
 
 if [ "${WITH_PANEL:-0}" = 1 ]; then
   echo "Panel"
+  panel_user="${PANEL_AUTH_USER:-$("${compose[@]}" exec -T web printenv PANEL_AUTH_USER 2>/dev/null)}"
+  if [ -n "$panel_user" ]; then
+    # Su credencial propia: la de la puerta (la de quienes prueban la app) no abre el panel ni /api/analytics.
+    if [ -z "${PANEL_AUTH_PASSWORD:-}" ]; then
+      fail "el panel tiene su credencial ($panel_user): falta su clave en claro en PANEL_AUTH_PASSWORD"
+    fi
+    for path in /panel/ /api/analytics/kpis; do
+      code=$(authed -o /dev/null -w '%{http_code}' "$url$path")
+      if [ "$code" = 401 ]; then
+        pass "$path con la clave de la puerta: 401"
+      else
+        fail "$path con la clave de la puerta dio $code (se esperaba 401: el panel tiene su credencial)"
+      fi
+    done
+    user=$panel_user
+    BASIC_AUTH_PASSWORD=${PANEL_AUTH_PASSWORD:-}
+  fi
   panel=$(authed -w '\n%{http_code}' "$url/panel/")
   code="${panel##*$'\n'}"
   panel_index="${panel%$'\n'*}"
@@ -164,10 +184,24 @@ check_env() {  # check_env <servicio> <comando de compose que corre un comando e
     pass "$service sin \"cambiar-esto\""
   fi
 }
+# El usuario y el hash de la puerta (y los del panel) son de Caddy (web): los demás servicios los reciben vacíos.
+check_gate() {  # check_gate <servicio> <comando de compose que corre un comando en ese servicio...>
+  local service=$1 left
+  shift
+  if ! left=$("$@" sh -c 'env | grep -E "^(BASIC|PANEL)_AUTH_(USER|HASH)=." | cut -d= -f1' </dev/null 2>/dev/null); then
+    fail "no se pudo leer el entorno de $service"
+  elif [ -n "$left" ]; then
+    fail "$service recibe la puerta de acceso: $(tr '\n' ' ' <<<"$left")"
+  else
+    pass "$service sin la puerta de acceso"
+  fi
+}
 while read -r service; do
   check_env "$service" "${compose[@]}" exec -T "$service"
+  [ "$service" = web ] || check_gate "$service" "${compose[@]}" exec -T "$service"
 done < <("${compose[@]}" ps --format '{{.Service}}')
 check_env jobs "${compose[@]}" run --rm --no-deps -T jobs
+check_gate jobs "${compose[@]}" run --rm --no-deps -T jobs
 
 echo "Stack"
 ps=$("${compose[@]}" ps --format '{{.Service}} {{.Status}}')

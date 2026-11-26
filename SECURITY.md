@@ -20,14 +20,15 @@ Si encuentras una clave o un secreto en el repositorio o en su historial, avísa
 ## Lo que ya se sabe (no hace falta reportarlo)
 
 - **En local, la API no tiene puerta de acceso.** `make mvp` escucha solo en el equipo local; con `LAN=1` o `make serve-lan` se abre a la red, y eso se hace solo en una red de confianza. En un servidor, todo el sitio va detrás de la puerta de Caddy ([docs/despliegue.md](docs/despliegue.md)).
+- **Sin su propia credencial, el panel abre con la clave de la puerta.** Esa clave es la que se reparte a quienes prueban la app, y con ella también se entra a `/panel` y a `/api/analytics`: métricas, audiencias con ids seudónimos del prototipo y los juicios de la búsqueda, que se pueden escribir. Para una prueba con personas, el panel va apagado (`WITH_PANEL=0` y `API_ENABLE_ANALYTICS=0`) o con su propia credencial: `PANEL_AUTH_USER` y `PANEL_AUTH_HASH` en el archivo de entorno ([deploy/.env.example](deploy/.env.example)) o, en la demo desde un Mac, en `tunel.env` ([deploy/macos/env.example](deploy/macos/env.example)).
 - **Los tokens de sesión no vencen.** El token firma el id seudónimo de cada persona con `API_SECRET`; rotar `API_SECRET` invalida a todas las personas. Basta para una demo cerrada.
 - **No hay cuentas ni pagos reales.** El pago y el seguimiento del pedido son simulados.
 
 ## Datos
 
 - **Personas:** solo simuladas (`source = 'synthetic'`) o del prototipo (`'prototype'`, con id seudónimo del navegador y sin cuenta). Las consultas se guardan con los datos personales redactados (correo, RUT, tarjetas, teléfonos) y su texto se borra a los 90 días; la persona borra lo suyo con "Borrar mis datos".
-- **Secretos:** solo se versionan los `.env.example`, y el CI revisa los archivos versionados con gitleaks. `API_SECRET`, las claves de la base, `ANTHROPIC_API_KEY`, `TYPESAFE_API_KEY` y las de restic viven en los `.env` locales o en `/etc/rappi/rappi.env` del servidor, nunca en git.
-- **Catálogo:** el contenido descargado de rappi.cl no se versiona; viaja en un respaldo de la base por un canal acordado.
+- **Secretos:** solo se versionan los `.env.example`, y el CI revisa los archivos versionados con gitleaks (los del commit, no el historial: un secreto que entró y salió en otro commit se busca a mano). `API_SECRET`, las claves de la base, `ANTHROPIC_API_KEY`, `TYPESAFE_API_KEY` y las de restic viven en los `.env` locales o en `/etc/rappi/rappi.env` del servidor, nunca en git.
+- **Catálogo:** el contenido descargado de rappi.cl no se versiona; viaja en un respaldo de la base por un canal acordado. La excepción son las muestras de los tests del scraper (`rappi-scraper/tests/fixtures/`): una página pública por tipo, reducida a lo que leen los parsers (sin el resto del HTML, scripts ni trackers, y sin datos de personas), y una copia de robots.txt ([su README](rappi-scraper/tests/fixtures/README.md)).
 
 ## Descarga del catálogo
 

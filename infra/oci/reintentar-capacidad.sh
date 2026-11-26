@@ -26,6 +26,7 @@ while [ "$(date +%s)" -lt "$FIN" ]; do
   intento=$((intento + 1))
   oci session refresh --profile "$PROFILE" > /dev/null 2>&1 || { avisar "La sesión de OCI venció: correr oci session authenticate"; exit 2; }
   for forma in "4 24" "2 12"; do
+    # shellcheck disable=SC2086 # "4 24": dos argumentos, a propósito
     set -- $forma
     if probar "$1" "$2"; then
       avisar "Intento $intento: máquina creada con $1 OCPU y $2 GB"

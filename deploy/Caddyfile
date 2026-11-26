@@ -49,9 +49,27 @@
 	encode zstd gzip
 
 	# Puerta de acceso: usuario y hash de `caddy hash-password` (BASIC_AUTH_HASH entre comillas simples en el archivo
-	# de entorno: el hash lleva "$").
-	basic_auth {
+	# de entorno: el hash lleva "$"). Cubre todo el sitio, salvo el panel cuando tiene su propia credencial (abajo).
+	@puerta {
+		not {
+			path /panel /panel/* /api/analytics /api/analytics/*
+			expression `{env.PANEL_AUTH_HASH} != ""`
+		}
+	}
+	basic_auth @puerta {
 		{$BASIC_AUTH_USER} {$BASIC_AUTH_HASH}
+	}
+
+	# Credencial propia del panel (opcional): con PANEL_AUTH_USER y PANEL_AUTH_HASH (los dos, otro usuario y otra
+	# clave), /panel y /api/analytics (métricas, audiencias y los juicios de la búsqueda, que escriben) piden esa y no la
+	# de la puerta, que se reparte a quienes prueban la app. Va con otro realm, para que el navegador guarde las dos por
+	# separado. Sin ellas, el panel queda detrás de la misma puerta, como antes.
+	@panel_aparte {
+		path /panel /panel/* /api/analytics /api/analytics/*
+		expression `{env.PANEL_AUTH_HASH} != ""`
+	}
+	basic_auth @panel_aparte bcrypt panel {
+		{$PANEL_AUTH_USER} {$PANEL_AUTH_HASH}
 	}
 
 	# Ningún request de más de 1 MB llega a la API ni a los archivos (la API además tiene su propio tope, 512 KB).

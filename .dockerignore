@@ -3,16 +3,18 @@
 .git
 .github
 docs
-# Carpetas locales de herramientas de desarrollo
+# Carpetas locales de herramientas de desarrollo, y la infraestructura (Terraform: su estado y sus variables)
 .superpowers
 .claude
-Proyecto
+infra
 
 # Datos y respaldos (el catálogo llega a la base por un respaldo que se restaura a mano, nunca por la imagen)
 data
 rappi-scraper/data
 rappi-ia/data
 **/*.dump
+**/*.dump.part
+**/*.dump.tmp
 **/*.sql.gz
 **/*.backup
 
