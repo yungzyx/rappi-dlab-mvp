@@ -64,7 +64,7 @@ Quedan en `~/rappi-tunel/respaldos/`, ~2 GB cada uno: `nocturno_rappi_<fecha>.du
 
 ## Capacidad medida
 
-Con [`prueba-carga.py`](prueba-carga.py) (personas simuladas, cada una con su IP y su sesión: Home, búsqueda en todas las verticales, una pregunta a Mochi y una búsqueda por vertical, con pausas de 1 a 3 s), contra la API de un Mac mini con 16 GB y 2 procesos, sobre el catálogo real:
+Con [`prueba-carga.py`](prueba-carga.py) (personas simuladas, cada una con su IP y su sesión: Home, búsqueda en todas las verticales, una pregunta a Mochi y una búsqueda por vertical, con pausas de 1 a 3 s), contra la API de un Mac con 16 GB y 2 procesos, sobre el catálogo real:
 
 | Personas a la vez | Requests/s | Mochi p95 | Búsqueda p95 | Errores |
 |---:|---:|---:|---:|---|
@@ -73,7 +73,7 @@ Con [`prueba-carga.py`](prueba-carga.py) (personas simuladas, cada una con su IP
 | 120 | 62 | 0,2 s | 0,1 s | 0 |
 | 200 | 96 | 0,75 s | 0,17 s | 3,7 % de las búsquedas con 503 (el cupo de búsquedas a la vez) |
 
-Cada persona de la prueba crea una sesión del prototipo: después hay que olvidarlas (`events.store.forget`) para que no cuenten en "Uso del MVP".
+La prueba escribe en la base de la API a la que apunta: cada persona simulada queda como una persona del prototipo, con sus búsquedas y preguntas. Por eso la API se da siempre a mano (`python3 deploy/macos/prueba-carga.py <api> [personas] [segundos]`, sin valor por defecto) y conviene una API sobre una copia (`rappi_staging`, en otro puerto) en vez de la de la demo. Al final imprime los ids creados y el comando para borrarlos (`rappi-ia olvidar <ids>`, lo mismo que "Borrar mis datos"), para que no cuenten en "Uso del MVP".
 
 ## Límites
 

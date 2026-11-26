@@ -2,11 +2,17 @@
 avisan (vigilante, purga, resumen y respaldo), corridos de verdad con /bin/bash (el 3.2 de macOS; en el CI de Ubuntu,
 bash 5) sobre un clon con git real y `make`, `caddy`, `launchctl`, `osascript`, `curl` y `brew` falsos en el PATH."""
 
+import http.server
+import json
 import os
 import re
+import runpy
 import shutil
 import subprocess
+import sys
+import threading
 import time
+import urllib.request
 from pathlib import Path
 
 import pytest
@@ -812,3 +818,70 @@ def test_the_install_creates_the_api_role_before_starting_the_services(demo):
     deploy_migrate = [line for line in demo.recorded("python") if "deploy-migrate" in line]
     assert deploy_migrate == ["PGUSER= -m rappi_ia deploy-migrate"]
     assert any(line.startswith("bootstrap") and line.endswith("test.api.plist") for line in demo.recorded("launchctl"))
+
+
+@pytest.fixture
+def fake_api():
+    """Una API de mentira en 127.0.0.1: `POST /session` da una persona nueva (p-1, p-2…); lo demás responde {}."""
+    created = []
+
+    class Handler(http.server.BaseHTTPRequestHandler):
+        def _reply(self, body: dict) -> None:
+            data = json.dumps(body).encode()
+            self.send_response(200)
+            self.send_header("Content-Type", "application/json")
+            self.send_header("Content-Length", str(len(data)))
+            self.end_headers()
+            self.wfile.write(data)
+
+        def do_GET(self):
+            self._reply({})
+
+        def do_POST(self):
+            self.rfile.read(int(self.headers.get("Content-Length") or 0))
+            if self.path == "/session":
+                created.append(f"p-{len(created) + 1}")
+                self._reply({"token": "t", "user_id": created[-1]})
+            else:
+                self._reply({})
+
+        def log_message(self, *args):
+            pass
+
+    server = http.server.ThreadingHTTPServer(("127.0.0.1", 0), Handler)
+    threading.Thread(target=server.serve_forever, daemon=True).start()
+    yield f"http://127.0.0.1:{server.server_address[1]}", created
+    server.shutdown()
+
+
+def _load_test(monkeypatch, *args: str) -> None:
+    real_sleep = time.sleep
+    monkeypatch.setattr(time, "sleep", lambda seconds: real_sleep(min(seconds, 0.05)))  # las pausas de 1 a 3 s
+    monkeypatch.setattr(sys, "argv", ["prueba-carga.py", *args])
+    runpy.run_path(str(SCRIPTS / "prueba-carga.py"), run_name="__main__")
+
+
+def test_the_load_test_has_no_default_api(monkeypatch):
+    """Escribe en la base de la API a la que apunta (una persona `prototype` por cada simulada): antes, sin argumentos,
+    iba a la de la demo (127.0.0.1:8100) sobre la base real. Sin red: si volviera a tener una API por defecto, el test
+    falla sin pedirle nada."""
+
+    def no_network(*args, **kwargs):
+        pytest.fail("prueba-carga.py se conectó a una API sin que se la dieran")
+
+    monkeypatch.setattr(urllib.request, "urlopen", no_network)
+    with pytest.raises(SystemExit) as refused:
+        _load_test(monkeypatch)
+
+    assert "Uso:" in str(refused.value.code) and "8100" not in str(refused.value.code)
+
+
+def test_the_load_test_prints_the_people_it_created_and_how_to_forget_them(monkeypatch, capsys, fake_api):
+    api, created = fake_api
+
+    _load_test(monkeypatch, api, "3", "1")
+
+    out = capsys.readouterr().out
+    assert sorted(created) == ["p-1", "p-2", "p-3"]
+    assert re.search(r"rappi-ia olvidar p-\d p-\d p-\d", out)
+    assert all(person in out for person in created)
