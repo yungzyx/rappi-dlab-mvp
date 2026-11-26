@@ -224,7 +224,8 @@ def offer(
             found = make_offer(conn, svc.embedder, body.moment, context, body.user_id, spare)
     except OfferError as exc:
         raise HTTPException(422, str(exc)) from exc
-    blocked.save(conn, body.moment, counts)  # lo que las guardias sacaron, sin persona ni producto
+    if body.user_id:  # lo que las guardias sacaron, sin persona ni producto (sin persona no es uso del prototipo)
+        blocked.save(conn, body.moment, counts)
     conn.commit()
     found = _with_preferences(found, mine)
     if isinstance(found, PlanOffer) and mine:  # lo que su dieta sacó del kit ya no suma en su tienda

@@ -124,10 +124,34 @@ def test_an_offer_request_saves_what_its_guards_took_out(client, db, monkeypatch
 
     monkeypatch.setattr(api_agent, "make_offer", offer)
     for _ in range(2):
-        reply = client.post("/agent/offer", json={"moment": "volver", "context": {}})
+        reply = client.post("/agent/offer", json={"moment": "volver", "context": {}, "user_id": "p-guardias"})
         assert reply.status_code == 204  # sin oferta, pero lo que las guardias sacaron queda contado
     rows = db.execute("SELECT moment, reason, blocked FROM guard_blocks ORDER BY reason").fetchall()
     assert rows == [("volver", "alcohol", 4), ("volver", "salud", 2)]
+
+
+class _CountingAgent:
+    """Mochi de mentira: su respuesta no trae nada y una guardia sacó un candidato."""
+
+    def reply(self, conn, message, ctx):
+        blocked.count("alcohol")
+        return {"text": "", "products": [], "intent": {"kind": "buscar"}}
+
+
+def test_what_has_no_person_or_comes_from_rappi_hoy_is_not_counted(client, db, monkeypatch):
+    """El contador es del uso de las personas del prototipo: sin persona (`make warm`, `probar_agente.py`, el operador)
+    o en "Rappi hoy" no anota nada. Con persona, en la propuesta, sí."""
+    monkeypatch.setattr(api_agent, "make_offer", lambda *_a, **_k: blocked.count("alcohol"))
+    api.app.dependency_overrides[api.get_services] = lambda: Services(_CountingAgent(), None)
+
+    assert client.post("/agent/offer", json={"moment": "volver", "context": {}}).status_code == 204
+    assert client.post("/agent/ask", json={"message": "hola"}).status_code == 200
+    today = {"message": "hola", "user_id": "p-hoy", "mode": "actual"}
+    assert client.post("/agent/ask", json=today).status_code == 200
+    assert db.execute("SELECT count(*) FROM guard_blocks").fetchone()[0] == 0
+
+    assert client.post("/agent/ask", json={"message": "hola", "user_id": "p-hoy"}).status_code == 200
+    assert db.execute("SELECT moment, reason, blocked FROM guard_blocks").fetchall() == [("pregunta", "alcohol", 1)]
 
 
 def test_the_panel_reads_the_counts_by_reason_and_moment_without_mixing_populations(client, db):

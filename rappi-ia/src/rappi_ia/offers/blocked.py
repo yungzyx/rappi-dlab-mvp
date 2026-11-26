@@ -8,9 +8,10 @@ Un candidato es un producto que salió de una búsqueda o de las ofertas del cat
 No cuenta lo que se descarta antes por la historia de la persona (una recompra de Farmacia, un interés en vino): diría
 algo de ella. Lo que queda guardado en la caché del catálogo ya filtrado no vuelve a contarse.
 
-La API cuenta mientras arma una respuesta (`counting`) y guarda al final (`save`); fuera de eso, `count` no hace nada
-(los trabajos, los tests y las evaluaciones no cuentan). Las búsquedas en paralelo (`contextvars.copy_context`) suman
-al mismo contador.
+La API cuenta mientras arma una respuesta (`counting`) y guarda al final (`save`), solo si la respuesta es para una
+persona y no es de "Rappi hoy": lo que se pide sin persona (`make warm`, `scripts/probar_agente.py`, el operador) no es
+uso del prototipo. Fuera de eso, `count` no hace nada (los trabajos, los tests y las evaluaciones no cuentan). Las
+búsquedas en paralelo (`contextvars.copy_context`) suman al mismo contador.
 """
 
 import threading

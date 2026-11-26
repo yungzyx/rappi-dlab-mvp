@@ -463,7 +463,8 @@ def ask(
             response = svc.agent.reply(conn, body.message, ctx)
     except ValueError as exc:
         raise rejected(exc, body.user_id) from exc
-    blocked.save(conn, ASK_MOMENT, counts)  # lo que las guardias sacaron de lo que Mochi suma solo a su respuesta
+    if body.user_id and body.mode == "propuesta":  # sin persona, o en "Rappi hoy", no es uso de la propuesta
+        blocked.save(conn, ASK_MOMENT, counts)  # lo que las guardias sacaron de lo que Mochi suma solo a su respuesta
     conn.commit()
     response = {**response, "request_id": served_request_id()}
     if control:
