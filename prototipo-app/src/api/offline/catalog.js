@@ -59,13 +59,15 @@ export function catalogRoute(snapshot, method, path, query) {
   if (path === '/catalog/restaurants') {
     const sort = query.get('sort') || 'rating'
     const cuisine = query.get('cuisine')
-    const key = cuisine ? `rating|${cuisine}` : sort
-    let list = catalog.restaurants[key]
+    // Las de una cocina están grabadas por nota: con otro orden se ordena una copia antes de cortar.
+    const recorded = catalog.restaurants[cuisine ? `rating|${cuisine}` : sort]
+    let list = recorded
     if (!list && cuisine)
       list = catalog.restaurants.rating.filter((r) =>
         r.cuisines?.some((c) => c.toLowerCase() === cuisine.toLowerCase()),
       )
-    if (!list) list = [...catalog.restaurants.rating].sort(SORTS[sort] ?? (() => 0))
+    if (!list) list = catalog.restaurants.rating
+    if (!(recorded && (!cuisine || sort === 'rating'))) list = [...list].sort(SORTS[sort] ?? (() => 0))
     return { body: filtered(list, query).slice(0, limitOf(query, 30)) }
   }
   if (path === '/catalog/deals') {

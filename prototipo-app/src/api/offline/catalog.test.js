@@ -113,3 +113,16 @@ test('una tienda o un restaurante cuya página no se grabó se abre con los prod
   expect(get('/catalog/stores/88').status).toBe(404)
   expect(get('/catalog/restaurants/77/menu').status).toBe(404)
 })
+
+test('con una cocina elegida, la lista de restaurantes se ordena como se pide', () => {
+  const card = (id, eta, fee) => ({ id, name: `R${id}`, eta, fee, cuisines: ['Pizzas'], reviews: id })
+  const pizzas = [card(1, '45 min', '$2.990'), card(2, '15 min', '$990')]
+  const snapshot = { catalog: { restaurants: { rating: pizzas, 'rating|Pizzas': pizzas } } }
+  const list = (search) =>
+    catalogRoute(snapshot, 'GET', '/catalog/restaurants', new URLSearchParams(search)).body.map((r) => r.id)
+  expect(list('cuisine=Pizzas')).toEqual([1, 2])
+  expect(list('cuisine=Pizzas&sort=eta')).toEqual([2, 1])
+  expect(list('cuisine=Pizzas&sort=fee')).toEqual([2, 1])
+  expect(list('cuisine=pizzas&sort=recommended')).toEqual([2, 1]) // sin lista grabada para ella: la filtra de la general
+  expect(snapshot.catalog.restaurants['rating|Pizzas'].map((r) => r.id)).toEqual([1, 2]) // la muestra no cambia
+})
