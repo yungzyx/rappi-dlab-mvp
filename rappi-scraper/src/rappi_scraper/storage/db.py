@@ -3,7 +3,9 @@
 Cada migración corre en su propia transacción, con `lock_timeout` (MIGRATE_LOCK_TIMEOUT, 10 s): si una tabla está
 tomada, falla en vez de dejar en fila a todas sus consultas. Un `CHECK` nuevo sobre una tabla grande va en dos pasos,
 `ADD CONSTRAINT … NOT VALID` y después `VALIDATE CONSTRAINT`: en uno solo, la tabla queda tomada (ni lecturas ni
-escrituras) mientras se revisa entera; así, el primero no la lee y el segundo la lee sin bloquear las escrituras.
+escrituras) mientras se revisa entera; así, el primero no la lee y el segundo la lee sin bloquear las escrituras. Es la
+regla para las migraciones que vienen: las que ya están (p. ej. las que rehacen `app_events_type_check`, de la 020 a
+la 059) lo hacen en un paso, y una migración aplicada no se edita.
 """
 
 import hashlib

@@ -27,8 +27,8 @@ Si encuentras una clave o un secreto en el repositorio o en su historial, avísa
 ## Datos
 
 - **Personas:** solo simuladas (`source = 'synthetic'`) o del prototipo (`'prototype'`, con id seudónimo del navegador y sin cuenta). Las consultas se guardan con los datos personales redactados (correo, RUT, tarjetas, teléfonos) y su texto se borra a los 90 días; la persona borra lo suyo con "Borrar mis datos".
-- **Secretos:** solo se versionan los `.env.example`, y el CI revisa los archivos versionados con gitleaks. `API_SECRET`, las claves de la base, `ANTHROPIC_API_KEY`, `TYPESAFE_API_KEY` y las de restic viven en los `.env` locales o en `/etc/rappi/rappi.env` del servidor, nunca en git.
-- **Catálogo:** el contenido descargado de rappi.cl no se versiona; viaja en un respaldo de la base por un canal acordado.
+- **Secretos:** solo se versionan los `.env.example`, y el CI revisa los archivos versionados con gitleaks (los del commit, no el historial: un secreto que entró y salió en otro commit se busca a mano). `API_SECRET`, las claves de la base, `ANTHROPIC_API_KEY`, `TYPESAFE_API_KEY` y las de restic viven en los `.env` locales o en `/etc/rappi/rappi.env` del servidor, nunca en git.
+- **Catálogo:** el contenido descargado de rappi.cl no se versiona; viaja en un respaldo de la base por un canal acordado. La excepción son las muestras de los tests del scraper (`rappi-scraper/tests/fixtures/`): una página pública por tipo, reducida a lo que leen los parsers (sin el resto del HTML, scripts ni trackers, y sin datos de personas), y una copia de robots.txt ([su README](rappi-scraper/tests/fixtures/README.md)).
 
 ## Descarga del catálogo
 

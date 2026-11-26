@@ -39,7 +39,7 @@ rappi refresh                           # todo de una vez: tiendas, restaurantes
 rappi backup                            # respaldo de la base en data/backups/ (conserva los últimos 4)
 rappi retry-failed --kind stores        # reencola los jobs fallidos (o --kind restaurants)
 rappi export-csv                        # catálogo por vertical -> data/exports/
-rappi migrate                           # aplica migraciones pendientes (lo mismo que make migrate)
+rappi migrate                           # aplica migraciones pendientes (make migrate); con API_ENV=production, solo --solo-revisar
 ```
 
 - **Reanudable:** cada corrida es una cola de jobs en la base. Si se corta (Ctrl+C, error, corte de luz), basta con volver a ejecutar el mismo comando: sigue con lo pendiente. Para una corrida nueva (nueva foto de precios): `rappi discover --new-run`.
@@ -47,11 +47,11 @@ rappi migrate                           # aplica migraciones pendientes (lo mism
 - **Una descarga a la vez:** dos en paralelo duplicarían la carga sobre rappi.cl.
 - **Ritmo:** pausa aleatoria de 1,5–3 s entre páginas. Se ajusta con `RAPPI_DELAY_MIN` / `RAPPI_DELAY_MAX` en `.env` (ver `.env.example`).
 - **Se identifica:** el User-Agent es `rappi-dlab-scraper/<versión> (+<contacto>; prototipo de investigacion dLab con Rappi)`, no el de un navegador. `RAPPI_UA_PROJECT` cambia el nombre (también el que se busca en robots.txt) y `RAPPI_UA_CONTACT` pone una URL o un correo para que Rappi sepa a quién escribir; sin contacto, el log lo avisa.
-- **Respeta robots.txt:** antes de cada página consulta el robots.txt del sitio (RFC 9309, con comodines; `scraping/robots.py`) y lo guarda 24 horas. Busca el grupo de su nombre y, si no hay, el de `*`. Un sitio sin robots.txt (cualquier 4xx, como el bucket S3 de los metadatos) no tiene reglas; uno que no responde (5xx o red, tras los reintentos) no permite nada, salvo que ya se hubiera leído: entonces se sigue con esa copia y se vuelve a pedir en una hora. Las redirecciones se siguen a mano, revisando robots.txt antes de pedir cada destino. Si robots.txt no permite una página (también el destino de una redirección), la descarga no se la salta: se detiene, la corrida queda abierta y `rappi refresh` sale con el código 7 (también `discover`, `scrape-stores` y `scrape-restaurants` lanzados a mano, con el mismo mensaje). El robots.txt de rappi.cl del 24-10-2026 está en `tests/fixtures/robots.txt`: permite todo lo que el scraper pide (prohíbe la cuenta, el carro, las APIs y las páginas de una farmacia, Farmacias San Pablo, que hoy no está en el catálogo).
+- **Respeta robots.txt:** antes de cada página consulta el robots.txt del sitio (RFC 9309, con comodines; `scraping/robots.py`) y lo guarda 24 horas. Busca el grupo de su nombre y, si no hay, el de `*`. Un sitio sin robots.txt (cualquier 4xx, como el bucket S3 de los metadatos) no tiene reglas; uno que no responde (5xx o red, tras los reintentos) no permite nada, salvo que ya se hubiera leído: entonces se sigue con esa copia y se vuelve a pedir en una hora. Las redirecciones se siguen a mano, revisando robots.txt antes de pedir cada destino. Si robots.txt no permite una página (también el destino de una redirección), la descarga no se la salta: se detiene, la corrida queda abierta y `rappi refresh` sale con el código 7 (también `discover`, `scrape-stores` y `scrape-restaurants` lanzados a mano, con el mismo mensaje). El robots.txt de rappi.cl del 25-11-2026 está en `tests/fixtures/robots.txt`: permite todo lo que el scraper pide (prohíbe el inicio de sesión, la cuenta, el carro y el pago, las APIs, las landings de campañas y la búsqueda).
 
 ## Descarga completa
 
-La primera descarga completa (24–27-09-2026) tomó **unos 3 días para las tiendas** (por las pausas entre páginas) y **unas 4 horas para los restaurantes**.
+La primera descarga completa (24–27-09-2026) tomó **unos 3 días para las tiendas** (por las pausas entre páginas) y **unas 4 horas para los restaurantes**. Son las cifras de esa descarga: desde el 25-11-2026 una sesión de invitado llega a unas 10 páginas y la descarga se detiene con el código 4 (ver [Inicio de sesión](#páginas-ilegibles-y-sucursales-no-disponibles)), así que hoy una descarga completa no se puede repetir.
 
 ```bash
 .venv/bin/rappi scrape-stores          # ~3 días
@@ -102,7 +102,7 @@ Una tienda se recorre así: portada → pasillos (cada uno con sus sub-pasillos)
 - **Respaldo:** se escribe a un `.part`, se valida con `pg_restore --list` y recién entonces rota. Si falla, se conservan los anteriores y la actualización sigue, pero `rappi refresh` termina con código 3 (la tarea semanal lo anota como "respaldo fallido" y corre igual la capa de IA). La clave de la base va a `pg_dump` por `PGPASSWORD`, nunca en sus argumentos.
 - **Sitemap de restaurantes caído o bloqueado:** si un sitemap no responde (un 403, un 429, una caída, un archivo ilegible), la corrida de restaurantes no se pierde: completa su cola con la lista de la última corrida de restaurantes terminada que empezó `rappi refresh` (no una de `discover` a mano; lo que se descubrió entonces, se haya bajado o no, sin los que ya no existían en Rappi) y baja esos menús y precios con los mismos jobs, pausas y detección de bloqueos de siempre (un bloqueo en la descarga sale con 4, como siempre). Como las sucursales de las cadenas salen de cruzar los dos sitemaps, si falla cualquiera de los dos la cola entera es la de esa lista. `--max-chains` y `--max-independents` también limitan la lista copiada. El log y el reporte lo dicen ("⚠ sitemap bloqueado o caído: se usó la lista de la corrida N (X restaurantes)", con el error) y restaurantes nuevos no entran esa semana. Si la corrida termina, la próxima actualización vuelve a descubrir; si se detuvo por un bloqueo, la próxima la retoma con la misma lista. Un 403 a una parte numerada (-1, -2…) después de una parte que no llegó a las 50.000 URLs se toma como el final del sitemap, no como un error, con un aviso en el log (si fuera un bloqueo a mitad del sitemap, faltarían las partes siguientes): el 18-10 rappi.cl respondió 403, y no 404, a la parte -1 de cadenas (con la -0 muy lejos del tope), y lo más probable es que esa parte no exista.
 - **Códigos de salida:** 4 = posible bloqueo, también una redirección al inicio de sesión (la corrida queda abierta, salvo si fue al descubrir, y la tarea semanal anota "detenida: posible bloqueo"); 7 = robots.txt no permite una página o no respondió (igual que el 4: se detiene y anota "detenida: robots.txt no permite una página o no respondió"; mientras robots.txt no cambie, la próxima se detiene en la misma página); 5 = falló el descubrimiento de restaurantes y no había una corrida anterior terminada de la que usar la lista: tiendas, búsqueda y respaldo sí se hicieron, la corrida de restaurantes queda cerrada como fallida con el error en su reporte, y la tarea semanal anota "restaurantes sin actualizar" y corre igual la capa de IA; 6 = eso y además el respaldo fallido (se anotan los dos). Con la lista anterior la corrida termina bien y sale con 0 (o 3 si falló el respaldo): el aviso queda en el reporte y, para la tarea semanal, `rappi refresh` deja la marca fija `restaurantes_con_lista_anterior` en el archivo de `RAPPI_REFRESH_NOTES` y `ultimo-estado.txt` anota "restaurantes con la lista de la corrida anterior".
-- **Migraciones:** la tarea semanal aplica las pendientes (`rappi migrate`) antes de descargar, para que una migración que trajo un `git pull` no haga fallar la descarga al final.
+- **Migraciones:** la tarea semanal aplica las pendientes (`rappi migrate`) antes de descargar, para que una migración que trajo un `git pull` no haga fallar la descarga al final. Con `../rappi-ia` instalado, antes pasa por `rappi-ia check-migrations`, como `make mvp` y `make serve`: no aplica a la base `rappi` las de una rama sin fusionar (`MIGRATE=1` lo fuerza) y, si se niega, anota "no migró: hay migraciones de una rama sin fusionar". En producción (`API_ENV=production`) solo las revisa (`rappi migrate --solo-revisar`): las aplica el despliegue, que respalda antes, y `rappi migrate` sin `--solo-revisar` se niega. `make refresh` hace lo mismo.
 - **Capa de IA:** la tarea semanal (`scripts/refresh-semanal.sh`) la corre los domingos a las 03:00 y, si la descarga terminó bien (aunque hayan fallado el respaldo o los restaurantes: códigos 3, 5 y 6) y `../rappi-ia` está instalado, sigue con `make -C ../rappi-ia post-refresh` (los pasos, en [rappi-ia/README.md](../rappi-ia/README.md#correr)).
 
 ```bash
@@ -112,7 +112,7 @@ make unschedule        # quitarla
 ```
 
 - **Equipo dormido o apagado:** si está dormido a esa hora, corre al despertar; si está apagado, esa semana se salta.
-- **Una sola a la vez:** los comandos que descargan (`discover`, `scrape-stores`, `scrape-restaurants`, `refresh`) y `backup` toman el mismo candado de archivo (`data/scraper.lock`, con `flock`: el sistema lo suelta aunque el proceso muera) y se niegan a empezar si otra descarga lo tiene. Con `DATABASE_URL` toman también un candado en la base (`pg_try_advisory_lock(72002)`, de sesión, en una conexión propia que dura lo que la descarga; `src/rappi_scraper/lock.py`): dos equipos o contenedores sobre la misma base, cada uno con su archivo, tampoco descargan a la vez. Si la base no responde, la descarga sigue solo con el candado de archivo y lo avisa; si responde y rechaza la conexión (clave, rol o base equivocados), no descarga. Además, un candado (`data/refresh-semanal.pid`) impide que corran dos actualizaciones semanales; se borra aunque la tarea se corte con Ctrl+C o una señal. Si hay otra descarga (`discover`, `scrape-*`, `refresh`) o un `make post-refresh` en curso, la tarea se omite y lo anota.
+- **Una sola a la vez:** los comandos que descargan (`discover`, `scrape-stores`, `scrape-restaurants`, `refresh`) y `backup` toman el mismo candado de archivo (`data/scraper.lock`, con `flock`: el sistema lo suelta aunque el proceso muera) y se niegan a empezar si otra descarga lo tiene. Con `DATABASE_URL` toman también un candado en la base (`pg_try_advisory_lock(72002)`, de sesión, en una conexión propia que dura lo que la descarga; `src/rappi_scraper/lock.py`): dos equipos o contenedores sobre la misma base, cada uno con su archivo, tampoco descargan a la vez. Si la base no responde, la descarga sigue solo con el candado de archivo y lo avisa; si responde y rechaza la conexión (clave, rol o base equivocados), no descarga. Además, un candado (el directorio `data/refresh-semanal.lock`, con el PID adentro; el `data/refresh-semanal.pid` de antes también cuenta) impide que corran dos actualizaciones semanales; se suelta aunque la tarea se corte con Ctrl+C o una señal. Si hay otra descarga (`discover`, `scrape-*`, `refresh`) o un `make post-refresh` en curso, la tarea se omite y lo anota.
 - **Ubicación del proyecto:** debe estar fuera de Documentos, Escritorio y Descargas: macOS no deja que launchd lea esas carpetas (detalle en [docs/instalacion.md](../docs/instalacion.md)).
 - **Logs:** cada ejecución deja una línea en `data/logs/ultimo-estado.txt` (`exit=N`, "omitida", "interrumpida", "respaldo fallido", "restaurantes sin actualizar", "restaurantes con la lista de la corrida anterior", "detenida: posible bloqueo" o "detenida: robots.txt no permite una página o no respondió"), que muestra `make schedule-status` junto con el respaldo más nuevo; la salida de launchd queda en `data/logs/launchd.*.log`, y el log detallado y el reporte, como en cualquier corrida.
 - Programarla en **un solo** equipo.
@@ -134,7 +134,7 @@ make unschedule        # quitarla
 | `make format` | Aplica el formato |
 | `make status` | Estado de las corridas y resumen por vertical |
 | `make report` | Reporte de calidad de la última corrida de tiendas |
-| `make refresh` | Actualización completa (`rappi refresh`) |
+| `make refresh` | Actualización completa (`rappi refresh`), con las migraciones antes, como la tarea semanal (en producción solo las revisa) |
 | `make backup` | Respaldo de la base en `data/backups/` |
 | `make schedule` | Programa la tarea semanal (launchd, domingos 03:00) |
 | `make schedule-status` | Muestra si la tarea semanal está activa y las últimas ejecuciones |
@@ -180,9 +180,9 @@ rappi-scraper/
 │   │   ├── search.py               documentos y búsqueda por vertical
 │   │   ├── backup.py               respaldo con pg_dump, validación y rotación
 │   │   ├── export.py               catálogo por vertical a CSV (`rappi export-csv`)
-│   │   └── migrations/             esquema SQL versionado, un solo historial para toda la base (001–059; las de rappi-ia: 009–013, 016, 020, 022–031, 033–037 y 041–059)
+│   │   └── migrations/             esquema SQL versionado, un solo historial para toda la base (001–063; las de rappi-ia: 009–013, 016, 020, 022–031, 033–037 y 041–063)
 ├── tests/
-│   ├── unit/                     sin red ni base de datos
+│   ├── unit/                     sin red ni base de datos; también los scripts de deploy/ (test_macos_update, test_deploy_scripts, test_caddyfiles)
 │   ├── integration/              contra la base `rappi_test`
 │   └── fixtures/                 páginas reales de rappi.cl guardadas y su robots.txt
 └── data/                         fuera de git
@@ -234,17 +234,28 @@ make format       # aplica el formato
 
 ## Limitaciones
 
-- **Cobertura parcial en tiendas:** desde el 25-11-2026 las páginas públicas muestran unos 10 pasillos por tienda, 5 sub-pasillos por pasillo y 15 productos por sub-pasillo (antes, todos los pasillos y sub-pasillos con hasta 24 productos); el resto lo carga el navegador desde /api, que robots.txt no permite. Lo mismo los listados: solo sus primeras filas de tiendas. La cobertura real (obtenidos vs declarados) se ve en la vista `v_coverage`. Los restaurantes sí traen el menú completo.
+- **Cobertura parcial en tiendas:** desde el 25-11-2026 las páginas públicas muestran unos 10 pasillos por tienda, 5 sub-pasillos por pasillo y 15 productos por sub-pasillo (antes, todos los pasillos y sub-pasillos con hasta 24 productos); el resto lo carga el navegador desde /api, que robots.txt no permite. Lo mismo los listados: solo sus primeras filas de tiendas. Los restaurantes sí traen el menú completo.
 - **`ean` casi siempre vacío:** Rappi no lo publica. Para comparar el mismo producto entre cadenas se usa `master_product_id`.
 - **Jumbo y Tottus:** en septiembre de 2026 sus sucursales redirigían (inactivas en Rappi).
 - **Cambios en el sitio:** si cambia el frontend de rappi.cl hay que ajustar `scraping/*_parser.py`. Los tests usan páginas reales guardadas en `tests/fixtures/`: si los tests pasan pero el scraper falla con las páginas actuales, la estructura cambió; guarda una página nueva y los tests muestran qué.
+
+### Limitaciones conocidas (sin arreglar: la descarga no se vuelve a correr)
+
+Salieron en la revisión final del 26-11-2026. Cada una importa solo si se vuelve a descargar.
+
+- **Cobertura sin denominador:** Astro no publica cuántos productos tiene cada sub-pasillo (`product_count` llega vacío y pisa el total que había). La vista `v_coverage` y la validación "Cobertura obtenidos/declarados (%)" del reporte ya no miden la cobertura: dan 0 % en una tienda nueva (con su ⚠ de fuera de rango, que no indica un problema) o comparan con totales de sub-pasillos que la corrida no vio.
+- **Corrida de tiendas sin tiendas:** si todos los listados llegan sin tiendas (por ejemplo, porque cambió el nombre de su componente), la corrida queda "hecha" con 0 ofertas y `rappi refresh` sale con 0: solo lo dice el ⚠ "Listados fallidos al descubrir" del reporte. Lo mismo si todos los restaurantes descubiertos fallan.
+- **Candado entre equipos:** si la base no responde al tomar el candado 72002, la descarga sigue solo con el de archivo (lo avisa); y si la sesión que lo tiene se corta a mitad de la corrida, la descarga no lo nota. Dos equipos sobre la misma base podrían descargar a la vez en ese caso.
+- **Candado semanal en contenedores:** el de la tarea semanal es un PID. Dos `docker compose run --rm jobs` sobre el mismo volumen no ven el proceso del otro: el segundo puede tomar el candado del primero (en el servidor la tarea viene apagada, `rappi-refresh.timer`).
+- **Redirecciones sin pausa:** la pausa de 1,5–3 s va antes de cada página, no entre los saltos de una redirección (cada salto sí revisa robots.txt).
+- **Listado de chocolatería:** `STORE_LISTING_PATHS` (adónde redirige una sucursal que no despacha) no tiene el listado nuevo de chocolatería. Si una chocolatería redirige ahí, se lee como una tienda ilegible y no se prueba la siguiente sucursal. Sin comprobar contra el sitio.
 
 ## Uso responsable
 
 - Solo páginas públicas sin barreras técnicas, sitemaps públicos y el JSON público de metadatos de tiendas. Sin APIs internas, sin login y sin evasión de protecciones: se presenta con su propio User-Agent (no como un navegador) y respeta robots.txt; si una página no está permitida, se detiene.
 - Una descarga a la vez, con pausas de 1,5–3 s entre páginas, y actualización semanal.
 - Sin datos personales: catálogo, precios y datos públicos de tiendas y restaurantes.
-- Fines de investigación y demostración. Un uso comercial requeriría autorización de Rappi. Los datos descargados no se suben al repositorio.
+- Fines de investigación y demostración. Un uso comercial requeriría autorización de Rappi. Los datos descargados no se suben al repositorio, salvo las muestras de `tests/fixtures/`: una página pública por tipo, reducida a lo que leen los parsers, y el robots.txt ([su README](tests/fixtures/README.md)).
 - Proyecto del programa dLab desarrollado junto con Rappi Chile; no es un producto oficial de Rappi. Las marcas y el contenido pertenecen a Rappi y a los comercios.
 
 Detalle en [README.md#qué-es-real-y-qué-es-simulado](../README.md#qué-es-real-y-qué-es-simulado).
