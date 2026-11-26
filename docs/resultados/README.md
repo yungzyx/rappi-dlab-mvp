@@ -4,7 +4,17 @@ El resumen de las cifras está en el [README principal](../../README.md#resultad
 
 ## Motor multivertical (datos simulados: prueban la mecánica, no el efecto)
 
-Corrida del 04-11-2026 (`rappi-ia motor`, semilla 7; [simulados-2026-11-04.md](simulados-2026-11-04.md)) sobre una copia del catálogo real y **3.000 personas simuladas**, con el generador recalibrado a la mezcla de la tabla de Rappi (17-10) y tramos por fecha: entrenar, validar y probar (28 días cada uno de los dos últimos). Cambiar el generador mueve todas las cifras simuladas; no son mejoras del motor. Antes y después, tolerancias y semillas: [simulados-2026-10-17.md](simulados-2026-10-17.md). La historia de la etapa de QA (intentos descartados y ruido entre semillas) y de la escalera fina: [motor-2026-10-16.md](motor-2026-10-16.md).
+**Vigente: el generador del 14-11-2026**, con grupo de control (`ofertas_control` al 50 %, solo en los simulados) y la mezcla de la tabla de Rappi recalibrada ([simulados-2026-11-14.md](simulados-2026-11-14.md)): 3.000 personas, 26 semanas hasta el 14-11, tres semillas, en una copia aparte de `rappi_staging`. Los simulados de `rappi_staging` y del panel son los de la semilla 7.
+
+| Qué | Métrica (tramo de prueba) | Semillas 7 · 11 · 23 | Tipo de dato |
+|---|---|---|---|
+| Próxima vertical | nDCG@8 | combinado 0,972 · 0,972 · 0,971 · orden fijo 0,916 · 0,914 · 0,927 | Simulado |
+| Compra cruzada | λ elegido y precisión@3 de la mezcla | λ 0 · 1 · 0; 0,101 · 0,121 · 0,133. El λ de la semilla 11 depende de pocos aciertos en validación, como el 04-11 | Simulado |
+| Recompra | acierto ±7 días (predicciones) | 0,18 (123) · 0,21 (112) · 0,18 (122) | Simulado |
+| Paso de la escalera fina | acierto@1 entre quienes suman una vertical (personas) | paso 0,56 (63) · 0,49 (65) · 0,49 (73) · la vertical que más se suma 0,56 · 0,29 · 0,41. Menos personas que con el generador anterior (75 a 83): en el control nadie suma una vertical por una sugerencia aceptada | Simulado: no es evidencia |
+| Generador simulado | mayor distancia de una fila a la tabla de Rappi (personas-mes) | 0,6 · 2,7 · 1,3 puntos (0,7 y 1,3 con las semillas 31 y 47); la retención M+1 de cada fila con 100 meses o más, a menos de 0,1 de la de Rappi | Simulado, comparado con el dato compartido por Rappi |
+
+**Corrida del 04-11-2026, con el generador anterior** (`rappi-ia motor`, semilla 7; [simulados-2026-11-04.md](simulados-2026-11-04.md)), que compara más líneas base: sobre una copia del catálogo real y **3.000 personas simuladas**, con el generador recalibrado a la mezcla de la tabla de Rappi (17-10) y tramos por fecha: entrenar, validar y probar (28 días cada uno de los dos últimos). Cambiar el generador mueve todas las cifras simuladas; no son mejoras del motor. Antes y después, tolerancias y semillas: [simulados-2026-10-17.md](simulados-2026-10-17.md). La historia de la etapa de QA (intentos descartados y ruido entre semillas) y de la escalera fina: [motor-2026-10-16.md](motor-2026-10-16.md).
 
 | Qué | Métrica (tramo de prueba) | Valor | Tipo de dato |
 |---|---|---|---|
@@ -16,7 +26,7 @@ Corrida del 04-11-2026 (`rappi-ia motor`, semilla 7; [simulados-2026-11-04.md](s
 
 Cómo leerlo: la ventaja del combinado viene casi entera de la afinidad de cada persona, y el generador hace que cada persona repita sus verticales, así que en parte acierta por construcción; con el generador recalibrado hay más personas que solo piden en Restaurantes, y eso facilita adivinar la próxima vertical a todos los métodos, incluido el orden fijo. El generador se calibró con la tabla de Rappi y la trata como efecto, así que sus cifras no prueban que sumar verticales retenga. La agrupación de verticales en `rest`, `turbo` y `retail` es un supuesto propio. Detalle: [capa-de-datos.md](../capa-de-datos.md#motor-multivertical).
 
-**Revisión sobre el catálogo real** ([QA del 16-10-2026](qa-motor-2026-10-16.md), en solo lectura, con 200 personas simuladas y las 44 del prototipo, medida antes de los ajustes de la etapa de QA, con λ > 0): las guardias (Farmacia, Licores, bebé, salud, conceptos sensibles, alcohol) dieron **0 casos en 2.851 productos ofrecidos**, y la ruta más lenta (`/recommendations`) respondió con p95 de 222 ms con el modelo de texto.
+**Revisión sobre el catálogo real** ([QA del 16-10-2026](qa-motor-2026-10-16.md), en solo lectura, con 200 personas simuladas y las 44 del prototipo (una prueba mixta y fechada), medida antes de los ajustes de la etapa de QA, con λ > 0): las guardias (Farmacia, Licores, bebé, salud, conceptos sensibles, alcohol) dieron **0 casos en 2.851 productos ofrecidos**, y la ruta más lenta (`/recommendations`) respondió con p95 de 222 ms con el modelo de texto.
 
 ## Mochi: preguntar y seguir la conversación (juicio propio, no humano externo)
 
@@ -73,7 +83,8 @@ Documentos contados el 05-10 sobre la descarga del 04-10-2026 (segunda descarga 
 |---|---|
 | [necesidades-2026-11-13.md](necesidades-2026-11-13.md) | Las búsquedas por necesidad "X para Y": por qué fallaban tres, el set nuevo de 30 necesidades y el juez de tres niveles (juicio LLM, no humano) antes y después |
 | [mochi-2026-11-05.md](mochi-2026-11-05.md) | Mochi con revisiones automáticas (sin juez) y el juez de tres niveles (juicio LLM, no humano), con un set apartado; la búsqueda repuntuada con los juicios nuevos y las listas del 05-11 para `make eval-check` |
-| [simulados-2026-11-04.md](simulados-2026-11-04.md) | Los simulados regenerados con el sobre de eventos y las reformulaciones: el panel y el motor |
+| [simulados-2026-11-14.md](simulados-2026-11-14.md) | Los simulados con grupo de control y la mezcla recalibrada: el motor antes y después y el panel con la fuente "Simulados" (los vigentes) |
+| [simulados-2026-11-04.md](simulados-2026-11-04.md) | Los simulados regenerados con el sobre de eventos y las reformulaciones: el panel y el motor (los reemplazó el generador del 14-11) |
 | [tipeo-2026-11-04.md](tipeo-2026-11-04.md) | Los errores de tipeo en la búsqueda y en Mochi: la medida vigente |
 | [mochi-conversacion-2026-10-25.md](mochi-conversacion-2026-10-25.md) | Las conversaciones con Mochi y las 40 preguntas libres, antes y después |
 | [prueba-usuarios-PLANTILLA.md](prueba-usuarios-PLANTILLA.md) | La plantilla del reporte de la prueba con usuarios (todavía sin reporte) |
@@ -87,3 +98,5 @@ Documentos contados el 05-10 sobre la descarga del 04-10-2026 (segunda descarga 
 | [qa-motor-2026-10-16.md](qa-motor-2026-10-16.md) | Las ofertas del motor sobre el catálogo real, en solo lectura |
 | [simulados-2026-10-17.md](simulados-2026-10-17.md) | El generador simulado recalibrado con la tabla de Rappi: antes y después |
 | [capas-precision-2026-10-06.md](capas-precision-2026-10-06.md), [capas-precision-2026-10-06-nueva-muestra.md](capas-precision-2026-10-06-nueva-muestra.md) | La precisión de conceptos, atributos y marcas con jueces LLM, antes y después de corregir las reglas |
+
+En [listas/](listas/) quedan las listas fechadas que ya no son las últimas (lo que mostraron la búsqueda y Mochi el 25-10, el 05-11 y el 06-11), para volver a puntuarlas con `rappi-ia eval-graded --listas` cuando haya juicio humano. `make eval-check` compara con las últimas, que siguen en `rappi-ia/src/rappi_ia/eval/` (las del 11-11).

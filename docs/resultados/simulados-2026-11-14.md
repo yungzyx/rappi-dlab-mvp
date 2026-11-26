@@ -75,3 +75,5 @@ El tratamiento también toca la mascota en el 10 % de sus sesiones (`agent_open`
 La diferencia de la P2 (+2,9 puntos) sale solo de los 4 puntos de "Sí" de la P1 (con más "Sí", más P2 tras un "Sí", que es más fácil); la de los pedidos es ruido de un supuesto igual en los dos grupos.
 
 La foto sin conexión del panel (`dashboard-empresa/src/fixtures/sin-conexion/`) sigue siendo la del 04-11-2026: rehacerla cambia las cifras que fijan las pruebas de varias vistas y queda para otro cambio.
+
+*Corrección del 26-11-2026:* la foto no era toda del 04-11. Según el `guardado` de cada archivo, `experimentos.json` es del 13-11 (anterior a los simulados con control: sin conexión, las hipótesis salen sin grupo de control), `audiencias.json` y `verticales.json` son del 25-11 y `guardias.json` está hecho a mano; los demás, del 04-11.
