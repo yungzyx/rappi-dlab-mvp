@@ -306,6 +306,13 @@ describe('la ayuda, el resumen y el último pedido (rappi_agent.py: _small_talk)
     expect(laugh.unmet).toBeFalsy()
   })
 
+  test('el saludo nombra el primer interés que Mochi puede proponer (rappi_agent.py: _top_interest)', () => {
+    const greet = (interests, mode = 'propuesta') => ask(snapshot, { message: 'hola', mode }, { interests }).text
+    expect(greet(['cerveza', 'cafe'])).toMatch(/Veo tu interés en ☕ café\./) // la cerveza no la propone
+    expect(greet(['cerveza'])).not.toMatch(/Veo tu interés/)
+    expect(greet(['cafe'], 'actual')).not.toMatch(/Veo tu interés/) // "Rappi hoy" no aprende
+  })
+
   test('la cuenta, el pago o hablar con alguien no son una búsqueda (understand.py: APP_QUESTIONS)', () => {
     for (const message of ['hablar con una persona', 'servicio al cliente'])
       expect(said(message).intent.kind).toBe('pedido')
