@@ -1,10 +1,9 @@
 // "Pedir por mí" sin conexión, en corto (rappi-ia offers/autonomy.py, api/autonomy.py, rappi_agent.py: _usual_order y
 // api/app.py: _auto_order). El permiso vive en el estado de la API simulada (state.js). Lo de siempre es el último
 // pedido de este navegador en esa tienda, con los precios de la muestra grabada (no los de hoy). Los límites son los
-// mismos: solo en las tiendas elegidas, nunca alcohol, +18, farmacia, bebé ni salud (autoOrderBlocked), nunca sobre el
-// tope ni en una tienda que la muestra trae cerrada. La compra mínima no está en la muestra: la de ejemplo la revisa
-// la app. "Olvidar" la borra con todo el estado.
-import { restaurantHours } from './catalog'
+// mismos: solo en las tiendas elegidas, nunca alcohol, +18, farmacia, bebé ni salud (autoOrderBlocked) y nunca sobre el
+// tope, salvo el de la tienda cerrada: sin conexión todo está abierto, a cualquier hora (catalog.js: alwaysOpen). La
+// compra mínima no está en la muestra: la de ejemplo la revisa la app. "Olvidar" la borra con todo el estado.
 import { OFFER_BLOCKED_VERTICALS } from './motor'
 import { autoOrderBlocked } from './offers'
 import { applied } from './preferences'
@@ -23,13 +22,12 @@ const USUAL = new RegExp(
     '|repite(?:me)? mi (?:ultimo )?pedido|repetir mi (?:ultimo )?pedido)' +
     '(?:\\s+(?:en|de|del|a)\\s+([a-z0-9 ]+?))?\\s*$',
 )
-// offers/autonomy.py: REASONS.
+// offers/autonomy.py: REASONS (sin `cerrada`: sin conexión todo está abierto).
 const REASONS = {
   sin_permiso: () => 'no me diste permiso para pedir por ti',
   tienda_no_elegida: ({ store }) => `no elegiste ${store} para que pida por ti`,
   no_disponible: ({ name, store }) => `${name} ya no está a la venta en ${store}`,
   guardia: () => 'lleva algo que no pido solo (alcohol, +18, farmacia, bebé o salud)',
-  cerrada: ({ store }) => `${store} está cerrada ahora, según el horario que publicó`,
   tope: ({ cap }) => `pasa tu tope de ${clp(cap)} por pedido`,
   distinto: () => 'ya no es lo de siempre',
   calificacion: ({ store }) => `calificaste mal un pedido de ${store} hace poco`,
@@ -146,12 +144,6 @@ function usual(snapshot, state, store) {
   return { store, lines, missing, subtotal: lines.reduce((sum, l) => sum + l.product.price_value * l.qty, 0) }
 }
 
-function closed(snapshot, store, now) {
-  const restaurant = snapshot.catalog.menus?.[store.id]?.restaurant
-  if (restaurant?.schedule) return restaurantHours(restaurant.schedule, now).open === false
-  return snapshot.catalog.stores?.[store.id]?.store?.hours?.open === false
-}
-
 const shape = (lines) =>
   lines
     .map((l) => `${l.entity_type}:${l.entity_id}:${l.qty ?? 1}`)
@@ -174,7 +166,6 @@ function decide(snapshot, state, mine, found, now, lines = null) {
     found.lines.some(({ product }) => autoOrderBlocked(product, concepts, guards))
   )
     return review('guardia')
-  if (closed(snapshot, store, now)) return review('cerrada', { store: store.name })
   if (found.subtotal > mine.cap) return review('tope', { cap: mine.cap })
   return null
 }
