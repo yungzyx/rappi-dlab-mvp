@@ -360,8 +360,8 @@ export function search(snapshot, query) {
     }
   }
   if (recorded && !current) return recorded
-  // Desde una pantalla, una corrección grabada con la vertical de la pantalla primero (como la API con `current`).
-  if (recorded?.corrected_query)
+  // Desde una pantalla, lo grabado (corregido o no) con la vertical de la pantalla primero (como la API con `current`).
+  if (recorded)
     return {
       ...recorded,
       groups: [...recorded.groups].sort((a, b) => (b.vertical === current) - (a.vertical === current)),
