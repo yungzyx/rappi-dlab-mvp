@@ -1,20 +1,29 @@
 import { pricesDate } from '../api/usePricesDate'
 import { localStore, tabStore } from '../state/storage'
+import { ChevronDown } from './Icons'
 import './demo-disclaimer.css'
 
+const NOTICE = 'Prototipo dLab con Rappi · demo, no es la app oficial'
+
 /**
- * El aviso fijo de la Home: esto es un prototipo hecho con Rappi, no su app oficial. Con `dates` (las de `catalogDates`),
- * dice también de qué fecha son los precios.
+ * El aviso fijo de la Home, en una línea: esto es un prototipo hecho con Rappi, no su app oficial. Al tocarla se abre el
+ * resto: con `dates` (las de `catalogDates`), de qué fecha son los precios y, en la demo sin conexión, de dónde salen
+ * los datos y "Empezar de cero".
  */
 export default function DemoDisclaimer({ dates = null }) {
   const prices = pricesDate(dates)
+  // Solo en "Prototipo MVP.html" (`npm run demo:html`): la API la responde el navegador.
+  const offline = import.meta.env.VITE_OFFLINE_DEMO === '1'
+  if (!prices && !offline) return <p className="demo-disclaimer">{NOTICE}</p>
   return (
-    <>
-      <p className="demo-disclaimer">Prototipo dLab con Rappi · demo, no es la app oficial</p>
-      {prices && <p className="demo-disclaimer demo-disclaimer--prices">Precios de Rappi Chile {prices}</p>}
-      {/* Solo en "Prototipo MVP.html" (`npm run demo:html`): la API la responde el navegador. */}
-      {import.meta.env.VITE_OFFLINE_DEMO === '1' && <OfflineNote />}
-    </>
+    <details className="demo-disclaimer">
+      <summary>
+        <span>{NOTICE}</span>
+        <ChevronDown size={13} />
+      </summary>
+      {prices && <p className="demo-disclaimer-detail">Precios de Rappi Chile {prices}</p>}
+      {offline && <OfflineNote />}
+    </details>
   )
 }
 
@@ -27,7 +36,7 @@ function OfflineNote() {
     window.location.reload()
   }
   return (
-    <p className="demo-disclaimer demo-disclaimer--offline">
+    <p className="demo-disclaimer-detail">
       Demo sin conexión: datos de una muestra del catálogo y una API simulada en el navegador.{' '}
       <button type="button" className="demo-disclaimer-reset" onClick={restart}>
         Empezar de cero

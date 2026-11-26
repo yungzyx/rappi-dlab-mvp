@@ -95,6 +95,24 @@ describe('pedir por mí sin conexión', () => {
     expect(allow([99]).status).toBe(422)
   })
 
+  test('pide a cualquier hora, aunque la muestra grabó la tienda cerrada: sin conexión todo está abierto', () => {
+    const closed = { open: false, opens_at: '09:00', opens_tomorrow: true }
+    const night = {
+      ...snapshot,
+      catalog: { ...snapshot.catalog, stores: { 11: { store: { id: 11, name: 'Súper Centro', hours: closed } } } },
+    }
+    order(line(coffee))
+    allow([11])
+    // Las 21:30 del martes 24-11-2026 en Santiago (UTC−3).
+    const body = { message: 'lo de siempre', user_id: 'u', mode: 'propuesta' }
+    const reply = route(
+      night,
+      { method: 'POST', path: '/agent/ask', query: new URLSearchParams(), body },
+      Date.UTC(2026, 10, 25, 0, 30),
+    )
+    expect(reply.body.autopedido).toMatchObject({ modo: 'pedir', tienda: { id: 11 } })
+  })
+
   test('una tienda que calificó mal hace poco se revisa antes; un pedido cancelado no se califica', () => {
     const rate = (cart, stars) =>
       call('POST', '/events', {

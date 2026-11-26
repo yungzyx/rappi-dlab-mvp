@@ -9,6 +9,7 @@ import { ProductSheetProvider } from '../../state/ProductSheetContext'
 import { ProfileProvider } from '../../state/ProfileContext'
 import { setAgentEnabled } from '../../state/agentEnabled'
 import { routeForScreen } from '../../data/verticals'
+import { alcoholInName, babyInName, GUARDS } from '../../api/offline/guards'
 import SearchScreen from './SearchScreen'
 
 const events = vi.hoisted(() => ({ track: vi.fn(), flush: async () => {}, clear: () => {}, settled: async () => {} }))
@@ -108,6 +109,13 @@ describe('SearchScreen', () => {
     await advance(0)
     expect(screen.getByRole('heading', { name: 'Ideas para buscar' })).toBeTruthy()
     expect(screen.queryByText('Búsquedas recientes')).toBeNull()
+    // Las ideas las propone la app: ninguna dice alcohol ni bebé (offers/guards.py, en su copia de guards.js).
+    const ideas = [...document.querySelectorAll('.search-chip')].map((chip) => chip.textContent)
+    expect(ideas.length).toBeGreaterThan(0)
+    const guarded = (idea) =>
+      ['catalog_item', 'menu_item'].some((kind) => alcoholInName(GUARDS, kind, idea)) ||
+      babyInName(GUARDS, 'catalog_item', idea)
+    expect(ideas.filter(guarded)).toEqual([])
   })
 
   test('antes de escribir: las recientes de la persona y lo más buscado con su población', async () => {
@@ -350,10 +358,10 @@ describe('SearchScreen', () => {
 
   test('una idea para buscar se registra como sugerencia', async () => {
     setup()
-    fireEvent.click(screen.getByRole('button', { name: 'Cerveza' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Sushi' }))
     await advance(250)
     expect(searches()).toEqual([
-      expect.objectContaining({ query: 'Cerveza', payload: expect.objectContaining({ fuente: 'sugerencia' }) }),
+      expect.objectContaining({ query: 'Sushi', payload: expect.objectContaining({ fuente: 'sugerencia' }) }),
     ])
   })
 

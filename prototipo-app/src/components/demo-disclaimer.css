@@ -1,4 +1,4 @@
-/* Una línea discreta bajo el buscador de la Home: se lee sin competir con el contenido */
+/* Una línea discreta bajo el buscador de la Home: se lee sin competir con el contenido. Al tocarla, el resto. */
 .demo-disclaimer {
   margin: 10px var(--gutter) 0;
   color: var(--ink-3);
@@ -7,9 +7,30 @@
   text-align: center;
 }
 
+.demo-disclaimer summary {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  padding: 4px 6px;
+  list-style: none;
+  cursor: pointer;
+}
+
+.demo-disclaimer summary::-webkit-details-marker {
+  display: none;
+}
+
+.demo-disclaimer summary svg {
+  flex: none;
+  transition: transform var(--duration-fast);
+}
+
+.demo-disclaimer[open] summary svg {
+  transform: rotate(180deg);
+}
+
 /* De qué fecha son los precios, y la demo sin conexión ("Prototipo MVP.html"): la nota y el botón para empezar de cero */
-.demo-disclaimer--prices,
-.demo-disclaimer--offline {
+.demo-disclaimer-detail {
   margin-top: 4px;
   font-size: 11px;
 }

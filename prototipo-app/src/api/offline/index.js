@@ -66,8 +66,9 @@
 // - rappi-ia/src/rappi_ia/offers/engine.py (vertical_ladder) y motor/predict.py (ladder_steps) ... la escalera de
 //   verticales de quien no tiene perfil (offers.js: verticalLadder; motor.js: ladderSteps y firstVertical), con los
 //   peldaños grabados para una persona sin pedidos (`snapshot.escalera`)
-// - rappi-ia/src/rappi_ia/catalog/hours.py y catalog/restaurants.py (filtros, "Destacados", with_hours) ... abierto o
-//   cerrado según el horario publicado y los filtros de restaurantes (catalog.js); las búsquedas recientes de
+// - rappi-ia/src/rappi_ia/catalog/restaurants.py (filtros, "Destacados") ... los filtros de restaurantes (catalog.js).
+//   catalog/hours.py no se replica: la demo se presenta a cualquier hora y todo está abierto, también lo que la muestra
+//   grabó cerrado (catalog.js: alwaysOpen; autonomy.js no revisa si la tienda está cerrada); las búsquedas recientes de
 //   events/searches.py (index.js: searchesReply). Sin conexión no hay "Lo más buscado", "Lo que sea", comparar entre
 //   tiendas ni "Para ti" en la tienda: esas rutas responden 404 o vacío y la app no las muestra. Las tiendas de la
 //   búsqueda solo llegan en las respuestas grabadas (`places`), y solo las de la muestra (scripts/demo-snapshot.mjs).
@@ -99,7 +100,7 @@ import {
   usualAnswer,
   withAutoOrder,
 } from './autonomy'
-import { catalogRoute } from './catalog'
+import { alwaysOpen, catalogRoute } from './catalog'
 import { contractArticles, homeVerticals } from './motor'
 import { kitStores, makeOffer } from './offers'
 import { applied, cleaned, CUISINES, describe, findStore, options, readCommand, withoutOf } from './preferences'
@@ -459,7 +460,9 @@ const ORDER_VERTICALS = [
 
 /** La respuesta `{ status, body }` a una petición; `body: null` es un 204. */
 export function route(snapshot, request, now = Date.now()) {
-  const reply = answer(snapshot, request, now)
+  const answered = answer(snapshot, request, now)
+  // Sin conexión todo está abierto, a cualquier hora (catalog.js: alwaysOpen).
+  const reply = { ...answered, body: alwaysOpen(answered.body) }
   const key = `${request.method} ${request.path}`
   const ranked =
     SERVED.has(key) || (request.method === 'GET' && /^\/profile\/[^/]+\/(verticales|busquedas)$/.test(request.path))
@@ -467,7 +470,7 @@ export function route(snapshot, request, now = Date.now()) {
 }
 
 function answer(snapshot, { method, path, query, body }, now) {
-  const catalog = catalogRoute(snapshot, method, path, query, now)
+  const catalog = catalogRoute(snapshot, method, path, query)
   if (catalog) return { status: catalog.status ?? 200, body: catalog.body }
   const state = readState()
   const key = `${method} ${path}`
