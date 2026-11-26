@@ -125,12 +125,25 @@ describe('MochiView', () => {
     expect(screen.getByText(/Los otros momentos no tienen ese botón y muestran una raya/)).toBeTruthy()
   })
 
+  test('with the simulated data, the acceptance figures carry a caveat: the generator sets them', async () => {
+    serveFixtures()
+    await renderWithData(<MochiView source="synthetic" />)
+
+    const offers = screen.getByRole('region', { name: 'Lo que ofrece Mochi' })
+    expect(
+      within(offers).getByText(
+        'En los simulados, la aceptación y la llegada a pedido son supuestos del generador: muestran la mecánica, no si Mochi funciona.',
+      ),
+    ).toBeTruthy()
+  })
+
   test('prototype sections carry the not-evidence label', async () => {
     serveFixtures()
     await renderWithData(<MochiView source="prototype" />)
 
     expect(screen.getAllByText(NOT_EVIDENCE)).toHaveLength(5) // ofertas, si molesta, guardias, listas y búsquedas
     expect(screen.queryByText(/datos simulados/i)).toBeNull()
+    expect(screen.queryByText(/supuestos del generador/)).toBeNull()
   })
 
   test('who hid or silenced Mochi, out of the active people, who brought him back and the Home explanations', async () => {
