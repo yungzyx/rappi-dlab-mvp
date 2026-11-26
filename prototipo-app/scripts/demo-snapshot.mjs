@@ -22,7 +22,8 @@ const OUT = `${ROOT}src/api/offline/snapshot.json`
 const API = (process.env.DEMO_API_URL || 'http://127.0.0.1:8020').replace(/\/+$/, '')
 const PYTHON = `${ROOT}../rappi-ia/.venv/bin/python`
 
-// Cuánto se lleva la muestra: lo justo para recorrer la demo sin que el archivo pase de ~3 MB.
+// Cuánto se lleva la muestra: lo justo para recorrer la demo sin que el HTML pase de su tope (15 MB: MAX_BYTES de
+// scripts/demo-html.mjs; la muestra del 25-11-2026 pesa ~2,1 MB y el HTML con sus fotos, ~14,1 MB).
 const STORE_VERTICALS = ['supermercado', 'farmacia', 'mall', 'licores', 'conveniencia', 'chocolateria', 'turbo']
 const STORES_PER_VERTICAL = 3
 const AISLES_PER_STORE = 4
