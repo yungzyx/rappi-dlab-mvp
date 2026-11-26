@@ -122,9 +122,12 @@ def db():
         url = database_url("DATABASE_URL_TEST")
     except RuntimeError:
         pytest.skip("DATABASE_URL_TEST no configurada")
-    if not url.rstrip("/").endswith("rappi_test"):
-        pytest.fail(f"Por seguridad los tests solo borran la base rappi_test, no {url}")
     with connect(url) as conn:
+        # La base a la que de verdad se conectó, no el texto de la URL (libpq toma el dbname de sus parámetros). El
+        # mensaje no repite la URL: puede traer una clave.
+        name = conn.execute("SELECT current_database()").fetchone()[0]
+        if name != "rappi_test":
+            pytest.fail(f"Por seguridad los tests solo borran la base rappi_test, no {name}")
         conn.execute("DROP SCHEMA IF EXISTS capa CASCADE")
         conn.execute("DROP SCHEMA public CASCADE")
         conn.execute("CREATE SCHEMA public")
