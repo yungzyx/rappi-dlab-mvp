@@ -1,8 +1,10 @@
 // Graba las respuestas que lee el panel (npm run panel:snapshot) en snapshot/panel.json, para armarlo en un solo HTML
 // que abre sin la API ni internet (npm run panel:html). Solo pide (GET): no escribe nada en la base.
 //
-// La API debe correr sobre una COPIA de la base, nunca sobre `rappi`: el archivo se comparte suelto y lleva lo que la
-// gente hizo en la app (cuentas y, en la lista de riesgo, personas con id seudónimo y su concepto top no sensible).
+// La API debe correr sobre una COPIA de la base, nunca sobre `rappi`: la foto lleva lo que la gente hizo en la app
+// (cuentas y, en la lista de riesgo, personas con id seudónimo y su concepto top no sensible). snapshot/panel.json se
+// queda en este equipo (ignorado en git); el HTML que se comparte la lleva sin datos por persona del prototipo
+// (src/lib/shareable.js, al armarlo).
 // Desde rappi-ia:
 //   DATABASE_URL=postgresql:///rappi_staging HF_HUB_OFFLINE=1 API_PREWARM=0 \
 //     .venv/bin/python -m uvicorn rappi_ia.api.app:app --host 127.0.0.1 --port 8020

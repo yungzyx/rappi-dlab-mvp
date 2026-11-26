@@ -1,6 +1,7 @@
 import { act, fireEvent, screen, within } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest'
 import { renderWithData, resetApi, serveFixtures, serveFixturesWith } from '../../test/fixtureApi.js'
+import syntheticExperiments from '../../fixtures/experimentos.synthetic.json'
 import { OverviewView } from './OverviewView.jsx'
 
 const NOT_EVIDENCE = 'Prototipo · no es evidencia'
@@ -87,11 +88,49 @@ describe('OverviewView', () => {
     expect(onNavigate).toHaveBeenCalledWith('mochi', 'busquedas')
   })
 
-  test('the pilot status says the control group is off when it is', async () => {
-    serveFixtures()
-    await renderWithData(<OverviewView source="synthetic" onNavigate={() => {}} />)
-    const hero = screen.getByRole('navigation', { name: 'Las tres hipótesis' })
-    expect(within(hero).getByText(/el grupo de control está apagado, todavía no hay qué medir/)).toBeTruthy()
+  describe('the pilot status', () => {
+    const experiments = (source, changes) => {
+      const body = structuredClone(syntheticExperiments)
+      Object.assign(
+        body.data.experimentos.find((item) => item.id === 'ofertas_control'),
+        changes,
+      )
+      return { experimentos: { ...body, source } }
+    }
+    const hero = () => screen.getByRole('navigation', { name: 'Las tres hipótesis' })
+    const progress = () => hero().querySelector('.pilot')
+
+    test('with the simulated groups it never shows a pilot, with the control group on or off', async () => {
+      for (const control of [0, 10]) {
+        serveFixturesWith(experiments('synthetic', { control_pct: control }))
+        const { unmount } = await renderWithData(<OverviewView source="synthetic" onNavigate={() => {}} />)
+        expect(within(hero()).getByText(/los grupos simulados no son un piloto/)).toBeTruthy()
+        expect(within(hero()).queryByText(/apagado/)).toBeNull()
+        expect(within(hero()).queryByText(/Llegó al mínimo|del mínimo/)).toBeNull()
+        expect(progress()).toBeNull()
+        unmount()
+        resetApi()
+      }
+    })
+
+    test('with the prototype, the control group off and nobody in a group, there is nothing to measure', async () => {
+      const empty = [
+        { variante: 'tratamiento', personas: 0 },
+        { variante: 'control', personas: 0 },
+      ]
+      serveFixturesWith(experiments('prototype', { control_pct: 0, variantes: empty }))
+      await renderWithData(<OverviewView source="prototype" onNavigate={() => {}} />)
+      expect(within(hero()).getByText(/el grupo de control está apagado, todavía no hay qué medir/)).toBeTruthy()
+    })
+
+    test('with the prototype and groups already there, the progress shows even with the control group off', async () => {
+      serveFixturesWith(experiments('prototype', { control_pct: 0 }))
+      await renderWithData(<OverviewView source="prototype" onNavigate={() => {}} />)
+      expect(within(hero()).queryByText(/todavía no hay qué medir/)).toBeNull()
+      expect(within(hero()).getByText(/no entran personas nuevas, el grupo de control está apagado/)).toBeTruthy()
+      expect(progress()).toBeTruthy()
+      expect(within(hero()).getByText('H1')).toBeTruthy()
+    })
   })
 
   test('"Por vertical": the verticals side by side, with their change and the ones left out', async () => {

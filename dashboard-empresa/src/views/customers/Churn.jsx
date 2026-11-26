@@ -101,10 +101,15 @@ export function Churn({ source }) {
                   Los {TOP_AUDIENCES} grupos más grandes de {audiences.length}.
                 </p>
               )}
-              <details className="disclosure">
-                <summary>Ver la lista de personas (id seudónimo)</summary>
-                <AtRiskTable rows={rows} />
-              </details>
+              {rows.every((row) => row.usuario) ? (
+                <details className="disclosure">
+                  <summary>Ver la lista de personas (id seudónimo)</summary>
+                  <AtRiskTable rows={rows} />
+                </details>
+              ) : (
+                // El panel en un solo HTML no la lleva (src/lib/shareable.js): el archivo se comparte suelto.
+                <p>Este archivo no trae la lista de personas del prototipo: se ve en el panel con la API.</p>
+              )}
             </>
           }
         >

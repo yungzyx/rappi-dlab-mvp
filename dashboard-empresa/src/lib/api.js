@@ -1,5 +1,5 @@
 // Cliente de la API de rappi-ia para el panel. Si una consulta de datos simulados falla o tarda demasiado, usa la
-// respuesta guardada en src/fixtures/sin-conexion (npm run fixtures: todas de una misma foto de la API) y la anota, con
+// respuesta guardada en src/fixtures/sin-conexion (npm run fixtures; cada una con su fecha) y la anota, con
 // el origen y la fecha que trae el archivo, para avisar que el panel está en modo sin conexión. El uso del MVP (fuente
 // prototipo) no tiene respaldo: sin la base viva no hay nada honesto que mostrar. En el panel en un solo HTML (npm run panel:html) no hay API: las
 // respuestas vienen grabadas en el archivo (`virtual:panel-snapshot`, ver vite.config.js), cada una con su fuente.
@@ -36,6 +36,9 @@ const savedResponses =
 
 /** De cuándo y de qué base son las respuestas grabadas (`{ fecha, base }`), o null con la API en vivo. */
 export const SNAPSHOT_INFO = snapshot?.grabado ?? null
+
+/** Si la foto se armó con los ejemplos de los tests (npm run panel:snapshot:fixtures) y no se grabó desde una base. */
+export const SNAPSHOT_FROM_EXAMPLES = SNAPSHOT_INFO?.origen === 'ejemplos'
 
 /** Si hay una API detrás: en el HTML suelto no la hay, y nada se escribe (ni "Juzgar la búsqueda" aparece). */
 export const LIVE_API = !snapshot
@@ -214,12 +217,14 @@ export function retryConnection() {
 }
 
 /**
- * Olvida lo cargado de una fuente, para ver lo nuevo (p. ej. lo que se hizo en el prototipo durante la demo).
- * La caché no expira sola: /analytics/weekly tarda segundos y no se vuelve a pedir sin que alguien lo pida.
+ * Olvida lo cargado de una fuente, para ver lo nuevo (p. ej. lo que se hizo en el prototipo durante la demo), y la fecha
+ * de los precios del catálogo (pudo cambiar, o no haber llegado). La caché no expira sola: /analytics/weekly tarda
+ * segundos y no se vuelve a pedir sin que alguien lo pida.
  */
 export function refreshSource(source) {
   const suffix = `.${source}`
   for (const key of cache.keys()) if (key.endsWith(suffix)) cache.delete(key)
+  catalogDates = null
   fallbacks = fallbacks.filter((fallback) => !fallback.key.endsWith(suffix))
   if (source === 'prototype') prototypeOffline = false
   notify()

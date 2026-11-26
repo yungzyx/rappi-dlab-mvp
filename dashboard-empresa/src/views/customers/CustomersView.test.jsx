@@ -105,6 +105,27 @@ describe('CustomersView', () => {
     expect(cells).toEqual(['🍕 Pizza', '2', '1', '1 de 2'])
   })
 
+  test('a shared file without the ids of the prototype: the audiences, and no list of people', async () => {
+    serveFixturesWith({
+      kpis: { source: 'prototype', data: { en_riesgo: 1, perdidos: 1 } },
+      'at-risk': {
+        source: 'prototype',
+        data: [
+          { estado: 'en_riesgo', concepto_top: '🍕 Pizza', consiente_avisos: true },
+          { estado: 'perdido', concepto_top: '🍕 Pizza', consiente_avisos: false },
+        ],
+      },
+    })
+    await renderWithData(<CustomersView source="prototype" />)
+
+    const losing = section('A quién estamos perdiendo')
+    const audiences = within(losing).getByRole('table', { name: 'Personas en riesgo o perdidas por lo que más pedían' })
+    expect(within(audiences).getByText('🍕 Pizza')).toBeTruthy()
+    expect(within(losing).queryByText('Ver la lista de personas (id seudónimo)')).toBeNull()
+    expect(within(losing).queryByRole('table', { name: 'Personas en riesgo o perdidas', hidden: true })).toBeNull()
+    expect(within(losing).getByText(/Este archivo no trae la lista de personas del prototipo/)).toBeTruthy()
+  })
+
   test('with the prototype: nobody at risk yet, with the MVP label', async () => {
     serveFixtures()
     await renderWithData(<CustomersView source="prototype" />)
@@ -275,7 +296,10 @@ describe('CustomersView', () => {
     await act(async () =>
       fireEvent.click(screen.getByRole('button', { name: 'Copiar la lista de Probó Turbo una vez' })),
     )
-    expect(writeText).toHaveBeenCalledWith('Usuario;Acepta avisos\r\nu-0a1b2c3d;Sí\r\nu-4e5f6a7b;No')
+    // Cada fila dice de qué fuente es: el texto copiado no lleva el nombre del archivo.
+    expect(writeText).toHaveBeenCalledWith(
+      'Usuario;Acepta avisos;Fuente\r\nu-0a1b2c3d;Sí;Prototipo (no es evidencia)\r\nu-4e5f6a7b;No;Prototipo (no es evidencia)',
+    )
     expect(screen.getByRole('status').textContent).toBe('Copiada')
     expect(fetch).toHaveBeenCalledWith(
       expect.stringContaining('/analytics/audiencias/probo-turbo-una-vez?source=prototype'),

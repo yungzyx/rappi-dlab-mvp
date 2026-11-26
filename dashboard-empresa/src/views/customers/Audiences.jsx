@@ -10,12 +10,14 @@ import { formatNumber, formatSignedPct } from '../../lib/format.js'
 import { useAnalytics } from '../../lib/useAnalytics.js'
 
 const SOURCE_WORD = { synthetic: 'simulados', prototype: 'prototipo' }
+// En cada fila: el texto copiado no lleva el nombre del archivo, y una planilla puede separar las filas.
+const SOURCE_CELL = { synthetic: 'Simulado (no es evidencia)', prototype: 'Prototipo (no es evidencia)' }
 
-/** El CSV de una audiencia: su id seudónimo y si acepta avisos, una persona por línea. */
-export function membersCsv(members) {
+/** El CSV de una audiencia: su id seudónimo, si acepta avisos y de qué fuente es, una persona por línea. */
+export function membersCsv(members, source) {
   return rowsToCsv([
-    ['Usuario', 'Acepta avisos'],
-    ...members.personas.map((row) => [row.usuario, row.acepta_avisos ? 'Sí' : 'No']),
+    ['Usuario', 'Acepta avisos', 'Fuente'],
+    ...members.personas.map((row) => [row.usuario, row.acepta_avisos ? 'Sí' : 'No', SOURCE_CELL[source]]),
   ])
 }
 
@@ -28,7 +30,7 @@ function MembersExport({ audience, source }) {
   const run = async (action) => {
     setStatus('Pidiendo la lista…')
     try {
-      const csv = membersCsv(await loadAudienceMembers(audience.id, source))
+      const csv = membersCsv(await loadAudienceMembers(audience.id, source), source)
       if (action === 'copy') {
         await navigator.clipboard.writeText(csv)
         setStatus('Copiada')

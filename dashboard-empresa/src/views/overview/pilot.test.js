@@ -62,8 +62,25 @@ describe('pilotProgress', () => {
     expect(done).toMatchObject({ done: true, weeks: null })
   })
 
-  test('with the control group off, or one group empty, there is nothing to measure', () => {
-    expect(pilotProgress(experiment({ control_pct: 0 })).on).toBe(false)
-    expect(pilotProgress(experiment({ variantes: groups(900, 0) })).on).toBe(false)
+  test('with one group empty there is nothing to measure, whether the control group is on or off', () => {
+    expect(pilotProgress(experiment({ variantes: groups(900, 0) }))).toMatchObject({ on: false, assigning: true })
+    expect(pilotProgress(experiment({ control_pct: 0, variantes: groups(0, 0) }))).toMatchObject({
+      on: false,
+      assigning: false,
+    })
+  })
+
+  test('with the control group off but groups already there, it still measures them: no new assignments', () => {
+    const pace = { ritmo: { por_semana: { tratamiento: 500, control: 50 } } }
+    const { on, assigning, rows } = pilotProgress(experiment({ control_pct: 0, ...pace }))
+    expect(on).toBe(true)
+    expect(assigning).toBe(false)
+    const [h1, h2] = rows
+    expect(h1.share).toBeCloseTo(100 / 871)
+    expect(h1.weeks).toBeNull() // nadie entra: el ritmo de antes no dice cuándo llega
+    expect(h2).toMatchObject({ done: true, weeks: null })
+    // Ya asignadas las que pide el mínimo: solo falta su plazo, también sin asignaciones nuevas.
+    const assigned = pilotProgress(experiment({ control_pct: 0, ...pace, variantes: groups(9000, 1000) }))
+    expect(assigned.rows[0]).toMatchObject({ weeks: 0, done: false })
   })
 })

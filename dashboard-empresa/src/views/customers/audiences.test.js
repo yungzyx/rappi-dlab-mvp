@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'vitest'
-import { NO_CONCEPT, riskAudiences, withConsent } from './audiences.js'
+import { NO_CONCEPT, riskAudiences } from './audiences.js'
 
 const person = (concepto_top, estado, consiente_avisos) => ({ concepto_top, estado, consiente_avisos })
 
@@ -19,7 +19,6 @@ describe('riskAudiences', () => {
       { concept: '🍔 Hamburguesa', people: 2, atRisk: 1, withConsent: 1 },
       { concept: '☕ Café', people: 1, atRisk: 1, withConsent: 0 },
     ])
-    expect(withConsent(rows)).toBe(3)
   })
 
   test('people without a top concept get their own group', () => {

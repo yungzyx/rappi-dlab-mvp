@@ -48,7 +48,10 @@ function progress(id, title, rows, key, minimum, pace, assigned) {
 }
 
 /**
- * { on, rows }: `on` es falso si el grupo de control está apagado o un grupo no tiene personas (no hay qué medir).
+ * { on, assigning, rows }: `on` es falso si un grupo no tiene personas (no hay qué medir); `assigning`, si entran
+ * personas nuevas a los grupos (el control encendido, `control_pct` > 0). Con el control apagado y grupos de antes,
+ * se sigue midiendo a quienes ya tienen grupo, sin ritmo de asignación: las semanas de la H1 y la H2 quedan en null
+ * (o en 0, si ya están asignadas las que pide el mínimo).
  * `rows`: H1, H2 y H3, cada una con cuántas personas (respuestas, en la H3) lleva cada grupo (`have`), cuántas pide el
  * plan (`need`, o null si todavía no se puede calcular), la parte cubierta por el grupo que va más atrás (`share`, 0 a
  * 1), si llegó y, si no, las semanas que faltan como piso (`weeks`: 0 si ya están asignadas las que hacen falta y solo
@@ -56,16 +59,19 @@ function progress(id, title, rows, key, minimum, pace, assigned) {
  * respuestas, que cuentan apenas llegan (sin plazo que esperar).
  */
 export function pilotProgress(experiment) {
-  const on = experiment.control_pct > 0 && hypothesesMode(experiment) === 'grupos'
+  const on = hypothesesMode(experiment) === 'grupos'
+  const assigning = experiment.control_pct > 0
   const { retencion, rest_a_turbo: turbo, encuesta } = experiment
-  // Personas asignadas por semana a cada grupo (una foto grabada antes del 25-11 no lo trae) y las ya asignadas.
-  const pace = experiment.ritmo?.por_semana ?? null
+  // Personas asignadas por semana a cada grupo (una foto grabada antes del 25-11 no lo trae) y las ya asignadas. Con el
+  // control apagado no entra nadie: ritmo 0.
+  const pace = assigning ? (experiment.ritmo?.por_semana ?? null) : { [TREATMENT]: 0, [CONTROL]: 0 }
   const assigned = peopleOf(experiment.variantes, 'personas')
   // Respuestas a la p1 por semana a cada grupo (una foto grabada antes del 25-11 no lo trae).
   const surveyPace = experiment.ritmo_encuesta?.por_semana ?? null
   const answered = peopleOf(encuesta?.variantes ?? [], 'respondidas')
   return {
     on,
+    assigning,
     rows: [
       progress('H1', 'Retención M+1', retencion?.variantes, 'personas', retencion?.minimo, pace, assigned),
       progress('H2', 'Restaurantes → Turbo', turbo?.variantes, 'personas', turbo?.minimo, pace, assigned),

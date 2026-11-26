@@ -23,3 +23,21 @@ export const PANEL_METRICS = [
   'audiencias',
   'guardias',
 ]
+
+// Las que escribe `make contract` en rappi-ia (tests/integration/test_contract.py, PANEL_METRICS) en src/fixtures/:
+// `npm run fixtures` no las toca. Un test compara las dos listas.
+export const CONTRACT_METRICS = [
+  'offers',
+  'unmet',
+  'combos',
+  'motor',
+  'volver',
+  'ctr-posicion',
+  'embudo-sesion',
+  'pro',
+  'presencia',
+  'experimentos',
+  'verticales',
+  'audiencias',
+  'guardias',
+]

@@ -1,4 +1,10 @@
-import { API_URL, isDemoActive, PROTOTYPE_OFFLINE_MESSAGE, SNAPSHOT_INFO } from '../../lib/api.js'
+import {
+  API_URL,
+  isDemoActive,
+  PROTOTYPE_OFFLINE_MESSAGE,
+  SNAPSHOT_FROM_EXAMPLES,
+  SNAPSHOT_INFO,
+} from '../../lib/api.js'
 import { formatDate } from '../../lib/format.js'
 import { describeFallbacks, describeOrigins } from '../../lib/labels.js'
 import { Help } from '../Help.jsx'
@@ -75,10 +81,17 @@ export function ConnectionNotices({ source, fallbacks, prototypeOffline, onRetry
         <div className="provenance-row provenance-row--offline">
           <div className="provenance-inner">
             <Icon name="offline" />
-            <p>
-              <strong>Foto de demostración:</strong> el panel como estaba el {formatDate(SNAPSHOT_INFO.fecha)}. No se
-              actualiza, y cada bloque sigue diciendo si sus datos son simulados o reales.
-            </p>
+            {SNAPSHOT_FROM_EXAMPLES ? (
+              <p>
+                <strong>Foto de ejemplos:</strong> respuestas de ejemplo de los tests, no el uso de nadie ni una base.
+                No se actualiza, y cada bloque sigue diciendo si sus datos son simulados o reales.
+              </p>
+            ) : (
+              <p>
+                <strong>Foto de demostración:</strong> el panel como estaba el {formatDate(SNAPSHOT_INFO.fecha)}. No se
+                actualiza, y cada bloque sigue diciendo si sus datos son simulados o reales.
+              </p>
+            )}
           </div>
         </div>
       )}

@@ -11,7 +11,7 @@ const JUDGE_KEY = 'panel-juez-busqueda'
 
 function storedJudge() {
   try {
-    return window.localStorage.getItem(JUDGE_KEY)
+    return window.localStorage.getItem(JUDGE_KEY) || null // uno vacío (de antes) se vuelve a pedir
   } catch {
     return null
   }
@@ -32,6 +32,7 @@ const verdictLabel = (level) => VERDICTS.find((verdict) => verdict.level === lev
 function JudgeForm({ initial, onStart }) {
   const [value, setValue] = useState(initial ?? '')
   const valid = JUDGE_PATTERN.test(value.trim())
+  const bad = !valid && value.trim() !== '' // vacío: todavía no hay nada que corregir, pero no se empieza
   return (
     <form
       className="judge-form"
@@ -49,12 +50,12 @@ function JudgeForm({ initial, onStart }) {
         autoComplete="off"
         spellCheck={false}
         aria-describedby="judge-label-help"
-        aria-invalid={!valid}
+        aria-invalid={bad}
       />
-      <p id="judge-label-help" className={valid ? 'judge-form-help' : 'judge-form-help judge-form-help--bad'}>
-        {valid
-          ? 'Como J1 o J2, para separar a dos personas que juzgan. Nunca tu nombre ni tu correo.'
-          : 'Solo letras sin tilde, números, - y _ (hasta 16), sin espacios ni @.'}
+      <p id="judge-label-help" className={bad ? 'judge-form-help judge-form-help--bad' : 'judge-form-help'}>
+        {bad
+          ? 'Solo letras sin tilde, números, - y _ (hasta 16), sin espacios ni @.'
+          : 'Como J1 o J2, para separar a dos personas que juzgan. Nunca tu nombre ni tu correo.'}
       </p>
       <button type="submit" className="text-button text-button--go" disabled={!valid}>
         Empezar
@@ -63,7 +64,10 @@ function JudgeForm({ initial, onStart }) {
   )
 }
 
-/** Lo que se mostró: la consulta y el resultado, sin el método, la posición ni otro juicio. */
+/**
+ * Lo que se mostró: la consulta y el resultado, sin el método, la posición ni otro juicio. La muestra guarda solo el id
+ * del resultado: nombre, tienda, precio y foto son los de hoy en el catálogo de esta base, y la tarjeta lo dice.
+ */
 function PairCard({ pair }) {
   const [broken, setBroken] = useState(false)
   const details = [pair.presentacion, pair.categoria].filter(Boolean).join(' · ')
@@ -82,7 +86,7 @@ function PairCard({ pair }) {
           )}
         </div>
         <div className="judge-result-text">
-          <p className="judge-result-label">y le mostramos</p>
+          <p className="judge-result-label">y le mostramos (como está hoy en el catálogo)</p>
           <p className="judge-name">{pair.nombre}</p>
           {details && <p className="judge-meta">{details}</p>}
           <p className="judge-meta">
@@ -179,7 +183,7 @@ function Judging({ judge, onChangeJudge }) {
     <div className="judge">
       <div className="judge-bar">
         <p className="judge-who">
-          Juzgando como <strong>{judge || 'sin rótulo'}</strong>{' '}
+          Juzgando como <strong>{judge}</strong>{' '}
           <button type="button" className="link-button" onClick={onChangeJudge}>
             Cambiar
           </button>
@@ -206,8 +210,8 @@ function Judging({ judge, onChangeJudge }) {
           <strong>Juzgaste los {formatNumber(pairs.length)} pares.</strong>
           <p>
             El κ contra el juez por concepto sale con{' '}
-            <span className="mono">rappi-ia eval-human --desde-base{judge ? ` --juez ${judge}` : ''}</span>. Puedes
-            seguir revisando: volver a juzgar un par reemplaza su juicio.
+            <span className="mono">rappi-ia eval-human --desde-base --juez {judge}</span>. Puedes seguir revisando:
+            volver a juzgar un par reemplaza su juicio.
           </p>
         </div>
       )}
@@ -246,10 +250,11 @@ function Judging({ judge, onChangeJudge }) {
               </p>
             )}
             <div className="judge-nav">
+              {/* Mientras se guarda, el par no cambia: al terminar se avanza (o se avisa el error) desde ese par. */}
               <button
                 type="button"
                 className="text-button"
-                disabled={index === 0}
+                disabled={saving || index === 0}
                 onClick={() => setIndex((n) => Math.max(n - 1, 0))}
               >
                 Anterior
@@ -257,7 +262,7 @@ function Judging({ judge, onChangeJudge }) {
               <button
                 type="button"
                 className="text-button"
-                disabled={index >= pairs.length - 1}
+                disabled={saving || index >= pairs.length - 1}
                 onClick={() => setIndex((n) => Math.min(n + 1, pairs.length - 1))}
               >
                 Saltar

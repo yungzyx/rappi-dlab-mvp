@@ -115,7 +115,8 @@ const gaps = (keys, values, errors) => keys.filter((key) => values[key] === null
 /**
  * Todo lo que muestra la calculadora a partir del texto del formulario (`texts`, con las claves de FIELDS):
  * - `errors`: { campo: mensaje } de lo escrito que no sirve;
- * - `costs`: si se escribió algún costo (sin costos no hay "recupera la inversión");
+ * - `costs`: si se escribió algún costo y ninguno tiene error (sin costos, o con uno que no sirve, no hay "recupera la
+ *   inversión": un costo mal escrito no cuenta como 0);
  * - `h1` y `h2`: `{ missing: [campos] }` si falta algo, o sus cifras al mes, del primer año y el mes en que se recupera
  *   la inversión (null: no se recupera en HORIZON meses). La H1 trae `techo` y `prudente`.
  */
@@ -130,7 +131,7 @@ export function goalValue(texts) {
   const coverage = (ok('cobertura') ?? 100) / 100
   const investment = ok('inversion') ?? 0
   const monthlyCost = ok('operacion') ?? 0
-  const costs = investment > 0 || monthlyCost > 0
+  const costs = !errors.inversion && !errors.operacion && (investment > 0 || monthlyCost > 0)
   const marginPerOrder = (ok('valor') ?? 0) * ((ok('margen') ?? 0) / 100)
   const payback = (margins) => (costs ? paybackMonth(margins, investment, monthlyCost) : null)
 

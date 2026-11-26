@@ -238,7 +238,15 @@ export function MochiView({ source, tab }) {
                   tasa aparece desde 10 mostradas; antes, solo las cuentas.
                 </p>
               }
-            />
+            >
+              {/* El Resumen, con simulados, no da esta cifra (decisions.js): aquí se ve, con su salvedad. */}
+              {source === 'synthetic' && (
+                <Caveat>
+                  En los simulados, la aceptación y la llegada a pedido son supuestos del generador: muestran la
+                  mecánica, no si {AGENT_NAME} funciona.
+                </Caveat>
+              )}
+            </SectionHead>
             <Async fallback={null}>
               <OfferStats source={source} />
             </Async>

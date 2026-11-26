@@ -20,6 +20,3 @@ export function riskAudiences(rows) {
   }
   return [...groups.values()].sort((a, b) => b.people - a.people || a.concept.localeCompare(b.concept, 'es'))
 }
-
-/** Cuántas de las filas aceptan avisos fuera de la app. */
-export const withConsent = (rows) => rows.filter((row) => row.consiente_avisos).length

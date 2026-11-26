@@ -3,33 +3,20 @@
 // que todas las cifras calzan entre sí. Escribe:
 //  - src/fixtures/sin-conexion/<métrica>.json: las métricas que el panel muestra si la API no responde (todas las de
 //    src/lib/metrics.js, con la fuente simulada);
-//  - src/fixtures/<métrica>.synthetic.json: los ejemplos de los tests de las métricas que no fija `make contract`
-//    (offers, unmet, combos, motor y volver los escribe rappi-ia con su simulación chica, y el CI los compara).
+//  - src/fixtures/<métrica>.synthetic.json: los ejemplos de los tests de las métricas que no fija `make contract` (las
+//    de CONTRACT_METRICS, en src/lib/metrics.js, las escribe rappi-ia con su simulación chica, y el CI las compara).
 // Solo la fuente simulada: el uso del prototipo lleva lo que hizo la gente en la app y no se versiona (sin la API, el
 // panel no lo muestra). Cada respuesta lleva su `guardado` ({ origen, fecha }), que el panel cita en el aviso.
 import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
-import { PANEL_METRICS } from '../src/lib/metrics.js'
+import { CONTRACT_METRICS, PANEL_METRICS } from '../src/lib/metrics.js'
 
 const ROOT = fileURLToPath(new URL('..', import.meta.url))
 const SNAPSHOT = `${ROOT}snapshot/panel.json`
 const FIXTURES = `${ROOT}src/fixtures/`
 const OFFLINE = `${FIXTURES}sin-conexion/`
-// Las que escribe `make contract` en rappi-ia (tests/integration/test_contract.py, PANEL_METRICS): aquí no se tocan.
-const CONTRACT = new Set([
-  'offers',
-  'unmet',
-  'combos',
-  'motor',
-  'volver',
-  'ctr-posicion',
-  'embudo-sesion',
-  'pro',
-  'presencia',
-  'experimentos',
-  'verticales',
-  'audiencias',
-])
+// Las que escribe `make contract` en rappi-ia: aquí no se tocan.
+const CONTRACT = new Set(CONTRACT_METRICS)
 
 if (!existsSync(SNAPSHOT)) {
   console.error('Falta la foto de la API (snapshot/panel.json): corre antes `npm run panel:snapshot`.')
