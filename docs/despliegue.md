@@ -6,7 +6,7 @@ La demo local (`make mvp` en un Mac) está en [instalacion.md](instalacion.md#5-
 
 ## 0. Lo que hay que decidir o conseguir
 
-Antes de empezar, quien despliega decide o consigue lo siguiente. Todos los valores van en el **archivo de entorno** del servidor, `/etc/rappi/rappi.env`, copiado de [`deploy/.env.example`](../deploy/.env.example) ([§3.2](#32-archivo-de-entorno)). Nunca va a git.
+Antes de empezar, necesitas definir o conseguir lo siguiente. Todos los valores van en el **archivo de entorno** del servidor, `/etc/rappi/rappi.env`, copiado de [`deploy/.env.example`](../deploy/.env.example) ([§3.2](#32-archivo-de-entorno)). Nunca va a git.
 
 | Qué | Dónde va |
 |---|---|
@@ -21,12 +21,12 @@ Antes de empezar, quien despliega decide o consigue lo siguiente. Todos los valo
 | **Jev (opcional, solo en `jobs`):** ver [jev.md](jev.md) | `TYPESAFE_API_KEY` |
 | **Contacto del scraper** (solo si se activa la descarga semanal en el servidor): una URL o un correo para que Rappi sepa a quién escribir; va en el User-Agent | `RAPPI_UA_CONTACT` (y `RAPPI_UA_PROJECT`, el nombre) |
 
-Decisiones para quien despliega:
+Decisiones antes de desplegar:
 
 - **`VITE_DEMO`:** con `VITE_DEMO=1` la app desplegada trae el interruptor "Prototipo final / Rappi hoy" (tecla D); vacío, no. Se aplica al construir `web`.
-- **El panel:** `WITH_PANEL=1` lo construye en `/panel/` y `API_ENABLE_ANALYTICS=1` enciende `/analytics/*`, que el panel lee. Van juntos: con los dos en 0 se despliega solo la app. Con `PANEL_AUTH_USER` y `PANEL_AUTH_HASH` (opcionales: otro usuario y otra clave, el hash como el de la puerta), `/panel` y `/api/analytics` piden su propia credencial y no la de la puerta, que se reparte a quienes prueban la app. Sin ellas, el panel queda detrás de la misma puerta. `/api/analytics` entrega audiencias con ids seudónimos y escribe los juicios de la búsqueda ("Juzgar la búsqueda"): para una prueba con personas, el panel va apagado o con su credencial.
+- **El panel:** `WITH_PANEL=1` lo construye en `/panel/` y `API_ENABLE_ANALYTICS=1` enciende `/analytics/*`, que el panel lee. Van juntos: con los dos en 0 se despliega solo la app. Con `PANEL_AUTH_USER` y `PANEL_AUTH_HASH` (opcionales: otro usuario y otra clave, con el hash generado igual que el de la puerta), `/panel` y `/api/analytics` piden su propia credencial y no la de la puerta, que se reparte a quienes prueban la app. Sin ellas, el panel queda detrás de la misma puerta. `/api/analytics` entrega audiencias con ids seudónimos y permite guardar los juicios de la búsqueda ("Juzgar la búsqueda"): para una prueba con personas, el panel va apagado o con su credencial.
 - **La descarga semanal en el servidor** (`rappi-refresh.timer`, que viene apagado): solo después de poner el contacto del scraper (`RAPPI_UA_CONTACT`) y de aceptar que rappi.cl pueda frenar una IP de datacenter ([§9](#9-riesgos)). Hasta entonces la descarga semanal corre en el equipo local que ya la tiene programada.
-- **Retención:** las personas del prototipo sin actividad se borran a los 180 días (`PROTOTYPE_USER_RETENTION_DAYS`) y el texto de las búsquedas, a los 90 ([§7](#qué-se-guarda-y-cuánto-tiempo)). Los 90 días no son una variable sino una constante del código (`QUERY_RETENTION_DAYS`); otro plazo exige `rappi-ia purge --dias N` en `rappi-purge.service`. Confirmar los dos plazos.
+- **Retención:** las personas del prototipo sin actividad se borran a los 180 días (`PROTOTYPE_USER_RETENTION_DAYS`) y el texto de las búsquedas, a los 90 ([§7](#qué-se-guarda-y-cuánto-tiempo)). Los 90 días están fijados como constante en el código (`QUERY_RETENTION_DAYS`), no como variable de entorno; usar otro plazo exige pasar `rappi-ia purge --dias N` en `rappi-purge.service`. Confirmar los dos plazos.
 
 ## 1. Arquitectura
 
@@ -50,7 +50,7 @@ La app llama a la API en su mismo origen (`/api`). La base y la API quedan en la
 
 ## 2. Variables de entorno
 
-Todas van en `/etc/rappi/rappi.env`, salvo las que fija `docker-compose.yml` o la imagen (columna "Defecto"). "Servicio" es quien la usa. Una variable que no está en el archivo toma el defecto; no dejar vacía una numérica (`API_POOL_MAX=` sin valor impide arrancar).
+Todas van en `/etc/rappi/rappi.env`, salvo las que fija `docker-compose.yml` o la imagen (columna "Defecto"). "Servicio" es quien la usa. Una variable que no está en el archivo toma el defecto; no dejes vacía una variable numérica (`API_POOL_MAX=` sin valor impide arrancar).
 
 **Rutas y archivo de entorno**
 
@@ -115,7 +115,7 @@ Todas van en `/etc/rappi/rappi.env`, salvo las que fija `docker-compose.yml` o l
 | `LLM_DAILY_CALL_CAP` | api (por proceso; `0` = nunca Claude) | `300` | `300` | no |
 | `AGENT_NAME` | api | `Mochi` | — | no |
 | `MVP_HOME_LAT` / `MVP_HOME_LNG` | api ("Cerca de ti", desde un punto de `PROFILE_CITY`: se cambian juntos) | `-33.4263` / `-70.6106` | — | no |
-| `PROFILE_CITY` | api (la ciudad de la demo: las listas de restaurantes y de tiendas, las tiendas de los productos que ofrece Mochi, la tienda que muestra la búsqueda cuando el producto también está en una de ella y lo que la búsqueda y Mochi ponen primero y los restaurantes de un perfil de gusto si la persona no tiene ciudad; tiene que estar en `stores.city`, si no la API avisa al arrancar y esas listas salen vacías, y se cambia junto con `MVP_HOME_LAT`/`MVP_HOME_LNG`) | `Santiago de Chile` | `Viña del Mar` | no |
+| `PROFILE_CITY` | api (la ciudad de la demo: define las listas de restaurantes y de tiendas, las tiendas de los productos que ofrece Mochi, la tienda que muestra la búsqueda cuando el producto también está en esa ciudad, lo que la búsqueda y Mochi ponen primero y los restaurantes de un perfil de gusto si la persona no tiene ciudad. Tiene que estar en `stores.city`, o la API avisa al arrancar y esas listas salen vacías; se cambia junto con `MVP_HOME_LAT`/`MVP_HOME_LNG`) | `Santiago de Chile` | `Viña del Mar` | no |
 | `MOTOR_POBLACION` | api (la población de la que aprende el motor multivertical: `synthetic` o `prototype`; nunca se mezclan, y otro valor no deja arrancar) | `synthetic` (simulada: no es evidencia) | `prototype` | no |
 | `OFFERS_CONTROL_PCT` | api (el porcentaje de personas del grupo de control `ofertas_control`, de 0 a 50: tienen a Mochi apagado y lo que la app pide sola queda `offer_withheld`) | `0` (apagado) | `10` | no |
 | `TEXT_EMBEDDING_MODEL` | api, jobs | `intfloat/multilingual-e5-base` | — | no |
@@ -162,7 +162,7 @@ openssl rand -hex 32                              # una vez por cada clave y par
 
 Editar `/etc/rappi/rappi.env` y reemplazar cada `cambiar-esto` ([§0](#0-lo-que-hay-que-decidir-o-conseguir)). `DATABASE_URL_OWNER` y `DATABASE_URL_API` llevan las mismas claves que `RAPPI_OWNER_PASSWORD` y `RAPPI_API_PASSWORD`. `BASIC_AUTH_HASH` va entre comillas simples. Si una clave de la base queda en `cambiar-esto`, la base no se inicializa (`init-roles.sh` se niega): corregir el archivo, `docker volume rm rappi_pgdata` y volver a levantarla.
 
-docker compose usa este archivo dos veces, y las dos tienen que ser el mismo: para armar `docker-compose.yml` (`DOMAIN`, la puerta, las URL de cada servicio) y como `env_file` de `db`, `migrate`, `api` y `jobs`. Desde aquí, cada comando usa esta variable:
+Docker Compose lee este archivo en dos momentos, y ambos deben apuntar al mismo: para armar `docker-compose.yml` (`DOMAIN`, la puerta, las URL de cada servicio) y como `env_file` de `db`, `migrate`, `api` y `jobs`. Desde aquí, cada comando usa esta variable:
 
 ```bash
 cd /opt/rappi
@@ -250,7 +250,9 @@ read -rs BASIC_AUTH_PASSWORD && export BASIC_AUTH_PASSWORD   # la clave de la pu
 deploy/smoke.sh https://<dominio>                             # el valor de DOMAIN, p. ej. https://demo.ejemplo.cl
 ```
 
-[`deploy/smoke.sh`](../deploy/smoke.sh) usa `$COMPOSE` y revisa: la puerta (401 sin credenciales en `/`, `/api/health`, `/panel` y `/panel/`), `/api/health` 200 con la búsqueda semántica, las cabeceras de seguridad y de caché, que lo servido no apunte a `:8000` ni traiga scripts en línea o de otro origen, que la app lleve el aviso de demo ("Prototipo dLab con Rappi · demo, no es la app oficial"), que `rappi_api` no pueda borrar tablas ni crear objetos, que ningún servicio tenga un `cambiar-esto` (`jobs` también, en un contenedor desechable; si un entorno no se puede leer, falla), que la puerta (`BASIC_AUTH_*` y `PANEL_AUTH_*`) solo llegue a `web` y que todo esté sano. Con `WITH_PANEL=1` (el panel construido y `API_ENABLE_ANALYTICS=1`) pide además, con credenciales, `/panel/`, un archivo de `/panel/assets/` y `/api/analytics/kpis`, y espera 200. Si el panel tiene su propia credencial, su clave en claro va en `PANEL_AUTH_PASSWORD`: el panel y `/api/analytics/kpis` abren con ella y dan 401 con la de la puerta. Termina con "smoke: todo bien." (código 0) o lista lo que falló. Con `DOMAIN=localhost` acepta la CA interna de Caddy.
+[`deploy/smoke.sh`](../deploy/smoke.sh) usa `$COMPOSE` y revisa la puerta (401 sin credenciales en `/`, `/api/health`, `/panel` y `/panel/`), `/api/health` 200 con la búsqueda semántica, las cabeceras de seguridad y de caché, que lo servido no apunte a `:8000` ni traiga scripts en línea o de otro origen, y que la app lleve el aviso de demo ("Prototipo dLab con Rappi · demo, no es la app oficial"). También comprueba que `rappi_api` no pueda borrar tablas ni crear objetos, que ningún servicio tenga un `cambiar-esto` (`jobs` también, en un contenedor desechable; si un entorno no se puede leer, falla), que la puerta (`BASIC_AUTH_*` y `PANEL_AUTH_*`) solo llegue a `web` y que todo esté sano.
+
+Con `WITH_PANEL=1` (el panel construido y `API_ENABLE_ANALYTICS=1`) pide además, con credenciales, `/panel/`, un archivo de `/panel/assets/` y `/api/analytics/kpis`, y espera 200. Si el panel tiene su propia credencial, su clave en claro va en `PANEL_AUTH_PASSWORD`: el panel y `/api/analytics/kpis` abren con ella y dan 401 con la de la puerta. Termina con "smoke: todo bien." (código 0) o lista lo que falló. Con `DOMAIN=localhost` acepta la CA interna de Caddy.
 
 ### 3.9 Respaldos y timers
 
@@ -295,7 +297,7 @@ deploy/smoke.sh https://<dominio>    # con BASIC_AUTH_PASSWORD exportada (§3.8)
 - `up -d` recrea solo los servicios cuya imagen o configuración cambió. Durante el cambio de la API hay unos segundos sin servicio (1 worker, sin réplica).
 - Un cambio de `VITE_DEMO` o `WITH_PANEL` exige `$COMPOSE build web` y `up -d`.
 - **El motor multivertical en el servidor.** Sus tablas de población (transiciones, combinaciones, compra cruzada y tendencias) llegan con el dump y no se recalculan solas: `jobs` solo purga y respalda, y `rappi-refresh.timer` (cuya capa de IA incluye el motor) viene apagado. La afinidad y la recompra de cada persona del prototipo las recalcula la API después de cada pedido y de "Olvidar". Para recalcular la población: `$COMPOSE --profile jobs run --rm jobs rappi-ia motor` ([capa-de-datos.md](capa-de-datos.md#motor-multivertical)).
-- **`pg_prewarm` en un volumen de antes de la migración 034:** `init-roles.sh` no vuelve a correr y `rappi_owner` no puede crear la extensión, así que `migrate` la salta sin fallar (el aviso de Postgres no aparece en su salida). La señal está en el registro de la API al arrancar: `$COMPOSE logs api | grep -i precarga` muestra "Precarga de la búsqueda: falta la extensión pg_prewarm…", y la API funciona igual, sin precarga (la primera búsqueda de cada vertical lee sus índices del disco). Crearla una vez como superusuario: `$COMPOSE exec db psql -U postgres -d rappi -c 'CREATE EXTENSION IF NOT EXISTS pg_prewarm'` y `$COMPOSE restart api`; el registro dice entonces "Precarga de la búsqueda: N índices en X s". También hace falta antes de restaurar ahí un dump que ya la trae (uno de una instalación local después de la 034): sin ella, `pg_restore` como `rappi_owner` falla. En producción la extensión queda sin el comentario de la 034: solo su dueño (el superusuario que la creó) puede ponerlo, y la migración lo salta.
+- **`pg_prewarm` en un volumen de antes de la migración 034:** `init-roles.sh` no vuelve a correr y `rappi_owner` no puede crear la extensión, así que `migrate` la salta sin fallar (el aviso de Postgres no aparece en su salida). La señal está en el registro de la API al arrancar: `$COMPOSE logs api | grep -i precarga` muestra "Precarga de la búsqueda: falta la extensión pg_prewarm…", y la API funciona igual, sin precarga (la primera búsqueda de cada vertical lee sus índices del disco). Crearla una vez como superusuario: `$COMPOSE exec db psql -U postgres -d rappi -c 'CREATE EXTENSION IF NOT EXISTS pg_prewarm'` y `$COMPOSE restart api`; el registro dice entonces "Precarga de la búsqueda: N índices en X s". También hace falta crearla antes de restaurar ahí un dump que ya la trae (uno de una instalación local después de la 034): sin ella, `pg_restore` como `rappi_owner` falla. En producción la extensión queda sin el comentario de la 034: solo su dueño (el superusuario que la creó) puede ponerlo, y la migración lo salta.
 - **`rappi_api` precarga solo con Postgres 17.7 o más nuevo:** desde esa versión `pg_prewarm` revisa el permiso SELECT sobre la tabla del índice, que da `grants.sql`; antes lo pedía sobre el índice, y un índice no tiene permisos que dar. La imagen fijada (`pgvector/pgvector:0.8.7-pg17-trixie`) trae un 17.x reciente; para revisar la versión, `$COMPOSE exec db postgres --version`, y para subirla, cambiar la etiqueta en `docker-compose.yml`, `$COMPOSE pull db` y `$COMPOSE up -d db`. Con una anterior, la API anota "No se pudo precargar los índices de la búsqueda (0 leídos): permission denied…" y sigue sin precarga.
 
 ## 5. Volver atrás
@@ -356,7 +358,7 @@ Cada prefijo rota aparte: un despliegue no expulsa un respaldo semanal ni uno no
 ### Registros
 
 - `$COMPOSE logs -f api` (y `web`, `db`, `migrate`). Docker guarda 5 archivos de 10 MB por contenedor.
-- La API escribe texto: hora, nivel, módulo, `[X-Request-ID]` y el mensaje. Una línea por request con método, **plantilla de la ruta** (`/profile/{user_id}`, nunca el id), estado y milisegundos; sin query, sin IP. Cada request lleva un id: el `X-Request-ID` que traiga (si está bien formado) o uno nuevo; vuelve en la respuesta y une las líneas de ese request. `/live` y `/health` sanos no se registran en `INFO`.
+- La API escribe texto: hora, nivel, módulo, `[X-Request-ID]` y el mensaje. Una línea por request con método, **plantilla de la ruta** (`/profile/{user_id}`, nunca el id), estado y milisegundos; sin query, sin IP. Cada request lleva un id (el `X-Request-ID` que traiga si está bien formado, o uno nuevo), que vuelve en la respuesta y permite seguir todas las líneas de ese request. `/live` y `/health` sanos no se registran en `INFO`.
 - Caddy no lleva registro de accesos (no hay directiva `log`).
 - Las horas de `jobs` y `migrate` van en hora de Chile; las de la API, en UTC.
 
@@ -431,7 +433,7 @@ uvicorn toma la IP de `X-Forwarded-For` (`--proxy-headers --forwarded-allow-ips=
 
 ### Roles de la base
 
-- **`rappi_api`** (la API): solo `CONNECT` en la base; lee todo (`public` y `capa`) y escribe solo los datos de las personas (sesión, eventos y lo que dejaron a la vista, sesiones de la app, variantes de los experimentos, pedidos, preferencias y permiso de "Pedir por mí", segmentos, y la afinidad y la recompra que recalcula tras un pedido o "Olvidar") y `segment_defs` (el recálculo de segmentos tras un pedido la vuelve a sembrar si cambiaron las reglas), más el contador agregado de las guardias de ofertas (`guard_blocks`, sin persona ni producto). La lista de tablas, con sus secuencias, está una sola vez en [`grants.sql`](../deploy/db/grants.sql): es la fuente única, y un test de `deploy-migrate` falla si una tabla de personas que la API escribe (`PERSON_TABLES` de `rappi_ia/delivery.py`) no está ahí. No es dueña de ninguna tabla ni puede crear objetos. Los permisos los aplica `migrate` en cada despliegue (idempotente).
+- **`rappi_api`** (la API): solo `CONNECT` en la base; lee todo (`public` y `capa`) y escribe únicamente los datos de las personas (sesión, eventos y lo que dejaron a la vista, sesiones de la app, variantes de los experimentos, pedidos, preferencias y permiso de "Pedir por mí", segmentos, y la afinidad y la recompra que recalcula tras un pedido o "Olvidar"), además de `segment_defs` (el recálculo de segmentos tras un pedido la vuelve a sembrar si cambiaron las reglas) y el contador agregado de las guardias de ofertas (`guard_blocks`, sin persona ni producto). La lista de tablas, con sus secuencias, vive una sola vez en [`grants.sql`](../deploy/db/grants.sql): es la fuente única, y un test de `deploy-migrate` falla si falta ahí alguna tabla de personas que la API escribe (`PERSON_TABLES` de `rappi_ia/delivery.py`). No es dueña de ninguna tabla ni puede crear objetos. Los permisos los aplica `migrate` en cada despliegue (idempotente).
 - **`rappi_owner`** (migrate y jobs): dueño de la base y de las tablas; migra, restaura y corre los trabajos. No es superusuario.
 - **`postgres`** (superusuario): solo el contenedor `db` (roles, extensiones, crear y borrar bases).
 
@@ -456,7 +458,7 @@ Los demás reciben vacíos `BASIC_AUTH_*` y `PANEL_AUTH_*` (`x-sin-puerta`). Una
 | La persona del prototipo: id seudónimo, fecha de alta y de su sesión | `app_users` | hasta "Borrar mis datos" o 180 días sin actividad (`PROTOTYPE_USER_RETENTION_DAYS`) |
 | El SHA-256 del id de una persona borrada, para que su token deje de servir | `forgotten_users` | sin plazo (una fila por persona borrada) |
 | Lo que las guardias sacaron de las ofertas de Mochi, contado por día, momento y motivo (sin persona ni producto) | `guard_blocks` | sin plazo (una fila por día, momento y motivo) |
-| Eventos de uso, con el texto de búsquedas y preguntas (datos personales redactados antes de guardar: RUT, teléfonos, correos, direcciones, tarjetas) | `app_events` | el texto, 90 días; el evento, lo que dure la persona |
+| Eventos de uso, con el texto de búsquedas y preguntas (datos personales enmascarados antes de guardar: RUT, teléfonos, correos, direcciones, tarjetas) | `app_events` | el texto, 90 días; el evento, lo que dure la persona |
 | Pedidos (líneas, tienda, vertical; sin dirección), segmentos, afinidad por vertical y recompra | `app_orders`, `app_order_lines`, `user_segments`, `user_vertical_affinity`, `replenishment` | lo que dure la persona (se borran en cascada) |
 | Registros de la API (sin ids, sin IP, sin query) | Docker | 5 × 10 MB por contenedor |
 | Respaldos (traen todo lo anterior) | volumen `backups`: 3 `nocturno_*`, 4 `pre-migracion_*` y 4 `rappi_*` (si la descarga corre en el servidor); restic | en restic, hasta unas 3 semanas (7 diarios y 4 semanales, que se solapan); en el volumen, 3 días los nocturnos, unas 4 semanas los `rappi_*` y los `pre-migracion_*` hasta 4 despliegues con migración, sin plazo. Lo borrado sigue en ellos hasta que rotan |

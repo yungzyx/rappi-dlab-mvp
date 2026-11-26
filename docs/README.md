@@ -41,7 +41,7 @@ Las especificaciones con que se construyeron las piezas grandes. Cada una dice a
 | [Conversar con Mochi](diseno/2026-10-25-mochi-conversacion-design.md) | 25-10-2026 | Seguir la conversación ("más barato", "sin carne", "para 10 personas"): el estado que viaja con la app y cómo se combina con lo nuevo. Desde el 26-10, con chips y sin campo para escribirle |
 | [Elementos nuevos del panel](diseno/2026-11-25-panel-elementos-nuevos-design.md) | 25-11-2026 | Qué cambió, estado del piloto con su ritmo, CSV y período, y las rutas `/analytics/verticales` y `/analytics/audiencias` |
 
-Las migraciones 022 a 026, 036 y 037 citan en su primera línea rutas `docs/superpowers/...` que ya no existen en el repositorio (las migraciones aplicadas no se editan). Equivalen a esto: `docs/superpowers/specs/<fecha>-….md` es `docs/diseno/<fecha>-….md` (el mismo archivo, en [diseno/](diseno/)), y el plan de la escalera fina que cita la 037 (`docs/superpowers/plans/2026-10-16-etapa-7-escalera-fina.md`) quedó resumido en [capa-de-datos.md](capa-de-datos.md#la-escalera-fina). La 035 cita en su primera línea el repositorio privado `rappi-evolucion-proyecto` (etiqueta `etapa-12-pasaporte-y-juego`), que no es parte de la entrega: la historia del juego y del pasaporte que salieron está en [historial/decisiones-reemplazadas.md](historial/decisiones-reemplazadas.md).
+Las migraciones 022 a 026, 036 y 037 citan en su primera línea rutas `docs/superpowers/...` que ya no existen en el repositorio (las migraciones aplicadas no se editan). Sus equivalencias actuales son: `docs/superpowers/specs/<fecha>-….md` corresponde a `docs/diseno/<fecha>-….md` (el mismo archivo, en [diseno/](diseno/)), y el plan de la escalera fina que cita la 037 (`docs/superpowers/plans/2026-10-16-etapa-7-escalera-fina.md`) quedó resumido en [capa-de-datos.md](capa-de-datos.md#la-escalera-fina). La 035 cita en su primera línea el repositorio privado `rappi-evolucion-proyecto` (etiqueta `etapa-12-pasaporte-y-juego`), que no es parte de la entrega: la historia del juego y del pasaporte que se retiraron está en [historial/decisiones-reemplazadas.md](historial/decisiones-reemplazadas.md).
 
 ### Diagramas y mapas
 
@@ -57,7 +57,7 @@ GitHub muestra las imágenes; las versiones interactivas (HTML) hay que descarga
 | Mapa multivertical | Qué productos y conceptos comparten las verticales, con complementos, sustitutos y "nunca junto"; se regenera con `rappi-ia multivertical` | — | [mapa-multivertical.html](mapas/mapa-multivertical.html) |
 | Mapa de conceptos | Cada concepto junto a la vertical donde es más típico (la regla de Mochi) | [mapa-conceptos.jpg](mapas/mapa-conceptos.jpg) | — |
 
-La página de la propuesta del panel (`dashboard-empresa/presentacion.html`) sirve copias de `motor-flujo.png`, `rag-datos.png` (como `flujo-de-datos.png`) y `mapa-conceptos.jpg` en `dashboard-empresa/public/presentacion/`: al regenerar uno, se copia también ahí (el CI revisa que sean iguales). Las fuentes JSON de los diagramas están en [diagramas-fuente/](diagramas-fuente/). El HTML y el PNG se generaron a partir de ellas con Archify, una herramienta de diagramas que no es parte del repositorio.
+La página de la propuesta del panel (`dashboard-empresa/presentacion.html`) sirve copias de `motor-flujo.png`, `rag-datos.png` (como `flujo-de-datos.png`) y `mapa-conceptos.jpg` en `dashboard-empresa/public/presentacion/`: al regenerar cualquiera de ellos, hay que copiarlo también ahí (el CI revisa que sean iguales). Las fuentes JSON de los diagramas están en [diagramas-fuente/](diagramas-fuente/). El HTML y el PNG se generaron a partir de ellas con Archify, una herramienta de diagramas que no es parte del repositorio.
 
 ## 3. Resultados
 
@@ -93,7 +93,7 @@ La página de la propuesta del panel (`dashboard-empresa/presentacion.html`) sir
 | Publicar la demo desde un Mac, sin servidor: Cloudflare Tunnel y la misma puerta | [deploy/macos/README.md](../deploy/macos/README.md) | 10 min |
 | Consultar la base con SQL | [sql/README.md](sql/README.md) y [consultas.sql](sql/consultas.sql) | 5 min |
 | Probar a Mochi (API) como usuario y dejar cada fallo como test | [probar-agente.md](probar-agente.md) | 3 min |
-| Hacer una prueba con personas en dlab-mvp.com: objetivo, consentimiento, las 6 tareas, el cuestionario, el resumen de cada una (`rappi-ia resumen-prueba`), cómo borrarla al final (`rappi-ia olvidar`) y la plantilla del reporte, con la hoja del observador para imprimir | [prueba-usuarios.md](prueba-usuarios.md) y [prueba-hoja-observador.md](prueba-hoja-observador.md) | 10 min |
+| Hacer una prueba con personas en dlab-mvp.com: objetivo, consentimiento, las 6 tareas, el cuestionario, el resumen de cada participante (`rappi-ia resumen-prueba`), cómo borrar sus datos al final (`rappi-ia olvidar`) y la plantilla del reporte, con la hoja del observador para imprimir | [prueba-usuarios.md](prueba-usuarios.md) y [prueba-hoja-observador.md](prueba-hoja-observador.md) | 10 min |
 | Usar el panel de negocio (parte del MVP, para la gerencia y RappiAds: 3 vistas alrededor de 4 preguntas, más Experimentos) | [dashboard-empresa/README.md](../dashboard-empresa/README.md) | 5 min |
 | Contribuir: cómo correr los tests, convenciones y commits | [CONTRIBUTING.md](../CONTRIBUTING.md) y las convenciones del repositorio en [CLAUDE.md](../CLAUDE.md) | 10 min |
 
