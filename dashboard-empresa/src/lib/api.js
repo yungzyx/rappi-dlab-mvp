@@ -1,5 +1,5 @@
 // Cliente de la API de rappi-ia para el panel. Si una consulta de datos simulados falla o tarda demasiado, usa la
-// respuesta guardada en src/fixtures/sin-conexion (npm run fixtures: todas de una misma foto de la API) y la anota, con
+// respuesta guardada en src/fixtures/sin-conexion (npm run fixtures; cada una con su fecha) y la anota, con
 // el origen y la fecha que trae el archivo, para avisar que el panel está en modo sin conexión. El uso del MVP (fuente
 // prototipo) no tiene respaldo: sin la base viva no hay nada honesto que mostrar. En el panel en un solo HTML (npm run panel:html) no hay API: las
 // respuestas vienen grabadas en el archivo (`virtual:panel-snapshot`, ver vite.config.js), cada una con su fuente.
