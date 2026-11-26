@@ -32,7 +32,7 @@ from ..agent.rappi_agent import PROTOTYPE_VERTICALS, Context
 from ..agent.tools import VERTICAL_LABELS, Suggestion, search_products, suggest_complement
 from ..analytics import queries
 from ..catalog.restaurants import search_restaurants
-from ..catalog.stores import line_stores, search_stores
+from ..catalog.stores import OWN_VERTICAL, line_stores, product_detail, search_stores
 from ..concepts.taxonomy import load_taxonomy
 from ..db import pending_migrations
 from ..embeddings.base import TextEmbedder
@@ -955,8 +955,9 @@ def post_order(
 ) -> dict:
     """Guarda el pedido con el precio del catálogo en la tienda de cada línea (las que no tienen precio vigente quedan
     fuera y se cuentan en `lineas_omitidas`) y, ya respondido, recalcula los segmentos y el motor (afinidad y recompra)
-    de esa persona (solo lo suyo, con otra conexión del pool, ya devuelta la del pedido). Un reenvío con la misma
-    `client_order_id` devuelve el pedido ya guardado."""
+    de esa persona (solo lo suyo, con otra conexión del pool, ya devuelta la del pedido). La vertical (una de su
+    tienda) y el concepto de cada línea (el del catálogo) también los dice el servidor: alimentan el motor, los
+    segmentos y el panel. Un reenvío con la misma `client_order_id` devuelve el pedido ya guardado."""
     owner_of_body(request, body.user_id)
     if body.client_order_id and (saved := events.saved_order(conn, body.user_id, body.client_order_id)):
         return {"order_id": saved[0], "lineas_omitidas": max(len(body.lines) - saved[1], 0)}
@@ -968,10 +969,13 @@ def post_order(
     if body.scheduled_for is not None and not _schedulable(body.scheduled_for):
         raise HTTPException(400, "Solo se programa para hoy o mañana")
     ordered = _one_store([line.model_dump() for line in body.lines], conn)
+    store_id = next((line["store_id"] for line in ordered if line["store_id"] is not None), None)
+    vertical = _order_vertical(conn, vertical, store_id)
     placed = _auto_order(conn, body) if body.autopedido else None
     lines, skipped = events.catalog_prices(conn, ordered)
     if not lines:  # sin decir cuál: la respuesta no sirve para sondear el catálogo
         raise HTTPException(400, "Producto no disponible")
+    lines = _catalog_concepts(conn, lines)
     try:
         order_id = events.record_order(
             conn,
@@ -1001,11 +1005,57 @@ def post_order(
 def _one_store(lines: list[dict], conn: Connection) -> list[dict]:
     """Un pedido es de una tienda: un carro con dos restaurantes son dos pedidos (la app manda uno por tienda). La
     tienda de cada línea la dice el servidor (`line_stores`: la que trae o, en un plato, su restaurante), no solo la
-    que manda el cliente; con dos, un 400. Cada plato queda con su restaurante."""
+    que manda el cliente; con dos, un 400. Cada plato queda con su restaurante. Un producto del catálogo sin tienda va
+    en la del pedido, si otra línea la dice (con su precio de ahí, o fuera si ahí no se vende); si ninguna la dice, en
+    la de su ficha (la oferta más barata, la que pone su precio): dos así de tiendas distintas también son un 400."""
     stores = line_stores(conn, lines)
-    if len(set(stores) - {None}) > 1:
+    if not set(stores) - {None}:
+        stores = [
+            _detail_store(conn, line) if store is None and line["entity_type"] == "catalog_item" else store
+            for line, store in zip(lines, stores, strict=True)
+        ]
+    known = set(stores) - {None}
+    if len(known) > 1:
         raise HTTPException(400, "Un pedido es de una sola tienda")
-    return [{**line, "store_id": store} for line, store in zip(lines, stores, strict=True)]
+    order_store = next(iter(known), None)
+    return [
+        {**line, "store_id": order_store if store is None and line["entity_type"] == "catalog_item" else store}
+        for line, store in zip(lines, stores, strict=True)
+    ]
+
+
+def _detail_store(conn: Connection, line: dict) -> int | None:
+    """La tienda de la ficha de un producto del catálogo (la de su oferta vigente más barata), o None."""
+    detail = product_detail(conn, "catalog_item", line["entity_id"])
+    return detail["store_id"] if detail else None
+
+
+def _order_vertical(conn: Connection, vertical: str, store_id: int | None) -> str:
+    """La vertical de un pedido es una de su tienda: la que manda la app si la tienda es de esa (una tienda puede ser de
+    dos, como un súper que también es express) y, si no, la suya (`OWN_VERTICAL`; la de un restaurante es
+    restaurantes). Sin tienda conocida, la que manda la app."""
+    if store_id is None:
+        return vertical
+    row = conn.execute(
+        f"""SELECT EXISTS (SELECT 1 FROM v_store_verticals v WHERE v.store_id = s.store_id AND v.vertical = %s),
+                   {OWN_VERTICAL}
+            FROM stores s WHERE s.store_id = %s""",
+        (vertical, store_id),
+    ).fetchone()
+    return vertical if row is None or row[0] or row[1] is None else row[1]
+
+
+def _catalog_concepts(conn: Connection, lines: list[dict]) -> list[dict]:
+    """Las líneas con el concepto del catálogo (`item_concepts`), no el que manda el cliente (como el de una búsqueda,
+    `_search_concept`); sin concepto asignado, ninguno."""
+    rows = conn.execute(
+        """SELECT ic.entity_type, ic.entity_id, ic.concept_id
+           FROM unnest(%s::text[], %s::text[]) AS w(entity_type, entity_id)
+           JOIN item_concepts ic USING (entity_type, entity_id)""",
+        ([line["entity_type"] for line in lines], [line["entity_id"] for line in lines]),
+    ).fetchall()
+    found = {(kind, entity_id): concept for kind, entity_id, concept in rows}
+    return [{**line, "concept_id": found.get((line["entity_type"], line["entity_id"]))} for line in lines]
 
 
 SCHEDULE_AHEAD = timedelta(days=2)  # la app ofrece franjas de hoy y de mañana

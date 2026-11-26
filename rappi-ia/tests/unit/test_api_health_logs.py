@@ -299,7 +299,11 @@ def test_order_other_source_errors_are_generic(client, caplog, monkeypatch):
         "vertical": "supermercado",
         "lines": [{"entity_type": "catalog_item", "entity_id": "1"}],
     }
+    # Lo que el pedido lee del catálogo (tienda, vertical, precio y concepto de cada línea), sin base.
+    monkeypatch.setattr(api, "_one_store", lambda lines, conn: [{**line, "store_id": 1} for line in lines])
+    monkeypatch.setattr(api, "_order_vertical", lambda conn, vertical, store_id: vertical)
     monkeypatch.setattr(api.events, "catalog_prices", lambda conn, lines: ([{"price": 1}], 0))
+    monkeypatch.setattr(api, "_catalog_concepts", lambda conn, lines: lines)
     monkeypatch.setattr(api.events, "record_order", other_source)
     with caplog.at_level(logging.WARNING):
         reply = client.post("/orders", json=order)

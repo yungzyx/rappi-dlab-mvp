@@ -30,11 +30,15 @@ def _shared(db):
 
 
 def _catalog(db):
-    """La taxonomía y el producto de `_line`: /orders toma el precio del catálogo."""
+    """La taxonomía y el producto de `_line`: /orders toma el precio y el concepto del catálogo."""
     seed_taxonomy(db, load_taxonomy())
     add_store(db, 1, "supermercado", "Súper")
     add_product(db, 91001, "Papas fritas clásicas 180 g", 1, "Snacks salados")
     add_price(db, 1, 91001, 1990)
+    db.execute(
+        """INSERT INTO item_concepts (entity_type, entity_id, concept_id, method, confidence)
+           VALUES ('catalog_item', '91001', 'snacks-salados', 'curado', 1)"""
+    )
     db.commit()
 
 

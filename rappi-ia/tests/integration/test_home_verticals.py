@@ -19,11 +19,30 @@ MEDICINE = {"entity_type": "catalog_item", "entity_id": "95001", "concept_id": "
 BEER = {"entity_type": "catalog_item", "entity_id": "94001", "concept_id": "cerveza"}
 # Unos Doritos de una botillería (la tarea 1 de la prueba con personas): un snack, no un trago.
 DORITOS = {"entity_type": "catalog_item", "entity_id": "91001", "concept_id": "snacks-salados"}
+PIZZA = {"entity_type": "menu_item", "entity_id": "98002"}  # un plato de la pizzería de prueba
+# La tienda de cada vertical donde se pide: un pedido es de una tienda y su vertical es una de la tienda, así que las
+# papas de una botillería o de una farmacia se piden ahí (en el fixture, esas dos también las venden, como en la base
+# real; en el catálogo de prueba no).
+STORE_OF = {"supermercado": 9101, "conveniencia": 9201, "licores": 9401, "farmacia": 9501}
+
+
+def _sells_chips(db, store_id: int) -> None:
+    db.execute(
+        "INSERT INTO store_products (store_id, sku, master_product_id) VALUES (%s, 'papas-de-prueba', 91001)",
+        (store_id,),
+    )
+    db.execute(
+        """INSERT INTO price_snapshots (run_id, store_id, sku, price, in_stock)
+           SELECT max(run_id), %s, 'papas-de-prueba', 2190, true FROM price_snapshots WHERE store_id = %s""",
+        (store_id, store_id),
+    )
 
 
 @pytest.fixture
 def client(db):
     seed_demo(db)
+    for store_id in (STORE_OF["licores"], STORE_OF["farmacia"]):
+        _sells_chips(db, store_id)
     embedder = HashEmbedder()
 
     def conn_override():
@@ -42,7 +61,9 @@ def person(user_id: str = "u-home") -> tuple[str, dict]:
 
 
 def order(client, who, vertical: str, n: int, mode: str = "propuesta", line: dict = CHIPS) -> None:
+    """Un pedido de `line` en la tienda de esa vertical (`STORE_OF`; en restaurantes, una pizza)."""
     user_id, headers = who
+    line = PIZZA if vertical == "restaurantes" else {**line, "store_id": STORE_OF[vertical]}
     body = {
         "user_id": user_id,
         "session_id": f"s-{vertical}-{n}",
