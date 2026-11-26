@@ -12,7 +12,7 @@ Antes de empezar, quien despliega decide o consigue lo siguiente. Todos los valo
 |---|---|
 | **Dominio y DNS:** un registro A (y AAAA si hay IPv6) hacia el servidor. Caddy pide el certificado solo | `DOMAIN` |
 | **Servidor:** mínimo 4 vCPU, 8 GB de RAM y 60 GB de SSD, con Docker Engine y el plugin compose ([§8](#8-tamaño-y-postgres)) | — |
-| **Puerta de acceso:** un usuario y una clave. La clave se guarda solo como hash: `docker run --rm -it caddy:2.11.7-alpine caddy hash-password` (la pide dos veces y no queda en el historial) | `BASIC_AUTH_USER` y `BASIC_AUTH_HASH` (entre comillas simples) |
+| **Puerta de acceso:** un usuario y una clave. La clave se guarda solo como hash: `docker run --rm -it caddy:2.11.9-alpine caddy hash-password` (la versión de `deploy/Dockerfile.web`; la pide dos veces y no queda en el historial) | `BASIC_AUTH_USER` y `BASIC_AUTH_HASH` (entre comillas simples) |
 | **Claves de la base:** superusuario, dueño de las tablas y rol de la API, cada una con `openssl rand -hex 32` | `POSTGRES_PASSWORD`, `RAPPI_OWNER_PASSWORD` y `RAPPI_API_PASSWORD`, repetidas en `DATABASE_URL_OWNER` y `DATABASE_URL_API` |
 | **Secreto de la sesión anónima:** `openssl rand -hex 32` | `API_SECRET` |
 | **Copia de los respaldos fuera del servidor:** un repositorio de restic (S3, B2…), su clave y las credenciales del almacenamiento. El repositorio se crea una vez a mano con `restic init` ([§3.9](#39-respaldos-y-timers)) | `RESTIC_REPOSITORY`, `RESTIC_PASSWORD` y, por ejemplo, `AWS_ACCESS_KEY_ID`/`AWS_SECRET_ACCESS_KEY` o `B2_ACCOUNT_ID`/`B2_ACCOUNT_KEY`. Solo llegan al servicio `jobs` |
@@ -24,7 +24,7 @@ Antes de empezar, quien despliega decide o consigue lo siguiente. Todos los valo
 Decisiones para quien despliega:
 
 - **`VITE_DEMO`:** con `VITE_DEMO=1` la app desplegada trae el interruptor "Prototipo final / Rappi hoy" (tecla D); vacío, no. Se aplica al construir `web`.
-- **El panel:** `WITH_PANEL=1` lo construye en `/panel/` y `API_ENABLE_ANALYTICS=1` enciende `/analytics/*`, que el panel lee. Van juntos: con los dos en 0 se despliega solo la app.
+- **El panel:** `WITH_PANEL=1` lo construye en `/panel/` y `API_ENABLE_ANALYTICS=1` enciende `/analytics/*`, que el panel lee. Van juntos: con los dos en 0 se despliega solo la app. Con `PANEL_AUTH_USER` y `PANEL_AUTH_HASH` (opcionales: otro usuario y otra clave, el hash como el de la puerta), `/panel` y `/api/analytics` piden su propia credencial y no la de la puerta, que se reparte a quienes prueban la app. Sin ellas, el panel queda detrás de la misma puerta. `/api/analytics` entrega audiencias con ids seudónimos y escribe los juicios de la búsqueda ("Juzgar la búsqueda"): para una prueba con personas, el panel va apagado o con su credencial.
 - **La descarga semanal en el servidor** (`rappi-refresh.timer`, que viene apagado): solo después de poner el contacto del scraper (`RAPPI_UA_CONTACT`) y de aceptar que rappi.cl pueda frenar una IP de datacenter ([§9](#9-riesgos)). Hasta entonces la descarga semanal corre en el equipo local que ya la tiene programada.
 - **Retención:** las personas del prototipo sin actividad se borran a los 180 días (`PROTOTYPE_USER_RETENTION_DAYS`) y el texto de las búsquedas, a los 90 ([§7](#qué-se-guarda-y-cuánto-tiempo)). Los 90 días no son una variable sino una constante del código (`QUERY_RETENTION_DAYS`); otro plazo exige `rappi-ia purge --dias N` en `rappi-purge.service`. Confirmar los dos plazos.
 
@@ -68,6 +68,8 @@ Todas van en `/etc/rappi/rappi.env`, salvo las que fija `docker-compose.yml` o l
 | `DOMAIN` | web; compose arma `API_CORS_ORIGINS=https://$DOMAIN` | obligatoria | `demo.ejemplo.cl` | no |
 | `BASIC_AUTH_USER` | web | obligatoria | `demo` | no |
 | `BASIC_AUTH_HASH` | web | obligatoria | `'$2a$14$…'` | sí (hash) |
+| `PANEL_AUTH_USER` | web | opcional (vacía: el panel queda detrás de la misma puerta) | `panel` | no |
+| `PANEL_AUTH_HASH` | web | opcional | `'$2a$14$…'` | sí (hash) |
 | `VITE_DEMO` | web (al construir) | vacía | `1` | no |
 | `WITH_PANEL` | web (al construir) | `0` | `1` | no |
 
@@ -154,11 +156,11 @@ Todos los comandos van **como root** (o con `sudo`), en **bash**, desde la carpe
 ```bash
 install -d -m 700 /etc/rappi
 install -m 600 /opt/rappi/deploy/.env.example /etc/rappi/rappi.env
-docker run --rm -it caddy:2.11.7-alpine caddy hash-password   # pide la clave de la puerta y escribe su hash
+docker run --rm -it caddy:2.11.9-alpine caddy hash-password   # la versión de deploy/Dockerfile.web: pide la clave de la puerta y escribe su hash
 openssl rand -hex 32                              # una vez por cada clave y para API_SECRET
 ```
 
-Editar `/etc/rappi/rappi.env` y reemplazar cada `cambiar-esto` ([§0](#0-lo-que-hay-que-decidir-o-conseguir)). `DATABASE_URL_OWNER` y `DATABASE_URL_API` llevan las mismas claves que `RAPPI_OWNER_PASSWORD` y `RAPPI_API_PASSWORD`. `BASIC_AUTH_HASH` va entre comillas simples.
+Editar `/etc/rappi/rappi.env` y reemplazar cada `cambiar-esto` ([§0](#0-lo-que-hay-que-decidir-o-conseguir)). `DATABASE_URL_OWNER` y `DATABASE_URL_API` llevan las mismas claves que `RAPPI_OWNER_PASSWORD` y `RAPPI_API_PASSWORD`. `BASIC_AUTH_HASH` va entre comillas simples. Si una clave de la base queda en `cambiar-esto`, la base no se inicializa (`init-roles.sh` se niega): corregir el archivo, `docker volume rm rappi_pgdata` y volver a levantarla.
 
 docker compose usa este archivo dos veces, y las dos tienen que ser el mismo: para armar `docker-compose.yml` (`DOMAIN`, la puerta, las URL de cada servicio) y como `env_file` de `db`, `migrate`, `api` y `jobs`. Desde aquí, cada comando usa esta variable:
 
@@ -248,7 +250,7 @@ read -rs BASIC_AUTH_PASSWORD && export BASIC_AUTH_PASSWORD   # la clave de la pu
 deploy/smoke.sh https://<dominio>                             # el valor de DOMAIN, p. ej. https://demo.ejemplo.cl
 ```
 
-[`deploy/smoke.sh`](../deploy/smoke.sh) usa `$COMPOSE` y revisa: la puerta (401 sin credenciales en `/`, `/api/health`, `/panel` y `/panel/`), `/api/health` 200 con la búsqueda semántica, las cabeceras de seguridad y de caché, que lo servido no apunte a `:8000` ni traiga scripts en línea o de otro origen, que la app lleve el aviso de demo ("Prototipo dLab con Rappi · demo, no es la app oficial"), que `rappi_api` no pueda borrar tablas ni crear objetos, que ningún servicio tenga un `cambiar-esto` (`jobs` también, en un contenedor desechable; si un entorno no se puede leer, falla) y que todo esté sano. Con `WITH_PANEL=1` (el panel construido y `API_ENABLE_ANALYTICS=1`) pide además, con credenciales, `/panel/`, un archivo de `/panel/assets/` y `/api/analytics/kpis`, y espera 200. Termina con "smoke: todo bien." (código 0) o lista lo que falló. Con `DOMAIN=localhost` acepta la CA interna de Caddy.
+[`deploy/smoke.sh`](../deploy/smoke.sh) usa `$COMPOSE` y revisa: la puerta (401 sin credenciales en `/`, `/api/health`, `/panel` y `/panel/`), `/api/health` 200 con la búsqueda semántica, las cabeceras de seguridad y de caché, que lo servido no apunte a `:8000` ni traiga scripts en línea o de otro origen, que la app lleve el aviso de demo ("Prototipo dLab con Rappi · demo, no es la app oficial"), que `rappi_api` no pueda borrar tablas ni crear objetos, que ningún servicio tenga un `cambiar-esto` (`jobs` también, en un contenedor desechable; si un entorno no se puede leer, falla), que la puerta (`BASIC_AUTH_*` y `PANEL_AUTH_*`) solo llegue a `web` y que todo esté sano. Con `WITH_PANEL=1` (el panel construido y `API_ENABLE_ANALYTICS=1`) pide además, con credenciales, `/panel/`, un archivo de `/panel/assets/` y `/api/analytics/kpis`, y espera 200. Si el panel tiene su propia credencial, su clave en claro va en `PANEL_AUTH_PASSWORD`: el panel y `/api/analytics/kpis` abren con ella y dan 401 con la de la puerta. Termina con "smoke: todo bien." (código 0) o lista lo que falló. Con `DOMAIN=localhost` acepta la CA interna de Caddy.
 
 ### 3.9 Respaldos y timers
 
@@ -289,7 +291,7 @@ $COMPOSE up -d --wait
 deploy/smoke.sh https://<dominio>    # con BASIC_AUTH_PASSWORD exportada (§3.8)
 ```
 
-- **En producción ni la API ni la tarea semanal migran.** Solo `migrate` lo hace, con respaldo antes. Si la API arranca con migraciones pendientes, `/health` responde 503 `migraciones_pendientes` hasta que corre `migrate`.
+- **En producción ni la API ni la tarea semanal migran.** Solo `migrate` lo hace, con respaldo antes. Si la API arranca con migraciones pendientes, `/health` responde 503 `migraciones_pendientes` hasta que corre `migrate`. Con `API_ENV=production`, `rappi migrate` y `rappi-ia migrate` sin `--solo-revisar` se niegan: migrar es `$COMPOSE run --rm migrate`.
 - `up -d` recrea solo los servicios cuya imagen o configuración cambió. Durante el cambio de la API hay unos segundos sin servicio (1 worker, sin réplica).
 - Un cambio de `VITE_DEMO` o `WITH_PANEL` exige `$COMPOSE build web` y `up -d`.
 - **El motor multivertical en el servidor.** Sus tablas de población (transiciones, combinaciones, compra cruzada y tendencias) llegan con el dump y no se recalculan solas: `jobs` solo purga y respalda, y `rappi-refresh.timer` (cuya capa de IA incluye el motor) viene apagado. La afinidad y la recompra de cada persona del prototipo las recalcula la API después de cada pedido y de "Olvidar". Para recalcular la población: `$COMPOSE --profile jobs run --rm jobs rappi-ia motor` ([capa-de-datos.md](capa-de-datos.md#motor-multivertical)).
@@ -308,11 +310,11 @@ $COMPOSE up -d --wait                # sin build: usa las imágenes recién etiq
 
 Con el commit anterior puesto, git queda fuera de la rama: antes de la próxima actualización ([§4](#4-actualizar)), `git checkout main` y recién después `git pull`.
 
-**Con migración nueva:** además, restaurar el respaldo que `migrate` hizo antes de aplicarla (el `pre-migracion_<fecha>.dump` más nuevo). Se pierde lo que la gente haya hecho desde entonces. Con las imágenes y el commit anteriores ya puestos (bloque de arriba, sin el `up`):
+**Con migración nueva:** además, restaurar el respaldo que `migrate` hizo antes de aplicarla: el `pre-migracion_` del **primer** intento de esa actualización. Si un `migrate` falló a medias y se reintentó, el reintento hizo otro respaldo, ya con las migraciones que alcanzaron a aplicarse: anotar el nombre del primero antes de reintentar y restaurar ese. Se pierde lo que la gente haya hecho desde entonces. Con las imágenes y el commit anteriores ya puestos (bloque de arriba, sin el `up`):
 
 ```bash
 $COMPOSE stop api
-$COMPOSE --profile jobs run --rm jobs ls -lt /data/backups          # el pre-migracion_ más nuevo es el de antes de migrar
+$COMPOSE --profile jobs run --rm jobs ls -lt /data/backups          # el pre-migracion_ del primer intento de esta actualización
 $COMPOSE exec -T db sh -c 'psql -v ON_ERROR_STOP=1 -U postgres -d postgres -v db="$POSTGRES_DB"' <<'SQL'
 DROP DATABASE :"db" WITH (FORCE);
 CREATE DATABASE :"db" OWNER rappi_owner;
@@ -327,7 +329,7 @@ $COMPOSE --profile jobs run --rm -T jobs bash -s <<'EN_JOBS'
 set -euo pipefail
 . deploy/scripts/pgpass.sh
 pgpass_from_database_url
-dump=$(ls -t /data/backups/pre-migracion_*.dump | head -n 1)
+dump=/data/backups/pre-migracion_<fecha>.dump   # el anotado: el del primer intento
 echo "restaurando $dump"
 pg_restore --list "$dump" | grep -v "COMMENT - EXTENSION" > /tmp/lista
 PGOPTIONS="-c maintenance_work_mem=1GB" pg_restore --dbname="$PG_URL" --no-owner --no-privileges --exit-on-error \
@@ -403,7 +405,7 @@ Nunca dos descargas, dos migraciones ni dos armados de la búsqueda a la vez:
 
 ### La puerta
 
-Caddy pide usuario y clave (`basic_auth`) en **todo** el sitio: la app, `/api/*` y `/panel/*`, también en los errores. No hay rutas abiertas: el manifiesto y los íconos también pasan por la puerta (la app pide el manifiesto con credenciales, `crossorigin="use-credentials"`; sin eso el navegador lo pide sin ellas y recibe 401). Antes de llegar a la API, Caddy corta los cuerpos de más de 1 MB (la API corta en 512 KB).
+Caddy pide usuario y clave (`basic_auth`) en **todo** el sitio: la app, `/api/*` y `/panel/*`, también en los errores. Con la credencial del panel (`PANEL_AUTH_*`), `/panel` y `/api/analytics` piden esa, con su propio realm, y no la de la puerta. No hay rutas abiertas: el manifiesto y los íconos también pasan por la puerta (la app pide el manifiesto con credenciales, `crossorigin="use-credentials"`; sin eso el navegador lo pide sin ellas y recibe 401). Antes de llegar a la API, Caddy corta los cuerpos de más de 1 MB (la API corta en 512 KB).
 
 ### Cabeceras
 
@@ -439,13 +441,13 @@ Cada contenedor recibe solo las claves que usa (`docker-compose.yml` vacía las 
 
 | Servicio | Claves |
 |---|---|
-| `web` | sin `env_file`: solo `DOMAIN`, `BASIC_AUTH_USER` y `BASIC_AUTH_HASH` |
+| `web` | sin `env_file`: solo `DOMAIN`, `BASIC_AUTH_USER`, `BASIC_AUTH_HASH` y, si se usan, `PANEL_AUTH_USER` y `PANEL_AUTH_HASH` |
 | `api` | `API_SECRET`, `DATABASE_URL` (`rappi_api`) y `ANTHROPIC_API_KEY` si hay |
 | `migrate` | `DATABASE_URL` (`rappi_owner`) |
-| `jobs` | `DATABASE_URL` (`rappi_owner`), `API_SECRET`, restic y su almacenamiento, `TYPESAFE_API_KEY` y `ANTHROPIC_API_KEY` si hay |
+| `jobs` | `DATABASE_URL` (`rappi_owner`), `API_SECRET`, restic y su almacenamiento y `TYPESAFE_API_KEY` si hay |
 | `db` | sus claves de Postgres y de los roles |
 
-Una clave nueva en el archivo va también en la lista `x-sin-claves-…` que corresponda.
+Los demás reciben vacíos `BASIC_AUTH_*` y `PANEL_AUTH_*` (`x-sin-puerta`). Una clave nueva en el archivo va también en la lista `x-sin-…` que corresponda.
 
 ### Qué se guarda y cuánto tiempo
 
@@ -477,5 +479,5 @@ Ni IPs ni cuentas en la base: la cuenta de personas nuevas por IP vive solo en m
 - **User-Agent y robots.txt:** el scraper se identifica como `rappi-dlab-scraper/<versión>` (`RAPPI_UA_PROJECT`) y, antes de cada página, consulta robots.txt para ese nombre. Si una página no está permitida (o robots.txt no responde), la descarga se detiene, la corrida queda abierta y `rappi refresh` sale con el código 7; mientras robots.txt no cambie, la próxima se detiene en la misma página ([rappi-scraper/README.md](../rappi-scraper/README.md)). `RAPPI_UA_CONTACT` suma una URL o un correo de contacto: antes de descargar desde un servidor, conviene ponerlo.
 - **El catálogo del servidor no se actualiza solo:** sin la descarga semanal en el servidor, queda con la fecha del respaldo restaurado. Traer uno más nuevo exige restaurar la base entera, que borra las personas `prototype` y su uso; una sincronización parcial (solo catálogo) no está hecha.
 - **Sin lanzamiento abierto:** los datos son de rappi.cl y de sus comercios, y se usan solo para investigación y demostración. Abrir la demo sin puerta o a cualquiera exige autorización de Rappi; por eso no hay cuentas, pagos ni rutas abiertas.
-- **`make mvp` no es para un servidor:** es la demo local. Migra la base directamente, **sin respaldo**, aunque `API_ENV=production`. En el servidor se migra solo con `$COMPOSE run --rm migrate`.
+- **`make mvp` no es para un servidor:** es la demo local y migra la base directamente, **sin respaldo**. Con `API_ENV=production` se detiene en `rappi-ia migrate`, que se niega. En el servidor se migra solo con `$COMPOSE run --rm migrate`.
 - **Un solo servidor:** sin réplica de la API ni de la base. Si el servidor se pierde, se vuelve a desplegar desde el último respaldo de restic ([§3](#3-primer-despliegue-desde-un-dump) con ese dump).
