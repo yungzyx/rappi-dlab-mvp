@@ -885,3 +885,20 @@ def test_the_load_test_prints_the_people_it_created_and_how_to_forget_them(monke
     assert sorted(created) == ["p-1", "p-2", "p-3"]
     assert re.search(r"rappi-ia olvidar p-\d p-\d p-\d", out)
     assert all(person in out for person in created)
+
+
+def test_the_nightly_purge_runs_before_the_backup(demo):
+    """Como en el servidor (purga 04:00, respaldo 04:15): el respaldo nocturno ya no lleva lo que la purga borra. Antes,
+    en el Mac, el respaldo (03:30) iba antes que la purga (04:15)."""
+    _write_fake(demo.bin / "plutil", "exit 0")
+    _postgres(demo)
+
+    assert demo.run("instalar.sh").returncode == 0
+
+    def when(service: str) -> tuple[int, int]:
+        plist = (demo.tmp / "Library" / "LaunchAgents" / f"test.{service}.plist").read_text()
+        hour = re.search(r"<key>Hour</key><integer>(\d+)</integer>", plist)
+        minute = re.search(r"<key>Minute</key><integer>(\d+)</integer>", plist)
+        return int(hour.group(1)), int(minute.group(1))
+
+    assert when("purga") < when("respaldo")
