@@ -3,13 +3,15 @@
 # Sale con 1 si encuentra alguno. Qué revisa y por qué:
 #  1. Siempre: la dirección de la API local (":8000", "localhost"). Un build de producción habla con "/api" (o con
 #     VITE_API_URL); si aparecen, la app quedó apuntando al equipo de quien la construyó.
-#     También siempre: la API simulada y el "Panel de la demo" de la demo sin conexión ("Prototipo MVP.html", `npm run
-#     demo:html`, `vite build --mode demo`): solo entran a dist-demo/, nunca a un build normal ni al de VITE_DEMO=1.
-#  2. Salvo con VITE_DEMO=1: los textos de desarrollador y los controles de la demo. La app los deja detrás de
-#     `import.meta.env.DEV || VITE_DEMO === '1'`, que Vite pliega al construir, así que en un build normal el código y
-#     sus textos desaparecen del bundle: "make mvp", "Levanta el MVP", "No pude conectar" (aviso de
-#     ConnectionGate), "Tecla D" y "Modo de la demo" (interruptor). No se revisan "Modo demo" ni "Rappi hoy": siguen en
-#     el bundle porque la fila de Cuenta y las etiquetas se filtran en tiempo de ejecución.
+#     También siempre: la API simulada, el "Panel de la demo" y el evento con que ese panel atrasa un pedido
+#     ("rappi-demo-delay") de la demo sin conexión ("Prototipo MVP.html", `npm run demo:html`, `vite build --mode
+#     demo`): solo entran a dist-demo/, nunca a un build normal ni al de VITE_DEMO=1.
+#     Y siempre los textos de desarrollador del aviso de ConnectionGate ("make mvp", "Levanta el MVP", "No pude
+#     conectar"): la app los deja detrás de `import.meta.env.DEV`, así que no quedan en ningún build.
+#  2. Salvo con VITE_DEMO=1: los controles de la demo, "Tecla D" y "Modo de la demo" (interruptor). La app los deja
+#     detrás de `import.meta.env.DEV || VITE_DEMO === '1'`, que Vite pliega al construir, así que en un build normal el
+#     código y sus textos desaparecen del bundle. No se revisan "Modo demo" ni "Rappi hoy": siguen en el bundle porque
+#     la fila de Cuenta y las etiquetas se filtran en tiempo de ejecución.
 #  Con VITE_DEMO=1 el grupo 2 se omite: ese build deja esos textos a propósito (la demo desplegada, ver docs/despliegue.md).
 #  3. Siempre: ningún <script> en línea (sin src) en los HTML. La CSP del servidor (deploy/Caddyfile) los bloquea. Se
 #     exceptúa presentacion/mapa-multivertical.html del panel, que Caddy sirve con su propia CSP.
@@ -18,8 +20,9 @@
 set -euo pipefail
 cd "$(dirname "$0")/.."
 
-always=(':8000' 'localhost' 'api-simulada' 'Panel de la demo')
-dev_only=('make mvp' 'Levanta el MVP' 'No pude conectar' 'Tecla D' 'Modo de la demo')
+always=(':8000' 'localhost' 'api-simulada' 'Panel de la demo' 'rappi-demo-delay' 'make mvp' 'Levanta el MVP'
+  'No pude conectar')
+dev_only=('Tecla D' 'Modo de la demo')
 
 patterns=("${always[@]}")
 if [ "${VITE_DEMO:-}" = 1 ]; then

@@ -22,6 +22,8 @@ Los elementos nuevos siguen la misma regla. Cada uno responde a una pregunta de 
 
 El panel (`views/overview/pilot.js`) lee de `/analytics/experimentos` las personas de cada grupo y el mínimo que pide el plan de piloto para H1, H2 y H3, y muestra la parte cubierta por el grupo que va más atrás.
 
+Con los simulados no hay piloto: sus grupos y sus diferencias los pone el generador, así que el bloque es una línea que lo dice, sin avance (como "Simulado: sin veredicto" en las hipótesis). Con el prototipo y el control apagado (`control_pct` en 0), si ya hay grupos de antes, muestra su avance con una línea que dice que no entra nadie, sin ritmo de asignación (las semanas de la H1 y la H2 no se estiman); sin personas en un grupo, dice que todavía no hay qué medir.
+
 Para responder "¿cuándo?", el experimento `ofertas_control` trae `ritmo` (`_assignment_pace`):
 
 ```json
@@ -131,7 +133,7 @@ Reglas que cumple el backend:
 
 - `usuario` es el id seudónimo de la lista de riesgo (`at-risk`: `u-` y las 8 primeras letras del md5 del id), para poder cruzarlas sin entregar el id real. Ordenadas por él.
 - Las mismas reglas que el tamaño: misma población (`source`), nada sensible, y 404 si la audiencia no existe o no llega a 20 personas (una audiencia que no se muestra tampoco se entrega).
-- En el panel, cada fila de la tabla tiene "CSV" (baja `Usuario;Acepta avisos`) y "Copiar" (el mismo CSV al portapapeles); la lista se pide a la API al tocar, sin caché ni datos guardados. El CSV de la tabla no lleva esos botones (`data-no-csv`).
+- En el panel, cada fila de la tabla tiene "CSV" (baja `Usuario;Acepta avisos;Fuente`) y "Copiar" (el mismo CSV al portapapeles); la lista se pide a la API al tocar, sin caché ni datos guardados. El CSV de la tabla no lleva esos botones (`data-no-csv`).
 - En el panel de un solo HTML no hay lista: la foto no graba listas de personas, porque el archivo se comparte suelto. La tabla no ofrece los botones y lo dice al pie.
 
 ## 5. Lo que Mochi no ofreció: `/analytics/guardias`
@@ -166,7 +168,7 @@ Cuántos candidatos sacaron las guardias de ofertas (`offers/guards.py`) al arma
 ## 6. Lo que sale del frente, en detalle
 
 - **Qué cambió** (`views/overview/changes.js`): junta la serie semanal, lo que buscan y no encuentran (`opportunities`) y lo que sube (`trends`). Umbrales: 5 % en un conteo, 1 punto en una tasa, 20 % de crecimiento en una demanda. Orden: lo que empeora, lo que mejora y la demanda que crece, que va sin juicio. No calcula ninguna cifra nueva.
-- **CSV** (`lib/csv.js`): exporta las tablas del panel tal como se ven, leyendo el DOM. Por eso funciona igual en el panel de un solo HTML, y nunca exporta algo distinto de lo que está en pantalla.
+- **CSV** (`lib/csv.js`): exporta las tablas del panel tal como se ven, leyendo el DOM. Por eso funciona igual en el panel de un solo HTML, y nunca exporta algo distinto de lo que está en pantalla. Empieza con su procedencia (la insignia del bloque o de su sección, "Demostración" si corre la demostración y, con datos de personas, la línea de estado de la página: API en vivo, datos guardados o foto, y la fecha de corte), y el nombre del archivo lleva la fuente (`serie-semanal-simulados.csv`).
 - **Período** (`views/overview/Pulse.jsx`): recorta la línea a las últimas 4, 12 o 26 semanas. La tabla sigue completa.
 
 ## 7. Datos guardados

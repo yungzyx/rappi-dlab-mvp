@@ -183,12 +183,12 @@
           <li>
             <span class="step-number">2</span>
             <h3>Mochi propone el siguiente peldaño</h3>
-            <p>Restaurantes → Turbo → Retail, siempre con su porqué. Dentro de esa vertical ofrece lo más pedido ahí; cuando una regla aprendida lo justifica (con los simulados del 04-11, no: <code>make motor</code> deja λ en 0), lo que suelen sumar quienes piden lo mismo.</p>
+            <p>Restaurantes → Turbo → Retail, siempre con su porqué. Dentro de esa vertical ofrece lo más pedido ahí; cuando una regla aprendida lo justifica (con los simulados del panel, del 14-11, no: <code>make motor</code> deja λ en 0), lo que suelen sumar quienes piden lo mismo.</p>
           </li>
           <li>
             <span class="step-number">3</span>
             <h3>Y propone repetir cuando toca</h3>
-            <p>Si alguien pide un mismo concepto con ritmo, Mochi lo ofrece cuando le toca: "¿Repetimos café? Pides cada 7 días."</p>
+            <p>Si alguien pide un mismo concepto con ritmo, Mochi sabe cuándo le toca y lo trae al pedirle "Repite lo de siempre" en el buscador: "¿Repetimos café? Pides cada 7 días."</p>
           </li>
         </ol>
 
@@ -232,13 +232,13 @@
         <dl class="figures">
           <div>
             <dt>Acierta la próxima vertical (nDCG@8)</dt>
-            <dd>0,980</dd>
-            <p>Frente a 0,918 del orden fijo de hoy. Casi toda la ventaja viene de la afinidad de cada persona. Simulado (04-11-2026, con la mezcla de la tabla de Rappi).</p>
+            <dd>0,972</dd>
+            <p>Frente a 0,916 del orden fijo de hoy (semilla 7; 0,971 a 0,972 en tres semillas). Casi toda la ventaja viene de la afinidad de cada persona. Simulado (14-11-2026, con grupo de control y la mezcla de la tabla de Rappi).</p>
           </div>
           <div>
             <dt>Recompra, acierto ±7 días</dt>
-            <dd>0,214</dd>
-            <p>22 de 103 predicciones, con un error mediano de 6,5 días: una mecánica que funciona, no una predicción precisa. Simulado (04-11-2026).</p>
+            <dd>0,18</dd>
+            <p>De 123 predicciones (semilla 7; 0,18 a 0,21 en tres semillas): una mecánica que funciona, no una predicción precisa. Simulado (14-11-2026).</p>
           </div>
           <div>
             <dt>Ofertas que rompen una guardia</dt>
@@ -252,11 +252,11 @@
           </div>
         </dl>
         <p class="figures-note">
-          El motor se evaluó el 4 de noviembre de 2026 con 3.000 personas simuladas (semilla 7) y tramos por fecha
-          (entrenar, validar, probar). Prueba la mecánica, no el efecto: el simulador trata la tabla de Rappi como efecto.
-          En la compra cruzada, la mezcla con las reglas aprendidas acierta lo mismo que "lo más pedido" (precisión@3
-          0,129): las reglas llegan a 17 de 505 personas y, en validación, darles peso sumaba solo 2 aciertos de 1.509,
-          bajo el mínimo de 5. Por eso, con estos simulados, <code>make motor</code> deja el peso de las reglas (λ) en 0 y se ofrece lo más pedido. Cuánto retiene de
+          El motor se evaluó el 14 de noviembre de 2026 con 3.000 personas simuladas (semillas 7, 11 y 23; arriba, la 7) y
+          tramos por fecha (entrenar, validar, probar). Prueba la mecánica, no el efecto: el simulador trata la tabla de Rappi
+          como efecto. En la compra cruzada, darles peso a las reglas aprendidas (λ) depende de pocos aciertos en validación,
+          y desde el 5 de noviembre un λ mayor tiene que ganar al menos 5: queda en 0 con las semillas 7 y 23 y en 1 con la 11.
+          Con los simulados del panel (semilla 7), <code>make motor</code> deja λ en 0 y se ofrece lo más pedido. Cuánto retiene de
           verdad solo lo dice un experimento con grupo de control.
         </p>
       </section>
@@ -361,8 +361,8 @@
           </div>
           <div>
             <dt>Tests automáticos</dt>
-            <dd>4.722</dd>
-            <p>Capa de IA 3.315, scraper 281, prototipo 996 y panel 130 (02-11-2026), con integración continua en cada cambio.</p>
+            <dd>5.736</dd>
+            <p>Capa de IA 3.805, scraper 343, prototipo 1.323 y panel 265 (26-11-2026), con integración continua en cada cambio.</p>
           </div>
         </dl>
         <p class="figures-note">
@@ -383,7 +383,7 @@
             <p>
               Un comando levanta la API, el prototipo y el panel. Necesita Postgres 17 con pgvector y la base del
               catálogo, Python 3.13, Node y un modelo local de texto (~1 GB). El prototipo no abre sin la API. La guía
-              está en <code>docs/instalacion.md</code>, con una revisión automática que recorre el MVP en Chrome (8
+              está en <code>docs/instalacion.md</code>, con una revisión automática que recorre el MVP en Chrome (9
               revisiones).
             </p>
           </div>

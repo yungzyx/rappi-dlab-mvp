@@ -216,26 +216,19 @@ ORDER BY d.rating DESC,
 LIMIT 10;
 
 -- 2.3 Precio típico de un plato por cocina
--- Idea de SQL: CTE (WITH) + DISTINCT ON para tomar el último snapshot + AVG vs mediana (PERCENTILE_CONT)
--- Tiempo medido: ~279 ms
+-- Idea de SQL: tabla de último precio (latest_menu_prices) + AVG vs mediana (PERCENTILE_CONT)
+-- Tiempo medido: ~240 ms (rappi_staging, 26-11-2026)
 -- ¿Cuál es el precio promedio (y mediano) de un plato según el tipo de cocina?
--- Patrón "último snapshot": un plato puede tener varias fotos de precio
--- (una por corrida del scraper). DISTINCT ON (item_id) + ORDER BY scraped_at DESC
--- deja solo la fila más reciente de cada plato.
+-- Un plato tiene varias fotos de precio (una por corrida del scraper) en menu_price_snapshots.
+-- latest_menu_prices (migración 032) guarda la más nueva de cada plato, desempatada por corrida:
+-- es el precio vigente de un plato. No se recalcula ordenando el historial (con DISTINCT ON y
+-- ORDER BY scraped_at DESC, dos corridas con la misma hora dejaban cualquiera de las dos).
 -- La mediana no se distorsiona con platos extremos (hay algunos de $800.000).
-WITH ultimo_precio AS (
-  SELECT DISTINCT ON (p.item_id)
-         p.item_id,
-         p.price
-  FROM menu_price_snapshots AS p
-  ORDER BY p.item_id,
-           p.scraped_at DESC
-)
 SELECT rc.cuisine                AS cocina,
        COUNT(*)                  AS platos,
        ROUND(AVG(up.price))      AS precio_promedio,
        ROUND(PERCENTILE_CONT(0.5) WITHIN GROUP (ORDER BY up.price)::numeric) AS precio_mediano
-FROM ultimo_precio AS up
+FROM latest_menu_prices AS up
 JOIN menu_items AS mi
   ON mi.item_id = up.item_id
 JOIN restaurant_cuisines AS rc
@@ -246,22 +239,14 @@ ORDER BY precio_mediano DESC
 LIMIT 10;
 
 -- 2.4 Platos populares de sushi
--- Idea de SQL: JOIN de varias tablas (llave compuesta) + OR con ILIKE ANY + reutilizar el CTE de último precio
--- Tiempo medido: ~92 ms; con extra_section_ids, ~1,4 veces eso (21-10, con la columna simulada)
+-- Idea de SQL: JOIN de varias tablas (llave compuesta) + OR con ILIKE ANY + el último precio de latest_menu_prices
+-- Tiempo medido: ~90 ms (rappi_staging, 26-11-2026)
 -- ¿Cuáles son los platos populares de los restaurantes de sushi y cuánto cuestan?
 -- is_popular casi no viene marcado en los datos (solo 3 platos en total),
 -- así que también contamos como "popular" un plato que el restaurante puso
 -- en una sección tipo "Más vendidos", "Destacados", "Favoritos", etc.
 -- Un plato puede estar en varias secciones (en "Más vendidos" y en la suya):
 -- section_id es la última y las demás van en extra_section_ids (migración 040).
-WITH ultimo_precio AS (
-  SELECT DISTINCT ON (p.item_id)
-         p.item_id,
-         p.price
-  FROM menu_price_snapshots AS p
-  ORDER BY p.item_id,
-           p.scraped_at DESC
-)
 SELECT s.name     AS restaurante,
        ms.name    AS seccion,
        mi.name    AS plato,
@@ -275,7 +260,7 @@ JOIN restaurant_cuisines AS rc
   ON rc.store_id = mi.store_id
 JOIN stores AS s
   ON s.store_id = mi.store_id
-JOIN ultimo_precio AS up
+JOIN latest_menu_prices AS up
   ON up.item_id = mi.item_id
 WHERE rc.cuisine = 'Sushi'
   AND (mi.is_popular
@@ -287,19 +272,11 @@ LIMIT 10;
 
 -- 2.5 Buscar un plato sin importar tildes
 -- Idea de SQL: Búsqueda de texto con ILIKE + es_unaccent() + concatenación ||
--- Tiempo medido: ~82 ms
+-- Tiempo medido: ~55 ms (rappi_staging, 26-11-2026)
 -- ¿Dónde venden "ají de gallina" y cuál es el más barato?
 -- es_unaccent() quita tildes a ambos lados: así "aji", "ají" y "AJÍ" coinciden.
 -- Con un ILIKE normal "aji de gallina" encuentra 68 platos; ignorando tildes, 236.
 -- Cambia el texto entre comillas para buscar otro plato (ej. 'lomo saltado').
-WITH ultimo_precio AS (
-  SELECT DISTINCT ON (p.item_id)
-         p.item_id,
-         p.price
-  FROM menu_price_snapshots AS p
-  ORDER BY p.item_id,
-           p.scraped_at DESC
-)
 SELECT s.name     AS restaurante,
        s.city     AS comuna,
        mi.name    AS plato,
@@ -307,7 +284,7 @@ SELECT s.name     AS restaurante,
 FROM menu_items AS mi
 JOIN stores AS s
   ON s.store_id = mi.store_id
-JOIN ultimo_precio AS up
+JOIN latest_menu_prices AS up
   ON up.item_id = mi.item_id
 WHERE es_unaccent(mi.name) ILIKE '%' || es_unaccent('aji de gallina') || '%'
   AND up.price > 0
@@ -586,41 +563,32 @@ WHERE r.puesto <= 3          -- se filtra afuera: WHERE no puede usar funciones 
 ORDER BY r.categoria, r.puesto, r.producto
 LIMIT 15;
 
--- 4.5 Medir y acelerar con EXPLAIN (ANALYZE, BUFFERS)
--- Idea de SQL: EXPLAIN (ANALYZE, BUFFERS) + reescritura con JOIN LATERAL que aprovecha un índice
--- Tiempo medido: ~4 ms
--- VERSIÓN LENTA (Execution Time ~100 ms, Buffers: shared hit=146842)
--- La vista calcula el último precio de TODOS los productos y recién después filtra
-EXPLAIN (ANALYZE, BUFFERS)
-SELECT v.tienda,
-       v.cadena,
-       v.city,
-       v.price
-FROM v_price_compare AS v
-WHERE v.master_product_id = 89200   -- Soprole Leche Natural Entera
-ORDER BY v.price, v.store_id
-LIMIT 5;
-
--- VERSIÓN RÁPIDA (Execution Time ~2,2 ms, Buffers: shared hit=840)
--- Para cada tienda del producto, trae solo su último precio usando el índice (store_id, sku, scraped_at DESC)
+-- 4.5 Medir con EXPLAIN (ANALYZE, BUFFERS)
+-- Idea de SQL: EXPLAIN (ANALYZE, BUFFERS) + la vista de ofertas vigentes (v_latest_offers)
+-- Tiempo medido: 1 a 4 ms de ejecución (rappi_staging, 26-11-2026)
+-- ¿En qué tiendas está más barato un producto, contando solo las ofertas vigentes?
+-- EXPLAIN (ANALYZE, BUFFERS) corre la consulta y muestra cómo la resolvió: qué índices usó
+-- (Index Scan), cuánto tardó cada paso (actual time) y cuántas páginas leyó (Buffers: shared hit
+-- en memoria, read del disco).
+-- v_latest_offers es la única definición de "oferta vigente": el último precio de cada oferta
+-- (latest_prices, migración 032) y si sigue vigente (current). v_latest_prices y v_price_compare
+-- traen el último precio aunque la última corrida de su formato ya no lo haya visto: en
+-- rappi_staging, la Soprole de abajo sale con dos precios de Concepción que ya no están vigentes.
+-- Ordenar price_snapshots por scraped_at para sacar el último precio repite ese error y es más lento.
 EXPLAIN (ANALYZE, BUFFERS)
 SELECT s.name  AS tienda,
        b.name  AS cadena,
        s.city,
-       ult.price
+       lo.price
 FROM store_products AS sp
 JOIN stores AS s USING (store_id)
 LEFT JOIN brands AS b ON b.brand_id = s.brand_id
-CROSS JOIN LATERAL (
-  SELECT ps.price
-  FROM price_snapshots AS ps
-  WHERE ps.store_id = sp.store_id
-    AND ps.sku = sp.sku
-  ORDER BY ps.scraped_at DESC
-  LIMIT 1
-) AS ult
+JOIN v_latest_offers AS lo
+  ON lo.store_id = sp.store_id
+ AND lo.sku = sp.sku
 WHERE sp.master_product_id = 89200   -- Soprole Leche Natural Entera
-ORDER BY ult.price, sp.store_id
+  AND lo.current                     -- solo lo vigente
+ORDER BY lo.price, sp.store_id
 LIMIT 5;
 
 -- 4.6 Exportar resultados a CSV con \copy
