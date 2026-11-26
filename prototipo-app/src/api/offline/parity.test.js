@@ -116,4 +116,25 @@ describe('la demo sin conexión tiene las constantes del backend', () => {
       Object.fromEntries([...groups.matchAll(/"(\w+)": "(\w+)"/g)].map((m) => m.slice(1))),
     )
   })
+
+  test('los demás números copiados a mano (escalera, catálogo, ofertas, búsqueda y conversación)', () => {
+    const pairs = [
+      // [archivo de la demo, su nombre, archivo del backend, su nombre]
+      ['./motor.js', 'CURRENT_COMBO_DAYS', 'motor/predict.py', 'CURRENT_COMBO_DAYS'],
+      ['./motor.js', 'LAPSED_COMBO_DAYS', 'motor/predict.py', 'LAPSED_COMBO_DAYS'],
+      ['./catalog.js', 'TOP_MIN_RATING', 'catalog/restaurants.py', 'TOP_MIN_RATING'],
+      ['./catalog.js', 'TOP_MIN_REVIEWS', 'catalog/restaurants.py', 'TOP_MIN_REVIEWS'],
+      ['./offers.js', 'ONTOP_WINDOW_MIN', 'offers/engine.py', 'ONTOP_WINDOW_MIN'],
+      ['./offers.js', 'WINBACK_VERTICAL_PRODUCTS', 'offers/engine.py', 'WINBACK_VERTICAL_PRODUCTS'],
+      ['./offers.js', 'MIN_LADDER_STEPS', 'offers/engine.py', 'MIN_LADDER_STEPS'],
+      ['./search.js', 'GROUPED_LIMIT', 'api/app.py', 'GROUPED_SEARCH_LIMIT'],
+      ['./conversation.js', 'MAX_SHOWN_IDS', 'agent/rappi_agent.py', 'MAX_SHOWN_IDS'],
+      ['./conversation.js', 'MIN_NAMED', 'agent/rappi_agent.py', 'MIN_SHOWN'],
+    ]
+    for (const [js, name, py, pyName] of pairs)
+      expect([name, constant(read(js), name)]).toEqual([name, constant(backend(py), pyName)])
+    // api/app.py: SCHEDULE_AHEAD (en días) y index.js: SCHEDULE_AHEAD_MS (en días por DAY_MS).
+    const days = backend('api/app.py').match(/^SCHEDULE_AHEAD = timedelta\(days=(\d+)\)/m)[1]
+    expect(read('./index.js').match(/^const SCHEDULE_AHEAD_MS = (\d+) \* DAY_MS$/m)[1]).toBe(days)
+  })
 })
