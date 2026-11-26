@@ -10,11 +10,14 @@ const KINDS = {
   rappi: { className: 'badge--real', icon: 'check', label: 'Dato de Rappi' },
 }
 
-/** Mientras corre "Ver cómo funciona" (solo en el HTML suelto), lo del prototipo dice además que trae eventos de ejemplo. */
+/**
+ * Mientras corre "Ver cómo funciona" (solo en el HTML suelto), lo del prototipo dice además que trae eventos de ejemplo.
+ * `data-provenance` le dice al CSV del bloque de qué fuente son sus cifras (src/lib/csv.js).
+ */
 export function ProvenanceBadge({ kind }) {
   const { className, icon, label } = KINDS[kind]
   const badge = (
-    <span className={`badge ${className}`}>
+    <span className={`badge ${className}`} data-provenance={kind}>
       <Icon name={icon} />
       {label}
     </span>

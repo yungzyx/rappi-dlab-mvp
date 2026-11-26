@@ -296,7 +296,10 @@ describe('CustomersView', () => {
     await act(async () =>
       fireEvent.click(screen.getByRole('button', { name: 'Copiar la lista de Probó Turbo una vez' })),
     )
-    expect(writeText).toHaveBeenCalledWith('Usuario;Acepta avisos\r\nu-0a1b2c3d;Sí\r\nu-4e5f6a7b;No')
+    // Cada fila dice de qué fuente es: el texto copiado no lleva el nombre del archivo.
+    expect(writeText).toHaveBeenCalledWith(
+      'Usuario;Acepta avisos;Fuente\r\nu-0a1b2c3d;Sí;Prototipo (no es evidencia)\r\nu-4e5f6a7b;No;Prototipo (no es evidencia)',
+    )
     expect(screen.getByRole('status').textContent).toBe('Copiada')
     expect(fetch).toHaveBeenCalledWith(
       expect.stringContaining('/analytics/audiencias/probo-turbo-una-vez?source=prototype'),

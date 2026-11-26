@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'vitest'
-import { csvFileName, rowsToCsv, tablesToCsv, tableToCsv } from './csv.js'
+import { csvFileName, provenanceRows, rowsToCsv, tablesToCsv, tableToCsv } from './csv.js'
 
 const table = (html) => {
   const element = document.createElement('table')
@@ -55,6 +55,42 @@ describe('csvFileName', () => {
     expect(csvFileName('Usuarios y pedidos por combinación')).toBe('usuarios-y-pedidos-por-combinacion.csv')
     expect(csvFileName('¿Qué buscan?')).toBe('que-buscan.csv')
     expect(csvFileName('…')).toBe('tabla.csv')
+  })
+
+  test('with simulated or prototype data, the name says which: the same table of the two is not the same file', () => {
+    expect(csvFileName('Serie semanal', 'synthetic')).toBe('serie-semanal-simulados.csv')
+    expect(csvFileName('Serie semanal', 'prototype')).toBe('serie-semanal-prototipo.csv')
+    expect(csvFileName('Usuarios y pedidos por combinación', 'rappi')).toBe('usuarios-y-pedidos-por-combinacion.csv')
+  })
+})
+
+describe('provenanceRows', () => {
+  const status = 'API en vivo · Datos al 03-11-2026'
+
+  test('simulated or prototype: that it is not evidence, and the status line of the page (cut, saved data, photo)', () => {
+    expect(provenanceRows('synthetic', { status })).toEqual([
+      ['Procedencia', 'Datos simulados: no son evidencia'],
+      ['Datos', status],
+    ])
+    expect(provenanceRows('prototype', { status: 'Datos guardados · Datos al 03-11-2026' })).toEqual([
+      ['Procedencia', 'Datos del prototipo (uso del MVP, pocas personas): no son evidencia'],
+      ['Datos', 'Datos guardados · Datos al 03-11-2026'],
+    ])
+  })
+
+  test('the demonstration adds its own line to the prototype', () => {
+    expect(provenanceRows('prototype', { status, demo: true })).toContainEqual([
+      'Demostración',
+      'Con eventos de ejemplo: no son datos reales',
+    ])
+    expect(provenanceRows('synthetic', { status, demo: true }).flat()).not.toContain('Demostración')
+  })
+
+  test('the Rappi table says it is Rappi data, without the cut of the panel; nothing without a source', () => {
+    expect(provenanceRows('rappi', { status })).toEqual([
+      ['Procedencia', 'Dato de Rappi (tabla de combinaciones, cohortes de enero a junio de 2026): es una correlación'],
+    ])
+    expect(provenanceRows(null, { status })).toEqual([])
   })
 })
 

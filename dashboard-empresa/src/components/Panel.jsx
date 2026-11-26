@@ -1,12 +1,29 @@
-import { csvFileName, downloadCsv, tablesToCsv } from '../lib/csv.js'
+import { isDemoActive } from '../lib/api.js'
+import {
+  csvFileName,
+  downloadCsv,
+  pageStatus,
+  provenanceOf,
+  provenanceRows,
+  rowsToCsv,
+  tablesToCsv,
+} from '../lib/csv.js'
 import { Help } from './Help.jsx'
 import { Icon } from './Icon.jsx'
 import { ProvenanceBadge } from './ProvenanceBadge.jsx'
 
-/** Descarga las tablas del panel donde está el botón, tal como se ven (todas, si tiene más de una). */
+/**
+ * Descarga las tablas del panel donde está el botón, tal como se ven (todas, si tiene más de una). Arriba, de dónde
+ * salen: la fuente (la insignia del bloque o de su sección) y, con datos de personas, la línea de estado de la página.
+ */
 function exportTable(event, name) {
-  const tables = [...(event.currentTarget.closest('.panel')?.querySelectorAll('table') ?? [])]
-  if (tables.length) downloadCsv(csvFileName(name), tablesToCsv(tables))
+  const button = event.currentTarget
+  const tables = [...(button.closest('.panel')?.querySelectorAll('table') ?? [])]
+  if (!tables.length) return
+  const kind = provenanceOf(button)
+  const provenance = rowsToCsv(provenanceRows(kind, { status: pageStatus(), demo: isDemoActive() }))
+  const csv = tablesToCsv(tables)
+  downloadCsv(csvFileName(name, kind), provenance ? `${provenance}\r\n\r\n${csv}` : csv)
 }
 
 /**
