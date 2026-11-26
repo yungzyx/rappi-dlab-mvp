@@ -1,6 +1,7 @@
 import { act, cleanup, render, renderHook, waitFor } from '@testing-library/react'
 import { afterEach, expect, test, vi } from 'vitest'
 import { fixture, stubApi } from '../../test/api'
+import { trackOrder } from '../../api/orders'
 import { ProfileProvider, useProfile } from '../../state/ProfileContext'
 import { useVerticalOrder } from './useVerticalOrder'
 
@@ -103,4 +104,22 @@ test('al volver a estar arriba pide otra vez; mientras llega deja el orden que h
   await advance(200)
   expect(result.current.personalized).toBe(true)
   expect(result.current.order[0]).toBe('farmacia')
+})
+
+test('si se vuelve a la Home con un pedido todavía en camino, pide el orden recién cuando llega', async () => {
+  vi.useFakeTimers()
+  const api = stubApi({ 'GET /profile/*': fixture('profile-verticales') })
+  const { rerender } = renderHook(({ active }) => useVerticalOrder(active), { wrapper, initialProps: { active: true } })
+  await advance(0)
+  expect(requests(api)).toBe(1)
+  // El checkout manda el pedido y abre el seguimiento; la persona vuelve a la Home antes de que la API lo confirme.
+  let arrive
+  trackOrder(new Promise((resolve) => (arrive = resolve)))
+  rerender({ active: false })
+  rerender({ active: true })
+  await advance(1000)
+  expect(requests(api)).toBe(1) // pedir ahora traería el orden sin ese pedido
+  arrive()
+  await advance(0)
+  expect(requests(api)).toBe(2)
 })
