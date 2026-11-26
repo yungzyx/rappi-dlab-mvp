@@ -33,8 +33,8 @@ const CUISINES = ['Pizzas', 'Hamburguesa', 'Experiencias Culinarias', 'Mexicana'
 const DEAL_VERTICALS = ['supermercado', 'licores', 'conveniencia', 'mall', 'chocolateria', 'turbo', 'farmacia']
 // Las ideas del buscador (SearchSections) y búsquedas comunes; cada una se graba tal cual responde la API.
 const QUERIES = [
-  ...['Plátano', 'Agua', 'Chocolate', 'Hamburguesa', 'Cerveza', 'Pizza'],
-  ...['café', 'sushi', 'pan', 'leche', 'helado', 'papas fritas', 'vino', 'pañales', 'shampoo', 'perfume', 'té'],
+  ...['Plátano', 'Agua', 'Chocolate', 'Hamburguesa', 'Sushi', 'Pizza'],
+  ...['café', 'cerveza', 'pan', 'leche', 'helado', 'papas fritas', 'vino', 'pañales', 'shampoo', 'perfume', 'té'],
   ...['empanadas', 'completo', 'pollo', 'ensalada', 'huevos', 'bebida', 'snacks', 'flores', 'carbón', 'hielo'],
   ...['queso', 'galletas', 'yogurt', 'fruta', 'detergente', 'audífonos', 'cargador', 'alfajores', 'bombones'],
   ...['tacos', 'ramen', 'sándwich', 'comida de perro', 'pasta', 'arroz', 'cafe molido', 'jugo', 'torta'],

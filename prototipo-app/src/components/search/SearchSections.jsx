@@ -15,8 +15,9 @@ import OfflineNotice from '../OfflineNotice'
 import ProductRow from '../ProductRow'
 import StoreList from '../StoreList'
 
-// Las mismas ideas que rota el buscador de la Home (PlainSearchBar).
-const IDEAS = ['Plátano', 'Agua', 'Chocolate', 'Hamburguesa', 'Cerveza', 'Pizza']
+// Las ideas fijas, casi las mismas que rota el buscador de la Home (PlainSearchBar). Son una propuesta de la app, así que
+// pasan las guardias de Mochi (offers/guards.py): nada con alcohol, +18, de Farmacia, bebé ni salud.
+const IDEAS = ['Plátano', 'Agua', 'Chocolate', 'Hamburguesa', 'Sushi', 'Pizza']
 const POPULAR_COUNT = 6
 // Productos que se ven de cada vertical; "Ver más" muestra el resto de lo que trajo la API.
 const GROUP_PREVIEW = 3
