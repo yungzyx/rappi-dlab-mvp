@@ -218,3 +218,36 @@ def test_forget_one_concept_recalculates_the_users_segments(db):
 
     after = {r[0] for r in db.execute("SELECT segment_id FROM user_segments WHERE user_id = 'u1'")}
     assert "cervecero" not in after
+
+
+def test_a_send_that_waited_for_the_forget_does_not_recreate_the_person(db, test_url):
+    """Un lote que llega mientras se borra a la persona: su alta espera a que el borrado termine (la fila está tomada)
+    y, como el hash de borrado se miró antes, la volvía a crear. Ahora se mira también después del alta."""
+    import threading
+
+    from rappi_ia.db import connect
+
+    events.record(db, [events.Event("p-borrada", "s1", "app_open")])
+    db.commit()
+    outcome = {}
+    with connect(test_url) as forgetting, connect(test_url) as sending:
+        events.forget(forgetting, "p-borrada")  # sin confirmar: la fila de la persona queda tomada
+
+        def send():
+            try:
+                events.record(sending, [events.Event("p-borrada", "s2", "app_open")])
+                sending.commit()
+                outcome["result"] = "guardado"
+            except events.ForgottenUser:
+                sending.rollback()
+                outcome["result"] = "rechazado"
+
+        late = threading.Thread(target=send)
+        late.start()
+        late.join(0.5)
+        assert late.is_alive()  # esperando el borrado
+        forgetting.commit()
+        late.join(10)
+
+    assert outcome == {"result": "rechazado"}
+    assert db.execute("SELECT count(*) FROM app_users WHERE user_id = 'p-borrada'").fetchone() == (0,)

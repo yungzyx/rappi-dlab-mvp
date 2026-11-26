@@ -261,7 +261,8 @@ def ensure_user(conn: Connection, user_id: str, source: str = "prototype", **ext
     """Crea el usuario si no existe. Un id de otra fuente no se puede usar: con la API abierta a la red, el prototipo
     podía colgarles eventos a los usuarios simulados (ids correlativos). Una persona del prototipo que se crea aquí
     llegó con su token (la API lo exige): queda con `token_issued_at`, así nadie la reclama como id viejo. Una persona
-    borrada no vuelve (`ForgottenUser`): su token firmado sigue siendo válido, y un lote atrasado la recrearía."""
+    borrada no vuelve (`ForgottenUser`): su token firmado sigue siendo válido, y un lote atrasado la recrearía. Se mira
+    antes y después del alta: si el borrado tenía tomada la fila, el alta lo espera, y recién después se ve su hash."""
     if is_forgotten(conn, user_id):
         raise ForgottenUser("La persona fue borrada")
     row = conn.execute(
@@ -271,6 +272,8 @@ def ensure_user(conn: Connection, user_id: str, source: str = "prototype", **ext
            RETURNING source""",
         (user_id, source, extra.get("segment"), extra.get("city"), extra.get("consent", False), source),
     ).fetchone()
+    if is_forgotten(conn, user_id):  # quien llama deshace la transacción, con el alta
+        raise ForgottenUser("La persona fue borrada")
     if row[0] != source:
         raise ValueError(f"El usuario {user_id} es de otra fuente")
 
