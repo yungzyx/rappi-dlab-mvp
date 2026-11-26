@@ -7,7 +7,7 @@ import {
   checkoutTotals,
   couponDiscount,
   findCoupon,
-  orderAmounts,
+  orderShares,
   pricedBasket,
 } from './pricing'
 
@@ -131,7 +131,7 @@ describe('tipo de entrega y el total de cada pedido', () => {
       pricedBasket(basket(12_000, 'supermercado', 'b'), null),
     ]
     const totals = checkoutTotals(priced, { tip: 1000, coupon: findCoupon('SUPER20'), credits: CREDITS.amount })
-    const amounts = orderAmounts(priced, totals)
+    const amounts = orderShares(priced, totals).map((share) => share.total)
     expect(amounts.reduce((a, b) => a + b, 0)).toBe(totals.total)
     expect(amounts[1]).toBe(12_000 + priced[1].delivery + priced[1].service - totals.couponAmount)
   })

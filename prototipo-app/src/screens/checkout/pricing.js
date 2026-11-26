@@ -166,17 +166,10 @@ export function checkoutTotals(priced, { tip = 0, pickup = false, coupon = null,
 }
 
 /**
- * El total de cada pedido (una canasta, en el orden de `priced`), que suman el total del checkout: sus productos, envío,
- * tipo de entrega y servicio; el cupón en la canasta donde aplica; los créditos (solo en productos) de la primera
- * canasta en adelante; y la propina, en el primer pedido.
- */
-export function orderAmounts(priced, totals) {
-  return orderShares(priced, totals).map((share) => share.total)
-}
-
-/**
- * Lo de cada pedido (`orderAmounts`) con lo que usó de los descuentos: `{ total, credits, coupon }`. Si se cancela ese
- * pedido, sus créditos vuelven al saldo y su cupón se puede volver a usar (state/credits.js).
+ * Lo de cada pedido (una canasta, en el orden de `priced`) con lo que usó de los descuentos: `{ total, credits, coupon }`.
+ * Los `total` suman el del checkout: sus productos, envío, tipo de entrega y servicio; el cupón en la canasta donde
+ * aplica; los créditos (solo en productos) de la primera canasta en adelante; y la propina, en el primer pedido. Si se
+ * cancela ese pedido, sus créditos vuelven al saldo y su cupón se puede volver a usar (state/credits.js).
  */
 export function orderShares(priced, totals) {
   let credits = totals.credits
