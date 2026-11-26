@@ -67,7 +67,12 @@ export function useDialog(ref, open, onClose) {
       }
       if (event.key !== 'Tab' || !root) return
       const items = [...root.querySelectorAll(FOCUSABLE)].filter((el) => reachable(el) && inTabOrder(el))
-      if (!items.length) return
+      // Sin controles que alcanzar (una hoja que carga o falló): el foco se queda en el diálogo, no sale a lo de atrás.
+      if (!items.length) {
+        event.preventDefault()
+        root.focus({ preventScroll: true })
+        return
+      }
       const first = items[0]
       const last = items[items.length - 1]
       if (event.shiftKey && (document.activeElement === first || !root.contains(document.activeElement))) {

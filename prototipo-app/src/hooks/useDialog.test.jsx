@@ -161,4 +161,27 @@ describe('useDialog con diálogos apilados', () => {
     expect(fireEvent.keyDown(chosen, { key: 'Tab', shiftKey: true })).toBe(false) // y el primero
     expect(document.activeElement).toBe(chosen)
   })
+
+  test('sin controles que alcanzar (una hoja cargando o con error), Tab no sale: el foco queda en la hoja', () => {
+    function Loading() {
+      const ref = useRef(null)
+      useDialog(ref, true, vi.fn())
+      return (
+        <div ref={ref} role="dialog" aria-label="Mis preferencias" tabIndex={-1}>
+          <p>Cargando…</p>
+        </div>
+      )
+    }
+    render(
+      <>
+        <button type="button">detrás</button>
+        <Loading />
+      </>,
+    )
+    const sheet = screen.getByRole('dialog')
+    expect(document.activeElement).toBe(sheet)
+    expect(fireEvent.keyDown(sheet, { key: 'Tab' })).toBe(false) // el navegador no lo mueve al botón de atrás
+    expect(fireEvent.keyDown(sheet, { key: 'Tab', shiftKey: true })).toBe(false)
+    expect(document.activeElement).toBe(sheet)
+  })
 })
