@@ -333,6 +333,32 @@ def test_adding_from_a_list_without_searching_also_enters_the_funnel(db):
     assert sum(r["piden"] for r in funnel) == orders
 
 
+def test_two_people_with_the_same_session_and_cart_ids_are_not_one_visit(db):
+    """La sesión y el carro son de una persona (`(user_id, session_id)` en `app_sessions`): si dos usan el mismo id
+    (lo elige el cliente), la búsqueda de una y el pedido de la otra no son un recorrido completo, ni el pedido de una
+    paga el carro de la otra."""
+    seed_taxonomy(db, load_taxonomy())
+    line = [{"entity_type": "catalog_item", "entity_id": "1", "concept_id": "cerveza", "unit_price": 1000}]
+    events.record(
+        db,
+        [
+            events.Event("u-busca", "s-comun", "search", ts=T0, vertical="licores", query="cerveza"),
+            events.Event("u-busca", "s-comun", "cart_add", ts=T0, vertical="licores", cart_id="c-comun"),
+            events.Event("u-pide", "s-comun", "checkout_start", ts=T0, vertical="licores", cart_id="c-comun"),
+            events.Event("u-pide", "s-otra", "search", ts=T0 + timedelta(days=3), query="x"),  # la fecha de corte
+        ],
+    )
+    events.record_order(db, "u-pide", "s-comun", "c-comun", "licores", line, ts=T0)
+    db.commit()
+
+    funnel = {r["vertical"]: r for r in queries.funnel(db, "prototype")}
+    kpis = queries.kpis(db, "prototype")
+
+    assert funnel["licores"] == {"vertical": "licores", "buscan": 1, "agregan": 1, "pagan": 0, "piden": 0}
+    assert kpis["conversion_sesiones_pct"] == 0.0
+    assert kpis["abandono_carrito_pct"] == 50.0  # dos carros: el de u-busca quedó sin pagar, el de u-pide no
+
+
 def test_session_conversion_counts_each_session_once(db):
     """Quien acepta una sugerencia cruzada cuenta en dos verticales del embudo: sumar las filas da una tasa por
     (sesión, vertical). El titular usa la de la API, que cuenta cada sesión una vez."""
