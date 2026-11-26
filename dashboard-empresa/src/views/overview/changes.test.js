@@ -1,9 +1,10 @@
 import { describe, expect, test } from 'vitest'
 import { notableChanges } from './changes.js'
 
-// Seis semanas completas al 14-06 (domingo): la última, la del 08-06, se compara con la del 11-05.
+// Seis semanas completas al 15-06 (lunes; un corte el domingo deja parcial su semana): la última, la del 08-06, se
+// compara con la del 11-05.
 const WEEKS = ['2026-05-04', '2026-05-11', '2026-05-18', '2026-05-25', '2026-06-01', '2026-06-08']
-const AS_OF = '2026-06-14T23:59:00-04:00'
+const AS_OF = '2026-06-15T00:30:00-04:00'
 const weekly = (overrides = {}) =>
   WEEKS.map((semana, index) => ({
     semana,

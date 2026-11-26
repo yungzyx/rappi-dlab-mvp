@@ -30,10 +30,13 @@ const utcDay = (iso) => {
   return Date.UTC(year, month - 1, day)
 }
 
-/** La semana (que empieza el lunes `weekIso`) no terminó a la fecha de corte `asOfIso`. */
+/**
+ * La semana (que empieza el lunes `weekIso`) no terminó a la fecha de corte `asOfIso`: termina cuando llega el lunes
+ * siguiente, en la hora de la serie (la de Chile, que trae el corte). Un corte en domingo la deja parcial.
+ */
 export function isPartialWeek(weekIso, asOfIso) {
   if (!asOfIso) return false
-  return utcDay(asOfIso) < utcDay(weekIso) + 6 * DAY_MS
+  return utcDay(asOfIso) < utcDay(weekIso) + 7 * DAY_MS
 }
 
 /**

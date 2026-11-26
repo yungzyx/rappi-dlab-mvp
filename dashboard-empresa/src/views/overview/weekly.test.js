@@ -13,9 +13,11 @@ const rows = [
 const AS_OF = '2026-09-26T23:58:56-03:00'
 
 describe('isPartialWeek', () => {
-  test('la semana del corte es parcial hasta su domingo', () => {
+  test('la semana del corte es parcial hasta que llega el lunes siguiente (el domingo todavía no termina)', () => {
     expect(isPartialWeek('2026-09-21', AS_OF)).toBe(true)
-    expect(isPartialWeek('2026-09-21', '2026-09-27T10:00:00-03:00')).toBe(false)
+    expect(isPartialWeek('2026-09-21', '2026-09-27T00:01:00-03:00')).toBe(true)
+    expect(isPartialWeek('2026-09-21', '2026-09-27T23:59:59-03:00')).toBe(true)
+    expect(isPartialWeek('2026-09-21', '2026-09-28T00:00:00-03:00')).toBe(false) // el primer instante del lunes
     expect(isPartialWeek('2026-09-14', AS_OF)).toBe(false)
     expect(isPartialWeek('2026-09-21', null)).toBe(false)
   })
