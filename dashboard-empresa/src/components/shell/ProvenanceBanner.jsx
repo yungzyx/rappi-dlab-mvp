@@ -62,9 +62,9 @@ export function ProvenanceChip({ source }) {
 }
 
 /**
- * Los avisos de conexión, arriba del contenido (no fijos): la foto sin conexión y, si alguna consulta cayó a los datos
- * guardados, cuál y por qué. Con el prototipo sin la API (`prototypeOffline`), el único aviso de error de la página,
- * con su Reintentar.
+ * Los avisos de conexión, arriba del contenido (no fijos): la foto de demostración, en palabras simples (de dónde
+ * salió va en el pie) y, si alguna consulta cayó a los datos guardados, cuál y por qué. Con el prototipo sin la API
+ * (`prototypeOffline`), el único aviso de error de la página, con su Reintentar.
  */
 export function ConnectionNotices({ source, fallbacks, prototypeOffline, onRetry }) {
   const offline = source === 'prototype' && prototypeOffline
@@ -76,9 +76,8 @@ export function ConnectionNotices({ source, fallbacks, prototypeOffline, onRetry
           <div className="provenance-inner">
             <Icon name="offline" />
             <p>
-              <strong>Foto sin conexión:</strong> respuestas de la API de rappi-ia grabadas el{' '}
-              {formatDate(SNAPSHOT_INFO.fecha)} desde una copia de la base ({SNAPSHOT_INFO.base}). No se actualizan; la
-              procedencia de cada bloque sigue valiendo.
+              <strong>Foto de demostración:</strong> el panel como estaba el {formatDate(SNAPSHOT_INFO.fecha)}. No se
+              actualiza, y cada bloque sigue diciendo si sus datos son simulados o reales.
             </p>
           </div>
         </div>

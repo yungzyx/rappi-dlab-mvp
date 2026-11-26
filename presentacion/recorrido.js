@@ -26,7 +26,7 @@ function load() {
   const el = document.createElement("iframe");
   el.title = TITLE;
   frame.ready = new Promise((resolve) => {
-    el.onload = () => { watchUser(el); resolve(); };
+    el.onload = () => { watchUser(el); fitPhone(); resolve(); };
   });
   el.srcdoc = PROTOS.mvp;
   if (frame.el) frame.el.remove();
@@ -39,6 +39,18 @@ function load() {
 }
 
 const appDoc = () => frame.el && frame.el.contentDocument;
+
+/* El teléfono que dibuja la app (402 × 874, con un marco de 13 px) usa todo el alto del escenario: la app solo lo achica
+   si no cabe, y aquí también crece (en un monitor grande o en el iPad vertical). build.mjs le aplica la escala. */
+const PHONE = { height: 874, ring: 13, margin: 12, max: 1.4 };
+function fitPhone() {
+  const doc = appDoc();
+  if (!doc || !doc.documentElement) return;
+  const room = frame.el.clientHeight - 2 * PHONE.margin;
+  const scale = Math.min(PHONE.max, room / (PHONE.height + 2 * PHONE.ring));
+  doc.documentElement.style.setProperty("--presentacion-escala", scale.toFixed(4));
+}
+addEventListener("resize", fitPhone);
 
 /* ---------- panel de negocio: se carga la primera vez que se abre ---------- */
 const bizOpen = document.getElementById("biz-open");
@@ -266,7 +278,8 @@ async function showSearch(live, pan) {
   }
   if (!pan) return;
   let rail = null;
-  for (let i = 0; i < 30 && !rail; i++) {
+  /* sin conexión, la respuesta del buscador puede tardar unos segundos (más en un iPhone) */
+  for (let i = 0; i < 80 && !rail; i++) {
     await pause(150);
     if (!live()) return;
     rail = [...appDoc().querySelectorAll(".taste-rail")].find(visible) || null;
@@ -538,13 +551,15 @@ function skip(step) {
 }
 
 /* Un paso: { say, click | type | point | scroll | wait | run }; con `until`, repite el clic (hasta `max` veces) mientras
-   no aparezca lo que dice `until`. `point` lleva el mouse a algo sin tocarlo. */
+   no aparezca lo que dice `until`. `point` lleva el mouse a algo sin tocarlo. Con `ready`, espera a que aparezca eso
+   (hasta `timeout`) antes de decir `say`: lo que se narra ya está a la vista. */
 async function runStep(step) {
   if (step.until) {
     const { until, max, ...one } = step;
     for (let i = 0; i < (max || 12) && !find(until); i++) await runStep(one);
     return;
   }
+  if (step.ready && !(await waitFor(step.ready, step.timeout))) return skip(step);
   if (step.say) setStatus(chapterNow ? chapterNow.title : TITLE, step.say);
   if (step.wait) await sleep(step.wait);
   if (step.click) {
@@ -578,6 +593,45 @@ async function runStep(step) {
     if (!done) skip(step);
   }
   if (step.run) { await step.run(); await sleep(step.after == null ? 900 : step.after); }
+}
+
+/* Lo que interrumpiría el recorrido no se muestra mientras corre: la pregunta in-app ("¿Encontraste lo que buscabas?",
+   "¿Confías en las sugerencias de Mochi?") se cierra sin responder, y la oferta del carro que Mochi muestra al volver a
+   la Home (su único globo con productos) se deja con "Ahora no". Un estilo en la app las oculta desde que aparecen, para
+   que no alcancen a verse antes de cerrarse; se quita al parar. */
+const QUIET_ID = "recorrido-sin-interrupciones";
+const QUIET_CSS = ".found-it, .live-bubble:has(.agent-msg-products) { visibility: hidden !important; }";
+let quietTimer = null;
+
+function quietApp() {
+  const doc = appDoc();
+  if (!doc || !doc.head) return;
+  if (!doc.getElementById(QUIET_ID)) {
+    const style = doc.createElement("style");
+    style.id = QUIET_ID;
+    style.textContent = QUIET_CSS;
+    doc.head.appendChild(style);
+  }
+  const close = doc.querySelector(".found-it-close");
+  if (close) close.click();
+  for (const bubble of doc.querySelectorAll(".live-bubble")) {
+    if (!bubble.querySelector(".agent-msg-products")) continue;
+    const no = [...bubble.querySelectorAll("button.live-chip")].find((b) => b.textContent.trim() === "Ahora no");
+    if (no) no.click();
+  }
+}
+
+function quietOn() {
+  clearInterval(quietTimer);
+  quietTimer = setInterval(quietApp, 120);
+}
+
+function quietOff() {
+  clearInterval(quietTimer);
+  quietTimer = null;
+  const doc = appDoc();
+  const style = doc && doc.getElementById(QUIET_ID);
+  if (style) style.remove();
 }
 
 /* Recorre los capítulos `ids`; con `loop`, una y otra vez. Parte con la app limpia; cada capítulo elige su persona
@@ -623,12 +677,14 @@ function startTour(ids, loop, btn) {
   if (btn === playBtn) playLabel.textContent = "Recorriendo…";
   stopBtn.disabled = false;
   document.dispatchEvent(new Event("recorrido:inicio"));
+  quietOn();
   runTour(ids, loop);
 }
 
 function stopTour() {
   if (!tour) return;
   tour = null;
+  quietOff();
   chapterNow = null;
   markChapter(null);
   cursor.classList.remove("is-on");
@@ -662,8 +718,14 @@ const simulate = (text, say) => [
   { say, run: () => { simBox.open = true; }, after: 200 },
   { say, click: { panel: ".sim", text }, after: 1100 },
 ];
-/* Tras abrir un "¿Por qué?" puede salir la pregunta "¿Confías en las sugerencias de Mochi?": se cierra sin responder */
-const closeSurvey = (say) => ({ say, click: { sel: ".found-it-close" }, timeout: 3500, after: 600, optional: true });
+/* Cambia a un perfil de gusto y abre su buscador. Mientras carga dice `sayBefore`; `say`, recién cuando se ve su
+   perfil. Después pasea su escalera */
+const tasteSwitch = (text, sayBefore, say) => [
+  ...persona(text, sayBefore, false),
+  { say: sayBefore, click: { sel: ".smart-bar" }, after: 300 },
+  { say, ready: [{ sel: 'section.taste-card[aria-label="Tu perfil"]' }, { sel: ".taste-rail" }], point: { sel: 'section.taste-card[aria-label="Tu perfil"]' }, timeout: 15000, after: 1800 },
+  { say, ready: { sel: ".taste-rail" }, timeout: 10000, run: () => panRail(() => !!tour), after: 600 },
+];
 const backHome = (say) => ({ say: say || "Vuelve a la Home.", click: [{ sel: "button.search-back" }, { sel: "button.back-button" }], timeout: 2500 });
 
 /* Al abrir la app: el aviso de privacidad de la primera visita (si está) */
@@ -685,7 +747,6 @@ const CHAPTERS = [
       { say: "Le pide a Mochi algo nuevo para probar: lo propone en su buscador.", click: { sel: "button.agent-action", text: "Muéstrame algo nuevo" }, timeout: 3000, after: 2600 },
       { say: "Mochi propone la vertical que sigue en su escalera. ¿Por qué?", click: { sel: ".agent-msg-extras .offer-why-toggle" }, timeout: 6000, after: 2600 },
       backHome("Por ahora, vuelve a la Home."),
-      closeSurvey("Por ahora, vuelve a la Home."),
     ],
   },
   {
@@ -728,7 +789,6 @@ const CHAPTERS = [
       { say: "De lo más cercano a lo más lejano.", run: async () => { if (!(await panRail(() => !!tour))) skip({ say: "La escalera sin perfil (no apareció)" }); }, after: 600 },
       backHome(),
       { say: "Ofertas: lo que bajó de precio, por vertical.", click: { sel: ".bottom-nav-item", text: "Ofertas" }, after: 600 },
-      closeSurvey("Ofertas: lo que bajó de precio, por vertical."),
       { say: "Ofertas: lo que bajó de precio, por vertical.", scroll: { in: { sel: ".deals-vertical-title" }, by: 600 } },
       { say: "Vuelve a la Home.", click: { sel: ".bottom-nav-item", text: "Inicio" } },
     ],
@@ -778,11 +838,11 @@ const CHAPTERS = [
     id: "personas",
     title: "7 · Cambiar de persona",
     steps: [
-      ...persona("mexicano", "Perfil mexicano: el buscador muestra su escalera."),
+      ...tasteSwitch("mexicano", "Perfil mexicano…", "Perfil mexicano: el buscador muestra su escalera."),
       backHome(),
-      ...persona("asiático", "Cambia a amante de lo asiático: el buscador se adapta."),
+      ...tasteSwitch("asiático", "Cambia a amante de lo asiático…", "Cambia a amante de lo asiático: el buscador se adapta."),
       backHome(),
-      ...persona("café", "Y a amante del café: otras ideas, otras verticales."),
+      ...tasteSwitch("café", "Y a amante del café…", "Y a amante del café: otras ideas, otras verticales."),
       backHome(),
     ],
   },
