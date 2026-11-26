@@ -6,8 +6,12 @@ const MAX_EVENTS = 500
 
 const empty = () => ({ userId: null, events: [], orders: [], preferences: [] })
 let memory = empty() // sin localStorage (modo privado), vive mientras la pestaña siga abierta
+// El navegador rechazó la última escritura (cuota llena) pero sigue dejando leer: lo más nuevo está en `memory`, no en
+// la copia anterior de localStorage (como `localStore` en state/storage.js).
+let unsaved = false
 
 export function readState() {
+  if (unsaved) return memory
   try {
     const stored = JSON.parse(localStorage.getItem(KEY))
     if (!stored || !Array.isArray(stored.events) || !Array.isArray(stored.orders)) return empty()
@@ -26,8 +30,9 @@ export function writeState(state) {
   if (typeof window !== 'undefined') queueMicrotask(() => window.dispatchEvent(new Event(OFFLINE_STATE_EVENT)))
   try {
     localStorage.setItem(KEY, JSON.stringify(state))
+    unsaved = false
   } catch {
-    // Sin almacenamiento: queda en memoria.
+    unsaved = true // sin almacenamiento o sin espacio: queda en memoria
   }
 }
 
