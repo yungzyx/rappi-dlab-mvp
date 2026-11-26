@@ -767,5 +767,8 @@ def test_the_install_creates_the_api_role_before_starting_the_services(demo):
 
     assert installed.returncode == 0, installed.stdout + installed.stderr
     assert "CREATE ROLE rappi_api LOGIN" in "\n".join(demo.recorded("psql"))
-    assert any("deploy-migrate --sin-respaldo" in line for line in demo.recorded("python"))
+    # Sin --sin-respaldo: si entre su revisión y este paso llegara una migración (un despliegue a la vez),
+    # deploy-migrate respalda antes de aplicarla. Sin pendientes, solo da los permisos.
+    deploy_migrate = [line for line in demo.recorded("python") if "deploy-migrate" in line]
+    assert deploy_migrate == ["PGUSER= -m rappi_ia deploy-migrate"]
     assert any(line.startswith("bootstrap") and line.endswith("test.api.plist") for line in demo.recorded("launchctl"))

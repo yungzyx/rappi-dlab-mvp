@@ -3,7 +3,9 @@
 # rappi_api) si no existe y le da los permisos de deploy/db/grants.sql en la base de la copia que se sirve (lee todo y
 # escribe solo los datos de las personas), con `rappi-ia deploy-migrate`. Después reinicia la API, que arranca con ese
 # rol (api.sh). Con Postgres de Homebrew la conexión local es "trust": el rol no lleva clave. Si hay migraciones
-# pendientes no hace nada: primero `actualizar.sh` (respalda y migra).
+# pendientes no hace nada: primero `actualizar.sh` (respalda y migra). Sin pendientes, deploy-migrate solo da los
+# permisos; va sin --sin-respaldo: si un despliegue trajera una migración entre la revisión y ese paso, respalda antes
+# de aplicarla.
 # Uso: deploy/macos/rol-api.sh [--sin-reiniciar]
 # shellcheck source=deploy/macos/comun.sh
 . "$(dirname "$0")/comun.sh"
@@ -22,7 +24,7 @@ else
   psql -X -q -v ON_ERROR_STOP=1 -d postgres -c "CREATE ROLE $role LOGIN"
   log "Rol $role creado"
 fi
-DB_API_ROLE=$role rappi-ia/.venv/bin/python -m rappi_ia deploy-migrate --sin-respaldo
+DB_API_ROLE=$role rappi-ia/.venv/bin/python -m rappi_ia deploy-migrate
 log "Permisos de $role aplicados"
 if [ "${1:-}" != "--sin-reiniciar" ]; then
   reiniciar api
