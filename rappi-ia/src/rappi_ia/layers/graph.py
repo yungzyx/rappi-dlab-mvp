@@ -300,14 +300,15 @@ def _derive_from_catalog(conn: Connection, run: int) -> dict:
 
 
 def _learn_co_search(conn: Connection, run: int) -> dict:
-    """P(B | A) entre sesiones que buscan, preguntan o miran A, por fuente de datos; sin conceptos sensibles. Una
-    sesión es (persona, id de sesión): el cliente elige el id, dos personas pueden repetirlo. No guarda a nadie: el
-    resultado son conceptos, con cuántas sesiones y cuántas personas distintas lo respaldan."""
+    """P(B | A) entre sesiones que buscan, preguntan o miran A, por fuente de datos; sin conceptos sensibles ni lo de
+    "Rappi hoy" (`payload.mode = 'actual'`: no enseña, aunque un evento guardado traiga concepto). Una sesión es
+    (persona, id de sesión): el cliente elige el id, dos personas pueden repetirlo. No guarda a nadie: el resultado son
+    conceptos, con cuántas sesiones y cuántas personas distintas lo respaldan."""
     learned = conn.execute(
         """WITH used AS (
                SELECT DISTINCT e.source, e.user_id, e.session_id, e.concept_id
                FROM app_events e JOIN concepts c ON c.concept_id = e.concept_id
-               WHERE e.type = ANY(%s) AND NOT c.sensitive),
+               WHERE e.type = ANY(%s) AND NOT c.sensitive AND coalesce(e.payload ->> 'mode', '') <> 'actual'),
            per_concept AS (SELECT source, concept_id, count(*) AS n FROM used GROUP BY 1, 2),
            sessions AS (SELECT source, count(DISTINCT (user_id, session_id))::real AS n FROM used GROUP BY 1),
            pairs AS (

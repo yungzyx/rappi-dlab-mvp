@@ -231,6 +231,27 @@ def test_rappi_hoy_searches_do_not_learn_a_concept(client, db):
     assert _search(client, db, "u-busca-3", query="paracetamool", payload=payload) is None
 
 
+def test_no_event_of_rappi_hoy_keeps_a_concept_sent_by_the_client(client, db):
+    """En "Rappi hoy" (`payload.mode = 'actual'`) no se aprende: el servidor no guarda el concepto que mande el cliente
+    en ningún tipo de evento (la app ya no lo manda; uno viejo u otro cliente, sí). En la propuesta, se guarda."""
+    sent = [
+        _event(type=kind, concept_id="snacks-salados", entity_type="catalog_item", entity_id="100", payload=payload)
+        for kind in ("view_item", "cart_add")
+        for payload in ({"mode": "actual"}, {})
+    ]
+    assert client.post("/events", json={"user_id": "u-hoy-concepto", "events": sent}).json() == {"guardados": 4}
+
+    rows = db.execute(
+        "SELECT type, payload ->> 'mode', concept_id FROM app_events WHERE user_id = 'u-hoy-concepto' ORDER BY event_id"
+    ).fetchall()
+    assert rows == [
+        ("view_item", "actual", None),
+        ("view_item", None, "snacks-salados"),
+        ("cart_add", "actual", None),
+        ("cart_add", None, "snacks-salados"),
+    ]
+
+
 def test_a_concept_sent_by_the_client_in_a_search_is_replaced(client, db):
     assert _search(client, db, "u-busca-4", query="paracetamol", concept_id="cerveza") == "medicamentos"
     assert _search(client, db, "u-busca-5", query="algo raro", concept_id="cerveza") is None

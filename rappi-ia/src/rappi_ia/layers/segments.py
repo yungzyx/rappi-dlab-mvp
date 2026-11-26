@@ -563,11 +563,12 @@ _METRIC_SQL = {
     "conceptos_distintos_90d": """SELECT user_id, count(DISTINCT concept_id) FROM (
                                      SELECT o.user_id, l.concept_id
                                      FROM app_order_lines l JOIN app_orders o USING (order_id)
-                                     WHERE o.source = %(source)s AND o.status = 'confirmado'
+                                     WHERE o.source = %(source)s AND o.mode = 'propuesta' AND o.status = 'confirmado'
                                        AND o.ts >= %(now)s - interval '90 days'{only}
                                      UNION ALL
                                      SELECT user_id, concept_id FROM app_events
                                      WHERE source = %(source)s AND type IN ('view_item', 'cart_add', 'search')
+                                       AND payload ->> 'mode' IS DISTINCT FROM 'actual'
                                        AND ts >= %(now)s - interval '90 days'{only}) t
                                   WHERE concept_id IS NOT NULL GROUP BY 1""",
     "ticket_creciente": """SELECT user_id, avg(total) FILTER (WHERE ts >= %(now)s - interval '45 days')

@@ -301,13 +301,14 @@ def _client_ts(e: Event, now: datetime) -> datetime | None:
 
 
 def record(conn: Connection, events: list[Event], source: str = "prototype", session: SessionInfo | None = None) -> int:
-    """Guarda eventos válidos (tipo conocido, concepto existente) y devuelve cuántos entraron. Cada persona del lote se
-    crea una sola vez (un lote de la app trae hasta 200 eventos de una misma persona). Un evento con `client_event_id`
-    que ya estaba (un lote reintentado) no entra otra vez. Cada sesión del lote queda en `app_sessions` con su primer
-    evento (y `session`, lo que la app cuenta de ella: su modo es también la variante de `modo_app` de la persona, si
-    aún no tenía). Los elementos de un `list_view`, `offer_withheld` u `offer_eligible` van a `app_event_items`, y
-    `view_store`, `view_item` y `cart_add` llevan el catálogo tal como estaba (`payload.catalogo`,
-    events/catalog_context.py)."""
+    """Guarda eventos válidos (tipo conocido, concepto existente) y devuelve cuántos entraron. Los de "Rappi hoy"
+    (`payload.mode = 'actual'`) van sin concepto, aunque el cliente lo mande: ese modo no enseña. Cada persona del lote
+    se crea una sola vez (un lote de la app trae hasta 200 eventos de una misma persona). Un evento con
+    `client_event_id` que ya estaba (un lote reintentado) no entra otra vez. Cada sesión del lote queda en
+    `app_sessions` con su primer evento (y `session`, lo que la app cuenta de ella: su modo es también la variante de
+    `modo_app` de la persona, si aún no tenía). Los elementos de un `list_view`, `offer_withheld` u `offer_eligible` van
+    a `app_event_items`, y `view_store`, `view_item` y `cart_add` llevan el catálogo tal como estaba
+    (`payload.catalogo`, events/catalog_context.py)."""
     unknown = next((e.type for e in events if e.type not in EVENT_TYPES), None)
     if unknown is not None:
         raise ValueError(f"Tipo de evento desconocido: {unknown}")
@@ -338,7 +339,7 @@ def record(conn: Connection, events: list[Event], source: str = "prototype", ses
                 e.ts,
                 e.type,
                 e.vertical,
-                e.concept_id if e.concept_id in known else None,
+                e.concept_id if e.concept_id in known and e.payload.get("mode") != "actual" else None,
                 e.entity_type,
                 e.entity_id,
                 e.cart_id,
