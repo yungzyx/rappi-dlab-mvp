@@ -35,6 +35,7 @@ La sesión de la CLI dura una hora: `oci session refresh --profile RAPPI` la ren
 - **Sesión de la CLI y no llaves de API:** nada que robar en el equipo.
 - **IP reservada:** el DNS (o el nombre sslip.io) no cambia si se recrea la máquina.
 - **`ignore_changes` en la imagen y el cloud-init:** una imagen nueva de Ubuntu no recrea la máquina (con la base adentro); se actualiza con `apt` (`unattended-upgrades` queda activo).
+- **Solo TCP:** la lista de seguridad y el iptables del `cloud-init.yaml` abren 80 y 443 por TCP. El compose publica también 443/udp (HTTP/3), que así no llega: los navegadores usan HTTP/2.
 - **SSH solo desde `admin_cidrs`:** la web es lo único abierto a internet, y está detrás de la puerta de Caddy. Si cambia la IP de quien administra, se actualiza la variable y `terraform apply` (no hace falta SSH para eso).
 
 ## Límite de la cuenta
