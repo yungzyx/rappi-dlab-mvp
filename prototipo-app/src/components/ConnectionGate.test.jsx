@@ -144,9 +144,12 @@ describe('ConnectionGate', () => {
     expect(screen.queryByText('La app')).toBeNull()
   })
 
-  test('sin VITE_DEMO no hay texto make mvp ni la URL de la API', async () => {
+  test.each([
+    ['sin VITE_DEMO', ''],
+    ['con VITE_DEMO=1 (la demo desplegada)', '1'],
+  ])('%s, un build de producción no trae el texto make mvp ni la URL de la API', async (_, demo) => {
     vi.stubEnv('DEV', false)
-    vi.stubEnv('VITE_DEMO', '')
+    vi.stubEnv('VITE_DEMO', demo)
     stubApi({ '/health': 'offline' })
     const { container } = renderGate()
     expect(await screen.findByRole('heading', { name: 'Sin conexión con Mochi' })).toBeTruthy()

@@ -75,8 +75,9 @@ function ConnectionNotice({ status, onRetry }) {
           ) : (
             <>
               <h1>Sin conexión{withAgent}</h1>
-              {/* Las instrucciones de desarrollador y la dirección de la API no llegan al sitio desplegado. */}
-              {import.meta.env.DEV || import.meta.env.VITE_DEMO === '1' ? (
+              {/* Las instrucciones de desarrollador y la dirección de la API solo en desarrollo: no llegan al sitio
+                  desplegado, tampoco al de la demo (VITE_DEMO=1, que solo suma el interruptor del modo). */}
+              {import.meta.env.DEV ? (
                 <>
                   <p>No pude conectar con la API del MVP ({API_URL}).</p>
                   <p className="connection-help">
