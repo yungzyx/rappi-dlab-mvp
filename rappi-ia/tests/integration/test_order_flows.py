@@ -159,6 +159,19 @@ def test_a_cancellation_by_beacon_also_recalculates_the_motor(client, db):
     assert db.execute("SELECT orders FROM user_vertical_affinity WHERE user_id = %s", (USER,)).fetchone() == (2,)
 
 
+def test_a_cancellation_from_rappi_hoy_also_recalculates_the_motor(client, db):
+    """El pedido es de la propuesta y la persona lo cancela con la app ya en "Rappi hoy": el pedido queda cancelado en
+    los dos modos, así que su afinidad y su recompra se recalculan igual (si no, la recompra seguía ofreciéndolo)."""
+    for n, days in enumerate((21, 14, 7)):
+        bought(db, "supermercado", COFFEE, days, SUPER_CENTRO, f"c-{n}")
+    refresh_user_conn(db, USER)
+
+    cancel(client, "c-2", mode="actual")
+
+    assert statuses(db, "c-2") == {"supermercado": "cancelado"}
+    assert db.execute("SELECT orders FROM user_vertical_affinity WHERE user_id = %s", (USER,)).fetchone() == (2,)
+
+
 def test_a_cancelled_order_is_not_the_usual_order_of_its_store(client, db):
     """ "Pedir por mí" repite el último pedido de la tienda: uno cancelado no es lo de siempre."""
     bought(db, "supermercado", COFFEE, 3, SUPER_CENTRO, "c-viejo")

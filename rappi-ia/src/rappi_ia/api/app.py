@@ -861,8 +861,8 @@ def post_events(
     conn: Connection = Depends(get_conn, scope="function"),
     connector=Depends(get_connector),
 ) -> dict:
-    """Guarda los eventos del lote. Si trae la cancelación de un pedido del prototipo final, ya respondido recalcula el
-    motor y los segmentos de la persona (un pedido cancelado deja de contar), como después de un pedido."""
+    """Guarda los eventos del lote. Si trae la cancelación de un pedido, ya respondido recalcula el motor y los
+    segmentos de la persona (un pedido cancelado deja de contar), como después de un pedido."""
     owner_of_body(request, body.user_id)
     saved = _save_events(lambda: nullcontext(conn), body)
     _recalc_if_cancelled(background, connector, body)
@@ -870,9 +870,11 @@ def post_events(
 
 
 def _recalc_if_cancelled(background: BackgroundTasks, connector, body: EventsIn) -> None:
-    """Una cancelación del prototipo final recalcula el motor y los segmentos de la persona, ya respondido: un pedido
-    cancelado deja de contar. Vale para /events y para el beacon (lo que quedó en cola al cerrar la pestaña)."""
-    if any(e.type == "order_cancelled" and e.payload.get("mode") != "actual" for e in body.events):
+    """Una cancelación recalcula el motor y los segmentos de la persona, ya respondido: un pedido cancelado deja de
+    contar. También una de "Rappi hoy": cancela el pedido en los dos modos (`events.store._record_cancellations`), y el
+    de la propuesta pudo cancelarse con la app ya en "Rappi hoy". Vale para /events y para el beacon (lo que quedó en
+    cola al cerrar la pestaña)."""
+    if any(e.type == "order_cancelled" for e in body.events):
         background.add_task(recalculate_user_segments, connector, body.user_id)
         background.add_task(refresh_user, connector, body.user_id)
 
