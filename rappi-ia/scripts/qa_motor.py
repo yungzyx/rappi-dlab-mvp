@@ -5,7 +5,8 @@ Para una muestra fija (semilla) de personas simuladas y todas las del prototipo,
 momento: cuántas respuestas traen oferta, qué verticales ofrece, las guardias (deben dar 0), la latencia p50/p95 y
 textos de muestra. Momentos: `vertical_por_probar`, `recompra`, `carrito` (con el último producto que pidió),
 `proximo_pedido` (con su último pedido), `/recommendations` y `/profile/{id}/verticales`. No llama a nada que
-escribe (`/agent/ask` registra la pregunta, `/session` y `/orders` escriben).
+escribe (`/agent/ask` registra la pregunta, `/session` y `/orders` escriben), y lo que esas rutas anotan al responder
+(el contador de las guardias, `offers/blocked.py`) aquí no se anota.
 
 Uso (desde rappi-ia/):
     .venv/bin/python scripts/qa_motor.py                      # base rappi, 200 personas, semilla 16
@@ -54,6 +55,9 @@ def main() -> None:
     from rappi_ia.api import deps, identity
     from rappi_ia.api.app import app
     from rappi_ia.api.services import services
+    from rappi_ia.offers import blocked
+
+    blocked.save = lambda *_args, **_kwargs: None  # el contador de las guardias escribe: en solo lectura, fallaría
 
     conn = psycopg.connect(f"dbname={args.base}", options="-c default_transaction_read_only=on")
     if conn.execute("SHOW default_transaction_read_only").fetchone()[0] != "on":
