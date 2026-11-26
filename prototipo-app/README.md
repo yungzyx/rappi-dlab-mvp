@@ -276,6 +276,13 @@ Las pantallas de catálogo leen la API (`/catalog`, `src/api/catalog.js`) y la a
 - **Créditos y cupones de ejemplo:** un saldo en el navegador (`src/state/credits.js`; "Olvidar" lo borra). Empieza con los $1.900 del banner de la Home, que vencen con su cuenta regresiva (la misma en los dos modos); el checkout los gasta, y la ayuda con reembolso en créditos, la garantía de Turbo y la cancelación de un pedido (lo que había usado) suman. Cada cupón se usa una vez y vuelve si se cancela su pedido. El banner muestra el saldo y desaparece en cero.
 - **Montos de un pedido:** "Mis pedidos", Cuenta y "Pídelo de nuevo" muestran el mismo total del seguimiento: con el ajuste de un sustituto o un reembolso del Súper y, cancelado, solo el costo de cancelar. La ayuda reembolsa lo que llegó (el sustituto, no el agotado).
 
+## Limitaciones conocidas
+
+- **Condiciones de la tienda en el checkout:** el envío, la compra mínima y la tarifa (`/catalog/terms`) se piden al abrir el checkout; mientras llegan, o si fallan, valen los supuestos de ejemplo, y no se vuelven a revisar al cerrarse "Deshacer pedido". Con una red lenta, un pedido puede salir con el mínimo de ejemplo.
+- **Franjas de "Programar":** se arman con la hora y el huso del teléfono, desde que se abrió el checkout: en un teléfono con otro huso que el de Chile salen corridas, y con el checkout abierto mucho rato puede ofrecer una que ya pasó.
+- **Respuesta de `POST /orders`:** un pedido que no llega se reenvía con su `client_order_id`, pero el checkout no lee la respuesta: uno que la API rechaza (400, 409) o guarda sin alguna línea (`lineas_omitidas`) igual queda confirmado en "Mis pedidos" del teléfono.
+- **Demo sin conexión:** la API simulada no revisa un pedido como la real (no resuelve la tienda de un plato sin `store_id` ni revisa el precio o la disponibilidad de cada línea), y "Pedir por mí" solo mira la vertical del pedido y el nombre del plato: la muestra no dice si una tienda es también Farmacia o Licores, ni las otras secciones o la descripción de un plato.
+
 ## Estructura
 
 ```text
