@@ -254,6 +254,20 @@ describe('cambios en vivo en el Súper', () => {
 })
 
 describe('atraso del "Panel de la demo"', () => {
+  // El panel solo existe en "Prototipo MVP.html": el oyente se registra solo con VITE_OFFLINE_DEMO=1.
+  beforeEach(() => vi.stubEnv('VITE_OFFLINE_DEMO', '1'))
+  afterEach(() => vi.unstubAllEnvs())
+
+  test('fuera de la demo sin conexión nadie lo escucha: el pedido no se atrasa ni suma Créditos', async () => {
+    vi.stubEnv('VITE_OFFLINE_DEMO', '')
+    renderTracking([TURBO])
+    await advance(4000)
+    act(() => window.dispatchEvent(new Event(DEMO_DELAY_EVENT)))
+    await advance(500)
+    expect(screen.queryByRole('status', { name: 'Tu pedido viene atrasado' })).toBeNull()
+    expect(readWallet().extra).toBe(0)
+  })
+
   test('en Turbo: el tiempo sube, llega el mensaje y la garantía de ejemplo se paga en Créditos', async () => {
     renderTracking([TURBO])
     await advance(4000)
