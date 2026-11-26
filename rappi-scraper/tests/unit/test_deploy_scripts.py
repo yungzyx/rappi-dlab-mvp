@@ -1,9 +1,11 @@
-"""deploy/scripts/backup-nightly.sh (el respaldo nocturno del servidor), corrido de verdad con `pg_dump`, `pg_restore` y
-`restic` falsos en el PATH."""
+"""deploy/scripts/backup-nightly.sh (el respaldo nocturno del servidor) y deploy/db/init-roles.sh (los roles de la
+base), corridos de verdad con `pg_dump`, `pg_restore`, `restic` y `psql` falsos en el PATH."""
 
 import os
 import subprocess
 from pathlib import Path
+
+import pytest
 
 BACKUP = Path(__file__).resolve().parents[3] / "deploy" / "scripts" / "backup-nightly.sh"
 PASSWORD = "clave-de-prueba"
@@ -190,3 +192,37 @@ def test_rotation_keeps_the_newest_by_date_not_by_name(tmp_path):
     assert later_names[-2:] == [name for name in remaining if name.startswith("nocturno_2099")]
     [new] = [name for name in remaining if not name.startswith("nocturno_2099")]
     assert (tmp_path / "rec" / "restic.txt").read_text().splitlines()[0].endswith(new)
+
+
+INIT_ROLES = Path(__file__).resolve().parents[3] / "deploy" / "db" / "init-roles.sh"
+GOOD = {"POSTGRES_PASSWORD": "a" * 32, "RAPPI_OWNER_PASSWORD": "b" * 32, "RAPPI_API_PASSWORD": "c" * 32}
+
+
+def _init_roles(tmp_path: Path, **passwords: str) -> tuple[subprocess.CompletedProcess, Path]:
+    """deploy/db/init-roles.sh con un `psql` falso que anota que lo llamaron."""
+    bin_dir = tmp_path / "bin"
+    called = tmp_path / "psql-llamado"
+    _write_fake(bin_dir / "psql", f"cat > /dev/null; touch {called}")
+    env = {k: v for k, v in os.environ.items() if not k.startswith(("POSTGRES_", "RAPPI_"))}
+    env.update({"PATH": f"{bin_dir}:{env['PATH']}", "POSTGRES_USER": "postgres", "POSTGRES_DB": "rappi"})
+    env.update({**GOOD, **passwords})
+    result = subprocess.run(["bash", str(INIT_ROLES)], env=env, capture_output=True, text=True)
+    return result, called
+
+
+@pytest.mark.parametrize("variable", sorted(GOOD))
+def test_the_first_start_refuses_the_example_passwords(tmp_path, variable):
+    """El volumen se inicializa una sola vez: con "cambiar-esto" (deploy/.env.example) los roles quedaban con esa clave,
+    y corregir después el archivo no la cambia. Ahora no crea nada y dice qué variable falta cambiar."""
+    result, called = _init_roles(tmp_path, **{variable: "cambiar-esto"})
+
+    assert result.returncode != 0
+    assert variable in result.stderr
+    assert not called.exists()
+
+
+def test_the_first_start_creates_the_roles_with_real_passwords(tmp_path):
+    result, called = _init_roles(tmp_path)
+
+    assert result.returncode == 0, result.stderr
+    assert called.exists()
