@@ -22,7 +22,14 @@ const OUTPUTS = {
 }
 const DIST = `${HERE}dist/`
 // La barra de modos y el "Panel de la demo" de la app quedan ocultos: la presentación muestra sus botones a los lados.
-const HIDE = { mvp: '.demo-toggle,.offline-demo{display:none!important}', panel: '' }
+// El teléfono dibujado (fuera de un iPhone) usa el alto que le da la presentación: `--presentacion-escala`
+// (recorrido.js, fitPhone), también más grande que el iPhone de verdad.
+const HIDE = {
+  mvp:
+    '.demo-toggle,.offline-demo{display:none!important}' +
+    '@media (min-width:501px){.phone{zoom:var(--presentacion-escala,var(--phone-scale,1))!important}}',
+  panel: '',
+}
 const MARK = '/*PROTOS*/null'
 const TOUR_MARK = '/*RECORRIDO*/'
 

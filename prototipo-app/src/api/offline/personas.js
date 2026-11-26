@@ -1,5 +1,6 @@
 // El panel de la demo sin conexión: personas listas (un historial de pedidos y toques que se siembra en la API
 // simulada), "+1 visita" para mover la Home y la lectura de la escalera. Solo existe en "Prototipo MVP.html".
+import { MAIN_TILES, SHORTCUTS } from '../../data/home'
 import { currentFine, NONE_COMBO, targetStep } from './motor'
 import { featuredProduct, offerableProduct } from './offers'
 import { PRO_KEY } from '../../state/pro'
@@ -185,14 +186,21 @@ export function clearHistory() {
   window.dispatchEvent(new Event(DEMO_HISTORY_EVENT))
 }
 
-const SERVICE_NAMES = { favor: 'RappiFavor', travel: 'RappiTravel' }
+// El nombre de cada vertical en la Home ("mall" → "Rappi Mall"); los servicios, con su marca.
+const VISIBLE_NAMES = {
+  ...Object.fromEntries([...MAIN_TILES, ...SHORTCUTS].filter((t) => t.vertical).map((t) => [t.vertical, t.label])),
+  favor: 'RappiFavor',
+  travel: 'RappiTravel',
+}
+const nameOf = (vertical) => VISIBLE_NAMES[vertical] ?? vertical
+const joinNames = (names) => (names.length < 2 ? names.join('') : `${names.slice(0, -1).join(', ')} y ${names.at(-1)}`)
 
-/** "Hoy: restaurantes+turbo → siguiente: supermercado": la combinación de la persona y el paso que Mochi propone. */
+/** "Hoy: Restaurantes y Turbo → siguiente: Súper": la combinación de la persona y el paso que Mochi propone. */
 export function ladderReadout(snapshot, state = readState(), now = Date.now()) {
   const { combos } = snapshot.meta
   const fine = currentFine(combos, state, now)
-  if (fine === NONE_COMBO) return 'Hoy: sin pedidos → siguiente: la de siempre (supermercado)'
+  if (fine === NONE_COMBO) return `Hoy: sin pedidos → siguiente: la de siempre (${nameOf('supermercado')})`
   const step = targetStep(combos, state, now)
-  const next = step ? (SERVICE_NAMES[step.vertical] ?? step.vertical) : 'nada más que ofrecer'
-  return `Hoy: ${fine} → siguiente: ${next}`
+  const next = step ? nameOf(step.vertical) : 'nada más que ofrecer'
+  return `Hoy: ${joinNames(fine.split('+').map(nameOf))} → siguiente: ${next}`
 }

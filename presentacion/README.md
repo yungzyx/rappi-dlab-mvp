@@ -2,10 +2,10 @@
 
 Dos HTML de un solo archivo para mostrar el MVP sin API ni internet, con los controles de la demo a mano y un recorrido automático por capítulos:
 
-- **"Mochi MVP - Presentación.html"**: para un notebook o un proyector. Al centro, "Prototipo MVP.html" tal cual; a la izquierda, la vista (MVP con Mochi o Rappi hoy, también con la tecla D), primero los perfiles de gusto (fichas con su emoji) y después las otras personas del "Panel de la demo", la línea de la escalera ("Hoy: … → siguiente: …") y, en "Simular", "+1 visita a…" (cierra el buscador si estaba abierto, para que se vea a Mochi mover los accesos), "Borrar historial", "Atrasar el pedido en curso" y, en el MVP con Mochi, "Ocultar a Mochi" o "Mostrar a Mochi" (el mismo botón, sin confirmar: vuelve a la Home para que se vea); a la derecha, el panel de negocio, el recorrido automático, sus capítulos y Parar.
+- **"Mochi MVP - Presentación.html"**: para un notebook o un proyector. Al centro, "Prototipo MVP.html" tal cual; a la izquierda, la vista (MVP con Mochi o Rappi hoy, también con la tecla D), primero los perfiles de gusto (fichas con su emoji) y después las otras personas del "Panel de la demo", la línea de la escalera con los nombres de la Home ("Hoy: Restaurantes, Turbo y Súper → siguiente: Rappi Mall") y, en "Simular", "+1 visita a…" (cierra el buscador si estaba abierto, para que se vea a Mochi mover los accesos), "Borrar historial", "Atrasar el pedido en curso" y, en el MVP con Mochi, "Ocultar a Mochi" o "Mostrar a Mochi" (el mismo botón, sin confirmar: vuelve a la Home para que se vea); a la derecha, el panel de negocio, el recorrido automático, sus capítulos y Parar.
 - **"Mochi MVP - iPhone y iPad.html"**: la app a pantalla completa, con una barra abajo (la persona elegida, el recorrido y un menú) y una hoja con las mismas opciones.
 
-Los botones de la presentación tocan los de la app: el interruptor de modo y el "Panel de la demo" quedan ocultos dentro del iframe y la presentación los muestra a los lados. Elegir una persona a mano abre el buscador con Mochi, lo que Mochi le muestra a esa persona; con un perfil de gusto, además pasea su escalera "Para ti en otras verticales". Un toque, una tecla o la rueda dentro de la app detiene el recorrido.
+Los botones de la presentación tocan los de la app: el interruptor de modo y el "Panel de la demo" quedan ocultos dentro del iframe y la presentación los muestra a los lados. El teléfono que dibuja la app usa todo el alto disponible, también más grande que un iPhone (en un monitor de 1920 × 1080 o en el iPad vertical), y desde 1440 × 900 la letra de los costados sube. Elegir una persona a mano abre el buscador con Mochi, lo que Mochi le muestra a esa persona; con un perfil de gusto, además pasea su escalera "Para ti en otras verticales". Un toque, una tecla o la rueda dentro de la app detiene el recorrido.
 
 ## Capítulos del recorrido
 
@@ -15,11 +15,11 @@ Los botones de la presentación tocan los de la app: el interruptor de modo y el
 4. Una persona nueva y Ofertas: sin pedidos ni perfil, el buscador con Mochi le muestra la escalera por verticales con su "¿Por qué?".
 5. Carro, pago y seguimiento, con el atraso simulado.
 6. Preferencias y "Pedir por mí".
-7. Cambiar de persona: mexicano, asiático y café.
+7. Cambiar de persona: mexicano, asiático y café (cada uno se narra recién cuando su perfil está a la vista, y se pasea su escalera).
 8. Rappi hoy frente al MVP.
 9. El panel de negocio: Resumen, Retención y venta cruzada (En riesgo), Mochi y búsquedas (con "¿Mochi molesta?" y Búsquedas).
 
-Cada capítulo elige su persona (que borra lo de antes) o sigue con lo que dejó el anterior; si algo no aparece, el paso se salta y queda en la consola del navegador ("Paso saltado").
+Cada capítulo elige su persona (que borra lo de antes) o sigue con lo que dejó el anterior; si algo no aparece, el paso se salta y queda en la consola del navegador ("Paso saltado"). Mientras corre, no se ve nada que lo interrumpa: la pregunta in-app ("¿Encontraste lo que buscabas?", "¿Confías en las sugerencias de Mochi?") se cierra sin responder y la oferta del carro que Mochi muestra al volver a la Home se deja con "Ahora no", las dos ocultas desde que aparecen.
 
 ## Lo que no hay sin conexión
 
@@ -51,6 +51,6 @@ Escribe `presentacion/dist/` (ignorada en git: lleva la muestra del catálogo y 
 - `escritorio.html` y `movil.html`: las dos plantillas (el marco, su CSS y la hoja del menú táctil).
 - `recorrido.js`: lo común a las dos (los controles que tocan los de la app, el panel de negocio y el recorrido con su guion por capítulos).
 - `shim.js`: se inyecta al inicio de la app y del panel. Guarda `localStorage` y `sessionStorage` con un prefijo propio ("mvp:", "panel:"; también `length`, `key()` y `Object.keys()`, que la app recorre al cambiar de persona) y les da un historial en memoria, para que el "atrás" de la app no mueva la página de la presentación.
-- `build.mjs`: inyecta `shim.js` (y el estilo que oculta los controles de la demo) en los dos HTML, los mete como texto en `const PROTOS = {mvp, panel}` de cada plantilla (cada uno se abre en un iframe con `srcdoc`) junto con `recorrido.js`, y escribe los dos archivos.
+- `build.mjs`: inyecta `shim.js` (y el estilo que oculta los controles de la demo y escala el teléfono con `--presentacion-escala`, que calcula `recorrido.js`) en los dos HTML, los mete como texto en `const PROTOS = {mvp, panel}` de cada plantilla (cada uno se abre en un iframe con `srcdoc`) junto con `recorrido.js`, y escribe los dos archivos.
 
-Si cambian las clases de la app que usa el guion (`.smart-bar`, `.taste-rail`, `.live-card--repeat`, `.offline-demo-panel`…), el recorrido salta esos pasos: se revisa en `recorrido.js` (`CHAPTERS`).
+Si cambian las clases de la app que usa el guion (`.smart-bar`, `.taste-rail`, `.live-card--repeat`, `.offline-demo-panel`…), el recorrido salta esos pasos: se revisa en `recorrido.js` (`CHAPTERS`). Lo que oculta mientras corre lo reconoce por `.found-it` y por el globo con `.agent-msg-products` (`QUIET_CSS`).

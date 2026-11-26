@@ -52,8 +52,12 @@ describe('panel en un solo HTML', () => {
     await renderWithData(<App />)
     await act(async () => {})
 
-    expect(screen.getByText('Foto sin conexión:')).toBeTruthy()
-    expect(screen.getByText(/grabadas el 23-10-2026 desde una copia de la base \(rappi_staging\)/)).toBeTruthy()
+    expect(screen.getByText('Foto de demostración:')).toBeTruthy()
+    expect(screen.getByText(/el panel como estaba el 23-10-2026\. No se actualiza/)).toBeTruthy()
+    // De dónde salió (la copia de la base), solo en el pie.
+    expect(document.querySelector('.site-footer').textContent).toMatch(
+      /23-10-2026 .*copia de la base \(rappi_staging\)/,
+    )
     // La fecha de los precios del catálogo también sale de la foto.
     expect(document.querySelector('.masthead-catalog').textContent).toBe(
       'Precios de Rappi Chile del 24-09-2026 al 18-10-2026',

@@ -59,7 +59,10 @@ test('las personas de la escalera están donde dice su nombre, y la línea del p
   expect(targetStep(COMBOS, stateOf('restaurantes'), NOW).vertical).toBe('turbo')
   expect(targetStep(COMBOS, stateOf('rest-turbo'), NOW).vertical).toBe('supermercado')
   expect(targetStep(COMBOS, stateOf('todo'), NOW).vertical).toBe('favor')
-  expect(ladderReadout(snapshot, stateOf('rest-turbo'), NOW)).toBe('Hoy: restaurantes+turbo → siguiente: supermercado')
+  expect(ladderReadout(snapshot, stateOf('rest-turbo'), NOW)).toBe('Hoy: Restaurantes y Turbo → siguiente: Súper')
+  expect(ladderReadout(snapshot, stateOf('rest-turbo-super'), NOW)).toBe(
+    'Hoy: Restaurantes, Turbo y Súper → siguiente: Rappi Mall',
+  )
   expect(ladderReadout(snapshot, stateOf('todo'), NOW)).toMatch(/→ siguiente: RappiFavor$/)
   expect(ladderReadout(snapshot, stateOf('nueva'), NOW)).toMatch(/^Hoy: sin pedidos/)
 })
