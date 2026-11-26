@@ -1,8 +1,16 @@
 import { afterEach, expect, test, vi } from 'vitest'
 import { homeVerticals, targetStep } from './motor'
-import { ladderReadout, personaHistory, personas, startingHistory, startingPersona, switchPersona } from './personas'
+import {
+  clearHistory,
+  ladderReadout,
+  personaHistory,
+  personas,
+  startingHistory,
+  startingPersona,
+  switchPersona,
+} from './personas'
 import { route } from './index'
-import { readState } from './state'
+import { readState, writeState } from './state'
 import { profileOffer, tastesReply } from './tastes'
 import { COMBOS, LABELS, META, product } from '../../test/offlineMeta'
 
@@ -233,4 +241,20 @@ test('sin perfil principal grabado en la muestra, la demo arranca como siempre: 
   const without = { ...snapshot, tastes: { asiatico: snapshot.tastes.asiatico } }
   expect(startingPersona(without)).toBeNull()
   expect(startingHistory(without, NOW)).toBeNull()
+})
+
+test('"Borrar historial" saca los pedidos y los toques, pero no la dieta ni las alergias de la persona', () => {
+  const preferences = [{ kind: 'dieta', value: 'vegetariano' }]
+  writeState({
+    userId: 'proto-1',
+    events: [{ type: 'vertical_open', vertical: 'farmacia', ts: 1 }],
+    orders: [{ id: 'o-1' }],
+    preferences,
+    autonomy: { modo: 'pedir' },
+  })
+  clearHistory()
+  const state = readState()
+  expect(state).toMatchObject({ userId: 'proto-1', events: [], orders: [], preferences })
+  // "Pedir por mí" sí se va: sus tiendas salen de los pedidos que se borraron.
+  expect(state.autonomy).toBeUndefined()
 })

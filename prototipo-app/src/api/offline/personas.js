@@ -179,10 +179,13 @@ export function addVisit(vertical) {
   window.dispatchEvent(new Event(DEMO_HISTORY_EVENT))
 }
 
-/** "Borrar historial": sin pedidos ni toques (la sesión sigue), y la Home vuelve a su orden fijo. */
+/**
+ * "Borrar historial": sin pedidos ni toques (la sesión sigue), y la Home vuelve a su orden fijo. La dieta y las alergias
+ * se quedan (no son historial); "Pedir por mí" no, porque sus tiendas salen de los pedidos.
+ */
 export function clearHistory() {
-  const { userId } = readState()
-  writeState({ userId, events: [], orders: [] })
+  const { userId, preferences } = readState()
+  writeState({ userId, events: [], orders: [], preferences })
   window.dispatchEvent(new Event(DEMO_HISTORY_EVENT))
 }
 
