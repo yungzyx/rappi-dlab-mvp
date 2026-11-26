@@ -14,7 +14,7 @@
 import { execFileSync } from 'node:child_process'
 import { createHash } from 'node:crypto'
 import { readFileSync, writeFileSync } from 'node:fs'
-import { fileURLToPath } from 'node:url'
+import { fileURLToPath, pathToFileURL } from 'node:url'
 import { followKey } from '../src/api/offline/text.js'
 
 const ROOT = fileURLToPath(new URL('..', import.meta.url))
@@ -425,14 +425,15 @@ async function tastes(snapshot) {
 
 // Un producto va como una fila con estos campos, en este orden (src/api/offline/snapshot.js la vuelve a armar): sin
 // las claves repetidas, sin `id` (es `cat-` o `menu-` más `entity_id`) y con las fotos de images.rappi.cl abreviadas.
+// `available` y `stock` dicen si está agotado en su tienda (client.js: toPrototypeProduct, `soldOut`).
 const PRODUCT_FIELDS = [
   ...['entity_type', 'entity_id', 'name', 'vertical', 'concept', 'price', 'price_value', 'before', 'discount'],
-  ...['store', 'store_id', 'img', 'age_restricted', 'presentation'],
+  ...['store', 'store_id', 'img', 'age_restricted', 'presentation', 'available', 'stock'],
 ]
 const IMG_PREFIX = 'https://images.rappi.cl/products/'
 
 /** Los productos repetidos van una sola vez en `products`; en las respuestas quedan como `{ "$p": índice }`. */
-function intern(snapshot) {
+export function intern(snapshot) {
   const products = []
   const index = new Map()
   const row = (p) =>
@@ -498,7 +499,9 @@ async function main() {
   }
 }
 
-main().catch((error) => {
-  console.error(error)
-  process.exitCode = 1
-})
+// Solo como script (`npm run demo:snapshot`): los tests importan sus funciones sin tomar la muestra.
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href)
+  main().catch((error) => {
+    console.error(error)
+    process.exitCode = 1
+  })
