@@ -139,6 +139,20 @@ def test_check_only_lists_the_pending_ones_and_points_to_the_deploy(db, extra_mi
     assert db.execute("SELECT to_regclass('prueba')").fetchone()[0] is None
 
 
+def test_in_production_migrate_refuses_and_points_to_the_deploy(db, extra_migration, monkeypatch):
+    """Con API_ENV=production (el contenedor jobs, con la URL del dueño) `rappi migrate` aplicaba lo pendiente sin el
+    respaldo ni los permisos del despliegue. Ahora no aplica nada y dice cómo seguir; `--solo-revisar` sigue igual."""
+    monkeypatch.setenv("DATABASE_URL", database_url("DATABASE_URL_TEST"))
+    monkeypatch.setenv("API_ENV", "production")
+    extra_migration("CREATE TABLE prueba (id int);")
+
+    with pytest.raises(SystemExit) as stopped:
+        cli.main(["migrate"])
+
+    assert "run --rm migrate" in stopped.value.code and "--solo-revisar" in stopped.value.code
+    assert db.execute("SELECT to_regclass('prueba')").fetchone()[0] is None
+
+
 def test_the_unused_image_embeddings_table_is_gone(db):
     """La 010 la creó para vectores de fotos que nunca se usaron; la 042 la borra."""
     assert db.execute("SELECT to_regclass('image_embeddings')").fetchone()[0] is None

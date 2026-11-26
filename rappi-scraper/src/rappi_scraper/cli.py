@@ -262,7 +262,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description="Base de datos de contenido de Rappi Chile por vertical")
     sub = parser.add_subparsers(dest="command", required=True)
 
-    p = sub.add_parser("migrate", help="Aplicar migraciones pendientes")
+    p = sub.add_parser("migrate", help="Aplicar migraciones pendientes (con API_ENV=production, solo --solo-revisar)")
     p.add_argument(
         "--solo-revisar",
         action="store_true",
@@ -395,6 +395,12 @@ def main(argv: list[str] | None = None) -> None:
 
 
 def _run_simple(args) -> None:
+    # En producción (el contenedor jobs, con la URL del dueño) migrar sin el respaldo ni los permisos del despliegue no
+    # corresponde: solo revisar.
+    if args.command == "migrate" and not args.solo_revisar and os.environ.get("API_ENV") == "production":
+        raise SystemExit(
+            f"No migro con API_ENV=production: {APPLIED_BY_DEPLOY}. Solo revisar: `rappi migrate --solo-revisar`."
+        )
     with connect() as conn:
         if args.command in COMMANDS:
             COMMANDS[args.command](conn, args)

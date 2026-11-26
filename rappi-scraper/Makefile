@@ -64,7 +64,17 @@ status:  ## Estado de las corridas y resumen por vertical
 report:  ## Reporte de calidad de la última corrida de tiendas
 	$(PY) -m rappi_scraper report
 
-refresh: migrate  ## Actualización completa: tiendas, restaurantes, búsqueda, reportes y respaldo
+# Antes de descargar, las migraciones pendientes. En producción (API_ENV=production) solo las revisa: las aplica el
+# despliegue, que respalda antes. Si no, con rappi-ia al lado, primero su guardia (como `make mvp` y `make serve`): no
+# aplica a la base real las migraciones de una rama sin fusionar (MIGRATE=1 la fuerza).
+IA_PY := ../rappi-ia/.venv/bin/python
+refresh:  ## Actualización completa: tiendas, restaurantes, búsqueda, reportes y respaldo
+ifeq ($(API_ENV),production)
+	$(PY) -m rappi_scraper migrate --solo-revisar
+else
+	if [ -x $(IA_PY) ]; then $(IA_PY) -m rappi_ia check-migrations; fi
+	$(PY) -m rappi_scraper migrate
+endif
 	$(PY) -m rappi_scraper refresh
 
 backup:  ## Respaldar la base en data/backups/
