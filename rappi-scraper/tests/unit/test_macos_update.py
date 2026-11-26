@@ -22,9 +22,10 @@ def _write_fake(path: Path, body: str) -> None:
 
 class Demo:
     """Un origin bare, una copia de trabajo para empujarle commits y el clon que se sirve (REPO_DIR), con TUNEL_DIR y
-    los falsos: `make` anota cómo lo llamaron y falla mientras exista `make-falla`; `caddy validate` sale con lo que
-    diga `caddy-falla`; `launchctl`, `osascript` y `curl` anotan (`curl` falla con las URL de `curl-falla` y, con
-    `-w`, responde 401, lo de la puerta de Caddy); `sleep` no hace nada."""
+    los falsos: `make` anota cómo lo llamaron y falla mientras exista `make-falla`; `caddy validate` anota el archivo
+    que valida y sale con lo que diga `caddy-falla`; `launchctl`, `osascript` y `curl` anotan (`curl` falla con las URL
+    de `curl-falla` y, con `-w`, responde 401, lo de la puerta de Caddy); `sleep` no hace nada. Los servicios de launchd
+    ya están instalados (el plist de la API en ~/Library/LaunchAgents)."""
 
     def __init__(self, tmp_path: Path):
         self.tmp = tmp_path
@@ -60,6 +61,9 @@ class Demo:
         )
         _write_fake(self.bin / "trash", f'mkdir -p {tmp_path}/papelera && mv "$@" {tmp_path}/papelera/')
         _write_fake(self.bin / "launchctl", f'echo "$*" >> {self.rec}/launchctl.txt')
+        self.api_plist = tmp_path / "Library" / "LaunchAgents" / "test.api.plist"
+        self.api_plist.parent.mkdir(parents=True)
+        self.api_plist.write_text("<plist/>\n")
         _write_fake(self.bin / "osascript", f'echo "$*" >> {self.rec}/osascript.txt')
         _write_fake(
             self.bin / "curl",
@@ -68,7 +72,11 @@ class Demo:
             'case " $* " in *" -w "*) printf 401;; esac',
         )
         _write_fake(self.bin / "sleep", "exit 0")
-        _write_fake(self.bin / "caddy", f'echo "$*" >> {self.rec}/caddy.txt; [ ! -e {tmp_path}/caddy-falla ]')
+        _write_fake(
+            self.bin / "caddy",
+            f'echo "$*" >> {self.rec}/caddy.txt; cat "$3" > {self.rec}/caddy-validado.txt\n'
+            f"[ ! -e {tmp_path}/caddy-falla ]",
+        )
         _write_fake(
             self.bin / "make",
             f'echo "$*" >> {self.rec}/make.txt\n[ ! -e {tmp_path}/make-falla ] || exit 2\n'
@@ -160,20 +168,52 @@ def test_a_new_caddyfile_restarts_caddy_after_validating_it(demo):
     result = demo.run()
 
     assert result.returncode == 0, result.stdout + result.stderr
-    assert demo.recorded("caddy") == ["validate --config deploy/macos/Caddyfile --adapter caddyfile"]
+    assert demo.recorded("caddy") == [f"validate --config {demo.tunel}/Caddyfile.nuevo --adapter caddyfile"]
+    assert demo.recorded("caddy-validado") == [":8080 {}"]  # el de origin/main, antes de traerlo
     uid = os.getuid()
     assert demo.recorded("launchctl") == [f"kickstart -k gui/{uid}/test.caddy", f"kickstart -k gui/{uid}/test.api"]
 
 
-def test_a_caddyfile_that_does_not_validate_keeps_the_old_one(demo):
+def test_a_caddyfile_that_does_not_validate_stops_the_update_until_it_is_fixed(demo):
+    """Antes avisaba y seguía: reiniciaba la API y anotaba el commit como desplegado, así que la vuelta siguiente decía
+    "Al día" y la copia que se sirve quedaba con un Caddyfile que Caddy rechazaría al reiniciarse por otra razón. Ahora
+    se valida antes de traer los cambios: no se despliega nada, Caddy (y la copia que lee) y la API siguen con lo
+    anterior, y cada vuelta lo vuelve a probar y avisa hasta que main lo arregle."""
+    first = demo.git("rev-parse", "HEAD", cwd=demo.repo)
     demo.commit("deploy/macos/Caddyfile", "esto no es un Caddyfile\n")
     (demo.tmp / "caddy-falla").touch()
 
     result = demo.run()
 
+    assert result.returncode == 1
+    assert "El Caddyfile nuevo no valida: no despliego" in result.stdout
+    assert demo.recorded("make") == [] and demo.recorded("launchctl") == []
+    assert demo.git("rev-parse", "HEAD", cwd=demo.repo) == first == demo.deployed()
+    assert not (demo.tunel / "Caddyfile.nuevo").exists()
+    assert demo.run().returncode == 1
+    assert len(demo.recorded("caddy")) == 2
+
+    (demo.tmp / "caddy-falla").unlink()
+    fixed = demo.commit("deploy/macos/Caddyfile", ":8080 {}\n")
+    result = demo.run()
+
     assert result.returncode == 0, result.stdout + result.stderr
-    assert "El Caddyfile nuevo no valida: Caddy sigue con el anterior" in result.stdout
-    assert demo.recorded("launchctl") == [f"kickstart -k gui/{os.getuid()}/test.api"]
+    assert demo.deployed() == fixed
+    assert f"kickstart -k gui/{os.getuid()}/test.caddy" in demo.recorded("launchctl")
+
+
+def test_the_first_install_publishes_where_caddy_serves_and_leaves_the_start_to_the_installer(demo):
+    """En un Mac recién configurado comun.sh deja `srv/` vacío: el build quedaba en `srv/srv.nuevo/`, fuera de lo que
+    sirve Caddy, y el reinicio de la API fallaba porque sus servicios los registra instalar.sh, el paso siguiente."""
+    shutil.rmtree(demo.tunel / "srv")
+    demo.api_plist.unlink()
+
+    result = demo.run("actualizar.sh", "--forzar")
+
+    assert result.returncode == 0, result.stdout + result.stderr
+    assert sorted(path.name for path in (demo.tunel / "srv").iterdir()) == ["app", "panel"]
+    assert "los arranca deploy/macos/instalar.sh" in result.stdout
+    assert demo.recorded("launchctl") == []
 
 
 def test_a_new_tunnel_script_restarts_it_only_with_a_fixed_url(demo):

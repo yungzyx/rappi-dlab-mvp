@@ -3,8 +3,10 @@
 # respalda la base si hay migraciones pendientes y migra, construye la app y el panel, cambia los archivos servidos de
 # una vez y reinicia la API, y Caddy o el túnel si cambiaron sus archivos. Compara origin/main con el último commit que
 # quedó desplegado (TUNEL_DIR/desplegado.txt, se escribe cuando la API vuelve), no con HEAD: si un paso falla, avisa y
-# la vuelta siguiente lo reintenta. Si solo cambiaron archivos .md, trae los cambios y anota el commit sin construir ni
-# reiniciar. Mientras exista TUNEL_DIR/pausa-actualizar no hace nada (la prueba con usuarios, docs/prueba-usuarios.md).
+# la vuelta siguiente lo reintenta. Un Caddyfile nuevo se valida antes de traer los cambios: si no valida, no despliega
+# nada. Si solo cambiaron archivos .md, trae los cambios y anota el commit sin construir ni reiniciar. Mientras exista
+# TUNEL_DIR/pausa-actualizar no hace nada (la prueba con usuarios, docs/prueba-usuarios.md). La primera vez (README,
+# paso 4), sin los servicios de launchd, solo deja los archivos servidos: los arranca instalar.sh.
 # Uso: deploy/macos/actualizar.sh [--forzar]   (--forzar actualiza aunque esté al día o en pausa, y construye siempre)
 # shellcheck source=deploy/macos/comun.sh
 . "$(dirname "$0")/comun.sh"
@@ -37,6 +39,21 @@ main() {
   fi
   # Desde lo desplegado: un reintento los vuelve a ver. Sin renombres: un .js que pasa a .md nombra los dos.
   cambios=$(git diff --name-only --no-renames "$desplegado" "$objetivo")
+  # Un Caddyfile nuevo se valida antes de traerlo (el de origin/main, en una copia): si no valida, no se despliega nada
+  # ni se anota, la copia que se sirve sigue con el anterior (el que lee Caddy si se reinicia) y la vuelta siguiente lo
+  # vuelve a probar y avisa. Las variables de la puerta ya vienen exportadas de tunel.env (comun.sh).
+  caddy_cambio=0
+  if grep -qE '^deploy/macos/(Caddyfile|caddy\.sh)$' <<< "$cambios"; then
+    caddy_cambio=1
+    git show "$objetivo:deploy/macos/Caddyfile" > "$TUNEL_DIR/Caddyfile.nuevo"
+    if ! SRV_DIR=$SRV_DIR API_PORT=$API_PORT CADDY_PORT=$CADDY_PORT \
+        caddy validate --config "$TUNEL_DIR/Caddyfile.nuevo" --adapter caddyfile > /dev/null; then
+      rm -f "$TUNEL_DIR/Caddyfile.nuevo"
+      avisar "El Caddyfile nuevo no valida: no despliego (Caddy y la API siguen con lo anterior)"
+      exit 1
+    fi
+    rm -f "$TUNEL_DIR/Caddyfile.nuevo"
+  fi
   [ "$(git rev-parse HEAD)" = "$objetivo" ] || git merge --ff-only -q origin/main
   log "De $(git rev-parse --short "$desplegado") a $(git log -1 --format='%h %s')"
   # Nada se construye ni se sirve desde los .md (ni la app, ni el panel, ni la API): sin build ni reinicio. Salvo los de
@@ -83,19 +100,18 @@ main() {
   cp -R prototipo-app/dist "$SRV_DIR.nuevo/app"
   cp -R dashboard-empresa/dist "$SRV_DIR.nuevo/panel"
   rm -rf "$SRV_DIR.viejo"
-  [ -d "$SRV_DIR/app" ] && mv "$SRV_DIR" "$SRV_DIR.viejo"
+  # comun.sh crea srv/ siempre (vacío la primera vez): si no se mueve, el build quedaría en srv/srv.nuevo/.
+  if [ -d "$SRV_DIR" ]; then mv "$SRV_DIR" "$SRV_DIR.viejo"; fi
   mv "$SRV_DIR.nuevo" "$SRV_DIR"
   rm -rf "$SRV_DIR.viejo"
 
-  if grep -qE '^deploy/macos/(Caddyfile|caddy\.sh)$' <<< "$cambios"; then
-    # BASIC_AUTH_* ya vienen exportados de tunel.env (comun.sh)
-    if SRV_DIR=$SRV_DIR API_PORT=$API_PORT CADDY_PORT=$CADDY_PORT \
-        caddy validate --config deploy/macos/Caddyfile --adapter caddyfile > /dev/null; then
-      reiniciar caddy
-    else
-      avisar "El Caddyfile nuevo no valida: Caddy sigue con el anterior"
-    fi
+  # La primera vez (README, paso 4) los servicios de launchd todavía no existen (instalar.sh, paso 5, deja sus plist en
+  # ~/Library/LaunchAgents, los arranca y crea el rol de la API). desplegado.txt se anota cuando la API vuelve.
+  if [ ! -f "$HOME/Library/LaunchAgents/$LABEL.api.plist" ]; then
+    log "Archivos servidos en $SRV_DIR: los servicios los arranca deploy/macos/instalar.sh"
+    exit 0
   fi
+  if [ "$caddy_cambio" = 1 ]; then reiniciar caddy; fi
   if grep -qx 'deploy/macos/tunel.sh' <<< "$cambios"; then
     if [ -n "${PUBLIC_URL:-}" ]; then
       reiniciar tunel
