@@ -8,7 +8,7 @@ import { EmptyState } from '../../components/States.jsx'
 import { formatNumber, formatPct, formatPoints } from '../../lib/format.js'
 import { useAnalytics } from '../../lib/useAnalytics.js'
 import { GoalValue } from './GoalValue.jsx'
-import { Adoption, Hypotheses } from './Hypotheses.jsx'
+import { Adoption, Hypotheses, Interval } from './Hypotheses.jsx'
 import { Satisfaction } from './Satisfaction.jsx'
 import { assignedPeople, cohortPeople, experimentLabel, offeredPct, orderedPct, variantLabel } from './experiments.js'
 
@@ -74,24 +74,23 @@ const OFFER_COLUMNS = [
 ]
 
 // La retención del grupo de control (docs/plan-piloto.md): por variante y, al final, la diferencia; su IC de 95 % solo
-// llega cuando cada grupo alcanza el mínimo (antes, con pocas personas, se encogería y parecería un efecto).
+// llega cuando cada grupo alcanza el mínimo (antes, con pocas personas, se encogería y parecería un efecto). Con los
+// simulados, nunca: la diferencia la pone el generador (la misma regla de las hipótesis, `Interval`).
 const DIFFERENCE = 'diferencia'
 
-function RetentionCell({ row, pct, difference }) {
+function RetentionCell({ row, pct, difference, source }) {
   if (row.variante !== DIFFERENCE) return formatPct(row[pct])
   if (!difference) return formatPct(null)
-  if (!difference.ic95) return formatPoints(difference.puntos)
+  if (!difference.ic95 || source === 'synthetic') return formatPoints(difference.puntos)
   return (
     <span className="cell-stack">
       {formatPoints(difference.puntos)}
-      <span className="cell-sub">
-        IC 95 %: {formatNumber(difference.ic95[0], 1)} a {formatNumber(difference.ic95[1], 1)}
-      </span>
+      <Interval ic95={difference.ic95} source={source} />
     </span>
   )
 }
 
-const retentionColumns = (diferencia) => [
+const retentionColumns = (diferencia, source) => [
   {
     key: 'variante',
     header: 'Variante',
@@ -124,13 +123,17 @@ const retentionColumns = (diferencia) => [
     key: 'retencion',
     header: 'Retención M+1',
     numeric: true,
-    render: (row) => <RetentionCell row={row} pct="retencion_m1_pct" difference={diferencia?.retencion_m1} />,
+    render: (row) => (
+      <RetentionCell row={row} pct="retencion_m1_pct" difference={diferencia?.retencion_m1} source={source} />
+    ),
   },
   {
     key: 'suma',
     header: 'Suma una vertical nueva en 28 días',
     numeric: true,
-    render: (row) => <RetentionCell row={row} pct="suma_vertical_pct" difference={diferencia?.suma_vertical} />,
+    render: (row) => (
+      <RetentionCell row={row} pct="suma_vertical_pct" difference={diferencia?.suma_vertical} source={source} />
+    ),
   },
 ]
 
@@ -179,7 +182,7 @@ function GroupSizes({ variants, retention }) {
 }
 
 /** La retención M+1 y la parte que suma una vertical nueva, por variante, en la cohorte con su mes siguiente completo. */
-function Retention({ retention }) {
+function Retention({ retention, source }) {
   if (cohortPeople(retention) === 0) {
     return (
       <p className="block-note" data-testid="retencion-nota">
@@ -193,14 +196,16 @@ function Retention({ retention }) {
     <>
       <DataTable
         caption="Retención M+1 por grupo"
-        columns={retentionColumns(retention.diferencia)}
+        columns={retentionColumns(retention.diferencia, source)}
         rows={rows}
         rowKey={(row) => row.variante}
       />
       <p className="block-note" data-testid="retencion-nota">
-        {retention.concluyente
-          ? 'Cada grupo llega al mínimo del plan de piloto: la diferencia se lee con su intervalo.'
-          : 'No es concluyente: los grupos no llegan al mínimo del plan de piloto.'}
+        {source === 'synthetic'
+          ? 'Simulado: la diferencia la pone un supuesto del generador, no es un efecto; va sin intervalo ni veredicto.'
+          : retention.concluyente
+            ? 'Cada grupo llega al mínimo del plan de piloto: la diferencia se lee con su intervalo.'
+            : 'No es concluyente: los grupos no llegan al mínimo del plan de piloto.'}
       </p>
       <p className="block-note" data-testid="expuestas-cohorte-nota">
         Con oferta elegible antes de M+1: de esta misma cohorte, con una oferta retenible entre su asignación y el
@@ -225,7 +230,7 @@ function OfferedNote() {
   )
 }
 
-function Experiment({ experiment }) {
+function Experiment({ experiment, source }) {
   const offers = experiment.id === 'ofertas_control'
   const empty = assignedPeople(experiment) === 0
   const label = experimentLabel(experiment.id)
@@ -250,7 +255,7 @@ function Experiment({ experiment }) {
             rowKey={(row) => row.variante}
           />
           {offers && <OfferedNote />}
-          {offers && experiment.retencion && <Retention retention={experiment.retencion} />}
+          {offers && experiment.retencion && <Retention retention={experiment.retencion} source={source} />}
         </>
       )}
     </Panel>
@@ -259,7 +264,7 @@ function Experiment({ experiment }) {
 
 function Experiments({ source }) {
   const { experimentos } = useAnalytics('experimentos', source)
-  return experimentos.map((experiment) => <Experiment key={experiment.id} experiment={experiment} />)
+  return experimentos.map((experiment) => <Experiment key={experiment.id} experiment={experiment} source={source} />)
 }
 
 /**

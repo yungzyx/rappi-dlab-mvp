@@ -187,6 +187,23 @@ describe('ExperimentsView', () => {
     ])
   })
 
+  test('with the simulated groups at the minimum, the retention table stays descriptive: no interval', async () => {
+    const diferencia = {
+      retencion_m1: { puntos: -66.7, ic95: [-100, -13.3] },
+      suma_vertical: { puntos: 66.7, ic95: [13.3, 100] },
+    }
+    const response = withControl({ retencion: retention({ concluyente: true, diferencia }) })
+    serveFixturesWith({ experimentos: { ...response.experimentos, source: 'synthetic' } })
+    await renderWithData(<ExperimentsView source="synthetic" />)
+
+    const table = await screen.findByRole('table', { name: 'Retención M+1 por grupo' })
+    expect(cells(bodyRows(table)[2]).slice(3)).toEqual(['−66,7 puntos', '+66,7 puntos'])
+    expect(within(table).queryByText(/IC 95 %/)).toBeNull()
+    expect(screen.getByTestId('retencion-nota').textContent).toBe(
+      'Simulado: la diferencia la pone un supuesto del generador, no es un efecto; va sin intervalo ni veredicto.',
+    )
+  })
+
   test('without anyone with their next month complete, it says so instead of the retention table', async () => {
     const empty = retention({
       variantes: ['tratamiento', 'control'].map((variante) => ({
