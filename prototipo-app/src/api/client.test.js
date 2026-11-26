@@ -13,6 +13,7 @@ import {
   profile,
   recommendations,
   resetHealthCache,
+  sendOrder,
   toMessage,
   toPrototypeProduct,
 } from './client'
@@ -646,5 +647,41 @@ describe('apiUrl', () => {
     expect(apiUrl({ PROD: false }, { hostname: '10.0.0.5' })).toBe('http://10.0.0.5:8000')
     expect(apiUrl({ PROD: false }, { hostname: '' })).toBe('http://localhost:8000')
     expect(apiUrl({ PROD: false }, undefined)).toBe('http://localhost:8000')
+  })
+})
+
+describe('sendOrder', () => {
+  const ORDER = { user_id: 'u', client_order_id: 'pedido-1', vertical: 'restaurantes', lines: [] }
+
+  test('un fallo pasajero (sin red, sin respuesta, 429 o 5xx) se reintenta con el mismo cuerpo y su client_order_id', async () => {
+    vi.useFakeTimers()
+    try {
+      const replies = ['offline', 503, 429, { order_id: 'o-1', lineas_omitidas: 0 }]
+      const fetchMock = stubApi({ 'POST /orders': () => replies.shift() })
+      const sending = sendOrder(ORDER)
+      await vi.advanceTimersByTimeAsync(60_000)
+      expect(await sending).toEqual({ order_id: 'o-1', lineas_omitidas: 0 })
+      const bodies = fetchMock.mock.calls.map(([, init]) => JSON.parse(init.body))
+      expect(bodies).toEqual([ORDER, ORDER, ORDER, ORDER])
+    } finally {
+      vi.useRealTimers()
+    }
+  })
+
+  test('lo que la API rechaza (un 409 o un 400) no se reintenta, y tras los reintentos sale el último error', async () => {
+    vi.useFakeTimers()
+    try {
+      let fetchMock = stubApi({ 'POST /orders': 409 })
+      expect(await failure(sendOrder(ORDER))).toMatchObject({ kind: 'http', status: 409 })
+      expect(fetchMock).toHaveBeenCalledTimes(1)
+
+      fetchMock = stubApi({ 'POST /orders': 503 })
+      const sending = failure(sendOrder(ORDER))
+      await vi.advanceTimersByTimeAsync(60_000)
+      expect(await sending).toMatchObject({ kind: 'http', status: 503 })
+      expect(fetchMock.mock.calls.length).toBeGreaterThan(1)
+    } finally {
+      vi.useRealTimers()
+    }
   })
 })

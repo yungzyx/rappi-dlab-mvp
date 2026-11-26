@@ -116,7 +116,8 @@ export default function CheckoutScreen({ back, push }) {
       deliveryType: chosenType,
     })
     // Registro para el panel. No bloquea el pedido de la demo: siempre sale (sin preguntar antes por /health, que en una
-    // red lenta daba null y el pedido nunca llegaba), y si la API no contesta, ese pedido se pierde sin error. Antes
+    // red lenta daba null y el pedido nunca llegaba); si la API no contesta, sendOrder lo reenvía con su misma clave y,
+    // si igual no llega, ese pedido se pierde sin error. Antes
     // salen los eventos en cola (y se esperan los lotes en camino): el servidor les pone la hora al recibirlos, y
     // checkout_start va primero. Todo el camino cuenta como pedido en vuelo: "Olvidar" lo espera antes de borrar el perfil.
     trackOrder(
