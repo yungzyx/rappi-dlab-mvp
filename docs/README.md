@@ -13,7 +13,7 @@
 | Saber qué se decidió y por qué | [decisiones.md](decisiones.md) | 5 min |
 | Saber cómo se mediría con Rappi si las ofertas de Mochi retienen y cuántas personas hacen falta (plan de piloto) | [plan-piloto.md](plan-piloto.md) | 4 min |
 | Calcular las métricas del piloto sobre las tablas de Rappi: población, ventanas, fórmulas, pruebas y SQL de referencia | [especificacion-metricas-piloto.md](especificacion-metricas-piloto.md) | 15 min |
-| Ver qué cambió desde el 25-10-2026 (las fases de la comparación con la app de Rappi, las revisiones y lo que siguió hasta el 14-11), PR por PR | [cambios.md](cambios.md) | 3 min |
+| Ver qué cambió desde el 25-10-2026 (las fases de la comparación con la app de Rappi, las revisiones y lo que siguió hasta la revisión final del 26-11), PR por PR | [cambios.md](cambios.md) | 3 min |
 
 ## 2. Cómo funciona
 
@@ -41,7 +41,7 @@ Las especificaciones con que se construyeron las piezas grandes. Cada una dice a
 | [Conversar con Mochi](diseno/2026-10-25-mochi-conversacion-design.md) | 25-10-2026 | Seguir la conversación ("más barato", "sin carne", "para 10 personas"): el estado que viaja con la app y cómo se combina con lo nuevo. Desde el 26-10, con chips y sin campo para escribirle |
 | [Elementos nuevos del panel](diseno/2026-11-25-panel-elementos-nuevos-design.md) | 25-11-2026 | Qué cambió, estado del piloto con su ritmo, CSV y período, y las rutas `/analytics/verticales` y `/analytics/audiencias` |
 
-Las migraciones 022 a 026, 036 y 037 citan en su primera línea rutas `docs/superpowers/...` que ya no existen en el repositorio (las migraciones aplicadas no se editan). Equivalen a esto: `docs/superpowers/specs/<fecha>-….md` es `docs/diseno/<fecha>-….md` (el mismo archivo, en [diseno/](diseno/)), y el plan de la escalera fina que cita la 037 (`docs/superpowers/plans/2026-10-16-etapa-7-escalera-fina.md`) quedó resumido en [capa-de-datos.md](capa-de-datos.md#la-escalera-fina).
+Las migraciones 022 a 026, 036 y 037 citan en su primera línea rutas `docs/superpowers/...` que ya no existen en el repositorio (las migraciones aplicadas no se editan). Equivalen a esto: `docs/superpowers/specs/<fecha>-….md` es `docs/diseno/<fecha>-….md` (el mismo archivo, en [diseno/](diseno/)), y el plan de la escalera fina que cita la 037 (`docs/superpowers/plans/2026-10-16-etapa-7-escalera-fina.md`) quedó resumido en [capa-de-datos.md](capa-de-datos.md#la-escalera-fina). La 035 cita en su primera línea el repositorio privado `rappi-evolucion-proyecto` (etiqueta `etapa-12-pasaporte-y-juego`), que no es parte de la entrega: la historia del juego y del pasaporte que salieron está en [historial/decisiones-reemplazadas.md](historial/decisiones-reemplazadas.md).
 
 ### Diagramas y mapas
 
@@ -77,7 +77,8 @@ La página de la propuesta del panel (`dashboard-empresa/presentacion.html`) sir
 | Los reportes anteriores de la búsqueda, uno por fecha (con otros sets: no se comparan con los de arriba) | [resultados/](resultados/) (`busqueda-2026-09-30.md` a `busqueda-2026-10-06.md`) |
 | La evaluación del motor multivertical sobre datos simulados (16-10-2026) | [resultados/motor-2026-10-16.md](resultados/motor-2026-10-16.md) |
 | Los datos simulados recalibrados a la mezcla de la tabla de Rappi: antes y después (17-10-2026) | [resultados/simulados-2026-10-17.md](resultados/simulados-2026-10-17.md) |
-| Los datos simulados al día, con el sobre de eventos y las reformulaciones: el panel y el motor (04-11-2026) | [resultados/simulados-2026-11-04.md](resultados/simulados-2026-11-04.md) |
+| Los datos simulados con grupo de control, la mezcla recalibrada y el motor antes y después: los simulados vigentes, los de `rappi_staging` y del panel (14-11-2026) | [resultados/simulados-2026-11-14.md](resultados/simulados-2026-11-14.md) |
+| Los datos simulados con el sobre de eventos y las reformulaciones: el panel y el motor (04-11-2026; los reemplazó el generador del 14-11) | [resultados/simulados-2026-11-04.md](resultados/simulados-2026-11-04.md) |
 | La revisión (QA) de las ofertas del motor sobre el catálogo real, en solo lectura (16-10-2026) | [resultados/qa-motor-2026-10-16.md](resultados/qa-motor-2026-10-16.md) |
 | La precisión medida de conceptos, atributos y marcas | [resultados/capas-precision-2026-10-06.md](resultados/capas-precision-2026-10-06.md) y [la muestra nueva](resultados/capas-precision-2026-10-06-nueva-muestra.md) |
 

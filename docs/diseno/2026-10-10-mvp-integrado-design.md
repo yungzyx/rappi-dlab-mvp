@@ -1,7 +1,7 @@
 # MVP integrado: base de datos, RAG, Mochi, buscador, ofertas y juego conectados
 
 > Especificación · 10-10-2026 · Construido en 7 etapas, del 10 al 11-10-2026.
-> Lo que cambió después: el juego y el pasaporte salieron el 16-10-2026 ([diseño del motor](2026-10-16-motor-multivertical-design.md)), Mochi responde por `POST /agent/ask` en vez de `/chat` y no tiene voz ni foto ([decisiones](../decisiones.md#agente-mochi)). Las partes del juego quedan como registro del diseño original.
+> Lo que cambió después: el juego y el pasaporte salieron el 16-10-2026 ([diseño del motor](2026-10-16-motor-multivertical-design.md)), Mochi responde por `POST /agent/ask` en vez de `/chat` y no tiene voz ni foto ([decisiones](../decisiones.md#agente-mochi)). Las partes del juego quedan como registro del diseño original. El MVP sigue exigiendo la API, pero hay demos sin conexión aparte (la app con una API simulada, el panel con respuestas grabadas y `make presentacion`): fila del 10-10, matizada, en [decisiones](../decisiones.md#agente-mochi).
 
 ## 1. Para qué
 
