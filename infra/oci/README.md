@@ -6,7 +6,7 @@ Crea el servidor del MVP en Oracle Cloud Infrastructure (OCI) dentro del nivel *
 |---|---|
 | `network.tf` | VCN, gateway a internet, tabla de rutas, subred pública y lista de seguridad: 80 y 443 abiertos, 22 solo desde `admin_cidrs` |
 | `compute.tf` | La máquina `VM.Standard.A1.Flex` con Ubuntu 24.04 (aarch64) y la IP pública reservada, que sobrevive a recrear la máquina |
-| `cloud-init.yaml` | El primer arranque: Docker Engine con compose, 80 y 443 abiertos en el iptables de la imagen, `/opt/rappi` y `/etc/rappi` |
+| `cloud-init.yaml` | El primer arranque: Docker Engine con compose, 80 y 443 abiertos en el iptables de la imagen, `/opt/rappi` y `/etc/rappi`. Se detiene en el primer error (reintenta lo que usa la red o apt hasta 10 minutos) y deja `/var/lib/cloud/instance/rappi-listo` solo si Docker y compose responden |
 | `budget.tf` | Opcional: presupuesto de 1 USD al mes con alerta por correo (`budget_alert_email`) |
 | `reintentar-capacidad.sh` | Reintenta crear la máquina cuando OCI responde «Out of host capacity» |
 
@@ -39,7 +39,7 @@ La sesión de la CLI dura una hora: `oci session refresh --profile RAPPI` la ren
 
 ## Límite de la cuenta
 
-No todas las cuentas tienen 4 OCPU y 24 GB de A1: la de este proyecto tiene 2 OCPU y 12 GB (OCI responde "400-LimitExceeded" al pedir más). Para ver el de una cuenta:
+No todas las cuentas tienen 4 OCPU y 24 GB de A1: hay cuentas con 2 OCPU y 12 GB (OCI responde "400-LimitExceeded" al pedir más). Para ver el de una cuenta:
 
 ```bash
 oci limits value list -c <tenancy_ocid> --service-name compute --name standard-a1-core-regional-count \
@@ -50,4 +50,4 @@ Con un límite menor, `ocpus` y `memory_gb` van en `terraform.tfvars` (ver el ej
 
 ## Estado
 
-Sin probar contra una máquina real: al 25-11-2026 `terraform validate` pasa, pero OCI no tuvo capacidad para la A1 en `sa-santiago-1` y el servidor no se llegó a crear (el reintento sigue con 2 OCPU y 12 GB, el límite de la cuenta). La red y el presupuesto sí se crearon. El primer `terraform apply` que saque la máquina es también la primera prueba del `cloud-init.yaml`.
+Sin probar contra una máquina real: `terraform validate` pasa, pero OCI no tuvo capacidad para la A1 en `sa-santiago-1` y la máquina no se llegó a crear (la red y el presupuesto, sí). El primer `terraform apply` que la cree es también la primera prueba del `cloud-init.yaml`: si `cloud-init status` da error, el detalle está en `/var/log/cloud-init-output.log`. El CI no corre `terraform validate` (se revisa a mano).
