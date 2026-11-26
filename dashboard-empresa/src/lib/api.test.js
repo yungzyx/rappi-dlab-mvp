@@ -4,6 +4,7 @@ import {
   getFallbacks,
   getPrototypeOffline,
   loadAnalytics,
+  loadCatalogDates,
   refreshSource,
   retryConnection,
   subscribeConnection,
@@ -221,6 +222,20 @@ describe('loadAnalytics', () => {
     expect(getFallbacks()).toEqual([])
     expect(listener).toHaveBeenCalledTimes(1)
     unsubscribe()
+  })
+
+  test('"Actualizar" (refreshSource) también vuelve a pedir la fecha de los precios del catálogo', async () => {
+    const dates = { desde: '2026-09-24', hasta: '2026-10-18', verticales: {} }
+    let up = false
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async () => (up ? jsonResponse({ catalogo: dates }) : Promise.reject(new TypeError('Failed to fetch')))),
+    )
+    expect(await loadCatalogDates()).toBeNull() // la API no responde: sin fecha
+
+    up = true
+    refreshSource('synthetic')
+    expect(await loadCatalogDates()).toEqual(dates)
   })
 
   test('rechaza fuentes desconocidas', () => {

@@ -214,12 +214,14 @@ export function retryConnection() {
 }
 
 /**
- * Olvida lo cargado de una fuente, para ver lo nuevo (p. ej. lo que se hizo en el prototipo durante la demo).
- * La caché no expira sola: /analytics/weekly tarda segundos y no se vuelve a pedir sin que alguien lo pida.
+ * Olvida lo cargado de una fuente, para ver lo nuevo (p. ej. lo que se hizo en el prototipo durante la demo), y la fecha
+ * de los precios del catálogo (pudo cambiar, o no haber llegado). La caché no expira sola: /analytics/weekly tarda
+ * segundos y no se vuelve a pedir sin que alguien lo pida.
  */
 export function refreshSource(source) {
   const suffix = `.${source}`
   for (const key of cache.keys()) if (key.endsWith(suffix)) cache.delete(key)
+  catalogDates = null
   fallbacks = fallbacks.filter((fallback) => !fallback.key.endsWith(suffix))
   if (source === 'prototype') prototypeOffline = false
   notify()
