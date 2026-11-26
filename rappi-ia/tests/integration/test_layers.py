@@ -651,6 +651,24 @@ def test_two_users_sharing_a_session_id_are_not_one_session(db, monkeypatch):
     assert _edges(db, "co_busqueda") == {}
 
 
+def test_the_relations_run_only_counts_what_was_not_learned_from_the_prototype(db, monkeypatch):
+    """La corrida de `relations` va en la entrega (`layer_runs`): su conteo de `co_busqueda` es el de las aristas que
+    viajan, sin las aprendidas de las personas del prototipo."""
+    from rappi_ia.layers import graph as graph_layer
+
+    monkeypatch.setattr(graph_layer, "MIN_SESSIONS", 1)
+    monkeypatch.setattr(graph_layer, "MIN_USERS", 1)
+    build_concepts(db)
+    pair = [("p", "s1", "search", "cerveza"), ("p", "s1", "search", "pizza"), ("q", "s2", "search", "vino")]
+    _co_search_events(db, pair, source="prototype")
+
+    counts = build_relations(db)
+
+    assert _edges(db, "co_busqueda", data_source="prototype")  # se aprenden igual
+    assert counts["co_busqueda"] == 0
+    assert db.execute("SELECT counts ->> 'co_busqueda' FROM layer_runs WHERE layer = 'relations'").fetchone() == ("0",)
+
+
 def test_co_search_does_not_learn_from_rappi_hoy_even_with_a_concept(db, monkeypatch):
     """Un evento de "Rappi hoy" con concepto (uno guardado antes, o de un cliente que lo mandó) no arma aristas."""
     from rappi_ia.layers import graph as graph_layer

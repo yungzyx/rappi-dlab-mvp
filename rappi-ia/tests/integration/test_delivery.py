@@ -10,6 +10,7 @@ from psycopg.types.json import Jsonb
 from rappi_scraper.storage.backup import find_pg_dump
 
 from rappi_ia import delivery
+from rappi_ia.layers.segments import build_segments
 
 SYNTH, PROTO = "u-simulada-1", "proto-0123456789abcdef"
 
@@ -73,6 +74,44 @@ def test_the_population_file_has_only_the_simulated_people(db, tmp_path):
     assert counts["app_users"] == counts["app_events"] == counts["app_order_lines"] == 1
     assert counts["vertical_transitions"] == counts["layer_runs"] == 1
     assert delivery._excluded(db)["app_users"] == delivery._excluded(db)["layer_runs"] == 1
+
+
+def test_segment_runs_of_the_prototype_do_not_travel(db):
+    """Cada corrida de segmentos dice su fuente (`counts.fuente`) y la del prototipo no viaja, como las del motor. Una
+    de antes, sin fuente, viaja solo si la usan los segmentos de una persona simulada (sin ella no se restaura su clave
+    foránea); si no, no se sabe de quién es y queda fuera."""
+    _people(db)
+    db.commit()
+    build_segments(db, "synthetic")
+    build_segments(db, "prototype")
+    segment = db.execute("SELECT min(segment_id) FROM segment_defs").fetchone()[0]
+    old = {}
+    for user in (SYNTH, PROTO, None):  # tres corridas de antes, sin fuente
+        old[user] = db.execute(
+            "INSERT INTO layer_runs (layer, rules_version, counts) VALUES ('segments', 'v0', %s) RETURNING run_id",
+            (Jsonb({"usuarios": 1, "con_segmento": 1}),),
+        ).fetchone()[0]
+        if user:
+            db.execute(
+                """INSERT INTO user_segments (user_id, segment_id, score, level, signals, source, run_id)
+                   VALUES (%s, %s, 1, 'alto', 1, 'curado', %s)
+                   ON CONFLICT (user_id, segment_id) DO UPDATE SET run_id = EXCLUDED.run_id""",
+                (user, segment, old[user]),
+            )
+
+    runs = dict(
+        db.execute(
+            "SELECT counts ->> 'fuente', run_id FROM layer_runs WHERE layer = 'segments' AND counts ? 'fuente'"
+        ).fetchall()
+    )
+    travels = {
+        run_id
+        for (run_id,) in db.execute(
+            f"SELECT run_id FROM layer_runs WHERE layer = 'segments' AND {delivery.PERSON_TABLES['layer_runs']}"
+        )
+    }
+    assert set(runs) == {"synthetic", "prototype"}
+    assert travels == {runs["synthetic"], old[SYNTH]}
 
 
 def _pg_tools(db) -> tuple[str, str, str] | None:
