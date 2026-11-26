@@ -121,17 +121,9 @@ FOOD_GROUPS = ("bebidas", "snacks", "dulces", "despensa", "frescos", "comida")
 # El orden de la Home: lo que ya muestra hoy (la app tiene "Película" para panorama); después, el resto de la taxonomía.
 HOME_OCCASIONS = ("once", "carrete", "asado", "panorama", "regalo")
 
-# El orden en que se propone una vertical por probar cuando nada le gusta más a la persona (Viajes no tiene catálogo).
-TO_TRY_ORDER = (
-    "supermercado",
-    "conveniencia",
-    "turbo",
-    "licores",
-    "chocolateria",
-    "restaurantes",
-    "farmacia",
-    "mall",
-)
+# El orden en que se propone una vertical por probar cuando nada le gusta más a la persona (Viajes no tiene catálogo;
+# Licores y Farmacia no están: el agente no las propone por su cuenta, `offerable_vertical`).
+TO_TRY_ORDER = ("supermercado", "conveniencia", "turbo", "chocolateria", "restaurantes", "mall")
 
 # Plantillas. {origen} es el concepto de lo que ya lleva (solo si el agente puede proponerlo), {destino} el que se
 # ofrece.

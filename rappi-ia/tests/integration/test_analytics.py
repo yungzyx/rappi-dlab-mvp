@@ -186,26 +186,6 @@ def test_cart_abandonment_follows_the_definition(db):
     assert weekly[date(2026, 9, 7)] == 100.0  # c-perdido y c-qty-rara (los vaciados no cuentan)
 
 
-def test_same_pair_can_be_learned_from_both_sources(db, monkeypatch):
-    seed_taxonomy(db, load_taxonomy())
-    db.execute(
-        """INSERT INTO concept_edges (from_concept, to_concept, method, weight, support, data_source)
-           VALUES ('cerveza', 'snacks-salados', 'coocurrencia', 0.5, 40, 'synthetic')"""
-    )
-    for user, concepts in [("u1", ["cerveza", "snacks-salados"]), ("u2", ["cerveza", "snacks-salados"])]:
-        for i, concept in enumerate(concepts):
-            _order(db, user, i, concept=concept)
-    _order(db, "u3", 0, concept="lacteos")
-    monkeypatch.setattr(queries, "MIN_SUPPORT", 1)
-
-    assert queries.learn_edges(db, "prototype") >= 1  # antes: UniqueViolation con la arista simulada
-    sources = db.execute(
-        """SELECT data_source FROM concept_edges
-           WHERE from_concept = 'cerveza' AND to_concept = 'snacks-salados' ORDER BY 1"""
-    ).fetchall()
-    assert sources == [("prototype",), ("synthetic",)]
-
-
 def test_catalog_coverage_compares_the_same_stores_and_units(db):
     add_store(db, 1, "licores", "Botillería con pasillos")
     add_store(db, 2, "licores", "Botillería sin pasillos")
@@ -663,9 +643,13 @@ def test_synthetic_events_are_text_only_and_the_agent_ones_are_ask(simulated):
 
 
 def test_learned_synthetic_edges_are_never_used_by_the_agent(simulated):
+    """Las aristas `coocurrencia` simuladas que guardaba `rappi-ia synth` (ya no se escriben; una base de antes las
+    tiene) no alcanzan para que el agente sugiera algo."""
     db, _ = simulated
-    n = queries.learn_edges(db, "synthetic")
-    assert n == db.execute("SELECT count(*) FROM concept_edges WHERE method = 'coocurrencia'").fetchone()[0]
+    db.execute(
+        """INSERT INTO concept_edges (from_concept, to_concept, method, weight, support, data_source)
+           VALUES ('cerveza', 'snacks-salados', 'coocurrencia', 0.9, 400, 'synthetic')"""
+    )
     db.execute("DELETE FROM concept_edges WHERE method = 'curado'")
     db.commit()
     # Sin aristas curadas, las aprendidas de datos simulados no alcanzan para sugerir nada.

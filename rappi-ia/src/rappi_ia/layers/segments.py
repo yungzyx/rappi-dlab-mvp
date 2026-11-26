@@ -62,7 +62,7 @@ FAMILIES = (
     *("momentos", "valor", "relacion", "servicios", "geografia"),
 )
 LEVELS = ("bajo", "medio", "alto")
-MODALITIES = frozenset({"texto", "voz", "foto"})
+MODALITIES = frozenset({"texto"})  # la API solo recibe texto (`EventIn.modality`)
 # Se nombran por lo que la persona compra, nunca por la condición que se les supone; las vistas `capa` no exponen
 # sus filas por usuario y sus agregados exigen k ≥ 5.
 SENSITIVE_SEGMENTS = frozenset(

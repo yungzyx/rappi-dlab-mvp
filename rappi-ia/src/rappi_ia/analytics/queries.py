@@ -1809,21 +1809,6 @@ WHERE p.both_n >= %(min_support)s AND p.both_n::float / pa.n / (pb.n / users.n) 
 """
 
 
-def learn_edges(conn: Connection, source: str = "synthetic") -> int:
-    """Guarda aristas aprendidas (method 'coocurrencia', data_source = source). El agente ignora las 'synthetic'."""
-    _check(source)
-    conn.execute("DELETE FROM concept_edges WHERE method = 'coocurrencia' AND data_source = %s", (source,))
-    rows = _rows(conn, _AFFINITY_SQL, {"source": source, "min_support": MIN_SUPPORT})
-    with conn.cursor() as cur:
-        cur.executemany(
-            """INSERT INTO concept_edges (from_concept, to_concept, method, weight, support, data_source)
-               VALUES (%s, %s, 'coocurrencia', %s, %s, %s)""",
-            [(r["desde"], r["hacia"], min(1.0, r["confianza"]), r["usuarios"], source) for r in rows],
-        )
-    conn.commit()
-    return len(rows)
-
-
 def catalog_health(conn: Connection) -> dict:
     """Muestra pública REAL del catálogo: cobertura, calidad y precios (no depende de datos simulados)."""
     coverage = _rows(

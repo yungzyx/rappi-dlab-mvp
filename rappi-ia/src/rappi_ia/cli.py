@@ -696,13 +696,11 @@ def cmd_purge(conn, args) -> None:
 def cmd_synth(conn, args) -> None:
     from datetime import date
 
-    from .analytics.queries import learn_edges
     from .events.synth import DEFAULT_USERS, generate
 
     until = date.fromisoformat(args.hasta) if args.hasta else None
     users = DEFAULT_USERS if args.usuarios is None else args.usuarios
     print(generate(conn, users=users, weeks=args.semanas, seed=args.semilla, until=until))
-    print(f"Aristas aprendidas (simuladas, el agente no las usa): {learn_edges(conn, 'synthetic')}")
 
 
 def cmd_analytics(conn, args) -> None:
