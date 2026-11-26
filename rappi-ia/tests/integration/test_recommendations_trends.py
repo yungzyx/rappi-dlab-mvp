@@ -6,6 +6,7 @@ from datetime import UTC, datetime, timedelta
 
 import pytest
 
+from conftest import add_store
 from owner_client import OwnerClient
 from rappi_ia.agent.compose import TemplateComposer
 from rappi_ia.agent.rappi_agent import RappiAgent
@@ -71,6 +72,26 @@ def test_without_interests_for_you_shows_the_most_ordered(client, db):
     }
     assert [p["entity_id"] for p in row["products"]] == ["93002", "93001", "93003"]  # hasta tres, en su orden
     assert all(p["vertical"] == "turbo" and p["price_value"] for p in row["products"])
+
+
+def test_the_most_ordered_comes_from_a_store_of_the_demo_city(client, db):
+    """Como lo que Mochi propone, "Lo más pedido" sale con una tienda de la ciudad de la demo: una de otra ciudad más
+    barata no gana (la persona lo agregaría al carro de una tienda a la que no le llega)."""
+    add_store(db, 9390, "turbo", "Tienda turbo lejana", city="Concepción")
+    db.execute("INSERT INTO aisles (store_id, aisle_id, parent_aisle_id, name) VALUES (9390, 1, NULL, 'Todo')")
+    db.execute(
+        "INSERT INTO store_products (store_id, sku, master_product_id, aisle_id) VALUES (9390, 'lejos', 93002, 1)"
+    )
+    db.execute(
+        """INSERT INTO price_snapshots (run_id, store_id, sku, price, in_stock)
+           SELECT max(run_id), 9390, 'lejos', 990, true FROM price_snapshots""",
+    )
+    product_trends(db, "turbo", ["93002"])
+
+    [row] = for_you(client)
+
+    [product] = row["products"]
+    assert product["entity_id"] == "93002" and product["store_id"] != 9390 and product["price_value"] > 990
 
 
 def test_the_reason_contracts_the_article(client, db):

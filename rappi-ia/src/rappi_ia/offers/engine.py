@@ -900,8 +900,10 @@ def most_ordered(conn: Connection, vertical: str, population: str, city: str | N
     orden y uno por concepto mientras alcancen (`one_per_concept`), que siguen a la venta ahí: un producto del catálogo
     con su oferta vigente más barata en una tienda de esa vertical (`_TOP_CATALOG`), o en restaurantes un plato con
     precio que no es de una sección de tragos ni, sin concepto, nombra alcohol en su descripción (`_TOP_DISHES`). Pasan
-    las guardias de las ofertas (`_offerable_products`), también la de su tienda, y se pueden destacar (`featured`):
-    con foto y, en restaurantes, platos principales de un local de `city` (sin ella, `config.PROFILE_CITY`)."""
+    las guardias de las ofertas (`_offerable_products`), también la de su tienda, son de una tienda de la ciudad de la
+    demo (`_city_products`: si la más barata es de otra ciudad, la de la ciudad; si ninguna, no sale) y se pueden
+    destacar (`featured`): con foto y, en restaurantes, platos principales de un local de `city` (sin ella,
+    `config.PROFILE_CITY`)."""
     kind = "menu_item" if vertical == "restaurantes" else "catalog_item"
     rows = conn.execute(
         """SELECT entity_id FROM trends
@@ -912,7 +914,8 @@ def most_ordered(conn: Connection, vertical: str, population: str, city: str | N
     ids = [i for (i,) in rows if _valid_id(i)]
     found = _priced_in_vertical(conn, vertical, ids)
     offerable = _offerable_products(conn, [found[i].to_dict() for i in ids if i in found])
-    shown = featured(conn, offerable, city or config.PROFILE_CITY, main=vertical == "restaurantes")
+    city = city or config.PROFILE_CITY
+    shown = featured(conn, _city_products(conn, offerable, dish_city=city), city, main=vertical == "restaurantes")
     return one_per_concept(shown, SHOWN_PRODUCTS)
 
 
