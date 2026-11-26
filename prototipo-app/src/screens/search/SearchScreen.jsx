@@ -40,6 +40,8 @@ export default function SearchScreen({ back, push, params }) {
   // "Lo que sea": RappiFavor con lo buscado ya escrito.
   const openFavor = (text) => push('favor', { text })
 
+  // El placeholder desaparece al escribir: el campo lleva el mismo texto como nombre para un lector de pantalla.
+  const hint = only ? `Buscar en ${VERTICAL_NAMES[params.vertical] ?? params.vertical}` : '¿Qué quieres hoy?'
   return (
     <div className="screen search">
       <header className="search-header">
@@ -49,7 +51,8 @@ export default function SearchScreen({ back, push, params }) {
           <input
             autoFocus
             type="search"
-            placeholder={only ? `Buscar en ${VERTICAL_NAMES[params.vertical] ?? params.vertical}` : '¿Qué quieres hoy?'}
+            placeholder={hint}
+            aria-label={hint}
             value={query}
             maxLength={500}
             onChange={(e) => setQuery(e.target.value)}
