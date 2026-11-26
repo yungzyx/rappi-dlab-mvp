@@ -1,5 +1,5 @@
 import { act, renderHook } from '@testing-library/react'
-import { beforeEach, describe, expect, test } from 'vitest'
+import { afterEach, beforeEach, describe, expect, test } from 'vitest'
 import { useNavigation } from './useNavigation'
 
 const names = (result) => result.current.stack.map((entry) => entry.name)
@@ -83,5 +83,45 @@ describe('volver al inicio y enlaces escritos a mano', () => {
     const { result } = renderHook(() => useNavigation())
     expect(names(result)).toEqual(['home'])
     window.history.replaceState(null, '', '/')
+  })
+})
+
+describe('después de "Borrar mis datos" (otra persona en este navegador)', () => {
+  const asUser = (id) => localStorage.setItem('rappi-proto-user', id)
+  afterEach(() => {
+    localStorage.clear()
+    window.history.replaceState(null, '', '/')
+  })
+
+  test('volver a una entrada de la persona anterior no recupera lo que buscó', () => {
+    asUser('proto-antes')
+    const { result } = renderHook(() => useNavigation())
+    act(() => result.current.push('search', { query: 'regalo para ana@correo.cl' }))
+    const before = window.history.state
+    asUser('proto-despues')
+    act(() => window.dispatchEvent(new PopStateEvent('popstate', { state: before })))
+    expect(names(result)).toEqual(['home', 'search'])
+    expect(result.current.stack[1].params).toEqual({})
+    expect(JSON.stringify(window.history.state)).not.toContain('ana@correo.cl')
+  })
+
+  test('al cargar sobre una entrada de la persona anterior se lee solo la ruta', () => {
+    asUser('proto-antes')
+    const first = renderHook(() => useNavigation())
+    act(() => first.result.current.push('search', { query: 'regalo para ana@correo.cl' }))
+    first.unmount()
+    asUser('proto-despues')
+    const { result } = renderHook(() => useNavigation())
+    expect(names(result)).toEqual(['home', 'search'])
+    expect(result.current.stack[1].params).toEqual({})
+  })
+
+  test('la misma persona, al recargar, vuelve a su pantalla con sus parámetros', () => {
+    asUser('proto-misma')
+    const first = renderHook(() => useNavigation())
+    act(() => first.result.current.push('search', { query: 'cerveza' }))
+    first.unmount()
+    const { result } = renderHook(() => useNavigation())
+    expect(result.current.stack[1].params).toEqual({ query: 'cerveza' })
   })
 })

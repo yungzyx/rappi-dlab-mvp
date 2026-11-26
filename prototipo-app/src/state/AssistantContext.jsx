@@ -1,4 +1,6 @@
 import { createContext, useContext, useEffect, useMemo, useRef, useState } from 'react'
+import { storedUserId } from '../api/user'
+import { ownEntry } from '../hooks/useNavigation'
 import { useDemo } from './DemoContext'
 import { useAgentEnabled } from './agentEnabled'
 
@@ -29,10 +31,11 @@ export function AssistantProvider({ children }) {
   if (!final && session) setSession(null)
 
   // Volver (o avanzar) a la entrada del historial del asistente lo reabre con la búsqueda que tenía: así, abrir una
-  // tienda desde el agente y volver no deja la Home con el panel cerrado y la búsqueda perdida.
+  // tienda desde el agente y volver no deja la Home con el panel cerrado y la búsqueda perdida. La entrada de otra
+  // persona (de antes de "Borrar mis datos") no lo reabre: su búsqueda no es de esta.
   useEffect(() => {
     const onPopState = (event) => {
-      if (!event.state?.assistant || !finalRef.current) return
+      if (!event.state?.assistant || !finalRef.current || !ownEntry(event.state)) return
       setSession((prev) => prev ?? { search: event.state.assistantSearch ?? '', openedAt: Date.now() })
     }
     window.addEventListener('popstate', onPopState)
@@ -45,7 +48,7 @@ export function AssistantProvider({ children }) {
       isOpen: session !== null,
       // Abrir agrega una entrada al historial: el gesto "volver" de Safari cierra el asistente.
       open: (options = {}) => {
-        window.history.pushState({ ...window.history.state, assistant: true }, '')
+        window.history.pushState({ ...window.history.state, assistant: true, who: storedUserId() }, '')
         setSession({ ...options, openedAt: Date.now() })
       },
       // viaHistory: el cierre ya vino del historial (gesto volver o una pantalla que reemplazó la entrada).
