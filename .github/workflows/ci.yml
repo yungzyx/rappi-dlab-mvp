@@ -259,18 +259,38 @@ jobs:
       - name: Enlaces relativos de los .md (archivos y anclas) y tablas sin cortar
         run: python3 scripts/check-doc-links.py
 
-      # La demo desde un Mac (deploy/macos/Caddyfile) copia las cabeceras de seguridad y la CSP del servidor.
-      - name: Las mismas cabeceras de seguridad en los dos Caddyfile
+      # La demo desde un Mac (deploy/macos/Caddyfile) copia las cabeceras de seguridad, la CSP y la puerta (con la
+      # credencial opcional del panel) del servidor.
+      - name: Las mismas cabeceras de seguridad y la misma puerta en los dos Caddyfile
         run: |
           headers='^[[:space:]]+(Strict-Transport-Security|X-Content-Type-Options|Referrer-Policy|X-Robots-Tag|Permissions-Policy|Content-Security-Policy|-Server)'
           diff <(grep -E "$headers" deploy/Caddyfile) <(grep -E "$headers" deploy/macos/Caddyfile)
+          gate='^[[:space:]]+(basic_auth|@puerta|@panel_aparte|not \{|path /panel /panel|expression|\{\$(BASIC|PANEL)_AUTH_)'
+          diff <(grep -E "$gate" deploy/Caddyfile) <(grep -E "$gate" deploy/macos/Caddyfile)
 
-      # La página de la propuesta del panel sirve copias de dos diagramas y del mapa de conceptos de docs/.
+      # Los dos Caddyfile validan con la versión de Caddy de la imagen (la del Mac la valida actualizar.sh antes de
+      # desplegar: uno que no valida detiene la demo hasta que main lo arregle), con y sin la credencial del panel.
+      - name: Los dos Caddyfile validan
+        run: |
+          set -euo pipefail
+          image=$(sed -n 's/^FROM \(caddy:[^ ]*\)$/\1/p' deploy/Dockerfile.web)
+          hash=$(docker run --rm "$image" caddy hash-password --plaintext "$(openssl rand -hex 16)")
+          for panel in "" "-e PANEL_AUTH_USER=panel -e PANEL_AUTH_HASH=$hash"; do
+            # $panel sin comillas: son opciones de docker, separadas a propósito.
+            docker run --rm -v "$PWD/deploy:/deploy:ro" -e DOMAIN=localhost -e BASIC_AUTH_USER=ci -e "BASIC_AUTH_HASH=$hash" \
+              -e SRV_DIR=/srv -e API_PORT=8100 -e CADDY_PORT=8080 $panel "$image" sh -c \
+              'caddy validate --config /deploy/Caddyfile --adapter caddyfile \
+                 && caddy validate --config /deploy/macos/Caddyfile --adapter caddyfile'
+          done
+
+      # La página de la propuesta del panel sirve copias de dos diagramas, del mapa de conceptos y del mapa multivertical
+      # de docs/.
       - name: Las copias de los diagramas en el panel, iguales a las de docs/
         run: |
           cmp docs/diagramas/motor-flujo.png dashboard-empresa/public/presentacion/motor-flujo.png
           cmp docs/diagramas/rag-datos.png dashboard-empresa/public/presentacion/flujo-de-datos.png
           cmp docs/mapas/mapa-conceptos.jpg dashboard-empresa/public/presentacion/mapa-conceptos.jpg
+          cmp docs/mapas/mapa-multivertical.html dashboard-empresa/public/presentacion/mapa-multivertical.html
 
   # Claves, tokens y contraseñas en los archivos versionados del commit (git archive: sin .git ni lo ignorado), con
   # gitleaks en una versión fija. Solo lee el repo. Las excepciones, revisadas una por una, en .github/gitleaks.toml.
@@ -319,7 +339,9 @@ jobs:
           owner=$(openssl rand -hex 24)
           api=$(openssl rand -hex 24)
           echo "::add-mask::$gate"
-          hash=$(docker run --rm caddy:2.11.7-alpine caddy hash-password --plaintext "$gate")
+          # Con la misma versión de Caddy que la imagen web (deploy/Dockerfile.web).
+          image=$(sed -n 's/^FROM \(caddy:[^ ]*\)$/\1/p' deploy/Dockerfile.web)
+          hash=$(docker run --rm "$image" caddy hash-password --plaintext "$gate")
           cat > "$env_file" <<EOF
           DOMAIN=localhost
           BASIC_AUTH_USER=ci
@@ -413,6 +435,22 @@ jobs:
           test "$($COMPOSE exec -T api printenv API_ENABLE_ANALYTICS)" = 1
 
       - name: deploy/smoke.sh https://localhost (con el panel)
+        run: WITH_PANEL=1 deploy/smoke.sh https://localhost
+
+      # Tercera pasada: el panel con su propia credencial (PANEL_AUTH_*). Solo cambia el entorno de web, que se recrea:
+      # /panel y /api/analytics piden esa credencial y la de la puerta ya no los abre.
+      - name: Con la credencial propia del panel (PANEL_AUTH_*)
+        run: |
+          set -euo pipefail
+          panel=$(openssl rand -hex 16)
+          echo "::add-mask::$panel"
+          hash=$(docker run --rm rappi-web caddy hash-password --plaintext "$panel")
+          printf "PANEL_AUTH_USER=ci-panel\nPANEL_AUTH_HASH='%s'\n" "$hash" >> "$RAPPI_ENV_FILE"
+          echo "PANEL_AUTH_PASSWORD=$panel" >> "$GITHUB_ENV"
+          $COMPOSE up -d --no-deps --wait web
+          test "$($COMPOSE exec -T web printenv PANEL_AUTH_USER)" = ci-panel
+
+      - name: deploy/smoke.sh https://localhost (con la credencial del panel)
         run: WITH_PANEL=1 deploy/smoke.sh https://localhost
 
       # El servicio jobs: pg_dump 17 con la base, el volumen de respaldos y el candado de descargas en la base.
