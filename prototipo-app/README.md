@@ -8,7 +8,7 @@ Hecho con Vite + React 19. **Necesita la API de [`rappi-ia`](../rappi-ia/)**: si
 
 ![Modo demo: la misma app en el prototipo final y en "Rappi hoy"](docs/screenshots/00-modo-demo.jpg)
 
-*Las capturas de las pantallas se tomaron el 14-11-2026 con la API corriendo sobre una copia de la base (`rappi_staging`) y el catálogo real (`npm run screenshots`); solo la ficha de Mochi es anterior. Como el recorrido paga dos compras (una en Ofertas y otra en Chocolates, para la Home dinámica) y deja sus pedidos y eventos (`source = 'prototype'`) en la base que use la API, `npm run screenshots` se niega a correr sin `SCREENSHOTS_ALLOW_WRITES=1`: se corre con la API sobre `rappi_staging`, nunca sobre `rappi`.*
+*Las capturas de las pantallas se tomaron el 14-11-2026 con la API corriendo sobre una copia de la base (`rappi_staging`) y el catálogo real (`npm run screenshots`); solo la ficha de Mochi es anterior. Como el recorrido paga dos compras (una en Ofertas y otra en Chocolates, para la Home dinámica) y deja sus pedidos y eventos (`source = 'prototype'`) en la base que use la API, `npm run screenshots` se niega a correr sin `SCREENSHOTS_ALLOW_WRITES=1` y contra el puerto 8000 (el de `make mvp`): se corre con una API sobre `rappi_staging` en otro puerto, nunca sobre `rappi`.*
 
 ## Cómo correrlo
 
@@ -61,7 +61,7 @@ Si la API se cae con la app ya abierta, el buscador con Mochi dice "Sin conexió
 | `npm run format` | Formato con Prettier |
 | `npm run format:check` | Revisa el formato sin cambiar nada (lo que corre el CI) |
 | `npm run build` | Build de producción en `dist/` |
-| `npm run screenshots` | Regenera las capturas de este README con el Chrome instalado (`CHROME_PATH` o `PLAYWRIGHT_CHANNEL` eligen otro). Necesita el MVP corriendo sobre una copia de la base (`DATABASE_URL=postgresql:///rappi_staging make mvp`), o una API sobre la copia en otro puerto (`VITE_API_URL`), y `SCREENSHOTS_ALLOW_WRITES=1`, porque paga dos compras (una en Ofertas y otra en Chocolates): sin la variable se niega |
+| `npm run screenshots` | Regenera las capturas de este README con el Chrome instalado (`CHROME_PATH` o `PLAYWRIGHT_CHANNEL` eligen otro). Necesita una API sobre una copia de la base en otro puerto (por defecto `http://127.0.0.1:8020`, o la de `VITE_API_URL`; los comandos están al inicio de `scripts/screenshots.mjs`) y `SCREENSHOTS_ALLOW_WRITES=1`, porque paga dos compras (una en Ofertas y otra en Chocolates): sin la variable, o contra el puerto 8000 de `make mvp`, se niega (`SCREENSHOTS_ALLOW_MAIN_API=1` acepta una copia en el 8000) |
 | `npm run demo:snapshot` | Graba la muestra del catálogo para la demo sin conexión desde una API sobre una copia de la base (ver "Demo sin conexión") |
 | `npm run demo:html` | Arma "Prototipo MVP.html": la app en un solo archivo, sin la API (ver "Demo sin conexión") |
 | `node scripts/make-icons.mjs` | Regenera los íconos de la app instalada (`public/`: manifiesto, iPhone y pestaña) desde la pose de frente de `src/assets/mochi-poses.webp`, sin el logo que trae la mochila, con el Chrome instalado |
