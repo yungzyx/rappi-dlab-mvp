@@ -15,7 +15,7 @@ import { execFileSync } from 'node:child_process'
 import { createHash } from 'node:crypto'
 import { readFileSync, writeFileSync } from 'node:fs'
 import { fileURLToPath, pathToFileURL } from 'node:url'
-import { followKey } from '../src/api/offline/text.js'
+import { followKey, normalize } from '../src/api/offline/text.js'
 
 const ROOT = fileURLToPath(new URL('..', import.meta.url))
 const OUT = `${ROOT}src/api/offline/snapshot.json`
@@ -127,14 +127,8 @@ async function call(path, { method = 'GET', body, token, allow = [] } = {}) {
 
 const session = () => call('/session', { method: 'POST', body: {} })
 
-/** Clave de una consulta o pregunta: sin tildes (salvo la ñ, que también se quita), emojis ni signos. */
-export const normalize = (text) =>
-  text
-    .normalize('NFD')
-    .replace(/\p{M}/gu, '')
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, ' ')
-    .trim()
+// La clave de cada consulta o pregunta grabada es `normalize` de src/api/offline/text.js, la misma con que la API
+// simulada las busca.
 
 async function catalog(token) {
   const get = (path, allow) => call(path, { token, allow })
