@@ -12,6 +12,7 @@ from .. import config
 from ..agent.compose import TemplateComposer, default_composer
 from ..agent.rappi_agent import RappiAgent
 from ..embeddings.base import TextEmbedder
+from ..safety import LLMJudge, RulesJudge, default_judge
 
 log = logging.getLogger(__name__)
 
@@ -32,6 +33,7 @@ class Services:
         return {
             "busqueda_semantica": model,
             "redaccion": self.agent.composer.name,
+            "juez": "llm" if isinstance(getattr(self.agent, "judge", None), LLMJudge) else "reglas",
             "faltantes": sorted(self.missing),
         }
 
@@ -74,6 +76,12 @@ def _load_services() -> Services:
     for code, detail in missing.items():  # /health solo dice el código; aquí queda el porqué
         if not light:  # RAPPI_IA_LIGHT=1 es una decisión, no un fallo
             log.warning("Falta %s: %s", code, detail)
-    agent = RappiAgent(embedder, composer)
+    try:
+        judge = default_judge()
+    except Exception as exc:  # el cliente de Claude: la API arranca igual y juzga solo con las reglas
+        log.exception("No se pudo crear el juez con Claude")
+        missing["juez_llm"] = f"no se pudo crear el juez con Claude: {type(exc).__name__}"
+        judge = RulesJudge()
+    agent = RappiAgent(embedder, composer, judge=judge)
     log.info("Servicios listos: %s", {k: v for k, v in Services(agent, embedder).capabilities.items() if v})
     return Services(agent, embedder, missing)

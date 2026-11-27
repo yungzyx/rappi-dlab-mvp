@@ -322,7 +322,7 @@ def verify_llm_text(text: str, refs: dict[str, str], allowed: str = "") -> str |
 
 
 def default_composer():
-    if config.ANTHROPIC_API_KEY:
+    if config.ANTHROPIC_API_KEY and config.LLM_REDACCION:
         try:
             return ClaudeComposer()
         except ImportError:

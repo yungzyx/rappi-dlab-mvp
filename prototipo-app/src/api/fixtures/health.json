@@ -2,6 +2,7 @@
   "capacidades": {
     "busqueda_semantica": "hash-test",
     "faltantes": [],
+    "juez": "reglas",
     "redaccion": "plantillas"
   },
   "documentos": 145,

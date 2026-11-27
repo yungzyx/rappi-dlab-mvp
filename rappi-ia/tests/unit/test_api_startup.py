@@ -196,5 +196,5 @@ def test_services_load_without_image_or_audio_models(monkeypatch):
 
     assert loaded.missing == {}
     assert loaded.embedder is not None
-    assert set(loaded.capabilities) == {"busqueda_semantica", "redaccion", "faltantes"}
+    assert set(loaded.capabilities) == {"busqueda_semantica", "redaccion", "juez", "faltantes"}
     assert not hasattr(loaded, "transcriber") and not hasattr(loaded, "photo_reader")
