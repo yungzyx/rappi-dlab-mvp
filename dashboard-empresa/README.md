@@ -152,7 +152,7 @@ El simulador pone a todas sus personas en la propuesta y, desde el 14-11-2026, t
 
 *Datos simulados: los dos grupos y sus diferencias salen de supuestos del generador; muestran cómo se lee cada hipótesis, sin veredicto.*
 
-Todas las vistas tienen versión móvil (sin scroll horizontal; las tablas pasan a tarjetas) y tema claro y oscuro: sigue al sistema y se puede fijar con el botón.
+Todas las vistas tienen versión móvil (sin scroll horizontal; las tablas pasan a tarjetas) y tema claro y oscuro: sigue al sistema y se puede fijar con el botón o con `?tema=claro` u `?tema=oscuro` en la dirección (p. ej. el QR de una presentación: `/panel/?tema=claro`).
 
 <p>
   <img src="docs/screenshots/1-resumen-movil-claro.jpg" alt="Resumen en móvil" width="260" />

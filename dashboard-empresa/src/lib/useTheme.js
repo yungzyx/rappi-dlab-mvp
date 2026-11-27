@@ -3,12 +3,17 @@ import { useEffect, useState, useSyncExternalStore } from 'react'
 const STORAGE_KEY = 'panel-empresa:tema'
 const DARK_QUERY = '(prefers-color-scheme: dark)'
 
-function storedTheme() {
+// ?tema=claro u ?tema=oscuro en la dirección (p. ej. el QR de una presentación) fija el tema como el botón.
+const URL_THEMES = { claro: 'light', oscuro: 'dark' }
+
+export function storedTheme() {
+  const fromUrl = URL_THEMES[new URLSearchParams(window.location.search).get('tema')] ?? null
   try {
+    if (fromUrl) localStorage.setItem(STORAGE_KEY, fromUrl)
     const value = localStorage.getItem(STORAGE_KEY)
     return value === 'light' || value === 'dark' ? value : null
   } catch {
-    return null // almacenamiento bloqueado: se sigue al sistema
+    return fromUrl // almacenamiento bloqueado: el de la dirección o, sin él, el del sistema
   }
 }
 
