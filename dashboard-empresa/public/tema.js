@@ -10,3 +10,10 @@ try {
 } catch {
   // Sin almacenamiento se sigue al sistema (o al de la dirección).
 }
+// Aplicado, se saca de la dirección: si no, el botón de tema no duraba (cada recarga volvía al de la dirección) y un
+// enlace copiado lo arrastraba.
+if (fromUrl) {
+  const url = new URL(location.href)
+  url.searchParams.delete('tema')
+  history.replaceState(history.state, '', url)
+}
