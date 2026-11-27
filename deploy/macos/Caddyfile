@@ -51,6 +51,8 @@ http://:{$CADDY_PORT} {
 			path /panel /panel/* /api/analytics /api/analytics/*
 			expression `{env.PANEL_AUTH_HASH} != ""`
 		}
+		# Con PUERTA_ABIERTA=1 no hay puerta: el sitio queda público (el panel también, salvo con su credencial).
+		expression `{env.PUERTA_ABIERTA} != "1"`
 	}
 	basic_auth @puerta {
 		{$BASIC_AUTH_USER} {$BASIC_AUTH_HASH}
