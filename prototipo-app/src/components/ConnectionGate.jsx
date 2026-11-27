@@ -7,6 +7,9 @@ import Mascot from './assistant/Mascot'
 import './connection-gate.css'
 
 const RETRY_MS = 2000 // sin conexión, se vuelve a preguntar solo: el MVP puede estar arrancando (carga modelos)
+// Cada intento fallido espera el doble, hasta 30 s: con la API ocupada (429) varios teléfonos de una misma red no la
+// saturan preguntando cada 2 s.
+const RETRY_MAX_MS = 30_000
 
 /**
  * Sin la API no hay agente, y la app no arranca con reglas locales: antes de montar `children` revisa la API y saca la
@@ -22,6 +25,7 @@ export default function ConnectionGate({ children }) {
   useEffect(() => {
     let current = true
     let timer
+    let tries = 0
     const check = async () => {
       // A la vez: la primera visita no espera la respuesta de /health para pedir la sesión (en una red móvil lenta,
       // cada viaje de ida y vuelta es medio segundo). Con la sesión ya guardada, ensureSession no pide nada.
@@ -38,7 +42,7 @@ export default function ConnectionGate({ children }) {
         setStatus('online')
       } else {
         setStatus('offline')
-        timer = setTimeout(check, RETRY_MS)
+        timer = setTimeout(check, Math.min(RETRY_MAX_MS, RETRY_MS * 2 ** tries++))
       }
     }
     check()

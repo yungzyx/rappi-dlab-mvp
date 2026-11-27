@@ -430,7 +430,8 @@ function UndoSheet({ open, orders, scheduled, onDone, onUndo }) {
     return () => clearTimeout(timer)
   }, [open])
   return (
-    <Sheet open={open} onClose={onUndo} title="¡Pedido creado!">
+    // Tocar afuera no deshace: era un reflejo común y anulaba el pedido sin aviso. Solo "Deshacer pedido" lo anula.
+    <Sheet open={open} onClose={() => {}} title="¡Pedido creado!">
       <div className="checkout-sheet">
         <p>
           {orders > 1 ? `Estamos enviando tus ${orders} pedidos.` : 'Estamos enviando tu pedido.'}

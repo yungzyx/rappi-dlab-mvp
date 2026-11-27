@@ -920,5 +920,6 @@
   border: 1.5px solid var(--line);
   border-radius: 12px;
   font: inherit;
+  font-size: 16px; /* con menos, Safari del iPhone acerca la página al tocarlo */
   font-weight: 400;
 }
