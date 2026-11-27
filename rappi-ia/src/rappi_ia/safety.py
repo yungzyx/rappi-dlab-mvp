@@ -37,12 +37,17 @@ BLOCKED_TEXT = "Eso no lo busco 🙅. Busca otra cosa."
 
 # Quitarse la vida o hacerse daño. Palabra entera, sin tildes (KeywordMatcher normaliza).
 CRISIS_WORDS = (
-    *("matarme", "me quiero matar", "me voy a matar", "quiero matarme", "matarse", "suicidarme", "suicidarse"),
+    *("matarme", "me quiero matar", "me voy a matar", "quiero matarme", "matarse", "me kiero matar", "suicidar"),
+    *("suicidarme", "suicidarse", "me quiero suicidar", "me voy a suicidar"),
     *("suicidio", "quiero morir", "quiero morirme", "me quiero morir", "ganas de morir", "no quiero vivir"),
     *("quitarme la vida", "acabar con mi vida", "hacerme dano", "quiero cortarme", "me quiero cortar"),
     *("cortarme las venas", "autolesion", "autolesionarme"),
 )
-_CRISIS = KeywordMatcher(("crisis", word) for word in CRISIS_WORDS)
+# "me quiero cortar el pelo", "quiero morir de risa": no son crisis.
+CRISIS_AVOID = ("el pelo", "las unas", "el cabello", "el flequillo", "de risa", "de la risa")
+_CRISIS = KeywordMatcher(
+    (("crisis", word) for word in CRISIS_WORDS), avoid=(("crisis", phrase) for phrase in CRISIS_AVOID)
+)
 # Intentos de manipular al asistente ("ignora tus instrucciones"): no hay nada que buscar.
 _INJECTION = re.compile(
     r"\b(?:ignore|ignora|ignorar|olvida|olvidate de)\b.{0,30}\b(?:instructions?|instrucciones|reglas|prompt)\b"

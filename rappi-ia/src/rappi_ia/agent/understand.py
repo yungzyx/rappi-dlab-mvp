@@ -866,6 +866,9 @@ def _price_order(words: list[str]) -> dict[str, bool]:
     return {"cheapest": cheapest, "priciest": priciest and not cheapest}
 
 
+MAX_PRICE_SAID = 100_000_000  # el MAX_PRICE de la API (api/app.py): un tope mayor no es un precio
+
+
 def _price(text: str) -> tuple[float | None, str]:
     """Tope de precio y el texto sin esa frase (con su "pesos" o "clp"). "hasta 5 kilos" o "2 litros" no son
     precios; "bajo 5" tampoco: se exige $, "mil"/"lucas"/"k" o al menos 3 dígitos. "1,5 lucas" son $1.500 y
@@ -883,7 +886,12 @@ def _price(text: str) -> tuple[float | None, str]:
         value = float(digits.replace(",", ".")) if decimal else float(re.sub(r"[.,\s]", "", digits))
         if not (currency or thousands or value >= 100):
             continue
-        return (value * 1000 if thousands else value), simple[: match.start()] + simple[match.end() :]
+        value = value * 1000 if thousands else value
+        if (
+            value > MAX_PRICE_SAID
+        ):  # "hasta $999…9" daba inf (un 500 al serializar) o un tope que el seguimiento rechaza
+            continue
+        return value, simple[: match.start()] + simple[match.end() :]
     return None, plain
 
 

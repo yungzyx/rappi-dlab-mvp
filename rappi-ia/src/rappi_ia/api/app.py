@@ -499,6 +499,8 @@ def _withheld_answer(conn: Connection, svc: Services, body: AskIn, answer: dict)
     _note_withheld_answer(conn, body, answer)
     conn.commit()  # el vector de la consulta se calcula sin una lectura abierta (como en `/search`)
     query = body.message.strip()[:200]
+    if query and not svc.agent.judge.judge(query).ok:  # "quiero matarme": la respuesta del juez, sin buscar
+        return JSONResponse(answer)
     found = (
         search_grouped(conn, query, svc.embedder, backend_vertical(body.vertical), GROUPED_SEARCH_LIMIT)
         if query

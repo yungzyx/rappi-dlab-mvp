@@ -10,7 +10,8 @@ export const BLOCKED_TEXT = 'Eso no lo busco 🙅. Busca otra cosa.'
 
 // safety.py: CRISIS_WORDS; offers/guards.py: ILLEGAL_DRUG_WORDS (palabra entera, sin tildes).
 const CRISIS_WORDS = [
-  ...['matarme', 'me quiero matar', 'me voy a matar', 'quiero matarme', 'matarse', 'suicidarme', 'suicidarse'],
+  ...['matarme', 'me quiero matar', 'me voy a matar', 'quiero matarme', 'matarse', 'me kiero matar', 'suicidar'],
+  ...['suicidarme', 'suicidarse', 'me quiero suicidar', 'me voy a suicidar'],
   ...['suicidio', 'quiero morir', 'quiero morirme', 'me quiero morir', 'ganas de morir', 'no quiero vivir'],
   ...['quitarme la vida', 'acabar con mi vida', 'hacerme dano', 'quiero cortarme', 'me quiero cortar'],
   ...['cortarme las venas', 'autolesion', 'autolesionarme'],
@@ -33,6 +34,8 @@ const DRUG_WORDS = [
   'porros',
   'weed',
 ]
+// safety.py: CRISIS_AVOID ("me quiero cortar el pelo", "quiero morir de risa" no son crisis).
+const CRISIS_AVOID = ['el pelo', 'las unas', 'el cabello', 'el flequillo', 'de risa', 'de la risa']
 // safety.py: _INJECTION (dañar a otro lo juzga Claude, no una regla: "cómo matar cucarachas" se vende).
 const INJECTION =
   /\b(?:ignore|ignora|ignorar|olvida|olvidate de)\b.{0,30}\b(?:instructions?|instrucciones|reglas|prompt)\b|\bsystem prompt\b|\bprompt del sistema\b|\bjailbreak\b|\bmodo desarrollador\b|\bdeveloper mode\b/
@@ -42,7 +45,7 @@ const says = (said, words) => words.some((word) => ` ${said} `.includes(` ${word
 /** 'ok', 'crisis' o 'bloqueado', como `rules_verdict` de safety.py. */
 export function judge(text) {
   const said = normalize(text)
-  if (says(said, CRISIS_WORDS)) return 'crisis'
+  if (says(said, CRISIS_WORDS) && !says(said, CRISIS_AVOID)) return 'crisis'
   if (says(said, DRUG_WORDS) || INJECTION.test(said)) return 'bloqueado'
   return 'ok'
 }
