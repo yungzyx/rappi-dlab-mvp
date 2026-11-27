@@ -22,8 +22,10 @@ revisar() { # $1 servicio, $2… comando que responde 0 si está bien
   fi
 }
 
-caddy_vivo() { # sin la clave responde 401: está vivo y la puerta funciona
-  [ "$(curl -s -o /dev/null -w '%{http_code}' --max-time 10 "http://127.0.0.1:$CADDY_PORT/")" = 401 ]
+caddy_vivo() { # sin la clave responde 401: está vivo y la puerta funciona (con PUERTA_ABIERTA=1, 200)
+  local esperado=401
+  [ "${PUERTA_ABIERTA:-}" = 1 ] && esperado=200
+  [ "$(curl -s -o /dev/null -w '%{http_code}' --max-time 10 "http://127.0.0.1:$CADDY_PORT/")" = "$esperado" ]
 }
 tunel_listo() { curl -fsS -o /dev/null --max-time 10 "http://$TUNEL_METRICAS/ready"; }
 
