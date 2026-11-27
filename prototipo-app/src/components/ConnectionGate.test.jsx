@@ -192,7 +192,7 @@ describe('ConnectionGate', () => {
     expect(screen.queryByText('Sin conexión con Mochi')).toBeNull()
   })
 
-  test('sin conexión reintenta en silencio cada 2 s y entra solo cuando la API responde', async () => {
+  test('sin conexión reintenta en silencio a los 2 s, luego espera el doble, y entra solo cuando la API responde', async () => {
     vi.useFakeTimers()
     const offline = stubApi({ '/health': 'offline' })
     renderGate()
@@ -210,7 +210,9 @@ describe('ConnectionGate', () => {
     expect(screen.getByRole('button', { name: 'Reintentar' })).toBe(retry)
 
     const online = stubApi({ '/health': fixture('health') })
-    await act(() => vi.advanceTimersByTimeAsync(2000))
+    await act(() => vi.advanceTimersByTimeAsync(3999))
+    expect(healthCalls(online)).toBe(0)
+    await act(() => vi.advanceTimersByTimeAsync(1))
     expect(healthCalls(online)).toBe(1)
     expect(screen.getByText('La app')).toBeTruthy()
     expect(screen.queryByText('Sin conexión con Mochi')).toBeNull()

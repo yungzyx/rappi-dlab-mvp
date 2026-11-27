@@ -355,3 +355,13 @@ def test_unmet_note_has_no_pronoun_that_must_agree_with_the_query():
             Draft(kind="sin_resultado", query=query, vertical_label="restaurantes", unmet=True)
         )
         assert "Lo anoté" in text and " lo buscas" not in text and "sepa que buscas eso" in text
+
+
+def test_a_price_beyond_any_order_is_not_a_price_cap():
+    """ "hasta $999…9" daba inf, y /agent/ask respondía 500 al serializarlo; un tope de mil millones lo rechazaba el
+    seguimiento (`le=MAX_PRICE`)."""
+    from rappi_ia.agent.understand import _price
+
+    assert _price("vino hasta $" + "9" * 400)[0] is None
+    assert _price("vino hasta 1000000000 pesos")[0] is None
+    assert _price("vino hasta 5 mil")[0] == 5000

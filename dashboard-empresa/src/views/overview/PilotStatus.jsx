@@ -93,7 +93,7 @@ function PilotProgress({ rows, experiment }) {
             <dd>
               <Meter value={row.share * 100} max={100} tone="brand" />
               <span className="pilot-note num">
-                {row.done ? 'Llegó al mínimo para concluir' : `${formatPct(row.share * 100, 0)} del mínimo`}
+                {row.done ? 'Llegó al mínimo para concluir' : `${formatPct(Math.floor(row.share * 100), 0)} del mínimo`}
                 {!row.done && ` · ${behind(row)}`}
               </span>
               {row.weeks !== null && <span className="pilot-note">{pending(row, experiment)}</span>}

@@ -10,9 +10,10 @@ export const BLOCKED_TEXT = 'Eso no lo busco 🙅. Busca otra cosa.'
 
 // safety.py: CRISIS_WORDS; offers/guards.py: ILLEGAL_DRUG_WORDS (palabra entera, sin tildes).
 const CRISIS_WORDS = [
-  ...['matarme', 'me quiero matar', 'me voy a matar', 'quiero matarme', 'matarse', 'suicidarme', 'suicidarse'],
+  ...['matarme', 'me quiero matar', 'me voy a matar', 'quiero matarme', 'matarse', 'me kiero matar', 'suicidar'],
+  ...['suicidarme', 'suicidarse', 'me quiero suicidar', 'me voy a suicidar'],
   ...['suicidio', 'quiero morir', 'quiero morirme', 'me quiero morir', 'ganas de morir', 'no quiero vivir'],
-  ...['quitarme la vida', 'acabar con mi vida', 'hacerme dano', 'quiero cortarme', 'me quiero cortar'],
+  ...['quitarme la vida', 'acabar con mi vida', 'hacerme dano'],
   ...['cortarme las venas', 'autolesion', 'autolesionarme'],
 ]
 const DRUG_WORDS = [

@@ -10,3 +10,16 @@ try {
 } catch {
   // Sin almacenamiento se sigue al sistema (o al de la dirección).
 }
+// Aplicado y guardado, se saca de la dirección: si no, el botón de tema no duraba (cada recarga volvía al de la
+// dirección) y un enlace copiado lo arrastraba. Sin almacenamiento se queda: useTheme.js lo lee de ahí.
+let saved = false
+try {
+  saved = Boolean(fromUrl) && localStorage.getItem('panel-empresa:tema') === fromUrl
+} catch {
+  // sin almacenamiento
+}
+if (saved) {
+  const url = new URL(location.href)
+  url.searchParams.delete('tema')
+  history.replaceState(history.state, '', url)
+}

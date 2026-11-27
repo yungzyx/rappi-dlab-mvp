@@ -14,7 +14,7 @@ Lo hizo Yung Chung con el equipo Rappitouille en el programa dLab, junto con Rap
 
 Tres caminos, de lo más rápido a lo más completo:
 
-1. **La demo en línea:** [dlab-mvp.com](https://dlab-mvp.com) (la app) y [dlab-mvp.com/panel/](https://dlab-mvp.com/panel/) (el panel de negocio). Pide un usuario y una clave, que el equipo entrega aparte. Corre sobre el catálogo real con personas de prueba.
+1. **La demo en línea:** [dlab-mvp.com](https://dlab-mvp.com) (la app) y [dlab-mvp.com/panel/](https://dlab-mvp.com/panel/) (el panel de negocio). Pide un usuario y una clave, que el equipo entrega aparte, salvo cuando se abre para una presentación (`PUERTA_ABIERTA=1`, [deploy/macos/README.md](deploy/macos/README.md)). Corre sobre el catálogo real con personas de prueba.
 2. **La presentación sin conexión:** "Mochi MVP - Presentación.html" (y su versión para iPhone y iPad), un solo archivo que el equipo entrega aparte y junta la app, el panel, las personas de prueba y un recorrido automático por 9 capítulos. Funciona sin internet. Cómo se arma: [presentacion/README.md](presentacion/README.md).
 3. **El código**, en este orden: el motor multivertical ([`rappi-ia/src/rappi_ia/motor/`](rappi-ia/src/rappi_ia/motor/), con la tabla de Rappi en [`combos.toml`](rappi-ia/src/rappi_ia/motor/combos.toml)); las ofertas de Mochi, con su razón y sus guardias ([`offers/`](rappi-ia/src/rappi_ia/offers/)); la búsqueda híbrida ([`retrieval/`](rappi-ia/src/rappi_ia/retrieval/)); Mochi en la app ([`prototipo-app/src/components/assistant/`](prototipo-app/src/components/assistant/)) y el panel ([`dashboard-empresa/src/`](dashboard-empresa/src/)). Por qué se decidió cada cosa: [docs/decisiones.md](docs/decisiones.md). Para correrlo: [Probarlo](#probarlo).
 

@@ -50,7 +50,7 @@ from ..offers.engine import most_ordered
 from ..offers.guards import is_offerable, offerable_vertical, whim_allowed
 from ..offers.profiles import active_profiles, person_city
 from ..retrieval.hybrid import MODES, detect_concepts
-from ..safety import rules_verdict
+from ..safety import BLOCKED_TEXT, CRISIS_TEXT, rules_verdict
 from ..text import contract_articles
 from . import deps, identity, prewarm
 from .agent import AGENT_WITHHELD_HEADER, MOCHI_OFF, WITHHELD_HEADER, agent_enabled, mochi_off, offers_variant
@@ -499,6 +499,8 @@ def _withheld_answer(conn: Connection, svc: Services, body: AskIn, answer: dict)
     _note_withheld_answer(conn, body, answer)
     conn.commit()  # el vector de la consulta se calcula sin una lectura abierta (como en `/search`)
     query = body.message.strip()[:200]
+    if answer.get("text") in (CRISIS_TEXT, BLOCKED_TEXT):  # "quiero matarme": la respuesta del juez, sin buscar
+        return JSONResponse(answer)
     found = (
         search_grouped(conn, query, svc.embedder, backend_vertical(body.vertical), GROUPED_SEARCH_LIMIT)
         if query

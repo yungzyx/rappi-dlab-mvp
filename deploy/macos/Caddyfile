@@ -79,6 +79,13 @@ http://:{$CADDY_PORT} {
 	}
 
 	handle_path /api/* {
+		# Sin puerta (PUERTA_ABIERTA=1) nadie escribe en el panel: "Juzgar la búsqueda" guarda los juicios humanos.
+		@panel_escribe {
+			path /analytics /analytics/*
+			not method GET HEAD
+			expression `{env.PUERTA_ABIERTA} == "1" && {env.PANEL_AUTH_HASH} == ""`
+		}
+		respond @panel_escribe 403
 		reverse_proxy 127.0.0.1:{$API_PORT} {
 			# El túnel llega desde localhost: la IP real del visitante viene en Cf-Connecting-Ip.
 			header_up X-Forwarded-For {http.request.header.Cf-Connecting-Ip}

@@ -1399,3 +1399,10 @@ def test_a_misspelled_search_drops_the_second_letter_of_its_longest_word():
     assert synth._misspelled("sushi") == "sshi"
     assert synth._misspelled("carnes y parrilla") == "carnes y prrilla"
     assert synth._misspelled("té") == "té"
+
+
+def test_the_control_group_gets_the_judges_answer_and_no_products(client, monkeypatch):
+    """El control respondía 'Resultados para "quiero matarme"' con productos: buscaba lo escrito sin el juez."""
+    monkeypatch.setattr(config, "OFFERS_CONTROL_PCT", 50)
+    off = client.post("/agent/ask", json={"message": "quiero matarme", "user_id": user_in(experiments.CONTROL)})
+    assert off.status_code == 200 and off.json()["products"] == [] and "*4141" in off.json()["text"]
