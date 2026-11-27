@@ -340,11 +340,11 @@ def unofferable_subverticals() -> list[str]:
 # encargo con palabras bloqueadas (en su app, el aviso `whimBlockedWordsError` nombra "droga" y "alcohol"); a esas se
 # suman las de algo ilegal o peligroso. Palabra entera, con su plural.
 # Drogas ilegales: ni Mochi ni la búsqueda las buscan ("marihuana" traía semillas y fertilizante del Mall). Sin "coca"
-# (Coca-Cola), "pito" ni "hierba", que nombran otras cosas.
+# (Coca-Cola), "pito", "hierba" ni "hachís" (hachis parmentier), que nombran otras cosas.
 ILLEGAL_DRUG_WORDS = frozenset(
     {
         *("droga", "drogas", "marihuana", "marijuana", "cannabis", "cocaina", "pasta base", "extasis", "lsd"),
-        *("metanfetamina", "heroina", "ketamina", "tusi", "hachis", "porro", "porros", "weed"),
+        *("metanfetamina", "heroina", "ketamina", "tusi", "porro", "porros", "weed"),
     }
 )
 _ILLEGAL_DRUGS = KeywordMatcher(("droga", word) for word in ILLEGAL_DRUG_WORDS)
