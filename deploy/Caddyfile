@@ -97,6 +97,13 @@
 	# mande el cliente: lo reemplaza por la IP real de la conexión. Es la que uvicorn (--proxy-headers) usa para los
 	# cupos por IP y las personas nuevas por día.
 	handle_path /api/* {
+		# Sin puerta (PUERTA_ABIERTA=1) nadie escribe en el panel: "Juzgar la búsqueda" guarda los juicios humanos.
+		@panel_escribe {
+			path /analytics /analytics/*
+			not method GET HEAD
+			expression `{env.PUERTA_ABIERTA} == "1"`
+		}
+		respond @panel_escribe 403
 		reverse_proxy api:8000
 	}
 

@@ -27,11 +27,14 @@ os.replace(tmp, ruta)
 EOF
 
 reiniciar caddy
+# Sin la clave responde 401; con PUERTA_ABIERTA=1 no hay puerta y responde 200 (la clave nueva queda para cuando se cierre).
+esperado=401
+[ "${PUERTA_ABIERTA:-}" = 1 ] && esperado=200
 for _ in $(seq 1 15); do
-  [ "$(curl -s -o /dev/null -w '%{http_code}' --max-time 3 "http://127.0.0.1:$CADDY_PORT/")" = 401 ] && break
+  [ "$(curl -s -o /dev/null -w '%{http_code}' --max-time 3 "http://127.0.0.1:$CADDY_PORT/")" = "$esperado" ] && break
   sleep 1
 done
-if [ "$(curl -s -o /dev/null -w '%{http_code}' --max-time 3 "http://127.0.0.1:$CADDY_PORT/")" = 401 ]; then
+if [ "$(curl -s -o /dev/null -w '%{http_code}' --max-time 3 "http://127.0.0.1:$CADDY_PORT/")" = "$esperado" ]; then
   log "Clave cambiada: la puerta ya pide la nueva."
 else
   log "Caddy no volvió a responder: revisa $LOG_DIR/caddy.log" >&2
