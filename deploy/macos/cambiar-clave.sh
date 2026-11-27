@@ -35,7 +35,7 @@ for _ in $(seq 1 15); do
   sleep 1
 done
 if [ "$(curl -s -o /dev/null -w '%{http_code}' --max-time 3 "http://127.0.0.1:$CADDY_PORT/")" = "$esperado" ]; then
-  log "Clave cambiada: la puerta ya pide la nueva."
+  if [ "$esperado" = 401 ]; then log "Clave cambiada: la puerta ya pide la nueva."; else log "Clave cambiada: se pedirá cuando se cierre la puerta (PUERTA_ABIERTA=1)."; fi
 else
   log "Caddy no volvió a responder: revisa $LOG_DIR/caddy.log" >&2
   exit 1

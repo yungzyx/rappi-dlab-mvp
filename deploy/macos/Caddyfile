@@ -83,7 +83,7 @@ http://:{$CADDY_PORT} {
 		@panel_escribe {
 			path /analytics /analytics/*
 			not method GET HEAD
-			expression `{env.PUERTA_ABIERTA} == "1"`
+			expression `{env.PUERTA_ABIERTA} == "1" && {env.PANEL_AUTH_HASH} == ""`
 		}
 		respond @panel_escribe 403
 		reverse_proxy 127.0.0.1:{$API_PORT} {

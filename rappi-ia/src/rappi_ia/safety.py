@@ -40,14 +40,13 @@ CRISIS_WORDS = (
     *("matarme", "me quiero matar", "me voy a matar", "quiero matarme", "matarse", "me kiero matar", "suicidar"),
     *("suicidarme", "suicidarse", "me quiero suicidar", "me voy a suicidar"),
     *("suicidio", "quiero morir", "quiero morirme", "me quiero morir", "ganas de morir", "no quiero vivir"),
-    *("quitarme la vida", "acabar con mi vida", "hacerme dano", "quiero cortarme", "me quiero cortar"),
+    *("quitarme la vida", "acabar con mi vida", "hacerme dano"),
     *("cortarme las venas", "autolesion", "autolesionarme"),
 )
-# "me quiero cortar el pelo", "quiero morir de risa": no son crisis.
-CRISIS_AVOID = ("el pelo", "las unas", "el cabello", "el flequillo", "de risa", "de la risa")
-_CRISIS = KeywordMatcher(
-    (("crisis", word) for word in CRISIS_WORDS), avoid=(("crisis", phrase) for phrase in CRISIS_AVOID)
-)
+# Sin excepciones por otras palabras del texto: "quiero suicidarme, me corté el pelo" es crisis. Lo ambiguo
+# ("quiero cortarme": ¿el pelo?) no está en la lista y lo juzga Claude; "quiero morir de risa" muestra la línea, que
+# es el error menos grave.
+_CRISIS = KeywordMatcher(("crisis", word) for word in CRISIS_WORDS)
 # Intentos de manipular al asistente ("ignora tus instrucciones"): no hay nada que buscar.
 _INJECTION = re.compile(
     r"\b(?:ignore|ignora|ignorar|olvida|olvidate de)\b.{0,30}\b(?:instructions?|instrucciones|reglas|prompt)\b"

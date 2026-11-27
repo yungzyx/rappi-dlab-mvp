@@ -417,7 +417,8 @@ function AgeSheet({ state, onYes, onNo, onRemove, onClose }) {
 
 /**
  * "Pedido creado" con "Deshacer pedido" unos segundos (`UNDO_MS`). Al cerrarse la ventana sale el pedido (`onDone`);
- * deshacer (o cerrar la hoja) lo anula antes de enviar nada y vuelve al checkout con el carro intacto.
+ * "Deshacer pedido" (solo ese botón: tocar afuera o Escape no hace nada) lo anula antes de enviar nada y vuelve al
+ * checkout con el carro intacto.
  */
 function UndoSheet({ open, orders, scheduled, onDone, onUndo }) {
   const done = useRef(onDone)
