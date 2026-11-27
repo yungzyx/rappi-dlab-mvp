@@ -8,6 +8,7 @@ import logging
 import re
 import threading
 import time
+from concurrent.futures import ThreadPoolExecutor
 from contextlib import asynccontextmanager, nullcontext
 from dataclasses import replace
 from datetime import UTC, datetime, timedelta
@@ -49,6 +50,7 @@ from ..offers.engine import most_ordered
 from ..offers.guards import is_offerable, offerable_vertical, whim_allowed
 from ..offers.profiles import active_profiles, person_city
 from ..retrieval.hybrid import MODES, detect_concepts
+from ..safety import rules_verdict
 from ..text import contract_articles
 from . import deps, identity, prewarm
 from .agent import AGENT_WITHHELD_HEADER, MOCHI_OFF, WITHHELD_HEADER, agent_enabled, mochi_off, offers_variant
@@ -565,6 +567,26 @@ GROUPED_SEARCH_LIMIT = 6  # por grupo
 VERTICAL_SEARCH_LIMIT = 10
 
 
+_JUDGE_POOL = ThreadPoolExecutor(max_workers=8, thread_name_prefix="juez")
+
+
+def _stopped(q: str, vertical: str | None, kind: str) -> dict:
+    """Lo que el juez detiene no se busca: sin resultados, y `unmet_reason` ("crisis" o "bloqueado") dice por qué,
+    para que la app muestre la línea *4141 o nada."""
+    empty = {"unmet": True, "unmet_reason": kind, "corrected_query": None, "preferences_notice": None}
+    if vertical is None:
+        places = {"stores": [], "restaurants": []}
+        return {
+            "query": q,
+            "groups": [],
+            **empty,
+            "places": places,
+            "whim_allowed": False,
+            "request_id": served_request_id(),
+        }
+    return {"vertical": backend_vertical(vertical), "products": [], **empty, "request_id": served_request_id()}
+
+
 @app.get("/search", dependencies=[Depends(SEARCH_CAP), Depends(owner_in_query)])
 def search(
     q: str = Query(min_length=1, max_length=200),
@@ -589,6 +611,11 @@ def search(
     el catálogo lo tiene."""
     if mode not in MODES:
         raise HTTPException(400, f"mode debe ser uno de {MODES}")
+    # rappi_ia/safety.py: "quiero matarme" traía yerba mate y "marihuana", semillas. Las reglas, al tiro; Claude
+    # (si está) tarda cerca de un segundo, así que juzga en paralelo con la búsqueda y su veredicto se mira al final.
+    if not (ruled := rules_verdict(q)).ok:
+        return _stopped(q, vertical, ruled.kind)
+    judged = _JUDGE_POOL.submit(svc.agent.judge.judge, q)
     mine = preferences.load(conn, user_id).only_filters()
     conn.commit()  # esa lectura no queda abierta mientras se calcula el vector de la consulta: ver `retrieve`
     if vertical is None:
@@ -613,6 +640,8 @@ def search(
         places = {"stores": search_stores(conn, q), "restaurants": search_restaurants(conn, q)}
         if places["stores"] or places["restaurants"]:
             found.update(unmet=False, unmet_reason=None)
+        if not (verdict := judged.result()).ok:
+            return _stopped(q, vertical, verdict.kind)
         return {
             **found,
             "places": places,
@@ -636,6 +665,8 @@ def search(
     except ValueError as exc:
         raise rejected(exc) from exc
     emptied = outcome.dropped > 0 and not outcome.products  # lo encontrado lo sacaron sus preferencias
+    if not (verdict := judged.result()).ok:
+        return _stopped(q, vertical, verdict.kind)
     return {
         "vertical": code,
         "products": [p.to_dict() for p in outcome.products],

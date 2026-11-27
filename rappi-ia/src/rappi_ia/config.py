@@ -52,6 +52,13 @@ AGENT_LLM_MODEL = os.environ.get("AGENT_LLM_MODEL", "claude-sonnet-5")
 # Tope de redacciones con Claude por día de Santiago, en cada proceso de la API: alcanzado, responden las plantillas.
 # 0 = nunca llama a Claude.
 LLM_DAILY_CALL_CAP = int(os.environ.get("LLM_DAILY_CALL_CAP", "300"))
+# Con la llave, LLM_REDACCION=0 deja las plantillas en Mochi (el juez sigue usando Claude).
+LLM_REDACCION = os.environ.get("LLM_REDACCION", "1") != "0"
+# Juez de lo que se escribe (rappi_ia/safety.py): con la llave, Claude juzga lo que las reglas dejan pasar.
+JUEZ_LLM = os.environ.get("JUEZ_LLM", "1") != "0"
+JUEZ_LLM_MODEL = os.environ.get("JUEZ_LLM_MODEL", "claude-haiku-5-5")
+JUEZ_TIMEOUT_S = float(os.environ.get("JUEZ_TIMEOUT_S", "3"))
+JUEZ_DAILY_CALL_CAP = int(os.environ.get("JUEZ_DAILY_CALL_CAP", "5000"))  # por proceso y día de Santiago
 
 # Entorno de la API: `local` (la demo en este equipo, por defecto) o `production` (un servidor detrás de un proxy).
 API_ENV = os.environ.get("API_ENV", "local")

@@ -4,7 +4,7 @@ import { fixture, stubApi } from '../../test/api'
 import { CartProvider } from '../../state/CartContext'
 import { DemoProvider } from '../../state/DemoContext'
 import { ProfileProvider } from '../../state/ProfileContext'
-import { SearchResults } from './SearchSections'
+import { CRISIS_TEXT, SearchResults } from './SearchSections'
 
 const events = vi.hoisted(() => ({ track: vi.fn(), flush: async () => {}, clear: () => {}, settled: async () => {} }))
 vi.mock('../../state/EventsContext', async (importOriginal) => ({
@@ -291,5 +291,17 @@ describe('SearchResults con resultados', () => {
     render(<SearchResults query="cerveza" data={data()} />, { wrapper: Providers })
     expect(errors).not.toHaveBeenCalled()
     errors.mockRestore()
+  })
+
+  test('lo que el juez detiene: la línea *4141 o nada, sin "Lo que sea" ni Mochi', () => {
+    const crisis = { ...EMPTY, query: 'quiero matarme', unmetReason: 'crisis', whimAllowed: false }
+    render(<SearchResults query="quiero matarme" data={crisis} onOpenVertical={() => {}} />, { wrapper: Providers })
+    expect(screen.getByRole('status').textContent).toBe(CRISIS_TEXT)
+    expect(screen.queryByText(/Sin resultados|No encontré/)).toBeNull()
+    cleanup()
+    const blocked = { ...EMPTY, query: 'marihuana', unmetReason: 'bloqueado', whimAllowed: true }
+    render(<SearchResults query="marihuana" data={blocked} onOpenVertical={() => {}} />, { wrapper: Providers })
+    expect(screen.getByText('Eso no lo busco.')).toBeTruthy()
+    expect(screen.queryByText(/Te lo conseguimos/)).toBeNull()
   })
 })

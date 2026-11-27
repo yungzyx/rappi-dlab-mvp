@@ -38,6 +38,7 @@ from ..offers import autonomy
 from ..offers import preferences as prefs
 from ..offers.guards import is_offerable, offerable_vertical, offerable_verticals, unofferable_subverticals
 from ..retrieval.spelling import correct_query
+from ..safety import BLOCKED_TEXT, CRISIS_TEXT, RulesJudge
 from ..text import normalize, tokens
 from .compose import Draft, TemplateComposer
 from .compose import _mid_sentence as _mid
@@ -210,9 +211,10 @@ IDEA_KINDS = ("ayuda", "saludo", "vacio", "fuera")
 
 
 class RappiAgent:
-    def __init__(self, embedder: TextEmbedder | None = None, composer=None, correct_typos: bool = True):
+    def __init__(self, embedder: TextEmbedder | None = None, composer=None, correct_typos: bool = True, judge=None):
         self.embedder = embedder
         self.composer = composer or TemplateComposer()
+        self.judge = judge or RulesJudge()  # lo que se escribe, antes de buscar nada (rappi_ia/safety.py)
         # Corrige errores de tipeo como /search (retrieval/spelling.py); la evaluación lo apaga para medir el antes.
         self.correct_typos = correct_typos
         self.understander = Understander()
@@ -295,6 +297,11 @@ class RappiAgent:
     def _reply(self, conn: Connection, message: str, ctx: Context | None, offer: bool) -> dict:
         ctx = ctx or Context()
         intent = self.understander.understand(conn, message, ctx.vertical, previous=ctx.previous)
+        verdict = self.judge.judge(message)
+        if not verdict.ok:  # rappi_ia/safety.py: "quiero matarme", "marihuana", "ignora tus instrucciones"
+            text = CRISIS_TEXT if verdict.kind == "crisis" else BLOCKED_TEXT
+            # symptom: la app no ofrece sus ideas debajo
+            return _base(replace(intent, kind="ayuda", vertical=None, concepts=[], symptom=True), text)
         if intent.kind == "recomendar":  # "qué me recomiendas": lo que le gusta; sin perfil, ejemplos
             return self._recommend(conn, intent, ctx)
         if intent.kind == "preferencia":
@@ -356,26 +363,29 @@ class RappiAgent:
         avoided = self._avoided(intent)
         outcome = None
         no_remedy = False
-        # Un síntoma sin producto ni vertical nombrados: remedios de farmacia (sin receta) que nombran el síntoma. Si
-        # ninguno lo nombra ("me siento mal", "tengo tos"), Mochi no elige un remedio: lo dice y muestra lo de cuidarse
-        # (sopas, jugos, té), que no es salud. "remedio para la tos" nombra medicamentos, pero lo que importa es el
-        # síntoma.
+        # Un síntoma sin producto ni vertical nombrados. Si hay remedios de farmacia (sin receta) que lo nombran ("me
+        # duele la cabeza", "tengo fiebre"), Mochi no los muestra y responde como a "¿qué le doy?" (desde el 26-11-2026;
+        # antes los mostraba, hasta uno pediátrico para un adulto). Si ninguno lo nombra ("me siento mal", "tengo
+        # tos"), lo dice y muestra lo de cuidarse (sopas, jugos, té), que no es salud. Con el nombre de un remedio
+        # ("paracetamol para la fiebre"), lo busca como cualquier producto.
         remedy_only = intent.concepts == ["medicamentos"]
-        if intent.symptom and (not intent.explicit_concepts or remedy_only) and not intent.explicit_vertical:
+        if (
+            intent.symptom
+            and (not intent.explicit_concepts or remedy_only)
+            and not intent.explicit_vertical
+            and not _active_ingredient(intent.query or intent.text)
+        ):
             # Se busca el síntoma, no "remedio": esa palabra traía remedios para el estómago ("remedio para la tos").
             said = " ".join(w for w in tokens(intent.query or intent.text) if w not in REMEDY_WORDS)
-            remedies = search_remedies(conn, said or intent.query or intent.text, self.embedder, intent.price_max)
-            if remedies.products:
-                outcome, vertical = remedies, "farmacia"
-                intent = replace(intent, vertical="farmacia", concepts=["medicamentos"], kind="buscar", occasion=None)
-            else:
-                no_remedy = True
-                care = self.taxonomy.occasions["enfermo"]
-                intent = replace(
-                    intent, kind="ocasion", occasion=care.id, concepts=list(care.concepts), explicit_concepts=False
-                )
-                if vertical == "farmacia":  # lo de cuidarse no se vende en farmacia
-                    vertical = next(iter(_ranked_for(conn, list(care.concepts))), "supermercado")
+            if search_remedies(conn, said or intent.query or intent.text, self.embedder, intent.price_max).products:
+                return self._advice(intent)
+            no_remedy = True
+            care = self.taxonomy.occasions["enfermo"]
+            intent = replace(
+                intent, kind="ocasion", occasion=care.id, concepts=list(care.concepts), explicit_concepts=False
+            )
+            if vertical == "farmacia":  # lo de cuidarse no se vende en farmacia
+                vertical = next(iter(_ranked_for(conn, list(care.concepts))), "supermercado")
         if outcome is None and not ctx.vertical:
             craving = self._craving(conn, intent, offer)
             if craving:

@@ -26,6 +26,7 @@
 //   vende otra ciudad (la API lo sacaría)
 // - rappi-ia/src/rappi_ia/catalog/stores.py (line_prices) y api/catalog.py (availability) ... "Pídelo de nuevo"
 //   (index.js: availability, con los precios de la muestra)
+// - rappi-ia/src/rappi_ia/safety.py (reglas) ........ lo que no se busca: crisis y bloqueado (judge.js)
 // - rappi-ia/src/rappi_ia/offers/guards.py ......... lo que el agente nunca ofrece (offers.js: offerableProduct); las
 //   palabras de alcohol y bebé llegan en meta.guards (guards.js; sin ellas, su copia a mano, que guards.test.js compara
 //   con guards.py). Las tiendas que Rappi rotula Farmacia, Sex shop o Smoking shop no se distinguen en la muestra
@@ -105,6 +106,7 @@ import { alwaysOpen, catalogRoute } from './catalog'
 import { contractArticles, homeVerticals } from './motor'
 import { kitStores, makeOffer } from './offers'
 import { applied, cleaned, CUISINES, describe, findStore, options, readCommand, withoutOf } from './preferences'
+import { judge, stoppedAnswer, stoppedSearch } from './judge'
 import { ask, backendVertical, detectConcepts, search } from './search'
 import { redact } from './redact'
 import { loadSnapshot } from './snapshot'
@@ -513,8 +515,19 @@ function answer(snapshot, { method, path, query, body }, now) {
     return { body: { user_id: state.userId, agent_enabled: true } }
   }
   if (key === 'POST /catalog/availability') return { body: availability(snapshot, body?.lines ?? []) }
-  if (key === 'GET /search') return { body: searchedWithPreferences(snapshot, state, search(snapshot, query), query) }
+  if (key === 'GET /search') {
+    const kind = judge(query.get('q'))
+    if (kind !== 'ok')
+      return { body: stoppedSearch(query.get('q') ?? '', backendVertical(query.get('vertical')), kind) }
+    return { body: searchedWithPreferences(snapshot, state, search(snapshot, query), query) }
+  }
   if (key === 'POST /agent/ask') {
+    const kind = judge(body?.message)
+    if (kind !== 'ok') {
+      const stopped = stoppedAnswer(kind, body?.message ?? '')
+      addEvents([askEvent(snapshot, body, stopped, now)])
+      return { body: stopped }
+    }
     const said = preferenceAnswer(snapshot, state, body ?? {}) ?? usualAnswer(snapshot, state, body ?? {}, now)
     if (said) {
       addEvents([askEvent(snapshot, body, said, now)])

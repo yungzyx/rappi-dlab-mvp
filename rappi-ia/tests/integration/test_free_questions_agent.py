@@ -61,8 +61,9 @@ def test_a_symptom_shows_only_remedies_that_name_it(agent):
     """ "tengo fiebre" muestra lo que se vende para la fiebre; "tengo tos", sin nada que la nombre, ya no trae
     analgésicos: lo dice y, si hay, algo para cuidarse que no es salud."""
     rappi, db = agent
-    fever = rappi.reply(db, "tengo fiebre", Context())
-    assert {p["entity_id"] for p in fever["products"]} == {"300", "301"}
+    fever = rappi.reply(db, "tengo fiebre", Context())  # con remedios que la nombran: el consejo, sin ellos (26-11)
+    assert fever["products"] == [] and fever["text"].startswith("No puedo decirte qué remedio")
+    assert {p.entity_id for p in search_remedies(db, "tengo fiebre", HashEmbedder()).products} == {"300", "301"}
     cough = rappi.reply(db, "tengo tos", Context())
     assert all(p["concept"] != "medicamentos" for p in cough["products"])
     assert cough["text"].startswith("No encontré en Farmacia un remedio") and not cough["unmet"]
@@ -184,9 +185,13 @@ def test_a_body_part_is_not_treated_with_any_painkiller(agent):
             (304, "Pastillas para la garganta menta 24 un", 4, "Analgésicos sistémicos", 3290),
         ],
     )
-    throat = rappi.reply(db, "tengo la garganta irritada", Context())
-    assert sorted(p["entity_id"] for p in throat["products"]) == ["303", "304"]
-    assert {"300", "301"} <= {p["entity_id"] for p in rappi.reply(db, "tengo dolor de cabeza", Context())["products"]}
+    # Mochi ya no muestra remedios (26-11): la búsqueda que decide si hay, y Mochi responde con el consejo.
+    throat = search_remedies(db, "tengo la garganta irritada", HashEmbedder())
+    assert sorted(p.entity_id for p in throat.products) == ["303", "304"]
+    assert {"300", "301"} <= {
+        p.entity_id for p in search_remedies(db, "tengo dolor de cabeza", HashEmbedder()).products
+    }
+    assert rappi.reply(db, "tengo la garganta irritada", Context())["products"] == []
 
 
 def test_a_craving_without_a_concept_is_looked_for_in_restaurants(agent):

@@ -66,7 +66,7 @@ def test_health_reports_capabilities(client):
 
 def test_health_lists_no_voice_or_photo_capability(client):
     capabilities = client.get("/health").json()["capacidades"]
-    assert set(capabilities) == {"busqueda_semantica", "redaccion", "faltantes"}
+    assert set(capabilities) == {"busqueda_semantica", "redaccion", "juez", "faltantes"}
 
 
 def test_ask_accepts_prototype_vertical_and_logs_redacted_query(client, db):
@@ -743,3 +743,14 @@ def test_a_previous_turn_out_of_range_is_rejected(client):
     ):
         previous = {"query": "cerveza", "concepts": ["cerveza"], **bad}
         assert client.post("/agent/ask", json={"message": "más", "previous": previous}).status_code == 422, bad
+
+
+def test_search_does_not_search_what_the_judge_stops(client):
+    """ "quiero matarme" traía yerba mate y "marihuana", semillas del Mall (26-11): no se busca, y `unmet_reason`
+    dice por qué, para que la app muestre la línea *4141 o nada."""
+    crisis = client.get("/search", params={"q": "quiero matarme"}).json()
+    assert crisis["groups"] == [] and crisis["unmet"] and crisis["unmet_reason"] == "crisis"
+    assert crisis["places"] == {"stores": [], "restaurants": []} and not crisis["whim_allowed"]
+    drugs = client.get("/search", params={"q": "marihuana", "vertical": "supermercado"}).json()
+    assert drugs["products"] == [] and drugs["unmet_reason"] == "bloqueado"
+    assert client.get("/search", params={"q": "cerveza", "vertical": "licores"}).json()["products"]

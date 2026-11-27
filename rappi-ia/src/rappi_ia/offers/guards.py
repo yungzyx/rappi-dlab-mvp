@@ -339,13 +339,28 @@ def unofferable_subverticals() -> list[str]:
 # "Lo que sea": la búsqueda que no encontró nada ofrece pedirlo con RappiFavor, con lo escrito. Rappi rechaza un
 # encargo con palabras bloqueadas (en su app, el aviso `whimBlockedWordsError` nombra "droga" y "alcohol"); a esas se
 # suman las de algo ilegal o peligroso. Palabra entera, con su plural.
+# Drogas ilegales: ni Mochi ni la búsqueda las buscan ("marihuana" traía semillas y fertilizante del Mall). Sin "coca"
+# (Coca-Cola), "pito", "hierba" ni "hachís" (hachis parmentier), que nombran otras cosas.
+ILLEGAL_DRUG_WORDS = frozenset(
+    {
+        *("droga", "drogas", "marihuana", "marijuana", "cannabis", "cocaina", "pasta base", "extasis", "lsd"),
+        *("metanfetamina", "heroina", "ketamina", "tusi", "porro", "porros", "weed"),
+    }
+)
+_ILLEGAL_DRUGS = KeywordMatcher(("droga", word) for word in ILLEGAL_DRUG_WORDS)
 WHIM_BLOCKED_WORDS = frozenset(
     {
-        *("droga", "drogas", "alcohol", "marihuana", "cannabis", "cocaina", "pasta base", "arma", "armas"),
-        *("municion", "fuegos artificiales", "tabaco", "cigarro", "cigarros", "cigarrillo", "cigarrillos", "vape"),
+        *ILLEGAL_DRUG_WORDS,
+        *("alcohol", "arma", "armas", "municion", "fuegos artificiales", "tabaco", "cigarro", "cigarros"),
+        *("cigarrillo", "cigarrillos", "vape"),
     }
 )
 _WHIM_BLOCKED = KeywordMatcher(("bloqueada", word) for word in WHIM_BLOCKED_WORDS)
+
+
+def mentions_illegal_drugs(text: str) -> bool:
+    """Si el texto nombra una droga ilegal (palabra entera, con su plural): no se busca."""
+    return _ILLEGAL_DRUGS.best(text) is not None
 
 
 def whim_allowed(text: str) -> bool:
