@@ -22,6 +22,10 @@ const POPULAR_COUNT = 6
 // Productos que se ven de cada vertical; "Ver más" muestra el resto de lo que trajo la API.
 const GROUP_PREVIEW = 3
 const NO_RESULT_ORIGIN = 'agent-sin_resultado'
+// El mismo texto que Mochi (rappi-ia, safety.py: CRISIS_TEXT).
+export const CRISIS_TEXT =
+  'Si estás pasando por un momento difícil, no estás solo ni sola 🧡. Llama gratis al *4141, la Línea de ' +
+  'Prevención del Suicidio del Minsal (todos los días, a toda hora). Si es una emergencia, llama al SAMU (131).'
 const WHIM_ORIGIN = 'lo-que-sea'
 // Tiendas o restaurantes que se ven de cada bloque; "Ver todos" muestra el resto.
 const PLACES_PREVIEW = 3
@@ -151,6 +155,14 @@ export function SearchResults({
           {filtered}
         </>
       )
+    // La API no buscó (rappi-ia, safety.py): con quitarse la vida, la línea *4141; con lo demás que detuvo, nada.
+    if (data.unmetReason === 'crisis')
+      return (
+        <p className="search-empty" role="status">
+          {CRISIS_TEXT}
+        </p>
+      )
+    if (data.unmetReason === 'bloqueado') return <p className="search-empty">Eso no lo busco.</p>
     const whim = data.whimAllowed && onOpenFavor && (
       <WhimOffer key={`whim|${text}`} query={text} requestId={data.requestId} onOpenFavor={onOpenFavor} />
     )
